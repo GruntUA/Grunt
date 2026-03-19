@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   size?: 'sm' | 'md' | 'lg'
 }>(), {
   size: 'md'

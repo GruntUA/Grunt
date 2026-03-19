@@ -41,7 +41,7 @@ export interface ColumnInfo {
   label: string
 }
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   columns: ColumnInfo[]
   data: any[]
   trackBy?: string

@@ -19,9 +19,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+// removed unused computed import
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   type?: 'button' | 'submit' | 'reset'
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
   disabled?: boolean

@@ -17,7 +17,7 @@
       <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
           <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-            <template v-if="data?.data?.length > 0">
+            <template v-if="data?.data && data.data.length > 0">
               <table class="min-w-full divide-y divide-gray-300">
                 <thead class="bg-gray-50">
                   <tr>
@@ -29,7 +29,7 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 bg-white">
-                  <tr v-for="item in data.data" :key="item.id">
+                  <tr v-for="item in data?.data" :key="item.id">
                     <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">{{ item.name || item.id }}</td>
                     <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ new Date(item.created_at).toLocaleString() }}</td>
                     <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

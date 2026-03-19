@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   color?: 'gray' | 'red' | 'yellow' | 'green' | 'blue'
 }>(), {
   color: 'gray'

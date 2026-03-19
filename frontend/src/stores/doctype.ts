@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+// removed unused ref import
 import { useQuery } from '@tanstack/vue-query'
 import { api } from '../core/api'
 import type { DocType } from '../types'
