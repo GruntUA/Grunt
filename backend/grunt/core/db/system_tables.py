@@ -87,6 +87,27 @@ class GruntInstalledApp(Base):
     )
 
 
+class GruntPage(Base):
+    """Custom page registrations from installed apps."""
+
+    __tablename__ = "grunt_page"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    route: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    icon: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    component: Mapped[str] = mapped_column(String(255), nullable=False)
+    app: Mapped[str] = mapped_column(String(100), nullable=False)
+    sidebar_section: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    sidebar_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_default_home: Mapped[bool] = mapped_column(Integer, nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
 class GruntReport(Base):
     """Stored report definitions."""
 

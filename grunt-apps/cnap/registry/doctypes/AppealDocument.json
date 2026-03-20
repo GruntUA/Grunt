@@ -1,0 +1,18 @@
+{
+  "name": "AppealDocument",
+  "label": "Документ звернення",
+  "module": "registry",
+  "is_child": true,
+  "fields": [
+    {"fieldname": "document_type", "label": "Тип документа",
+     "fieldtype": "Select",
+     "options": "Заява\nПаспорт\nІПН\nДовіреність\nДовідка\nІнше",
+     "required": true},
+    {"fieldname": "document_name", "label": "Назва",
+     "fieldtype": "Text", "required": true},
+    {"fieldname": "file", "label": "Файл",
+     "fieldtype": "Attach"},
+    {"fieldname": "notes", "label": "Примітки",
+     "fieldtype": "Text"}
+  ]
+}

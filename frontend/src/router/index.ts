@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { resolvePageComponent } from '@/core/pages/registry'
+import type { AppPage } from '@/core/api/pages'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -45,6 +47,7 @@ const router = createRouter({
     },
     {
       path: '/',
+      name: 'desk',
       component: () => import('@/pages/desk/DeskLayout.vue'),
       children: [
         {
@@ -86,11 +89,57 @@ const router = createRouter({
   ],
 })
 
+// ── Dynamic app pages ───────────────────────────────────────────────────
+let pagesLoaded = false
+
+async function loadAppPages(): Promise<void> {
+  if (pagesLoaded) return
+  pagesLoaded = true
+
+  try {
+    const { fetchPages } = await import('@/core/api/pages')
+    const pages: AppPage[] = await fetchPages()
+
+    for (const page of pages) {
+      const loader = resolvePageComponent(page.component)
+      if (!loader) continue
+
+      const routePath = page.route.startsWith('/') ? page.route.slice(1) : page.route
+      router.addRoute('desk', {
+        path: routePath,
+        name: `app-page-${page.route}`,
+        component: loader as () => Promise<{ default: unknown }>,
+        meta: { appPage: true, pageTitle: page.title },
+      })
+    }
+
+    // Check if any page is_default_home — redirect '/' to it
+    const defaultPage = pages.find((p) => p.is_default_home)
+    if (defaultPage) {
+      router.addRoute('desk', {
+        path: '',
+        name: 'home',
+        redirect: defaultPage.route,
+      })
+    }
+  } catch {
+    // Pages are optional — app works without them
+  }
+}
+
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
   if (to.meta.public) return true
   if (!auth.isLoggedIn) return { name: 'login' }
   if (!auth.user) await auth.fetchMe()
+
+  // Load dynamic pages once after auth
+  if (!pagesLoaded) {
+    await loadAppPages()
+    // Re-resolve the current route with new dynamic routes
+    return to.fullPath
+  }
+
   return true
 })
 

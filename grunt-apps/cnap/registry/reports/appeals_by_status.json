@@ -1,0 +1,15 @@
+{
+  "report_name": "appeals_by_status",
+  "title": "Звернення по статусах",
+  "report_type": "Query Report",
+  "columns": [
+    {"fieldname": "status",  "label": "Статус",    "fieldtype": "Text",  "width": 150},
+    {"fieldname": "count",   "label": "Кількість", "fieldtype": "Int",   "width": 100},
+    {"fieldname": "pct",     "label": "%",         "fieldtype": "Float", "width": 80}
+  ],
+  "filters": [
+    {"fieldname": "date_from", "label": "Від",    "fieldtype": "Date"},
+    {"fieldname": "date_to",   "label": "До",     "fieldtype": "Date"}
+  ],
+  "query": "SELECT status, COUNT(*) as count, ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 1) as pct FROM grunt_registry_appeal GROUP BY status ORDER BY count DESC"
+}

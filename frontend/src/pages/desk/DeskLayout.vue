@@ -1,16 +1,32 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { RouterView, RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useDocTypeStore } from '@/stores/doctype'
+import { usePageStore } from '@/stores/pages'
 import GSpinner from '@/components/ui/GSpinner.vue'
 
 const auth = useAuthStore()
 const dtStore = useDocTypeStore()
+const pageStore = usePageStore()
 const router = useRouter()
 const route = useRoute()
 
-onMounted(() => dtStore.loadAll())
+onMounted(() => {
+  dtStore.loadAll()
+  pageStore.loadAll()
+})
+
+// Group app pages by sidebar_section
+const sidebarSections = computed(() => {
+  const sections: Record<string, typeof pageStore.pages> = {}
+  for (const page of pageStore.pages) {
+    const section = page.sidebar_section || 'Додаток'
+    if (!sections[section]) sections[section] = []
+    sections[section].push(page)
+  }
+  return sections
+})
 
 function logout() {
   auth.logout()
@@ -43,6 +59,26 @@ function logout() {
         >
           <span>📊</span> Звіти
         </RouterLink>
+
+        <!-- App pages (dynamic from installed apps) -->
+        <template v-for="(pages, section) in sidebarSections" :key="section">
+          <hr class="border-[--grunt-border] my-2" />
+          <p class="px-3 py-1 text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wider">{{ section }}</p>
+          <RouterLink
+            v-for="page in pages"
+            :key="page.route"
+            :to="page.route"
+            :class="[
+              'flex items-center gap-2 px-3 py-2 text-sm rounded-[--grunt-radius-sm] mb-0.5 transition-colors',
+              route.path === page.route
+                ? 'bg-[--grunt-primary-light] text-[--grunt-primary] font-medium'
+                : 'text-[--grunt-text-secondary] hover:bg-[--grunt-surface-secondary]'
+            ]"
+          >
+            <span v-if="page.icon">{{ page.icon }}</span>
+            {{ page.title }}
+          </RouterLink>
+        </template>
 
         <hr class="border-[--grunt-border] my-2" />
 

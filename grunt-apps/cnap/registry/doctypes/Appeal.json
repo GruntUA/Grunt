@@ -1,0 +1,137 @@
+{
+  "name": "Appeal",
+  "label": "Звернення",
+  "module": "registry",
+  "title_field": "appeal_number",
+  "is_submittable": true,
+  "track_changes": true,
+  "autoname": "ЗВЕР-.YYYY.-.####",
+  "search_fields": ["appeal_number", "applicant_name", "service_name"],
+  "list_view": {
+    "fields": ["appeal_number", "applicant_name", "service_name", "status", "received_date", "deadline_date"],
+    "sort_by": "received_date",
+    "sort_order": "desc"
+  },
+  "kanban_view": {
+    "column_field": "status",
+    "title_field": "appeal_number",
+    "color_field": "priority"
+  },
+  "workflow": {
+    "state_field": "status",
+    "states": [
+      {"name": "Нове",          "label": "Нове",          "color": "blue",   "is_initial": true},
+      {"name": "В роботі",      "label": "В роботі",      "color": "yellow"},
+      {"name": "На погодженні", "label": "На погодженні", "color": "purple"},
+      {"name": "Виконано",      "label": "Виконано",      "color": "green",  "is_final": true},
+      {"name": "Відмовлено",    "label": "Відмовлено",    "color": "red",    "is_final": true},
+      {"name": "Скасовано",     "label": "Скасовано",     "color": "gray",   "is_final": true}
+    ],
+    "transitions": [
+      {"from_state": "Нове",          "to_state": "В роботі",      "action": "Взяти в роботу",
+       "allowed_roles": ["ЦНАП Оператор", "ЦНАП Керівник"]},
+      {"from_state": "В роботі",      "to_state": "На погодженні", "action": "Надіслати на погодження",
+       "allowed_roles": ["ЦНАП Оператор"]},
+      {"from_state": "На погодженні", "to_state": "Виконано",      "action": "Погодити і видати",
+       "allowed_roles": ["ЦНАП Керівник"]},
+      {"from_state": "На погодженні", "to_state": "В роботі",      "action": "Повернути на доопрацювання",
+       "allowed_roles": ["ЦНАП Керівник"]},
+      {"from_state": "В роботі",      "to_state": "Відмовлено",    "action": "Відмовити",
+       "allowed_roles": ["ЦНАП Керівник"],
+       "condition": "doc.refusal_reason is not None and len(doc.refusal_reason or '') > 10"},
+      {"from_state": "Нове",          "to_state": "Скасовано",     "action": "Скасувати",
+       "allowed_roles": ["ЦНАП Оператор", "ЦНАП Керівник"]}
+    ]
+  },
+  "print_formats": [{"name": "Картка звернення", "template": "appeal_print.html"}],
+  "fields": [
+    {"fieldname": "section_main", "label": "Основна інформація", "fieldtype": "Section"},
+
+    {"fieldname": "appeal_number", "label": "Номер звернення",
+     "fieldtype": "Text", "read_only": true, "in_list_view": true, "bold": true},
+
+    {"fieldname": "status", "label": "Статус",
+     "fieldtype": "Select",
+     "options": "Нове\nВ роботі\nНа погодженні\nВиконано\nВідмовлено\nСкасовано",
+     "default": "Нове", "read_only": true, "in_list_view": true, "in_filter": true},
+
+    {"fieldname": "priority", "label": "Пріоритет",
+     "fieldtype": "Select",
+     "options": "Звичайний\nПідвищений\nТерміновий",
+     "default": "Звичайний", "in_list_view": true, "in_filter": true},
+
+    {"fieldname": "col_1", "fieldtype": "Column", "label": ""},
+
+    {"fieldname": "received_date", "label": "Дата прийому",
+     "fieldtype": "Date", "required": true, "in_list_view": true},
+
+    {"fieldname": "deadline_date", "label": "Кінцевий строк",
+     "fieldtype": "Date", "read_only": true, "in_list_view": true},
+
+    {"fieldname": "section_applicant", "label": "Заявник", "fieldtype": "Section"},
+
+    {"fieldname": "applicant", "label": "Заявник",
+     "fieldtype": "Link", "options": "Applicant", "in_list_view": false},
+
+    {"fieldname": "applicant_name", "label": "ПІБ заявника",
+     "fieldtype": "Text", "required": true, "in_list_view": true},
+
+    {"fieldname": "col_2", "fieldtype": "Column", "label": ""},
+
+    {"fieldname": "applicant_phone", "label": "Телефон",
+     "fieldtype": "Text"},
+
+    {"fieldname": "applicant_email", "label": "Email",
+     "fieldtype": "Text"},
+
+    {"fieldname": "section_service", "label": "Послуга", "fieldtype": "Section"},
+
+    {"fieldname": "service", "label": "Послуга",
+     "fieldtype": "Link", "options": "AdminService",
+     "required": true, "in_filter": true},
+
+    {"fieldname": "service_name", "label": "Назва послуги",
+     "fieldtype": "Text", "read_only": true, "in_list_view": true},
+
+    {"fieldname": "col_3", "fieldtype": "Column", "label": ""},
+
+    {"fieldname": "operator", "label": "Відповідальний оператор",
+     "fieldtype": "Text", "in_filter": true},
+
+    {"fieldname": "reception_channel", "label": "Канал прийому",
+     "fieldtype": "Select",
+     "options": "Особисто\nЕлектронно\nПоштою\nТелефоном",
+     "default": "Особисто", "in_filter": true},
+
+    {"fieldname": "section_content", "label": "Зміст звернення", "fieldtype": "Section"},
+
+    {"fieldname": "appeal_text", "label": "Текст звернення",
+     "fieldtype": "RichText", "required": true},
+
+    {"fieldname": "section_documents", "label": "Документи", "fieldtype": "Section"},
+
+    {"fieldname": "attached_documents", "label": "Додані документи",
+     "fieldtype": "Table", "options": "AppealDocument"},
+
+    {"fieldname": "section_result", "label": "Результат",
+     "fieldtype": "Section", "collapsible": true},
+
+    {"fieldname": "resolution", "label": "Резолюція / Рішення",
+     "fieldtype": "RichText",
+     "depends_on": "eval: ['В роботі','На погодженні','Виконано','Відмовлено'].includes(doc.status)"},
+
+    {"fieldname": "refusal_reason", "label": "Підстава відмови",
+     "fieldtype": "LongText",
+     "depends_on": "eval: doc.status === 'Відмовлено' || doc.status === 'В роботі'"},
+
+    {"fieldname": "result_document", "label": "Вихідний документ",
+     "fieldtype": "Attach",
+     "depends_on": "eval: doc.status === 'Виконано'"}
+  ],
+  "permissions": [
+    {"role": "ЦНАП Оператор",
+     "read": true, "write": true, "create": true},
+    {"role": "ЦНАП Керівник",
+     "read": true, "write": true, "create": true, "delete": true, "submit": true}
+  ]
+}

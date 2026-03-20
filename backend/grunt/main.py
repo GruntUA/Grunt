@@ -39,6 +39,27 @@ async def lifespan(app: FastAPI):
     async with AsyncSessionLocal() as session:
         await doctype_registry.load_all(session)
 
+    # Load hooks from installed apps
+    import importlib  # noqa: PLC0415
+    from pathlib import Path  # noqa: PLC0415
+
+    apps_dir = Path("grunt-apps")
+    if apps_dir.exists():
+        import sys  # noqa: PLC0415
+
+        # Add project root to sys.path so grunt-apps is importable
+        project_root = str(Path.cwd())
+        if project_root not in sys.path:
+            sys.path.insert(0, project_root)
+
+        for app_hooks in apps_dir.glob("*/*/hooks.py"):
+            module_path = str(app_hooks).replace("/", ".").replace("\\", ".").removesuffix(".py")
+            try:
+                importlib.import_module(module_path)
+                logger.info("hooks.loaded", module=module_path)
+            except Exception as e:
+                logger.warning("hooks.load_error", module=module_path, error=str(e))
+
     yield
 
     # ── Shutdown ─────────────────────────────────────────────────────

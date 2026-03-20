@@ -313,7 +313,17 @@ async def print_document(
             headers={"Content-Disposition": f'attachment; filename="{doctype}_{doc_id[:8]}.xlsx"'},
         )
     elif fmt in ("pdf", "html"):
-        html = _generate_html_single(dt, doc)
+        # Try custom Jinja2 template first
+        html = None
+        if hasattr(dt, "print_formats") and dt.print_formats:
+            try:
+                from grunt.core.print.renderer import render_template  # noqa: PLC0415
+                tpl_name = dt.print_formats[0].get("template") if isinstance(dt.print_formats[0], dict) else dt.print_formats[0].template
+                html = render_template(tpl_name, doc)
+            except Exception:
+                pass  # Fall back to generic template
+        if html is None:
+            html = _generate_html_single(dt, doc)
         if fmt == "html":
             return Response(content=html, media_type="text/html")
         try:

@@ -21,6 +21,7 @@ from grunt.core.metadata.compiler import compile_doctype_to_table, get_table_nam
 from grunt.core.metadata.doctype import DocType
 from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.core.metadata.registry import doctype_registry
+from grunt.core.hooks import fire
 
 logger = structlog.get_logger()
 
@@ -146,10 +147,14 @@ class DocumentService:
             elif field.default is not None:
                 row[field.fieldname] = field.default
 
+        await fire("before_save", doctype=doctype_name, doc=row, user=user, session=self.session)
+
         await self.session.execute(table.insert().values(**row))
         await self.session.flush()
 
         logger.info("document.created", doctype=doctype_name, id=doc_id)
+
+        await fire("after_save", doctype=doctype_name, doc=row, user=user, session=self.session)
 
         # Serialise datetimes for response
         for k, v in row.items():
@@ -221,13 +226,19 @@ class DocumentService:
         update_data["modified_by"] = user.email
 
         real_id = existing["id"]
+        merged = {**existing, **update_data}
+        await fire("before_save", doctype=doctype_name, doc=merged, user=user, session=self.session)
+
         await self.session.execute(
             table.update().where(table.c.id == real_id).values(**update_data)
         )
         await self.session.flush()
 
         logger.info("document.updated", doctype=doctype_name, id=real_id)
-        return await self.get_document(doctype_name, real_id, user)
+
+        result = await self.get_document(doctype_name, real_id, user)
+        await fire("after_save", doctype=doctype_name, doc=result, user=user, session=self.session)
+        return result
 
     # ── Delete ────────────────────────────────────────────────────────────
 
@@ -249,9 +260,13 @@ class DocumentService:
             )
 
         real_id = existing["id"]
+        await fire("before_delete", doctype=doctype_name, doc=existing, user=user, session=self.session)
+
         await self.session.execute(table.delete().where(table.c.id == real_id))
         await self.session.flush()
         logger.info("document.deleted", doctype=doctype_name, id=real_id)
+
+        await fire("after_delete", doctype=doctype_name, doc_id=real_id, user=user, session=self.session)
 
     # ── Validation ────────────────────────────────────────────────────────
 

@@ -1,0 +1,54 @@
+{
+  "name": "Applicant",
+  "label": "Заявник",
+  "module": "registry",
+  "title_field": "full_name",
+  "search_fields": ["full_name", "tax_id", "phone"],
+  "fields": [
+    {"fieldname": "section_personal", "label": "Персональні дані",
+     "fieldtype": "Section"},
+
+    {"fieldname": "applicant_type", "label": "Тип заявника",
+     "fieldtype": "Select",
+     "options": "Фізична особа\nФізична особа-підприємець\nЮридична особа",
+     "default": "Фізична особа", "required": true, "in_list_view": true, "in_filter": true},
+
+    {"fieldname": "full_name", "label": "ПІБ / Назва організації",
+     "fieldtype": "Text", "required": true, "in_list_view": true},
+
+    {"fieldname": "col_1", "label": "", "fieldtype": "Column"},
+
+    {"fieldname": "tax_id", "label": "РНОКПП / ЄДРПОУ",
+     "fieldtype": "Text", "unique": true, "in_list_view": true, "in_filter": true},
+
+    {"fieldname": "passport", "label": "Серія та номер паспорта",
+     "fieldtype": "Text"},
+
+    {"fieldname": "section_contact", "label": "Контактна інформація",
+     "fieldtype": "Section"},
+
+    {"fieldname": "phone", "label": "Телефон",
+     "fieldtype": "Text", "required": true},
+
+    {"fieldname": "email", "label": "Електронна пошта",
+     "fieldtype": "Text"},
+
+    {"fieldname": "col_2", "label": "", "fieldtype": "Column"},
+
+    {"fieldname": "address", "label": "Адреса реєстрації",
+     "fieldtype": "Text"},
+
+    {"fieldname": "postal_code", "label": "Поштовий індекс",
+     "fieldtype": "Text", "max_length": 5},
+
+    {"fieldname": "section_notes", "label": "Додатково",
+     "fieldtype": "Section", "collapsible": true},
+
+    {"fieldname": "notes", "label": "Примітки",
+     "fieldtype": "LongText"}
+  ],
+  "permissions": [
+    {"role": "ЦНАП Оператор", "read": true, "write": true, "create": true},
+    {"role": "ЦНАП Керівник", "read": true, "write": true, "create": true, "delete": true}
+  ]
+}

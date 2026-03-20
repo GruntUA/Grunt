@@ -101,6 +101,25 @@ class WorkflowEngine:
                 .values({state_field: transition.to_state, "modified_at": now})
             )
 
+        # Fire on_transition hooks
+        from grunt.core.hooks import fire as fire_hook  # noqa: PLC0415
+        try:
+            async with engine.connect() as conn:
+                result = await conn.execute(select(table).where(table.c.id == doc_id))
+                updated_doc = dict(result.mappings().first())  # type: ignore[arg-type]
+            await fire_hook(
+                "on_transition",
+                doctype=doctype.name,
+                doc=updated_doc,
+                from_state=doc.get(state_field),
+                to_state=transition.to_state,
+                action=action,
+                user=user,
+                session=session,
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("hook.on_transition_error")
+
         # Log activity
         try:
             await self._log_activity(
