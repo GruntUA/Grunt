@@ -9,6 +9,8 @@ from grunt.api.v1.ws import router as ws_router
 from grunt.api.v1.apps import router as apps_router
 from grunt.api.v1.reports import router as reports_router
 from grunt.api.v1.pages import router as pages_router
+from grunt.api.v1.workspace import router as workspace_router
+from grunt.api.v1.search import router as search_router
 
 v1_router = APIRouter()
 
@@ -19,3 +21,5 @@ v1_router.include_router(ws_router, tags=["websocket"])
 v1_router.include_router(apps_router, prefix="/apps", tags=["apps"])
 v1_router.include_router(reports_router, prefix="/reports", tags=["reports"])
 v1_router.include_router(pages_router, prefix="/pages", tags=["pages"])
+v1_router.include_router(workspace_router, prefix="/workspaces", tags=["workspaces"])
+v1_router.include_router(search_router, tags=["search"])

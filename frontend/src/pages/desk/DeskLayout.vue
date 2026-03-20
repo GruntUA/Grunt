@@ -106,6 +106,12 @@ function logout() {
           <span>🔧</span> App Studio
         </RouterLink>
         <RouterLink
+          to="/studio/workspaces"
+          class="flex items-center gap-2 px-3 py-2 text-sm rounded-[--grunt-radius-sm] text-[--grunt-text-secondary] hover:bg-[--grunt-surface-secondary] transition-colors"
+        >
+          <span>🗂</span> Воркспейси
+        </RouterLink>
+        <RouterLink
           to="/studio/users"
           class="flex items-center gap-2 px-3 py-2 text-sm rounded-[--grunt-radius-sm] text-[--grunt-text-secondary] hover:bg-[--grunt-surface-secondary] transition-colors"
         >

@@ -8,8 +8,8 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, JSON, String, Text, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, JSON, String, Text, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from grunt.core.db.base import Base
 
@@ -126,3 +126,66 @@ class GruntReport(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+# ── Workspace ────────────────────────────────────────────────────────────────
+
+
+class GruntWorkspace(Base):
+    """Workspace — groups sidebar links for an installed app or custom section."""
+
+    __tablename__ = "grunt_workspace"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    name: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
+    label: Mapped[str] = mapped_column(String(255), nullable=False)
+    app: Mapped[str] = mapped_column(String(100), nullable=False, default="")
+    icon: Mapped[str] = mapped_column(String(50), nullable=False, default="📁")
+    color: Mapped[str] = mapped_column(String(20), nullable=False, default="#2D6A4F")
+    description: Mapped[str] = mapped_column(String(500), nullable=False, default="")
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_hidden: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    roles: Mapped[str] = mapped_column(String(1000), nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    modified_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    items: Mapped[list[GruntWorkspaceLink]] = relationship(
+        back_populates="workspace",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        order_by="GruntWorkspaceLink.sequence",
+    )
+
+
+class GruntWorkspaceLink(Base):
+    """Navigation item inside a workspace sidebar."""
+
+    __tablename__ = "grunt_workspace_link"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    workspace_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("grunt_workspace.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    section: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+    type: Mapped[str] = mapped_column(String(50), nullable=False, default="DocType")
+    label: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+    icon: Mapped[str] = mapped_column(String(50), nullable=False, default="")
+    link_to: Mapped[str] = mapped_column(String(500), nullable=False, default="")
+    show_count: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    count_filters: Mapped[str] = mapped_column(String(1000), nullable=False, default="")
+    show_new_btn: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    roles: Mapped[str] = mapped_column(String(1000), nullable=False, default="")
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    workspace: Mapped[GruntWorkspace] = relationship(back_populates="items")

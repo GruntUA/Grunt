@@ -1,0 +1,57 @@
+<script setup lang="ts">
+import { ref, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useWorkspaceStore } from '@/stores/workspace'
+import WorkspaceSidebar from '@/components/workspace/WorkspaceSidebar.vue'
+
+const props = defineProps<{ workspaceName: string }>()
+const wsStore = useWorkspaceStore()
+const route = useRoute()
+
+const sidebarRef = ref<InstanceType<typeof WorkspaceSidebar> | null>(null)
+const contentKey = ref(0)
+
+async function loadWorkspace(name: string) {
+  await wsStore.setActive(name)
+  contentKey.value++
+}
+
+onMounted(() => loadWorkspace(props.workspaceName))
+
+watch(() => props.workspaceName, (name) => {
+  loadWorkspace(name)
+})
+</script>
+
+<template>
+  <div class="flex h-screen overflow-hidden bg-[--grunt-surface-secondary]">
+    <!-- Mobile hamburger -->
+    <button
+      class="fixed top-3 left-3 z-30 p-2 rounded-[--grunt-radius-sm] bg-[--grunt-surface] border border-[--grunt-border] shadow-sm md:hidden"
+      @click="sidebarRef && (sidebarRef.mobileOpen = true)"
+    >☰</button>
+
+    <WorkspaceSidebar
+      ref="sidebarRef"
+      :workspace-name="workspaceName"
+    />
+
+    <!-- Main content -->
+    <main class="flex-1 overflow-y-auto">
+      <Transition name="fade" mode="out-in">
+        <RouterView :key="route.fullPath" />
+      </Transition>
+    </main>
+  </div>
+</template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 150ms ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

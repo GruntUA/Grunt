@@ -12,7 +12,7 @@ import GModal from '@/components/ui/GModal.vue'
 import FilterBar from '@/components/views/FilterBar.vue'
 import KanbanView from '@/components/views/KanbanView.vue'
 
-const props = defineProps<{ doctype: string }>()
+const props = defineProps<{ doctype: string; workspace?: string }>()
 const router = useRouter()
 const dtStore = useDocTypeStore()
 const queryClient = useQueryClient()
@@ -159,7 +159,7 @@ function onFiltersChange(f: Record<string, string>) {
           class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-[--grunt-radius-sm] border border-[--grunt-border] text-[--grunt-text-secondary] hover:bg-[--grunt-surface-secondary] transition-colors"
           download
         >↓ Excel</a>
-        <GButton @click="router.push(`/${doctype}/new`)">+ Новий</GButton>
+        <GButton @click="router.push(props.workspace ? `/${props.workspace}/list/${doctype}/new` : `/${doctype}/new`)">+ Новий</GButton>
       </div>
     </div>
 
@@ -243,7 +243,7 @@ function onFiltersChange(f: Record<string, string>) {
               v-for="col in visibleColumns"
               :key="col.key"
               class="px-3 py-2.5 text-[--grunt-text-primary]"
-              @click="router.push(`/${doctype}/${row.id}`)"
+              @click="router.push(props.workspace ? `/${props.workspace}/list/${doctype}/${row.id}` : `/${doctype}/${row.id}`)"
             >{{ formatCell(row[col.key]) }}</td>
           </tr>
           <tr v-if="!rows.length && !isLoading">

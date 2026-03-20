@@ -21,7 +21,7 @@ interface ActivityEntry {
   created_at: string | null
 }
 
-const props = defineProps<{ doctype: string; id: string | null }>()
+const props = defineProps<{ doctype: string; id: string | null; workspace?: string }>()
 const router = useRouter()
 const dtStore = useDocTypeStore()
 const toast = useToast()
@@ -114,7 +114,7 @@ async function handleDelete() {
   try {
     await remove()
     toast.success('Видалено')
-    router.push(`/${props.doctype}`)
+    router.push(props.workspace ? `/${props.workspace}/list/${props.doctype}` : `/${props.doctype}`)
   } catch {
     toast.error('Помилка видалення')
   }
@@ -145,7 +145,7 @@ function confirmLeave() {
   <div class="p-8 max-w-3xl">
     <!-- Breadcrumb -->
     <div class="flex items-center gap-2 text-sm text-[--grunt-text-secondary] mb-6">
-      <button class="hover:text-[--grunt-primary]" @click="router.push(`/${doctype}`)">
+      <button class="hover:text-[--grunt-primary]" @click="router.push(workspace ? `/${workspace}/list/${doctype}` : `/${doctype}`)">
         {{ dt?.label ?? doctype }}
       </button>
       <span>/</span>
