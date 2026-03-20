@@ -1,24 +1,20 @@
-<template>
-  <span :class="[
-    'inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset',
-    colorClasses[color] || colorClasses.gray
-  ]">
-    <slot></slot>
-  </span>
-</template>
-
 <script setup lang="ts">
 withDefaults(defineProps<{
-  color?: 'gray' | 'red' | 'yellow' | 'green' | 'blue'
-}>(), {
-  color: 'gray'
-})
+  label: string
+  color?: 'gray' | 'green' | 'blue' | 'yellow' | 'red'
+}>(), { color: 'gray' })
 
-const colorClasses = {
-  gray: 'bg-gray-50 text-gray-600 ring-gray-500/10',
-  red: 'bg-red-50 text-red-700 ring-red-600/10',
-  yellow: 'bg-yellow-50 text-yellow-800 ring-yellow-600/20',
-  green: 'bg-green-50 text-green-700 ring-green-600/20',
-  blue: 'bg-blue-50 text-blue-700 ring-blue-700/10'
+const colorClass = {
+  gray:   'bg-gray-100 text-gray-700',
+  green:  'bg-[--grunt-primary-light] text-[--grunt-primary]',
+  blue:   'bg-blue-50 text-blue-700',
+  yellow: 'bg-yellow-50 text-yellow-700',
+  red:    'bg-red-50 text-[--grunt-danger]',
 }
 </script>
+
+<template>
+  <span :class="['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium', colorClass[color]]">
+    {{ label }}
+  </span>
+</template>

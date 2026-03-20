@@ -1,7 +1,5 @@
-import { metaApi } from './meta'
-import { docsApi } from './docs'
-
-export const api = {
-    meta: metaApi,
-    docs: docsApi,
-}
+export { metaApi } from './meta'
+export { docsApi } from './docs'
+export { reportsApi } from './reports'
+export { authAdminApi } from './auth-admin'
+export { default as client } from './client'

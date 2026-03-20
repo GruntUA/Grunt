@@ -1,28 +1,30 @@
 import axios from 'axios'
+import type { AxiosInstance } from 'axios'
 
-export const apiClient = axios.create({
-    baseURL: '/api/v1',
-    headers: {
-        'Content-Type': 'application/json',
-    },
+const client: AxiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000',
+  timeout: 30_000,
 })
 
-apiClient.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token')
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
+// Request interceptor: додає Authorization header
+client.interceptors.request.use((config) => {
+  const token = localStorage.getItem('grunt_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
 })
 
-apiClient.interceptors.response.use(
-    (response) => response.data,
-    (error) => {
-        // Handle global errors, e.g. 401 Unauthorized
-        if (error.response?.status === 401) {
-            localStorage.removeItem('token')
-            window.location.href = '/login'
-        }
-        return Promise.reject(error)
+// Response interceptor: 401 → redirect /login
+client.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('grunt_token')
+      window.location.href = '/login'
     }
+    return Promise.reject(error)
+  }
 )
+
+export default client

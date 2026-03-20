@@ -18,6 +18,11 @@ from grunt.core.metadata.registry import doctype_registry
 import grunt.core.db.system_tables  # noqa: F401
 import grunt.core.auth.models  # noqa: F401
 
+# Phase 3 modules (imported for side-effects: table registration)
+# workflow, permissions, reports engines are imported on-demand in endpoints
+
+from grunt.core.middleware.security import SecurityHeadersMiddleware  # noqa: E402
+
 logger = structlog.get_logger()
 
 
@@ -49,6 +54,8 @@ app = FastAPI(
     redoc_url="/api/redoc",
 )
 
+app.add_middleware(SecurityHeadersMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
@@ -56,6 +63,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Optional: rate limiting via slowapi
+try:
+    from slowapi import _rate_limit_exceeded_handler  # noqa: PLC0415
+    from slowapi.errors import RateLimitExceeded  # noqa: PLC0415
+    from grunt.core.middleware.rate_limit import limiter  # noqa: PLC0415
+
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+except ImportError:
+    pass  # slowapi not installed — rate limiting disabled
 
 app.include_router(v1_router, prefix="/api/v1")
 

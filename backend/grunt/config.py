@@ -30,7 +30,10 @@ class Settings(BaseSettings):
     max_upload_size_mb: int = 50
 
     # CORS
-    allowed_origins: list[str] = ["http://localhost:5173"]
+    allowed_origins: list[str] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
 
     # Localization
     default_locale: str = "uk"

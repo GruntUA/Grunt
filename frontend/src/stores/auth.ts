@@ -1,42 +1,42 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { apiClient } from '../core/api/client'
-// removed unused useRouter import
+import { ref, computed } from 'vue'
+import client from '@/core/api/client'
+
+interface User {
+  id: string
+  email: string
+  full_name: string
+  roles: string[]
+  is_superadmin: boolean
+}
 
 export const useAuthStore = defineStore('auth', () => {
-    const token = ref<string | null>(localStorage.getItem('token'))
-    const user = ref<any | null>(null)
+  const token = ref<string | null>(localStorage.getItem('grunt_token'))
+  const user = ref<User | null>(null)
 
-    const login = async (credentials: any) => {
-        // We send form data according to OAuth2 validation
-        const formData = new URLSearchParams()
-        formData.append('username', credentials.email)
-        formData.append('password', credentials.password)
+  const isLoggedIn = computed(() => !!token.value)
 
-        const response = await apiClient.post<any, any>('/auth/token', formData, {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        })
+  async function login(email: string, password: string) {
+    const form = new URLSearchParams({ username: email, password })
+    const { data } = await client.post('/api/v1/auth/token', form, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
+    token.value = data.access_token
+    localStorage.setItem('grunt_token', data.access_token)
+    user.value = data.user
+  }
 
-        token.value = response.access_token
-        localStorage.setItem('token', response.access_token)
-        await fetchUser()
-    }
+  async function fetchMe() {
+    if (!token.value) return
+    const { data } = await client.get('/api/v1/auth/me')
+    user.value = data.data
+  }
 
-    const fetchUser = async () => {
-        if (!token.value) return
-        try {
-            const response = await apiClient.get<any, any>('/auth/me')
-            user.value = response
-        } catch {
-            logout()
-        }
-    }
+  function logout() {
+    token.value = null
+    user.value = null
+    localStorage.removeItem('grunt_token')
+  }
 
-    const logout = () => {
-        token.value = null
-        user.value = null
-        localStorage.removeItem('token')
-    }
-
-    return { token, user, login, logout, fetchUser }
+  return { token, user, isLoggedIn, login, logout, fetchMe }
 })

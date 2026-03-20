@@ -1,7 +1,9 @@
-<template>
-  <router-view />
-</template>
-
 <script setup lang="ts">
-// Root App component
+import { RouterView } from 'vue-router'
+import GToast from '@/components/ui/GToast.vue'
 </script>
+
+<template>
+  <RouterView />
+  <GToast />
+</template>

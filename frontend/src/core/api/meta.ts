@@ -1,22 +1,27 @@
-import { apiClient } from './client'
-import type { DocType, StandardListResponse, DocTypeSyncResult, StandardResponse } from '../../types'
+import client from './client'
+import type { DocType, DocTypeSummary } from '@/types'
 
 export const metaApi = {
-    getDocTypes: () =>
-        apiClient.get<any, StandardListResponse<any>>('/meta/doctypes'),
+  list: (module?: string): Promise<DocTypeSummary[]> =>
+    client.get('/api/v1/meta/doctypes', { params: { module } })
+      .then(r => r.data),
 
-    getDocType: (name: string) =>
-        apiClient.get<any, StandardResponse<DocType>>(`/meta/doctypes/${name}`),
+  get: (name: string): Promise<DocType> =>
+    client.get(`/api/v1/meta/doctypes/${name}`)
+      .then(r => r.data),
 
-    createDocType: (doctype: any) =>
-        apiClient.post<any, StandardResponse<DocType>>('/meta/doctypes', doctype),
+  create: (dt: DocType): Promise<DocType> =>
+    client.post('/api/v1/meta/doctypes', dt)
+      .then(r => r.data),
 
-    updateDocType: (name: string, doctype: any) =>
-        apiClient.put<any, StandardResponse<DocType>>(`/meta/doctypes/${name}`, doctype),
+  update: (dt: DocType): Promise<DocType> =>
+    client.put(`/api/v1/meta/doctypes/${dt.name}`, dt)
+      .then(r => r.data),
 
-    deleteDocType: (name: string) =>
-        apiClient.delete<any, StandardResponse<null>>(`/meta/doctypes/${name}`),
+  delete: (name: string) =>
+    client.delete(`/api/v1/meta/doctypes/${name}`),
 
-    syncDocType: (name: string) =>
-        apiClient.post<any, StandardResponse<DocTypeSyncResult>>(`/meta/doctypes/${name}/sync`),
+  sync: (name: string) =>
+    client.post(`/api/v1/meta/doctypes/${name}/sync`)
+      .then(r => r.data),
 }

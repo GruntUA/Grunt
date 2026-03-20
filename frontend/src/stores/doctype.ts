@@ -1,25 +1,32 @@
 import { defineStore } from 'pinia'
-// removed unused ref import
-import { useQuery } from '@tanstack/vue-query'
-import { api } from '../core/api'
-import type { DocType } from '../types'
+import { ref } from 'vue'
+import { metaApi } from '@/core/api/meta'
+import type { DocType, DocTypeSummary } from '@/types'
 
 export const useDocTypeStore = defineStore('doctype', () => {
-    // Global cache of doctypes to populate sidebar and UI menus
-    const { data: docTypes, isLoading, refetch } = useQuery({
-        queryKey: ['doctypesList'],
-        queryFn: async () => {
-            const res = await api.meta.getDocTypes()
-            return res.data
-        },
-        staleTime: 5 * 60 * 1000 // 5 minutes cache
-    })
+  const doctypes = ref<DocTypeSummary[]>([])
+  const cache = ref<Map<string, DocType>>(new Map())
+  const loading = ref(false)
 
-    // Provide a method to get a single DocType details (fetches if needed)
-    const getDocTypeDetails = async (name: string): Promise<DocType> => {
-        const res = await api.meta.getDocType(name)
-        return res.data
+  async function loadAll() {
+    loading.value = true
+    try {
+      doctypes.value = await metaApi.list()
+    } finally {
+      loading.value = false
     }
+  }
 
-    return { docTypes, isLoading, refetch, getDocTypeDetails }
+  async function get(name: string): Promise<DocType> {
+    if (cache.value.has(name)) return cache.value.get(name)!
+    const dt = await metaApi.get(name)
+    cache.value.set(name, dt)
+    return dt
+  }
+
+  function invalidate(name: string) {
+    cache.value.delete(name)
+  }
+
+  return { doctypes, loading, loadAll, get, invalidate }
 })

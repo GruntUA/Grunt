@@ -8,7 +8,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, JSON, String, func
+from sqlalchemy import DateTime, Integer, JSON, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from grunt.core.db.base import Base
@@ -47,6 +47,61 @@ class GruntFile(Base):
     size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
     path: Mapped[str] = mapped_column(String(1000), nullable=False)
     uploaded_by: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class GruntLogActivity(Base):
+    """Activity log for workflow transitions and other document events."""
+
+    __tablename__ = "grunt_log_activity"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    doctype: Mapped[str] = mapped_column(String(255), nullable=False)
+    doc_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    action: Mapped[str] = mapped_column(String(100), nullable=False)
+    user: Mapped[str] = mapped_column(String(255), nullable=False)
+    details: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class GruntInstalledApp(Base):
+    """Registry of installed Grunt apps."""
+
+    __tablename__ = "grunt_meta_installed_app"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    version: Mapped[str] = mapped_column(String(50), nullable=False, default="0.1.0")
+    modules: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    installed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class GruntReport(Base):
+    """Stored report definitions."""
+
+    __tablename__ = "grunt_report"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    report_name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    report_type: Mapped[str] = mapped_column(String(50), nullable=False)  # Query|Script|List
+    doctype: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    query: Mapped[str | None] = mapped_column(Text, nullable=True)
+    script: Mapped[str | None] = mapped_column(Text, nullable=True)
+    columns: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    filters_config: Mapped[list | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
