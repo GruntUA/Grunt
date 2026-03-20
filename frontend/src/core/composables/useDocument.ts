@@ -28,6 +28,7 @@ export function useDocument(doctype: string, id: string | null) {
       : docsApi.create(doctype, form.value),
     onSuccess: (saved: GruntDocument) => {
       queryClient.setQueryData(['document', doctype, saved.id], saved)
+      form.value = { ...saved }
       queryClient.invalidateQueries({ queryKey: ['documents', doctype] })
     }
   })

@@ -61,6 +61,7 @@ function toggleLog() {
 const showDeleteModal = ref(false)
 const showLeaveModal = ref(false)
 let pendingNav: (() => void) | null = null
+let justSaved = false
 
 onMounted(async () => { dt.value = await dtStore.get(props.doctype) })
 
@@ -91,6 +92,7 @@ async function handleSave() {
     toast.success('Збережено')
     dtStore.invalidate(props.doctype)
     if (!props.id) {
+      justSaved = true
       router.replace(`/${props.doctype}/${(saved as { id: string }).id}`)
     }
   } catch (err: unknown) {
@@ -120,6 +122,10 @@ async function handleDelete() {
 }
 
 onBeforeRouteLeave((_to, _from, next) => {
+  if (justSaved) {
+    next()
+    return
+  }
   if (isDirty.value) {
     showLeaveModal.value = true
     pendingNav = () => next()
