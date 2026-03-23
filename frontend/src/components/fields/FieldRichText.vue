@@ -3,6 +3,22 @@ import { onBeforeUnmount, watch } from 'vue'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
+import { Toggle } from '@/components/ui/toggle'
+import { Separator } from '@/components/ui/separator'
+import {
+  Bold,
+  Italic,
+  Strikethrough,
+  Heading2,
+  Heading3,
+  List,
+  ListOrdered,
+  Quote,
+  Undo,
+  Redo,
+  Code,
+  Link as LinkIcon,
+} from 'lucide-vue-next'
 import type { DocField } from '@/types'
 
 const props = defineProps<{
@@ -35,35 +51,78 @@ watch(() => props.modelValue, (v) => {
 })
 
 onBeforeUnmount(() => editor.value?.destroy())
+
+function setLink() {
+  if (!editor.value) return
+  const url = window.prompt('URL')
+  if (url) {
+    editor.value.chain().focus().setLink({ href: url }).run()
+  }
+}
 </script>
 
 <template>
-  <div class="flex flex-col gap-1">
-    <label class="text-sm font-medium text-[--grunt-text-primary]">
-      {{ field.label }}<span v-if="field.required" class="text-[--grunt-danger] ml-0.5">*</span>
-    </label>
-
+  <div class="flex flex-col gap-1.5">
     <!-- Toolbar -->
-    <div v-if="editor" class="flex gap-1 p-1 border border-[--grunt-border] border-b-0 rounded-t-[--grunt-radius-sm] bg-[--grunt-surface-secondary] flex-wrap">
-      <button type="button" class="px-2 py-0.5 text-xs rounded hover:bg-[--grunt-border] transition-colors" :class="{ 'bg-[--grunt-border]': editor.isActive('bold') }" @click="editor.chain().focus().toggleBold().run()"><b>B</b></button>
-      <button type="button" class="px-2 py-0.5 text-xs rounded hover:bg-[--grunt-border] transition-colors" :class="{ 'bg-[--grunt-border]': editor.isActive('italic') }" @click="editor.chain().focus().toggleItalic().run()"><i>I</i></button>
-      <button type="button" class="px-2 py-0.5 text-xs rounded hover:bg-[--grunt-border] transition-colors" :class="{ 'bg-[--grunt-border]': editor.isActive('strike') }" @click="editor.chain().focus().toggleStrike().run()"><s>S</s></button>
-      <div class="w-px bg-[--grunt-border] mx-0.5" />
-      <button type="button" class="px-2 py-0.5 text-xs rounded hover:bg-[--grunt-border] transition-colors" :class="{ 'bg-[--grunt-border]': editor.isActive('heading', { level: 2 }) }" @click="editor.chain().focus().toggleHeading({ level: 2 }).run()">H2</button>
-      <button type="button" class="px-2 py-0.5 text-xs rounded hover:bg-[--grunt-border] transition-colors" :class="{ 'bg-[--grunt-border]': editor.isActive('heading', { level: 3 }) }" @click="editor.chain().focus().toggleHeading({ level: 3 }).run()">H3</button>
-      <div class="w-px bg-[--grunt-border] mx-0.5" />
-      <button type="button" class="px-2 py-0.5 text-xs rounded hover:bg-[--grunt-border] transition-colors" :class="{ 'bg-[--grunt-border]': editor.isActive('bulletList') }" @click="editor.chain().focus().toggleBulletList().run()">• List</button>
-      <button type="button" class="px-2 py-0.5 text-xs rounded hover:bg-[--grunt-border] transition-colors" :class="{ 'bg-[--grunt-border]': editor.isActive('orderedList') }" @click="editor.chain().focus().toggleOrderedList().run()">1. List</button>
+    <div v-if="editor" class="flex items-center gap-0.5 rounded-t-md border border-b-0 border-input bg-muted/50 p-1 flex-wrap">
+      <Toggle size="sm" :pressed="editor.isActive('bold')" @click="editor.chain().focus().toggleBold().run()">
+        <Bold class="size-4" />
+      </Toggle>
+      <Toggle size="sm" :pressed="editor.isActive('italic')" @click="editor.chain().focus().toggleItalic().run()">
+        <Italic class="size-4" />
+      </Toggle>
+      <Toggle size="sm" :pressed="editor.isActive('strike')" @click="editor.chain().focus().toggleStrike().run()">
+        <Strikethrough class="size-4" />
+      </Toggle>
+      <Toggle size="sm" :pressed="editor.isActive('code')" @click="editor.chain().focus().toggleCode().run()">
+        <Code class="size-4" />
+      </Toggle>
+
+      <Separator orientation="vertical" class="mx-1 h-6" />
+
+      <Toggle size="sm" :pressed="editor.isActive('heading', { level: 2 })" @click="editor.chain().focus().toggleHeading({ level: 2 }).run()">
+        <Heading2 class="size-4" />
+      </Toggle>
+      <Toggle size="sm" :pressed="editor.isActive('heading', { level: 3 })" @click="editor.chain().focus().toggleHeading({ level: 3 }).run()">
+        <Heading3 class="size-4" />
+      </Toggle>
+
+      <Separator orientation="vertical" class="mx-1 h-6" />
+
+      <Toggle size="sm" :pressed="editor.isActive('bulletList')" @click="editor.chain().focus().toggleBulletList().run()">
+        <List class="size-4" />
+      </Toggle>
+      <Toggle size="sm" :pressed="editor.isActive('orderedList')" @click="editor.chain().focus().toggleOrderedList().run()">
+        <ListOrdered class="size-4" />
+      </Toggle>
+      <Toggle size="sm" :pressed="editor.isActive('blockquote')" @click="editor.chain().focus().toggleBlockquote().run()">
+        <Quote class="size-4" />
+      </Toggle>
+
+      <Separator orientation="vertical" class="mx-1 h-6" />
+
+      <Toggle size="sm" :pressed="editor.isActive('link')" @click="setLink">
+        <LinkIcon class="size-4" />
+      </Toggle>
+
+      <div class="flex-1" />
+
+      <Toggle size="sm" :pressed="false" @click="editor.chain().focus().undo().run()" :disabled="!editor.can().undo()">
+        <Undo class="size-4" />
+      </Toggle>
+      <Toggle size="sm" :pressed="false" @click="editor.chain().focus().redo().run()" :disabled="!editor.can().redo()">
+        <Redo class="size-4" />
+      </Toggle>
     </div>
 
     <div
-      class="border border-[--grunt-border] rounded-b-[--grunt-radius-sm] min-h-[120px] focus-within:ring-2 focus-within:ring-[--grunt-primary]/30 focus-within:border-[--grunt-primary]"
-      :class="{ 'border-[--grunt-danger]': error }"
+      class="rounded-b-md border border-input min-h-[120px] focus-within:ring-1 focus-within:ring-ring focus-within:border-ring transition-colors"
+      :class="{ 'border-destructive focus-within:ring-destructive': error }"
     >
-      <EditorContent :editor="editor" class="prose prose-sm max-w-none p-3 text-sm" />
+      <EditorContent :editor="editor" class="prose prose-sm max-w-none p-3 text-sm text-foreground" />
     </div>
 
-    <p v-if="error" class="text-xs text-[--grunt-danger]">{{ error }}</p>
-    <p v-else-if="field.description" class="text-xs text-[--grunt-text-muted]">{{ field.description }}</p>
+    <p v-if="error" class="text-xs text-destructive">{{ error }}</p>
+    <p v-else-if="field.description" class="text-xs text-muted-foreground">{{ field.description }}</p>
   </div>
 </template>
