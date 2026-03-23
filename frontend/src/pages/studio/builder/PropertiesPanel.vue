@@ -4,8 +4,9 @@ import { RouterLink } from 'vue-router'
 import { useBuilderStore } from '@/stores/builder'
 import { metaApi } from '@/core/api'
 import type { DocTypeSummary } from '@/types'
-import GInput from '@/components/ui/GInput.vue'
-import GSelect from '@/components/ui/GSelect.vue'
+import { Input } from '@/components/ui/input'
+import { FormField } from '@/components/ui/form-field'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const builder = useBuilderStore()
 
@@ -34,11 +35,10 @@ const titleFieldOptions = computed(() =>
   (builder.doctype?.fields ?? [])
     .filter((f) => !['Section', 'Column', 'Tab'].includes(f.fieldtype))
     .map((f) => f.fieldname)
-    .join('\n')
 )
 
-const doctypeOptions = computed(() => doctypeList.value.map((d) => d.name).join('\n'))
-const childDoctypeOptions = computed(() => childDoctypes.value.map((d) => d.name).join('\n'))
+const doctypeOptionsList = computed(() => doctypeList.value.map((d) => d.name))
+const childDoctypeOptionsList = computed(() => childDoctypes.value.map((d) => d.name))
 
 const isLayoutField = computed(() =>
   field.value ? ['Section', 'Column', 'Tab'].includes(field.value.fieldtype) : false
@@ -51,9 +51,28 @@ const isLayoutField = computed(() =>
     <template v-if="!field && builder.doctype">
       <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-4">DocType</p>
       <div class="flex flex-col gap-3">
-        <GInput :model-value="builder.doctype.label" label="Label" @update:model-value="updateDocType('label', $event)" />
-        <GInput :model-value="builder.doctype.module" label="Module" @update:model-value="updateDocType('module', $event)" />
-        <GSelect :model-value="builder.doctype.title_field ?? ''" label="Title Field" :options="titleFieldOptions" @update:model-value="updateDocType('title_field', $event || undefined)" />
+        <FormField label="Label">
+          <template #default="{ id }">
+            <Input :id="id" :model-value="builder.doctype.label" @update:model-value="updateDocType('label', $event)" />
+          </template>
+        </FormField>
+        <FormField label="Module">
+          <template #default="{ id }">
+            <Input :id="id" :model-value="builder.doctype.module" @update:model-value="updateDocType('module', $event)" />
+          </template>
+        </FormField>
+        <FormField label="Title Field">
+          <template #default="{ id }">
+            <Select :model-value="builder.doctype.title_field ?? ''" @update:model-value="updateDocType('title_field', $event || undefined)">
+              <SelectTrigger :id="id">
+                <SelectValue placeholder="— оберіть —" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt in titleFieldOptions" :key="opt" :value="opt">{{ opt }}</SelectItem>
+              </SelectContent>
+            </Select>
+          </template>
+        </FormField>
         <label class="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" :checked="!!builder.doctype.is_submittable" class="rounded" @change="updateDocType('is_submittable', ($event.target as HTMLInputElement).checked)" />
           <span class="text-sm text-[--grunt-text-primary]">Is Submittable</span>
@@ -76,8 +95,16 @@ const isLayoutField = computed(() =>
     <template v-else-if="field && field.fieldtype === 'Tab'">
       <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-4">Tab</p>
       <div class="flex flex-col gap-3">
-        <GInput :model-value="field.label" label="Label *" required @update:model-value="updateField('label', $event)" />
-        <GInput :model-value="field.fieldname" label="Fieldname" disabled />
+        <FormField label="Label *" required>
+          <template #default="{ id }">
+            <Input :id="id" :model-value="field.label" @update:model-value="updateField('label', $event)" />
+          </template>
+        </FormField>
+        <FormField label="Fieldname">
+          <template #default="{ id }">
+            <Input :id="id" :model-value="field.fieldname" disabled />
+          </template>
+        </FormField>
       </div>
     </template>
 
@@ -85,13 +112,25 @@ const isLayoutField = computed(() =>
     <template v-else-if="field && field.fieldtype === 'Section'">
       <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-4">Section</p>
       <div class="flex flex-col gap-3">
-        <GInput :model-value="field.label" label="Label" @update:model-value="updateField('label', $event)" />
-        <GInput :model-value="field.fieldname" label="Fieldname" disabled />
+        <FormField label="Label">
+          <template #default="{ id }">
+            <Input :id="id" :model-value="field.label" @update:model-value="updateField('label', $event)" />
+          </template>
+        </FormField>
+        <FormField label="Fieldname">
+          <template #default="{ id }">
+            <Input :id="id" :model-value="field.fieldname" disabled />
+          </template>
+        </FormField>
         <label class="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" :checked="!!field.collapsible" class="rounded" @change="updateField('collapsible', ($event.target as HTMLInputElement).checked)" />
           <span class="text-sm">Collapsible</span>
         </label>
-        <GInput :model-value="field.depends_on ?? ''" label="Depends On" placeholder="eval: doc.status == 'Active'" @update:model-value="updateField('depends_on', $event || undefined)" />
+        <FormField label="Depends On">
+          <template #default="{ id }">
+            <Input :id="id" :model-value="field.depends_on ?? ''" placeholder="eval: doc.status == 'Active'" @update:model-value="updateField('depends_on', $event || undefined)" />
+          </template>
+        </FormField>
       </div>
     </template>
 
@@ -101,8 +140,16 @@ const isLayoutField = computed(() =>
 
       <!-- Core -->
       <div class="flex flex-col gap-3 mb-5">
-        <GInput :model-value="field.label" label="Label *" required @update:model-value="updateField('label', $event)" />
-        <GInput :model-value="field.fieldname" label="Fieldname *" @update:model-value="updateField('fieldname', $event)" />
+        <FormField label="Label *" required>
+          <template #default="{ id }">
+            <Input :id="id" :model-value="field.label" @update:model-value="updateField('label', $event)" />
+          </template>
+        </FormField>
+        <FormField label="Fieldname *">
+          <template #default="{ id }">
+            <Input :id="id" :model-value="field.fieldname" @update:model-value="updateField('fieldname', $event)" />
+          </template>
+        </FormField>
         <label class="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" :checked="!!field.required" class="rounded" @change="updateField('required', ($event.target as HTMLInputElement).checked)" />
           <span class="text-sm">Required</span>
@@ -128,9 +175,21 @@ const isLayoutField = computed(() =>
           <input type="checkbox" :checked="!!field.in_filter" class="rounded" @change="updateField('in_filter', ($event.target as HTMLInputElement).checked)" />
           <span class="text-sm">In Filter</span>
         </label>
-        <GInput :model-value="field.description ?? ''" label="Description" @update:model-value="updateField('description', $event || undefined)" />
-        <GInput :model-value="field.placeholder ?? ''" label="Placeholder" @update:model-value="updateField('placeholder', $event || undefined)" />
-        <GInput :model-value="field.depends_on ?? ''" label="Depends On" placeholder="eval: doc.status == 'Active'" @update:model-value="updateField('depends_on', $event || undefined)" />
+        <FormField label="Description">
+          <template #default="{ id }">
+            <Input :id="id" :model-value="field.description ?? ''" @update:model-value="updateField('description', $event || undefined)" />
+          </template>
+        </FormField>
+        <FormField label="Placeholder">
+          <template #default="{ id }">
+            <Input :id="id" :model-value="field.placeholder ?? ''" @update:model-value="updateField('placeholder', $event || undefined)" />
+          </template>
+        </FormField>
+        <FormField label="Depends On">
+          <template #default="{ id }">
+            <Input :id="id" :model-value="field.depends_on ?? ''" placeholder="eval: doc.status == 'Active'" @update:model-value="updateField('depends_on', $event || undefined)" />
+          </template>
+        </FormField>
       </div>
 
       <!-- Type-specific -->
@@ -147,18 +206,40 @@ const isLayoutField = computed(() =>
 
       <template v-if="field.fieldtype === 'Link'">
         <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-2">Linked DocType *</p>
-        <GSelect :model-value="field.options ?? ''" :options="doctypeOptions" @update:model-value="updateField('options', $event)" />
+        <Select :model-value="field.options ?? ''" @update:model-value="updateField('options', $event)">
+          <SelectTrigger>
+            <SelectValue placeholder="— оберіть —" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in doctypeOptionsList" :key="opt" :value="opt">{{ opt }}</SelectItem>
+          </SelectContent>
+        </Select>
       </template>
 
       <template v-if="field.fieldtype === 'Table'">
         <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-2">Child DocType *</p>
-        <GSelect :model-value="field.options ?? ''" :options="childDoctypeOptions" @update:model-value="updateField('options', $event)" />
+        <Select :model-value="field.options ?? ''" @update:model-value="updateField('options', $event)">
+          <SelectTrigger>
+            <SelectValue placeholder="— оберіть —" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in childDoctypeOptionsList" :key="opt" :value="opt">{{ opt }}</SelectItem>
+          </SelectContent>
+        </Select>
       </template>
 
       <template v-if="['Int', 'Float'].includes(field.fieldtype)">
         <div class="flex gap-2 mt-3">
-          <GInput :model-value="String(field.min_value ?? '')" label="Min Value" type="number" @update:model-value="updateField('min_value', $event ? Number($event) : undefined)" />
-          <GInput :model-value="String(field.max_value ?? '')" label="Max Value" type="number" @update:model-value="updateField('max_value', $event ? Number($event) : undefined)" />
+          <FormField label="Min Value">
+            <template #default="{ id }">
+              <Input :id="id" :model-value="String(field.min_value ?? '')" type="number" @update:model-value="updateField('min_value', $event ? Number($event) : undefined)" />
+            </template>
+          </FormField>
+          <FormField label="Max Value">
+            <template #default="{ id }">
+              <Input :id="id" :model-value="String(field.max_value ?? '')" type="number" @update:model-value="updateField('max_value', $event ? Number($event) : undefined)" />
+            </template>
+          </FormField>
         </div>
       </template>
     </template>

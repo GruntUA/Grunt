@@ -7,9 +7,19 @@ import { useToast } from '@/core/composables/useToast'
 import { useWebSocket } from '@/core/composables/useWebSocket'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { DocType } from '@/types'
-import GButton from '@/components/ui/GButton.vue'
-import GSpinner from '@/components/ui/GSpinner.vue'
-import GModal from '@/components/ui/GModal.vue'
+import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog'
+import { Loader2 } from 'lucide-vue-next'
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 
@@ -144,36 +154,39 @@ function confirmLeave() {
 <template>
   <div class="p-4 sm:p-6 lg:p-8 max-w-full lg:max-w-4xl xl:max-w-5xl">
     <!-- Breadcrumb -->
-    <div class="flex items-center gap-2 text-sm text-[--grunt-text-secondary] mb-6">
-      <button class="hover:text-[--grunt-primary]" @click="router.push(workspace ? `/${workspace}/list/${doctype}` : `/${doctype}`)">
+    <div class="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+      <button class="hover:text-primary" @click="router.push(workspace ? `/${workspace}/list/${doctype}` : `/${doctype}`)">
         {{ dt?.label ?? doctype }}
       </button>
       <span>/</span>
-      <span class="text-[--grunt-text-primary] font-medium">{{ docTitle }}</span>
+      <span class="text-foreground font-medium">{{ docTitle }}</span>
     </div>
 
     <!-- Actions -->
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-xl font-semibold text-[--grunt-text-primary]">{{ docTitle }}</h1>
+      <h1 class="text-xl font-semibold text-foreground">{{ docTitle }}</h1>
       <div class="flex gap-2">
         <!-- Print dropdown (only for saved docs) -->
         <div v-if="id" class="relative">
-          <GButton variant="secondary" size="sm" @click="showPrintMenu = !showPrintMenu">↓ Друкувати</GButton>
-          <div v-if="showPrintMenu" class="absolute right-0 top-full mt-1 bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-md] shadow-lg z-50">
-            <a :href="`/api/v1/docs/${doctype}/${id}/print?fmt=xlsx`" class="block px-4 py-2 text-sm hover:bg-[--grunt-surface-secondary]" @click="showPrintMenu = false">📊 Excel (.xlsx)</a>
-            <a :href="`/api/v1/docs/${doctype}/${id}/print?fmt=pdf`" class="block px-4 py-2 text-sm hover:bg-[--grunt-surface-secondary]" @click="showPrintMenu = false">📄 PDF</a>
-            <a :href="`/api/v1/docs/${doctype}/${id}/print?fmt=html`" target="_blank" class="block px-4 py-2 text-sm hover:bg-[--grunt-surface-secondary]" @click="showPrintMenu = false">🌐 HTML</a>
+          <Button variant="secondary" size="sm" @click="showPrintMenu = !showPrintMenu">↓ Друкувати</Button>
+          <div v-if="showPrintMenu" class="absolute right-0 top-full mt-1 bg-card border border-border rounded-md shadow-lg z-50">
+            <a :href="`/api/v1/docs/${doctype}/${id}/print?fmt=xlsx`" class="block px-4 py-2 text-sm hover:bg-muted" @click="showPrintMenu = false">📊 Excel (.xlsx)</a>
+            <a :href="`/api/v1/docs/${doctype}/${id}/print?fmt=pdf`" class="block px-4 py-2 text-sm hover:bg-muted" @click="showPrintMenu = false">📄 PDF</a>
+            <a :href="`/api/v1/docs/${doctype}/${id}/print?fmt=html`" target="_blank" class="block px-4 py-2 text-sm hover:bg-muted" @click="showPrintMenu = false">🌐 HTML</a>
           </div>
         </div>
-        <GButton v-if="id && isDirty" variant="secondary" @click="router.go(0)">Скасувати</GButton>
-        <GButton v-if="id" variant="danger" @click="showDeleteModal = true">Видалити</GButton>
-        <GButton :loading="isSaving" @click="handleSave">Зберегти</GButton>
+        <Button v-if="id && isDirty" variant="secondary" @click="router.go(0)">Скасувати</Button>
+        <Button v-if="id" variant="destructive" @click="showDeleteModal = true">Видалити</Button>
+        <Button :disabled="isSaving" @click="handleSave">
+          <Loader2 v-if="isSaving" class="size-4 animate-spin" />
+          Зберегти
+        </Button>
       </div>
     </div>
 
     <!-- Loading -->
     <div v-if="isLoading || !dt" class="flex justify-center py-16">
-      <GSpinner size="lg" />
+      <Spinner size="lg" />
     </div>
 
     <template v-else>
@@ -187,7 +200,7 @@ function confirmLeave() {
       />
 
       <!-- Form -->
-      <div class="bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-lg] p-6">
+      <div class="bg-card border border-border rounded-lg p-6">
         <FormRenderer
           :doctype="dt"
           :model-value="form"
@@ -198,20 +211,20 @@ function confirmLeave() {
       </div>
 
       <!-- Activity log (only for saved docs) -->
-      <div v-if="id" class="mt-4 bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-lg]">
+      <div v-if="id" class="mt-4 bg-card border border-border rounded-lg">
         <button
           type="button"
-          class="w-full flex items-center justify-between px-5 py-3 text-sm font-medium text-[--grunt-text-secondary] hover:text-[--grunt-text-primary] transition-colors"
+          class="w-full flex items-center justify-between px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           @click="toggleLog"
         >
           <span>Журнал активності</span>
           <span>{{ showLog ? '▲' : '▼' }}</span>
         </button>
-        <div v-if="showLog" class="border-t border-[--grunt-border] px-5 py-3">
+        <div v-if="showLog" class="border-t border-border px-5 py-3">
           <div v-if="logLoading" class="flex justify-center py-4">
-            <GSpinner size="sm" />
+            <Spinner size="sm" />
           </div>
-          <div v-else-if="activityLog.length === 0" class="text-sm text-[--grunt-text-muted] py-2">
+          <div v-else-if="activityLog.length === 0" class="text-sm text-muted-foreground py-2">
             Записів немає
           </div>
           <ul v-else class="space-y-2">
@@ -220,11 +233,11 @@ function confirmLeave() {
               :key="entry.id"
               class="flex items-start gap-3 text-sm"
             >
-              <span class="text-[--grunt-text-muted] text-xs mt-0.5 whitespace-nowrap">
+              <span class="text-muted-foreground text-xs mt-0.5 whitespace-nowrap">
                 {{ entry.created_at ? new Date(entry.created_at).toLocaleString('uk-UA') : '—' }}
               </span>
-              <span class="font-medium text-[--grunt-text-primary]">{{ entry.user }}</span>
-              <span class="text-[--grunt-text-secondary]">{{ entry.action }}</span>
+              <span class="font-medium text-foreground">{{ entry.user }}</span>
+              <span class="text-muted-foreground">{{ entry.action }}</span>
             </li>
           </ul>
         </div>
@@ -232,21 +245,31 @@ function confirmLeave() {
     </template>
 
     <!-- Delete confirmation -->
-    <GModal v-model="showDeleteModal" title="Видалити документ?" size="sm">
-      <p class="text-sm text-[--grunt-text-secondary]">Цю дію не можна скасувати.</p>
-      <template #footer>
-        <GButton variant="secondary" @click="showDeleteModal = false">Скасувати</GButton>
-        <GButton variant="danger" @click="handleDelete">Видалити</GButton>
-      </template>
-    </GModal>
+    <AlertDialog :open="showDeleteModal" @update:open="showDeleteModal = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Видалити документ?</AlertDialogTitle>
+          <AlertDialogDescription>Цю дію не можна скасувати.</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="showDeleteModal = false">Скасувати</AlertDialogCancel>
+          <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="handleDelete">Видалити</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
 
     <!-- Unsaved leave confirmation -->
-    <GModal v-model="showLeaveModal" title="Є незбережені зміни" size="sm">
-      <p class="text-sm text-[--grunt-text-secondary]">Покинути сторінку без збереження?</p>
-      <template #footer>
-        <GButton variant="secondary" @click="showLeaveModal = false">Залишитись</GButton>
-        <GButton variant="danger" @click="confirmLeave">Покинути</GButton>
-      </template>
-    </GModal>
+    <AlertDialog :open="showLeaveModal" @update:open="showLeaveModal = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Є незбережені зміни</AlertDialogTitle>
+          <AlertDialogDescription>Покинути сторінку без збереження?</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="showLeaveModal = false">Залишитись</AlertDialogCancel>
+          <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="confirmLeave">Покинути</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>

@@ -7,7 +7,7 @@ import { workspaceApi } from '@/core/api/workspace'
 import DeskTopBar from '@/components/desk/DeskTopBar.vue'
 import AppCard from '@/components/desk/AppCard.vue'
 import GlobalSearch from '@/components/desk/GlobalSearch.vue'
-import GSpinner from '@/components/ui/GSpinner.vue'
+import { Spinner } from '@/components/ui/spinner'
 
 const auth = useAuthStore()
 const wsStore = useWorkspaceStore()
@@ -90,7 +90,7 @@ function findWorkspaceForDoc(doc: RecentDoc) {
         <h2 class="text-sm font-semibold text-[--grunt-text-secondary] uppercase tracking-wider mb-4">Ваші додатки</h2>
 
         <div v-if="wsStore.loading" class="flex justify-center py-8">
-          <GSpinner size="lg" />
+          <Spinner size="lg" />
         </div>
 
         <div v-else class="flex flex-wrap gap-4">

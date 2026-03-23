@@ -3,8 +3,9 @@ import { ref, onMounted } from 'vue'
 import type { DocType } from '@/types'
 import { docsApi } from '@/core/api/docs'
 import type { WorkflowTransitionItem } from '@/core/api/docs'
-import GBadge from '@/components/ui/GBadge.vue'
-import GButton from '@/components/ui/GButton.vue'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Loader2 } from 'lucide-vue-next'
 
 const props = defineProps<{
   doctype: DocType
@@ -46,18 +47,19 @@ onMounted(loadTransitions)
     class="flex items-center gap-3 px-4 py-2.5 bg-[--grunt-surface-secondary] border border-[--grunt-border] rounded-[--grunt-radius-md] mb-4"
   >
     <span class="text-sm text-[--grunt-text-secondary]">Стан:</span>
-    <GBadge :label="(doc[doctype.workflow.state_field] as string) ?? '—'" />
+    <Badge>{{ (doc[doctype.workflow.state_field] as string) ?? '—' }}</Badge>
     <div class="flex gap-2 ml-2">
-      <GButton
+      <Button
         v-for="t in transitions"
         :key="t.action"
         variant="secondary"
         size="sm"
-        :loading="isLoading"
+        :disabled="isLoading"
         @click="apply(t.action)"
       >
+        <Loader2 v-if="isLoading" class="size-4 animate-spin" />
         {{ t.action }}
-      </GButton>
+      </Button>
     </div>
   </div>
 </template>

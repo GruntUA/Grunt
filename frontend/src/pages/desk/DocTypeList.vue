@@ -5,10 +5,19 @@ import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useDocTypeStore } from '@/stores/doctype'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, DocField } from '@/types'
-import GButton from '@/components/ui/GButton.vue'
-import GInput from '@/components/ui/GInput.vue'
-import GSpinner from '@/components/ui/GSpinner.vue'
-import GModal from '@/components/ui/GModal.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Spinner } from '@/components/ui/spinner'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog'
 import FilterBar from '@/components/views/FilterBar.vue'
 import KanbanView from '@/components/views/KanbanView.vue'
 
@@ -143,23 +152,23 @@ function onFiltersChange(f: Record<string, string>) {
       <div class="flex gap-2">
         <!-- View toggle: show Kanban only when a suitable Select field exists -->
         <template v-if="kanbanColumnField">
-          <GButton
-            :variant="viewMode === 'list' ? 'primary' : 'secondary'"
+          <Button
+            :variant="viewMode === 'list' ? 'default' : 'secondary'"
             size="sm"
             @click="viewMode = 'list'"
-          >☰ Список</GButton>
-          <GButton
-            :variant="viewMode === 'kanban' ? 'primary' : 'secondary'"
+          >☰ Список</Button>
+          <Button
+            :variant="viewMode === 'kanban' ? 'default' : 'secondary'"
             size="sm"
             @click="viewMode = 'kanban'"
-          >⬛ Канбан</GButton>
+          >⬛ Канбан</Button>
         </template>
         <a
           :href="`/api/v1/docs/${doctype}/export/xlsx`"
           class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-[--grunt-radius-sm] border border-[--grunt-border] text-[--grunt-text-secondary] hover:bg-[--grunt-surface-secondary] transition-colors"
           download
         >↓ Excel</a>
-        <GButton @click="router.push(props.workspace ? `/${props.workspace}/list/${doctype}/new` : `/${doctype}/new`)">+ Новий</GButton>
+        <Button @click="router.push(props.workspace ? `/${props.workspace}/list/${doctype}/new` : `/${doctype}/new`)">+ Новий</Button>
       </div>
     </div>
 
@@ -172,7 +181,7 @@ function onFiltersChange(f: Record<string, string>) {
 
     <div class="flex items-center gap-3 mb-2">
       <div class="w-72">
-        <GInput v-model="search" placeholder="Пошук..." />
+        <Input v-model="search" placeholder="Пошук..." />
       </div>
       <div class="relative ml-auto">
         <button
@@ -198,12 +207,12 @@ function onFiltersChange(f: Record<string, string>) {
 
     <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-3 px-4 py-2 bg-[--grunt-primary-light] rounded-[--grunt-radius-md] border border-[--grunt-primary]/20">
       <span class="text-sm text-[--grunt-primary] font-medium">Вибрано: {{ selectedIds.length }}</span>
-      <GButton variant="danger" size="sm" @click="showBulkDeleteModal = true">Видалити вибране</GButton>
+      <Button variant="destructive" size="sm" @click="showBulkDeleteModal = true">Видалити вибране</Button>
       <button type="button" class="text-sm text-[--grunt-text-secondary] hover:text-[--grunt-text-primary] ml-auto" @click="clearSelection">Скасувати</button>
     </div>
 
     <div v-if="isLoading && !data" class="flex justify-center py-16">
-      <GSpinner size="lg" />
+      <Spinner size="lg" />
     </div>
 
     <div v-else class="border border-[--grunt-border] rounded-[--grunt-radius-lg] overflow-hidden">
@@ -256,18 +265,23 @@ function onFiltersChange(f: Record<string, string>) {
     <div v-if="meta && meta.pages > 1" class="mt-4 flex items-center justify-between text-sm text-[--grunt-text-secondary]">
       <span>Сторінка {{ meta.page }} з {{ meta.pages }} ({{ meta.total }} записів)</span>
       <div class="flex gap-2">
-        <GButton variant="secondary" size="sm" :disabled="page <= 1" @click="page--">← Попередня</GButton>
-        <GButton variant="secondary" size="sm" :disabled="page >= meta.pages" @click="page++">Наступна →</GButton>
+        <Button variant="secondary" size="sm" :disabled="page <= 1" @click="page--">← Попередня</Button>
+        <Button variant="secondary" size="sm" :disabled="page >= meta.pages" @click="page++">Наступна →</Button>
       </div>
     </div>
 
-    <GModal v-model="showBulkDeleteModal" title="Видалити вибрані записи?" size="sm">
-      <p class="text-sm text-[--grunt-text-secondary]">Буде видалено {{ selectedIds.length }} записів. Цю дію не можна скасувати.</p>
-      <template #footer>
-        <GButton variant="secondary" @click="showBulkDeleteModal = false">Скасувати</GButton>
-        <GButton variant="danger" @click="bulkDelete">Видалити</GButton>
-      </template>
-    </GModal>
+    <AlertDialog :open="showBulkDeleteModal" @update:open="showBulkDeleteModal = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Видалити вибрані записи?</AlertDialogTitle>
+          <AlertDialogDescription>Буде видалено {{ selectedIds.length }} записів. Цю дію не можна скасувати.</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Скасувати</AlertDialogCancel>
+          <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="bulkDelete">Видалити</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </template>
   </div>
 </template>

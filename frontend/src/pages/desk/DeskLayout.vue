@@ -4,7 +4,7 @@ import { RouterView, RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useDocTypeStore } from '@/stores/doctype'
 import { usePageStore } from '@/stores/pages'
-import GSpinner from '@/components/ui/GSpinner.vue'
+import { Spinner } from '@/components/ui/spinner'
 
 const auth = useAuthStore()
 const dtStore = useDocTypeStore()
@@ -45,7 +45,7 @@ function logout() {
 
       <!-- DocType nav -->
       <nav class="flex-1 overflow-y-auto py-3 px-2">
-        <GSpinner v-if="dtStore.loading" class="mx-auto mt-4" size="sm" />
+        <Spinner v-if="dtStore.loading" class="mx-auto mt-4" size="sm" />
 
         <!-- Reports link -->
         <RouterLink

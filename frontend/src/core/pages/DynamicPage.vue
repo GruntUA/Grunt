@@ -3,7 +3,7 @@ import { ref, onMounted, shallowRef, defineAsyncComponent } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePageStore } from '@/stores/pages'
 import { resolvePageComponent } from '@/core/pages/registry'
-import GSpinner from '@/components/ui/GSpinner.vue'
+import { Spinner } from '@/components/ui/spinner'
 
 const route = useRoute()
 const pageStore = usePageStore()
@@ -33,7 +33,7 @@ onMounted(async () => {
     <p class="text-[--grunt-danger] text-sm">{{ error }}</p>
   </div>
   <div v-else-if="!component" class="flex justify-center py-16">
-    <GSpinner size="lg" />
+    <Spinner size="lg" />
   </div>
   <component :is="component" v-else />
 </template>

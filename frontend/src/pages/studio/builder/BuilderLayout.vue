@@ -2,7 +2,8 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBuilderStore } from '@/stores/builder'
-import GButton from '@/components/ui/GButton.vue'
+import { Button } from '@/components/ui/button'
+import { Loader2 } from 'lucide-vue-next'
 import FieldPalette from './FieldPalette.vue'
 import BuilderCanvas from './BuilderCanvas.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
@@ -29,7 +30,7 @@ onMounted(() => builder.loadDocType(props.doctype))
         <span v-if="builder.isDirty" class="text-[--grunt-text-muted] font-normal ml-1">&bull;</span>
       </span>
       <div class="ml-auto flex gap-2">
-        <GButton size="sm" :loading="builder.isSaving" :disabled="!builder.isDirty" @click="builder.save()">Save</GButton>
+        <Button size="sm" :disabled="builder.isSaving || !builder.isDirty" @click="builder.save()"><Loader2 v-if="builder.isSaving" class="size-4 animate-spin" />Save</Button>
       </div>
     </div>
 

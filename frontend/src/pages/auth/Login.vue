@@ -2,8 +2,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import GInput from '@/components/ui/GInput.vue'
-import GButton from '@/components/ui/GButton.vue'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { FormField } from '@/components/ui/form-field'
+import { Loader2 } from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -28,20 +30,32 @@ async function handleLogin() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-[--grunt-surface-secondary]">
-    <div class="w-[400px] bg-[--grunt-surface] rounded-[--grunt-radius-lg] shadow-[--grunt-shadow-md] p-8">
+  <div class="min-h-screen flex items-center justify-center bg-muted">
+    <div class="w-[400px] bg-card rounded-lg shadow-md p-8">
       <div class="text-center mb-8">
-        <h1 class="text-2xl font-bold text-[--grunt-primary]">Ґрунт</h1>
-        <p class="text-sm text-[--grunt-text-secondary] mt-1">Увійдіть у систему</p>
+        <h1 class="text-2xl font-bold text-primary">Ґрунт</h1>
+        <p class="text-sm text-muted-foreground mt-1">Увійдіть у систему</p>
       </div>
 
       <form class="flex flex-col gap-4" @submit.prevent="handleLogin">
-        <GInput v-model="email" label="Email" type="email" placeholder="admin@grunt.local" required />
-        <GInput v-model="password" label="Пароль" type="password" placeholder="••••••••" required />
+        <FormField label="Email" required>
+          <template #default="{ id }">
+            <Input :id="id" v-model="email" type="email" placeholder="admin@grunt.local" required />
+          </template>
+        </FormField>
 
-        <p v-if="error" class="text-sm text-[--grunt-danger] text-center">{{ error }}</p>
+        <FormField label="Пароль" required>
+          <template #default="{ id }">
+            <Input :id="id" v-model="password" type="password" placeholder="••••••••" required />
+          </template>
+        </FormField>
 
-        <GButton type="submit" :loading="loading" class="w-full mt-2">Увійти</GButton>
+        <p v-if="error" class="text-sm text-destructive text-center">{{ error }}</p>
+
+        <Button type="submit" :disabled="loading" class="w-full mt-2">
+          <Loader2 v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
+          Увійти
+        </Button>
       </form>
     </div>
   </div>

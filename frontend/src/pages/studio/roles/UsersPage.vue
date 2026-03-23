@@ -2,8 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { authAdminApi } from '@/core/api/auth-admin'
 import type { GruntUserPublic } from '@/types'
-import GButton from '@/components/ui/GButton.vue'
-import GSpinner from '@/components/ui/GSpinner.vue'
+import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
+import { Loader2 } from 'lucide-vue-next'
 
 const users = ref<GruntUserPublic[]>([])
 const isLoading = ref(true)
@@ -53,7 +54,7 @@ onMounted(loadUsers)
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-16">
-      <GSpinner size="lg" />
+      <Spinner size="lg" />
     </div>
 
     <div v-else class="flex flex-col gap-4">
@@ -93,15 +94,15 @@ onMounted(loadUsers)
                 class="text-sm border border-[--grunt-border] rounded-[--grunt-radius-sm] px-2 py-1 focus:outline-none focus:border-[--grunt-primary]"
                 @keydown.enter="addRole(user.id)"
               />
-              <GButton size="sm" :loading="isSubmitting" @click="addRole(user.id)">Додати</GButton>
-              <GButton size="sm" variant="ghost" @click="selectedUserId = ''">Скасувати</GButton>
+              <Button size="sm" :disabled="isSubmitting" @click="addRole(user.id)"><Loader2 v-if="isSubmitting" class="size-4 animate-spin" />Додати</Button>
+              <Button size="sm" variant="ghost" @click="selectedUserId = ''">Скасувати</Button>
             </div>
-            <GButton
+            <Button
               v-else
               size="sm"
               variant="ghost"
               @click="selectedUserId = user.id; newRole = ''"
-            >+ Роль</GButton>
+            >+ Роль</Button>
           </div>
         </div>
       </div>

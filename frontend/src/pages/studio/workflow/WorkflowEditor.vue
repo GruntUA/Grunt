@@ -5,8 +5,9 @@ import { useDocTypeStore } from '@/stores/doctype'
 import { metaApi } from '@/core/api'
 import { useToast } from '@/core/composables/useToast'
 import type { DocType, WorkflowDef, WorkflowState, WorkflowTransition } from '@/types'
-import GButton from '@/components/ui/GButton.vue'
-import GSpinner from '@/components/ui/GSpinner.vue'
+import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
+import { Loader2 } from 'lucide-vue-next'
 import WorkflowStatePanel from './WorkflowStatePanel.vue'
 import WorkflowTransitionPanel from './WorkflowTransitionPanel.vue'
 
@@ -231,14 +232,14 @@ function getTransitionMid(t: WorkflowTransition) {
         </div>
       </div>
       <div class="flex gap-2">
-        <GButton variant="secondary" size="sm" @click="addState">+ Стан</GButton>
-        <GButton variant="secondary" size="sm" @click="addTransition">+ Перехід</GButton>
-        <GButton size="sm" :loading="isSaving" @click="save">Зберегти</GButton>
+        <Button variant="secondary" size="sm" @click="addState">+ Стан</Button>
+        <Button variant="secondary" size="sm" @click="addTransition">+ Перехід</Button>
+        <Button size="sm" :disabled="isSaving" @click="save"><Loader2 v-if="isSaving" class="size-4 animate-spin" />Зберегти</Button>
       </div>
     </div>
 
     <div v-if="isLoading" class="flex-1 flex items-center justify-center">
-      <GSpinner size="lg" />
+      <Spinner size="lg" />
     </div>
 
     <div v-else class="flex flex-1 overflow-hidden">
@@ -251,8 +252,8 @@ function getTransitionMid(t: WorkflowTransition) {
         />
         <p v-if="jsonError" class="text-sm text-[--grunt-danger]">{{ jsonError }}</p>
         <div class="flex gap-2">
-          <GButton @click="applyJson">Застосувати</GButton>
-          <GButton variant="secondary" @click="syncJsonText">Скинути</GButton>
+          <Button @click="applyJson">Застосувати</Button>
+          <Button variant="secondary" @click="syncJsonText">Скинути</Button>
         </div>
       </div>
 

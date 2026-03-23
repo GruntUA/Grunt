@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { reportsApi } from '@/core/api/reports'
 import type { ReportSummary } from '@/types'
-import GSpinner from '@/components/ui/GSpinner.vue'
+import { Spinner } from '@/components/ui/spinner'
 
 const router = useRouter()
 const reports = ref<ReportSummary[]>([])
@@ -35,7 +35,7 @@ onMounted(load)
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-16">
-      <GSpinner size="lg" />
+      <Spinner size="lg" />
     </div>
 
     <div v-else-if="reports.length === 0" class="text-center py-16 text-[--grunt-text-muted]">

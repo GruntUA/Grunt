@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import draggable from 'vuedraggable'
 import type { DocType, DocField } from '@/types'
 import { docsApi } from '@/core/api/docs'
-import GSpinner from '@/components/ui/GSpinner.vue'
+import { Spinner } from '@/components/ui/spinner'
 
 const props = defineProps<{
   doctype: DocType
@@ -59,7 +59,7 @@ const titleField = computed(() => props.doctype.title_field ?? 'name')
 <template>
   <div class="flex gap-4 overflow-x-auto p-6 h-full">
     <div v-if="isLoading" class="flex items-center justify-center w-full">
-      <GSpinner size="lg" />
+      <Spinner size="lg" />
     </div>
     <template v-else>
       <div

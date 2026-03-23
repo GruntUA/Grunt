@@ -2,6 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    /* shadcn color tokens (HSL values matching Grunt palette) */
+    --background: 40 6% 97%;        /* #F9F9F8 grunt-surface-secondary */
+    --foreground: 50 6% 10%;        /* #1A1A18 grunt-text-primary */
+    --card: 0 0% 100%;              /* #FFFFFF grunt-surface */
+    --card-foreground: 50 6% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 50 6% 10%;
+    --primary: 153 40% 30%;         /* #2D6A4F grunt-primary */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 4% 96%;         /* #F9F9F8 */
+    --secondary-foreground: 50 6% 10%;
+    --muted: 40 4% 96%;
+    --muted-foreground: 48 2% 41%;  /* #6B6B67 grunt-text-secondary */
+    --accent: 40 4% 96%;
+    --accent-foreground: 50 6% 10%;
+    --destructive: 5 66% 46%;       /* #C0392B grunt-danger */
+    --destructive-foreground: 0 0% 100%;
+    --border: 43 5% 89%;            /* #E5E5E3 grunt-border */
+    --input: 43 5% 89%;
+    --ring: 153 40% 30%;            /* grunt-primary */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 50 6% 6%;
+    --foreground: 40 6% 97%;
+    --card: 50 6% 8%;
+    --card-foreground: 40 6% 97%;
+    --popover: 50 6% 8%;
+    --popover-foreground: 40 6% 97%;
+    --primary: 153 40% 36%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 50 4% 14%;
+    --secondary-foreground: 40 6% 97%;
+    --muted: 50 4% 14%;
+    --muted-foreground: 48 2% 60%;
+    --accent: 50 4% 14%;
+    --accent-foreground: 40 6% 97%;
+    --destructive: 5 50% 35%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 50 4% 18%;
+    --input: 50 4% 18%;
+    --ring: 153 40% 36%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ── Grunt design system tokens (legacy, keep for existing components) ── */
+
 :root {
   --grunt-primary: #2D6A4F;
   --grunt-primary-hover: #236040;

@@ -3,10 +3,12 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { metaApi } from '@/core/api'
 import type { DocTypeSummary } from '@/types'
-import GButton from '@/components/ui/GButton.vue'
-import GInput from '@/components/ui/GInput.vue'
-import GModal from '@/components/ui/GModal.vue'
-import GSpinner from '@/components/ui/GSpinner.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { FormField } from '@/components/ui/form-field'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Spinner } from '@/components/ui/spinner'
+import { Loader2 } from 'lucide-vue-next'
 
 const router = useRouter()
 const doctypes = ref<DocTypeSummary[]>([])
@@ -54,11 +56,11 @@ async function createDocType() {
         <h1 class="text-2xl font-bold text-[--grunt-text-primary]">App Studio</h1>
         <p class="text-sm text-[--grunt-text-secondary] mt-1">Конструктор DocTypes і форм</p>
       </div>
-      <GButton @click="showNewModal = true">+ Новий DocType</GButton>
+      <Button @click="showNewModal = true">+ Новий DocType</Button>
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-16">
-      <GSpinner size="lg" />
+      <Spinner size="lg" />
     </div>
 
     <div v-else-if="!doctypes.length" class="text-center py-16 text-[--grunt-text-muted]">
@@ -80,30 +82,41 @@ async function createDocType() {
           <span class="text-xs px-2 py-0.5 bg-[--grunt-surface-secondary] rounded text-[--grunt-text-secondary]">{{ dt.module }}</span>
         </div>
         <p class="text-sm text-[--grunt-text-secondary] mb-4">{{ dt.module }}</p>
-        <GButton size="sm" variant="secondary" @click="router.push(`/studio/${dt.name}/builder`)">Редагувати форму</GButton>
+        <Button size="sm" variant="secondary" @click="router.push(`/studio/${dt.name}/builder`)">Редагувати форму</Button>
       </div>
     </div>
 
-    <GModal v-model="showNewModal" title="Новий DocType">
-      <div class="flex flex-col gap-4">
-        <GInput
-          v-model="newForm.name"
-          label="Назва (PascalCase)"
-          placeholder="MyModel"
-          :error="nameError"
-          required
-        />
-        <GInput v-model="newForm.label" label="Label (для відображення)" :placeholder="newForm.name || 'My Model'" />
-        <GInput v-model="newForm.module" label="Модуль" placeholder="core" />
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input v-model="newForm.is_child" type="checkbox" class="rounded" />
-          <span class="text-sm text-[--grunt-text-primary]">Child DocType (для Table поля)</span>
-        </label>
-      </div>
-      <template #footer>
-        <GButton variant="secondary" @click="showNewModal = false">Скасувати</GButton>
-        <GButton :loading="isSaving" @click="createDocType">Створити</GButton>
-      </template>
-    </GModal>
+    <Dialog :open="showNewModal" @update:open="showNewModal = $event">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Новий DocType</DialogTitle>
+        </DialogHeader>
+        <div class="flex flex-col gap-4">
+          <FormField label="Назва (PascalCase)" required :error="nameError">
+            <template #default="{ id }">
+              <Input :id="id" v-model="newForm.name" placeholder="MyModel" />
+            </template>
+          </FormField>
+          <FormField label="Label (для відображення)">
+            <template #default="{ id }">
+              <Input :id="id" v-model="newForm.label" :placeholder="newForm.name || 'My Model'" />
+            </template>
+          </FormField>
+          <FormField label="Модуль">
+            <template #default="{ id }">
+              <Input :id="id" v-model="newForm.module" placeholder="core" />
+            </template>
+          </FormField>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input v-model="newForm.is_child" type="checkbox" class="rounded" />
+            <span class="text-sm text-[--grunt-text-primary]">Child DocType (для Table поля)</span>
+          </label>
+        </div>
+        <DialogFooter>
+          <Button variant="secondary" @click="showNewModal = false">Скасувати</Button>
+          <Button :disabled="isSaving" @click="createDocType"><Loader2 v-if="isSaving" class="size-4 animate-spin" />Створити</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

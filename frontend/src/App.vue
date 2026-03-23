@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import GToast from '@/components/ui/GToast.vue'
+import { Toaster as Sonner } from '@/components/ui/sonner'
 </script>
 
 <template>
   <RouterView />
-  <GToast />
+  <Sonner />
 </template>

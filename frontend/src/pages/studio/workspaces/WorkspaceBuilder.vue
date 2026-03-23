@@ -4,9 +4,11 @@ import { workspaceApi } from '@/core/api/workspace'
 import type { Workspace } from '@/core/api/workspace'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useToast } from '@/core/composables/useToast'
-import GButton from '@/components/ui/GButton.vue'
-import GInput from '@/components/ui/GInput.vue'
-import GSpinner from '@/components/ui/GSpinner.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { FormField } from '@/components/ui/form-field'
+import { Spinner } from '@/components/ui/spinner'
+import { Loader2 } from 'lucide-vue-next'
 
 const dtStore = useDocTypeStore()
 const toast = useToast()
@@ -163,10 +165,10 @@ const doctypeOptions = computed(() =>
   <div class="p-8">
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-xl font-semibold text-[--grunt-text-primary]">Воркспейси</h1>
-      <GButton @click="createNew">+ Новий</GButton>
+      <Button @click="createNew">+ Новий</Button>
     </div>
 
-    <div v-if="loading" class="flex justify-center py-16"><GSpinner size="lg" /></div>
+    <div v-if="loading" class="flex justify-center py-16"><Spinner size="lg" /></div>
 
     <div v-else class="flex gap-6">
       <!-- Left: workspace list -->
@@ -205,7 +207,11 @@ const doctypeOptions = computed(() =>
 
         <!-- General tab -->
         <div v-if="activeTab === 'general'" class="space-y-4 max-w-lg">
-          <GInput v-model="editForm.label" label="Назва" />
+          <FormField label="Назва">
+            <template #default="{ id }">
+              <Input :id="id" v-model="editForm.label" />
+            </template>
+          </FormField>
           <div class="flex gap-4">
             <div class="flex-1">
               <label class="block text-sm font-medium text-[--grunt-text-primary] mb-1">Іконка (emoji)</label>
@@ -216,8 +222,16 @@ const doctypeOptions = computed(() =>
               <input v-model="editForm.color" type="color" class="w-full h-10 border border-[--grunt-border] rounded-[--grunt-radius-sm] cursor-pointer" />
             </div>
           </div>
-          <GInput v-model="editForm.description" label="Опис" />
-          <GInput v-model="editForm.roles" label="Ролі (через кому)" placeholder="Role1,Role2" />
+          <FormField label="Опис">
+            <template #default="{ id }">
+              <Input :id="id" v-model="editForm.description" />
+            </template>
+          </FormField>
+          <FormField label="Ролі (через кому)">
+            <template #default="{ id }">
+              <Input :id="id" v-model="editForm.roles" placeholder="Role1,Role2" />
+            </template>
+          </FormField>
           <div class="flex items-center gap-2">
             <input v-model="editForm.is_hidden" type="checkbox" class="rounded" id="ws-hidden" />
             <label for="ws-hidden" class="text-sm text-[--grunt-text-secondary]">Приховано з Desk</label>
@@ -229,9 +243,9 @@ const doctypeOptions = computed(() =>
           <!-- Items editor -->
           <div class="flex-1 min-w-0">
             <div class="flex gap-2 mb-3">
-              <GButton variant="secondary" size="sm" @click="addItem">+ Пункт</GButton>
-              <GButton variant="secondary" size="sm" @click="addSection">+ Секція</GButton>
-              <GButton variant="secondary" size="sm" @click="addDivider">Розділювач</GButton>
+              <Button variant="secondary" size="sm" @click="addItem">+ Пункт</Button>
+              <Button variant="secondary" size="sm" @click="addSection">+ Секція</Button>
+              <Button variant="secondary" size="sm" @click="addDivider">Розділювач</Button>
             </div>
 
             <div class="space-y-1">
@@ -317,8 +331,8 @@ const doctypeOptions = computed(() =>
 
         <!-- Actions -->
         <div class="flex gap-2 mt-6 pt-4 border-t border-[--grunt-border]">
-          <GButton :loading="saving" @click="save">Зберегти</GButton>
-          <GButton variant="danger" @click="deleteSelected">Видалити</GButton>
+          <Button :disabled="saving" @click="save"><Loader2 v-if="saving" class="size-4 animate-spin" />Зберегти</Button>
+          <Button variant="destructive" @click="deleteSelected">Видалити</Button>
         </div>
       </div>
 

@@ -2,8 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { authAdminApi } from '@/core/api/auth-admin'
 import { useDocTypeStore } from '@/stores/doctype'
-import GButton from '@/components/ui/GButton.vue'
-import GSpinner from '@/components/ui/GSpinner.vue'
+import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
+import { Loader2 } from 'lucide-vue-next'
 
 interface RoleInfo {
   name: string
@@ -53,7 +54,7 @@ onMounted(async () => {
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-16">
-      <GSpinner size="lg" />
+      <Spinner size="lg" />
     </div>
 
     <div v-else class="flex gap-6">
@@ -79,7 +80,7 @@ onMounted(async () => {
             class="w-full text-sm border border-[--grunt-border] rounded-[--grunt-radius-sm] px-2 py-1.5 focus:outline-none focus:border-[--grunt-primary]"
             @keydown.enter="createRole"
           />
-          <GButton size="sm" :loading="isCreating" @click="createRole">Додати роль</GButton>
+          <Button size="sm" :disabled="isCreating" @click="createRole"><Loader2 v-if="isCreating" class="size-4 animate-spin" />Додати роль</Button>
         </div>
       </div>
 

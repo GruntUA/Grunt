@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import client from '@/core/api/client'
-import GSpinner from '@/components/ui/GSpinner.vue'
+import { Spinner } from '@/components/ui/spinner'
 
 const router = useRouter()
 const loading = ref(true)
@@ -120,7 +120,7 @@ async function fetchRecent() {
 
 async function fetchStatusChart() {
   try {
-    const r = await client.get('/api/v1/docs/Appeal', {
+    await client.get('/api/v1/docs/Appeal', {
       params: { per_page: 1 },
     })
     // Build status counts from all appeals
@@ -177,7 +177,7 @@ onMounted(async () => {
     <h1 class="text-2xl font-bold text-[--grunt-text-primary] mb-6">ЦНАП — Дашборд</h1>
 
     <div v-if="loading" class="flex justify-center py-16">
-      <GSpinner size="lg" />
+      <Spinner size="lg" />
     </div>
 
     <template v-else>

@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { DocField } from '@/types'
-import GSelect from '@/components/ui/GSelect.vue'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-defineProps<{
+const props = defineProps<{
   field: DocField
   modelValue: unknown
   disabled?: boolean
@@ -10,16 +11,21 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
+
+const parsedOptions = computed(() =>
+  typeof props.field.options === 'string'
+    ? props.field.options.split('\n').map(o => o.trim()).filter(Boolean)
+    : (props.field.options ?? [])
+)
 </script>
 
 <template>
-  <GSelect
-    :model-value="String(modelValue ?? '')"
-    :label="field.label"
-    :options="field.options ?? ''"
-    :required="field.required"
-    :disabled="disabled || field.read_only"
-    :error="error"
-    @update:model-value="emit('update:modelValue', $event)"
-  />
+  <Select :model-value="String(modelValue ?? '')" @update:model-value="emit('update:modelValue', $event)">
+    <SelectTrigger :disabled="disabled || field.read_only">
+      <SelectValue placeholder="— оберіть —" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem v-for="opt in parsedOptions" :key="opt" :value="opt">{{ opt }}</SelectItem>
+    </SelectContent>
+  </Select>
 </template>
