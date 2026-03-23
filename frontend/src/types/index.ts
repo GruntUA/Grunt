@@ -70,6 +70,26 @@ export interface DocTypePermission {
   match?: string | null
 }
 
+// ── View configuration types ─────────────────────────────────────────────
+
+export interface DocTypeListView {
+  fields: string[]
+  sort_by: string
+  sort_order: 'asc' | 'desc'
+  default_filters: Record<string, string>
+}
+
+export interface DocTypeFormView {
+  layout: 'standard' | 'compact' | 'wide'
+  print_format: string | null
+}
+
+export interface DocTypeKanbanView {
+  column_field: string
+  title_field: string
+  color_field: string | null
+}
+
 // ── DocType ───────────────────────────────────────────────────────────────
 
 export interface DocType {
@@ -78,9 +98,15 @@ export interface DocType {
   module: string
   is_child?: boolean
   is_submittable?: boolean
+  is_singleton?: boolean
+  track_changes?: boolean
   fields: DocField[]
   title_field?: string
   search_fields?: string[]
+  autoname?: string | null
+  list_view?: DocTypeListView
+  form_view?: DocTypeFormView
+  kanban_view?: DocTypeKanbanView | null
   workflow?: WorkflowDef | null
   permissions?: DocTypePermission[]
 }

@@ -40,6 +40,57 @@ class DocFieldSchema(BaseModel):
     mandatory_depends_on: str | None = None
 
 
+class DocTypePermissionSchema(BaseModel):
+    role: str
+    read: bool = False
+    write: bool = False
+    create: bool = False
+    delete: bool = False
+    submit: bool = False
+    report: bool = False
+    match: str | None = None
+
+
+class WorkflowStateSchema(BaseModel):
+    name: str
+    label: str
+    color: str = "gray"
+    is_initial: bool = False
+    is_final: bool = False
+
+
+class WorkflowTransitionSchema(BaseModel):
+    from_state: str
+    to_state: str
+    action: str
+    allowed_roles: list[str] = []
+    condition: str | None = None
+
+
+class WorkflowDefSchema(BaseModel):
+    state_field: str = "status"
+    states: list[WorkflowStateSchema] = []
+    transitions: list[WorkflowTransitionSchema] = []
+
+
+class DocTypeListViewSchema(BaseModel):
+    fields: list[str] = []
+    sort_by: str = "modified"
+    sort_order: Literal["asc", "desc"] = "desc"
+    default_filters: dict[str, str] = {}
+
+
+class DocTypeFormViewSchema(BaseModel):
+    layout: Literal["standard", "compact", "wide"] = "standard"
+    print_format: str | None = None
+
+
+class DocTypeKanbanViewSchema(BaseModel):
+    column_field: str
+    title_field: str = "name"
+    color_field: str | None = None
+
+
 class DocTypeSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -54,12 +105,16 @@ class DocTypeSchema(BaseModel):
 
     fields: list[DocFieldSchema] = []
 
-    permissions: list[dict[str, Any]] = []
-    workflow: dict[str, Any] | None = None
+    permissions: list[DocTypePermissionSchema] = []
+    workflow: WorkflowDefSchema | None = None
 
     autoname: str | None = None
     title_field: str = "name"
     search_fields: list[str] = []
+
+    list_view: DocTypeListViewSchema = DocTypeListViewSchema()
+    form_view: DocTypeFormViewSchema = DocTypeFormViewSchema()
+    kanban_view: DocTypeKanbanViewSchema | None = None
 
 
 class DocTypeListItem(BaseModel):

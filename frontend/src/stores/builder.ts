@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import type { DocType, DocField, FieldType } from '@/types'
+import type { DocType, DocField, DocTypePermission, WorkflowDef, WorkflowState, WorkflowTransition, FieldType } from '@/types'
 import { metaApi } from '@/core/api'
 import { parseLayout, flattenLayout } from '@/core/composables/useFormLayout'
 import type { FormLayout } from '@/core/composables/useFormLayout'
@@ -10,6 +10,7 @@ export const useBuilderStore = defineStore('builder', () => {
   const isDirty = ref(false)
   const selectedFieldName = ref<string | null>(null)
   const isSaving = ref(false)
+  const activeTab = ref<string>('form')
 
   // ── Computed ─────────────────────────────────────────────────────────
 
@@ -279,12 +280,91 @@ export const useBuilderStore = defineStore('builder', () => {
     isDirty.value = true
   }
 
+  // ── Permission operations ────────────────────────────────────────────
+
+  function addPermission(role: string) {
+    if (!doctype.value) return
+    const perms = [...(doctype.value.permissions ?? [])]
+    perms.push({ role, read: true })
+    doctype.value = { ...doctype.value, permissions: perms }
+    isDirty.value = true
+  }
+
+  function updatePermission(index: number, patch: Partial<DocTypePermission>) {
+    if (!doctype.value?.permissions) return
+    const perms = [...doctype.value.permissions]
+    perms[index] = { ...perms[index], ...patch }
+    doctype.value = { ...doctype.value, permissions: perms }
+    isDirty.value = true
+  }
+
+  function removePermission(index: number) {
+    if (!doctype.value?.permissions) return
+    const perms = [...doctype.value.permissions]
+    perms.splice(index, 1)
+    doctype.value = { ...doctype.value, permissions: perms }
+    isDirty.value = true
+  }
+
+  // ── Workflow operations ─────────────────────────────────────────────
+
+  function updateWorkflow(patch: Partial<WorkflowDef>) {
+    if (!doctype.value) return
+    const wf = doctype.value.workflow ?? { state_field: 'status', states: [], transitions: [] }
+    doctype.value = { ...doctype.value, workflow: { ...wf, ...patch } }
+    isDirty.value = true
+  }
+
+  function addWorkflowState(state?: Partial<WorkflowState>) {
+    if (!doctype.value) return
+    const wf = doctype.value.workflow ?? { state_field: 'status', states: [], transitions: [] }
+    const newState: WorkflowState = {
+      name: state?.name ?? `state_${wf.states.length + 1}`,
+      label: state?.label ?? `State ${wf.states.length + 1}`,
+      color: state?.color ?? 'gray',
+      is_initial: wf.states.length === 0,
+      is_final: false,
+    }
+    updateWorkflow({ states: [...wf.states, newState] })
+  }
+
+  function removeWorkflowState(index: number) {
+    if (!doctype.value?.workflow) return
+    const states = [...doctype.value.workflow.states]
+    const removed = states.splice(index, 1)[0]
+    // Also remove transitions referencing this state
+    const transitions = doctype.value.workflow.transitions.filter(
+      (t) => t.from_state !== removed.name && t.to_state !== removed.name
+    )
+    updateWorkflow({ states, transitions })
+  }
+
+  function addWorkflowTransition(transition?: Partial<WorkflowTransition>) {
+    if (!doctype.value?.workflow) return
+    const wf = doctype.value.workflow
+    const newTransition: WorkflowTransition = {
+      action: transition?.action ?? 'Action',
+      from_state: transition?.from_state ?? (wf.states[0]?.name ?? ''),
+      to_state: transition?.to_state ?? (wf.states[1]?.name ?? wf.states[0]?.name ?? ''),
+      allowed_roles: transition?.allowed_roles ?? [],
+    }
+    updateWorkflow({ transitions: [...wf.transitions, newTransition] })
+  }
+
+  function removeWorkflowTransition(index: number) {
+    if (!doctype.value?.workflow) return
+    const transitions = [...doctype.value.workflow.transitions]
+    transitions.splice(index, 1)
+    updateWorkflow({ transitions })
+  }
+
   return {
     doctype,
     isDirty,
     selectedFieldName,
     selectedField,
     isSaving,
+    activeTab,
     layout,
     loadDocType,
     addField,
@@ -301,5 +381,13 @@ export const useBuilderStore = defineStore('builder', () => {
     removeSection,
     setSectionColumns,
     addFieldToColumn,
+    addPermission,
+    updatePermission,
+    removePermission,
+    updateWorkflow,
+    addWorkflowState,
+    removeWorkflowState,
+    addWorkflowTransition,
+    removeWorkflowTransition,
   }
 })
