@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { DocType, DocField } from '@/types'
+import type { DocType } from '@/types'
+import { parseLayout } from '@/core/composables/useFormLayout'
+import type { LayoutSection } from '@/core/composables/useFormLayout'
 import FieldRenderer from './FieldRenderer.vue'
 
 const props = defineProps<{
@@ -11,56 +13,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: Record<string, unknown>] }>()
-
-type ColumnGroup = DocField[]
-type Section = { type: 'section'; label: string; collapsible: boolean; collapsed: boolean; columns: ColumnGroup[] }
-type Tab = { type: 'tab'; label: string; sections: Section[] }
-type Layout = Tab[]
-
-function parseLayout(fields: DocField[]): Layout {
-  const tabs: Tab[] = []
-  let currentTab: Tab = { type: 'tab', label: '', sections: [] }
-  let currentSection: Section = { type: 'section', label: '', collapsible: false, collapsed: false, columns: [[]] }
-
-  function pushSection() {
-    if (currentSection.columns.some((col) => col.length > 0)) {
-      currentTab.sections.push(currentSection)
-    }
-  }
-
-  function pushTab() {
-    pushSection()
-    if (currentTab.sections.length > 0 || currentTab.label) {
-      tabs.push(currentTab)
-    }
-  }
-
-  for (const f of fields) {
-    if (f.hidden) continue
-
-    if (f.fieldtype === 'Tab') {
-      pushTab()
-      currentTab = { type: 'tab', label: f.label, sections: [] }
-      currentSection = { type: 'section', label: '', collapsible: false, collapsed: false, columns: [[]] }
-    } else if (f.fieldtype === 'Section') {
-      pushSection()
-      currentSection = { type: 'section', label: f.label, collapsible: !!f.collapsible, collapsed: false, columns: [[]] }
-    } else if (f.fieldtype === 'Column') {
-      currentSection.columns.push([])
-    } else {
-      const lastCol = currentSection.columns[currentSection.columns.length - 1]
-      lastCol.push(f)
-    }
-  }
-
-  pushTab()
-
-  if (tabs.length === 0) {
-    tabs.push(currentTab)
-  }
-
-  return tabs
-}
 
 const layout = computed(() => parseLayout(props.doctype.fields))
 const hasTabs = computed(() => layout.value.length > 1 || layout.value[0]?.label !== '')
@@ -74,7 +26,7 @@ function update(fieldname: string, val: unknown) {
   emit('update:modelValue', { ...props.modelValue, [fieldname]: val })
 }
 
-function toggleSection(section: Section) {
+function toggleSection(section: LayoutSection) {
   if (section.collapsible) section.collapsed = !section.collapsed
 }
 </script>
@@ -91,7 +43,7 @@ function toggleSection(section: Section) {
         ? 'border-[--grunt-primary] text-[--grunt-primary]'
         : 'border-transparent text-[--grunt-text-secondary] hover:text-[--grunt-text-primary]'"
       @click="activeTab = ti"
-    >{{ tab.label || 'Основне' }}</button>
+    >{{ tab.label || 'Main' }}</button>
   </div>
 
   <!-- Sections -->

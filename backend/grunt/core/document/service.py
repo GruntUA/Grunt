@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import math
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, time, timezone
 from typing import Any
 
 import structlog
@@ -143,7 +143,7 @@ class DocumentService:
             if field.fieldtype in NON_PHYSICAL_FIELDS:
                 continue
             if field.fieldname in data:
-                row[field.fieldname] = data[field.fieldname]
+                row[field.fieldname] = self._coerce_value(data[field.fieldname], field.fieldtype)
             elif field.default is not None:
                 row[field.fieldname] = field.default
 
@@ -220,7 +220,7 @@ class DocumentService:
             if field.fieldtype in NON_PHYSICAL_FIELDS:
                 continue
             if field.fieldname in data and field.fieldname not in PROTECTED_FIELDS:
-                update_data[field.fieldname] = data[field.fieldname]
+                update_data[field.fieldname] = self._coerce_value(data[field.fieldname], field.fieldtype)
 
         update_data["modified_at"] = datetime.now(timezone.utc)
         update_data["modified_by"] = user.email
@@ -267,6 +267,27 @@ class DocumentService:
         logger.info("document.deleted", doctype=doctype_name, id=real_id)
 
         await fire("after_delete", doctype=doctype_name, doc_id=real_id, user=user, session=self.session)
+
+    # ── Type coercion ────────────────────────────────────────────────────
+
+    @staticmethod
+    def _coerce_value(value: Any, fieldtype: str) -> Any:
+        """Convert string values to proper Python types for SQLAlchemy."""
+        if value is None or value == "":
+            return None if fieldtype in ("Date", "Datetime", "Time", "Int", "Float") else value
+        if fieldtype == "Date" and isinstance(value, str):
+            return date.fromisoformat(value)
+        if fieldtype == "Datetime" and isinstance(value, str):
+            return datetime.fromisoformat(value)
+        if fieldtype == "Time" and isinstance(value, str):
+            return time.fromisoformat(value)
+        if fieldtype == "Int" and isinstance(value, str):
+            return int(value)
+        if fieldtype == "Float" and isinstance(value, str):
+            return float(value)
+        if fieldtype == "Check":
+            return bool(value)
+        return value
 
     # ── Validation ────────────────────────────────────────────────────────
 

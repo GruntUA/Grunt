@@ -9,11 +9,7 @@ import GSelect from '@/components/ui/GSelect.vue'
 
 const builder = useBuilderStore()
 
-const field = computed(() =>
-  builder.selectedFieldIndex !== null
-    ? builder.doctype?.fields[builder.selectedFieldIndex] ?? null
-    : null
-)
+const field = computed(() => builder.selectedField)
 
 const doctypeList = ref<DocTypeSummary[]>([])
 const childDoctypes = ref<DocTypeSummary[]>([])
@@ -26,8 +22,8 @@ onMounted(async () => {
 })
 
 function updateField(key: string, val: unknown) {
-  if (builder.selectedFieldIndex === null) return
-  builder.updateField(builder.selectedFieldIndex, { [key]: val } as Record<string, unknown>)
+  if (!builder.selectedFieldName) return
+  builder.updateField(builder.selectedFieldName, { [key]: val } as Record<string, unknown>)
 }
 
 function updateDocType(key: string, val: unknown) {
@@ -43,6 +39,10 @@ const titleFieldOptions = computed(() =>
 
 const doctypeOptions = computed(() => doctypeList.value.map((d) => d.name).join('\n'))
 const childDoctypeOptions = computed(() => childDoctypes.value.map((d) => d.name).join('\n'))
+
+const isLayoutField = computed(() =>
+  field.value ? ['Section', 'Column', 'Tab'].includes(field.value.fieldtype) : false
+)
 </script>
 
 <template>
@@ -52,7 +52,7 @@ const childDoctypeOptions = computed(() => childDoctypes.value.map((d) => d.name
       <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-4">DocType</p>
       <div class="flex flex-col gap-3">
         <GInput :model-value="builder.doctype.label" label="Label" @update:model-value="updateDocType('label', $event)" />
-        <GInput :model-value="builder.doctype.module" label="Модуль" @update:model-value="updateDocType('module', $event)" />
+        <GInput :model-value="builder.doctype.module" label="Module" @update:model-value="updateDocType('module', $event)" />
         <GSelect :model-value="builder.doctype.title_field ?? ''" label="Title Field" :options="titleFieldOptions" @update:model-value="updateDocType('title_field', $event || undefined)" />
         <label class="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" :checked="!!builder.doctype.is_submittable" class="rounded" @change="updateDocType('is_submittable', ($event.target as HTMLInputElement).checked)" />
@@ -62,22 +62,44 @@ const childDoctypeOptions = computed(() => childDoctypes.value.map((d) => d.name
           <input type="checkbox" :checked="!!builder.doctype.is_child" class="rounded" @change="updateDocType('is_child', ($event.target as HTMLInputElement).checked)" />
           <span class="text-sm text-[--grunt-text-primary]">Child DocType</span>
         </label>
-        <!-- Workflow link for submittable doctypes -->
         <RouterLink
           v-if="builder.doctype.is_submittable"
           :to="`/studio/${builder.doctype.name}/workflow`"
           class="flex items-center gap-1.5 text-sm text-[--grunt-primary] hover:underline mt-1"
         >
-          &#9889; Налаштувати Workflow &rarr;
+          &#9889; Workflow &rarr;
         </RouterLink>
       </div>
     </template>
 
-    <!-- Field selected -->
-    <template v-else-if="field">
-      <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-4">Поле: {{ field.fieldtype }}</p>
+    <!-- Tab field selected -->
+    <template v-else-if="field && field.fieldtype === 'Tab'">
+      <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-4">Tab</p>
+      <div class="flex flex-col gap-3">
+        <GInput :model-value="field.label" label="Label *" required @update:model-value="updateField('label', $event)" />
+        <GInput :model-value="field.fieldname" label="Fieldname" disabled />
+      </div>
+    </template>
 
-      <!-- Основне -->
+    <!-- Section field selected -->
+    <template v-else-if="field && field.fieldtype === 'Section'">
+      <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-4">Section</p>
+      <div class="flex flex-col gap-3">
+        <GInput :model-value="field.label" label="Label" @update:model-value="updateField('label', $event)" />
+        <GInput :model-value="field.fieldname" label="Fieldname" disabled />
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" :checked="!!field.collapsible" class="rounded" @change="updateField('collapsible', ($event.target as HTMLInputElement).checked)" />
+          <span class="text-sm">Collapsible</span>
+        </label>
+        <GInput :model-value="field.depends_on ?? ''" label="Depends On" placeholder="eval: doc.status == 'Active'" @update:model-value="updateField('depends_on', $event || undefined)" />
+      </div>
+    </template>
+
+    <!-- Regular field selected -->
+    <template v-else-if="field && !isLayoutField">
+      <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-4">Field: {{ field.fieldtype }}</p>
+
+      <!-- Core -->
       <div class="flex flex-col gap-3 mb-5">
         <GInput :model-value="field.label" label="Label *" required @update:model-value="updateField('label', $event)" />
         <GInput :model-value="field.fieldname" label="Fieldname *" @update:model-value="updateField('fieldname', $event)" />
@@ -95,8 +117,8 @@ const childDoctypeOptions = computed(() => childDoctypes.value.map((d) => d.name
         </label>
       </div>
 
-      <!-- Відображення -->
-      <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-3">Відображення</p>
+      <!-- Display -->
+      <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-3">Display</p>
       <div class="flex flex-col gap-3 mb-5">
         <label class="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" :checked="!!field.in_list_view" class="rounded" @change="updateField('in_list_view', ($event.target as HTMLInputElement).checked)" />
@@ -111,13 +133,13 @@ const childDoctypeOptions = computed(() => childDoctypes.value.map((d) => d.name
         <GInput :model-value="field.depends_on ?? ''" label="Depends On" placeholder="eval: doc.status == 'Active'" @update:model-value="updateField('depends_on', $event || undefined)" />
       </div>
 
-      <!-- Тип-специфічні -->
+      <!-- Type-specific -->
       <template v-if="field.fieldtype === 'Select'">
         <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-2">Options</p>
         <textarea
           :value="field.options ?? ''"
           rows="5"
-          placeholder="Кожен варіант з нового рядка"
+          placeholder="Each option on a new line"
           class="w-full text-sm border border-[--grunt-border] rounded-[--grunt-radius-sm] px-2 py-1.5 focus:outline-none focus:border-[--grunt-primary]"
           @input="updateField('options', ($event.target as HTMLTextAreaElement).value)"
         />
@@ -142,7 +164,7 @@ const childDoctypeOptions = computed(() => childDoctypes.value.map((d) => d.name
     </template>
 
     <div v-else class="flex items-center justify-center h-32 text-[--grunt-text-muted] text-sm">
-      Виберіть поле для редагування
+      Select a field to edit properties
     </div>
   </div>
 </template>

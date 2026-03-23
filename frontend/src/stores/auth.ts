@@ -28,8 +28,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchMe() {
     if (!token.value) return
-    const { data } = await client.get('/api/v1/auth/me')
-    user.value = data.data
+    try {
+      const { data } = await client.get('/api/v1/auth/me')
+      user.value = data.data ?? data
+    } catch {
+      logout()
+    }
   }
 
   function logout() {

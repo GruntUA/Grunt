@@ -1,0 +1,138 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useBuilderStore } from '@/stores/builder'
+import type { LayoutSection } from '@/core/composables/useFormLayout'
+import CanvasColumn from './CanvasColumn.vue'
+
+const props = defineProps<{
+  section: LayoutSection
+}>()
+
+const emit = defineEmits<{
+  'update:section': [section: LayoutSection]
+  delete: []
+}>()
+
+const builder = useBuilderStore()
+const isEditingLabel = ref(false)
+const editLabel = ref('')
+
+function startEditLabel() {
+  editLabel.value = props.section.label
+  isEditingLabel.value = true
+}
+
+function finishEditLabel() {
+  isEditingLabel.value = false
+  if (props.section._field) {
+    builder.updateField(props.section._fieldname, { label: editLabel.value })
+  }
+}
+
+function setColumns(count: number) {
+  builder.setSectionColumns(props.section._fieldname, count)
+}
+
+function updateColumnFields(colIndex: number, newFields: typeof props.section.columns[0]) {
+  const updated = { ...props.section }
+  const newColumns = [...updated.columns]
+  newColumns[colIndex] = newFields
+  emit('update:section', { ...updated, columns: newColumns })
+}
+
+function toggleCollapsible() {
+  if (props.section._field) {
+    builder.updateField(props.section._fieldname, { collapsible: !props.section.collapsible })
+  }
+}
+
+function selectSection() {
+  if (props.section._field) {
+    builder.selectField(props.section._fieldname)
+  }
+}
+</script>
+
+<template>
+  <div
+    class="border border-[--grunt-border] rounded-[--grunt-radius-md] bg-[--grunt-surface] overflow-hidden"
+    :class="builder.selectedFieldName === section._fieldname ? 'ring-2 ring-[--grunt-primary]/20' : ''"
+  >
+    <!-- Section header -->
+    <div
+      class="flex items-center gap-2 px-3 py-2 bg-[--grunt-surface-secondary] border-b border-[--grunt-border] cursor-pointer select-none"
+      @click="selectSection"
+    >
+      <!-- Collapsible indicator -->
+      <button
+        v-if="section._field"
+        type="button"
+        class="text-xs text-[--grunt-text-muted] hover:text-[--grunt-text-secondary] w-4 shrink-0"
+        :title="section.collapsible ? 'Collapsible' : 'Not collapsible'"
+        @click.stop="toggleCollapsible"
+      >
+        {{ section.collapsible ? '▼' : '━' }}
+      </button>
+
+      <!-- Label (editable) -->
+      <template v-if="isEditingLabel">
+        <input
+          v-model="editLabel"
+          type="text"
+          class="flex-1 text-xs font-semibold uppercase tracking-wide bg-transparent border-b border-[--grunt-primary] outline-none text-[--grunt-text-primary] px-0 py-0"
+          @blur="finishEditLabel"
+          @keydown.enter="finishEditLabel"
+          @keydown.escape="isEditingLabel = false"
+          @click.stop
+          autofocus
+        />
+      </template>
+      <template v-else>
+        <span
+          class="flex-1 text-xs font-semibold uppercase tracking-wide text-[--grunt-text-secondary] truncate"
+          :class="{ 'text-[--grunt-text-muted] italic': !section.label }"
+          @dblclick.stop="startEditLabel"
+        >
+          {{ section.label || 'Section (double-click to rename)' }}
+        </span>
+      </template>
+
+      <!-- Column count buttons -->
+      <div class="flex items-center gap-0.5 shrink-0">
+        <button
+          v-for="n in 4"
+          :key="n"
+          type="button"
+          class="w-5 h-5 text-[10px] rounded flex items-center justify-center transition-colors"
+          :class="section.columns.length === n
+            ? 'bg-[--grunt-primary] text-white'
+            : 'text-[--grunt-text-muted] hover:bg-[--grunt-border]'"
+          :title="`${n} column${n > 1 ? 's' : ''}`"
+          @click.stop="setColumns(n)"
+        >{{ n }}</button>
+      </div>
+
+      <!-- Delete section -->
+      <button
+        v-if="section._field"
+        type="button"
+        class="text-[--grunt-text-muted] hover:text-[--grunt-danger] text-xs shrink-0 px-1"
+        title="Delete section"
+        @click.stop="emit('delete')"
+      >×</button>
+    </div>
+
+    <!-- Columns grid -->
+    <div
+      class="p-2 gap-2"
+      :style="{ display: 'grid', gridTemplateColumns: `repeat(${section.columns.length}, 1fr)` }"
+    >
+      <CanvasColumn
+        v-for="(col, ci) in section.columns"
+        :key="ci"
+        :fields="col"
+        @update:fields="updateColumnFields(ci, $event)"
+      />
+    </div>
+  </div>
+</template>

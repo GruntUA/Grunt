@@ -1,91 +1,115 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import draggable from 'vuedraggable'
+import { ref, watch } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
-import type { DocField } from '@/types'
+import type { LayoutTab, LayoutSection } from '@/core/composables/useFormLayout'
+import CanvasTabBar from './CanvasTabBar.vue'
+import CanvasSection from './CanvasSection.vue'
 
 const builder = useBuilderStore()
+const activeTabIndex = ref(0)
 
-const fields = computed({
-  get: () => builder.doctype?.fields ?? [],
-  set: (val: DocField[]) => {
-    if (builder.doctype) {
-      builder.doctype.fields = val
-      builder.isDirty = true
-    }
-  },
+// Reset active tab when doctype changes
+watch(() => builder.doctype?.name, () => {
+  activeTabIndex.value = 0
 })
 
-const FIELD_ICONS: Record<string, string> = {
-  Text: 'T', LongText: '¶', Int: '1', Float: '.1', Check: '✓', Date: '📅',
-  Datetime: '🕐', Time: '⏰', Select: '▼', Link: '🔗', Attach: '📎', Image: '🖼',
-  RichText: '✍', JSON: '{}', Code: '<>', Color: '🎨', Geolocation: '📍',
-  Section: '═', Column: '║', Tab: '⊟', Table: '▦', Signature: '✒',
+// Clamp active tab index when tabs are removed
+watch(() => builder.layout.length, (len) => {
+  if (activeTabIndex.value >= len && len > 0) {
+    activeTabIndex.value = len - 1
+  }
+})
+
+function onAddTab() {
+  const lastTab = builder.layout[builder.layout.length - 1]
+  const afterFieldname = lastTab?._field ? lastTab._fieldname : undefined
+  builder.addTab(afterFieldname)
+  activeTabIndex.value = builder.layout.length - 1
 }
 
-function isLayoutField(f: DocField) {
-  return ['Section', 'Column', 'Tab'].includes(f.fieldtype)
+function onRenameTab(fieldname: string, label: string) {
+  builder.updateField(fieldname, { label })
+}
+
+function onDeleteTab(fieldname: string) {
+  builder.removeTab(fieldname)
+}
+
+function onReorderTabs(newTabs: LayoutTab[]) {
+  // Rebuild flat fields from the reordered layout
+  const reorderedLayout = [...newTabs]
+  builder.rebuildFlatFields(reorderedLayout)
+}
+
+function onUpdateSection(tabIndex: number, sectionIndex: number, updatedSection: LayoutSection) {
+  // Section columns changed via drag-and-drop — rebuild flat fields
+  const currentLayout = builder.layout.map((tab, ti) => {
+    if (ti !== tabIndex) return tab
+    return {
+      ...tab,
+      sections: tab.sections.map((sec, si) => (si === sectionIndex ? updatedSection : sec)),
+    }
+  })
+  builder.rebuildFlatFields(currentLayout)
+}
+
+function onDeleteSection(sectionFieldname: string) {
+  builder.removeSection(sectionFieldname)
+}
+
+function onAddSection() {
+  const currentTab = builder.layout[activeTabIndex.value]
+  if (!currentTab) return
+  builder.addSection(currentTab._fieldname)
+}
+
+function deselect() {
+  builder.selectField(null)
 }
 </script>
 
 <template>
-  <div class="h-full overflow-y-auto p-4">
-    <draggable
-      v-model="fields"
-      item-key="fieldname"
-      handle=".drag-handle"
-      ghost-class="opacity-30"
-      class="flex flex-col gap-2 min-h-32"
-    >
-      <template #item="{ element: f, index: i }">
-        <div
-          class="group flex items-center gap-2 bg-[--grunt-surface] border rounded-[--grunt-radius-md] transition-all cursor-pointer"
-          :class="builder.selectedFieldIndex === i
-            ? 'border-[--grunt-primary] ring-2 ring-[--grunt-primary]/20'
-            : 'border-[--grunt-border] hover:border-[--grunt-border-strong]'"
-          @click="builder.selectField(i)"
-        >
-          <!-- Drag handle -->
-          <div class="drag-handle px-2 py-3 text-[--grunt-text-muted] hover:text-[--grunt-text-secondary] cursor-grab active:cursor-grabbing shrink-0">
-            ⠿
-          </div>
+  <div class="h-full flex flex-col overflow-hidden" @click.self="deselect">
+    <!-- Tab bar (always visible, even for single implicit tab) -->
+    <CanvasTabBar
+      :tabs="builder.layout"
+      :active-index="activeTabIndex"
+      @update:active-index="activeTabIndex = $event"
+      @update:tabs="onReorderTabs"
+      @add-tab="onAddTab"
+      @rename-tab="onRenameTab"
+      @delete-tab="onDeleteTab"
+    />
 
-          <!-- Content -->
-          <div class="flex-1 py-2.5 min-w-0">
-            <!-- Section / Tab as header -->
-            <template v-if="isLayoutField(f)">
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-[--grunt-text-muted] uppercase">{{ f.fieldtype }}</span>
-                <span class="text-sm font-medium text-[--grunt-text-primary]">{{ f.label || '—' }}</span>
-              </div>
-            </template>
-            <template v-else>
-              <div class="flex items-center gap-2">
-                <span class="text-sm shrink-0">{{ FIELD_ICONS[f.fieldtype] ?? '?' }}</span>
-                <span class="text-sm font-medium text-[--grunt-text-primary] truncate">{{ f.label || f.fieldname }}</span>
-                <span class="text-xs text-[--grunt-text-muted] truncate">({{ f.fieldname }})</span>
-                <span v-if="f.required" class="text-xs text-[--grunt-danger]">*</span>
-              </div>
-            </template>
-          </div>
+    <!-- Active tab content -->
+    <div class="flex-1 overflow-y-auto p-4" @click.self="deselect">
+      <template v-if="builder.layout[activeTabIndex]">
+        <div class="flex flex-col gap-3 max-w-4xl mx-auto">
+          <CanvasSection
+            v-for="(section, si) in builder.layout[activeTabIndex].sections"
+            :key="section._fieldname"
+            :section="section"
+            @update:section="onUpdateSection(activeTabIndex, si, $event)"
+            @delete="onDeleteSection(section._fieldname)"
+          />
 
-          <!-- Delete -->
+          <!-- Add section button -->
           <button
             type="button"
-            class="px-3 py-3 text-[--grunt-text-muted] hover:text-[--grunt-danger] opacity-0 group-hover:opacity-100 transition-all shrink-0"
-            @click.stop="builder.removeField(i)"
-          >×</button>
+            class="flex items-center justify-center gap-1.5 w-full py-2.5 border-2 border-dashed border-[--grunt-border] rounded-[--grunt-radius-md] text-sm text-[--grunt-text-muted] hover:text-[--grunt-primary] hover:border-[--grunt-primary]/40 transition-colors"
+            @click="onAddSection"
+          >
+            + Add Section
+          </button>
         </div>
       </template>
 
-      <template #footer>
-        <div
-          v-if="!fields.length"
-          class="flex items-center justify-center h-32 border-2 border-dashed border-[--grunt-border] rounded-[--grunt-radius-lg] text-[--grunt-text-muted] text-sm"
-        >
-          Перетягни поле з палітри або клікни на тип
-        </div>
-      </template>
-    </draggable>
+      <div
+        v-else
+        class="flex items-center justify-center h-full text-[--grunt-text-muted] text-sm"
+      >
+        No fields yet. Add fields from the palette.
+      </div>
+    </div>
   </div>
 </template>
