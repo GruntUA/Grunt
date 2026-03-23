@@ -142,7 +142,7 @@ function confirmLeave() {
 </script>
 
 <template>
-  <div class="p-8 max-w-3xl">
+  <div class="p-4 sm:p-6 lg:p-8 max-w-full lg:max-w-4xl xl:max-w-5xl">
     <!-- Breadcrumb -->
     <div class="flex items-center gap-2 text-sm text-[--grunt-text-secondary] mb-6">
       <button class="hover:text-[--grunt-primary]" @click="router.push(workspace ? `/${workspace}/list/${doctype}` : `/${doctype}`)">

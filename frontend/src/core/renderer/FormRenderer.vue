@@ -84,7 +84,22 @@ function toggleSection(section: LayoutSection) {
 
 <style scoped>
 .form-grid-1 { display: grid; grid-template-columns: 1fr; }
-.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; }
-.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; }
-.form-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); }
+.form-grid-2 { display: grid; grid-template-columns: 1fr; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr; }
+.form-grid-4 { display: grid; grid-template-columns: 1fr; }
+
+@media (min-width: 768px) {
+  .form-grid-2 { grid-template-columns: 1fr 1fr; }
+  .form-grid-3 { grid-template-columns: 1fr 1fr; }
+  .form-grid-4 { grid-template-columns: 1fr 1fr; }
+}
+
+@media (min-width: 1024px) {
+  .form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-grid-4 { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 1280px) {
+  .form-grid-4 { grid-template-columns: repeat(4, 1fr); }
+}
 </style>
