@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { defineAsyncComponent, computed } from 'vue'
 import { fieldComponents, FallbackField } from '@/components/fields'
+import { FormField } from '@/components/ui/form-field'
 import type { DocField } from '@/types'
+
+const INLINE_LABEL_TYPES = new Set(['Check'])
 
 const props = defineProps<{
   field: DocField
@@ -28,10 +31,19 @@ const isVisible = computed(() => {
 const component = computed(() =>
   defineAsyncComponent(fieldComponents[props.field.fieldtype] ?? FallbackField)
 )
+
+const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype))
 </script>
 
 <template>
-  <div v-if="isVisible">
+  <FormField
+    v-if="isVisible"
+    :data-fieldname="field.fieldname"
+    :label="hasOwnLabel ? undefined : field.label"
+    :required="hasOwnLabel ? false : field.required"
+    :error="error"
+    :hint="field.description"
+  >
     <component
       :is="component"
       :field="field"
@@ -40,5 +52,5 @@ const component = computed(() =>
       :error="error"
       @update:modelValue="emit('update:modelValue', $event)"
     />
-  </div>
+  </FormField>
 </template>

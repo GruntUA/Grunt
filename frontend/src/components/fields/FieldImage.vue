@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import type { DocField } from '@/types'
 import client from '@/core/api/client'
+import { ImageIcon, X } from 'lucide-vue-next'
 
 const props = defineProps<{
   field: DocField
@@ -47,40 +48,36 @@ function onFileChange(e: Event) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-1">
-    <label class="text-sm font-medium text-[--grunt-text-primary]">
-      {{ field.label }}<span v-if="field.required" class="text-[--grunt-danger] ml-0.5">*</span>
-    </label>
-
+  <div>
     <!-- Current image -->
     <div v-if="currentUrl()" class="relative inline-block">
-      <img :src="currentUrl()!" class="max-h-48 rounded-[--grunt-radius-md] border border-[--grunt-border] object-contain" />
+      <img :src="currentUrl()!" class="max-h-48 rounded-lg border border-border object-contain" />
       <button
         v-if="!disabled"
         type="button"
-        class="absolute top-1 right-1 bg-white rounded-full w-5 h-5 flex items-center justify-center text-[--grunt-danger] shadow hover:bg-[--grunt-danger] hover:text-white transition-colors text-xs"
+        class="absolute top-1 right-1 bg-background rounded-full w-6 h-6 flex items-center justify-center text-destructive shadow-sm border border-border hover:bg-destructive hover:text-destructive-foreground transition-colors"
         @click="emit('update:modelValue', null)"
-      >×</button>
+      >
+        <X class="size-3.5" />
+      </button>
     </div>
 
     <!-- Upload zone -->
     <div
       v-else
-      class="border-2 border-dashed rounded-[--grunt-radius-md] p-6 text-center transition-colors cursor-pointer"
-      :class="isDragging ? 'border-[--grunt-primary] bg-[--grunt-primary-light]' : 'border-[--grunt-border] hover:border-[--grunt-primary]'"
+      class="border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer"
+      :class="isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'"
       @dragover.prevent="isDragging = true"
       @dragleave="isDragging = false"
       @drop.prevent="onDrop"
       @click="fileInput?.click()"
     >
-      <div v-if="isUploading" class="text-sm text-[--grunt-text-muted]">Завантаження...</div>
-      <div v-else>
-        <p class="text-2xl mb-1">🖼</p>
-        <p class="text-sm text-[--grunt-text-secondary]">Перетягни зображення або <span class="text-[--grunt-primary]">клікни</span></p>
+      <div v-if="isUploading" class="text-sm text-muted-foreground">Завантаження...</div>
+      <div v-else class="flex flex-col items-center gap-1">
+        <ImageIcon class="size-8 text-muted-foreground/50" />
+        <p class="text-sm text-muted-foreground">Перетягни зображення або <span class="text-primary font-medium">клікни</span></p>
       </div>
       <input ref="fileInput" type="file" accept="image/*" class="sr-only" :disabled="disabled" @change="onFileChange" />
     </div>
-
-    <p v-if="error" class="text-xs text-[--grunt-danger]">{{ error }}</p>
   </div>
 </template>

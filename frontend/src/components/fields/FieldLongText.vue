@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useId } from 'vue'
 import type { DocField } from '@/types'
 
 defineProps<{
@@ -10,7 +9,6 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
-const id = useId()
 
 function autoResize(el: HTMLTextAreaElement) {
   el.style.height = 'auto'
@@ -19,22 +17,14 @@ function autoResize(el: HTMLTextAreaElement) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-1">
-    <label :for="id" class="text-sm font-medium text-[--grunt-text-primary]">
-      {{ field.label }}<span v-if="field.required" class="text-[--grunt-danger] ml-0.5">*</span>
-    </label>
-    <textarea
-      :id="id"
-      :value="String(modelValue ?? '')"
-      :placeholder="field.placeholder ?? ''"
-      :disabled="disabled || field.read_only"
-      rows="3"
-      class="w-full rounded-[--grunt-radius-sm] border border-[--grunt-border] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[--grunt-primary]/30 focus:border-[--grunt-primary] resize-none overflow-hidden disabled:bg-[--grunt-surface-secondary] disabled:text-[--grunt-text-secondary]"
-      :class="{ 'border-[--grunt-danger]': error }"
-      @input="(e) => { emit('update:modelValue', (e.target as HTMLTextAreaElement).value); autoResize(e.target as HTMLTextAreaElement) }"
-      @focus="(e) => autoResize(e.target as HTMLTextAreaElement)"
-    />
-    <p v-if="error" class="text-xs text-[--grunt-danger]">{{ error }}</p>
-    <p v-else-if="field.description" class="text-xs text-[--grunt-text-muted]">{{ field.description }}</p>
-  </div>
+  <textarea
+    :value="String(modelValue ?? '')"
+    :placeholder="field.placeholder ?? ''"
+    :disabled="disabled || field.read_only"
+    rows="3"
+    class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring resize-none overflow-hidden disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
+    :class="{ 'border-destructive focus-visible:ring-destructive': error }"
+    @input="(e) => { emit('update:modelValue', (e.target as HTMLTextAreaElement).value); autoResize(e.target as HTMLTextAreaElement) }"
+    @focus="(e) => autoResize(e.target as HTMLTextAreaElement)"
+  />
 </template>

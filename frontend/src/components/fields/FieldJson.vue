@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useId } from 'vue'
 import type { DocField } from '@/types'
 
 const props = defineProps<{
@@ -11,7 +10,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
-const id = useId()
 const localError = ref<string | null>(null)
 
 function formatValue(v: unknown): string {
@@ -52,20 +50,15 @@ function onBlur() {
 
 <template>
   <div class="flex flex-col gap-1">
-    <label :for="id" class="text-sm font-medium text-[--grunt-text-primary]">
-      {{ field.label }}<span v-if="field.required" class="text-[--grunt-danger] ml-0.5">*</span>
-    </label>
     <textarea
-      :id="id"
       :value="text"
       :disabled="disabled || field.read_only"
       rows="6"
-      class="w-full rounded-[--grunt-radius-sm] border border-[--grunt-border] px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[--grunt-primary]/30 focus:border-[--grunt-primary] resize-y disabled:bg-[--grunt-surface-secondary]"
-      :class="{ 'border-[--grunt-danger]': error || localError }"
+      class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y disabled:bg-muted disabled:cursor-not-allowed"
+      :class="{ 'border-destructive focus-visible:ring-destructive': error || localError }"
       @input="onInput(($event.target as HTMLTextAreaElement).value)"
       @blur="onBlur"
     />
-    <p v-if="error || localError" class="text-xs text-[--grunt-danger]">{{ error ?? localError }}</p>
-    <p v-else-if="field.description" class="text-xs text-[--grunt-text-muted]">{{ field.description }}</p>
+    <p v-if="localError" class="text-xs text-destructive">{{ localError }}</p>
   </div>
 </template>

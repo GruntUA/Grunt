@@ -7,7 +7,9 @@ import { docsApi } from '@/core/api/docs'
 import type { DocType, DocField } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Spinner } from '@/components/ui/spinner'
+import { Badge } from '@/components/ui/badge'
 import {
   AlertDialog,
   AlertDialogContent,
@@ -18,6 +20,26 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from '@/components/ui/alert-dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Search,
+  Plus,
+  Download,
+  LayoutList,
+  LayoutGrid,
+  Settings2,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  FileX,
+} from 'lucide-vue-next'
 import FilterBar from '@/components/views/FilterBar.vue'
 import KanbanView from '@/components/views/KanbanView.vue'
 
@@ -33,7 +55,6 @@ const sortKey = ref('')
 const sortOrder = ref<'asc' | 'desc'>('asc')
 const activeFilters = ref<Record<string, string>>({})
 
-// Use arrays instead of Set for Vue reactivity
 const selectedIds = ref<string[]>([])
 const hiddenCols = ref<string[]>([])
 
@@ -41,7 +62,6 @@ const showBulkDeleteModal = ref(false)
 const showColMenu = ref(false)
 const viewMode = ref<'list' | 'kanban'>('list')
 
-// Kanban: first Select field that is in_list_view
 const kanbanColumnField = computed<DocField | null>(() => {
   if (!dt.value) return null
   return dt.value.fields.find(
@@ -143,32 +163,50 @@ function onFiltersChange(f: Record<string, string>) {
   activeFilters.value = f
   page.value = 1
 }
+
+function navigateToDoc(row: Record<string, unknown>) {
+  const id = String(row.id)
+  router.push(props.workspace ? `/${props.workspace}/list/${props.doctype}/${id}` : `/${props.doctype}/${id}`)
+}
 </script>
 
 <template>
-  <div class="p-8">
+  <div class="p-6 lg:p-8">
+    <!-- Header -->
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-xl font-semibold text-[--grunt-text-primary]">{{ dt?.label ?? doctype }}</h1>
-      <div class="flex gap-2">
-        <!-- View toggle: show Kanban only when a suitable Select field exists -->
-        <template v-if="kanbanColumnField">
-          <Button
-            :variant="viewMode === 'list' ? 'default' : 'secondary'"
-            size="sm"
+      <div class="flex items-center gap-3">
+        <h1 class="text-xl font-semibold text-foreground">{{ dt?.label ?? doctype }}</h1>
+        <Badge v-if="meta" variant="secondary" class="font-normal">{{ meta.total }}</Badge>
+      </div>
+      <div class="flex items-center gap-2">
+        <!-- View toggle -->
+        <div v-if="kanbanColumnField" class="flex rounded-lg border border-border overflow-hidden">
+          <button
+            class="px-3 py-1.5 text-sm font-medium transition-colors flex items-center gap-1.5"
+            :class="viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'"
             @click="viewMode = 'list'"
-          >☰ Список</Button>
-          <Button
-            :variant="viewMode === 'kanban' ? 'default' : 'secondary'"
-            size="sm"
+          >
+            <LayoutList class="size-4" />
+            Список
+          </button>
+          <button
+            class="px-3 py-1.5 text-sm font-medium transition-colors flex items-center gap-1.5 border-l border-border"
+            :class="viewMode === 'kanban' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'"
             @click="viewMode = 'kanban'"
-          >⬛ Канбан</Button>
-        </template>
-        <a
-          :href="`/api/v1/docs/${doctype}/export/xlsx`"
-          class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-[--grunt-radius-sm] border border-[--grunt-border] text-[--grunt-text-secondary] hover:bg-[--grunt-surface-secondary] transition-colors"
-          download
-        >↓ Excel</a>
-        <Button @click="router.push(props.workspace ? `/${props.workspace}/list/${doctype}/new` : `/${doctype}/new`)">+ Новий</Button>
+          >
+            <LayoutGrid class="size-4" />
+            Канбан
+          </button>
+        </div>
+
+        <Button variant="outline" size="sm" as="a" :href="`/api/v1/docs/${doctype}/export/xlsx`" download>
+          <Download class="size-4 mr-1.5" />
+          Excel
+        </Button>
+        <Button size="sm" @click="router.push(props.workspace ? `/${props.workspace}/list/${doctype}/new` : `/${doctype}/new`)">
+          <Plus class="size-4 mr-1.5" />
+          Новий
+        </Button>
       </div>
     </div>
 
@@ -178,110 +216,159 @@ function onFiltersChange(f: Record<string, string>) {
     </div>
 
     <template v-if="viewMode === 'list'">
+      <!-- Search + column settings -->
+      <div class="flex items-center gap-3 mb-3">
+        <div class="relative w-72">
+          <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+          <Input v-model="search" placeholder="Пошук..." class="pl-9" />
+        </div>
 
-    <div class="flex items-center gap-3 mb-2">
-      <div class="w-72">
-        <Input v-model="search" placeholder="Пошук..." />
-      </div>
-      <div class="relative ml-auto">
-        <button
-          type="button"
-          class="p-2 rounded border border-[--grunt-border] hover:bg-[--grunt-surface-secondary] text-[--grunt-text-secondary] text-sm"
-          title="Колонки"
-          @click="showColMenu = !showColMenu"
-        >⚙</button>
-        <div v-if="showColMenu" class="absolute right-0 top-full mt-1 bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-md] shadow-lg z-50 p-2 min-w-40">
-          <label
-            v-for="col in allColumns"
-            :key="col.key"
-            class="flex items-center gap-2 px-2 py-1 text-sm hover:bg-[--grunt-surface-secondary] rounded cursor-pointer"
-          >
-            <input type="checkbox" :checked="!hiddenCols.includes(col.key)" class="rounded" @change="toggleCol(col.key)" />
-            {{ col.label }}
-          </label>
+        <div class="ml-auto">
+          <DropdownMenu v-model:open="showColMenu">
+            <DropdownMenuTrigger as-child>
+              <Button variant="ghost" size="icon-sm" title="Колонки">
+                <Settings2 class="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" class="p-2 min-w-40">
+              <label
+                v-for="col in allColumns"
+                :key="col.key"
+                class="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent rounded-md cursor-pointer transition-colors"
+              >
+                <Checkbox
+                  :checked="!hiddenCols.includes(col.key)"
+                  @update:checked="toggleCol(col.key)"
+                />
+                {{ col.label }}
+              </label>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-    </div>
 
-    <FilterBar v-if="dt" :fields="dt.fields" @change="onFiltersChange" />
+      <!-- Filters -->
+      <FilterBar v-if="dt" :fields="dt.fields" @change="onFiltersChange" />
 
-    <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-3 px-4 py-2 bg-[--grunt-primary-light] rounded-[--grunt-radius-md] border border-[--grunt-primary]/20">
-      <span class="text-sm text-[--grunt-primary] font-medium">Вибрано: {{ selectedIds.length }}</span>
-      <Button variant="destructive" size="sm" @click="showBulkDeleteModal = true">Видалити вибране</Button>
-      <button type="button" class="text-sm text-[--grunt-text-secondary] hover:text-[--grunt-text-primary] ml-auto" @click="clearSelection">Скасувати</button>
-    </div>
+      <!-- Bulk action bar -->
+      <Transition name="bulk">
+        <div v-if="selectedIds.length > 0" class="flex items-center gap-3 mb-3 px-4 py-2.5 bg-primary/5 rounded-lg border border-primary/20">
+          <span class="text-sm text-primary font-medium">Вибрано: {{ selectedIds.length }}</span>
+          <Button variant="destructive" size="sm" @click="showBulkDeleteModal = true">
+            <Trash2 class="size-3.5 mr-1" />
+            Видалити
+          </Button>
+          <button type="button" class="text-sm text-muted-foreground hover:text-foreground ml-auto transition-colors" @click="clearSelection">Скасувати</button>
+        </div>
+      </Transition>
 
-    <div v-if="isLoading && !data" class="flex justify-center py-16">
-      <Spinner size="lg" />
-    </div>
-
-    <div v-else class="border border-[--grunt-border] rounded-[--grunt-radius-lg] overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-[--grunt-surface-secondary]">
-          <tr>
-            <th class="w-10 px-3 py-2.5 border-b border-[--grunt-border]">
-              <input
-                type="checkbox"
-                :checked="rows.length > 0 && selectedIds.length === rows.length"
-                class="rounded"
-                @change="toggleSelectAll"
-              />
-            </th>
-            <th
-              v-for="col in visibleColumns"
-              :key="col.key"
-              class="text-left px-3 py-2.5 text-xs font-semibold text-[--grunt-text-secondary] border-b border-[--grunt-border] cursor-pointer hover:text-[--grunt-text-primary] select-none"
-              @click="col.sortable && onSort(col.key)"
-            >
-              {{ col.label }}
-              <span v-if="sortKey === col.key" class="ml-1">{{ sortOrder === 'asc' ? '↑' : '↓' }}</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="row in rows"
-            :key="String(row.id)"
-            class="border-b border-[--grunt-border] last:border-0 hover:bg-[--grunt-surface-secondary] cursor-pointer transition-colors"
-            :class="{ 'bg-[--grunt-primary-light]/40': isSelected(String(row.id)) }"
-          >
-            <td class="px-3 py-2.5" @click.stop>
-              <input type="checkbox" :checked="isSelected(String(row.id))" class="rounded" @change="toggleSelect(String(row.id))" />
-            </td>
-            <td
-              v-for="col in visibleColumns"
-              :key="col.key"
-              class="px-3 py-2.5 text-[--grunt-text-primary]"
-              @click="router.push(props.workspace ? `/${props.workspace}/list/${doctype}/${row.id}` : `/${doctype}/${row.id}`)"
-            >{{ formatCell(row[col.key]) }}</td>
-          </tr>
-          <tr v-if="!rows.length && !isLoading">
-            <td :colspan="visibleColumns.length + 1" class="px-3 py-8 text-center text-[--grunt-text-muted]">Записів не знайдено</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div v-if="meta && meta.pages > 1" class="mt-4 flex items-center justify-between text-sm text-[--grunt-text-secondary]">
-      <span>Сторінка {{ meta.page }} з {{ meta.pages }} ({{ meta.total }} записів)</span>
-      <div class="flex gap-2">
-        <Button variant="secondary" size="sm" :disabled="page <= 1" @click="page--">← Попередня</Button>
-        <Button variant="secondary" size="sm" :disabled="page >= meta.pages" @click="page++">Наступна →</Button>
+      <!-- Loading -->
+      <div v-if="isLoading && !data" class="flex justify-center py-16">
+        <Spinner size="lg" />
       </div>
-    </div>
 
-    <AlertDialog :open="showBulkDeleteModal" @update:open="showBulkDeleteModal = $event">
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Видалити вибрані записи?</AlertDialogTitle>
-          <AlertDialogDescription>Буде видалено {{ selectedIds.length }} записів. Цю дію не можна скасувати.</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Скасувати</AlertDialogCancel>
-          <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="bulkDelete">Видалити</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      <!-- Table -->
+      <div v-else class="border border-border rounded-lg overflow-hidden bg-card shadow-sm">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border bg-muted/50">
+              <th class="w-10 px-3 py-3">
+                <Checkbox
+                  :checked="rows.length > 0 && selectedIds.length === rows.length"
+                  @update:checked="toggleSelectAll"
+                />
+              </th>
+              <th
+                v-for="col in visibleColumns"
+                :key="col.key"
+                class="text-left px-3 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground select-none transition-colors"
+                :class="{ 'cursor-pointer hover:text-foreground': col.sortable }"
+                @click="col.sortable && onSort(col.key)"
+              >
+                <span class="inline-flex items-center gap-1">
+                  {{ col.label }}
+                  <ArrowUp v-if="sortKey === col.key && sortOrder === 'asc'" class="size-3.5" />
+                  <ArrowDown v-else-if="sortKey === col.key && sortOrder === 'desc'" class="size-3.5" />
+                  <ArrowUpDown v-else-if="col.sortable" class="size-3.5 opacity-0 group-hover:opacity-30" />
+                </span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="row in rows"
+              :key="String(row.id)"
+              class="border-b border-border last:border-0 hover:bg-muted/30 cursor-pointer transition-colors group"
+              :class="{ 'bg-primary/5': isSelected(String(row.id)) }"
+            >
+              <td class="px-3 py-3" @click.stop>
+                <Checkbox
+                  :checked="isSelected(String(row.id))"
+                  @update:checked="toggleSelect(String(row.id))"
+                />
+              </td>
+              <td
+                v-for="(col, ci) in visibleColumns"
+                :key="col.key"
+                class="px-3 py-3"
+                :class="ci === 0 ? 'font-medium text-foreground' : 'text-muted-foreground'"
+                @click="navigateToDoc(row)"
+              >{{ formatCell(row[col.key]) }}</td>
+            </tr>
+            <!-- Empty state -->
+            <tr v-if="!rows.length && !isLoading">
+              <td :colspan="visibleColumns.length + 1" class="px-3 py-16 text-center">
+                <div class="flex flex-col items-center gap-2">
+                  <FileX class="size-10 text-muted-foreground/40" />
+                  <p class="text-sm text-muted-foreground">Записів не знайдено</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="meta && meta.pages > 1" class="mt-4 flex items-center justify-between">
+        <p class="text-sm text-muted-foreground">
+          {{ (meta.page - 1) * 20 + 1 }}–{{ Math.min(meta.page * 20, meta.total) }} з {{ meta.total }}
+        </p>
+        <div class="flex items-center gap-1">
+          <Button variant="outline" size="icon-sm" :disabled="page <= 1" @click="page--">
+            <ChevronLeft class="size-4" />
+          </Button>
+          <span class="px-3 text-sm text-muted-foreground">{{ meta.page }} / {{ meta.pages }}</span>
+          <Button variant="outline" size="icon-sm" :disabled="page >= meta.pages" @click="page++">
+            <ChevronRight class="size-4" />
+          </Button>
+        </div>
+      </div>
+
+      <!-- Bulk delete dialog -->
+      <AlertDialog :open="showBulkDeleteModal" @update:open="showBulkDeleteModal = $event">
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Видалити вибрані записи?</AlertDialogTitle>
+            <AlertDialogDescription>Буде видалено {{ selectedIds.length }} записів. Цю дію не можна скасувати.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Скасувати</AlertDialogCancel>
+            <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="bulkDelete">Видалити</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </template>
   </div>
 </template>
+
+<style scoped>
+.bulk-enter-active,
+.bulk-leave-active {
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+.bulk-enter-from,
+.bulk-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+</style>

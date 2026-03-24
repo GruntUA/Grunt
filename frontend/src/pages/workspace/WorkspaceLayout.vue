@@ -38,9 +38,11 @@ watch(() => props.workspaceName, (name) => {
 
     <!-- Main content -->
     <main class="flex-1 overflow-y-auto">
-      <Transition name="fade" mode="out-in">
-        <RouterView :key="route.fullPath" />
-      </Transition>
+      <RouterView v-slot="{ Component }" :key="route.fullPath">
+        <Transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </Transition>
+      </RouterView>
     </main>
   </div>
 </template>

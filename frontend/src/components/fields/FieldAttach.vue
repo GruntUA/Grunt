@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import type { DocField } from '@/types'
 import client from '@/core/api/client'
+import { Paperclip, ExternalLink, X, Upload } from 'lucide-vue-next'
 
 const props = defineProps<{
   field: DocField
@@ -61,40 +62,41 @@ function fileName(url: string) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-1">
-    <label class="text-sm font-medium text-[--grunt-text-primary]">
-      {{ field.label }}<span v-if="field.required" class="text-[--grunt-danger] ml-0.5">*</span>
-    </label>
-
+  <div>
     <!-- Current file -->
-    <div v-if="currentUrl()" class="flex items-center gap-2 p-2 bg-[--grunt-surface-secondary] rounded-[--grunt-radius-sm] border border-[--grunt-border]">
-      <span class="text-sm flex-1 truncate">📎 {{ fileName(currentUrl()!) }}</span>
-      <a :href="currentUrl()!" target="_blank" class="text-xs text-[--grunt-primary] hover:underline">Відкрити</a>
-      <button v-if="!disabled" type="button" class="text-[--grunt-text-muted] hover:text-[--grunt-danger]" @click="removeFile">×</button>
+    <div v-if="currentUrl()" class="flex items-center gap-2 p-2.5 bg-muted rounded-lg border border-border">
+      <Paperclip class="size-4 text-muted-foreground shrink-0" />
+      <span class="text-sm flex-1 truncate">{{ fileName(currentUrl()!) }}</span>
+      <a :href="currentUrl()!" target="_blank" class="text-xs text-primary hover:underline inline-flex items-center gap-1">
+        <ExternalLink class="size-3" />
+        Відкрити
+      </a>
+      <button v-if="!disabled" type="button" class="text-muted-foreground hover:text-destructive transition-colors" @click="removeFile">
+        <X class="size-4" />
+      </button>
     </div>
 
     <!-- Upload zone -->
     <div
       v-else
-      class="border-2 border-dashed rounded-[--grunt-radius-md] p-6 text-center transition-colors cursor-pointer"
-      :class="isDragging ? 'border-[--grunt-primary] bg-[--grunt-primary-light]' : 'border-[--grunt-border] hover:border-[--grunt-primary]'"
+      class="border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer"
+      :class="isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'"
       @dragover.prevent="isDragging = true"
       @dragleave="isDragging = false"
       @drop.prevent="onDrop"
       @click="fileInput?.click()"
     >
       <div v-if="isUploading" class="flex flex-col items-center gap-2">
-        <div class="w-full bg-[--grunt-border] rounded-full h-1.5">
-          <div class="bg-[--grunt-primary] h-1.5 rounded-full transition-all" :style="{ width: uploadProgress + '%' }" />
+        <div class="w-full bg-muted rounded-full h-1.5">
+          <div class="bg-primary h-1.5 rounded-full transition-all" :style="{ width: uploadProgress + '%' }" />
         </div>
-        <p class="text-xs text-[--grunt-text-muted]">{{ uploadProgress }}%</p>
+        <p class="text-xs text-muted-foreground">{{ uploadProgress }}%</p>
       </div>
-      <div v-else>
-        <p class="text-sm text-[--grunt-text-secondary]">Перетягни файл або <span class="text-[--grunt-primary]">клікни для вибору</span></p>
+      <div v-else class="flex flex-col items-center gap-1">
+        <Upload class="size-5 text-muted-foreground" />
+        <p class="text-sm text-muted-foreground">Перетягни файл або <span class="text-primary font-medium">клікни для вибору</span></p>
       </div>
       <input ref="fileInput" type="file" class="sr-only" :disabled="disabled" @change="onFileChange" />
     </div>
-
-    <p v-if="error" class="text-xs text-[--grunt-danger]">{{ error }}</p>
   </div>
 </template>

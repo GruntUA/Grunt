@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import type { DocField } from '@/types'
 import { docsApi } from '@/core/api'
+import { Search, X } from 'lucide-vue-next'
 
 const props = defineProps<{
   field: DocField
@@ -71,17 +72,15 @@ function clear() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-1 relative">
-    <label class="text-sm font-medium text-[--grunt-text-primary]">
-      {{ field.label }}<span v-if="field.required" class="text-[--grunt-danger] ml-0.5">*</span>
-    </label>
+  <div class="relative">
     <div class="relative">
+      <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
       <input
         :value="query"
         :placeholder="field.placeholder ?? `Пошук ${field.options ?? ''}...`"
         :disabled="disabled || field.read_only"
-        class="w-full rounded-[--grunt-radius-sm] border border-[--grunt-border] px-3 py-2 text-sm pr-8 focus:outline-none focus:ring-2 focus:ring-[--grunt-primary]/30 focus:border-[--grunt-primary] disabled:bg-[--grunt-surface-secondary]"
-        :class="{ 'border-[--grunt-danger]': error }"
+        class="w-full rounded-md border border-input bg-transparent pl-8 pr-8 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:bg-muted disabled:cursor-not-allowed"
+        :class="{ 'border-destructive focus-visible:ring-destructive': error }"
         @input="onInput(($event.target as HTMLInputElement).value)"
         @blur="onBlur"
         @focus="onFocus"
@@ -89,29 +88,29 @@ function clear() {
       <button
         v-if="modelValue"
         type="button"
-        class="absolute right-2 top-1/2 -translate-y-1/2 text-[--grunt-text-muted] hover:text-[--grunt-text-primary]"
+        class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
         @mousedown.prevent="clear"
-      >×</button>
+      >
+        <X class="size-4" />
+      </button>
     </div>
 
     <!-- Dropdown -->
     <div
       v-if="isOpen"
-      class="absolute top-full mt-1 left-0 right-0 bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-md] shadow-lg z-50 max-h-48 overflow-y-auto"
+      class="absolute top-full mt-1 left-0 right-0 bg-popover border border-border rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto"
     >
-      <div v-if="isLoading" class="px-3 py-2 text-sm text-[--grunt-text-muted]">Завантаження...</div>
+      <div v-if="isLoading" class="px-3 py-2 text-sm text-muted-foreground">Завантаження...</div>
       <template v-else-if="results.length">
         <button
           v-for="item in results"
           :key="item.id"
           type="button"
-          class="w-full text-left px-3 py-2 text-sm hover:bg-[--grunt-surface-secondary] transition-colors"
+          class="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
           @mousedown.prevent="select(item)"
         >{{ item.name }}</button>
       </template>
-      <div v-else class="px-3 py-2 text-sm text-[--grunt-text-muted]">Нічого не знайдено</div>
+      <div v-else class="px-3 py-2 text-sm text-muted-foreground">Нічого не знайдено</div>
     </div>
-
-    <p v-if="error" class="text-xs text-[--grunt-danger]">{{ error }}</p>
   </div>
 </template>

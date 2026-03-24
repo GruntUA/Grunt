@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { DocField } from '@/types'
+import { Button } from '@/components/ui/button'
+import { MapPin } from 'lucide-vue-next'
 
 const props = defineProps<{
   field: DocField
@@ -40,41 +42,39 @@ function locate() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-1">
-    <label class="text-sm font-medium text-[--grunt-text-primary]">
-      {{ field.label }}<span v-if="field.required" class="text-[--grunt-danger] ml-0.5">*</span>
-    </label>
-    <div class="flex gap-2 items-start">
-      <div class="flex-1">
-        <input
-          type="number"
-          step="any"
-          :value="parsed.lat ?? ''"
-          :disabled="disabled || field.read_only"
-          placeholder="Latitude"
-          class="w-full rounded-[--grunt-radius-sm] border border-[--grunt-border] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[--grunt-primary]/30 focus:border-[--grunt-primary] disabled:bg-[--grunt-surface-secondary]"
-          @input="update('lat', ($event.target as HTMLInputElement).value)"
-        />
-      </div>
-      <div class="flex-1">
-        <input
-          type="number"
-          step="any"
-          :value="parsed.lng ?? ''"
-          :disabled="disabled || field.read_only"
-          placeholder="Longitude"
-          class="w-full rounded-[--grunt-radius-sm] border border-[--grunt-border] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[--grunt-primary]/30 focus:border-[--grunt-primary] disabled:bg-[--grunt-surface-secondary]"
-          @input="update('lng', ($event.target as HTMLInputElement).value)"
-        />
-      </div>
-      <button
-        v-if="!disabled && !field.read_only"
-        type="button"
-        :disabled="isLocating"
-        class="px-3 py-2 text-sm border border-[--grunt-border] rounded-[--grunt-radius-sm] hover:bg-[--grunt-surface-secondary] transition-colors whitespace-nowrap disabled:opacity-50"
-        @click="locate"
-      >{{ isLocating ? '...' : '📍 Моє місце' }}</button>
+  <div class="flex gap-2 items-start">
+    <div class="flex-1">
+      <input
+        type="number"
+        step="any"
+        :value="parsed.lat ?? ''"
+        :disabled="disabled || field.read_only"
+        placeholder="Latitude"
+        class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:bg-muted disabled:cursor-not-allowed"
+        @input="update('lat', ($event.target as HTMLInputElement).value)"
+      />
     </div>
-    <p v-if="error" class="text-xs text-[--grunt-danger]">{{ error }}</p>
+    <div class="flex-1">
+      <input
+        type="number"
+        step="any"
+        :value="parsed.lng ?? ''"
+        :disabled="disabled || field.read_only"
+        placeholder="Longitude"
+        class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:bg-muted disabled:cursor-not-allowed"
+        @input="update('lng', ($event.target as HTMLInputElement).value)"
+      />
+    </div>
+    <Button
+      v-if="!disabled && !field.read_only"
+      type="button"
+      variant="outline"
+      size="sm"
+      :disabled="isLocating"
+      @click="locate"
+    >
+      <MapPin class="size-4 mr-1" />
+      {{ isLocating ? '...' : 'Моє місце' }}
+    </Button>
   </div>
 </template>

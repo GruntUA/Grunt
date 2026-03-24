@@ -122,7 +122,5 @@ function setLink() {
       <EditorContent :editor="editor" class="prose prose-sm max-w-none p-3 text-sm text-foreground" />
     </div>
 
-    <p v-if="error" class="text-xs text-destructive">{{ error }}</p>
-    <p v-else-if="field.description" class="text-xs text-muted-foreground">{{ field.description }}</p>
   </div>
 </template>

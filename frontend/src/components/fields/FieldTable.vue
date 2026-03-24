@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue'
 import type { DocField, DocType } from '@/types'
 import { metaApi } from '@/core/api'
+import { Plus, X } from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
 
 const props = defineProps<{
   field: DocField
@@ -45,36 +47,34 @@ function updateCell(rowIdx: number, fieldname: string, val: unknown) {
 
 <template>
   <div class="flex flex-col gap-2">
-    <label class="text-sm font-medium text-[--grunt-text-primary]">
-      {{ field.label }}<span v-if="field.required" class="text-[--grunt-danger] ml-0.5">*</span>
-    </label>
-
-    <div class="border border-[--grunt-border] rounded-[--grunt-radius-md] overflow-hidden">
+    <div class="border border-border rounded-lg overflow-hidden">
       <table class="w-full text-sm">
-        <thead class="bg-[--grunt-surface-secondary]">
+        <thead class="bg-muted">
           <tr>
-            <th v-for="f in visibleFields()" :key="f.fieldname" class="text-left px-3 py-2 text-xs font-medium text-[--grunt-text-secondary] border-b border-[--grunt-border]">
+            <th v-for="f in visibleFields()" :key="f.fieldname" class="text-left px-3 py-2 text-xs font-medium text-muted-foreground border-b border-border">
               {{ f.label }}
             </th>
-            <th v-if="!disabled" class="w-8 border-b border-[--grunt-border]" />
+            <th v-if="!disabled" class="w-8 border-b border-border" />
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(row, i) in rows" :key="i" class="border-b border-[--grunt-border] last:border-0">
+          <tr v-for="(row, i) in rows" :key="i" class="border-b border-border last:border-0">
             <td v-for="f in visibleFields()" :key="f.fieldname" class="px-2 py-1">
               <input
                 :value="String(row[f.fieldname] ?? '')"
                 :disabled="disabled"
-                class="w-full px-2 py-1 text-sm border border-transparent rounded hover:border-[--grunt-border] focus:border-[--grunt-primary] focus:ring-1 focus:ring-[--grunt-primary]/30 focus:outline-none disabled:bg-transparent"
+                class="w-full px-2 py-1 text-sm border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none disabled:bg-transparent"
                 @input="updateCell(i, f.fieldname, ($event.target as HTMLInputElement).value)"
               />
             </td>
             <td v-if="!disabled" class="px-2 py-1 text-center">
-              <button type="button" class="text-[--grunt-text-muted] hover:text-[--grunt-danger]" @click="removeRow(i)">×</button>
+              <button type="button" class="text-muted-foreground hover:text-destructive transition-colors" @click="removeRow(i)">
+                <X class="size-4" />
+              </button>
             </td>
           </tr>
           <tr v-if="!rows.length">
-            <td :colspan="visibleFields().length + 1" class="px-3 py-4 text-center text-[--grunt-text-muted] text-sm">
+            <td :colspan="visibleFields().length + 1" class="px-3 py-4 text-center text-muted-foreground text-sm">
               Немає рядків
             </td>
           </tr>
@@ -82,13 +82,16 @@ function updateCell(rowIdx: number, fieldname: string, val: unknown) {
       </table>
     </div>
 
-    <button
+    <Button
       v-if="!disabled"
       type="button"
-      class="text-sm text-[--grunt-primary] hover:underline self-start"
+      variant="ghost"
+      size="sm"
+      class="self-start text-primary"
       @click="addRow"
-    >+ Додати рядок</button>
-
-    <p v-if="error" class="text-xs text-[--grunt-danger]">{{ error }}</p>
+    >
+      <Plus class="size-4 mr-1" />
+      Додати рядок
+    </Button>
   </div>
 </template>

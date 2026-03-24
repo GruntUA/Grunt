@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { DocField } from '@/types'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Filter, X } from 'lucide-vue-next'
 
 const props = defineProps<{
   fields: DocField[]
@@ -59,62 +68,57 @@ function emitChange() {
 <template>
   <div class="flex flex-wrap items-center gap-2 mb-4">
     <!-- Active filter chips -->
-    <span
+    <Badge
       v-for="(f, i) in activeFilters"
       :key="i"
-      class="inline-flex items-center gap-1 px-2 py-1 bg-[--grunt-primary-light] text-[--grunt-primary] text-xs rounded-full"
+      variant="secondary"
+      class="gap-1 pr-1"
     >
       <span>{{ f.label }} {{ f.op }} <b>{{ f.value }}</b></span>
-      <button type="button" class="ml-1 hover:text-[--grunt-danger]" @click="removeFilter(i)">×</button>
-    </span>
+      <button type="button" class="ml-0.5 rounded-full hover:bg-muted-foreground/20 p-0.5 transition-colors" @click="removeFilter(i)">
+        <X class="size-3" />
+      </button>
+    </Badge>
 
     <!-- Add filter button -->
-    <div class="relative">
-      <button
-        type="button"
-        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-dashed border-[--grunt-border] rounded-full text-[--grunt-text-secondary] hover:border-[--grunt-primary] hover:text-[--grunt-primary] transition-colors"
-        @click="showDropdown = !showDropdown"
-      >+ Фільтр</button>
-
-      <!-- Dropdown -->
-      <div
-        v-if="showDropdown"
-        class="absolute top-full mt-1 left-0 bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-md] shadow-lg z-50 w-72 p-3 flex flex-col gap-2"
-      >
-        <p class="text-xs text-[--grunt-text-secondary] font-medium">Поле</p>
+    <Popover v-model:open="showDropdown">
+      <PopoverTrigger as-child>
+        <Button variant="ghost" size="sm" class="h-7 text-xs border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/50">
+          <Filter class="size-3 mr-1" />
+          Фільтр
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent class="w-72 p-3" align="start">
+        <p class="text-xs font-medium text-muted-foreground mb-2">Поле</p>
         <div class="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
           <button
             v-for="f in filterableFields"
             :key="f.fieldname"
             type="button"
-            class="px-2 py-1 text-xs rounded border transition-colors"
+            class="px-2 py-1 text-xs rounded-md border transition-colors"
             :class="pickedField?.fieldname === f.fieldname
-              ? 'border-[--grunt-primary] bg-[--grunt-primary-light] text-[--grunt-primary]'
-              : 'border-[--grunt-border] hover:border-[--grunt-primary]'"
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-border hover:border-primary/50'"
             @click="pickField(f)"
           >{{ f.label }}</button>
         </div>
 
         <template v-if="pickedField">
-          <div class="flex gap-2">
-            <select v-model="pickedOp" class="flex-1 border border-[--grunt-border] rounded px-2 py-1 text-xs">
+          <div class="flex gap-2 mt-3">
+            <select v-model="pickedOp" class="flex-1 border border-input rounded-md px-2 py-1.5 text-xs bg-transparent focus:outline-none focus:ring-1 focus:ring-ring">
               <option v-for="op in OPS" :key="op" :value="op">{{ op }}</option>
             </select>
-            <input
+            <Input
               v-model="pickedValue"
-              class="flex-1 border border-[--grunt-border] rounded px-2 py-1 text-xs focus:outline-none focus:border-[--grunt-primary]"
-              :placeholder="`Значення`"
+              class="flex-1 h-7 text-xs"
+              placeholder="Значення"
               @keydown.enter="addFilter"
             />
           </div>
-          <button
-            type="button"
-            class="w-full py-1.5 text-xs bg-[--grunt-primary] text-white rounded hover:bg-[--grunt-primary-hover] transition-colors"
-            @click="addFilter"
-          >Застосувати</button>
+          <Button size="sm" class="w-full mt-2" @click="addFilter">Застосувати</Button>
         </template>
-        <p v-else-if="!filterableFields.length" class="text-xs text-[--grunt-text-muted]">Немає полів з in_filter=true</p>
-      </div>
-    </div>
+        <p v-else-if="!filterableFields.length" class="text-xs text-muted-foreground mt-2">Немає полів для фільтрації</p>
+      </PopoverContent>
+    </Popover>
   </div>
 </template>

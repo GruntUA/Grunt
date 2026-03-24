@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import type { DocType } from '@/types'
 import { parseLayout } from '@/core/composables/useFormLayout'
 import type { LayoutSection } from '@/core/composables/useFormLayout'
+import { ChevronDown } from 'lucide-vue-next'
 import FieldRenderer from './FieldRenderer.vue'
 
 const props = defineProps<{
@@ -19,7 +20,10 @@ const hasTabs = computed(() => layout.value.length > 1 || layout.value[0]?.label
 const activeTab = ref(0)
 
 function colClass(count: number): string {
-  return ['form-grid-1', 'form-grid-2', 'form-grid-3', 'form-grid-4'][count - 1] ?? 'form-grid-1'
+  if (count >= 4) return 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4'
+  if (count === 3) return 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+  if (count === 2) return 'grid grid-cols-1 md:grid-cols-2'
+  return 'grid grid-cols-1'
 }
 
 function update(fieldname: string, val: unknown) {
@@ -33,15 +37,15 @@ function toggleSection(section: LayoutSection) {
 
 <template>
   <!-- Tab navigation -->
-  <div v-if="hasTabs" class="flex gap-0 border-b border-[--grunt-border] mb-6 -mx-6 px-6 overflow-x-auto">
+  <div v-if="hasTabs" class="flex gap-0 border-b border-border mb-6 -mx-6 px-6 overflow-x-auto">
     <button
       v-for="(tab, ti) in layout"
       :key="ti"
       type="button"
       class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap"
       :class="activeTab === ti
-        ? 'border-[--grunt-primary] text-[--grunt-primary]'
-        : 'border-transparent text-[--grunt-text-secondary] hover:text-[--grunt-text-primary]'"
+        ? 'border-primary text-primary'
+        : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'"
       @click="activeTab = ti"
     >{{ tab.label || 'Main' }}</button>
   </div>
@@ -53,53 +57,55 @@ function toggleSection(section: LayoutSection) {
         <!-- Section header -->
         <div
           v-if="section.label"
-          class="flex items-center gap-2 mb-3 cursor-pointer"
+          class="flex items-center gap-2 mb-4"
           :class="{ 'cursor-pointer select-none': section.collapsible }"
           @click="toggleSection(section)"
         >
-          <span class="text-xs font-semibold uppercase tracking-wide text-[--grunt-text-secondary]">{{ section.label }}</span>
-          <div class="flex-1 h-px bg-[--grunt-border]" />
-          <span v-if="section.collapsible" class="text-[--grunt-text-muted] text-xs">{{ section.collapsed ? '▶' : '▼' }}</span>
+          <ChevronDown
+            v-if="section.collapsible"
+            class="size-4 text-muted-foreground transition-transform duration-200"
+            :class="{ '-rotate-90': section.collapsed }"
+          />
+          <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ section.label }}</span>
+          <div class="flex-1 h-px bg-border" />
         </div>
 
         <!-- Fields grid -->
-        <div v-if="!section.collapsed" :class="colClass(section.columns.length)" class="gap-4">
-          <div v-for="(col, ci) in section.columns" :key="ci" class="flex flex-col gap-4">
-            <FieldRenderer
-              v-for="f in col"
-              :key="f.fieldname"
-              :field="f"
-              :model-value="modelValue[f.fieldname]"
-              :disabled="disabled || f.read_only"
-              :error="errors?.[f.fieldname]"
-              :doc-values="modelValue"
-              @update:model-value="update(f.fieldname, $event)"
-            />
+        <Transition name="section">
+          <div v-if="!section.collapsed" :class="colClass(section.columns.length)" class="gap-x-4 gap-y-4">
+            <div v-for="(col, ci) in section.columns" :key="ci" class="flex flex-col gap-4">
+              <FieldRenderer
+                v-for="f in col"
+                :key="f.fieldname"
+                :field="f"
+                :model-value="modelValue[f.fieldname]"
+                :disabled="disabled || f.read_only"
+                :error="errors?.[f.fieldname]"
+                :doc-values="modelValue"
+                @update:model-value="update(f.fieldname, $event)"
+              />
+            </div>
           </div>
-        </div>
+        </Transition>
       </div>
     </div>
   </template>
 </template>
 
 <style scoped>
-.form-grid-1 { display: grid; grid-template-columns: 1fr; }
-.form-grid-2 { display: grid; grid-template-columns: 1fr; }
-.form-grid-3 { display: grid; grid-template-columns: 1fr; }
-.form-grid-4 { display: grid; grid-template-columns: 1fr; }
-
-@media (min-width: 768px) {
-  .form-grid-2 { grid-template-columns: 1fr 1fr; }
-  .form-grid-3 { grid-template-columns: 1fr 1fr; }
-  .form-grid-4 { grid-template-columns: 1fr 1fr; }
+.section-enter-active,
+.section-leave-active {
+  transition: opacity 200ms ease, max-height 200ms ease;
+  overflow: hidden;
 }
-
-@media (min-width: 1024px) {
-  .form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
-  .form-grid-4 { grid-template-columns: repeat(3, 1fr); }
+.section-enter-from,
+.section-leave-to {
+  opacity: 0;
+  max-height: 0;
 }
-
-@media (min-width: 1280px) {
-  .form-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.section-enter-to,
+.section-leave-from {
+  opacity: 1;
+  max-height: 2000px;
 }
 </style>

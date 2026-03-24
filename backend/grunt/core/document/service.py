@@ -304,7 +304,7 @@ class DocumentService:
             # Required check (skip for partial updates if field not provided)
             if field.required and not partial:
                 if value is None or value == "":
-                    errors.append(f"Поле '{field.label}' є обов'язковим")
+                    errors.append(f"{field.fieldname}: Поле '{field.label}' є обов'язковим")
 
         return errors
 
