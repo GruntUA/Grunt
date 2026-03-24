@@ -31,7 +31,7 @@ const autonameStrategy = computed(() => {
   const v = builder.doctype?.autoname ?? ''
   if (v.startsWith('field:')) return 'field:'
   if (v.startsWith('format:')) return 'format:'
-  return v // '', 'autoincrement', 'hash', 'prompt'
+  return v || '__auto__'
 })
 
 const autonameValue = computed(() => {
@@ -57,38 +57,44 @@ const availableSearchFields = computed(() =>
 
 // --- Naming helpers ---
 
-function setAutonameStrategy(strategy: string) {
-  if (strategy === 'field:') {
+function setAutonameStrategy(strategy: string | number | bigint | Record<string, any> | null) {
+  const s = String(strategy ?? '')
+  if (s === '__auto__') {
+    builder.updateDocType({ autoname: null })
+    return
+  }
+  if (s === 'field:') {
     builder.updateDocType({
       autoname: 'field:' + (dataFields.value[0]?.fieldname ?? ''),
     })
-  } else if (strategy === 'format:') {
+  } else if (s === 'format:') {
     builder.updateDocType({ autoname: 'format:' })
   } else {
-    builder.updateDocType({ autoname: strategy || null })
+    builder.updateDocType({ autoname: s || null })
   }
 }
 
-function setAutonameValue(val: string) {
+function setAutonameValue(val: string | number | bigint | Record<string, any> | null) {
+  const v = String(val ?? '')
   const s = autonameStrategy.value
-  if (s === 'field:') builder.updateDocType({ autoname: 'field:' + val })
-  else if (s === 'format:') builder.updateDocType({ autoname: 'format:' + val })
+  if (s === 'field:') builder.updateDocType({ autoname: 'field:' + v })
+  else if (s === 'format:') builder.updateDocType({ autoname: 'format:' + v })
 }
 
 // --- Search fields helpers ---
 
 const searchFieldSelect = ref('')
 
-function addSearchField(fieldname: string) {
+function addSearchField(fieldname: string | number | null) {
   if (!fieldname) return
-  const updated = [...searchFields.value, fieldname]
-  builder.updateDocType({ search_fields: updated.join(', ') })
+  const updated = [...searchFields.value, String(fieldname)]
+  builder.updateDocType({ search_fields: updated })
   searchFieldSelect.value = ''
 }
 
 function removeSearchField(fieldname: string) {
   const updated = searchFields.value.filter((f) => f !== fieldname)
-  builder.updateDocType({ search_fields: updated.join(', ') })
+  builder.updateDocType({ search_fields: updated })
 }
 </script>
 
@@ -102,7 +108,7 @@ function removeSearchField(fieldname: string) {
         <Label class="text-muted-foreground">Назва</Label>
         <Input
           :model-value="builder.doctype?.label ?? ''"
-          @update:model-value="builder.updateDocType({ label: $event })"
+          @update:model-value="builder.updateDocType({ label: String($event) })"
         />
       </FormField>
 
@@ -110,7 +116,7 @@ function removeSearchField(fieldname: string) {
         <Label class="text-muted-foreground">Модуль</Label>
         <Input
           :model-value="builder.doctype?.module ?? ''"
-          @update:model-value="builder.updateDocType({ module: $event })"
+          @update:model-value="builder.updateDocType({ module: String($event) })"
         />
       </FormField>
 
@@ -162,7 +168,7 @@ function removeSearchField(fieldname: string) {
             <SelectValue placeholder="Оберіть стратегію" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Авто</SelectItem>
+            <SelectItem value="__auto__">Авто</SelectItem>
             <SelectItem value="autoincrement">Авто-інкремент</SelectItem>
             <SelectItem value="field:">На основі поля</SelectItem>
             <SelectItem value="format:">Шаблон</SelectItem>
@@ -195,21 +201,21 @@ function removeSearchField(fieldname: string) {
         <Input
           :model-value="autonameValue"
           placeholder="CONTR-.YYYY.-.####"
-          @update:model-value="setAutonameValue"
+          @update:model-value="setAutonameValue($event as any)"
         />
       </FormField>
 
       <FormField class="mb-4">
         <Label class="text-muted-foreground">Поле заголовка</Label>
         <Select
-          :model-value="builder.doctype?.title_field ?? ''"
-          @update:model-value="builder.updateDocType({ title_field: $event || null })"
+          :model-value="builder.doctype?.title_field || '__name__'"
+          @update:model-value="builder.updateDocType({ title_field: String($event) === '__name__' ? undefined : String($event) })"
         >
           <SelectTrigger>
             <SelectValue placeholder="Оберіть поле" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">name</SelectItem>
+            <SelectItem value="__name__">name</SelectItem>
             <SelectItem
               v-for="field in dataFields"
               :key="field.fieldname"

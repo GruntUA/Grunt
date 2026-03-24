@@ -53,8 +53,11 @@ const router = createRouter({
         {
           path: ':doctype/workflow',
           name: 'workflow-editor',
-          component: () => import('@/pages/studio/workflow/WorkflowEditor.vue'),
-          props: true,
+          redirect: (to) => ({
+            name: 'builder',
+            params: { doctype: to.params.doctype },
+            query: { tab: 'workflow' },
+          }),
         },
       ],
     },

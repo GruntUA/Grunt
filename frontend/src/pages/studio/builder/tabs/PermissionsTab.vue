@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
-import type { DocTypePermission } from '@/types'
 import {
   Table,
   TableBody,
@@ -127,7 +126,7 @@ function addRole() {
                 :model-value="perm.match ?? ''"
                 placeholder="owner == user"
                 class="h-8 text-xs w-40"
-                @update:model-value="builder.updatePermission(i, { match: $event || null })"
+                @update:model-value="builder.updatePermission(i, { match: String($event) || null })"
               />
             </TableCell>
             <TableCell>

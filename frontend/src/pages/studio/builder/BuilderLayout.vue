@@ -3,10 +3,15 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBuilderStore } from '@/stores/builder'
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-vue-next'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Loader2, ArrowLeft } from 'lucide-vue-next'
 import FieldPalette from './FieldPalette.vue'
 import BuilderCanvas from './BuilderCanvas.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
+import SettingsTab from './tabs/SettingsTab.vue'
+import PermissionsTab from './tabs/PermissionsTab.vue'
+import WorkflowTab from './tabs/WorkflowTab.vue'
+import ViewsTab from './tabs/ViewsTab.vue'
 
 const props = defineProps<{ doctype: string }>()
 const router = useRouter()
@@ -18,38 +23,84 @@ onMounted(() => builder.loadDocType(props.doctype))
 <template>
   <div class="flex flex-col h-screen overflow-hidden">
     <!-- Header -->
-    <div class="flex items-center gap-4 px-4 py-3 border-b border-[--grunt-border] bg-[--grunt-surface] shrink-0">
+    <div class="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-card shrink-0">
       <button
         type="button"
-        class="text-sm text-[--grunt-text-secondary] hover:text-[--grunt-primary] transition-colors"
+        class="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
         @click="router.push('/studio')"
-      >&larr; App Studio</button>
-      <div class="w-px h-4 bg-[--grunt-border]" />
-      <span class="text-sm font-semibold text-[--grunt-text-primary]">
+      >
+        <ArrowLeft class="size-4" />
+        Studio
+      </button>
+      <div class="w-px h-4 bg-border" />
+      <span class="text-sm font-semibold text-foreground">
         {{ builder.doctype?.label ?? props.doctype }}
-        <span v-if="builder.isDirty" class="text-[--grunt-text-muted] font-normal ml-1">&bull;</span>
+        <span v-if="builder.isDirty" class="text-muted-foreground font-normal ml-1">&bull;</span>
       </span>
-      <div class="ml-auto flex gap-2">
-        <Button size="sm" :disabled="builder.isSaving || !builder.isDirty" @click="builder.save()"><Loader2 v-if="builder.isSaving" class="size-4 animate-spin" />Save</Button>
+      <div class="ml-auto">
+        <Button size="sm" :disabled="builder.isSaving || !builder.isDirty" @click="builder.save()">
+          <Loader2 v-if="builder.isSaving" class="size-4 animate-spin" />
+          Зберегти
+        </Button>
       </div>
     </div>
 
-    <!-- 3-column layout -->
-    <div class="flex flex-1 overflow-hidden">
-      <!-- Palette (240px) -->
-      <div class="w-60 shrink-0">
-        <FieldPalette />
+    <!-- Tabs -->
+    <Tabs v-model="builder.activeTab" class="flex-1 flex flex-col overflow-hidden">
+      <div class="border-b border-border bg-muted/30 px-4 shrink-0">
+        <TabsList class="bg-transparent h-auto gap-0 p-0">
+          <TabsTrigger value="form" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
+            Форма
+          </TabsTrigger>
+          <TabsTrigger value="settings" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
+            Налаштування
+          </TabsTrigger>
+          <TabsTrigger value="permissions" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
+            Права
+          </TabsTrigger>
+          <TabsTrigger value="workflow" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
+            Workflow
+          </TabsTrigger>
+          <TabsTrigger value="views" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
+            Вигляди
+          </TabsTrigger>
+        </TabsList>
       </div>
 
-      <!-- Canvas (WYSIWYG) -->
-      <div class="flex-1 overflow-hidden bg-[--grunt-surface-secondary]">
-        <BuilderCanvas />
-      </div>
+      <!-- Form tab: 3-column layout -->
+      <TabsContent value="form" class="flex-1 overflow-hidden m-0 p-0">
+        <div class="flex h-full overflow-hidden">
+          <div class="w-60 shrink-0">
+            <FieldPalette />
+          </div>
+          <div class="flex-1 overflow-hidden bg-muted/20">
+            <BuilderCanvas />
+          </div>
+          <div class="w-72 shrink-0">
+            <PropertiesPanel />
+          </div>
+        </div>
+      </TabsContent>
 
-      <!-- Properties (300px) -->
-      <div class="w-72 shrink-0">
-        <PropertiesPanel />
-      </div>
-    </div>
+      <!-- Settings tab -->
+      <TabsContent value="settings" class="flex-1 overflow-hidden m-0 p-0">
+        <SettingsTab />
+      </TabsContent>
+
+      <!-- Permissions tab -->
+      <TabsContent value="permissions" class="flex-1 overflow-hidden m-0 p-0">
+        <PermissionsTab />
+      </TabsContent>
+
+      <!-- Workflow tab -->
+      <TabsContent value="workflow" class="flex-1 overflow-hidden m-0 p-0">
+        <WorkflowTab />
+      </TabsContent>
+
+      <!-- Views tab -->
+      <TabsContent value="views" class="flex-1 overflow-hidden m-0 p-0">
+        <ViewsTab />
+      </TabsContent>
+    </Tabs>
   </div>
 </template>
