@@ -19,9 +19,9 @@ const id = useId()
   <div class="flex items-center gap-2">
     <Checkbox
       :id="id"
-      :checked="!!modelValue"
+      :model-value="!!modelValue"
       :disabled="disabled || field.read_only"
-      @update:checked="emit('update:modelValue', $event)"
+      @update:model-value="emit('update:modelValue', $event)"
     />
     <Label :for="id" class="text-sm font-medium cursor-pointer select-none">{{ field.label }}</Label>
   </div>
