@@ -2,6 +2,13 @@
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { WorkspaceLink } from '@/core/api/workspace'
+import { Badge } from '@/components/ui/badge'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { Plus } from 'lucide-vue-next'
 
 const props = defineProps<{
   item: WorkspaceLink
@@ -53,50 +60,50 @@ const displayCount = computed(() => {
 </script>
 
 <template>
+  <Tooltip v-if="collapsed" :delay-duration="0">
+    <TooltipTrigger as-child>
+      <button
+        class="w-full flex items-center justify-center h-9 rounded-md transition-colors"
+        :class="isActive
+          ? 'bg-primary/10 text-primary'
+          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
+        @click="navigate"
+      >
+        <span class="text-sm">{{ item.icon }}</span>
+      </button>
+    </TooltipTrigger>
+    <TooltipContent side="right" :side-offset="8">
+      {{ item.label }}
+      <span v-if="displayCount" class="ml-1 text-muted-foreground">({{ displayCount }})</span>
+    </TooltipContent>
+  </Tooltip>
+
   <button
-    class="sidebar-item group w-full flex items-center gap-2 text-left transition-colors"
-    :class="[
-      isActive
-        ? 'sidebar-item--active'
-        : 'hover:bg-[--grunt-surface-secondary] text-[--grunt-text-secondary]',
-      collapsed ? 'justify-center px-0 h-10' : 'px-3'
-    ]"
-    :style="{ height: collapsed ? '40px' : 'var(--grunt-sidebar-item-h)' }"
-    :title="collapsed ? item.label : undefined"
+    v-else
+    class="group w-full flex items-center gap-2.5 px-2.5 h-8 rounded-md text-left transition-colors"
+    :class="isActive
+      ? 'bg-primary/10 text-primary font-medium'
+      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
     @click="navigate"
   >
-    <span class="text-sm shrink-0" :class="{ 'text-base': collapsed }">{{ item.icon }}</span>
+    <span class="text-sm shrink-0 w-5 text-center">{{ item.icon }}</span>
+    <span class="text-sm truncate flex-1">{{ item.label }}</span>
 
-    <template v-if="!collapsed">
-      <span class="text-sm truncate flex-1">{{ item.label }}</span>
+    <!-- Count badge -->
+    <Badge
+      v-if="displayCount"
+      variant="secondary"
+      class="h-5 min-w-5 px-1 text-[10px] font-medium justify-center shrink-0"
+    >{{ displayCount }}</Badge>
 
-      <!-- Count badge -->
-      <span
-        v-if="displayCount"
-        class="text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0"
-        :style="{
-          backgroundColor: (color ?? 'var(--grunt-primary)') + '18',
-          color: color ?? 'var(--grunt-primary)'
-        }"
-      >{{ displayCount }}</span>
-
-      <!-- New button -->
-      <button
-        v-if="item.show_new_btn"
-        class="opacity-0 group-hover:opacity-100 text-xs text-[--grunt-text-muted] hover:text-[--grunt-primary] transition-opacity shrink-0 px-1"
-        title="Створити новий"
-        @click="createNew"
-      >+</button>
-    </template>
+    <!-- New button -->
+    <button
+      v-if="item.show_new_btn"
+      class="opacity-0 group-hover:opacity-100 rounded p-0.5 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all shrink-0"
+      title="Створити новий"
+      @click="createNew"
+    >
+      <Plus class="size-3.5" />
+    </button>
   </button>
 </template>
-
-<style scoped>
-.sidebar-item--active {
-  background: var(--grunt-primary-light);
-  border-left: 2px solid var(--grunt-primary);
-  border-radius: 0;
-  color: var(--grunt-primary);
-  font-weight: 500;
-}
-</style>

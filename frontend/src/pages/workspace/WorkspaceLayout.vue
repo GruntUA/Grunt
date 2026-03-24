@@ -3,6 +3,7 @@ import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWorkspaceStore } from '@/stores/workspace'
 import WorkspaceSidebar from '@/components/workspace/WorkspaceSidebar.vue'
+import { Menu } from 'lucide-vue-next'
 
 const props = defineProps<{ workspaceName: string }>()
 const wsStore = useWorkspaceStore()
@@ -24,12 +25,14 @@ watch(() => props.workspaceName, (name) => {
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-[--grunt-surface-secondary]">
+  <div class="flex h-screen overflow-hidden bg-background">
     <!-- Mobile hamburger -->
     <button
-      class="fixed top-3 left-3 z-30 p-2 rounded-[--grunt-radius-sm] bg-[--grunt-surface] border border-[--grunt-border] shadow-sm md:hidden"
+      class="fixed top-3 left-3 z-30 p-2 rounded-md bg-card border border-border shadow-sm md:hidden"
       @click="sidebarRef && (sidebarRef.mobileOpen = true)"
-    >☰</button>
+    >
+      <Menu class="size-4" />
+    </button>
 
     <WorkspaceSidebar
       ref="sidebarRef"
