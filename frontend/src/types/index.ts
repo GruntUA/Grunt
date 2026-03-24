@@ -90,6 +90,22 @@ export interface DocTypeKanbanView {
   color_field: string | null
 }
 
+export interface CalendarSource {
+  doctype: string
+  date_field: string
+  end_date_field?: string
+  label_field?: string
+  color?: string
+  filters?: Record<string, string>
+}
+
+export interface DocTypeCalendarView {
+  field: string
+  end_field?: string
+  title_field?: string
+  sources?: CalendarSource[]
+}
+
 // ── DocType ───────────────────────────────────────────────────────────────
 
 export interface DocType {
@@ -107,6 +123,7 @@ export interface DocType {
   list_view?: DocTypeListView
   form_view?: DocTypeFormView
   kanban_view?: DocTypeKanbanView | null
+  calendar_view?: DocTypeCalendarView | null
   workflow?: WorkflowDef | null
   permissions?: DocTypePermission[]
 }

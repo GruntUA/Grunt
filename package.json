@@ -15,6 +15,7 @@
     "@floating-ui/vue": "^1.0.6",
     "@fontsource-variable/geist": "^5.2.8",
     "@tanstack/vue-query": "^5.36.0",
+    "@tanstack/vue-table": "^8.21.3",
     "@tiptap/extension-image": "^2.4.0",
     "@tiptap/extension-link": "^2.4.0",
     "@tiptap/starter-kit": "^2.4.0",

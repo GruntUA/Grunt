@@ -42,6 +42,8 @@ import {
 } from 'lucide-vue-next'
 import FilterBar from '@/components/views/FilterBar.vue'
 import KanbanView from '@/components/views/KanbanView.vue'
+import CalendarView from '@/components/views/CalendarView.vue'
+import { CalendarDays as CalendarIcon } from 'lucide-vue-next'
 
 const props = defineProps<{ doctype: string; workspace?: string }>()
 const router = useRouter()
@@ -60,13 +62,22 @@ const hiddenCols = ref<string[]>([])
 
 const showBulkDeleteModal = ref(false)
 const showColMenu = ref(false)
-const viewMode = ref<'list' | 'kanban'>('list')
+const viewMode = ref<'list' | 'kanban' | 'calendar'>('list')
 
 const kanbanColumnField = computed<DocField | null>(() => {
   if (!dt.value) return null
   return dt.value.fields.find(
     (f: DocField) => f.fieldtype === 'Select' && f.in_list_view && !f.hidden
   ) ?? null
+})
+
+const calendarDateField = computed<DocField | null>(() => {
+  if (!dt.value) return null
+  if (dt.value.calendar_view?.field) {
+    const fieldname = dt.value.calendar_view.field
+    return dt.value.fields.find(f => f.fieldname === fieldname) || null
+  }
+  return dt.value.fields.find(f => f.fieldtype === 'Date' || f.fieldtype === 'Datetime') || null
 })
 
 const debouncedSearch = ref('')
@@ -197,6 +208,15 @@ function navigateToDoc(row: Record<string, unknown>) {
             <LayoutGrid class="size-4" />
             Канбан
           </button>
+          <button
+            v-if="calendarDateField"
+            class="px-3 py-1.5 text-sm font-medium transition-colors flex items-center gap-1.5 border-l border-border"
+            :class="viewMode === 'calendar' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'"
+            @click="viewMode = 'calendar'"
+          >
+            <CalendarIcon class="size-4" />
+            Календар
+          </button>
         </div>
 
         <Button variant="outline" size="sm" as="a" :href="`/api/v1/docs/${doctype}/export/xlsx`" download>
@@ -213,6 +233,11 @@ function navigateToDoc(row: Record<string, unknown>) {
     <!-- Kanban view -->
     <div v-if="viewMode === 'kanban' && kanbanColumnField && dt" class="h-[calc(100vh-12rem)]">
       <KanbanView :doctype="dt" :column-field="kanbanColumnField.fieldname" />
+    </div>
+
+    <!-- Calendar view -->
+    <div v-if="viewMode === 'calendar' && calendarDateField && dt" class="h-[calc(100vh-12rem)]">
+      <CalendarView :doctype="dt" :date-field="calendarDateField.fieldname" :workspace="workspace" />
     </div>
 
     <template v-if="viewMode === 'list'">

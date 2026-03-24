@@ -328,15 +328,15 @@ const emit = defineEmits<{
 ### Фаза 1 — Metadata Engine + Basic CRUD
 **Мета:** Робоча база — можна визначити DocType і зберігати дані.
 
-- [ ] `DocType` модель (Pydantic + SQLAlchemy)
-- [ ] `DocType Registry` — in-memory реєстр
-- [ ] `DocType Compiler` — DocType → SQLAlchemy Table
-- [ ] Alembic auto-migration при sync
-- [ ] REST API: `/meta/*` і `/docs/*`
-- [ ] Базова аутентифікація (JWT)
-- [ ] Vue: Router, Pinia, API client
-- [ ] Vue: базова ListView і FormView (без builder)
-- [ ] CLI: `grunt init`, `grunt serve`
+- [x] `DocType` модель (Pydantic + SQLAlchemy)
+- [x] `DocType Registry` — in-memory реєстр
+- [x] `DocType Compiler` — DocType → SQLAlchemy Table
+- [x] Alembic auto-migration при sync
+- [x] REST API: `/meta/*` і `/docs/*`
+- [x] Базова аутентифікація (JWT)
+- [x] Vue: Router, Pinia, API client
+- [x] Vue: базова ListView і FormView (без builder)
+- [x] CLI: `grunt init`, `grunt serve`
 
 **Done criteria:** `grunt init myapp && grunt serve` → можна створити DocType через API і побачити дані.
 
@@ -345,39 +345,39 @@ const emit = defineEmits<{
 ### Фаза 2 — Form Builder + Views
 **Мета:** Візуальний конструктор форм у стилі Notion.
 
-- [ ] Builder UI: drag-and-drop полів
-- [ ] Панель властивостей поля
-- [ ] Попередній перегляд форми в реальному часі
-- [ ] Renderer: рендеринг форми з метаданих
-- [ ] Всі типи полів з UI компонентами
-- [ ] KanbanView, CalendarView
-- [ ] Фільтри і сортування в ListView
-- [ ] WebSocket real-time оновлення
+- [x] Builder UI: drag-and-drop полів
+- [x] Панель властивостей поля
+- [x] Попередній перегляд форми в реальному часі
+- [x] Renderer: рендеринг форми з метаданих
+- [x] Всі типи полів з UI компонентами
+- [x] KanbanView, CalendarView
+- [x] Фільтри і сортування в ListView
+- [x] WebSocket real-time оновлення
 
 ---
 
 ### Фаза 3 — Workflow + Permissions + Apps
 **Мета:** Повноцінна бізнес-логіка.
 
-- [ ] Workflow engine: стани, переходи, дії
-- [ ] Візуальний редактор workflow
-- [ ] RBAC: ролі, дозволи на рівні DocType і документа
-- [ ] Permission Query (row-level security)
-- [ ] App система: `grunt create-app`
-- [ ] Модуль Reports (агрегати, фільтри)
-- [ ] Dashboard з widgets
+- [x] Workflow engine: стани, переходи, дії
+- [x] Візуальний редактор workflow
+- [x] RBAC: ролі, дозволи на рівні DocType і документа
+- [x] Permission Query (row-level security)
+- [x] App система: `grunt create-app`
+- [x] Модуль Reports (агрегати, фільтри)
+- [x] Dashboard з widgets
 
 ---
 
 ### Фаза 4 — Production Ready
 **Мета:** Готовність до реального використання.
 
-- [ ] Document generation (docxtpl, WeasyPrint, openpyxl)
-- [ ] Plugin/Hook система
-- [ ] Аудит лог
+- [x] Document generation (docxtpl, WeasyPrint, openpyxl)
+- [x] Plugin/Hook system
+- [x] Аудит лог
 - [ ] i18n (українська мова за замовчуванням)
-- [ ] Rate limiting, CORS, security headers
-- [ ] Docker Compose для deployment
+- [x] Rate limiting, CORS, security headers
+- [x] Docker Compose для deployment
 - [ ] Документація (MkDocs)
 
 ---
