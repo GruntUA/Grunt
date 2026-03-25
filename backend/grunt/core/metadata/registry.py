@@ -14,6 +14,7 @@ from sqlalchemy import delete, select, update
 
 from grunt.core.metadata.compiler import sync_table
 from grunt.core.metadata.doctype import DocType
+from grunt.core.metadata.system_doctypes import SYSTEM_DOCTYPES, is_system_doctype
 from grunt.core.db.system_tables import GruntMetaDoctype
 
 if TYPE_CHECKING:
@@ -31,11 +32,22 @@ class DocTypeRegistry:
     # ── Read ─────────────────────────────────────────────────────────────
 
     async def load_all(self, session: AsyncSession) -> None:
-        """Load all DocTypes from ``grunt_meta_doctype`` into memory."""
+        """Load all DocTypes from ``grunt_meta_doctype`` into memory.
+
+        System DocTypes (like "DocType" itself) are injected automatically
+        and cannot be overridden by user-defined ones.
+        """
         result = await session.execute(select(GruntMetaDoctype))
         rows = result.scalars().all()
         self._doctypes.clear()
+
+        # Inject core system DocTypes first
+        for name, dt in SYSTEM_DOCTYPES.items():
+            self._doctypes[name] = dt
+
         for row in rows:
+            if row.name in SYSTEM_DOCTYPES:
+                continue  # system DocTypes are authoritative
             try:
                 dt = DocType.model_validate(row.data)
                 self._doctypes[dt.name] = dt
@@ -91,6 +103,11 @@ class DocTypeRegistry:
         async_engine: AsyncEngine,
     ) -> None:
         """Update an existing DocType, re-sync its table, refresh cache."""
+        if is_system_doctype(doctype.name):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"System DocType '{doctype.name}' cannot be modified",
+            )
         if doctype.name not in self._doctypes:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -111,6 +128,11 @@ class DocTypeRegistry:
 
     async def delete(self, name: str, session: AsyncSession) -> None:
         """Remove DocType from registry and DB. Physical table is NOT dropped."""
+        if is_system_doctype(name):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"System DocType '{name}' cannot be deleted",
+            )
         if name not in self._doctypes:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -126,7 +148,12 @@ class DocTypeRegistry:
     # ── Validation helpers ───────────────────────────────────────────────
 
     def _validate_new(self, doctype: DocType) -> None:
-        """Ensure name is unique and fields are valid."""
+        """Ensure name is unique, not a system DocType, and fields are valid."""
+        if is_system_doctype(doctype.name):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"'{doctype.name}' is a reserved system DocType name",
+            )
         if doctype.name in self._doctypes:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,

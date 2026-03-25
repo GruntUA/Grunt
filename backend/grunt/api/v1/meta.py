@@ -16,6 +16,7 @@ from grunt.api.v1.schemas.meta import (
     DocTypeSchema,
     DocTypeSyncResult,
 )
+from grunt.core.metadata.system_doctypes import is_system_doctype
 
 from sqlalchemy import inspect as sa_inspect
 
@@ -24,6 +25,45 @@ router = APIRouter()
 
 def _doctype_to_schema(dt: DocType) -> DocTypeSchema:
     return DocTypeSchema.model_validate(dt.model_dump())
+
+
+async def _sync_doctype_doc(dt: DocType, session: AsyncSession, *, delete: bool = False) -> None:
+    """Keep the DocType document table in sync after meta operations."""
+    import uuid as _uuid  # noqa: PLC0415
+    from datetime import datetime, timezone  # noqa: PLC0415
+    from grunt.core.metadata.system_doctypes import SYSTEM_DOCTYPES  # noqa: PLC0415
+
+    dt_def = SYSTEM_DOCTYPES.get("DocType")
+    if not dt_def:
+        return
+    table = compile_doctype_to_table(dt_def)
+    conn = await session.connection()
+    now = datetime.now(timezone.utc)
+
+    if delete:
+        await conn.execute(table.delete().where(table.c.name == dt.name))
+        return
+
+    # Upsert
+    result = await conn.execute(
+        table.select().where(table.c.name == dt.name)
+    )
+    if result.first():
+        await conn.execute(
+            table.update().where(table.c.name == dt.name).values(
+                label=dt.label, module=dt.module, is_child=dt.is_child,
+                modified_at=now,
+            )
+        )
+    else:
+        await conn.execute(
+            table.insert().values(
+                id=str(_uuid.uuid4()), name=dt.name, label=dt.label,
+                module=dt.module, is_child=dt.is_child,
+                owner="system", created_at=now, modified_at=now,
+                modified_by="system", docstatus=0,
+            )
+        )
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────
@@ -52,6 +92,7 @@ async def create_doctype(
 ) -> DocTypeSchema:
     """Create a new DocType — validates, persists, syncs table."""
     await doctype_registry.register(body, session, engine)
+    await _sync_doctype_doc(body, session)
     return _doctype_to_schema(body)
 
 
@@ -79,6 +120,7 @@ async def update_doctype(
             detail="DocType name in URL and body must match",
         )
     await doctype_registry.update(body, session, engine)
+    await _sync_doctype_doc(body, session)
     return _doctype_to_schema(body)
 
 
@@ -89,7 +131,9 @@ async def delete_doctype(
     _user: GruntUser = Depends(superadmin_user),
 ) -> dict[str, str]:
     """Delete a DocType (table is NOT dropped)."""
+    dt = await doctype_registry.get(name)
     await doctype_registry.delete(name, session)
+    await _sync_doctype_doc(dt, session, delete=True)
     return {"message": f"DocType '{name}' видалено"}
 
 

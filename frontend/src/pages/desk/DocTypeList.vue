@@ -175,7 +175,14 @@ function onFiltersChange(f: Record<string, string>) {
   page.value = 1
 }
 
+const isSystemDocType = computed(() => props.doctype === 'DocType')
+
 function navigateToDoc(row: Record<string, unknown>) {
+  // System DocTypes: open the builder instead of a form
+  if (isSystemDocType.value) {
+    router.push(`/studio/${row.name}/builder`)
+    return
+  }
   const id = String(row.id)
   router.push(props.workspace ? `/${props.workspace}/list/${props.doctype}/${id}` : `/${props.doctype}/${id}`)
 }
@@ -219,11 +226,15 @@ function navigateToDoc(row: Record<string, unknown>) {
           </button>
         </div>
 
-        <Button variant="outline" size="sm" as="a" :href="`/api/v1/docs/${doctype}/export/xlsx`" download>
+        <Button v-if="!isSystemDocType" variant="outline" size="sm" as="a" :href="`/api/v1/docs/${doctype}/export/xlsx`" download>
           <Download class="size-4 mr-1.5" />
           Excel
         </Button>
-        <Button size="sm" @click="router.push(props.workspace ? `/${props.workspace}/list/${doctype}/new` : `/${doctype}/new`)">
+        <Button v-if="isSystemDocType" size="sm" @click="router.push('/studio')">
+          <Plus class="size-4 mr-1.5" />
+          Новий DocType
+        </Button>
+        <Button v-else size="sm" @click="router.push(props.workspace ? `/${props.workspace}/list/${doctype}/new` : `/${doctype}/new`)">
           <Plus class="size-4 mr-1.5" />
           Новий
         </Button>

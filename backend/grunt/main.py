@@ -35,9 +35,22 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    # Load registered DocTypes into memory
+    # Load registered DocTypes into memory (includes system DocTypes)
     async with AsyncSessionLocal() as session:
         await doctype_registry.load_all(session)
+
+    # Sync system DocType tables and populate document tables
+    from grunt.core.metadata.system_doctypes import SYSTEM_DOCTYPES  # noqa: PLC0415
+    from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
+    from grunt.core.startup import populate_system_doctypes, seed_grunt_workspace  # noqa: PLC0415
+
+    for sys_dt in SYSTEM_DOCTYPES.values():
+        await sync_table(sys_dt, engine)
+
+    async with AsyncSessionLocal() as session:
+        await populate_system_doctypes(session, engine)
+        await seed_grunt_workspace(session)
+        await session.commit()
 
     # Load hooks from installed apps
     import importlib  # noqa: PLC0415

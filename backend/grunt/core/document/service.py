@@ -22,6 +22,7 @@ from grunt.core.metadata.doctype import DocType
 from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.hooks import fire
+from grunt.core.metadata.system_doctypes import is_system_doctype
 
 logger = structlog.get_logger()
 
@@ -114,6 +115,11 @@ class DocumentService:
         data: dict[str, Any],
         user: GruntUser,
     ) -> dict[str, Any]:
+        if is_system_doctype(doctype_name):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"'{doctype_name}' керується системою. Використовуйте відповідний API.",
+            )
         dt = await doctype_registry.get(doctype_name)
         table = compile_doctype_to_table(dt)
 
@@ -145,7 +151,9 @@ class DocumentService:
             if field.fieldname in data:
                 row[field.fieldname] = self._coerce_value(data[field.fieldname], field.fieldtype)
             elif field.default is not None:
-                row[field.fieldname] = field.default
+                row[field.fieldname] = self._coerce_value(field.default, field.fieldtype)
+            elif field.fieldtype == "Check":
+                row[field.fieldname] = False  # Check fields default to False, never NULL
 
         await fire("before_save", doctype=doctype_name, doc=row, user=user, session=self.session)
 
@@ -200,6 +208,11 @@ class DocumentService:
         data: dict[str, Any],
         user: GruntUser,
     ) -> dict[str, Any]:
+        if is_system_doctype(doctype_name):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"'{doctype_name}' керується системою. Використовуйте відповідний API.",
+            )
         dt = await doctype_registry.get(doctype_name)
         table = compile_doctype_to_table(dt)
 
@@ -248,6 +261,11 @@ class DocumentService:
         doc_id: str,
         user: GruntUser,
     ) -> None:
+        if is_system_doctype(doctype_name):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"'{doctype_name}' керується системою. Використовуйте відповідний API.",
+            )
         dt = await doctype_registry.get(doctype_name)
         table = compile_doctype_to_table(dt)
 
@@ -273,6 +291,11 @@ class DocumentService:
     @staticmethod
     def _coerce_value(value: Any, fieldtype: str) -> Any:
         """Convert string values to proper Python types for SQLAlchemy."""
+        # Check fields always coerce to bool — never store NULL
+        if fieldtype == "Check":
+            if value is None or value == "":
+                return False
+            return bool(value)
         if value is None or value == "":
             return None if fieldtype in ("Date", "Datetime", "Time", "Int", "Float") else value
         if fieldtype == "Date" and isinstance(value, str):
@@ -285,8 +308,6 @@ class DocumentService:
             return int(value)
         if fieldtype == "Float" and isinstance(value, str):
             return float(value)
-        if fieldtype == "Check":
-            return bool(value)
         return value
 
     # ── Validation ────────────────────────────────────────────────────────
