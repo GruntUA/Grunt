@@ -66,7 +66,7 @@ async function loadDocuments() {
       filters: {
         [`${props.dateField}__lte`]: endStr, // Starts before month end
       },
-      per_page: 500,
+      per_page: 200,
     })
 
     // 2. Secondary sources

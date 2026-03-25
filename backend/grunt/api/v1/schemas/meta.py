@@ -91,6 +91,13 @@ class DocTypeKanbanViewSchema(BaseModel):
     color_field: str | None = None
 
 
+class DocTypeCalendarViewSchema(BaseModel):
+    field: str
+    end_field: str | None = None
+    title_field: str = "name"
+    sources: list[dict[str, Any]] = []
+
+
 class DocTypeSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -115,6 +122,7 @@ class DocTypeSchema(BaseModel):
     list_view: DocTypeListViewSchema = DocTypeListViewSchema()
     form_view: DocTypeFormViewSchema = DocTypeFormViewSchema()
     kanban_view: DocTypeKanbanViewSchema | None = None
+    calendar_view: DocTypeCalendarViewSchema | None = None
 
 
 class DocTypeListItem(BaseModel):
