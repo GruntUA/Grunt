@@ -11,13 +11,15 @@ from pydantic import ValidationError
 from grunt.config import settings
 from grunt.api.v1.router import v1_router
 from grunt.core.db.base import Base
-from grunt.core.db.session import AsyncSessionLocal, engine
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.document.registry import document_registry
 from grunt.core.hooks import register_doc_events
 from grunt.core.tasks.broker import broker
 from grunt.core.tasks.registry import discover_tasks
 from grunt.core.tasks.scheduler import register_scheduler_events, start_scheduler, stop_scheduler
+from grunt.core.site.manager import site_manager, current_site
+from grunt.core.site.middleware import SiteContextMiddleware
+
 
 # Ensure all ORM models are imported so Base.metadata is complete
 import grunt.core.db.system_tables  # noqa: F401
@@ -36,26 +38,41 @@ async def lifespan(app: FastAPI):
     # ── Startup ──────────────────────────────────────────────────────
     logger.info("grunt.startup", version="0.1.0")
 
-    # Create all system tables if they don't exist
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    # Load registered DocTypes into memory (includes system DocTypes)
-    async with AsyncSessionLocal() as session:
-        await doctype_registry.load_all(session)
-
-    # Sync system DocType tables and populate document tables
     from grunt.core.metadata.system_doctypes import SYSTEM_DOCTYPES  # noqa: PLC0415
     from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
     from grunt.core.startup import populate_system_doctypes, seed_grunt_workspace  # noqa: PLC0415
 
-    for sys_dt in SYSTEM_DOCTYPES.values():
-        await sync_table(sys_dt, engine)
+    sites = site_manager.get_sites()
+    if not sites:
+        logger.warning("grunt.startup.no_sites")
+    
+    for site in sites:
+        token = current_site.set(site)
+        try:
+            logger.info("grunt.site.startup", site=site)
+            # Create all system tables if they don't exist
+            eng = site_manager.get_engine(site)
+            maker = site_manager.get_session_maker(site)
+            
+            async with eng.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
 
-    async with AsyncSessionLocal() as session:
-        await populate_system_doctypes(session, engine)
-        await seed_grunt_workspace(session)
-        await session.commit()
+            # Sync system DocType tables and populate document tables
+            for sys_dt in SYSTEM_DOCTYPES.values():
+                await sync_table(sys_dt, eng)
+
+            async with maker() as session:
+                await populate_system_doctypes(session, eng)
+                await seed_grunt_workspace(session)
+                await session.commit()
+                # Load registered DocTypes into memory (Note: currently global registry)
+                await doctype_registry.load_all(session)
+                
+        except Exception as e:
+            logger.error("grunt.site.startup_error", site=site, error=str(e))
+        finally:
+            current_site.reset(token)
+
 
     # Load hooks from installed apps
     import importlib  # noqa: PLC0415
@@ -70,7 +87,7 @@ async def lifespan(app: FastAPI):
         if project_root not in sys.path:
             sys.path.insert(0, project_root)
 
-        for app_hooks in apps_dir.glob("*/*/hooks.py"):
+        for app_hooks in apps_dir.glob("*/hooks.py"):
             module_path = str(app_hooks).replace("/", ".").replace("\\", ".").removesuffix(".py")
             try:
                 module = importlib.import_module(module_path)
@@ -110,7 +127,9 @@ async def lifespan(app: FastAPI):
     # ── Shutdown ─────────────────────────────────────────────────────
     await stop_scheduler()
     await broker.shutdown()
-    await engine.dispose()
+    
+    for eng in site_manager.engines.values():
+        await eng.dispose()
     logger.info("grunt.shutdown")
 
 
@@ -123,6 +142,8 @@ app = FastAPI(
 )
 
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(SiteContextMiddleware)
+
 
 app.add_middleware(
     CORSMiddleware,

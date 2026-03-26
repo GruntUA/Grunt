@@ -81,15 +81,23 @@ async def fire(event: str, **kwargs: Any) -> None:
 
     If `doctype` is present in kwargs, it also fires DocType-specific hooks.
     """
+    kwargs["event"] = event
+    
     # 1. Fire global hooks
     for hook in HOOK_REGISTRY.get(event, []):
         await _call_hook(hook["handler"], event, **kwargs)
 
     # 2. Fire DocType-specific hooks
     doctype = kwargs.get("doctype")
-    if doctype and doctype in DOC_EVENT_REGISTRY:
-        for hook in DOC_EVENT_REGISTRY[doctype].get(event, []):
-            await _call_hook(hook["handler"], f"{doctype}:{event}", **kwargs)
+    if doctype:
+        # Fire wildcard hooks first
+        if "*" in DOC_EVENT_REGISTRY:
+            for hook in DOC_EVENT_REGISTRY["*"].get(event, []):
+                await _call_hook(hook["handler"], f"*:{event}", **kwargs)
+
+        if doctype in DOC_EVENT_REGISTRY:
+            for hook in DOC_EVENT_REGISTRY[doctype].get(event, []):
+                await _call_hook(hook["handler"], f"{doctype}:{event}", **kwargs)
 
 
 async def _call_hook(fn: Callable, event_name: str, **kwargs: Any) -> None:
@@ -100,7 +108,7 @@ async def _call_hook(fn: Callable, event_name: str, **kwargs: Any) -> None:
             fn(**kwargs)
     except Exception:
         logger.exception(
-            "hook.error", event=event_name, fn=getattr(fn, "__qualname__", str(fn))
+            "hook.error", hook_event=event_name, fn=getattr(fn, "__qualname__", str(fn))
         )
 
 

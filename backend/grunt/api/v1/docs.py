@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import io
+import math
 import uuid as _uuid
-from datetime import date, datetime
+import csv
+from datetime import date, datetime, time, timezone
 from typing import Any
+from fastapi.responses import StreamingResponse
 
 import openpyxl
 from openpyxl.styles import Alignment, Font, PatternFill
@@ -15,8 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import GruntUser
-from grunt.core.db.session import engine as _engine
-from grunt.core.db.session import get_session
+from grunt.core.db.session import get_engine, get_session
 from grunt.core.document.service import DocumentService
 from grunt.core.metadata.registry import doctype_registry
 
@@ -135,9 +137,6 @@ def _generate_html_single(dt: Any, doc: dict[str, Any]) -> str:
 </html>"""
 
 
-async def get_engine() -> AsyncEngine:
-    return _engine
-
 
 def get_doc_service(
     session: AsyncSession = Depends(get_session),
@@ -155,12 +154,12 @@ async def list_documents(
     request: Request,
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=200),
-    sort: str = "modified_at",
-    order: str = "desc",
+    sort_by: str = "modified_at",
+    sort_order: str = "desc",
     search: str | None = None,
     fields: str | None = None,
     user: GruntUser = Depends(current_user),
-    svc: DocumentService = Depends(get_doc_service),
+    service: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     # Extract filter[field]=value from query params
     filters: dict[str, str] = {}
@@ -171,16 +170,74 @@ async def list_documents(
 
     field_list = [f.strip() for f in fields.split(",") if f.strip()] if fields else None
 
-    return await svc.list_documents(
-        doctype_name=doctype,
-        user=user,
+    return await service.list_documents(
+        doctype,
+        user,
         page=page,
         per_page=per_page,
-        sort_by=sort,
-        sort_order=order,
+        sort_by=sort_by,
+        sort_order=sort_order,
         filters=filters if filters else None,
         search=search,
         fields=field_list,
+    )
+
+
+@router.get("/{doctype}/export")
+async def export_documents(
+    doctype: str,
+    user: GruntUser = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+    engine: AsyncEngine = Depends(get_engine),
+    sort_by: str = "modified_at",
+    sort_order: str = "desc",
+    filters: str | None = None,
+    search: str | None = None,
+    fields: str | None = None,
+) -> StreamingResponse:
+    """Export documents as CSV."""
+    service = DocumentService(session, engine)
+    
+    # Parse filters / fields
+    parsed_filters = {}
+    if filters:
+        try:
+            import json
+            parsed_filters = json.loads(filters)
+        except Exception:
+            pass
+            
+    parsed_fields = fields.split(",") if fields else None
+    
+    # 1. Fetch data (un-paginated for export)
+    # We'll fetch in batches if too large, but for now 1000 is fine
+    res = await service.list_documents(
+        doctype,
+        user,
+        per_page=1000,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        filters=parsed_filters,
+        search=search,
+        fields=parsed_fields,
+    )
+    data = res["data"]
+    
+    # 2. Generate CSV
+    output = io.StringIO()
+    if data:
+        writer = csv.DictWriter(output, fieldnames=data[0].keys())
+        writer.writeheader()
+        writer.writerows(data)
+    
+    output.seek(0)
+    
+    filename = f"{doctype}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
 

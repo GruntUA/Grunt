@@ -1,12 +1,11 @@
 """Database layer — engine, session, base models."""
 
 from grunt.core.db.base import Base, GruntBase
-from grunt.core.db.session import AsyncSessionLocal, engine, get_session
+from grunt.core.db.session import get_session, get_engine
 
 __all__ = [
-    "AsyncSessionLocal",
     "Base",
     "GruntBase",
-    "engine",
+    "get_engine",
     "get_session",
 ]

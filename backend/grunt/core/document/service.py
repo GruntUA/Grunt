@@ -173,6 +173,7 @@ class DocumentService:
         await doc.after_insert()
         await doc.after_save()
 
+        await fire("after_insert", doctype=doctype_name, doc=row, user=user, session=self.session)
         await fire("after_save", doctype=doctype_name, doc=row, user=user, session=self.session)
 
         # Serialise datetimes for response
@@ -273,6 +274,7 @@ class DocumentService:
         doc.data = result # refresh with actual data after save
         await doc.after_save()
 
+        await fire("after_update", doctype=doctype_name, doc=result, user=user, session=self.session)
         await fire("after_save", doctype=doctype_name, doc=result, user=user, session=self.session)
         return result
 

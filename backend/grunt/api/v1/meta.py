@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.core.auth.dependencies import current_user, superadmin_user
 from grunt.core.auth.models import GruntUser
-from grunt.core.db.session import engine, get_session
+from grunt.core.db.session import get_engine, get_session
 from grunt.core.metadata.compiler import compile_doctype_to_table, get_table_name, sync_table
 from grunt.core.metadata.doctype import DocType
 from grunt.core.metadata.registry import doctype_registry
@@ -89,9 +89,10 @@ async def create_doctype(
     body: DocType,
     session: AsyncSession = Depends(get_session),
     _user: GruntUser = Depends(superadmin_user),
+    eng: AsyncEngine = Depends(get_engine),
 ) -> DocTypeSchema:
     """Create a new DocType — validates, persists, syncs table."""
-    await doctype_registry.register(body, session, engine)
+    await doctype_registry.register(body, session, eng)
     await _sync_doctype_doc(body, session)
     return _doctype_to_schema(body)
 
@@ -112,6 +113,7 @@ async def update_doctype(
     body: DocType,
     session: AsyncSession = Depends(get_session),
     _user: GruntUser = Depends(superadmin_user),
+    eng: AsyncEngine = Depends(get_engine),
 ) -> DocTypeSchema:
     """Update an existing DocType."""
     if body.name != name:
@@ -119,7 +121,7 @@ async def update_doctype(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="DocType name in URL and body must match",
         )
-    await doctype_registry.update(body, session, engine)
+    await doctype_registry.update(body, session, eng)
     await _sync_doctype_doc(body, session)
     return _doctype_to_schema(body)
 
@@ -142,6 +144,7 @@ async def sync_doctype(
     name: str,
     session: AsyncSession = Depends(get_session),
     _user: GruntUser = Depends(superadmin_user),
+    eng: AsyncEngine = Depends(get_engine),
 ) -> DocTypeSyncResult:
     """Force-sync a DocType's physical table with its definition."""
     dt = await doctype_registry.get(name)
@@ -157,7 +160,7 @@ async def sync_doctype(
     conn = await session.connection()
     columns_before = await conn.run_sync(_get_columns)
 
-    await sync_table(dt, engine, session=session)
+    await sync_table(dt, eng, session=session)
 
     columns_after = await conn.run_sync(_get_columns)
 

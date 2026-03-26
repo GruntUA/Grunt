@@ -218,6 +218,109 @@ SYSTEM_DOCTYPES: dict[str, DocType] = {
             ),
         ],
     ),
+    "DataImport": DocType(
+        name="DataImport",
+        label="Імпорт даних",
+        module="core",
+        fields=[
+            DocField(
+                fieldname="reference_doctype",
+                label="Тип документа",
+                fieldtype="Link",
+                options="DocType",
+                required=True,
+                in_list_view=True,
+            ),
+            DocField(
+                fieldname="import_file",
+                label="Файл для імпорту",
+                fieldtype="Attach", # Assuming Attach/Text for now
+                required=True,
+            ),
+            DocField(
+                fieldname="import_type",
+                label="Тип імпорту",
+                fieldtype="Select",
+                options="Insert New Records\nUpdate Existing Records\nUpsert",
+                default="Upsert",
+            ),
+            DocField(
+                fieldname="status",
+                label="Статус",
+                fieldtype="Select",
+                options="Pending\nIn Progress\nCompleted\nFailed",
+                default="Pending",
+                in_list_view=True,
+            ),
+            DocField(
+                fieldname="total_rows",
+                label="Всього рядків",
+                fieldtype="Int",
+                read_only=True,
+            ),
+            DocField(
+                fieldname="processed_rows",
+                label="Оброблено",
+                fieldtype="Int",
+                read_only=True,
+            ),
+            DocField(
+                fieldname="error_log",
+                label="Журнал помилок",
+                fieldtype="LongText",
+                read_only=True,
+            ),
+        ],
+    ),
+    "Comment": DocType(
+        name="Comment",
+        label="Коментар",
+        module="core",
+        fields=[
+            DocField(fieldname="reference_doctype", label="Тип документа", fieldtype="Link", options="DocType", required=True),
+            DocField(fieldname="reference_id", label="ID документа", fieldtype="Text", required=True),
+            DocField(fieldname="content", label="Вміст", fieldtype="LongText", required=True),
+            DocField(fieldname="comment_type", label="Тип", fieldtype="Select", options="Comment\nInfo\nWarning\nError", default="Comment"),
+        ],
+    ),
+    "ToDo": DocType(
+        name="ToDo",
+        label="Завдання",
+        module="core",
+        fields=[
+            DocField(fieldname="description", label="Опис", fieldtype="Text", required=True, in_list_view=True),
+            DocField(fieldname="reference_doctype", label="Тип документа", fieldtype="Link", options="DocType"),
+            DocField(fieldname="reference_id", label="ID документа", fieldtype="Text"),
+            DocField(fieldname="assigned_to", label="Виконавець", fieldtype="Text", in_list_view=True), # Link: User later
+            DocField(fieldname="status", label="Статус", fieldtype="Select", options="Open\nClosed", default="Open", in_list_view=True),
+            DocField(fieldname="priority", label="Пріоритет", fieldtype="Select", options="Low\nMedium\nHigh\nUrgent", default="Medium", in_list_view=True),
+            DocField(fieldname="due_date", label="Термін", fieldtype="Date", in_list_view=True),
+        ],
+    ),
+    "SharedWith": DocType(
+        name="SharedWith",
+        label="Доступ",
+        module="core",
+        fields=[
+            DocField(fieldname="reference_doctype", label="Тип документа", fieldtype="Link", options="DocType", required=True),
+            DocField(fieldname="reference_id", label="ID документа", fieldtype="Text", required=True),
+            DocField(fieldname="user", label="Користувач", fieldtype="Text", required=True), # Link: User
+            DocField(fieldname="permission", label="Дозвіл", fieldtype="Select", options="Read\nWrite", default="Read"),
+        ],
+    ),
+    "ActivityLog": DocType(
+        name="ActivityLog",
+        label="Журнал активності",
+        module="core",
+        track_changes=False,
+        fields=[
+            DocField(fieldname="reference_doctype", label="Тип документа", fieldtype="Link", options="DocType", required=True, in_list_view=True),
+            DocField(fieldname="reference_id", label="ID документа", fieldtype="Text", required=True, in_list_view=True),
+            DocField(fieldname="user", label="Користувач", fieldtype="Text", required=True, in_list_view=True),
+            DocField(fieldname="action", label="Дія", fieldtype="Select", options="Create\nUpdate\nDelete\nSubmit\nCancel\nShare\nComment", required=True, in_list_view=True),
+            DocField(fieldname="details", label="Деталі", fieldtype="LongText"),
+        ],
+    ),
 }
 
 

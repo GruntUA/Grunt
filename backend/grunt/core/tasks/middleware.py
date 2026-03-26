@@ -7,7 +7,7 @@ from typing import Any
 import structlog
 from taskiq import TaskiqMiddleware, TaskiqMessage, TaskiqResult
 
-from grunt.core.db.session import AsyncSessionLocal, engine
+from grunt.core.site.manager import site_manager
 from grunt.core.document.service import DocumentService
 from grunt.core.auth.models import GruntUser
 
@@ -30,8 +30,11 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
     async def pre_execute(self, message: TaskiqMessage) -> TaskiqMessage:
         """Called before task execution in the worker."""
         try:
-            async with AsyncSessionLocal() as session:
-                service = DocumentService(session, engine)
+            site = site_manager.get_active_site()
+            maker = site_manager.get_session_maker(site)
+            eng = site_manager.get_engine(site)
+            async with maker() as session:
+                service = DocumentService(session, eng)
                 
                 # Create a log entry with "Started" status
                 log_data = {
@@ -64,8 +67,11 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             return
 
         try:
-            async with AsyncSessionLocal() as session:
-                service = DocumentService(session, engine)
+            site = site_manager.get_active_site()
+            maker = site_manager.get_session_maker(site)
+            eng = site_manager.get_engine(site)
+            async with maker() as session:
+                service = DocumentService(session, eng)
                 
                 update_data = {
                     "status": "Error" if result.is_err else "Success",
@@ -100,8 +106,11 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             return
 
         try:
-            async with AsyncSessionLocal() as session:
-                service = DocumentService(session, engine)
+            site = site_manager.get_active_site()
+            maker = site_manager.get_session_maker(site)
+            eng = site_manager.get_engine(site)
+            async with maker() as session:
+                service = DocumentService(session, eng)
                 await service.update_document(
                     "BackgroundTaskLog",
                     log_id,
