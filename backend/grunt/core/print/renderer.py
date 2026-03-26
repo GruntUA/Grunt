@@ -20,7 +20,7 @@ _TEMPLATE_DIRS: list[Path] = []
 def _get_template_dirs() -> list[str]:
     """Collect all template directories from installed apps."""
     dirs: list[str] = []
-    apps_dir = Path("grunt-apps")
+    apps_dir = Path("grunt_apps")
     if apps_dir.exists():
         for tpl_dir in apps_dir.glob("*/*/templates"):
             dirs.append(str(tpl_dir))

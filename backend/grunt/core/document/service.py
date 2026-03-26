@@ -22,6 +22,7 @@ from grunt.core.metadata.doctype import DocType
 from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.hooks import fire
+from grunt.core.document.registry import document_registry
 from grunt.core.metadata.system_doctypes import is_system_doctype
 
 logger = structlog.get_logger()
@@ -115,7 +116,7 @@ class DocumentService:
         data: dict[str, Any],
         user: GruntUser,
     ) -> dict[str, Any]:
-        if is_system_doctype(doctype_name):
+        if is_system_doctype(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"'{doctype_name}' керується системою. Використовуйте відповідний API.",
@@ -155,12 +156,22 @@ class DocumentService:
             elif field.fieldtype == "Check":
                 row[field.fieldname] = False  # Check fields default to False, never NULL
 
+        # Custom Controller Hooks
+        controller_cls = document_registry.get(doctype_name)
+        doc = controller_cls(doctype_name, row, user, self.session)
+        await doc.validate()
+        await doc.before_insert()
+        await doc.before_save()
+
         await fire("before_save", doctype=doctype_name, doc=row, user=user, session=self.session)
 
         await self.session.execute(table.insert().values(**row))
         await self.session.flush()
 
         logger.info("document.created", doctype=doctype_name, id=doc_id)
+
+        await doc.after_insert()
+        await doc.after_save()
 
         await fire("after_save", doctype=doctype_name, doc=row, user=user, session=self.session)
 
@@ -208,7 +219,7 @@ class DocumentService:
         data: dict[str, Any],
         user: GruntUser,
     ) -> dict[str, Any]:
-        if is_system_doctype(doctype_name):
+        if is_system_doctype(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"'{doctype_name}' керується системою. Використовуйте відповідний API.",
@@ -240,6 +251,13 @@ class DocumentService:
 
         real_id = existing["id"]
         merged = {**existing, **update_data}
+
+        # Custom Controller Hooks
+        controller_cls = document_registry.get(doctype_name)
+        doc = controller_cls(doctype_name, merged, user, self.session)
+        await doc.validate()
+        await doc.before_save()
+
         await fire("before_save", doctype=doctype_name, doc=merged, user=user, session=self.session)
 
         await self.session.execute(
@@ -250,6 +268,11 @@ class DocumentService:
         logger.info("document.updated", doctype=doctype_name, id=real_id)
 
         result = await self.get_document(doctype_name, real_id, user)
+        
+        # Custom Controller Hooks
+        doc.data = result # refresh with actual data after save
+        await doc.after_save()
+
         await fire("after_save", doctype=doctype_name, doc=result, user=user, session=self.session)
         return result
 
@@ -261,7 +284,7 @@ class DocumentService:
         doc_id: str,
         user: GruntUser,
     ) -> None:
-        if is_system_doctype(doctype_name):
+        if is_system_doctype(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"'{doctype_name}' керується системою. Використовуйте відповідний API.",
@@ -278,11 +301,19 @@ class DocumentService:
             )
 
         real_id = existing["id"]
+
+        # Custom Controller Hooks
+        controller_cls = document_registry.get(doctype_name)
+        doc = controller_cls(doctype_name, existing, user, self.session)
+        await doc.before_delete()
+
         await fire("before_delete", doctype=doctype_name, doc=existing, user=user, session=self.session)
 
         await self.session.execute(table.delete().where(table.c.id == real_id))
         await self.session.flush()
         logger.info("document.deleted", doctype=doctype_name, id=real_id)
+
+        await doc.after_delete()
 
         await fire("after_delete", doctype=doctype_name, doc_id=real_id, user=user, session=self.session)
 

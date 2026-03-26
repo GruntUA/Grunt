@@ -110,14 +110,18 @@ GRUNT_WORKSPACE: dict[str, Any] = {
     "roles": "",  # superadmin only enforced by workspace access logic
     "items": [
         {
-            "section": "Конструктор",
-            "type": "DocType",
-            "label": "Типи документів",
-            "icon": "📋",
-            "link_to": "DocType",
-            "show_count": True,
             "show_new_btn": False,
             "sequence": 1,
+        },
+        {
+            "section": "Моніторинг",
+            "type": "DocType",
+            "label": "Фонові завдання",
+            "icon": "⏳",
+            "link_to": "BackgroundTaskLog",
+            "show_count": True,
+            "show_new_btn": False,
+            "sequence": 2,
         },
     ],
 }

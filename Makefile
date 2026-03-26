@@ -17,6 +17,7 @@ help:
 	@echo "    make dev           — backend + frontend паралельно"
 	@echo "    make backend       — тільки FastAPI (порт 8000)"
 	@echo "    make frontend      — тільки Vite (порт 5173)"
+	@echo "    make worker        — запуск воркера TaskIQ"
 	@echo ""
 	@echo "  База даних:"
 	@echo "    make db-init       — ініціалізувати БД"
@@ -56,6 +57,9 @@ backend:
 
 frontend:
 	cd frontend && npm run dev
+
+worker:
+	uv run backend/grunt/cli/main.py worker
 
 # ─── База даних ───────────────────────────────────────────────────────────────
 db-init:

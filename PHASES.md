@@ -327,7 +327,7 @@ backend/grunt/core/permissions/
 grunt create-app {name}
 
 Структура app:
-grunt-apps/
+grunt_apps/
 └── {name}/
     ├── grunt_app.py        ← app metadata + hooks
     ├── modules/

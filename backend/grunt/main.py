@@ -13,6 +13,11 @@ from grunt.api.v1.router import v1_router
 from grunt.core.db.base import Base
 from grunt.core.db.session import AsyncSessionLocal, engine
 from grunt.core.metadata.registry import doctype_registry
+from grunt.core.document.registry import document_registry
+from grunt.core.hooks import register_doc_events
+from grunt.core.tasks.broker import broker
+from grunt.core.tasks.registry import discover_tasks
+from grunt.core.tasks.scheduler import register_scheduler_events, start_scheduler, stop_scheduler
 
 # Ensure all ORM models are imported so Base.metadata is complete
 import grunt.core.db.system_tables  # noqa: F401
@@ -56,11 +61,11 @@ async def lifespan(app: FastAPI):
     import importlib  # noqa: PLC0415
     from pathlib import Path  # noqa: PLC0415
 
-    apps_dir = Path("grunt-apps")
+    apps_dir = Path("grunt_apps")
     if apps_dir.exists():
         import sys  # noqa: PLC0415
 
-        # Add project root to sys.path so grunt-apps is importable
+        # Add project root to sys.path so grunt_apps is importable
         project_root = str(Path.cwd())
         if project_root not in sys.path:
             sys.path.insert(0, project_root)
@@ -68,14 +73,43 @@ async def lifespan(app: FastAPI):
         for app_hooks in apps_dir.glob("*/*/hooks.py"):
             module_path = str(app_hooks).replace("/", ".").replace("\\", ".").removesuffix(".py")
             try:
-                importlib.import_module(module_path)
+                module = importlib.import_module(module_path)
                 logger.info("hooks.loaded", module=module_path)
+                
+                # Register DocType-specific hooks if doc_events is defined
+                if hasattr(module, "doc_events"):
+                    register_doc_events(getattr(module, "doc_events"))
+                    logger.info("hooks.doc_events_registered", module=module_path)
+
+                # Register DocType overrides if override_doctype_class is defined
+                if hasattr(module, "override_doctype_class"):
+                    document_registry.register_overrides(getattr(module, "override_doctype_class"))
+                    logger.info("hooks.overrides_registered", module=module_path)
+
+                # Register Scheduler events if scheduler_events is defined
+                if hasattr(module, "scheduler_events"):
+                    register_scheduler_events(getattr(module, "scheduler_events"))
+                    logger.info("hooks.scheduler_events_registered", module=module_path)
             except Exception as e:
                 logger.warning("hooks.load_error", module=module_path, error=str(e))
 
-    yield
+        # Discover custom DocType controllers
+        document_registry.discover_controllers(apps_dir)
+        
+        # Discover background tasks
+        discover_tasks(apps_dir)
 
+    # Initialize TaskIQ broker
+    await broker.startup()
+    
+    # Start Scheduler
+    await start_scheduler()
+
+    yield
+    
     # ── Shutdown ─────────────────────────────────────────────────────
+    await stop_scheduler()
+    await broker.shutdown()
     await engine.dispose()
     logger.info("grunt.shutdown")
 
