@@ -189,3 +189,306 @@ class GruntWorkspaceLink(Base):
     sequence: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     workspace: Mapped[GruntWorkspace] = relationship(back_populates="items")
+
+
+# ── Print Formats ─────────────────────────────────────────────────────────────
+
+
+class GruntPrintFormat(Base):
+    """Custom print format templates for document generation."""
+
+    __tablename__ = "grunt_print_format"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    doctype: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    template_type: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="html"
+    )  # html, docx
+    template: Mapped[str] = mapped_column(Text, nullable=False)  # Jinja2 HTML or DOCX path
+    is_default: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+# ── Translations ──────────────────────────────────────────────────────────────
+
+
+class GruntTranslation(Base):
+    """User/app-supplied translations for i18n."""
+
+    __tablename__ = "grunt_translation"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    source: Mapped[str] = mapped_column(String(1000), nullable=False, index=True)
+    language: Mapped[str] = mapped_column(String(10), nullable=False, index=True)
+    translated: Mapped[str] = mapped_column(String(1000), nullable=False)
+    context: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+# ── Naming Series ─────────────────────────────────────────────────────────────
+
+
+class GruntNamingSeries(Base):
+    """Counter storage for pattern-based autoname (e.g. INV-.YYYY.-.####)."""
+
+    __tablename__ = "grunt_naming_series"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    prefix: Mapped[str] = mapped_column(String(500), unique=True, index=True, nullable=False)
+    current: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+# ── Document Versioning ───────────────────────────────────────────────────────
+
+
+class GruntDocVersion(Base):
+    """Stores JSON diff of every document change for version history."""
+
+    __tablename__ = "grunt_doc_version"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    doctype: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    doc_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    changes: Mapped[dict] = mapped_column(JSON, nullable=False)
+    user: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+# ── Notifications ─────────────────────────────────────────────────────────────
+
+
+class GruntNotificationRule(Base):
+    """Defines when notifications should be sent."""
+
+    __tablename__ = "grunt_notification_rule"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    doctype: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    event: Mapped[str] = mapped_column(
+        String(50), nullable=False
+    )  # after_insert, after_save, on_transition, value_change
+    channel: Mapped[str] = mapped_column(
+        String(50), nullable=False, default="system"
+    )  # system, email, both
+    recipients: Mapped[str] = mapped_column(
+        String(1000), nullable=False, default=""
+    )  # comma-separated: "owner", "role:Manager", "user@example.com"
+    condition: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )  # Python expression: "doc.get('status') == 'Overdue'"
+    subject_template: Mapped[str] = mapped_column(
+        String(500), nullable=False, default="{doctype}: {name}"
+    )
+    message_template: Mapped[str] = mapped_column(
+        Text, nullable=False, default="{doctype} {name} was {event}"
+    )
+    is_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class GruntNotification(Base):
+    """Individual notification sent to a user."""
+
+    __tablename__ = "grunt_notification"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    user: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    doctype: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    doc_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    subject: Mapped[str] = mapped_column(String(500), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+# ── Scripting ────────────────────────────────────────────────────────────────
+
+
+class GruntServerScript(Base):
+    """Server-side Python scripts executed on document events or as API endpoints."""
+
+    __tablename__ = "grunt_server_script"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    script_type: Mapped[str] = mapped_column(
+        String(50), nullable=False
+    )  # DocType Event, API, Scheduler Event
+    doctype: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    event: Mapped[str | None] = mapped_column(
+        String(50), nullable=True
+    )  # before_insert, after_save, etc.
+    api_method: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, unique=True
+    )  # for API type: /api/method/{api_method}
+    cron: Mapped[str | None] = mapped_column(
+        String(100), nullable=True
+    )  # for Scheduler type: "0 */6 * * *"
+    script: Mapped[str] = mapped_column(Text, nullable=False)
+    is_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    allow_guest: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    modified_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class GruntClientScript(Base):
+    """Client-side JavaScript injected into the frontend for specific DocTypes."""
+
+    __tablename__ = "grunt_client_script"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    doctype: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    script: Mapped[str] = mapped_column(Text, nullable=False)
+    is_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    modified_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+# ── Web Forms ────────────────────────────────────────────────────────────────
+
+
+class GruntWebForm(Base):
+    """Public web form for anonymous or authenticated submissions."""
+
+    __tablename__ = "grunt_web_form"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    route: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    doctype: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    fields: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    introduction: Mapped[str | None] = mapped_column(Text, nullable=True)
+    success_message: Mapped[str] = mapped_column(
+        String(1000), nullable=False, default="Дякуємо! Вашу заявку прийнято."
+    )
+    success_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    allow_edit: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    login_required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_published: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    max_submissions: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    submit_label: Mapped[str] = mapped_column(
+        String(100), nullable=False, default="Надіслати"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    modified_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+# ── Document Links ───────────────────────────────────────────────────────────
+
+
+class GruntDocLink(Base):
+    """Automatic backlink between documents created from Link fields."""
+
+    __tablename__ = "grunt_doc_link"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    # Source document (the one containing the Link field)
+    source_doctype: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    source_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    # Target document (the one being linked to)
+    target_doctype: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    target_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    link_fieldname: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+# ── Dashboard ────────────────────────────────────────────────────────────────
+
+
+class GruntDashboardChart(Base):
+    """Dashboard chart configuration."""
+
+    __tablename__ = "grunt_dashboard_chart"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    chart_type: Mapped[str] = mapped_column(
+        String(50), nullable=False, default="bar"
+    )  # bar, line, pie, donut
+    doctype: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    value_field: Mapped[str] = mapped_column(String(255), nullable=False)
+    group_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    timespan: Mapped[str] = mapped_column(
+        String(50), nullable=False, default="last_year"
+    )  # last_week, last_month, last_quarter, last_year, all_time
+    filters: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    color: Mapped[str] = mapped_column(String(20), nullable=False, default="#2D6A4F")
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class GruntNumberCard(Base):
+    """Dashboard number card configuration."""
+
+    __tablename__ = "grunt_number_card"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    doctype: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    aggregation: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="count"
+    )  # count, sum, avg, min, max
+    value_field: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    filters: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    label: Mapped[str] = mapped_column(String(255), nullable=False)
+    color: Mapped[str] = mapped_column(String(20), nullable=False, default="#2D6A4F")
+    icon: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )

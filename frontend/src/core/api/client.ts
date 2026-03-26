@@ -15,11 +15,13 @@ client.interceptors.request.use((config) => {
   return config
 })
 
-// Response interceptor: 401 → redirect /login
+// Response interceptor: 401 → redirect /login (skip auth endpoints)
 client.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
+    const url = error.config?.url || ''
+    const isAuthEndpoint = url.includes('/auth/token') || url.includes('/auth/register')
+    if (error.response?.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('grunt_token')
       window.location.href = '/login'
     }

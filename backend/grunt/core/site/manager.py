@@ -28,11 +28,25 @@ class SiteManager:
     """
 
     def __init__(self) -> None:
-        # cwd during run is usually my-bench/apps/grunt
-        # To be safe, navigate up 2 levels
-        self.bench_dir = Path.cwd().parent.parent.resolve()
+        # Знаходимо bench_dir: шукаємо вгору директорію з apps/ та sites/
+        cwd = Path.cwd()
+        bench_dir = None
+        check = cwd
+        for _ in range(5):
+            if (check / "apps").is_dir() and (check / "sites").is_dir():
+                bench_dir = check
+                break
+            if check == check.parent:
+                break
+            check = check.parent
+
+        if bench_dir is None:
+            # Fallback: cwd.parent.parent (legacy)
+            bench_dir = cwd.parent.parent.resolve()
+
+        self.bench_dir = bench_dir.resolve()
         self.sites_dir = self.bench_dir / "sites"
-        
+
         # Caches
         self.engines: Dict[str, AsyncEngine] = {}
         self.session_makers: Dict[str, async_sessionmaker[AsyncSession]] = {}
@@ -61,11 +75,19 @@ class SiteManager:
     def get_database_url(self, site_name: str) -> str:
         """Get the database URL for the site."""
         env_vars = self.get_site_env(site_name)
-        if "DATABASE_URL" in env_vars and env_vars["DATABASE_URL"]:
-            return env_vars["DATABASE_URL"]
-        
+        db_url = env_vars.get("DATABASE_URL", "")
+
+        if db_url:
+            # Resolve relative SQLite paths relative to the site directory
+            if "sqlite" in db_url and "///." in db_url:
+                # e.g. "sqlite+aiosqlite:///./grunt.db" → dialect + "./grunt.db"
+                dialect, _, rel_path = db_url.partition("///")
+                abs_path = (self.sites_dir / site_name / rel_path).resolve()
+                return f"{dialect}///{abs_path}"
+            return db_url
+
         # Fallback to local sqlite db in the site folder
-        site_db_path = self.sites_dir / site_name / "grunt.db"
+        site_db_path = (self.sites_dir / site_name / "grunt.db").resolve()
         return f"sqlite+aiosqlite:///{site_db_path}"
 
 

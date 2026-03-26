@@ -1,0 +1,174 @@
+# Ukrainian translations for Grunt Framework
+# Copyright (C) 2026 Grunt Contributors
+# This file is distributed under the same license as the Grunt package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Grunt 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-26 00:00+0000\n"
+"PO-Revision-Date: 2026-03-26 00:00+0000\n"
+"Last-Translator: Grunt Team\n"
+"Language-Team: Ukrainian\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+
+#. ── Auth ──────────────────────────────────────────────────────
+msgid "Invalid credentials"
+msgstr "Невірні облікові дані"
+
+msgid "Token expired"
+msgstr "Токен прострочений"
+
+msgid "Forbidden"
+msgstr "Доступ заборонено"
+
+msgid "Insufficient permissions"
+msgstr "Недостатньо прав"
+
+msgid "User not found"
+msgstr "Користувача не знайдено"
+
+#. ── Documents ─────────────────────────────────────────────────
+msgid "Document not found"
+msgstr "Документ не знайдено"
+
+msgid "Document created"
+msgstr "Документ створено"
+
+msgid "Document updated"
+msgstr "Документ оновлено"
+
+msgid "Document deleted"
+msgstr "Документ видалено"
+
+msgid "Cancel document before deleting"
+msgstr "Спочатку скасуйте документ перед видаленням"
+
+#. ── Validation ────────────────────────────────────────────────
+msgid "Field '%(field)s' is required"
+msgstr "Поле '%(field)s' є обов'язковим"
+
+msgid "Validation error"
+msgstr "Помилка валідації"
+
+msgid "Internal server error"
+msgstr "Внутрішня помилка сервера"
+
+#. ── Workflow ──────────────────────────────────────────────────
+msgid "Transition not available"
+msgstr "Перехід недоступний"
+
+msgid "Workflow state changed"
+msgstr "Стан документа змінено"
+
+#. ── Notifications ────────────────────────────────────────────
+msgid "Notification sent"
+msgstr "Нотифікацію відправлено"
+
+msgid "All notifications marked as read"
+msgstr "Всі нотифікації прочитані"
+
+#. ── Plurals ──────────────────────────────────────────────────
+msgid "%(count)d document"
+msgid_plural "%(count)d documents"
+msgstr[0] "%(count)d документ"
+msgstr[1] "%(count)d документи"
+msgstr[2] "%(count)d документів"
+
+msgid "%(count)d record"
+msgid_plural "%(count)d records"
+msgstr[0] "%(count)d запис"
+msgstr[1] "%(count)d записи"
+msgstr[2] "%(count)d записів"
+
+#. ── UI Common (shared with frontend) ────────────────────────
+msgctxt "button"
+msgid "Save"
+msgstr "Зберегти"
+
+msgctxt "button"
+msgid "Cancel"
+msgstr "Скасувати"
+
+msgctxt "button"
+msgid "Delete"
+msgstr "Видалити"
+
+msgctxt "button"
+msgid "Edit"
+msgstr "Редагувати"
+
+msgctxt "button"
+msgid "Create"
+msgstr "Створити"
+
+msgctxt "button"
+msgid "Submit"
+msgstr "Відправити"
+
+msgctxt "button"
+msgid "Print"
+msgstr "Друк"
+
+msgctxt "button"
+msgid "Export"
+msgstr "Експорт"
+
+msgctxt "button"
+msgid "Import"
+msgstr "Імпорт"
+
+msgctxt "label"
+msgid "Search"
+msgstr "Пошук"
+
+msgctxt "label"
+msgid "Filter"
+msgstr "Фільтр"
+
+msgctxt "label"
+msgid "Actions"
+msgstr "Дії"
+
+msgctxt "label"
+msgid "Settings"
+msgstr "Налаштування"
+
+msgctxt "label"
+msgid "Status"
+msgstr "Статус"
+
+msgctxt "label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "label"
+msgid "Owner"
+msgstr "Власник"
+
+msgctxt "label"
+msgid "Created at"
+msgstr "Дата створення"
+
+msgctxt "label"
+msgid "Modified at"
+msgstr "Дата зміни"
+
+msgid "Loading..."
+msgstr "Завантаження..."
+
+msgid "No data"
+msgstr "Немає даних"
+
+msgid "No results found"
+msgstr "Нічого не знайдено"
+
+msgid "Yes"
+msgstr "Так"
+
+msgid "No"
+msgstr "Ні"

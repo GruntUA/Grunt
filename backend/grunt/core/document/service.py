@@ -53,6 +53,11 @@ class DocumentService:
         fields: list[str] | None = None,
     ) -> dict[str, Any]:
         dt = await doctype_registry.get(doctype_name)
+
+        # Virtual DocType — delegate to controller
+        if dt.is_virtual:
+            return await self._virtual_list(dt, doctype_name, user, page, per_page, sort_by, sort_order, filters, search)
+
         table = compile_doctype_to_table(dt)
 
         # Select columns
@@ -116,6 +121,10 @@ class DocumentService:
         data: dict[str, Any],
         user: GruntUser,
     ) -> dict[str, Any]:
+        dt = await doctype_registry.get(doctype_name)
+        if dt.is_virtual:
+            return await self._virtual_create(dt, doctype_name, user, data)
+
         if is_system_doctype(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -135,9 +144,14 @@ class DocumentService:
         now = datetime.now(timezone.utc)
         doc_id = str(uuid.uuid4())
 
+        # Generate document name via NamingService
+        from grunt.core.naming import naming_service  # noqa: PLC0415
+
+        generated_name = await naming_service.generate(dt.autoname or "", data, self.session)
+
         row = {
             "id": doc_id,
-            "name": self._apply_autoname(dt, data) or doc_id[:8],
+            "name": generated_name or doc_id[:8],
             "owner": user.email,
             "created_at": now,
             "modified_at": now,
@@ -192,6 +206,9 @@ class DocumentService:
         user: GruntUser,
     ) -> dict[str, Any]:
         dt = await doctype_registry.get(doctype_name)
+        if dt.is_virtual:
+            return await self._virtual_get(dt, doctype_name, user, doc_id)
+
         table = compile_doctype_to_table(dt)
 
         query = select(table).where(
@@ -220,6 +237,10 @@ class DocumentService:
         data: dict[str, Any],
         user: GruntUser,
     ) -> dict[str, Any]:
+        dt_check = await doctype_registry.get(doctype_name)
+        if dt_check.is_virtual:
+            return await self._virtual_update(dt_check, doctype_name, user, doc_id, data)
+
         if is_system_doctype(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -269,6 +290,22 @@ class DocumentService:
         logger.info("document.updated", doctype=doctype_name, id=real_id)
 
         result = await self.get_document(doctype_name, real_id, user)
+
+        # Create version record if track_changes is enabled
+        if dt.track_changes:
+            from grunt.core.document.versioning import version_service  # noqa: PLC0415
+
+            try:
+                await version_service.create_version(
+                    session=self.session,
+                    doctype=doctype_name,
+                    doc_id=real_id,
+                    old_doc=existing,
+                    new_doc=result,
+                    user=user.email,
+                )
+            except Exception:  # noqa: BLE001
+                logger.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
         
         # Custom Controller Hooks
         doc.data = result # refresh with actual data after save
@@ -286,6 +323,10 @@ class DocumentService:
         doc_id: str,
         user: GruntUser,
     ) -> None:
+        dt_check = await doctype_registry.get(doctype_name)
+        if dt_check.is_virtual:
+            return await self._virtual_delete(dt_check, doctype_name, user, doc_id)
+
         if is_system_doctype(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -416,13 +457,40 @@ class DocumentService:
 
         return query.where(or_(*conditions))
 
-    # ── Autoname ──────────────────────────────────────────────────────────
+    # ── Virtual DocType delegation ──────────────────────────────────────
 
-    def _apply_autoname(self, doctype: DocType, data: dict[str, Any]) -> str | None:
-        if not doctype.autoname:
-            return None
-        if doctype.autoname.startswith("field:"):
-            field_name = doctype.autoname[6:]
-            return str(data.get(field_name, ""))
-        # For pattern-based autonaming (e.g. "CONTR-.YYYY.-.####") — simplified
-        return None
+    def _get_virtual_controller(self, doctype_name: str, user: GruntUser):
+        """Get the VirtualDocType controller instance for a virtual DocType."""
+        from grunt.core.metadata.virtual import VirtualDocType  # noqa: PLC0415
+
+        controller_cls = document_registry.get(doctype_name)
+        # Check if it's a VirtualDocType subclass
+        if issubclass(controller_cls, VirtualDocType):
+            return controller_cls(doctype_name, user)
+        # Fallback — create a base VirtualDocType (will raise NotImplementedError)
+        return VirtualDocType(doctype_name, user)
+
+    async def _virtual_list(self, dt, doctype_name, user, page, per_page, sort_by, sort_order, filters, search):
+        ctrl = self._get_virtual_controller(doctype_name, user)
+        return await ctrl.get_list(
+            filters=filters, page=page, per_page=per_page,
+            sort_by=sort_by, sort_order=sort_order, search=search,
+        )
+
+    async def _virtual_get(self, dt, doctype_name, user, doc_id):
+        ctrl = self._get_virtual_controller(doctype_name, user)
+        return await ctrl.get(doc_id)
+
+    async def _virtual_create(self, dt, doctype_name, user, data):
+        ctrl = self._get_virtual_controller(doctype_name, user)
+        return await ctrl.create(data)
+
+    async def _virtual_update(self, dt, doctype_name, user, doc_id, data):
+        ctrl = self._get_virtual_controller(doctype_name, user)
+        return await ctrl.update(doc_id, data)
+
+    async def _virtual_delete(self, dt, doctype_name, user, doc_id):
+        ctrl = self._get_virtual_controller(doctype_name, user)
+        return await ctrl.delete(doc_id)
+
+    # ── Autoname (delegated to NamingService) ────────────────────────────

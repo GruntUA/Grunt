@@ -12,6 +12,11 @@ from grunt.api.v1.pages import router as pages_router
 from grunt.api.v1.workspace import router as workspace_router
 from grunt.api.v1.search import router as search_router
 from grunt.api.v1.files import router as files_router
+from grunt.api.v1.notifications import router as notifications_router
+from grunt.api.v1.translations import router as translations_router
+from grunt.api.v1.scripting import router as scripting_router
+from grunt.api.v1.webform import router as webform_router
+from grunt.api.v1.dashboard import router as dashboard_router
 
 v1_router = APIRouter()
 
@@ -25,3 +30,8 @@ v1_router.include_router(pages_router, prefix="/pages", tags=["pages"])
 v1_router.include_router(workspace_router, prefix="/workspaces", tags=["workspaces"])
 v1_router.include_router(search_router, tags=["search"])
 v1_router.include_router(files_router, prefix="/files", tags=["files"])
+v1_router.include_router(notifications_router, tags=["notifications"])
+v1_router.include_router(translations_router, tags=["i18n"])
+v1_router.include_router(scripting_router, tags=["scripting"])
+v1_router.include_router(webform_router, tags=["webform"])
+v1_router.include_router(dashboard_router, tags=["dashboard"])

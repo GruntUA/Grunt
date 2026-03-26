@@ -23,7 +23,7 @@ onMounted(async () => {
   if (wsStore.active) {
     const firstDocType = wsStore.active.items
       .sort((a, b) => a.sequence - b.sequence)
-      .find(item => item.type === 'DocType')
+      .find(item => item.type === 'DocType' && item.link_to)
 
     if (firstDocType) {
       router.replace(`/${props.workspaceName}/list/${firstDocType.link_to}`)

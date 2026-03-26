@@ -354,11 +354,18 @@ async def get_workflow_transitions(
 async def print_document(
     doctype: str,
     doc_id: str,
-    fmt: str = Query("xlsx"),  # xlsx | pdf | html
+    fmt: str = Query("html"),  # html | pdf | xlsx | docx
+    print_format: str | None = Query(None),
     user: GruntUser = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
+    session: AsyncSession = Depends(get_session),
 ) -> Response:
-    """Generate document in requested format: xlsx, pdf, or html."""
+    """Generate document in requested format: html, pdf, xlsx, or docx.
+
+    Args:
+        fmt: Output format (html, pdf, xlsx, docx).
+        print_format: Name of a custom PrintFormat. If omitted, uses default or standard.
+    """
     doc = await svc.get_document(doctype, doc_id, user)
     dt = await doctype_registry.get(doctype)
 
@@ -369,23 +376,55 @@ async def print_document(
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": f'attachment; filename="{doctype}_{doc_id[:8]}.xlsx"'},
         )
-    elif fmt in ("pdf", "html"):
-        # Try custom Jinja2 template first
-        html = None
-        if hasattr(dt, "print_formats") and dt.print_formats:
+
+    if fmt == "docx":
+        from grunt.core.print.renderer import get_print_format_template  # noqa: PLC0415
+
+        pf = await get_print_format_template(session, doctype, print_format)
+        if pf and pf[1] == "docx":
+            from grunt.core.print.renderer import render_docx  # noqa: PLC0415
             try:
-                from grunt.core.print.renderer import render_template  # noqa: PLC0415
-                tpl_name = dt.print_formats[0].get("template") if isinstance(dt.print_formats[0], dict) else dt.print_formats[0].template
-                html = render_template(tpl_name, doc)
+                docx_bytes = render_docx(pf[0], doc)
+                return Response(
+                    content=docx_bytes,
+                    media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    headers={"Content-Disposition": f'attachment; filename="{doctype}_{doc_id[:8]}.docx"'},
+                )
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"DOCX generation error: {e}")
+        raise HTTPException(
+            status_code=404,
+            detail="Шаблон DOCX не знайдено. Створіть PrintFormat з template_type='docx'.",
+        )
+
+    if fmt in ("pdf", "html"):
+        from grunt.core.print.renderer import (  # noqa: PLC0415
+            get_print_format_template,
+            render_from_string,
+            render_standard,
+        )
+
+        html = None
+
+        # 1. Try custom PrintFormat from DB
+        pf = await get_print_format_template(session, doctype, print_format)
+        if pf and pf[1] == "html":
+            try:
+                html = render_from_string(pf[0], doc, doctype_label=dt.label, fields=dt.fields)
             except Exception:
-                pass  # Fall back to generic template
+                pass  # Fall back to standard
+
+        # 2. Standard template (auto-generated from fields)
         if html is None:
-            html = _generate_html_single(dt, doc)
+            html = render_standard(dt.label, dt.fields, doc)
+
         if fmt == "html":
             return Response(content=html, media_type="text/html")
+
+        # PDF via WeasyPrint
         try:
-            from weasyprint import HTML  # noqa: PLC0415
-            pdf_bytes = HTML(string=html).write_pdf()
+            from weasyprint import HTML as WeasyprintHTML  # noqa: PLC0415
+            pdf_bytes = WeasyprintHTML(string=html).write_pdf()
             return Response(
                 content=pdf_bytes,
                 media_type="application/pdf",
@@ -396,11 +435,11 @@ async def print_document(
                 status_code=501,
                 detail="WeasyPrint не встановлено. Використайте fmt=xlsx або fmt=html",
             )
-    else:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Невідомий формат: {fmt}. Підтримуються: xlsx, pdf, html",
-        )
+
+    raise HTTPException(
+        status_code=400,
+        detail=f"Невідомий формат: {fmt}. Підтримуються: html, pdf, xlsx, docx",
+    )
 
 
 # ── Bulk export ───────────────────────────────────────────────────────────
@@ -460,6 +499,95 @@ async def export_documents_xlsx(
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{doctype}_export.xlsx"'},
     )
+
+
+# ── Version history ───────────────────────────────────────────────────────
+
+
+@router.get("/{doctype}/{doc_id}/versions")
+async def get_document_versions(
+    doctype: str,
+    doc_id: str,
+    user: GruntUser = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+    svc: DocumentService = Depends(get_doc_service),
+) -> dict[str, Any]:
+    """Return version history for a document."""
+    # Ensure document exists
+    await svc.get_document(doctype, doc_id, user)
+
+    from grunt.core.document.versioning import version_service  # noqa: PLC0415
+
+    versions = await version_service.get_versions(session, doctype, doc_id)
+    return {"success": True, "data": versions}
+
+
+@router.post("/{doctype}/{doc_id}/restore/{version_id}")
+async def restore_document_version(
+    doctype: str,
+    doc_id: str,
+    version_id: str,
+    user: GruntUser = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+    svc: DocumentService = Depends(get_doc_service),
+) -> dict[str, Any]:
+    """Restore a document to a previous version."""
+    from grunt.core.document.versioning import version_service  # noqa: PLC0415
+
+    # Get current doc
+    current_doc = await svc.get_document(doctype, doc_id, user)
+
+    # Get target version
+    target = await version_service.get_version(session, version_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Версію не знайдено")
+    if target["doctype"] != doctype or target["doc_id"] != doc_id:
+        raise HTTPException(status_code=400, detail="Версія не належить цьому документу")
+
+    # Get all versions for this doc
+    all_versions = await version_service.get_versions(session, doctype, doc_id)
+
+    # Build restore data
+    restore_data = version_service.build_restore_data(
+        current_doc, all_versions, target["version"]
+    )
+
+    # Apply as a regular update (will trigger hooks, create new version, etc.)
+    # Only include user-data fields, not system fields
+    dt = await doctype_registry.get(doctype)
+    from grunt.core.metadata.field import NON_PHYSICAL_FIELDS  # noqa: PLC0415
+
+    update_fields = {}
+    for field in dt.fields:
+        if field.fieldtype in NON_PHYSICAL_FIELDS:
+            continue
+        if field.fieldname in restore_data:
+            update_fields[field.fieldname] = restore_data[field.fieldname]
+
+    result = await svc.update_document(doctype, doc_id, update_fields, user)
+    await _audit_log(session, doctype, doc_id, "restore", user.email, {"to_version": target["version"]})
+
+    return {"success": True, "data": result, "restored_to_version": target["version"]}
+
+
+# ── Document links ───────────────────────────────────────────────────────
+
+
+@router.get("/{doctype}/{doc_id}/links")
+async def get_document_links(
+    doctype: str,
+    doc_id: str,
+    user: GruntUser = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+    svc: DocumentService = Depends(get_doc_service),
+) -> dict[str, Any]:
+    """Return all documents that link to this document (backlinks)."""
+    await svc.get_document(doctype, doc_id, user)
+
+    from grunt.core.document.links import link_service  # noqa: PLC0415
+
+    links = await link_service.get_backlinks(session, doctype, doc_id)
+    return {"success": True, "data": links}
 
 
 # ── Activity log ──────────────────────────────────────────────────────────

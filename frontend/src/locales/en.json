@@ -1,0 +1,112 @@
+{
+  "app": {
+    "name": "Grunt",
+    "tagline": "Business Application Platform"
+  },
+  "auth": {
+    "login": "Log In",
+    "logout": "Log Out",
+    "email": "Email",
+    "password": "Password",
+    "forgot_password": "Forgot password?",
+    "invalid_credentials": "Invalid credentials"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "print": "Print",
+    "actions": "Actions",
+    "settings": "Settings",
+    "loading": "Loading...",
+    "no_data": "No data",
+    "confirm_delete": "Are you sure you want to delete?",
+    "yes": "Yes",
+    "no": "No",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "submit": "Submit",
+    "required": "Required field"
+  },
+  "document": {
+    "new": "New {doctype}",
+    "created": "Document created",
+    "updated": "Document updated",
+    "deleted": "Document deleted",
+    "not_found": "Document not found",
+    "save_success": "Saved successfully",
+    "save_error": "Save error",
+    "unsaved_changes": "You have unsaved changes"
+  },
+  "list": {
+    "showing": "Showing {from}-{to} of {total}",
+    "per_page": "Per page",
+    "no_results": "No results found",
+    "bulk_delete": "Delete selected",
+    "selected": "{count} selected"
+  },
+  "workflow": {
+    "transition": "Transition",
+    "current_state": "Current state",
+    "no_transitions": "No available transitions"
+  },
+  "builder": {
+    "add_field": "Add field",
+    "field_properties": "Field properties",
+    "preview": "Preview",
+    "field_name": "Field name",
+    "field_label": "Label",
+    "field_type": "Field type",
+    "required_field": "Required",
+    "unique_field": "Unique",
+    "hidden_field": "Hidden",
+    "read_only": "Read only"
+  },
+  "notification": {
+    "title": "Notifications",
+    "no_notifications": "No notifications",
+    "mark_all_read": "Mark all as read",
+    "unread": "Unread"
+  },
+  "version": {
+    "history": "Version history",
+    "restore": "Restore",
+    "version_n": "Version {n}",
+    "restored": "Document restored to version {n}",
+    "changed_fields": "Changed fields",
+    "old_value": "Old value",
+    "new_value": "New value"
+  },
+  "field_types": {
+    "Text": "Text",
+    "LongText": "Long Text",
+    "Int": "Integer",
+    "Float": "Float",
+    "Check": "Checkbox",
+    "Date": "Date",
+    "Datetime": "Date & Time",
+    "Time": "Time",
+    "Link": "Link",
+    "Select": "Select",
+    "Attach": "Attachment",
+    "Image": "Image",
+    "RichText": "Rich Text",
+    "JSON": "JSON",
+    "Code": "Code",
+    "Color": "Color",
+    "Table": "Table",
+    "Section": "Section",
+    "Column": "Column",
+    "Tab": "Tab",
+    "Geolocation": "Geolocation",
+    "Signature": "Signature"
+  }
+}

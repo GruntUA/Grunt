@@ -47,17 +47,15 @@ async def override_get_engine():
 
 app.dependency_overrides[get_engine] = override_get_engine
 
-# Patch the engine used by meta.py
-import grunt.api.v1.meta as meta_module  # noqa: E402
+# Override engine for meta.py (uses get_engine dependency, already overridden above)
+from grunt.core.db.session import get_engine as _get_engine_dep  # noqa: E402, F811
 
-_original_meta_engine = meta_module.engine
+app.dependency_overrides[_get_engine_dep] = override_get_engine
 
 
 @pytest.fixture(autouse=True)
 async def setup_db():
     """Create tables before each test, drop after. Clear registry."""
-    meta_module.engine = test_engine
-
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     doctype_registry._doctypes.clear()
@@ -78,8 +76,6 @@ async def setup_db():
     for name in to_remove:
         if name in SA_METADATA.tables:
             SA_METADATA.remove(SA_METADATA.tables[name])
-
-    meta_module.engine = _original_meta_engine
 
 
 @pytest.fixture

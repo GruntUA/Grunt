@@ -1,0 +1,175 @@
+# Grunt Framework — Translation Template
+# Copyright (C) 2026 Grunt Contributors
+# This file is distributed under the same license as the Grunt package.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Grunt 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-26 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+
+#. ── Auth ──────────────────────────────────────────────────────
+msgid "Invalid credentials"
+msgstr ""
+
+msgid "Token expired"
+msgstr ""
+
+msgid "Forbidden"
+msgstr ""
+
+msgid "Insufficient permissions"
+msgstr ""
+
+msgid "User not found"
+msgstr ""
+
+#. ── Documents ─────────────────────────────────────────────────
+msgid "Document not found"
+msgstr ""
+
+msgid "Document created"
+msgstr ""
+
+msgid "Document updated"
+msgstr ""
+
+msgid "Document deleted"
+msgstr ""
+
+msgid "Cancel document before deleting"
+msgstr ""
+
+#. ── Validation ────────────────────────────────────────────────
+msgid "Field '%(field)s' is required"
+msgstr ""
+
+msgid "Validation error"
+msgstr ""
+
+msgid "Internal server error"
+msgstr ""
+
+#. ── Workflow ──────────────────────────────────────────────────
+msgid "Transition not available"
+msgstr ""
+
+msgid "Workflow state changed"
+msgstr ""
+
+#. ── Notifications ────────────────────────────────────────────
+msgid "Notification sent"
+msgstr ""
+
+msgid "All notifications marked as read"
+msgstr ""
+
+#. ── Plurals ──────────────────────────────────────────────────
+msgid "%(count)d document"
+msgid_plural "%(count)d documents"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+msgid "%(count)d record"
+msgid_plural "%(count)d records"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#. ── UI Common (shared with frontend) ────────────────────────
+msgctxt "button"
+msgid "Save"
+msgstr ""
+
+msgctxt "button"
+msgid "Cancel"
+msgstr ""
+
+msgctxt "button"
+msgid "Delete"
+msgstr ""
+
+msgctxt "button"
+msgid "Edit"
+msgstr ""
+
+msgctxt "button"
+msgid "Create"
+msgstr ""
+
+msgctxt "button"
+msgid "Submit"
+msgstr ""
+
+msgctxt "button"
+msgid "Print"
+msgstr ""
+
+msgctxt "button"
+msgid "Export"
+msgstr ""
+
+msgctxt "button"
+msgid "Import"
+msgstr ""
+
+msgctxt "label"
+msgid "Search"
+msgstr ""
+
+msgctxt "label"
+msgid "Filter"
+msgstr ""
+
+msgctxt "label"
+msgid "Actions"
+msgstr ""
+
+msgctxt "label"
+msgid "Settings"
+msgstr ""
+
+msgctxt "label"
+msgid "Status"
+msgstr ""
+
+msgctxt "label"
+msgid "Name"
+msgstr ""
+
+msgctxt "label"
+msgid "Owner"
+msgstr ""
+
+msgctxt "label"
+msgid "Created at"
+msgstr ""
+
+msgctxt "label"
+msgid "Modified at"
+msgstr ""
+
+msgid "Loading..."
+msgstr ""
+
+msgid "No data"
+msgstr ""
+
+msgid "No results found"
+msgstr ""
+
+msgid "Yes"
+msgstr ""
+
+msgid "No"
+msgstr ""

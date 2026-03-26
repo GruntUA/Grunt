@@ -106,6 +106,7 @@ class DocType(BaseModel):
     is_child: bool = False  # True → used inside a TABLE field
     is_submittable: bool = False  # adds Submit button
     is_singleton: bool = False  # only one document per DocType
+    is_virtual: bool = False  # True → no DB table, data from controller
     track_changes: bool = True  # audit log
 
     # Fields

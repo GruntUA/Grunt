@@ -76,13 +76,22 @@ def on_doc(doctype: str, event: str, priority: int = 10) -> Callable:
     return decorator
 
 
+_NOTIFICATION_EVENTS = frozenset({"after_insert", "after_save", "after_update", "on_transition"})
+
+_SERVER_SCRIPT_EVENTS = frozenset({
+    "before_insert", "after_insert", "before_save", "after_save",
+    "before_delete", "after_delete", "validate", "on_transition",
+})
+
+
 async def fire(event: str, **kwargs: Any) -> None:
     """Fire all registered hooks for an event.
 
     If `doctype` is present in kwargs, it also fires DocType-specific hooks.
+    Also evaluates notification rules for qualifying events.
     """
     kwargs["event"] = event
-    
+
     # 1. Fire global hooks
     for hook in HOOK_REGISTRY.get(event, []):
         await _call_hook(hook["handler"], event, **kwargs)
@@ -98,6 +107,61 @@ async def fire(event: str, **kwargs: Any) -> None:
         if doctype in DOC_EVENT_REGISTRY:
             for hook in DOC_EVENT_REGISTRY[doctype].get(event, []):
                 await _call_hook(hook["handler"], f"{doctype}:{event}", **kwargs)
+
+    # 3. Run Server Scripts (DocType Event type)
+    if event in _SERVER_SCRIPT_EVENTS and doctype and kwargs.get("session"):
+        try:
+            from grunt.core.scripting import server_script_runner  # noqa: PLC0415
+
+            await server_script_runner.run_doctype_event(
+                session=kwargs["session"],
+                doctype=doctype,
+                event=event,
+                doc=kwargs.get("doc", {}),
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("server_script.hook_error", event=event, doctype=doctype)
+
+    # 4. Sync document links (backlinks)
+    if event in ("after_save", "after_insert") and doctype and kwargs.get("doc") and kwargs.get("session"):
+        try:
+            from grunt.core.document.links import link_service  # noqa: PLC0415
+
+            doc = kwargs["doc"]
+            doc_id = doc.get("id", doc.get("name", ""))
+            await link_service.sync_links(kwargs["session"], doctype, str(doc_id), doc)
+        except Exception:  # noqa: BLE001
+            logger.exception("links.sync_error", event=event, doctype=doctype)
+
+    if event == "after_delete" and doctype and kwargs.get("doc") and kwargs.get("session"):
+        try:
+            from grunt.core.document.links import link_service  # noqa: PLC0415
+
+            doc = kwargs["doc"]
+            doc_id = doc.get("id", doc.get("name", ""))
+            await link_service.delete_links(kwargs["session"], doctype, str(doc_id))
+        except Exception:  # noqa: BLE001
+            logger.exception("links.delete_error", event=event, doctype=doctype)
+
+    # 5. Evaluate notification rules
+    if event in _NOTIFICATION_EVENTS and doctype and kwargs.get("doc") and kwargs.get("session"):
+        try:
+            from grunt.core.notification import notification_service  # noqa: PLC0415
+
+            user_email = ""
+            user_obj = kwargs.get("user")
+            if user_obj:
+                user_email = getattr(user_obj, "email", str(user_obj))
+
+            await notification_service.evaluate_rules(
+                session=kwargs["session"],
+                event=event,
+                doctype=doctype,
+                doc=kwargs["doc"],
+                user_email=user_email,
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("notification.evaluate_error", event=event, doctype=doctype)
 
 
 async def _call_hook(fn: Callable, event_name: str, **kwargs: Any) -> None:
