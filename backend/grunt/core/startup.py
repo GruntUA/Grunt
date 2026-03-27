@@ -361,14 +361,16 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
     """Auto-create workspaces for installed apps that don't have one yet.
 
     Reads ``grunt.site`` → ``installed_apps``, loads each app's metadata
-    (``grunt_app.py`` or ``app.json``), and creates a workspace with the
-    app's DocTypes as sidebar items.
+    (``grunt_app.py`` or ``app.json``), auto-registers DocTypes from the app's
+    ``doctypes/`` directories if not yet in the registry, and creates a workspace
+    with the app's DocTypes as sidebar items.
     """
     import json  # noqa: PLC0415
     from pathlib import Path  # noqa: PLC0415
 
     from grunt.core.site.manager import site_manager  # noqa: PLC0415
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
 
     site_file = site_manager.sites_dir / site_name / "grunt.site"
     if not site_file.exists():
@@ -390,89 +392,247 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
             logger.warning("startup.app_meta_not_found", app=app_name)
             continue
 
-        # Gather the app's DocTypes from registry (matching module)
-        all_doctypes = await doctype_registry.list_all()
+        # Auto-register DocTypes from app's module doctypes directories
         app_modules = set(app_meta.get("modules", []))
-        app_doctypes = [
-            dt for dt in all_doctypes
-            if dt.module in app_modules and not dt.is_child
-        ]
+        eng = site_manager.get_engine(site_name)
+        for module in app_modules:
+            doctypes_dir = app_dir / module / "doctypes"
+            if not doctypes_dir.exists():
+                continue
+            for dt_file in sorted(doctypes_dir.glob("*.json")):
+                try:
+                    dt_data = json.loads(dt_file.read_text(encoding="utf-8"))
+                    dt_name = dt_data.get("name", "")
+                    if dt_name and dt_name not in doctype_registry._doctypes:
+                        dt_obj = DocType.model_validate(dt_data)
+                        await doctype_registry.register(dt_obj, session, eng)
+                        await session.flush()
+                        logger.info("startup.app_doctype_registered", app=app_name, doctype=dt_name)
+                except Exception as e:  # noqa: BLE001
+                    logger.warning("startup.app_doctype_register_failed", app=app_name, file=dt_file.name, error=str(e))
 
-        # Check if workspace already exists
+        # Apply fixtures from all module fixture directories
+        workspace_from_fixture = False
+        for module in app_modules:
+            fixtures_dir = app_dir / module / "fixtures"
+            if not fixtures_dir.exists():
+                continue
+            for fx_file in sorted(fixtures_dir.glob("*.json")):
+                try:
+                    fx = json.loads(fx_file.read_text(encoding="utf-8"))
+                    fx_doctype = fx.get("doctype", "")
+                    records = fx.get("records", [])
+
+                    if fx_doctype == "GruntWorkspace":
+                        workspace_from_fixture = await _apply_workspace_fixture(
+                            records, app_name, app_meta, session
+                        )
+                    else:
+                        await _apply_doctype_fixture(fx_doctype, records, session, eng)
+
+                    logger.info("startup.fixture_applied", app=app_name, file=fx_file.name)
+                except Exception as e:  # noqa: BLE001
+                    logger.warning("startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e))
+
+        # Auto-seed workspace from registry if no fixture provided one
+        if not workspace_from_fixture:
+            all_doctypes = await doctype_registry.list_all()
+            app_doctypes = [
+                dt for dt in all_doctypes
+                if dt.module in app_modules and not dt.is_child
+            ]
+            await _auto_seed_workspace(app_name, app_meta, app_doctypes, session)
+
+        logger.info("startup.app_workspace_seeded", app=app_name)
+
+
+async def _apply_workspace_fixture(
+    records: list,
+    app_name: str,
+    app_meta: dict,
+    session: AsyncSession,
+) -> bool:
+    """Upsert GruntWorkspace + GruntWorkspaceLink rows from fixture data.
+
+    Returns True if at least one workspace record was processed.
+    """
+    from sqlalchemy import delete as sa_delete  # noqa: PLC0415
+
+    applied = False
+    for rec in records:
+        ws_name = rec.get("name", app_name)
         result = await session.execute(
-            select(GruntWorkspace).where(GruntWorkspace.name == app_name)
+            select(GruntWorkspace).where(GruntWorkspace.name == ws_name)
         )
         existing = result.scalar_one_or_none()
 
         if existing is not None:
             ws_id = existing.id
-            # Update metadata
-            existing.label = app_meta.get("title", app_name)
-            existing.icon = app_meta.get("icon", "📦")
-            existing.color = app_meta.get("color", "#2D6A4F")
-            existing.description = app_meta.get("description", "")
-            # Delete old links and re-seed
+            existing.label = rec.get("label", existing.label)
+            existing.icon = rec.get("icon", existing.icon)
+            existing.color = rec.get("color", existing.color)
+            existing.description = rec.get("description", existing.description)
+            existing.sequence = rec.get("sequence", existing.sequence)
+            existing.roles = rec.get("roles", existing.roles)
+            existing.is_hidden = rec.get("is_hidden", existing.is_hidden)
             await session.execute(
                 sa_delete(GruntWorkspaceLink).where(
                     GruntWorkspaceLink.workspace_id == ws_id
                 )
             )
-            await session.flush()
         else:
             ws_id = str(uuid.uuid4())
-            ws = GruntWorkspace(
+            session.add(GruntWorkspace(
                 id=ws_id,
-                name=app_name,
-                label=app_meta.get("title", app_name),
-                app=app_name,
-                icon=app_meta.get("icon", "📦"),
-                color=app_meta.get("color", "#2D6A4F"),
-                description=app_meta.get("description", ""),
-                sequence=app_meta.get("sequence", 10),
-                is_hidden=False,
-                roles="",
-            )
-            session.add(ws)
-            await session.flush()
+                name=ws_name,
+                label=rec.get("label", ws_name),
+                app=rec.get("app", app_name),
+                icon=rec.get("icon", app_meta.get("icon", "📦")),
+                color=rec.get("color", app_meta.get("color", "#2D6A4F")),
+                description=rec.get("description", ""),
+                sequence=rec.get("sequence", 10),
+                is_hidden=rec.get("is_hidden", False),
+                roles=rec.get("roles", ""),
+            ))
 
-        # Add header separator
-        session.add(GruntWorkspaceLink(
-            id=str(uuid.uuid4()),
-            workspace_id=ws_id,
-            section="",
-            type="DocType",
-            label="",
-            icon="",
-            link_to="",
-            show_count=False,
-            count_filters="",
-            show_new_btn=False,
-            roles="",
-            sequence=0,
-        ))
+        await session.flush()
 
-        # Add DocType items
-        for seq, dt in enumerate(app_doctypes, start=1):
+        for item in rec.get("items", []):
             session.add(GruntWorkspaceLink(
                 id=str(uuid.uuid4()),
                 workspace_id=ws_id,
-                section=app_meta.get("title", app_name),
-                type="DocType",
-                label=dt.label,
-                icon="📄",
-                link_to=dt.name,
-                show_count=True,
-                count_filters="",
-                show_new_btn=True,
-                roles="",
-                sequence=seq,
+                section=item.get("section", ""),
+                type=item.get("type", "DocType"),
+                label=item.get("label", ""),
+                icon=item.get("icon", ""),
+                link_to=item.get("link_to", ""),
+                show_count=item.get("show_count", False),
+                count_filters=item.get("count_filters", ""),
+                show_new_btn=item.get("show_new_btn", False),
+                roles=item.get("roles", ""),
+                sequence=item.get("sequence", 0),
             ))
 
-        logger.info(
-            "startup.app_workspace_seeded",
-            app=app_name,
-            items=len(app_doctypes),
+        await session.flush()
+        applied = True
+
+    return applied
+
+
+async def _apply_doctype_fixture(
+    doctype_name: str,
+    records: list,
+    session: AsyncSession,
+    eng: AsyncEngine,
+) -> None:
+    """Insert fixture records for a regular DocType, skipping duplicates."""
+    import uuid as _uuid  # noqa: PLC0415
+    from datetime import datetime, timezone  # noqa: PLC0415
+    from sqlalchemy import text  # noqa: PLC0415
+
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.core.metadata.compiler import compile_doctype_to_table, get_table_name  # noqa: PLC0415
+
+    try:
+        dt = await doctype_registry.get(doctype_name)
+    except Exception:  # noqa: BLE001
+        logger.warning("startup.fixture_doctype_not_found", doctype=doctype_name)
+        return
+
+    table = compile_doctype_to_table(dt)
+    now = datetime.now(timezone.utc)
+
+    for rec in records:
+        # Determine the name key for duplicate check
+        name_val = rec.get("name") or rec.get(dt.title_field or "") or str(_uuid.uuid4())[:8]
+
+        # Skip if a record with this name already exists
+        exists = await session.execute(
+            table.select().where(table.c.name == name_val).limit(1)
         )
+        if exists.first():
+            continue
+
+        row: dict = {
+            "id": str(_uuid.uuid4()),
+            "name": name_val,
+            "owner": "system",
+            "created_at": now,
+            "modified_at": now,
+            "modified_by": "system",
+            "docstatus": 0,
+        }
+        for field in dt.fields:
+            from grunt.core.metadata.field import NON_PHYSICAL_FIELDS  # noqa: PLC0415
+            if field.fieldtype in NON_PHYSICAL_FIELDS:
+                continue
+            if field.fieldname in rec:
+                row[field.fieldname] = rec[field.fieldname]
+            elif field.default is not None:
+                row[field.fieldname] = field.default
+
+        await session.execute(table.insert().values(**row))
+
+    await session.flush()
+
+
+async def _auto_seed_workspace(
+    app_name: str,
+    app_meta: dict,
+    app_doctypes: list,
+    session: AsyncSession,
+) -> None:
+    """Create/update workspace from registry DocTypes (fallback when no fixture)."""
+    from sqlalchemy import delete as sa_delete  # noqa: PLC0415
+
+    result = await session.execute(
+        select(GruntWorkspace).where(GruntWorkspace.name == app_name)
+    )
+    existing = result.scalar_one_or_none()
+
+    if existing is not None:
+        ws_id = existing.id
+        existing.label = app_meta.get("title", app_name)
+        existing.icon = app_meta.get("icon", "📦")
+        existing.color = app_meta.get("color", "#2D6A4F")
+        existing.description = app_meta.get("description", "")
+        await session.execute(
+            sa_delete(GruntWorkspaceLink).where(GruntWorkspaceLink.workspace_id == ws_id)
+        )
+        await session.flush()
+    else:
+        ws_id = str(uuid.uuid4())
+        session.add(GruntWorkspace(
+            id=ws_id,
+            name=app_name,
+            label=app_meta.get("title", app_name),
+            app=app_name,
+            icon=app_meta.get("icon", "📦"),
+            color=app_meta.get("color", "#2D6A4F"),
+            description=app_meta.get("description", ""),
+            sequence=app_meta.get("sequence", 10),
+            is_hidden=False,
+            roles="",
+        ))
+        await session.flush()
+
+    for seq, dt in enumerate(app_doctypes, start=1):
+        session.add(GruntWorkspaceLink(
+            id=str(uuid.uuid4()),
+            workspace_id=ws_id,
+            section=app_meta.get("title", app_name),
+            type="DocType",
+            label=dt.label,
+            icon="📄",
+            link_to=dt.name,
+            show_count=True,
+            count_filters="",
+            show_new_btn=True,
+            roles="",
+            sequence=seq,
+        ))
+
+    await session.flush()
 
 
 def _load_app_meta(app_dir: "Path") -> dict | None:
