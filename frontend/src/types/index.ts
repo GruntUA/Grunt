@@ -106,6 +106,11 @@ export interface DocTypeCalendarView {
   sources?: CalendarSource[]
 }
 
+export interface DocTypeTreeView {
+  parent_field: string   // fieldname of the self-referential Link field
+  title_field?: string   // which field to display as node label (defaults to 'name')
+}
+
 // ── DocType ───────────────────────────────────────────────────────────────
 
 export interface DocType {
@@ -124,6 +129,7 @@ export interface DocType {
   form_view?: DocTypeFormView
   kanban_view?: DocTypeKanbanView | null
   calendar_view?: DocTypeCalendarView | null
+  tree_view?: DocTypeTreeView | null
   workflow?: WorkflowDef | null
   permissions?: DocTypePermission[]
 }

@@ -43,7 +43,8 @@ import {
 import FilterBar from '@/components/views/FilterBar.vue'
 import KanbanView from '@/components/views/KanbanView.vue'
 import CalendarView from '@/components/views/CalendarView.vue'
-import { CalendarDays as CalendarIcon } from 'lucide-vue-next'
+import TreeView from '@/components/views/TreeView.vue'
+import { CalendarDays as CalendarIcon, GitBranch } from 'lucide-vue-next'
 
 const props = defineProps<{ doctype: string; workspace?: string }>()
 const router = useRouter()
@@ -62,12 +63,25 @@ const hiddenCols = ref<string[]>([])
 
 const showBulkDeleteModal = ref(false)
 const showColMenu = ref(false)
-const viewMode = ref<'list' | 'kanban' | 'calendar'>('list')
+const viewMode = ref<'list' | 'kanban' | 'calendar' | 'tree'>('list')
 
 const kanbanColumnField = computed<DocField | null>(() => {
   if (!dt.value) return null
   return dt.value.fields.find(
     (f: DocField) => f.fieldtype === 'Select' && f.in_list_view && !f.hidden
+  ) ?? null
+})
+
+// Tree view: auto-detect self-referential Link field (e.g. parent points to same DocType)
+const treeParentField = computed<DocField | null>(() => {
+  if (!dt.value) return null
+  // Explicit config wins
+  if (dt.value.tree_view?.parent_field) {
+    return dt.value.fields.find(f => f.fieldname === dt.value!.tree_view!.parent_field) ?? null
+  }
+  // Auto-detect: Link field whose options == this DocType (self-referential)
+  return dt.value.fields.find(
+    f => f.fieldtype === 'Link' && f.options === dt.value!.name
   ) ?? null
 })
 
@@ -198,7 +212,7 @@ function navigateToDoc(row: Record<string, unknown>) {
       </div>
       <div class="flex items-center gap-2">
         <!-- View toggle -->
-        <div v-if="kanbanColumnField" class="flex rounded-lg border border-border overflow-hidden">
+        <div v-if="kanbanColumnField || treeParentField" class="flex rounded-lg border border-border overflow-hidden">
           <button
             class="px-3 py-1.5 text-sm font-medium transition-colors flex items-center gap-1.5"
             :class="viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'"
@@ -208,6 +222,7 @@ function navigateToDoc(row: Record<string, unknown>) {
             Список
           </button>
           <button
+            v-if="kanbanColumnField"
             class="px-3 py-1.5 text-sm font-medium transition-colors flex items-center gap-1.5 border-l border-border"
             :class="viewMode === 'kanban' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'"
             @click="viewMode = 'kanban'"
@@ -223,6 +238,15 @@ function navigateToDoc(row: Record<string, unknown>) {
           >
             <CalendarIcon class="size-4" />
             Календар
+          </button>
+          <button
+            v-if="treeParentField"
+            class="px-3 py-1.5 text-sm font-medium transition-colors flex items-center gap-1.5 border-l border-border"
+            :class="viewMode === 'tree' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'"
+            @click="viewMode = 'tree'"
+          >
+            <GitBranch class="size-4" />
+            Дерево
           </button>
         </div>
 
@@ -249,6 +273,11 @@ function navigateToDoc(row: Record<string, unknown>) {
     <!-- Calendar view -->
     <div v-if="viewMode === 'calendar' && calendarDateField && dt" class="h-[calc(100vh-12rem)]">
       <CalendarView :doctype="dt" :date-field="calendarDateField.fieldname" :workspace="workspace" />
+    </div>
+
+    <!-- Tree view -->
+    <div v-if="viewMode === 'tree' && treeParentField && dt">
+      <TreeView :doctype="dt" :parent-field="treeParentField.fieldname" :workspace="workspace" />
     </div>
 
     <template v-if="viewMode === 'list'">
