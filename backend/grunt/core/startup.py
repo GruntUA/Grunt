@@ -24,6 +24,7 @@ from grunt.core.metadata.system_doctypes import SYSTEM_DOCTYPES
 logger = structlog.get_logger()
 
 _CORE_DOCTYPES_DIR = __import__("pathlib").Path(__file__).parent / "doctypes"
+_FIXTURES_DIR = __import__("pathlib").Path(__file__).parent / "fixtures"
 
 
 # ── Load built-in core DocTypes ───────────────────────────────────────────
@@ -43,18 +44,23 @@ async def load_core_doctypes(session: AsyncSession, engine: AsyncEngine) -> None
     if not _CORE_DOCTYPES_DIR.exists():
         return
 
+    from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
+
     for dt_file in sorted(_CORE_DOCTYPES_DIR.glob("*.json")):
         try:
             dt_data = json.loads(dt_file.read_text(encoding="utf-8"))
             dt_name = dt_data.get("name", "")
             if not dt_name:
                 continue
-            if dt_name in doctype_registry._doctypes:
-                continue  # already registered (hot-reload)
             dt_obj = DocType.model_validate(dt_data)
-            await doctype_registry.register(dt_obj, session, engine)
-            await session.flush()
-            logger.info("startup.core_doctype_registered", doctype=dt_name)
+            if dt_name in doctype_registry._doctypes:
+                # Already registered — update registry and sync table to pick up new fields.
+                doctype_registry._doctypes[dt_name] = dt_obj
+                await sync_table(dt_obj, engine, session=session)
+            else:
+                await doctype_registry.register(dt_obj, session, engine)
+                await session.flush()
+                logger.info("startup.core_doctype_registered", doctype=dt_name)
         except Exception as e:  # noqa: BLE001
             logger.warning("startup.core_doctype_failed", file=dt_file.name, error=str(e))
 
@@ -133,212 +139,32 @@ async def populate_system_doctypes(
 # ── Seed Grunt workspace ─────────────────────────────────────────────────
 
 
-GRUNT_WORKSPACE: dict[str, Any] = {
-    "name": "grunt",
-    "label": "Ґрунт",
-    "app": "grunt",
-    "icon": "⚙",
-    "color": "#374151",
-    "description": "Налаштування системи",
-    "sequence": 999,
-    "is_hidden": False,
-    "roles": "",  # superadmin only enforced by workspace access logic
-    "items": [
-        # ── Моніторинг ───────────────────────────────────────────
-        {"show_new_btn": False, "sequence": 1},
-        {
-            "section": "Моніторинг",
-            "type": "DocType",
-            "label": "Фонові завдання",
-            "icon": "⏳",
-            "link_to": "BackgroundTaskLog",
-            "show_count": True,
-            "show_new_btn": False,
-            "sequence": 2,
-        },
-        {
-            "section": "Моніторинг",
-            "type": "DocType",
-            "label": "Лог активності",
-            "icon": "📋",
-            "link_to": "ActivityLog",
-            "show_count": True,
-            "show_new_btn": False,
-            "sequence": 3,
-        },
-        # ── Повідомлення ─────────────────────────────────────────
-        {
-            "section": "Повідомлення",
-            "type": "DocType",
-            "label": "Правила нотифікацій",
-            "icon": "🔔",
-            "link_to": "NotificationRule",
-            "show_count": True,
-            "show_new_btn": True,
-            "sequence": 10,
-        },
-        {
-            "section": "Повідомлення",
-            "type": "DocType",
-            "label": "Нотифікації",
-            "icon": "📬",
-            "link_to": "Notification",
-            "show_count": True,
-            "show_new_btn": False,
-            "sequence": 11,
-        },
-        {
-            "section": "Повідомлення",
-            "type": "DocType",
-            "label": "Email акаунти",
-            "icon": "📧",
-            "link_to": "EmailAccount",
-            "show_count": True,
-            "show_new_btn": True,
-            "sequence": 12,
-        },
-        {
-            "section": "Повідомлення",
-            "type": "DocType",
-            "label": "Черга листів",
-            "icon": "📤",
-            "link_to": "EmailQueue",
-            "show_count": True,
-            "show_new_btn": False,
-            "sequence": 13,
-        },
-        # ── Розробка ─────────────────────────────────────────────
-        {
-            "section": "Розробка",
-            "type": "DocType",
-            "label": "Серверні скрипти",
-            "icon": "🖥",
-            "link_to": "ServerScript",
-            "show_count": True,
-            "show_new_btn": True,
-            "sequence": 20,
-        },
-        {
-            "section": "Розробка",
-            "type": "DocType",
-            "label": "Клієнтські скрипти",
-            "icon": "📜",
-            "link_to": "ClientScript",
-            "show_count": True,
-            "show_new_btn": True,
-            "sequence": 21,
-        },
-        {
-            "section": "Розробка",
-            "type": "DocType",
-            "label": "Веб-форми",
-            "icon": "📝",
-            "link_to": "WebForm",
-            "show_count": True,
-            "show_new_btn": True,
-            "sequence": 22,
-        },
-        # ── Дані ─────────────────────────────────────────────────
-        {
-            "section": "Дані",
-            "type": "DocType",
-            "label": "Версії документів",
-            "icon": "🔄",
-            "link_to": "DocVersion",
-            "show_count": True,
-            "show_new_btn": False,
-            "sequence": 30,
-        },
-        {
-            "section": "Дані",
-            "type": "DocType",
-            "label": "Серії нумерації",
-            "icon": "🔢",
-            "link_to": "NamingSeries",
-            "show_count": True,
-            "show_new_btn": True,
-            "sequence": 31,
-        },
-        {
-            "section": "Дані",
-            "type": "DocType",
-            "label": "Зв'язки документів",
-            "icon": "🔗",
-            "link_to": "DocLink",
-            "show_count": True,
-            "show_new_btn": False,
-            "sequence": 32,
-        },
-        # ── Друк та шаблони ──────────────────────────────────────
-        {
-            "section": "Друк та шаблони",
-            "type": "DocType",
-            "label": "Формати друку",
-            "icon": "🖨",
-            "link_to": "PrintFormat",
-            "show_count": True,
-            "show_new_btn": True,
-            "sequence": 40,
-        },
-        # ── Локалізація ──────────────────────────────────────────
-        {
-            "section": "Локалізація",
-            "type": "DocType",
-            "label": "Переклади",
-            "icon": "🌐",
-            "link_to": "Translation",
-            "show_count": True,
-            "show_new_btn": True,
-            "sequence": 50,
-        },
-        # ── Дашборди ─────────────────────────────────────────────
-        {
-            "section": "Дашборди",
-            "type": "DocType",
-            "label": "Дашборди",
-            "icon": "📊",
-            "link_to": "Dashboard",
-            "show_count": True,
-            "show_new_btn": True,
-            "sequence": 60,
-        },
-        # ── Система ──────────────────────────────────────────────
-        {
-            "section": "Система",
-            "type": "DocType",
-            "label": "Коментарі",
-            "icon": "💬",
-            "link_to": "Comment",
-            "show_count": True,
-            "show_new_btn": False,
-            "sequence": 70,
-        },
-    ],
-}
-
-
 async def seed_grunt_workspace(session: AsyncSession) -> None:
-    """Create or update the Grunt system workspace and its sidebar items."""
+    """Create or update the Grunt system workspace from fixtures/grunt_workspace.json."""
+    import json  # noqa: PLC0415
+    from sqlalchemy import delete  # noqa: PLC0415
+
+    fixture_file = _FIXTURES_DIR / "grunt_workspace.json"
+    if not fixture_file.exists():
+        logger.warning("startup.grunt_workspace_fixture_missing", path=str(fixture_file))
+        return
+
+    data: dict[str, Any] = json.loads(fixture_file.read_text(encoding="utf-8"))
+
     result = await session.execute(
-        select(GruntWorkspace).where(GruntWorkspace.name == "grunt")
+        select(GruntWorkspace).where(GruntWorkspace.name == data["name"])
     )
     existing = result.scalar_one_or_none()
 
     if existing is not None:
         ws_id = existing.id
-        # Update workspace metadata
-        existing.label = GRUNT_WORKSPACE["label"]
-        existing.icon = GRUNT_WORKSPACE["icon"]
-        existing.color = GRUNT_WORKSPACE["color"]
-        existing.description = GRUNT_WORKSPACE["description"]
-        existing.sequence = GRUNT_WORKSPACE["sequence"]
-        # Delete old links and re-seed
-        from sqlalchemy import delete  # noqa: PLC0415
-
+        existing.label = data["label"]
+        existing.icon = data.get("icon", "")
+        existing.color = data.get("color", "")
+        existing.description = data.get("description", "")
+        existing.sequence = data.get("sequence", 0)
         await session.execute(
-            delete(GruntWorkspaceLink).where(
-                GruntWorkspaceLink.workspace_id == ws_id
-            )
+            delete(GruntWorkspaceLink).where(GruntWorkspaceLink.workspace_id == ws_id)
         )
         await session.flush()
         logger.info("startup.grunt_workspace_updating")
@@ -346,20 +172,20 @@ async def seed_grunt_workspace(session: AsyncSession) -> None:
         ws_id = str(uuid.uuid4())
         ws = GruntWorkspace(
             id=ws_id,
-            name=GRUNT_WORKSPACE["name"],
-            label=GRUNT_WORKSPACE["label"],
-            app=GRUNT_WORKSPACE["app"],
-            icon=GRUNT_WORKSPACE["icon"],
-            color=GRUNT_WORKSPACE["color"],
-            description=GRUNT_WORKSPACE["description"],
-            sequence=GRUNT_WORKSPACE["sequence"],
-            is_hidden=GRUNT_WORKSPACE["is_hidden"],
-            roles=GRUNT_WORKSPACE["roles"],
+            name=data["name"],
+            label=data["label"],
+            app=data.get("app", "grunt"),
+            icon=data.get("icon", ""),
+            color=data.get("color", ""),
+            description=data.get("description", ""),
+            sequence=data.get("sequence", 0),
+            is_hidden=data.get("is_hidden", False),
+            roles=data.get("roles", ""),
         )
         session.add(ws)
         await session.flush()
 
-    for item_data in GRUNT_WORKSPACE["items"]:
+    for item_data in data.get("items", []):
         link = GruntWorkspaceLink(
             id=str(uuid.uuid4()),
             workspace_id=ws_id,

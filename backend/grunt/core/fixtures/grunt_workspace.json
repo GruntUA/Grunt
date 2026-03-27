@@ -1,0 +1,185 @@
+{
+  "name": "grunt",
+  "label": "Ґрунт",
+  "app": "grunt",
+  "icon": "⚙",
+  "color": "#374151",
+  "description": "Налаштування системи",
+  "sequence": 999,
+  "is_hidden": false,
+  "roles": "",
+  "items": [
+    { "show_new_btn": true, "sequence": 0 },
+    {
+      "section": "Метадані",
+      "type": "DocType",
+      "label": "DocTypes",
+      "icon": "🧩",
+      "link_to": "DocType",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 1
+    },
+    { "show_new_btn": false, "sequence": 2 },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Фонові завдання",
+      "icon": "⏳",
+      "link_to": "BackgroundTaskLog",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 3
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Лог активності",
+      "icon": "📋",
+      "link_to": "ActivityLog",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 4
+    },
+    {
+      "section": "Повідомлення",
+      "type": "DocType",
+      "label": "Правила нотифікацій",
+      "icon": "🔔",
+      "link_to": "NotificationRule",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 10
+    },
+    {
+      "section": "Повідомлення",
+      "type": "DocType",
+      "label": "Нотифікації",
+      "icon": "📬",
+      "link_to": "Notification",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 11
+    },
+    {
+      "section": "Повідомлення",
+      "type": "DocType",
+      "label": "Email акаунти",
+      "icon": "📧",
+      "link_to": "EmailAccount",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 12
+    },
+    {
+      "section": "Повідомлення",
+      "type": "DocType",
+      "label": "Черга листів",
+      "icon": "📤",
+      "link_to": "EmailQueue",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 13
+    },
+    {
+      "section": "Розробка",
+      "type": "DocType",
+      "label": "Серверні скрипти",
+      "icon": "🖥",
+      "link_to": "ServerScript",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 20
+    },
+    {
+      "section": "Розробка",
+      "type": "DocType",
+      "label": "Клієнтські скрипти",
+      "icon": "📜",
+      "link_to": "ClientScript",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 21
+    },
+    {
+      "section": "Розробка",
+      "type": "DocType",
+      "label": "Веб-форми",
+      "icon": "📝",
+      "link_to": "WebForm",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 22
+    },
+    {
+      "section": "Дані",
+      "type": "DocType",
+      "label": "Версії документів",
+      "icon": "🔄",
+      "link_to": "DocVersion",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 30
+    },
+    {
+      "section": "Дані",
+      "type": "DocType",
+      "label": "Серії нумерації",
+      "icon": "🔢",
+      "link_to": "NamingSeries",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 31
+    },
+    {
+      "section": "Дані",
+      "type": "DocType",
+      "label": "Зв'язки документів",
+      "icon": "🔗",
+      "link_to": "DocLink",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 32
+    },
+    {
+      "section": "Друк та шаблони",
+      "type": "DocType",
+      "label": "Формати друку",
+      "icon": "🖨",
+      "link_to": "PrintFormat",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 40
+    },
+    {
+      "section": "Локалізація",
+      "type": "DocType",
+      "label": "Переклади",
+      "icon": "🌐",
+      "link_to": "Translation",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 50
+    },
+    {
+      "section": "Дашборди",
+      "type": "DocType",
+      "label": "Дашборди",
+      "icon": "📊",
+      "link_to": "Dashboard",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 60
+    },
+    {
+      "section": "Система",
+      "type": "DocType",
+      "label": "Коментарі",
+      "icon": "💬",
+      "link_to": "Comment",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 70
+    }
+  ]
+}

@@ -39,6 +39,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FileX,
+  Check as CheckIcon, // used in template for Check fieldtype cells
 } from 'lucide-vue-next'
 import FilterBar from '@/components/views/FilterBar.vue'
 import KanbanView from '@/components/views/KanbanView.vue'
@@ -178,9 +179,39 @@ async function bulkDelete() {
   queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
 }
 
+const fieldMap = computed(() => {
+  const m: Record<string, DocField> = {}
+  for (const f of dt.value?.fields ?? []) m[f.fieldname] = f
+  return m
+})
+
+function getFieldType(key: string): string {
+  return fieldMap.value[key]?.fieldtype ?? 'Text'
+}
+
+// Semantic badge variant based on common status words
+function selectVariant(val: string): 'default' | 'secondary' | 'destructive' | 'outline' {
+  const v = val.toLowerCase()
+  if (/^(active|активн|відкри|новий|нова|нове|запущен|виконуєть|in.progress|open|new)/.test(v)) return 'default'
+  if (/^(done|завершен|виконан|закрит|completed|закінчен|успішн|success)/.test(v)) return 'secondary'
+  if (/^(cancel|скасован|відхил|помилк|error|fail|danger|blocked)/.test(v)) return 'destructive'
+  return 'outline'
+}
+
+function formatDate(val: unknown, type: string): string {
+  if (!val) return '—'
+  try {
+    const d = new Date(String(val))
+    if (isNaN(d.getTime())) return String(val)
+    if (type === 'Date') return d.toLocaleDateString('uk-UA')
+    return d.toLocaleString('uk-UA', { dateStyle: 'short', timeStyle: 'short' })
+  } catch {
+    return String(val)
+  }
+}
+
 function formatCell(val: unknown): string {
-  if (val === null || val === undefined) return '—'
-  if (typeof val === 'boolean') return val ? '✓' : ''
+  if (val === null || val === undefined || val === '') return '—'
   return String(val)
 }
 
@@ -192,13 +223,14 @@ function onFiltersChange(f: Record<string, string>) {
 const isSystemDocType = computed(() => props.doctype === 'DocType')
 
 function navigateToDoc(row: Record<string, unknown>) {
-  // System DocTypes: open the builder instead of a form
   if (isSystemDocType.value) {
-    router.push(`/studio/${row.name}/builder`)
+    const ws = props.workspace ?? 'grunt'
+    router.push(`/${ws}/list/DocType/${row.name}`)
     return
   }
   const id = String(row.id)
-  router.push(props.workspace ? `/${props.workspace}/list/${props.doctype}/${id}` : `/${props.doctype}/${id}`)
+  const ws = props.workspace ?? 'grunt'
+  router.push(`/${ws}/list/${props.doctype}/${id}`)
 }
 </script>
 
@@ -376,9 +408,45 @@ function navigateToDoc(row: Record<string, unknown>) {
                 v-for="(col, ci) in visibleColumns"
                 :key="col.key"
                 class="px-3 py-3"
-                :class="ci === 0 ? 'font-medium text-foreground' : 'text-muted-foreground'"
                 @click="navigateToDoc(row)"
-              >{{ formatCell(row[col.key]) }}</td>
+              >
+                <!-- First column: bold primary link -->
+                <template v-if="ci === 0">
+                  <span class="font-semibold text-primary hover:underline">
+                    {{ formatCell(row[col.key]) }}
+                  </span>
+                </template>
+
+                <!-- Check field: icon -->
+                <template v-else-if="getFieldType(col.key) === 'Check'">
+                  <CheckIcon v-if="row[col.key]" class="size-4 text-emerald-500" />
+                  <span v-else class="text-muted-foreground/30">—</span>
+                </template>
+
+                <!-- Select field: colored badge -->
+                <template v-else-if="getFieldType(col.key) === 'Select'">
+                  <Badge
+                    v-if="row[col.key] !== null && row[col.key] !== undefined && row[col.key] !== ''"
+                    :variant="selectVariant(String(row[col.key]))"
+                    class="font-normal"
+                  >
+                    {{ row[col.key] }}
+                  </Badge>
+                  <span v-else class="text-muted-foreground/30">—</span>
+                </template>
+
+                <!-- Date / Datetime: formatted -->
+                <template v-else-if="getFieldType(col.key) === 'Date' || getFieldType(col.key) === 'Datetime'">
+                  <span class="text-muted-foreground tabular-nums">
+                    {{ formatDate(row[col.key], getFieldType(col.key)) }}
+                  </span>
+                </template>
+
+                <!-- Default -->
+                <template v-else>
+                  <span class="text-muted-foreground">{{ formatCell(row[col.key]) }}</span>
+                </template>
+              </td>
             </tr>
             <!-- Empty state -->
             <tr v-if="!rows.length && !isLoading">

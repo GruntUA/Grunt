@@ -47,6 +47,13 @@ const router = createRouter({
             id: null,
           }),
         },
+        // DocType builder — must come before the generic list/:doctype/:id route
+        {
+          path: 'list/DocType/:id',
+          name: 'doctype-builder',
+          component: () => import('@/pages/studio/builder/BuilderLayout.vue'),
+          props: (route) => ({ doctype: route.params.id, workspaceName: route.params.workspaceName }),
+        },
         {
           path: 'list/:doctype/:id',
           name: 'workspace-form',

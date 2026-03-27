@@ -22,8 +22,12 @@ async function handleLogin() {
     await auth.login(email.value, password.value)
     router.push('/')
   } catch (e: any) {
-    console.error('LOGIN ERROR:', e, e?.response?.status, e?.response?.data)
-    error.value = e?.response?.data?.detail || e?.message || 'Невірний email або пароль'
+    const status = e?.response?.status
+    if (status === 401) {
+      error.value = 'Невірний email або пароль'
+    } else {
+      error.value = e?.response?.data?.error?.message || e?.message || 'Помилка входу'
+    }
   } finally {
     loading.value = false
   }

@@ -63,8 +63,12 @@ function goToDoc(r: SearchResult) {
   const ws = wsStore.workspaces.find(w =>
     w.items.some(item => item.link_to === r.doctype)
   )
-  const prefix = ws ? `/${ws.name}` : ''
-  router.push(`${prefix}/list/${r.doctype}/${r.id}`)
+  const wsName = ws?.name ?? 'grunt'
+  if (r.doctype === 'DocType') {
+    router.push(`/${wsName}/list/DocType/${r.id}`)
+    return
+  }
+  router.push(`/${wsName}/list/${r.doctype}/${r.id}`)
 }
 
 function onKeydown(e: KeyboardEvent) {

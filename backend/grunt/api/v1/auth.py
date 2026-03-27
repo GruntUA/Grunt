@@ -16,7 +16,9 @@ from grunt.core.auth.service import (
     create_user,
     get_user_by_email,
     get_user_by_id,
+    hash_password,
     list_users as service_list_users,
+    _user_table,
 )
 from grunt.core.db.session import get_session
 
@@ -207,6 +209,34 @@ async def add_user_role(
     session.add(user_role)
     await session.flush()
     return {"success": True, "data": {"user_id": user_id, "role": body.role_name}}
+
+
+class SetPasswordRequest(BaseModel):
+    email: str
+    password: str
+
+
+@router.post("/users/set-password")
+async def set_user_password(
+    body: SetPasswordRequest,
+    session: AsyncSession = Depends(get_session),
+    _: GruntUser = Depends(superadmin_user),
+) -> dict:
+    """Change a user's password (superadmin only)."""
+    from sqlalchemy import update as sa_update  # noqa: PLC0415
+
+    user = await get_user_by_email(body.email, session)
+    if not user:
+        raise HTTPException(status_code=404, detail="Користувача не знайдено")
+
+    table = _user_table()
+    await session.execute(
+        sa_update(table)
+        .where(table.c.id == user.id)
+        .values(hashed_password=hash_password(body.password))
+    )
+    await session.flush()
+    return {"success": True}
 
 
 @router.delete("/users/{user_id}/roles/{role}")

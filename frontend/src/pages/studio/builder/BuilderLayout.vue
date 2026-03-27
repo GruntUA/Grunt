@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useBuilderStore } from '@/stores/builder'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -13,9 +13,12 @@ import PermissionsTab from './tabs/PermissionsTab.vue'
 import WorkflowTab from './tabs/WorkflowTab.vue'
 import ViewsTab from './tabs/ViewsTab.vue'
 
-const props = defineProps<{ doctype: string }>()
+const props = defineProps<{ doctype: string; workspaceName?: string }>()
 const router = useRouter()
+const route = useRoute()
 const builder = useBuilderStore()
+
+const backWorkspace = props.workspaceName ?? (route.params.workspaceName as string | undefined) ?? 'grunt'
 
 onMounted(() => builder.loadDocType(props.doctype))
 </script>
@@ -27,10 +30,10 @@ onMounted(() => builder.loadDocType(props.doctype))
       <button
         type="button"
         class="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-        @click="router.push('/studio')"
+        @click="router.push(`/${backWorkspace}/list/DocType`)"
       >
         <ArrowLeft class="size-4" />
-        Studio
+        DocTypes
       </button>
       <div class="w-px h-4 bg-border" />
       <span class="text-sm font-semibold text-foreground">
