@@ -8,8 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from grunt.core.db.base import Base
 from grunt.core.db.session import get_session
-from grunt.core.metadata.compiler import SA_METADATA
+from grunt.core.metadata.compiler import SA_METADATA, compile_doctype_to_table
 from grunt.core.metadata.registry import doctype_registry
+from grunt.core.metadata.system_doctypes import SYSTEM_DOCTYPES
 from grunt.main import app
 
 import grunt.core.db.system_tables  # noqa: F401
@@ -65,6 +66,12 @@ async def setup_db():
     for name in to_remove:
         if name in SA_METADATA.tables:
             SA_METADATA.remove(SA_METADATA.tables[name])
+
+    # Compile and create system doctype tables (e.g. grunt_core_doc_type)
+    for dt in SYSTEM_DOCTYPES.values():
+        compile_doctype_to_table(dt)
+    async with test_engine.begin() as conn:
+        await conn.run_sync(SA_METADATA.create_all)
 
     yield
 

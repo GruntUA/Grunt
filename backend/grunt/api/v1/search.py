@@ -40,8 +40,8 @@ async def global_search(
             continue
 
         # Check read permission
-        checker = PermissionChecker(dt, user)
-        if not checker.check("read"):
+        checker = PermissionChecker()
+        if not await checker.check(user=user, doctype=dt, action="read"):
             continue
 
         table_name = get_table_name(dt.module, dt.name)
