@@ -5,10 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useDocTypeStore } from '@/stores/doctype'
 import { usePageStore } from '@/stores/pages'
 import { Spinner } from '@/components/ui/spinner'
-import {
-  BarChart2, Wrench, LayoutGrid, Users, ShieldCheck,
-  ChevronRight, LogOut, Sprout, LayoutDashboard
-} from 'lucide-vue-next'
+import { BarChart2, LogOut, Sprout } from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const dtStore = useDocTypeStore()
@@ -114,46 +111,6 @@ function initials(name: string): string {
           </RouterLink>
         </template>
       </nav>
-
-      <!-- Studio links (superadmin) -->
-      <div v-if="auth.user?.is_superadmin" class="px-2 py-2 border-t border-sidebar-border space-y-0.5">
-        <p class="px-3 pt-1 pb-1 text-[11px] font-semibold text-sidebar-foreground/40 uppercase tracking-wider">Студія</p>
-        <RouterLink
-          to="/studio"
-          class="flex items-center gap-2.5 px-3 h-9 text-sm rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground transition-colors"
-        >
-          <Wrench class="w-4 h-4 flex-shrink-0" />
-          App Studio
-        </RouterLink>
-        <RouterLink
-          to="/studio/workspaces"
-          class="flex items-center gap-2.5 px-3 h-9 text-sm rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground transition-colors"
-        >
-          <LayoutGrid class="w-4 h-4 flex-shrink-0" />
-          Воркспейси
-        </RouterLink>
-        <RouterLink
-          to="/studio/users"
-          class="flex items-center gap-2.5 px-3 h-9 text-sm rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground transition-colors"
-        >
-          <Users class="w-4 h-4 flex-shrink-0" />
-          Користувачі
-        </RouterLink>
-        <RouterLink
-          to="/studio/roles"
-          class="flex items-center gap-2.5 px-3 h-9 text-sm rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground transition-colors"
-        >
-          <ShieldCheck class="w-4 h-4 flex-shrink-0" />
-          Ролі
-        </RouterLink>
-        <RouterLink
-          to="/studio/dashboards"
-          class="flex items-center gap-2.5 px-3 h-9 text-sm rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground transition-colors"
-        >
-          <LayoutDashboard class="w-4 h-4 flex-shrink-0" />
-          Дашборди
-        </RouterLink>
-      </div>
 
       <!-- User footer -->
       <div class="border-t border-sidebar-border px-3 py-2.5 flex items-center gap-2.5">

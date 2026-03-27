@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { Bell, Settings, LogOut, Sprout } from 'lucide-vue-next'
+import { Bell, LogOut, Sprout } from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -66,14 +66,6 @@ function initials(name: string): string {
               <p class="text-xs text-muted-foreground mt-0.5">{{ auth.user?.email }}</p>
             </div>
             <div class="py-1">
-              <router-link
-                v-if="auth.user?.is_superadmin"
-                to="/studio"
-                class="flex items-center gap-2.5 px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              >
-                <Settings class="w-4 h-4" />
-                Studio
-              </router-link>
               <button
                 class="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
                 @click="logout"

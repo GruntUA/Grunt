@@ -1,16 +1,26 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { RefreshCw, LayoutDashboard } from 'lucide-vue-next'
-import { dashboardApi } from '@/core/api/dashboards'
+import { docsApi } from '@/core/api/docs'
+import { getDashboardData } from '@/core/api/dashboards'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
-import type { Dashboard } from '@/types'
+import type { DashboardWidget } from '@/types'
 
 const props = defineProps<{
   workspaceName: string
   dashboardName: string
 }>()
 
-const dashboard = ref<Dashboard | null>(null)
+interface DashboardDoc {
+  id: string
+  name: string
+  label: string
+  description?: string
+  is_published: boolean
+  widgets: DashboardWidget[]
+}
+
+const dashboard = ref<DashboardDoc | null>(null)
 const widgetData = ref<Record<string, unknown>>({})
 const loading = ref(true)
 const refreshing = ref(false)
@@ -18,14 +28,15 @@ const refreshing = ref(false)
 async function load() {
   loading.value = true
   try {
-    dashboard.value = await dashboardApi.get(props.dashboardName)
-    widgetData.value = await dashboardApi.getData(props.dashboardName)
+    const r = await docsApi.get('Dashboard', props.dashboardName)
+    dashboard.value = r.data as DashboardDoc
+    widgetData.value = await getDashboardData(props.dashboardName)
   } finally { loading.value = false }
 }
 
 async function refresh() {
   refreshing.value = true
-  try { widgetData.value = await dashboardApi.getData(props.dashboardName) }
+  try { widgetData.value = await getDashboardData(props.dashboardName) }
   finally { refreshing.value = false }
 }
 
@@ -59,7 +70,7 @@ onMounted(load)
     </div>
 
     <!-- Empty -->
-    <div v-else-if="!dashboard?.widgets.length"
+    <div v-else-if="!dashboard?.widgets?.length"
       class="flex flex-col items-center justify-center py-24 text-muted-foreground">
       <LayoutDashboard class="w-12 h-12 mb-3 opacity-30" />
       <p class="text-sm">Дашборд порожній</p>

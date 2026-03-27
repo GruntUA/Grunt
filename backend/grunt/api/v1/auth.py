@@ -10,7 +10,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.core.auth.dependencies import current_user, superadmin_user
 from grunt.core.auth.models import GruntRole, GruntUser, GruntUserRole
-from grunt.core.auth.service import authenticate, create_access_token, create_user, get_user_by_email
+from grunt.core.auth.service import (
+    authenticate,
+    create_access_token,
+    create_user,
+    get_user_by_email,
+    get_user_by_id,
+    list_users as service_list_users,
+)
 from grunt.core.db.session import get_session
 
 router = APIRouter()
@@ -115,8 +122,7 @@ async def list_users(
     _: GruntUser = Depends(superadmin_user),
 ) -> list[UserResponse]:
     """List all users."""
-    result = await session.execute(select(GruntUser))
-    users = result.scalars().all()
+    users = await service_list_users(session)
     return [
         UserResponse(
             id=u.id,
@@ -174,10 +180,7 @@ async def add_user_role(
     _: GruntUser = Depends(superadmin_user),
 ) -> dict:
     """Assign a role to a user."""
-    user_result = await session.execute(
-        select(GruntUser).where(GruntUser.id == user_id)
-    )
-    target_user = user_result.scalar_one_or_none()
+    target_user = await get_user_by_id(user_id, session)
     if not target_user:
         raise HTTPException(status_code=404, detail="Користувача не знайдено")
 

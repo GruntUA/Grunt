@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
 
     from grunt.core.metadata.system_doctypes import SYSTEM_DOCTYPES  # noqa: PLC0415
     from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
-    from grunt.core.startup import populate_system_doctypes, seed_grunt_workspace, seed_app_workspaces  # noqa: PLC0415
+    from grunt.core.startup import populate_system_doctypes, seed_grunt_workspace, seed_app_workspaces, load_core_doctypes  # noqa: PLC0415
 
     sites = site_manager.get_sites()
     if not sites:
@@ -64,6 +64,8 @@ async def lifespan(app: FastAPI):
             async with maker() as session:
                 # Load registered DocTypes into memory first
                 await doctype_registry.load_all(session)
+                # Register built-in core DocTypes (Dashboard, etc.)
+                await load_core_doctypes(session, eng)
                 # Now populate the DocType document table (needs registry)
                 await populate_system_doctypes(session, eng)
                 await seed_grunt_workspace(session)

@@ -1,0 +1,48 @@
+{
+  "name": "User",
+  "label": "Користувач",
+  "module": "core",
+  "is_child": false,
+  "autoname": "field:email",
+  "title_field": "full_name",
+  "fields": [
+    {
+      "fieldname": "email",
+      "label": "Email",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "full_name",
+      "label": "Повне ім'я",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "is_active",
+      "label": "Активний",
+      "fieldtype": "Check",
+      "default": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "is_superadmin",
+      "label": "Суперадмін",
+      "fieldtype": "Check",
+      "default": false,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "hashed_password",
+      "label": "Хешований пароль",
+      "fieldtype": "LongText",
+      "hidden": true
+    }
+  ]
+}

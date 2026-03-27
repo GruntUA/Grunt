@@ -30,10 +30,23 @@ class WorkflowTransition(BaseModel):
     condition: str | None = None  # Python expression
 
 
+class WorkflowStep(BaseModel):
+    id: str
+    name: str
+    title: str = ""
+    step_type: str = "state"  # state | form | approval | notification | script | condition | create_doc | stop
+    variable: str | None = None  # variable binding (e.g. req.vars.input_docs)
+    sequence: int = 0
+    is_active: bool = True
+    next_steps: list[str] = []  # names of next steps
+    config: dict[str, Any] = {}
+
+
 class DocTypeWorkflow(BaseModel):
     states: list[WorkflowState]
     transitions: list[WorkflowTransition]
     state_field: str = "status"  # field that stores current state
+    steps: list[WorkflowStep] = []
 
 
 # ── Permission sub-model ─────────────────────────────────────────────────

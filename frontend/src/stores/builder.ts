@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import type { DocType, DocField, DocTypePermission, WorkflowDef, WorkflowState, WorkflowTransition, FieldType } from '@/types'
+import type { DocType, DocField, DocTypePermission, WorkflowDef, WorkflowState, WorkflowTransition, WorkflowStep, FieldType } from '@/types'
 import { metaApi } from '@/core/api'
 import { parseLayout, flattenLayout } from '@/core/composables/useFormLayout'
 import type { FormLayout } from '@/core/composables/useFormLayout'
@@ -358,6 +358,48 @@ export const useBuilderStore = defineStore('builder', () => {
     updateWorkflow({ transitions })
   }
 
+  function addWorkflowStep(partial?: Partial<WorkflowStep>) {
+    if (!doctype.value) return
+    const wf = doctype.value.workflow ?? { state_field: 'status', states: [], transitions: [], steps: [] }
+    const steps = wf.steps ?? []
+    const newStep: WorkflowStep = {
+      id: crypto.randomUUID(),
+      name: partial?.name ?? `step_${steps.length + 1}`,
+      title: partial?.title ?? '',
+      step_type: partial?.step_type ?? 'state',
+      variable: partial?.variable ?? null,
+      sequence: steps.length,
+      is_active: true,
+      next_steps: [],
+      config: {},
+    }
+    updateWorkflow({ steps: [...steps, newStep] })
+    return newStep
+  }
+
+  function updateWorkflowStep(id: string, patch: Partial<WorkflowStep>) {
+    if (!doctype.value?.workflow) return
+    const steps = (doctype.value.workflow.steps ?? []).map(s =>
+      s.id === id ? { ...s, ...patch } : s
+    )
+    updateWorkflow({ steps })
+  }
+
+  function removeWorkflowStep(id: string) {
+    if (!doctype.value?.workflow) return
+    const steps = (doctype.value.workflow.steps ?? []).filter(s => s.id !== id)
+    // Remove references from other steps' next_steps
+    const cleaned = steps.map(s => ({
+      ...s,
+      next_steps: s.next_steps.filter(nid => nid !== id && steps.some(x => x.id === nid)),
+    }))
+    updateWorkflow({ steps: cleaned })
+  }
+
+  function reorderWorkflowSteps(newSteps: WorkflowStep[]) {
+    updateWorkflow({ steps: newSteps.map((s, i) => ({ ...s, sequence: i })) })
+  }
+
   return {
     doctype,
     isDirty,
@@ -389,5 +431,9 @@ export const useBuilderStore = defineStore('builder', () => {
     removeWorkflowState,
     addWorkflowTransition,
     removeWorkflowTransition,
+    addWorkflowStep,
+    updateWorkflowStep,
+    removeWorkflowStep,
+    reorderWorkflowSteps,
   }
 })

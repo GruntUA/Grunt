@@ -51,10 +51,27 @@ export interface WorkflowTransition {
   condition?: string | null
 }
 
+export type WorkflowStepType =
+  | 'state' | 'form' | 'approval' | 'notification'
+  | 'script' | 'condition' | 'create_doc' | 'stop'
+
+export interface WorkflowStep {
+  id: string
+  name: string
+  title: string
+  step_type: WorkflowStepType
+  variable?: string | null
+  sequence: number
+  is_active: boolean
+  next_steps: string[]
+  config: Record<string, unknown>
+}
+
 export interface WorkflowDef {
   state_field: string
   states: WorkflowState[]
   transitions: WorkflowTransition[]
+  steps: WorkflowStep[]
 }
 
 // ── Permission types ──────────────────────────────────────────────────────

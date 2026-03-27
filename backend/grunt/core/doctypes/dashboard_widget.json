@@ -1,0 +1,87 @@
+{
+  "name": "Dashboard Widget",
+  "label": "Віджет дашборду",
+  "module": "core",
+  "is_child": true,
+  "title_field": "title",
+  "fields": [
+    {
+      "fieldname": "widget_type",
+      "label": "Тип",
+      "fieldtype": "Select",
+      "options": "metric\nchart_area\nchart_bar\ndonut\nlist",
+      "required": true,
+      "in_list_view": true,
+      "default": "metric"
+    },
+    {
+      "fieldname": "title",
+      "label": "Заголовок",
+      "fieldtype": "Text",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "doctype",
+      "label": "DocType",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "aggregation",
+      "label": "Агрегація",
+      "fieldtype": "Select",
+      "options": "count\nsum\navg\nmin\nmax",
+      "default": "count"
+    },
+    {
+      "fieldname": "field",
+      "label": "Поле",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "group_by",
+      "label": "Групувати за",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "date_field",
+      "label": "Поле дати",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "period",
+      "label": "Період",
+      "fieldtype": "Select",
+      "options": "7d\n30d\n90d\n365d",
+      "default": "30d"
+    },
+    {
+      "fieldname": "filters",
+      "label": "Фільтри",
+      "fieldtype": "JSON"
+    },
+    {
+      "fieldname": "cols",
+      "label": "Ширина (1-4)",
+      "fieldtype": "Int",
+      "default": 1
+    },
+    {
+      "fieldname": "color",
+      "label": "Колір",
+      "fieldtype": "Select",
+      "options": "primary\nblue\namber\nred\nviolet\ncyan",
+      "default": "primary"
+    },
+    {
+      "fieldname": "icon",
+      "label": "Іконка (lucide)",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "sequence",
+      "label": "Порядок",
+      "fieldtype": "Int",
+      "default": 0
+    }
+  ]
+}

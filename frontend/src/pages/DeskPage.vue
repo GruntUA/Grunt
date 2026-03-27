@@ -8,7 +8,7 @@ import DeskTopBar from '@/components/desk/DeskTopBar.vue'
 import AppCard from '@/components/desk/AppCard.vue'
 import GlobalSearch from '@/components/desk/GlobalSearch.vue'
 import { Spinner } from '@/components/ui/spinner'
-import { Plus, Clock, LayoutGrid } from 'lucide-vue-next'
+import { Clock, LayoutGrid } from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const wsStore = useWorkspaceStore()
@@ -107,17 +107,6 @@ function findWorkspaceForDoc(doc: RecentDoc) {
             :counts="allCounts[ws.name]"
           />
 
-          <!-- Add app (superadmin only) -->
-          <button
-            v-if="auth.user?.is_superadmin"
-            class="w-44 h-44 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border rounded-xl text-muted-foreground hover:border-primary hover:text-primary hover:bg-accent/50 transition-all duration-200 group"
-            @click="router.push('/studio/workspaces')"
-          >
-            <div class="w-9 h-9 rounded-full border-2 border-current flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-              <Plus class="w-4 h-4" />
-            </div>
-            <span class="text-xs font-medium">Встановити додаток</span>
-          </button>
         </div>
       </section>
 

@@ -15,14 +15,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
   ArrowLeft,
   PanelLeftClose,
   PanelLeft,
-  Settings,
   LogOut,
   ChevronsUpDown,
 } from 'lucide-vue-next'
@@ -167,11 +165,6 @@ defineExpose({ mobileOpen })
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start" class="w-56">
-            <DropdownMenuItem v-if="auth.user?.is_superadmin" @click="router.push('/studio')">
-              <Settings class="size-4 mr-2" />
-              Studio
-            </DropdownMenuItem>
-            <DropdownMenuSeparator v-if="auth.user?.is_superadmin" />
             <DropdownMenuItem @click="auth.logout?.()">
               <LogOut class="size-4 mr-2" />
               Вийти

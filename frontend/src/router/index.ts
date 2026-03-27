@@ -19,60 +19,6 @@ const router = createRouter({
       component: () => import('@/pages/DeskPage.vue'),
     },
 
-    // Studio
-    {
-      path: '/studio',
-      component: () => import('@/pages/desk/DeskLayout.vue'),
-      children: [
-        {
-          path: '',
-          name: 'studio',
-          component: () => import('@/pages/studio/DocTypeList.vue'),
-        },
-        {
-          path: 'users',
-          name: 'studio-users',
-          component: () => import('@/pages/studio/roles/UsersPage.vue'),
-        },
-        {
-          path: 'roles',
-          name: 'studio-roles',
-          component: () => import('@/pages/studio/roles/RolesPage.vue'),
-        },
-        {
-          path: 'workspaces',
-          name: 'studio-workspaces',
-          component: () => import('@/pages/studio/workspaces/WorkspaceBuilder.vue'),
-        },
-        {
-          path: 'dashboards',
-          name: 'studio-dashboards',
-          component: () => import('@/pages/studio/dashboards/DashboardList.vue'),
-        },
-        {
-          path: 'dashboards/:name',
-          name: 'studio-dashboard-builder',
-          component: () => import('@/pages/studio/dashboards/DashboardBuilder.vue'),
-          props: true,
-        },
-        {
-          path: ':doctype/builder',
-          name: 'builder',
-          component: () => import('@/pages/studio/builder/BuilderLayout.vue'),
-          props: true,
-        },
-        {
-          path: ':doctype/workflow',
-          name: 'workflow-editor',
-          redirect: (to) => ({
-            name: 'builder',
-            params: { doctype: to.params.doctype },
-            query: { tab: 'workflow' },
-          }),
-        },
-      ],
-    },
-
     // App Workspace (dynamic /:workspaceName)
     {
       path: '/:workspaceName',
@@ -129,12 +75,6 @@ router.beforeEach(async (to) => {
   if (to.meta.public) return true
   if (!auth.isLoggedIn) return { name: 'login' }
   if (!auth.user) await auth.fetchMe()
-
-  // Studio access check
-  if (to.path.startsWith('/studio') && auth.user && !auth.user.is_superadmin) {
-    return { name: 'desk' }
-  }
-
   return true
 })
 

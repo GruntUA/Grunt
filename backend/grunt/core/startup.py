@@ -23,6 +23,41 @@ from grunt.core.metadata.system_doctypes import SYSTEM_DOCTYPES
 
 logger = structlog.get_logger()
 
+_CORE_DOCTYPES_DIR = __import__("pathlib").Path(__file__).parent / "doctypes"
+
+
+# ── Load built-in core DocTypes ───────────────────────────────────────────
+
+
+async def load_core_doctypes(session: AsyncSession, engine: AsyncEngine) -> None:
+    """Register DocTypes defined as JSON files in grunt/core/doctypes/.
+
+    These are first-class framework DocTypes (Dashboard, Report, etc.)
+    that live in the grunt package itself rather than in external apps.
+    """
+    import json  # noqa: PLC0415
+
+    from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
+    if not _CORE_DOCTYPES_DIR.exists():
+        return
+
+    for dt_file in sorted(_CORE_DOCTYPES_DIR.glob("*.json")):
+        try:
+            dt_data = json.loads(dt_file.read_text(encoding="utf-8"))
+            dt_name = dt_data.get("name", "")
+            if not dt_name:
+                continue
+            if dt_name in doctype_registry._doctypes:
+                continue  # already registered (hot-reload)
+            dt_obj = DocType.model_validate(dt_data)
+            await doctype_registry.register(dt_obj, session, engine)
+            await session.flush()
+            logger.info("startup.core_doctype_registered", doctype=dt_name)
+        except Exception as e:  # noqa: BLE001
+            logger.warning("startup.core_doctype_failed", file=dt_file.name, error=str(e))
+
 
 # ── Populate system DocType document tables ──────────────────────────────
 
@@ -256,26 +291,16 @@ GRUNT_WORKSPACE: dict[str, Any] = {
             "show_new_btn": True,
             "sequence": 50,
         },
-        # ── Дашборд ──────────────────────────────────────────────
+        # ── Дашборди ─────────────────────────────────────────────
         {
-            "section": "Дашборд",
+            "section": "Дашборди",
             "type": "DocType",
-            "label": "Графіки",
+            "label": "Дашборди",
             "icon": "📊",
-            "link_to": "DashboardChart",
+            "link_to": "Dashboard",
             "show_count": True,
             "show_new_btn": True,
             "sequence": 60,
-        },
-        {
-            "section": "Дашборд",
-            "type": "DocType",
-            "label": "Числові картки",
-            "icon": "🔢",
-            "link_to": "NumberCard",
-            "show_count": True,
-            "show_new_btn": True,
-            "sequence": 61,
         },
         # ── Система ──────────────────────────────────────────────
         {
