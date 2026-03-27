@@ -29,8 +29,8 @@ const localFields = computed({
       item-key="fieldname"
       handle=".drag-handle"
       ghost-class="opacity-30"
-      class="flex flex-col gap-1.5 min-h-[60px] p-1.5 rounded-[--grunt-radius-sm] border border-dashed border-transparent transition-colors"
-      :class="{ 'border-[--grunt-border] bg-[--grunt-surface-secondary]/50': !fields.length }"
+      class="flex flex-col gap-1.5 min-h-[60px] p-1.5 rounded-sm border border-dashed border-transparent transition-colors"
+      :class="{ 'border-border bg-background/50': !fields.length }"
     >
       <template #item="{ element: f }">
         <CanvasFieldCard
@@ -44,7 +44,7 @@ const localFields = computed({
       <template #footer>
         <div
           v-if="!fields.length"
-          class="flex items-center justify-center h-10 text-[--grunt-text-muted] text-xs select-none"
+          class="flex items-center justify-center h-10 text-muted-foreground/70 text-xs select-none"
         >
           Drop fields here
         </div>

@@ -53,8 +53,8 @@ async function createDocType() {
   <div class="p-8">
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="text-2xl font-bold text-[--grunt-text-primary]">App Studio</h1>
-        <p class="text-sm text-[--grunt-text-secondary] mt-1">Конструктор DocTypes і форм</p>
+        <h1 class="text-2xl font-bold text-foreground">App Studio</h1>
+        <p class="text-sm text-muted-foreground mt-1">Конструктор DocTypes і форм</p>
       </div>
       <Button @click="showNewModal = true">+ Новий DocType</Button>
     </div>
@@ -63,7 +63,7 @@ async function createDocType() {
       <Spinner size="lg" />
     </div>
 
-    <div v-else-if="!doctypes.length" class="text-center py-16 text-[--grunt-text-muted]">
+    <div v-else-if="!doctypes.length" class="text-center py-16 text-muted-foreground/70">
       <p class="text-4xl mb-3">📋</p>
       <p>Ще немає DocTypes. Створіть перший!</p>
     </div>
@@ -72,16 +72,16 @@ async function createDocType() {
       <div
         v-for="dt in doctypes"
         :key="dt.name"
-        class="bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-lg] p-5 hover:border-[--grunt-primary] hover:shadow-sm transition-all"
+        class="bg-card border border-border rounded-lg p-5 hover:border-primary hover:shadow-sm transition-all"
       >
         <div class="flex items-start justify-between mb-3">
           <div>
-            <p class="font-semibold text-[--grunt-text-primary]">{{ dt.label }}</p>
-            <p class="text-xs text-[--grunt-text-muted] mt-0.5">{{ dt.name }}</p>
+            <p class="font-semibold text-foreground">{{ dt.label }}</p>
+            <p class="text-xs text-muted-foreground/70 mt-0.5">{{ dt.name }}</p>
           </div>
-          <span class="text-xs px-2 py-0.5 bg-[--grunt-surface-secondary] rounded text-[--grunt-text-secondary]">{{ dt.module }}</span>
+          <span class="text-xs px-2 py-0.5 bg-background rounded text-muted-foreground">{{ dt.module }}</span>
         </div>
-        <p class="text-sm text-[--grunt-text-secondary] mb-4">{{ dt.module }}</p>
+        <p class="text-sm text-muted-foreground mb-4">{{ dt.module }}</p>
         <Button size="sm" variant="secondary" @click="router.push(`/studio/${dt.name}/builder`)">Редагувати форму</Button>
       </div>
     </div>
@@ -109,7 +109,7 @@ async function createDocType() {
           </FormField>
           <label class="flex items-center gap-2 cursor-pointer">
             <input v-model="newForm.is_child" type="checkbox" class="rounded" />
-            <span class="text-sm text-[--grunt-text-primary]">Child DocType (для Table поля)</span>
+            <span class="text-sm text-foreground">Child DocType (для Table поля)</span>
           </label>
         </div>
         <DialogFooter>

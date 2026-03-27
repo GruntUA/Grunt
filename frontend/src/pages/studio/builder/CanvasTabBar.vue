@@ -38,7 +38,7 @@ function cancelRename() {
 </script>
 
 <template>
-  <div class="flex items-center gap-0 border-b border-[--grunt-border] bg-[--grunt-surface] px-2 shrink-0">
+  <div class="flex items-center gap-0 border-b border-border bg-card px-2 shrink-0">
     <draggable
       :model-value="tabs"
       item-key="_fieldname"
@@ -52,8 +52,8 @@ function cancelRename() {
         <div
           class="relative flex items-center gap-1 px-3 py-2.5 cursor-pointer select-none group"
           :class="activeIndex === i
-            ? 'text-[--grunt-primary]'
-            : 'text-[--grunt-text-secondary] hover:text-[--grunt-text-primary]'"
+            ? 'text-primary'
+            : 'text-muted-foreground hover:text-foreground'"
           @click="emit('update:activeIndex', i)"
           @dblclick.stop="startRename(tab)"
         >
@@ -62,7 +62,7 @@ function cancelRename() {
             <input
               v-model="editLabel"
               type="text"
-              class="text-sm font-medium bg-transparent border-b border-[--grunt-primary] outline-none w-24 px-0 py-0"
+              class="text-sm font-medium bg-transparent border-b border-primary outline-none w-24 px-0 py-0"
               @blur="finishRename(tab)"
               @keydown.enter="finishRename(tab)"
               @keydown.escape="cancelRename"
@@ -80,14 +80,14 @@ function cancelRename() {
           <button
             v-if="tab._field && tabs.length > 1"
             type="button"
-            class="text-[--grunt-text-muted] hover:text-[--grunt-danger] text-xs opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+            class="text-muted-foreground/70 hover:text-destructive text-xs opacity-0 group-hover:opacity-100 transition-opacity ml-1"
             @click.stop="emit('deleteTab', tab._fieldname)"
           >×</button>
 
           <!-- Active indicator -->
           <div
             v-if="activeIndex === i"
-            class="absolute bottom-0 left-2 right-2 h-0.5 bg-[--grunt-primary] rounded-t"
+            class="absolute bottom-0 left-2 right-2 h-0.5 bg-primary rounded-t"
           />
         </div>
       </template>
@@ -96,7 +96,7 @@ function cancelRename() {
     <!-- Add tab button -->
     <button
       type="button"
-      class="px-3 py-2.5 text-sm text-[--grunt-text-muted] hover:text-[--grunt-primary] transition-colors shrink-0"
+      class="px-3 py-2.5 text-sm text-muted-foreground/70 hover:text-primary transition-colors shrink-0"
       title="Add tab"
       @click="emit('addTab')"
     >+</button>

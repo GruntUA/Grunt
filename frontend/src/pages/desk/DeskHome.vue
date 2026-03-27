@@ -59,43 +59,43 @@ function actionLabel(action: string): string {
 
 <template>
   <div class="p-8">
-    <h1 class="text-2xl font-semibold text-[--grunt-text-primary] mb-1">
+    <h1 class="text-2xl font-semibold text-foreground mb-1">
       Вітаємо, {{ auth.user?.full_name ?? 'користувач' }}
     </h1>
-    <p class="text-sm text-[--grunt-text-secondary] mb-8">Оберіть розділ нижче або у меню зліва</p>
+    <p class="text-sm text-muted-foreground mb-8">Оберіть розділ нижче або у меню зліва</p>
 
     <!-- DocType summary cards -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
       <div
         v-for="dt in dtStore.doctypes"
         :key="dt.name"
-        class="bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-md] p-5 cursor-pointer hover:border-[--grunt-primary] hover:shadow-[--grunt-shadow-sm] transition-all"
+        class="bg-card border border-border rounded-md p-5 cursor-pointer hover:border-primary hover:shadow-sm transition-all"
         @click="router.push(`/${dt.name}`)"
       >
-        <h3 class="font-medium text-[--grunt-text-primary]">{{ dt.label }}</h3>
-        <p class="text-xs text-[--grunt-text-muted] mt-1">{{ dt.module }}</p>
-        <p class="text-2xl font-bold text-[--grunt-primary] mt-3">
+        <h3 class="font-medium text-foreground">{{ dt.label }}</h3>
+        <p class="text-xs text-muted-foreground/70 mt-1">{{ dt.module }}</p>
+        <p class="text-2xl font-bold text-primary mt-3">
           {{ docCounts[dt.name] ?? '—' }}
         </p>
-        <p class="text-xs text-[--grunt-text-muted]">записів</p>
+        <p class="text-xs text-muted-foreground/70">записів</p>
       </div>
     </div>
 
     <!-- Recent activity feed -->
     <div v-if="recentActivity.length > 0">
-      <h2 class="text-base font-semibold text-[--grunt-text-primary] mb-3">Остання активність</h2>
+      <h2 class="text-base font-semibold text-foreground mb-3">Остання активність</h2>
       <ul class="space-y-2">
         <li
           v-for="entry in recentActivity"
           :key="entry.id"
-          class="flex items-center gap-3 text-sm bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-sm] px-4 py-2"
+          class="flex items-center gap-3 text-sm bg-card border border-border rounded-sm px-4 py-2"
         >
-          <span class="text-[--grunt-text-muted] text-xs whitespace-nowrap">
+          <span class="text-muted-foreground/70 text-xs whitespace-nowrap">
             {{ entry.created_at ? new Date(entry.created_at).toLocaleString('uk-UA') : '—' }}
           </span>
-          <span class="font-medium text-[--grunt-text-primary]">{{ entry.user }}</span>
-          <span class="text-[--grunt-text-secondary]">{{ actionLabel(entry.action) }}</span>
-          <span class="text-[--grunt-primary]">{{ entry.doctype }}</span>
+          <span class="font-medium text-foreground">{{ entry.user }}</span>
+          <span class="text-muted-foreground">{{ actionLabel(entry.action) }}</span>
+          <span class="text-primary">{{ entry.doctype }}</span>
         </li>
       </ul>
     </div>

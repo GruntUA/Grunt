@@ -23,8 +23,8 @@ function update(key: keyof WorkflowTransition, val: unknown) {
 </script>
 
 <template>
-  <div class="p-4 border-l border-[--grunt-border] bg-[--grunt-surface-secondary] w-64 flex-shrink-0">
-    <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-4">Перехід</p>
+  <div class="p-4 border-l border-border bg-background w-64 flex-shrink-0">
+    <p class="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wide mb-4">Перехід</p>
     <div class="flex flex-col gap-3">
       <FormField label="Дія (назва кнопки) *">
         <template #default="{ id }">
@@ -56,12 +56,12 @@ function update(key: keyof WorkflowTransition, val: unknown) {
         </template>
       </FormField>
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-[--grunt-text-primary]">Дозволені ролі</label>
+        <label class="text-sm font-medium text-foreground">Дозволені ролі</label>
         <textarea
           :value="(transition.allowed_roles ?? []).join('\n')"
           rows="3"
           placeholder="Кожна роль з нового рядка"
-          class="w-full text-sm border border-[--grunt-border] rounded-[--grunt-radius-sm] px-2 py-1.5 focus:outline-none focus:border-[--grunt-primary]"
+          class="w-full text-sm border border-border rounded-sm px-2 py-1.5 focus:outline-none focus:border-primary"
           @input="update('allowed_roles', ($event.target as HTMLTextAreaElement).value.split('\n').map(r => r.trim()).filter(Boolean))"
         />
       </div>

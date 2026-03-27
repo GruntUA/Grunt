@@ -86,12 +86,12 @@ function addLayoutItem(type: FieldType) {
 </script>
 
 <template>
-  <div class="h-full overflow-y-auto p-3 border-r border-[--grunt-border] bg-[--grunt-surface-secondary]">
-    <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-3 px-1">Fields</p>
+  <div class="h-full overflow-y-auto p-3 border-r border-border bg-background">
+    <p class="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wide mb-3 px-1">Fields</p>
 
     <!-- Draggable field groups -->
     <div v-for="group in fieldGroups" :key="group.label" class="mb-4">
-      <p class="text-xs text-[--grunt-text-muted] px-1 mb-1">{{ group.label }}</p>
+      <p class="text-xs text-muted-foreground/70 px-1 mb-1">{{ group.label }}</p>
       <draggable
         :model-value="group.items"
         :group="{ name: 'builder-fields', pull: 'clone', put: false }"
@@ -102,10 +102,10 @@ function addLayoutItem(type: FieldType) {
       >
         <template #item="{ element: item }">
           <div
-            class="flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-[--grunt-border] transition-colors text-left w-full cursor-grab active:cursor-grabbing"
+            class="flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-border transition-colors text-left w-full cursor-grab active:cursor-grabbing"
           >
             <span class="text-base w-5 text-center shrink-0">{{ item.icon }}</span>
-            <span class="text-[--grunt-text-primary]">{{ item.label }}</span>
+            <span class="text-foreground">{{ item.label }}</span>
           </div>
         </template>
       </draggable>
@@ -113,17 +113,17 @@ function addLayoutItem(type: FieldType) {
 
     <!-- Layout items (click only) -->
     <div class="mb-4">
-      <p class="text-xs text-[--grunt-text-muted] px-1 mb-1">Структурні</p>
+      <p class="text-xs text-muted-foreground/70 px-1 mb-1">Структурні</p>
       <div class="flex flex-col gap-0.5">
         <button
           v-for="item in layoutItems"
           :key="item.type"
           type="button"
-          class="flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-[--grunt-border] transition-colors text-left w-full"
+          class="flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-border transition-colors text-left w-full"
           @click="addLayoutItem(item.type)"
         >
           <span class="text-base w-5 text-center shrink-0">{{ item.icon }}</span>
-          <span class="text-[--grunt-text-primary]">{{ item.label }}</span>
+          <span class="text-foreground">{{ item.label }}</span>
         </button>
       </div>
     </div>

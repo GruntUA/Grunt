@@ -35,12 +35,12 @@ function logout() {
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-[--grunt-surface-secondary]">
+  <div class="flex h-screen overflow-hidden bg-background">
     <!-- Sidebar -->
-    <aside class="w-60 flex-shrink-0 flex flex-col bg-[--grunt-surface] border-r border-[--grunt-border]">
+    <aside class="w-60 flex-shrink-0 flex flex-col bg-card border-r border-border">
       <!-- Logo -->
-      <div class="h-14 flex items-center px-5 border-b border-[--grunt-border]">
-        <RouterLink to="/" class="text-lg font-bold text-[--grunt-primary]">Ґрунт</RouterLink>
+      <div class="h-14 flex items-center px-5 border-b border-border">
+        <RouterLink to="/" class="text-lg font-bold text-primary">Ґрунт</RouterLink>
       </div>
 
       <!-- DocType nav -->
@@ -51,10 +51,10 @@ function logout() {
         <RouterLink
           to="/reports"
           :class="[
-            'flex items-center gap-2 px-3 py-2 text-sm rounded-[--grunt-radius-sm] mb-1 transition-colors',
+            'flex items-center gap-2 px-3 py-2 text-sm rounded-sm mb-1 transition-colors',
             route.path.startsWith('/reports')
-              ? 'bg-[--grunt-primary-light] text-[--grunt-primary] font-medium'
-              : 'text-[--grunt-text-secondary] hover:bg-[--grunt-surface-secondary]'
+              ? 'bg-accent text-primary font-medium'
+              : 'text-muted-foreground hover:bg-background'
           ]"
         >
           <span>📊</span> Звіти
@@ -62,17 +62,17 @@ function logout() {
 
         <!-- App pages (dynamic from installed apps) -->
         <template v-for="(pages, section) in sidebarSections" :key="section">
-          <hr class="border-[--grunt-border] my-2" />
-          <p class="px-3 py-1 text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wider">{{ section }}</p>
+          <hr class="border-border my-2" />
+          <p class="px-3 py-1 text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">{{ section }}</p>
           <RouterLink
             v-for="page in pages"
             :key="page.route"
             :to="page.route"
             :class="[
-              'flex items-center gap-2 px-3 py-2 text-sm rounded-[--grunt-radius-sm] mb-0.5 transition-colors',
+              'flex items-center gap-2 px-3 py-2 text-sm rounded-sm mb-0.5 transition-colors',
               route.path === page.route
-                ? 'bg-[--grunt-primary-light] text-[--grunt-primary] font-medium'
-                : 'text-[--grunt-text-secondary] hover:bg-[--grunt-surface-secondary]'
+                ? 'bg-accent text-primary font-medium'
+                : 'text-muted-foreground hover:bg-background'
             ]"
           >
             <span v-if="page.icon">{{ page.icon }}</span>
@@ -80,17 +80,17 @@ function logout() {
           </RouterLink>
         </template>
 
-        <hr class="border-[--grunt-border] my-2" />
+        <hr class="border-border my-2" />
 
         <RouterLink
           v-for="dt in dtStore.doctypes"
           :key="dt.name"
           :to="`/${dt.name}`"
           :class="[
-            'flex items-center px-3 py-2 text-sm rounded-[--grunt-radius-sm] mb-0.5 transition-colors',
+            'flex items-center px-3 py-2 text-sm rounded-sm mb-0.5 transition-colors',
             route.params.doctype === dt.name
-              ? 'bg-[--grunt-primary-light] text-[--grunt-primary] font-medium'
-              : 'text-[--grunt-text-secondary] hover:bg-[--grunt-surface-secondary]'
+              ? 'bg-accent text-primary font-medium'
+              : 'text-muted-foreground hover:bg-background'
           ]"
         >
           {{ dt.label }}
@@ -98,37 +98,37 @@ function logout() {
       </nav>
 
       <!-- App Studio links (superadmin only) -->
-      <div v-if="auth.user?.is_superadmin" class="px-2 pb-2 flex flex-col gap-0.5 border-t border-[--grunt-border] pt-2">
+      <div v-if="auth.user?.is_superadmin" class="px-2 pb-2 flex flex-col gap-0.5 border-t border-border pt-2">
         <RouterLink
           to="/studio"
-          class="flex items-center gap-2 px-3 py-2 text-sm rounded-[--grunt-radius-sm] text-[--grunt-text-secondary] hover:bg-[--grunt-surface-secondary] transition-colors"
+          class="flex items-center gap-2 px-3 py-2 text-sm rounded-sm text-muted-foreground hover:bg-background transition-colors"
         >
           <span>🔧</span> App Studio
         </RouterLink>
         <RouterLink
           to="/studio/workspaces"
-          class="flex items-center gap-2 px-3 py-2 text-sm rounded-[--grunt-radius-sm] text-[--grunt-text-secondary] hover:bg-[--grunt-surface-secondary] transition-colors"
+          class="flex items-center gap-2 px-3 py-2 text-sm rounded-sm text-muted-foreground hover:bg-background transition-colors"
         >
           <span>🗂</span> Воркспейси
         </RouterLink>
         <RouterLink
           to="/studio/users"
-          class="flex items-center gap-2 px-3 py-2 text-sm rounded-[--grunt-radius-sm] text-[--grunt-text-secondary] hover:bg-[--grunt-surface-secondary] transition-colors"
+          class="flex items-center gap-2 px-3 py-2 text-sm rounded-sm text-muted-foreground hover:bg-background transition-colors"
         >
           <span>👥</span> Користувачі
         </RouterLink>
         <RouterLink
           to="/studio/roles"
-          class="flex items-center gap-2 px-3 py-2 text-sm rounded-[--grunt-radius-sm] text-[--grunt-text-secondary] hover:bg-[--grunt-surface-secondary] transition-colors"
+          class="flex items-center gap-2 px-3 py-2 text-sm rounded-sm text-muted-foreground hover:bg-background transition-colors"
         >
           <span>🔐</span> Ролі
         </RouterLink>
       </div>
 
       <!-- User info + logout -->
-      <div class="border-t border-[--grunt-border] px-4 py-3">
-        <p class="text-xs text-[--grunt-text-muted] truncate">{{ auth.user?.full_name ?? auth.user?.email }}</p>
-        <button class="mt-1 text-xs text-[--grunt-text-secondary] hover:text-[--grunt-danger] transition-colors" @click="logout">
+      <div class="border-t border-border px-4 py-3">
+        <p class="text-xs text-muted-foreground/70 truncate">{{ auth.user?.full_name ?? auth.user?.email }}</p>
+        <button class="mt-1 text-xs text-muted-foreground hover:text-destructive transition-colors" @click="logout">
           Вийти
         </button>
       </div>

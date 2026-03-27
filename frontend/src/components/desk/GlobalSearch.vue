@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { workspaceApi } from '@/core/api/workspace'
 import type { SearchResult } from '@/core/api/workspace'
+import { Search, ArrowRight, FileText, AppWindow } from 'lucide-vue-next'
 
 const router = useRouter()
 const wsStore = useWorkspaceStore()
@@ -12,6 +13,7 @@ const query = ref('')
 const isOpen = ref(false)
 const results = ref<SearchResult[]>([])
 const searching = ref(false)
+const inputRef = ref<HTMLInputElement | null>(null)
 
 let debounceTimer: ReturnType<typeof setTimeout>
 
@@ -58,7 +60,6 @@ function goToWorkspace(name: string) {
 
 function goToDoc(r: SearchResult) {
   close()
-  // Find workspace that has this doctype
   const ws = wsStore.workspaces.find(w =>
     w.items.some(item => item.link_to === r.doctype)
   )
@@ -69,65 +70,92 @@ function goToDoc(r: SearchResult) {
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') close()
 }
+
+function handleGlobalKeydown(e: KeyboardEvent) {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault()
+    inputRef.value?.focus()
+    isOpen.value = true
+  }
+}
+
+onMounted(() => document.addEventListener('keydown', handleGlobalKeydown))
+onUnmounted(() => document.removeEventListener('keydown', handleGlobalKeydown))
 </script>
 
 <template>
   <div class="relative w-full max-w-xl mx-auto">
-    <div class="relative">
-      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[--grunt-text-muted]">🔍</span>
+    <div class="relative group">
+      <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/70 group-focus-within:text-primary transition-colors" />
       <input
+        ref="inputRef"
         v-model="query"
         type="text"
         placeholder="Пошук по додатках та документах..."
-        class="w-full pl-10 pr-4 py-2.5 text-sm bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-lg] focus:outline-none focus:border-[--grunt-primary] focus:ring-1 focus:ring-[--grunt-primary] transition-colors"
+        class="w-full pl-10 pr-16 py-3 text-sm bg-card border border-border/60 rounded-xl shadow-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 hover:border-border transition-all placeholder:text-muted-foreground/50"
         @focus="onFocus"
         @keydown="onKeydown"
       />
+      <kbd class="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-muted text-[10px] font-medium text-muted-foreground border border-border/60">
+        <span class="text-xs">&#8984;</span>K
+      </kbd>
     </div>
 
     <!-- Results overlay -->
-    <div
-      v-if="isOpen && query.trim()"
-      class="absolute top-full mt-2 w-full bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-lg] shadow-[--grunt-shadow-md] z-50 max-h-80 overflow-y-auto"
+    <Transition
+      enter-active-class="transition duration-150 ease-out"
+      enter-from-class="opacity-0 -translate-y-1"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition duration-100 ease-in"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
     >
-      <!-- Workspace matches -->
-      <div v-if="filteredWorkspaces.length > 0">
-        <p class="px-4 py-2 text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wider">Додатки</p>
-        <button
-          v-for="ws in filteredWorkspaces"
-          :key="ws.name"
-          class="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-[--grunt-surface-secondary] transition-colors"
-          @click="goToWorkspace(ws.name)"
-        >
-          <span>{{ ws.icon }}</span>
-          <span class="text-[--grunt-text-primary]">{{ ws.label }}</span>
-        </button>
-      </div>
+      <div
+        v-if="isOpen && query.trim()"
+        class="absolute top-full mt-2 w-full bg-card border border-border/60 rounded-xl shadow-xl shadow-black/[0.08] z-50 max-h-80 overflow-y-auto overflow-x-hidden"
+      >
+        <!-- Workspace matches -->
+        <div v-if="filteredWorkspaces.length > 0" class="p-1.5">
+          <p class="px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Додатки</p>
+          <button
+            v-for="ws in filteredWorkspaces"
+            :key="ws.name"
+            class="w-full flex items-center gap-3 px-2.5 py-2 text-sm rounded-lg hover:bg-muted transition-colors group"
+            @click="goToWorkspace(ws.name)"
+          >
+            <AppWindow class="w-4 h-4 text-muted-foreground/70" />
+            <span class="text-foreground flex-1 text-left">{{ ws.label }}</span>
+            <ArrowRight class="w-3.5 h-3.5 text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </button>
+        </div>
 
-      <!-- Document results -->
-      <div v-if="results.length > 0">
-        <p class="px-4 py-2 text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wider border-t border-[--grunt-border]">Документи</p>
-        <button
-          v-for="r in results"
-          :key="r.id"
-          class="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-[--grunt-surface-secondary] transition-colors"
-          @click="goToDoc(r)"
-        >
-          <span class="text-xs px-1.5 py-0.5 rounded bg-[--grunt-surface-secondary] text-[--grunt-text-muted]">{{ r.doctype }}</span>
-          <span class="text-[--grunt-text-primary]">{{ r.display_title }}</span>
-        </button>
-      </div>
+        <!-- Document results -->
+        <div v-if="results.length > 0" class="p-1.5" :class="{ 'border-t border-border': filteredWorkspaces.length > 0 }">
+          <p class="px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Документи</p>
+          <button
+            v-for="r in results"
+            :key="r.id"
+            class="w-full flex items-center gap-3 px-2.5 py-2 text-sm rounded-lg hover:bg-muted transition-colors group"
+            @click="goToDoc(r)"
+          >
+            <FileText class="w-4 h-4 text-muted-foreground/70" />
+            <span class="text-foreground flex-1 text-left">{{ r.display_title }}</span>
+            <span class="text-[11px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground font-medium">{{ r.doctype }}</span>
+          </button>
+        </div>
 
-      <!-- Loading -->
-      <div v-if="searching" class="px-4 py-3 text-sm text-[--grunt-text-muted] text-center">
-        Шукаю...
-      </div>
+        <!-- Loading -->
+        <div v-if="searching" class="px-4 py-6 text-sm text-muted-foreground text-center">
+          <div class="inline-block w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin mr-2 align-middle" />
+          Шукаю...
+        </div>
 
-      <!-- No results -->
-      <div v-if="!searching && query.trim() && !filteredWorkspaces.length && !results.length" class="px-4 py-3 text-sm text-[--grunt-text-muted] text-center">
-        Нічого не знайдено
+        <!-- No results -->
+        <div v-if="!searching && query.trim() && !filteredWorkspaces.length && !results.length" class="px-4 py-6 text-sm text-muted-foreground/70 text-center">
+          Нічого не знайдено за запитом "{{ query }}"
+        </div>
       </div>
-    </div>
+    </Transition>
   </div>
 
   <!-- Backdrop -->

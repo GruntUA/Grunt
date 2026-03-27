@@ -11,7 +11,7 @@ defineProps<{
   <div class="p-8">
     <WorkspaceBreadcrumb :workspace-name="workspaceName" :doctype="reportName" />
     <!-- Reuse existing ReportView if available -->
-    <div class="text-sm text-[--grunt-text-muted]">
+    <div class="text-sm text-muted-foreground/70">
       Звіт: {{ reportName }}
     </div>
   </div>

@@ -21,10 +21,10 @@ const isVisible = ref(false)
         class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
         @click.self="isVisible = false"
       >
-        <div class="bg-[--grunt-surface] rounded-[--grunt-radius-lg] shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          <div class="flex items-center justify-between p-4 border-b border-[--grunt-border]">
-            <h2 class="font-semibold text-[--grunt-text-primary]">Попередній перегляд: {{ builder.doctype?.label }}</h2>
-            <button type="button" class="text-[--grunt-text-muted] hover:text-[--grunt-text-primary]" @click="isVisible = false">✕</button>
+        <div class="bg-card rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div class="flex items-center justify-between p-4 border-b border-border">
+            <h2 class="font-semibold text-foreground">Попередній перегляд: {{ builder.doctype?.label }}</h2>
+            <button type="button" class="text-muted-foreground/70 hover:text-foreground" @click="isVisible = false">✕</button>
           </div>
           <div class="p-6">
             <FormRenderer

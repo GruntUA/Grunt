@@ -71,12 +71,12 @@ function findWorkspaceForDoc(doc: RecentDoc) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[--grunt-surface-secondary]">
+  <div class="min-h-screen bg-background">
     <DeskTopBar />
 
     <main class="max-w-5xl mx-auto px-6 py-10">
       <!-- Greeting -->
-      <h1 class="text-2xl font-semibold text-[--grunt-text-primary] mb-6">
+      <h1 class="text-2xl font-semibold text-foreground mb-6">
         {{ greeting }} 👋
       </h1>
 
@@ -87,7 +87,7 @@ function findWorkspaceForDoc(doc: RecentDoc) {
 
       <!-- Workspace cards -->
       <div class="mb-10">
-        <h2 class="text-sm font-semibold text-[--grunt-text-secondary] uppercase tracking-wider mb-4">Ваші додатки</h2>
+        <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Ваші додатки</h2>
 
         <div v-if="wsStore.loading" class="flex justify-center py-8">
           <Spinner size="lg" />
@@ -104,24 +104,24 @@ function findWorkspaceForDoc(doc: RecentDoc) {
           <!-- Add app button (superadmin only) -->
           <div
             v-if="auth.user?.is_superadmin"
-            class="flex flex-col items-center justify-center border-2 border-dashed border-[--grunt-border] rounded-[--grunt-radius-lg] cursor-pointer hover:border-[--grunt-primary] hover:bg-[--grunt-surface] transition-all"
+            class="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary hover:bg-card transition-all"
             :style="{ width: 'var(--grunt-app-card-w)', height: 'var(--grunt-app-card-h)' }"
             @click="router.push('/studio/workspaces')"
           >
-            <span class="text-2xl text-[--grunt-text-muted] mb-1">+</span>
-            <span class="text-xs text-[--grunt-text-muted]">Встановити додаток</span>
+            <span class="text-2xl text-muted-foreground/70 mb-1">+</span>
+            <span class="text-xs text-muted-foreground/70">Встановити додаток</span>
           </div>
         </div>
       </div>
 
       <!-- Recent documents -->
       <div v-if="recentDocs.length > 0">
-        <h2 class="text-sm font-semibold text-[--grunt-text-secondary] uppercase tracking-wider mb-4">Нещодавні документи</h2>
-        <div class="bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-lg] overflow-hidden">
+        <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Нещодавні документи</h2>
+        <div class="bg-card border border-border rounded-lg overflow-hidden">
           <div
             v-for="doc in recentDocs.slice(0, 5)"
             :key="doc.id"
-            class="flex items-center gap-3 px-4 py-3 border-b border-[--grunt-border] last:border-0 hover:bg-[--grunt-surface-secondary] cursor-pointer transition-colors"
+            class="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0 hover:bg-background cursor-pointer transition-colors"
             @click="router.push(`/${doc.workspace}/list/${doc.doctype}/${doc.id}`)"
           >
             <span
@@ -132,8 +132,8 @@ function findWorkspaceForDoc(doc: RecentDoc) {
                 color: findWorkspaceForDoc(doc)?.color ?? '#666'
               }"
             >{{ findWorkspaceForDoc(doc)?.label }}</span>
-            <span class="text-sm text-[--grunt-text-primary] flex-1">{{ doc.title }}</span>
-            <span class="text-xs text-[--grunt-text-muted]">{{ timeAgo(doc.ts) }}</span>
+            <span class="text-sm text-foreground flex-1">{{ doc.title }}</span>
+            <span class="text-xs text-muted-foreground/70">{{ timeAgo(doc.ts) }}</span>
           </div>
         </div>
       </div>

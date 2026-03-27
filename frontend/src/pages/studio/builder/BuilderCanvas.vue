@@ -96,7 +96,7 @@ function deselect() {
           <!-- Add section button -->
           <button
             type="button"
-            class="flex items-center justify-center gap-1.5 w-full py-2.5 border-2 border-dashed border-[--grunt-border] rounded-[--grunt-radius-md] text-sm text-[--grunt-text-muted] hover:text-[--grunt-primary] hover:border-[--grunt-primary]/40 transition-colors"
+            class="flex items-center justify-center gap-1.5 w-full py-2.5 border-2 border-dashed border-border rounded-md text-sm text-muted-foreground/70 hover:text-primary hover:border-primary/40 transition-colors"
             @click="onAddSection"
           >
             + Add Section
@@ -106,7 +106,7 @@ function deselect() {
 
       <div
         v-else
-        class="flex items-center justify-center h-full text-[--grunt-text-muted] text-sm"
+        class="flex items-center justify-center h-full text-muted-foreground/70 text-sm"
       >
         No fields yet. Add fields from the palette.
       </div>

@@ -174,7 +174,7 @@ onMounted(async () => {
 
 <template>
   <div class="p-8 max-w-6xl">
-    <h1 class="text-2xl font-bold text-[--grunt-text-primary] mb-6">ЦНАП — Дашборд</h1>
+    <h1 class="text-2xl font-bold text-foreground mb-6">ЦНАП — Дашборд</h1>
 
     <div v-if="loading" class="flex justify-center py-16">
       <Spinner size="lg" />
@@ -184,34 +184,34 @@ onMounted(async () => {
       <!-- KPI Cards -->
       <div class="grid grid-cols-4 gap-4 mb-8">
         <button
-          class="bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-lg] p-5 text-left hover:border-blue-400 transition-colors"
+          class="bg-card border border-border rounded-lg p-5 text-left hover:border-blue-400 transition-colors"
           @click="router.push('/Appeal?filter[status]=Нове&filter[received_date__gte]=' + today)"
         >
-          <div class="text-sm text-[--grunt-text-secondary] mb-1">Нових сьогодні</div>
+          <div class="text-sm text-muted-foreground mb-1">Нових сьогодні</div>
           <div class="text-3xl font-bold text-blue-600">{{ kpi.newToday }}</div>
         </button>
 
         <button
-          class="bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-lg] p-5 text-left hover:border-yellow-400 transition-colors"
+          class="bg-card border border-border rounded-lg p-5 text-left hover:border-yellow-400 transition-colors"
           @click="router.push('/Appeal?filter[status]=В роботі')"
         >
-          <div class="text-sm text-[--grunt-text-secondary] mb-1">В роботі</div>
+          <div class="text-sm text-muted-foreground mb-1">В роботі</div>
           <div class="text-3xl font-bold text-yellow-600">{{ kpi.inProgress }}</div>
         </button>
 
         <button
-          class="bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-lg] p-5 text-left hover:border-red-400 transition-colors"
+          class="bg-card border border-border rounded-lg p-5 text-left hover:border-red-400 transition-colors"
           @click="router.push('/Appeal?filter[deadline_date__lt]=' + today + '&filter[status__in]=Нове,В роботі,На погодженні')"
         >
-          <div class="text-sm text-[--grunt-text-secondary] mb-1">Прострочено</div>
+          <div class="text-sm text-muted-foreground mb-1">Прострочено</div>
           <div class="text-3xl font-bold text-red-600">{{ kpi.overdue }}</div>
         </button>
 
         <button
-          class="bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-lg] p-5 text-left hover:border-green-400 transition-colors"
+          class="bg-card border border-border rounded-lg p-5 text-left hover:border-green-400 transition-colors"
           @click="router.push('/Appeal?filter[status]=Виконано')"
         >
-          <div class="text-sm text-[--grunt-text-secondary] mb-1">Виконано цього місяця</div>
+          <div class="text-sm text-muted-foreground mb-1">Виконано цього місяця</div>
           <div class="text-3xl font-bold text-green-600">{{ kpi.completedMonth }}</div>
         </button>
       </div>
@@ -219,11 +219,11 @@ onMounted(async () => {
       <div class="grid grid-cols-3 gap-6">
         <!-- Recent Appeals (2/3 width) -->
         <div class="col-span-2">
-          <div class="bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-lg] p-5">
-            <h2 class="text-lg font-semibold text-[--grunt-text-primary] mb-4">Останні звернення</h2>
+          <div class="bg-card border border-border rounded-lg p-5">
+            <h2 class="text-lg font-semibold text-foreground mb-4">Останні звернення</h2>
             <table class="w-full text-sm">
               <thead>
-                <tr class="text-[--grunt-text-secondary] border-b border-[--grunt-border]">
+                <tr class="text-muted-foreground border-b border-border">
                   <th class="text-left py-2 px-2">Номер</th>
                   <th class="text-left py-2 px-2">Заявник</th>
                   <th class="text-left py-2 px-2">Послуга</th>
@@ -236,7 +236,7 @@ onMounted(async () => {
                 <tr
                   v-for="row in recentAppeals"
                   :key="row.id"
-                  class="border-b border-[--grunt-border] hover:bg-[--grunt-surface-secondary] cursor-pointer transition-colors"
+                  class="border-b border-border hover:bg-background cursor-pointer transition-colors"
                   :class="{ 'bg-red-50': isOverdue(row) }"
                   @click="router.push(`/Appeal/${row.id}`)"
                 >
@@ -255,7 +255,7 @@ onMounted(async () => {
                   </td>
                 </tr>
                 <tr v-if="recentAppeals.length === 0">
-                  <td colspan="6" class="py-8 text-center text-[--grunt-text-muted]">
+                  <td colspan="6" class="py-8 text-center text-muted-foreground/70">
                     Звернень поки немає
                   </td>
                 </tr>
@@ -266,12 +266,12 @@ onMounted(async () => {
 
         <!-- Status Chart (1/3 width) -->
         <div class="col-span-1">
-          <div class="bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-lg] p-5">
-            <h2 class="text-lg font-semibold text-[--grunt-text-primary] mb-4">По статусах</h2>
+          <div class="bg-card border border-border rounded-lg p-5">
+            <h2 class="text-lg font-semibold text-foreground mb-4">По статусах</h2>
             <div class="space-y-3">
               <div v-for="item in statusChart" :key="item.status" class="flex items-center gap-2">
-                <span class="text-xs text-[--grunt-text-secondary] w-28 truncate">{{ item.status }}</span>
-                <div class="flex-1 h-5 bg-[--grunt-surface-secondary] rounded overflow-hidden">
+                <span class="text-xs text-muted-foreground w-28 truncate">{{ item.status }}</span>
+                <div class="flex-1 h-5 bg-background rounded overflow-hidden">
                   <div
                     class="h-full rounded"
                     :style="{
@@ -280,27 +280,27 @@ onMounted(async () => {
                     }"
                   ></div>
                 </div>
-                <span class="text-xs font-medium text-[--grunt-text-primary] w-8 text-right">{{ item.count }}</span>
+                <span class="text-xs font-medium text-foreground w-8 text-right">{{ item.count }}</span>
               </div>
-              <p v-if="statusChart.length === 0" class="text-sm text-[--grunt-text-muted]">Немає даних</p>
+              <p v-if="statusChart.length === 0" class="text-sm text-muted-foreground/70">Немає даних</p>
             </div>
           </div>
 
           <!-- Top Services -->
-          <div class="bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-lg] p-5 mt-6">
-            <h2 class="text-lg font-semibold text-[--grunt-text-primary] mb-4">Топ послуги</h2>
+          <div class="bg-card border border-border rounded-lg p-5 mt-6">
+            <h2 class="text-lg font-semibold text-foreground mb-4">Топ послуги</h2>
             <div class="space-y-2">
               <div
                 v-for="(svc, idx) in topServices"
                 :key="svc.service_name"
                 class="flex items-center justify-between text-sm"
               >
-                <span class="text-[--grunt-text-secondary] truncate mr-2">
+                <span class="text-muted-foreground truncate mr-2">
                   {{ idx + 1 }}. {{ svc.service_name }}
                 </span>
-                <span class="font-medium text-[--grunt-text-primary] flex-shrink-0">{{ svc.count }}</span>
+                <span class="font-medium text-foreground flex-shrink-0">{{ svc.count }}</span>
               </div>
-              <p v-if="topServices.length === 0" class="text-sm text-[--grunt-text-muted]">Немає даних</p>
+              <p v-if="topServices.length === 0" class="text-sm text-muted-foreground/70">Немає даних</p>
             </div>
           </div>
         </div>

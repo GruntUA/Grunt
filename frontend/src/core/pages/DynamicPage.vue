@@ -30,7 +30,7 @@ onMounted(async () => {
 
 <template>
   <div v-if="error" class="p-8 text-center">
-    <p class="text-[--grunt-danger] text-sm">{{ error }}</p>
+    <p class="text-destructive text-sm">{{ error }}</p>
   </div>
   <div v-else-if="!component" class="flex justify-center py-16">
     <Spinner size="lg" />

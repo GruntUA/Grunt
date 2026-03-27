@@ -50,7 +50,7 @@ onMounted(loadUsers)
 <template>
   <div class="p-8 max-w-5xl">
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-xl font-semibold text-[--grunt-text-primary]">Користувачі</h1>
+      <h1 class="text-xl font-semibold text-foreground">Користувачі</h1>
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-16">
@@ -61,29 +61,29 @@ onMounted(loadUsers)
       <div
         v-for="user in users"
         :key="user.id"
-        class="bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-md] p-4"
+        class="bg-card border border-border rounded-md p-4"
       >
         <div class="flex items-start justify-between gap-4">
           <div>
-            <p class="font-medium text-[--grunt-text-primary]">{{ user.full_name }}</p>
-            <p class="text-sm text-[--grunt-text-secondary]">{{ user.email }}</p>
+            <p class="font-medium text-foreground">{{ user.full_name }}</p>
+            <p class="text-sm text-muted-foreground">{{ user.email }}</p>
             <span
               v-if="user.is_superadmin"
               class="inline-block mt-1 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full"
             >Superadmin</span>
           </div>
           <div class="flex-1">
-            <p class="text-xs text-[--grunt-text-muted] mb-1.5">Ролі:</p>
+            <p class="text-xs text-muted-foreground/70 mb-1.5">Ролі:</p>
             <div class="flex flex-wrap gap-1.5 mb-3">
               <span
                 v-for="role in user.roles"
                 :key="role"
-                class="inline-flex items-center gap-1 text-xs bg-[--grunt-primary-light] text-[--grunt-primary] px-2 py-0.5 rounded-full"
+                class="inline-flex items-center gap-1 text-xs bg-accent text-primary px-2 py-0.5 rounded-full"
               >
                 {{ role }}
-                <button class="hover:text-[--grunt-danger] font-bold" @click="removeRole(user.id, role)">&times;</button>
+                <button class="hover:text-destructive font-bold" @click="removeRole(user.id, role)">&times;</button>
               </span>
-              <span v-if="user.roles.length === 0" class="text-xs text-[--grunt-text-muted]">Немає ролей</span>
+              <span v-if="user.roles.length === 0" class="text-xs text-muted-foreground/70">Немає ролей</span>
             </div>
             <!-- Add role form for this user -->
             <div v-if="selectedUserId === user.id" class="flex gap-2">
@@ -91,7 +91,7 @@ onMounted(loadUsers)
                 v-model="newRole"
                 type="text"
                 placeholder="Назва ролі"
-                class="text-sm border border-[--grunt-border] rounded-[--grunt-radius-sm] px-2 py-1 focus:outline-none focus:border-[--grunt-primary]"
+                class="text-sm border border-border rounded-sm px-2 py-1 focus:outline-none focus:border-primary"
                 @keydown.enter="addRole(user.id)"
               />
               <Button size="sm" :disabled="isSubmitting" @click="addRole(user.id)"><Loader2 v-if="isSubmitting" class="size-4 animate-spin" />Додати</Button>

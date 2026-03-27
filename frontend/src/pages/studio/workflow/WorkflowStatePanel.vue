@@ -16,8 +16,8 @@ function update(key: keyof WorkflowState, val: unknown) {
 </script>
 
 <template>
-  <div class="p-4 border-l border-[--grunt-border] bg-[--grunt-surface-secondary] w-64 flex-shrink-0">
-    <p class="text-xs font-semibold text-[--grunt-text-muted] uppercase tracking-wide mb-4">Стан</p>
+  <div class="p-4 border-l border-border bg-background w-64 flex-shrink-0">
+    <p class="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wide mb-4">Стан</p>
     <div class="flex flex-col gap-3">
       <FormField label="Ім'я *">
         <template #default="{ id }">
@@ -30,11 +30,11 @@ function update(key: keyof WorkflowState, val: unknown) {
         </template>
       </FormField>
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-[--grunt-text-primary]">Колір</label>
+        <label class="text-sm font-medium text-foreground">Колір</label>
         <input
           type="color"
           :value="state.color || '#6b7280'"
-          class="w-full h-9 rounded border border-[--grunt-border] cursor-pointer"
+          class="w-full h-9 rounded border border-border cursor-pointer"
           @input="update('color', ($event.target as HTMLInputElement).value)"
         />
       </div>

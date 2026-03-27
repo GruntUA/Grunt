@@ -11,17 +11,6 @@ export default {
     	extend: {
     		colors: {
     			primary: {
-    				'50': '#f0fdf4',
-    				'100': '#dcfce7',
-    				'200': '#bbf7d0',
-    				'300': '#86efac',
-    				'400': '#4ade80',
-    				'500': '#22c55e',
-    				'600': '#16a34a',
-    				'700': '#2D6A4F',
-    				'800': '#166534',
-    				'900': '#14532d',
-    				'950': '#052e16',
     				DEFAULT: 'hsl(var(--primary))',
     				foreground: 'hsl(var(--primary-foreground))'
     			},
@@ -73,56 +62,38 @@ export default {
     			}
     		},
     		borderRadius: {
+    			xl: 'calc(var(--radius) + 4px)',
     			lg: 'var(--radius)',
     			md: 'calc(var(--radius) - 2px)',
     			sm: 'calc(var(--radius) - 4px)'
     		},
     		fontFamily: {
     			sans: [
+    				'Geist Variable',
     				'Inter',
     				'ui-sans-serif',
     				'system-ui',
     				'-apple-system',
     				'BlinkMacSystemFont',
-    				'Segoe UI',
-    				'Roboto',
-    				'Helvetica Neue',
-    				'Arial',
     				'sans-serif'
     			]
     		},
     		keyframes: {
     			'accordion-down': {
-    				from: {
-    					height: '0'
-    				},
-    				to: {
-    					height: 'var(--reka-accordion-content-height)'
-    				}
+    				from: { height: '0' },
+    				to: { height: 'var(--reka-accordion-content-height)' }
     			},
     			'accordion-up': {
-    				from: {
-    					height: 'var(--reka-accordion-content-height)'
-    				},
-    				to: {
-    					height: '0'
-    				}
+    				from: { height: 'var(--reka-accordion-content-height)' },
+    				to: { height: '0' }
     			},
     			'collapsible-down': {
-    				from: {
-    					height: '0'
-    				},
-    				to: {
-    					height: 'var(--radix-collapsible-content-height)'
-    				}
+    				from: { height: '0' },
+    				to: { height: 'var(--radix-collapsible-content-height)' }
     			},
     			'collapsible-up': {
-    				from: {
-    					height: 'var(--radix-collapsible-content-height)'
-    				},
-    				to: {
-    					height: '0'
-    				}
+    				from: { height: 'var(--radix-collapsible-content-height)' },
+    				to: { height: '0' }
     			}
     		},
     		animation: {
@@ -133,5 +104,5 @@ export default {
     		}
     	}
     },
-    plugins: [animate, require("tailwindcss-animate")],
+    plugins: [animate],
 }

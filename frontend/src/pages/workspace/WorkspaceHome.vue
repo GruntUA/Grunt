@@ -39,8 +39,8 @@ onMounted(async () => {
       <div class="flex items-center gap-3 mb-4">
         <span class="text-4xl">{{ wsStore.active.icon }}</span>
         <div>
-          <h1 class="text-xl font-semibold text-[--grunt-text-primary]">{{ wsStore.active.label }}</h1>
-          <p class="text-sm text-[--grunt-text-secondary]">{{ wsStore.active.description }}</p>
+          <h1 class="text-xl font-semibold text-foreground">{{ wsStore.active.label }}</h1>
+          <p class="text-sm text-muted-foreground">{{ wsStore.active.description }}</p>
         </div>
       </div>
 
@@ -48,12 +48,12 @@ onMounted(async () => {
         <button
           v-for="item in wsStore.active.items.filter(i => i.type !== 'Divider')"
           :key="item.link_to"
-          class="w-full flex items-center gap-3 px-4 py-3 text-sm bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-md] hover:border-[--grunt-primary] transition-colors text-left"
+          class="w-full flex items-center gap-3 px-4 py-3 text-sm bg-card border border-border rounded-md hover:border-primary transition-colors text-left"
           @click="navigateItem(item)"
         >
           <span>{{ item.icon }}</span>
-          <span class="text-[--grunt-text-primary]">{{ item.label }}</span>
-          <span class="text-xs text-[--grunt-text-muted] ml-auto">{{ item.type }}</span>
+          <span class="text-foreground">{{ item.label }}</span>
+          <span class="text-xs text-muted-foreground/70 ml-auto">{{ item.type }}</span>
         </button>
       </div>
     </div>

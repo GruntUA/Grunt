@@ -215,18 +215,18 @@ function getTransitionMid(t: WorkflowTransition) {
 <template>
   <div class="flex flex-col h-screen">
     <!-- Header -->
-    <div class="flex items-center justify-between px-6 py-3 border-b border-[--grunt-border] bg-[--grunt-surface]">
+    <div class="flex items-center justify-between px-6 py-3 border-b border-border bg-card">
       <div class="flex items-center gap-4">
-        <h1 class="text-base font-semibold text-[--grunt-text-primary]">
+        <h1 class="text-base font-semibold text-foreground">
           Workflow: {{ doctypeName }}
         </h1>
-        <div class="flex border border-[--grunt-border] rounded-[--grunt-radius-sm] overflow-hidden text-sm">
+        <div class="flex border border-border rounded-sm overflow-hidden text-sm">
           <button
-            :class="['px-3 py-1.5 transition-colors', activeTab === 'visual' ? 'bg-[--grunt-primary] text-white' : 'hover:bg-[--grunt-surface-secondary]']"
+            :class="['px-3 py-1.5 transition-colors', activeTab === 'visual' ? 'bg-primary text-white' : 'hover:bg-muted']"
             @click="activeTab = 'visual'"
           >Візуальний</button>
           <button
-            :class="['px-3 py-1.5 transition-colors', activeTab === 'json' ? 'bg-[--grunt-primary] text-white' : 'hover:bg-[--grunt-surface-secondary]']"
+            :class="['px-3 py-1.5 transition-colors', activeTab === 'json' ? 'bg-primary text-white' : 'hover:bg-muted']"
             @click="activeTab = 'json'"
           >JSON</button>
         </div>
@@ -247,10 +247,10 @@ function getTransitionMid(t: WorkflowTransition) {
       <div v-if="activeTab === 'json'" class="flex-1 flex flex-col p-6 gap-4">
         <textarea
           v-model="jsonText"
-          class="flex-1 font-mono text-sm border border-[--grunt-border] rounded-[--grunt-radius-md] p-4 focus:outline-none focus:border-[--grunt-primary] resize-none"
+          class="flex-1 font-mono text-sm border border-border rounded-md p-4 focus:outline-none focus:border-primary resize-none"
           spellcheck="false"
         />
-        <p v-if="jsonError" class="text-sm text-[--grunt-danger]">{{ jsonError }}</p>
+        <p v-if="jsonError" class="text-sm text-destructive">{{ jsonError }}</p>
         <div class="flex gap-2">
           <Button @click="applyJson">Застосувати</Button>
           <Button variant="secondary" @click="syncJsonText">Скинути</Button>
@@ -259,7 +259,7 @@ function getTransitionMid(t: WorkflowTransition) {
 
       <!-- Visual tab -->
       <template v-else>
-        <div class="flex-1 relative overflow-hidden bg-[--grunt-surface-secondary]">
+        <div class="flex-1 relative overflow-hidden bg-background">
           <svg
             class="w-full h-full cursor-default"
             @mousemove="onSvgMousemove"
@@ -340,7 +340,7 @@ function getTransitionMid(t: WorkflowTransition) {
           <!-- Empty state -->
           <div
             v-if="workflow.states.length === 0"
-            class="absolute inset-0 flex flex-col items-center justify-center text-[--grunt-text-muted] pointer-events-none"
+            class="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground/70 pointer-events-none"
           >
             <p class="text-sm">Додайте стани за допомогою кнопки "&#43; Стан"</p>
           </div>
@@ -362,7 +362,7 @@ function getTransitionMid(t: WorkflowTransition) {
         />
         <div
           v-else
-          class="w-64 flex-shrink-0 border-l border-[--grunt-border] flex items-center justify-center text-[--grunt-text-muted] text-sm p-4 text-center"
+          class="w-64 flex-shrink-0 border-l border-border flex items-center justify-center text-muted-foreground/70 text-sm p-4 text-center"
         >
           Натисніть на стан або перехід для редагування
         </div>

@@ -164,7 +164,7 @@ const doctypeOptions = computed(() =>
 <template>
   <div class="p-8">
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-xl font-semibold text-[--grunt-text-primary]">Воркспейси</h1>
+      <h1 class="text-xl font-semibold text-foreground">Воркспейси</h1>
       <Button @click="createNew">+ Новий</Button>
     </div>
 
@@ -176,15 +176,15 @@ const doctypeOptions = computed(() =>
         <div
           v-for="ws in workspaces"
           :key="ws.name"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-[--grunt-radius-md] cursor-pointer transition-colors"
-          :class="selected?.name === ws.name ? 'bg-[--grunt-primary-light] border border-[--grunt-primary]/20' : 'bg-[--grunt-surface] border border-[--grunt-border] hover:border-[--grunt-primary]'"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-colors"
+          :class="selected?.name === ws.name ? 'bg-accent border border-primary/20' : 'bg-card border border-border hover:border-primary'"
           @click="selectWorkspace(ws)"
         >
           <span class="w-3 h-8 rounded-sm shrink-0" :style="{ backgroundColor: ws.color }" />
           <span class="text-base">{{ ws.icon }}</span>
           <div class="min-w-0 flex-1">
-            <p class="text-sm font-medium text-[--grunt-text-primary] truncate">{{ ws.label }}</p>
-            <p class="text-xs text-[--grunt-text-muted]">{{ ws.name }}</p>
+            <p class="text-sm font-medium text-foreground truncate">{{ ws.label }}</p>
+            <p class="text-xs text-muted-foreground/70">{{ ws.name }}</p>
           </div>
         </div>
       </div>
@@ -192,15 +192,15 @@ const doctypeOptions = computed(() =>
       <!-- Right: editor -->
       <div v-if="editForm" class="flex-1 min-w-0">
         <!-- Tabs -->
-        <div class="flex gap-1 mb-4 border-b border-[--grunt-border]">
+        <div class="flex gap-1 mb-4 border-b border-border">
           <button
             class="px-4 py-2 text-sm font-medium transition-colors"
-            :class="activeTab === 'general' ? 'text-[--grunt-primary] border-b-2 border-[--grunt-primary]' : 'text-[--grunt-text-secondary]'"
+            :class="activeTab === 'general' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'"
             @click="activeTab = 'general'"
           >Загальне</button>
           <button
             class="px-4 py-2 text-sm font-medium transition-colors"
-            :class="activeTab === 'navigation' ? 'text-[--grunt-primary] border-b-2 border-[--grunt-primary]' : 'text-[--grunt-text-secondary]'"
+            :class="activeTab === 'navigation' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'"
             @click="activeTab = 'navigation'"
           >Навігація</button>
         </div>
@@ -214,12 +214,12 @@ const doctypeOptions = computed(() =>
           </FormField>
           <div class="flex gap-4">
             <div class="flex-1">
-              <label class="block text-sm font-medium text-[--grunt-text-primary] mb-1">Іконка (emoji)</label>
-              <input v-model="editForm.icon" class="w-full px-3 py-2 text-lg border border-[--grunt-border] rounded-[--grunt-radius-sm] focus:outline-none focus:border-[--grunt-primary]" />
+              <label class="block text-sm font-medium text-foreground mb-1">Іконка (emoji)</label>
+              <input v-model="editForm.icon" class="w-full px-3 py-2 text-lg border border-border rounded-sm focus:outline-none focus:border-primary" />
             </div>
             <div class="flex-1">
-              <label class="block text-sm font-medium text-[--grunt-text-primary] mb-1">Колір</label>
-              <input v-model="editForm.color" type="color" class="w-full h-10 border border-[--grunt-border] rounded-[--grunt-radius-sm] cursor-pointer" />
+              <label class="block text-sm font-medium text-foreground mb-1">Колір</label>
+              <input v-model="editForm.color" type="color" class="w-full h-10 border border-border rounded-sm cursor-pointer" />
             </div>
           </div>
           <FormField label="Опис">
@@ -234,7 +234,7 @@ const doctypeOptions = computed(() =>
           </FormField>
           <div class="flex items-center gap-2">
             <input v-model="editForm.is_hidden" type="checkbox" class="rounded" id="ws-hidden" />
-            <label for="ws-hidden" class="text-sm text-[--grunt-text-secondary]">Приховано з Desk</label>
+            <label for="ws-hidden" class="text-sm text-muted-foreground">Приховано з Desk</label>
           </div>
         </div>
 
@@ -252,17 +252,17 @@ const doctypeOptions = computed(() =>
               <div
                 v-for="(item, i) in editForm.items"
                 :key="i"
-                class="flex items-center gap-2 px-3 py-2 bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-sm] text-sm"
+                class="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-sm text-sm"
               >
                 <!-- Reorder -->
                 <div class="flex flex-col gap-0.5 shrink-0">
-                  <button class="text-xs text-[--grunt-text-muted] hover:text-[--grunt-text-primary]" @click="moveItem(i, -1)">▲</button>
-                  <button class="text-xs text-[--grunt-text-muted] hover:text-[--grunt-text-primary]" @click="moveItem(i, 1)">▼</button>
+                  <button class="text-xs text-muted-foreground/70 hover:text-foreground" @click="moveItem(i, -1)">▲</button>
+                  <button class="text-xs text-muted-foreground/70 hover:text-foreground" @click="moveItem(i, 1)">▼</button>
                 </div>
 
                 <template v-if="item.type === 'Divider'">
-                  <hr class="flex-1 border-[--grunt-border]" />
-                  <span class="text-xs text-[--grunt-text-muted]">Розділювач</span>
+                  <hr class="flex-1 border-border" />
+                  <span class="text-xs text-muted-foreground/70">Розділювач</span>
                 </template>
 
                 <template v-else>
@@ -270,13 +270,13 @@ const doctypeOptions = computed(() =>
                   <input v-model="item.icon" class="w-8 text-center border-0 bg-transparent text-base" placeholder="📋" />
 
                   <!-- Section (if first in group) -->
-                  <input v-model="item.section" class="w-24 px-1 py-0.5 text-xs border border-[--grunt-border] rounded bg-[--grunt-surface-secondary] shrink-0" placeholder="Секція" />
+                  <input v-model="item.section" class="w-24 px-1 py-0.5 text-xs border border-border rounded bg-background shrink-0" placeholder="Секція" />
 
                   <!-- Label -->
-                  <input v-model="item.label" class="flex-1 min-w-0 px-1 py-0.5 border border-[--grunt-border] rounded" placeholder="Назва" />
+                  <input v-model="item.label" class="flex-1 min-w-0 px-1 py-0.5 border border-border rounded" placeholder="Назва" />
 
                   <!-- Type badge -->
-                  <select v-model="item.type" class="text-xs px-1 py-0.5 border border-[--grunt-border] rounded bg-[--grunt-surface-secondary] shrink-0">
+                  <select v-model="item.type" class="text-xs px-1 py-0.5 border border-border rounded bg-background shrink-0">
                     <option value="DocType">DocType</option>
                     <option value="Report">Report</option>
                     <option value="URL">URL</option>
@@ -287,39 +287,39 @@ const doctypeOptions = computed(() =>
                   <select
                     v-if="item.type === 'DocType'"
                     v-model="item.link_to"
-                    class="w-32 text-xs px-1 py-0.5 border border-[--grunt-border] rounded shrink-0"
+                    class="w-32 text-xs px-1 py-0.5 border border-border rounded shrink-0"
                   >
                     <option value="">—</option>
                     <option v-for="opt in doctypeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                   </select>
-                  <input v-else v-model="item.link_to" class="w-32 text-xs px-1 py-0.5 border border-[--grunt-border] rounded shrink-0" placeholder="link_to" />
+                  <input v-else v-model="item.link_to" class="w-32 text-xs px-1 py-0.5 border border-border rounded shrink-0" placeholder="link_to" />
 
                   <!-- Count checkbox -->
-                  <label class="flex items-center gap-0.5 text-xs text-[--grunt-text-muted] shrink-0" title="Показати лічильник">
+                  <label class="flex items-center gap-0.5 text-xs text-muted-foreground/70 shrink-0" title="Показати лічильник">
                     <input v-model="item.show_count" type="checkbox" class="rounded" />
                     #
                   </label>
                 </template>
 
                 <!-- Delete -->
-                <button class="text-[--grunt-text-muted] hover:text-[--grunt-danger] text-sm shrink-0" @click="removeItem(i)">×</button>
+                <button class="text-muted-foreground/70 hover:text-destructive text-sm shrink-0" @click="removeItem(i)">×</button>
               </div>
             </div>
           </div>
 
           <!-- Live preview -->
-          <div class="w-64 shrink-0 border border-[--grunt-border] rounded-[--grunt-radius-lg] overflow-hidden bg-[--grunt-sidebar-bg] h-fit">
-            <div class="px-3 py-2 border-b border-[--grunt-sidebar-border] text-xs font-medium text-[--grunt-text-muted] uppercase">Preview</div>
+          <div class="w-64 shrink-0 border border-border rounded-lg overflow-hidden bg-sidebar h-fit">
+            <div class="px-3 py-2 border-b border-sidebar-border text-xs font-medium text-muted-foreground/70 uppercase">Preview</div>
             <div class="py-2">
               <div class="px-3 py-1.5 flex items-center gap-2 text-sm">
                 <span>{{ editForm.icon }}</span>
-                <span class="font-semibold text-[--grunt-text-primary]">{{ editForm.label }}</span>
+                <span class="font-semibold text-foreground">{{ editForm.label }}</span>
               </div>
               <template v-for="(item, i) in editForm.items" :key="i">
-                <hr v-if="item.type === 'Divider'" class="border-[--grunt-sidebar-border] my-1 mx-3" />
+                <hr v-if="item.type === 'Divider'" class="border-sidebar-border my-1 mx-3" />
                 <template v-else>
-                  <p v-if="item.section" class="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-[--grunt-sidebar-section-color]">{{ item.section }}</p>
-                  <div class="flex items-center gap-2 px-3 py-1.5 text-sm text-[--grunt-text-secondary]">
+                  <p v-if="item.section" class="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">{{ item.section }}</p>
+                  <div class="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground">
                     <span class="text-xs">{{ item.icon }}</span>
                     <span class="truncate">{{ item.label || item.link_to || '...' }}</span>
                   </div>
@@ -330,14 +330,14 @@ const doctypeOptions = computed(() =>
         </div>
 
         <!-- Actions -->
-        <div class="flex gap-2 mt-6 pt-4 border-t border-[--grunt-border]">
+        <div class="flex gap-2 mt-6 pt-4 border-t border-border">
           <Button :disabled="saving" @click="save"><Loader2 v-if="saving" class="size-4 animate-spin" />Зберегти</Button>
           <Button variant="destructive" @click="deleteSelected">Видалити</Button>
         </div>
       </div>
 
       <!-- No selection -->
-      <div v-else class="flex-1 flex items-center justify-center text-sm text-[--grunt-text-muted]">
+      <div v-else class="flex-1 flex items-center justify-center text-sm text-muted-foreground/70">
         Оберіть workspace зліва або створіть новий
       </div>
     </div>

@@ -55,19 +55,19 @@ function selectSection() {
 
 <template>
   <div
-    class="border border-[--grunt-border] rounded-[--grunt-radius-md] bg-[--grunt-surface] overflow-hidden"
-    :class="builder.selectedFieldName === section._fieldname ? 'ring-2 ring-[--grunt-primary]/20' : ''"
+    class="border border-border rounded-md bg-card overflow-hidden"
+    :class="builder.selectedFieldName === section._fieldname ? 'ring-2 ring-primary/20' : ''"
   >
     <!-- Section header -->
     <div
-      class="flex items-center gap-2 px-3 py-2 bg-[--grunt-surface-secondary] border-b border-[--grunt-border] cursor-pointer select-none"
+      class="flex items-center gap-2 px-3 py-2 bg-background border-b border-border cursor-pointer select-none"
       @click="selectSection"
     >
       <!-- Collapsible indicator -->
       <button
         v-if="section._field"
         type="button"
-        class="text-xs text-[--grunt-text-muted] hover:text-[--grunt-text-secondary] w-4 shrink-0"
+        class="text-xs text-muted-foreground/70 hover:text-muted-foreground w-4 shrink-0"
         :title="section.collapsible ? 'Collapsible' : 'Not collapsible'"
         @click.stop="toggleCollapsible"
       >
@@ -79,7 +79,7 @@ function selectSection() {
         <input
           v-model="editLabel"
           type="text"
-          class="flex-1 text-xs font-semibold uppercase tracking-wide bg-transparent border-b border-[--grunt-primary] outline-none text-[--grunt-text-primary] px-0 py-0"
+          class="flex-1 text-xs font-semibold uppercase tracking-wide bg-transparent border-b border-primary outline-none text-foreground px-0 py-0"
           @blur="finishEditLabel"
           @keydown.enter="finishEditLabel"
           @keydown.escape="isEditingLabel = false"
@@ -89,8 +89,8 @@ function selectSection() {
       </template>
       <template v-else>
         <span
-          class="flex-1 text-xs font-semibold uppercase tracking-wide text-[--grunt-text-secondary] truncate"
-          :class="{ 'text-[--grunt-text-muted] italic': !section.label }"
+          class="flex-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground truncate"
+          :class="{ 'text-muted-foreground/70 italic': !section.label }"
           @dblclick.stop="startEditLabel"
         >
           {{ section.label || 'Section (double-click to rename)' }}
@@ -105,8 +105,8 @@ function selectSection() {
           type="button"
           class="w-5 h-5 text-[10px] rounded flex items-center justify-center transition-colors"
           :class="section.columns.length === n
-            ? 'bg-[--grunt-primary] text-white'
-            : 'text-[--grunt-text-muted] hover:bg-[--grunt-border]'"
+            ? 'bg-primary text-white'
+            : 'text-muted-foreground/70 hover:bg-border'"
           :title="`${n} column${n > 1 ? 's' : ''}`"
           @click.stop="setColumns(n)"
         >{{ n }}</button>
@@ -116,7 +116,7 @@ function selectSection() {
       <button
         v-if="section._field"
         type="button"
-        class="text-[--grunt-text-muted] hover:text-[--grunt-danger] text-xs shrink-0 px-1"
+        class="text-muted-foreground/70 hover:text-destructive text-xs shrink-0 px-1"
         title="Delete section"
         @click.stop="emit('delete')"
       >×</button>

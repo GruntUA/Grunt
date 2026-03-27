@@ -68,8 +68,8 @@ const titleField = computed(() => props.doctype.title_field ?? 'name')
         class="flex-shrink-0 w-72 flex flex-col"
       >
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm font-semibold text-[--grunt-text-primary]">{{ col }}</h3>
-          <span class="text-xs bg-[--grunt-surface-secondary] text-[--grunt-text-muted] rounded-full px-2 py-0.5">
+          <h3 class="text-sm font-semibold text-foreground">{{ col }}</h3>
+          <span class="text-xs bg-background text-muted-foreground/70 rounded-full px-2 py-0.5">
             {{ (cards[col] ?? []).length }}
           </span>
         </div>
@@ -77,17 +77,17 @@ const titleField = computed(() => props.doctype.title_field ?? 'name')
           v-model="cards[col]"
           group="kanban"
           item-key="id"
-          class="flex flex-col gap-2 min-h-20 flex-1 bg-[--grunt-surface-secondary] rounded-[--grunt-radius-lg] p-2"
+          class="flex flex-col gap-2 min-h-20 flex-1 bg-background rounded-lg p-2"
           @change="makeCardMovedHandler(col)"
         >
           <template #item="{ element: card }">
             <div
-              class="bg-[--grunt-surface] border border-[--grunt-border] rounded-[--grunt-radius-md] p-3 cursor-pointer hover:border-[--grunt-primary] transition-colors shadow-sm"
+              class="bg-card border border-border rounded-md p-3 cursor-pointer hover:border-primary transition-colors shadow-sm"
             >
-              <p class="text-sm font-medium text-[--grunt-text-primary] truncate">
+              <p class="text-sm font-medium text-foreground truncate">
                 {{ (card[titleField] ?? card['name'] ?? card['id']) as string }}
               </p>
-              <p class="text-xs text-[--grunt-text-muted] mt-1">
+              <p class="text-xs text-muted-foreground/70 mt-1">
                 {{ card['owner'] as string }}
               </p>
             </div>
