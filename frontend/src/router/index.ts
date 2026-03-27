@@ -45,6 +45,17 @@ const router = createRouter({
           component: () => import('@/pages/studio/workspaces/WorkspaceBuilder.vue'),
         },
         {
+          path: 'dashboards',
+          name: 'studio-dashboards',
+          component: () => import('@/pages/studio/dashboards/DashboardList.vue'),
+        },
+        {
+          path: 'dashboards/:name',
+          name: 'studio-dashboard-builder',
+          component: () => import('@/pages/studio/dashboards/DashboardBuilder.vue'),
+          props: true,
+        },
+        {
           path: ':doctype/builder',
           name: 'builder',
           component: () => import('@/pages/studio/builder/BuilderLayout.vue'),
@@ -100,6 +111,12 @@ const router = createRouter({
           path: 'report/:reportName',
           name: 'workspace-report',
           component: () => import('@/pages/workspace/WorkspaceReportView.vue'),
+          props: true,
+        },
+        {
+          path: 'dashboard/:dashboardName',
+          name: 'workspace-dashboard',
+          component: () => import('@/pages/workspace/WorkspaceDashboard.vue'),
           props: true,
         },
       ],

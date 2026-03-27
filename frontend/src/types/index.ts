@@ -207,3 +207,43 @@ export interface ApiError {
   success: false
   error: { code: string; message: string; details: string[] }
 }
+
+// ── Dashboard ─────────────────────────────────────────────────────────────
+
+export type WidgetType = 'metric' | 'chart_area' | 'chart_bar' | 'donut' | 'list'
+export type WidgetAggregation = 'count' | 'sum' | 'avg' | 'min' | 'max'
+export type WidgetPeriod = '7d' | '30d' | '90d' | '365d'
+export type WidgetCols = 1 | 2 | 3 | 4
+
+export interface DashboardWidget {
+  id: string
+  dashboard_id?: string
+  widget_type: WidgetType
+  title: string
+  doctype: string
+  field?: string | null
+  aggregation: WidgetAggregation
+  group_by?: string | null
+  date_field?: string | null
+  period: WidgetPeriod
+  filters?: Record<string, string>
+  cols: WidgetCols
+  color: string
+  icon?: string | null
+  sequence: number
+}
+
+export interface Dashboard {
+  id: string
+  name: string
+  label: string
+  description: string
+  workspace?: string | null
+  roles: string
+  is_published: boolean
+  created_at?: string
+  modified_at?: string
+  widgets: DashboardWidget[]
+}
+
+export interface DashboardSummary extends Omit<Dashboard, 'widgets'> {}

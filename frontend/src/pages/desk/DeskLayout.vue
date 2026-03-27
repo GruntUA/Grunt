@@ -7,7 +7,7 @@ import { usePageStore } from '@/stores/pages'
 import { Spinner } from '@/components/ui/spinner'
 import {
   BarChart2, Wrench, LayoutGrid, Users, ShieldCheck,
-  ChevronRight, LogOut, Sprout
+  ChevronRight, LogOut, Sprout, LayoutDashboard
 } from 'lucide-vue-next'
 
 const auth = useAuthStore()
@@ -145,6 +145,13 @@ function initials(name: string): string {
         >
           <ShieldCheck class="w-4 h-4 flex-shrink-0" />
           Ролі
+        </RouterLink>
+        <RouterLink
+          to="/studio/dashboards"
+          class="flex items-center gap-2.5 px-3 h-9 text-sm rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground transition-colors"
+        >
+          <LayoutDashboard class="w-4 h-4 flex-shrink-0" />
+          Дашборди
         </RouterLink>
       </div>
 

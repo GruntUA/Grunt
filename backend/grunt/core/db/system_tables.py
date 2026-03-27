@@ -492,3 +492,64 @@ class GruntNumberCard(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+class GruntDashboard(Base):
+    """Dashboard — named collection of widgets shown in the workspace."""
+
+    __tablename__ = "grunt_dashboard"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    label: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(String(500), nullable=False, default="")
+    workspace: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    roles: Mapped[str] = mapped_column(String(1000), nullable=False, default="")
+    is_published: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    modified_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    widgets: Mapped[list["GruntDashboardWidget"]] = relationship(
+        back_populates="dashboard",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        order_by="GruntDashboardWidget.sequence",
+    )
+
+
+class GruntDashboardWidget(Base):
+    """Widget belonging to a dashboard."""
+
+    __tablename__ = "grunt_dashboard_widget"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    dashboard_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("grunt_dashboard.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    # metric | chart_bar | chart_area | list | donut
+    widget_type: Mapped[str] = mapped_column(String(50), nullable=False, default="metric")
+    title: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+    doctype: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+    # field for aggregation (sum/avg) or group_by (chart/donut)
+    field: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    aggregation: Mapped[str] = mapped_column(String(20), nullable=False, default="count")
+    group_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    date_field: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # 7d | 30d | 90d | 365d
+    period: Mapped[str] = mapped_column(String(10), nullable=False, default="30d")
+    filters: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    # 1..4 grid column span
+    cols: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    color: Mapped[str] = mapped_column(String(30), nullable=False, default="primary")
+    icon: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    dashboard: Mapped["GruntDashboard"] = relationship(back_populates="widgets")

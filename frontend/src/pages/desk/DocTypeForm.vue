@@ -131,7 +131,11 @@ async function handleSave() {
     dtStore.invalidate(props.doctype)
     if (!props.id) {
       allowLeave = true
-      router.replace(`/${props.doctype}/${(saved as { id: string }).id}`)
+      const newId = (saved as { id: string }).id
+      const path = props.workspace
+        ? `/${props.workspace}/list/${props.doctype}/${newId}`
+        : `/${props.doctype}/${newId}`
+      router.replace(path)
     }
   } catch (err: unknown) {
     const e = err as { response?: { status?: number; data?: { detail?: string | string[] } } }
