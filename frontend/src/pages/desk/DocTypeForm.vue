@@ -5,6 +5,7 @@ import { useDocTypeStore } from '@/stores/doctype'
 import { useDocument } from '@/core/composables/useDocument'
 import { useToast } from '@/core/composables/useToast'
 import { useWebSocket } from '@/core/composables/useWebSocket'
+import { useClientScripts } from '@/core/composables/useClientScripts'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { DocType } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -58,6 +59,20 @@ const dt = ref<DocType | null>(null)
 const { document, form, isLoading, isDirty, isSaving, save, remove } = useDocument(props.doctype, props.id)
 const validationErrors = ref<Record<string, string>>({})
 
+// Client scripts
+const {
+  buttons: scriptButtons,
+  displayOverrides,
+  reqdOverrides,
+  runEvent: runScriptEvent,
+} = useClientScripts(props.doctype, {
+  getDoc: () => form.value,
+  getFields: () => (dt.value?.fields ?? []) as Record<string, unknown>[],
+  isNew: () => !props.id,
+  setValue: (field, value) => { form.value[field] = value },
+  save: () => handleSave(),
+})
+
 // Activity log
 const showLog = ref(false)
 const activityLog = ref<ActivityEntry[]>([])
@@ -87,7 +102,11 @@ const showLeaveModal = ref(false)
 let pendingRoute: string | null = null
 let allowLeave = false
 
-onMounted(async () => { dt.value = await dtStore.get(props.doctype) })
+onMounted(async () => {
+  dt.value = await dtStore.get(props.doctype)
+  // Run client scripts on_load after DocType metadata is available
+  await runScriptEvent('on_load')
+})
 
 // WebSocket real-time
 const wsUrl = computed(() => props.id ? `/api/v1/ws/${props.doctype}/${props.id}` : null)
@@ -125,9 +144,17 @@ function focusFirstError() {
 
 async function handleSave() {
   validationErrors.value = {}
+
+  // Run client script validation
+  const valid = await runScriptEvent('validate')
+  if (!valid) return
+
+  await runScriptEvent('before_save')
+
   try {
     const saved = await save()
     toast.success('Збережено')
+    runScriptEvent('after_save')
     dtStore.invalidate(props.doctype)
     if (!props.id) {
       allowLeave = true
@@ -197,6 +224,21 @@ function confirmLeave() {
     pendingRoute = null
   }
 }
+
+function onFormUpdate(updated: Record<string, unknown>) {
+  // Detect which field changed
+  const changedFields: string[] = []
+  for (const key of Object.keys(updated)) {
+    if (updated[key] !== form.value[key]) {
+      changedFields.push(key)
+    }
+  }
+  Object.assign(form.value, updated)
+  // Fire on_change for each changed field
+  for (const field of changedFields) {
+    runScriptEvent('on_change', field)
+  }
+}
 </script>
 
 <template>
@@ -218,6 +260,17 @@ function confirmLeave() {
     <div class="flex items-center justify-between mb-6 gap-4">
       <h1 class="text-xl font-semibold text-foreground truncate">{{ docTitle }}</h1>
       <div class="flex items-center gap-2 shrink-0">
+        <!-- Client script buttons -->
+        <Button
+          v-for="btn in scriptButtons"
+          :key="btn.label"
+          :variant="(btn.variant as any) ?? 'outline'"
+          size="sm"
+          @click="btn.action"
+        >
+          {{ btn.label }}
+        </Button>
+
         <!-- Print dropdown -->
         <DropdownMenu v-if="id">
           <DropdownMenuTrigger as-child>
@@ -277,7 +330,9 @@ function confirmLeave() {
           :model-value="form"
           :disabled="isSaving"
           :errors="validationErrors"
-          @update:model-value="Object.assign(form, $event)"
+          :overrides="displayOverrides"
+          :reqd-overrides="reqdOverrides"
+          @update:model-value="onFormUpdate($event)"
         />
       </div>
 

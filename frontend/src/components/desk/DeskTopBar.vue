@@ -2,7 +2,8 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { Bell, LogOut, Sprout } from 'lucide-vue-next'
+import NotificationBell from '@/components/desk/NotificationBell.vue'
+import { LogOut, Sprout } from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -29,12 +30,7 @@ function initials(name: string): string {
 
     <div class="flex items-center gap-1">
       <!-- Notifications -->
-      <button
-        class="relative p-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-        title="Сповіщення"
-      >
-        <Bell class="w-[18px] h-[18px]" />
-      </button>
+      <NotificationBell />
 
       <!-- User menu -->
       <div class="relative ml-1">

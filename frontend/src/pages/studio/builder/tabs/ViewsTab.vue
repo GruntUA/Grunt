@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { X, List, FileText, Columns3, Calendar, Plus } from 'lucide-vue-next'
+import { X, List, FileText, Columns3, Calendar, Plus, CircleDot } from 'lucide-vue-next'
+import type { StatusIndicator } from '@/types'
 
 const builder = useBuilderStore()
 
@@ -53,6 +54,75 @@ const formView = computed(() => builder.doctype?.form_view ?? { layout: 'standar
 
 function updateFormView(patch: Record<string, unknown>) {
   builder.updateDocType({ form_view: { ...formView.value, ...patch } })
+}
+
+// ── Status Config ──
+const hasStatus = computed(() => !!builder.doctype?.status_config)
+const statusField = computed(() => builder.doctype?.status_config?.field ?? '')
+const statusIndicators = computed(() => builder.doctype?.status_config?.indicators ?? [])
+
+// Fields that can be a status field: Select, Data, Text, Int
+const statusCandidateFields = computed(() =>
+  dataFields.value.filter(f => ['Select', 'Data', 'Text', 'Int'].includes(f.fieldtype))
+)
+
+// Get options from a Select field for auto-populating indicators
+function getSelectOptions(fieldname: string): string[] {
+  const f = dataFields.value.find(ff => ff.fieldname === fieldname)
+  if (!f || f.fieldtype !== 'Select' || !f.options) return []
+  return f.options.split('\n').map(o => o.trim()).filter(Boolean)
+}
+
+const statusColors = ['gray', 'blue', 'green', 'yellow', 'orange', 'red', 'purple', 'pink'] as const
+
+function toggleStatus(enabled: boolean) {
+  if (enabled) {
+    // Pick first Select field or first data field
+    const first = selectFields.value[0] ?? statusCandidateFields.value[0]
+    const fieldname = first?.fieldname ?? ''
+    const options = getSelectOptions(fieldname)
+    const indicators: StatusIndicator[] = options.map((val, i) => ({
+      value: val,
+      color: statusColors[i % statusColors.length],
+      icon: null,
+      label: null,
+    }))
+    builder.updateDocType({ status_config: { field: fieldname, indicators } })
+  } else {
+    builder.updateDocType({ status_config: null })
+  }
+}
+
+function updateStatusField(fieldname: string | number | bigint | Record<string, any> | null) {
+  if (!builder.doctype?.status_config) return
+  const fname = String(fieldname)
+  const options = getSelectOptions(fname)
+  // Keep existing indicators that match, add new ones for new options
+  const existing = builder.doctype.status_config.indicators
+  const existingMap = new Map(existing.map(ind => [ind.value, ind]))
+  const indicators: StatusIndicator[] = options.length > 0
+    ? options.map((val, i) => existingMap.get(val) ?? { value: val, color: statusColors[i % statusColors.length], icon: null, label: null })
+    : existing
+  builder.updateDocType({ status_config: { field: fname, indicators } })
+}
+
+function updateIndicator(index: number, patch: Partial<StatusIndicator>) {
+  if (!builder.doctype?.status_config) return
+  const indicators = [...builder.doctype.status_config.indicators]
+  indicators[index] = { ...indicators[index], ...patch }
+  builder.updateDocType({ status_config: { ...builder.doctype.status_config, indicators } })
+}
+
+function addIndicator() {
+  if (!builder.doctype?.status_config) return
+  const indicators = [...builder.doctype.status_config.indicators, { value: '', color: 'gray', icon: null, label: null }]
+  builder.updateDocType({ status_config: { ...builder.doctype.status_config, indicators } })
+}
+
+function removeIndicator(index: number) {
+  if (!builder.doctype?.status_config) return
+  const indicators = builder.doctype.status_config.indicators.filter((_, i) => i !== index)
+  builder.updateDocType({ status_config: { ...builder.doctype.status_config, indicators } })
 }
 
 // ── Kanban View ──
@@ -206,6 +276,125 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
       </div>
     </div>
 
+    <!-- Status Indicators -->
+    <div v-if="builder.doctype" class="rounded-lg border border-border bg-card overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 bg-muted/40 border-b border-border">
+        <div class="flex items-center gap-2.5">
+          <CircleDot class="size-4 text-muted-foreground" />
+          <h3 class="text-sm font-semibold text-foreground">Статуси</h3>
+        </div>
+        <Switch :model-value="hasStatus" @update:model-value="toggleStatus" />
+      </div>
+      <div v-if="builder.doctype.status_config" class="p-4 space-y-4">
+        <!-- Status field selector -->
+        <div class="space-y-1.5">
+          <Label class="text-xs text-muted-foreground">Поле статусу *</Label>
+          <Select :model-value="statusField" @update:model-value="updateStatusField">
+            <SelectTrigger class="h-8 text-xs"><SelectValue placeholder="Оберіть поле" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="f in statusCandidateFields" :key="f.fieldname" :value="f.fieldname">
+                {{ f.label }}
+                <span class="text-muted-foreground ml-1">({{ f.fieldtype }})</span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <!-- Indicators list -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <Label class="text-xs text-muted-foreground">Індикатори</Label>
+            <Button variant="outline" size="sm" class="h-7 px-2.5 text-xs gap-1" @click="addIndicator">
+              <Plus class="size-3" />
+              Додати
+            </Button>
+          </div>
+
+          <div
+            v-for="(ind, idx) in statusIndicators"
+            :key="idx"
+            class="flex items-center gap-2 p-2.5 border border-border rounded-md bg-muted/20"
+          >
+            <!-- Color dot preview -->
+            <div
+              class="size-3.5 rounded-full shrink-0 ring-1 ring-black/10"
+              :style="{ backgroundColor: `var(--status-${ind.color}, ${ind.color})` }"
+              :class="{
+                'bg-gray-400': ind.color === 'gray',
+                'bg-blue-500': ind.color === 'blue',
+                'bg-green-500': ind.color === 'green',
+                'bg-yellow-500': ind.color === 'yellow',
+                'bg-orange-500': ind.color === 'orange',
+                'bg-red-500': ind.color === 'red',
+                'bg-purple-500': ind.color === 'purple',
+                'bg-pink-500': ind.color === 'pink',
+              }"
+            />
+
+            <!-- Value -->
+            <Input
+              :model-value="ind.value"
+              placeholder="Значення"
+              class="h-7 text-xs flex-1 min-w-0"
+              @update:model-value="updateIndicator(idx, { value: String($event) })"
+            />
+
+            <!-- Color -->
+            <Select :model-value="ind.color" @update:model-value="updateIndicator(idx, { color: String($event) })">
+              <SelectTrigger class="h-7 text-xs w-28 shrink-0"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="c in statusColors" :key="c" :value="c">
+                  <span class="flex items-center gap-1.5">
+                    <span
+                      class="size-2.5 rounded-full inline-block"
+                      :class="{
+                        'bg-gray-400': c === 'gray',
+                        'bg-blue-500': c === 'blue',
+                        'bg-green-500': c === 'green',
+                        'bg-yellow-500': c === 'yellow',
+                        'bg-orange-500': c === 'orange',
+                        'bg-red-500': c === 'red',
+                        'bg-purple-500': c === 'purple',
+                        'bg-pink-500': c === 'pink',
+                      }"
+                    />
+                    {{ c }}
+                  </span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <!-- Icon (optional) -->
+            <Input
+              :model-value="ind.icon ?? ''"
+              placeholder="Іконка"
+              class="h-7 text-xs w-24 shrink-0"
+              title="Назва іконки Lucide (опціонально)"
+              @update:model-value="updateIndicator(idx, { icon: String($event) || null })"
+            />
+
+            <!-- Label override -->
+            <Input
+              :model-value="ind.label ?? ''"
+              placeholder="Мітка"
+              class="h-7 text-xs w-24 shrink-0"
+              title="Відображувана мітка (за замовчуванням = значення)"
+              @update:model-value="updateIndicator(idx, { label: String($event) || null })"
+            />
+
+            <!-- Remove -->
+            <button class="text-muted-foreground hover:text-destructive transition-colors shrink-0" @click="removeIndicator(idx)">
+              <X class="size-3.5" />
+            </button>
+          </div>
+
+          <p v-if="statusIndicators.length === 0" class="text-xs text-muted-foreground italic">
+            Немає індикаторів. Оберіть Select поле — варіанти додадуться автоматично.
+          </p>
+        </div>
+      </div>
+    </div>
+
     <!-- Kanban View -->
     <div v-if="builder.doctype" class="rounded-lg border border-border bg-card overflow-hidden">
       <div class="flex items-center justify-between px-4 py-3 bg-muted/40 border-b border-border">
@@ -213,7 +402,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
           <Columns3 class="size-4 text-muted-foreground" />
           <h3 class="text-sm font-semibold text-foreground">Канбан</h3>
         </div>
-        <Switch :checked="hasKanban" @update:checked="toggleKanban" />
+        <Switch :model-value="hasKanban" @update:model-value="toggleKanban" />
       </div>
       <div v-if="builder.doctype.kanban_view" class="p-4 space-y-3">
         <div class="grid grid-cols-2 gap-3">
@@ -257,7 +446,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
           <Calendar class="size-4 text-muted-foreground" />
           <h3 class="text-sm font-semibold text-foreground">Календар</h3>
         </div>
-        <Switch :checked="hasCalendar" @update:checked="toggleCalendar" />
+        <Switch :model-value="hasCalendar" @update:model-value="toggleCalendar" />
       </div>
       <div v-if="builder.doctype.calendar_view" class="p-4 space-y-4">
         <div class="grid grid-cols-2 gap-3">

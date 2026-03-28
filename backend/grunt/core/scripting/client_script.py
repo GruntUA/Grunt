@@ -33,4 +33,14 @@ async def get_client_scripts(
     )
     result = await session.execute(stmt)
     rows = result.scalars().all()
-    return [{"name": r.name, "script": r.script} for r in rows]
+    scripts: list[dict[str, Any]] = [{"name": r.name, "script": r.script} for r in rows]
+
+    # Append file-based client scripts (from app directories)
+    try:
+        from grunt.core.scripting.file_scripts import get_file_client_scripts  # noqa: PLC0415
+
+        scripts.extend(get_file_client_scripts(doctype))
+    except ImportError:
+        pass
+
+    return scripts

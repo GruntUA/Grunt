@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import type { WorkflowState, WorkflowTransition, WorkflowStep, WorkflowStepType } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Trash2, Plus, GitBranch, List, ChevronDown, GripVertical, X } from 'lucide-vue-next'
+import WorkflowGraph from '@/components/views/WorkflowGraph.vue'
 
 const builder = useBuilderStore()
 
@@ -31,31 +32,18 @@ const selectedTransition = computed(() =>
   selectedTransitionIndex.value !== null ? workflow.value.transitions[selectedTransitionIndex.value] ?? null : null
 )
 
-const LAYOUT_KEY = computed(() => `grunt_workflow_layout_${builder.doctype?.name}`)
-const positions = ref<Record<string, { x: number; y: number }>>({})
+const positions = computed(() => workflow.value.positions ?? {})
 
-onMounted(() => loadPositions())
-
-function loadPositions() {
-  try {
-    const raw = localStorage.getItem(LAYOUT_KEY.value)
-    if (raw) positions.value = JSON.parse(raw)
-  } catch {
-    positions.value = {}
-  }
+function onUpdatePositions(newPositions: Record<string, { x: number; y: number }>) {
+  builder.updateWorkflow({ positions: newPositions })
 }
 
-function savePositions() {
-  localStorage.setItem(LAYOUT_KEY.value, JSON.stringify(positions.value))
-}
-
-function getPos(stateName: string): { x: number; y: number } {
-  if (!positions.value[stateName]) {
-    const idx = workflow.value.states.findIndex(s => s.name === stateName)
-    positions.value[stateName] = { x: 80 + idx * 180, y: 100 }
-    savePositions()
-  }
-  return positions.value[stateName]
+function onGraphConnect(connection: { from: string; to: string }) {
+  builder.addWorkflowTransition({
+    from_state: connection.from,
+    to_state: connection.to,
+    action: 'Action',
+  })
 }
 
 function toggleWorkflow(enabled: boolean) {
@@ -76,19 +64,23 @@ function updateState(idx: number, key: keyof WorkflowState, val: unknown) {
   const oldName = states[idx].name
   states[idx] = { ...states[idx], [key]: val }
   let transitions = [...builder.doctype.workflow.transitions]
+  const patch: Record<string, unknown> = { states, transitions }
   if (key === 'name' && oldName !== val) {
     transitions = transitions.map(t => ({
       ...t,
       from_state: t.from_state === oldName ? val as string : t.from_state,
       to_state: t.to_state === oldName ? val as string : t.to_state,
     }))
-    if (positions.value[oldName]) {
-      positions.value[val as string] = positions.value[oldName]
-      delete positions.value[oldName]
-      savePositions()
+    patch.transitions = transitions
+    // Rename position key
+    const pos = { ...positions.value }
+    if (pos[oldName]) {
+      pos[val as string] = pos[oldName]
+      delete pos[oldName]
+      patch.positions = pos
     }
   }
-  builder.updateWorkflow({ states, transitions })
+  builder.updateWorkflow(patch)
 }
 
 function removeState(idx: number) {
@@ -113,37 +105,8 @@ function removeTransition(idx: number) {
   selectedTransitionIndex.value = null
 }
 
-let draggingState: string | null = null
-let dragOffset = { x: 0, y: 0 }
-
-function onStateMousedown(e: MouseEvent, stateName: string) {
-  draggingState = stateName
-  const pos = getPos(stateName)
-  const svg = (e.currentTarget as SVGElement).closest('svg')!.getBoundingClientRect()
-  dragOffset = { x: e.clientX - svg.left - pos.x, y: e.clientY - svg.top - pos.y }
-}
-
-function onSvgMousemove(e: MouseEvent) {
-  if (!draggingState) return
-  const svg = (e.currentTarget as SVGElement).getBoundingClientRect()
-  positions.value[draggingState] = {
-    x: Math.max(40, e.clientX - svg.left - dragOffset.x),
-    y: Math.max(30, e.clientY - svg.top - dragOffset.y),
-  }
-}
-
-function onSvgMouseup() {
-  if (draggingState) { savePositions(); draggingState = null }
-}
-
 function selectState(idx: number) { selectedStateIndex.value = idx; selectedTransitionIndex.value = null }
 function selectTransition(idx: number) { selectedTransitionIndex.value = idx; selectedStateIndex.value = null }
-
-function getTransitionMid(t: WorkflowTransition) {
-  const from = getPos(t.from_state)
-  const to = getPos(t.to_state)
-  return { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 }
-}
 
 const stateNames = computed(() => workflow.value.states.map(s => s.name))
 
@@ -244,7 +207,7 @@ function toggleNextStepMenu(id: string) {
     <!-- Toolbar -->
     <div class="flex items-center gap-3 px-4 py-2 border-b border-border bg-muted/30 shrink-0 flex-wrap">
       <div class="flex items-center gap-2">
-        <Switch :checked="hasWorkflow" @update:checked="toggleWorkflow" />
+        <Switch :model-value="hasWorkflow" @update:model-value="toggleWorkflow" />
         <Label class="text-sm">Workflow</Label>
       </div>
 
@@ -302,7 +265,7 @@ function toggleNextStepMenu(id: string) {
 
             <!-- Show inactive toggle -->
             <label class="flex items-center gap-2 text-sm cursor-pointer select-none ml-2">
-              <Switch :checked="showInactive" @update:checked="showInactive = $event" />
+              <Switch v-model="showInactive" />
               Показувати неактивні
             </label>
 
@@ -487,7 +450,7 @@ function toggleNextStepMenu(id: string) {
 
             <!-- Active -->
             <div class="flex items-center gap-2">
-              <Switch :checked="selectedStep.is_active" @update:checked="updateSelectedStep({ is_active: $event })" />
+              <Switch :model-value="selectedStep.is_active" @update:model-value="updateSelectedStep({ is_active: $event })" />
               <Label class="text-sm">Активний</Label>
             </div>
 
@@ -530,51 +493,21 @@ function toggleNextStepMenu(id: string) {
 
       <!-- ══ GRAPH VIEW ═════════════════════════════════════════════════════ -->
       <div v-else class="flex flex-1 overflow-hidden">
-        <!-- SVG Canvas -->
-        <div class="flex-1 relative overflow-hidden bg-muted/20">
-          <svg
-            class="w-full h-full cursor-default"
-            @mousemove="onSvgMousemove"
-            @mouseup="onSvgMouseup"
-            @mouseleave="onSvgMouseup"
-          >
-            <defs>
-              <marker id="wf-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                <path d="M0,0 L0,6 L8,3 z" class="fill-muted-foreground/50" />
-              </marker>
-            </defs>
-
-            <g v-for="(t, ti) in workflow.transitions" :key="ti">
-              <line
-                :x1="getPos(t.from_state).x + 60" :y1="getPos(t.from_state).y + 20"
-                :x2="getPos(t.to_state).x + 60"   :y2="getPos(t.to_state).y + 20"
-                class="stroke-muted-foreground/40" stroke-width="2"
-                marker-end="url(#wf-arrow)"
-                :stroke-dasharray="selectedTransitionIndex === ti ? '6,3' : 'none'"
-                style="cursor: pointer" @click="selectTransition(ti)"
-              />
-              <text :x="getTransitionMid(t).x + 60" :y="getTransitionMid(t).y + 16"
-                text-anchor="middle" font-size="11"
-                class="fill-muted-foreground cursor-pointer select-none"
-                @click="selectTransition(ti)">{{ t.action }}</text>
-            </g>
-
-            <g v-for="(state, si) in workflow.states" :key="state.name"
-              :transform="`translate(${getPos(state.name).x}, ${getPos(state.name).y})`"
-              class="cursor-pointer"
-              @mousedown="onStateMousedown($event, state.name)"
-              @click.stop="selectState(si)">
-              <rect width="120" height="40" rx="8"
-                :fill="state.color || '#6b7280'" :stroke="selectedStateIndex === si ? 'hsl(var(--primary))' : 'transparent'"
-                stroke-width="2" fill-opacity="0.15" />
-              <rect width="120" height="40" rx="8" fill="transparent"
-                :stroke="state.color || '#6b7280'" stroke-width="1.5" />
-              <text x="60" y="25" text-anchor="middle" font-size="13" font-weight="500"
-                :fill="state.color || '#6b7280'" class="select-none">{{ state.label || state.name }}</text>
-            </g>
-          </svg>
-
-          <div v-if="workflow.states.length === 0"
+        <!-- Vue Flow Canvas -->
+        <div class="flex-1 relative overflow-hidden">
+          <WorkflowGraph
+            v-if="workflow.states.length > 0"
+            :states="workflow.states"
+            :transitions="workflow.transitions"
+            :selected-state-index="selectedStateIndex"
+            :selected-transition-index="selectedTransitionIndex"
+            :positions="positions"
+            @select-state="selectState"
+            @select-transition="selectTransition"
+            @update-positions="onUpdatePositions"
+            @connect="onGraphConnect"
+          />
+          <div v-else
             class="absolute inset-0 flex items-center justify-center text-muted-foreground pointer-events-none">
             <p class="text-sm">Додайте стани за допомогою кнопки "+ Стан"</p>
           </div>

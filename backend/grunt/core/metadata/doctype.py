@@ -47,6 +47,7 @@ class DocTypeWorkflow(BaseModel):
     transitions: list[WorkflowTransition]
     state_field: str = "status"  # field that stores current state
     steps: list[WorkflowStep] = []
+    positions: dict[str, dict[str, float]] = {}  # graph editor node positions {state_name: {x, y}}
 
 
 # ── Permission sub-model ─────────────────────────────────────────────────
@@ -105,6 +106,25 @@ class DocTypeCalendarView(BaseModel):
     sources: list[CalendarSource] = []
 
 
+# ── Status indicators ───────────────────────────────────────────────────
+
+
+class StatusIndicator(BaseModel):
+    """Maps a field value to a color and optional icon for status display."""
+
+    value: str  # field value to match
+    color: str = "gray"  # gray, blue, green, yellow, orange, red, purple, pink
+    icon: str | None = None  # Lucide icon name, e.g. "circle-check"
+    label: str | None = None  # override display label (defaults to value)
+
+
+class DocTypeStatusConfig(BaseModel):
+    """Configures how document status is displayed in list/form views."""
+
+    field: str  # fieldname that represents status
+    indicators: list[StatusIndicator] = []
+
+
 # ── DocType — main model ─────────────────────────────────────────────────
 
 
@@ -130,6 +150,9 @@ class DocType(BaseModel):
     form_view: DocTypeFormView = DocTypeFormView()
     kanban_view: DocTypeKanbanView | None = None
     calendar_view: DocTypeCalendarView | None = None
+
+    # Status display
+    status_config: DocTypeStatusConfig | None = None
 
     # Business logic
     workflow: DocTypeWorkflow | None = None

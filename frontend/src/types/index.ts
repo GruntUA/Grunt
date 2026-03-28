@@ -72,6 +72,7 @@ export interface WorkflowDef {
   states: WorkflowState[]
   transitions: WorkflowTransition[]
   steps: WorkflowStep[]
+  positions?: Record<string, { x: number; y: number }>
 }
 
 // ── Permission types ──────────────────────────────────────────────────────
@@ -128,6 +129,20 @@ export interface DocTypeTreeView {
   title_field?: string   // which field to display as node label (defaults to 'name')
 }
 
+// ── Status indicators ────────────────────────────────────────────────────
+
+export interface StatusIndicator {
+  value: string
+  color: string
+  icon?: string | null
+  label?: string | null
+}
+
+export interface DocTypeStatusConfig {
+  field: string
+  indicators: StatusIndicator[]
+}
+
 // ── DocType ───────────────────────────────────────────────────────────────
 
 export interface DocType {
@@ -147,6 +162,7 @@ export interface DocType {
   kanban_view?: DocTypeKanbanView | null
   calendar_view?: DocTypeCalendarView | null
   tree_view?: DocTypeTreeView | null
+  status_config?: DocTypeStatusConfig | null
   workflow?: WorkflowDef | null
   permissions?: DocTypePermission[]
 }
@@ -264,3 +280,29 @@ export interface Dashboard {
 }
 
 export interface DashboardSummary extends Omit<Dashboard, 'widgets'> {}
+
+// ── Notifications ────────────────────────────────────────────────────────
+
+export interface GruntNotification {
+  id: string
+  subject: string
+  message: string
+  doctype?: string | null
+  doc_id?: string | null
+  is_read: boolean
+  created_at: string | null
+}
+
+export type RealtimeMessageType = 'success' | 'error' | 'info' | 'warning'
+
+export interface RealtimeEvent {
+  event: string
+  data: {
+    message?: string
+    type?: RealtimeMessageType
+    subject?: string
+    doctype?: string
+    doc_id?: string
+    [key: string]: unknown
+  }
+}

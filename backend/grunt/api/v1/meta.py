@@ -11,15 +11,18 @@ from grunt.core.db.session import get_engine, get_session
 from grunt.core.metadata.compiler import compile_doctype_to_table, get_table_name, sync_table
 from grunt.core.metadata.doctype import DocType
 from grunt.core.metadata.registry import doctype_registry
+from grunt.core.metadata.scaffold import export_doctype_files
 from grunt.api.v1.schemas.meta import (
     DocTypeListItem,
     DocTypeSchema,
     DocTypeSyncResult,
 )
-from grunt.core.metadata.system_doctypes import is_system_doctype
 
 from sqlalchemy import inspect as sa_inspect
 
+import structlog
+
+logger = structlog.get_logger()
 router = APIRouter()
 
 
@@ -91,9 +94,10 @@ async def create_doctype(
     _user: GruntUser = Depends(superadmin_user),
     eng: AsyncEngine = Depends(get_engine),
 ) -> DocTypeSchema:
-    """Create a new DocType — validates, persists, syncs table."""
+    """Create a new DocType — validates, persists, syncs table, exports files."""
     await doctype_registry.register(body, session, eng)
     await _sync_doctype_doc(body, session)
+    export_doctype_files(body)
     return _doctype_to_schema(body)
 
 
@@ -123,6 +127,7 @@ async def update_doctype(
         )
     await doctype_registry.update(body, session, eng)
     await _sync_doctype_doc(body, session)
+    export_doctype_files(body)
     return _doctype_to_schema(body)
 
 

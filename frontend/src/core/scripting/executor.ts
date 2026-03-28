@@ -5,23 +5,33 @@
  * within a controlled scope providing form helpers.
  *
  * Available in scripts:
- * - `cur_frm` — current form proxy (get_value, set_value, toggle_display, etc.)
- * - `grunt` — framework helpers (call, throw, confirm, msgprint)
+ * - `cur_frm` / `frm` — current form proxy (get_value, set_value, add_button, etc.)
+ * - `grunt` / `frappe` — framework helpers (call, throw, confirm, msgprint, show_alert)
  */
 
-import { api } from '@/core/api/client'
+import client from '@/core/api/client'
+
+// ── Types ────────────────────────────────────────────────────────────────
+
+export interface ScriptButton {
+  label: string
+  action: () => void | Promise<void>
+  variant?: string
+}
 
 /** Form proxy exposed to client scripts as `cur_frm`. */
 export interface FormProxy {
   doctype: string
   doc: Record<string, unknown>
   fields: Record<string, unknown>[]
+  is_new: boolean
   get_value: (fieldname: string) => unknown
   set_value: (fieldname: string, value: unknown) => void
   toggle_display: (fieldname: string, show: boolean) => void
   toggle_reqd: (fieldname: string, reqd: boolean) => void
   set_df_property: (fieldname: string, prop: string, value: unknown) => void
   refresh_field: (fieldname: string) => void
+  add_button: (label: string, action: () => void | Promise<void>, options?: { variant?: string }) => void
   save: () => Promise<void>
   /** Internal state modified by scripts */
   _display: Record<string, boolean>
@@ -34,7 +44,8 @@ export interface GruntProxy {
   call: (opts: { method: string; args?: Record<string, unknown> }) => Promise<unknown>
   throw: (msg: string) => never
   confirm: (msg: string) => Promise<boolean>
-  msgprint: (msg: string) => void
+  msgprint: (msgOrOpts: string | { message: string; title?: string; indicator?: string }) => void
+  show_alert: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void
 }
 
 export type ClientScriptEvent = 'on_load' | 'on_change' | 'validate' | 'before_save' | 'after_save'
@@ -47,6 +58,8 @@ interface ClientScriptEntry {
 /** Cache: doctype -> scripts */
 const scriptCache = new Map<string, ClientScriptEntry[]>()
 
+// ── Script loading ───────────────────────────────────────────────────────
+
 /**
  * Fetch client scripts for a DocType from the backend.
  */
@@ -56,8 +69,8 @@ export async function loadClientScripts(doctype: string): Promise<ClientScriptEn
   }
 
   try {
-    const { data } = await api.get<{ data: ClientScriptEntry[] }>(
-      `/client-script/${encodeURIComponent(doctype)}`
+    const { data } = await client.get<{ data: ClientScriptEntry[] }>(
+      `/api/v1/client-script/${encodeURIComponent(doctype)}`
     )
     const scripts = data?.data ?? []
     scriptCache.set(doctype, scripts)
@@ -78,6 +91,8 @@ export function clearScriptCache(doctype?: string): void {
   }
 }
 
+// ── Proxy factories ──────────────────────────────────────────────────────
+
 /**
  * Create a FormProxy from current form state.
  */
@@ -88,13 +103,16 @@ export function createFormProxy(
   callbacks: {
     setValue?: (field: string, value: unknown) => void
     refreshField?: (field: string) => void
+    addButton?: (label: string, action: () => void | Promise<void>, options?: { variant?: string }) => void
     save?: () => Promise<void>
-  } = {}
+  } = {},
+  isNew: boolean = false,
 ): FormProxy {
   const proxy: FormProxy = {
     doctype,
-    doc: { ...doc },
+    doc,
     fields,
+    is_new: isNew,
     _display: {},
     _reqd: {},
     _df_props: {},
@@ -127,6 +145,10 @@ export function createFormProxy(
       callbacks.refreshField?.(fieldname)
     },
 
+    add_button(label: string, action: () => void | Promise<void>, options?: { variant?: string }) {
+      callbacks.addButton?.(label, action, options)
+    },
+
     async save() {
       await callbacks.save?.()
     },
@@ -140,14 +162,21 @@ export function createFormProxy(
  */
 export function createGruntProxy(
   callbacks: {
-    msgprint?: (msg: string) => void
+    msgprint?: (msgOrOpts: string | { message: string; title?: string; indicator?: string }) => void
     confirm?: (msg: string) => Promise<boolean>
+    showAlert?: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void
   } = {}
 ): GruntProxy {
   return {
     async call(opts) {
-      const { data } = await api.post(`/method/${opts.method}`, opts.args ?? {})
-      return data?.data
+      try {
+        const { data } = await client.post(`/api/v1/method/${opts.method}`, opts.args ?? {})
+        return data?.data
+      } catch (err: unknown) {
+        const e = err as { response?: { data?: { detail?: string } } }
+        const detail = e?.response?.data?.detail
+        throw new Error(detail || 'Server error')
+      }
     },
 
     throw(msg: string): never {
@@ -161,15 +190,24 @@ export function createGruntProxy(
       return window.confirm(msg)
     },
 
-    msgprint(msg: string) {
+    msgprint(msgOrOpts: string | { message: string; title?: string; indicator?: string }) {
       if (callbacks.msgprint) {
-        callbacks.msgprint(msg)
+        callbacks.msgprint(msgOrOpts)
       } else {
-        alert(msg)
+        const text = typeof msgOrOpts === 'string' ? msgOrOpts : msgOrOpts.message
+        alert(text)
+      }
+    },
+
+    show_alert(msg: string, type?: 'success' | 'error' | 'info' | 'warning') {
+      if (callbacks.showAlert) {
+        callbacks.showAlert(msg, type)
       }
     },
   }
 }
+
+// ── Execution ────────────────────────────────────────────────────────────
 
 /**
  * Execute all client scripts for a DocType, filtering by event.
@@ -178,6 +216,7 @@ export function createGruntProxy(
  * ```js
  * function on_load(frm) { ... }
  * function validate(frm) { return true; }
+ * function on_change(frm, fieldname) { ... }
  * ```
  *
  * Returns false if any validate handler returns false.
@@ -197,6 +236,7 @@ export async function executeClientScripts(
       // Create a function scope with cur_frm and grunt
       const fn = new Function(
         'cur_frm',
+        'frm',
         'grunt',
         'frappe',
         `${entry.script};\n` +
@@ -205,7 +245,7 @@ export async function executeClientScripts(
         `}`
       )
 
-      const result = fn(frm, gruntProxy, gruntProxy)
+      const result = await fn(frm, frm, gruntProxy, gruntProxy)
 
       // For validate event, false = cancel
       if (event === 'validate' && result === false) {

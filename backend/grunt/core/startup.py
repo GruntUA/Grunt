@@ -244,13 +244,19 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
             continue
 
         # Auto-register DocTypes from app's module doctypes directories
+        # Layout: doctypes/{Name}/{Name}.json
         app_modules = set(app_meta.get("modules", []))
         eng = site_manager.get_engine(site_name)
         for module in app_modules:
             doctypes_dir = app_dir / module / "doctypes"
             if not doctypes_dir.exists():
                 continue
-            for dt_file in sorted(doctypes_dir.glob("*.json")):
+            for dt_dir in sorted(doctypes_dir.iterdir()):
+                if not dt_dir.is_dir() or dt_dir.name.startswith((".", "_")):
+                    continue
+                dt_file = dt_dir / f"{dt_dir.name}.json"
+                if not dt_file.exists():
+                    continue
                 try:
                     dt_data = json.loads(dt_file.read_text(encoding="utf-8"))
                     dt_name = dt_data.get("name", "")

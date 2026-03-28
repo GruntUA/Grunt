@@ -71,6 +71,7 @@ class WorkflowDefSchema(BaseModel):
     state_field: str = "status"
     states: list[WorkflowStateSchema] = []
     transitions: list[WorkflowTransitionSchema] = []
+    positions: dict[str, dict[str, float]] = {}
 
 
 class DocTypeListViewSchema(BaseModel):
@@ -98,6 +99,18 @@ class DocTypeCalendarViewSchema(BaseModel):
     sources: list[dict[str, Any]] = []
 
 
+class StatusIndicatorSchema(BaseModel):
+    value: str
+    color: str = "gray"
+    icon: str | None = None
+    label: str | None = None
+
+
+class DocTypeStatusConfigSchema(BaseModel):
+    field: str
+    indicators: list[StatusIndicatorSchema] = []
+
+
 class DocTypeSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -123,6 +136,7 @@ class DocTypeSchema(BaseModel):
     form_view: DocTypeFormViewSchema = DocTypeFormViewSchema()
     kanban_view: DocTypeKanbanViewSchema | None = None
     calendar_view: DocTypeCalendarViewSchema | None = None
+    status_config: DocTypeStatusConfigSchema | None = None
 
 
 class DocTypeListItem(BaseModel):

@@ -47,7 +47,7 @@ class DocumentRegistry:
         return self._controllers.get(doctype, Document)
 
     def discover_controllers(self, apps_path: str | Path) -> None:
-        """Search for Document subclasses in the given apps path."""
+        """Search for Document subclasses in ``{app}/{module}/doctypes/{Name}/{Name}.py``."""
         apps_path = Path(apps_path)
         if not apps_path.exists():
             return
@@ -55,29 +55,56 @@ class DocumentRegistry:
         for app_dir in apps_path.iterdir():
             if not app_dir.is_dir() or app_dir.name.startswith("."):
                 continue
-
-            # Look for controllers in {app}/controllers/*.py
-            controllers_dir = app_dir / "controllers"
-            if not controllers_dir.exists():
-                continue
-
-            for py_file in controllers_dir.glob("*.py"):
-                if py_file.name == "__init__.py":
+            for doctypes_dir in app_dir.glob("*/doctypes"):
+                if not doctypes_dir.is_dir():
                     continue
+                module_name = doctypes_dir.parent.name
+                for dt_dir in sorted(doctypes_dir.iterdir()):
+                    if not dt_dir.is_dir() or dt_dir.name.startswith((".", "_")):
+                        continue
+                    py_file = dt_dir / f"{dt_dir.name}.py"
+                    if py_file.exists():
+                        self._load_controller(
+                            py_file,
+                            f"grunt_apps.{app_dir.name}.{module_name}.doctypes.{dt_dir.name}.{dt_dir.name}",
+                        )
 
-                module_name = f"grunt_apps.{app_dir.name}.controllers.{py_file.stem}"
-                try:
-                    module = importlib.import_module(module_name)
-                    for name, obj in inspect.getmembers(module):
-                        if (
-                            inspect.isclass(obj)
-                            and issubclass(obj, Document)
-                            and obj is not Document
-                        ):
-                            # The class name should match the DocType (e.g. SalesOrder)
-                            self.register(name, obj)
-                except ImportError as e:
-                    logger.warning("document.discovery_failed", module=module_name, error=str(e))
+    def discover_controllers_from_app(self, app_dir: str | Path) -> None:
+        """Discover controllers from a single external app directory.
+
+        External apps (under ``bench/apps/``) use their app name as the
+        top-level Python package, not ``grunt_apps``.
+        """
+        app_dir = Path(app_dir)
+        app_name = app_dir.name
+
+        for doctypes_dir in app_dir.glob("*/doctypes"):
+            if not doctypes_dir.is_dir():
+                continue
+            module_name = doctypes_dir.parent.name
+            for dt_dir in sorted(doctypes_dir.iterdir()):
+                if not dt_dir.is_dir() or dt_dir.name.startswith((".", "_")):
+                    continue
+                py_file = dt_dir / f"{dt_dir.name}.py"
+                if py_file.exists():
+                    self._load_controller(
+                        py_file,
+                        f"{app_name}.{module_name}.doctypes.{dt_dir.name}.{dt_dir.name}",
+                    )
+
+    def _load_controller(self, py_file: Path, module_path: str) -> None:
+        """Import a module and register any Document subclass found in it."""
+        try:
+            module = importlib.import_module(module_path)
+            for _name, obj in inspect.getmembers(module):
+                if (
+                    inspect.isclass(obj)
+                    and issubclass(obj, Document)
+                    and obj is not Document
+                ):
+                    self.register(_name, obj)
+        except ImportError as e:
+            logger.warning("document.discovery_failed", module=module_path, error=str(e))
 
 
 document_registry = DocumentRegistry()

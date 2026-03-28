@@ -113,11 +113,17 @@ async def fire(event: str, **kwargs: Any) -> None:
         try:
             from grunt.core.scripting import server_script_runner  # noqa: PLC0415
 
+            user_email = ""
+            user_obj_ss = kwargs.get("user")
+            if user_obj_ss:
+                user_email = getattr(user_obj_ss, "email", str(user_obj_ss))
+
             await server_script_runner.run_doctype_event(
                 session=kwargs["session"],
                 doctype=doctype,
                 event=event,
                 doc=kwargs.get("doc", {}),
+                user_email=user_email,
             )
         except Exception:  # noqa: BLE001
             logger.exception("server_script.hook_error", event=event, doctype=doctype)

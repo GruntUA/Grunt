@@ -11,6 +11,8 @@ const props = defineProps<{
   modelValue: Record<string, unknown>
   disabled?: boolean
   errors?: Record<string, string>
+  overrides?: Record<string, boolean>
+  reqdOverrides?: Record<string, boolean>
 }>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: Record<string, unknown>] }>()
@@ -76,8 +78,11 @@ function toggleSection(section: LayoutSection) {
             <div v-for="(col, ci) in section.columns" :key="ci" class="flex flex-col gap-4">
               <FieldRenderer
                 v-for="f in col"
+                v-show="overrides?.[f.fieldname] !== false"
                 :key="f.fieldname"
-                :field="f"
+                :field="reqdOverrides?.[f.fieldname] !== undefined
+                  ? { ...f, required: reqdOverrides[f.fieldname] }
+                  : f"
                 :model-value="modelValue[f.fieldname]"
                 :disabled="disabled || f.read_only"
                 :error="errors?.[f.fieldname]"

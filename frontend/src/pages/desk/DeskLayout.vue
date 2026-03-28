@@ -4,6 +4,7 @@ import { RouterView, RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useDocTypeStore } from '@/stores/doctype'
 import { usePageStore } from '@/stores/pages'
+import NotificationBell from '@/components/desk/NotificationBell.vue'
 import { Spinner } from '@/components/ui/spinner'
 import { BarChart2, LogOut, Sprout } from 'lucide-vue-next'
 
@@ -121,6 +122,7 @@ function initials(name: string): string {
           <p class="text-xs font-medium text-sidebar-foreground truncate">{{ auth.user?.full_name }}</p>
           <p class="text-[11px] text-sidebar-foreground/50 truncate">{{ auth.user?.email }}</p>
         </div>
+        <NotificationBell />
         <button
           class="p-1.5 rounded-md text-sidebar-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-colors flex-shrink-0"
           title="Вийти"

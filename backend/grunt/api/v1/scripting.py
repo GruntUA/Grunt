@@ -58,13 +58,22 @@ async def run_server_script_api(
 
     params = {**dict(request.query_params), **body}
 
-    result = server_script_runner.execute(
+    result = await server_script_runner.execute(
         script["script"],
         session=session,
         extra_context={"params": params},
+        trusted=script.get("trusted", False),
+        user_email=user.email,
     )
 
     if not result.success:
+        import structlog  # noqa: PLC0415
+        structlog.get_logger().warning(
+            "server_script.api_error",
+            method=method,
+            error=result.error,
+            output=result.output,
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=result.error,

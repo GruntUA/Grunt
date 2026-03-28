@@ -124,6 +124,21 @@ async def lifespan(app: FastAPI):
         # Discover background tasks
         discover_tasks(apps_dir)
 
+        # Discover file-based scripts (client JS + server Python)
+        from grunt.core.scripting.file_scripts import discover_file_scripts  # noqa: PLC0415
+
+        discover_file_scripts(apps_dir)
+
+    # Discover resources from installed external apps (bench_dir/apps/*)
+    from grunt.core.scripting.file_scripts import discover_file_scripts as _discover_scripts  # noqa: PLC0415
+
+    ext_apps_dir = site_manager.bench_dir / "apps"
+    if ext_apps_dir.is_dir():
+        for ext_app in sorted(ext_apps_dir.iterdir()):
+            if ext_app.is_dir() and ext_app.name not in ("grunt",) and not ext_app.name.startswith((".", "_")):
+                _discover_scripts(ext_app.parent, app_filter=ext_app.name)
+                document_registry.discover_controllers_from_app(ext_app)
+
     # Initialize TaskIQ broker
     await broker.startup()
     
