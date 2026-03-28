@@ -105,9 +105,27 @@ function onFiltersChange(f: Record<string, string>) {
   page.value = 1
 }
 
+function onSelectAll() {
+  const allIds = rows.value.map(r => String(r.id))
+  selection.toggleAll(allIds)
+}
+
 async function bulkDelete() {
-  for (const id of selection.selectedIds.value) {
-    try { await docsApi.delete(props.doctype, id) } catch {}
+  if (selection.allSelected.value) {
+    // Fetch ALL document IDs matching current filters
+    const all = await docsApi.list(props.doctype, {
+      page: 1,
+      per_page: 200,
+      search: debouncedSearch.value || undefined,
+      fields: 'id',
+      filters: activeFilters.value,
+    })
+    const allIds = ((all.data ?? []) as Record<string, unknown>[]).map(r => String(r.id))
+    if (allIds.length) {
+      await docsApi.bulkDelete(props.doctype, allIds)
+    }
+  } else {
+    await docsApi.bulkDelete(props.doctype, selection.selectedIds.value)
   }
   selection.clear()
   queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
@@ -179,9 +197,13 @@ function navigateToDoc(row: Record<string, unknown>) {
       <FilterBar v-if="dt" :fields="dt.fields" @change="onFiltersChange" />
 
       <BulkActionBar
-        :count="selection.selectedIds.value.length"
+        :count="selection.allSelected.value ? (meta?.total ?? 0) : selection.selectedIds.value.length"
+        :total="meta?.total"
+        :all-selected="selection.allSelected.value"
+        :page-count="rows.length"
         @delete="bulkDelete"
         @clear="selection.clear"
+        @select-all="selection.selectAllDocuments"
       />
 
       <DataTable
@@ -192,10 +214,11 @@ function navigateToDoc(row: Record<string, unknown>) {
         :sort-key="sortKey"
         :sort-order="sortOrder"
         :selected-ids="selection.selectedIds.value"
+        :all-selected="selection.allSelected.value"
         :status-config="dt?.status_config"
         @sort="onSort"
         @select="selection.toggle"
-        @select-all="selection.toggleAll(rows.map(r => String(r.id)))"
+        @select-all="onSelectAll"
         @row-click="navigateToDoc"
       />
 

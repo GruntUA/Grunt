@@ -180,6 +180,39 @@ async def broadcast(
         logger.debug("publish.broadcast_failed", event=event)
 
 
+async def publish_channel(
+    *,
+    channel: str,
+    event: str,
+    data: dict[str, Any] | None = None,
+) -> None:
+    """Broadcast to a public (unauthenticated) WebSocket channel.
+
+    Public channels are used for displays, kiosks, and other screens that
+    don't require login. The channel name is prefixed with ``public:``.
+
+    Usage::
+
+        await publish_channel(
+            channel="queue:board",
+            event="ticket_called",
+            data={"ticket_number": "A001", "window": 3, "sound": "chime"},
+        )
+
+    Args:
+        channel: Channel name (e.g. "queue:board"). ``public:`` prefix is added automatically.
+        event: Event name for the frontend to handle.
+        data: Arbitrary payload dict.
+    """
+    from grunt.api.v1.ws import manager  # noqa: PLC0415
+
+    full_channel = f"public:{channel}"
+    try:
+        await manager.broadcast(full_channel, event, data or {})
+    except Exception:  # noqa: BLE001
+        logger.debug("publish.channel_failed", channel=channel, event=event)
+
+
 async def msgprint(
     *,
     user: str,

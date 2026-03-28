@@ -60,6 +60,20 @@ class DocumentService:
 
         table = compile_doctype_to_table(dt)
 
+        # Singleton — return at most 1 row, ignore pagination
+        if dt.is_singleton:
+            result = await self.session.execute(select(table).limit(1))
+            row = result.first()
+            data_list = [dict(row._mapping)] if row else []
+            for r in data_list:
+                for k, v in r.items():
+                    if isinstance(v, datetime):
+                        r[k] = v.isoformat()
+            return {
+                "data": data_list,
+                "meta": {"total": len(data_list), "page": 1, "per_page": 1, "pages": 1},
+            }
+
         # Select columns
         if fields:
             required = {"id", "name"}
@@ -124,6 +138,16 @@ class DocumentService:
         dt = await doctype_registry.get(doctype_name)
         if dt.is_virtual:
             return await self._virtual_create(dt, doctype_name, user, data)
+
+        # Singleton — allow only one document
+        if dt.is_singleton:
+            table_check = compile_doctype_to_table(dt)
+            existing = await self.session.execute(select(func.count()).select_from(table_check))
+            if (existing.scalar() or 0) > 0:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"'{doctype_name}' є singleton — документ вже існує. Використовуйте PUT для оновлення.",
+                )
 
         if is_system_doctype(doctype_name) and not user.is_superadmin:
             raise HTTPException(
@@ -276,6 +300,7 @@ class DocumentService:
 
         # Custom Controller Hooks
         controller_cls = document_registry.get(doctype_name)
+        logger.debug("document.controller_resolved", doctype=doctype_name, controller=controller_cls.__name__)
         doc = controller_cls(doctype_name, merged, user, self.session)
         await doc.validate()
         await doc.before_save()

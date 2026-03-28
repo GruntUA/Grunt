@@ -292,6 +292,32 @@ async def delete_document(
     return {"success": True, "message": "Документ видалено"}
 
 
+@router.post("/{doctype}/bulk-delete")
+async def bulk_delete_documents(
+    doctype: str,
+    body: dict[str, Any],
+    user: GruntUser = Depends(current_user),
+    svc: DocumentService = Depends(get_doc_service),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    """Delete multiple documents by IDs."""
+    ids: list[str] = body.get("ids", [])
+    if not ids:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="ids is required")
+
+    deleted = 0
+    errors: list[str] = []
+    for doc_id in ids:
+        try:
+            await svc.delete_document(doctype, doc_id, user)
+            await _audit_log(session, doctype, doc_id, "delete", user.email)
+            deleted += 1
+        except Exception as e:
+            errors.append(f"{doc_id}: {e}")
+
+    return {"success": True, "data": {"deleted": deleted, "errors": errors}}
+
+
 @router.post("/{doctype}/{doc_id}/transition")
 async def apply_workflow_transition(
     doctype: str,

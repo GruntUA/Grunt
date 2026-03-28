@@ -12,25 +12,29 @@ export function useWebSocket(url: string | null) {
 
     const token = localStorage.getItem('grunt_token')
     const sep = url.includes('?') ? '&' : '?'
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
     const fullUrl = url.startsWith('ws')
       ? url
-      : `ws://localhost:8000${url}${token ? `${sep}token=${encodeURIComponent(token)}` : ''}`
+      : `${proto}//${location.host}${url}${token ? `${sep}token=${encodeURIComponent(token)}` : ''}`
 
+    console.log(`[WS] connecting to ${fullUrl}`)
     ws.value = new WebSocket(fullUrl)
 
     ws.value.onopen = () => {
+      console.log(`[WS] connected`)
       isConnected.value = true
     }
 
-    ws.value.onclose = () => {
+    ws.value.onclose = (e) => {
+      console.log(`[WS] closed: code=${e.code} reason=${e.reason}`)
       isConnected.value = false
       if (!manualClose) {
         reconnectTimer = setTimeout(connect, 3000)
       }
     }
 
-    ws.value.onerror = () => {
-      // close will fire after error
+    ws.value.onerror = (e) => {
+      console.error('[WS] error', e)
     }
 
     ws.value.onmessage = (e) => {

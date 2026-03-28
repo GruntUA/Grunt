@@ -12,6 +12,15 @@ const router = createRouter({
       meta: { public: true },
     },
 
+    // Public app pages (no auth required)
+    {
+      path: '/public/:app/:page*',
+      name: 'public-page',
+      component: () => import('@/core/pages/PublicPage.vue'),
+      meta: { public: true },
+      props: true,
+    },
+
     // Desk (app launcher)
     {
       path: '/',

@@ -21,6 +21,7 @@ const props = defineProps<{
   sortKey: string
   sortOrder: 'asc' | 'desc'
   selectedIds: string[]
+  allSelected?: boolean
   statusConfig?: DocTypeStatusConfig | null
 }>()
 
@@ -104,7 +105,7 @@ function formatCell(val: unknown): string {
 }
 
 function isSelected(id: string) {
-  return props.selectedIds.includes(id)
+  return props.allSelected || props.selectedIds.includes(id)
 }
 </script>
 
@@ -121,8 +122,8 @@ function isSelected(id: string) {
         <tr class="border-b border-border bg-muted/50">
           <th class="w-10 px-3 py-3">
             <Checkbox
-              :checked="rows.length > 0 && selectedIds.length === rows.length"
-              @update:checked="emit('selectAll')"
+              :model-value="allSelected || (rows.length > 0 && selectedIds.length === rows.length)"
+              @update:model-value="emit('selectAll')"
             />
           </th>
           <th
@@ -150,8 +151,8 @@ function isSelected(id: string) {
         >
           <td class="px-3 py-3" @click.stop>
             <Checkbox
-              :checked="isSelected(String(row.id))"
-              @update:checked="emit('select', String(row.id))"
+              :model-value="isSelected(String(row.id))"
+              @update:model-value="emit('select', String(row.id))"
             />
           </td>
           <td

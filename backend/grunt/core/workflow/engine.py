@@ -101,12 +101,23 @@ class WorkflowEngine:
                 .values({state_field: transition.to_state, "modified_at": now})
             )
 
+        # Re-read updated document
+        async with engine.connect() as conn:
+            result = await conn.execute(select(table).where(table.c.id == doc_id))
+            updated_doc = dict(result.mappings().first())  # type: ignore[arg-type]
+
+        # Run controller after_save (so apps can react to state changes)
+        from grunt.core.document.registry import document_registry  # noqa: PLC0415
+        try:
+            controller_cls = document_registry.get(doctype.name)
+            controller = controller_cls(doctype.name, updated_doc, user, session)
+            await controller.after_save()
+        except Exception:  # noqa: BLE001
+            logger.exception("workflow.controller_after_save_error", doctype=doctype.name)
+
         # Fire on_transition hooks
         from grunt.core.hooks import fire as fire_hook  # noqa: PLC0415
         try:
-            async with engine.connect() as conn:
-                result = await conn.execute(select(table).where(table.c.id == doc_id))
-                updated_doc = dict(result.mappings().first())  # type: ignore[arg-type]
             await fire_hook(
                 "on_transition",
                 doctype=doctype.name,
@@ -119,6 +130,18 @@ class WorkflowEngine:
             )
         except Exception:  # noqa: BLE001
             logger.exception("hook.on_transition_error")
+
+        # Fire after_save / after_update hooks (so doc_events work for transitions too)
+        try:
+            await fire_hook(
+                "after_save",
+                doctype=doctype.name,
+                doc=updated_doc,
+                user=user,
+                session=session,
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("hook.after_save_on_transition_error")
 
         # Log activity
         try:
@@ -152,11 +175,8 @@ class WorkflowEngine:
         except Exception:  # noqa: BLE001
             pass
 
-        # Return updated doc
-        async with engine.connect() as conn:
-            result = await conn.execute(select(table).where(table.c.id == doc_id))
-            updated = result.mappings().first()
-        return dict(updated)  # type: ignore[arg-type]
+        # Return updated doc (already read above)
+        return updated_doc
 
     async def _log_activity(
         self,

@@ -15,10 +15,9 @@ let reconnectTimer: ReturnType<typeof setTimeout> | null = null
 let refCount = 0
 
 function getWsUrl(): string {
-  const base = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
-  const wsBase = base.replace(/^http/, 'ws')
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
   const token = localStorage.getItem('grunt_token')
-  return `${wsBase}/api/v1/ws/user${token ? `?token=${encodeURIComponent(token)}` : ''}`
+  return `${proto}//${location.host}/api/v1/ws/user${token ? `?token=${encodeURIComponent(token)}` : ''}`
 }
 
 function connectWs() {

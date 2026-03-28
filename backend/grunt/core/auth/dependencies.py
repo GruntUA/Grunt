@@ -41,6 +41,29 @@ async def current_user(
     return user
 
 
+_oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)
+
+
+async def optional_user(
+    token: str | None = Depends(_oauth2_scheme_optional),
+    session: AsyncSession = Depends(get_session),
+) -> GruntUser | None:
+    """Return the authenticated user if a valid token is present, else None."""
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        email: str | None = payload.get("sub")
+        if not email:
+            return None
+    except JWTError:
+        return None
+    user = await get_user_by_email(email, session)
+    if user is None or not user.is_active:
+        return None
+    return user
+
+
 async def superadmin_user(
     user: GruntUser = Depends(current_user),
 ) -> GruntUser:

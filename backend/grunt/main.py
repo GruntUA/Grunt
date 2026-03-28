@@ -134,10 +134,48 @@ async def lifespan(app: FastAPI):
 
     ext_apps_dir = site_manager.bench_dir / "apps"
     if ext_apps_dir.is_dir():
+        # Ensure external apps are importable
+        import sys  # noqa: PLC0415
+        ext_apps_str = str(ext_apps_dir)
+        if ext_apps_str not in sys.path:
+            sys.path.insert(0, ext_apps_str)
+
         for ext_app in sorted(ext_apps_dir.iterdir()):
             if ext_app.is_dir() and ext_app.name not in ("grunt",) and not ext_app.name.startswith((".", "_")):
                 _discover_scripts(ext_app.parent, app_filter=ext_app.name)
                 document_registry.discover_controllers_from_app(ext_app)
+
+                # Load hooks from external app modules: {app}/{module}/hooks.py
+                for hooks_file in ext_app.glob("*/hooks.py"):
+                    hooks_module_name = hooks_file.parent.name
+                    hooks_import = f"{ext_app.name}.{hooks_module_name}.hooks"
+                    try:
+                        hooks_mod = importlib.import_module(hooks_import)
+                        logger.info("hooks.loaded", module=hooks_import)
+
+                        if hasattr(hooks_mod, "doc_events"):
+                            register_doc_events(getattr(hooks_mod, "doc_events"))
+                        if hasattr(hooks_mod, "override_doctype_class"):
+                            document_registry.register_overrides(getattr(hooks_mod, "override_doctype_class"))
+                        if hasattr(hooks_mod, "scheduler_events"):
+                            register_scheduler_events(getattr(hooks_mod, "scheduler_events"))
+                    except Exception as e:
+                        logger.warning("hooks.load_error", module=hooks_import, error=str(e))
+
+                # Discover app API routers: {app}/{module}/routes.py → router: APIRouter
+                for routes_file in ext_app.glob("*/routes.py"):
+                    module_name = routes_file.parent.name
+                    import_path = f"{ext_app.name}.{module_name}.routes"
+                    try:
+                        mod = importlib.import_module(import_path)
+                        if hasattr(mod, "router"):
+                            app.include_router(
+                                mod.router,
+                                prefix=f"/api/v1/app/{ext_app.name}",
+                            )
+                            logger.info("app_router.registered", app=ext_app.name, module=module_name)
+                    except Exception as e:
+                        logger.warning("app_router.load_error", path=import_path, error=str(e))
 
     # Initialize TaskIQ broker
     await broker.startup()

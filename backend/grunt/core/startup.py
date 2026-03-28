@@ -231,6 +231,7 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
     installed_apps = site_config.get("installed_apps", [])
 
     from sqlalchemy import delete as sa_delete  # noqa: PLC0415
+    from grunt.core.db.system_tables import GruntInstalledApp  # noqa: PLC0415
 
     for app_name in installed_apps:
         if app_name == "grunt":
@@ -242,6 +243,21 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
         if app_meta is None:
             logger.warning("startup.app_meta_not_found", app=app_name)
             continue
+
+        # Ensure app is registered in GruntInstalledApp table
+        existing = await session.execute(
+            select(GruntInstalledApp).where(GruntInstalledApp.name == app_name)
+        )
+        is_first_install = existing.scalar_one_or_none() is None
+        if is_first_install:
+            session.add(GruntInstalledApp(
+                name=app_name,
+                title=app_meta.get("title", app_name),
+                version=app_meta.get("version", "0.1.0"),
+                modules=app_meta.get("modules", []),
+            ))
+            await session.flush()
+            logger.info("startup.app_registered", app=app_name)
 
         # Auto-register DocTypes from app's module doctypes directories
         # Layout: doctypes/{Name}/{Name}.json
@@ -299,6 +315,25 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                 if dt.module in app_modules and not dt.is_child
             ]
             await _auto_seed_workspace(app_name, app_meta, app_doctypes, session)
+
+        # Run after_install hook on first installation
+        if is_first_install:
+            install_module_path = app_dir / "install.py"
+            if install_module_path.exists():
+                try:
+                    import importlib.util  # noqa: PLC0415
+
+                    spec = importlib.util.spec_from_file_location(
+                        f"{app_name}.install", install_module_path
+                    )
+                    if spec and spec.loader:
+                        install_mod = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(install_mod)
+                        if hasattr(install_mod, "after_install"):
+                            await install_mod.after_install(session, site_name)
+                            logger.info("startup.after_install_ok", app=app_name)
+                except Exception as e:  # noqa: BLE001
+                    logger.warning("startup.after_install_failed", app=app_name, error=str(e))
 
         logger.info("startup.app_workspace_seeded", app=app_name)
 

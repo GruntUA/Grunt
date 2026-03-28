@@ -116,6 +116,31 @@ async def ws_user(
         manager.disconnect(websocket, channel)
 
 
+@router.websocket("/ws/public/{channel:path}")
+async def ws_public(
+    websocket: WebSocket,
+    channel: str,
+) -> None:
+    """Public (unauthenticated) channel for displays and kiosks.
+
+    Apps broadcast to these channels via ``publish_channel()``.
+    Example: ``/ws/public/queue:board`` subscribes to queue board updates.
+    """
+    full_channel = f"public:{channel}"
+    await manager.connect(websocket, full_channel)
+    try:
+        while True:
+            raw = await websocket.receive_text()
+            try:
+                msg = json.loads(raw)
+                if msg.get("action") == "ping":
+                    await websocket.send_text('{"event":"pong"}')
+            except json.JSONDecodeError:
+                pass
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, full_channel)
+
+
 @router.websocket("/ws/{doctype}/{doc_id}")
 async def ws_document(
     websocket: WebSocket,
