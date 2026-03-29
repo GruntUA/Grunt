@@ -50,7 +50,12 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     if (cached) {
       active.value = cached
     } else {
-      active.value = await workspaceApi.get(name)
+      try {
+        active.value = await workspaceApi.get(name)
+      } catch {
+        active.value = null
+        return
+      }
     }
     await refreshCounts()
   }

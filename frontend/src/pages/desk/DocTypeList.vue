@@ -3,18 +3,22 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useDocTypeStore } from '@/stores/doctype'
+import { useAuthStore } from '@/stores/auth'
 import { useListSelection } from '@/core/composables/useListSelection'
 import { useListColumns } from '@/core/composables/useListColumns'
+import { useDevMode } from '@/core/composables/useDevMode'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, DocField } from '@/types'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
-import { Download, Plus, Search, SlidersHorizontal, X, LayoutList, LayoutGrid, CalendarDays, GitBranch } from 'lucide-vue-next'
+import { Download, Plus, Search, SlidersHorizontal, X, LayoutList, LayoutGrid, CalendarDays, GitBranch, Pencil, MoreHorizontal } from 'lucide-vue-next'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -29,7 +33,9 @@ import TreeView from '@/components/views/TreeView.vue'
 const props = defineProps<{ doctype: string; workspace?: string }>()
 const router = useRouter()
 const dtStore = useDocTypeStore()
+const auth = useAuthStore()
 const queryClient = useQueryClient()
+const { isDev } = useDevMode()
 
 const dt = ref<DocType | null>(null)
 const page = ref(1)
@@ -79,7 +85,6 @@ const calendarDateField = computed<DocField | null>(() => {
   return dt.value.fields.find(f => f.fieldtype === 'Date' || f.fieldtype === 'Datetime') ?? null
 })
 
-const hasViewToggle = computed(() => !!(kanbanColumnField.value || treeParentField.value))
 
 // ── Data fetching ────────────────────────────────────────────────────
 
@@ -141,6 +146,8 @@ async function bulkDelete() {
 
 const isSystemDocType = computed(() => props.doctype === 'DocType')
 
+const showDevActions = computed(() => isDev && auth.user?.is_superadmin)
+
 function navigateToDoc(row: Record<string, unknown>) {
   const ws = props.workspace ?? 'grunt'
   if (isSystemDocType.value) {
@@ -156,35 +163,35 @@ function navigateToDoc(row: Record<string, unknown>) {
     <!-- Title row -->
     <div class="flex flex-wrap items-end justify-between gap-2">
       <div>
-        <h2 class="text-2xl font-bold tracking-tight">{{ dt?.label ?? doctype }}</h2>
+        <h2 class="text-2xl font-bold tracking-tight text-foreground">{{ dt?.label ?? doctype }}</h2>
         <p class="text-muted-foreground text-sm">
           {{ meta ? `${meta.total} ${meta.total === 1 ? 'запис' : 'записів'}` : '\u00a0' }}
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <!-- Compact view mode selector -->
-        <Select v-if="hasViewToggle" v-model="viewMode">
-          <SelectTrigger class="h-8 w-32 text-sm">
-            <span class="flex items-center gap-1.5">
-              <LayoutList v-if="viewMode === 'list'" class="size-3.5 flex-shrink-0" />
-              <LayoutGrid v-else-if="viewMode === 'kanban'" class="size-3.5 flex-shrink-0" />
-              <CalendarDays v-else-if="viewMode === 'calendar'" class="size-3.5 flex-shrink-0" />
-              <GitBranch v-else class="size-3.5 flex-shrink-0" />
-              <span>{{ viewMode === 'list' ? 'Список' : viewMode === 'kanban' ? 'Канбан' : viewMode === 'calendar' ? 'Календар' : 'Дерево' }}</span>
-            </span>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="list">Список</SelectItem>
-            <SelectItem v-if="kanbanColumnField" value="kanban">Канбан</SelectItem>
-            <SelectItem v-if="calendarDateField" value="calendar">Календар</SelectItem>
-            <SelectItem v-if="treeParentField" value="tree">Дерево</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button v-if="!isSystemDocType" variant="outline" size="sm" as="a" :href="`/api/v1/docs/${doctype}/export/xlsx`" download>
-          <Download class="size-4 mr-1.5" />
-          Excel
-        </Button>
-        <Button v-if="isSystemDocType" size="sm" @click="router.push('/studio')">
+        <!-- Actions menu -->
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <Button variant="outline" size="sm" class="text-foreground h-9 w-9 p-0">
+              <MoreHorizontal class="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="w-52">
+            <DropdownMenuItem v-if="!isSystemDocType" as="a" :href="`/api/v1/docs/${doctype}/export/xlsx`" download>
+              <Download class="size-4" />
+              Завантажити Excel
+            </DropdownMenuItem>
+            <template v-if="showDevActions">
+              <DropdownMenuSeparator v-if="!isSystemDocType" />
+              <DropdownMenuItem @click="router.push(`/${workspace ?? 'grunt'}/list/DocType/${doctype}`)">
+                <Pencil class="size-4" />
+                Редагувати доктайп
+              </DropdownMenuItem>
+            </template>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <!-- New button -->
+        <Button v-if="isSystemDocType" size="sm" @click="router.push(`/${workspace ?? 'grunt'}/list/DocType/new`)">
           <Plus class="size-4 mr-1.5" />
           Новий DocType
         </Button>
@@ -216,7 +223,7 @@ function navigateToDoc(row: Record<string, unknown>) {
             <input
               v-model="inlineSearch"
               placeholder="Пошук..."
-              class="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 pl-8 text-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              class="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 pl-8 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
           <FilterBar v-if="dt" :fields="dt.fields" @change="onFiltersChange" class="!mb-0" />
@@ -231,25 +238,48 @@ function navigateToDoc(row: Record<string, unknown>) {
             <X class="ml-2 size-4" />
           </Button>
         </div>
-        <!-- Column visibility toggle -->
+        <!-- View settings -->
         <DropdownMenu v-model:open="showColMenu">
           <DropdownMenuTrigger as-child>
-            <Button variant="outline" size="sm" class="ml-auto hidden h-8 lg:flex">
+            <Button variant="outline" size="sm" class="ml-auto h-8 flex text-foreground">
               <SlidersHorizontal class="mr-2 size-4" />
               Вигляд
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" class="w-48">
-            <DropdownMenuLabel>Колонки</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuCheckboxItem
-              v-for="col in columns.allAvailableColumns.value"
-              :key="col.key"
-              :checked="columns.isVisible(col.key)"
-              @update:checked="columns.toggleCol(col.key)"
-            >
-              {{ col.label }}
-            </DropdownMenuCheckboxItem>
+          <DropdownMenuContent align="end" class="w-52">
+            <!-- View mode -->
+            <DropdownMenuLabel>Перегляд</DropdownMenuLabel>
+            <DropdownMenuRadioGroup :model-value="viewMode" @update:model-value="(v) => typeof v === 'string' && (viewMode = v as typeof viewMode)">
+              <DropdownMenuRadioItem value="list">
+                <LayoutList class="mr-2 size-3.5" />
+                Список
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem v-if="kanbanColumnField" value="kanban">
+                <LayoutGrid class="mr-2 size-3.5" />
+                Канбан
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem v-if="calendarDateField" value="calendar">
+                <CalendarDays class="mr-2 size-3.5" />
+                Календар
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem v-if="treeParentField" value="tree">
+                <GitBranch class="mr-2 size-3.5" />
+                Дерево
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+            <!-- Columns (list view only) -->
+            <template v-if="viewMode === 'list'">
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Стовпці</DropdownMenuLabel>
+              <DropdownMenuCheckboxItem
+                v-for="col in columns.allAvailableColumns.value"
+                :key="col.key"
+                :checked="columns.isVisible(col.key)"
+                @update:checked="columns.toggleCol(col.key)"
+              >
+                {{ col.label }}
+              </DropdownMenuCheckboxItem>
+            </template>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
