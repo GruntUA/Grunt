@@ -147,6 +147,7 @@ class DocType(BaseModel):
     fields: list[DocField] = []
 
     # View configuration
+    default_view: str | None = None  # "list" | "kanban" | "calendar" | "tree"
     list_view: DocTypeListView = DocTypeListView()
     form_view: DocTypeFormView = DocTypeFormView()
     kanban_view: DocTypeKanbanView | None = None

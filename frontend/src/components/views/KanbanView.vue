@@ -19,6 +19,36 @@ const columns = computed<string[]>(() => {
   return columnFieldDef.value.options.split('\n').map(s => s.trim()).filter(Boolean)
 })
 
+// Status color support
+const statusIndicatorMap = computed(() => {
+  const sc = props.doctype.status_config
+  if (!sc || sc.field !== props.columnField) return null
+  const m = new Map<string, { color: string; label?: string | null }>()
+  for (const ind of sc.indicators) m.set(ind.value, ind)
+  return m
+})
+
+const colorToClass: Record<string, string> = {
+  gray:   'bg-gray-400',
+  blue:   'bg-blue-400',
+  green:  'bg-green-500',
+  yellow: 'bg-yellow-400',
+  orange: 'bg-orange-400',
+  red:    'bg-red-500',
+  purple: 'bg-purple-400',
+  pink:   'bg-pink-400',
+}
+
+function columnLabel(col: string): string {
+  return statusIndicatorMap.value?.get(col)?.label ?? col
+}
+
+function columnDotClass(col: string): string | null {
+  const ind = statusIndicatorMap.value?.get(col)
+  if (!ind) return null
+  return colorToClass[ind.color] ?? 'bg-muted-foreground'
+}
+
 const cards = ref<Record<string, Record<string, unknown>[]>>({})
 const isLoading = ref(true)
 
@@ -68,7 +98,14 @@ const titleField = computed(() => props.doctype.title_field ?? 'name')
         class="flex-shrink-0 w-72 flex flex-col"
       >
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm font-semibold text-foreground">{{ col }}</h3>
+          <div class="flex items-center gap-2">
+            <span
+              v-if="columnDotClass(col)"
+              class="inline-block size-2 rounded-full shrink-0"
+              :class="columnDotClass(col)!"
+            />
+            <h3 class="text-sm font-semibold text-foreground">{{ columnLabel(col) }}</h3>
+          </div>
           <span class="text-xs bg-background text-muted-foreground/70 rounded-full px-2 py-0.5">
             {{ (cards[col] ?? []).length }}
           </span>

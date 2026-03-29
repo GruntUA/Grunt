@@ -230,6 +230,31 @@ function removeSearchField(fieldname: string) {
 
     <Separator class="my-6" />
 
+    <!-- Вигляд за замовчуванням -->
+    <section>
+      <h3 class="mb-4 text-lg font-semibold text-foreground">Вигляд</h3>
+
+      <FormField class="mb-4">
+        <Label class="text-muted-foreground">Вигляд за замовчуванням</Label>
+        <Select
+          :model-value="builder.doctype?.default_view ?? 'list'"
+          @update:model-value="builder.updateDocType({ default_view: String($event) === 'list' ? null : String($event) as 'kanban' | 'calendar' | 'tree' })"
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Оберіть вигляд" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="list">Список</SelectItem>
+            <SelectItem value="kanban">Канбан</SelectItem>
+            <SelectItem value="calendar">Календар</SelectItem>
+            <SelectItem value="tree">Дерево</SelectItem>
+          </SelectContent>
+        </Select>
+      </FormField>
+    </section>
+
+    <Separator class="my-6" />
+
     <!-- Пошук (Search) -->
     <section>
       <h3 class="mb-4 text-lg font-semibold text-foreground">Пошук</h3>

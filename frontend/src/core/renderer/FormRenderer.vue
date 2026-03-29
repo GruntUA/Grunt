@@ -87,6 +87,7 @@ function toggleSection(section: LayoutSection) {
                 :disabled="disabled || f.read_only"
                 :error="errors?.[f.fieldname]"
                 :doc-values="modelValue"
+
                 @update:model-value="update(f.fieldname, $event)"
               />
             </div>

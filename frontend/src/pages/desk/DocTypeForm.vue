@@ -44,6 +44,8 @@ import {
   Copy,
   Undo2,
   EllipsisVertical,
+  ExternalLink,
+  Settings2,
 } from 'lucide-vue-next'
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
@@ -144,6 +146,7 @@ const docTitle = computed(() => {
   return (tf && document.value[tf] as string) || document.value.name || `Новий ${dt.value?.label ?? ''}`
 })
 
+
 function focusFirstError() {
   nextTick(() => {
     const firstKey = Object.keys(validationErrors.value)[0]
@@ -173,6 +176,7 @@ async function handleSave() {
     toast.success('Збережено')
     runScriptEvent('after_save')
     dtStore.invalidate(props.doctype)
+    queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
     if (!props.id) {
       allowLeave = true
       const newId = (saved as { id: string }).id
@@ -212,6 +216,7 @@ async function handleDelete() {
   try {
     await remove()
     toast.success('Видалено')
+    queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
     router.push(props.workspace ? `/${props.workspace}/list/${props.doctype}` : `/${props.doctype}`)
   } catch {
     toast.error('Помилка видалення')
@@ -344,6 +349,25 @@ function onFormUpdate(updated: Record<string, unknown>) {
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
 
+              <DropdownMenuItem
+                v-if="id"
+                as="a"
+                :href="`/${props.workspace ?? ''}/list/${doctype}/${id}`"
+                target="_blank"
+              >
+                <ExternalLink class="size-4 mr-2" />
+                Відкрити у новій вкладці
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                as="a"
+                :href="`/${props.workspace ?? ''}/list/DocType/${doctype}`"
+                target="_blank"
+              >
+                <Settings2 class="size-4 mr-2" />
+                Редагувати Доктайп
+              </DropdownMenuItem>
+
               <DropdownMenuItem v-if="id" @click="handleDuplicate">
                 <Copy class="size-4 mr-2" />
                 Створити копію
@@ -399,6 +423,7 @@ function onFormUpdate(updated: Record<string, unknown>) {
               :errors="validationErrors"
               :overrides="displayOverrides"
               :reqd-overrides="reqdOverrides"
+
               @update:model-value="onFormUpdate($event)"
             />
           </div>

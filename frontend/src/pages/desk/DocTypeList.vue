@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useAuthStore } from '@/stores/auth'
@@ -10,15 +10,13 @@ import { useDevMode } from '@/core/composables/useDevMode'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, DocField } from '@/types'
 import { Button } from '@/components/ui/button'
-import { Download, Plus, Search, SlidersHorizontal, X, LayoutList, LayoutGrid, CalendarDays, GitBranch, Pencil, MoreHorizontal } from 'lucide-vue-next'
+import { Download, Plus, Search, Columns3, X, LayoutList, LayoutGrid, CalendarDays, GitBranch, Pencil, MoreHorizontal } from 'lucide-vue-next'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -32,6 +30,7 @@ import TreeView from '@/components/views/TreeView.vue'
 
 const props = defineProps<{ doctype: string; workspace?: string }>()
 const router = useRouter()
+const route = useRoute()
 const dtStore = useDocTypeStore()
 const auth = useAuthStore()
 const queryClient = useQueryClient()
@@ -43,7 +42,10 @@ const debouncedSearch = ref('')
 const sortKey = ref('')
 const sortOrder = ref<'asc' | 'desc'>('asc')
 const activeFilters = ref<Record<string, string>>({})
-const viewMode = ref<'list' | 'kanban' | 'calendar' | 'tree'>('list')
+type ViewMode = 'list' | 'kanban' | 'calendar' | 'tree'
+const VALID_VIEWS: ViewMode[] = ['list', 'kanban', 'calendar', 'tree']
+
+const viewMode = ref<ViewMode>('list')
 const inlineSearch = ref('')
 const showColMenu = ref(false)
 
@@ -56,7 +58,27 @@ watch(inlineSearch, (v) => {
 const selection = useListSelection()
 const columns = useListColumns(props.doctype, () => dt.value?.fields ?? [])
 
-onMounted(async () => { dt.value = await dtStore.get(props.doctype) })
+onMounted(async () => {
+  dt.value = await dtStore.get(props.doctype)
+
+  // Determine initial view: URL param → doctype default → 'list'
+  const urlView = route.query.view as string | undefined
+  const defaultView = dt.value?.default_view ?? 'list'
+  const initial = (VALID_VIEWS.includes(urlView as ViewMode) ? urlView : defaultView) as ViewMode
+  viewMode.value = initial
+})
+
+// Sync viewMode → URL query param
+watch(viewMode, (v) => {
+  const defaultView = dt.value?.default_view ?? 'list'
+  const query = { ...route.query }
+  if (v === defaultView) {
+    delete query.view
+  } else {
+    query.view = v
+  }
+  router.replace({ query })
+})
 
 // ── View mode detection ──────────────────────────────────────────────
 
@@ -77,10 +99,17 @@ const treeParentField = computed<DocField | null>(() => {
   ) ?? null
 })
 
+const SYSTEM_DATE_FIELDNAMES = new Set(['created_at', 'modified_at'])
+
 const calendarDateField = computed<DocField | null>(() => {
   if (!dt.value) return null
   if (dt.value.calendar_view?.field) {
-    return dt.value.fields.find(f => f.fieldname === dt.value!.calendar_view!.field) ?? null
+    const fieldname = dt.value.calendar_view.field
+    // System date fields are not in dt.fields but are valid — return a synthetic DocField
+    if (SYSTEM_DATE_FIELDNAMES.has(fieldname)) {
+      return { fieldname, fieldtype: 'Datetime', label: fieldname } as DocField
+    }
+    return dt.value.fields.find(f => f.fieldname === fieldname) ?? null
   }
   return dt.value.fields.find(f => f.fieldtype === 'Date' || f.fieldtype === 'Datetime') ?? null
 })
@@ -101,6 +130,7 @@ const { data, isLoading } = useQuery({
     order: sortKey.value ? sortOrder.value : undefined,
     filters: activeFilters.value,
   }),
+  refetchOnMount: 'always',
 })
 
 const meta = computed(() => data.value?.meta)
@@ -202,7 +232,102 @@ function navigateToDoc(row: Record<string, unknown>) {
       </div>
     </div>
 
-    <!-- Alternate views -->
+    <!-- Toolbar (always visible) -->
+    <div class="flex items-center justify-between gap-2">
+      <!-- Left: search + filters (list mode only) -->
+      <div v-if="viewMode === 'list'" class="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
+        <div class="relative w-[150px] lg:w-[250px]">
+          <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+          <input
+            v-model="inlineSearch"
+            placeholder="Пошук..."
+            class="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 pl-8 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          />
+        </div>
+        <FilterBar v-if="dt" :fields="dt.fields" @change="onFiltersChange" class="!mb-0" />
+        <Button
+          v-if="inlineSearch || Object.keys(activeFilters).length"
+          variant="ghost"
+          size="sm"
+          class="h-8 px-2 lg:px-3"
+          @click="inlineSearch = ''; debouncedSearch = ''; activeFilters = {}; page = 1"
+        >
+          Скинути
+          <X class="ml-2 size-4" />
+        </Button>
+      </div>
+      <div v-else class="flex-1" />
+
+      <!-- Right: columns + view switcher -->
+      <div class="flex items-center gap-2">
+        <!-- Columns dropdown (list mode only) -->
+        <DropdownMenu v-if="viewMode === 'list'" v-model:open="showColMenu">
+          <DropdownMenuTrigger as-child>
+            <Button variant="outline" size="sm" class="h-8 text-foreground">
+              <Columns3 class="mr-2 size-4" />
+              Стовпці
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="w-48">
+            <DropdownMenuLabel>Видимі стовпці</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuCheckboxItem
+              v-for="col in columns.allAvailableColumns.value"
+              :key="col.key"
+              :checked="columns.isVisible(col.key)"
+              @update:checked="columns.toggleCol(col.key)"
+            >
+              {{ col.label }}
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <!-- View mode switcher -->
+        <div class="flex items-center rounded-md border border-input overflow-hidden">
+          <button
+            type="button"
+            class="h-8 px-2.5 flex items-center transition-colors"
+            :class="viewMode === 'list' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'"
+            title="Список"
+            @click="viewMode = 'list'"
+          >
+            <LayoutList class="size-4" />
+          </button>
+          <button
+            v-if="kanbanColumnField"
+            type="button"
+            class="h-8 px-2.5 flex items-center border-l border-input transition-colors"
+            :class="viewMode === 'kanban' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'"
+            title="Канбан"
+            @click="viewMode = 'kanban'"
+          >
+            <LayoutGrid class="size-4" />
+          </button>
+          <button
+            v-if="calendarDateField"
+            type="button"
+            class="h-8 px-2.5 flex items-center border-l border-input transition-colors"
+            :class="viewMode === 'calendar' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'"
+            title="Календар"
+            @click="viewMode = 'calendar'"
+          >
+            <CalendarDays class="size-4" />
+          </button>
+          <button
+            v-if="treeParentField"
+            type="button"
+            class="h-8 px-2.5 flex items-center border-l border-input transition-colors"
+            :class="viewMode === 'tree' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'"
+            title="Дерево"
+            @click="viewMode = 'tree'"
+          >
+            <GitBranch class="size-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Views -->
     <div v-if="viewMode === 'kanban' && kanbanColumnField && dt" class="h-[calc(100vh-12rem)]">
       <KanbanView :doctype="dt" :column-field="kanbanColumnField.fieldname" />
     </div>
@@ -215,75 +340,6 @@ function navigateToDoc(row: Record<string, unknown>) {
 
     <!-- List view -->
     <template v-else>
-      <!-- Toolbar -->
-      <div class="flex items-center justify-between">
-        <div class="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
-          <div class="relative w-[150px] lg:w-[250px]">
-            <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-            <input
-              v-model="inlineSearch"
-              placeholder="Пошук..."
-              class="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 pl-8 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-          </div>
-          <FilterBar v-if="dt" :fields="dt.fields" @change="onFiltersChange" class="!mb-0" />
-          <Button
-            v-if="inlineSearch || Object.keys(activeFilters).length"
-            variant="ghost"
-            size="sm"
-            class="h-8 px-2 lg:px-3"
-            @click="inlineSearch = ''; debouncedSearch = ''; activeFilters = {}; page = 1"
-          >
-            Скинути
-            <X class="ml-2 size-4" />
-          </Button>
-        </div>
-        <!-- View settings -->
-        <DropdownMenu v-model:open="showColMenu">
-          <DropdownMenuTrigger as-child>
-            <Button variant="outline" size="sm" class="ml-auto h-8 flex text-foreground">
-              <SlidersHorizontal class="mr-2 size-4" />
-              Вигляд
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" class="w-52">
-            <!-- View mode -->
-            <DropdownMenuLabel>Перегляд</DropdownMenuLabel>
-            <DropdownMenuRadioGroup :model-value="viewMode" @update:model-value="(v) => typeof v === 'string' && (viewMode = v as typeof viewMode)">
-              <DropdownMenuRadioItem value="list">
-                <LayoutList class="mr-2 size-3.5" />
-                Список
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem v-if="kanbanColumnField" value="kanban">
-                <LayoutGrid class="mr-2 size-3.5" />
-                Канбан
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem v-if="calendarDateField" value="calendar">
-                <CalendarDays class="mr-2 size-3.5" />
-                Календар
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem v-if="treeParentField" value="tree">
-                <GitBranch class="mr-2 size-3.5" />
-                Дерево
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-            <!-- Columns (list view only) -->
-            <template v-if="viewMode === 'list'">
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Стовпці</DropdownMenuLabel>
-              <DropdownMenuCheckboxItem
-                v-for="col in columns.allAvailableColumns.value"
-                :key="col.key"
-                :checked="columns.isVisible(col.key)"
-                @update:checked="columns.toggleCol(col.key)"
-              >
-                {{ col.label }}
-              </DropdownMenuCheckboxItem>
-            </template>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
       <BulkActionBar
         :count="selection.allSelected.value ? (meta?.total ?? 0) : selection.selectedIds.value.length"
         :total="meta?.total"

@@ -27,6 +27,13 @@ const dateFields = computed(() =>
   dataFields.value.filter(f => ['Date', 'Datetime'].includes(f.fieldtype))
 )
 
+const SYSTEM_DATE_FIELDS = [
+  { fieldname: 'created_at', label: 'Дата створення' },
+  { fieldname: 'modified_at', label: 'Дата зміни' },
+]
+
+const allDateFields = computed(() => [...SYSTEM_DATE_FIELDS, ...dateFields.value])
+
 // ── List View ──
 const listView = computed(() => builder.doctype?.list_view ?? { fields: [], sort_by: 'name', sort_order: 'asc' as const, default_filters: {} })
 
@@ -147,7 +154,7 @@ const hasCalendar = computed(() => !!builder.doctype?.calendar_view)
 
 function toggleCalendar(enabled: boolean) {
   if (enabled) {
-    const firstDate = dateFields.value.length > 0 ? dateFields.value[0].fieldname : ''
+    const firstDate = allDateFields.value.length > 0 ? allDateFields.value[0].fieldname : ''
     builder.updateDocType({
       calendar_view: {
         field: firstDate,
@@ -455,7 +462,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
             <Select :model-value="builder.doctype.calendar_view.field" @update:model-value="updateCalendar({ field: $event })">
               <SelectTrigger class="h-8 text-xs"><SelectValue placeholder="Оберіть поле дати" /></SelectTrigger>
               <SelectContent>
-                <SelectItem v-for="f in dateFields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
+                <SelectItem v-for="f in allDateFields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -465,7 +472,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
               <SelectTrigger class="h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none__">— немає (один день) —</SelectItem>
-                <SelectItem v-for="f in dateFields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
+                <SelectItem v-for="f in allDateFields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
               </SelectContent>
             </Select>
           </div>

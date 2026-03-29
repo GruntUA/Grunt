@@ -57,8 +57,8 @@ const statusFieldName = computed(() => props.statusConfig?.field ?? null)
 // Color → Tailwind badge classes
 const colorToBadge: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; class?: string }> = {
   gray: { variant: 'outline' },
-  blue: { variant: 'default' },
-  green: { variant: 'secondary' },
+  blue:  { variant: 'outline', class: 'border-blue-400 text-blue-700 bg-blue-50' },
+  green: { variant: 'outline', class: 'border-green-500 text-green-700 bg-green-50' },
   yellow: { variant: 'outline', class: 'border-yellow-400 text-yellow-700 bg-yellow-50' },
   orange: { variant: 'outline', class: 'border-orange-400 text-orange-700 bg-orange-50' },
   red: { variant: 'destructive' },
