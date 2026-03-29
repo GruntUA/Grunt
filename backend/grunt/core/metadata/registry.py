@@ -14,7 +14,6 @@ from sqlalchemy import delete, select, update
 
 from grunt.core.metadata.compiler import sync_table
 from grunt.core.metadata.doctype import DocType
-from grunt.core.metadata.system_doctypes import SYSTEM_DOCTYPES, is_system_doctype
 from grunt.core.db.system_tables import GruntMetaDoctype
 
 if TYPE_CHECKING:
@@ -32,22 +31,17 @@ class DocTypeRegistry:
     # ── Read ─────────────────────────────────────────────────────────────
 
     async def load_all(self, session: AsyncSession) -> None:
-        """Load all DocTypes from ``grunt_meta_doctype`` into memory.
+        """Load user-created DocTypes from ``grunt_meta_doctype`` into memory.
 
-        System DocTypes (like "DocType" itself) are injected automatically
-        and cannot be overridden by user-defined ones.
+        Core/system DocTypes (is_system=True) are loaded separately via
+        load_core_doctypes() and are already in _doctypes — skip them here.
         """
         result = await session.execute(select(GruntMetaDoctype))
         rows = result.scalars().all()
-        self._doctypes.clear()
-
-        # Inject core system DocTypes first
-        for name, dt in SYSTEM_DOCTYPES.items():
-            self._doctypes[name] = dt
 
         for row in rows:
-            if row.name in SYSTEM_DOCTYPES:
-                continue  # system DocTypes are authoritative
+            if row.name in self._doctypes:
+                continue  # already loaded (core doctype)
             try:
                 dt = DocType.model_validate(row.data)
                 self._doctypes[dt.name] = dt
@@ -69,7 +63,43 @@ class DocTypeRegistry:
         """Return all registered DocTypes."""
         return list(self._doctypes.values())
 
+    def is_system(self, name: str) -> bool:
+        """Return True if the named DocType is a built-in system DocType."""
+        dt = self._doctypes.get(name)
+        return dt is not None and dt.is_system
+
     # ── Write ────────────────────────────────────────────────────────────
+
+    async def _inject_core(
+        self,
+        doctype: DocType,
+        session: AsyncSession,
+        async_engine: AsyncEngine,
+    ) -> None:
+        """Register a core (is_system=True) DocType from JSON.
+
+        Bypasses user-facing validation. Upserts grunt_meta_doctype row,
+        syncs physical table, and caches in memory.
+        """
+        existing = await session.execute(
+            select(GruntMetaDoctype).where(GruntMetaDoctype.name == doctype.name)
+        )
+        if existing.scalar_one_or_none():
+            await session.execute(
+                update(GruntMetaDoctype)
+                .where(GruntMetaDoctype.name == doctype.name)
+                .values(module=doctype.module, data=doctype.model_dump())
+            )
+        else:
+            session.add(GruntMetaDoctype(
+                name=doctype.name,
+                module=doctype.module,
+                data=doctype.model_dump(),
+            ))
+        await session.flush()
+        await sync_table(doctype, async_engine, session=session)
+        self._doctypes[doctype.name] = doctype
+        logger.info("registry.core_injected", name=doctype.name)
 
     async def register(
         self,
@@ -103,7 +133,7 @@ class DocTypeRegistry:
         async_engine: AsyncEngine,
     ) -> None:
         """Update an existing DocType, re-sync its table, refresh cache."""
-        if is_system_doctype(doctype.name):
+        if self.is_system(doctype.name):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"System DocType '{doctype.name}' cannot be modified",
@@ -128,7 +158,7 @@ class DocTypeRegistry:
 
     async def delete(self, name: str, session: AsyncSession) -> None:
         """Remove DocType from registry and DB. Physical table is NOT dropped."""
-        if is_system_doctype(name):
+        if self.is_system(name):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"System DocType '{name}' cannot be deleted",
@@ -149,7 +179,7 @@ class DocTypeRegistry:
 
     def _validate_new(self, doctype: DocType) -> None:
         """Ensure name is unique, not a system DocType, and fields are valid."""
-        if is_system_doctype(doctype.name):
+        if doctype.is_system:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"'{doctype.name}' is a reserved system DocType name",

@@ -1,0 +1,15 @@
+{
+  "name": "DocType",
+  "label": "Тип документа",
+  "module": "core",
+  "is_child": false,
+  "track_changes": false,
+  "is_system": true,
+  "search_fields": ["name", "label"],
+  "title_field": "label",
+  "fields": [
+    {"fieldname": "label", "label": "Назва", "fieldtype": "Text", "in_list_view": true, "required": true},
+    {"fieldname": "module", "label": "Модуль", "fieldtype": "Text", "in_list_view": true, "in_filter": true},
+    {"fieldname": "is_child", "label": "Дочірній", "fieldtype": "Check", "in_list_view": true, "in_filter": true}
+  ]
+}

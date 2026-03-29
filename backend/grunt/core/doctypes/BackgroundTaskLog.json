@@ -1,0 +1,15 @@
+{
+  "name": "BackgroundTaskLog",
+  "label": "Лог фонових завдань",
+  "module": "core",
+  "track_changes": false,
+  "is_system": true,
+  "fields": [
+    {"fieldname": "task_name", "label": "Завдання", "fieldtype": "Text", "in_list_view": true, "in_filter": true},
+    {"fieldname": "status", "label": "Статус", "fieldtype": "Select", "options": "Started\nSuccess\nError", "in_list_view": true, "in_filter": true},
+    {"fieldname": "started_at", "label": "Початок", "fieldtype": "Datetime", "in_list_view": true},
+    {"fieldname": "finished_at", "label": "Завершення", "fieldtype": "Datetime", "in_list_view": true},
+    {"fieldname": "error_message", "label": "Помилка", "fieldtype": "LongText"},
+    {"fieldname": "arguments", "label": "Аргументи", "fieldtype": "JSON"}
+  ]
+}

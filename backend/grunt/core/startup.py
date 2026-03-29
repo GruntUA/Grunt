@@ -19,7 +19,6 @@ from grunt.core.db.system_tables import (
     GruntWorkspaceLink,
 )
 from grunt.core.metadata.compiler import compile_doctype_to_table
-from grunt.core.metadata.system_doctypes import SYSTEM_DOCTYPES
 
 logger = structlog.get_logger()
 
@@ -33,8 +32,9 @@ _FIXTURES_DIR = __import__("pathlib").Path(__file__).parent / "fixtures"
 async def load_core_doctypes(session: AsyncSession, engine: AsyncEngine) -> None:
     """Register DocTypes defined as JSON files in grunt/core/doctypes/.
 
-    These are first-class framework DocTypes (Dashboard, Report, etc.)
-    that live in the grunt package itself rather than in external apps.
+    These are first-class framework DocTypes (DocType itself, Dashboard, etc.)
+    that live in the grunt package rather than in external apps.
+    Uses _inject_core to bypass user-facing validation.
     """
     import json  # noqa: PLC0415
 
@@ -44,8 +44,6 @@ async def load_core_doctypes(session: AsyncSession, engine: AsyncEngine) -> None
     if not _CORE_DOCTYPES_DIR.exists():
         return
 
-    from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
-
     for dt_file in sorted(_CORE_DOCTYPES_DIR.glob("*.json")):
         try:
             dt_data = json.loads(dt_file.read_text(encoding="utf-8"))
@@ -53,14 +51,8 @@ async def load_core_doctypes(session: AsyncSession, engine: AsyncEngine) -> None
             if not dt_name:
                 continue
             dt_obj = DocType.model_validate(dt_data)
-            if dt_name in doctype_registry._doctypes:
-                # Already registered — update registry and sync table to pick up new fields.
-                doctype_registry._doctypes[dt_name] = dt_obj
-                await sync_table(dt_obj, engine, session=session)
-            else:
-                await doctype_registry.register(dt_obj, session, engine)
-                await session.flush()
-                logger.info("startup.core_doctype_registered", doctype=dt_name)
+            await doctype_registry._inject_core(dt_obj, session, engine)
+            logger.info("startup.core_doctype_loaded", doctype=dt_name)
         except Exception as e:  # noqa: BLE001
             logger.warning("startup.core_doctype_failed", file=dt_file.name, error=str(e))
 
@@ -76,11 +68,14 @@ async def populate_system_doctypes(
 
     This keeps the DocType list view in sync with the registry.
     """
-    dt_def = SYSTEM_DOCTYPES["DocType"]
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    dt_def = doctype_registry._doctypes.get("DocType")
+    if dt_def is None:
+        logger.warning("startup.doctype_def_missing")
+        return
     table = compile_doctype_to_table(dt_def)
 
     # Get all registered DocTypes from the registry
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
     all_doctypes = await doctype_registry.list_all()
 

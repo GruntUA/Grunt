@@ -24,7 +24,6 @@ from grunt.core.metadata.registry import doctype_registry
 from grunt.core.hooks import fire
 from grunt.core.document.registry import document_registry
 from grunt.core.document.multi_link import MultiLinkService
-from grunt.core.metadata.system_doctypes import is_system_doctype
 
 logger = structlog.get_logger()
 
@@ -156,7 +155,7 @@ class DocumentService:
                     detail=f"'{doctype_name}' є singleton — документ вже існує. Використовуйте PUT для оновлення.",
                 )
 
-        if is_system_doctype(doctype_name) and not user.is_superadmin:
+        if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"'{doctype_name}' керується системою. Використовуйте відповідний API.",
@@ -293,7 +292,7 @@ class DocumentService:
         if dt_check.is_virtual:
             return await self._virtual_update(dt_check, doctype_name, user, doc_id, data)
 
-        if is_system_doctype(doctype_name) and not user.is_superadmin:
+        if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"'{doctype_name}' керується системою. Використовуйте відповідний API.",
@@ -391,7 +390,7 @@ class DocumentService:
         if dt_check.is_virtual:
             return await self._virtual_delete(dt_check, doctype_name, user, doc_id)
 
-        if is_system_doctype(doctype_name) and not user.is_superadmin:
+        if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"'{doctype_name}' керується системою. Використовуйте відповідний API.",

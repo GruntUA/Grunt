@@ -1,0 +1,14 @@
+{
+  "name": "DocLink",
+  "label": "Зв'язок документа",
+  "module": "core",
+  "track_changes": false,
+  "is_system": true,
+  "fields": [
+    {"fieldname": "source_doctype", "label": "Тип джерела", "fieldtype": "Text", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "source_id", "label": "ID джерела", "fieldtype": "Text", "required": true, "in_list_view": true},
+    {"fieldname": "target_doctype", "label": "Тип цілі", "fieldtype": "Text", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "target_id", "label": "ID цілі", "fieldtype": "Text", "required": true, "in_list_view": true},
+    {"fieldname": "link_fieldname", "label": "Поле зв'язку", "fieldtype": "Text", "required": true}
+  ]
+}

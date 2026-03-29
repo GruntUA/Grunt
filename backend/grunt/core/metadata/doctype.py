@@ -141,6 +141,7 @@ class DocType(BaseModel):
     is_singleton: bool = False  # only one document per DocType
     is_virtual: bool = False  # True → no DB table, data from controller
     track_changes: bool = True  # audit log
+    is_system: bool = False  # True → built-in core doctype, cannot be modified/deleted by users
 
     # Fields
     fields: list[DocField] = []

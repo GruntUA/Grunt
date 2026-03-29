@@ -1,0 +1,16 @@
+{
+  "name": "DashboardChart",
+  "label": "Графік дашборду",
+  "module": "core",
+  "is_system": true,
+  "fields": [
+    {"fieldname": "chart_type", "label": "Тип графіка", "fieldtype": "Select", "options": "bar\nline\npie\ndonut", "default": "bar", "in_list_view": true, "in_filter": true},
+    {"fieldname": "doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true, "in_list_view": true},
+    {"fieldname": "value_field", "label": "Поле значення", "fieldtype": "Text", "required": true},
+    {"fieldname": "group_by", "label": "Групувати за", "fieldtype": "Text"},
+    {"fieldname": "timespan", "label": "Період", "fieldtype": "Select", "options": "last_week\nlast_month\nlast_quarter\nlast_year\nall_time", "default": "last_year", "in_list_view": true},
+    {"fieldname": "filters", "label": "Фільтри (JSON)", "fieldtype": "JSON"},
+    {"fieldname": "color", "label": "Колір", "fieldtype": "Text", "default": "#2D6A4F"},
+    {"fieldname": "is_public", "label": "Публічний", "fieldtype": "Check", "default": true}
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "Translation",
+  "label": "Переклад",
+  "module": "core",
+  "is_system": true,
+  "fields": [
+    {"fieldname": "source", "label": "Оригінал", "fieldtype": "Text", "required": true, "in_list_view": true},
+    {"fieldname": "language", "label": "Мова", "fieldtype": "Text", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "translated", "label": "Переклад", "fieldtype": "Text", "required": true, "in_list_view": true},
+    {"fieldname": "context", "label": "Контекст", "fieldtype": "Text"}
+  ]
+}

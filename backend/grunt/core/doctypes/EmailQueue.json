@@ -1,0 +1,15 @@
+{
+  "name": "EmailQueue",
+  "label": "Черга листів",
+  "module": "core",
+  "is_system": true,
+  "fields": [
+    {"fieldname": "sender", "label": "Відправник", "fieldtype": "Text", "in_list_view": true},
+    {"fieldname": "recipient", "label": "Отримувач", "fieldtype": "Text", "in_list_view": true},
+    {"fieldname": "subject", "label": "Тема", "fieldtype": "Text", "in_list_view": true},
+    {"fieldname": "content", "label": "Вміст", "fieldtype": "LongText"},
+    {"fieldname": "status", "label": "Статус", "fieldtype": "Select", "options": "Pending\nSent\nError", "default": "Pending", "in_list_view": true, "in_filter": true},
+    {"fieldname": "error_message", "label": "Помилка", "fieldtype": "LongText"},
+    {"fieldname": "email_account", "label": "Обліковий запис", "fieldtype": "Link", "options": "EmailAccount"}
+  ]
+}

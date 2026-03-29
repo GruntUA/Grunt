@@ -1,0 +1,15 @@
+{
+  "name": "Notification",
+  "label": "Повідомлення",
+  "module": "core",
+  "track_changes": false,
+  "is_system": true,
+  "fields": [
+    {"fieldname": "user", "label": "Користувач", "fieldtype": "Text", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "subject", "label": "Тема", "fieldtype": "Text", "required": true, "in_list_view": true},
+    {"fieldname": "message", "label": "Повідомлення", "fieldtype": "LongText", "required": true},
+    {"fieldname": "doctype", "label": "Тип документа", "fieldtype": "Text", "in_list_view": true},
+    {"fieldname": "doc_id", "label": "ID документа", "fieldtype": "Text"},
+    {"fieldname": "is_read", "label": "Прочитано", "fieldtype": "Check", "default": false, "in_list_view": true, "in_filter": true}
+  ]
+}

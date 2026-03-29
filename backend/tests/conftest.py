@@ -10,7 +10,6 @@ from grunt.core.db.base import Base
 from grunt.core.db.session import get_session
 from grunt.core.metadata.compiler import SA_METADATA, compile_doctype_to_table
 from grunt.core.metadata.registry import doctype_registry
-from grunt.core.metadata.system_doctypes import SYSTEM_DOCTYPES
 from grunt.main import app
 
 import grunt.core.db.system_tables  # noqa: F401
@@ -67,9 +66,18 @@ async def setup_db():
         if name in SA_METADATA.tables:
             SA_METADATA.remove(SA_METADATA.tables[name])
 
-    # Compile and create system doctype tables (e.g. grunt_core_doc_type)
-    for dt in SYSTEM_DOCTYPES.values():
-        compile_doctype_to_table(dt)
+    # Compile and create core doctype tables from JSON files
+    import json
+    from pathlib import Path
+    from grunt.core.metadata.doctype import DocType as _DocType
+    _core_dir = Path(__file__).parent.parent / "grunt" / "core" / "doctypes"
+    for _dt_file in sorted(_core_dir.glob("*.json")):
+        try:
+            _dt_data = json.loads(_dt_file.read_text(encoding="utf-8"))
+            _dt_obj = _DocType.model_validate(_dt_data)
+            compile_doctype_to_table(_dt_obj)
+        except Exception:
+            pass
     async with test_engine.begin() as conn:
         await conn.run_sync(SA_METADATA.create_all)
 

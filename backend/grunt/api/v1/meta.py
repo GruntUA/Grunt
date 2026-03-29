@@ -34,9 +34,8 @@ async def _sync_doctype_doc(dt: DocType, session: AsyncSession, *, delete: bool 
     """Keep the DocType document table in sync after meta operations."""
     import uuid as _uuid  # noqa: PLC0415
     from datetime import datetime, timezone  # noqa: PLC0415
-    from grunt.core.metadata.system_doctypes import SYSTEM_DOCTYPES  # noqa: PLC0415
 
-    dt_def = SYSTEM_DOCTYPES.get("DocType")
+    dt_def = doctype_registry._doctypes.get("DocType")
     if not dt_def:
         return
     table = compile_doctype_to_table(dt_def)

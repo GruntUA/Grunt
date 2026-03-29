@@ -1,0 +1,15 @@
+{
+  "name": "DataImport",
+  "label": "Імпорт даних",
+  "module": "core",
+  "is_system": true,
+  "fields": [
+    {"fieldname": "reference_doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true, "in_list_view": true},
+    {"fieldname": "import_file", "label": "Файл для імпорту", "fieldtype": "Attach", "required": true},
+    {"fieldname": "import_type", "label": "Тип імпорту", "fieldtype": "Select", "options": "Insert New Records\nUpdate Existing Records\nUpsert", "default": "Upsert"},
+    {"fieldname": "status", "label": "Статус", "fieldtype": "Select", "options": "Pending\nIn Progress\nCompleted\nFailed", "default": "Pending", "in_list_view": true},
+    {"fieldname": "total_rows", "label": "Всього рядків", "fieldtype": "Int", "read_only": true},
+    {"fieldname": "processed_rows", "label": "Оброблено", "fieldtype": "Int", "read_only": true},
+    {"fieldname": "error_log", "label": "Журнал помилок", "fieldtype": "LongText", "read_only": true}
+  ]
+}

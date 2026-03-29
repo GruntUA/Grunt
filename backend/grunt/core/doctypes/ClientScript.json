@@ -1,0 +1,11 @@
+{
+  "name": "ClientScript",
+  "label": "Клієнтський скрипт",
+  "module": "core",
+  "is_system": true,
+  "fields": [
+    {"fieldname": "doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "script", "label": "Скрипт (JavaScript)", "fieldtype": "LongText", "required": true},
+    {"fieldname": "is_enabled", "label": "Активний", "fieldtype": "Check", "default": true, "in_list_view": true, "in_filter": true}
+  ]
+}

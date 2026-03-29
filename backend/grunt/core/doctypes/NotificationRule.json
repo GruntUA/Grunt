@@ -1,0 +1,16 @@
+{
+  "name": "NotificationRule",
+  "label": "Правило нотифікації",
+  "module": "core",
+  "is_system": true,
+  "fields": [
+    {"fieldname": "doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "event", "label": "Подія", "fieldtype": "Select", "options": "after_insert\nafter_save\non_transition\nvalue_change", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "channel", "label": "Канал", "fieldtype": "Select", "options": "system\nemail\nboth", "default": "system", "in_list_view": true},
+    {"fieldname": "recipients", "label": "Отримувачі", "fieldtype": "Text", "required": true},
+    {"fieldname": "condition", "label": "Умова (Python)", "fieldtype": "LongText"},
+    {"fieldname": "subject_template", "label": "Шаблон теми", "fieldtype": "Text", "default": "{doctype}: {name}"},
+    {"fieldname": "message_template", "label": "Шаблон повідомлення", "fieldtype": "LongText", "default": "{doctype} {name} was {event}"},
+    {"fieldname": "is_enabled", "label": "Активне", "fieldtype": "Check", "default": true, "in_list_view": true, "in_filter": true}
+  ]
+}

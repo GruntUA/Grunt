@@ -1,0 +1,12 @@
+{
+  "name": "PrintFormat",
+  "label": "Формат друку",
+  "module": "core",
+  "is_system": true,
+  "fields": [
+    {"fieldname": "doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "template_type", "label": "Тип шаблону", "fieldtype": "Select", "options": "html\ndocx", "default": "html", "in_list_view": true},
+    {"fieldname": "template", "label": "Шаблон", "fieldtype": "LongText", "required": true},
+    {"fieldname": "is_default", "label": "За замовчуванням", "fieldtype": "Check", "default": false, "in_list_view": true}
+  ]
+}

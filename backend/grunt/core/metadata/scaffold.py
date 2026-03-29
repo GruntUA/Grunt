@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING
 
 import structlog
 
-from grunt.core.metadata.system_doctypes import is_system_doctype
 from grunt.core.site.manager import site_manager
 
 if TYPE_CHECKING:
@@ -131,7 +130,7 @@ def export_doctype_files(dt: DocType) -> None:
     - ``{Name}.py``  — controller stub (only if file doesn't exist)
     - ``{Name}.js``  — client script stub (only if file doesn't exist)
     """
-    if is_system_doctype(dt.name):
+    if dt.is_system:
         return
 
     app_dir = _find_app_dir(dt.module)
