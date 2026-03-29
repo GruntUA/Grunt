@@ -1,21 +1,32 @@
-import { ref, watchEffect } from 'vue'
+import { ref, computed, watchEffect } from 'vue'
 
-// Singleton state - shared across all components
-const stored = localStorage.getItem('grunt_theme')
-const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-const isDark = ref(stored === 'dark' || (!stored && prefersDark))
+export type Theme = 'light' | 'dark' | 'system'
 
-// Apply immediately
-document.documentElement.classList.toggle('dark', isDark.value)
+// ── Singleton state ──────────────────────────────────────────────────────
+
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)')
+const stored = localStorage.getItem('grunt_theme') as Theme | null
+const _theme = ref<Theme>(stored ?? 'system')
+const _systemDark = ref(systemDark.matches)
+
+// Track OS-level preference changes
+systemDark.addEventListener('change', (e) => { _systemDark.value = e.matches })
+
+const isDark = computed(() =>
+  _theme.value === 'system' ? _systemDark.value : _theme.value === 'dark'
+)
 
 watchEffect(() => {
   document.documentElement.classList.toggle('dark', isDark.value)
-  localStorage.setItem('grunt_theme', isDark.value ? 'dark' : 'light')
 })
 
+// ── Public API ───────────────────────────────────────────────────────────
+
 export function useColorMode() {
-  return {
-    isDark,
-    toggle() { isDark.value = !isDark.value },
+  function setTheme(theme: Theme) {
+    _theme.value = theme
+    localStorage.setItem('grunt_theme', theme)
   }
+
+  return { isDark, currentTheme: _theme, setTheme }
 }

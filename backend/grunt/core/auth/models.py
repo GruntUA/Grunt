@@ -25,6 +25,7 @@ class GruntUser:
     hashed_password: str = ""
     is_active: bool = True
     is_superadmin: bool = False
+    theme: str = "system"
     created_at: datetime | None = None
     modified_at: datetime | None = None
     user_roles: list[GruntUserRole] = field(default_factory=list)

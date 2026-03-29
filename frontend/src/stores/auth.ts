@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import client from '@/core/api/client'
+import { useColorMode, type Theme } from '@/core/composables/useColorMode'
 
 interface User {
   id: string
@@ -8,6 +9,7 @@ interface User {
   full_name: string
   roles: string[]
   is_superadmin: boolean
+  theme?: Theme
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -15,6 +17,10 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
 
   const isLoggedIn = computed(() => !!token.value)
+
+  function applyUserTheme(u: User) {
+    if (u.theme) useColorMode().setTheme(u.theme)
+  }
 
   async function login(email: string, password: string) {
     const form = new URLSearchParams({ username: email, password })
@@ -24,16 +30,25 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = data.access_token
     localStorage.setItem('grunt_token', data.access_token)
     user.value = data.user
+    applyUserTheme(data.user)
   }
 
   async function fetchMe() {
     if (!token.value) return
     try {
       const { data } = await client.get('/api/v1/auth/me')
-      user.value = data.data ?? data
+      const u = data.data ?? data
+      user.value = u
+      applyUserTheme(u)
     } catch {
       logout()
     }
+  }
+
+  async function setTheme(theme: Theme) {
+    useColorMode().setTheme(theme)
+    if (user.value) user.value.theme = theme
+    await client.patch('/api/v1/auth/me', { theme })
   }
 
   function logout() {
@@ -42,5 +57,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('grunt_token')
   }
 
-  return { token, user, isLoggedIn, login, logout, fetchMe }
+  return { token, user, isLoggedIn, login, logout, fetchMe, setTheme }
 })

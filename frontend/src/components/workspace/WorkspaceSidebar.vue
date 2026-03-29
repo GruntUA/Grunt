@@ -15,6 +15,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -23,7 +27,12 @@ import {
   PanelLeft,
   LogOut,
   ChevronsUpDown,
+  Sun,
+  Moon,
+  Monitor,
 } from 'lucide-vue-next'
+import { useColorMode } from '@/core/composables/useColorMode'
+import type { Theme } from '@/core/composables/useColorMode'
 import SidebarItem from './SidebarItem.vue'
 
 defineProps<{ workspaceName: string }>()
@@ -56,6 +65,11 @@ function initials(name: string): string {
 }
 
 const mobileOpen = ref(false)
+const colorMode = useColorMode()
+
+async function onThemeChange(theme: string) {
+  await auth.setTheme(theme as Theme)
+}
 
 defineExpose({ mobileOpen })
 </script>
@@ -165,6 +179,22 @@ defineExpose({ mobileOpen })
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start" class="w-56">
+            <DropdownMenuLabel class="text-xs text-muted-foreground font-normal">Тема</DropdownMenuLabel>
+            <DropdownMenuRadioGroup :model-value="colorMode.currentTheme.value" @update:model-value="(v) => typeof v === 'string' && onThemeChange(v)">
+              <DropdownMenuRadioItem value="light">
+                <Sun class="size-3.5 mr-2" />
+                Світла
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="dark">
+                <Moon class="size-3.5 mr-2" />
+                Темна
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="system">
+                <Monitor class="size-3.5 mr-2" />
+                Системна
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+            <DropdownMenuSeparator />
             <DropdownMenuItem @click="auth.logout?.()">
               <LogOut class="size-4 mr-2" />
               Вийти

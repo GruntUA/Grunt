@@ -8,7 +8,7 @@ import { useListColumns } from '@/core/composables/useListColumns'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, DocField } from '@/types'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import { Download, Plus, Search, SlidersHorizontal, X, LayoutList, LayoutGrid, CalendarDays, GitBranch } from 'lucide-vue-next'
 import {
   DropdownMenu,
@@ -164,22 +164,20 @@ function navigateToDoc(row: Record<string, unknown>) {
       <div class="flex items-center gap-2">
         <!-- Compact view mode selector -->
         <Select v-if="hasViewToggle" v-model="viewMode">
-          <SelectTrigger class="h-8 w-36 text-sm">
-            <SelectValue />
+          <SelectTrigger class="h-8 w-32 text-sm">
+            <span class="flex items-center gap-1.5">
+              <LayoutList v-if="viewMode === 'list'" class="size-3.5 flex-shrink-0" />
+              <LayoutGrid v-else-if="viewMode === 'kanban'" class="size-3.5 flex-shrink-0" />
+              <CalendarDays v-else-if="viewMode === 'calendar'" class="size-3.5 flex-shrink-0" />
+              <GitBranch v-else class="size-3.5 flex-shrink-0" />
+              <span>{{ viewMode === 'list' ? 'Список' : viewMode === 'kanban' ? 'Канбан' : viewMode === 'calendar' ? 'Календар' : 'Дерево' }}</span>
+            </span>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="list">
-              <span class="flex items-center gap-2"><LayoutList class="size-4" />Список</span>
-            </SelectItem>
-            <SelectItem v-if="kanbanColumnField" value="kanban">
-              <span class="flex items-center gap-2"><LayoutGrid class="size-4" />Канбан</span>
-            </SelectItem>
-            <SelectItem v-if="calendarDateField" value="calendar">
-              <span class="flex items-center gap-2"><CalendarDays class="size-4" />Календар</span>
-            </SelectItem>
-            <SelectItem v-if="treeParentField" value="tree">
-              <span class="flex items-center gap-2"><GitBranch class="size-4" />Дерево</span>
-            </SelectItem>
+            <SelectItem value="list">Список</SelectItem>
+            <SelectItem v-if="kanbanColumnField" value="kanban">Канбан</SelectItem>
+            <SelectItem v-if="calendarDateField" value="calendar">Календар</SelectItem>
+            <SelectItem v-if="treeParentField" value="tree">Дерево</SelectItem>
           </SelectContent>
         </Select>
         <Button v-if="!isSystemDocType" variant="outline" size="sm" as="a" :href="`/api/v1/docs/${doctype}/export/xlsx`" download>

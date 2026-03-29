@@ -40,6 +40,7 @@ class UserResponse(BaseModel):
     full_name: str
     roles: list[str] = []
     is_superadmin: bool = False
+    theme: str = "system"
     created_at: str | None = None
 
     model_config = {"from_attributes": True}
@@ -49,6 +50,10 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+
+
+class UpdateMeRequest(BaseModel):
+    theme: str | None = None
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────
@@ -99,6 +104,7 @@ async def login(
             full_name=user.full_name,
             roles=user.roles,
             is_superadmin=user.is_superadmin,
+            theme=user.theme,
         ),
     )
 
@@ -112,6 +118,40 @@ async def me(user: GruntUser = Depends(current_user)) -> UserResponse:
         full_name=user.full_name,
         roles=user.roles,
         is_superadmin=user.is_superadmin,
+        theme=user.theme,
+    )
+
+
+@router.patch("/me", response_model=UserResponse)
+async def update_me(
+    body: UpdateMeRequest,
+    user: GruntUser = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+) -> UserResponse:
+    """Update current user preferences (theme, etc.)."""
+    from sqlalchemy import update as sa_update  # noqa: PLC0415
+
+    values: dict = {}
+    if body.theme is not None:
+        if body.theme not in ("light", "dark", "system"):
+            raise HTTPException(status_code=422, detail="Invalid theme value")
+        values["theme"] = body.theme
+
+    if values:
+        table = _user_table()
+        await session.execute(sa_update(table).where(table.c.id == user.id).values(**values))
+        await session.flush()
+
+    updated = await get_user_by_id(user.id, session)
+    if updated is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return UserResponse(
+        id=updated.id,
+        email=updated.email,
+        full_name=updated.full_name,
+        roles=updated.roles,
+        is_superadmin=updated.is_superadmin,
+        theme=updated.theme,
     )
 
 

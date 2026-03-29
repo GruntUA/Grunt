@@ -43,6 +43,14 @@
       "label": "Хешований пароль",
       "fieldtype": "LongText",
       "hidden": true
+    },
+    {
+      "fieldname": "theme",
+      "label": "Тема",
+      "fieldtype": "Select",
+      "options": "light\ndark\nsystem",
+      "default": "system",
+      "hidden": true
     }
   ]
 }

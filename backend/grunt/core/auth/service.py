@@ -80,6 +80,7 @@ def _row_to_user(row: dict, user_roles: list[GruntUserRole]) -> GruntUser:
         hashed_password=row["hashed_password"] or "",
         is_active=bool(row["is_active"]) if row["is_active"] is not None else True,
         is_superadmin=bool(row["is_superadmin"]) if row["is_superadmin"] is not None else False,
+        theme=row.get("theme") or "system",
         created_at=row["created_at"],
         modified_at=row["modified_at"],
         user_roles=user_roles,
