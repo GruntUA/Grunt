@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import structlog
-from sqlalchemy import select, text
+from sqlalchemy import select, text, update as sa_update
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.core.db.system_tables import (
@@ -276,11 +276,26 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                 try:
                     dt_data = json.loads(dt_file.read_text(encoding="utf-8"))
                     dt_name = dt_data.get("name", "")
-                    if dt_name and dt_name not in doctype_registry._doctypes:
-                        dt_obj = DocType.model_validate(dt_data)
+                    if not dt_name:
+                        continue
+                    dt_obj = DocType.model_validate(dt_data)
+                    if dt_name not in doctype_registry._doctypes:
                         await doctype_registry.register(dt_obj, session, eng)
                         await session.flush()
                         logger.info("startup.app_doctype_registered", app=app_name, doctype=dt_name)
+                    else:
+                        # Update if JSON definition changed
+                        existing = doctype_registry._doctypes[dt_name]
+                        if existing.model_dump() != dt_obj.model_dump():
+                            await session.execute(
+                                sa_update(GruntMetaDoctype)
+                                .where(GruntMetaDoctype.name == dt_name)
+                                .values(module=dt_obj.module, data=dt_obj.model_dump())
+                            )
+                            await sync_table(dt_obj, eng, session=session)
+                            doctype_registry._doctypes[dt_name] = dt_obj
+                            await session.flush()
+                            logger.info("startup.app_doctype_updated", app=app_name, doctype=dt_name)
                 except Exception as e:  # noqa: BLE001
                     logger.warning("startup.app_doctype_register_failed", app=app_name, file=dt_file.name, error=str(e))
 

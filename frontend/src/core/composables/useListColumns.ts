@@ -7,37 +7,48 @@ export interface ListColumn {
   sortable: boolean
 }
 
+const STRUCTURAL = new Set(['Section', 'Column', 'Tab', 'Table', 'MultiLink'])
+
 export function useListColumns(doctype: string, fields: () => DocField[]) {
-  const hiddenCols = ref<string[]>([])
+  const storageKey = `grunt_columns_v2_${doctype}`
+  const saved = localStorage.getItem(storageKey)
+  const _savedKeys = ref<string[] | null>(saved ? (JSON.parse(saved) as string[]) : null)
 
-  // Restore from localStorage
-  const saved = localStorage.getItem(`grunt_columns_${doctype}`)
-  if (saved) hiddenCols.value = JSON.parse(saved) as string[]
-
-  const allColumns = computed<ListColumn[]>(() => {
-    const base = fields()
-      .filter((f) => f.in_list_view && !f.hidden)
-      .map((f) => ({ key: f.fieldname, label: f.label, sortable: true }))
-    return base.length
-      ? base
-      : [
-          { key: 'name', label: 'Назва', sortable: true },
-          { key: 'created_at', label: 'Створено', sortable: false },
-        ]
-  })
-
-  const visibleColumns = computed(() =>
-    allColumns.value.filter((c) => !hiddenCols.value.includes(c.key)),
+  // All non-structural fields that can be shown as columns
+  const allAvailableColumns = computed<ListColumn[]>(() =>
+    fields()
+      .filter(f => !STRUCTURAL.has(f.fieldtype) && !f.hidden)
+      .map(f => ({ key: f.fieldname, label: f.label, sortable: true }))
   )
 
-  function toggleCol(key: string) {
-    if (hiddenCols.value.includes(key)) {
-      hiddenCols.value = hiddenCols.value.filter((k) => k !== key)
-    } else {
-      hiddenCols.value = [...hiddenCols.value, key]
-    }
-    localStorage.setItem(`grunt_columns_${doctype}`, JSON.stringify(hiddenCols.value))
+  // Default visible = in_list_view fields
+  const defaultKeys = computed<string[]>(() => {
+    const cols = fields().filter(f => f.in_list_view && !f.hidden).map(f => f.fieldname)
+    return cols.length ? cols : ['name']
+  })
+
+  // Currently visible keys (saved or default)
+  const visibleKeys = computed<string[]>(() => _savedKeys.value ?? defaultKeys.value)
+
+  // Visible columns in order
+  const visibleColumns = computed<ListColumn[]>(() =>
+    visibleKeys.value
+      .map(key => allAvailableColumns.value.find(c => c.key === key))
+      .filter((c): c is ListColumn => c !== undefined)
+  )
+
+  function isVisible(key: string): boolean {
+    return visibleKeys.value.includes(key)
   }
 
-  return { allColumns, visibleColumns, hiddenCols, toggleCol }
+  function toggleCol(key: string) {
+    const current = visibleKeys.value
+    const next = current.includes(key)
+      ? current.filter(k => k !== key)
+      : [...current, key]
+    _savedKeys.value = next
+    localStorage.setItem(storageKey, JSON.stringify(next))
+  }
+
+  return { allAvailableColumns, visibleColumns, visibleKeys, isVisible, toggleCol }
 }

@@ -158,9 +158,10 @@ class DocType(BaseModel):
     workflow: DocTypeWorkflow | None = None
     permissions: list[DocTypePermission] = []
 
-    # Naming
+    # Naming / display
     autoname: str | None = None  # "CONTR-.YYYY.-.####" or "field:title"
     title_field: str = "name"  # field used as document title
+    image_field: str | None = None  # field (Image/Attach) used as document avatar
 
     # Search
     search_fields: list[str] = []

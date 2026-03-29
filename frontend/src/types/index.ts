@@ -155,6 +155,7 @@ export interface DocType {
   track_changes?: boolean
   fields: DocField[]
   title_field?: string
+  image_field?: string | null
   search_fields?: string[]
   autoname?: string | null
   list_view?: DocTypeListView

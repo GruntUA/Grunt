@@ -7,7 +7,7 @@ import { useToast } from '@/core/composables/useToast'
 import { useWebSocket } from '@/core/composables/useWebSocket'
 import { useClientScripts } from '@/core/composables/useClientScripts'
 import { useQueryClient } from '@tanstack/vue-query'
-import type { DocType } from '@/types'
+import type { DocType, GruntDocument } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
@@ -25,6 +25,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -37,9 +41,13 @@ import {
   Trash2,
   ChevronDown,
   History,
+  Copy,
+  Undo2,
+  EllipsisVertical,
 } from 'lucide-vue-next'
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
+import DocSidebar from '@/components/views/DocSidebar.vue'
 
 interface ActivityEntry {
   id: string
@@ -104,6 +112,15 @@ let allowLeave = false
 
 onMounted(async () => {
   dt.value = await dtStore.get(props.doctype)
+
+  // Apply duplicated document data from history state
+  if (!props.id && window.history.state?.duplicate) {
+    try {
+      const clone = JSON.parse(window.history.state.duplicate) as Record<string, unknown>
+      Object.assign(form.value, clone)
+    } catch { /* ignore malformed state */ }
+  }
+
   // Run client scripts on_load after DocType metadata is available
   await runScriptEvent('on_load')
 })
@@ -147,7 +164,7 @@ async function handleSave() {
 
   // Run client script validation
   const valid = await runScriptEvent('validate')
-  if (!valid) return
+  if (valid === false) return
 
   await runScriptEvent('before_save')
 
@@ -225,6 +242,24 @@ function confirmLeave() {
   }
 }
 
+function handleDuplicate() {
+  const clone = { ...form.value }
+  delete clone.id
+  delete clone.name
+  delete clone.created_at
+  delete clone.updated_at
+  delete clone.owner
+  delete clone.modified_by
+  delete clone.workflow_state
+
+  const path = props.workspace
+    ? `/${props.workspace}/list/${props.doctype}/new`
+    : `/${props.doctype}/new`
+
+  allowLeave = true
+  router.push({ path, state: { duplicate: JSON.stringify(clone) } })
+}
+
 function onFormUpdate(updated: Record<string, unknown>) {
   // Detect which field changed
   const changedFields: string[] = []
@@ -242,70 +277,108 @@ function onFormUpdate(updated: Record<string, unknown>) {
 </script>
 
 <template>
-  <div class="p-4 sm:p-6 lg:p-8 max-w-full lg:max-w-4xl xl:max-w-5xl">
-    <!-- Breadcrumb -->
-    <nav class="flex items-center gap-1.5 text-sm mb-6">
-      <button
-        class="text-muted-foreground hover:text-primary transition-colors"
-        @click="router.push(workspace ? `/${workspace}/list/${doctype}` : `/${doctype}`)"
-      >
-        {{ dt?.label ?? doctype }}
-      </button>
-      <ChevronRight class="size-3.5 text-muted-foreground/60" />
-      <span class="text-foreground font-medium truncate">{{ docTitle }}</span>
-      <Badge v-if="isDirty" variant="outline" class="ml-2 text-xs border-amber-400 text-amber-600">Не збережено</Badge>
-    </nav>
+  <div class="p-4 sm:p-6 lg:p-8 max-w-full xl:max-w-7xl">
+    <!-- Document header card -->
+    <div class="bg-card rounded-xl shadow-md ring-1 ring-border/60 mb-6">
+      <!-- Top bar: breadcrumb + actions -->
+      <div class="flex items-center justify-between gap-4 px-6 pt-5 pb-4">
+        <div class="min-w-0">
+          <nav class="flex items-center gap-1.5 text-sm mb-1">
+            <button
+              class="text-muted-foreground hover:text-primary transition-colors"
+              @click="router.push(workspace ? `/${workspace}/list/${doctype}` : `/${doctype}`)"
+            >
+              {{ dt?.label ?? doctype }}
+            </button>
+            <ChevronRight class="size-3.5 text-muted-foreground/40" />
+          </nav>
+          <div class="flex items-center gap-3">
+            <h1 class="text-2xl font-bold text-foreground truncate">{{ docTitle }}</h1>
+            <Badge v-if="isDirty" variant="outline" class="border-amber-400 text-amber-600 shrink-0">Не збережено</Badge>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <!-- Client script buttons -->
+          <Button
+            v-for="btn in scriptButtons"
+            :key="btn.label"
+            :variant="(btn.variant as any) ?? 'outline'"
+            size="sm"
+            @click="btn.action"
+          >
+            {{ btn.label }}
+          </Button>
 
-    <!-- Header + Actions -->
-    <div class="flex items-center justify-between mb-6 gap-4">
-      <h1 class="text-xl font-semibold text-foreground truncate">{{ docTitle }}</h1>
-      <div class="flex items-center gap-2 shrink-0">
-        <!-- Client script buttons -->
-        <Button
-          v-for="btn in scriptButtons"
-          :key="btn.label"
-          :variant="(btn.variant as any) ?? 'outline'"
-          size="sm"
-          @click="btn.action"
-        >
-          {{ btn.label }}
-        </Button>
+          <Button :disabled="isSaving" size="sm" @click="handleSave">
+            <Loader2 v-if="isSaving" class="size-4 animate-spin mr-1.5" />
+            Зберегти
+          </Button>
 
-        <!-- Print dropdown -->
-        <DropdownMenu v-if="id">
-          <DropdownMenuTrigger as-child>
-            <Button variant="outline" size="sm">
-              <Printer class="size-4 mr-1.5" />
-              Друкувати
-              <ChevronDown class="size-3.5 ml-1" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=xlsx`">
-              <FileSpreadsheet class="size-4 mr-2" />
-              Excel (.xlsx)
-            </DropdownMenuItem>
-            <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=pdf`">
-              <FileText class="size-4 mr-2" />
-              PDF
-            </DropdownMenuItem>
-            <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=html`" target="_blank">
-              <Globe class="size-4 mr-2" />
-              HTML
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          <!-- Context menu -->
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <Button variant="ghost" size="icon-sm">
+                <EllipsisVertical class="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" class="w-48">
+              <!-- Print submenu -->
+              <DropdownMenuSub v-if="id">
+                <DropdownMenuSubTrigger>
+                  <Printer class="size-4 mr-2" />
+                  Друкувати
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=xlsx`">
+                    <FileSpreadsheet class="size-4 mr-2" />
+                    Excel (.xlsx)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=pdf`">
+                    <FileText class="size-4 mr-2" />
+                    PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=html`" target="_blank">
+                    <Globe class="size-4 mr-2" />
+                    HTML
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
 
-        <Button v-if="id && isDirty" variant="ghost" size="sm" @click="router.go(0)">Скасувати</Button>
-        <Button v-if="id" variant="outline" size="sm" class="text-destructive hover:text-destructive" @click="showDeleteModal = true">
-          <Trash2 class="size-4 mr-1.5" />
-          Видалити
-        </Button>
-        <Button :disabled="isSaving" size="sm" @click="handleSave">
-          <Loader2 v-if="isSaving" class="size-4 animate-spin mr-1.5" />
-          Зберегти
-        </Button>
+              <DropdownMenuItem v-if="id" @click="handleDuplicate">
+                <Copy class="size-4 mr-2" />
+                Створити копію
+              </DropdownMenuItem>
+
+              <DropdownMenuItem v-if="id && isDirty" @click="router.go(0)">
+                <Undo2 class="size-4 mr-2" />
+                Скасувати зміни
+              </DropdownMenuItem>
+
+              <DropdownMenuItem v-if="id" @click="toggleLog">
+                <History class="size-4 mr-2" />
+                Журнал активності
+              </DropdownMenuItem>
+
+              <template v-if="id">
+                <DropdownMenuSeparator />
+                <DropdownMenuItem class="text-destructive focus:text-destructive" @click="showDeleteModal = true">
+                  <Trash2 class="size-4 mr-2" />
+                  Видалити
+                </DropdownMenuItem>
+              </template>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
+
+      <!-- Workflow (inside the header card) -->
+      <WorkflowBar
+        v-if="!isLoading && dt && id && document && dt.workflow"
+        :doctype="dt"
+        :doc-id="id"
+        :doc="document as Record<string, unknown>"
+        @transitioned="queryClient.invalidateQueries({ queryKey: ['document', doctype, id] })"
+      />
     </div>
 
     <!-- Loading -->
@@ -314,65 +387,70 @@ function onFormUpdate(updated: Record<string, unknown>) {
     </div>
 
     <template v-else>
-      <!-- Workflow bar -->
-      <WorkflowBar
-        v-if="id && document && dt.workflow"
-        :doctype="dt"
-        :doc-id="id"
-        :doc="document as Record<string, unknown>"
-        @transitioned="queryClient.invalidateQueries({ queryKey: ['document', doctype, id] })"
-      />
-
-      <!-- Form -->
-      <div class="bg-card border border-border rounded-lg p-6 shadow-sm">
-        <FormRenderer
-          :doctype="dt"
-          :model-value="form"
-          :disabled="isSaving"
-          :errors="validationErrors"
-          :overrides="displayOverrides"
-          :reqd-overrides="reqdOverrides"
-          @update:model-value="onFormUpdate($event)"
-        />
-      </div>
-
-      <!-- Activity log -->
-      <div v-if="id" class="mt-4 bg-card border border-border rounded-lg overflow-hidden">
-        <button
-          type="button"
-          class="w-full flex items-center gap-2 px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          @click="toggleLog"
-        >
-          <History class="size-4" />
-          <span class="flex-1 text-left">Журнал активності</span>
-          <ChevronDown
-            class="size-4 transition-transform duration-200"
-            :class="{ 'rotate-180': showLog }"
-          />
-        </button>
-        <Transition name="log">
-          <div v-if="showLog" class="border-t border-border px-5 py-3">
-            <div v-if="logLoading" class="flex justify-center py-4">
-              <Spinner size="sm" />
-            </div>
-            <div v-else-if="activityLog.length === 0" class="text-sm text-muted-foreground py-2">
-              Записів немає
-            </div>
-            <ul v-else class="space-y-2">
-              <li
-                v-for="entry in activityLog"
-                :key="entry.id"
-                class="flex items-start gap-3 text-sm"
-              >
-                <span class="text-muted-foreground text-xs mt-0.5 whitespace-nowrap">
-                  {{ entry.created_at ? new Date(entry.created_at).toLocaleString('uk-UA') : '—' }}
-                </span>
-                <span class="font-medium text-foreground">{{ entry.user }}</span>
-                <span class="text-muted-foreground">{{ entry.action }}</span>
-              </li>
-            </ul>
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-6">
+        <!-- Left: Form + Activity log -->
+        <div class="min-w-0">
+          <!-- Form -->
+          <div class="bg-card rounded-xl p-6 shadow-md ring-1 ring-border/60">
+            <FormRenderer
+              :doctype="dt"
+              :model-value="form"
+              :disabled="isSaving"
+              :errors="validationErrors"
+              :overrides="displayOverrides"
+              :reqd-overrides="reqdOverrides"
+              @update:model-value="onFormUpdate($event)"
+            />
           </div>
-        </Transition>
+
+          <!-- Activity log -->
+          <div v-if="id" class="mt-4 bg-card rounded-xl overflow-hidden shadow-sm ring-1 ring-border/60">
+            <button
+              type="button"
+              class="w-full flex items-center gap-2 px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              @click="toggleLog"
+            >
+              <History class="size-4" />
+              <span class="flex-1 text-left">Журнал активності</span>
+              <ChevronDown
+                class="size-4 transition-transform duration-200"
+                :class="{ 'rotate-180': showLog }"
+              />
+            </button>
+            <Transition name="log">
+              <div v-if="showLog" class="border-t border-border px-5 py-3">
+                <div v-if="logLoading" class="flex justify-center py-4">
+                  <Spinner size="sm" />
+                </div>
+                <div v-else-if="activityLog.length === 0" class="text-sm text-muted-foreground py-2">
+                  Записів немає
+                </div>
+                <ul v-else class="space-y-2">
+                  <li
+                    v-for="entry in activityLog"
+                    :key="entry.id"
+                    class="flex items-start gap-3 text-sm"
+                  >
+                    <span class="text-muted-foreground text-xs mt-0.5 whitespace-nowrap">
+                      {{ entry.created_at ? new Date(entry.created_at).toLocaleString('uk-UA') : '—' }}
+                    </span>
+                    <span class="font-medium text-foreground">{{ entry.user }}</span>
+                    <span class="text-muted-foreground">{{ entry.action }}</span>
+                  </li>
+                </ul>
+              </div>
+            </Transition>
+          </div>
+        </div>
+
+        <!-- Right: Sidebar -->
+        <DocSidebar
+          v-if="id && document"
+          :doctype="dt"
+          :document="document as GruntDocument"
+          :workspace="workspace"
+          class="lg:sticky lg:top-6 lg:self-start"
+        />
       </div>
     </template>
 

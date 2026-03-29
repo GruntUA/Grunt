@@ -68,8 +68,8 @@ function toggleSection(section: LayoutSection) {
             class="size-4 text-muted-foreground transition-transform duration-200"
             :class="{ '-rotate-90': section.collapsed }"
           />
-          <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ section.label }}</span>
-          <div class="flex-1 h-px bg-border" />
+          <span class="text-xs font-semibold uppercase tracking-wider text-foreground/50">{{ section.label }}</span>
+          <div class="flex-1 h-px bg-border/50" />
         </div>
 
         <!-- Fields grid -->

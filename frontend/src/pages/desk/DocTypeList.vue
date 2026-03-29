@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useDocTypeStore } from '@/stores/doctype'
@@ -8,11 +8,16 @@ import { useListColumns } from '@/core/composables/useListColumns'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, DocField } from '@/types'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Download, Plus } from 'lucide-vue-next'
-import ViewToggle from '@/components/views/ViewToggle.vue'
-import type { ViewMode } from '@/components/views/ViewToggle.vue'
-import SearchToolbar from '@/components/views/SearchToolbar.vue'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Download, Plus, Search, SlidersHorizontal, X, LayoutList, LayoutGrid, CalendarDays, GitBranch } from 'lucide-vue-next'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import FilterBar from '@/components/views/FilterBar.vue'
 import BulkActionBar from '@/components/views/BulkActionBar.vue'
 import DataTable from '@/components/views/DataTable.vue'
@@ -32,7 +37,15 @@ const debouncedSearch = ref('')
 const sortKey = ref('')
 const sortOrder = ref<'asc' | 'desc'>('asc')
 const activeFilters = ref<Record<string, string>>({})
-const viewMode = ref<ViewMode>('list')
+const viewMode = ref<'list' | 'kanban' | 'calendar' | 'tree'>('list')
+const inlineSearch = ref('')
+const showColMenu = ref(false)
+
+let searchDebounce: ReturnType<typeof setTimeout>
+watch(inlineSearch, (v) => {
+  clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(() => { debouncedSearch.value = v; page.value = 1 }, 400)
+})
 
 const selection = useListSelection()
 const columns = useListColumns(props.doctype, () => dt.value?.fields ?? [])
@@ -90,11 +103,6 @@ const rows = computed(() => (data.value?.data ?? []) as Record<string, unknown>[
 
 // ── Event handlers ───────────────────────────────────────────────────
 
-function onSearch(val: string) {
-  debouncedSearch.value = val
-  page.value = 1
-}
-
 function onSort(key: string) {
   sortOrder.value = sortKey.value === key && sortOrder.value === 'asc' ? 'desc' : 'asc'
   sortKey.value = key
@@ -144,21 +152,36 @@ function navigateToDoc(row: Record<string, unknown>) {
 </script>
 
 <template>
-  <div class="p-6 lg:p-8">
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
-      <div class="flex items-center gap-3">
-        <h1 class="text-xl font-semibold text-foreground">{{ dt?.label ?? doctype }}</h1>
-        <Badge v-if="meta" variant="secondary" class="font-normal">{{ meta.total }}</Badge>
+  <div class="flex flex-1 flex-col gap-4 sm:gap-6 p-4 sm:p-6 lg:p-8">
+    <!-- Title row -->
+    <div class="flex flex-wrap items-end justify-between gap-2">
+      <div>
+        <h2 class="text-2xl font-bold tracking-tight">{{ dt?.label ?? doctype }}</h2>
+        <p class="text-muted-foreground text-sm">
+          {{ meta ? `${meta.total} ${meta.total === 1 ? 'запис' : 'записів'}` : '\u00a0' }}
+        </p>
       </div>
       <div class="flex items-center gap-2">
-        <ViewToggle
-          v-if="hasViewToggle"
-          v-model="viewMode"
-          :has-kanban="!!kanbanColumnField"
-          :has-calendar="!!calendarDateField"
-          :has-tree="!!treeParentField"
-        />
+        <!-- Compact view mode selector -->
+        <Select v-if="hasViewToggle" v-model="viewMode">
+          <SelectTrigger class="h-8 w-36 text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="list">
+              <span class="flex items-center gap-2"><LayoutList class="size-4" />Список</span>
+            </SelectItem>
+            <SelectItem v-if="kanbanColumnField" value="kanban">
+              <span class="flex items-center gap-2"><LayoutGrid class="size-4" />Канбан</span>
+            </SelectItem>
+            <SelectItem v-if="calendarDateField" value="calendar">
+              <span class="flex items-center gap-2"><CalendarDays class="size-4" />Календар</span>
+            </SelectItem>
+            <SelectItem v-if="treeParentField" value="tree">
+              <span class="flex items-center gap-2"><GitBranch class="size-4" />Дерево</span>
+            </SelectItem>
+          </SelectContent>
+        </Select>
         <Button v-if="!isSystemDocType" variant="outline" size="sm" as="a" :href="`/api/v1/docs/${doctype}/export/xlsx`" download>
           <Download class="size-4 mr-1.5" />
           Excel
@@ -187,14 +210,51 @@ function navigateToDoc(row: Record<string, unknown>) {
 
     <!-- List view -->
     <template v-else>
-      <SearchToolbar
-        :all-columns="columns.allColumns.value"
-        :hidden-cols="columns.hiddenCols.value"
-        @search="onSearch"
-        @toggle-col="columns.toggleCol"
-      />
-
-      <FilterBar v-if="dt" :fields="dt.fields" @change="onFiltersChange" />
+      <!-- Toolbar -->
+      <div class="flex items-center justify-between">
+        <div class="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
+          <div class="relative w-[150px] lg:w-[250px]">
+            <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+            <input
+              v-model="inlineSearch"
+              placeholder="Пошук..."
+              class="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 pl-8 text-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
+          </div>
+          <FilterBar v-if="dt" :fields="dt.fields" @change="onFiltersChange" class="!mb-0" />
+          <Button
+            v-if="inlineSearch || Object.keys(activeFilters).length"
+            variant="ghost"
+            size="sm"
+            class="h-8 px-2 lg:px-3"
+            @click="inlineSearch = ''; debouncedSearch = ''; activeFilters = {}; page = 1"
+          >
+            Скинути
+            <X class="ml-2 size-4" />
+          </Button>
+        </div>
+        <!-- Column visibility toggle -->
+        <DropdownMenu v-model:open="showColMenu">
+          <DropdownMenuTrigger as-child>
+            <Button variant="outline" size="sm" class="ml-auto hidden h-8 lg:flex">
+              <SlidersHorizontal class="mr-2 size-4" />
+              Вигляд
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="w-48">
+            <DropdownMenuLabel>Колонки</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuCheckboxItem
+              v-for="col in columns.allAvailableColumns.value"
+              :key="col.key"
+              :checked="columns.isVisible(col.key)"
+              @update:checked="columns.toggleCol(col.key)"
+            >
+              {{ col.label }}
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <BulkActionBar
         :count="selection.allSelected.value ? (meta?.total ?? 0) : selection.selectedIds.value.length"

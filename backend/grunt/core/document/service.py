@@ -23,6 +23,7 @@ from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.hooks import fire
 from grunt.core.document.registry import document_registry
+from grunt.core.document.multi_link import MultiLinkService
 from grunt.core.metadata.system_doctypes import is_system_doctype
 
 logger = structlog.get_logger()
@@ -31,12 +32,18 @@ logger = structlog.get_logger()
 PROTECTED_FIELDS = frozenset({"id", "owner", "created_at", "docstatus"})
 
 
+def _get_multi_link_fields(dt: DocType) -> list:
+    """Return MultiLink fields from a DocType."""
+    return [f for f in dt.fields if f.fieldtype == "MultiLink"]
+
+
 class DocumentService:
     """Dynamic CRUD for any registered DocType."""
 
     def __init__(self, session: AsyncSession, engine: AsyncEngine) -> None:
         self.session = session
         self.engine = engine
+        self._ml = MultiLinkService(session)
 
     # ── List ──────────────────────────────────────────────────────────────
 
@@ -206,6 +213,15 @@ class DocumentService:
         await self.session.execute(table.insert().values(**row))
         await self.session.flush()
 
+        # Save MultiLink fields
+        for mlf in _get_multi_link_fields(dt):
+            values = data.get(mlf.fieldname)
+            if isinstance(values, list):
+                await self._ml.set_values(
+                    doctype_name, doc_id, mlf.fieldname,
+                    mlf.options or "", values,
+                )
+
         logger.info("document.created", doctype=doctype_name, id=doc_id)
 
         await doc.after_insert()
@@ -218,6 +234,10 @@ class DocumentService:
         for k, v in row.items():
             if isinstance(v, datetime):
                 row[k] = v.isoformat()
+
+        # Attach MultiLink values to response
+        for mlf in _get_multi_link_fields(dt):
+            row[mlf.fieldname] = await self._ml.get_values(doctype_name, doc_id, mlf.fieldname)
 
         return row
 
@@ -250,6 +270,14 @@ class DocumentService:
         for k, v in doc.items():
             if isinstance(v, datetime):
                 doc[k] = v.isoformat()
+
+        # Attach MultiLink values
+        ml_fields = _get_multi_link_fields(dt)
+        if ml_fields:
+            ml_data = await self._ml.get_all_for_doc(doctype_name, doc["id"])
+            for mlf in ml_fields:
+                doc[mlf.fieldname] = ml_data.get(mlf.fieldname, [])
+
         return doc
 
     # ── Update ────────────────────────────────────────────────────────────
@@ -310,6 +338,17 @@ class DocumentService:
         await self.session.execute(
             table.update().where(table.c.id == real_id).values(**update_data)
         )
+
+        # Update MultiLink fields
+        for mlf in _get_multi_link_fields(dt):
+            if mlf.fieldname in data:
+                values = data[mlf.fieldname]
+                if isinstance(values, list):
+                    await self._ml.set_values(
+                        doctype_name, real_id, mlf.fieldname,
+                        mlf.options or "", values,
+                    )
+
         await self.session.flush()
 
         logger.info("document.updated", doctype=doctype_name, id=real_id)
@@ -378,6 +417,7 @@ class DocumentService:
         await fire("before_delete", doctype=doctype_name, doc=existing, user=user, session=self.session)
 
         await self.session.execute(table.delete().where(table.c.id == real_id))
+        await self._ml.delete_all_for_doc(doctype_name, real_id)
         await self.session.flush()
         logger.info("document.deleted", doctype=doctype_name, id=real_id)
 

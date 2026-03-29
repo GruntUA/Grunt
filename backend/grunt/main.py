@@ -57,6 +57,11 @@ async def lifespan(app: FastAPI):
             async with eng.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
 
+            # Ensure shared infrastructure tables (MultiLink junction, etc.)
+            from grunt.core.metadata.compiler import SA_METADATA as _sa_meta  # noqa: PLC0415
+            async with eng.begin() as conn:
+                await conn.run_sync(_sa_meta.create_all)
+
             # Sync system DocType tables and populate document tables
             for sys_dt in SYSTEM_DOCTYPES.values():
                 await sync_table(sys_dt, eng)

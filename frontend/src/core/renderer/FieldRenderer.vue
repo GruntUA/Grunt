@@ -2,7 +2,10 @@
 import { defineAsyncComponent, computed } from 'vue'
 import { fieldComponents, FallbackField } from '@/components/fields'
 import { FormField } from '@/components/ui/form-field'
+import { useDevMode } from '@/core/composables/useDevMode'
 import type { DocField } from '@/types'
+
+const { isDev, altPressed } = useDevMode()
 
 const INLINE_LABEL_TYPES = new Set(['Check'])
 
@@ -43,6 +46,7 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
     :required="hasOwnLabel ? false : field.required"
     :error="error"
     :hint="field.description"
+    class="relative"
   >
     <component
       :is="component"
@@ -52,5 +56,9 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
       :error="error"
       @update:modelValue="emit('update:modelValue', $event)"
     />
+    <span
+      v-if="isDev && altPressed"
+      class="absolute -top-2 right-1 z-50 rounded bg-violet-600 px-1.5 py-0.5 text-[10px] font-mono text-white shadow-sm pointer-events-none select-none"
+    >{{ field.fieldname }}</span>
   </FormField>
 </template>

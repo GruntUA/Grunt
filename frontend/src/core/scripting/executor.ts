@@ -252,10 +252,7 @@ export async function executeClientScripts(
         return false
       }
     } catch (err) {
-      console.error(`[ClientScript] Error in "${entry.name}" (${event}):`, err)
-      if (event === 'validate') {
-        return false
-      }
+      console.warn(`[ClientScript] Error in "${entry.name}" (${event}):`, err)
     }
   }
 

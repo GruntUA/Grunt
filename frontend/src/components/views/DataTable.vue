@@ -116,7 +116,7 @@ function isSelected(id: string) {
   </div>
 
   <!-- Table -->
-  <div v-else class="border border-border rounded-lg overflow-hidden bg-card shadow-sm">
+  <div v-else class="overflow-hidden rounded-md border">
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-border bg-muted/50">

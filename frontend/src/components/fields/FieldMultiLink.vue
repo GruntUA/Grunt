@@ -2,7 +2,7 @@
 import { ref, watch, computed } from 'vue'
 import type { DocField } from '@/types'
 import { docsApi, metaApi } from '@/core/api'
-import { Search, X, Loader2 } from 'lucide-vue-next'
+import { X, Loader2 } from 'lucide-vue-next'
 
 const props = defineProps<{
   field: DocField
@@ -22,49 +22,51 @@ const isLoading = ref(false)
 const activeIdx = ref(-1)
 const titleField = ref<string>('name')
 
-// Cache: name → display label
-const displayCache = new Map<string, string>()
+// Resolved display labels: name → label
+const displayLabels = ref<Map<string, string>>(new Map())
 
 let debounceTimer: ReturnType<typeof setTimeout>
 let blurTimer: ReturnType<typeof setTimeout>
 
-// ── Resolve display label for a stored value ─────────────────────────────────
+// ── Selected values ─────────────────────────────────────────────────────────
 
-async function resolveDisplay(value: string): Promise<string> {
-  if (!value || !props.field.options) return value
-  if (displayCache.has(value)) return displayCache.get(value)!
-
-  if (titleField.value === 'name') {
-    displayCache.set(value, value)
-    return value
+const selectedValues = computed<string[]>(() => {
+  const v = props.modelValue
+  if (Array.isArray(v)) return v as string[]
+  if (typeof v === 'string' && v) {
+    try { return JSON.parse(v) as string[] } catch { return [] }
   }
-
-  try {
-    const doc = await docsApi.get(props.field.options, value)
-    const label = (doc as Record<string, unknown>)[titleField.value]
-    const display = typeof label === 'string' && label ? label : value
-    displayCache.set(value, display)
-    return display
-  } catch {
-    displayCache.set(value, value)
-    return value
-  }
-}
-
-async function syncQueryFromValue(v: unknown) {
-  const raw = String(v ?? '')
-  if (!raw) { query.value = ''; return }
-  query.value = raw // show raw immediately to avoid blank
-  query.value = await resolveDisplay(raw)
-}
-
-// ── Sync value → display ──────────────────────────────────────────────────────
-
-watch(() => props.modelValue, (v) => {
-  syncQueryFromValue(v)
+  return []
 })
 
-// Fetch linked DocType meta to get title_field
+// ── Resolve display labels ──────────────────────────────────────────────────
+
+let titleFieldReady = false
+
+async function resolveLabels(values: string[]) {
+  if (!props.field.options || !titleFieldReady) return
+  if (titleField.value === 'name') {
+    values.forEach(v => displayLabels.value.set(v, v))
+    return
+  }
+  for (const val of values) {
+    if (displayLabels.value.has(val)) continue
+    try {
+      const doc = await docsApi.get(props.field.options, val)
+      const label = (doc as Record<string, unknown>)[titleField.value]
+      displayLabels.value.set(val, typeof label === 'string' && label ? label : val)
+    } catch {
+      displayLabels.value.set(val, val)
+    }
+  }
+}
+
+function getDisplayLabel(value: string): string {
+  return displayLabels.value.get(value) ?? value
+}
+
+// ── Fetch linked DocType meta ───────────────────────────────────────────────
+
 watch(() => props.field.options, async (doctype) => {
   if (!doctype) return
   try {
@@ -73,11 +75,20 @@ watch(() => props.field.options, async (doctype) => {
   } catch {
     titleField.value = 'name'
   }
-  // Re-resolve display after title_field is known
-  if (props.modelValue) syncQueryFromValue(props.modelValue)
+  titleFieldReady = true
+  displayLabels.value.clear()
+  if (selectedValues.value.length) resolveLabels(selectedValues.value)
 }, { immediate: true })
 
+watch(selectedValues, (vals) => {
+  if (vals.length) resolveLabels(vals)
+})
+
 // ── Search ────────────────────────────────────────────────────────────────────
+
+const filteredResults = computed(() =>
+  results.value.filter(r => !selectedValues.value.includes(r.name))
+)
 
 async function search(val: string) {
   if (!props.field.options) return
@@ -88,7 +99,7 @@ async function search(val: string) {
       : 'id,name'
     const resp = await docsApi.list(props.field.options, {
       search: val || undefined,
-      per_page: 10,
+      per_page: 20,
       fields,
     })
     results.value = (resp.data ?? []) as Record<string, string>[]
@@ -103,64 +114,72 @@ async function search(val: string) {
 
 function onInput(val: string) {
   query.value = val
-  // Don't emit yet — only emit when item is selected
   clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => search(val), val ? 300 : 0)
 }
 
 function onFocus() {
   clearTimeout(blurTimer)
-  // Show results immediately on focus
   if (!isOpen.value) search(query.value)
 }
 
 function onBlur() {
   blurTimer = setTimeout(() => {
     isOpen.value = false
-    // If user typed something but didn't select — restore previous display
-    syncQueryFromValue(props.modelValue)
+    query.value = ''
   }, 200)
 }
 
 // ── Keyboard navigation ───────────────────────────────────────────────────────
 
 function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Backspace' && !query.value && selectedValues.value.length) {
+    e.preventDefault()
+    removeValue(selectedValues.value[selectedValues.value.length - 1])
+    return
+  }
+
   if (!isOpen.value) return
 
   if (e.key === 'ArrowDown') {
     e.preventDefault()
-    activeIdx.value = Math.min(activeIdx.value + 1, results.value.length - 1)
+    activeIdx.value = Math.min(activeIdx.value + 1, filteredResults.value.length - 1)
   } else if (e.key === 'ArrowUp') {
     e.preventDefault()
     activeIdx.value = Math.max(activeIdx.value - 1, -1)
   } else if (e.key === 'Enter') {
     e.preventDefault()
-    if (activeIdx.value >= 0 && results.value[activeIdx.value]) {
-      select(results.value[activeIdx.value])
+    if (activeIdx.value >= 0 && filteredResults.value[activeIdx.value]) {
+      addItem(filteredResults.value[activeIdx.value])
     }
   } else if (e.key === 'Escape') {
     e.preventDefault()
     isOpen.value = false
-    syncQueryFromValue(props.modelValue)
+    query.value = ''
   }
 }
 
 // ── Selection ─────────────────────────────────────────────────────────────────
 
-function select(item: Record<string, string>) {
-  const value = item.name
-  const display = titleField.value !== 'name' && item[titleField.value]
+function addItem(item: Record<string, string>) {
+  const name = item.name
+  if (selectedValues.value.includes(name)) return
+
+  const label = titleField.value !== 'name' && item[titleField.value]
     ? item[titleField.value]
     : item.name
-  query.value = display
-  emit('update:modelValue', value)
-  isOpen.value = false
+  displayLabels.value.set(name, label)
+
+  const newValues = [...selectedValues.value, name]
+  emit('update:modelValue', newValues)
+  query.value = ''
+  // Keep dropdown open for adding more
+  search('')
 }
 
-function clear() {
-  query.value = ''
-  emit('update:modelValue', null)
-  isOpen.value = false
+function removeValue(name: string) {
+  const newValues = selectedValues.value.filter(v => v !== name)
+  emit('update:modelValue', newValues)
 }
 
 // ── Display helpers ───────────────────────────────────────────────────────────
@@ -177,66 +196,76 @@ function getSublabel(item: Record<string, string>): string | null {
   return null
 }
 
-// Highlight matched part in text
 function highlight(text: string): string {
   if (!query.value.trim()) return text
   const escaped = query.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   return text.replace(new RegExp(`(${escaped})`, 'gi'), '<mark class="bg-primary/20 text-foreground rounded-sm">$1</mark>')
 }
-
-const isSelected = computed(() => props.modelValue !== null && props.modelValue !== undefined && props.modelValue !== '')
 </script>
 
 <template>
   <div class="relative">
-    <!-- Input -->
-    <div class="relative">
-      <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-
-      <input
-        :value="query"
-        :placeholder="field.placeholder ?? `Пошук ${field.options ?? ''}...`"
-        :disabled="disabled || field.read_only"
-        class="w-full rounded-md border border-input bg-transparent pl-8 pr-8 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:bg-muted disabled:cursor-not-allowed transition-colors"
-        :class="{ 'border-destructive focus-visible:ring-destructive': error }"
-        autocomplete="off"
-        @input="onInput(($event.target as HTMLInputElement).value)"
-        @focus="onFocus"
-        @blur="onBlur"
-        @keydown="onKeydown"
-      />
-
-      <!-- Right icon: loading / clear -->
-      <div class="absolute right-2.5 top-1/2 -translate-y-1/2">
-        <Loader2 v-if="isLoading" class="size-4 text-muted-foreground animate-spin" />
+    <!-- Tags + Input wrapper -->
+    <div
+      class="flex flex-wrap items-center gap-1.5 min-h-[38px] w-full rounded-md border border-input bg-transparent px-2 py-1.5 text-sm ring-offset-background transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:border-ring"
+      :class="{
+        'border-destructive focus-within:ring-destructive': error,
+        'bg-muted cursor-not-allowed': disabled || field.read_only,
+      }"
+      @click="($refs.inputEl as HTMLInputElement)?.focus()"
+    >
+      <!-- Tags -->
+      <span
+        v-for="val in selectedValues"
+        :key="val"
+        class="inline-flex items-center gap-1 rounded-md bg-secondary text-secondary-foreground px-2 py-0.5 text-sm max-w-[200px]"
+      >
+        <span class="truncate">{{ getDisplayLabel(val) }}</span>
         <button
-          v-else-if="isSelected && !disabled && !field.read_only"
+          v-if="!disabled && !field.read_only"
           type="button"
-          class="text-muted-foreground hover:text-foreground transition-colors"
-          @mousedown.prevent="clear"
+          class="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+          @mousedown.prevent="removeValue(val)"
         >
-          <X class="size-4" />
+          <X class="size-3" />
         </button>
+      </span>
+
+      <!-- Input -->
+      <div v-if="!disabled && !field.read_only" class="relative flex-1 min-w-[120px]">
+        <input
+          ref="inputEl"
+          :value="query"
+          :placeholder="selectedValues.length ? '' : (field.placeholder ?? `Пошук ${field.options ?? ''}...`)"
+          class="w-full bg-transparent outline-none text-sm py-0.5"
+          autocomplete="off"
+          @input="onInput(($event.target as HTMLInputElement).value)"
+          @focus="onFocus"
+          @blur="onBlur"
+          @keydown="onKeydown"
+        />
       </div>
+
+      <!-- Loading indicator -->
+      <Loader2 v-if="isLoading" class="size-4 text-muted-foreground animate-spin shrink-0" />
     </div>
 
     <!-- Dropdown -->
     <div
-      v-if="isOpen"
+      v-if="isOpen && !disabled && !field.read_only"
       class="absolute top-full mt-1 left-0 right-0 bg-popover border border-border rounded-lg shadow-lg z-50 overflow-hidden"
     >
-      <!-- Results -->
-      <template v-if="results.length">
+      <template v-if="filteredResults.length">
         <div class="max-h-52 overflow-y-auto py-1">
           <button
-            v-for="(item, i) in results"
+            v-for="(item, i) in filteredResults"
             :key="item.id"
             type="button"
             :class="[
               'w-full text-left px-3 py-2 text-sm transition-colors flex flex-col gap-0.5',
               i === activeIdx ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50',
             ]"
-            @mousedown.prevent="select(item)"
+            @mousedown.prevent="addItem(item)"
             @mouseover="activeIdx = i"
           >
             <span v-html="highlight(getLabel(item))" />
@@ -245,7 +274,6 @@ const isSelected = computed(() => props.modelValue !== null && props.modelValue 
         </div>
       </template>
 
-      <!-- States -->
       <div v-else class="px-3 py-3 text-sm text-muted-foreground text-center">
         <span v-if="isLoading">Пошук...</span>
         <span v-else-if="query">Нічого не знайдено для «{{ query }}»</span>

@@ -11,7 +11,7 @@ export const fieldComponents: Record<string, () => Promise<Component>> = {
   Time:        () => import('./FieldText.vue').then((m) => m.default),
   Select:      () => import('./FieldSelect.vue').then((m) => m.default),
   Link:        () => import('./FieldLink.vue').then((m) => m.default),
-  MultiLink:   () => import('./FieldText.vue').then((m) => m.default),
+  MultiLink:   () => import('./FieldMultiLink.vue').then((m) => m.default),
   Attach:      () => import('./FieldAttach.vue').then((m) => m.default),
   Image:       () => import('./FieldImage.vue').then((m) => m.default),
   RichText:    () => import('./FieldRichText.vue').then((m) => m.default),

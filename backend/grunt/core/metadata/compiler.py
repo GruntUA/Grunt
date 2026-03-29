@@ -41,6 +41,21 @@ logger = structlog.get_logger()
 # Shared SA MetaData for all dynamically compiled tables
 SA_METADATA = MetaData()
 
+# ── MultiLink junction table ─────────────────────────────────────────────
+
+MULTI_LINK_TABLE = Table(
+    "grunt_core_multi_link",
+    SA_METADATA,
+    Column("id", String(36), primary_key=True, default=lambda: str(uuid.uuid4())),
+    Column("parent_doctype", String(255), nullable=False),
+    Column("parent_id", String(36), nullable=False),
+    Column("parent_field", String(255), nullable=False),
+    Column("link_doctype", String(255), nullable=False),
+    Column("link_name", String(255), nullable=False),
+    Column("idx", Integer, default=0),
+    extend_existing=True,
+)
+
 # ── Field type → SQLAlchemy Column builder ───────────────────────────────
 
 FIELDTYPE_TO_SA: dict[str, object] = {

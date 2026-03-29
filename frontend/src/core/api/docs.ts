@@ -6,6 +6,12 @@ export interface WorkflowTransitionItem {
   to_state: string
 }
 
+export interface BacklinkItem {
+  source_doctype: string
+  source_id: string
+  link_fieldname: string
+}
+
 export interface ListParams {
   page?: number
   per_page?: number
@@ -52,4 +58,34 @@ export const docsApi = {
 
   applyTransition: (doctype: string, id: string, action: string): Promise<{ success: boolean; data: GruntDocument }> =>
     client.post(`/api/v1/docs/${doctype}/${id}/transition`, { action }).then(r => r.data),
+
+  getLinks: (doctype: string, id: string): Promise<BacklinkItem[]> =>
+    client.get(`/api/v1/docs/${doctype}/${id}/links`).then(r => r.data.data ?? []),
+
+  getAssignees: (doctype: string, id: string): Promise<GruntDocument[]> =>
+    client.get(`/api/v1/docs/ToDo`, {
+      params: { 'filter[reference_doctype]': doctype, 'filter[reference_id]': id, 'filter[status]': 'Open' }
+    }).then(r => r.data.data ?? []),
+
+  assign: (doctype: string, id: string, user: string): Promise<GruntDocument> =>
+    client.post(`/api/v1/docs/ToDo`, {
+      reference_doctype: doctype,
+      reference_id: id,
+      assigned_to: user,
+      status: 'Open',
+      description: `Assigned to ${user}`,
+    }).then(r => r.data.data),
+
+  getSharedWith: (doctype: string, id: string): Promise<GruntDocument[]> =>
+    client.get(`/api/v1/docs/SharedWith`, {
+      params: { 'filter[reference_doctype]': doctype, 'filter[reference_id]': id }
+    }).then(r => r.data.data ?? []),
+
+  share: (doctype: string, id: string, user: string, permission: 'Read' | 'Write' = 'Read'): Promise<GruntDocument> =>
+    client.post(`/api/v1/docs/SharedWith`, {
+      reference_doctype: doctype,
+      reference_id: id,
+      user,
+      permission,
+    }).then(r => r.data.data),
 }

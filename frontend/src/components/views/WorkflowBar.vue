@@ -44,7 +44,7 @@ onMounted(loadTransitions)
 <template>
   <div
     v-if="doctype.workflow"
-    class="flex items-center gap-3 px-4 py-2.5 bg-background border border-border rounded-md mb-4"
+    class="flex items-center gap-3 px-6 py-3 border-t border-border/50 bg-muted/30"
   >
     <span class="text-sm text-muted-foreground">Стан:</span>
     <Badge>{{ (doc[doctype.workflow.state_field] as string) ?? '—' }}</Badge>
