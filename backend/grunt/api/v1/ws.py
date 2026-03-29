@@ -15,18 +15,47 @@ router = APIRouter()
 
 
 class ConnectionManager:
+    """Manages WebSocket connections with optional Redis Pub/Sub fan-out.
+
+    When Redis is configured, every ``broadcast`` / ``send_to_user`` call
+    publishes to a Redis channel so that all worker instances can relay
+    the message to their locally-connected clients.
+
+    Channel naming:
+      ``grunt:ws:<channel>``  →  delivered to all connections on that channel
+    """
+
     def __init__(self) -> None:
         self._connections: dict[str, list[WebSocket]] = {}
+        self._redis_listener_started = False
+
+    def _total_connections(self) -> int:
+        return sum(len(v) for v in self._connections.values())
 
     async def connect(self, ws: WebSocket, channel: str) -> None:
         await ws.accept()
         self._connections.setdefault(channel, []).append(ws)
-        logger.debug("ws.connect", channel=channel, total=len(self._connections.get(channel, [])))
+        await self.ensure_redis_listener()
+        total = self._total_connections()
+        logger.debug("ws.connect", channel=channel, total=total)
+        try:
+            from grunt.core.monitoring.metrics import ws_connections_active  # noqa: PLC0415
+            if ws_connections_active is not None:
+                ws_connections_active.set(total)
+        except Exception:  # noqa: BLE001
+            pass
 
     def disconnect(self, ws: WebSocket, channel: str) -> None:
         conns = self._connections.get(channel, [])
         if ws in conns:
             conns.remove(ws)
+        total = self._total_connections()
+        try:
+            from grunt.core.monitoring.metrics import ws_connections_active  # noqa: PLC0415
+            if ws_connections_active is not None:
+                ws_connections_active.set(total)
+        except Exception:  # noqa: BLE001
+            pass
 
     async def _send(self, channel: str, message: str) -> None:
         """Send a message to all connections on a channel, removing dead ones."""
@@ -39,8 +68,69 @@ class ConnectionManager:
         for ws in dead:
             self.disconnect(ws, channel)
 
+    # ── Redis helpers ─────────────────────────────────────────────────
+
+    async def _redis_publish(self, channel: str, message: str) -> None:
+        """Publish a message to a Redis channel (best-effort)."""
+        try:
+            from grunt.config import settings  # noqa: PLC0415
+
+            if not settings.redis_url:
+                return
+            import redis.asyncio as aioredis  # noqa: PLC0415
+
+            r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
+            await r.publish(f"grunt:ws:{channel}", message)
+            await r.aclose()
+        except Exception:  # noqa: BLE001
+            pass
+
+    async def ensure_redis_listener(self) -> None:
+        """Start the Redis subscriber background task (once per process)."""
+        if self._redis_listener_started:
+            return
+        try:
+            from grunt.config import settings  # noqa: PLC0415
+
+            if not settings.redis_url:
+                return
+            import asyncio  # noqa: PLC0415
+
+            self._redis_listener_started = True
+            asyncio.create_task(self._redis_listener_loop())
+        except Exception:  # noqa: BLE001
+            pass
+
+    async def _redis_listener_loop(self) -> None:
+        """Subscribe to grunt:ws:* and relay messages to local connections."""
+        import asyncio  # noqa: PLC0415
+
+        while True:
+            try:
+                from grunt.config import settings  # noqa: PLC0415
+                import redis.asyncio as aioredis  # noqa: PLC0415
+
+                r = aioredis.from_url(settings.redis_url)
+                pubsub = r.pubsub()
+                await pubsub.psubscribe("grunt:ws:*")
+                async for msg in pubsub.listen():
+                    if msg["type"] != "pmessage":
+                        continue
+                    full_key: str = msg["channel"].decode() if isinstance(msg["channel"], bytes) else msg["channel"]
+                    channel = full_key.removeprefix("grunt:ws:")
+                    data: str = msg["data"].decode() if isinstance(msg["data"], bytes) else msg["data"]
+                    if channel == "__broadcast_users__":
+                        await self._handle_broadcast_users(data)
+                    else:
+                        await self._send(channel, data)
+            except Exception:  # noqa: BLE001
+                await asyncio.sleep(2)  # retry after brief pause
+
+    # ── Public broadcast API ──────────────────────────────────────────
+
     async def broadcast(self, channel: str, event: str, data: dict) -> None:  # type: ignore[type-arg]
         message = json.dumps({"event": event, "data": data})
+        await self._redis_publish(channel, message)
         await self._send(channel, message)
 
     async def broadcast_doc(self, doctype: str, doc_id: str, event: str, data: dict) -> None:  # type: ignore[type-arg]
@@ -53,11 +143,21 @@ class ConnectionManager:
         """Send a message to all WebSocket connections of a specific user."""
         channel = f"user:{user_email}"
         message = json.dumps(payload)
+        await self._redis_publish(channel, message)
         await self._send(channel, message)
 
     async def broadcast_all_users(self, payload: dict[str, Any]) -> None:
         """Broadcast a message to all connected user channels."""
         message = json.dumps(payload)
+        # Local delivery
+        for channel in list(self._connections):
+            if channel.startswith("user:"):
+                await self._send(channel, message)
+        # Redis fan-out to other instances via a dedicated broadcast channel
+        await self._redis_publish("__broadcast_users__", message)
+
+    async def _handle_broadcast_users(self, message: str) -> None:
+        """Called by the Redis listener for __broadcast_users__ channel."""
         for channel in list(self._connections):
             if channel.startswith("user:"):
                 await self._send(channel, message)

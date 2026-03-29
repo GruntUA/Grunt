@@ -72,6 +72,52 @@ class PermissionChecker:
                 },
             )
 
+    def hidden_fields(
+        self,
+        user: "GruntUser",
+        doctype: "DocType",
+    ) -> frozenset[str]:
+        """Return the set of field names the user is NOT allowed to see.
+
+        If the user is superadmin or no permissions are defined, returns empty set.
+        For each matching role permission, the union of hidden_fields from the
+        *most permissive* (first matching) rule is used — i.e., if any matching
+        rule exposes a field, it is visible.
+        """
+        if getattr(user, "is_superadmin", False):
+            return frozenset()
+        if not doctype.permissions:
+            return frozenset()
+
+        user_roles = set(getattr(user, "roles", []) or [])
+        hidden: set[str] = set()
+        matched = False
+
+        for perm in doctype.permissions:
+            role = perm.role if hasattr(perm, "role") else perm.get("role", "")
+            if role not in user_roles and role != "All":
+                continue
+            read_ok = (
+                getattr(perm, "read", False)
+                if hasattr(perm, "read")
+                else perm.get("read", False)
+            )
+            if not read_ok:
+                continue
+            perm_hidden = (
+                getattr(perm, "hidden_fields", [])
+                if hasattr(perm, "hidden_fields")
+                else perm.get("hidden_fields", [])
+            )
+            if not matched:
+                hidden = set(perm_hidden)
+                matched = True
+            else:
+                # Intersect: a field is hidden only if ALL matching rules hide it
+                hidden &= set(perm_hidden)
+
+        return frozenset(hidden)
+
     def _eval_match(self, match_expr: str, user: "GruntUser", doc: dict) -> bool:
         safe_globals: dict = {"__builtins__": {}}
         safe_locals: dict = {

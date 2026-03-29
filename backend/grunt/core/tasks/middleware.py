@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import structlog
@@ -94,10 +94,23 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
         finally:
             self.log_ids.pop(message.task_id, None)
 
+    def _retry_info(self, message: TaskiqMessage) -> tuple[bool, int, int, float]:
+        """Return (will_retry, attempt_number, max_retries, delay_seconds) for this failure."""
+        retry_on_error = message.labels.get("retry_on_error", False)
+        if isinstance(retry_on_error, str):
+            retry_on_error = retry_on_error.lower() == "true"
+
+        attempt = int(message.labels.get("_retries", 0)) + 1  # attempts after this failure
+        max_retries = int(message.labels.get("max_retries", 3))
+        delay = float(message.labels.get("delay", 60))
+
+        will_retry = bool(retry_on_error) and attempt < max_retries
+        return will_retry, attempt, max_retries, delay
+
     async def on_error(
-        self, 
-        message: TaskiqMessage, 
-        result: TaskiqResult[Any], 
+        self,
+        message: TaskiqMessage,
+        result: TaskiqResult[Any],
         exception: Exception
     ) -> None:
         """Called if an unhandled error occurs."""
@@ -106,6 +119,27 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             return
 
         try:
+            will_retry, attempt, _max, delay = self._retry_info(message)
+
+            update_data: dict[str, Any] = {
+                "finished_at": datetime.now(timezone.utc).isoformat(),
+                "error_message": str(exception),
+                "retry_count": attempt,
+            }
+
+            if will_retry:
+                next_attempt = datetime.now(timezone.utc) + timedelta(seconds=delay)
+                update_data["status"] = "Retrying"
+                update_data["next_attempt_at"] = next_attempt.isoformat()
+                logger.info(
+                    "tasks.retry_scheduled",
+                    task=message.task_name,
+                    attempt=attempt,
+                    next_attempt=next_attempt.isoformat(),
+                )
+            else:
+                update_data["status"] = "Error"
+
             site = site_manager.get_active_site()
             maker = site_manager.get_session_maker(site)
             eng = site_manager.get_engine(site)
@@ -114,11 +148,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
                 await service.update_document(
                     "BackgroundTaskLog",
                     log_id,
-                    {
-                        "status": "Error",
-                        "finished_at": datetime.now().isoformat(),
-                        "error_message": str(exception)
-                    },
+                    update_data,
                     SYSTEM_USER
                 )
                 await session.commit()

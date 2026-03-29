@@ -21,6 +21,9 @@ logger = structlog.get_logger()
 class NotificationService:
     """Evaluates notification rules and creates notifications for users."""
 
+    def __init__(self) -> None:
+        self._pending_role_parts: list[str] = []
+
     async def evaluate_rules(
         self,
         session: AsyncSession,
@@ -60,8 +63,12 @@ class NotificationService:
             if rule["condition"] and not self._eval_condition(rule["condition"], doc, user_email):
                 continue
 
-            # Resolve recipients
+            # Resolve recipients (sync part + async role lookup)
+            self._pending_role_parts = []
             recipients = self._resolve_recipients(rule["recipients"], doc, user_email)
+            if self._pending_role_parts:
+                role_emails = await self._resolve_role_recipients(self._pending_role_parts, session)
+                recipients = list(set(recipients) | set(role_emails) - {user_email})
             if not recipients:
                 continue
 
@@ -213,15 +220,17 @@ class NotificationService:
         """Parse recipient spec into list of email addresses.
 
         Supports:
-          - "owner"           → doc owner
-          - "role:Manager"    → all users with this role (TODO: query users table)
+          - "owner"            → doc owner
+          - "role:Manager"     → all active users with this role
           - "user@example.com" → literal email
-          - "{field:assigned_to}" → value of a field
+          - "{field:fieldname}" → value of a doc field
         """
         if not recipients_str:
             return []
 
         results: set[str] = set()
+        role_parts: list[str] = []
+
         for part in recipients_str.split(","):
             part = part.strip()
             if not part:
@@ -232,8 +241,7 @@ class NotificationService:
                 if owner:
                     results.add(owner)
             elif part.startswith("role:"):
-                # TODO: query GruntUser by role — for now skip
-                pass
+                role_parts.append(part[5:])
             elif part.startswith("{field:") and part.endswith("}"):
                 field_name = part[7:-1]
                 value = doc.get(field_name)
@@ -242,9 +250,48 @@ class NotificationService:
             elif "@" in part:
                 results.add(part)
 
+        # Resolve role-based recipients synchronously can't be done here —
+        # callers that need role resolution should call _resolve_recipients_async.
+        # Store role parts for later use.
+        self._pending_role_parts = role_parts
+
         # Don't notify the user who triggered the event
         results.discard(triggering_user)
         return list(results)
+
+    async def _resolve_role_recipients(
+        self,
+        role_names: list[str],
+        session: AsyncSession,
+    ) -> list[str]:
+        """Return email addresses of all active users with any of the given roles."""
+        if not role_names:
+            return []
+        try:
+            from grunt.core.auth.models import GruntUserRole  # noqa: PLC0415
+            from grunt.core.auth.service import _user_table  # noqa: PLC0415
+            from sqlalchemy import select  # noqa: PLC0415
+            from sqlalchemy.orm import aliased  # noqa: PLC0415
+
+            user_table = _user_table()
+            # Get user_ids that have any of the requested roles
+            role_result = await session.execute(
+                select(GruntUserRole.user_id)
+                .where(GruntUserRole.role_name.in_(role_names))
+                .distinct()
+            )
+            user_ids = [r[0] for r in role_result.all()]
+            if not user_ids:
+                return []
+            email_result = await session.execute(
+                select(user_table.c.email)
+                .where(user_table.c.id.in_(user_ids))
+                .where(user_table.c.is_active.is_(True))
+            )
+            return [r[0] for r in email_result.all() if r[0]]
+        except Exception:  # noqa: BLE001
+            logger.warning("notification.role_resolution_failed", roles=role_names)
+            return []
 
     def _format_template(
         self,

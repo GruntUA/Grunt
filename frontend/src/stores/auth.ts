@@ -14,6 +14,7 @@ interface User {
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('grunt_token'))
+  const refreshToken = ref<string | null>(localStorage.getItem('grunt_refresh_token'))
   const user = ref<User | null>(null)
 
   const isLoggedIn = computed(() => !!token.value)
@@ -22,15 +23,36 @@ export const useAuthStore = defineStore('auth', () => {
     if (u.theme) useColorMode().setTheme(u.theme)
   }
 
-  async function login(email: string, password: string) {
+  function _setTokens(accessToken: string, rt: string) {
+    token.value = accessToken
+    refreshToken.value = rt
+    localStorage.setItem('grunt_token', accessToken)
+    localStorage.setItem('grunt_refresh_token', rt)
+  }
+
+  async function login(email: string, password: string): Promise<{ mfa_required: boolean }> {
     const form = new URLSearchParams({ username: email, password })
     const { data } = await client.post('/api/v1/auth/token', form, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     })
-    token.value = data.access_token
-    localStorage.setItem('grunt_token', data.access_token)
+    _setTokens(data.access_token, data.refresh_token)
     user.value = data.user
     applyUserTheme(data.user)
+    return { mfa_required: !!data.mfa_required }
+  }
+
+  async function refresh(): Promise<boolean> {
+    const rt = refreshToken.value
+    if (!rt) return false
+    try {
+      const { data } = await client.post('/api/v1/auth/refresh', { refresh_token: rt })
+      _setTokens(data.access_token, data.refresh_token)
+      user.value = data.user
+      return true
+    } catch {
+      _logout()
+      return false
+    }
   }
 
   async function fetchMe() {
@@ -41,7 +63,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = u
       applyUserTheme(u)
     } catch {
-      logout()
+      _logout()
     }
   }
 
@@ -51,11 +73,22 @@ export const useAuthStore = defineStore('auth', () => {
     await client.patch('/api/v1/auth/me', { theme })
   }
 
-  function logout() {
+  function _logout() {
     token.value = null
+    refreshToken.value = null
     user.value = null
     localStorage.removeItem('grunt_token')
+    localStorage.removeItem('grunt_refresh_token')
   }
 
-  return { token, user, isLoggedIn, login, logout, fetchMe, setTheme }
+  async function logout() {
+    try {
+      await client.post('/api/v1/auth/logout')
+    } catch {
+      // best-effort
+    }
+    _logout()
+  }
+
+  return { token, refreshToken, user, isLoggedIn, login, logout, refresh, fetchMe, setTheme }
 })

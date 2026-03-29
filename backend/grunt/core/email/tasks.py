@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import structlog
-from grunt.core.tasks.broker import task
+from grunt.core.tasks.broker import retryable_task
 from grunt.core.email.service import EmailService
 from grunt.core.db.session import get_session
 from grunt.core.site.manager import site_manager
@@ -18,7 +18,7 @@ SYSTEM_USER = GruntUser(
     is_superadmin=True
 )
 
-@task
+@retryable_task()
 async def process_email_queue():
     """Select Pending emails from EmailQueue and send them."""
     site = site_manager.get_active_site()
@@ -75,9 +75,10 @@ async def process_email_queue():
                     
         except Exception as e:
             logger.error("email.queue_processing_failed", error=str(e))
+            raise
 
 
-@task
+@retryable_task()
 async def pull_from_accounts():
     """Fetch emails from all active EmailAccounts."""
     site = site_manager.get_active_site()
@@ -111,3 +112,4 @@ async def pull_from_accounts():
                     
         except Exception as e:
             logger.error("email.pull_from_accounts_failed", error=str(e))
+            raise

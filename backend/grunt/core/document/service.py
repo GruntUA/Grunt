@@ -132,6 +132,15 @@ class DocumentService:
                 if isinstance(v, datetime):
                     row[k] = v.isoformat()
 
+        # Apply field-level permissions
+        from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+
+        hidden = permission_checker.hidden_fields(user, dt)
+        if hidden:
+            for row in rows:
+                for field in hidden:
+                    row.pop(field, None)
+
         return {
             "data": rows,
             "meta": {
@@ -295,6 +304,13 @@ class DocumentService:
             ml_data = await self._ml.get_all_for_doc(doctype_name, doc["id"])
             for mlf in ml_fields:
                 doc[mlf.fieldname] = ml_data.get(mlf.fieldname, [])
+
+        # Apply field-level permissions
+        from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+
+        hidden = permission_checker.hidden_fields(user, dt)
+        for field in hidden:
+            doc.pop(field, None)
 
         return doc
 

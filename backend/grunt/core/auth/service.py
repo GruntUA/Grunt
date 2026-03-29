@@ -81,6 +81,10 @@ def _row_to_user(row: dict, user_roles: list[GruntUserRole]) -> GruntUser:
         is_active=bool(row["is_active"]) if row["is_active"] is not None else True,
         is_superadmin=bool(row["is_superadmin"]) if row["is_superadmin"] is not None else False,
         theme=row.get("theme") or "system",
+        login_attempts=int(row["login_attempts"]) if row.get("login_attempts") is not None else 0,
+        locked_until=row.get("locked_until"),
+        mfa_enabled=bool(row["mfa_enabled"]) if row.get("mfa_enabled") is not None else False,
+        mfa_secret=row.get("mfa_secret") or "",
         created_at=row["created_at"],
         modified_at=row["modified_at"],
         user_roles=user_roles,
@@ -165,13 +169,175 @@ async def create_user(
     return user
 
 
+async def create_refresh_token(user_id: str, session: AsyncSession) -> str:
+    """Issue a 7-day refresh token for a user."""
+    from grunt.core.db.system_tables import GruntRefreshToken  # noqa: PLC0415
+
+    token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    session.add(GruntRefreshToken(user_id=user_id, token=token, expires_at=expires_at))
+    await session.flush()
+    return token
+
+
+async def rotate_refresh_token(
+    token: str,
+    session: AsyncSession,
+) -> tuple[str, GruntUser] | None:
+    """Validate a refresh token, revoke it, and issue a new one.
+
+    Returns (new_refresh_token, user) on success, None if invalid/expired.
+    """
+    from grunt.core.db.system_tables import GruntRefreshToken  # noqa: PLC0415
+
+    now = datetime.now(timezone.utc)
+    result = await session.execute(
+        select(GruntRefreshToken)
+        .where(GruntRefreshToken.token == token)
+        .where(GruntRefreshToken.revoked.is_(False))
+        .where(GruntRefreshToken.expires_at > now)
+    )
+    rt = result.scalar_one_or_none()
+    if rt is None:
+        return None
+
+    # Revoke old token
+    rt.revoked = True
+    await session.flush()
+
+    user = await get_user_by_id(rt.user_id, session)
+    if user is None:
+        return None
+
+    new_token = await create_refresh_token(user.id, session)
+    return new_token, user
+
+
+async def revoke_refresh_tokens_for_user(user_id: str, session: AsyncSession) -> None:
+    """Revoke all active refresh tokens for a user (e.g., on logout)."""
+    from grunt.core.db.system_tables import GruntRefreshToken  # noqa: PLC0415
+    from sqlalchemy import update as sa_update  # noqa: PLC0415
+
+    await session.execute(
+        sa_update(GruntRefreshToken)
+        .where(GruntRefreshToken.user_id == user_id)
+        .where(GruntRefreshToken.revoked.is_(False))
+        .values(revoked=True)
+    )
+    await session.flush()
+
+
+async def create_password_reset_token(
+    user_id: str,
+    session: AsyncSession,
+) -> str:
+    """Create a 1-hour password reset token. Invalidates prior unused tokens."""
+    from grunt.core.db.system_tables import GruntPasswordResetToken  # noqa: PLC0415
+
+    # Invalidate existing unused tokens for this user
+    from sqlalchemy import update as sa_update  # noqa: PLC0415
+
+    await session.execute(
+        sa_update(GruntPasswordResetToken)
+        .where(GruntPasswordResetToken.user_id == user_id)
+        .where(GruntPasswordResetToken.used.is_(False))
+        .values(used=True)
+    )
+
+    token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    session.add(
+        GruntPasswordResetToken(
+            user_id=user_id,
+            token=token,
+            expires_at=expires_at,
+        )
+    )
+    await session.flush()
+    return token
+
+
+async def consume_password_reset_token(
+    token: str,
+    new_password: str,
+    session: AsyncSession,
+) -> bool:
+    """Verify token and update the user's password. Returns True on success."""
+    from grunt.core.db.system_tables import GruntPasswordResetToken  # noqa: PLC0415
+    from sqlalchemy import update as sa_update  # noqa: PLC0415
+
+    now = datetime.now(timezone.utc)
+    result = await session.execute(
+        select(GruntPasswordResetToken)
+        .where(GruntPasswordResetToken.token == token)
+        .where(GruntPasswordResetToken.used.is_(False))
+        .where(GruntPasswordResetToken.expires_at > now)
+    )
+    reset_token = result.scalar_one_or_none()
+    if reset_token is None:
+        return False
+
+    # Mark token as used
+    reset_token.used = True
+    await session.flush()
+
+    # Update password
+    table = _user_table()
+    await session.execute(
+        sa_update(table)
+        .where(table.c.id == reset_token.user_id)
+        .values(hashed_password=hash_password(new_password))
+    )
+    await session.flush()
+    return True
+
+
+_MAX_ATTEMPTS = 10
+_LOCKOUT_MINUTES = 30
+
+
 async def authenticate(
     email: str,
     password: str,
     session: AsyncSession,
 ) -> GruntUser | None:
-    """Return user if credentials are valid, else ``None``."""
+    """Return user if credentials are valid, else ``None``.
+
+    Tracks failed attempts and locks the account after _MAX_ATTEMPTS failures.
+    Raises ``ValueError("locked")`` when the account is temporarily locked.
+    """
+    from sqlalchemy import update as sa_update  # noqa: PLC0415
+
     user = await get_user_by_email(email, session)
-    if user is None or not verify_password(password, user.hashed_password):
+    if user is None:
         return None
+
+    now = datetime.now(timezone.utc)
+
+    # Check if account is locked
+    if user.locked_until and user.locked_until.replace(tzinfo=timezone.utc) > now:
+        raise ValueError("locked")
+
+    if not verify_password(password, user.hashed_password):
+        # Increment failed attempt counter
+        new_attempts = (user.login_attempts or 0) + 1
+        values: dict = {"login_attempts": new_attempts}
+        if new_attempts >= _MAX_ATTEMPTS:
+            values["locked_until"] = now + timedelta(minutes=_LOCKOUT_MINUTES)
+            values["login_attempts"] = 0  # reset counter after locking
+        table = _user_table()
+        await session.execute(
+            sa_update(table).where(table.c.id == user.id).values(**values)
+        )
+        await session.flush()
+        return None
+
+    # Successful login — reset counters
+    table = _user_table()
+    await session.execute(
+        sa_update(table)
+        .where(table.c.id == user.id)
+        .values(login_attempts=0, locked_until=None)
+    )
+    await session.flush()
     return user

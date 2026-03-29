@@ -26,6 +26,10 @@ class GruntUser:
     is_active: bool = True
     is_superadmin: bool = False
     theme: str = "system"
+    login_attempts: int = 0
+    locked_until: datetime | None = None
+    mfa_enabled: bool = False
+    mfa_secret: str = ""
     created_at: datetime | None = None
     modified_at: datetime | None = None
     user_roles: list[GruntUserRole] = field(default_factory=list)

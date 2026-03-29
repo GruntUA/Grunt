@@ -29,6 +29,7 @@ import grunt.core.auth.models  # noqa: F401
 # workflow, permissions, reports engines are imported on-demand in endpoints
 
 from grunt.core.middleware.security import SecurityHeadersMiddleware  # noqa: E402
+from grunt.core.middleware.logging import RequestLoggingMiddleware  # noqa: E402
 
 logger = structlog.get_logger()
 
@@ -176,6 +177,23 @@ async def lifespan(app: FastAPI):
                     except Exception as e:
                         logger.warning("app_router.load_error", path=import_path, error=str(e))
 
+    # Initialize Sentry (optional)
+    if settings.sentry_dsn:
+        try:
+            import sentry_sdk  # noqa: PLC0415
+            from sentry_sdk.integrations.fastapi import FastApiIntegration  # noqa: PLC0415
+            from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration  # noqa: PLC0415
+
+            sentry_sdk.init(
+                dsn=settings.sentry_dsn,
+                environment=settings.sentry_environment,
+                integrations=[FastApiIntegration(), SqlalchemyIntegration()],
+                traces_sample_rate=0.1,
+            )
+            logger.info("sentry.initialized", environment=settings.sentry_environment)
+        except ImportError:
+            logger.warning("sentry.not_installed", hint="pip install sentry-sdk[fastapi]")
+
     # Initialize TaskIQ broker
     await broker.startup()
     
@@ -201,6 +219,7 @@ app = FastAPI(
     redoc_url="/api/redoc",
 )
 
+app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(SiteContextMiddleware)
 

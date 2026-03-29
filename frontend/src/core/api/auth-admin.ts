@@ -1,6 +1,14 @@
 import client from './client'
 import type { GruntUserPublic } from '@/types'
 
+export const authApi = {
+  forgotPassword: (email: string): Promise<{ success: boolean }> =>
+    client.post('/api/v1/auth/forgot-password', { email }).then(r => r.data),
+
+  resetPassword: (token: string, newPassword: string): Promise<{ success: boolean }> =>
+    client.post('/api/v1/auth/reset-password', { token, new_password: newPassword }).then(r => r.data),
+}
+
 export const authAdminApi = {
   listUsers: (): Promise<GruntUserPublic[]> =>
     client.get('/api/v1/auth/users').then(r => r.data),

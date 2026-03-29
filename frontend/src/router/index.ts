@@ -11,6 +11,29 @@ const router = createRouter({
       component: () => import('@/pages/auth/Login.vue'),
       meta: { public: true },
     },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('@/pages/auth/ForgotPassword.vue'),
+      meta: { public: true },
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: () => import('@/pages/auth/ResetPassword.vue'),
+      meta: { public: true },
+    },
+    {
+      path: '/mfa-verify',
+      name: 'mfa-verify',
+      component: () => import('@/pages/auth/MfaVerify.vue'),
+      meta: { public: true },
+    },
+    {
+      path: '/mfa-setup',
+      name: 'mfa-setup',
+      component: () => import('@/pages/auth/MfaSetup.vue'),
+    },
 
     // Public app pages (no auth required)
     {
@@ -82,6 +105,20 @@ const router = createRouter({
           props: true,
         },
       ],
+    },
+    // 403 forbidden
+    {
+      path: '/403',
+      name: 'forbidden',
+      component: () => import('@/pages/errors/Forbidden.vue'),
+      meta: { public: true },
+    },
+    // 404 catch-all
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('@/pages/errors/NotFound.vue'),
+      meta: { public: true },
     },
   ],
 })

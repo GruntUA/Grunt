@@ -86,6 +86,7 @@ export interface DocTypePermission {
   submit?: boolean
   report?: boolean
   match?: string | null
+  hidden_fields?: string[]
 }
 
 // ── View configuration types ─────────────────────────────────────────────

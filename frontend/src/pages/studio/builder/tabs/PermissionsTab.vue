@@ -19,8 +19,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Trash2 } from 'lucide-vue-next'
 import client from '@/core/api/client'
+
+const physicalFieldTypes = new Set([
+  'Text', 'LongText', 'Int', 'Float', 'Check', 'Date', 'Datetime',
+  'Time', 'Link', 'MultiLink', 'Attach', 'Image', 'Select',
+  'RichText', 'JSON', 'Code', 'Color', 'Geolocation', 'Signature',
+])
+
+const availableFields = computed(() =>
+  (builder.doctype?.fields ?? [])
+    .filter(f => physicalFieldTypes.has(f.fieldtype))
+    .map(f => ({ value: f.fieldname, label: f.label || f.fieldname }))
+)
+
+function toggleHiddenField(permIndex: number, fieldname: string) {
+  const perm = permissions.value[permIndex]
+  const current: string[] = perm.hidden_fields ?? []
+  const next = current.includes(fieldname)
+    ? current.filter(f => f !== fieldname)
+    : [...current, fieldname]
+  builder.updatePermission(permIndex, { hidden_fields: next })
+}
 
 const builder = useBuilderStore()
 
@@ -76,6 +105,7 @@ function addRole() {
             </TableHead>
             <TableHead class="text-center">Звіти</TableHead>
             <TableHead>Фільтр рядків</TableHead>
+            <TableHead>Приховані поля</TableHead>
             <TableHead />
           </TableRow>
         </TableHeader>
@@ -128,6 +158,34 @@ function addRole() {
                 class="h-8 text-xs w-40"
                 @update:model-value="builder.updatePermission(i, { match: String($event) || null })"
               />
+            </TableCell>
+            <TableCell>
+              <div class="flex flex-wrap gap-1 max-w-[220px]">
+                <template v-if="availableFields.length">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                      <Button variant="outline" size="sm" class="h-7 text-xs">
+                        {{ (perm.hidden_fields ?? []).length
+                            ? `${(perm.hidden_fields ?? []).length} приховано`
+                            : 'Всі видимі' }}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent class="w-56 max-h-64 overflow-y-auto">
+                      <DropdownMenuLabel class="text-xs">Приховати поле для цієї ролі</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuCheckboxItem
+                        v-for="field in availableFields"
+                        :key="field.value"
+                        :checked="(perm.hidden_fields ?? []).includes(field.value)"
+                        @update:checked="toggleHiddenField(i, field.value)"
+                      >
+                        {{ field.label }}
+                      </DropdownMenuCheckboxItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </template>
+                <span v-else class="text-xs text-muted-foreground">—</span>
+              </div>
             </TableCell>
             <TableCell>
               <Button

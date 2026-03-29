@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter
 
+from grunt.api.v1.health import router as health_router
 from grunt.api.v1.auth import router as auth_router
 from grunt.api.v1.meta import router as meta_router
 from grunt.api.v1.docs import router as docs_router
@@ -17,9 +18,12 @@ from grunt.api.v1.translations import router as translations_router
 from grunt.api.v1.scripting import router as scripting_router
 from grunt.api.v1.webform import router as webform_router
 from grunt.api.v1.dashboard import router as dashboard_router
+from grunt.api.v1.metrics import router as metrics_router
+from grunt.api.v1.oauth import router as oauth_router
 
 v1_router = APIRouter()
 
+v1_router.include_router(health_router, tags=["health"])
 v1_router.include_router(auth_router, prefix="/auth", tags=["auth"])
 v1_router.include_router(meta_router, prefix="/meta", tags=["meta"])
 v1_router.include_router(docs_router, prefix="/docs", tags=["docs"])
@@ -35,3 +39,5 @@ v1_router.include_router(translations_router, tags=["i18n"])
 v1_router.include_router(scripting_router, tags=["scripting"])
 v1_router.include_router(webform_router, tags=["webform"])
 v1_router.include_router(dashboard_router, tags=["dashboard"])
+v1_router.include_router(metrics_router, tags=["monitoring"])
+v1_router.include_router(oauth_router, prefix="/oauth", tags=["oauth"])

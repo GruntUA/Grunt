@@ -51,6 +51,38 @@
       "options": "light\ndark\nsystem",
       "default": "system",
       "hidden": true
+    },
+    {
+      "fieldname": "login_attempts",
+      "label": "Failed login attempts",
+      "fieldtype": "Int",
+      "default": 0,
+      "hidden": true
+    },
+    {
+      "fieldname": "locked_until",
+      "label": "Account locked until",
+      "fieldtype": "Datetime",
+      "hidden": true
+    },
+    {
+      "fieldname": "mfa_enabled",
+      "label": "MFA enabled",
+      "fieldtype": "Check",
+      "default": false,
+      "hidden": true
+    },
+    {
+      "fieldname": "mfa_secret",
+      "label": "MFA secret",
+      "fieldtype": "LongText",
+      "hidden": true
+    },
+    {
+      "fieldname": "mfa_backup_codes",
+      "label": "MFA backup codes",
+      "fieldtype": "JSON",
+      "hidden": true
     }
   ]
 }

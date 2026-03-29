@@ -492,6 +492,110 @@ class GruntApp:
         )
         return result["data"]
 
+    async def bulk_insert(
+        self,
+        doctype: str,
+        records: list[dict[str, Any]],
+    ) -> list[str]:
+        """Create multiple documents in a single database round-trip.
+
+        Each record is validated and enriched with system fields (id, name,
+        owner, created_at, modified_at, docstatus) before bulk insert.
+        Lifecycle hooks (validate / before_insert / after_insert) are NOT
+        called — use :meth:`new_doc` in a loop for hook support.
+
+        Args:
+            doctype: DocType name.
+            records: List of field-value dicts.
+
+        Returns:
+            List of generated document ids (in the same order as ``records``).
+        """
+        import uuid  # noqa: PLC0415
+        from datetime import datetime, timezone  # noqa: PLC0415
+
+        from sqlalchemy.dialects.postgresql import insert as pg_insert  # noqa: PLC0415
+        from sqlalchemy import insert  # noqa: PLC0415
+
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
+        dt = await doctype_registry.get(doctype)
+        table = compile_doctype_to_table(dt)
+        user = self._require_user()
+        session = self._require_session()
+
+        now = datetime.now(timezone.utc).isoformat()
+        rows: list[dict[str, Any]] = []
+        ids: list[str] = []
+
+        for rec in records:
+            doc_id = str(uuid.uuid4())
+            ids.append(doc_id)
+            row = {
+                "id": doc_id,
+                "name": rec.get("name") or doc_id,
+                "owner": user.email,
+                "created_at": now,
+                "modified_at": now,
+                "modified_by": user.email,
+                "docstatus": 0,
+                **{k: v for k, v in rec.items() if k in table.c},
+            }
+            rows.append(row)
+
+        await session.execute(insert(table).values(rows))
+        await session.flush()
+        logger.info("grunt.bulk_insert", doctype=doctype, count=len(rows))
+        return ids
+
+    async def bulk_update(
+        self,
+        doctype: str,
+        filters: dict[str, Any],
+        values: dict[str, Any],
+    ) -> int:
+        """Update multiple documents matching ``filters`` in a single query.
+
+        Lifecycle hooks are NOT called — use :meth:`save_doc` in a loop when
+        hooks are required.
+
+        Args:
+            doctype: DocType name.
+            filters: Filter dict matching documents to update, e.g.
+                ``{"status": "Pending"}``.
+            values: Fields to set, e.g. ``{"status": "Archived"}``.
+
+        Returns:
+            Number of rows updated.
+        """
+        from datetime import datetime, timezone  # noqa: PLC0415
+        from sqlalchemy import update  # noqa: PLC0415
+
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
+        dt = await doctype_registry.get(doctype)
+        table = compile_doctype_to_table(dt)
+        session = self._require_session()
+        user = self._require_user()
+
+        stmt = update(table).values(
+            **{k: v for k, v in values.items() if k in table.c},
+            modified_at=datetime.now(timezone.utc).isoformat(),
+            modified_by=user.email,
+        )
+        for key, val in filters.items():
+            col = table.c.get(key)
+            if col is not None:
+                stmt = stmt.where(col == val)
+
+        result = await session.execute(stmt)
+        await session.flush()
+        row_count: int = result.rowcount  # type: ignore[assignment]
+        logger.info("grunt.bulk_update", doctype=doctype, rows=row_count)
+        return row_count
+
     async def count(
         self,
         doctype: str,

@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
-import { Spinner } from '@/components/ui/spinner'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   ArrowUpDown,
   ArrowUp,
@@ -110,9 +110,26 @@ function isSelected(id: string) {
 </script>
 
 <template>
-  <!-- Loading -->
-  <div v-if="isLoading && !rows.length" class="flex justify-center py-16">
-    <Spinner size="lg" />
+  <!-- Skeleton loading (first load — no rows yet) -->
+  <div v-if="isLoading && !rows.length" class="overflow-hidden rounded-md border">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-border bg-muted/50">
+          <th class="w-10 px-3 py-3"><Skeleton class="h-4 w-4" /></th>
+          <th v-for="col in columns" :key="col.key" class="px-3 py-3">
+            <Skeleton class="h-3 w-20" />
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="i in 8" :key="i" class="border-b border-border last:border-0">
+          <td class="px-3 py-3"><Skeleton class="h-4 w-4" /></td>
+          <td v-for="col in columns" :key="col.key" class="px-3 py-3">
+            <Skeleton class="h-4" :class="col === columns[0] ? 'w-32' : 'w-20'" />
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
   <!-- Table -->

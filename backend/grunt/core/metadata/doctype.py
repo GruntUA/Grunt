@@ -63,6 +63,8 @@ class DocTypePermission(BaseModel):
     report: bool = False
     # Row-level filter — e.g. "owner == user"
     match: str | None = None
+    # Fields hidden for this role (field names)
+    hidden_fields: list[str] = []
 
 
 # ── View configuration sub-models ────────────────────────────────────────
