@@ -317,7 +317,7 @@ function onFormUpdate(updated: Record<string, unknown>) {
           <!-- Context menu -->
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
-              <Button variant="ghost" size="icon-sm">
+              <Button variant="ghost" size="icon-sm" class="text-foreground">
                 <EllipsisVertical class="size-4" />
               </Button>
             </DropdownMenuTrigger>

@@ -88,4 +88,25 @@ export const docsApi = {
       user,
       permission,
     }).then(r => r.data.data),
+
+  unshare: (shareId: string): Promise<void> =>
+    client.delete(`/api/v1/docs/SharedWith/${shareId}`).then(() => undefined),
+
+  unassign: (todoId: string): Promise<void> =>
+    client.delete(`/api/v1/docs/ToDo/${todoId}`).then(() => undefined),
+
+  getTags: (doctype: string, id: string): Promise<GruntDocument[]> =>
+    client.get(`/api/v1/docs/DocTag`, {
+      params: { 'filter[reference_doctype]': doctype, 'filter[reference_id]': id }
+    }).then(r => r.data.data ?? []),
+
+  addTag: (doctype: string, id: string, tag: string): Promise<GruntDocument> =>
+    client.post(`/api/v1/docs/DocTag`, {
+      reference_doctype: doctype,
+      reference_id: id,
+      tag,
+    }).then(r => r.data.data),
+
+  removeTag: (tagId: string): Promise<void> =>
+    client.delete(`/api/v1/docs/DocTag/${tagId}`).then(() => undefined),
 }

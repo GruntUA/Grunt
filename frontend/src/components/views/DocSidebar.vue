@@ -5,6 +5,20 @@ import { docsApi, type BacklinkItem } from '@/core/api/docs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -18,6 +32,10 @@ import {
   User,
   ChevronRight,
   ImageIcon,
+  Tag,
+  Plus,
+  X,
+  Loader2,
 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
@@ -29,14 +47,16 @@ const props = defineProps<{
 
 const router = useRouter()
 
-// Image
+// ── Image ────────────────────────────────────────────────────────────────────
+
 const imageUrl = computed(() => {
   if (!props.doctype.image_field) return null
   const val = props.document[props.doctype.image_field]
   return typeof val === 'string' && val ? val : null
 })
 
-// Meta info
+// ── Meta info ─────────────────────────────────────────────────────────────────
+
 const createdAt = computed(() => {
   const d = props.document.created_at
   return d ? new Date(d).toLocaleString('uk-UA') : '—'
@@ -47,7 +67,8 @@ const modifiedAt = computed(() => {
   return d ? new Date(d).toLocaleString('uk-UA') : '—'
 })
 
-// Assignees
+// ── Assignees ─────────────────────────────────────────────────────────────────
+
 const assignees = ref<GruntDocument[]>([])
 const assignLoading = ref(false)
 
@@ -59,7 +80,32 @@ async function loadAssignees() {
   finally { assignLoading.value = false }
 }
 
-// Shared with
+const showAssignDialog = ref(false)
+const assignUser = ref('')
+const assignSaving = ref(false)
+
+async function submitAssign() {
+  const user = assignUser.value.trim()
+  if (!user) return
+  assignSaving.value = true
+  try {
+    await docsApi.assign(props.doctype.name, props.document.id, user)
+    await loadAssignees()
+    showAssignDialog.value = false
+    assignUser.value = ''
+  } catch { /* silent */ }
+  finally { assignSaving.value = false }
+}
+
+async function removeAssignee(assignee: GruntDocument) {
+  try {
+    await docsApi.unassign(assignee.id)
+    assignees.value = assignees.value.filter(a => a.id !== assignee.id)
+  } catch { /* silent */ }
+}
+
+// ── Shared with ───────────────────────────────────────────────────────────────
+
 const sharedWith = ref<GruntDocument[]>([])
 const shareLoading = ref(false)
 
@@ -71,7 +117,80 @@ async function loadShared() {
   finally { shareLoading.value = false }
 }
 
-// Backlinks
+const showShareDialog = ref(false)
+const shareUser = ref('')
+const sharePermission = ref<'Read' | 'Write'>('Read')
+const shareSaving = ref(false)
+
+async function submitShare() {
+  const user = shareUser.value.trim()
+  if (!user) return
+  shareSaving.value = true
+  try {
+    await docsApi.share(props.doctype.name, props.document.id, user, sharePermission.value)
+    await loadShared()
+    showShareDialog.value = false
+    shareUser.value = ''
+    sharePermission.value = 'Read'
+  } catch { /* silent */ }
+  finally { shareSaving.value = false }
+}
+
+async function removeShare(share: GruntDocument) {
+  try {
+    await docsApi.unshare(share.id)
+    sharedWith.value = sharedWith.value.filter(s => s.id !== share.id)
+  } catch { /* silent */ }
+}
+
+// ── Tags ──────────────────────────────────────────────────────────────────────
+
+const tags = ref<GruntDocument[]>([])
+const tagsLoading = ref(false)
+const tagInput = ref('')
+const tagAdding = ref(false)
+
+async function loadTags() {
+  tagsLoading.value = true
+  try {
+    tags.value = await docsApi.getTags(props.doctype.name, props.document.id)
+  } catch { /* silent */ }
+  finally { tagsLoading.value = false }
+}
+
+async function addTag() {
+  const tag = tagInput.value.trim()
+  if (!tag) return
+  // prevent duplicate
+  if (tags.value.some(t => (t.tag as string)?.toLowerCase() === tag.toLowerCase())) {
+    tagInput.value = ''
+    return
+  }
+  tagAdding.value = true
+  try {
+    const created = await docsApi.addTag(props.doctype.name, props.document.id, tag)
+    tags.value = [...tags.value, created]
+    tagInput.value = ''
+  } catch { /* silent */ }
+  finally { tagAdding.value = false }
+}
+
+async function removeTag(tag: GruntDocument) {
+  try {
+    await docsApi.removeTag(tag.id)
+    tags.value = tags.value.filter(t => t.id !== tag.id)
+  } catch { /* silent */ }
+}
+
+function onTagKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    addTag()
+  }
+}
+
+// ── Backlinks ─────────────────────────────────────────────────────────────────
+
 const links = ref<BacklinkItem[]>([])
 const linksLoading = ref(false)
 
@@ -90,28 +209,10 @@ function navigateToLink(link: BacklinkItem) {
   router.push(path)
 }
 
-// Assign dialog (simple prompt for now)
-async function handleAssign() {
-  const user = window.prompt('Email користувача для призначення:')
-  if (!user) return
-  try {
-    await docsApi.assign(props.doctype.name, props.document.id, user)
-    await loadAssignees()
-  } catch { /* silent */ }
-}
-
-async function handleShare() {
-  const user = window.prompt('Email користувача для надання доступу:')
-  if (!user) return
-  try {
-    await docsApi.share(props.doctype.name, props.document.id, user)
-    await loadShared()
-  } catch { /* silent */ }
-}
-
 onMounted(() => {
   loadAssignees()
   loadShared()
+  loadTags()
   loadLinks()
 })
 </script>
@@ -139,7 +240,7 @@ onMounted(() => {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button variant="outline" size="sm" class="flex-1" @click="handleAssign">
+            <Button variant="outline" size="sm" class="flex-1 text-foreground" @click="showAssignDialog = true">
               <UserPlus class="size-4 mr-1.5" />
               Призначити
             </Button>
@@ -150,7 +251,7 @@ onMounted(() => {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button variant="outline" size="sm" class="flex-1" @click="handleShare">
+            <Button variant="outline" size="sm" class="flex-1 text-foreground" @click="showShareDialog = true">
               <Share2 class="size-4 mr-1.5" />
               Поділитися
             </Button>
@@ -164,8 +265,20 @@ onMounted(() => {
     <div v-if="assignees.length > 0" class="flex flex-col gap-1.5">
       <span class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Відповідальні</span>
       <div class="flex flex-wrap gap-1.5">
-        <Badge v-for="a in assignees" :key="a.id" variant="secondary" class="text-xs">
+        <Badge
+          v-for="a in assignees"
+          :key="a.id"
+          variant="secondary"
+          class="text-xs gap-1 pr-1"
+        >
           {{ a.assigned_to }}
+          <button
+            type="button"
+            class="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors p-0.5"
+            @click="removeAssignee(a)"
+          >
+            <X class="size-2.5" />
+          </button>
         </Badge>
       </div>
     </div>
@@ -174,9 +287,64 @@ onMounted(() => {
     <div v-if="sharedWith.length > 0" class="flex flex-col gap-1.5">
       <span class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Доступ</span>
       <div class="flex flex-wrap gap-1.5">
-        <Badge v-for="s in sharedWith" :key="s.id" variant="outline" class="text-xs">
+        <Badge
+          v-for="s in sharedWith"
+          :key="s.id"
+          variant="outline"
+          class="text-xs gap-1 pr-1"
+        >
           {{ s.user }} · {{ s.permission }}
+          <button
+            type="button"
+            class="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors p-0.5"
+            @click="removeShare(s)"
+          >
+            <X class="size-2.5" />
+          </button>
         </Badge>
+      </div>
+    </div>
+
+    <!-- Tags -->
+    <div class="flex flex-col gap-2">
+      <span class="text-xs font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+        <Tag class="size-3.5" />
+        Теги
+      </span>
+      <div class="flex flex-wrap gap-1.5">
+        <Badge
+          v-for="t in tags"
+          :key="t.id"
+          variant="outline"
+          class="text-xs gap-1 pr-1 text-foreground"
+        >
+          {{ t.tag }}
+          <button
+            type="button"
+            class="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors p-0.5"
+            @click="removeTag(t)"
+          >
+            <X class="size-2.5" />
+          </button>
+        </Badge>
+      </div>
+      <div class="flex gap-1.5">
+        <input
+          v-model="tagInput"
+          placeholder="Додати тег..."
+          class="flex-1 h-7 rounded-md border border-input bg-transparent px-2.5 text-xs text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
+          @keydown="onTagKeydown"
+        />
+        <Button
+          variant="outline"
+          size="icon-sm"
+          class="size-7 text-foreground shrink-0"
+          :disabled="!tagInput.trim() || tagAdding"
+          @click="addTag"
+        >
+          <Loader2 v-if="tagAdding" class="size-3.5 animate-spin" />
+          <Plus v-else class="size-3.5" />
+        </Button>
       </div>
     </div>
 
@@ -231,4 +399,118 @@ onMounted(() => {
       </button>
     </div>
   </aside>
+
+  <!-- Assign dialog -->
+  <Dialog :open="showAssignDialog" @update:open="showAssignDialog = $event">
+    <DialogContent class="max-w-sm">
+      <DialogHeader>
+        <DialogTitle class="flex items-center gap-2">
+          <UserPlus class="size-4" />
+          Призначити відповідального
+        </DialogTitle>
+      </DialogHeader>
+      <div class="flex flex-col gap-3 py-1">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-foreground">Email або логін</label>
+          <input
+            v-model="assignUser"
+            placeholder="user@example.com"
+            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
+            @keydown.enter="submitAssign"
+          />
+        </div>
+        <div v-if="assignees.length > 0" class="flex flex-col gap-1.5">
+          <span class="text-xs font-medium text-muted-foreground">Вже призначені</span>
+          <div class="flex flex-wrap gap-1.5">
+            <Badge
+              v-for="a in assignees"
+              :key="a.id"
+              variant="secondary"
+              class="text-xs gap-1 pr-1"
+            >
+              {{ a.assigned_to }}
+              <button
+                type="button"
+                class="ml-0.5 rounded-full hover:bg-foreground/10 p-0.5"
+                @click="removeAssignee(a)"
+              >
+                <X class="size-2.5" />
+              </button>
+            </Badge>
+          </div>
+        </div>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" class="text-foreground" @click="showAssignDialog = false">Скасувати</Button>
+        <Button :disabled="!assignUser.trim() || assignSaving" @click="submitAssign">
+          <Loader2 v-if="assignSaving" class="size-4 animate-spin mr-1.5" />
+          Призначити
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
+  <!-- Share dialog -->
+  <Dialog :open="showShareDialog" @update:open="showShareDialog = $event">
+    <DialogContent class="max-w-sm">
+      <DialogHeader>
+        <DialogTitle class="flex items-center gap-2">
+          <Share2 class="size-4" />
+          Поділитися документом
+        </DialogTitle>
+      </DialogHeader>
+      <div class="flex flex-col gap-3 py-1">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-foreground">Email або логін</label>
+          <input
+            v-model="shareUser"
+            placeholder="user@example.com"
+            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
+            @keydown.enter="submitShare"
+          />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-foreground">Рівень доступу</label>
+          <Select :model-value="sharePermission" @update:model-value="sharePermission = $event as 'Read' | 'Write'">
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Read">Читання</SelectItem>
+              <SelectItem value="Write">Редагування</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div v-if="sharedWith.length > 0" class="flex flex-col gap-1.5">
+          <span class="text-xs font-medium text-muted-foreground">Поточний доступ</span>
+          <div class="flex flex-col gap-1">
+            <div
+              v-for="s in sharedWith"
+              :key="s.id"
+              class="flex items-center justify-between text-sm text-foreground"
+            >
+              <span>{{ s.user }}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-muted-foreground">{{ s.permission === 'Read' ? 'Читання' : 'Редагування' }}</span>
+                <button
+                  type="button"
+                  class="text-muted-foreground hover:text-destructive transition-colors"
+                  @click="removeShare(s)"
+                >
+                  <X class="size-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" class="text-foreground" @click="showShareDialog = false">Скасувати</Button>
+        <Button :disabled="!shareUser.trim() || shareSaving" @click="submitShare">
+          <Loader2 v-if="shareSaving" class="size-4 animate-spin mr-1.5" />
+          Надати доступ
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>

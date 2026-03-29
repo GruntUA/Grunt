@@ -197,7 +197,7 @@ const isSelected = computed(() => props.modelValue !== null && props.modelValue 
         :value="query"
         :placeholder="field.placeholder ?? `Пошук ${field.options ?? ''}...`"
         :disabled="disabled || field.read_only"
-        class="w-full rounded-md border border-input bg-transparent pl-8 pr-8 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:bg-muted disabled:cursor-not-allowed transition-colors"
+        class="w-full rounded-md border border-input bg-transparent pl-8 pr-8 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:bg-muted disabled:cursor-not-allowed transition-colors"
         :class="{ 'border-destructive focus-visible:ring-destructive': error }"
         autocomplete="off"
         @input="onInput(($event.target as HTMLInputElement).value)"
