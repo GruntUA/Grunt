@@ -5,11 +5,11 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import GruntUser
-from grunt.core.db.session import get_session
+from grunt.core.db.session import get_engine, get_session
 
 router = APIRouter()
 
@@ -30,6 +30,37 @@ async def get_client_scripts(
     return {"data": scripts}
 
 
+# ── Built-in whitelisted methods ─────────────────────────────────────────
+
+
+async def _handle_builtin_method(
+    method: str,
+    body: dict[str, Any],
+    user: GruntUser,
+    session: AsyncSession,
+    engine: AsyncEngine,
+) -> dict[str, Any] | None:
+    """Handle framework built-in methods called via grunt.call().
+
+    Returns a response dict if the method is built-in, None otherwise.
+    """
+    if method == "get_doc":
+        from grunt.core.document.service import DocumentService  # noqa: PLC0415
+
+        doctype = body.get("doctype")
+        doc_id = body.get("id") or body.get("name")
+        if not doctype or not doc_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="get_doc requires 'doctype' and 'id' parameters",
+            )
+        svc = DocumentService(session, engine)
+        doc = await svc.get_document(str(doctype), str(doc_id), user)
+        return {"data": doc}
+
+    return None
+
+
 # ── Server Script API execution ─────────────────────────────────────────
 
 
@@ -39,9 +70,21 @@ async def run_server_script_api(
     request: Request,
     user: GruntUser = Depends(current_user),
     session: AsyncSession = Depends(get_session),
+    engine: AsyncEngine = Depends(get_engine),
 ) -> dict[str, Any]:
-    """Execute an API-type Server Script."""
+    """Execute a built-in framework method or an API-type Server Script."""
     from grunt.core.scripting import server_script_runner  # noqa: PLC0415
+
+    # Parse request body first (needed for both built-ins and scripts)
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    # Check built-in methods before looking up server scripts
+    builtin_result = await _handle_builtin_method(method, body, user, session, engine)
+    if builtin_result is not None:
+        return builtin_result
 
     script = await server_script_runner.load_api_script(session, method)
     if not script:
@@ -49,12 +92,6 @@ async def run_server_script_api(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"API метод '{method}' не знайдено",
         )
-
-    # Parse request body
-    try:
-        body = await request.json()
-    except Exception:
-        body = {}
 
     params = {**dict(request.query_params), **body}
 

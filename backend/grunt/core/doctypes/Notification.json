@@ -4,6 +4,7 @@
   "module": "core",
   "track_changes": false,
   "is_system": true,
+  "table_name": "grunt_notification",
   "fields": [
     {"fieldname": "user", "label": "Користувач", "fieldtype": "Text", "required": true, "in_list_view": true, "in_filter": true},
     {"fieldname": "subject", "label": "Тема", "fieldtype": "Text", "required": true, "in_list_view": true},

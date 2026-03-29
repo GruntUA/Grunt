@@ -103,7 +103,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     The table includes system columns (``id``, ``name``, ``owner``, timestamps)
     plus one column per physical field.
     """
-    table_name = get_table_name(doctype.module, doctype.name)
+    table_name = doctype.table_name or get_table_name(doctype.module, doctype.name)
 
     columns: list[Column] = [
         Column("id", String(36), primary_key=True, default=lambda: str(uuid.uuid4())),
@@ -187,11 +187,11 @@ async def sync_table(
             for col in table.columns:
                 if col.name not in existing_cols:
                     col_type = col.type.compile(connection.dialect)
-                    nullable = "NULL" if col.nullable else "NOT NULL"
+                    # Always add as NULL to avoid failures on tables with existing rows
                     connection.execute(
                         text(
                             f'ALTER TABLE "{table.name}" '
-                            f'ADD COLUMN "{col.name}" {col_type} {nullable}'
+                            f'ADD COLUMN "{col.name}" {col_type} NULL'
                         )
                     )
                     logger.info(

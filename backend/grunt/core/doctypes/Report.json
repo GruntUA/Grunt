@@ -1,0 +1,17 @@
+{
+  "name": "Report",
+  "label": "Звіт",
+  "module": "core",
+  "track_changes": false,
+  "is_system": true,
+  "table_name": "grunt_report",
+  "fields": [
+    {"fieldname": "report_name", "label": "Назва", "fieldtype": "Text", "required": true, "unique": true, "in_list_view": true},
+    {"fieldname": "report_type", "label": "Тип", "fieldtype": "Select", "options": "Query\nScript\nList", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "in_list_view": true, "in_filter": true},
+    {"fieldname": "query", "label": "SQL запит", "fieldtype": "LongText"},
+    {"fieldname": "script", "label": "Скрипт", "fieldtype": "LongText"},
+    {"fieldname": "columns", "label": "Колонки", "fieldtype": "JSON"},
+    {"fieldname": "filters_config", "label": "Конфігурація фільтрів", "fieldtype": "JSON"}
+  ]
+}

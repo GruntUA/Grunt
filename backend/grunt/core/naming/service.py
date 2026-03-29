@@ -78,29 +78,46 @@ class NamingService:
 
         Uses SELECT ... FOR UPDATE to prevent race conditions.
         """
-        from grunt.core.db.system_tables import GruntNamingSeries  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        import uuid  # noqa: PLC0415
+
+        table = compile_doctype_to_table(doctype_registry._doctypes["NamingSeries"])
 
         # Try to get existing row with lock
         stmt = (
-            select(GruntNamingSeries)
-            .where(GruntNamingSeries.prefix == prefix)
+            select(table)
+            .where(table.c.prefix == prefix)
             .with_for_update()
         )
         result = await session.execute(stmt)
-        row = result.scalar_one_or_none()
+        row = result.mappings().first()
 
         if row is not None:
-            new_counter = row.current + 1
+            new_counter = (row["current"] or 0) + 1
             await session.execute(
-                update(GruntNamingSeries)
-                .where(GruntNamingSeries.prefix == prefix)
+                update(table)
+                .where(table.c.prefix == prefix)
                 .values(current=new_counter)
             )
             await session.flush()
             return new_counter
 
         # First time — insert with counter = 1
-        new_row = GruntNamingSeries(prefix=prefix, current=1)
-        session.add(new_row)
+        entry_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+        await session.execute(
+            table.insert().values(
+                id=entry_id,
+                name=prefix,
+                owner="system",
+                created_at=now,
+                modified_at=now,
+                modified_by="system",
+                docstatus=0,
+                prefix=prefix,
+                current=1,
+            )
+        )
         await session.flush()
         return 1

@@ -41,31 +41,33 @@ class NotificationService:
         Returns:
             Number of notifications created.
         """
-        from grunt.core.db.system_tables import GruntNotificationRule  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
+        rule_table = compile_doctype_to_table(doctype_registry._doctypes["NotificationRule"])
         stmt = (
-            select(GruntNotificationRule)
-            .where(GruntNotificationRule.doctype == doctype)
-            .where(GruntNotificationRule.event == event)
-            .where(GruntNotificationRule.is_enabled.is_(True))
+            select(rule_table)
+            .where(rule_table.c.doctype == doctype)
+            .where(rule_table.c.event == event)
+            .where(rule_table.c.is_enabled.is_(True))
         )
         result = await session.execute(stmt)
-        rules = result.scalars().all()
+        rules = result.mappings().all()
 
         count = 0
         for rule in rules:
             # Check condition
-            if rule.condition and not self._eval_condition(rule.condition, doc, user_email):
+            if rule["condition"] and not self._eval_condition(rule["condition"], doc, user_email):
                 continue
 
             # Resolve recipients
-            recipients = self._resolve_recipients(rule.recipients, doc, user_email)
+            recipients = self._resolve_recipients(rule["recipients"], doc, user_email)
             if not recipients:
                 continue
 
             # Format subject and message
-            subject = self._format_template(rule.subject_template, doctype, doc, event)
-            message = self._format_template(rule.message_template, doctype, doc, event)
+            subject = self._format_template(rule["subject_template"], doctype, doc, event)
+            message = self._format_template(rule["message_template"], doctype, doc, event)
 
             # Create notifications
             for recipient in recipients:
@@ -80,11 +82,11 @@ class NotificationService:
                 count += 1
 
                 # Send email if channel includes email
-                if rule.channel in ("email", "both"):
+                if rule["channel"] in ("email", "both"):
                     await self._queue_email(session, recipient, subject, message)
 
             # Broadcast via WebSocket if channel includes system
-            if rule.channel in ("system", "both"):
+            if rule["channel"] in ("system", "both"):
                 await self._broadcast_ws(doctype, doc, subject, recipients)
 
         if count > 0:
@@ -108,53 +110,59 @@ class NotificationService:
         offset: int = 0,
     ) -> list[dict[str, Any]]:
         """Get notifications for a user."""
-        from grunt.core.db.system_tables import GruntNotification  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
+        table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
         stmt = (
-            select(GruntNotification)
-            .where(GruntNotification.user == user)
-            .order_by(GruntNotification.created_at.desc())
+            select(table)
+            .where(table.c.user == user)
+            .order_by(table.c.created_at.desc())
             .limit(limit)
             .offset(offset)
         )
         if unread_only:
-            stmt = stmt.where(GruntNotification.is_read.is_(False))
+            stmt = stmt.where(table.c.is_read.is_(False))
 
         result = await session.execute(stmt)
-        rows = result.scalars().all()
+        rows = result.mappings().all()
 
         return [
             {
-                "id": row.id,
-                "subject": row.subject,
-                "message": row.message,
-                "doctype": row.doctype,
-                "doc_id": row.doc_id,
-                "is_read": row.is_read,
-                "created_at": row.created_at.isoformat() if row.created_at else None,
+                "id": row["id"],
+                "subject": row["subject"],
+                "message": row["message"],
+                "doctype": row["doctype"],
+                "doc_id": row["doc_id"],
+                "is_read": row["is_read"],
+                "created_at": row["created_at"].isoformat() if row["created_at"] else None,
             }
             for row in rows
         ]
 
     async def mark_read(self, session: AsyncSession, notification_id: str) -> None:
         """Mark a single notification as read."""
-        from grunt.core.db.system_tables import GruntNotification  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
+        table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
         await session.execute(
-            update(GruntNotification)
-            .where(GruntNotification.id == notification_id)
+            update(table)
+            .where(table.c.id == notification_id)
             .values(is_read=True)
         )
         await session.flush()
 
     async def mark_all_read(self, session: AsyncSession, user: str) -> int:
         """Mark all notifications as read for a user. Returns count of affected."""
-        from grunt.core.db.system_tables import GruntNotification  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
+        table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
         result = await session.execute(
-            update(GruntNotification)
-            .where(GruntNotification.user == user)
-            .where(GruntNotification.is_read.is_(False))
+            update(table)
+            .where(table.c.user == user)
+            .where(table.c.is_read.is_(False))
             .values(is_read=True)
         )
         await session.flush()
@@ -171,20 +179,29 @@ class NotificationService:
         subject: str,
         message: str,
     ) -> str:
-        from grunt.core.db.system_tables import GruntNotification  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
+        table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
         notif_id = str(uuid.uuid4())
-        notif = GruntNotification(
-            id=notif_id,
-            user=user,
-            doctype=doctype,
-            doc_id=doc_id,
-            subject=subject,
-            message=message,
-            is_read=False,
-            created_at=datetime.now(timezone.utc),
+        now = datetime.now(timezone.utc)
+        await session.execute(
+            table.insert().values(
+                id=notif_id,
+                name=notif_id,
+                owner=user,
+                created_at=now,
+                modified_at=now,
+                modified_by=user,
+                docstatus=0,
+                user=user,
+                doctype=doctype,
+                doc_id=doc_id,
+                subject=subject,
+                message=message,
+                is_read=False,
+            )
         )
-        session.add(notif)
         return notif_id
 
     def _resolve_recipients(

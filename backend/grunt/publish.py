@@ -72,22 +72,31 @@ async def notify(
     Returns:
         List of created notification IDs.
     """
-    from grunt.core.db.system_tables import GruntNotification  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
+    table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
     ids: list[str] = []
+    now = datetime.now(timezone.utc)
     for user_email in users:
         notif_id = str(uuid.uuid4())
-        notif = GruntNotification(
-            id=notif_id,
-            user=user_email,
-            doctype=doctype,
-            doc_id=doc_id,
-            subject=subject,
-            message=message,
-            is_read=False,
-            created_at=datetime.now(timezone.utc),
+        await session.execute(
+            table.insert().values(
+                id=notif_id,
+                name=notif_id,
+                owner=user_email,
+                created_at=now,
+                modified_at=now,
+                modified_by=user_email,
+                docstatus=0,
+                user=user_email,
+                doctype=doctype,
+                doc_id=doc_id,
+                subject=subject,
+                message=message,
+                is_read=False,
+            )
         )
-        session.add(notif)
         ids.append(notif_id)
 
     await session.flush()

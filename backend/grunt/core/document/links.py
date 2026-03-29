@@ -37,16 +37,17 @@ class LinkService:
 
         Returns the number of links created.
         """
-        from grunt.core.db.system_tables import GruntDocLink  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
+        table = compile_doctype_to_table(doctype_registry._doctypes["DocLink"])
         dt = await doctype_registry.get(doctype)
 
         # Delete existing links from this source document
         await session.execute(
-            delete(GruntDocLink).where(
+            delete(table).where(
                 and_(
-                    GruntDocLink.source_doctype == doctype,
-                    GruntDocLink.source_id == doc_id,
+                    table.c.source_doctype == doctype,
+                    table.c.source_id == doc_id,
                 )
             )
         )
@@ -63,15 +64,25 @@ class LinkService:
             if not target_doctype:
                 continue
 
-            link = GruntDocLink(
-                id=str(uuid.uuid4()),
-                source_doctype=doctype,
-                source_id=str(doc_id),
-                target_doctype=target_doctype,
-                target_id=str(target_id),
-                link_fieldname=field.fieldname,
+            link_id = str(uuid.uuid4())
+            from datetime import datetime, timezone  # noqa: PLC0415
+            now = datetime.now(timezone.utc)
+            await session.execute(
+                table.insert().values(
+                    id=link_id,
+                    name=link_id,
+                    owner="system",
+                    created_at=now,
+                    modified_at=now,
+                    modified_by="system",
+                    docstatus=0,
+                    source_doctype=doctype,
+                    source_id=str(doc_id),
+                    target_doctype=target_doctype,
+                    target_id=str(target_id),
+                    link_fieldname=field.fieldname,
+                )
             )
-            session.add(link)
             count += 1
 
         if count:
@@ -92,22 +103,23 @@ class LinkService:
 
         Returns a list of dicts with source_doctype, source_id, link_fieldname.
         """
-        from grunt.core.db.system_tables import GruntDocLink  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
+        table = compile_doctype_to_table(doctype_registry._doctypes["DocLink"])
         stmt = (
-            select(GruntDocLink)
-            .where(GruntDocLink.target_doctype == doctype)
-            .where(GruntDocLink.target_id == doc_id)
-            .order_by(GruntDocLink.source_doctype, GruntDocLink.created_at.desc())
+            select(table)
+            .where(table.c.target_doctype == doctype)
+            .where(table.c.target_id == doc_id)
+            .order_by(table.c.source_doctype, table.c.created_at.desc())
         )
         result = await session.execute(stmt)
-        rows = result.scalars().all()
+        rows = result.mappings().all()
 
         return [
             {
-                "source_doctype": r.source_doctype,
-                "source_id": r.source_id,
-                "link_fieldname": r.link_fieldname,
+                "source_doctype": r["source_doctype"],
+                "source_id": r["source_id"],
+                "link_fieldname": r["link_fieldname"],
             }
             for r in rows
         ]
@@ -119,23 +131,25 @@ class LinkService:
         doc_id: str,
     ) -> None:
         """Remove all links from and to a document (on delete)."""
-        from grunt.core.db.system_tables import GruntDocLink  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+
+        table = compile_doctype_to_table(doctype_registry._doctypes["DocLink"])
 
         # Links FROM this document
         await session.execute(
-            delete(GruntDocLink).where(
+            delete(table).where(
                 and_(
-                    GruntDocLink.source_doctype == doctype,
-                    GruntDocLink.source_id == doc_id,
+                    table.c.source_doctype == doctype,
+                    table.c.source_id == doc_id,
                 )
             )
         )
         # Links TO this document
         await session.execute(
-            delete(GruntDocLink).where(
+            delete(table).where(
                 and_(
-                    GruntDocLink.target_doctype == doctype,
-                    GruntDocLink.target_id == doc_id,
+                    table.c.target_doctype == doctype,
+                    table.c.target_id == doc_id,
                 )
             )
         )

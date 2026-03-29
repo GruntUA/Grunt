@@ -3,6 +3,7 @@
   "label": "Серверний скрипт",
   "module": "core",
   "is_system": true,
+  "table_name": "grunt_server_script",
   "fields": [
     {"fieldname": "script_type", "label": "Тип", "fieldtype": "Select", "options": "DocType Event\nAPI\nScheduler Event", "required": true, "in_list_view": true, "in_filter": true},
     {"fieldname": "doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "in_list_view": true},

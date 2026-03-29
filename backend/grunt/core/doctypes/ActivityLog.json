@@ -4,11 +4,12 @@
   "module": "core",
   "track_changes": false,
   "is_system": true,
+  "table_name": "grunt_log_activity",
   "fields": [
-    {"fieldname": "reference_doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true, "in_list_view": true},
-    {"fieldname": "reference_id", "label": "ID документа", "fieldtype": "Text", "required": true, "in_list_view": true},
-    {"fieldname": "user", "label": "Користувач", "fieldtype": "Text", "required": true, "in_list_view": true},
-    {"fieldname": "action", "label": "Дія", "fieldtype": "Select", "options": "Create\nUpdate\nDelete\nSubmit\nCancel\nShare\nComment", "required": true, "in_list_view": true},
-    {"fieldname": "details", "label": "Деталі", "fieldtype": "LongText"}
+    {"fieldname": "doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "doc_id", "label": "ID документа", "fieldtype": "Text", "required": true, "in_list_view": true},
+    {"fieldname": "user", "label": "Користувач", "fieldtype": "Text", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "action", "label": "Дія", "fieldtype": "Select", "options": "Create\nUpdate\nDelete\nSubmit\nCancel\nShare\nComment\nWorkflow", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "details", "label": "Деталі", "fieldtype": "JSON"}
   ]
 }

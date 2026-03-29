@@ -1,0 +1,18 @@
+{
+  "name": "Page",
+  "label": "Сторінка",
+  "module": "core",
+  "track_changes": false,
+  "is_system": true,
+  "table_name": "grunt_page",
+  "fields": [
+    {"fieldname": "route", "label": "Маршрут", "fieldtype": "Text", "required": true, "unique": true, "in_list_view": true},
+    {"fieldname": "title", "label": "Заголовок", "fieldtype": "Text", "required": true, "in_list_view": true},
+    {"fieldname": "icon", "label": "Іконка", "fieldtype": "Text"},
+    {"fieldname": "component", "label": "Компонент", "fieldtype": "Text", "required": true},
+    {"fieldname": "app", "label": "Додаток", "fieldtype": "Text", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "sidebar_section", "label": "Розділ бічної панелі", "fieldtype": "Text"},
+    {"fieldname": "sidebar_order", "label": "Порядок", "fieldtype": "Int"},
+    {"fieldname": "is_default_home", "label": "Домашня сторінка", "fieldtype": "Check"}
+  ]
+}

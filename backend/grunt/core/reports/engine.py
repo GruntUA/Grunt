@@ -23,19 +23,21 @@ class ReportEngine:
         user: "GruntUser",
         session: AsyncSession,
     ) -> dict[str, Any]:
-        from grunt.core.db.system_tables import GruntReport  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
+        table = compile_doctype_to_table(doctype_registry._doctypes["Report"])
         result = await session.execute(
-            select(GruntReport).where(GruntReport.report_name == report_name)
+            select(table).where(table.c.report_name == report_name)
         )
-        report = result.scalar_one_or_none()
+        report = result.mappings().first()
         if not report:
             raise HTTPException(status_code=404, detail=f"Звіт '{report_name}' не знайдено")
 
-        report_type = report.report_type
+        report_type = report["report_type"]
         if report_type == "Query":
             return await self._run_query_report(
-                {"query": report.query or ""}, filters, session
+                {"query": report["query"] or ""}, filters, session
             )
         raise HTTPException(
             status_code=400,

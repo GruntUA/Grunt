@@ -3,6 +3,7 @@
   "label": "Формат друку",
   "module": "core",
   "is_system": true,
+  "table_name": "grunt_print_format",
   "fields": [
     {"fieldname": "doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true, "in_list_view": true, "in_filter": true},
     {"fieldname": "template_type", "label": "Тип шаблону", "fieldtype": "Select", "options": "html\ndocx", "default": "html", "in_list_view": true},

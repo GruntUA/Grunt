@@ -37,19 +37,29 @@ async def _audit_log(
     changes: dict[str, Any] | None = None,
 ) -> None:
     """Write an activity entry to grunt_log_activity."""
-    from grunt.core.db.system_tables import GruntLogActivity  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
-    entry = GruntLogActivity(
-        id=str(_uuid.uuid4()),
-        doctype=doctype,
-        doc_id=str(doc_id),
-        action=action,
-        user=user_email,
-        details=changes,
-        created_at=datetime.utcnow(),
-    )
-    session.add(entry)
+    table = compile_doctype_to_table(doctype_registry._doctypes["ActivityLog"])
+    entry_id = str(_uuid.uuid4())
+    now = datetime.now(timezone.utc)
     try:
+        await session.execute(
+            table.insert().values(
+                id=entry_id,
+                name=entry_id,
+                owner=user_email,
+                created_at=now,
+                modified_at=now,
+                modified_by=user_email,
+                docstatus=0,
+                doctype=doctype,
+                doc_id=str(doc_id),
+                action=action,
+                user=user_email,
+                details=changes,
+            )
+        )
         await session.commit()
     except Exception:  # noqa: BLE001
         await session.rollback()
@@ -628,27 +638,29 @@ async def get_document_log(
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     """Return the activity log for a document."""
-    from grunt.core.db.system_tables import GruntLogActivity  # noqa: PLC0415
     from sqlalchemy import select, desc  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
+    table = compile_doctype_to_table(doctype_registry._doctypes["ActivityLog"])
     q = (
-        select(GruntLogActivity)
+        select(table)
         .where(
-            GruntLogActivity.doctype == doctype,
-            GruntLogActivity.doc_id == doc_id,
+            table.c.doctype == doctype,
+            table.c.doc_id == doc_id,
         )
-        .order_by(desc(GruntLogActivity.created_at))
+        .order_by(desc(table.c.created_at))
         .limit(limit)
     )
     result = await session.execute(q)
-    entries = result.scalars().all()
+    entries = result.mappings().all()
     data = [
         {
-            "id": e.id,
-            "action": e.action,
-            "user": e.user,
-            "details": e.details,
-            "created_at": e.created_at.isoformat() if e.created_at else None,
+            "id": e["id"],
+            "action": e["action"],
+            "user": e["user"],
+            "details": e["details"],
+            "created_at": e["created_at"].isoformat() if e["created_at"] else None,
         }
         for e in entries
     ]

@@ -31,30 +31,31 @@ class WebFormService:
         self, session: AsyncSession, route: str
     ) -> dict[str, Any] | None:
         """Load a published web form by its route slug."""
-        from grunt.core.db.system_tables import GruntWebForm  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table as _ctable  # noqa: PLC0415
 
+        wf_table = _ctable(doctype_registry._doctypes["WebForm"])
         stmt = (
-            select(GruntWebForm)
-            .where(GruntWebForm.route == route)
-            .where(GruntWebForm.is_published.is_(True))
+            select(wf_table)
+            .where(wf_table.c.route == route)
+            .where(wf_table.c.is_published.is_(True))
         )
         result = await session.execute(stmt)
-        row = result.scalar_one_or_none()
+        row = result.mappings().first()
         if not row:
             return None
 
         return {
-            "name": row.name,
-            "title": row.title,
-            "route": row.route,
-            "doctype": row.doctype,
-            "fields": row.fields,
-            "introduction": row.introduction,
-            "success_message": row.success_message,
-            "success_url": row.success_url,
-            "allow_edit": row.allow_edit,
-            "login_required": row.login_required,
-            "submit_label": row.submit_label,
+            "name": row["name"],
+            "title": row["title"],
+            "route": row["route"],
+            "doctype": row["doctype"],
+            "fields": row["fields"],
+            "introduction": row["introduction"],
+            "success_message": row["success_message"],
+            "success_url": row["success_url"],
+            "allow_edit": row["allow_edit"],
+            "login_required": row["login_required"],
+            "submit_label": row["submit_label"],
         }
 
     async def get_form_fields(

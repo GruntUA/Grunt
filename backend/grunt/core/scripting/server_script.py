@@ -289,18 +289,20 @@ class ServerScriptRunner:
         self, session: AsyncSession, doctype: str, event: str
     ) -> list[dict[str, Any]]:
         """Load enabled server scripts for a specific DocType event."""
-        from grunt.core.db.system_tables import GruntServerScript  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
+        table = compile_doctype_to_table(doctype_registry._doctypes["ServerScript"])
         stmt = (
-            select(GruntServerScript)
-            .where(GruntServerScript.script_type == "DocType Event")
-            .where(GruntServerScript.doctype == doctype)
-            .where(GruntServerScript.event == event)
-            .where(GruntServerScript.is_enabled.is_(True))
+            select(table)
+            .where(table.c.script_type == "DocType Event")
+            .where(table.c.doctype == doctype)
+            .where(table.c.event == event)
+            .where(table.c.is_enabled.is_(True))
         )
         result = await session.execute(stmt)
-        rows = result.scalars().all()
-        scripts: list[dict[str, Any]] = [{"name": r.name, "script": r.script} for r in rows]
+        rows = result.mappings().all()
+        scripts: list[dict[str, Any]] = [{"name": r["name"], "script": r["script"]} for r in rows]
 
         # Append file-based scripts
         try:
@@ -316,21 +318,23 @@ class ServerScriptRunner:
         self, session: AsyncSession, method: str
     ) -> dict[str, Any] | None:
         """Load an API-type server script by method name."""
-        from grunt.core.db.system_tables import GruntServerScript  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
+        table = compile_doctype_to_table(doctype_registry._doctypes["ServerScript"])
         stmt = (
-            select(GruntServerScript)
-            .where(GruntServerScript.script_type == "API")
-            .where(GruntServerScript.api_method == method)
-            .where(GruntServerScript.is_enabled.is_(True))
+            select(table)
+            .where(table.c.script_type == "API")
+            .where(table.c.api_method == method)
+            .where(table.c.is_enabled.is_(True))
         )
         result = await session.execute(stmt)
-        row = result.scalar_one_or_none()
+        row = result.mappings().first()
         if row:
             return {
-                "name": row.name,
-                "script": row.script,
-                "allow_guest": row.allow_guest,
+                "name": row["name"],
+                "script": row["script"],
+                "allow_guest": row["allow_guest"],
             }
 
         # Check file-based scripts
@@ -345,16 +349,18 @@ class ServerScriptRunner:
         self, session: AsyncSession
     ) -> list[dict[str, Any]]:
         """Load all enabled scheduler-type server scripts."""
-        from grunt.core.db.system_tables import GruntServerScript  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
+        table = compile_doctype_to_table(doctype_registry._doctypes["ServerScript"])
         stmt = (
-            select(GruntServerScript)
-            .where(GruntServerScript.script_type == "Scheduler Event")
-            .where(GruntServerScript.is_enabled.is_(True))
+            select(table)
+            .where(table.c.script_type == "Scheduler Event")
+            .where(table.c.is_enabled.is_(True))
         )
         result = await session.execute(stmt)
-        rows = result.scalars().all()
-        return [{"name": r.name, "script": r.script, "cron": r.cron} for r in rows]
+        rows = result.mappings().all()
+        return [{"name": r["name"], "script": r["script"], "cron": r["cron"]} for r in rows]
 
     async def execute(
         self,

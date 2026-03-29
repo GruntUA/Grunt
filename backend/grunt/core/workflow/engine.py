@@ -188,19 +188,28 @@ class WorkflowEngine:
         session: AsyncSession,
     ) -> None:
         import uuid  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
-        from grunt.core.db.system_tables import GruntLogActivity  # noqa: PLC0415
-
-        entry = GruntLogActivity(
-            id=str(uuid.uuid4()),
-            doctype=doctype,
-            doc_id=doc_id,
-            action=action,
-            user=user,
-            details=details,
-            created_at=datetime.now(timezone.utc),
+        table = compile_doctype_to_table(doctype_registry._doctypes["ActivityLog"])
+        entry_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+        await session.execute(
+            table.insert().values(
+                id=entry_id,
+                name=entry_id,
+                owner=user,
+                created_at=now,
+                modified_at=now,
+                modified_by=user,
+                docstatus=0,
+                doctype=doctype,
+                doc_id=doc_id,
+                action=action,
+                user=user,
+                details=details,
+            )
         )
-        session.add(entry)
         await session.commit()
 
     def _eval_condition(self, condition: str, doc: dict, user: str) -> bool:

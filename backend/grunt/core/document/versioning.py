@@ -49,29 +49,39 @@ class VersionService:
         if not changes:
             return None
 
-        from grunt.core.db.system_tables import GruntDocVersion  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+
+        table = compile_doctype_to_table(doctype_registry._doctypes["DocVersion"])
 
         # Get next version number
         stmt = (
-            select(func.coalesce(func.max(GruntDocVersion.version), 0))
-            .where(GruntDocVersion.doctype == doctype)
-            .where(GruntDocVersion.doc_id == doc_id)
+            select(func.coalesce(func.max(table.c.version), 0))
+            .where(table.c.doctype == doctype)
+            .where(table.c.doc_id == doc_id)
         )
         result = await session.execute(stmt)
         max_version = result.scalar() or 0
         next_version = max_version + 1
 
         version_id = str(uuid.uuid4())
-        version = GruntDocVersion(
-            id=version_id,
-            doctype=doctype,
-            doc_id=doc_id,
-            version=next_version,
-            changes=changes,
-            user=user,
-            created_at=datetime.now(timezone.utc),
+        now = datetime.now(timezone.utc)
+        await session.execute(
+            table.insert().values(
+                id=version_id,
+                name=version_id,
+                owner=user,
+                created_at=now,
+                modified_at=now,
+                modified_by=user,
+                docstatus=0,
+                doctype=doctype,
+                doc_id=doc_id,
+                version=next_version,
+                changes=changes,
+                user=user,
+            )
         )
-        session.add(version)
         await session.flush()
 
         logger.info(
@@ -90,24 +100,26 @@ class VersionService:
         doc_id: str,
     ) -> list[dict[str, Any]]:
         """Get all versions for a document, newest first."""
-        from grunt.core.db.system_tables import GruntDocVersion  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
+        table = compile_doctype_to_table(doctype_registry._doctypes["DocVersion"])
         stmt = (
-            select(GruntDocVersion)
-            .where(GruntDocVersion.doctype == doctype)
-            .where(GruntDocVersion.doc_id == doc_id)
-            .order_by(GruntDocVersion.version.desc())
+            select(table)
+            .where(table.c.doctype == doctype)
+            .where(table.c.doc_id == doc_id)
+            .order_by(table.c.version.desc())
         )
         result = await session.execute(stmt)
-        rows = result.scalars().all()
+        rows = result.mappings().all()
 
         return [
             {
-                "id": row.id,
-                "version": row.version,
-                "changes": row.changes,
-                "user": row.user,
-                "created_at": row.created_at.isoformat() if row.created_at else None,
+                "id": row["id"],
+                "version": row["version"],
+                "changes": row["changes"],
+                "user": row["user"],
+                "created_at": row["created_at"].isoformat() if row["created_at"] else None,
             }
             for row in rows
         ]
@@ -118,22 +130,24 @@ class VersionService:
         version_id: str,
     ) -> dict[str, Any] | None:
         """Get a specific version by ID."""
-        from grunt.core.db.system_tables import GruntDocVersion  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
-        stmt = select(GruntDocVersion).where(GruntDocVersion.id == version_id)
+        table = compile_doctype_to_table(doctype_registry._doctypes["DocVersion"])
+        stmt = select(table).where(table.c.id == version_id)
         result = await session.execute(stmt)
-        row = result.scalar_one_or_none()
+        row = result.mappings().first()
         if row is None:
             return None
 
         return {
-            "id": row.id,
-            "doctype": row.doctype,
-            "doc_id": row.doc_id,
-            "version": row.version,
-            "changes": row.changes,
-            "user": row.user,
-            "created_at": row.created_at.isoformat() if row.created_at else None,
+            "id": row["id"],
+            "doctype": row["doctype"],
+            "doc_id": row["doc_id"],
+            "version": row["version"],
+            "changes": row["changes"],
+            "user": row["user"],
+            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
         }
 
     def build_restore_data(

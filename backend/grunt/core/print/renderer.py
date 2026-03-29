@@ -96,22 +96,25 @@ async def get_print_format_template(
     Returns:
         Tuple of (template_content, template_type) or None.
     """
-    from grunt.core.db.system_tables import GruntPrintFormat  # noqa: PLC0415
     from sqlalchemy import select  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+
+    table = compile_doctype_to_table(doctype_registry._doctypes["PrintFormat"])
 
     if format_name:
-        stmt = select(GruntPrintFormat).where(GruntPrintFormat.name == format_name)
+        stmt = select(table).where(table.c.name == format_name)
     else:
         stmt = (
-            select(GruntPrintFormat)
-            .where(GruntPrintFormat.doctype == doctype)
-            .where(GruntPrintFormat.is_default.is_(True))
+            select(table)
+            .where(table.c.doctype == doctype)
+            .where(table.c.is_default.is_(True))
         )
 
     result = await session.execute(stmt)
-    row = result.scalar_one_or_none()
+    row = result.mappings().first()
     if row:
-        return (row.template, row.template_type)
+        return (row["template"], row["template_type"])
     return None
 
 

@@ -224,21 +224,22 @@ class TranslationService:
         return message
 
     async def load_overrides_from_db(self, session: Any) -> int:
-        """Load translation overrides from GruntTranslation table."""
+        """Load translation overrides from Translation DocType table."""
         try:
-            from grunt.core.db.system_tables import GruntTranslation  # noqa: PLC0415
+            from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+            from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
             from sqlalchemy import select  # noqa: PLC0415
 
-            stmt = select(GruntTranslation)
-            result = await session.execute(stmt)
-            rows = result.scalars().all()
+            table = compile_doctype_to_table(doctype_registry._doctypes["Translation"])
+            result = await session.execute(select(table))
+            rows = result.mappings().all()
 
             count = 0
             for row in rows:
-                lang = row.language
+                lang = row["language"]
                 if lang not in _db_overrides:
                     _db_overrides[lang] = {}
-                _db_overrides[lang][row.source] = row.translated
+                _db_overrides[lang][row["source"]] = row["translated"]
                 count += 1
 
             logger.info("i18n.db_overrides_loaded", count=count)

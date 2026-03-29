@@ -3,6 +3,7 @@
   "label": "Веб-форма",
   "module": "core",
   "is_system": true,
+  "table_name": "grunt_web_form",
   "fields": [
     {"fieldname": "title", "label": "Заголовок", "fieldtype": "Text", "required": true, "in_list_view": true},
     {"fieldname": "route", "label": "URL маршрут", "fieldtype": "Text", "required": true, "in_list_view": true},
@@ -14,6 +15,7 @@
     {"fieldname": "is_published", "label": "Опубліковано", "fieldtype": "Check", "default": true, "in_list_view": true, "in_filter": true},
     {"fieldname": "max_submissions", "label": "Макс. відповідей", "fieldtype": "Int", "default": 0},
     {"fieldname": "submit_label", "label": "Текст кнопки", "fieldtype": "Text", "default": "Надіслати"},
+    {"fieldname": "allow_edit", "label": "Дозволити редагування", "fieldtype": "Check"},
     {"fieldname": "fields", "label": "Поля (JSON)", "fieldtype": "JSON"}
   ]
 }

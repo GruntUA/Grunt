@@ -3,6 +3,7 @@
   "label": "Правило нотифікації",
   "module": "core",
   "is_system": true,
+  "table_name": "grunt_notification_rule",
   "fields": [
     {"fieldname": "doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true, "in_list_view": true, "in_filter": true},
     {"fieldname": "event", "label": "Подія", "fieldtype": "Select", "options": "after_insert\nafter_save\non_transition\nvalue_change", "required": true, "in_list_view": true, "in_filter": true},

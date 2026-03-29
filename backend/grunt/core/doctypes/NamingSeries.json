@@ -3,6 +3,7 @@
   "label": "Серія нумерації",
   "module": "core",
   "is_system": true,
+  "table_name": "grunt_naming_series",
   "fields": [
     {"fieldname": "prefix", "label": "Префікс", "fieldtype": "Text", "required": true, "in_list_view": true},
     {"fieldname": "current", "label": "Поточний номер", "fieldtype": "Int", "default": 0, "in_list_view": true}
