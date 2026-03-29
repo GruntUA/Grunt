@@ -24,6 +24,7 @@ from grunt.core.metadata.registry import doctype_registry
 from grunt.core.hooks import fire
 from grunt.core.document.registry import document_registry
 from grunt.core.document.multi_link import MultiLinkService
+from grunt.app import grunt as _grunt, GruntError
 
 logger = structlog.get_logger()
 
@@ -43,6 +44,14 @@ class DocumentService:
         self.session = session
         self.engine = engine
         self._ml = MultiLinkService(session)
+
+    def _set_grunt_context(self, user: GruntUser) -> tuple:
+        """Activate the grunt ContextVar context for the current lifecycle scope."""
+        return _grunt.set_context(session=self.session, engine=self.engine, user=user)
+
+    @staticmethod
+    def _reset_grunt_context(tokens: tuple) -> None:
+        _grunt.reset_context(tokens)
 
     # ── List ──────────────────────────────────────────────────────────────
 
@@ -201,33 +210,43 @@ class DocumentService:
                 row[field.fieldname] = False  # Check fields default to False, never NULL
 
         # Custom Controller Hooks
-        controller_cls = document_registry.get(doctype_name)
-        doc = controller_cls(doctype_name, row, user, self.session)
-        await doc.validate()
-        await doc.before_insert()
-        await doc.before_save()
+        _tokens = self._set_grunt_context(user)
+        try:
+            controller_cls = document_registry.get(doctype_name)
+            doc = controller_cls(doctype_name, row, user, self.session)
+            try:
+                await doc.validate()
+                await doc.before_insert()
+                await doc.before_save()
+            except GruntError as e:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from e
 
-        await fire("before_save", doctype=doctype_name, doc=row, user=user, session=self.session)
+            await fire("before_save", doctype=doctype_name, doc=row, user=user, session=self.session)
 
-        await self.session.execute(table.insert().values(**row))
-        await self.session.flush()
+            await self.session.execute(table.insert().values(**row))
+            await self.session.flush()
 
-        # Save MultiLink fields
-        for mlf in _get_multi_link_fields(dt):
-            values = data.get(mlf.fieldname)
-            if isinstance(values, list):
-                await self._ml.set_values(
-                    doctype_name, doc_id, mlf.fieldname,
-                    mlf.options or "", values,
-                )
+            # Save MultiLink fields
+            for mlf in _get_multi_link_fields(dt):
+                values = data.get(mlf.fieldname)
+                if isinstance(values, list):
+                    await self._ml.set_values(
+                        doctype_name, doc_id, mlf.fieldname,
+                        mlf.options or "", values,
+                    )
 
-        logger.info("document.created", doctype=doctype_name, id=doc_id)
+            logger.info("document.created", doctype=doctype_name, id=doc_id)
 
-        await doc.after_insert()
-        await doc.after_save()
+            try:
+                await doc.after_insert()
+                await doc.after_save()
+            except GruntError as e:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from e
 
-        await fire("after_insert", doctype=doctype_name, doc=row, user=user, session=self.session)
-        await fire("after_save", doctype=doctype_name, doc=row, user=user, session=self.session)
+            await fire("after_insert", doctype=doctype_name, doc=row, user=user, session=self.session)
+            await fire("after_save", doctype=doctype_name, doc=row, user=user, session=self.session)
+        finally:
+            self._reset_grunt_context(_tokens)
 
         # Serialise datetimes for response
         for k, v in row.items():
@@ -326,57 +345,66 @@ class DocumentService:
         merged = {**existing, **update_data}
 
         # Custom Controller Hooks
-        controller_cls = document_registry.get(doctype_name)
-        logger.debug("document.controller_resolved", doctype=doctype_name, controller=controller_cls.__name__)
-        doc = controller_cls(doctype_name, merged, user, self.session)
-        await doc.validate()
-        await doc.before_save()
-
-        await fire("before_save", doctype=doctype_name, doc=merged, user=user, session=self.session)
-
-        await self.session.execute(
-            table.update().where(table.c.id == real_id).values(**update_data)
-        )
-
-        # Update MultiLink fields
-        for mlf in _get_multi_link_fields(dt):
-            if mlf.fieldname in data:
-                values = data[mlf.fieldname]
-                if isinstance(values, list):
-                    await self._ml.set_values(
-                        doctype_name, real_id, mlf.fieldname,
-                        mlf.options or "", values,
-                    )
-
-        await self.session.flush()
-
-        logger.info("document.updated", doctype=doctype_name, id=real_id)
-
-        result = await self.get_document(doctype_name, real_id, user)
-
-        # Create version record if track_changes is enabled
-        if dt.track_changes:
-            from grunt.core.document.versioning import version_service  # noqa: PLC0415
-
+        _tokens = self._set_grunt_context(user)
+        try:
+            controller_cls = document_registry.get(doctype_name)
+            logger.debug("document.controller_resolved", doctype=doctype_name, controller=controller_cls.__name__)
+            doc = controller_cls(doctype_name, merged, user, self.session)
             try:
-                await version_service.create_version(
-                    session=self.session,
-                    doctype=doctype_name,
-                    doc_id=real_id,
-                    old_doc=existing,
-                    new_doc=result,
-                    user=user.email,
-                )
-            except Exception:  # noqa: BLE001
-                logger.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
-        
-        # Custom Controller Hooks
-        doc.data = result # refresh with actual data after save
-        await doc.after_save()
+                await doc.validate()
+                await doc.before_save()
+            except GruntError as e:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from e
 
-        await fire("after_update", doctype=doctype_name, doc=result, user=user, session=self.session)
-        await fire("after_save", doctype=doctype_name, doc=result, user=user, session=self.session)
-        return result
+            await fire("before_save", doctype=doctype_name, doc=merged, user=user, session=self.session)
+
+            await self.session.execute(
+                table.update().where(table.c.id == real_id).values(**update_data)
+            )
+
+            # Update MultiLink fields
+            for mlf in _get_multi_link_fields(dt):
+                if mlf.fieldname in data:
+                    values = data[mlf.fieldname]
+                    if isinstance(values, list):
+                        await self._ml.set_values(
+                            doctype_name, real_id, mlf.fieldname,
+                            mlf.options or "", values,
+                        )
+
+            await self.session.flush()
+
+            logger.info("document.updated", doctype=doctype_name, id=real_id)
+
+            result = await self.get_document(doctype_name, real_id, user)
+
+            # Create version record if track_changes is enabled
+            if dt.track_changes:
+                from grunt.core.document.versioning import version_service  # noqa: PLC0415
+
+                try:
+                    await version_service.create_version(
+                        session=self.session,
+                        doctype=doctype_name,
+                        doc_id=real_id,
+                        old_doc=existing,
+                        new_doc=result,
+                        user=user.email,
+                    )
+                except Exception:  # noqa: BLE001
+                    logger.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
+
+            doc.data = result  # refresh with actual data after save
+            try:
+                await doc.after_save()
+            except GruntError as e:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from e
+
+            await fire("after_update", doctype=doctype_name, doc=result, user=user, session=self.session)
+            await fire("after_save", doctype=doctype_name, doc=result, user=user, session=self.session)
+            return result
+        finally:
+            self._reset_grunt_context(_tokens)
 
     # ── Delete ────────────────────────────────────────────────────────────
 
@@ -409,20 +437,30 @@ class DocumentService:
         real_id = existing["id"]
 
         # Custom Controller Hooks
-        controller_cls = document_registry.get(doctype_name)
-        doc = controller_cls(doctype_name, existing, user, self.session)
-        await doc.before_delete()
+        _tokens = self._set_grunt_context(user)
+        try:
+            controller_cls = document_registry.get(doctype_name)
+            doc = controller_cls(doctype_name, existing, user, self.session)
+            try:
+                await doc.before_delete()
+            except GruntError as e:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from e
 
-        await fire("before_delete", doctype=doctype_name, doc=existing, user=user, session=self.session)
+            await fire("before_delete", doctype=doctype_name, doc=existing, user=user, session=self.session)
 
-        await self.session.execute(table.delete().where(table.c.id == real_id))
-        await self._ml.delete_all_for_doc(doctype_name, real_id)
-        await self.session.flush()
-        logger.info("document.deleted", doctype=doctype_name, id=real_id)
+            await self.session.execute(table.delete().where(table.c.id == real_id))
+            await self._ml.delete_all_for_doc(doctype_name, real_id)
+            await self.session.flush()
+            logger.info("document.deleted", doctype=doctype_name, id=real_id)
 
-        await doc.after_delete()
+            try:
+                await doc.after_delete()
+            except GruntError as e:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from e
 
-        await fire("after_delete", doctype=doctype_name, doc_id=real_id, user=user, session=self.session)
+            await fire("after_delete", doctype=doctype_name, doc_id=real_id, user=user, session=self.session)
+        finally:
+            self._reset_grunt_context(_tokens)
 
     # ── Type coercion ────────────────────────────────────────────────────
 

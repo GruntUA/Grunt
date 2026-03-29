@@ -101,6 +101,8 @@ async def run_server_script_api(
         extra_context={"params": params},
         trusted=script.get("trusted", False),
         user_email=user.email,
+        user_roles=user.roles,
+        is_superadmin=user.is_superadmin,
     )
 
     if not result.success:

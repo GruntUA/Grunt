@@ -67,72 +67,96 @@ class _DBProxy:
     def get_value(
         self, doctype: str, filters: str | dict[str, Any], fieldname: str
     ) -> Any:
-        """Get a single field value from a document.
-
-        Usage::
-
-            name = grunt.db.get_value("Applicant", {"tax_id": "123"}, "full_name")
-            name = grunt.db.get_value("Applicant", "some-id", "full_name")
-        """
+        """Get a single field value from a document."""
         return self._bridge.run(self._async_get_value(doctype, filters, fieldname))
 
     async def _async_get_value(
         self, doctype: str, filters: str | dict[str, Any], fieldname: str
     ) -> Any:
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.app import _session_ctx  # noqa: PLC0415
 
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
-        col = getattr(table.c, fieldname, None)
-        if col is None:
-            return None
-
-        stmt = select(col)
-        if isinstance(filters, str):
-            stmt = stmt.where((table.c.id == filters) | (table.c.name == filters))
-        elif isinstance(filters, dict):
-            for k, v in filters.items():
-                c = getattr(table.c, k, None)
-                if c is not None:
-                    stmt = stmt.where(c == v)
-        stmt = stmt.limit(1)
-        result = await self._session.execute(stmt)
-        row = result.first()
-        return row[0] if row else None
+        token = _session_ctx.set(self._session)
+        try:
+            return await GruntDB().get_value(doctype, filters, fieldname)
+        finally:
+            _session_ctx.reset(token)
 
     def set_value(
         self, doctype: str, doc_id: str, fieldname: str, value: Any
     ) -> None:
-        """Update a single field value on a document.
-
-        Usage::
-
-            grunt.db.set_value("Applicant", doc_id, "status", "Verified")
-        """
+        """Update a single field value on a document."""
         self._bridge.run(self._async_set_value(doctype, doc_id, fieldname, value))
 
     async def _async_set_value(
         self, doctype: str, doc_id: str, fieldname: str, value: Any
     ) -> None:
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.app import _session_ctx  # noqa: PLC0415
 
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
-        await self._session.execute(
-            sa_update(table)
-            .where((table.c.id == doc_id) | (table.c.name == doc_id))
-            .values({fieldname: value})
-        )
-        await self._session.flush()
+        token = _session_ctx.set(self._session)
+        try:
+            await GruntDB().set_value(doctype, doc_id, fieldname, value)
+        finally:
+            _session_ctx.reset(token)
+
+    def exists(self, doctype: str, filters: str | dict[str, Any]) -> str | None:
+        """Return document name if it exists, else None."""
+        return self._bridge.run(self._async_exists(doctype, filters))
+
+    async def _async_exists(self, doctype: str, filters: str | dict[str, Any]) -> str | None:
+        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.app import _session_ctx  # noqa: PLC0415
+
+        token = _session_ctx.set(self._session)
+        try:
+            return await GruntDB().exists(doctype, filters)
+        finally:
+            _session_ctx.reset(token)
+
+    def get_all(
+        self,
+        doctype: str,
+        *,
+        filters: dict[str, Any] | None = None,
+        fields: list[str] | None = None,
+        limit: int = 20,
+        order_by: str | None = None,
+        order: str = "desc",
+    ) -> list[dict[str, Any]]:
+        """Fetch a list of documents as plain dicts."""
+        return self._bridge.run(self._async_get_all(doctype, filters, fields, limit, order_by, order))
+
+    async def _async_get_all(
+        self,
+        doctype: str,
+        filters: dict[str, Any] | None,
+        fields: list[str] | None,
+        limit: int,
+        order_by: str | None,
+        order: str,
+    ) -> list[dict[str, Any]]:
+        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.app import _session_ctx  # noqa: PLC0415
+
+        token = _session_ctx.set(self._session)
+        try:
+            return await GruntDB().get_all(doctype, filters=filters, fields=fields, limit=limit, order_by=order_by, order=order)
+        finally:
+            _session_ctx.reset(token)
 
 
 class _SessionProxy:
     """Session info exposed as ``grunt.session`` inside scripts."""
 
-    def __init__(self, user_email: str = "") -> None:
+    def __init__(self, user_email: str = "", roles: list[str] | None = None, is_superadmin: bool = False) -> None:
         self.user = user_email
+        self.roles = roles or []
+        self.is_superadmin = is_superadmin
+
+    def has_role(self, *roles: str) -> bool:
+        """Return True if the current user has any of the given roles."""
+        return bool(set(self.roles).intersection(roles))
 
 
 class ScriptContext:
@@ -146,12 +170,14 @@ class ScriptContext:
         session: AsyncSession | None = None,
         bridge: _SyncBridge | None = None,
         user_email: str = "",
+        user_roles: list[str] | None = None,
+        is_superadmin: bool = False,
     ) -> None:
         self._session = session
         self._bridge = bridge
         self._response: dict[str, Any] = {}
         self._flags: dict[str, Any] = {}
-        self.session = _SessionProxy(user_email)
+        self.session = _SessionProxy(user_email, roles=user_roles, is_superadmin=is_superadmin)
         self.db = _DBProxy(bridge, session) if bridge and session else None  # type: ignore[arg-type]
 
     @property
@@ -260,6 +286,145 @@ class ScriptContext:
         stmt = stmt.limit(limit)
         result = await self._session.execute(stmt)
         return [dict(row._mapping) for row in result.fetchall()]
+
+    def new_doc(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
+        """Create a new document and return it.
+
+        Usage::
+
+            inv = grunt.new_doc("Invoice", {"number": "INV-001", "amount": 1500.0})
+        """
+        if not self._bridge or not self._session:
+            raise ScriptError("new_doc: no session available")
+        return self._bridge.run(self._async_new_doc(doctype, data))
+
+    async def _async_new_doc(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
+        from grunt.app import grunt as _grunt, _session_ctx, _engine_ctx, _user_ctx  # noqa: PLC0415
+
+        token = _session_ctx.set(self._session)
+        try:
+            return await _grunt.new_doc(doctype, data)
+        finally:
+            _session_ctx.reset(token)
+
+    def save_doc(self, doctype: str, id_or_name: str, data: dict[str, Any]) -> dict[str, Any]:
+        """Update an existing document.
+
+        Usage::
+
+            updated = grunt.save_doc("Invoice", doc_id, {"status": "Paid"})
+        """
+        if not self._bridge or not self._session:
+            raise ScriptError("save_doc: no session available")
+        return self._bridge.run(self._async_save_doc(doctype, id_or_name, data))
+
+    async def _async_save_doc(self, doctype: str, id_or_name: str, data: dict[str, Any]) -> dict[str, Any]:
+        from grunt.app import _session_ctx  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from datetime import datetime, timezone  # noqa: PLC0415
+
+        dt = await doctype_registry.get(doctype)
+        table = compile_doctype_to_table(dt)
+        update_data = {k: v for k, v in data.items() if k in table.c}
+        update_data["modified_at"] = datetime.now(timezone.utc)
+        await self._session.execute(
+            sa_update(table)
+            .where((table.c.id == id_or_name) | (table.c.name == id_or_name))
+            .values(**update_data)
+        )
+        await self._session.flush()
+        result = await self._session.execute(
+            select(table).where((table.c.id == id_or_name) | (table.c.name == id_or_name)).limit(1)
+        )
+        row = result.first()
+        return dict(row._mapping) if row else {}
+
+    def delete_doc(self, doctype: str, id_or_name: str) -> None:
+        """Delete a document.
+
+        Usage::
+
+            grunt.delete_doc("TempLog", log_id)
+        """
+        if not self._bridge or not self._session:
+            raise ScriptError("delete_doc: no session available")
+        self._bridge.run(self._async_delete_doc(doctype, id_or_name))
+
+    async def _async_delete_doc(self, doctype: str, id_or_name: str) -> None:
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
+        dt = await doctype_registry.get(doctype)
+        table = compile_doctype_to_table(dt)
+        await self._session.execute(
+            table.delete().where((table.c.id == id_or_name) | (table.c.name == id_or_name))
+        )
+        await self._session.flush()
+
+    def count(self, doctype: str, filters: dict[str, Any] | None = None) -> int:
+        """Count documents matching optional filters.
+
+        Usage::
+
+            n = grunt.count("Invoice", {"status": "Draft"})
+        """
+        if not self._bridge or not self._session:
+            return 0
+        return self._bridge.run(self._async_count(doctype, filters))
+
+    async def _async_count(self, doctype: str, filters: dict[str, Any] | None) -> int:
+        from sqlalchemy import func  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
+        dt = await doctype_registry.get(doctype)
+        table = compile_doctype_to_table(dt)
+        stmt = select(func.count()).select_from(table)
+        if filters:
+            for k, v in filters.items():
+                col = table.c.get(k)
+                if col is not None:
+                    stmt = stmt.where(col == v)
+        result = await self._session.execute(stmt)
+        return result.scalar() or 0
+
+    def notify(
+        self,
+        users: list[str],
+        subject: str,
+        message: str,
+        doctype: str | None = None,
+        doc_id: str | None = None,
+    ) -> list[str]:
+        """Send persistent notifications to users.
+
+        Usage::
+
+            grunt.notify(["user@example.com"], "Order ready", "Your order is ready.")
+        """
+        if not self._bridge or not self._session:
+            return []
+        return self._bridge.run(self._async_notify(users, subject, message, doctype, doc_id))
+
+    async def _async_notify(
+        self,
+        users: list[str],
+        subject: str,
+        message: str,
+        doctype: str | None,
+        doc_id: str | None,
+    ) -> list[str]:
+        from grunt.publish import notify as _notify  # noqa: PLC0415
+
+        return await _notify(
+            users=users,
+            subject=subject,
+            message=message,
+            session=self._session,
+            doctype=doctype,
+            doc_id=doc_id,
+        )
 
 
 class ScriptError(Exception):
@@ -370,6 +535,8 @@ class ServerScriptRunner:
         extra_context: dict[str, Any] | None = None,
         trusted: bool = False,
         user_email: str = "",
+        user_roles: list[str] | None = None,
+        is_superadmin: bool = False,
     ) -> ScriptResult:
         """Execute a server script in a sandboxed environment.
 
@@ -380,6 +547,8 @@ class ServerScriptRunner:
             extra_context: Additional variables to inject.
             trusted: If True, skip security validation (for file-based app scripts).
             user_email: Current user email for grunt.session.
+            user_roles: Roles of the current user for grunt.session.roles.
+            is_superadmin: Whether the current user is a superadmin.
 
         Returns:
             ScriptResult with success status, captured output, and response data.
@@ -396,7 +565,13 @@ class ServerScriptRunner:
         # Build execution context with sync-async bridge
         loop = asyncio.get_running_loop()
         bridge = _SyncBridge(loop)
-        ctx = ScriptContext(session=session, bridge=bridge, user_email=user_email)
+        ctx = ScriptContext(
+            session=session,
+            bridge=bridge,
+            user_email=user_email,
+            user_roles=user_roles,
+            is_superadmin=is_superadmin,
+        )
         script_globals = build_safe_globals(
             extra={
                 "doc": doc or {},
