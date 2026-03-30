@@ -21,7 +21,7 @@
  *   dialog.progress('Імпорт', 50, 200, 'Обробка рядків...')
  */
 
-import { ref, reactive, markRaw } from 'vue'
+import { reactive } from 'vue'
 
 // ── Types ────────────────────────────────────────────────────────────────
 
