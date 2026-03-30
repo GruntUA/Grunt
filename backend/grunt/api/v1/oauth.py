@@ -143,7 +143,7 @@ async def oauth_callback(
         redirect_uri=_callback_url(provider),
         scope=cfg["scope"],
     ) as oa_client:
-        token_data = await oa_client.fetch_token(
+        await oa_client.fetch_token(
             oidc["token_endpoint"],
             code=code,
             grant_type="authorization_code",
