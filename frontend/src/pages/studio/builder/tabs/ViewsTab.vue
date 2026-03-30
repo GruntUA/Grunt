@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { X, List, FileText, Columns3, Calendar, Plus, CircleDot } from 'lucide-vue-next'
+import { X, List, FileText, Columns3, Calendar, Plus, CircleDot, Network } from 'lucide-vue-next'
 import type { StatusIndicator } from '@/types'
 
 const builder = useBuilderStore()
@@ -21,6 +21,10 @@ const dataFields = computed(() =>
 
 const selectFields = computed(() =>
   dataFields.value.filter(f => f.fieldtype === 'Select')
+)
+
+const linkFields = computed(() =>
+  dataFields.value.filter(f => f.fieldtype === 'Link')
 )
 
 const dateFields = computed(() =>
@@ -147,6 +151,23 @@ function toggleKanban(enabled: boolean) {
 function updateKanban(patch: Record<string, unknown>) {
   if (!builder.doctype?.kanban_view) return
   builder.updateDocType({ kanban_view: { ...builder.doctype.kanban_view, ...patch } })
+}
+
+// ── Tree View ──
+const hasTree = computed(() => !!builder.doctype?.tree_view)
+
+function toggleTree(enabled: boolean) {
+  if (enabled) {
+    const firstLink = linkFields.value[0]?.fieldname ?? ''
+    builder.updateDocType({ tree_view: { parent_field: firstLink, title_field: 'name' } })
+  } else {
+    builder.updateDocType({ tree_view: null })
+  }
+}
+
+function updateTree(patch: Record<string, unknown>) {
+  if (!builder.doctype?.tree_view) return
+  builder.updateDocType({ tree_view: { ...builder.doctype.tree_view, ...patch } })
 }
 
 // ── Calendar View ──
@@ -442,6 +463,41 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
               <SelectItem v-for="f in dataFields.filter(ff => ff.fieldtype === 'Color' || ff.fieldtype === 'Select')" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tree View -->
+    <div v-if="builder.doctype" class="rounded-lg border border-border bg-card overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 bg-muted/40 border-b border-border">
+        <div class="flex items-center gap-2.5">
+          <Network class="size-4 text-muted-foreground" />
+          <h3 class="text-sm font-semibold text-foreground">Дерево</h3>
+        </div>
+        <Switch :model-value="hasTree" @update:model-value="toggleTree" />
+      </div>
+      <div v-if="builder.doctype.tree_view" class="p-4 space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1.5">
+            <Label class="text-xs text-muted-foreground">Батьківське поле *</Label>
+            <Select :model-value="builder.doctype.tree_view.parent_field" @update:model-value="updateTree({ parent_field: $event })">
+              <SelectTrigger class="h-8 text-xs"><SelectValue placeholder="Оберіть Link поле" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="f in linkFields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
+              </SelectContent>
+            </Select>
+            <p class="text-[11px] text-muted-foreground">Link поле що вказує на цей самий DocType (ієрархія вузлів)</p>
+          </div>
+          <div class="space-y-1.5">
+            <Label class="text-xs text-muted-foreground">Поле назви вузла</Label>
+            <Select :model-value="builder.doctype.tree_view.title_field" @update:model-value="updateTree({ title_field: $event })">
+              <SelectTrigger class="h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">name</SelectItem>
+                <SelectItem v-for="f in dataFields.filter(ff => ['Text', 'LongText'].includes(ff.fieldtype))" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
     </div>

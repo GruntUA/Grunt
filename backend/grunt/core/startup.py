@@ -26,6 +26,67 @@ _CORE_DOCTYPES_DIR = __import__("pathlib").Path(__file__).parent / "doctypes"
 _FIXTURES_DIR = __import__("pathlib").Path(__file__).parent / "fixtures"
 
 
+# ── Apply DocType field extensions registered by apps ────────────────────
+
+
+async def apply_doctype_overrides(session: AsyncSession, engine: AsyncEngine) -> None:
+    """Apply field extensions registered by apps via ``doctype_overrides`` in hooks.py.
+
+    For each DocType listed in ``hooks.DOCTYPE_OVERRIDES``, new fields that are
+    not yet present are appended to the in-memory DocType definition and the
+    physical table is altered (ALTER TABLE ADD COLUMN) via ``sync_table``.
+
+    Must be called after all DocTypes are loaded into the registry.
+    """
+    from grunt.core.hooks import DOCTYPE_OVERRIDES  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.core.metadata.field import DocField  # noqa: PLC0415
+    from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
+
+    if not DOCTYPE_OVERRIDES:
+        return
+
+    for doctype_name, spec in DOCTYPE_OVERRIDES.items():
+        dt = doctype_registry._doctypes.get(doctype_name)
+        if dt is None:
+            logger.warning("startup.override_doctype_not_found", doctype=doctype_name)
+            continue
+
+        existing_fieldnames = {f.fieldname for f in dt.fields}
+        added: list[str] = []
+
+        for field_def in spec.get("add_fields", []):
+            fname = field_def.get("fieldname")
+            if not fname or fname in existing_fieldnames:
+                continue
+            try:
+                dt.fields.append(DocField(**field_def))
+                existing_fieldnames.add(fname)
+                added.append(fname)
+            except Exception as e:  # noqa: BLE001
+                logger.warning(
+                    "startup.override_field_invalid",
+                    doctype=doctype_name,
+                    field=fname,
+                    error=str(e),
+                )
+
+        if added:
+            try:
+                await sync_table(dt, engine, session=session)
+                logger.info(
+                    "startup.doctype_overrides_applied",
+                    doctype=doctype_name,
+                    added_fields=added,
+                )
+            except Exception as e:  # noqa: BLE001
+                logger.warning(
+                    "startup.override_sync_failed",
+                    doctype=doctype_name,
+                    error=str(e),
+                )
+
+
 # ── Load built-in core DocTypes ───────────────────────────────────────────
 
 

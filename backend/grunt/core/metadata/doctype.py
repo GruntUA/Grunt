@@ -108,6 +108,13 @@ class DocTypeCalendarView(BaseModel):
     sources: list[CalendarSource] = []
 
 
+class DocTypeTreeView(BaseModel):
+    """Configuration for the tree view — hierarchical documents via a self-referential Link."""
+
+    parent_field: str  # fieldname of the Link field pointing to the same DocType
+    title_field: str = "name"  # field displayed as node label
+
+
 # ── Status indicators ───────────────────────────────────────────────────
 
 
@@ -154,6 +161,7 @@ class DocType(BaseModel):
     form_view: DocTypeFormView = DocTypeFormView()
     kanban_view: DocTypeKanbanView | None = None
     calendar_view: DocTypeCalendarView | None = None
+    tree_view: DocTypeTreeView | None = None
 
     # Status display
     status_config: DocTypeStatusConfig | None = None

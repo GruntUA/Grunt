@@ -13,7 +13,7 @@ from grunt.api.v1.router import v1_router
 from grunt.core.db.base import Base
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.document.registry import document_registry
-from grunt.core.hooks import register_doc_events
+from grunt.core.hooks import register_doc_events, register_doctype_overrides
 from grunt.core.tasks.broker import broker
 from grunt.core.tasks.registry import discover_tasks
 from grunt.core.tasks.scheduler import register_scheduler_events, start_scheduler, stop_scheduler
@@ -39,7 +39,38 @@ async def lifespan(app: FastAPI):
     # ── Startup ──────────────────────────────────────────────────────
     logger.info("grunt.startup", version="0.1.0")
 
-    from grunt.core.startup import populate_system_doctypes, seed_grunt_workspace, seed_app_workspaces, load_core_doctypes  # noqa: PLC0415
+    from grunt.core.startup import populate_system_doctypes, seed_grunt_workspace, seed_app_workspaces, load_core_doctypes, apply_doctype_overrides  # noqa: PLC0415
+
+    # ── Load hooks from installed apps FIRST (collects doctype_overrides) ──
+    import importlib  # noqa: PLC0415
+    from pathlib import Path  # noqa: PLC0415
+    import sys  # noqa: PLC0415
+
+    apps_dir = Path("grunt_apps")
+    if apps_dir.exists():
+        project_root = str(Path.cwd())
+        if project_root not in sys.path:
+            sys.path.insert(0, project_root)
+
+        for app_hooks in sorted(apps_dir.glob("*/hooks.py")):
+            module_path = str(app_hooks).replace("/", ".").replace("\\", ".").removesuffix(".py")
+            try:
+                module = importlib.import_module(module_path)
+                logger.info("hooks.loaded", module=module_path)
+                if hasattr(module, "doc_events"):
+                    register_doc_events(getattr(module, "doc_events"))
+                    logger.info("hooks.doc_events_registered", module=module_path)
+                if hasattr(module, "doctype_overrides"):
+                    register_doctype_overrides(getattr(module, "doctype_overrides"))
+                    logger.info("hooks.doctype_overrides_registered", module=module_path)
+                if hasattr(module, "override_doctype_class"):
+                    document_registry.register_overrides(getattr(module, "override_doctype_class"))
+                    logger.info("hooks.overrides_registered", module=module_path)
+                if hasattr(module, "scheduler_events"):
+                    register_scheduler_events(getattr(module, "scheduler_events"))
+                    logger.info("hooks.scheduler_events_registered", module=module_path)
+            except Exception as e:
+                logger.warning("hooks.load_error", module=module_path, error=str(e))
 
     sites = site_manager.get_sites()
     if not sites:
@@ -66,6 +97,8 @@ async def lifespan(app: FastAPI):
                 await load_core_doctypes(session, eng)
                 # Load user-created doctypes from grunt_meta_doctype
                 await doctype_registry.load_all(session)
+                # Apply field extensions registered by apps via doctype_overrides
+                await apply_doctype_overrides(session, eng)
                 # Populate the DocType document table
                 await populate_system_doctypes(session, eng)
                 await seed_grunt_workspace(session)
@@ -82,42 +115,8 @@ async def lifespan(app: FastAPI):
             current_site.reset(token)
 
 
-    # Load hooks from installed apps
-    import importlib  # noqa: PLC0415
-    from pathlib import Path  # noqa: PLC0415
-
-    apps_dir = Path("grunt_apps")
+    # ── Post-startup: discover controllers, tasks, scripts ──────────────────
     if apps_dir.exists():
-        import sys  # noqa: PLC0415
-
-        # Add project root to sys.path so grunt_apps is importable
-        project_root = str(Path.cwd())
-        if project_root not in sys.path:
-            sys.path.insert(0, project_root)
-
-        for app_hooks in apps_dir.glob("*/hooks.py"):
-            module_path = str(app_hooks).replace("/", ".").replace("\\", ".").removesuffix(".py")
-            try:
-                module = importlib.import_module(module_path)
-                logger.info("hooks.loaded", module=module_path)
-                
-                # Register DocType-specific hooks if doc_events is defined
-                if hasattr(module, "doc_events"):
-                    register_doc_events(getattr(module, "doc_events"))
-                    logger.info("hooks.doc_events_registered", module=module_path)
-
-                # Register DocType overrides if override_doctype_class is defined
-                if hasattr(module, "override_doctype_class"):
-                    document_registry.register_overrides(getattr(module, "override_doctype_class"))
-                    logger.info("hooks.overrides_registered", module=module_path)
-
-                # Register Scheduler events if scheduler_events is defined
-                if hasattr(module, "scheduler_events"):
-                    register_scheduler_events(getattr(module, "scheduler_events"))
-                    logger.info("hooks.scheduler_events_registered", module=module_path)
-            except Exception as e:
-                logger.warning("hooks.load_error", module=module_path, error=str(e))
-
         # Discover custom DocType controllers
         document_registry.discover_controllers(apps_dir)
         

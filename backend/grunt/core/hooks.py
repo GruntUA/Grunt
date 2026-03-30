@@ -45,6 +45,11 @@ DOC_EVENT_REGISTRY: dict[str, dict[str, list[HookDefinition]]] = defaultdict(
     lambda: defaultdict(list)
 )
 
+# DocType field extensions: doctype_name -> {"add_fields": [...]}
+# Populated by apps via doctype_overrides in their hooks.py.
+# Applied by startup.apply_doctype_overrides() after all DocTypes are loaded.
+DOCTYPE_OVERRIDES: dict[str, dict] = {}
+
 
 def on(event: str, priority: int = 10) -> Callable:
     """Decorator to register a global hook for an event."""
@@ -182,6 +187,34 @@ async def _call_hook(fn: Callable, event_name: str, **kwargs: Any) -> None:
         )
 
 
+def register_doctype_overrides(overrides: dict[str, dict]) -> None:
+    """Register field extensions for existing DocTypes from an app's hooks.py.
+
+    Format::
+
+        doctype_overrides = {
+            "User": {
+                "add_fields": [
+                    {"fieldname": "organization", "label": "Організація",
+                     "fieldtype": "Link", "options": "Organization"}
+                ]
+            }
+        }
+
+    Applied by ``startup.apply_doctype_overrides()`` after all DocTypes are loaded.
+    """
+    for doctype_name, spec in overrides.items():
+        if doctype_name not in DOCTYPE_OVERRIDES:
+            DOCTYPE_OVERRIDES[doctype_name] = {"add_fields": []}
+        existing_fieldnames = {
+            f["fieldname"] for f in DOCTYPE_OVERRIDES[doctype_name].get("add_fields", [])
+        }
+        for field_def in spec.get("add_fields", []):
+            if field_def.get("fieldname") not in existing_fieldnames:
+                DOCTYPE_OVERRIDES[doctype_name].setdefault("add_fields", []).append(field_def)
+        logger.debug("hooks.doctype_overrides_registered", doctype=doctype_name)
+
+
 def register_doc_events(events: dict[str, dict[str, Union[str, list[Union[str, dict]]]]]) -> None:
     """Register hooks from a dictionary (e.g. from app's hooks.py).
 
@@ -221,3 +254,4 @@ def clear() -> None:
     """Clear all registered hooks (useful for tests)."""
     HOOK_REGISTRY.clear()
     DOC_EVENT_REGISTRY.clear()
+    DOCTYPE_OVERRIDES.clear()
