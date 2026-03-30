@@ -100,6 +100,7 @@ class DocumentRegistry:
                     inspect.isclass(obj)
                     and issubclass(obj, Document)
                     and obj is not Document
+                    and obj.__module__ == module.__name__
                 ):
                     self.register(_name, obj)
         except ImportError as e:
