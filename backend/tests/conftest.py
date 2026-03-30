@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import logging
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-
 from grunt.core.db.base import Base
 from grunt.core.db.session import get_session
 from grunt.core.metadata.compiler import SA_METADATA, compile_doctype_to_table
@@ -76,8 +77,11 @@ async def setup_db():
             _dt_data = json.loads(_dt_file.read_text(encoding="utf-8"))
             _dt_obj = _DocType.model_validate(_dt_data)
             compile_doctype_to_table(_dt_obj)
-        except Exception:
-            pass
+        except Exception as exc:
+            # Log and continue so a single bad doctype file does not break all tests.
+            logging.getLogger(__name__).warning(
+                "Failed to load or compile doctype from %s: %s", _dt_file, exc
+            )
     async with test_engine.begin() as conn:
         await conn.run_sync(SA_METADATA.create_all)
 
