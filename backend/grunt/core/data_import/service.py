@@ -3,7 +3,6 @@ from __future__ import annotations
 import io
 import pandas as pd
 import structlog
-from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import AsyncEngine
 
