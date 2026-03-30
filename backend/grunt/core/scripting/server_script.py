@@ -475,7 +475,12 @@ class ServerScriptRunner:
 
             scripts.extend(get_file_doctype_scripts(doctype, event))
         except ImportError:
-            pass
+            # File-based server scripts are optional; ignore if support module is not available.
+            logger.debug(
+                "Optional file-based DocType scripts module not available; skipping.",
+                doctype=doctype,
+                event=event,
+            )
 
         return scripts
 
