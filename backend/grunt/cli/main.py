@@ -298,6 +298,138 @@ def create_app(name: str):
         click.echo(f"  {p.relative_to(app_dir.parent)}")
 
 
+# ── app group ────────────────────────────────────────────────────────────────
+
+
+@cli.group("app")
+def app_group():
+    """Керування встановленими додатками."""
+    pass
+
+
+@app_group.command("install")
+@click.argument("name")
+@click.option("--site", default=None, help="Назва сайту")
+def app_install(name: str, site: str | None):
+    """Встановити додаток та одразу зареєструвати його workspace."""
+
+    async def _run():
+        import json  # noqa: PLC0415
+
+        from grunt.core.site.manager import site_manager, current_site  # noqa: PLC0415
+        from grunt.core.startup import load_core_doctypes, seed_app_workspaces  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.db.base import Base  # noqa: PLC0415
+
+        target_site = site or (site_manager.get_sites() or [None])[0]
+        if target_site is None:
+            click.echo("Помилка: сайт не знайдено.", err=True)
+            raise SystemExit(1)
+
+        # Validate app exists
+        app_dir = site_manager.bench_dir / "apps" / name
+        app_json = app_dir / "app.json"
+        if not app_dir.is_dir():
+            click.echo(f"Помилка: директорія '{app_dir}' не існує.", err=True)
+            raise SystemExit(1)
+        if not app_json.exists():
+            click.echo(f"Помилка: '{app_json}' не знайдено.", err=True)
+            raise SystemExit(1)
+
+        app_meta = json.loads(app_json.read_text(encoding="utf-8"))
+
+        # Update grunt.site installed_apps
+        site_file = site_manager.sites_dir / target_site / "grunt.site"
+        site_config = json.loads(site_file.read_text(encoding="utf-8"))
+        installed = site_config.get("installed_apps", [])
+        if name not in installed:
+            installed.append(name)
+            site_config["installed_apps"] = installed
+            site_file.write_text(json.dumps(site_config, ensure_ascii=False, indent=2), encoding="utf-8")
+
+        # Seed workspace immediately (no server restart needed)
+        token = current_site.set(target_site)
+        try:
+            eng = site_manager.get_engine(target_site)
+            maker = site_manager.get_session_maker(target_site)
+
+            async with eng.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+
+            async with maker() as session:
+                await load_core_doctypes(session, eng)
+                await doctype_registry.load_all(session)
+                await seed_app_workspaces(session, target_site)
+                await session.commit()
+        finally:
+            current_site.reset(token)
+
+        title = app_meta.get("title", name)
+        click.echo(f"✓ Додаток {name} встановлено на сайт {target_site}")
+        all_apps = site_config.get("installed_apps", [])
+        click.echo(f"  Додатки: {', '.join(all_apps)}")
+
+    asyncio.run(_run())
+
+
+@app_group.command("uninstall")
+@click.argument("name")
+@click.option("--site", default=None, help="Назва сайту")
+def app_uninstall(name: str, site: str | None):
+    """Видалити додаток із сайту (workspace та запис зберігаються)."""
+
+    async def _run():
+        import json  # noqa: PLC0415
+
+        from grunt.core.site.manager import site_manager  # noqa: PLC0415
+
+        target_site = site or (site_manager.get_sites() or [None])[0]
+        if target_site is None:
+            click.echo("Помилка: сайт не знайдено.", err=True)
+            raise SystemExit(1)
+
+        site_file = site_manager.sites_dir / target_site / "grunt.site"
+        site_config = json.loads(site_file.read_text(encoding="utf-8"))
+        installed = site_config.get("installed_apps", [])
+
+        if name not in installed:
+            click.echo(f"Помилка: додаток '{name}' не встановлено.", err=True)
+            raise SystemExit(1)
+        if name == "grunt":
+            click.echo("Помилка: базовий додаток grunt не можна видалити.", err=True)
+            raise SystemExit(1)
+
+        installed.remove(name)
+        site_config["installed_apps"] = installed
+        site_file.write_text(json.dumps(site_config, ensure_ascii=False, indent=2), encoding="utf-8")
+
+        click.echo(f"✓ Додаток '{name}' видалено з сайту {target_site}")
+        click.echo(f"  Додатки: {', '.join(installed)}")
+
+    asyncio.run(_run())
+
+
+@app_group.command("list")
+@click.option("--site", default=None, help="Назва сайту")
+def app_list(site: str | None):
+    """Показати встановлені додатки."""
+    import json  # noqa: PLC0415
+    from pathlib import Path  # noqa: PLC0415
+    from grunt.core.site.manager import site_manager  # noqa: PLC0415
+
+    target_site = site or (site_manager.get_sites() or [None])[0]
+    if target_site is None:
+        click.echo("Помилка: сайт не знайдено.", err=True)
+        raise SystemExit(1)
+
+    site_file = site_manager.sites_dir / target_site / "grunt.site"
+    site_config = json.loads(site_file.read_text(encoding="utf-8"))
+    apps = site_config.get("installed_apps", [])
+    click.echo(f"Сайт: {target_site}")
+    for a in apps:
+        click.echo(f"  • {a}")
+
+
 # ── doctype group ─────────────────────────────────────────────────────────────
 
 

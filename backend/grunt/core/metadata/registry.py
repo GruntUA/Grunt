@@ -159,11 +159,6 @@ class DocTypeRegistry:
         async_engine: AsyncEngine,
     ) -> None:
         """Update an existing DocType, re-sync its table, refresh cache."""
-        if self.is_system(doctype.name):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"System DocType '{doctype.name}' cannot be modified",
-            )
         if doctype.name not in self._doctypes:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
