@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import structlog
-from sqlalchemy import select, text, update as sa_update
+from sqlalchemy import select, update as sa_update
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.core.db.system_tables import (
