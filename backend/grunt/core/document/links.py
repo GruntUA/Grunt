@@ -14,6 +14,8 @@ import structlog
 from sqlalchemy import select, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from grunt.core.metadata.registry import doctype_registry
+
 
 logger = structlog.get_logger()
 
@@ -37,7 +39,8 @@ class LinkService:
         """
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
-        table = compile_doctype_to_table(doctype_registry._doctypes["DocLink"])
+        doclink_dt = await doctype_registry.get("DocLink")
+        table = compile_doctype_to_table(doclink_dt)
         dt = await doctype_registry.get(doctype)
 
         # Delete existing links from this source document
@@ -75,7 +78,7 @@ class LinkService:
                     modified_by="system",
                     docstatus=0,
                     source_doctype=doctype,
-                    source_id=str(doc_id),
+                    source_id=doc_id,
                     target_doctype=target_doctype,
                     target_id=str(target_id),
                     link_fieldname=field.fieldname,
