@@ -1,7 +1,6 @@
 """Tests for the Document Links service — sync and backlinks logic."""
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
 
 from grunt.core.document.links import LinkService
 
