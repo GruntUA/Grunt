@@ -3,7 +3,7 @@
 import pytest
 
 from grunt.core.scripting.safe_globals import build_safe_globals, validate_script
-from grunt.core.scripting.server_script import ServerScriptRunner, ScriptResult, ScriptError
+from grunt.core.scripting.server_script import ServerScriptRunner, ScriptResult
 
 
 # ── Safe globals tests ───────────────────────────────────────────────────
