@@ -3,7 +3,6 @@ from __future__ import annotations
 import structlog
 from grunt.core.tasks.broker import retryable_task
 from grunt.core.email.service import EmailService
-from grunt.core.db.session import get_session
 from grunt.core.site.manager import site_manager
 
 from grunt.core.document.service import DocumentService
