@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -411,6 +412,7 @@ onMounted(() => {
           <UserPlus class="size-4" />
           Призначити відповідального
         </DialogTitle>
+        <DialogDescription class="sr-only">Введіть email або логін користувача для призначення</DialogDescription>
       </DialogHeader>
       <div class="flex flex-col gap-3 py-1">
         <div class="flex flex-col gap-1.5">
@@ -461,6 +463,7 @@ onMounted(() => {
           <Share2 class="size-4" />
           Поділитися документом
         </DialogTitle>
+        <DialogDescription class="sr-only">Введіть email або логін користувача та оберіть рівень доступу</DialogDescription>
       </DialogHeader>
       <div class="flex flex-col gap-3 py-1">
         <div class="flex flex-col gap-1.5">
