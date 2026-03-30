@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, useAttrs } from 'vue'
 import type { DocType, GruntDocument } from '@/types'
 import { docsApi, type BacklinkItem } from '@/core/api/docs'
 import { Button } from '@/components/ui/button'
@@ -46,6 +46,9 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
+const attrs = useAttrs()
+
+defineOptions({ inheritAttrs: false })
 
 // ── Image ────────────────────────────────────────────────────────────────────
 
@@ -218,7 +221,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <aside class="flex flex-col gap-5 w-full">
+  <aside v-bind="attrs" class="flex flex-col gap-5 w-full">
     <!-- Document image -->
     <div v-if="doctype.image_field" class="flex justify-center">
       <div
