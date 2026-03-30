@@ -7,8 +7,6 @@ import structlog
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from grunt.core.tasks.broker import broker
-
 logger = structlog.get_logger()
 
 # Global scheduler instance
