@@ -78,28 +78,54 @@ class DocTypeRegistry:
     ) -> None:
         """Register a core (is_system=True) DocType from JSON.
 
-        Bypasses user-facing validation. Upserts grunt_meta_doctype row,
-        syncs physical table, and caches in memory.
+        On first run (no DB row): inserts from JSON and syncs physical table.
+        On subsequent runs (DB row exists): preserves the stored ``data`` so
+        that superadmin edits made via Studio Builder are not overwritten.
+        Only updates the ``module`` metadata field. Physical table is synced
+        from the stored definition (to pick up any columns added by Studio).
         """
-        existing = await session.execute(
+        existing_row = await session.execute(
             select(GruntMetaDoctype).where(GruntMetaDoctype.name == doctype.name)
         )
-        if existing.scalar_one_or_none():
+        existing = existing_row.scalar_one_or_none()
+
+        if existing:
+            # Preserve user customisations — do NOT overwrite data from JSON.
+            # Only keep module in sync (rarely changes).
             await session.execute(
                 update(GruntMetaDoctype)
                 .where(GruntMetaDoctype.name == doctype.name)
-                .values(module=doctype.module, data=doctype.model_dump())
+                .values(module=doctype.module)
             )
+            # Load the stored definition for table sync & in-memory cache.
+            try:
+                active_dt = DocType.model_validate(existing.data)
+            except Exception:
+                # Stored data is invalid — fall back to JSON and repair.
+                logger.warning(
+                    "registry.core_stored_invalid",
+                    name=doctype.name,
+                    action="falling_back_to_json",
+                )
+                active_dt = doctype
+                await session.execute(
+                    update(GruntMetaDoctype)
+                    .where(GruntMetaDoctype.name == doctype.name)
+                    .values(data=doctype.model_dump())
+                )
         else:
+            # First run: seed from the bundled JSON file.
             session.add(GruntMetaDoctype(
                 name=doctype.name,
                 module=doctype.module,
                 data=doctype.model_dump(),
             ))
+            active_dt = doctype
+
         await session.flush()
-        await sync_table(doctype, async_engine, session=session)
-        self._doctypes[doctype.name] = doctype
-        logger.info("registry.core_injected", name=doctype.name)
+        await sync_table(active_dt, async_engine, session=session)
+        self._doctypes[active_dt.name] = active_dt
+        logger.info("registry.core_injected", name=active_dt.name)
 
     async def register(
         self,

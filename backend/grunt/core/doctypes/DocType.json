@@ -5,11 +5,59 @@
   "is_child": false,
   "track_changes": false,
   "is_system": true,
-  "search_fields": ["name", "label"],
+  "autoname": "prompt",
   "title_field": "label",
+  "search_fields": ["name", "label", "module"],
+  "list_view": {
+    "sort_by": "modified_at",
+    "sort_order": "desc"
+  },
   "fields": [
-    {"fieldname": "label", "label": "Назва", "fieldtype": "Text", "in_list_view": true, "required": true},
-    {"fieldname": "module", "label": "Модуль", "fieldtype": "Text", "in_list_view": true, "in_filter": true},
-    {"fieldname": "is_child", "label": "Дочірній", "fieldtype": "Check", "in_list_view": true, "in_filter": true}
+
+    {"fieldname": "tab_main",  "label": "Основне",    "fieldtype": "Tab"},
+
+    {"fieldname": "label",     "label": "Назва",       "fieldtype": "Text",   "required": true, "in_list_view": true, "in_filter": true, "bold": true},
+    {"fieldname": "module",    "label": "Модуль",      "fieldtype": "Text",   "in_list_view": true, "in_filter": true},
+
+    {"fieldname": "sec_naming", "label": "Автонумерація та відображення", "fieldtype": "Section"},
+
+    {"fieldname": "col_n1",    "label": "", "fieldtype": "Column"},
+    {"fieldname": "autoname",  "label": "Автонумерація", "fieldtype": "Text",
+      "description": "Серія (CONTR-.YYYY.-.####), field:fieldname, prompt або hash"},
+    {"fieldname": "title_field", "label": "Поле заголовка", "fieldtype": "Text",
+      "description": "Яке поле відображається як назва документа (default: name)"},
+    {"fieldname": "image_field", "label": "Поле зображення", "fieldtype": "Text",
+      "description": "Поле типу Image або Attach для аватара документа"},
+
+    {"fieldname": "col_n2",    "label": "", "fieldtype": "Column"},
+    {"fieldname": "default_view", "label": "Вигляд за замовчуванням", "fieldtype": "Select",
+      "options": "\nlist\nkanban\ncalendar\ntree"},
+    {"fieldname": "table_name", "label": "Назва таблиці (override)", "fieldtype": "Text",
+      "read_only": true,
+      "description": "Фізична таблиця в БД. Заповнюється автоматично"},
+    {"fieldname": "search_fields", "label": "Поля пошуку", "fieldtype": "JSON",
+      "description": "Список полів для full-text пошуку, наприклад [\"name\", \"label\"]"},
+
+    {"fieldname": "tab_behavior", "label": "Поведінка", "fieldtype": "Tab"},
+
+    {"fieldname": "sec_flags",   "label": "Прапори",     "fieldtype": "Section"},
+
+    {"fieldname": "col_f1",      "label": "", "fieldtype": "Column"},
+    {"fieldname": "is_child",      "label": "Дочірній (Child Table)", "fieldtype": "Check",
+      "in_list_view": true, "in_filter": true,
+      "description": "Використовується всередині поля TABLE іншого DocType"},
+    {"fieldname": "is_submittable","label": "Можна подати (Submittable)", "fieldtype": "Check",
+      "description": "Додає кнопку Submit та поле docstatus"},
+    {"fieldname": "is_singleton",  "label": "Одинарний (Singleton)", "fieldtype": "Check",
+      "description": "Лише один документ цього типу (налаштування, профіль)"},
+
+    {"fieldname": "col_f2",      "label": "", "fieldtype": "Column"},
+    {"fieldname": "is_virtual",    "label": "Віртуальний", "fieldtype": "Check",
+      "description": "Без фізичної таблиці — дані з контролера"},
+    {"fieldname": "track_changes", "label": "Журналювати зміни", "fieldtype": "Check",
+      "description": "Зберігати версії документа при кожному збереженні"},
+    {"fieldname": "is_system",     "label": "Системний (не редагувати)", "fieldtype": "Check",
+      "read_only": true, "in_filter": true,
+      "description": "Вбудований DocType фреймворку — зміна через Studio заблокована"}
   ]
 }

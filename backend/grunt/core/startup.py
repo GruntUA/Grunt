@@ -151,33 +151,49 @@ async def populate_system_doctypes(
 
     now = datetime.now(timezone.utc)
 
+    # Only include columns that actually exist in the compiled table to
+    # avoid errors when the schema hasn't been migrated yet (e.g. first run
+    # before sync, or DocType.json was just extended with new fields).
+    col_names = {c.name for c in table.columns}
+
+    def _col(name: str, value: object) -> dict:
+        return {name: value} if name in col_names else {}
+
     for dt in all_doctypes:
+        scalar_fields: dict = {
+            **_col("label",          dt.label),
+            **_col("module",         dt.module),
+            **_col("is_child",       dt.is_child),
+            **_col("is_submittable", dt.is_submittable),
+            **_col("is_singleton",   dt.is_singleton),
+            **_col("is_virtual",     dt.is_virtual),
+            **_col("track_changes",  dt.track_changes),
+            **_col("is_system",      dt.is_system),
+            **_col("autoname",       dt.autoname),
+            **_col("title_field",    dt.title_field),
+            **_col("image_field",    dt.image_field),
+            **_col("default_view",   dt.default_view),
+            **_col("table_name",     dt.table_name),
+            **_col("search_fields",  dt.search_fields if dt.search_fields else None),
+        }
+
         if dt.name in existing_names:
-            # Update existing row
             await conn.execute(
                 table.update()
                 .where(table.c.name == dt.name)
-                .values(
-                    label=dt.label,
-                    module=dt.module,
-                    is_child=dt.is_child,
-                    modified_at=now,
-                )
+                .values(modified_at=now, **scalar_fields)
             )
         else:
-            # Insert new row
             await conn.execute(
                 table.insert().values(
                     id=str(uuid.uuid4()),
                     name=dt.name,
-                    label=dt.label,
-                    module=dt.module,
-                    is_child=dt.is_child,
                     owner="system",
                     created_at=now,
                     modified_at=now,
                     modified_by="system",
                     docstatus=0,
+                    **scalar_fields,
                 )
             )
 
