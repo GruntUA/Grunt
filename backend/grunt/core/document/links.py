@@ -37,7 +37,8 @@ class LinkService:
         """
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
-        table = compile_doctype_to_table(doctype_registry._doctypes["DocLink"])
+        doclink_dt = await doctype_registry.get("DocLink")
+        table = compile_doctype_to_table(doclink_dt)
         dt = await doctype_registry.get(doctype)
 
         # Delete existing links from this source document
