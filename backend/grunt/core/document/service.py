@@ -17,7 +17,7 @@ from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.core.auth.models import GruntUser
-from grunt.core.metadata.compiler import compile_doctype_to_table, get_table_name
+from grunt.core.metadata.compiler import compile_doctype_to_table
 from grunt.core.metadata.doctype import DocType
 from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.core.metadata.registry import doctype_registry
