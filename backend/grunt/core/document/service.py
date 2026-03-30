@@ -170,7 +170,7 @@ class DocumentService:
             if (existing.scalar() or 0) > 0:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail=f"'{doctype_name}' є singleton — документ вже існує. Використовуйте PUT для оновлення.",
+                    detail=f"'{doctype_name}' is a singleton — a document already exists. Use PUT to update it.",
                 )
 
         if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
