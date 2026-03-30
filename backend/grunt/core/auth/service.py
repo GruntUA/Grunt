@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import structlog
-from jose import jwt
+import jwt
 from sqlalchemy import func, select, Table
 from sqlalchemy.ext.asyncio import AsyncSession
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.config import settings
@@ -32,7 +32,7 @@ async def current_user(
         email: str | None = payload.get("sub")
         if email is None:
             raise credentials_exception
-    except JWTError:
+    except jwt.PyJWTError:
         raise credentials_exception
 
     user = await get_user_by_email(email, session)
@@ -56,7 +56,7 @@ async def optional_user(
         email: str | None = payload.get("sub")
         if not email:
             return None
-    except JWTError:
+    except jwt.PyJWTError:
         return None
     user = await get_user_by_email(email, session)
     if user is None or not user.is_active:

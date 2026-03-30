@@ -20,7 +20,7 @@ async def _extract_user_email(request: Request, session: AsyncSession) -> str | 
 
     token = auth_header[7:]
     try:
-        from jose import jwt  # noqa: PLC0415
+        import jwt  # noqa: PLC0415
         from grunt.config import settings  # noqa: PLC0415
         from grunt.core.auth.service import get_user_by_email  # noqa: PLC0415
 

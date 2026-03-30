@@ -175,8 +175,8 @@ async def _authenticate_ws(websocket: WebSocket, token: str | None) -> str | Non
         await websocket.close(code=4001)
         return None
     try:
+        import jwt  # noqa: PLC0415
         from grunt.config import settings  # noqa: PLC0415
-        from jose import jwt  # noqa: PLC0415
 
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         sub = payload.get("sub")
