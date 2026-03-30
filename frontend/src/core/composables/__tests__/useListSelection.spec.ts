@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { useListSelection } from '@/core/composables/useListSelection'
 
 describe('useListSelection', () => {
