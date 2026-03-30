@@ -306,7 +306,11 @@ async def workspace_counts(
                         suffix = "_".join(str(v).lower() for v in f.values())
                         key = f"{item.link_to}_{suffix}"
                 except (json.JSONDecodeError, ValueError):
-                    pass
+                    logger.debug(
+                        "workspace.count_key_suffix_parse_error",
+                        link_to=item.link_to,
+                        count_filters=item.count_filters,
+                    )
 
             counts[key] = count_val
 
