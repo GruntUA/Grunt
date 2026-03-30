@@ -1,7 +1,7 @@
 """Tests for the Document Links service — sync and backlinks logic."""
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
