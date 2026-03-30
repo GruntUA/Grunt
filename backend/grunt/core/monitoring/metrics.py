@@ -10,6 +10,8 @@ If prometheus_client is not installed, a stub is used and /metrics returns a 501
 """
 from __future__ import annotations
 
+try:
+    from prometheus_client import (
         Counter,
         Gauge,
         Histogram,
