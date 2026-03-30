@@ -1,4 +1,3 @@
-import json
 from contextvars import ContextVar
 from pathlib import Path
 from typing import Dict
