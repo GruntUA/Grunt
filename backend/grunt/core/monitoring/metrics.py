@@ -10,6 +10,8 @@ If prometheus_client is not installed, a stub is used and /metrics returns a 501
 """
 from __future__ import annotations
 
+import re
+
 try:
     from prometheus_client import (
         Counter,
@@ -37,6 +39,8 @@ try:
         "Active WebSocket connections",
     )
 
+    _PATH_ID_PATTERN = re.compile(r"/[0-9a-f-]{8,}(/|$)")
+
 except ImportError:
     _AVAILABLE = False
     http_requests_total = None  # type: ignore[assignment]
@@ -55,8 +59,7 @@ def record_request(method: str, path: str, status: int, duration: float) -> None
     if not _AVAILABLE:
         return
     # Normalize path to avoid high-cardinality (replace UUIDs/IDs)
-    import re
-    norm_path = re.sub(r"/[0-9a-f-]{8,}(/|$)", "/{id}\\1", path)
+    norm_path = _PATH_ID_PATTERN.sub(r"/{id}\1", path)
     http_requests_total.labels(method=method, path=norm_path, status=str(status)).inc()
     http_request_duration.labels(method=method, path=norm_path).observe(duration)
 
