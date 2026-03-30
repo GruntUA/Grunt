@@ -13,7 +13,7 @@ from typing import Any
 
 import structlog
 from fastapi import HTTPException, status
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.core.auth.models import GruntUser
