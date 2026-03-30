@@ -9,7 +9,7 @@ import structlog
 from grunt.core.document.base import Document
 
 if TYPE_CHECKING:
-    from grunt.config import Settings
+    pass
 
 logger = structlog.get_logger()
 
