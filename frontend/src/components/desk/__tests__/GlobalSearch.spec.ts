@@ -417,7 +417,7 @@ describe('GlobalSearch', () => {
 
   describe('глобальний хоткей', () => {
     it('Ctrl+K відкриває пошук', async () => {
-      const wrapper = mountComponent()
+      mountComponent()
       const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true })
       const preventDefaultSpy = vi.spyOn(event, 'preventDefault')
       document.dispatchEvent(event)
@@ -426,7 +426,7 @@ describe('GlobalSearch', () => {
     })
 
     it('Meta+K відкриває пошук', async () => {
-      const wrapper = mountComponent()
+      mountComponent()
       const event = new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true })
       const preventDefaultSpy = vi.spyOn(event, 'preventDefault')
       document.dispatchEvent(event)
@@ -435,7 +435,7 @@ describe('GlobalSearch', () => {
     })
 
     it('звичайне натискання клавіші не відкриває пошук', async () => {
-      const wrapper = mountComponent()
+      mountComponent()
       const event = new KeyboardEvent('keydown', { key: 'a', bubbles: true })
       const preventDefaultSpy = vi.spyOn(event, 'preventDefault')
       document.dispatchEvent(event)
