@@ -57,12 +57,7 @@ function makeWorkspace(overrides: Partial<Workspace> = {}): Workspace {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-async function typeQuery(wrapper: ReturnType<typeof mount>, text: string) {
-  const input = wrapper.find('input')
-  await input.setValue(text)
-  // setValue triggers input + change; manually focus to set isOpen
-  await input.trigger('focus')
-}
+// (no helper functions currently needed)
 
 // ── Tests ──────────────────────────────────────────────────────────────────
 
