@@ -9,7 +9,6 @@ Requires the ``mfa`` optional extras::
 """
 from __future__ import annotations
 
-import base64
 import hashlib
 import io
 import json
