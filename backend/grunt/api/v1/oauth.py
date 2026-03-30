@@ -24,7 +24,6 @@ Flow:
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.config import settings
 from grunt.core.db.session import get_session
