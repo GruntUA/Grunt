@@ -176,7 +176,7 @@ class DocumentService:
         if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"'{doctype_name}' керується системою. Використовуйте відповідний API.",
+                detail=f"'{doctype_name}' is managed by the system. Please use the appropriate API.",
             )
         dt = await doctype_registry.get(doctype_name)
         table = compile_doctype_to_table(dt)
