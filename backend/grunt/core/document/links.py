@@ -75,7 +75,7 @@ class LinkService:
                     modified_by="system",
                     docstatus=0,
                     source_doctype=doctype,
-                    source_id=str(doc_id),
+                    source_id=doc_id,
                     target_doctype=target_doctype,
                     target_id=str(target_id),
                     link_fieldname=field.fieldname,
