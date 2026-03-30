@@ -494,7 +494,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
               <SelectTrigger class="h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="name">name</SelectItem>
-                <SelectItem v-for="f in dataFields.filter(ff => ['Text', 'LongText'].includes(ff.fieldtype))" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
+                <SelectItem v-for="f in dataFields.filter(ff => ['Data', 'Text', 'LongText'].includes(ff.fieldtype))" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
               </SelectContent>
             </Select>
           </div>
