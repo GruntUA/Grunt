@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import importlib
-from typing import Any, Callable, Union
+from typing import Union
 
 import structlog
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
