@@ -35,7 +35,7 @@ class DocumentRegistry:
                 module_path, class_name = path.rsplit(".", 1)
                 module = importlib.import_module(module_path)
                 controller_cls = getattr(module, class_name)
-                if issubclass(controller_cls, Document):
+                if inspect.isclass(controller_cls) and issubclass(controller_cls, Document):
                     self.register(doctype, controller_cls)
                     logger.info("document.overridden", doctype=doctype, controller=path)
             except (ImportError, AttributeError, ValueError) as e:
