@@ -315,8 +315,15 @@ async def authenticate(
     now = datetime.now(timezone.utc)
 
     # Check if account is locked
-    if user.locked_until and user.locked_until.replace(tzinfo=timezone.utc) > now:
-        raise ValueError("locked")
+    if user.locked_until:
+        # Normalize locked_until to UTC for a safe comparison with `now`
+        if user.locked_until.tzinfo is not None and user.locked_until.utcoffset() is not None:
+            locked_until_utc = user.locked_until.astimezone(timezone.utc)
+        else:
+            # Treat naive datetimes as UTC
+            locked_until_utc = user.locked_until.replace(tzinfo=timezone.utc)
+        if locked_until_utc > now:
+            raise ValueError("locked")
 
     if not verify_password(password, user.hashed_password):
         # Increment failed attempt counter
