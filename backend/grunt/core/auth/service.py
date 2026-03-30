@@ -47,6 +47,20 @@ def create_access_token(user: GruntUser) -> str:
 # ── Table helper ─────────────────────────────────────────────────────────
 
 
+def _get_doctype_from_registry(name: str):
+    """Internal helper to retrieve a DocType by name without exposing registry internals.
+
+    This isolates direct access to doctype_registry internals so it can be
+    easily updated if a public accessor is added in the future.
+    """
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
+    # NOTE: Once doctype_registry exposes a public accessor (e.g. get_doctype),
+    # this function should be updated to delegate to that instead of touching
+    # _doctypes directly.
+    return doctype_registry._doctypes.get(name)
+
+
 def _user_table() -> Table:
     """Return the SA Core Table for the ``User`` DocType (grunt_core_user).
 
@@ -54,9 +68,8 @@ def _user_table() -> Table:
     startup — same pattern as DocumentService.
     """
     from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
-    dt = doctype_registry._doctypes.get("User")
+    dt = _get_doctype_from_registry("User")
     if dt is None:
         raise RuntimeError(
             "DocType 'User' not found in registry. "
@@ -315,8 +328,15 @@ async def authenticate(
     now = datetime.now(timezone.utc)
 
     # Check if account is locked
-    if user.locked_until and user.locked_until.replace(tzinfo=timezone.utc) > now:
-        raise ValueError("locked")
+    if user.locked_until:
+        # Normalize locked_until to UTC for a safe comparison with `now`
+        if user.locked_until.tzinfo is not None and user.locked_until.utcoffset() is not None:
+            locked_until_utc = user.locked_until.astimezone(timezone.utc)
+        else:
+            # Treat naive datetimes as UTC
+            locked_until_utc = user.locked_until.replace(tzinfo=timezone.utc)
+        if locked_until_utc > now:
+            raise ValueError("locked")
 
     if not verify_password(password, user.hashed_password):
         # Increment failed attempt counter
