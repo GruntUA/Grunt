@@ -3,8 +3,6 @@
 from datetime import date, datetime, timezone
 from types import SimpleNamespace
 
-import pytest
-
 from grunt.core.print.filters import date_format, datetime_format, striptags, JINJA_FILTERS
 from grunt.core.print.renderer import (
     render_from_string,
