@@ -43,6 +43,10 @@ async def get_client_scripts(
 
         scripts.extend(get_file_client_scripts(doctype))
     except ImportError:
-        pass
+        logger.debug(
+            "Optional file-based client scripts module not available; "
+            "continuing with database-backed scripts only.",
+            doctype=doctype,
+        )
 
     return scripts
