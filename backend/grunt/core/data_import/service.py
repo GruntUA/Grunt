@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from grunt.core.auth.models import GruntUser
 from grunt.core.document.service import DocumentService
-from grunt.core.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()
 
