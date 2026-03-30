@@ -5,7 +5,7 @@ from __future__ import annotations
 import io
 import uuid as _uuid
 import csv
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, timezone
 from typing import Any
 from fastapi.responses import StreamingResponse
 
