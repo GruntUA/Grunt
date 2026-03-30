@@ -432,7 +432,8 @@ class DocumentService:
     ) -> None:
         dt_check = await doctype_registry.get(doctype_name)
         if dt_check.is_virtual:
-            return await self._virtual_delete(dt_check, doctype_name, user, doc_id)
+            await self._virtual_delete(dt_check, doctype_name, user, doc_id)
+            return
 
         if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
             raise HTTPException(
