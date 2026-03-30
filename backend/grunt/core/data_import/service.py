@@ -3,7 +3,6 @@ from __future__ import annotations
 import io
 import pandas as pd
 import structlog
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from grunt.core.auth.models import GruntUser
