@@ -13,7 +13,6 @@ import hashlib
 import io
 import json
 import os
-import struct
 from typing import TYPE_CHECKING
 
 import structlog
