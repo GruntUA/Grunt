@@ -211,7 +211,7 @@ async def ws_user(
                 if msg.get("action") == "ping":
                     await websocket.send_text('{"event":"pong"}')
             except json.JSONDecodeError:
-                pass
+                logger.debug("ws.invalid_json", raw=raw)
     except WebSocketDisconnect:
         manager.disconnect(websocket, channel)
 
@@ -236,7 +236,7 @@ async def ws_public(
                 if msg.get("action") == "ping":
                     await websocket.send_text('{"event":"pong"}')
             except json.JSONDecodeError:
-                pass
+                logger.debug("ws.invalid_json", raw=raw)
     except WebSocketDisconnect:
         manager.disconnect(websocket, full_channel)
 
@@ -262,7 +262,7 @@ async def ws_document(
                 if msg.get("action") == "ping":
                     await websocket.send_text('{"event":"pong"}')
             except json.JSONDecodeError:
-                pass
+                logger.debug("ws.invalid_json", raw=raw)
     except WebSocketDisconnect:
         manager.disconnect(websocket, channel)
 
