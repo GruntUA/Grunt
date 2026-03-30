@@ -21,7 +21,7 @@ doctype_data["calendar_view"] = {
 }
 
 try:
-    doc = DocType(**doctype_data)
+    DocType(**doctype_data)
     print("VALIDATION SUCCESS")
 except Exception as e:
     print("VALIDATION ERROR:")
