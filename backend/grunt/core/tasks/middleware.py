@@ -153,6 +153,11 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
                 )
                 await session.commit()
         except Exception:
-            pass
+            logger.error(
+                "tasks.error_logging_failed",
+                task_id=message.task_id,
+                task=message.task_name,
+                exc_info=True,
+            )
         finally:
             self.log_ids.pop(message.task_id, None)
