@@ -1,7 +1,5 @@
 """Tests for the scripting module — Server Script sandbox and Client Script loading."""
 
-import pytest
-
 from grunt.core.scripting.safe_globals import build_safe_globals, validate_script
 from grunt.core.scripting.server_script import ServerScriptRunner, ScriptResult
 
