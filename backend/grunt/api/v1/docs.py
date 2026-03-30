@@ -22,6 +22,11 @@ from grunt.core.db.session import get_engine, get_session
 from grunt.core.document.service import DocumentService
 from grunt.core.metadata.registry import doctype_registry
 
+import json
+import logging
+
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
@@ -209,13 +214,13 @@ async def export_documents(
     service = DocumentService(session, engine)
     
     # Parse filters / fields
-    parsed_filters = {}
+    parsed_filters: dict[str, Any] = {}
     if filters:
         try:
-            import json
             parsed_filters = json.loads(filters)
-        except Exception:
-            pass
+        except json.JSONDecodeError:
+            # If filters are not valid JSON, ignore them and proceed without filtering.
+            logger.debug("Invalid JSON for 'filters' in export_documents; ignoring filters", exc_info=True)
             
     parsed_fields = fields.split(",") if fields else None
     
