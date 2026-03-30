@@ -15,8 +15,11 @@ from grunt.config import settings
 from grunt.core.db.base import Base
 
 # Ensure all ORM models are imported so Base.metadata knows about them
-import grunt.core.db.system_tables  # noqa: F401
-import grunt.core.auth.models  # noqa: F401
+import grunt.core.db.system_tables as _system_tables  # noqa: F401
+import grunt.core.auth.models as _auth_models  # noqa: F401
+
+# Make dummy references so static analyzers treat these imports as used.
+_ = (_system_tables, _auth_models)
 
 # ── Alembic config ──────────────────────────────────────────────────────
 config = context.config
