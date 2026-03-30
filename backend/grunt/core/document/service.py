@@ -170,13 +170,13 @@ class DocumentService:
             if (existing.scalar() or 0) > 0:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail=f"'{doctype_name}' є singleton — документ вже існує. Використовуйте PUT для оновлення.",
+                    detail=f"'{doctype_name}' is a singleton — a document already exists. Use PUT to update it.",
                 )
 
         if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"'{doctype_name}' керується системою. Використовуйте відповідний API.",
+                detail=f"'{doctype_name}' is managed by the system. Please use the appropriate API.",
             )
         dt = await doctype_registry.get(doctype_name)
         table = compile_doctype_to_table(dt)
@@ -290,7 +290,7 @@ class DocumentService:
         if row is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Документ '{doc_id}' не знайдено в '{doctype_name}'",
+                detail=f"Document '{doc_id}' not found in '{doctype_name}'",
             )
 
         doc = dict(row._mapping)
@@ -330,7 +330,7 @@ class DocumentService:
         if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"'{doctype_name}' керується системою. Використовуйте відповідний API.",
+                detail=f"'{doctype_name}' is managed by the system. Please use the appropriate API.",
             )
         dt = await doctype_registry.get(doctype_name)
         table = compile_doctype_to_table(dt)
@@ -438,7 +438,7 @@ class DocumentService:
         if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"'{doctype_name}' керується системою. Використовуйте відповідний API.",
+                detail=f"'{doctype_name}' is managed by the system. Please use the appropriate API.",
             )
         dt = await doctype_registry.get(doctype_name)
         table = compile_doctype_to_table(dt)
