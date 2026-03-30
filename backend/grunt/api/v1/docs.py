@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import io
-import math
 import uuid as _uuid
 import csv
 from datetime import date, datetime, time, timezone
