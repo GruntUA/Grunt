@@ -1,7 +1,5 @@
 """Tests for dashboard module — aggregation helpers and config validation."""
 
-import pytest
-from grunt.api.v1.dashboard import _TIMESPAN_DAYS, _AGGREGATION_FNS
 
 
 class TestTimespanConfig:
