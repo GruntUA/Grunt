@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,8 +31,11 @@ async def _extract_user_email(request: Request, session: AsyncSession) -> str | 
             user = await get_user_by_email(email, session)
             if user and user.is_active:
                 return user.email
-    except Exception:
-        pass
+    except Exception as exc:
+        logging.getLogger(__name__).debug(
+            "Failed to extract user email from Authorization header: %s",
+            exc,
+        )
     return None
 
 
