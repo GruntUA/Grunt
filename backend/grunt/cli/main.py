@@ -365,7 +365,7 @@ def app_install(name: str, site: str | None):
             current_site.reset(token)
 
         title = app_meta.get("title", name)
-        click.echo(f"✓ Додаток {name} встановлено на сайт {target_site}")
+        click.echo(f"✓ Додаток {title} встановлено на сайт {target_site}")
         all_apps = site_config.get("installed_apps", [])
         click.echo(f"  Додатки: {', '.join(all_apps)}")
 
