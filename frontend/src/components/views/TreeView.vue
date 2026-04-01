@@ -74,24 +74,34 @@ function getParentId(doc: GruntDocument): string | null {
 
 const tree = computed<TreeNode[]>(() => {
   const byId = new Map<string, TreeNode>()
+  const byName = new Map<string, TreeNode>()
   const roots: TreeNode[] = []
 
-  // First pass: create all nodes
+  // First pass: create all nodes and index by ID and Name
   for (const doc of allDocs.value) {
-    byId.set(String(doc.id), {
+    const node: TreeNode = {
       id: String(doc.id),
       data: doc,
       children: [],
       expanded: expandedIds.value.has(String(doc.id)),
-    })
+    }
+    byId.set(node.id, node)
+    if (doc.name) {
+      byName.set(String(doc.name), node)
+    }
   }
 
   // Second pass: attach children
   for (const doc of allDocs.value) {
     const node = byId.get(String(doc.id))!
-    const parentId = getParentId(doc)
-    if (parentId && byId.has(parentId)) {
-      byId.get(parentId)!.children.push(node)
+    const parentIdOrName = getParentId(doc)
+    
+    const parentNode = parentIdOrName 
+      ? (byId.get(parentIdOrName) || byName.get(parentIdOrName))
+      : null
+
+    if (parentNode && parentNode !== node) {
+      parentNode.children.push(node)
     } else {
       roots.push(node)
     }

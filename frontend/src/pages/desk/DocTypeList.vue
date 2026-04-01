@@ -228,7 +228,7 @@ async function bulkDelete() {
     // Fetch ALL document IDs matching current filters
     const all = await docsApi.list(props.doctype, {
       page: 1,
-      per_page: 200,
+      per_page: 10000,
       search: debouncedSearch.value || undefined,
       fields: 'id',
       filters: activeFilters.value,
