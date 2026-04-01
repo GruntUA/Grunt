@@ -1,0 +1,86 @@
+{
+  "name": "DataImport",
+  "label": "Імпорт даних",
+  "module": "core",
+  "is_system": false,
+  "fields": [
+    {
+      "fieldname": "doctype_name",
+      "label": "Тип документа",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "file",
+      "label": "Файл",
+      "fieldtype": "Attach",
+      "required": true
+    },
+    {
+      "fieldname": "import_type",
+      "label": "Тип імпорту",
+      "fieldtype": "Select",
+      "options": "Insert New\nUpdate Existing",
+      "default": "Insert New",
+      "required": true
+    },
+    {
+      "fieldname": "update_key",
+      "label": "Ключ для оновлення",
+      "fieldtype": "Select",
+      "options": "",
+      "depends_on": "eval:doc.import_type == 'Update Existing'"
+    },
+    {
+      "fieldname": "status",
+      "label": "Статус",
+      "fieldtype": "Select",
+      "options": "Pending\nIn Progress\nSuccess\nPartial Success\nFailed",
+      "default": "Pending",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "mapping",
+      "label": "Мапінг полів",
+      "fieldtype": "JSON",
+      "read_only": false
+    },
+    {
+      "fieldname": "dry_run",
+      "label": "Тільки валідація (тестовий запуск)",
+      "fieldtype": "Check",
+      "default": true
+    },
+    {
+      "fieldname": "total_rows",
+      "label": "Всього рядків",
+      "fieldtype": "Int",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "processed_rows",
+      "label": "Оброблено",
+      "fieldtype": "Int",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "error_count",
+      "label": "Кількість помилок",
+      "fieldtype": "Int",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "error_log",
+      "label": "Лог помилок",
+      "fieldtype": "JSON",
+      "read_only": true
+    }
+  ],
+  "title_field": "doctype_name"
+}

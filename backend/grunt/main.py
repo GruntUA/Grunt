@@ -25,6 +25,9 @@ from grunt.core.site.middleware import SiteContextMiddleware
 import grunt.core.db.system_tables  # noqa: F401
 import grunt.core.auth.models  # noqa: F401
 import grunt.core.print.hooks  # noqa: F401
+from grunt.core.doctypes.DataImport.DataImport import DataImport as DataImportController # Import the controller
+
+document_registry.register("DataImport", DataImportController) # Register it
 
 # Phase 3 modules (imported for side-effects: table registration)
 # workflow, permissions, reports engines are imported on-demand in endpoints

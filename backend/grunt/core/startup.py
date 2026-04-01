@@ -105,7 +105,7 @@ async def load_core_doctypes(session: AsyncSession, engine: AsyncEngine) -> None
     if not _CORE_DOCTYPES_DIR.exists():
         return
 
-    for dt_file in sorted(_CORE_DOCTYPES_DIR.glob("*.json")):
+    for dt_file in sorted(_CORE_DOCTYPES_DIR.glob("**/*.json")):
         try:
             dt_data = json.loads(dt_file.read_text(encoding="utf-8"))
             dt_name = dt_data.get("name", "")

@@ -104,6 +104,12 @@ const router = createRouter({
           component: () => import('@/pages/workspace/WorkspaceDashboard.vue'),
           props: true,
         },
+        {
+          path: 'data-import/:id?',
+          name: 'data-import',
+          component: () => import('@/pages/desk/DataImport/DataImportPage.vue'),
+          props: true,
+        },
       ],
     },
     // 403 forbidden
