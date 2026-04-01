@@ -8,6 +8,9 @@ import { Spinner } from '@/components/ui/spinner'
 import { Loader2 } from 'lucide-vue-next'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const reportName = route.params.name as string
@@ -58,7 +61,8 @@ const tableRows = computed(() =>
 )
 
 function downloadXlsx() {
-  window.open(reportsApi.exportXlsxUrl(reportName), '_blank')
+  const url = reportsApi.exportXlsxUrl(reportName)
+  window.open(`${url}?token=${auth.token}`, '_blank')
 }
 
 onMounted(load)

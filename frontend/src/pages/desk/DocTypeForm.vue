@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useDocument } from '@/core/composables/useDocument'
 import { useToast } from '@/core/composables/useToast'
@@ -59,6 +60,7 @@ interface ActivityEntry {
   created_at: string | null
 }
 
+const auth = useAuthStore()
 const props = defineProps<{ doctype: string; id: string | null; workspace?: string }>()
 const router = useRouter()
 const dtStore = useDocTypeStore()
@@ -334,15 +336,15 @@ function onFormUpdate(updated: Record<string, unknown>) {
                   Друкувати
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
-                  <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=xlsx`">
+                  <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=xlsx&token=${auth.token}`">
                     <FileSpreadsheet class="size-4 mr-2" />
                     Excel (.xlsx)
                   </DropdownMenuItem>
-                  <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=pdf`">
+                  <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=pdf&token=${auth.token}`">
                     <FileText class="size-4 mr-2" />
                     PDF
                   </DropdownMenuItem>
-                  <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=html`" target="_blank">
+                  <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=html&token=${auth.token}`" target="_blank">
                     <Globe class="size-4 mr-2" />
                     HTML
                   </DropdownMenuItem>

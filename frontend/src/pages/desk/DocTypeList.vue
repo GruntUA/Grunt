@@ -277,7 +277,7 @@ function navigateToDoc(row: Record<string, unknown>) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-52">
-            <DropdownMenuItem v-if="!isSystemDocType" as="a" :href="`/api/v1/docs/${doctype}/export/xlsx`" download>
+            <DropdownMenuItem v-if="!isSystemDocType" as="a" :href="`/api/v1/docs/${doctype}/export/xlsx?token=${auth.token}`" download>
               <Download class="size-4" />
               Завантажити Excel
             </DropdownMenuItem>
