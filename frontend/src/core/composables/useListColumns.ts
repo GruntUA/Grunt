@@ -50,5 +50,8 @@ export function useListColumns(doctype: string, fields: () => DocField[]) {
     localStorage.setItem(storageKey, JSON.stringify(next))
   }
 
-  return { allAvailableColumns, visibleColumns, visibleKeys, isVisible, toggleCol }
+  // True when the user has saved a custom selection (differs from defaults)
+  const isCustomized = computed(() => _savedKeys.value !== null)
+
+  return { allAvailableColumns, visibleColumns, visibleKeys, defaultKeys, isVisible, toggleCol, isCustomized }
 }

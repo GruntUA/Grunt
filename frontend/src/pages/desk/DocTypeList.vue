@@ -10,10 +10,9 @@ import { useDevMode } from '@/core/composables/useDevMode'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, DocField } from '@/types'
 import { Button } from '@/components/ui/button'
-import { Download, Plus, Search, Columns3, X, LayoutList, LayoutGrid, CalendarDays, GitBranch, Pencil, MoreHorizontal } from 'lucide-vue-next'
+import { Download, Plus, Search, Columns3, X, LayoutList, LayoutGrid, CalendarDays, GitBranch, Pencil, MoreHorizontal, Rows3, ChevronRight, Check } from 'lucide-vue-next'
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -48,6 +47,8 @@ const VALID_VIEWS: ViewMode[] = ['list', 'kanban', 'calendar', 'tree']
 const viewMode = ref<ViewMode>('list')
 const inlineSearch = ref('')
 const showColMenu = ref(false)
+const groupBy = ref<string | null>(null)
+const collapsedGroups = ref<Set<string>>(new Set())
 
 let searchDebounce: ReturnType<typeof setTimeout>
 watch(inlineSearch, (v) => {
@@ -58,6 +59,62 @@ watch(inlineSearch, (v) => {
 const selection = useListSelection()
 const columns = useListColumns(props.doctype, () => dt.value?.fields ?? [])
 
+// ── Grouping ─────────────────────────────────────────────────────────
+
+const NON_GROUPABLE = new Set([
+  'Section', 'Column', 'Tab', 'Table', 'MultiLink',
+  'RichText', 'JSON', 'Code', 'LongText', 'Attach', 'Image', 'Signature', 'Geolocation',
+])
+
+const groupableFields = computed(() => {
+  if (!dt.value) return []
+  return dt.value.fields.filter(
+    (f: DocField) => !NON_GROUPABLE.has(f.fieldtype) && !f.hidden && (f.in_list_view || f.in_filter),
+  )
+})
+
+const groupedRows = computed(() => {
+  if (!groupBy.value) return null
+  const field = groupBy.value
+  const groups = new Map<string, Record<string, unknown>[]>()
+  for (const row of rows.value) {
+    const key = String(row[field] ?? '')
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key)!.push(row)
+  }
+  return [...groups.entries()].map(([key, items]) => ({ key, items }))
+})
+
+const groupByField = computed(() =>
+  groupableFields.value.find(f => f.fieldname === groupBy.value) ?? null,
+)
+
+function groupLabel(key: string): string {
+  if (!key) return '—'
+  if (groupByField.value?.fieldtype === 'Check') return key === '1' || key === 'true' ? 'Так' : 'Ні'
+  return key
+}
+
+function toggleGroup(key: string) {
+  const next = new Set(collapsedGroups.value)
+  if (next.has(key)) next.delete(key)
+  else next.add(key)
+  collapsedGroups.value = next
+}
+
+function setGroupBy(field: string | null) {
+  groupBy.value = field
+  collapsedGroups.value = new Set()
+  page.value = 1
+  const query = { ...route.query }
+  if (field) {
+    query.groupBy = field
+  } else {
+    delete query.groupBy
+  }
+  router.replace({ query })
+}
+
 onMounted(async () => {
   dt.value = await dtStore.get(props.doctype)
 
@@ -66,6 +123,10 @@ onMounted(async () => {
   const defaultView = dt.value?.default_view ?? 'list'
   const initial = (VALID_VIEWS.includes(urlView as ViewMode) ? urlView : defaultView) as ViewMode
   viewMode.value = initial
+
+  // Restore groupBy from URL
+  const urlGroupBy = route.query.groupBy as string | undefined
+  if (urlGroupBy) groupBy.value = urlGroupBy
 })
 
 // Sync viewMode → URL query param
@@ -121,13 +182,14 @@ const { data, isLoading } = useQuery({
   queryKey: computed(() => [
     'documents', props.doctype, page.value, debouncedSearch.value,
     sortKey.value, sortOrder.value, JSON.stringify(activeFilters.value),
+    groupBy.value,
   ]),
   queryFn: () => docsApi.list(props.doctype, {
     page: page.value,
-    per_page: 20,
+    per_page: groupBy.value ? 100 : 20,
     search: debouncedSearch.value || undefined,
-    sort: sortKey.value || undefined,
-    order: sortKey.value ? sortOrder.value : undefined,
+    sort: groupBy.value ?? sortKey.value ?? undefined,
+    order: groupBy.value ? 'asc' : (sortKey.value ? sortOrder.value : undefined),
     filters: activeFilters.value,
   }),
   refetchOnMount: 'always',
@@ -263,22 +325,77 @@ function navigateToDoc(row: Record<string, unknown>) {
         <!-- Columns dropdown (list mode only) -->
         <DropdownMenu v-if="viewMode === 'list'" v-model:open="showColMenu">
           <DropdownMenuTrigger as-child>
-            <Button variant="outline" size="sm" class="h-8 text-foreground">
+            <Button
+              variant="outline"
+              size="sm"
+              class="h-8"
+              :class="columns.isCustomized.value
+                ? 'text-primary border-primary/40 bg-primary/5'
+                : 'text-foreground'"
+            >
               <Columns3 class="mr-2 size-4" />
               Стовпці
+              <span
+                v-if="columns.isCustomized.value"
+                class="ml-1.5 rounded-full bg-primary/15 px-1.5 py-px text-[10px] font-medium leading-none text-primary tabular-nums"
+              >
+                {{ columns.visibleColumns.value.length }}
+              </span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-48">
-            <DropdownMenuLabel>Видимі стовпці</DropdownMenuLabel>
+            <DropdownMenuLabel class="flex items-center justify-between">
+              <span>Видимі стовпці</span>
+              <span class="text-xs font-normal text-muted-foreground tabular-nums">
+                {{ columns.visibleColumns.value.length }}/{{ columns.allAvailableColumns.value.length }}
+              </span>
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuCheckboxItem
+            <DropdownMenuItem
               v-for="col in columns.allAvailableColumns.value"
               :key="col.key"
-              :checked="columns.isVisible(col.key)"
-              @update:checked="columns.toggleCol(col.key)"
+              class="gap-2"
+              @select.prevent="columns.toggleCol(col.key)"
             >
+              <Check
+                class="size-3.5 shrink-0"
+                :class="columns.isVisible(col.key) ? 'opacity-100 text-primary' : 'opacity-0'"
+              />
               {{ col.label }}
-            </DropdownMenuCheckboxItem>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <!-- Group by dropdown (list mode only) -->
+        <DropdownMenu v-if="viewMode === 'list' && groupableFields.length">
+          <DropdownMenuTrigger as-child>
+            <Button
+              variant="outline"
+              size="sm"
+              class="h-8"
+              :class="groupBy ? 'text-primary border-primary/40 bg-primary/5' : 'text-foreground'"
+            >
+              <Rows3 class="mr-2 size-4" />
+              {{ groupBy ? groupByField?.label : 'Групування' }}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="w-52">
+            <DropdownMenuLabel>Групувати за</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem class="gap-2" @click="setGroupBy(null)">
+              <Check class="size-3.5" :class="groupBy === null ? 'opacity-100' : 'opacity-0'" />
+              Без групування
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              v-for="f in groupableFields"
+              :key="f.fieldname"
+              class="gap-2"
+              @click="setGroupBy(f.fieldname)"
+            >
+              <Check class="size-3.5" :class="groupBy === f.fieldname ? 'opacity-100' : 'opacity-0'" />
+              {{ f.label }}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -350,30 +467,93 @@ function navigateToDoc(row: Record<string, unknown>) {
         @select-all="selection.selectAllDocuments"
       />
 
-      <DataTable
-        :columns="columns.visibleColumns.value"
-        :rows="rows"
-        :fields="dt?.fields ?? []"
-        :is-loading="isLoading && !data"
-        :sort-key="sortKey"
-        :sort-order="sortOrder"
-        :selected-ids="selection.selectedIds.value"
-        :all-selected="selection.allSelected.value"
-        :status-config="dt?.status_config"
-        @sort="onSort"
-        @select="selection.toggle"
-        @select-all="onSelectAll"
-        @row-click="navigateToDoc"
-      />
+      <!-- Grouped view -->
+      <template v-if="groupBy && groupedRows">
+        <!-- Shared column header -->
+        <DataTable
+          :columns="columns.visibleColumns.value"
+          :rows="[]"
+          :fields="dt?.fields ?? []"
+          :is-loading="false"
+          :sort-key="sortKey"
+          :sort-order="sortOrder"
+          :selected-ids="[]"
+          :status-config="dt?.status_config"
+          :hide-body="true"
+          @sort="onSort"
+          @select="() => {}"
+          @select-all="onSelectAll"
+          @row-click="() => {}"
+        />
+        <!-- Groups -->
+        <div
+          v-for="group in groupedRows"
+          :key="group.key"
+          class="rounded-md border border-border overflow-hidden"
+        >
+          <!-- Group header -->
+          <button
+            type="button"
+            class="w-full flex items-center gap-2.5 px-4 py-2.5 bg-muted/50 hover:bg-muted text-sm font-medium transition-colors text-left"
+            @click="toggleGroup(group.key)"
+          >
+            <ChevronRight
+              class="size-3.5 text-muted-foreground shrink-0 transition-transform duration-150"
+              :class="!collapsedGroups.has(group.key) && 'rotate-90'"
+            />
+            <span class="text-foreground">{{ groupLabel(group.key) }}</span>
+            <span class="ml-auto text-xs text-muted-foreground tabular-nums bg-background border border-border px-2 py-0.5 rounded-full">
+              {{ group.items.length }}
+            </span>
+          </button>
+          <!-- Group rows -->
+          <DataTable
+            v-if="!collapsedGroups.has(group.key)"
+            :columns="columns.visibleColumns.value"
+            :rows="group.items"
+            :fields="dt?.fields ?? []"
+            :is-loading="false"
+            :sort-key="sortKey"
+            :sort-order="sortOrder"
+            :selected-ids="selection.selectedIds.value"
+            :all-selected="selection.allSelected.value"
+            :status-config="dt?.status_config"
+            :hide-header="true"
+            @sort="onSort"
+            @select="selection.toggle"
+            @select-all="() => selection.toggleAll(group.items.map(r => String(r.id)))"
+            @row-click="navigateToDoc"
+          />
+        </div>
+      </template>
 
-      <ListPagination
-        v-if="meta"
-        :page="meta.page"
-        :pages="meta.pages"
-        :total="meta.total"
-        :per-page="20"
-        @update:page="page = $event"
-      />
+      <!-- Normal (ungrouped) view -->
+      <template v-else>
+        <DataTable
+          :columns="columns.visibleColumns.value"
+          :rows="rows"
+          :fields="dt?.fields ?? []"
+          :is-loading="isLoading && !data"
+          :sort-key="sortKey"
+          :sort-order="sortOrder"
+          :selected-ids="selection.selectedIds.value"
+          :all-selected="selection.allSelected.value"
+          :status-config="dt?.status_config"
+          @sort="onSort"
+          @select="selection.toggle"
+          @select-all="onSelectAll"
+          @row-click="navigateToDoc"
+        />
+
+        <ListPagination
+          v-if="meta"
+          :page="meta.page"
+          :pages="meta.pages"
+          :total="meta.total"
+          :per-page="20"
+          @update:page="page = $event"
+        />
+      </template>
     </template>
   </div>
 </template>

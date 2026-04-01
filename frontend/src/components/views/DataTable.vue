@@ -23,6 +23,8 @@ const props = defineProps<{
   selectedIds: string[]
   allSelected?: boolean
   statusConfig?: DocTypeStatusConfig | null
+  hideHeader?: boolean
+  hideBody?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -135,7 +137,7 @@ function isSelected(id: string) {
   <!-- Table -->
   <div v-else class="overflow-hidden rounded-md border">
     <table class="w-full text-sm">
-      <thead>
+      <thead v-if="!hideHeader">
         <tr class="border-b border-border bg-muted/50">
           <th class="w-10 px-3 py-3">
             <Checkbox
@@ -159,7 +161,7 @@ function isSelected(id: string) {
           </th>
         </tr>
       </thead>
-      <tbody>
+      <tbody v-if="!hideBody">
         <tr
           v-for="row in rows"
           :key="String(row.id)"
