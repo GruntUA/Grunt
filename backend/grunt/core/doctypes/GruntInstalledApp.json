@@ -1,0 +1,35 @@
+{
+    "name": "GruntInstalledApp",
+    "label": "Магазин додатків",
+    "module": "core",
+    "is_system": false,
+    "table_name": "grunt_meta_installed_app",
+    "fields": [
+        {
+            "fieldname": "name",
+            "label": "Назва",
+            "fieldtype": "Text",
+            "required": true,
+            "in_list_view": true
+        },
+        {
+            "fieldname": "title",
+            "label": "Заголовок",
+            "fieldtype": "Text",
+            "required": true,
+            "in_list_view": true
+        },
+        {
+            "fieldname": "version",
+            "label": "Версія",
+            "fieldtype": "Text",
+            "in_list_view": true
+        },
+        {
+            "fieldname": "installed_at",
+            "label": "Встановлено",
+            "fieldtype": "Datetime",
+            "in_list_view": true
+        }
+    ]
+}

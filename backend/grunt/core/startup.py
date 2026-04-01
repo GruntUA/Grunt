@@ -394,6 +394,25 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                 except Exception as e:  # noqa: BLE001
                     logger.warning("startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e))
 
+        # Auto-register PrintFormats from app's module print_formats directories
+        for module in app_modules:
+            pf_dir = app_dir / module / "print_formats"
+            if not pf_dir.exists():
+                continue
+            for pf_meta in sorted(pf_dir.glob("*.json")):
+                try:
+                    data = json.loads(pf_meta.read_text(encoding="utf-8"))
+                    # If template is stored in a separate .html file, load it
+                    base_name = pf_meta.stem
+                    html_file = pf_dir / f"{base_name}.html"
+                    if html_file.exists():
+                        data["template"] = html_file.read_text(encoding="utf-8")
+                    
+                    await _apply_doctype_fixture("PrintFormat", [data], session, eng)
+                    logger.info("startup.print_format_registered", app=app_name, name=data.get("name"))
+                except Exception as e:  # noqa: BLE001
+                    logger.warning("startup.print_format_failed", app=app_name, file=pf_meta.name, error=str(e))
+
         # Auto-seed workspace from registry if no fixture provided one
         if not workspace_from_fixture:
             all_doctypes = await doctype_registry.list_all()

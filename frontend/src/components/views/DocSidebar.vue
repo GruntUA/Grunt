@@ -225,16 +225,10 @@ onMounted(() => {
   <aside v-bind="attrs" class="flex flex-col gap-5 w-full">
     <!-- Document image -->
     <div v-if="doctype.image_field" class="flex justify-center">
-      <div
-        v-if="imageUrl"
-        class="size-28 rounded-xl overflow-hidden ring-1 ring-border/60 shadow-sm"
-      >
+      <div v-if="imageUrl" class="size-28 rounded-xl overflow-hidden ring-1 ring-border/60 shadow-sm">
         <img :src="imageUrl" :alt="document.name" class="size-full object-cover" />
       </div>
-      <div
-        v-else
-        class="size-28 rounded-xl bg-muted/50 ring-1 ring-border/40 flex items-center justify-center"
-      >
+      <div v-else class="size-28 rounded-xl bg-muted/50 ring-1 ring-border/40 flex items-center justify-center">
         <ImageIcon class="size-8 text-muted-foreground/40" />
       </div>
     </div>
@@ -267,20 +261,12 @@ onMounted(() => {
 
     <!-- Assignees list -->
     <div v-if="assignees.length > 0" class="flex flex-col gap-1.5">
-      <span class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Відповідальні</span>
+      <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Відповідальні</span>
       <div class="flex flex-wrap gap-1.5">
-        <Badge
-          v-for="a in assignees"
-          :key="a.id"
-          variant="secondary"
-          class="text-xs gap-1 pr-1"
-        >
+        <Badge v-for="a in assignees" :key="a.id" variant="secondary" class="text-xs gap-1 pr-1">
           {{ a.assigned_to }}
-          <button
-            type="button"
-            class="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors p-0.5"
-            @click="removeAssignee(a)"
-          >
+          <button type="button" class="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors p-0.5"
+            @click="removeAssignee(a)">
             <X class="size-2.5" />
           </button>
         </Badge>
@@ -289,20 +275,12 @@ onMounted(() => {
 
     <!-- Shared with list -->
     <div v-if="sharedWith.length > 0" class="flex flex-col gap-1.5">
-      <span class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Доступ</span>
+      <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Доступ</span>
       <div class="flex flex-wrap gap-1.5">
-        <Badge
-          v-for="s in sharedWith"
-          :key="s.id"
-          variant="outline"
-          class="text-xs gap-1 pr-1"
-        >
+        <Badge v-for="s in sharedWith" :key="s.id" variant="outline" class="text-xs gap-1 pr-1">
           {{ s.user }} · {{ s.permission }}
-          <button
-            type="button"
-            class="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors p-0.5"
-            @click="removeShare(s)"
-          >
+          <button type="button" class="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors p-0.5"
+            @click="removeShare(s)">
             <X class="size-2.5" />
           </button>
         </Badge>
@@ -311,41 +289,25 @@ onMounted(() => {
 
     <!-- Tags -->
     <div class="flex flex-col gap-2">
-      <span class="text-xs font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+      <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
         <Tag class="size-3.5" />
         Теги
       </span>
       <div class="flex flex-wrap gap-1.5">
-        <Badge
-          v-for="t in tags"
-          :key="t.id"
-          variant="outline"
-          class="text-xs gap-1 pr-1 text-foreground"
-        >
+        <Badge v-for="t in tags" :key="t.id" variant="outline" class="text-xs gap-1 pr-1 text-foreground">
           {{ t.tag }}
-          <button
-            type="button"
-            class="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors p-0.5"
-            @click="removeTag(t)"
-          >
+          <button type="button" class="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors p-0.5"
+            @click="removeTag(t)">
             <X class="size-2.5" />
           </button>
         </Badge>
       </div>
       <div class="flex gap-1.5">
-        <input
-          v-model="tagInput"
-          placeholder="Додати тег..."
+        <input v-model="tagInput" placeholder="Додати тег..."
           class="flex-1 h-7 rounded-md border border-input bg-transparent px-2.5 text-xs text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
-          @keydown="onTagKeydown"
-        />
-        <Button
-          variant="outline"
-          size="icon-sm"
-          class="size-7 text-foreground shrink-0"
-          :disabled="!tagInput.trim() || tagAdding"
-          @click="addTag"
-        >
+          @keydown="onTagKeydown" />
+        <Button variant="outline" size="icon-sm" class="size-7 text-foreground shrink-0"
+          :disabled="!tagInput.trim() || tagAdding" @click="addTag">
           <Loader2 v-if="tagAdding" class="size-3.5 animate-spin" />
           <Plus v-else class="size-3.5" />
         </Button>
@@ -354,7 +316,7 @@ onMounted(() => {
 
     <!-- Meta information -->
     <div class="flex flex-col gap-3 text-sm">
-      <span class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Інформація</span>
+      <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Інформація</span>
       <div class="flex items-start gap-2.5">
         <User class="size-4 text-muted-foreground shrink-0 mt-0.5" />
         <div>
@@ -387,16 +349,13 @@ onMounted(() => {
 
     <!-- Backlinks -->
     <div v-if="links.length > 0" class="flex flex-col gap-2">
-      <span class="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+      <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">
         <LinkIcon class="size-3.5 inline-block mr-1 -mt-0.5" />
         Зв'язки ({{ links.length }})
       </span>
-      <button
-        v-for="link in links"
-        :key="`${link.source_doctype}-${link.source_id}`"
+      <button v-for="link in links" :key="`${link.source_doctype}-${link.source_id}`"
         class="flex items-center gap-2 text-sm text-foreground/80 hover:text-primary transition-colors group text-left"
-        @click="navigateToLink(link)"
-      >
+        @click="navigateToLink(link)">
         <ChevronRight class="size-3.5 text-muted-foreground/50 group-hover:text-primary transition-colors" />
         <span class="truncate">{{ link.source_doctype }}</span>
         <span class="text-xs text-muted-foreground truncate">{{ link.source_id.slice(0, 8) }}…</span>
@@ -417,28 +376,16 @@ onMounted(() => {
       <div class="flex flex-col gap-3 py-1">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-foreground">Email або логін</label>
-          <input
-            v-model="assignUser"
-            placeholder="user@example.com"
+          <input v-model="assignUser" placeholder="user@example.com"
             class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
-            @keydown.enter="submitAssign"
-          />
+            @keydown.enter="submitAssign" />
         </div>
         <div v-if="assignees.length > 0" class="flex flex-col gap-1.5">
           <span class="text-xs font-medium text-muted-foreground">Вже призначені</span>
           <div class="flex flex-wrap gap-1.5">
-            <Badge
-              v-for="a in assignees"
-              :key="a.id"
-              variant="secondary"
-              class="text-xs gap-1 pr-1"
-            >
+            <Badge v-for="a in assignees" :key="a.id" variant="secondary" class="text-xs gap-1 pr-1">
               {{ a.assigned_to }}
-              <button
-                type="button"
-                class="ml-0.5 rounded-full hover:bg-foreground/10 p-0.5"
-                @click="removeAssignee(a)"
-              >
+              <button type="button" class="ml-0.5 rounded-full hover:bg-foreground/10 p-0.5" @click="removeAssignee(a)">
                 <X class="size-2.5" />
               </button>
             </Badge>
@@ -463,17 +410,15 @@ onMounted(() => {
           <Share2 class="size-4" />
           Поділитися документом
         </DialogTitle>
-        <DialogDescription class="sr-only">Введіть email або логін користувача та оберіть рівень доступу</DialogDescription>
+        <DialogDescription class="sr-only">Введіть email або логін користувача та оберіть рівень доступу
+        </DialogDescription>
       </DialogHeader>
       <div class="flex flex-col gap-3 py-1">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-foreground">Email або логін</label>
-          <input
-            v-model="shareUser"
-            placeholder="user@example.com"
+          <input v-model="shareUser" placeholder="user@example.com"
             class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
-            @keydown.enter="submitShare"
-          />
+            @keydown.enter="submitShare" />
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-foreground">Рівень доступу</label>
@@ -490,19 +435,13 @@ onMounted(() => {
         <div v-if="sharedWith.length > 0" class="flex flex-col gap-1.5">
           <span class="text-xs font-medium text-muted-foreground">Поточний доступ</span>
           <div class="flex flex-col gap-1">
-            <div
-              v-for="s in sharedWith"
-              :key="s.id"
-              class="flex items-center justify-between text-sm text-foreground"
-            >
+            <div v-for="s in sharedWith" :key="s.id" class="flex items-center justify-between text-sm text-foreground">
               <span>{{ s.user }}</span>
               <div class="flex items-center gap-2">
-                <span class="text-xs text-muted-foreground">{{ s.permission === 'Read' ? 'Читання' : 'Редагування' }}</span>
-                <button
-                  type="button"
-                  class="text-muted-foreground hover:text-destructive transition-colors"
-                  @click="removeShare(s)"
-                >
+                <span class="text-xs text-muted-foreground">{{ s.permission === 'Read' ? 'Читання' : 'Редагування'
+                  }}</span>
+                <button type="button" class="text-muted-foreground hover:text-destructive transition-colors"
+                  @click="removeShare(s)">
                   <X class="size-3.5" />
                 </button>
               </div>

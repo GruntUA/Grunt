@@ -59,7 +59,7 @@ const statusFieldName = computed(() => props.statusConfig?.field ?? null)
 // Color → Tailwind badge classes
 const colorToBadge: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; class?: string }> = {
   gray: { variant: 'outline' },
-  blue:  { variant: 'outline', class: 'border-blue-400 text-blue-700 bg-blue-50' },
+  blue: { variant: 'outline', class: 'border-blue-400 text-blue-700 bg-blue-50' },
   green: { variant: 'outline', class: 'border-green-500 text-green-700 bg-green-50' },
   yellow: { variant: 'outline', class: 'border-yellow-400 text-yellow-700 bg-yellow-50' },
   orange: { variant: 'outline', class: 'border-orange-400 text-orange-700 bg-orange-50' },
@@ -108,7 +108,9 @@ function isSelected(id: string) {
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-border bg-muted/50">
-          <th class="w-10 px-3 py-3"><Skeleton class="h-4 w-4" /></th>
+          <th class="w-10 px-3 py-3">
+            <Skeleton class="h-4 w-4" />
+          </th>
           <th v-for="col in columns" :key="col.key" class="px-3 py-3">
             <Skeleton class="h-3 w-20" />
           </th>
@@ -116,7 +118,9 @@ function isSelected(id: string) {
       </thead>
       <tbody>
         <tr v-for="i in 8" :key="i" class="border-b border-border last:border-0">
-          <td class="px-3 py-3"><Skeleton class="h-4 w-4" /></td>
+          <td class="px-3 py-3">
+            <Skeleton class="h-4 w-4" />
+          </td>
           <td v-for="col in columns" :key="col.key" class="px-3 py-3">
             <Skeleton class="h-4" :class="col === columns[0] ? 'w-32' : 'w-20'" />
           </td>
@@ -131,18 +135,13 @@ function isSelected(id: string) {
       <thead v-if="!hideHeader">
         <tr class="border-b border-border bg-muted/50">
           <th class="w-10 px-3 py-3">
-            <Checkbox
-              :model-value="allSelected || (rows.length > 0 && selectedIds.length === rows.length)"
-              @update:model-value="emit('selectAll')"
-            />
+            <Checkbox :model-value="allSelected || (rows.length > 0 && selectedIds.length === rows.length)"
+              @update:model-value="emit('selectAll')" />
           </th>
-          <th
-            v-for="col in columns"
-            :key="col.key"
-            class="text-left px-3 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground select-none transition-colors"
+          <th v-for="col in columns" :key="col.key"
+            class="text-left px-3 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground select-none transition-colors"
             :class="{ 'cursor-pointer hover:text-foreground': col.sortable }"
-            @click="col.sortable && emit('sort', col.key)"
-          >
+            @click="col.sortable && emit('sort', col.key)">
             <span class="inline-flex items-center gap-1">
               {{ col.label }}
               <ArrowUp v-if="sortKey === col.key && sortOrder === 'asc'" class="size-3.5" />
@@ -153,24 +152,13 @@ function isSelected(id: string) {
         </tr>
       </thead>
       <tbody v-if="!hideBody">
-        <tr
-          v-for="row in rows"
-          :key="String(row.id)"
+        <tr v-for="row in rows" :key="String(row.id)"
           class="border-b border-border last:border-0 hover:bg-muted/30 cursor-pointer transition-colors group"
-          :class="{ 'bg-primary/5': isSelected(String(row.id)) }"
-        >
+          :class="{ 'bg-primary/5': isSelected(String(row.id)) }">
           <td class="px-3 py-3" @click.stop>
-            <Checkbox
-              :model-value="isSelected(String(row.id))"
-              @update:model-value="emit('select', String(row.id))"
-            />
+            <Checkbox :model-value="isSelected(String(row.id))" @update:model-value="emit('select', String(row.id))" />
           </td>
-          <td
-            v-for="(col, ci) in columns"
-            :key="col.key"
-            class="px-3 py-3"
-            @click="emit('rowClick', row)"
-          >
+          <td v-for="(col, ci) in columns" :key="col.key" class="px-3 py-3" @click="emit('rowClick', row)">
             <!-- First column: bold primary link -->
             <template v-if="ci === 0">
               <span class="font-semibold text-primary hover:underline">
@@ -187,11 +175,8 @@ function isSelected(id: string) {
             <!-- Select / status field: colored badge -->
             <template v-else-if="getFieldType(col.key) === 'Select' || statusFieldName === col.key">
               <template v-if="row[col.key] !== null && row[col.key] !== undefined && row[col.key] !== ''">
-                <Badge
-                  :variant="getStatusBadge(String(row[col.key]), col.key).variant"
-                  class="font-normal"
-                  :class="getStatusBadge(String(row[col.key]), col.key).class"
-                >
+                <Badge :variant="getStatusBadge(String(row[col.key]), col.key).variant" class="font-normal"
+                  :class="getStatusBadge(String(row[col.key]), col.key).class">
                   {{ getStatusBadge(String(row[col.key]), col.key).label }}
                 </Badge>
               </template>
@@ -207,7 +192,7 @@ function isSelected(id: string) {
 
             <!-- Default -->
             <template v-else>
-              <span class="text-muted-foreground">{{ formatCell(row[col.key]) }}</span>
+              <span class="text-foreground/90 font-medium">{{ formatCell(row[col.key]) }}</span>
             </template>
           </td>
         </tr>

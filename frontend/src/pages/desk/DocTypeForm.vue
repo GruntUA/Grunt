@@ -291,28 +291,22 @@ function onFormUpdate(updated: Record<string, unknown>) {
       <div class="flex items-center justify-between gap-4 px-6 pt-5 pb-4">
         <div class="min-w-0">
           <nav class="flex items-center gap-1.5 text-sm mb-1">
-            <button
-              class="text-muted-foreground hover:text-primary transition-colors"
-              @click="router.push(workspace ? `/${workspace}/list/${doctype}` : `/${doctype}`)"
-            >
+            <button class="text-muted-foreground hover:text-primary transition-colors"
+              @click="router.push(workspace ? `/${workspace}/list/${doctype}` : `/${doctype}`)">
               {{ dt?.label ?? doctype }}
             </button>
             <ChevronRight class="size-3.5 text-muted-foreground/40" />
           </nav>
           <div class="flex items-center gap-3">
             <h1 class="text-2xl font-bold text-foreground truncate">{{ docTitle }}</h1>
-            <Badge v-if="isDirty" variant="outline" class="border-amber-400 text-amber-600 shrink-0">Не збережено</Badge>
+            <Badge v-if="isDirty" variant="outline" class="border-amber-400 text-amber-600 shrink-0">Не збережено
+            </Badge>
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <!-- Client script buttons -->
-          <Button
-            v-for="btn in scriptButtons"
-            :key="btn.label"
-            :variant="(btn.variant as any) ?? 'outline'"
-            size="sm"
-            @click="btn.action"
-          >
+          <Button v-for="btn in scriptButtons" :key="btn.label" :variant="(btn.variant as any) ?? 'outline'" size="sm"
+            @click="btn.action">
             {{ btn.label }}
           </Button>
 
@@ -344,30 +338,29 @@ function onFormUpdate(updated: Record<string, unknown>) {
                     <FileText class="size-4 mr-2" />
                     PDF
                   </DropdownMenuItem>
-                  <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=html&token=${auth.token}`" target="_blank">
+                  <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=html&token=${auth.token}`"
+                    target="_blank">
                     <Globe class="size-4 mr-2" />
                     HTML
                   </DropdownMenuItem>
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
 
-              <DropdownMenuItem
-                v-if="id"
-                as="a"
-                :href="`/${props.workspace ?? ''}/list/${doctype}/${id}`"
-                target="_blank"
-              >
+              <DropdownMenuItem v-if="id" as="a" :href="`/${props.workspace ?? ''}/list/${doctype}/${id}`"
+                target="_blank">
                 <ExternalLink class="size-4 mr-2" />
                 Відкрити у новій вкладці
               </DropdownMenuItem>
 
-              <DropdownMenuItem
-                as="a"
-                :href="`/${props.workspace ?? ''}/list/DocType/${doctype}`"
-                target="_blank"
-              >
+              <DropdownMenuItem as="a" :href="`/${props.workspace ?? ''}/list/DocType/${doctype}`" target="_blank">
                 <Settings2 class="size-4 mr-2" />
                 Редагувати Доктайп
+              </DropdownMenuItem>
+
+              <DropdownMenuItem v-if="dt" as="a"
+                :href="`/${props.workspace ?? 'grunt'}/list/PrintFormat?filter[doctype]=${doctype}`" target="_blank">
+                <Printer class="size-4 mr-2" />
+                Налаштувати друк
               </DropdownMenuItem>
 
               <DropdownMenuItem v-if="id" @click="handleDuplicate">
@@ -398,13 +391,9 @@ function onFormUpdate(updated: Record<string, unknown>) {
       </div>
 
       <!-- Workflow (inside the header card) -->
-      <WorkflowBar
-        v-if="!isLoading && dt && id && document && dt.workflow"
-        :doctype="dt"
-        :doc-id="id"
+      <WorkflowBar v-if="!isLoading && dt && id && document && dt.workflow" :doctype="dt" :doc-id="id"
         :doc="document as Record<string, unknown>"
-        @transitioned="queryClient.invalidateQueries({ queryKey: ['document', doctype, id] })"
-      />
+        @transitioned="queryClient.invalidateQueries({ queryKey: ['document', doctype, id] })" />
     </div>
 
     <!-- Loading -->
@@ -418,31 +407,19 @@ function onFormUpdate(updated: Record<string, unknown>) {
         <div class="min-w-0">
           <!-- Form -->
           <div class="bg-card rounded-xl p-6 shadow-md ring-1 ring-border/60">
-            <FormRenderer
-              :doctype="dt"
-              :model-value="form"
-              :disabled="isSaving"
-              :errors="validationErrors"
-              :overrides="displayOverrides"
-              :reqd-overrides="reqdOverrides"
-
-              @update:model-value="onFormUpdate($event)"
-            />
+            <FormRenderer :doctype="dt" :model-value="form" :disabled="isSaving" :errors="validationErrors"
+              :overrides="displayOverrides" :reqd-overrides="reqdOverrides"
+              @update:model-value="onFormUpdate($event)" />
           </div>
 
           <!-- Activity log -->
           <div v-if="id" class="mt-4 bg-card rounded-xl overflow-hidden shadow-sm ring-1 ring-border/60">
-            <button
-              type="button"
+            <button type="button"
               class="w-full flex items-center gap-2 px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              @click="toggleLog"
-            >
+              @click="toggleLog">
               <History class="size-4" />
               <span class="flex-1 text-left">Журнал активності</span>
-              <ChevronDown
-                class="size-4 transition-transform duration-200"
-                :class="{ 'rotate-180': showLog }"
-              />
+              <ChevronDown class="size-4 transition-transform duration-200" :class="{ 'rotate-180': showLog }" />
             </button>
             <Transition name="log">
               <div v-if="showLog" class="border-t border-border px-5 py-3">
@@ -453,11 +430,7 @@ function onFormUpdate(updated: Record<string, unknown>) {
                   Записів немає
                 </div>
                 <ul v-else class="space-y-2">
-                  <li
-                    v-for="entry in activityLog"
-                    :key="entry.id"
-                    class="flex items-start gap-3 text-sm"
-                  >
+                  <li v-for="entry in activityLog" :key="entry.id" class="flex items-start gap-3 text-sm">
                     <span class="text-muted-foreground text-xs mt-0.5 whitespace-nowrap">
                       {{ entry.created_at ? new Date(entry.created_at).toLocaleString('uk-UA') : '—' }}
                     </span>
@@ -471,13 +444,8 @@ function onFormUpdate(updated: Record<string, unknown>) {
         </div>
 
         <!-- Right: Sidebar -->
-        <DocSidebar
-          v-if="id && document"
-          :doctype="dt"
-          :document="document as GruntDocument"
-          :workspace="workspace"
-          class="lg:sticky lg:top-6 lg:self-start"
-        />
+        <DocSidebar v-if="id && document" :doctype="dt" :document="document as GruntDocument" :workspace="workspace"
+          class="lg:sticky lg:top-6 lg:self-start" />
       </div>
     </template>
 
@@ -490,7 +458,8 @@ function onFormUpdate(updated: Record<string, unknown>) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel @click="showDeleteModal = false">Скасувати</AlertDialogCancel>
-          <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="handleDelete">Видалити</AlertDialogAction>
+          <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            @click="handleDelete">Видалити</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -504,7 +473,8 @@ function onFormUpdate(updated: Record<string, unknown>) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel @click="showLeaveModal = false">Залишитись</AlertDialogCancel>
-          <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="confirmLeave">Покинути</AlertDialogAction>
+          <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            @click="confirmLeave">Покинути</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -517,11 +487,13 @@ function onFormUpdate(updated: Record<string, unknown>) {
   transition: opacity 200ms ease, max-height 200ms ease;
   overflow: hidden;
 }
+
 .log-enter-from,
 .log-leave-to {
   opacity: 0;
   max-height: 0;
 }
+
 .log-enter-to,
 .log-leave-from {
   opacity: 1;
@@ -531,10 +503,23 @@ function onFormUpdate(updated: Record<string, unknown>) {
 
 <style>
 @keyframes field-shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-4px); }
-  40%, 80% { transform: translateX(4px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
 }
+
 .field-shake {
   animation: field-shake 0.4s ease;
 }

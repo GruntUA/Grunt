@@ -57,7 +57,7 @@ def on(event: str, priority: int = 10) -> Callable:
     def decorator(fn: Callable) -> Callable:
         HOOK_REGISTRY[event].append({"handler": fn, "priority": priority})
         HOOK_REGISTRY[event].sort(key=lambda x: x["priority"])
-        logger.debug("hook.registered", event=event, fn=fn.__qualname__, priority=priority)
+        logger.debug("hook.registered", event_name=event, fn=fn.__qualname__, priority=priority)
         return fn
 
     return decorator
@@ -72,7 +72,7 @@ def on_doc(doctype: str, event: str, priority: int = 10) -> Callable:
         logger.debug(
             "hook.doc_registered",
             doctype=doctype,
-            event=event,
+            event_name=event,
             fn=fn.__qualname__,
             priority=priority,
         )

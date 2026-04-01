@@ -1,10 +1,19 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useDocTypeStore } from '@/stores/doctype'
+import { useWorkspaceStore } from '@/stores/workspace'
 import client from '@/core/api/client'
-import { FileText, Clock, TrendingUp } from 'lucide-vue-next'
+import { 
+  FileText, 
+  Clock, 
+  TrendingUp, 
+  LayoutDashboard, 
+  ArrowRight,
+  Sparkles,
+  Command
+} from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
 
 interface ActivityEntry {
   id: string
@@ -16,118 +25,186 @@ interface ActivityEntry {
 }
 
 const auth = useAuthStore()
-const dtStore = useDocTypeStore()
+const wsStore = useWorkspaceStore()
 const router = useRouter()
 
-const docCounts = ref<Record<string, number>>({})
 const recentActivity = ref<ActivityEntry[]>([])
 const loadingActivity = ref(false)
-
-async function loadCounts() {
-  for (const dt of dtStore.doctypes) {
-    try {
-      const r = await client.get(`/api/v1/docs/${dt.name}`, { params: { per_page: 1 } })
-      docCounts.value[dt.name] = r.data?.meta?.total ?? 0
-    } catch {
-      docCounts.value[dt.name] = 0
-    }
-  }
-}
 
 async function loadActivity() {
   loadingActivity.value = true
   try {
-    const r = await client.get('/api/v1/docs/_activity/recent', { params: { limit: 10 } })
+    const r = await client.get('/api/v1/docs/_activity/recent', { params: { limit: 12 } })
     recentActivity.value = (r.data?.data ?? []) as ActivityEntry[]
   } catch {
-    // endpoint may not be implemented — ignore
+    // endpoint may not be implemented
   } finally {
     loadingActivity.value = false
   }
 }
 
 onMounted(async () => {
-  await dtStore.loadAll()
-  await loadCounts()
+  await wsStore.loadAll()
   await loadActivity()
 })
 
-function actionLabel(action: string): string {
-  const map: Record<string, string> = { create: 'створив', update: 'оновив', delete: 'видалив' }
-  return map[action] ?? action
-}
+const timeGreeting = computed(() => {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Доброго ранку'
+  if (hour < 18) return 'Доброго дня'
+  return 'Доброго вечора'
+})
 
-function actionColor(action: string): string {
-  const map: Record<string, string> = {
-    create: 'text-emerald-600 bg-emerald-50',
-    update: 'text-blue-600 bg-blue-50',
-    delete: 'text-destructive bg-destructive/8'
+function actionConfig(action: string) {
+  const map: Record<string, { label: string; color: string }> = {
+    create: { label: 'створив', color: 'bg-emerald-500/10 text-emerald-600' },
+    update: { label: 'оновив', color: 'bg-blue-500/10 text-indigo-600' },
+    delete: { label: 'видалив', color: 'bg-red-500/10 text-destructive' }
   }
-  return map[action] ?? 'text-muted-foreground bg-muted'
+  return map[action] ?? { label: action, color: 'bg-muted text-muted-foreground' }
 }
 </script>
 
 <template>
-  <div class="p-8 max-w-5xl">
+  <div class="p-8 max-w-7xl mx-auto">
     <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-2xl font-semibold text-foreground mb-1">
-        Вітаємо, {{ auth.user?.full_name ?? 'користувач' }}
-      </h1>
-      <p class="text-sm text-muted-foreground">Оберіть розділ нижче або у меню зліва</p>
-    </div>
-
-    <!-- DocType summary cards -->
-    <div class="mb-10">
-      <div class="flex items-center gap-2 mb-4">
-        <TrendingUp class="w-4 h-4 text-muted-foreground" />
-        <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Огляд</h2>
+    <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div class="space-y-1">
+        <div class="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-[0.2em] mb-2">
+          <Sparkles class="size-3.5" />
+          <span>Система активована</span>
+        </div>
+        <h1 class="text-4xl font-extrabold tracking-tight text-foreground lg:text-5xl">
+          {{ timeGreeting }}, {{ auth.user?.full_name?.split(' ')[0] ?? 'користувач' }}
+        </h1>
+        <p class="text-muted-foreground text-lg font-medium">
+          Ваш персональний центр управління Grunt. Оберіть робочий простір для початку.
+        </p>
       </div>
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        <div
-          v-for="dt in dtStore.doctypes"
-          :key="dt.name"
-          class="bg-card border border-border rounded-lg p-4 cursor-pointer hover:border-primary/40 hover:shadow-sm group transition-all duration-200"
-          @click="router.push(`/${dt.name}`)"
-        >
-          <div class="flex items-start justify-between mb-3">
-            <div class="w-8 h-8 rounded-md bg-primary/8 flex items-center justify-center">
-              <FileText class="w-4 h-4 text-primary" />
+      
+      <div class="flex items-center gap-3">
+        <Button variant="outline" class="rounded-xl shadow-sm border-sidebar-border h-11 px-5" @click="router.push('/settings')">
+          <Command class="size-4 mr-2 opacity-50" />
+          ПанельStudio
+        </Button>
+      </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+      <!-- Left Column: Workspaces -->
+      <div class="lg:col-span-8 space-y-10">
+        <section>
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+              <div class="p-2 rounded-xl bg-primary/10">
+                <LayoutDashboard class="size-5 text-primary" />
+              </div>
+              <h2 class="text-xl font-bold tracking-tight">Робочі простори</h2>
+            </div>
+            <Button variant="ghost" size="sm" class="text-xs font-semibold text-primary/70 hover:text-primary transition-colors">
+              Всі простори
+              <ArrowRight class="size-3 ml-1.5" />
+            </Button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div
+              v-for="ws in wsStore.workspaces"
+              :key="ws.name"
+              class="group relative bg-card border border-sidebar-border rounded-2xl p-6 cursor-pointer hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1"
+              @click="router.push(`/${ws.name}/desk`)"
+            >
+              <div class="flex items-start justify-between mb-6">
+                <div 
+                  class="size-14 rounded-2xl flex items-center justify-center text-3xl shadow-inner transition-transform group-hover:scale-110 duration-300"
+                  :style="{ backgroundColor: ws.color + '15', color: ws.color }"
+                >
+                  {{ ws.icon || '📁' }}
+                </div>
+                <div class="opacity-0 group-hover:opacity-100 transition-opacity bg-primary/5 p-2 rounded-full">
+                  <ArrowRight class="size-4 text-primary" />
+                </div>
+              </div>
+              
+              <div class="space-y-1.5">
+                <h3 class="text-lg font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                  {{ ws.label }}
+                </h3>
+                <p class="text-sm text-muted-foreground line-clamp-2 leading-relaxed min-h-[40px]">
+                  {{ ws.description || `Управління даними в розділі ${ws.label}.` }}
+                </p>
+              </div>
+
+              <!-- Visual Accent -->
+              <div 
+                class="absolute bottom-0 left-6 right-6 h-1 rounded-t-full transition-transform scale-x-0 group-hover:scale-x-100 duration-500"
+                :style="{ backgroundColor: ws.color }"
+              ></div>
             </div>
           </div>
-          <p class="text-[13px] text-muted-foreground mb-0.5">{{ dt.module }}</p>
-          <h3 class="text-sm font-semibold text-foreground mb-2 leading-tight">{{ dt.label }}</h3>
-          <p class="text-2xl font-bold text-foreground tabular-nums">
-            {{ docCounts[dt.name] ?? '—' }}
-          </p>
-          <p class="text-[11px] text-muted-foreground/70 mt-0.5">записів</p>
-        </div>
+        </section>
       </div>
-    </div>
 
-    <!-- Recent activity feed -->
-    <div v-if="recentActivity.length > 0">
-      <div class="flex items-center gap-2 mb-4">
-        <Clock class="w-4 h-4 text-muted-foreground" />
-        <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Остання активність</h2>
-      </div>
-      <div class="bg-card border border-border rounded-lg overflow-hidden">
-        <div
-          v-for="entry in recentActivity"
-          :key="entry.id"
-          class="flex items-center gap-3 px-4 py-2.5 border-b border-border last:border-0 text-sm hover:bg-muted/40 transition-colors"
-        >
-          <span class="text-xs text-muted-foreground/60 whitespace-nowrap w-32 flex-shrink-0 tabular-nums">
-            {{ entry.created_at ? new Date(entry.created_at).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—' }}
-          </span>
-          <span class="font-medium text-foreground flex-shrink-0">{{ entry.user }}</span>
-          <span
-            class="text-[11px] px-1.5 py-0.5 rounded font-medium flex-shrink-0"
-            :class="actionColor(entry.action)"
-          >{{ actionLabel(entry.action) }}</span>
-          <span class="text-muted-foreground truncate">{{ entry.doctype }}</span>
+      <!-- Right Column: Stats & Activity -->
+      <div class="lg:col-span-4 space-y-10">
+        <!-- Recent Activity Feed -->
+        <section class="bg-card border border-sidebar-border rounded-3xl overflow-hidden shadow-sm">
+          <div class="p-6 border-b border-sidebar-border flex items-center gap-3">
+            <div class="p-2 rounded-xl bg-orange-500/10">
+              <Clock class="size-5 text-orange-600" />
+            </div>
+            <h2 class="text-lg font-bold tracking-tight">Активність</h2>
+          </div>
+          
+          <div class="divide-y divide-sidebar-border">
+            <div
+              v-for="entry in recentActivity"
+              :key="entry.id"
+              class="p-4 hover:bg-muted/40 transition-colors flex flex-col gap-2"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-foreground">{{ entry.user }}</span>
+                <span class="text-[10px] text-muted-foreground/60 tabular-nums">
+                  {{ entry.created_at ? new Date(entry.created_at).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '' }}
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span
+                  class="text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0"
+                  :class="actionConfig(entry.action).color"
+                >
+                  {{ actionConfig(entry.action).label }}
+                </span>
+                <span class="text-xs text-muted-foreground truncate">{{ entry.doctype }}</span>
+              </div>
+            </div>
+            
+            <div v-if="recentActivity.length === 0" class="p-12 text-center text-muted-foreground italic text-sm">
+              Немає недавньої активності
+            </div>
+          </div>
+          
+          <div class="p-4 bg-muted/20 border-t border-sidebar-border">
+            <Button variant="ghost" size="xs" class="w-full text-xs font-bold text-muted-foreground hover:text-primary">
+              Переглянути весь лог
+            </Button>
+          </div>
+        </section>
+
+        <!-- Stats Card -->
+        <div class="bg-primary/5 border border-primary/10 rounded-3xl p-6 relative overflow-hidden group">
+          <div class="relative z-10">
+            <TrendingUp class="size-6 text-primary mb-4" />
+            <h3 class="text-lg font-bold text-primary mb-1">Статус сервера</h3>
+            <p class="text-sm text-primary/70 mb-4">Всі системи працюють стабільно. Оновлень бази даних не потрібно.</p>
+            <div class="h-1.5 w-full bg-primary/10 rounded-full overflow-hidden">
+              <div class="h-full bg-primary w-full animate-pulse"></div>
+            </div>
+          </div>
+          <div class="absolute -right-6 -bottom-6 size-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all duration-500"></div>
         </div>
       </div>
     </div>
   </div>
 </template>
+

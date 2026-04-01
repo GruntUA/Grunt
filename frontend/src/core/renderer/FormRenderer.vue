@@ -40,16 +40,11 @@ function toggleSection(section: LayoutSection) {
 <template>
   <!-- Tab navigation -->
   <div v-if="hasTabs" class="flex gap-0 border-b border-border mb-6 -mx-6 px-6 overflow-x-auto">
-    <button
-      v-for="(tab, ti) in layout"
-      :key="ti"
-      type="button"
-      class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap"
-      :class="activeTab === ti
+    <button v-for="(tab, ti) in layout" :key="ti" type="button"
+      class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap" :class="activeTab === ti
         ? 'border-primary text-primary'
         : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'"
-      @click="activeTab = ti"
-    >{{ tab.label || 'Main' }}</button>
+      @click="activeTab = ti">{{ tab.label || 'Main' }}</button>
   </div>
 
   <!-- Sections -->
@@ -57,39 +52,23 @@ function toggleSection(section: LayoutSection) {
     <div v-show="activeTab === ti" class="flex flex-col gap-6">
       <div v-for="(section, si) in tab.sections" :key="si">
         <!-- Section header -->
-        <div
-          v-if="section.label"
-          class="flex items-center gap-2 mb-4"
-          :class="{ 'cursor-pointer select-none': section.collapsible }"
-          @click="toggleSection(section)"
-        >
-          <ChevronDown
-            v-if="section.collapsible"
-            class="size-4 text-muted-foreground transition-transform duration-200"
-            :class="{ '-rotate-90': section.collapsed }"
-          />
-          <span class="text-xs font-semibold uppercase tracking-wider text-foreground/50">{{ section.label }}</span>
-          <div class="flex-1 h-px bg-border/50" />
+        <div v-if="section.label" class="flex items-center gap-2 mb-4"
+          :class="{ 'cursor-pointer select-none': section.collapsible }" @click="toggleSection(section)">
+          <ChevronDown v-if="section.collapsible" class="size-4 text-muted-foreground transition-transform duration-200"
+            :class="{ '-rotate-90': section.collapsed }" />
+          <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">{{ section.label }}</span>
+          <div class="flex-1 h-px bg-border" />
         </div>
 
         <!-- Fields grid -->
         <Transition name="section">
           <div v-if="!section.collapsed" :class="colClass(section.columns.length)" class="gap-x-4 gap-y-4">
             <div v-for="(col, ci) in section.columns" :key="ci" class="flex flex-col gap-4">
-              <FieldRenderer
-                v-for="f in col"
-                v-show="overrides?.[f.fieldname] !== false"
-                :key="f.fieldname"
-                :field="reqdOverrides?.[f.fieldname] !== undefined
-                  ? { ...f, required: reqdOverrides[f.fieldname] }
-                  : f"
-                :model-value="modelValue[f.fieldname]"
-                :disabled="disabled || f.read_only"
-                :error="errors?.[f.fieldname]"
-                :doc-values="modelValue"
-
-                @update:model-value="update(f.fieldname, $event)"
-              />
+              <FieldRenderer v-for="f in col" v-show="overrides?.[f.fieldname] !== false" :key="f.fieldname" :field="reqdOverrides?.[f.fieldname] !== undefined
+                ? { ...f, required: reqdOverrides[f.fieldname] }
+                : f" :model-value="modelValue[f.fieldname]" :disabled="disabled || f.read_only"
+                :error="errors?.[f.fieldname]" :doc-values="modelValue"
+                @update:model-value="update(f.fieldname, $event)" />
             </div>
           </div>
         </Transition>
@@ -104,11 +83,13 @@ function toggleSection(section: LayoutSection) {
   transition: opacity 200ms ease, max-height 200ms ease;
   overflow: hidden;
 }
+
 .section-enter-from,
 .section-leave-to {
   opacity: 0;
   max-height: 0;
 }
+
 .section-enter-to,
 .section-leave-from {
   opacity: 1;

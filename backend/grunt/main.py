@@ -24,6 +24,7 @@ from grunt.core.site.middleware import SiteContextMiddleware
 # Ensure all ORM models are imported so Base.metadata is complete
 import grunt.core.db.system_tables  # noqa: F401
 import grunt.core.auth.models  # noqa: F401
+import grunt.core.print.hooks  # noqa: F401
 
 # Phase 3 modules (imported for side-effects: table registration)
 # workflow, permissions, reports engines are imported on-demand in endpoints
