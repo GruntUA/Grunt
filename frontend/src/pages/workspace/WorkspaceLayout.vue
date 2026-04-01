@@ -3,6 +3,7 @@ import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWorkspaceStore } from '@/stores/workspace'
 import WorkspaceSidebar from '@/components/workspace/WorkspaceSidebar.vue'
+import GlobalSearch from '@/components/layout/GlobalSearch.vue'
 import { Menu } from 'lucide-vue-next'
 
 const props = defineProps<{ workspaceName: string }>()
@@ -27,17 +28,12 @@ watch(() => props.workspaceName, (name) => {
 <template>
   <div class="flex h-screen overflow-hidden bg-background">
     <!-- Mobile hamburger -->
-    <button
-      class="fixed top-3 left-3 z-30 p-2 rounded-md bg-card border border-border shadow-sm md:hidden"
-      @click="sidebarRef && (sidebarRef.mobileOpen = true)"
-    >
+    <button class="fixed top-3 left-3 z-30 p-2 rounded-md bg-card border border-border shadow-sm md:hidden"
+      @click="sidebarRef && (sidebarRef.mobileOpen = true)">
       <Menu class="size-4" />
     </button>
 
-    <WorkspaceSidebar
-      ref="sidebarRef"
-      :workspace-name="workspaceName"
-    />
+    <WorkspaceSidebar ref="sidebarRef" :workspace-name="workspaceName" />
 
     <!-- Main content -->
     <main class="flex-1 overflow-y-auto">
@@ -47,6 +43,7 @@ watch(() => props.workspaceName, (name) => {
         </Transition>
       </RouterView>
     </main>
+    <GlobalSearch />
   </div>
 </template>
 
@@ -55,6 +52,7 @@ watch(() => props.workspaceName, (name) => {
 .fade-leave-active {
   transition: opacity 150ms ease;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;

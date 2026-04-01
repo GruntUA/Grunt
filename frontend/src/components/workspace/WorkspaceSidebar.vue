@@ -31,6 +31,7 @@ import {
   Moon,
   Monitor,
   Settings2,
+  Search,
 } from 'lucide-vue-next'
 import { useColorMode } from '@/core/composables/useColorMode'
 import type { Theme } from '@/core/composables/useColorMode'
@@ -73,6 +74,10 @@ const colorMode = useColorMode()
 
 async function onThemeChange(theme: string) {
   await auth.setTheme(theme as Theme)
+}
+
+function triggerSearch() {
+  window.dispatchEvent(new CustomEvent('toggle-search'))
 }
 
 defineExpose({ mobileOpen })
@@ -146,6 +151,23 @@ defineExpose({ mobileOpen })
         </Tooltip>
       </div>
 
+      <!-- Search Trigger -->
+      <div class="px-3 py-2">
+        <button
+          class="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-sidebar-border/30 bg-muted/30 hover:bg-muted/50 hover:border-primary/20 transition-all group shadow-sm"
+          @click="triggerSearch">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <Search class="size-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+            <span v-if="!collapsed"
+              class="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">Пошук...</span>
+          </div>
+          <div v-if="!collapsed"
+            class="flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-sidebar-border/50 bg-background text-[9px] font-bold text-muted-foreground shadow-sm group-hover:border-primary/20 transition-all">
+            <span class="opacity-70 text-[10px]">⌘</span>
+            <span>K</span>
+          </div>
+        </button>
+      </div>
 
       <!-- Navigation -->
       <ScrollArea class="flex-1">

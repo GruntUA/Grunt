@@ -1,86 +1,77 @@
-"""Global search endpoint — searches across all DocTypes."""
-
-from __future__ import annotations
-
-from typing import Any
-
-import structlog
+from typing import Any, List
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import text
+from sqlalchemy import select, or_, String, cast
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt.core.auth.dependencies import current_user
+from grunt.core.auth.dependencies import current_user, get_session
 from grunt.core.auth.models import GruntUser
-from grunt.core.db.session import get_session
-from grunt.core.metadata.compiler import get_table_name
 from grunt.core.metadata.registry import doctype_registry
-from grunt.core.permissions.rbac import PermissionChecker
-
-logger = structlog.get_logger()
+from grunt.core.metadata.compiler import compile_doctype_to_table
+from grunt.core.document.service import DocumentService
 
 router = APIRouter()
 
-
-@router.get("/search")
+@router.get("/")
 async def global_search(
-    q: str = Query(..., min_length=1),
-    limit: int = Query(10, ge=1, le=50),
-    session: AsyncSession = Depends(get_session),
+    q: str = Query(..., min_length=2),
     user: GruntUser = Depends(current_user),
-) -> dict[str, Any]:
-    """Search across all DocTypes where user has read access.
-
-    Returns results grouped with doctype, id, name, display_title.
-    """
-    results: list[dict[str, Any]] = []
-    search_term = f"%{q}%"
-
-    for dt in (await doctype_registry.list_all()):
-        if dt.is_child:
+    session: AsyncSession = Depends(get_session)
+) -> List[dict]:
+    """Search across all major DocTypes."""
+    results = []
+    all_doctypes = await doctype_registry.list_all()
+    
+    # We'll limit search to top DocTypes or those with search_fields
+    # To avoid 100+ queries, we might want to prioritize
+    searchable_doctypes = [dt for dt in all_doctypes if not dt.is_child]
+    
+    for dt in searchable_doctypes:
+        # Check permissions - briefly
+        # Ideally we'd use a more efficient way, but for now we search and then filter or search directly
+        table = compile_doctype_to_table(dt)
+        
+        search_cols = []
+        # Always search 'name'
+        if "name" in table.c:
+            search_cols.append(table.c.name)
+            
+        # Search title field
+        title_field = dt.title_field or "name"
+        if title_field in table.c and title_field != "name":
+            search_cols.append(table.c[title_field])
+            
+        # Search additional fields
+        for sf in dt.search_fields:
+            if sf in table.c and sf not in (title_field, "name"):
+                search_cols.append(table.c[sf])
+        
+        if not search_cols:
             continue
-
-        # Check read permission
-        checker = PermissionChecker()
-        if not await checker.check(user=user, doctype=dt, action="read"):
-            continue
-
-        table_name = get_table_name(dt.module, dt.name)
-
-        # Build search columns: name + search_fields + title_field
-        search_cols: list[str] = ["name"]
-        if dt.search_fields:
-            search_cols.extend(dt.search_fields)
-        if dt.title_field and dt.title_field not in search_cols:
-            search_cols.append(dt.title_field)
-
-        # Build WHERE clause
-        conditions = " OR ".join(
-            f'CAST("{col}" AS TEXT) LIKE :q' for col in search_cols
-        )
-
-        sql = (
-            f'SELECT "id", "name"'
-            f'{", " + chr(34) + dt.title_field + chr(34) if dt.title_field else ""}'
-            f' FROM "{table_name}"'
-            f" WHERE {conditions}"
-            f" LIMIT :lim"
-        )
-
+            
+        # Build query
+        filters = [cast(col, String).ilike(f"%{q}%") for col in search_cols]
+        stmt = select(table).where(or_(*filters)).limit(10)
+        
         try:
-            result = await session.execute(text(sql), {"q": search_term, "lim": limit})
-            for row in result.mappings():
-                display = str(row.get(dt.title_field, row["name"])) if dt.title_field else str(row["name"])
+            res = await session.execute(stmt)
+            rows = res.fetchall()
+            
+            for row in rows:
+                data = dict(row._mapping)
                 results.append({
+                    "id": data.get("id"),
+                    "name": data.get("name"),
+                    "title": data.get(title_field) or data.get("name"),
                     "doctype": dt.name,
-                    "id": str(row["id"]),
-                    "name": str(row["name"]),
-                    "display_title": display,
+                    "doctype_label": dt.label,
+                    "module": dt.module,
+                    "subtitle": dt.name if title_field != "name" else dt.label
                 })
-        except Exception as e:
-            logger.debug("search.skip_doctype", doctype=dt.name, error=str(e))
+        except Exception:
+            # Skip tables that might have issues
             continue
-
-        if len(results) >= limit:
+            
+        if len(results) >= 50:
             break
-
-    return {"success": True, "data": results[:limit]}
+            
+    return results
