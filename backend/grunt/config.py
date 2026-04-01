@@ -21,6 +21,7 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "sqlite+aiosqlite:///./grunt.db"
+    database_echo: bool = False
 
     # Redis (optional)
     redis_url: str | None = None

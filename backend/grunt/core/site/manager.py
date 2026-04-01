@@ -119,7 +119,7 @@ class SiteManager:
         if site_name not in self.engines:
             db_url = self.get_database_url(site_name)
             
-            engine_kwargs = {"echo": settings.debug, "pool_pre_ping": True}
+            engine_kwargs = {"echo": settings.database_echo, "pool_pre_ping": True}
             if "postgresql" in db_url:
                 engine_kwargs.update({"pool_size": 20, "max_overflow": 10})
                 
