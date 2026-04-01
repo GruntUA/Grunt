@@ -1,9 +1,11 @@
 from contextvars import ContextVar
 from pathlib import Path
 from typing import Dict
+import unicodedata
 
 import dotenv
 import structlog
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -12,6 +14,29 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from grunt.config import settings
+
+
+_UK_ALPHABET = 'абвгґдеєжзиіїйклмнопрстуфхцчшщьюя'
+_UK_ORDER = {ch: i for i, ch in enumerate(_UK_ALPHABET)}
+
+
+def _uk_sort_key(s: str) -> str:
+    """Return a sort key string that respects Ukrainian alphabetical order.
+
+    Maps each Ukrainian letter to a code point in the Private Use Area
+    (U+E000+) so that comparison of resulting strings gives correct
+    Ukrainian alphabetical order, regardless of Unicode code points.
+    """
+    if not s:
+        return ''
+    out = []
+    for ch in unicodedata.normalize('NFC', s).casefold():
+        pos = _UK_ORDER.get(ch)
+        if pos is not None:
+            out.append(chr(0xE000 + pos))  # Private Use Area, keeps uk order
+        else:
+            out.append(ch)
+    return ''.join(out)
 
 logger = structlog.get_logger()
 
@@ -99,6 +124,15 @@ class SiteManager:
                 engine_kwargs.update({"pool_size": 20, "max_overflow": 10})
                 
             engine = create_async_engine(db_url, **engine_kwargs)
+
+            if "sqlite" in db_url:
+                @event.listens_for(engine.sync_engine, "connect")
+                def _register_uk_sort(dbapi_conn, _connection_record):
+                    try:
+                        dbapi_conn.create_function("uk_sort_key", 1, _uk_sort_key)
+                    except Exception:
+                        pass  # Non-SQLite or unsupported — skip
+
             self.engines[site_name] = engine
             self.session_makers[site_name] = async_sessionmaker(
                 engine, class_=AsyncSession, expire_on_commit=False

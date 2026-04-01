@@ -127,6 +127,12 @@ onMounted(async () => {
   // Restore groupBy from URL
   const urlGroupBy = route.query.groupBy as string | undefined
   if (urlGroupBy) groupBy.value = urlGroupBy
+
+  // Restore sort from URL
+  const urlSort = route.query.sort as string | undefined
+  const urlOrder = route.query.order as string | undefined
+  if (urlSort) sortKey.value = urlSort
+  if (urlOrder === 'asc' || urlOrder === 'desc') sortOrder.value = urlOrder
 })
 
 // Sync viewMode → URL query param
@@ -203,6 +209,8 @@ const rows = computed(() => (data.value?.data ?? []) as Record<string, unknown>[
 function onSort(key: string) {
   sortOrder.value = sortKey.value === key && sortOrder.value === 'asc' ? 'desc' : 'asc'
   sortKey.value = key
+  const query = { ...route.query, sort: key, order: sortOrder.value }
+  router.replace({ query })
 }
 
 function onFiltersChange(f: Record<string, string>) {

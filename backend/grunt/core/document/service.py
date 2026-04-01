@@ -114,10 +114,19 @@ class DocumentService:
 
         # Sort
         sort_col = table.c.get(sort_by, table.c.modified_at)
-        if sort_order == "asc":
-            query = query.order_by(sort_col.asc())
+        # Apply Ukrainian sort key for text columns so Cyrillic letters sort correctly
+        TEXT_TYPES = {"TEXT", "VARCHAR", "CHAR", "CLOB", "STRING", "NVARCHAR", "NCHAR"}
+        col_type = str(sort_col.type).upper()
+        is_text = any(t in col_type for t in TEXT_TYPES)
+        if is_text:
+            from sqlalchemy import func as sa_func  # noqa: PLC0415
+            sort_expr = sa_func.uk_sort_key(sort_col)
         else:
-            query = query.order_by(sort_col.desc())
+            sort_expr = sort_col
+        if sort_order == "asc":
+            query = query.order_by(sort_expr.asc())
+        else:
+            query = query.order_by(sort_expr.desc())
 
         # Pagination
         offset = (page - 1) * per_page

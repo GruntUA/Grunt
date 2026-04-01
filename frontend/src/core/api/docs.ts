@@ -24,12 +24,17 @@ export interface ListParams {
 
 export const docsApi = {
   list: async (doctype: string, params: ListParams = {}): Promise<StandardListResponse<GruntDocument>> => {
-    const { filters = {}, ...rest } = params
+    const { filters = {}, sort, order, ...rest } = params
     const filterParams = Object.fromEntries(
       Object.entries(filters).map(([k, v]) => [`filter[${k}]`, v])
     )
     const r = await client.get(`/api/v1/docs/${doctype}`, {
-      params: { ...rest, ...filterParams }
+      params: {
+        ...rest,
+        ...(sort ? { sort_by: sort } : {}),
+        ...(order ? { sort_order: order } : {}),
+        ...filterParams,
+      }
     })
     return r.data
   },

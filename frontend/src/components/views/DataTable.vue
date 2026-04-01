@@ -77,16 +77,7 @@ function getStatusBadge(val: string, fieldname: string): { variant: 'default' | 
       return { ...badge, label: ind.label ?? val }
     }
   }
-  // Fallback: regex-based heuristic
-  return { variant: selectVariantFallback(val), label: val }
-}
-
-function selectVariantFallback(val: string): 'default' | 'secondary' | 'destructive' | 'outline' {
-  const v = val.toLowerCase()
-  if (/^(active|активн|відкри|новий|нова|нове|запущен|виконуєть|in.progress|open|new)/.test(v)) return 'default'
-  if (/^(done|завершен|виконан|закрит|completed|закінчен|успішн|success)/.test(v)) return 'secondary'
-  if (/^(cancel|скасован|відхил|помилк|error|fail|danger|blocked)/.test(v)) return 'destructive'
-  return 'outline'
+  return { variant: 'outline', label: val }
 }
 
 function formatDate(val: unknown, type: string): string {
