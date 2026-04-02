@@ -9,6 +9,7 @@ import ShortcutWidget from './ShortcutWidget.vue'
 import ShortcutsGridWidget from './ShortcutsGridWidget.vue'
 import TextWidget from './TextWidget.vue'
 import ClockWidget from './ClockWidget.vue'
+import ActivityWidget from './ActivityWidget.vue'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -113,6 +114,13 @@ const minH = computed(() => {
       <ClockWidget
         v-else-if="widget.widget_type === 'clock'"
         :widget="widget"
+      />
+      <ActivityWidget
+        v-else-if="widget.widget_type === 'activity'"
+        :widget="widget"
+        :data="(data as { items: { id: string; doctype: string; doc_id: string; action: string; user: string; created_at: string }[] } | null)"
+        :loading="loading"
+        :workspace-name="workspaceName"
       />
     </div>
   </div>

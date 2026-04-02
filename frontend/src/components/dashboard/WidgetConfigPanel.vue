@@ -15,17 +15,6 @@ watch(() => props.widget, (w) => {
   draft.value = w ? { ...w } : null
 }, { immediate: true })
 
-const selectedDt = computed(() =>
-  dtStore.doctypes.find(d => d.name === draft.value?.doctype)
-)
-
-// Numeric and text fields for aggregation target
-const numericFields = computed(() => {
-  if (!selectedDt.value) return []
-  // We can't easily get field types from summary — show all fields as option
-  return [] // will be loaded separately if needed
-})
-
 function save() {
   if (draft.value) emit('save', draft.value)
 }
@@ -40,6 +29,7 @@ const WIDGET_TYPES: { value: WidgetType; label: string; icon: string }[] = [
   { value: 'shortcuts_grid', label: 'Сітка ярликів', icon: '⊞' },
   { value: 'text',           label: 'Текст',         icon: '📝' },
   { value: 'clock',          label: 'Годинник',      icon: '🕐' },
+  { value: 'activity',       label: 'Активність',    icon: '🕒' },
 ]
 
 const AGGREGATIONS: { value: WidgetAggregation; label: string }[] = [
@@ -88,6 +78,7 @@ const isShortcut      = computed(() => draft.value?.widget_type === 'shortcut')
 const isShortcutsGrid = computed(() => draft.value?.widget_type === 'shortcuts_grid')
 const isText          = computed(() => draft.value?.widget_type === 'text')
 const isClock         = computed(() => draft.value?.widget_type === 'clock')
+const isActivity      = computed(() => draft.value?.widget_type === 'activity')
 const isDataWidget    = computed(() => isMetric.value || isChart.value || isDonut.value || isList.value)
 </script>
 
@@ -140,6 +131,17 @@ const isDataWidget    = computed(() => isMetric.value || isChart.value || isDonu
           </option>
         </select>
         <input v-else v-model="draft.doctype" class="w-full h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Назва DocType, Report, Dashboard або URL" />
+      </div>
+
+      <!-- DocType filter (activity widget — optional) -->
+      <div v-if="isActivity" class="space-y-1.5">
+        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Фільтр за DocType <span class="normal-case font-normal">(опціонально)</span></label>
+        <select v-model="draft.doctype" class="w-full h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+          <option value="">— Всі DocType —</option>
+          <option v-for="dt in dtStore.doctypes.filter(d => !d.is_child)" :key="dt.name" :value="dt.name">
+            {{ dt.label }}
+          </option>
+        </select>
       </div>
 
       <!-- Link type (shortcut only) -->

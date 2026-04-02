@@ -154,6 +154,34 @@ async def _compute_widget_data(widget: Any, session: AsyncSession) -> Any:
     if widget_type == "shortcuts_grid":
         return None
 
+    if widget_type == "activity":
+        try:
+            activity_dt = doctype_registry._doctypes.get("ActivityLog")
+            if not activity_dt:
+                return {"items": []}
+            activity_table = compile_doctype_to_table(activity_dt)
+            stmt = select(activity_table).order_by(activity_table.c.created_at.desc()).limit(20)
+            if doctype_name:
+                stmt = stmt.where(activity_table.c.doctype == doctype_name)
+            result = await session.execute(stmt)
+            items = []
+            for r in result.all():
+                row = dict(r._mapping)
+                if isinstance(row.get("created_at"), datetime):
+                    row["created_at"] = row["created_at"].isoformat()
+                items.append({
+                    "id": row.get("id"),
+                    "doctype": row.get("doctype"),
+                    "doc_id": row.get("doc_id"),
+                    "action": row.get("action"),
+                    "user": row.get("user"),
+                    "created_at": row.get("created_at"),
+                })
+            return {"items": items}
+        except Exception:
+            logger.exception("dashboard.activity_error", doctype=doctype_name)
+            return {"items": []}
+
     return None
 
 
