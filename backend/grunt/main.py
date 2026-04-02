@@ -54,7 +54,7 @@ async def lifespan(app: FastAPI):
     # ── Startup ──────────────────────────────────────────────────────
     logger.info("grunt.startup", version="0.1.0")
 
-    from grunt.core.startup import populate_system_doctypes, seed_grunt_workspace, seed_app_workspaces, load_core_doctypes, apply_doctype_overrides  # noqa: PLC0415
+    from grunt.core.startup import populate_system_doctypes, seed_system_settings, seed_grunt_workspace, seed_app_workspaces, load_core_doctypes, apply_doctype_overrides  # noqa: PLC0415
 
     # ── Load hooks from installed apps FIRST (collects doctype_overrides) ──
     import importlib  # noqa: PLC0415
@@ -116,6 +116,7 @@ async def lifespan(app: FastAPI):
                 await apply_doctype_overrides(session, eng)
                 # Populate the DocType document table
                 await populate_system_doctypes(session, eng)
+                await seed_system_settings(session, eng)
                 await seed_grunt_workspace(session)
                 await session.commit()
 

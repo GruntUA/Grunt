@@ -11,7 +11,7 @@ class DocFieldSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     fieldname: str
-    label: str
+    label: str = ""
     fieldtype: str
 
     required: bool = False
@@ -29,7 +29,7 @@ class DocFieldSchema(BaseModel):
     placeholder: str | None = None
 
     collapsible: bool = False
-    columns: Literal[1, 2, 3, 4] = 1
+    columns: int = 12
 
     min_value: float | None = None
     max_value: float | None = None
@@ -144,6 +144,7 @@ class DocTypeListItem(BaseModel):
     label: str
     module: str
     is_child: bool
+    is_singleton: bool
 
 
 class DocTypeSyncResult(BaseModel):

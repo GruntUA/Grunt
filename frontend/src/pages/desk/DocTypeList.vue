@@ -125,6 +125,12 @@ function setGroupBy(field: string | null) {
 onMounted(async () => {
   dt.value = await dtStore.get(props.doctype)
 
+  if (dt.value?.is_singleton) {
+    const ws = props.workspace ?? 'grunt'
+    router.replace(`/${ws}/list/${props.doctype}/${props.doctype}`)
+    return
+  }
+
   // Determine initial view: URL param → doctype default → 'list'
   const urlView = route.query.view as string | undefined
   const defaultView = dt.value?.default_view ?? 'list'
@@ -297,7 +303,8 @@ function navigateToDoc(row: Record<string, unknown>) {
               </DropdownMenuItem>
             </template>
             <DropdownMenuSeparator />
-            <DropdownMenuItem @click="router.push({ name: 'report-builder', params: { workspaceName: workspace ?? 'grunt' }, query: { doctype: doctype } })">
+            <DropdownMenuItem
+              @click="router.push({ name: 'report-builder', params: { workspaceName: workspace ?? 'grunt' }, query: { doctype: doctype } })">
               <FileBarChart class="size-4" />
               Створити звіт
             </DropdownMenuItem>

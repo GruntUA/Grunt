@@ -21,6 +21,8 @@ from grunt.api.v1.dashboard import router as dashboard_router
 from grunt.api.v1.metrics import router as metrics_router
 from grunt.api.v1.oauth import router as oauth_router
 from grunt.api.v1.data_import import router as data_import_router
+from grunt.api.v1.activity import router as activity_router
+from grunt.api.v1.hooks import router as hooks_router
 
 v1_router = APIRouter()
 
@@ -43,3 +45,5 @@ v1_router.include_router(dashboard_router, tags=["dashboard"])
 v1_router.include_router(metrics_router, tags=["monitoring"])
 v1_router.include_router(oauth_router, prefix="/oauth", tags=["oauth"])
 v1_router.include_router(data_import_router, prefix="/data-import", tags=["data-import"])
+v1_router.include_router(activity_router, prefix="/activity", tags=["activity"])
+v1_router.include_router(hooks_router, prefix="/hooks", tags=["hooks"])

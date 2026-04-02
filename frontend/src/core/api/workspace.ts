@@ -11,6 +11,7 @@ export interface WorkspaceLink {
   show_new_btn: boolean
   roles: string
   sequence: number
+  is_singleton?: boolean
 }
 
 export interface Workspace {

@@ -13,6 +13,6 @@ export interface AppPage {
 }
 
 export async function fetchPages(): Promise<AppPage[]> {
-  const r = await client.get('/api/v1/pages')
+  const r = await client.get('/api/v1/pages/')
   return r.data?.data ?? []
 }

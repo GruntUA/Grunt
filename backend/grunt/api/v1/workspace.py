@@ -48,6 +48,11 @@ def _workspace_to_dict(ws: GruntWorkspace) -> dict[str, Any]:
                 "show_new_btn": item.show_new_btn,
                 "roles": item.roles,
                 "sequence": item.sequence,
+                "is_singleton": (
+                    doctype_registry._doctypes[item.link_to].is_singleton
+                    if item.type == "DocType" and item.link_to in doctype_registry._doctypes
+                    else False
+                ),
             }
             for item in sorted(ws.items, key=lambda i: i.sequence)
         ],

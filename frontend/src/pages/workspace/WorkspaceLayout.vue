@@ -3,7 +3,6 @@ import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWorkspaceStore } from '@/stores/workspace'
 import WorkspaceSidebar from '@/components/workspace/WorkspaceSidebar.vue'
-import GlobalSearch from '@/components/layout/GlobalSearch.vue'
 import { Menu } from 'lucide-vue-next'
 
 const props = defineProps<{ workspaceName: string }>()
@@ -43,7 +42,6 @@ watch(() => props.workspaceName, (name) => {
         </Transition>
       </RouterView>
     </main>
-    <GlobalSearch />
   </div>
 </template>
 

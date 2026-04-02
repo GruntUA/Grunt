@@ -156,6 +156,8 @@ watch(lastMessage, (msg) => {
 const docTitle = computed(() => {
   if (!document.value) return props.id ? '...' : `Новий ${dt.value?.label ?? ''}`
   const tf = dt.value?.title_field
+  // For singletons, prioritize the label if no title field is defined
+  if (dt.value?.is_singleton && !tf) return dt.value.label
   return (tf && document.value[tf] as string) || document.value.name || `Новий ${dt.value?.label ?? ''}`
 })
 

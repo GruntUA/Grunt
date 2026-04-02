@@ -34,7 +34,11 @@ const isActive = computed(() => {
 function navigate() {
   switch (props.item.type) {
     case 'DocType':
-      router.push(`/${props.workspaceName}/list/${props.item.link_to}`)
+      if (props.item.is_singleton) {
+        router.push(`/${props.workspaceName}/list/${props.item.link_to}/${props.item.link_to}`)
+      } else {
+        router.push(`/${props.workspaceName}/list/${props.item.link_to}`)
+      }
       break
     case 'Report':
       router.push(`/${props.workspaceName}/report/${props.item.link_to}`)

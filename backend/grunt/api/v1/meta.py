@@ -81,7 +81,7 @@ async def list_doctypes(
     if module:
         all_dt = [dt for dt in all_dt if dt.module == module]
     return [
-        DocTypeListItem(name=dt.name, label=dt.label, module=dt.module, is_child=dt.is_child)
+        DocTypeListItem(name=dt.name, label=dt.label, module=dt.module, is_child=dt.is_child, is_singleton=dt.is_singleton)
         for dt in all_dt
     ]
 

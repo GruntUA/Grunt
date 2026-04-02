@@ -65,6 +65,24 @@ async def _audit_log(
             )
         )
         await session.commit()
+
+        # Broadcast via WebSocket
+        try:
+            from grunt.api.v1.ws import manager  # noqa: PLC0415
+            await manager.broadcast(
+                "public:site",
+                "activity",
+                {
+                    "id": entry_id,
+                    "doctype": doctype,
+                    "doc_id": str(doc_id),
+                    "action": action,
+                    "user": user_email,
+                    "created_at": now.isoformat(),
+                }
+            )
+        except Exception:  # noqa: BLE001
+            pass
     except Exception:  # noqa: BLE001
         await session.rollback()
 

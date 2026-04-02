@@ -1,0 +1,73 @@
+{
+    "name": "SystemSettings",
+    "label": "Налаштування системи",
+    "module": "Core",
+    "is_singleton": true,
+    "is_system": true,
+    "icon": "Settings2",
+    "fields": [
+        {
+            "fieldname": "sec_general",
+            "label": "Загальні налаштування",
+            "fieldtype": "Section"
+        },
+        {
+            "fieldname": "col_g1",
+            "fieldtype": "Column"
+        },
+        {
+            "fieldname": "app_name",
+            "label": "Назва додатку",
+            "fieldtype": "Text",
+            "required": true,
+            "default": "Grunt Framework",
+            "columns": 12
+        },
+        {
+            "fieldname": "app_logo",
+            "label": "Логотип",
+            "fieldtype": "Image",
+            "columns": 12
+        },
+        {
+            "fieldname": "col_g2",
+            "fieldtype": "Column"
+        },
+        {
+            "fieldname": "language",
+            "label": "Мова за замовчуванням",
+            "fieldtype": "Select",
+            "options": "uk-UA\nen-US",
+            "default": "uk-UA",
+            "columns": 12
+        },
+        {
+            "fieldname": "timezone",
+            "label": "Часовий пояс",
+            "fieldtype": "Select",
+            "options": "Europe/Kyiv\nUTC",
+            "default": "Europe/Kyiv",
+            "columns": 12
+        },
+        {
+            "fieldname": "date_format",
+            "label": "Формат дати",
+            "fieldtype": "Select",
+            "options": "dd.mm.yyyy\nyyyy-mm-dd",
+            "default": "dd.mm.yyyy",
+            "columns": 12
+        },
+        {
+            "fieldname": "sec_auth",
+            "label": "Авторизація та Реєстрація",
+            "fieldtype": "Section"
+        },
+        {
+            "fieldname": "allow_user_registration",
+            "label": "Дозволити реєстрацію користувачів",
+            "fieldtype": "Check",
+            "default": false,
+            "columns": 6
+        }
+    ]
+}

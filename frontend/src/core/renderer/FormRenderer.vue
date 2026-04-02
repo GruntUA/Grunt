@@ -28,11 +28,10 @@ const layout = computed(() => parseLayout(props.doctype.fields))
 const hasTabs = computed(() => layout.value.length > 1 || layout.value[0]?.label !== '')
 const activeTab = ref(0)
 
-function colClass(count: number): string {
-  if (count >= 4) return 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4'
-  if (count === 3) return 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-  if (count === 2) return 'grid grid-cols-1 md:grid-cols-2'
-  return 'grid grid-cols-1'
+const colSpanMap: Record<number, string> = {
+  1: 'md:col-span-1', 2: 'md:col-span-2', 3: 'md:col-span-3', 4: 'md:col-span-4',
+  5: 'md:col-span-5', 6: 'md:col-span-6', 7: 'md:col-span-7', 8: 'md:col-span-8',
+  9: 'md:col-span-9', 10: 'md:col-span-10', 11: 'md:col-span-11', 12: 'md:col-span-12',
 }
 
 function update(fieldname: string, val: unknown) {
@@ -67,36 +66,36 @@ function toggleSection(section: LayoutSection) {
           <div class="flex-1 h-px bg-border" />
         </div>
 
-        <!-- Fields grid -->
+        <!-- Fields layout -->
         <Transition name="section">
-          <div v-if="!section.collapsed" :class="colClass(section.columns.length)" class="gap-x-4 gap-y-4">
-            <div v-for="(col, ci) in section.columns" :key="ci" class="flex flex-col gap-4">
-              <div
-                v-for="f in col"
-                v-show="overrides?.[f.fieldname] !== false"
-                :key="f.fieldname"
-                class="relative"
-                @focusin="emit('field-focus', f.fieldname)"
-                @focusout="emit('field-blur', f.fieldname)"
-              >
-                <!-- Field lock badge -->
-                <div
-                  v-if="fieldLocks?.[f.fieldname]"
-                  class="absolute -top-1.5 right-1 z-20 flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm pointer-events-none select-none"
-                  :style="{ backgroundColor: fieldLocks[f.fieldname].color }"
-                  :title="`Редагує: ${fieldLocks[f.fieldname].full_name}`"
-                >
-                  <span>{{ initials(fieldLocks[f.fieldname].full_name) }}</span>
+          <div v-if="!section.collapsed" class="grid grid-cols-1 gap-y-4 md:gap-x-8" :class="[
+            section.columns.length === 2 ? 'md:grid-cols-2' : '',
+            section.columns.length === 3 ? 'md:grid-cols-3' : '',
+            section.columns.length >= 4 ? 'md:grid-cols-4' : '',
+          ]">
+            <div v-for="(col, ci) in section.columns" :key="ci" class="flex-1 flex flex-col gap-4 min-w-0">
+              <div v-for="f in col" v-show="overrides?.[f.fieldname] !== false" :key="f.fieldname"
+                class="grid grid-cols-12 gap-2 relative group" @focusin="emit('field-focus', f.fieldname)"
+                @focusout="emit('field-blur', f.fieldname)">
+
+                <!-- Field label & lock container -->
+                <div class="col-span-12 flex items-center justify-between gap-2">
+                  <!-- Field lock badge -->
+                  <div v-if="fieldLocks?.[f.fieldname]"
+                    class="flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-white shadow-sm ring-2 ring-background"
+                    :style="{ backgroundColor: fieldLocks[f.fieldname].color }">
+                    <span class="opacity-80">{{ initials(fieldLocks[f.fieldname].full_name) }}</span>
+                    <span>редагує...</span>
+                  </div>
                 </div>
 
-                <FieldRenderer
-                  :field="reqdOverrides?.[f.fieldname] !== undefined ? { ...f, required: reqdOverrides[f.fieldname] } : f"
-                  :model-value="modelValue[f.fieldname]"
-                  :disabled="disabled || f.read_only || !!fieldLocks?.[f.fieldname]"
-                  :error="errors?.[f.fieldname]"
-                  :doc-values="modelValue"
-                  @update:model-value="update(f.fieldname, $event)"
-                />
+                <div :class="f.columns ? colSpanMap[f.columns] : 'col-span-12'">
+                  <FieldRenderer
+                    :field="reqdOverrides?.[f.fieldname] !== undefined ? { ...f, required: reqdOverrides[f.fieldname] } : f"
+                    :model-value="modelValue[f.fieldname]"
+                    :disabled="disabled || f.read_only || !!fieldLocks?.[f.fieldname]" :error="errors?.[f.fieldname]"
+                    :doc-values="modelValue" @update:model-value="update(f.fieldname, $event)" />
+                </div>
               </div>
             </div>
           </div>

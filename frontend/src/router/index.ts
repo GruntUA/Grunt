@@ -128,6 +128,12 @@ const router = createRouter({
           component: () => import('@/pages/admin/RbacManager.vue'),
           props: true,
         },
+        {
+          path: 'hooks',
+          name: 'hook-manager',
+          component: () => import('@/pages/admin/HookManager.vue'),
+          props: true,
+        },
       ],
     },
     // 403 forbidden

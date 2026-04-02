@@ -9,7 +9,6 @@
   "is_hidden": false,
   "roles": "",
   "items": [
-    { "show_new_btn": true, "sequence": 0 },
     {
       "section": "Метадані",
       "type": "DocType",
@@ -20,7 +19,6 @@
       "show_new_btn": true,
       "sequence": 1
     },
-    { "show_new_btn": false, "sequence": 2 },
     {
       "section": "Моніторинг",
       "type": "DocType",

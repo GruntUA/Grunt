@@ -11,16 +11,25 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { type NotificationItem, notificationsApi } from '@/core/api/notifications'
+import { useWebSocket } from '@/core/composables/useWebSocket'
+import { useToast } from '@/core/composables/useToast'
 
 const props = defineProps<{
     workspace?: string
 }>()
 
 const router = useRouter()
+const toast = useToast()
 const notifications = ref<NotificationItem[]>([])
 const unreadCount = ref(0)
 const isOpen = ref(false)
-let pollingInterval: number | undefined
+
+// WebSocket for real-time notifications
+const ws = useWebSocket('/api/v1/ws/user')
+ws.onEvent('notification', (data: any) => {
+    fetchNotifications()
+    toast.info(data.subject || 'Нове сповіщення')
+})
 
 async function fetchNotifications() {
     try {
@@ -62,12 +71,10 @@ function formatDate(val: string) {
 
 onMounted(() => {
     fetchNotifications()
-    // Poll every 30 seconds
-    pollingInterval = window.setInterval(fetchNotifications, 30000)
 })
 
 onUnmounted(() => {
-    if (pollingInterval) clearInterval(pollingInterval)
+    // ws handles itself via useWebSocket onUnmounted
 })
 </script>
 

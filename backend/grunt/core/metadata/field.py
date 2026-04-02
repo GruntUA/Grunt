@@ -53,7 +53,7 @@ class DocField(BaseModel):
     """Single field definition inside a DocType."""
 
     fieldname: str  # snake_case, unique within DocType
-    label: str  # human-readable name
+    label: str = ""  # human-readable name
     fieldtype: FieldType
 
     # Validation
@@ -76,7 +76,7 @@ class DocField(BaseModel):
 
     # Layout (for Section/Column/Tab)
     collapsible: bool = False
-    columns: Literal[1, 2, 3, 4] = 1
+    columns: int = 12
 
     # Validation rules
     min_value: float | None = None

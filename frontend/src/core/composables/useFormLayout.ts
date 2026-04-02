@@ -100,8 +100,14 @@ export function parseLayout(fields: DocField[]): FormLayout {
         columns: [[]],
       }
     } else if (f.fieldtype === 'Column') {
-      currentSection._columnFieldnames.push(f.fieldname)
-      currentSection.columns.push([])
+      const lastCol = currentSection.columns[currentSection.columns.length - 1]
+      // If the ONLY current column is empty, just name it. Otherwise start new.
+      if (lastCol.length === 0 && currentSection.columns.length === 1) {
+        currentSection._columnFieldnames = [f.fieldname]
+      } else {
+        currentSection._columnFieldnames.push(f.fieldname)
+        currentSection.columns.push([])
+      }
     } else {
       const lastCol = currentSection.columns[currentSection.columns.length - 1]
       lastCol.push(f)

@@ -20,7 +20,7 @@ export interface DocField {
   description?: string
   placeholder?: string
   depends_on?: string
-  columns?: 1 | 2 | 3 | 4
+  columns?: number
   collapsible?: boolean
   min_value?: number
   max_value?: number
@@ -31,6 +31,7 @@ export interface DocTypeSummary {
   label: string
   module: string
   is_child?: boolean
+  is_singleton?: boolean
 }
 
 // ── Workflow types ────────────────────────────────────────────────────────

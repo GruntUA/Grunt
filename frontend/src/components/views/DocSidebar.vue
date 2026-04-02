@@ -36,6 +36,7 @@ import {
   Plus,
   X,
   Loader2,
+  Tag,
 } from 'lucide-vue-next'
 import PresenceAvatars from '@/components/ui/PresenceAvatars.vue'
 import type { PresenceUser } from '@/core/composables/usePresence'
@@ -444,7 +445,7 @@ onMounted(() => {
               <span>{{ s.user }}</span>
               <div class="flex items-center gap-2">
                 <span class="text-xs text-muted-foreground">{{ s.permission === 'Read' ? 'Читання' : 'Редагування'
-                  }}</span>
+                }}</span>
                 <button type="button" class="text-muted-foreground hover:text-destructive transition-colors"
                   @click="removeShare(s)">
                   <X class="size-3.5" />
