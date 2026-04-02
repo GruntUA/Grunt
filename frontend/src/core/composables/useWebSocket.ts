@@ -1,8 +1,8 @@
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onUnmounted, watch, type MaybeRefOrGetter, toValue } from 'vue'
 
 type EventHandler = (data: unknown) => void
 
-export function useWebSocket(url: string | null) {
+export function useWebSocket(urlSource: MaybeRefOrGetter<string | null>) {
   const ws = ref<WebSocket | null>(null)
   const lastMessage = ref<unknown>(null)
   const isConnected = ref(false)
@@ -17,8 +17,20 @@ export function useWebSocket(url: string | null) {
   }
 
   function connect() {
-    if (!url) return
+    const url = toValue(urlSource)
+    if (!url) {
+      if (ws.value) {
+        manualClose = true
+        ws.value.close()
+        ws.value = null
+        isConnected.value = false
+      }
+      return
+    }
 
+    if (ws.value?.readyState === WebSocket.OPEN || ws.value?.readyState === WebSocket.CONNECTING) return
+
+    manualClose = false
     const token = localStorage.getItem('grunt_token')
     const sep = url.includes('?') ? '&' : '?'
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -38,6 +50,7 @@ export function useWebSocket(url: string | null) {
       console.log(`[WS] closed: code=${e.code} reason=${e.reason}`)
       isConnected.value = false
       if (!manualClose) {
+        if (reconnectTimer) clearTimeout(reconnectTimer)
         reconnectTimer = setTimeout(connect, 3000)
       }
     }
@@ -61,13 +74,20 @@ export function useWebSocket(url: string | null) {
     }
   }
 
-  function send(data: unknown) {
-    if (ws.value?.readyState === WebSocket.OPEN) {
-      ws.value.send(JSON.stringify(data))
+  watch(() => toValue(urlSource), (newUrl) => {
+    if (newUrl) {
+      if (ws.value) {
+        manualClose = true
+        ws.value.close()
+      }
+      connect()
+    } else if (ws.value) {
+      manualClose = true
+      ws.value.close()
+      ws.value = null
+      isConnected.value = false
     }
-  }
-
-  onMounted(connect)
+  }, { immediate: true })
 
   onUnmounted(() => {
     manualClose = true
@@ -75,5 +95,11 @@ export function useWebSocket(url: string | null) {
     ws.value?.close()
   })
 
-  return { lastMessage, isConnected, send, onEvent }
+  return {
+    lastMessage, isConnected, send: (data: unknown) => {
+      if (ws.value?.readyState === WebSocket.OPEN) {
+        ws.value.send(JSON.stringify(data))
+      }
+    }, onEvent
+  }
 }

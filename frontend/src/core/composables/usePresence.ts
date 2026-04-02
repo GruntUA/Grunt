@@ -57,8 +57,8 @@ export function usePresence(ws: ReturnType<typeof useWebSocket>) {
   // Handle server events
   ws.onEvent('presence_update', (data) => {
     const d = data as { users: PresenceUser[] }
-    // Exclude self from the displayed list
-    users.value = (d.users ?? []).filter((u) => u.email !== auth.user?.email)
+    // Include all users (even self) for better visibility during multi-tab testing
+    users.value = d.users ?? []
   })
 
   ws.onEvent('field_locked', (data) => {

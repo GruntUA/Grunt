@@ -33,17 +33,19 @@ import {
   User,
   ChevronRight,
   ImageIcon,
-  Tag,
   Plus,
   X,
   Loader2,
 } from 'lucide-vue-next'
+import PresenceAvatars from '@/components/ui/PresenceAvatars.vue'
+import type { PresenceUser } from '@/core/composables/usePresence'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{
   doctype: DocType
   document: GruntDocument
   workspace?: string
+  users?: PresenceUser[]
 }>()
 
 const router = useRouter()
@@ -316,7 +318,10 @@ onMounted(() => {
 
     <!-- Meta information -->
     <div class="flex flex-col gap-3 text-sm">
-      <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Інформація</span>
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Інформація</span>
+        <PresenceAvatars v-if="users" :users="users" :max="3" />
+      </div>
       <div class="flex items-start gap-2.5">
         <User class="size-4 text-muted-foreground shrink-0 mt-0.5" />
         <div>

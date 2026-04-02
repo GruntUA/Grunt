@@ -326,7 +326,14 @@ async def ws_document(
     user_email = await _authenticate_ws(websocket, token)
     if not user_email:
         return
-    channel = f"doc:{doctype}:{doc_id}"
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    try:
+        dt = await doctype_registry.get(doctype)
+        normalized_doctype = dt.name
+    except Exception:
+        normalized_doctype = doctype
+
+    channel = f"doc:{normalized_doctype}:{doc_id}"
     await manager.connect(websocket, channel)
     try:
         while True:
@@ -369,7 +376,14 @@ async def ws_list(
     user_email = await _authenticate_ws(websocket, token)
     if not user_email:
         return
-    channel = f"list:{doctype}"
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    try:
+        dt = await doctype_registry.get(doctype)
+        normalized_doctype = dt.name
+    except Exception:
+        normalized_doctype = doctype
+
+    channel = f"list:{normalized_doctype}"
     await manager.connect(websocket, channel)
     try:
         while True:

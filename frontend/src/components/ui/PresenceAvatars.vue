@@ -2,13 +2,19 @@
 import { computed } from 'vue'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { initials } from '@/core/composables/usePresence'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 const props = withDefaults(
   defineProps<{
     users: PresenceUser[]
     max?: number
   }>(),
-  { max: 4 },
+  { max: 5 },
 )
 
 const visible = computed(() => props.users.slice(0, props.max))
@@ -16,23 +22,30 @@ const hidden = computed(() => Math.max(0, props.users.length - props.max))
 </script>
 
 <template>
-  <div v-if="users.length > 0" class="flex items-center -space-x-2">
-    <div
-      v-for="user in visible"
-      :key="user.email"
-      class="size-7 rounded-full ring-2 ring-background flex items-center justify-center text-[11px] font-bold text-white select-none shrink-0 cursor-default transition-transform hover:scale-110 hover:z-10"
-      :style="{ backgroundColor: user.color }"
-      :title="user.full_name"
-    >
-      {{ initials(user.full_name) }}
-    </div>
+  <TooltipProvider :delay-duration="100">
+    <div v-if="users.length > 0" class="flex items-center -space-x-2 group">
+      <div v-for="user in visible" :key="user.email"
+        class="relative transition-transform duration-200 hover:scale-110 hover:z-20 cursor-default">
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <div
+              class="size-7 rounded-full border-2 border-background ring-2 ring-transparent group-hover:ring-white/10 flex items-center justify-center text-[10px] font-bold text-white shadow-sm transition-all"
+              :style="{ backgroundColor: user.color }">
+              {{ initials(user.full_name) }}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" class="text-xs">
+            <p class="font-bold">{{ user.full_name }}</p>
+            <p class="text-[10px] opacity-70">{{ user.email }}</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
 
-    <div
-      v-if="hidden > 0"
-      class="size-7 rounded-full ring-2 ring-background bg-muted flex items-center justify-center text-[11px] font-semibold text-muted-foreground shrink-0"
-      :title="`+${hidden} інших`"
-    >
-      +{{ hidden }}
+      <!-- Overflow indicator -->
+      <div v-if="hidden > 0"
+        class="size-7 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground z-0">
+        +{{ hidden }}
+      </div>
     </div>
-  </div>
+  </TooltipProvider>
 </template>

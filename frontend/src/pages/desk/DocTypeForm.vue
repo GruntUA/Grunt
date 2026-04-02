@@ -8,7 +8,6 @@ import { useToast } from '@/core/composables/useToast'
 import { useWebSocket } from '@/core/composables/useWebSocket'
 import { usePresence } from '@/core/composables/usePresence'
 import { useClientScripts } from '@/core/composables/useClientScripts'
-import PresenceAvatars from '@/components/ui/PresenceAvatars.vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { DocType, GruntDocument } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -141,7 +140,7 @@ onMounted(async () => {
 
 // WebSocket real-time + presence
 const wsUrl = computed(() => props.id ? `/api/v1/ws/${props.doctype}/${props.id}` : null)
-const docWs = useWebSocket(wsUrl.value)
+const docWs = useWebSocket(wsUrl)
 const { lastMessage } = docWs
 const { users: presenceUsers, fieldLocks, focusField, blurField } = usePresence(docWs)
 
@@ -313,7 +312,6 @@ function onFormUpdate(updated: Record<string, unknown>) {
             <h1 class="text-2xl font-bold text-foreground truncate">{{ docTitle }}</h1>
             <Badge v-if="isDirty" variant="outline" class="border-amber-400 text-amber-600 shrink-0">Не збережено
             </Badge>
-            <PresenceAvatars :users="presenceUsers" />
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
@@ -421,10 +419,8 @@ function onFormUpdate(updated: Record<string, unknown>) {
           <!-- Form -->
           <div class="bg-card rounded-xl p-6 shadow-md ring-1 ring-border/60">
             <FormRenderer :doctype="dt" :model-value="form" :disabled="isSaving" :errors="validationErrors"
-              :overrides="displayOverrides" :reqd-overrides="reqdOverrides"
-              :field-locks="fieldLocks"
-              @update:model-value="onFormUpdate($event)"
-              @field-focus="focusField($event)"
+              :overrides="displayOverrides" :reqd-overrides="reqdOverrides" :field-locks="fieldLocks"
+              @update:model-value="onFormUpdate($event)" @field-focus="focusField($event)"
               @field-blur="blurField($event)" />
           </div>
 
@@ -461,7 +457,7 @@ function onFormUpdate(updated: Record<string, unknown>) {
 
         <!-- Right: Sidebar -->
         <DocSidebar v-if="id && document" :doctype="dt" :document="document as GruntDocument" :workspace="workspace"
-          class="lg:sticky lg:top-6 lg:self-start" />
+          :users="presenceUsers" class="lg:sticky lg:top-6 lg:self-start" />
       </div>
     </template>
 
