@@ -6,7 +6,9 @@ import { useDocTypeStore } from '@/stores/doctype'
 import { useDocument } from '@/core/composables/useDocument'
 import { useToast } from '@/core/composables/useToast'
 import { useWebSocket } from '@/core/composables/useWebSocket'
+import { usePresence } from '@/core/composables/usePresence'
 import { useClientScripts } from '@/core/composables/useClientScripts'
+import PresenceAvatars from '@/components/ui/PresenceAvatars.vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { DocType, GruntDocument } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -137,9 +139,11 @@ onMounted(async () => {
   await runScriptEvent('on_load')
 })
 
-// WebSocket real-time
+// WebSocket real-time + presence
 const wsUrl = computed(() => props.id ? `/api/v1/ws/${props.doctype}/${props.id}` : null)
-const { lastMessage } = useWebSocket(wsUrl.value)
+const docWs = useWebSocket(wsUrl.value)
+const { lastMessage } = docWs
+const { users: presenceUsers, fieldLocks, focusField, blurField } = usePresence(docWs)
 
 watch(lastMessage, (msg) => {
   if (!msg || typeof msg !== 'object') return
@@ -309,6 +313,7 @@ function onFormUpdate(updated: Record<string, unknown>) {
             <h1 class="text-2xl font-bold text-foreground truncate">{{ docTitle }}</h1>
             <Badge v-if="isDirty" variant="outline" class="border-amber-400 text-amber-600 shrink-0">Не збережено
             </Badge>
+            <PresenceAvatars :users="presenceUsers" />
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
@@ -417,7 +422,10 @@ function onFormUpdate(updated: Record<string, unknown>) {
           <div class="bg-card rounded-xl p-6 shadow-md ring-1 ring-border/60">
             <FormRenderer :doctype="dt" :model-value="form" :disabled="isSaving" :errors="validationErrors"
               :overrides="displayOverrides" :reqd-overrides="reqdOverrides"
-              @update:model-value="onFormUpdate($event)" />
+              :field-locks="fieldLocks"
+              @update:model-value="onFormUpdate($event)"
+              @field-focus="focusField($event)"
+              @field-blur="blurField($event)" />
           </div>
 
           <!-- Activity log -->

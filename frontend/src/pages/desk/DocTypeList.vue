@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useAuthStore } from '@/stores/auth'
+import { useWebSocket } from '@/core/composables/useWebSocket'
 import { useListSelection } from '@/core/composables/useListSelection'
 import { useListColumns } from '@/core/composables/useListColumns'
 import { useDevMode } from '@/core/composables/useDevMode'
@@ -33,6 +34,12 @@ const route = useRoute()
 const dtStore = useDocTypeStore()
 const auth = useAuthStore()
 const queryClient = useQueryClient()
+
+// Live list updates via WebSocket
+const listWs = useWebSocket(`/api/v1/ws/${props.doctype}`)
+listWs.onEvent('doc_change', () => {
+  queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
+})
 const { isDev } = useDevMode()
 
 const dt = ref<DocType | null>(null)

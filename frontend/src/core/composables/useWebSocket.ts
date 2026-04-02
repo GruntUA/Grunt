@@ -1,11 +1,20 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
+type EventHandler = (data: unknown) => void
+
 export function useWebSocket(url: string | null) {
   const ws = ref<WebSocket | null>(null)
   const lastMessage = ref<unknown>(null)
   const isConnected = ref(false)
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null
   let manualClose = false
+  const eventHandlers = new Map<string, EventHandler[]>()
+
+  function onEvent(eventName: string, handler: EventHandler) {
+    const handlers = eventHandlers.get(eventName) ?? []
+    handlers.push(handler)
+    eventHandlers.set(eventName, handlers)
+  }
 
   function connect() {
     if (!url) return
@@ -38,8 +47,17 @@ export function useWebSocket(url: string | null) {
     }
 
     ws.value.onmessage = (e) => {
-      try { lastMessage.value = JSON.parse(e.data) }
-      catch { lastMessage.value = e.data }
+      try {
+        const parsed = JSON.parse(e.data)
+        lastMessage.value = parsed
+        // Dispatch to named event handlers
+        if (parsed?.event) {
+          const handlers = eventHandlers.get(parsed.event) ?? []
+          for (const h of handlers) h(parsed.data)
+        }
+      } catch {
+        lastMessage.value = e.data
+      }
     }
   }
 
@@ -57,5 +75,5 @@ export function useWebSocket(url: string | null) {
     ws.value?.close()
   })
 
-  return { lastMessage, isConnected, send }
+  return { lastMessage, isConnected, send, onEvent }
 }

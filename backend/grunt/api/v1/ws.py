@@ -23,10 +23,19 @@ class ConnectionManager:
 
     Channel naming:
       ``grunt:ws:<channel>``  →  delivered to all connections on that channel
+
+    Presence / field-lock state is kept **in-process** (per worker).
+    For multi-worker deployments the presence_update event is published via
+    Redis so all instances stay in sync, but each instance maintains its own
+    view of who is connected locally.
     """
 
     def __init__(self) -> None:
         self._connections: dict[str, list[WebSocket]] = {}
+        # channel → {ws_id: user_info}
+        self._presence: dict[str, dict[int, dict[str, str]]] = {}
+        # channel → {fieldname: user_info}
+        self._field_locks: dict[str, dict[str, dict[str, str]]] = {}
         self._redis_listener_started = False
 
     def _total_connections(self) -> int:
@@ -149,11 +158,9 @@ class ConnectionManager:
     async def broadcast_all_users(self, payload: dict[str, Any]) -> None:
         """Broadcast a message to all connected user channels."""
         message = json.dumps(payload)
-        # Local delivery
         for channel in list(self._connections):
             if channel.startswith("user:"):
                 await self._send(channel, message)
-        # Redis fan-out to other instances via a dedicated broadcast channel
         await self._redis_publish("__broadcast_users__", message)
 
     async def _handle_broadcast_users(self, message: str) -> None:
@@ -161,6 +168,64 @@ class ConnectionManager:
         for channel in list(self._connections):
             if channel.startswith("user:"):
                 await self._send(channel, message)
+
+    # ── Presence API ──────────────────────────────────────────────────
+
+    def _presence_list(self, channel: str) -> list[dict[str, str]]:
+        return list(self._presence.get(channel, {}).values())
+
+    async def presence_join(
+        self, channel: str, ws: WebSocket, user_info: dict[str, str]
+    ) -> None:
+        self._presence.setdefault(channel, {})[id(ws)] = user_info
+        await self._send(
+            channel,
+            json.dumps({"event": "presence_update", "data": {"users": self._presence_list(channel)}}),
+        )
+
+    async def presence_leave(self, channel: str, ws: WebSocket) -> None:
+        presence = self._presence.get(channel, {})
+        ws_id = id(ws)
+        user_info = presence.pop(ws_id, None)
+        if user_info is None:
+            return
+
+        # Release all field locks held by this connection
+        locks = self._field_locks.get(channel, {})
+        released = [f for f, u in list(locks.items()) if u.get("email") == user_info.get("email")]
+        for field in released:
+            locks.pop(field, None)
+            await self._send(
+                channel,
+                json.dumps({"event": "field_unlocked", "data": {"field": field}}),
+            )
+
+        await self._send(
+            channel,
+            json.dumps({"event": "presence_update", "data": {"users": self._presence_list(channel)}}),
+        )
+
+    async def field_focus(
+        self, channel: str, ws: WebSocket, fieldname: str
+    ) -> None:
+        presence = self._presence.get(channel, {})
+        user_info = presence.get(id(ws))
+        if user_info is None:
+            return
+        self._field_locks.setdefault(channel, {})[fieldname] = user_info
+        await self._send(
+            channel,
+            json.dumps({"event": "field_locked", "data": {"field": fieldname, "user": user_info}}),
+        )
+
+    async def field_blur(self, channel: str, fieldname: str) -> None:
+        locks = self._field_locks.get(channel, {})
+        if fieldname in locks:
+            locks.pop(fieldname)
+            await self._send(
+                channel,
+                json.dumps({"event": "field_unlocked", "data": {"field": fieldname}}),
+            )
 
 
 manager = ConnectionManager()
@@ -193,11 +258,7 @@ async def ws_user(
     websocket: WebSocket,
     token: str | None = Query(default=None),
 ) -> None:
-    """Per-user channel for notifications and realtime messages.
-
-    All persistent notifications and transient messages (toasts, alerts)
-    are delivered through this channel.
-    """
+    """Per-user channel for notifications and realtime messages."""
     user_email = await _authenticate_ws(websocket, token)
     if not user_email:
         return
@@ -221,11 +282,7 @@ async def ws_public(
     websocket: WebSocket,
     channel: str,
 ) -> None:
-    """Public (unauthenticated) channel for displays and kiosks.
-
-    Apps broadcast to these channels via ``publish_channel()``.
-    Example: ``/ws/public/queue:board`` subscribes to queue board updates.
-    """
+    """Public (unauthenticated) channel for displays and kiosks."""
     full_channel = f"public:{channel}"
     await manager.connect(websocket, full_channel)
     try:
@@ -248,7 +305,24 @@ async def ws_document(
     doc_id: str,
     token: str | None = Query(default=None),
 ) -> None:
-    """Subscribe to changes on a specific document."""
+    """Subscribe to changes on a specific document.
+
+    Supports presence tracking and field-level locking.
+
+    Client → Server actions:
+      { "action": "ping" }
+      { "action": "presence_join", "user": { "email": "...", "full_name": "...", "color": "#..." } }
+      { "action": "presence_leave" }
+      { "action": "field_focus", "field": "fieldname" }
+      { "action": "field_blur",  "field": "fieldname" }
+
+    Server → Client events:
+      { "event": "pong" }
+      { "event": "doc_change",       "data": { ... } }
+      { "event": "presence_update",  "data": { "users": [...] } }
+      { "event": "field_locked",     "data": { "field": "...", "user": { ... } } }
+      { "event": "field_unlocked",   "data": { "field": "..." } }
+    """
     user_email = await _authenticate_ws(websocket, token)
     if not user_email:
         return
@@ -259,11 +333,29 @@ async def ws_document(
             raw = await websocket.receive_text()
             try:
                 msg = json.loads(raw)
-                if msg.get("action") == "ping":
-                    await websocket.send_text('{"event":"pong"}')
             except json.JSONDecodeError:
                 logger.debug("ws.invalid_json", raw=raw)
+                continue
+
+            action = msg.get("action")
+            if action == "ping":
+                await websocket.send_text('{"event":"pong"}')
+            elif action == "presence_join":
+                user_info = msg.get("user") or {}
+                await manager.presence_join(channel, websocket, user_info)
+            elif action == "presence_leave":
+                await manager.presence_leave(channel, websocket)
+            elif action == "field_focus":
+                fieldname = msg.get("field", "")
+                if fieldname:
+                    await manager.field_focus(channel, websocket, fieldname)
+            elif action == "field_blur":
+                fieldname = msg.get("field", "")
+                if fieldname:
+                    await manager.field_blur(channel, fieldname)
+
     except WebSocketDisconnect:
+        await manager.presence_leave(channel, websocket)
         manager.disconnect(websocket, channel)
 
 
@@ -281,6 +373,12 @@ async def ws_list(
     await manager.connect(websocket, channel)
     try:
         while True:
-            await websocket.receive_text()
+            raw = await websocket.receive_text()
+            try:
+                msg = json.loads(raw)
+                if msg.get("action") == "ping":
+                    await websocket.send_text('{"event":"pong"}')
+            except json.JSONDecodeError:
+                pass
     except WebSocketDisconnect:
         manager.disconnect(websocket, channel)

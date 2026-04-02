@@ -3,6 +3,8 @@ import { computed, ref } from 'vue'
 import type { DocType } from '@/types'
 import { parseLayout } from '@/core/composables/useFormLayout'
 import type { LayoutSection } from '@/core/composables/useFormLayout'
+import type { PresenceUser } from '@/core/composables/usePresence'
+import { initials } from '@/core/composables/usePresence'
 import { ChevronDown } from 'lucide-vue-next'
 import FieldRenderer from './FieldRenderer.vue'
 
@@ -13,9 +15,14 @@ const props = defineProps<{
   errors?: Record<string, string>
   overrides?: Record<string, boolean>
   reqdOverrides?: Record<string, boolean>
+  fieldLocks?: Record<string, PresenceUser>
 }>()
 
-const emit = defineEmits<{ 'update:modelValue': [value: Record<string, unknown>] }>()
+const emit = defineEmits<{
+  'update:modelValue': [value: Record<string, unknown>]
+  'field-focus': [fieldname: string]
+  'field-blur': [fieldname: string]
+}>()
 
 const layout = computed(() => parseLayout(props.doctype.fields))
 const hasTabs = computed(() => layout.value.length > 1 || layout.value[0]?.label !== '')
@@ -64,11 +71,33 @@ function toggleSection(section: LayoutSection) {
         <Transition name="section">
           <div v-if="!section.collapsed" :class="colClass(section.columns.length)" class="gap-x-4 gap-y-4">
             <div v-for="(col, ci) in section.columns" :key="ci" class="flex flex-col gap-4">
-              <FieldRenderer v-for="f in col" v-show="overrides?.[f.fieldname] !== false" :key="f.fieldname" :field="reqdOverrides?.[f.fieldname] !== undefined
-                ? { ...f, required: reqdOverrides[f.fieldname] }
-                : f" :model-value="modelValue[f.fieldname]" :disabled="disabled || f.read_only"
-                :error="errors?.[f.fieldname]" :doc-values="modelValue"
-                @update:model-value="update(f.fieldname, $event)" />
+              <div
+                v-for="f in col"
+                v-show="overrides?.[f.fieldname] !== false"
+                :key="f.fieldname"
+                class="relative"
+                @focusin="emit('field-focus', f.fieldname)"
+                @focusout="emit('field-blur', f.fieldname)"
+              >
+                <!-- Field lock badge -->
+                <div
+                  v-if="fieldLocks?.[f.fieldname]"
+                  class="absolute -top-1.5 right-1 z-20 flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm pointer-events-none select-none"
+                  :style="{ backgroundColor: fieldLocks[f.fieldname].color }"
+                  :title="`Редагує: ${fieldLocks[f.fieldname].full_name}`"
+                >
+                  <span>{{ initials(fieldLocks[f.fieldname].full_name) }}</span>
+                </div>
+
+                <FieldRenderer
+                  :field="reqdOverrides?.[f.fieldname] !== undefined ? { ...f, required: reqdOverrides[f.fieldname] } : f"
+                  :model-value="modelValue[f.fieldname]"
+                  :disabled="disabled || f.read_only || !!fieldLocks?.[f.fieldname]"
+                  :error="errors?.[f.fieldname]"
+                  :doc-values="modelValue"
+                  @update:model-value="update(f.fieldname, $event)"
+                />
+              </div>
             </div>
           </div>
         </Transition>
