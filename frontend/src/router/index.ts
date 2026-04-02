@@ -134,6 +134,12 @@ const router = createRouter({
           component: () => import('@/pages/admin/HookManager.vue'),
           props: true,
         },
+        {
+          path: 'activity-log',
+          name: 'activity-log',
+          component: () => import('@/pages/admin/ActivityLogViewer.vue'),
+          props: true,
+        },
       ],
     },
     // 403 forbidden

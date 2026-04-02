@@ -35,6 +35,7 @@ import {
   Search,
   Shield,
   LayoutDashboard,
+  Activity,
 } from 'lucide-vue-next'
 import { useColorMode } from '@/core/composables/useColorMode'
 import type { Theme } from '@/core/composables/useColorMode'
@@ -218,6 +219,14 @@ defineExpose({ mobileOpen })
                 :class="isActive ? 'bg-primary/10 text-primary border-primary/20' : 'text-muted-foreground/70 border-dashed border-border/70 hover:text-primary hover:bg-primary/5 hover:border-primary/20'">
                 <Shield class="size-3.5" />
                 Права доступу
+              </a>
+            </RouterLink>
+            <RouterLink :to="`/${workspaceName}/activity-log`" custom v-slot="{ isActive, href, navigate }">
+              <a :href="href" @click="navigate"
+                class="flex items-center gap-2 px-3 h-8 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border"
+                :class="isActive ? 'bg-primary/10 text-primary border-primary/20' : 'text-muted-foreground/70 border-dashed border-border/70 hover:text-primary hover:bg-primary/5 hover:border-primary/20'">
+                <Activity class="size-3.5" />
+                Журнал активності
               </a>
             </RouterLink>
             <Button variant="ghost" size="sm"

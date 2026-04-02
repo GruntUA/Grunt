@@ -21,6 +21,7 @@ import {
     LayoutGrid,
     FilePlus,
     Zap,
+    Activity,
 } from 'lucide-vue-next'
 import { onKeyStroke } from '@vueuse/core'
 
@@ -67,6 +68,7 @@ watch(() => uiStore.isCommandPaletteOpen, (open) => {
 const staticActions = [
     { id: 'new-doctype', title: 'Створити новий Доктайп', icon: Plus, action: () => navigateTo('/grunt/list/DocType/new'), category: 'Дії' },
     { id: 'view-hooks', title: 'Переглянути хуки', icon: Zap, action: () => navigateTo('/grunt/hooks'), category: 'Налаштування' },
+    { id: 'activity-log', title: 'Журнал активності', icon: Activity, action: () => navigateTo('/grunt/activity-log'), category: 'Налаштування' },
     { id: 'settings', title: 'Налаштування системи', icon: Settings, action: () => navigateTo('/grunt/list/SystemSettings/SystemSettings'), category: 'Дії' },
     { id: 'logout', title: 'Вийти з системи', icon: LogOut, action: () => auth.logout(), category: 'Дії' },
 ]

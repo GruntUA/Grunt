@@ -49,6 +49,10 @@ class NamingService:
         if not autoname:
             return None
 
+        # Strip optional "format:" prefix stored by the Studio UI
+        if autoname.startswith("format:"):
+            autoname = autoname[7:]
+
         # Try simple patterns first (field:, hash, prompt)
         simple = resolve_simple(autoname, data)
         if simple is not None:
