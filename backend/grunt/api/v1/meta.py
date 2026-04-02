@@ -178,3 +178,38 @@ async def sync_doctype(
         if columns_added
         else "Таблиця актуальна, змін не потрібно",
     )
+
+
+# ── RBAC helpers ──────────────────────────────────────────────────────────
+
+
+@router.get("/roles")
+async def list_roles(
+    session: AsyncSession = Depends(get_session),
+    _user: GruntUser = Depends(current_user),
+) -> list[dict]:
+    """Return all GruntRole rows."""
+    from sqlalchemy import text  # noqa: PLC0415
+    result = await session.execute(text("SELECT name, description FROM grunt_auth_role ORDER BY name"))
+    rows = result.fetchall()
+    return [{"name": r.name, "description": r.description} for r in rows]
+
+
+@router.patch("/doctypes/{name}/permissions", response_model=DocTypeSchema)
+async def patch_permissions(
+    name: str,
+    permissions: list[dict],
+    session: AsyncSession = Depends(get_session),
+    _user: GruntUser = Depends(superadmin_user),
+    eng: AsyncEngine = Depends(get_engine),
+) -> DocTypeSchema:
+    """Patch only the permissions field of a DocType."""
+    dt = await doctype_registry.get(name)
+    from grunt.core.metadata.doctype import DocTypePermission  # noqa: PLC0415
+    dt_dict = dt.model_dump()
+    dt_dict["permissions"] = [DocTypePermission(**p).model_dump() for p in permissions]
+    updated = type(dt)(**dt_dict)
+    await doctype_registry.update(updated, session, eng)
+    await _sync_doctype_doc(updated, session)
+    export_doctype_files(updated)
+    return _doctype_to_schema(updated)

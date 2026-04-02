@@ -122,6 +122,12 @@ const router = createRouter({
           component: () => import('@/pages/desk/FileManager.vue'),
           props: true,
         },
+        {
+          path: 'rbac',
+          name: 'rbac-manager',
+          component: () => import('@/pages/admin/RbacManager.vue'),
+          props: true,
+        },
       ],
     },
     // 403 forbidden
