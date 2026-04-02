@@ -116,6 +116,7 @@ export interface CalendarSource {
   label_field?: string
   color?: string
   filters?: Record<string, string>
+  recurring?: boolean
 }
 
 export interface DocTypeCalendarView {
@@ -282,7 +283,7 @@ export interface Dashboard {
   widgets: DashboardWidget[]
 }
 
-export interface DashboardSummary extends Omit<Dashboard, 'widgets'> {}
+export interface DashboardSummary extends Omit<Dashboard, 'widgets'> { }
 
 // ── Notifications ────────────────────────────────────────────────────────
 

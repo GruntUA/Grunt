@@ -125,6 +125,14 @@ onMounted(async () => {
     } catch { /* ignore malformed state */ }
   }
 
+  // Apply initial data from history state (e.g. from Calendar quick-add)
+  if (!props.id && window.history.state?.initial_data) {
+    try {
+      const initial = JSON.parse(window.history.state.initial_data) as Record<string, unknown>
+      Object.assign(form.value, initial)
+    } catch { /* ignore malformed state */ }
+  }
+
   // Run client scripts on_load after DocType metadata is available
   await runScriptEvent('on_load')
 })
