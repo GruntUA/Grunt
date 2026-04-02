@@ -19,7 +19,7 @@ router = APIRouter()
 MAX_BYTES = settings.max_upload_size_mb * 1024 * 1024
 
 
-@router.post("/")
+@router.post("")
 async def upload_file(
     file: UploadFile,
     user: GruntUser = Depends(current_user),
@@ -69,6 +69,50 @@ async def upload_file(
             "content_type": record.content_type,
             "size_bytes": record.size_bytes,
         },
+    }
+
+
+@router.get("")
+async def list_files(
+    limit: int = 50,
+    offset: int = 0,
+    search: str | None = None,
+    user: GruntUser = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """List uploaded files with pagination and search."""
+    stmt = select(GruntFile).order_by(GruntFile.created_at.desc())
+    if search:
+        stmt = stmt.where(GruntFile.original_name.ilike(f"%{search}%"))
+    
+    stmt = stmt.offset(offset).limit(limit)
+    result = await session.execute(stmt)
+    records = result.scalars().all()
+    
+    # Get total count
+    from sqlalchemy import func  # noqa: PLC0415
+    count_stmt = select(func.count()).select_from(GruntFile)
+    if search:
+        count_stmt = count_stmt.where(GruntFile.original_name.ilike(f"%{search}%"))
+    total = await session.scalar(count_stmt) or 0
+    
+    data = [
+        {
+            "id": r.id,
+            "url": f"/api/v1/files/{r.id}",
+            "filename": r.original_name,
+            "content_type": r.content_type,
+            "size_bytes": r.size_bytes,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "uploaded_by": r.uploaded_by,
+        }
+        for r in records
+    ]
+    
+    return {
+        "success": True,
+        "data": data,
+        "total": total,
     }
 
 

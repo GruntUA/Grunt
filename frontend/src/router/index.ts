@@ -95,7 +95,13 @@ const router = createRouter({
         {
           path: 'report/:reportName',
           name: 'workspace-report',
-          component: () => import('@/pages/workspace/WorkspaceReportView.vue'),
+          component: () => import('@/pages/reports/ReportView.vue'),
+          props: true,
+        },
+        {
+          path: 'report-builder/:reportName?',
+          name: 'report-builder',
+          component: () => import('@/pages/reports/QueryReportBuilder.vue'),
           props: true,
         },
         {
@@ -108,6 +114,12 @@ const router = createRouter({
           path: 'data-import/:id?',
           name: 'data-import',
           component: () => import('@/pages/desk/DataImport/DataImportPage.vue'),
+          props: true,
+        },
+        {
+          path: 'files',
+          name: 'file-manager',
+          component: () => import('@/pages/desk/FileManager.vue'),
           props: true,
         },
       ],

@@ -10,7 +10,7 @@ import { useDevMode } from '@/core/composables/useDevMode'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, DocField } from '@/types'
 import { Button } from '@/components/ui/button'
-import { Download, Plus, Search, Columns3, X, LayoutList, LayoutGrid, CalendarDays, GitBranch, Pencil, MoreHorizontal, Rows3, ChevronRight, Check } from 'lucide-vue-next'
+import { Download, Plus, Search, Columns3, X, LayoutList, LayoutGrid, CalendarDays, GitBranch, Pencil, MoreHorizontal, Rows3, ChevronRight, Check, FileBarChart } from 'lucide-vue-next'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -289,6 +289,11 @@ function navigateToDoc(row: Record<string, unknown>) {
                 Редагувати доктайп
               </DropdownMenuItem>
             </template>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem @click="router.push({ name: 'report-builder', params: { workspaceName: workspace ?? 'grunt' }, query: { doctype: doctype } })">
+              <FileBarChart class="size-4" />
+              Створити звіт
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <!-- New button -->

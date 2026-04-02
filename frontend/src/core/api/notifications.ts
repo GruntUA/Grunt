@@ -1,30 +1,33 @@
 import client from './client'
-import type { GruntNotification } from '@/types'
+
+export interface NotificationItem {
+  id: string
+  user: string
+  subject: string
+  message: string
+  doctype?: string | null
+  doc_id?: string | null
+  is_read: boolean
+  created_at: string
+}
 
 export const notificationsApi = {
-  async list(params?: { unread_only?: boolean; limit?: number; offset?: number }) {
-    const { data } = await client.get<{ success: boolean; data: GruntNotification[] }>(
-      '/api/v1/notifications',
-      { params },
-    )
-    return data.data
+  list: async (params?: { unread_only?: boolean; limit?: number; offset?: number }): Promise<NotificationItem[]> => {
+    const res = await client.get('/api/v1/notifications', { params })
+    return res.data.data
   },
 
-  async unreadCount() {
-    const { data } = await client.get<{ success: boolean; count: number }>(
-      '/api/v1/notifications/unread-count',
-    )
-    return data.count
+  unreadCount: async (): Promise<number> => {
+    const res = await client.get('/api/v1/notifications/unread-count')
+    return res.data.count
   },
 
-  async markRead(notificationId: string) {
-    await client.patch(`/api/v1/notifications/${notificationId}/read`)
+  markRead: async (id: string): Promise<void> => {
+    await client.patch(`/api/v1/notifications/${id}/read`)
   },
 
-  async markAllRead() {
-    const { data } = await client.post<{ success: boolean; count: number }>(
-      '/api/v1/notifications/read-all',
-    )
-    return data.count
-  },
+  markAllRead: async (): Promise<number> => {
+    const res = await client.post('/api/v1/notifications/read-all')
+    return res.data.count
+  }
 }

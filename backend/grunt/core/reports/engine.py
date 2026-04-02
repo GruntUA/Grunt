@@ -216,15 +216,13 @@ class ReportEngine:
         """
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.permissions.rbac import PermissionChecker  # noqa: PLC0415
+        from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
 
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
 
         # Permission check
-        checker = PermissionChecker(dt)
-        if not checker.can(user, "read"):
-            raise HTTPException(403, detail="Недостатньо прав")
+        await permission_checker.require(user, dt, "read")
 
         col_defs: list[dict] = report.get("columns") or []
 
@@ -283,9 +281,9 @@ class ReportEngine:
                 stmt = stmt.where(col == val)
 
         # Row-level security
-        from grunt.core.permissions.query import apply_permission_query  # noqa: PLC0415
+        from grunt.core.permissions.query import apply_permission_filter  # noqa: PLC0415
 
-        stmt = apply_permission_query(stmt, table, dt, user)
+        stmt = apply_permission_filter(stmt, table, user, dt)
 
         if group_by_cols:
             stmt = stmt.group_by(*group_by_cols)

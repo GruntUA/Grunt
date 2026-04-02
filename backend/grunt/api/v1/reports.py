@@ -170,6 +170,29 @@ async def run_report(
     return {"success": True, **result}
 
 
+@router.post("/run-preview")
+async def run_report_preview(
+    body: dict,
+    session: AsyncSession = Depends(get_session),
+    user: GruntUser = Depends(current_user),
+) -> dict:
+    """Execute an ad-hoc report configuration for preview."""
+    from grunt.core.reports.engine import report_engine  # noqa: PLC0415
+
+    doctype = body.get("doctype")
+    if not doctype:
+        raise HTTPException(400, detail="Тип документа не вказано")
+
+    result = await report_engine._run_list_report(
+        doctype,
+        {"columns": body.get("columns", [])},
+        body.get("filters", {}),
+        user,
+        session,
+    )
+    return {"success": True, **result}
+
+
 @router.get("/{name}/export/xlsx")
 async def export_report_xlsx(
     name: str,
