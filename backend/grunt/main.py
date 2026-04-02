@@ -25,9 +25,20 @@ from grunt.core.site.middleware import SiteContextMiddleware
 import grunt.core.db.system_tables  # noqa: F401
 import grunt.core.auth.models  # noqa: F401
 import grunt.core.print.hooks  # noqa: F401
-from grunt.core.doctypes.DataImport.DataImport import DataImport as DataImportController # Import the controller
+from grunt.core.doctypes.DataImport.DataImport import DataImport as DataImportController
+from grunt.core.doctypes.User.User import User as UserController
 
-document_registry.register("DataImport", DataImportController) # Register it
+document_registry.register("DataImport", DataImportController)
+document_registry.register("User", UserController)
+
+# Register client scripts for core doctypes (not scanned by discover_file_scripts)
+from pathlib import Path as _Path
+from grunt.core.scripting.file_scripts import FILE_CLIENT_SCRIPT_REGISTRY as _CLIENT_SCRIPTS, _load_doctype_dir_scripts as _load_dt_scripts
+
+_core_doctypes_dir = _Path(__file__).parent / "core" / "doctypes"
+for _dt_dir in sorted(_core_doctypes_dir.iterdir()):
+    if _dt_dir.is_dir() and not _dt_dir.name.startswith((".", "_")):
+        _load_dt_scripts(_dt_dir, "grunt")
 
 # Phase 3 modules (imported for side-effects: table registration)
 # workflow, permissions, reports engines are imported on-demand in endpoints

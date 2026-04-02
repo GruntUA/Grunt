@@ -20,7 +20,7 @@ from fastapi import HTTPException
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt.core.auth.service import _user_table
+from grunt.core.doctypes.User.User import _user_table
 
 if TYPE_CHECKING:
     from grunt.core.auth.models import GruntUser

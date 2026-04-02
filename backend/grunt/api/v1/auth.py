@@ -13,18 +13,20 @@ from grunt.core.middleware.rate_limit import limiter
 from grunt.core.auth.dependencies import current_user, superadmin_user
 from grunt.core.auth.models import GruntRole, GruntUser, GruntUserRole
 from grunt.core.auth.service import (
-    authenticate,
     consume_password_reset_token,
     create_access_token,
     create_password_reset_token,
     create_refresh_token,
+    revoke_refresh_tokens_for_user,
+    rotate_refresh_token,
+)
+from grunt.core.doctypes.User.User import (
+    authenticate,
     create_user,
     get_user_by_email,
     get_user_by_id,
     hash_password,
     list_users as service_list_users,
-    revoke_refresh_tokens_for_user,
-    rotate_refresh_token,
     _user_table,
 )
 from grunt.core.db.session import get_session

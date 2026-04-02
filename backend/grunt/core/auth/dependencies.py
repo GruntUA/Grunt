@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.config import settings
 from grunt.core.auth.models import GruntUser
-from grunt.core.auth.service import get_user_by_email
+from grunt.core.doctypes.User.User import get_user_by_email
 from grunt.core.db.session import get_session
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")

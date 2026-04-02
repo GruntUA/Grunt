@@ -53,6 +53,23 @@ class DocTypeRegistry:
         """Return a DocType by name or raise HTTP 404."""
         dt = self._doctypes.get(name)
         if dt is None:
+            # Fallback to case-insensitive match
+            for k, v in self._doctypes.items():
+                if k.lower() == name.lower():
+                    return v
+            
+            # Simple plural/singular fallback for common UI requests (e.g. 'users' -> 'User')
+            if name.lower().endswith('s'):
+                singular = name[:-1]
+                for k, v in self._doctypes.items():
+                    if k.lower() == singular.lower():
+                        return v
+            elif not name.lower().endswith('s'):
+                plural = name + 's'
+                for k, v in self._doctypes.items():
+                    if k.lower() == plural.lower():
+                        return v
+
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"DocType '{name}' not found",

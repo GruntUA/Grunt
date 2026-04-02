@@ -10,7 +10,7 @@ from grunt.core.metadata.compiler import compile_doctype_to_table
 
 router = APIRouter()
 
-@router.get("/")
+@router.get("")
 async def global_search(
     q: str = Query(..., min_length=2),
     user: GruntUser = Depends(current_user),
