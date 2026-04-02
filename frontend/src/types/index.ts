@@ -249,9 +249,20 @@ export interface ApiError {
 // ── Dashboard ─────────────────────────────────────────────────────────────
 
 export type WidgetType = 'metric' | 'chart_area' | 'chart_bar' | 'donut' | 'list'
+  | 'shortcut' | 'shortcuts_grid' | 'text' | 'clock'
 export type WidgetAggregation = 'count' | 'sum' | 'avg' | 'min' | 'max'
 export type WidgetPeriod = '7d' | '30d' | '90d' | '365d'
 export type WidgetCols = 1 | 2 | 3 | 4
+
+export type LinkType = 'DocType' | 'Report' | 'Dashboard' | 'URL'
+
+export interface ShortcutItem {
+  title: string
+  icon?: string | null
+  link_type: LinkType
+  link_to: string
+  color?: string
+}
 
 export interface DashboardWidget {
   id: string
@@ -268,6 +279,9 @@ export interface DashboardWidget {
   cols: WidgetCols
   color: string
   icon?: string | null
+  link_type?: LinkType | null
+  description?: string | null
+  content?: string | null
   sequence: number
 }
 

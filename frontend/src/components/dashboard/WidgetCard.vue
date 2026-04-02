@@ -5,6 +5,10 @@ import MetricWidget from './MetricWidget.vue'
 import ChartWidget from './ChartWidget.vue'
 import DonutWidget from './DonutWidget.vue'
 import ListWidget from './ListWidget.vue'
+import ShortcutWidget from './ShortcutWidget.vue'
+import ShortcutsGridWidget from './ShortcutsGridWidget.vue'
+import TextWidget from './TextWidget.vue'
+import ClockWidget from './ClockWidget.vue'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -26,14 +30,17 @@ const colSpanClass = computed(() => ({
   4: 'col-span-4',
 }[props.widget.cols] ?? 'col-span-1'))
 
-const minH = computed(() =>
-  props.widget.widget_type === 'metric' ? 'min-h-[120px]' : 'min-h-[220px]'
-)
+const minH = computed(() => {
+  if (props.widget.widget_type === 'metric') return 'min-h-[120px]'
+  if (props.widget.widget_type === 'shortcut') return 'min-h-[120px]'
+  if (props.widget.widget_type === 'clock') return 'min-h-[140px]'
+  return 'min-h-[220px]'
+})
 </script>
 
 <template>
   <div :class="[colSpanClass, minH,
-    'relative bg-card border rounded-xl shadow-sm overflow-hidden',
+    'group relative bg-card border rounded-xl shadow-sm overflow-hidden',
     editMode ? 'ring-2 ring-primary/20 cursor-grab active:cursor-grabbing' : '',
   ]">
     <!-- Edit overlay buttons -->
@@ -61,7 +68,7 @@ const minH = computed(() =>
     </div>
 
     <!-- Widget renders -->
-    <div class="group h-full">
+    <div class="h-full">
       <MetricWidget
         v-if="widget.widget_type === 'metric'"
         :widget="widget"
@@ -86,6 +93,26 @@ const minH = computed(() =>
         :data="(data as { items: Record<string, unknown>[]; title_field: string | null })"
         :loading="loading"
         :workspace-name="workspaceName"
+      />
+      <ShortcutWidget
+        v-else-if="widget.widget_type === 'shortcut'"
+        :widget="widget"
+        :data="(data as { count: number } | null)"
+        :loading="loading"
+        :workspace-name="workspaceName"
+      />
+      <ShortcutsGridWidget
+        v-else-if="widget.widget_type === 'shortcuts_grid'"
+        :widget="widget"
+        :workspace-name="workspaceName"
+      />
+      <TextWidget
+        v-else-if="widget.widget_type === 'text'"
+        :widget="widget"
+      />
+      <ClockWidget
+        v-else-if="widget.widget_type === 'clock'"
+        :widget="widget"
       />
     </div>
   </div>

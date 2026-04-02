@@ -11,11 +11,14 @@ import {
   DialogContent,
 } from '@/components/ui/dialog'
 import type { DashboardWidget } from '@/types'
+import { useToast } from '@/core/composables/useToast'
 
 const props = defineProps<{
   workspaceName: string
   dashboardName: string
 }>()
+
+const toast = useToast()
 
 interface DashboardDoc {
   id: string
@@ -39,8 +42,8 @@ const showConfigDialog = ref(false)
 async function load() {
   loading.value = true
   try {
-    const r = await docsApi.get('Dashboard', props.dashboardName)
-    dashboard.value = r.data as DashboardDoc
+    const doc = await docsApi.get('Dashboard', props.dashboardName) as unknown as DashboardDoc
+    dashboard.value = { ...doc, widgets: doc.widgets ?? [] }
     widgetData.value = await getDashboardData(props.dashboardName)
   } catch (error: any) {
     if (error.response?.status === 404) {
@@ -54,18 +57,22 @@ async function load() {
 }
 
 async function createDashboard() {
+  loading.value = true
   try {
-    loading.value = true
     await docsApi.create('Dashboard', {
       name: props.dashboardName,
       label: props.dashboardName,
       is_published: true,
       workspace: props.workspaceName,
-      widgets: []
+      widgets: [],
     })
     await load()
-  } catch (error) {
-    console.error('Failed to create dashboard', error)
+  } catch (err: unknown) {
+    const msg = (err as { response?: { data?: { detail?: string; error?: { message?: string } } } })
+      ?.response?.data?.error?.message
+      ?? (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
+      ?? 'Помилка створення дашборду'
+    toast.error(msg)
   } finally {
     loading.value = false
   }
@@ -96,8 +103,11 @@ function handleAddWidget() {
     filters: null,
     group_by: '',
     date_field: '',
-    sequence: dashboard.value?.widgets.length || 0,
+    sequence: dashboard.value?.widgets?.length || 0,
     icon: '',
+    link_type: null,
+    description: null,
+    content: null,
   }
   configWidget.value = newWidget
   showConfigDialog.value = true
@@ -145,13 +155,15 @@ async function saveDashboard() {
   })
 
   try {
-    await docsApi.put('Dashboard', dashboard.value.name, {
-      widgets: dashboard.value.widgets
+    await docsApi.update('Dashboard', dashboard.value.name, {
+      widgets: dashboard.value.widgets,
     })
     editMode.value = false
     await load()
-  } catch (error) {
-    console.error('Failed to save dashboard', error)
+  } catch (err: unknown) {
+    const msg = (err as { response?: { data?: { error?: { message?: string } } } })
+      ?.response?.data?.error?.message ?? 'Помилка збереження дашборду'
+    toast.error(msg)
   } finally {
     saving.value = false
   }

@@ -28,6 +28,9 @@ const isActive = computed(() => {
   if (props.item.type === 'Report') {
     return route.params.reportName === props.item.link_to
   }
+  if (props.item.type === 'Dashboard') {
+    return route.params.dashboardName === props.item.link_to
+  }
   return false
 })
 

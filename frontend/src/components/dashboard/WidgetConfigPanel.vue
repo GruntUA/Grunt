@@ -36,6 +36,10 @@ const WIDGET_TYPES: { value: WidgetType; label: string; icon: string }[] = [
   { value: 'chart_bar',  label: 'Графік (Bar)',  icon: '📊' },
   { value: 'donut',      label: 'Кругова',       icon: '🍩' },
   { value: 'list',       label: 'Список',        icon: '📋' },
+  { value: 'shortcut',       label: 'Ярлик',         icon: '🔗' },
+  { value: 'shortcuts_grid', label: 'Сітка ярликів', icon: '⊞' },
+  { value: 'text',           label: 'Текст',         icon: '📝' },
+  { value: 'clock',          label: 'Годинник',      icon: '🕐' },
 ]
 
 const AGGREGATIONS: { value: WidgetAggregation; label: string }[] = [
@@ -80,6 +84,11 @@ const isChart = computed(() =>
 const isDonut = computed(() => draft.value?.widget_type === 'donut')
 const isList = computed(() => draft.value?.widget_type === 'list')
 const isMetric = computed(() => draft.value?.widget_type === 'metric')
+const isShortcut      = computed(() => draft.value?.widget_type === 'shortcut')
+const isShortcutsGrid = computed(() => draft.value?.widget_type === 'shortcuts_grid')
+const isText          = computed(() => draft.value?.widget_type === 'text')
+const isClock         = computed(() => draft.value?.widget_type === 'clock')
+const isDataWidget    = computed(() => isMetric.value || isChart.value || isDonut.value || isList.value)
 </script>
 
 <template>
@@ -119,15 +128,53 @@ const isMetric = computed(() => draft.value?.widget_type === 'metric')
         <input v-model="draft.title" class="w-full h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Назва віджета" />
       </div>
 
-      <!-- DocType -->
-      <div class="space-y-1.5">
-        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">DocType</label>
-        <select v-model="draft.doctype" class="w-full h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+      <!-- DocType / Link target -->
+      <div v-if="isDataWidget || isShortcut" class="space-y-1.5">
+        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          {{ isShortcut ? 'Ціль' : 'DocType' }}
+        </label>
+        <select v-if="isDataWidget" v-model="draft.doctype" class="w-full h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
           <option value="">— Виберіть —</option>
           <option v-for="dt in dtStore.doctypes.filter(d => !d.is_child)" :key="dt.name" :value="dt.name">
             {{ dt.label }}
           </option>
         </select>
+        <input v-else v-model="draft.doctype" class="w-full h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Назва DocType, Report, Dashboard або URL" />
+      </div>
+
+      <!-- Link type (shortcut only) -->
+      <div v-if="isShortcut" class="space-y-1.5">
+        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Тип посилання</label>
+        <select v-model="draft.link_type" class="w-full h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+          <option value="DocType">DocType (список)</option>
+          <option value="Report">Звіт</option>
+          <option value="Dashboard">Дашборд</option>
+          <option value="URL">Зовнішній URL</option>
+        </select>
+      </div>
+
+      <!-- Description / subtitle -->
+      <div v-if="isShortcut || isClock" class="space-y-1.5">
+        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          {{ isClock ? 'Місце / Примітка' : 'Опис (підзаголовок)' }}
+        </label>
+        <input v-model="draft.description" class="w-full h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Текст підзаголовку..." />
+      </div>
+
+      <!-- Content (text widget) -->
+      <div v-if="isText" class="space-y-1.5">
+        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Вміст (HTML або текст)</label>
+        <textarea v-model="draft.content" rows="6"
+          class="w-full px-3 py-2 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none font-mono" />
+      </div>
+
+      <!-- Content (shortcuts_grid — JSON tiles) -->
+      <div v-if="isShortcutsGrid" class="space-y-1.5">
+        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Плитки (JSON)</label>
+        <textarea v-model="draft.content" rows="8"
+          class="w-full px-3 py-2 rounded-lg border bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+          placeholder='[{"title":"Назва","icon":"Users","link_type":"DocType","link_to":"User","color":"blue"}]' />
+        <p class="text-[11px] text-muted-foreground">JSON масив: title, icon, link_type (DocType/Report/Dashboard/URL), link_to, color</p>
       </div>
 
       <!-- Aggregation (metric only) -->
@@ -197,7 +244,7 @@ const isMetric = computed(() => draft.value?.widget_type === 'metric')
       </div>
 
       <!-- Icon (metric) -->
-      <div v-if="isMetric" class="space-y-1.5">
+      <div v-if="isMetric || isShortcut" class="space-y-1.5">
         <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Іконка (lucide)</label>
         <input v-model="draft.icon" class="w-full h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="BarChart2, Users, FileText …" />
       </div>

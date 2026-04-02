@@ -40,6 +40,7 @@ async def _compute_widget_data(widget: Any, session: AsyncSession) -> Any:
     try:
         dt = await doctype_registry.get(doctype_name)
     except Exception:
+        logger.warning("dashboard.unknown_doctype", doctype=doctype_name)
         return None
 
     table = compile_doctype_to_table(dt)
@@ -98,6 +99,7 @@ async def _compute_widget_data(widget: Any, session: AsyncSession) -> Any:
             rows = result.all()
             return {"labels": [str(r.day) for r in rows], "values": [r.cnt for r in rows]}
         except Exception:
+            logger.exception("dashboard.chart_error", widget_type=widget_type, doctype=doctype_name)
             return {"labels": [], "values": []}
 
     if widget_type == "donut":
@@ -115,6 +117,7 @@ async def _compute_widget_data(widget: Any, session: AsyncSession) -> Any:
             rows = result.all()
             return {"labels": [str(r.grp) for r in rows], "values": [r.cnt for r in rows]}
         except Exception:
+            logger.exception("dashboard.donut_error", doctype=doctype_name)
             return {"labels": [], "values": []}
 
     if widget_type == "list":
@@ -129,7 +132,27 @@ async def _compute_widget_data(widget: Any, session: AsyncSession) -> Any:
                         item[k] = v.isoformat()
             return {"items": items, "title_field": dt.title_field}
         except Exception:
+            logger.exception("dashboard.list_error", doctype=doctype_name)
             return {"items": [], "title_field": None}
+
+    if widget_type == "shortcut":
+        link_type = widget.get("link_type") or "DocType"
+        if link_type != "DocType":
+            return None
+        target = doctype_name
+        if not target:
+            return None
+        try:
+            target_dt = await doctype_registry.get(target)
+            target_table = compile_doctype_to_table(target_dt)
+            r = await session.execute(select(func.count()).select_from(target_table))
+            return {"count": r.scalar() or 0}
+        except Exception:
+            logger.warning("dashboard.shortcut_unknown_doctype", doctype=target)
+            return None
+
+    if widget_type == "shortcuts_grid":
+        return None
 
     return None
 
@@ -153,9 +176,10 @@ async def get_dashboard_data(
     result = await session.execute(
         select(dashboard_table).where(dashboard_table.c.name == name)
     )
-    dashboard = result.first()
-    if not dashboard:
+    dashboard_row = result.first()
+    if not dashboard_row:
         raise HTTPException(status_code=404, detail="Дашборд не знайдено")
+    dashboard = dict(dashboard_row._mapping)
 
     if not user.is_superadmin and not dashboard["is_published"]:
         raise HTTPException(status_code=403, detail="Дашборд не опубліковано")

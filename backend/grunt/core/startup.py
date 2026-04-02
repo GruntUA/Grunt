@@ -585,8 +585,11 @@ async def _apply_doctype_fixture(
         if exists.first():
             continue
 
+        from grunt.core.metadata.field import NON_PHYSICAL_FIELDS  # noqa: PLC0415
+
+        doc_id = str(_uuid.uuid4())
         row: dict = {
-            "id": str(_uuid.uuid4()),
+            "id": doc_id,
             "name": name_val,
             "owner": "system",
             "created_at": now,
@@ -595,7 +598,6 @@ async def _apply_doctype_fixture(
             "docstatus": 0,
         }
         for field in dt.fields:
-            from grunt.core.metadata.field import NON_PHYSICAL_FIELDS  # noqa: PLC0415
             if field.fieldtype in NON_PHYSICAL_FIELDS:
                 continue
             if field.fieldname in rec:
@@ -604,6 +606,47 @@ async def _apply_doctype_fixture(
                 row[field.fieldname] = field.default
 
         await session.execute(table.insert().values(**row))
+
+        # Save child table rows
+        for field in dt.fields:
+            if field.fieldtype != "Table" or not field.options:
+                continue
+            child_rows = rec.get(field.fieldname)
+            if not isinstance(child_rows, list):
+                continue
+            try:
+                child_dt = await doctype_registry.get(field.options)
+                child_table = compile_doctype_to_table(child_dt)
+                for idx, child_rec in enumerate(child_rows):
+                    if not isinstance(child_rec, dict):
+                        continue
+                    child_row: dict = {
+                        "id": str(_uuid.uuid4()),
+                        "name": str(_uuid.uuid4())[:8],
+                        "parent_id": doc_id,
+                        "parent_doctype": doctype_name,
+                        "parent_field": field.fieldname,
+                        "idx": child_rec.get("idx", idx),
+                        "owner": "system",
+                        "created_at": now,
+                        "modified_at": now,
+                        "modified_by": "system",
+                        "docstatus": 0,
+                    }
+                    for child_field in child_dt.fields:
+                        if child_field.fieldtype in NON_PHYSICAL_FIELDS:
+                            continue
+                        if child_field.fieldname in child_rec:
+                            child_row[child_field.fieldname] = child_rec[child_field.fieldname]
+                        elif child_field.default is not None:
+                            child_row[child_field.fieldname] = child_field.default
+                    await session.execute(child_table.insert().values(**child_row))
+            except Exception:  # noqa: BLE001
+                logger.warning(
+                    "startup.fixture_child_table_error",
+                    doctype=doctype_name,
+                    field=field.fieldname,
+                )
 
     await session.flush()
 

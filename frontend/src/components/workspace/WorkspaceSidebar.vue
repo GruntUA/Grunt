@@ -180,19 +180,19 @@ defineExpose({ mobileOpen })
       <!-- Navigation -->
       <ScrollArea class="flex-1">
         <nav class="p-2 flex flex-col gap-0.5">
-          <!-- Main Dashboard Link -->
-          <RouterLink :to="`/${workspaceName}/dashboard/${workspaceName}`" custom v-slot="{ isActive, href, navigate }">
-            <a :href="href" @click="navigate"
-              class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all"
-              :class="isActive ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'">
-              <LayoutDashboard class="w-4 h-4 shrink-0 shadow-sm"
-                :class="isActive ? 'text-primary' : 'text-muted-foreground/70'" />
-              <span v-if="!collapsed" class="truncate font-medium">Дашборд</span>
-            </a>
-          </RouterLink>
-
-          <!-- Divider -->
-          <Separator class="my-2" />
+          <!-- Fallback dashboard link — shown only when no Dashboard items are in menu -->
+          <template v-if="!wsStore.groupedItems.some(g => g.items.some(i => i.type === 'Dashboard'))">
+            <RouterLink :to="`/${workspaceName}/dashboard/${workspaceName}`" custom v-slot="{ isActive, href, navigate }">
+              <a :href="href" @click="navigate"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all"
+                :class="isActive ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'">
+                <LayoutDashboard class="w-4 h-4 shrink-0 shadow-sm"
+                  :class="isActive ? 'text-primary' : 'text-muted-foreground/70'" />
+                <span v-if="!collapsed" class="truncate font-medium">Дашборд</span>
+              </a>
+            </RouterLink>
+            <Separator class="my-2" />
+          </template>
 
           <template v-for="(group, gi) in wsStore.groupedItems" :key="gi">
             <!-- Divider -->
