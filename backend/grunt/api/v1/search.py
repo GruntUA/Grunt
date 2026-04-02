@@ -7,7 +7,6 @@ from grunt.core.auth.dependencies import current_user, get_session
 from grunt.core.auth.models import GruntUser
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.metadata.compiler import compile_doctype_to_table
-from grunt.core.document.service import DocumentService
 
 router = APIRouter()
 
