@@ -9,13 +9,13 @@
 
 | # | Що | Пріоритет |
 |---|-----|-----------|
-| 💡 | **i18n** — uk/en переклади, формати дат/чисел | Середній |
+| ✅ | **i18n** — uk/en переклади + Accept-Language middleware + remote translations | Середній |
 | ✅ | **Naming Series** — авто-нумерація (INV-2024-0001) | Високий |
-| 💡 | **Versioning** — збереження diff при кожному save | Середній |
-| 💡 | **Client Scripts** — JS скрипти на onload/onchange/onsubmit | Середній |
-| 💡 | **Server Scripts** — Python хуки на before_save/after_save тощо | Середній |
-| 💡 | **Web Forms** — публічні форми без авторизації | Середній |
-| 💡 | **Virtual DocTypes** — DocType без таблиці в БД (API-джерела) | Низький |
+| ✅ | **Versioning** — UI панель версій + diff + відновлення в FormView | Середній |
+| ✅ | **Client Scripts** — JS скрипти (вже інтегровані в FormView) | Середній |
+| ✅ | **Server Scripts** — Python хуки + scheduler cron jobs | Середній |
+| ✅ | **Web Forms** — публічна сторінка /form/:route з рендером і валідацією | Середній |
+| ✅ | **Virtual DocTypes** — compiler пропускає sync_table для is_virtual | Низький |
 | 💡 | **MkDocs документація** — генерація з docstrings | Низький |
 
 ---

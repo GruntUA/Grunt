@@ -52,6 +52,7 @@ import {
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 import DocSidebar from '@/components/views/DocSidebar.vue'
+import VersionHistoryPanel from '@/components/views/VersionHistoryPanel.vue'
 
 interface ActivityEntry {
   id: string
@@ -88,6 +89,14 @@ const {
 
 // Activity log
 const showLog = ref(false)
+
+// Version history
+const showVersions = ref(false)
+
+function onVersionRestored() {
+  queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })
+  showVersions.value = false
+}
 const activityLog = ref<ActivityEntry[]>([])
 const logLoading = ref(false)
 
@@ -452,6 +461,26 @@ function onFormUpdate(updated: Record<string, unknown>) {
                     <span class="text-muted-foreground">{{ entry.action }}</span>
                   </li>
                 </ul>
+              </div>
+            </Transition>
+          </div>
+
+          <!-- Version history -->
+          <div v-if="id && dt?.track_changes" class="mt-4 bg-card rounded-xl overflow-hidden shadow-sm ring-1 ring-border/60">
+            <button type="button"
+              class="w-full flex items-center gap-2 px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              @click="showVersions = !showVersions">
+              <Undo2 class="size-4" />
+              <span class="flex-1 text-left">Версії документа</span>
+              <ChevronDown class="size-4 transition-transform duration-200" :class="{ 'rotate-180': showVersions }" />
+            </button>
+            <Transition name="log">
+              <div v-if="showVersions" class="border-t border-border">
+                <VersionHistoryPanel
+                  :doctype="doctype"
+                  :doc-id="id"
+                  @restored="onVersionRestored"
+                />
               </div>
             </Transition>
           </div>

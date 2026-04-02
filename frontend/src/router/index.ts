@@ -44,6 +44,15 @@ const router = createRouter({
       props: true,
     },
 
+    // Public Web Forms (no auth required)
+    {
+      path: '/form/:route',
+      name: 'web-form',
+      component: () => import('@/pages/public/PublicWebForm.vue'),
+      meta: { public: true },
+      props: true,
+    },
+
     // Desk (app launcher)
     {
       path: '/',

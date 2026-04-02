@@ -45,6 +45,7 @@ for _dt_dir in sorted(_core_doctypes_dir.iterdir()):
 
 from grunt.core.middleware.security import SecurityHeadersMiddleware  # noqa: E402
 from grunt.core.middleware.logging import RequestLoggingMiddleware  # noqa: E402
+from grunt.core.middleware.language import LanguageMiddleware  # noqa: E402
 
 logger = structlog.get_logger()
 
@@ -234,6 +235,7 @@ app = FastAPI(
     redoc_url="/api/redoc",
 )
 
+app.add_middleware(LanguageMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(SiteContextMiddleware)

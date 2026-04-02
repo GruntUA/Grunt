@@ -175,6 +175,10 @@ async def sync_table(
     When *session* is provided, uses its underlying connection instead of
     opening a new one (avoids SQLite "database is locked" errors).
     """
+    if doctype.is_virtual:
+        logger.debug("compiler.skip_virtual", doctype=doctype.name)
+        return
+
     table = compile_doctype_to_table(doctype)
 
     def _sync(connection):  # noqa: ANN001 — runs inside run_sync

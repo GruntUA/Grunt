@@ -83,6 +83,57 @@ async def start_scheduler() -> None:
     if not scheduler.running:
         scheduler.start()
         logger.info("scheduler.started")
+    await _register_server_script_jobs()
+
+
+async def _register_server_script_jobs() -> None:
+    """Load all enabled Scheduler-Event server scripts from DB and register as cron jobs."""
+    try:
+        from grunt.core.db.session import async_session_factory  # noqa: PLC0415
+        from grunt.core.scripting.server_script import ServerScriptRunner  # noqa: PLC0415
+
+        runner = ServerScriptRunner()
+        async with async_session_factory() as session:
+            scripts = await runner.load_scheduler_scripts(session)
+
+        for entry in scripts:
+            cron_expr = entry.get("cron") or "0 * * * *"
+            script_name = entry["name"]
+            script_code = entry["script"]
+            _register_server_script_cron(script_name, script_code, cron_expr)
+
+        if scripts:
+            logger.info("scheduler.server_scripts_loaded", count=len(scripts))
+    except Exception as exc:
+        logger.warning("scheduler.server_scripts_load_failed", error=str(exc))
+
+
+def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None:
+    """Register a single server script as an APScheduler cron job."""
+    from grunt.core.scripting.server_script import ServerScriptRunner  # noqa: PLC0415
+    from grunt.core.db.session import async_session_factory  # noqa: PLC0415
+
+    async def _run() -> None:
+        logger.info("scheduler.server_script_run", name=name)
+        try:
+            async with async_session_factory() as session:
+                runner = ServerScriptRunner()
+                result = await runner.execute(script, session=session, trusted=True, user_email="system")
+            if result.output:
+                logger.debug("scheduler.server_script_output", name=name, output=result.output)
+        except Exception as exc:
+            logger.error("scheduler.server_script_error", name=name, error=str(exc))
+
+    try:
+        scheduler.add_job(
+            _run,
+            CronTrigger.from_crontab(cron_expr),
+            id=f"server_script:{name}",
+            replace_existing=True,
+        )
+        logger.info("scheduler.server_script_registered", name=name, cron=cron_expr)
+    except Exception as exc:
+        logger.warning("scheduler.server_script_register_failed", name=name, error=str(exc))
 
 
 async def stop_scheduler() -> None:
