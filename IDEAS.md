@@ -16,7 +16,7 @@
 | ✅ | **Server Scripts** — Python хуки + scheduler cron jobs | Середній |
 | ✅ | **Web Forms** — публічна сторінка /form/:route з рендером і валідацією | Середній |
 | ✅ | **Virtual DocTypes** — compiler пропускає sync_table для is_virtual | Низький |
-| 💡 | **MkDocs документація** — генерація з docstrings | Низький |
+| ✅ | **MkDocs документація** — генерація з docstrings | Низький |
 
 ---
 
@@ -75,6 +75,7 @@
 | 💡 | **Global full-text search** | Пошук по всіх DocType одночасно (PostgreSQL tsvector) |
 | 💡 | **Recent documents** | Останні відкриті в сайдбарі |
 | 💡 | **Quick create** | Ctrl+N → швидке створення запису будь-якого DocType |
+| 💡 | **Персоналізований сайдбар** | Пін улюблених пунктів меню, кастомні папки навігації, drag-and-drop порядок |
 
 ---
 
@@ -106,6 +107,8 @@
 
 | # | Що | Деталі |
 |---|-----|--------|
+| 💡 | **Pivot View** | Excel-подібна зведена таблиця прямо у ListView: групування по рядках/стовпцях, агрегація (count/sum/avg), export CSV |
+| 💡 | **Quick Charts** | Кнопка "Chart" у ListView → бар/лінія/пай з поточними фільтрами; endpoint `/api/v1/analytics/aggregate` |
 | 💡 | **AI-assisted reports** | Генерація SQL звіту з природної мови |
 | 💡 | **Report Subscriptions** | Email звіт за розкладом (щопонеділка) |
 | 💡 | **Cross-DocType Report** | JOIN кількох DocType в одному звіті |
@@ -125,7 +128,17 @@
 
 ---
 
-## 10. Безпека і адміністрування
+## 10. UI / Теми
+
+| # | Що | Деталі |
+|---|-----|--------|
+| ✅ | **Real-time Presence** | Аватари користувачів у FormView, блокування полів, live-оновлення ListView через WebSocket |
+| 💡 | **Theme Engine** | `ThemeSettings` singleton DocType: primary_color, accent_color, font_family, logo_url → генерує `/api/v1/theme.css`; live preview в адмін-формі |
+| 💡 | **Per-user theme** | Light / Dark / System — незалежно від org-теми |
+
+---
+
+## 12. Безпека і адміністрування
 
 | # | Що | Деталі |
 |---|-----|--------|
@@ -138,7 +151,7 @@
 
 ---
 
-## 11. Developer Experience
+## 13. Developer Experience
 
 | # | Що | Деталі |
 |---|-----|--------|
@@ -152,7 +165,7 @@
 
 ---
 
-## 12. Mobile / PWA
+## 14. Mobile / PWA
 
 | # | Що | Деталі |
 |---|-----|--------|
@@ -163,7 +176,7 @@
 
 ---
 
-## 13. Інтеграції
+## 15. Інтеграції
 
 | # | Що | Деталі |
 |---|-----|--------|

@@ -90,7 +90,8 @@ watch(search, async (val) => {
             if (a.title.toLowerCase().includes(q)) matchedResults.push({ ...a, type: 'action' })
         })
 
-        // 2. Match Workspaces
+        // 2. Match Workspaces (load on demand)
+        if (wsStore.workspaces.length === 0) await wsStore.loadAll()
         wsStore.workspaces.forEach(ws => {
             if (ws.label.toLowerCase().includes(q) || ws.name.toLowerCase().includes(q)) {
                 matchedResults.push({
