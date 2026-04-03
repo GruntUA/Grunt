@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -32,7 +32,41 @@ const emit = defineEmits<{
   select: [id: string]
   selectAll: []
   rowClick: [row: Record<string, unknown>]
+  inlineUpdate: [rowId: string, field: string, value: string]
 }>()
+
+// ── Inline editing ────────────────────────────────────────────────────────
+interface InlineEdit { rowId: string; field: string; value: string }
+const inlineEdit = ref<InlineEdit | null>(null)
+const inlineInput = ref<HTMLInputElement | null>(null)
+
+const INLINE_SKIP = new Set(['Check', 'Select', 'Date', 'Datetime', 'Image', 'Attach', 'RichText', 'JSON', 'Code', 'Signature'])
+
+function canInlineEdit(fieldtype: string): boolean {
+  return !INLINE_SKIP.has(fieldtype)
+}
+
+async function startEdit(row: Record<string, unknown>, field: string, fieldtype: string) {
+  if (!canInlineEdit(fieldtype)) return
+  inlineEdit.value = { rowId: String(row.id), field, value: String(row[field] ?? '') }
+  await nextTick()
+  inlineInput.value?.focus()
+  inlineInput.value?.select()
+}
+
+function commitEdit() {
+  if (!inlineEdit.value) return
+  emit('inlineUpdate', inlineEdit.value.rowId, inlineEdit.value.field, inlineEdit.value.value)
+  inlineEdit.value = null
+}
+
+function cancelEdit() {
+  inlineEdit.value = null
+}
+
+function isEditing(rowId: string, field: string): boolean {
+  return inlineEdit.value?.rowId === rowId && inlineEdit.value?.field === field
+}
 
 const fieldMap = computed(() => {
   const m: Record<string, DocField> = {}
@@ -158,9 +192,24 @@ function isSelected(id: string) {
           <td class="px-3 py-3" @click.stop>
             <Checkbox :model-value="isSelected(String(row.id))" @update:model-value="emit('select', String(row.id))" />
           </td>
-          <td v-for="(col, ci) in columns" :key="col.key" class="px-3 py-3" @click="emit('rowClick', row)">
+          <td v-for="(col, ci) in columns" :key="col.key" class="px-3 py-3"
+            @click="!isEditing(String(row.id), col.key) && emit('rowClick', row)"
+            @dblclick.stop="ci > 0 && startEdit(row, col.key, getFieldType(col.key))">
+            <!-- Inline edit input -->
+            <template v-if="isEditing(String(row.id), col.key)">
+              <input
+                ref="inlineInput"
+                v-model="inlineEdit!.value"
+                class="w-full rounded border border-primary px-1.5 py-0.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                @blur="commitEdit"
+                @keydown.enter.prevent="commitEdit"
+                @keydown.escape.prevent="cancelEdit"
+                @click.stop
+              />
+            </template>
+
             <!-- First column: bold primary link -->
-            <template v-if="ci === 0">
+            <template v-else-if="ci === 0">
               <span class="font-semibold text-primary hover:underline">
                 {{ formatCell(row[col.key]) }}
               </span>

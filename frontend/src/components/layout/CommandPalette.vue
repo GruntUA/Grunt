@@ -282,7 +282,15 @@ const flatResults = computed(() => results.value)
                             class="border rounded px-1.5 py-0.5 bg-background shadow-sm text-foreground">↵</kbd>
                         Вибрати</span>
                 </div>
-                <div class="flex items-center gap-1.5 opacity-60">
+                <template v-if="search.length >= 2">
+                    <button
+                        class="text-[10px] text-primary hover:underline font-semibold"
+                        @click="navigateTo(`/grunt/search?q=${encodeURIComponent(search)}`)"
+                    >
+                        Всі результати →
+                    </button>
+                </template>
+                <div v-else class="flex items-center gap-1.5 opacity-60">
                     <Command class="size-3" />
                     <span class="font-bold">K</span>
                 </div>

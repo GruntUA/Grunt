@@ -108,6 +108,10 @@ async def lifespan(app: FastAPI):
             async with eng.begin() as conn:
                 await conn.run_sync(_sa_meta.create_all)
 
+            # Ensure full-text search index table
+            from grunt.core.search.service import search_index_service as _sis  # noqa: PLC0415
+            await _sis.ensure_table(eng)
+
             async with maker() as session:
                 # Load/sync core JSON doctypes FIRST (creates physical tables, populates registry)
                 await load_core_doctypes(session, eng)

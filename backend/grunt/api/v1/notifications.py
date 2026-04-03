@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -83,6 +83,58 @@ async def unread_count(
     )
     count = result.scalar() or 0
     return {"success": True, "count": count}
+
+
+class PushSubscribeRequest(BaseModel):
+    endpoint: str
+    p256dh: str
+    auth: str
+
+
+@router.get("/vapid-public-key")
+async def get_vapid_public_key(
+    user: GruntUser = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    """Return the VAPID public key needed to subscribe to Web Push."""
+    from grunt.core.webpush.service import webpush_service  # noqa: PLC0415
+
+    key = await webpush_service.get_vapid_public_key(session)
+    if not key:
+        key = await webpush_service.ensure_vapid_keys(session)
+        if key:
+            await session.commit()
+    return {"success": True, "public_key": key}
+
+
+@router.post("/push-subscribe")
+async def push_subscribe(
+    body: PushSubscribeRequest,
+    request: Request,
+    user: GruntUser = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    """Save a browser push subscription for the current user."""
+    from grunt.core.webpush.service import webpush_service  # noqa: PLC0415
+
+    user_agent = request.headers.get("user-agent", "")
+    await webpush_service.save_subscription(
+        session, user.email, body.endpoint, body.p256dh, body.auth, user_agent
+    )
+    return {"success": True}
+
+
+@router.delete("/push-subscribe")
+async def push_unsubscribe(
+    body: PushSubscribeRequest,
+    user: GruntUser = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    """Remove a browser push subscription."""
+    from grunt.core.webpush.service import webpush_service  # noqa: PLC0415
+
+    await webpush_service.remove_subscription(session, body.endpoint)
+    return {"success": True}
 
 
 @router.post("/send")

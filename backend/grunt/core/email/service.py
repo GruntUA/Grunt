@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import email
+import uuid
+from datetime import datetime, timezone
 from email.message import EmailMessage
 from typing import Any
 
 import aioimaplib
 import aiosmtplib
 import structlog
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -100,8 +103,72 @@ class EmailService:
                         
             await imap.logout()
             logger.info("email.pulled", count=len(emails), account=account.get("email_address"))
-            
+
         except Exception as e:
             logger.error("email.pull_failed", error=str(e), account=account.get("email_address"))
-            
+
         return emails
+
+    @staticmethod
+    async def queue_email(
+        session: AsyncSession,
+        to: str,
+        subject: str,
+        body: str,
+        html_body: str | None = None,
+    ) -> str:
+        """Insert a record into EmailQueue for async delivery.
+
+        The ``process_email_queue`` task picks it up and sends via the default
+        outgoing EmailAccount (the first account with enable_outgoing=True).
+        """
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+
+        # Find the default outgoing account id (best-effort — None if unconfigured)
+        email_account_id: str | None = None
+        try:
+            rule_dt = doctype_registry._doctypes.get("EmailAccount")
+            if rule_dt:
+                account_table = compile_doctype_to_table(rule_dt)
+                from sqlalchemy import select  # noqa: PLC0415
+                result = await session.execute(
+                    select(account_table.c.id)
+                    .where(account_table.c.enable_outgoing.is_(True))
+                    .limit(1)
+                )
+                row = result.first()
+                if row:
+                    email_account_id = str(row[0])
+        except Exception:  # noqa: BLE001
+            pass
+
+        queue_dt = doctype_registry._doctypes.get("EmailQueue")
+        if not queue_dt:
+            logger.warning("email.queue_doctype_missing")
+            return ""
+
+        queue_table = compile_doctype_to_table(queue_dt)
+        record_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc)
+
+        await session.execute(
+            queue_table.insert().values(
+                id=record_id,
+                name=record_id,
+                owner="system",
+                created_at=now,
+                modified_at=now,
+                modified_by="system",
+                docstatus=0,
+                recipient=to,
+                subject=subject,
+                content=html_body or body,
+                status="Pending",
+                email_account=email_account_id,
+            )
+        )
+        return record_id
+
+
+email_service = EmailService()

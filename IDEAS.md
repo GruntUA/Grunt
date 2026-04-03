@@ -40,17 +40,19 @@
 
 | # | Що | Деталі |
 |---|-----|--------|
-| 💡 | **Import CSV/Excel** | Масовий імпорт документів з файлу |
-| 💡 | **Export CSV/Excel** | Вивантаження списку з фільтрами |
-| 💡 | **Bulk actions** | Вибір кількох записів → масове видалення/оновлення поля |
-| 💡 | **Document Timeline** | Права панель: хронологія змін, коментарі, вкладення |
-| 💡 | **Comments & Mentions** | @username в коментарях → сповіщення |
-| 💡 | **Document Sharing** | Поділитись документом з конкретним user/role |
-| 💡 | **Favorites / Bookmarks** | "Зірочка" на документ → швидкий доступ |
-| 💡 | **Document Tags** | Довільні теги на будь-якому документі |
+| ✅ | **Import CSV/Excel** | Масовий імпорт документів з файлу |
+| ✅ | **Export CSV/Excel** | Вивантаження списку з фільтрами |
+| ✅ | **Bulk delete** | Вибір кількох записів → масове видалення |
+| ✅ | **Bulk update field** | Масова зміна одного поля через діалог у BulkActionBar |
+| ✅ | **Document Timeline** | Вкладка "Активність" у DocSidebar: хронологія ActivityLog + коментарі |
+| ✅ | **Comments** | Коментарі в Timeline вкладці: додавання, видалення власних; backend `/comments` endpoints |
+| ✅ | **Document Sharing** | Поділитись документом з конкретним user/role |
+| ✅ | **Favorites / Bookmarks** | Кнопка закладки у DocSidebar, `Bookmark` doctype, `/bookmark` endpoints |
+| ✅ | **Document Tags** | Довільні теги на будь-якому документі |
 | ✅ | **Duplicate document** | Кнопка "Копіювати" у FormView |
-| 💡 | **Revision history UI** | Переглядати і відновлювати старі версії документу |
-| 💡 | **Print Format Builder** | Візуальний редактор шаблонів друку (HTML/Jinja) |
+| ✅ | **Revision history UI** | Переглядати і відновлювати старі версії документу |
+| ✅ | **Comments & Mentions** | `@email` в коментарях → backend парсить mentions → Notification для кожного згаданого; dropdown автодоповнення у DocSidebar |
+| ✅ | **Print Format Builder** | Сторінка `/list/PrintFormat/:id` — Jinja2 textarea + live iframe preview (debounce 800ms); `/docs/{doctype}/print-preview` POST endpoint; змінні-підказки по полях доктайпу; зразок документа |
 
 ---
 
@@ -58,12 +60,12 @@
 
 | # | Що | Деталі |
 |---|-----|--------|
-| 💡 | **Saved filters** | Зберегти поточний набір фільтрів як пресет |
-| 💡 | **Column customizer** | Drag-and-drop стовпців, показати/сховати |
-| 💡 | **Inline editing** | Редагувати поле прямо в таблиці (double click) |
-| 💡 | **Group by** | Групування рядків за полем Select/Link |
-| 💡 | **GalleryView** | Вигляд картками (як Notion Gallery) |
-| 💡 | **TreeView** | Ієрархічний список (parent_field self-reference) |
+| ✅ | **Saved filters** | Зберегти поточний набір фільтрів як пресет |
+| ✅ | **Column customizer** | Drag-and-drop стовпців, показати/сховати |
+| ✅ | **Inline editing** | Редагувати поле прямо в таблиці (double click) |
+| ✅ | **Group by** | Групування рядків за полем Select/Link |
+| ✅ | **GalleryView** | Вигляд картками (як Notion Gallery) |
+| ✅ | **TreeView** | Ієрархічний список (parent_field self-reference) |
 
 ---
 
@@ -72,7 +74,7 @@
 | # | Що | Деталі |
 |---|-----|--------|
 | ✅ | **Command Palette** | Cmd+K → пошук документів, переходи, дії |
-| 💡 | **Global full-text search** | Пошук по всіх DocType одночасно (PostgreSQL tsvector) |
+| ✅ | **Global full-text search** | Пошук по всіх DocType одночасно (PostgreSQL tsvector) |
 | 💡 | **Recent documents** | Останні відкриті в сайдбарі |
 | 💡 | **Quick create** | Ctrl+N → швидке створення запису будь-якого DocType |
 | 💡 | **Персоналізований сайдбар** | Пін улюблених пунктів меню, кастомні папки навігації, drag-and-drop порядок |
@@ -83,11 +85,11 @@
 
 | # | Що | Деталі |
 |---|-----|--------|
-| 💡 | **In-app сповіщення** | Bell icon + notification center у хедері |
-| 💡 | **Email сповіщення** | Notification Rules → send email on event |
-| 💡 | **Push-сповіщення** | Web Push API для браузера |
-| 💡 | **Webhook відправка** | Outgoing webhook при create/update/submit |
-| 💡 | **Digest email** | Щоденний/тижневий дайджест активності |
+| ✅ | **In-app сповіщення** | Bell icon + notification center у хедері |
+| ✅ | **Email сповіщення** | Notification Rules → send email on event |
+| ✅ | **Push-сповіщення** | Web Push API для браузера |
+| ✅ | **Webhook відправка** | Outgoing webhook при create/update/submit |
+| ✅ | **Digest email** | Щоденний/тижневий дайджест активності |
 
 ---
 
@@ -172,7 +174,7 @@
 | 💡 | **PWA підтримка** | Service Worker, offline cache, install prompt |
 | 💡 | **Мобільна адаптація** | Адаптивний layout для FormView/ListView |
 | 💡 | **Barcode/QR scanner** | Поле з camera input для сканування |
-| 💡 | **Offline mode** | Запис у локальний IndexedDB + sync при підключенні |
+| ✅ | **Offline mode** | Запис у локальний IndexedDB + sync при підключенні |
 
 ---
 

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Bell, Check, MailOpen, Mail } from 'lucide-vue-next'
+import { Bell, Check, MailOpen, Mail, BellOff, BellRing } from 'lucide-vue-next'
+import { useWebPush } from '@/core/composables/useWebPush'
+
+const { isSupported: pushSupported, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = useWebPush()
 import {
     Popover,
     PopoverContent,
@@ -161,6 +164,24 @@ onUnmounted(() => {
                     </div>
                 </div>
             </ScrollArea>
+
+            <!-- Push subscribe footer -->
+            <div v-if="pushSupported" class="px-4 py-2.5 border-t bg-muted/20 flex items-center justify-between">
+                <span class="text-[11px] text-muted-foreground">
+                    {{ pushSubscribed ? 'Push-сповіщення увімкнено' : 'Push-сповіщення вимкнено' }}
+                </span>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    class="h-6 px-2 text-[11px]"
+                    :disabled="pushLoading"
+                    @click="pushSubscribed ? pushUnsubscribe() : pushSubscribe()"
+                >
+                    <BellOff v-if="pushSubscribed" class="size-3 mr-1" />
+                    <BellRing v-else class="size-3 mr-1" />
+                    {{ pushSubscribed ? 'Вимкнути' : 'Увімкнути' }}
+                </Button>
+            </div>
         </PopoverContent>
     </Popover>
 </template>

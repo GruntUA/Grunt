@@ -83,7 +83,27 @@ async def start_scheduler() -> None:
     if not scheduler.running:
         scheduler.start()
         logger.info("scheduler.started")
+    _register_framework_jobs()
     await _register_server_script_jobs()
+
+
+def _register_framework_jobs() -> None:
+    """Register built-in framework recurring tasks."""
+    _add_scheduled_job("grunt.core.email.tasks.process_email_queue", "*/5 * * * *")  # every 5 min
+
+    async def _daily_digest():
+        from grunt.core.email.tasks import send_notification_digest  # noqa: PLC0415
+        await send_notification_digest.kiq(period="daily")
+
+    async def _weekly_digest():
+        from grunt.core.email.tasks import send_notification_digest  # noqa: PLC0415
+        await send_notification_digest.kiq(period="weekly")
+
+    scheduler.add_job(_daily_digest, CronTrigger.from_crontab("0 8 * * *"),
+                      id="grunt.digest.daily", replace_existing=True)
+    scheduler.add_job(_weekly_digest, CronTrigger.from_crontab("0 8 * * 1"),
+                      id="grunt.digest.weekly", replace_existing=True)
+    logger.info("scheduler.framework_jobs_registered")
 
 
 async def _register_server_script_jobs() -> None:

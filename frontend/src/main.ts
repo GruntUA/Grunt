@@ -22,3 +22,10 @@ app.use(VueQueryPlugin, {
   },
 })
 app.mount('#app')
+
+// Register push notification service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {
+    // SW registration is best-effort; push won't work but app still runs
+  })
+}

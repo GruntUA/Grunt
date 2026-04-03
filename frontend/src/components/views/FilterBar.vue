@@ -9,21 +9,71 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { Filter, X } from 'lucide-vue-next'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Filter, X, Bookmark, ChevronDown, Trash2 } from 'lucide-vue-next'
 
 const props = defineProps<{
   fields: DocField[]
+  doctype?: string
 }>()
 
 const emit = defineEmits<{ change: [filters: Record<string, string>] }>()
 
 interface ActiveFilter { fieldname: string; label: string; op: string; value: string }
+interface FilterPreset { name: string; filters: ActiveFilter[] }
 
 const activeFilters = ref<ActiveFilter[]>([])
 const showDropdown = ref(false)
 const pickedField = ref<DocField | null>(null)
 const pickedOp = ref('=')
 const pickedValue = ref('')
+
+// Saved presets
+const presetKey = computed(() => props.doctype ? `grunt_filter_presets_${props.doctype}` : null)
+const savedPresets = ref<FilterPreset[]>(loadPresets())
+const showSaveName = ref(false)
+const presetNameInput = ref('')
+
+function loadPresets(): FilterPreset[] {
+  if (!props.doctype) return []
+  try {
+    const raw = localStorage.getItem(`grunt_filter_presets_${props.doctype}`)
+    return raw ? (JSON.parse(raw) as FilterPreset[]) : []
+  } catch {
+    return []
+  }
+}
+
+function persistPresets() {
+  if (!presetKey.value) return
+  localStorage.setItem(presetKey.value, JSON.stringify(savedPresets.value))
+}
+
+function savePreset() {
+  const name = presetNameInput.value.trim()
+  if (!name || !activeFilters.value.length) return
+  savedPresets.value = [...savedPresets.value.filter(p => p.name !== name), { name, filters: [...activeFilters.value] }]
+  persistPresets()
+  showSaveName.value = false
+  presetNameInput.value = ''
+}
+
+function applyPreset(preset: FilterPreset) {
+  activeFilters.value = [...preset.filters]
+  emitChange()
+}
+
+function deletePreset(name: string) {
+  savedPresets.value = savedPresets.value.filter(p => p.name !== name)
+  persistPresets()
+}
 
 const filterableFields = computed(() =>
   props.fields.filter((f) => f.in_filter && !['Section', 'Column', 'Tab'].includes(f.fieldtype))
@@ -120,5 +170,61 @@ function emitChange() {
         <p v-else-if="!filterableFields.length" class="text-xs text-muted-foreground mt-2">Немає полів для фільтрації</p>
       </PopoverContent>
     </Popover>
+
+    <!-- Save/Load presets (only when doctype provided) -->
+    <template v-if="doctype">
+      <!-- Save current filters as preset -->
+      <template v-if="activeFilters.length">
+        <template v-if="showSaveName">
+          <div class="flex items-center gap-1">
+            <Input
+              v-model="presetNameInput"
+              class="h-7 text-xs w-28"
+              placeholder="Назва пресету"
+              autofocus
+              @keydown.enter="savePreset"
+              @keydown.escape="showSaveName = false"
+            />
+            <Button size="sm" class="h-7 px-2 text-xs" @click="savePreset">OK</Button>
+            <button type="button" class="text-muted-foreground hover:text-foreground" @click="showSaveName = false">
+              <X class="size-3.5" />
+            </button>
+          </div>
+        </template>
+        <Button v-else variant="ghost" size="sm" class="h-7 text-xs text-muted-foreground hover:text-foreground" @click="showSaveName = true">
+          <Bookmark class="size-3 mr-1" />
+          Зберегти
+        </Button>
+      </template>
+
+      <!-- Load presets dropdown -->
+      <DropdownMenu v-if="savedPresets.length">
+        <DropdownMenuTrigger as-child>
+          <Button variant="ghost" size="sm" class="h-7 text-xs text-muted-foreground hover:text-foreground">
+            Пресети
+            <ChevronDown class="size-3 ml-1" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" class="w-52">
+          <DropdownMenuLabel class="text-xs">Збережені фільтри</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            v-for="preset in savedPresets"
+            :key="preset.name"
+            class="flex items-center justify-between gap-2 group/item"
+            @select.prevent="applyPreset(preset)"
+          >
+            <span class="text-sm truncate flex-1">{{ preset.name }}</span>
+            <button
+              type="button"
+              class="opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive transition-all"
+              @click.stop="deletePreset(preset.name)"
+            >
+              <Trash2 class="size-3.5" />
+            </button>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </template>
   </div>
 </template>

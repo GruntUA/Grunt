@@ -6,6 +6,11 @@ import GruntDialog from '@/components/desk/GruntDialog.vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import CommandPalette from '@/components/layout/CommandPalette.vue'
 import { loadRemoteTranslations } from '@/plugins/i18n'
+import { useNetworkStatus, isOnline } from '@/core/composables/useNetworkStatus'
+import { pendingCount } from '@/core/composables/useOfflineQueue'
+import { WifiOff } from 'lucide-vue-next'
+
+useNetworkStatus()
 
 onMounted(() => {
   loadRemoteTranslations()
@@ -14,8 +19,29 @@ onMounted(() => {
 
 <template>
   <ErrorBoundary>
+    <!-- Offline banner — persistent top bar, shown only when offline -->
+    <Transition
+      enter-active-class="transition-all duration-300 ease-out"
+      enter-from-class="-translate-y-full opacity-0"
+      enter-to-class="translate-y-0 opacity-100"
+      leave-active-class="transition-all duration-200 ease-in"
+      leave-from-class="translate-y-0 opacity-100"
+      leave-to-class="-translate-y-full opacity-0"
+    >
+      <div
+        v-if="!isOnline"
+        class="fixed top-0 inset-x-0 z-[200] flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 text-amber-950 text-sm font-medium shadow-md"
+      >
+        <WifiOff class="size-4 shrink-0" />
+        <span>Немає з'єднання — зміни зберігаються локально</span>
+        <span v-if="pendingCount > 0" class="ml-2 px-1.5 py-0.5 rounded-full bg-amber-950/15 text-[11px] font-bold tabular-nums">
+          {{ pendingCount }} в черзі
+        </span>
+      </div>
+    </Transition>
+
     <RouterView />
-    <Sonner />
+    <Sonner position="bottom-right" />
     <GruntDialog />
     <CommandPalette />
   </ErrorBoundary>

@@ -68,6 +68,23 @@
             "fieldtype": "Check",
             "default": false,
             "columns": 6
+        },
+        {
+            "fieldname": "sec_webpush",
+            "label": "Web Push (сповіщення браузера)",
+            "fieldtype": "Section"
+        },
+        {
+            "fieldname": "webpush_vapid_public",
+            "label": "VAPID Public Key",
+            "fieldtype": "Text",
+            "read_only": true
+        },
+        {
+            "fieldname": "webpush_vapid_private",
+            "label": "VAPID Private Key",
+            "fieldtype": "LongText",
+            "hidden": true
         }
     ]
 }

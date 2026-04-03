@@ -11,7 +11,7 @@ import { useDevMode } from '@/core/composables/useDevMode'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, DocField } from '@/types'
 import { Button } from '@/components/ui/button'
-import { Download, Plus, Search, Columns3, X, LayoutList, LayoutGrid, CalendarDays, GitBranch, Pencil, MoreHorizontal, Rows3, ChevronRight, Check, FileBarChart } from 'lucide-vue-next'
+import { Download, Plus, Search, Columns3, X, LayoutList, LayoutGrid, CalendarDays, GitBranch, Pencil, MoreHorizontal, Rows3, ChevronRight, Check, FileBarChart, Image as ImageIcon } from 'lucide-vue-next'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +27,8 @@ import ListPagination from '@/components/views/ListPagination.vue'
 import KanbanView from '@/components/views/KanbanView.vue'
 import CalendarView from '@/components/views/CalendarView.vue'
 import TreeView from '@/components/views/TreeView.vue'
+import GalleryView from '@/components/views/GalleryView.vue'
+import draggable from 'vuedraggable'
 
 const props = defineProps<{ doctype: string; workspace?: string }>()
 const router = useRouter()
@@ -48,8 +50,8 @@ const debouncedSearch = ref('')
 const sortKey = ref('')
 const sortOrder = ref<'asc' | 'desc'>('asc')
 const activeFilters = ref<Record<string, string>>({})
-type ViewMode = 'list' | 'kanban' | 'calendar' | 'tree'
-const VALID_VIEWS: ViewMode[] = ['list', 'kanban', 'calendar', 'tree']
+type ViewMode = 'list' | 'kanban' | 'calendar' | 'tree' | 'gallery'
+const VALID_VIEWS: ViewMode[] = ['list', 'kanban', 'calendar', 'tree', 'gallery']
 
 const viewMode = ref<ViewMode>('list')
 const inlineSearch = ref('')
@@ -257,6 +259,25 @@ async function bulkDelete() {
   queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
 }
 
+async function bulkUpdate(field: string, value: string) {
+  const ids = selection.allSelected.value
+    ? ((await docsApi.list(props.doctype, {
+        page: 1, per_page: 10000, fields: 'id',
+        search: debouncedSearch.value || undefined,
+        filters: activeFilters.value,
+      })).data as Record<string, unknown>[]).map(r => String(r.id))
+    : selection.selectedIds.value
+
+  if (ids.length) await docsApi.bulkUpdate(props.doctype, ids, field, value)
+  selection.clear()
+  queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
+}
+
+async function onInlineUpdate(rowId: string, field: string, value: string) {
+  await docsApi.update(props.doctype, rowId, { [field]: value })
+  queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
+}
+
 const isSystemDocType = computed(() => props.doctype === 'DocType')
 
 const showDevActions = computed(() => isDev && auth.user?.is_superadmin)
@@ -334,7 +355,7 @@ function navigateToDoc(row: Record<string, unknown>) {
           <input v-model="inlineSearch" placeholder="Пошук..."
             class="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 pl-8 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
         </div>
-        <FilterBar v-if="dt" :fields="dt.fields" @change="onFiltersChange" class="!mb-0" />
+        <FilterBar v-if="dt" :fields="dt.fields" :doctype="doctype" @change="onFiltersChange" class="!mb-0" />
         <Button v-if="inlineSearch || Object.keys(activeFilters).length" variant="ghost" size="sm"
           class="h-8 px-2 lg:px-3" @click="inlineSearch = ''; debouncedSearch = ''; activeFilters = {}; page = 1">
           Скинути
@@ -367,10 +388,29 @@ function navigateToDoc(row: Record<string, unknown>) {
               </span>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem v-for="col in columns.allAvailableColumns.value" :key="col.key" class="gap-2"
+            <!-- Visible columns — draggable to reorder -->
+            <draggable
+              :model-value="columns.visibleColumns.value"
+              item-key="key"
+              handle=".drag-handle"
+              @end="(e: { oldIndex: number; newIndex: number }) => columns.reorderCols(e.oldIndex, e.newIndex)"
+            >
+              <template #item="{ element: col }">
+                <DropdownMenuItem class="gap-2 cursor-default" @select.prevent="columns.toggleCol(col.key)">
+                  <span class="drag-handle cursor-grab text-muted-foreground/40 hover:text-muted-foreground mr-0.5 select-none">⠿</span>
+                  <Check class="size-3.5 shrink-0 opacity-100 text-primary" />
+                  {{ col.label }}
+                </DropdownMenuItem>
+              </template>
+            </draggable>
+            <!-- Hidden columns (not reorderable) -->
+            <DropdownMenuItem
+              v-for="col in columns.allAvailableColumns.value.filter(c => !columns.isVisible(c.key))"
+              :key="col.key"
+              class="gap-2"
               @select.prevent="columns.toggleCol(col.key)">
-              <Check class="size-3.5 shrink-0"
-                :class="columns.isVisible(col.key) ? 'opacity-100 text-primary' : 'opacity-0'" />
+              <span class="size-3.5 mr-[1px]" />
+              <Check class="size-3.5 shrink-0 opacity-0" />
               {{ col.label }}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -426,6 +466,12 @@ function navigateToDoc(row: Record<string, unknown>) {
             title="Дерево" @click="viewMode = 'tree'">
             <GitBranch class="size-4" />
           </button>
+          <button type="button"
+            class="h-8 px-2.5 flex items-center border-l border-input transition-colors"
+            :class="viewMode === 'gallery' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'"
+            title="Галерея" @click="viewMode = 'gallery'">
+            <ImageIcon class="size-4" />
+          </button>
         </div>
       </div>
     </div>
@@ -440,12 +486,26 @@ function navigateToDoc(row: Record<string, unknown>) {
     <div v-else-if="viewMode === 'tree' && treeParentField && dt">
       <TreeView :doctype="dt" :parent-field="treeParentField.fieldname" :workspace="workspace" />
     </div>
+    <div v-else-if="viewMode === 'gallery'">
+      <GalleryView
+        :rows="rows"
+        :columns="columns.visibleColumns.value"
+        :fields="dt?.fields ?? []"
+        :doctype="doctype"
+        :workspace="workspace"
+        :is-loading="isLoading && !data"
+      />
+      <ListPagination v-if="meta" :page="meta.page" :pages="meta.pages" :total="meta.total" :per-page="20"
+        @update:page="page = $event" />
+    </div>
 
     <!-- List view -->
     <template v-else>
       <BulkActionBar :count="selection.allSelected.value ? (meta?.total ?? 0) : selection.selectedIds.value.length"
-        :total="meta?.total" :all-selected="selection.allSelected.value" :page-count="rows.length" @delete="bulkDelete"
-        @clear="selection.clear" @select-all="selection.selectAllDocuments" />
+        :total="meta?.total" :all-selected="selection.allSelected.value" :page-count="rows.length"
+        :editable-fields="dt?.fields"
+        @delete="bulkDelete" @clear="selection.clear" @select-all="selection.selectAllDocuments"
+        @update="bulkUpdate" />
 
       <!-- Grouped view -->
       <template v-if="groupBy && groupedRows">
@@ -472,7 +532,8 @@ function navigateToDoc(row: Record<string, unknown>) {
             :fields="dt?.fields ?? []" :is-loading="false" :sort-key="sortKey" :sort-order="sortOrder"
             :selected-ids="selection.selectedIds.value" :all-selected="selection.allSelected.value"
             :status-config="dt?.status_config" :hide-header="true" @sort="onSort" @select="selection.toggle"
-            @select-all="() => selection.toggleAll(group.items.map(r => String(r.id)))" @row-click="navigateToDoc" />
+            @select-all="() => selection.toggleAll(group.items.map(r => String(r.id)))" @row-click="navigateToDoc"
+            @inline-update="onInlineUpdate" />
         </div>
       </template>
 
@@ -482,7 +543,7 @@ function navigateToDoc(row: Record<string, unknown>) {
           :is-loading="isLoading && !data" :sort-key="sortKey" :sort-order="sortOrder"
           :selected-ids="selection.selectedIds.value" :all-selected="selection.allSelected.value"
           :status-config="dt?.status_config" @sort="onSort" @select="selection.toggle" @select-all="onSelectAll"
-          @row-click="navigateToDoc" />
+          @row-click="navigateToDoc" @inline-update="onInlineUpdate" />
 
         <ListPagination v-if="meta" :page="meta.page" :pages="meta.pages" :total="meta.total" :per-page="20"
           @update:page="page = $event" />

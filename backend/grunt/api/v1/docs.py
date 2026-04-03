@@ -500,6 +500,52 @@ async def print_document(
     )
 
 
+# ── Print Format Builder preview ─────────────────────────────────────────
+
+
+@router.post("/{doctype}/print-preview")
+async def print_format_preview(
+    doctype: str,
+    body: dict[str, Any],
+    user: GruntUser = Depends(current_user),
+    svc: DocumentService = Depends(get_doc_service),
+) -> Response:
+    """Render an arbitrary Jinja2 HTML template against the first document of a DocType.
+
+    Used by the Print Format Builder for live preview.
+    Body: { template: str, doc_id?: str }
+    """
+    from grunt.core.print.renderer import render_from_string  # noqa: PLC0415
+
+    template_str: str = (body.get("template") or "").strip()
+    if not template_str:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="template is required")
+
+    doc_id: str | None = body.get("doc_id")
+    dt = await doctype_registry.get(doctype)
+
+    if doc_id:
+        doc = await svc.get_document(doctype, doc_id, user)
+    else:
+        # Use first available document as sample
+        result = await svc.list_documents(doctype, user=user, page=1, per_page=1)
+        sample_list = result.get("data") or []
+        if sample_list:
+            doc = dict(sample_list[0])
+        else:
+            # Synthetic empty doc with all field names set to None
+            doc = {f.fieldname: None for f in dt.fields}
+            doc.setdefault("id", "preview")
+            doc.setdefault("name", "Зразок")
+
+    try:
+        html = render_from_string(template_str, doc, doctype_label=dt.label, fields=dt.fields)
+    except Exception as e:
+        html = f"<pre style='color:red;padding:1rem'>Помилка шаблону:\n{e}</pre>"
+
+    return Response(content=html, media_type="text/html")
+
+
 # ── Bulk export ───────────────────────────────────────────────────────────
 
 
@@ -687,3 +733,267 @@ async def get_document_log(
         for e in entries
     ]
     return {"success": True, "data": data}
+
+
+# ── Bulk update ───────────────────────────────────────────────────────────
+
+
+@router.post("/{doctype}/bulk-update")
+async def bulk_update_documents(
+    doctype: str,
+    body: dict[str, Any],
+    user: GruntUser = Depends(current_user),
+    svc: DocumentService = Depends(get_doc_service),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    """Update a single field on multiple documents."""
+    ids: list[str] = body.get("ids", [])
+    field: str | None = body.get("field")
+    value: Any = body.get("value")
+
+    if not ids:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="ids is required")
+    if not field:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="field is required")
+
+    updated = 0
+    errors: list[str] = []
+    for doc_id in ids:
+        try:
+            await svc.update_document(doctype, doc_id, {field: value}, user)
+            await _audit_log(session, doctype, doc_id, "bulk_update", user.email, {"field": field, "value": str(value)})
+            updated += 1
+        except Exception as e:
+            errors.append(f"{doc_id}: {e}")
+
+    return {"success": True, "data": {"updated": updated, "errors": errors}}
+
+
+# ── Comments ──────────────────────────────────────────────────────────────
+
+
+@router.get("/{doctype}/{doc_id}/comments")
+async def get_document_comments(
+    doctype: str,
+    doc_id: str,
+    user: GruntUser = Depends(current_user),
+    svc: DocumentService = Depends(get_doc_service),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    """Return all comments for a document."""
+    from sqlalchemy import select, asc  # noqa: PLC0415
+    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+
+    await svc.get_document(doctype, doc_id, user)  # permission check
+    table = compile_doctype_to_table(doctype_registry._doctypes["Comment"])
+    q = (
+        select(table)
+        .where(table.c.reference_doctype == doctype, table.c.reference_id == doc_id)
+        .order_by(asc(table.c.created_at))
+    )
+    rows = (await session.execute(q)).mappings().all()
+    data = [
+        {
+            "id": r["id"],
+            "content": r["content"],
+            "comment_type": r["comment_type"],
+            "owner": r["owner"],
+            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+        }
+        for r in rows
+    ]
+    return {"success": True, "data": data}
+
+
+@router.post("/{doctype}/{doc_id}/comments", status_code=status.HTTP_201_CREATED)
+async def add_document_comment(
+    doctype: str,
+    doc_id: str,
+    body: dict[str, Any],
+    user: GruntUser = Depends(current_user),
+    svc: DocumentService = Depends(get_doc_service),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    """Add a comment to a document. Parses @email mentions and sends notifications."""
+    import re  # noqa: PLC0415
+
+    content: str = (body.get("content") or "").strip()
+    if not content:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="content is required")
+
+    await svc.get_document(doctype, doc_id, user)  # permission check
+    comment = await svc.create_document(
+        "Comment",
+        {
+            "reference_doctype": doctype,
+            "reference_id": doc_id,
+            "content": content,
+            "comment_type": body.get("comment_type", "Comment"),
+        },
+        user,
+    )
+
+    # ── @mention notifications ────────────────────────────────────────────
+    mentions = set(re.findall(r"@([\w.+\-]+@[\w.\-]+)", content))
+    if mentions:
+        from grunt.core.notification import notification_service  # noqa: PLC0415
+
+        for mention in mentions:
+            if mention == user.email:
+                continue  # don't notify yourself
+            await notification_service._create_notification(  # noqa: SLF001
+                session=session,
+                user=mention,
+                doctype=doctype,
+                doc_id=doc_id,
+                subject=f"{user.email} згадав вас у коментарі",
+                message=content,
+            )
+        await session.flush()
+
+    return {"success": True, "data": comment}
+
+
+@router.delete("/{doctype}/{doc_id}/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_document_comment(
+    doctype: str,
+    doc_id: str,
+    comment_id: str,
+    user: GruntUser = Depends(current_user),
+    svc: DocumentService = Depends(get_doc_service),
+) -> None:
+    """Delete a comment. Only the comment owner or a superadmin may delete."""
+    comment = await svc.get_document("Comment", comment_id, user)
+    if comment.get("owner") != user.email and not user.is_superadmin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Not allowed")
+    await svc.delete_document("Comment", comment_id, user)
+
+
+# ── Bookmark ──────────────────────────────────────────────────────────────
+
+
+@router.get("/{doctype}/{doc_id}/bookmark")
+async def get_bookmark(
+    doctype: str,
+    doc_id: str,
+    user: GruntUser = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    """Return the current user's bookmark for this document, or null."""
+    from sqlalchemy import select  # noqa: PLC0415
+    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+
+    table = compile_doctype_to_table(doctype_registry._doctypes["Bookmark"])
+    q = select(table).where(
+        table.c.reference_doctype == doctype,
+        table.c.reference_id == doc_id,
+        table.c.owner == user.email,
+    )
+    row = (await session.execute(q)).mappings().first()
+    data = dict(row) if row else None
+    if data and data.get("created_at"):
+        data["created_at"] = data["created_at"].isoformat()
+    return {"success": True, "data": data}
+
+
+@router.post("/{doctype}/{doc_id}/bookmark", status_code=status.HTTP_201_CREATED)
+async def add_bookmark(
+    doctype: str,
+    doc_id: str,
+    body: dict[str, Any],
+    user: GruntUser = Depends(current_user),
+    svc: DocumentService = Depends(get_doc_service),
+) -> dict[str, Any]:
+    """Bookmark a document for the current user."""
+    await svc.get_document(doctype, doc_id, user)  # permission check
+    bookmark = await svc.create_document(
+        "Bookmark",
+        {
+            "reference_doctype": doctype,
+            "reference_id": doc_id,
+            "title": body.get("title", ""),
+        },
+        user,
+    )
+    return {"success": True, "data": bookmark}
+
+
+@router.delete("/{doctype}/{doc_id}/bookmark", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_bookmark(
+    doctype: str,
+    doc_id: str,
+    user: GruntUser = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+    svc: DocumentService = Depends(get_doc_service),
+) -> None:
+    """Remove the current user's bookmark for this document."""
+    from sqlalchemy import select  # noqa: PLC0415
+    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+
+    table = compile_doctype_to_table(doctype_registry._doctypes["Bookmark"])
+    q = select(table).where(
+        table.c.reference_doctype == doctype,
+        table.c.reference_id == doc_id,
+        table.c.owner == user.email,
+    )
+    row = (await session.execute(q)).mappings().first()
+    if row:
+        await svc.delete_document("Bookmark", str(row["id"]), user)
+
+
+# ── Timeline ──────────────────────────────────────────────────────────────
+
+
+@router.get("/{doctype}/{doc_id}/timeline")
+async def get_document_timeline(
+    doctype: str,
+    doc_id: str,
+    user: GruntUser = Depends(current_user),
+    svc: DocumentService = Depends(get_doc_service),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    """Return a merged, chronological timeline of activity log entries and comments."""
+    from sqlalchemy import select, asc  # noqa: PLC0415
+    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+
+    await svc.get_document(doctype, doc_id, user)  # permission check
+
+    activity_table = compile_doctype_to_table(doctype_registry._doctypes["ActivityLog"])
+    comment_table = compile_doctype_to_table(doctype_registry._doctypes["Comment"])
+
+    act_rows = (
+        await session.execute(
+            select(activity_table)
+            .where(activity_table.c.doctype == doctype, activity_table.c.doc_id == doc_id)
+        )
+    ).mappings().all()
+
+    comment_rows = (
+        await session.execute(
+            select(comment_table)
+            .where(comment_table.c.reference_doctype == doctype, comment_table.c.reference_id == doc_id)
+        )
+    ).mappings().all()
+
+    items: list[dict[str, Any]] = []
+    for r in act_rows:
+        items.append({
+            "type": "activity",
+            "id": str(r["id"]),
+            "action": r["action"],
+            "user": r["user"],
+            "details": r["details"],
+            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+        })
+    for r in comment_rows:
+        items.append({
+            "type": "comment",
+            "id": str(r["id"]),
+            "content": r["content"],
+            "comment_type": r["comment_type"],
+            "user": r["owner"],
+            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+        })
+
+    items.sort(key=lambda x: x["created_at"] or "")
+    return {"success": True, "data": items}

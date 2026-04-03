@@ -88,6 +88,13 @@ const router = createRouter({
             id: null,
           }),
         },
+        // Print Format Builder — must come before generic list/:doctype/:id
+        {
+          path: 'list/PrintFormat/:id',
+          name: 'print-format-builder',
+          component: () => import('@/pages/desk/PrintFormatBuilder.vue'),
+          props: (route) => ({ id: route.params.id, workspaceName: route.params.workspaceName }),
+        },
         // DocType builder — must come before the generic list/:doctype/:id route
         {
           path: 'list/DocType/:id',
@@ -123,6 +130,12 @@ const router = createRouter({
           path: 'data-import/:id?',
           name: 'data-import',
           component: () => import('@/pages/desk/DataImport/DataImportPage.vue'),
+          props: true,
+        },
+        {
+          path: 'search',
+          name: 'workspace-search',
+          component: () => import('@/pages/workspace/SearchResultsPage.vue'),
           props: true,
         },
         {

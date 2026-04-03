@@ -50,8 +50,16 @@ export function useListColumns(doctype: string, fields: () => DocField[]) {
     localStorage.setItem(storageKey, JSON.stringify(next))
   }
 
+  function reorderCols(oldIndex: number, newIndex: number) {
+    const current = [...visibleKeys.value]
+    const [moved] = current.splice(oldIndex, 1)
+    current.splice(newIndex, 0, moved)
+    _savedKeys.value = current
+    localStorage.setItem(storageKey, JSON.stringify(current))
+  }
+
   // True when the user has saved a custom selection (differs from defaults)
   const isCustomized = computed(() => _savedKeys.value !== null)
 
-  return { allAvailableColumns, visibleColumns, visibleKeys, defaultKeys, isVisible, toggleCol, isCustomized }
+  return { allAvailableColumns, visibleColumns, visibleKeys, defaultKeys, isVisible, toggleCol, reorderCols, isCustomized }
 }

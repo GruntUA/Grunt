@@ -6,6 +6,8 @@ const client: AxiosInstance = axios.create({
   timeout: 30_000,
 })
 
+const MUTABLE_METHODS = new Set(['post', 'put', 'patch', 'delete'])
+
 // Request interceptor: attach Authorization header
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('grunt_token')
@@ -69,8 +71,23 @@ client.interceptors.response.use(
 
     // Network error (no response): connection lost
     if (!error.response && error.request) {
-      const { useToast } = await import('@/core/composables/useToast')
-      useToast().error('No connection. Check your network and try again.')
+      const method = (originalConfig?.method ?? '').toLowerCase()
+
+      // Don't enqueue replayed requests or GET requests
+      const isReplay = originalConfig?.headers?.['X-Offline-Replay'] === '1'
+      if (MUTABLE_METHODS.has(method) && !isReplay) {
+        // Silently enqueue the mutation for later replay
+        const { offlineQueue } = await import('@/core/composables/useOfflineQueue')
+        const token = localStorage.getItem('grunt_token')
+        await offlineQueue.enqueue({
+          method: originalConfig.method ?? 'post',
+          url: originalConfig.url ?? '',
+          data: originalConfig.data ? JSON.parse(originalConfig.data) : undefined,
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
+        // Return a resolved placeholder so the UI doesn't crash
+        return Promise.resolve({ data: { _queued: true }, status: 202, statusText: 'Queued' })
+      }
     }
 
     return Promise.reject(error)

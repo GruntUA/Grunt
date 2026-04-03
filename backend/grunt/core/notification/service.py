@@ -209,6 +209,13 @@ class NotificationService:
                 is_read=False,
             )
         )
+        # Send Web Push (best-effort)
+        try:
+            from grunt.core.webpush.service import webpush_service  # noqa: PLC0415
+            await webpush_service.send_push(session, user, subject, message)
+        except Exception:  # noqa: BLE001
+            pass
+
         return notif_id
 
     def _resolve_recipients(

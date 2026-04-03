@@ -6,6 +6,25 @@ export interface WorkflowTransitionItem {
   to_state: string
 }
 
+export interface CommentItem {
+  id: string
+  content: string
+  comment_type: string
+  user: string
+  created_at: string | null
+}
+
+export interface TimelineItem {
+  type: 'activity' | 'comment'
+  id: string
+  action?: string
+  content?: string
+  comment_type?: string
+  user: string
+  details?: Record<string, unknown> | null
+  created_at: string | null
+}
+
 export interface BacklinkItem {
   source_doctype: string
   source_id: string
@@ -114,4 +133,36 @@ export const docsApi = {
 
   removeTag: (tagId: string): Promise<void> =>
     client.delete(`/api/v1/docs/DocTag/${tagId}`).then(() => undefined),
+
+  // ── Comments ────────────────────────────────────────────────────────────
+
+  getComments: (doctype: string, id: string): Promise<CommentItem[]> =>
+    client.get(`/api/v1/docs/${doctype}/${id}/comments`).then(r => r.data.data ?? []),
+
+  addComment: (doctype: string, id: string, content: string): Promise<CommentItem> =>
+    client.post(`/api/v1/docs/${doctype}/${id}/comments`, { content }).then(r => r.data.data),
+
+  deleteComment: (doctype: string, id: string, commentId: string): Promise<void> =>
+    client.delete(`/api/v1/docs/${doctype}/${id}/comments/${commentId}`).then(() => undefined),
+
+  // ── Bookmarks ────────────────────────────────────────────────────────────
+
+  getBookmark: (doctype: string, id: string): Promise<GruntDocument | null> =>
+    client.get(`/api/v1/docs/${doctype}/${id}/bookmark`).then(r => r.data.data ?? null),
+
+  addBookmark: (doctype: string, id: string, title?: string): Promise<GruntDocument> =>
+    client.post(`/api/v1/docs/${doctype}/${id}/bookmark`, { title: title ?? '' }).then(r => r.data.data),
+
+  removeBookmark: (doctype: string, id: string): Promise<void> =>
+    client.delete(`/api/v1/docs/${doctype}/${id}/bookmark`).then(() => undefined),
+
+  // ── Timeline ─────────────────────────────────────────────────────────────
+
+  getTimeline: (doctype: string, id: string): Promise<TimelineItem[]> =>
+    client.get(`/api/v1/docs/${doctype}/${id}/timeline`).then(r => r.data.data ?? []),
+
+  // ── Bulk update ──────────────────────────────────────────────────────────
+
+  bulkUpdate: (doctype: string, ids: string[], field: string, value: unknown): Promise<{ updated: number; errors: string[] }> =>
+    client.post(`/api/v1/docs/${doctype}/bulk-update`, { ids, field, value }).then(r => r.data.data),
 }

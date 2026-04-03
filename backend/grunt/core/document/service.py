@@ -266,6 +266,15 @@ class DocumentService:
 
             await fire("after_insert", doctype=doctype_name, doc=row, user=user, session=self.session)
             await fire("after_save", doctype=doctype_name, doc=row, user=user, session=self.session)
+
+            # Update search index
+            from grunt.core.search.service import search_index_service  # noqa: PLC0415
+            await search_index_service.index_document(self.session, doctype_name, dt, row)
+
+            # Fire outgoing webhooks
+            from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
+            await webhook_service.fire(self.session, "after_insert", doctype_name, row)
+
         finally:
             self._reset_grunt_context(_tokens)
 
@@ -519,6 +528,15 @@ class DocumentService:
 
             await fire("after_update", doctype=doctype_name, doc=result, user=user, session=self.session)
             await fire("after_save", doctype=doctype_name, doc=result, user=user, session=self.session)
+
+            # Update search index
+            from grunt.core.search.service import search_index_service  # noqa: PLC0415
+            await search_index_service.index_document(self.session, doctype_name, dt, result)
+
+            # Fire outgoing webhooks
+            from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
+            await webhook_service.fire(self.session, "after_update", doctype_name, result)
+
             return result
         finally:
             self._reset_grunt_context(_tokens)
@@ -570,6 +588,14 @@ class DocumentService:
             await self._ml.delete_all_for_doc(doctype_name, real_id)
             await self.session.flush()
             logger.info("document.deleted", doctype=doctype_name, id=real_id)
+
+            # Remove from search index
+            from grunt.core.search.service import search_index_service  # noqa: PLC0415
+            await search_index_service.remove_document(self.session, doctype_name, real_id)
+
+            # Fire outgoing webhooks
+            from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
+            await webhook_service.fire(self.session, "after_delete", doctype_name, existing)
 
             try:
                 await doc.after_delete()
