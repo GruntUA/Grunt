@@ -32,6 +32,7 @@ onMounted(() => {
 
     // Keep only last 20
     localStorage.setItem(key, JSON.stringify(filtered.slice(0, 20)))
+    window.dispatchEvent(new Event('grunt_recent_docs_changed'))
   } catch {
     // ignore
   }

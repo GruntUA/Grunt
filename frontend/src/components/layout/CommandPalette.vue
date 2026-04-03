@@ -35,12 +35,27 @@ const search = ref('')
 const results = ref<any[]>([])
 const loading = ref(false)
 const selectedIndex = ref(0)
+const quickCreateOpen = ref(false)
+const quickCreateDoctype = ref('')
 
 // Global shortcut: Ctrl+K or Cmd+K
 onKeyStroke(['k', 'K'], (e) => {
     if (e.ctrlKey || e.metaKey) {
         e.preventDefault()
         uiStore.toggleCommandPalette()
+    }
+})
+
+// Quick create: Ctrl+N or Cmd+N
+onKeyStroke(['n', 'N'], (e) => {
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        const active = document.activeElement
+        if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active?.isContentEditable) {
+            return
+        }
+        e.preventDefault()
+        quickCreateOpen.value = true
+        uiStore.openCommandPalette()
     }
 })
 
@@ -61,11 +76,26 @@ watch(() => uiStore.isCommandPaletteOpen, (open) => {
         search.value = ''
         results.value = []
         selectedIndex.value = 0
+        quickCreateOpen.value = false
+        quickCreateDoctype.value = ''
     }
+})
+
+onMounted(() => {
+    const onOpenQuickCreate = () => {
+        uiStore.openCommandPalette()
+        quickCreateOpen.value = true
+        quickCreateDoctype.value = ''
+    }
+    window.addEventListener('command-palette-open-quick-create', onOpenQuickCreate)
+    onUnmounted(() => {
+        window.removeEventListener('command-palette-open-quick-create', onOpenQuickCreate)
+    })
 })
 
 // Static actions
 const staticActions = [
+    { id: 'quick-create', title: 'Швидке створення (Ctrl+N)', icon: FilePlus, action: () => { quickCreateOpen.value = true; uiStore.openCommandPalette() }, category: 'Дії' },
     { id: 'new-doctype', title: 'Створити новий Доктайп', icon: Plus, action: () => navigateTo('/grunt/list/DocType/new'), category: 'Дії' },
     { id: 'view-hooks', title: 'Переглянути хуки', icon: Zap, action: () => navigateTo('/grunt/hooks'), category: 'Налаштування' },
     { id: 'activity-log', title: 'Журнал активності', icon: Activity, action: () => navigateTo('/grunt/activity-log'), category: 'Налаштування' },
@@ -211,6 +241,26 @@ const flatResults = computed(() => results.value)
                 <div v-else-if="search.length > 0 && results.length === 0 && !loading"
                     class="py-12 text-center text-sm text-muted-foreground italic">
                     Нічого не знайдено для "{{ search }}"
+                </div>
+
+                <div v-if="quickCreateOpen" class="px-4 py-4 border-b">
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quick Create</p>
+                            <p class="text-xs text-muted-foreground">Оберіть DocType, щоб створити новий запис</p>
+                        </div>
+                        <button class="text-muted-foreground hover:text-foreground" @click="quickCreateOpen = false">Esc</button>
+                    </div>
+                    <div class="flex gap-2">
+                        <select v-model="quickCreateDoctype" class="flex-1 p-2 border rounded bg-background">
+                            <option value="" disabled>Оберіть DocType...</option>
+                            <option v-for="dt in dtStore.doctypes" :key="dt.name" :value="dt.name">{{ dt.label || dt.name }}</option>
+                        </select>
+                        <button class="px-3 py-2 rounded bg-primary text-primary-foreground" :disabled="!quickCreateDoctype"
+                            @click="{ const ws = wsStore.active?.name || 'grunt'; uiStore.closeCommandPalette(); quickCreateOpen = false; router.push(`/${ws}/list/${quickCreateDoctype}/new`) }">
+                            Створити
+                        </button>
+                    </div>
                 </div>
 
                 <div v-else-if="search.length === 0" class="py-6 px-4">

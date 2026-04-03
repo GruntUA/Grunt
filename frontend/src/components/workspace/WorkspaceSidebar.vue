@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceStore } from '@/stores/workspace'
@@ -37,6 +37,8 @@ import {
   LayoutDashboard,
   Activity,
   Mail,
+  StarOff,
+  X,
 } from 'lucide-vue-next'
 import { useColorMode } from '@/core/composables/useColorMode'
 import type { Theme } from '@/core/composables/useColorMode'
@@ -52,6 +54,13 @@ const router = useRouter()
 
 const collapsed = ref(false)
 const showEditor = ref(false)
+const recentDocs = ref<Array<{ workspace: string; doctype: string; id: string; title: string; ts: number }>>([])
+const pinnedItems = ref<{ workspace: string; type: string; link_to: string; label: string; icon: string }[]>([])
+
+const _onOpenQuickCreate = () => {
+  window.dispatchEvent(new CustomEvent('toggle-search'))
+  window.dispatchEvent(new CustomEvent('command-palette-open-quick-create'))
+}
 
 onMounted(() => {
   const saved = localStorage.getItem('grunt_sidebar_collapsed')
@@ -59,6 +68,22 @@ onMounted(() => {
   if (window.innerWidth >= 768 && window.innerWidth <= 1024) {
     collapsed.value = true
   }
+  loadRecentDocs()
+  loadPinnedItems()
+  window.addEventListener('grunt_sidebar_pinned_changed', loadPinnedItems)
+  window.addEventListener('grunt_recent_docs_changed', loadRecentDocs)
+  window.addEventListener('open-quick-create', _onOpenQuickCreate)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('grunt_sidebar_pinned_changed', loadPinnedItems)
+  window.removeEventListener('grunt_recent_docs_changed', loadRecentDocs)
+  window.removeEventListener('open-quick-create', _onOpenQuickCreate)
+})
+
+watch(() => wsStore.active?.name, () => {
+  loadRecentDocs()
+  loadPinnedItems()
 })
 
 function toggleCollapse() {
@@ -83,6 +108,97 @@ async function onThemeChange(theme: string) {
 
 function triggerSearch() {
   window.dispatchEvent(new CustomEvent('toggle-search'))
+}
+
+function loadRecentDocs() {
+  try {
+    const key = 'grunt_recent_docs'
+    const saved = localStorage.getItem(key)
+    if (!saved) {
+      recentDocs.value = []
+      return
+    }
+    const parsed = JSON.parse(saved) as Array<{ workspace: string; doctype: string; id: string; title: string; ts: number }>
+    recentDocs.value = parsed
+      .slice(0, 10)
+      .map(r => ({ ...r }))
+  } catch {
+    recentDocs.value = []
+  }
+}
+
+function getPinKey(workspace: string, type: string, link_to: string) {
+  return `${workspace}:${type}:${link_to}`
+}
+
+function unpinItem(item: { workspace: string; type: string; link_to: string }) {
+  try {
+    const key = 'grunt_sidebar_pinned'
+    const saved = localStorage.getItem(key)
+    if (!saved) return
+    const list = JSON.parse(saved) as string[]
+    const idx = list.indexOf(getPinKey(item.workspace, item.type, item.link_to))
+    if (idx >= 0) {
+      list.splice(idx, 1)
+      localStorage.setItem(key, JSON.stringify(list.slice(0, 20)))
+      window.dispatchEvent(new Event('grunt_sidebar_pinned_changed'))
+      loadPinnedItems()
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function navigatePinnedItem(item: { workspace: string; type: string; link_to: string }) {
+  switch (item.type) {
+    case 'DocType':
+      router.push(`/${item.workspace}/list/${item.link_to}`)
+      break
+    case 'Report':
+      router.push(`/${item.workspace}/report/${item.link_to}`)
+      break
+    case 'Dashboard':
+      router.push(`/${item.workspace}/dashboard/${item.link_to}`)
+      break
+    case 'URL':
+      window.open(item.link_to, '_blank')
+      break
+    default:
+      router.push(`/${item.workspace}/list/${item.link_to}`)
+  }
+}
+
+function loadPinnedItems() {
+  try {
+    const key = 'grunt_sidebar_pinned'
+    const saved = localStorage.getItem(key)
+    if (!saved) {
+      pinnedItems.value = []
+      return
+    }
+    const ids = JSON.parse(saved) as string[]
+    pinnedItems.value = ids
+      .map((id) => {
+        const [workspace, type, link_to] = id.split(':')
+        if (!workspace || !type || !link_to) return null
+        const found = wsStore.active?.items.find(i => i.type === type && i.link_to === link_to)
+        const label = found?.label || link_to
+        const icon = found?.icon || '📌'
+        return { workspace, type, link_to, label, icon }
+      })
+      .filter((item): item is { workspace: string; type: string; link_to: string; label: string; icon: string } => !!item)
+      .slice(0, 10)
+  } catch {
+    pinnedItems.value = []
+  }
+}
+
+function openQuickCreate() {
+  window.dispatchEvent(new CustomEvent('open-quick-create'))
+}
+
+function gotoRecentDoc(doc: { workspace: string; doctype: string; id: string }) {
+  router.push(`/${doc.workspace}/list/${doc.doctype}/${doc.id}`)
 }
 
 defineExpose({ mobileOpen })
@@ -179,12 +295,32 @@ defineExpose({ mobileOpen })
         <NotificationsPopover :workspace="wsStore.active?.name" />
       </div>
 
+
+      <!-- Pinned items -->
+      <div v-if="!collapsed && pinnedItems.length" class="px-3 mb-2">
+        <div class="text-[11px] tracking-widest font-bold uppercase text-muted-foreground mb-1">Закріплені</div>
+        <div class="space-y-1">
+          <div v-for="item in pinnedItems" :key="`${item.workspace}-${item.type}-${item.link_to}`"
+            class="w-full flex items-center justify-between text-sm px-2 py-1 rounded hover:bg-accent/70 transition">
+            <button class="text-left flex-1 truncate" @click="navigatePinnedItem(item)">
+              {{ item.icon }} {{ item.label }}
+              <span class="text-[10px] text-muted-foreground lowercase ml-1">({{ item.type }})</span>
+            </button>
+            <button class="ml-2 rounded-md p-1 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10"
+              title="Відкріпити" @click.stop="unpinItem(item)">
+              <X class="size-3" />
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Navigation -->
       <ScrollArea class="flex-1">
         <nav class="p-2 flex flex-col gap-0.5">
           <!-- Fallback dashboard link — shown only when no Dashboard items are in menu -->
           <template v-if="!wsStore.groupedItems.some(g => g.items.some(i => i.type === 'Dashboard'))">
-            <RouterLink :to="`/${workspaceName}/dashboard/${workspaceName}`" custom v-slot="{ isActive, href, navigate }">
+            <RouterLink :to="`/${workspaceName}/dashboard/${workspaceName}`" custom
+              v-slot="{ isActive, href, navigate }">
               <a :href="href" @click="navigate"
                 class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all"
                 :class="isActive ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'">

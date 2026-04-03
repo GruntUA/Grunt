@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { WorkspaceLink } from '@/core/api/workspace'
 import { Badge } from '@/components/ui/badge'
@@ -8,7 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Plus } from 'lucide-vue-next'
+import { Plus, Star, StarOff } from 'lucide-vue-next'
 
 const props = defineProps<{
   item: WorkspaceLink
@@ -60,6 +60,53 @@ function createNew(e: Event) {
   router.push(`/${props.workspaceName}/list/${props.item.link_to}/new`)
 }
 
+function getPinKey(): string {
+  return `${props.workspaceName}:${props.item.type}:${props.item.link_to}`
+}
+
+const pinUpdateSignal = ref(0)
+
+const pinned = computed(() => {
+  pinUpdateSignal.value
+  try {
+    const list = JSON.parse(localStorage.getItem('grunt_sidebar_pinned') || '[]') as string[]
+    return list.includes(getPinKey())
+  } catch {
+    return false
+  }
+})
+
+function syncPinned() {
+  pinUpdateSignal.value++
+}
+
+onMounted(() => {
+  window.addEventListener('grunt_sidebar_pinned_changed', syncPinned)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('grunt_sidebar_pinned_changed', syncPinned)
+})
+
+function togglePin(e: Event) {
+  e.stopPropagation()
+  try {
+    const key = getPinKey()
+    const list = JSON.parse(localStorage.getItem('grunt_sidebar_pinned') || '[]') as string[]
+    const idx = list.indexOf(key)
+    if (idx >= 0) {
+      list.splice(idx, 1)
+    } else {
+      list.unshift(key)
+    }
+    localStorage.setItem('grunt_sidebar_pinned', JSON.stringify(list.slice(0, 20)))
+    window.dispatchEvent(new Event('grunt_sidebar_pinned_changed'))
+    syncPinned()
+  } catch {
+    // ignore
+  }
+}
+
 const displayCount = computed(() => {
   if (!props.count || props.count <= 0) return ''
   return props.count > 99 ? '99+' : String(props.count)
@@ -81,11 +128,12 @@ const displayCount = computed(() => {
     </TooltipContent>
   </Tooltip>
 
-  <button v-else
-    class="group w-full flex items-center gap-3 px-2.5 h-9 rounded-lg text-left transition-all duration-200 relative mb-0.5"
+  <div v-else role="button" tabindex="0"
+    class="group w-full flex items-center gap-3 px-2.5 h-9 rounded-lg text-left transition-all duration-200 relative mb-0.5 cursor-pointer"
     :class="isActive
       ? 'bg-primary/5 text-primary font-bold'
-      : 'text-muted-foreground hover:bg-accent/60 hover:text-accent-foreground'" @click="navigate">
+      : 'text-muted-foreground hover:bg-accent/60 hover:text-accent-foreground'" @click="navigate"
+    @keydown.enter.prevent="navigate" @keydown.space.prevent="navigate">
     <!-- Indicator Pill -->
     <div v-if="isActive" class="absolute left-0 top-2 bottom-2 w-1 bg-primary rounded-r-full" />
 
@@ -98,12 +146,19 @@ const displayCount = computed(() => {
       class="h-5 min-w-5 px-1.5 text-[10px] font-semibold justify-center shrink-0 bg-accent/80 border-none rounded-full">
       {{ displayCount }}</Badge>
 
+    <!-- Pin toggle -->
+    <button
+      class="opacity-0 group-hover:opacity-100 rounded-md p-1 text-muted-foreground/60 hover:text-primary hover:bg-primary/10 transition-all shrink-0"
+      :title="pinned ? 'Відкріпити' : 'Закріпити'" @click="togglePin">
+      <component :is="pinned ? Star : StarOff" class="size-3.5" />
+    </button>
+
     <!-- New button -->
     <button v-if="item.show_new_btn"
       class="opacity-0 group-hover:opacity-100 rounded-md p-1 text-muted-foreground/60 hover:text-primary hover:bg-primary/10 transition-all shrink-0"
       title="Створити новий" @click="createNew">
       <Plus class="size-3.5" />
     </button>
-  </button>
+  </div>
 
 </template>

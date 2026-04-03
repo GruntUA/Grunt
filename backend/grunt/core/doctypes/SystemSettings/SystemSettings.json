@@ -85,6 +85,78 @@
             "label": "VAPID Private Key",
             "fieldtype": "LongText",
             "hidden": true
+        },
+        {
+            "fieldname": "sec_email",
+            "label": "Email налаштування",
+            "fieldtype": "Section"
+        },
+        {
+            "fieldname": "default_email_account",
+            "label": "Обліковий запис за замовчуванням",
+            "fieldtype": "Link",
+            "options": "EmailAccount",
+            "columns": 6
+        },
+        {
+            "fieldname": "email_footer",
+            "label": "Підпис у email",
+            "fieldtype": "RichText",
+            "columns": 12
+        },
+        {
+            "fieldname": "sec_security",
+            "label": "Безпека",
+            "fieldtype": "Section"
+        },
+        {
+            "fieldname": "password_min_length",
+            "label": "Мінімальна довжина пароля",
+            "fieldtype": "Int",
+            "default": 8,
+            "columns": 6
+        },
+        {
+            "fieldname": "password_require_uppercase",
+            "label": "Вимагати великі літери",
+            "fieldtype": "Check",
+            "default": true,
+            "columns": 6
+        },
+        {
+            "fieldname": "password_require_numbers",
+            "label": "Вимагати цифри",
+            "fieldtype": "Check",
+            "default": true,
+            "columns": 6
+        },
+        {
+            "fieldname": "password_require_symbols",
+            "label": "Вимагати символи",
+            "fieldtype": "Check",
+            "default": false,
+            "columns": 6
+        },
+        {
+            "fieldname": "session_timeout",
+            "label": "Час життя сесії (хвилини)",
+            "fieldtype": "Int",
+            "default": 480,
+            "columns": 6
+        },
+        {
+            "fieldname": "max_login_attempts",
+            "label": "Максимум спроб входу",
+            "fieldtype": "Int",
+            "default": 5,
+            "columns": 6
+        },
+        {
+            "fieldname": "account_lockout_duration",
+            "label": "Блокування після невдачі (хвилини)",
+            "fieldtype": "Int",
+            "default": 30,
+            "columns": 6
         }
     ]
 }

@@ -75,9 +75,9 @@
 |---|-----|--------|
 | ✅ | **Command Palette** | Cmd+K → пошук документів, переходи, дії |
 | ✅ | **Global full-text search** | Пошук по всіх DocType одночасно (PostgreSQL tsvector) |
-| 💡 | **Recent documents** | Останні відкриті в сайдбарі |
-| 💡 | **Quick create** | Ctrl+N → швидке створення запису будь-якого DocType |
-| 💡 | **Персоналізований сайдбар** | Пін улюблених пунктів меню, кастомні папки навігації, drag-and-drop порядок |
+| ✅ | **Recent documents** | Останні відкриті в сайдбарі (та на головній) |
+| ✅ | **Quick create** | Ctrl+N → швидке створення запису будь-якого DocType |
+| ✅ | **Персоналізований сайдбар** | Пін улюблених пунктів меню, кастомні секції, drag-and-drop порядок |
 
 ---
 
@@ -223,7 +223,7 @@
 | ✅ | **`DocTypePermission` DocType** | Створено `DocTypePermission.json`. Startup мігрує permissions з DocType meta → таблицю, завантажує в пам'ять. Хук `after_save/after_delete` оновлює registry в реальному часі. Маршрут `rbac` → redirect до `/list/DocTypePermission` |
 | ✅ | **`ScheduledJob`** | `ServerScript` з `script_type = "Scheduler Event"` вже виконує роль. `_register_server_script_jobs()` завантажує їх з БД при старті |
 | ✅ | **Вбудований "grunt" workspace** | `grunt_workspace.json` оновлено: 8 секцій, 25+ DocType включно з File, DocTypePermission, OutgoingWebhook, PushSubscription, SystemSettings, Report, Users |
-| 💡 | **`SystemSettings` як єдина точка входу** | Сторінки EmailSettings, Push, Security ще є окремими — можна перенести як секції SystemSettings FormView |
+| ✅ | **`SystemSettings` як єдина точка входу** | Сторінки EmailSettings, Push, Security ще є окремими — можна перенести як секції SystemSettings FormView |
 | 💡 | **ClientScript для PrintFormat preview** | Додати ClientScript що рендерить iframe preview при редагуванні шаблону |
 | 💡 | **ClientScript для Report runner** | Додати кнопку "Запустити" через ClientScript в FormView Report |
 | 💡 | **ClientScript для EmailAccount test** | Додати кнопку "Тест SMTP" через ClientScript в FormView EmailAccount |

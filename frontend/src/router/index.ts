@@ -156,6 +156,10 @@ const router = createRouter({
           path: 'email-settings',
           redirect: (route) => `/${route.params.workspaceName}/list/EmailAccount`,
         },
+        {
+          path: 'settings',
+          redirect: (route) => `/${route.params.workspaceName}/list/SystemSettings/SystemSettings`,
+        },
       ],
     },
     // 403 forbidden
