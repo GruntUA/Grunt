@@ -711,26 +711,69 @@ async def _auto_seed_workspace(
 
 
 def _load_app_meta(app_dir: "Path") -> dict | None:
-    """Load app metadata from grunt_app.py or app.json."""
+    """Load app metadata from app.json and/or grunt_app.py with fallback merging.
+    
+    Priority: app.json values override grunt_app.py values.
+    Guarantees presence of: name, title, version, modules, icon, color, description.
+    """
     import json  # noqa: PLC0415
     from pathlib import Path  # noqa: PLC0415
 
     app_json = app_dir / "app.json"
-    if app_json.exists():
-        return json.loads(app_json.read_text())
-
     grunt_app = app_dir / "grunt_app.py"
+
+    # Start with defaults
+    result = {
+        "name": app_dir.name,
+        "title": app_dir.name,
+        "version": "0.1.0",
+        "description": "",
+        "author": "",
+        "modules": [],
+        "icon": "📦",
+        "color": "#2D6A4F",
+    }
+
+    # Load from grunt_app.py first (as base)
     if grunt_app.exists():
         ns: dict = {}
-        exec(grunt_app.read_text(), ns)  # noqa: S102
-        return {
-            "name": ns.get("APP_NAME", app_dir.name),
-            "title": ns.get("APP_TITLE", app_dir.name),
-            "version": ns.get("APP_VERSION", "0.1.0"),
-            "modules": ns.get("MODULES", []),
-            "icon": ns.get("APP_ICON", "📦"),
-            "color": ns.get("APP_COLOR", "#2D6A4F"),
-            "description": ns.get("APP_DESCRIPTION", ""),
-        }
+        try:
+            exec(grunt_app.read_text(), ns)  # noqa: S102
+            result.update({
+                "name": ns.get("APP_NAME", result["name"]),
+                "title": ns.get("APP_TITLE", result["title"]),
+                "version": ns.get("APP_VERSION", result["version"]),
+                "description": ns.get("APP_DESCRIPTION", result["description"]),
+                "author": ns.get("APP_AUTHOR", result["author"]),
+                "modules": ns.get("MODULES", result["modules"]),
+                "icon": ns.get("APP_ICON", result["icon"]),
+                "color": ns.get("APP_COLOR", result["color"]),
+            })
+        except Exception:  # noqa: BLE001
+            pass  # grunt_app.py parsing failed, continue with defaults
 
-    return None
+    # Load from app.json and override (takes precedence)
+    if app_json.exists():
+        try:
+            app_data = json.loads(app_json.read_text())
+            # Only override if keys exist in app.json
+            if "name" in app_data:
+                result["name"] = app_data["name"]
+            if "title" in app_data:
+                result["title"] = app_data["title"]
+            if "version" in app_data:
+                result["version"] = app_data["version"]
+            if "description" in app_data:
+                result["description"] = app_data["description"]
+            if "author" in app_data:
+                result["author"] = app_data["author"]
+            if "modules" in app_data:
+                result["modules"] = app_data["modules"]
+            if "icon" in app_data:
+                result["icon"] = app_data["icon"]
+            if "color" in app_data:
+                result["color"] = app_data["color"]
+        except Exception:  # noqa: BLE001
+            pass  # app.json parsing failed, continue with current result
+
+    return result

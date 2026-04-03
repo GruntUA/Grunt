@@ -259,51 +259,96 @@ def create_app(name: str):
         raise SystemExit(1)
 
     label = name.replace("_", " ").title()
+    
+    # Default module name (inside which doctypes, fixtures, etc. live)
+    default_module = "core"
 
-    # Scaffold directory structure
-    (app_dir / "doctypes").mkdir(parents=True)
-    (app_dir / "tasks").mkdir(parents=True)
-    (app_dir / "hooks").mkdir(parents=True)
+    # Scaffold directory structure: app/core/{doctypes, fixtures, tasks, hooks}
+    (app_dir / default_module / "doctypes").mkdir(parents=True)
+    (app_dir / default_module / "fixtures").mkdir(parents=True)
+    (app_dir / default_module / "tasks").mkdir(parents=True)
+    (app_dir / default_module / "hooks").mkdir(parents=True)
 
-    # __init__.py
+    # __init__.py files
     (app_dir / "__init__.py").write_text(
         f'"""Grunt app: {label}"""\n\n__version__ = "0.1.0"\n'
     )
+    (app_dir / default_module / "__init__.py").write_text(
+        f'"""Module {default_module} for {label}."""\n'
+    )
+    (app_dir / default_module / "doctypes" / "__init__.py").write_text("")
+    (app_dir / default_module / "fixtures" / "__init__.py").write_text("")
+    (app_dir / default_module / "tasks" / "__init__.py").write_text("")
+    (app_dir / default_module / "hooks" / "__init__.py").write_text("")
 
-    # app.json — app manifest
+    # app.json — app manifest with full metadata
+    app_json_content = {
+        "name": name,
+        "title": label,
+        "version": "0.1.0",
+        "description": f"{label} Grunt app",
+        "author": "",
+        "modules": [default_module],
+        "icon": "📦",
+        "color": "#2D6A4F",
+    }
+    import json as _json
     (app_dir / "app.json").write_text(
-        f'{{\n  "name": "{name}",\n  "label": "{label}",\n  "version": "0.1.0",\n'
-        f'  "description": "{label} Grunt app",\n  "author": ""\n}}\n'
+        _json.dumps(app_json_content, ensure_ascii=False, indent=2) + "\n"
     )
 
-    # tasks/__init__.py
-    (app_dir / "tasks" / "__init__.py").write_text("")
+    # grunt_app.py — app constants for metadata (for use when app.json is unavailable)
+    (app_dir / "grunt_app.py").write_text(
+        f'"""Metadata for {label}."""\n\n'
+        f'APP_NAME = "{name}"\n'
+        f'APP_TITLE = "{label}"\n'
+        f'APP_VERSION = "0.1.0"\n'
+        f'APP_DESCRIPTION = "{label} Grunt app"\n'
+        f'APP_AUTHOR = ""\n'
+        f'APP_ICON = "📦"\n'
+        f'APP_COLOR = "#2D6A4F"\n'
+        f'MODULES = ["{default_module}"]\n'
+        f'DEPENDS_ON = []\n'
+    )
 
-    # tasks/tasks.py — sample task
-    (app_dir / "tasks" / "tasks.py").write_text(
-        f'"""Background tasks for {label}."""\nfrom grunt.core.tasks.broker import retryable_task\n\n\n'
-        f'# @retryable_task()\n# async def my_task():\n#     pass\n'
+    # fixtures directory with workspace definition and README
+    (app_dir / default_module / "fixtures" / "00_workspace.json").write_text(
+        _json.dumps([{
+            "name": name,
+            "label": label,
+            "icon": "📦",
+            "color": "#2D6A4F",
+            "description": "",
+            "items": []
+        }], ensure_ascii=False, indent=2) + "\n"
+    )
+    (app_dir / default_module / "fixtures" / "README.md").write_text(
+        f"# Fixtures for {label}\n\n"
+        f"Place JSON fixture files here. They'll be loaded when the app is installed.\n\n"
+        f"Example: `00_workspace.json` — initial workspace definition.\n"
+    )
+
+    # tasks/tasks.py — sample task file
+    (app_dir / default_module / "tasks" / "tasks.py").write_text(
+        f'"""Background tasks for {label}."""\n'
+        f'# from grunt.core.tasks.broker import retryable_task\n'
+        f'#\n'
+        f'# @retryable_task()\n'
+        f'# async def my_task():\n'
+        f'#     pass\n'
     )
 
     # hooks/__init__.py
-    (app_dir / "hooks" / "__init__.py").write_text("")
-
-    # hooks/hooks.py — sample hooks
-    (app_dir / "hooks" / "hooks.py").write_text(
-        f'"""Hooks for {label}."""\n\n\n'
-        f'# Register hooks in grunt_apps/{name}/hooks/hooks.py\n'
-        f'# Example:\n'
-        f'# from grunt.core.hooks import on\n'
-        f'#\n'
-        f'# @on("after_insert", doctype="MyDocType")\n'
-        f'# async def handle_insert(doc, user, **kwargs):\n'
-        f'#     pass\n'
+    (app_dir / default_module / "hooks" / "hooks.py").write_text(
+        f'"""Hooks for {label}."""\n'
+        f'# Hook functions registered for specific events\n'
     )
 
     click.echo(f"Додаток '{name}' створено в {app_dir}/")
     click.echo("Структура:")
     for p in sorted(app_dir.rglob("*")):
-        click.echo(f"  {p.relative_to(app_dir.parent)}")
+        if not p.is_dir():
+            click.echo(f"  {p.relative_to(app_dir.parent)}")
 
 
 # ── app group ────────────────────────────────────────────────────────────────

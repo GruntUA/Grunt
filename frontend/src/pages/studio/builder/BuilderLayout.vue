@@ -21,6 +21,13 @@ const builder = useBuilderStore()
 const backWorkspace = props.workspaceName ?? (route.params.workspaceName as string | undefined) ?? 'grunt'
 
 onMounted(() => builder.loadDocType(props.doctype))
+
+async function handleSave() {
+  const saved = await builder.save()
+  if (saved && props.doctype === 'new') {
+    router.replace(`/${backWorkspace}/list/DocType/${saved.name}`)
+  }
+}
 </script>
 
 <template>
@@ -41,7 +48,7 @@ onMounted(() => builder.loadDocType(props.doctype))
         <span v-if="builder.isDirty" class="text-muted-foreground font-normal ml-1">&bull;</span>
       </span>
       <div class="ml-auto">
-        <Button size="sm" :disabled="builder.isSaving || !builder.isDirty" @click="builder.save()">
+        <Button size="sm" :disabled="builder.isSaving || !builder.isDirty" @click="handleSave()">
           <Loader2 v-if="builder.isSaving" class="size-4 animate-spin" />
           Зберегти
         </Button>

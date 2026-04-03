@@ -1,0 +1,16 @@
+{
+    "doctype": "GruntWorkspaceLink",
+    "records": [
+        {
+            "workspace": "grunt",
+            "section": "Розробка",
+            "type": "DocType",
+            "label": "Заплановані завдання",
+            "icon": "⏰",
+            "link_to": "ScheduledJob",
+            "show_count": true,
+            "show_new_btn": true,
+            "sequence": 25
+        }
+    ]
+}

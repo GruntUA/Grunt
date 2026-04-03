@@ -8,6 +8,7 @@ import type { FormLayout } from '@/core/composables/useFormLayout'
 export const useBuilderStore = defineStore('builder', () => {
   const doctype = ref<DocType | null>(null)
   const isDirty = ref(false)
+  const isNew = ref(false)
   const selectedFieldName = ref<string | null>(null)
   const isSaving = ref(false)
   const activeTab = ref<string>('form')
@@ -27,18 +28,34 @@ export const useBuilderStore = defineStore('builder', () => {
   // ── Load / Save ──────────────────────────────────────────────────────
 
   async function loadDocType(name: string) {
+    if (name === 'new') {
+      doctype.value = { name: '', label: '', module: '', fields: [], permissions: [] }
+      isNew.value = true
+      isDirty.value = false
+      selectedFieldName.value = null
+      return
+    }
     doctype.value = await metaApi.get(name)
+    isNew.value = false
     isDirty.value = false
     selectedFieldName.value = null
   }
 
-  async function save() {
-    if (!doctype.value) return
+  async function save(): Promise<DocType | null> {
+    if (!doctype.value) return null
     isSaving.value = true
     try {
-      await metaApi.update(doctype.value)
-      await metaApi.sync(doctype.value.name)
+      let saved: DocType
+      if (isNew.value) {
+        saved = await metaApi.create(doctype.value)
+        isNew.value = false
+      } else {
+        saved = await metaApi.update(doctype.value)
+      }
+      await metaApi.sync(saved.name)
+      doctype.value = saved
       isDirty.value = false
+      return saved
     } finally {
       isSaving.value = false
     }
@@ -403,6 +420,7 @@ export const useBuilderStore = defineStore('builder', () => {
   return {
     doctype,
     isDirty,
+    isNew,
     selectedFieldName,
     selectedField,
     isSaving,
