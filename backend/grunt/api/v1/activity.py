@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import and_, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -41,13 +41,19 @@ async def get_activity(
             dt = datetime.fromisoformat(date_from).replace(tzinfo=timezone.utc)
             conditions.append(table.c.created_at >= dt)
         except ValueError:
-            pass
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid 'date_from' parameter. Expected ISO 8601 date/time format.",
+            )
     if date_to:
         try:
             dt = datetime.fromisoformat(date_to).replace(tzinfo=timezone.utc)
             conditions.append(table.c.created_at <= dt)
         except ValueError:
-            pass
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid 'date_to' parameter. Expected ISO 8601 date/time format.",
+            )
 
     where = and_(*conditions) if conditions else None
 
