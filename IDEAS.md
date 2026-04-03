@@ -185,9 +185,49 @@
 | 💡 | **REST API Builder** | Декларативні custom endpoints без Python |
 | 💡 | **Import from Frappe** | Міграційний інструмент DocType/data з Frappe |
 | 💡 | **S3 File Storage** | Альтернатива локальному сховищу для files |
-| 💡 | **SMTP конфігурація** | Налаштування через UI (EmailAccount doctype) |
+| ✅ | **SMTP конфігурація** | Налаштування через UI (EmailAccount doctype) |
 | 💡 | **Telegram Bot** | Сповіщення і прості дії через бота |
 
 ---
 
-_Останнє оновлення: 2026-04-03_
+## 16. "Все є DocType" — Frappe-підхід
+
+> Ідея: проаналізувати Vue-фронтенд і максимально перенести хардкодні сторінки/налаштування у формат DocType — тобто керувати ними через звичайний FormView/ListView як і будь-яким іншим документом.
+> Аудит проведено 2026-04-03. Знайдено 12 сторінок, 32 DocType JSON файли.
+
+### Статус сторінок після аудиту
+
+| Сторінка | Поточний стан | Завдання |
+|----------|--------------|---------|
+| `DocTypeList.vue` | ✅ Повністю на стандартному CRUD `/docs/{doctype}` | Нічого |
+| `DocTypeForm.vue` | ✅ Повністю на стандартному CRUD | Нічого |
+| `PrintFormatBuilder.vue` | ⚠️ `PrintFormat` DocType є, але builder — окрема сторінка з custom preview | Див. п. нижче |
+| `DataImportPage.vue` | ⚠️ `DataImport` DocType є, але wizard — custom multi-step UI | Ок, wizard виправданий |
+| `EmailSettingsPage.vue` | ⚠️ `EmailAccount` + `EmailQueue` DocType є, але окрема admin-сторінка | Замінити на ListView/FormView |
+| `ActivityLogViewer.vue` | ⚠️ `ActivityLog` DocType є, але viewer — custom сторінка з custom endpoint `/activity/` | Замінити на ListView |
+| `ReportView.vue` / `ReportList.vue` | ⚠️ `Report` DocType є, але endpoints custom (`/reports/{name}/run`) | Частково виправдано — потрібен runner |
+| `RbacManager.vue` | ❌ Немає DocType — permissions зберігаються як поле DocType meta | Потрібен окремий `Permission` DocType або залишити |
+| `HookManager.vue` | ❌ Чисто read-only introspection, немає DocType | Залишити як є (system view) |
+| `FileManager.vue` | ❌ Немає `File` DocType — custom `/files/` endpoints | Потрібен `File` DocType |
+| `DeskHome.vue` | ❌ Dashboard-like custom сторінка, дані з `/activity/recent` | Замінити або залишити |
+
+### Конкретні задачі
+
+| # | Що | Деталі |
+|---|-----|--------|
+| ✅ | **`ActivityLog` → стандартний ListView** | `ActivityLog` DocType є. Маршрут `/activity-log` → redirect до `/list/ActivityLog`. Sidebar-лінк оновлено |
+| ✅ | **`EmailAccount` + `EmailQueue` → стандартний ListView/FormView** | Маршрут `/email-settings` → redirect до `/list/EmailAccount`. Sidebar-лінк оновлено |
+| ✅ | **`File` DocType** | Створено `File.json`. `files.py` upload тепер також пише в File DocType table. GalleryView доступний через default_view. `files.py` delete прибирає File DocType запис |
+| ✅ | **`PrintFormat` → FormView з Code editor** | Поле `template` змінено з `LongText` → `Code (html)`. Маршрут `print-format-builder` видалено з router — відкривається стандартний FormView |
+| ✅ | **`Report` → FormView з Code editor** | Поля `query` та `script` змінено на `Code (sql/python)`. Секції показуються через `depends_on` залежно від `report_type` |
+| ✅ | **`DocTypePermission` DocType** | Створено `DocTypePermission.json`. Startup мігрує permissions з DocType meta → таблицю, завантажує в пам'ять. Хук `after_save/after_delete` оновлює registry в реальному часі. Маршрут `rbac` → redirect до `/list/DocTypePermission` |
+| ✅ | **`ScheduledJob`** | `ServerScript` з `script_type = "Scheduler Event"` вже виконує роль. `_register_server_script_jobs()` завантажує їх з БД при старті |
+| ✅ | **Вбудований "grunt" workspace** | `grunt_workspace.json` оновлено: 8 секцій, 25+ DocType включно з File, DocTypePermission, OutgoingWebhook, PushSubscription, SystemSettings, Report, Users |
+| 💡 | **`SystemSettings` як єдина точка входу** | Сторінки EmailSettings, Push, Security ще є окремими — можна перенести як секції SystemSettings FormView |
+| 💡 | **ClientScript для PrintFormat preview** | Додати ClientScript що рендерить iframe preview при редагуванні шаблону |
+| 💡 | **ClientScript для Report runner** | Додати кнопку "Запустити" через ClientScript в FormView Report |
+| 💡 | **ClientScript для EmailAccount test** | Додати кнопку "Тест SMTP" через ClientScript в FormView EmailAccount |
+
+---
+
+_Останнє оновлення: 2026-04-03 (розділ 16 виконано)_

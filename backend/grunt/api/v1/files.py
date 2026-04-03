@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+import uuid
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +20,70 @@ from grunt.core.storage import get_storage_backend
 router = APIRouter()
 
 MAX_BYTES = settings.max_upload_size_mb * 1024 * 1024
+
+_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"}
+
+
+async def _create_file_doc(
+    session: AsyncSession,
+    *,
+    grunt_file_id: str,
+    file_name: str,
+    file_url: str,
+    file_size: int,
+    content_type: str,
+    uploaded_by: str,
+    attached_to_doctype: str | None = None,
+    attached_to_id: str | None = None,
+) -> None:
+    """Create a File DocType record mirroring the uploaded GruntFile."""
+    try:
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
+        dt = doctype_registry._doctypes.get("File")
+        if dt is None:
+            return
+        table = compile_doctype_to_table(dt)
+        now = datetime.now(timezone.utc)
+        is_image = content_type in _IMAGE_TYPES
+        await session.execute(
+            table.insert().values(
+                id=str(uuid.uuid4()),
+                name=file_name,
+                owner=uploaded_by,
+                created_at=now,
+                modified_at=now,
+                modified_by=uploaded_by,
+                docstatus=0,
+                file_name=file_name,
+                file_url=file_url,
+                thumbnail_url=file_url if is_image else None,
+                file_size=file_size,
+                content_type=content_type,
+                is_public=True,
+                grunt_file_id=grunt_file_id,
+                attached_to_doctype=attached_to_doctype,
+                attached_to_id=attached_to_id,
+            )
+        )
+    except Exception:  # noqa: BLE001
+        pass  # Don't fail upload if DocType record creation fails
+
+
+async def _delete_file_doc(session: AsyncSession, grunt_file_id: str) -> None:
+    """Remove the File DocType record for a deleted GruntFile."""
+    try:
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
+        dt = doctype_registry._doctypes.get("File")
+        if dt is None:
+            return
+        table = compile_doctype_to_table(dt)
+        await session.execute(table.delete().where(table.c.grunt_file_id == grunt_file_id))
+    except Exception:  # noqa: BLE001
+        pass
 
 
 @router.post("")
@@ -57,14 +124,26 @@ async def upload_file(
         uploaded_by=user.email,
     )
     session.add(record)
-    await session.commit()
+    await session.flush()
     await session.refresh(record)
+
+    file_url = f"/api/v1/files/{record.id}"
+    await _create_file_doc(
+        session,
+        grunt_file_id=record.id,
+        file_name=file.filename,
+        file_url=file_url,
+        file_size=len(content),
+        content_type=content_type,
+        uploaded_by=user.email,
+    )
+    await session.commit()
 
     return {
         "success": True,
         "data": {
             "id": record.id,
-            "url": f"/api/v1/files/{record.id}",
+            "url": file_url,
             "filename": record.original_name,
             "content_type": record.content_type,
             "size_bytes": record.size_bytes,
@@ -76,7 +155,7 @@ async def upload_file(
 async def list_files(
     limit: int = 50,
     offset: int = 0,
-    search: str | None = None,
+    search: str | None = Query(None),
     user: GruntUser = Depends(current_user),
     session: AsyncSession = Depends(get_session),
 ):
@@ -159,6 +238,7 @@ async def delete_file(
     storage = get_storage_backend()
     await storage.delete(record.path)
 
+    await _delete_file_doc(session, file_id)
     await session.delete(record)
     await session.commit()
 

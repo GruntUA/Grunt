@@ -4,7 +4,7 @@
   "app": "grunt",
   "icon": "⚙",
   "color": "#374151",
-  "description": "Налаштування системи",
+  "description": "Налаштування та адміністрування системи",
   "sequence": 999,
   "is_hidden": false,
   "roles": "",
@@ -19,66 +19,89 @@
       "show_new_btn": true,
       "sequence": 1
     },
+
     {
-      "section": "Моніторинг",
+      "section": "Користувачі та безпека",
       "type": "DocType",
-      "label": "Фонові завдання",
-      "icon": "⏳",
-      "link_to": "BackgroundTaskLog",
-      "show_count": true,
-      "show_new_btn": false,
-      "sequence": 3
-    },
-    {
-      "section": "Моніторинг",
-      "type": "DocType",
-      "label": "Лог активності",
-      "icon": "📋",
-      "link_to": "ActivityLog",
-      "show_count": true,
-      "show_new_btn": false,
-      "sequence": 4
-    },
-    {
-      "section": "Повідомлення",
-      "type": "DocType",
-      "label": "Правила нотифікацій",
-      "icon": "🔔",
-      "link_to": "NotificationRule",
+      "label": "Користувачі",
+      "icon": "👥",
+      "link_to": "User",
       "show_count": true,
       "show_new_btn": true,
       "sequence": 10
     },
     {
-      "section": "Повідомлення",
+      "section": "Користувачі та безпека",
       "type": "DocType",
-      "label": "Нотифікації",
-      "icon": "📬",
-      "link_to": "Notification",
+      "label": "Дозволи",
+      "icon": "🔐",
+      "link_to": "DocTypePermission",
       "show_count": true,
-      "show_new_btn": false,
+      "show_new_btn": true,
       "sequence": 11
     },
+
     {
-      "section": "Повідомлення",
+      "section": "Пошта та сповіщення",
       "type": "DocType",
       "label": "Email акаунти",
       "icon": "📧",
       "link_to": "EmailAccount",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 12
+      "sequence": 20
     },
     {
-      "section": "Повідомлення",
+      "section": "Пошта та сповіщення",
       "type": "DocType",
       "label": "Черга листів",
       "icon": "📤",
       "link_to": "EmailQueue",
       "show_count": true,
       "show_new_btn": false,
-      "sequence": 13
+      "sequence": 21
     },
+    {
+      "section": "Пошта та сповіщення",
+      "type": "DocType",
+      "label": "Правила нотифікацій",
+      "icon": "🔔",
+      "link_to": "NotificationRule",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 22
+    },
+    {
+      "section": "Пошта та сповіщення",
+      "type": "DocType",
+      "label": "Нотифікації",
+      "icon": "📬",
+      "link_to": "Notification",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 23
+    },
+    {
+      "section": "Пошта та сповіщення",
+      "type": "DocType",
+      "label": "Вихідні вебхуки",
+      "icon": "🔗",
+      "link_to": "OutgoingWebhook",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 24
+    },
+    {
+      "section": "Пошта та сповіщення",
+      "type": "DocType",
+      "label": "Push підписки",
+      "icon": "📱",
+      "link_to": "PushSubscription",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 25
+    },
+
     {
       "section": "Розробка",
       "type": "DocType",
@@ -87,7 +110,7 @@
       "link_to": "ServerScript",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 20
+      "sequence": 30
     },
     {
       "section": "Розробка",
@@ -97,7 +120,17 @@
       "link_to": "ClientScript",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 21
+      "sequence": 31
+    },
+    {
+      "section": "Розробка",
+      "type": "DocType",
+      "label": "Звіти",
+      "icon": "📈",
+      "link_to": "Report",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 32
     },
     {
       "section": "Розробка",
@@ -107,58 +140,102 @@
       "link_to": "WebForm",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 22
+      "sequence": 33
     },
+
     {
-      "section": "Дані",
+      "section": "Документи та файли",
       "type": "DocType",
-      "label": "Версії документів",
-      "icon": "🔄",
-      "link_to": "DocVersion",
+      "label": "Файли",
+      "icon": "📁",
+      "link_to": "File",
       "show_count": true,
       "show_new_btn": false,
-      "sequence": 30
+      "sequence": 40
     },
     {
-      "section": "Дані",
-      "type": "DocType",
-      "label": "Серії нумерації",
-      "icon": "🔢",
-      "link_to": "NamingSeries",
-      "show_count": true,
-      "show_new_btn": true,
-      "sequence": 31
-    },
-    {
-      "section": "Дані",
-      "type": "DocType",
-      "label": "Зв'язки документів",
-      "icon": "🔗",
-      "link_to": "DocLink",
-      "show_count": true,
-      "show_new_btn": false,
-      "sequence": 32
-    },
-    {
-      "section": "Друк та шаблони",
+      "section": "Документи та файли",
       "type": "DocType",
       "label": "Формати друку",
       "icon": "🖨",
       "link_to": "PrintFormat",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 40
+      "sequence": 41
     },
     {
-      "section": "Локалізація",
+      "section": "Документи та файли",
+      "type": "DocType",
+      "label": "Версії документів",
+      "icon": "🔄",
+      "link_to": "DocVersion",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 42
+    },
+    {
+      "section": "Документи та файли",
+      "type": "DocType",
+      "label": "Імпорт даних",
+      "icon": "⬆",
+      "link_to": "DataImport",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 43
+    },
+
+    {
+      "section": "Налаштування",
+      "type": "DocType",
+      "label": "Системні налаштування",
+      "icon": "⚙",
+      "link_to": "SystemSettings",
+      "show_count": false,
+      "show_new_btn": false,
+      "sequence": 50
+    },
+    {
+      "section": "Налаштування",
+      "type": "DocType",
+      "label": "Серії нумерації",
+      "icon": "🔢",
+      "link_to": "NamingSeries",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 51
+    },
+    {
+      "section": "Налаштування",
       "type": "DocType",
       "label": "Переклади",
       "icon": "🌐",
       "link_to": "Translation",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 50
+      "sequence": 52
     },
+
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Лог активності",
+      "icon": "📋",
+      "link_to": "ActivityLog",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 60
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Фонові завдання",
+      "icon": "⏳",
+      "link_to": "BackgroundTaskLog",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 61
+    },
+
     {
       "section": "Дашборди",
       "type": "DocType",
@@ -167,16 +244,6 @@
       "link_to": "Dashboard",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 60
-    },
-    {
-      "section": "Система",
-      "type": "DocType",
-      "label": "Коментарі",
-      "icon": "💬",
-      "link_to": "Comment",
-      "show_count": true,
-      "show_new_btn": false,
       "sequence": 70
     }
   ]

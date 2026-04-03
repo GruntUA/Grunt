@@ -36,6 +36,7 @@ import {
   Shield,
   LayoutDashboard,
   Activity,
+  Mail,
 } from 'lucide-vue-next'
 import { useColorMode } from '@/core/composables/useColorMode'
 import type { Theme } from '@/core/composables/useColorMode'
@@ -127,7 +128,7 @@ defineExpose({ mobileOpen })
             <DropdownMenuItem v-for="ws in wsStore.workspaces" :key="ws.name"
               class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-colors"
               :class="ws.name === wsStore.active?.name ? 'bg-primary/5 text-primary font-medium' : ''"
-              @click="router.push(`/${ws.name}/desk`)">
+              @click="router.push(`/${ws.name}`)">
               <span class="text-lg shrink-0">{{ ws.icon }}</span>
               <span class="text-sm truncate">{{ ws.label }}</span>
             </DropdownMenuItem>
@@ -213,7 +214,8 @@ defineExpose({ mobileOpen })
           </template>
 
           <div v-if="!collapsed && auth.user?.is_superadmin" class="px-2 pt-6 space-y-1">
-            <RouterLink :to="`/grunt/rbac`" custom v-slot="{ isActive, href, navigate }">
+            <!-- Quick admin shortcuts → all point to standard DocType ListViews -->
+            <RouterLink :to="`/grunt/list/DocTypePermission`" custom v-slot="{ isActive, href, navigate }">
               <a :href="href" @click="navigate"
                 class="flex items-center gap-2 px-3 h-8 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border"
                 :class="isActive ? 'bg-primary/10 text-primary border-primary/20' : 'text-muted-foreground/70 border-dashed border-border/70 hover:text-primary hover:bg-primary/5 hover:border-primary/20'">
@@ -221,12 +223,20 @@ defineExpose({ mobileOpen })
                 Права доступу
               </a>
             </RouterLink>
-            <RouterLink :to="`/${workspaceName}/activity-log`" custom v-slot="{ isActive, href, navigate }">
+            <RouterLink :to="`/grunt/list/ActivityLog`" custom v-slot="{ isActive, href, navigate }">
               <a :href="href" @click="navigate"
                 class="flex items-center gap-2 px-3 h-8 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border"
                 :class="isActive ? 'bg-primary/10 text-primary border-primary/20' : 'text-muted-foreground/70 border-dashed border-border/70 hover:text-primary hover:bg-primary/5 hover:border-primary/20'">
                 <Activity class="size-3.5" />
                 Журнал активності
+              </a>
+            </RouterLink>
+            <RouterLink :to="`/grunt/list/EmailAccount`" custom v-slot="{ isActive, href, navigate }">
+              <a :href="href" @click="navigate"
+                class="flex items-center gap-2 px-3 h-8 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border"
+                :class="isActive ? 'bg-primary/10 text-primary border-primary/20' : 'text-muted-foreground/70 border-dashed border-border/70 hover:text-primary hover:bg-primary/5 hover:border-primary/20'">
+                <Mail class="size-3.5" />
+                Пошта
               </a>
             </RouterLink>
             <Button variant="ghost" size="sm"

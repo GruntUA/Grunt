@@ -23,12 +23,6 @@
       "in_list_view": true
     },
     {
-      "fieldname": "template",
-      "label": "Шаблон",
-      "fieldtype": "LongText",
-      "required": true
-    },
-    {
       "fieldname": "is_default",
       "label": "За замовчуванням",
       "fieldtype": "Check",
@@ -47,6 +41,18 @@
       "label": "Додаток",
       "fieldtype": "Link",
       "options": "GruntInstalledApp"
+    },
+    {
+      "fieldname": "sec_template",
+      "label": "Шаблон Jinja2 + HTML",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "template",
+      "label": "Шаблон",
+      "fieldtype": "Code",
+      "options": "html",
+      "required": true
     }
   ]
 }

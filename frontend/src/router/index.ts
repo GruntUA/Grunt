@@ -88,13 +88,6 @@ const router = createRouter({
             id: null,
           }),
         },
-        // Print Format Builder — must come before generic list/:doctype/:id
-        {
-          path: 'list/PrintFormat/:id',
-          name: 'print-format-builder',
-          component: () => import('@/pages/desk/PrintFormatBuilder.vue'),
-          props: (route) => ({ id: route.params.id, workspaceName: route.params.workspaceName }),
-        },
         // DocType builder — must come before the generic list/:doctype/:id route
         {
           path: 'list/DocType/:id',
@@ -144,11 +137,10 @@ const router = createRouter({
           component: () => import('@/pages/desk/FileManager.vue'),
           props: true,
         },
+        // Legacy admin routes — redirect to standard DocType ListViews
         {
           path: 'rbac',
-          name: 'rbac-manager',
-          component: () => import('@/pages/admin/RbacManager.vue'),
-          props: true,
+          redirect: (route) => `/${route.params.workspaceName}/list/DocTypePermission`,
         },
         {
           path: 'hooks',
@@ -158,9 +150,11 @@ const router = createRouter({
         },
         {
           path: 'activity-log',
-          name: 'activity-log',
-          component: () => import('@/pages/admin/ActivityLogViewer.vue'),
-          props: true,
+          redirect: (route) => `/${route.params.workspaceName}/list/ActivityLog`,
+        },
+        {
+          path: 'email-settings',
+          redirect: (route) => `/${route.params.workspaceName}/list/EmailAccount`,
         },
       ],
     },

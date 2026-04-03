@@ -31,6 +31,14 @@ from grunt.core.doctypes.User.User import User as UserController
 document_registry.register("DataImport", DataImportController)
 document_registry.register("User", UserController)
 
+# Auto-refresh in-memory permissions when DocTypePermission is saved/deleted
+register_doc_events({
+    "DocTypePermission": {
+        "after_save":   ["grunt.core.permissions.sync.sync_permissions"],
+        "after_delete": ["grunt.core.permissions.sync.sync_permissions"],
+    }
+})
+
 # Register client scripts for core doctypes (not scanned by discover_file_scripts)
 from pathlib import Path as _Path
 from grunt.core.scripting.file_scripts import FILE_CLIENT_SCRIPT_REGISTRY as _CLIENT_SCRIPTS, _load_doctype_dir_scripts as _load_dt_scripts
@@ -123,6 +131,11 @@ async def lifespan(app: FastAPI):
                 await populate_system_doctypes(session, eng)
                 await seed_system_settings(session, eng)
                 await seed_grunt_workspace(session)
+                # Permissions: migrate DocType meta → DocTypePermission, then load into memory
+                from grunt.core.permissions.sync import migrate_doctype_meta_permissions, load_all_permissions_from_db  # noqa: PLC0415
+                await migrate_doctype_meta_permissions(session)
+                await session.flush()
+                await load_all_permissions_from_db(session)
                 await session.commit()
 
             # Seed app workspaces (needs registry populated)

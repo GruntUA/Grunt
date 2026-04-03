@@ -9,9 +9,11 @@
     {"fieldname": "report_name", "label": "Назва", "fieldtype": "Text", "required": true, "unique": true, "in_list_view": true},
     {"fieldname": "report_type", "label": "Тип", "fieldtype": "Select", "options": "Query\nScript\nList", "required": true, "in_list_view": true, "in_filter": true},
     {"fieldname": "doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "in_list_view": true, "in_filter": true},
-    {"fieldname": "query", "label": "SQL запит", "fieldtype": "LongText"},
-    {"fieldname": "script", "label": "Скрипт", "fieldtype": "LongText"},
-    {"fieldname": "columns", "label": "Колонки", "fieldtype": "JSON"},
-    {"fieldname": "filters_config", "label": "Конфігурація фільтрів", "fieldtype": "JSON"}
+    {"fieldname": "columns", "label": "Колонки (JSON)", "fieldtype": "JSON"},
+    {"fieldname": "filters_config", "label": "Конфігурація фільтрів (JSON)", "fieldtype": "JSON"},
+    {"fieldname": "sec_query", "label": "SQL запит", "fieldtype": "Section", "depends_on": "eval:doc.report_type==='Query'"},
+    {"fieldname": "query", "label": "SQL", "fieldtype": "Code", "options": "sql", "depends_on": "eval:doc.report_type==='Query'"},
+    {"fieldname": "sec_script", "label": "Python скрипт", "fieldtype": "Section", "depends_on": "eval:doc.report_type==='Script'"},
+    {"fieldname": "script", "label": "Скрипт", "fieldtype": "Code", "options": "python", "depends_on": "eval:doc.report_type==='Script'"}
   ]
 }
