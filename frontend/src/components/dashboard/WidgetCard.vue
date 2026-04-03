@@ -10,6 +10,10 @@ import ShortcutsGridWidget from './ShortcutsGridWidget.vue'
 import TextWidget from './TextWidget.vue'
 import ClockWidget from './ClockWidget.vue'
 import ActivityWidget from './ActivityWidget.vue'
+import CalendarWidget from './CalendarWidget.vue'
+import HeatmapWidget from './HeatmapWidget.vue'
+import FunnelWidget from './FunnelWidget.vue'
+import TableWidget from './TableWidget.vue'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -121,6 +125,30 @@ const minH = computed(() => {
         :data="(data as { items: { id: string; doctype: string; doc_id: string; action: string; user: string; created_at: string }[] } | null)"
         :loading="loading"
         :workspace-name="workspaceName"
+      />
+      <CalendarWidget
+        v-else-if="widget.widget_type === 'calendar'"
+        :widget="widget"
+        :data="(data as { days: Record<string, number> } | null)"
+        :loading="loading"
+      />
+      <HeatmapWidget
+        v-else-if="widget.widget_type === 'heatmap'"
+        :widget="widget"
+        :data="(data as { entries: { date: string; count: number }[] } | null)"
+        :loading="loading"
+      />
+      <FunnelWidget
+        v-else-if="widget.widget_type === 'funnel'"
+        :widget="widget"
+        :data="(data as { stages: { label: string; count: number }[] } | null)"
+        :loading="loading"
+      />
+      <TableWidget
+        v-else-if="widget.widget_type === 'table'"
+        :widget="widget"
+        :data="(data as { rows: { label: string; value: number }[]; aggregation?: string; field?: string | null } | null)"
+        :loading="loading"
       />
     </div>
   </div>

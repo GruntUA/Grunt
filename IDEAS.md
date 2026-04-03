@@ -24,15 +24,15 @@
 
 | # | Що | Деталі |
 |---|-----|--------|
-| 💡 | **CalendarWidget** | Міні-calendar на дашборді, показує події/записи |
-| 💡 | **TableWidget** | Pivot-таблиця: рядки/колонки/значення з DocType |
-| 💡 | **FunnelWidget** | Воронка (Sales funnel, stages) |
-| 💡 | **HeatmapWidget** | Теплова карта активності (GitHub-style) |
+| ✅ | **CalendarWidget** | Міні-calendar на дашборді, показує події/записи |
+| ✅ | **TableWidget** | Pivot-таблиця: рядки/колонки/значення з DocType |
+| ✅ | **FunnelWidget** | Воронка (Sales funnel, stages) |
+| ✅ | **HeatmapWidget** | Теплова карта активності (GitHub-style) |
 | ✅ | **ActivityWidget** | Стрічка активності як віджет дашборду |
-| 💡 | **GlobalDateFilter** | Глобальний date-range фільтр для всього дашборду |
-| 💡 | **Auto-refresh** | Налаштування інтервалу оновлення (30s/1m/5m) |
-| 💡 | **Dashboard embedding** | iframe-код для вбудовування публічного дашборду |
-| 💡 | **Dashboard PDF export** | Друк/збереження дашборду як PDF |
+| ✅ | **GlobalDateFilter** | Глобальний date-range фільтр для всього дашборду |
+| ✅ | **Auto-refresh** | Налаштування інтервалу оновлення (30s/1m/5m) |
+| ✅ | **Dashboard embedding** | iframe-код для вбудовування публічного дашборду |
+| ✅ | **Dashboard PDF export** | Друк/збереження дашборду як PDF |
 
 ---
 
@@ -175,4 +175,4 @@
 
 ---
 
-_Останнє оновлення: 2026-04-02_
+_Останнє оновлення: 2026-04-03_

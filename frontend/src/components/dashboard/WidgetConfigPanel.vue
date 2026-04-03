@@ -30,6 +30,10 @@ const WIDGET_TYPES: { value: WidgetType; label: string; icon: string }[] = [
   { value: 'text',           label: 'Текст',         icon: '📝' },
   { value: 'clock',          label: 'Годинник',      icon: '🕐' },
   { value: 'activity',       label: 'Активність',    icon: '🕒' },
+  { value: 'calendar',       label: 'Календар',      icon: '📅' },
+  { value: 'heatmap',        label: 'Теплокарта',    icon: '🟩' },
+  { value: 'funnel',         label: 'Воронка',       icon: '🔽' },
+  { value: 'table',          label: 'Таблиця',       icon: '📊' },
 ]
 
 const AGGREGATIONS: { value: WidgetAggregation; label: string }[] = [
@@ -79,7 +83,11 @@ const isShortcutsGrid = computed(() => draft.value?.widget_type === 'shortcuts_g
 const isText          = computed(() => draft.value?.widget_type === 'text')
 const isClock         = computed(() => draft.value?.widget_type === 'clock')
 const isActivity      = computed(() => draft.value?.widget_type === 'activity')
-const isDataWidget    = computed(() => isMetric.value || isChart.value || isDonut.value || isList.value)
+const isCalendar      = computed(() => draft.value?.widget_type === 'calendar')
+const isHeatmap       = computed(() => draft.value?.widget_type === 'heatmap')
+const isFunnel        = computed(() => draft.value?.widget_type === 'funnel')
+const isTableWidget   = computed(() => draft.value?.widget_type === 'table')
+const isDataWidget    = computed(() => isMetric.value || isChart.value || isDonut.value || isList.value || isCalendar.value || isHeatmap.value || isFunnel.value || isTableWidget.value)
 </script>
 
 <template>
@@ -193,14 +201,28 @@ const isDataWidget    = computed(() => isMetric.value || isChart.value || isDonu
         </div>
       </template>
 
-      <!-- Group by (donut) -->
-      <div v-if="isDonut" class="space-y-1.5">
+      <!-- Group by (donut / funnel / table) -->
+      <div v-if="isDonut || isFunnel || isTableWidget" class="space-y-1.5">
         <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Групувати за</label>
         <input v-model="draft.group_by" class="w-full h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="fieldname" />
       </div>
 
-      <!-- Date field + period (chart / metric trend) -->
-      <template v-if="isChart || isMetric">
+      <!-- Aggregation for table widget -->
+      <template v-if="isTableWidget">
+        <div class="space-y-1.5">
+          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Агрегація</label>
+          <select v-model="draft.aggregation" class="w-full h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+            <option v-for="a in AGGREGATIONS" :key="a.value" :value="a.value">{{ a.label }}</option>
+          </select>
+        </div>
+        <div v-if="needsField" class="space-y-1.5">
+          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле для розрахунку</label>
+          <input v-model="draft.field" class="w-full h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="fieldname" />
+        </div>
+      </template>
+
+      <!-- Date field + period (chart / metric / calendar / heatmap / funnel / table) -->
+      <template v-if="isChart || isMetric || isCalendar || isHeatmap || isFunnel || isTableWidget">
         <div class="space-y-1.5">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле дати</label>
           <input v-model="draft.date_field" class="w-full h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="created_at" />

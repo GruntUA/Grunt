@@ -9,7 +9,7 @@
       "fieldname": "widget_type",
       "label": "Тип",
       "fieldtype": "Select",
-      "options": "metric\nchart_area\nchart_bar\ndonut\nlist\nshortcut\nshortcuts_grid\ntext\nclock\nactivity",
+      "options": "metric\nchart_area\nchart_bar\ndonut\nlist\nshortcut\nshortcuts_grid\ntext\nclock\nactivity\ncalendar\nheatmap\nfunnel\ntable",
       "required": true,
       "in_list_view": true,
       "default": "metric"

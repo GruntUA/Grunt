@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { RefreshCw, LayoutDashboard, Pencil, Plus, Save, X } from 'lucide-vue-next'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { RefreshCw, LayoutDashboard, Pencil, Plus, Save, X, Calendar, Timer, Link2, Printer } from 'lucide-vue-next'
 import draggable from 'vuedraggable'
 import { docsApi } from '@/core/api/docs'
 import { getDashboardData } from '@/core/api/dashboards'
@@ -9,6 +9,8 @@ import WidgetConfigPanel from '@/components/dashboard/WidgetConfigPanel.vue'
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
 import type { DashboardWidget } from '@/types'
 import { useToast } from '@/core/composables/useToast'
@@ -39,12 +41,65 @@ const saving = ref(false)
 const configWidget = ref<DashboardWidget | null>(null)
 const showConfigDialog = ref(false)
 
+// Global date filter
+const dateFrom = ref('')
+const dateTo = ref('')
+
+// Auto-refresh
+const autoRefreshInterval = ref<number>(0) // 0 = off
+const autoRefreshTimer = ref<ReturnType<typeof setInterval> | null>(null)
+
+// Embed modal
+const showEmbedModal = ref(false)
+
+const embedUrl = computed(() => {
+  const base = window.location.origin
+  return `${base}/dashboard/${props.dashboardName}`
+})
+
+function startAutoRefresh(seconds: number) {
+  stopAutoRefresh()
+  if (seconds > 0) {
+    autoRefreshTimer.value = setInterval(() => {
+      refreshData()
+    }, seconds * 1000)
+  }
+}
+
+function stopAutoRefresh() {
+  if (autoRefreshTimer.value) {
+    clearInterval(autoRefreshTimer.value)
+    autoRefreshTimer.value = null
+  }
+}
+
+function onAutoRefreshChange() {
+  startAutoRefresh(autoRefreshInterval.value)
+}
+
+onUnmounted(stopAutoRefresh)
+
+async function refreshData() {
+  if (!dashboard.value) return
+  refreshing.value = true
+  try {
+    widgetData.value = await getDashboardData(props.dashboardName, {
+      dateFrom: dateFrom.value || undefined,
+      dateTo: dateTo.value || undefined,
+    })
+  } finally {
+    refreshing.value = false }
+}
+
 async function load() {
   loading.value = true
   try {
     const doc = await docsApi.get('Dashboard', props.dashboardName) as unknown as DashboardDoc
     dashboard.value = { ...doc, widgets: doc.widgets ?? [] }
-    widgetData.value = await getDashboardData(props.dashboardName)
+    widgetData.value = await getDashboardData(props.dashboardName, {
+      dateFrom: dateFrom.value || undefined,
+      dateTo: dateTo.value || undefined,
+    })
   } catch (error: any) {
     if (error.response?.status === 404) {
       dashboard.value = null
@@ -81,8 +136,12 @@ async function createDashboard() {
 async function refresh() {
   if (!dashboard.value) return
   refreshing.value = true
-  try { widgetData.value = await getDashboardData(props.dashboardName) }
-  finally { refreshing.value = false }
+  try {
+    widgetData.value = await getDashboardData(props.dashboardName, {
+      dateFrom: dateFrom.value || undefined,
+      dateTo: dateTo.value || undefined,
+    })
+  } finally { refreshing.value = false }
 }
 
 function generateId() {
@@ -100,7 +159,7 @@ function handleAddWidget() {
     aggregation: 'count',
     field: '',
     period: '30d',
-    filters: null,
+    filters: undefined,
     group_by: '',
     date_field: '',
     sequence: dashboard.value?.widgets?.length || 0,
@@ -136,7 +195,6 @@ function handleSaveWidgetConfig(widget: DashboardWidget) {
     dashboard.value.widgets.push(widget)
   }
   showConfigDialog.value = false
-  // Re-fetch data for the new/updated widget dynamically could be done here
   refresh()
 }
 
@@ -179,13 +237,22 @@ function toggleEditMode() {
   }
 }
 
+function copyEmbedUrl() {
+  navigator.clipboard.writeText(embedUrl.value)
+  toast.success('Посилання скопійовано')
+}
+
+function printDashboard() {
+  window.print()
+}
+
 onMounted(load)
 </script>
 
 <template>
   <div class="p-6">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-2">
         <LayoutDashboard class="w-5 h-5 text-muted-foreground" />
         <h1 class="text-lg font-semibold">{{ dashboard?.label ?? dashboardName }}</h1>
@@ -216,17 +283,66 @@ onMounted(load)
           </button>
         </template>
         <template v-else>
-          <!-- Show edit button for admins or editors (assume always show for now) -->
+          <!-- Global date filter -->
+          <div v-if="dashboard" class="flex items-center gap-1.5">
+            <Calendar class="w-4 h-4 text-muted-foreground shrink-0" />
+            <input
+              v-model="dateFrom"
+              type="date"
+              class="h-8 px-2 rounded-lg border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+              @change="refreshData"
+            />
+            <span class="text-muted-foreground text-xs">—</span>
+            <input
+              v-model="dateTo"
+              type="date"
+              class="h-8 px-2 rounded-lg border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+              @change="refreshData"
+            />
+          </div>
+
+          <!-- Auto-refresh selector -->
+          <div v-if="dashboard" class="flex items-center gap-1.5">
+            <Timer class="w-4 h-4 text-muted-foreground shrink-0" />
+            <select
+              v-model.number="autoRefreshInterval"
+              class="h-8 px-2 rounded-lg border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+              @change="onAutoRefreshChange">
+              <option :value="0">Авто</option>
+              <option :value="30">30с</option>
+              <option :value="60">1хв</option>
+              <option :value="300">5хв</option>
+              <option :value="600">10хв</option>
+            </select>
+          </div>
+
+          <!-- Edit -->
           <button
             class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed border-primary/40 text-primary bg-primary/5 text-sm hover:bg-primary/10 transition-colors"
             @click="toggleEditMode">
             <Pencil class="w-4 h-4" />
             Налаштувати
           </button>
+
+          <!-- Refresh -->
           <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm hover:bg-muted transition-colors"
             :class="{ 'opacity-50': refreshing || loading }" :disabled="refreshing || loading" @click="refresh">
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': refreshing }" />
             Оновити
+          </button>
+
+          <!-- Embed -->
+          <button v-if="dashboard"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm hover:bg-muted transition-colors"
+            @click="showEmbedModal = true">
+            <Link2 class="w-4 h-4" />
+          </button>
+
+          <!-- Print -->
+          <button v-if="dashboard"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm hover:bg-muted transition-colors"
+            @click="printDashboard">
+            <Printer class="w-4 h-4" />
           </button>
         </template>
       </div>
@@ -293,12 +409,47 @@ onMounted(load)
       </draggable>
     </div>
 
-    <!-- Config Dialog -->
+    <!-- Widget Config Dialog -->
     <Dialog v-model:open="showConfigDialog">
       <DialogContent class="sm:max-w-[425px] p-0 gap-0 overflow-hidden bg-muted/5 border-border/50">
         <div class="h-[80vh] flex flex-col bg-background shadow-xl border rounded-[inherit]">
           <WidgetConfigPanel v-if="configWidget" :widget="configWidget" @save="handleSaveWidgetConfig"
             @cancel="handleConfigCancel" />
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Embed Dialog -->
+    <Dialog v-model:open="showEmbedModal">
+      <DialogContent class="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Вбудувати дашборд</DialogTitle>
+        </DialogHeader>
+        <div class="space-y-4 pt-2">
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Пряме посилання</label>
+            <div class="flex gap-2">
+              <input
+                :value="embedUrl"
+                readonly
+                class="flex-1 h-9 px-3 rounded-lg border bg-muted text-sm font-mono focus:outline-none"
+              />
+              <button
+                class="px-3 h-9 rounded-lg border text-sm hover:bg-muted transition-colors"
+                @click="copyEmbedUrl">
+                Копіювати
+              </button>
+            </div>
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">iframe</label>
+            <textarea
+              :value="`<iframe src=&quot;${embedUrl}&quot; width=&quot;100%&quot; height=&quot;600&quot; frameborder=&quot;0&quot;></iframe>`"
+              readonly
+              rows="3"
+              class="w-full px-3 py-2 rounded-lg border bg-muted text-xs font-mono focus:outline-none resize-none"
+            />
+          </div>
         </div>
       </DialogContent>
     </Dialog>

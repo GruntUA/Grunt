@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -31,7 +31,12 @@ _PERIOD_DAYS = {"7d": 7, "30d": 30, "90d": 90, "365d": 365}
 # ── Widget data computation ────────────────────────────────────────────────
 
 
-async def _compute_widget_data(widget: Any, session: AsyncSession) -> Any:
+async def _compute_widget_data(
+    widget: Any,
+    session: AsyncSession,
+    global_since: datetime | None = None,
+    global_until: datetime | None = None,
+) -> Any:
     """Compute data for a single widget row from the DocType table."""
     doctype_name: str = widget["doctype"] or ""
     if not doctype_name:
@@ -46,7 +51,9 @@ async def _compute_widget_data(widget: Any, session: AsyncSession) -> Any:
     table = compile_doctype_to_table(dt)
     period_days = _PERIOD_DAYS.get(widget["period"] or "30d", 30)
     now = datetime.now(timezone.utc)
-    since = now - timedelta(days=period_days)
+    # Global date filter overrides per-widget period
+    since = global_since if global_since is not None else now - timedelta(days=period_days)
+    until = global_until if global_until is not None else now
     widget_type: str = widget["widget_type"] or "metric"
 
     if widget_type == "metric":
@@ -91,7 +98,7 @@ async def _compute_widget_data(widget: Any, session: AsyncSession) -> Any:
             day_expr = func.date(table.c[date_field])
             stmt = (
                 select(day_expr.label("day"), func.count().label("cnt"))
-                .where(table.c[date_field] >= since)
+                .where(table.c[date_field] >= since, table.c[date_field] <= until)
                 .group_by(day_expr)
                 .order_by(day_expr)
             )
@@ -154,6 +161,107 @@ async def _compute_widget_data(widget: Any, session: AsyncSession) -> Any:
     if widget_type == "shortcuts_grid":
         return None
 
+    if widget_type == "calendar":
+        date_field = widget["date_field"]
+        if not date_field or not hasattr(table.c, date_field):
+            return {"days": {}}
+        try:
+            day_expr = func.date(table.c[date_field])
+            stmt = (
+                select(day_expr.label("day"), func.count().label("cnt"))
+                .where(table.c[date_field] >= since, table.c[date_field] <= until)
+                .group_by(day_expr)
+            )
+            result = await session.execute(stmt)
+            return {"days": {str(r.day): r.cnt for r in result.all()}}
+        except Exception:
+            logger.exception("dashboard.calendar_error", doctype=doctype_name)
+            return {"days": {}}
+
+    if widget_type == "heatmap":
+        date_field = widget["date_field"]
+        if not date_field or not hasattr(table.c, date_field):
+            return {"entries": []}
+        # Always 365 days back for heatmap
+        heatmap_since = now - timedelta(days=364)
+        try:
+            day_expr = func.date(table.c[date_field])
+            stmt = (
+                select(day_expr.label("day"), func.count().label("cnt"))
+                .where(table.c[date_field] >= heatmap_since)
+                .group_by(day_expr)
+                .order_by(day_expr)
+            )
+            result = await session.execute(stmt)
+            return {"entries": [{"date": str(r.day), "count": r.cnt} for r in result.all()]}
+        except Exception:
+            logger.exception("dashboard.heatmap_error", doctype=doctype_name)
+            return {"entries": []}
+
+    if widget_type == "funnel":
+        group_by = widget["group_by"]
+        if not group_by or not hasattr(table.c, group_by):
+            return {"stages": []}
+        try:
+            # Get ordered options from DocType field definition
+            field_def = next((f for f in dt.fields if f.fieldname == group_by), None)
+            ordered_options = []
+            if field_def and field_def.options:
+                ordered_options = [o for o in field_def.options.split("\n") if o.strip()]
+
+            stmt = (
+                select(table.c[group_by].label("stage"), func.count().label("cnt"))
+                .where(table.c[date_field] >= since if (date_field := widget.get("date_field")) and hasattr(table.c, date_field) else text("1=1"))
+                .group_by(table.c[group_by])
+            )
+            result = await session.execute(stmt)
+            counts = {str(r.stage): r.cnt for r in result.all()}
+
+            if ordered_options:
+                stages = [{"label": o, "count": counts.get(o, 0)} for o in ordered_options]
+            else:
+                stages = [{"label": k, "count": v} for k, v in sorted(counts.items(), key=lambda x: -x[1])]
+
+            return {"stages": stages}
+        except Exception:
+            logger.exception("dashboard.funnel_error", doctype=doctype_name)
+            return {"stages": []}
+
+    if widget_type == "table":
+        group_by = widget["group_by"]
+        if not group_by or not hasattr(table.c, group_by):
+            return {"rows": []}
+        try:
+            agg = widget.get("aggregation") or "count"
+            value_field = widget.get("field")
+            if agg == "count" or not value_field or not hasattr(table.c, value_field):
+                agg_col = func.count().label("value")
+            elif agg == "sum":
+                agg_col = func.sum(table.c[value_field]).label("value")
+            elif agg == "avg":
+                agg_col = func.avg(table.c[value_field]).label("value")
+            else:
+                agg_col = func.count().label("value")
+
+            stmt = (
+                select(table.c[group_by].label("label"), agg_col)
+                .group_by(table.c[group_by])
+                .order_by(text("value DESC"))
+                .limit(20)
+            )
+            date_field = widget.get("date_field")
+            if date_field and hasattr(table.c, date_field):
+                stmt = stmt.where(table.c[date_field] >= since, table.c[date_field] <= until)
+
+            result = await session.execute(stmt)
+            rows = [{"label": str(r.label) if r.label is not None else "—",
+                     "value": round(float(r.value), 2) if r.value is not None else 0}
+                    for r in result.all()]
+            return {"rows": rows, "aggregation": agg, "field": value_field}
+        except Exception:
+            logger.exception("dashboard.table_error", doctype=doctype_name)
+            return {"rows": []}
+
     if widget_type == "activity":
         try:
             activity_dt = doctype_registry._doctypes.get("ActivityLog")
@@ -188,6 +296,8 @@ async def _compute_widget_data(widget: Any, session: AsyncSession) -> Any:
 @router.get("/dashboard-data/{name}")
 async def get_dashboard_data(
     name: str,
+    date_from: str | None = Query(None, description="Global date filter from (ISO date)"),
+    date_to: str | None = Query(None, description="Global date filter to (ISO date)"),
     session: AsyncSession = Depends(get_session),
     user: GruntUser = Depends(current_user),
 ) -> dict[str, Any]:
@@ -219,11 +329,26 @@ async def get_dashboard_data(
     )
     widgets = widget_result.all()
 
+    global_since: datetime | None = None
+    global_until: datetime | None = None
+    if date_from:
+        try:
+            global_since = datetime.fromisoformat(date_from).replace(tzinfo=timezone.utc)
+        except ValueError:
+            pass
+    if date_to:
+        try:
+            global_until = datetime.fromisoformat(date_to).replace(tzinfo=timezone.utc)
+        except ValueError:
+            pass
+
     widget_data: dict[str, Any] = {}
     for w in widgets:
         w_dict = dict(w._mapping)
         try:
-            widget_data[w_dict["id"]] = await _compute_widget_data(w_dict, session)
+            widget_data[w_dict["id"]] = await _compute_widget_data(
+                w_dict, session, global_since=global_since, global_until=global_until
+            )
         except Exception as e:  # noqa: BLE001
             logger.warning("dashboard.widget_data_error", widget_id=w_dict.get("id"), error=str(e))
             widget_data[w_dict["id"]] = None
