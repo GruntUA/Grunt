@@ -5,7 +5,7 @@ the colocated file structure to disk::
 
     {app}/{module}/doctypes/{Name}/
         {Name}.json   — DocType metadata (always overwritten)
-        {Name}.py     — Python controller (only if missing)
+        {Name}.py     — Python controller with auto-generated types
         {Name}.js     — Client script (only if missing)
 """
 
@@ -24,7 +24,88 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-# ── Templates ────────────────────────────────────────────────────────────
+
+# ── Type mapping ────────────────────────────────────────────────────────────
+
+
+FIELDTYPE_TO_PYTHON = {
+    "Data": "str | None",
+    "Text": "str | None",
+    "LongText": "str | None",
+    "Int": "int | None",
+    "Float": "float | None",
+    "Check": "bool | None",
+    "Date": "str | None",
+    "Datetime": "str | None",
+    "Time": "str | None",
+    "Link": "str | None",
+    "MultiLink": "list[str] | None",
+    "Attach": "str | None",
+    "Image": "str | None",
+    "Select": "str | None",
+    "RichText": "str | None",
+    "JSON": "dict | None",
+    "Code": "str | None",
+    "Color": "str | None",
+    "Signature": "str | None",
+    "Geolocation": "str | None",
+    "HTMLEditor": "str | None",
+    "BarCode": "str | None",
+    "Rating": "int | None",
+    "Percent": "float | None",
+    "Duration": "float | None",
+}
+
+
+def _generate_type_block(doctype_name: str, fields: list) -> str:
+    """Generate auto-typed field annotations from a DocType definition.
+
+    Maps fieldtype to Python type hints.
+    Fields can be either dicts or Pydantic DocField models.
+    """
+    # Collect field type annotations (skip structural fields)
+    field_lines = []
+    for field in fields:
+        # Handle both dict and Pydantic model
+        if hasattr(field, "fieldname"):
+            fieldname = field.fieldname
+            fieldtype = field.fieldtype
+        else:
+            fieldname = field.get("fieldname", "")
+            fieldtype = field.get("fieldtype", "Data")
+
+        # Skip structural fields
+        if fieldtype in ("Section", "Column", "Tab", "Table", "Empty"):
+            continue
+
+        # Skip standard fields
+        if fieldname in ("name", "docstatus", "idx", "owner", "creation", "modified", "modified_by"):
+            continue
+
+        py_type = FIELDTYPE_TO_PYTHON.get(fieldtype, "Any | None")
+        field_lines.append(f"\t\t{fieldname}: {py_type}")
+
+    # Build the type hints block
+    type_block = f"""# begin: auto-generated types
+# This code is auto-generated. Do not modify anything in this block.
+
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+\tfrom typing import DF
+
+\tclass {doctype_name}:
+\t\t\"\"\"Type hints for {doctype_name} fields.\"\"\"
+
+{chr(10).join(field_lines) if field_lines else chr(9)*2 + 'name: str | None'}
+
+# end: auto-generated types
+"""
+
+    return type_block
+
+
+# ── Templates ────────────────────────────────────────────────────────────────
 
 CONTROLLER_TEMPLATE = '''\
 """Controller for {name}.
@@ -47,7 +128,11 @@ Access fields:
   self.session             — async SQLAlchemy session (for advanced queries)
 """
 
+from __future__ import annotations
+
 from grunt.core.document.base import Document
+
+{type_hints}
 
 
 class {name}(Document):
@@ -110,25 +195,54 @@ function validate(frm) {{
 
 
 def _find_app_dir(module: str) -> Path | None:
-    """Find the app directory that owns a given module name."""
+    """Find the app directory that owns a given module name.
+
+    Tries multiple patterns:
+    1. apps/{app}/{module}          — module-based structure (Frappe style)
+    2. apps/{app}                   — flat structure where app == module
+    3. grunt_apps/{app}/{module}    — relative grunt_apps (dev)
+    4. grunt_apps/{app}             — flat relative grunt_apps
+    """
+    # Pattern 1-2: Check bench-level apps
     apps_dir = site_manager.bench_dir / "apps"
-    if not apps_dir.is_dir():
-        return None
-    for app_dir in apps_dir.iterdir():
-        if not app_dir.is_dir() or app_dir.name.startswith((".", "_")):
-            continue
-        if (app_dir / module).is_dir():
-            return app_dir
+    if apps_dir.is_dir():
+        for app_dir in apps_dir.iterdir():
+            if not app_dir.is_dir() or app_dir.name.startswith((".", "_")):
+                continue
+            # Pattern 1: apps/{app}/{module}
+            if (app_dir / module).is_dir():
+                return app_dir
+            # Pattern 2: apps/{app} where app == module
+            if app_dir.name == module:
+                return app_dir
+
+    # Pattern 3-4: Check relative grunt_apps (current working directory)
+    grunt_apps_dir = Path("grunt_apps")
+    if grunt_apps_dir.is_dir():
+        for app_dir in grunt_apps_dir.iterdir():
+            if not app_dir.is_dir() or app_dir.name.startswith((".", "_")):
+                continue
+            # Pattern 3: grunt_apps/{app}/{module}
+            if (app_dir / module).is_dir():
+                return app_dir
+            # Pattern 4: grunt_apps/{app} where app == module
+            if app_dir.name == module:
+                return app_dir
+
     return None
 
 
 def export_doctype_files(dt: DocType) -> None:
     """Write DocType metadata and scaffold files to disk.
 
-    Creates ``{app}/{module}/doctypes/{Name}/`` with:
+    Creates ``{app}/{doctype_dir}/`` with:
     - ``{Name}.json`` — always overwritten with current metadata
-    - ``{Name}.py``  — controller stub (only if file doesn't exist)
-    - ``{Name}.js``  — client script stub (only if file doesn't exist)
+    - ``{Name}.py``  — controller with auto-generated type hints
+    - ``{Name}.js``  — client script (only if missing)
+
+    Supports two directory structures:
+    - apps/{app}/{module}/doctypes/{Name}/   (module-based)
+    - apps/{app}/doctypes/{Name}/            (flat app structure)
     """
     if dt.is_system:
         return
@@ -138,7 +252,14 @@ def export_doctype_files(dt: DocType) -> None:
         logger.warning("scaffold.export_skip", doctype=dt.name, reason=f"module '{dt.module}' not found in apps")
         return
 
-    dt_dir = app_dir / dt.module / "doctypes" / dt.name
+    # Determine path based on app structure
+    if (app_dir / dt.module).is_dir():
+        # Module-based structure: apps/{app}/{module}/doctypes/
+        dt_dir = app_dir / dt.module / "doctypes" / dt.name
+    else:
+        # Flat structure: apps/{app}/doctypes/
+        dt_dir = app_dir / "doctypes" / dt.name
+
     dt_dir.mkdir(parents=True, exist_ok=True)
 
     # JSON — always overwrite with current state
@@ -148,10 +269,13 @@ def export_doctype_files(dt: DocType) -> None:
         encoding="utf-8",
     )
 
-    # Controller — only create if missing
+    # Generate type hints from fields
+    type_hints = _generate_type_block(dt.name, dt.fields)
+
+    # Controller — create or update with types
     py_file = dt_dir / f"{dt.name}.py"
-    if not py_file.exists():
-        py_file.write_text(CONTROLLER_TEMPLATE.format(name=dt.name), encoding="utf-8")
+    py_content = CONTROLLER_TEMPLATE.format(name=dt.name, type_hints=type_hints)
+    py_file.write_text(py_content, encoding="utf-8")
 
     # Client script — only create if missing
     js_file = dt_dir / f"{dt.name}.js"

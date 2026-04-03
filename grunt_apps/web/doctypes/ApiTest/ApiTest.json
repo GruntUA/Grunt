@@ -1,0 +1,10 @@
+{
+  "name": "ApiTest",
+  "label": "ApiTest",
+  "module": "web",
+  "doctype": "DocType",
+  "is_system": false,
+  "fields": [
+    {"fieldname": "name", "label": "Назва", "fieldtype": "Data", "required": true}
+  ]
+}

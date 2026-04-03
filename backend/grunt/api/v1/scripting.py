@@ -58,6 +58,29 @@ async def _handle_builtin_method(
         doc = await svc.get_document(str(doctype), str(doc_id), user)
         return {"data": doc}
 
+    if method == "grunt.api.v1.auth.set_user_password":
+        from grunt.core.doctypes.User.User import get_user_by_email, hash_password, _user_table  # noqa: PLC0415
+        from sqlalchemy import update as sa_update  # noqa: PLC0415
+
+        if not user.is_superadmin and user.email != body.get("email"):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостатньо прав")
+
+        email = body.get("email")
+        password = body.get("password")
+        if not email or not password:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="email та password обов'язкові")
+
+        target = await get_user_by_email(str(email), session)
+        if not target:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Користувача не знайдено")
+
+        table = _user_table()
+        await session.execute(
+            sa_update(table).where(table.c.id == target.id).values(hashed_password=hash_password(str(password)))
+        )
+        await session.flush()
+        return {"success": True}
+
     return None
 
 

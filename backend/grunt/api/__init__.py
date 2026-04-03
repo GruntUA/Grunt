@@ -1,0 +1,114 @@
+"""Grunt High-Level Python API for App Developers.
+
+Simplifies access to documents, database, messages, and notifications without
+needing to import and manage session/user/engine manually.
+
+Usage in your app:
+
+    from grunt import Doc, db, msgprint, throw, notify, get_current_user, can_read
+
+    class MyDocType:
+        async def before_save(self):
+            # Get another document
+            user = await Doc.get("User", self.doc.owner)
+
+            # Check a value
+            if await db.exists("Contract", self.doc.contract_id):
+                msgprint("Contract linked")
+            else:
+                throw("Contract not found")
+
+            # Check permissions
+            if not await can_read("Contact", self.doc.contact_id):
+                throw("No permission to access this contact")
+
+            # Save changes
+            self.doc["status"] = "Active"
+            await self.save()
+
+            # Send notification
+            await notify("Update", f"{self.doc.name} was processed")
+"""
+
+from grunt.api.context import (
+    clear_context,
+    get_engine,
+    get_session,
+    get_site,
+    get_user,
+    set_engine,
+    set_session,
+    set_site,
+    set_user,
+)
+from grunt.api.activity import (
+    Comment,
+    ActivityEntry,
+    add_comment,
+    get_comments,
+    delete_comment,
+    log_activity,
+    get_activity_log,
+)
+from grunt.api.database import Database, db
+from grunt.api.document import Doc, DocProxy
+from grunt.api.messages import (
+    ApplicationError,
+    msgprint,
+    msgprint_list,
+    notify,
+    notify_all,
+    queue_email,
+    throw,
+)
+from grunt.api.permissions import (
+    can_create,
+    can_delete,
+    can_read,
+    can_submit,
+    can_write,
+    get_current_user,
+)
+
+__all__ = [
+    # Document API
+    "Doc",
+    "DocProxy",
+    # Database API
+    "db",
+    "Database",
+    # Messages
+    "msgprint",
+    "msgprint_list",
+    "throw",
+    "notify",
+    "notify_all",
+    "queue_email",
+    "ApplicationError",
+    # Comments & Activity
+    "Comment",
+    "ActivityEntry",
+    "add_comment",
+    "get_comments",
+    "delete_comment",
+    "log_activity",
+    "get_activity_log",
+    # Permissions
+    "can_read",
+    "can_write",
+    "can_submit",
+    "can_delete",
+    "can_create",
+    "get_current_user",
+    # Context (internal)
+    "set_session",
+    "get_session",
+    "set_user",
+    "get_user",
+    "set_engine",
+    "get_engine",
+    "set_site",
+    "get_site",
+    "clear_context",
+]
+

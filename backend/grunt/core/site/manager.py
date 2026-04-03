@@ -133,6 +133,10 @@ class SiteManager:
                     except Exception:
                         pass  # Non-SQLite or unsupported — skip
 
+            if settings.debug:
+                from grunt.core.db.profiler import attach_query_profiler  # noqa: PLC0415
+                attach_query_profiler(engine, threshold_ms=settings.slow_query_threshold_ms)
+
             self.engines[site_name] = engine
             self.session_makers[site_name] = async_sessionmaker(
                 engine, class_=AsyncSession, expire_on_commit=False

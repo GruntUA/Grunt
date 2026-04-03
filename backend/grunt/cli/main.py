@@ -58,7 +58,15 @@ def serve(port, reload):
     click.echo(f"Запуск сервера на порту {port}...")
     cmd = ["uvicorn", "grunt.main:app", "--port", str(port)]
     if reload:
-        cmd.append("--reload")
+        cmd += [
+            "--reload",
+            "--reload-include", "*.js",
+            "--reload-include", "*.json",
+            "--reload-dir", str(Path(__file__).parents[3]),  # backend/
+        ]
+        grunt_apps = Path("grunt_apps")
+        if grunt_apps.exists():
+            cmd += ["--reload-dir", str(grunt_apps)]
     subprocess.run(cmd)
 
 
@@ -478,6 +486,271 @@ def doctype_list(site: str | None):
                 click.echo(f"{dt.name:<35} {dt.module:<20} {is_sys}")
 
     asyncio.run(_run())
+
+
+@doctype_group.command("scaffold")
+@click.argument("name")
+@click.option("--app", default="web", help="Папка app куди розмістити DocType (за замовчуванням: web)")
+@click.option("--module", default=None, help="Модуль (за замовчуванням: app name)")
+@click.option("--force", is_flag=True, help="Перезаписати існуючі файли")
+def doctype_scaffold(name: str, app: str, module: str, force: bool):
+    """Створити новий DocType з шаблонами.
+
+    Генерує папку структури:
+        {app}/doctypes/{Name}/
+            ├── {Name}.json          # метадані DocType
+            ├── {Name}.py            # контроллер з auto-generated типами
+            ├── {Name}.js            # client script
+            └── __init__.py
+    """
+    import json  # noqa: PLC0415
+    from datetime import datetime  # noqa: PLC0415
+
+    # Validate name
+    if not name or name[0].islower():
+        click.echo("Помилка: ім'я DocType повинно починатися з великої літери.", err=True)
+        raise SystemExit(1)
+
+    app_path = Path("grunt_apps") / app
+    if not app_path.exists():
+        click.echo(f"Помилка: app '{app}' не знайдено по шляху {app_path}.", err=True)
+        raise SystemExit(1)
+
+    doctype_dir = app_path / "doctypes" / name
+    if doctype_dir.exists() and not force:
+        click.echo(f"Помилка: папка {doctype_dir} вже існує. Використайте --force для перезаписання.", err=True)
+        raise SystemExit(1)
+
+    doctype_dir.mkdir(parents=True, exist_ok=True)
+
+    # Module name (default to app name)
+    module_name = module or app
+
+    # JSON template
+    json_content = f"""{{
+  "name": "{name}",
+  "label": "{name}",
+  "module": "{module_name}",
+  "doctype": "DocType",
+  "is_system": false,
+  "fields": [
+    {{"fieldname": "name", "label": "Назва", "fieldtype": "Data", "required": true}}
+  ]
+}}"""
+
+    # Write JSON first so we can read it to generate types
+    json_file = doctype_dir / f"{name}.json"
+    json_file.write_text(json_content, encoding="utf-8")
+
+    # Parse JSON to get fields for type generation
+    doctype_data = json.loads(json_content)
+    type_hints = _generate_type_hints(name, doctype_data.get("fields", []))
+
+    # Python controller template with auto-generated types
+    py_content = f'''"""{name} controller.
+
+Бізнес-логіка для DocType {name}.
+"""
+
+from __future__ import annotations
+
+{type_hints}
+
+
+class {name}Controller:
+    """Контроллер для {name} документів."""
+
+    async def before_save(self):
+        """Викликається перед збереженням."""
+        pass
+
+    async def after_save(self):
+        """Викликається після збереження."""
+        pass
+
+    async def before_delete(self):
+        """Викликається перед видаленням."""
+        pass
+'''
+
+    # JavaScript template
+    js_content = f'''/**
+ * {name} Client Script
+ *
+ * Викликається на UI сторінці при редагуванні {name}.
+ */
+
+function on_load(frm) {{
+    // Код що виконується при завантаженні форми
+    console.log('Loaded {name}', frm.doc)
+}}
+
+function on_save(frm) {{
+    // Код що виконується при збереженні форми
+    console.log('Saved {name}', frm.doc)
+}}
+'''
+
+    # Write files
+    py_file = doctype_dir / f"{name}.py"
+    js_file = doctype_dir / f"{name}.js"
+    init_file = doctype_dir / "__init__.py"
+
+    py_file.write_text(py_content, encoding="utf-8")
+    js_file.write_text(js_content, encoding="utf-8")
+    init_file.write_text("", encoding="utf-8")
+
+    # Try to show relative path, fallback to absolute
+    try:
+        rel_path = doctype_dir.relative_to(Path.cwd())
+    except ValueError:
+        rel_path = doctype_dir
+
+    click.echo(f"✓ Створено DocType '{name}' в {rel_path}")
+    click.echo(f"  ├── {name}.json")
+    click.echo(f"  ├── {name}.py (з auto-generated типами)")
+    click.echo(f"  ├── {name}.js")
+    click.echo(f"  └── __init__.py")
+    click.echo()
+    click.echo("Наступні кроки:")
+    click.echo(f"1. Відредагуйте {name}.json для визначення полів")
+    click.echo(f"2. Запустіть: grunt doctype generate-types {name} --app {app}")
+    click.echo(f"3. Запустіть: grunt serve --reload")
+    click.echo(f"4. Перейдіть на http://localhost:8000/desk/list/{name}")
+
+
+@doctype_group.command("generate-types")
+@click.argument("name")
+@click.option("--app", default="web", help="Папка app де знаходиться DocType")
+def doctype_generate_types(name: str, app: str):
+    """Регенерувати auto-generated типи для існуючого DocType.
+
+    Читає JSON файл і оновлює type hints у .py контролері.
+    """
+    import json  # noqa: PLC0415
+
+    app_path = Path("grunt_apps") / app
+    doctype_dir = app_path / "doctypes" / name
+    json_file = doctype_dir / f"{name}.json"
+    py_file = doctype_dir / f"{name}.py"
+
+    if not json_file.exists():
+        click.echo(f"Помилка: DocType JSON не знайдено: {json_file}", err=True)
+        raise SystemExit(1)
+
+    if not py_file.exists():
+        click.echo(f"Помилка: DocType контроллер не знайдено: {py_file}", err=True)
+        raise SystemExit(1)
+
+    # Read JSON and generate types
+    doctype_data = json.loads(json_file.read_text(encoding="utf-8"))
+    type_hints = _generate_type_hints(name, doctype_data.get("fields", []))
+
+    # Read current Python file
+    py_content = py_file.read_text(encoding="utf-8")
+
+    # Remove old type hints block if exists
+    if "# begin: auto-generated types" in py_content:
+        start = py_content.find("# begin: auto-generated types")
+        end = py_content.find("# end: auto-generated types")
+        if start != -1 and end != -1:
+            # Keep everything before begin marker and after end marker
+            before = py_content[:start].rstrip()
+            after = py_content[end:].split("\n", 1)[1] if "\n" in py_content[end:] else ""
+            py_content = before + "\n\n" + type_hints + "\n\n" + after
+
+            py_file.write_text(py_content, encoding="utf-8")
+            click.echo(f"✓ Типи оновлено для {name}")
+            return
+
+    # If no marker found, insert after imports
+    lines = py_content.split("\n")
+    insert_pos = 0
+
+    # Find position after __future__ imports and blank lines
+    for i, line in enumerate(lines):
+        if line.startswith("from __future__"):
+            insert_pos = i + 1
+        elif line.strip() and not line.startswith("from ") and not line.startswith("import "):
+            break
+
+    # Insert type hints after imports
+    lines.insert(insert_pos + 1, "")
+    lines.insert(insert_pos + 2, type_hints)
+    lines.insert(insert_pos + 3, "")
+
+    py_file.write_text("\n".join(lines), encoding="utf-8")
+    click.echo(f"✓ Типи додано для {name}")
+
+
+def _generate_type_hints(doctype_name: str, fields: list) -> str:
+    """Generate auto-typed field annotations from a DocType definition.
+
+    Maps fieldtype to Python type hints.
+    """
+    # Fieldtype to Python type mapping
+    fieldtype_map = {
+        "Data": "str | None",
+        "Text": "str | None",
+        "LongText": "str | None",
+        "Int": "int | None",
+        "Float": "float | None",
+        "Check": "bool | None",
+        "Date": "str | None",  # ISO date string
+        "Datetime": "str | None",  # ISO datetime string
+        "Time": "str | None",
+        "Link": "str | None",
+        "MultiLink": "list[str] | None",
+        "Attach": "str | None",
+        "Image": "str | None",
+        "Select": "str | None",
+        "RichText": "str | None",
+        "JSON": "dict | None",
+        "Code": "str | None",
+        "Color": "str | None",
+        "Signature": "str | None",
+        "Geolocation": "str | None",
+        "HTMLEditor": "str | None",
+        "BarCode": "str | None",
+        "Rating": "int | None",
+        "Percent": "float | None",
+        "Duration": "float | None",
+    }
+
+    # Collect field type annotations (skip structural fields)
+    field_lines = []
+    for field in fields:
+        fieldname = field.get("fieldname", "")
+        fieldtype = field.get("fieldtype", "Data")
+
+        # Skip structural fields
+        if fieldtype in ("Section", "Column", "Tab", "Table", "Empty"):
+            continue
+
+        # Skip standard fields
+        if fieldname in ("name", "docstatus", "idx", "owner", "creation", "modified", "modified_by"):
+            continue
+
+        py_type = fieldtype_map.get(fieldtype, "Any | None")
+        field_lines.append(f"\t\t{fieldname}: {py_type}")
+
+    # Build the type hints block
+    type_block = f"""# begin: auto-generated types
+# This code is auto-generated. Do not modify anything in this block.
+
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+	from typing import DF
+
+	class {doctype_name}:
+		\"\"\"Type hints for {doctype_name} fields.\"\"\"
+
+{chr(10).join(field_lines) if field_lines else chr(9)*2 + 'name: str | None'}
+
+# end: auto-generated types"""
+
+    return type_block
 
 
 if __name__ == "__main__":

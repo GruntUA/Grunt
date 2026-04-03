@@ -230,4 +230,518 @@
 
 ---
 
-_Останнє оновлення: 2026-04-03 (розділ 16 виконано)_
+## 17. Рефакторинг структури DocType (децентралізація)
+
+> Ідея: кожний DocType — це максимально замкнута одиниця. Все що до нього відноситься (JSON-визначення, контроллер, скрипти, логіка) — в одній папці.
+
+### Поточна структура
+
+```
+backend/grunt/
+├── core/
+│   ├── doctypes/
+│   │   ├── ToDo.json
+│   │   ├── User/
+│   │   │   ├── User.json
+│   │   │   ├── User.py        ← контроллер
+│   │   │   └── User.js        ← client script
+│   │   ├── ...
+│   └── (логіка розсіяна по сервісам)
+```
+
+### Цільова структура (децентралізована)
+
+```
+backend/grunt/
+├── web/
+│   ├── doctypes/
+├── core/
+│   ├── doctypes/
+│   │   ├── User/
+│   │   │   ├── User.json
+│   │   │   ├── User.py        ← контроллер
+│   │   │   └── User.js        ← client script
+│   │   ├── ToDo/
+│   │   │   ├── ToDo.json
+│   │   │   ├── ToDo.py        ← контроллер
+│   │   │   └── ToDo.js        ← client script
+│   │   ├── ...
+```
+
+
+### Статус
+
+| # | Що | Деталі |
+|---|-----|--------|
+| ✅ | **CLI команда `grunt scaffold doctype`** | Реалізована: генерує новий DocType з шаблонами JSON, Python контролера і JavaScript скрипту |
+| ✅ | **Міграція core doctypes** | 32 JSON файли перенесені у папки (`ActivityLog/ActivityLog.json`, тощо) + добавлені `__init__.py`. User папка вже існувала з контролером |
+| ✅ | **Децентралізована структура** | Кожен DocType тепер у своїй папці; file_scripts.py вже сканує `**/*.json` і `**/*.py` рекурсивно |
+| 💡 | **Унифікованість file_scripts.py** | Уже працює для `grunt_apps/*/doctypes/` за единим алгоритмом через glob |
+| 💡 | **Перенести логіку в контролери** | Права доступу, хеширування паролів → в User.py методи. Авто-hook через document registry |
+
+### Переваги
+
+✅ Кожний DocType — автономна одиниця (легше версіонувати, розповсюджувати)
+✅ Менше boilerplate — auto-wire logic на основі назви методу
+✅ Легше для розробників додатків — просто копіюють папку
+✅ Простіша навігація в IDE — все у одній папці
+✅ Easier контроль версій — окремі фічі = окремі папки
+
+---
+
+_Останнє оновлення: 2026-04-03 (розділ 16-17 виконано)_
+
+---
+
+## 18. Grunt Python API — спрощена розробка додатків
+
+> Ідея: надати розробникам простий, високорівневий Python API для роботи з документами, подібно до Frappe (`frappe.db`, `frappe.msgprint`, тощо).
+> Це зніме boilerplate при розробці контролерів, серверних скриптів і хуків.
+
+### Концепція
+
+```python
+# Замість:
+from grunt.core.document.service import DocumentService
+from grunt.core.db.session import get_session
+async with get_session() as session:
+    svc = DocumentService(session, engine)
+    doc = await svc.get_document("User", user_id, user)
+    ...
+
+# Розробник пише:
+from grunt import Doc, db, msgprint, throw, call
+
+async def my_function():
+    doc = await Doc.get("User", user_id)       # Автоматично з контексту сесії
+    doc.status = "Active"
+    await doc.save()
+    msgprint("Користувач активований")
+```
+
+### API методи
+
+#### Документи
+| Метод | Приклад | Деталі |
+|-------|---------|--------|
+| `Doc.get(doctype, id)` | `user = await Doc.get("User", "test@mail.com")` | Отримати документ |
+| `Doc.create(doctype, data)` | `contract = await Doc.create("Contract", {"party": "ABC"})` | Створити документ |
+| `doc.save()` | `await doc.save()` | Зберегти документ |
+| `doc.submit()` | `await doc.submit()` | Зафіксувати (workflow) |
+| `doc.delete()` | `await doc.delete()` | Видалити |
+| `Doc.list(doctype, filters, order)` | `await Doc.list("Invoice", {"status": "Pending"}, order_by="date")` | Список документів |
+
+#### Database
+| Метод | Приклад | Деталі |
+|-------|---------|--------|
+| `db.get_value(doctype, id, field)` | `await db.get_value("User", user_id, "full_name")` | Отримати одне значення |
+| `db.set_value(doctype, id, field, value)` | `await db.set_value("User", user_id, "status", "Active")` | Встановити значення |
+| `db.exists(doctype, id)` | `if await db.exists("User", email): ...` | Перевірка чи існує |
+| `db.count(doctype, filters)` | `count = await db.count("Invoice", {"status": "Draft"})` | Кількість записів |
+
+#### Виклики і ієрархія
+| Метод | Приклад | Деталі |
+|-------|---------|--------|
+| `call(method, args)` | `result = await call("my_app.tasks.process_invoice", {"id": 123})` | Виконати метод |
+| `enqueue(method, args)` | `await enqueue("my_app.tasks.send_email", {"email": user_email}, queue="default")` | Додати в чергу (фоновий task) |
+
+#### Повідомлення & Помилки
+| Метод | Приклад | Деталі |
+|-------|---------|--------|
+| `msgprint(msg, title, type)` | `msgprint("Готово!", type="success")` | Показати повідомлення в UI |
+| `msgprint_list(items, title)` | `msgprint_list(["A", "B", "C"], "Результати")` | Список повідомлень |
+| `throw(msg, title, code)` | `throw("Неправильний стан", code="INVALID_STATE")` | Викинути помилку (abort + повідомлення) |
+
+#### Коментарі & Активність
+| Метод | Приклад | Деталі |
+|-------|---------|--------|
+| `doc.add_comment(text, is_private)` | `await doc.add_comment("Одержано від клієнта")` | Додати коментар до документа |
+| `doc.get_comments()` | `comments = await doc.get_comments()` | Отримати всі коментарі |
+| `activity.log(doctype, id, action, details)` | `await activity.log("Invoice", inv_id, "printed", {...})` | Залогувати дію |
+
+#### Сповіщення
+| Метод | Приклад | Деталі |
+|-------|---------|--------|
+| `notify(title, msg, doctype, id, icon)` | `await notify("Нова заявка", "Від компанії ABC", "Request", req_id)` | Відправити in-app сповіщення |
+| `notify_all(title, msg, roles)` | `await notify_all("Обслуговування", "Сервер перезавантажується", roles=["Admin"])` | Для кількох користувачів |
+| `queue_email(recipient, subject, body, doctype, id)` | `await queue_email(user_email, "Запрошення", html_body)` | Додати email в чергу |
+
+#### Валідація & Дозволи
+| Метод | Приклад | Деталі |
+|-------|---------|--------|
+| `can_read(doctype, id)` | `if not await can_read("Contract", contract_id): throw("Немає доступу")` | Перевірити дозвіл на читання |
+| `can_write(doctype, id)` | `if not await can_write("Invoice", inv_id): throw("Тільки читання")` | Перевірити дозвіл на запис |
+| `get_current_user()` | `user = await get_current_user()` | Отримати поточного користувача |
+
+### Реалізація (проектна)
+
+```python
+# grunt/api.py — публічний API для розробників
+
+from contextlib import asynccontextmanager
+from typing import Any
+from grunt.core.site.manager import site_manager
+
+class Doc:
+    @staticmethod
+    async def get(doctype: str, doc_id: str) -> "DocProxy":
+        """Отримати документ."""
+        async with _get_session() as (session, user):
+            from grunt.core.document.service import DocumentService
+            svc = DocumentService(session, _get_engine())
+            data = await svc.get_document(doctype, doc_id, user)
+            return DocProxy(doctype, data, session, user)
+
+    @staticmethod
+    async def create(doctype: str, data: dict[str, Any]) -> "DocProxy":
+        """Створити новий документ."""
+        async with _get_session() as (session, user):
+            from grunt.core.document.service import DocumentService
+            svc = DocumentService(session, _get_engine())
+            doc = await svc.create_document(doctype, data, user)
+            return DocProxy(doctype, doc, session, user)
+
+    @staticmethod
+    async def list(doctype: str, filters: dict | None = None, order_by: str = "name", limit: int = 100) -> list["DocProxy"]:
+        """Список документів з фільтрами."""
+        async with _get_session() as (session, user):
+            from grunt.core.document.service import DocumentService
+            svc = DocumentService(session, _get_engine())
+            docs = await svc.list_documents(doctype, filters or {}, user, order_by, limit)
+            return [DocProxy(doctype, d, session, user) for d in docs]
+
+
+class DocProxy:
+    """Проксі об'єкт документа з методами."""
+    def __init__(self, doctype: str, data: dict, session, user):
+        self.doctype = doctype
+        self.data = data
+        self._session = session
+        self._user = user
+
+    async def save(self):
+        """Зберегти зміни."""
+        from grunt.core.document.service import DocumentService
+        svc = DocumentService(self._session, _get_engine())
+        await svc.update_document(self.doctype, self.data["id"], self.data, self._user)
+
+    async def submit(self):
+        """Зафіксувати документ (workflow)."""
+        # Логіка переходу в workflow стан "Submitted"
+        ...
+
+    async def add_comment(self, text: str, is_private: bool = False):
+        """Додати коментар до документа."""
+        from grunt.core.document.comments import add_comment as _add
+        ...
+
+    def __getitem__(self, key: str):
+        return self.data.get(key)
+
+    def __setitem__(self, key: str, value):
+        self.data[key] = value
+
+
+class Database:
+    """High-level DB API."""
+    @staticmethod
+    async def get_value(doctype: str, doc_id: str, field: str) -> Any:
+        async with _get_session() as (session, user):
+            ...
+
+    @staticmethod
+    async def set_value(doctype: str, doc_id: str, field: str, value: Any):
+        async with _get_session() as (session, user):
+            ...
+
+
+# Глобальні об'єкти
+db = Database()
+
+async def msgprint(msg: str, title: str = "", type: str = "info"):
+    """Відправити повідомлення в UI."""
+    # Додати в message queue які підберуться при відповіді
+    ...
+
+async def throw(msg: str, title: str = "", code: str = "ERROR") -> None:
+    """Викинути помилку."""
+    raise ApplicationError(msg, code=code)
+
+async def notify(title: str, msg: str, doctype: str = "", doc_id: str = ""):
+    """Відправити сповіщення користувачу."""
+    ...
+
+async def get_current_user():
+    """Отримати поточного користувача з контексту."""
+    ...
+
+@asynccontextmanager
+async def _get_session():
+    """Отримати session з контексту (request або scheduler)."""
+    # Спробувати отримати з RequestContext
+    # Якщо немає — отримати з active site
+    ...
+
+
+# У контролері DocType:
+from grunt import Doc, db, msgprint
+
+class Invoice:
+    async def before_save(self):
+        # Автоматично передається self.doc як контекст
+        if self.doc.status == "Submitted":
+            total = sum(item.amount for item in self.doc.items)
+            self.doc.total = total
+            msgprint(f"Сума: {total}")
+
+    async def on_submit(self):
+        # Відправити email
+        await queue_email(self.doc.owner, f"Invoice {self.doc.name} submitted")
+```
+
+### Статус
+
+| # | Що | Деталі |
+|---|-----|--------|
+| ✅ | **Коренева папка `grunt/api/`** | Модульна структура: context.py, document.py, database.py, messages.py, permissions.py, activity.py |
+| ✅ | **Автоматичний контекст session** | `set_session()` з `get_session()` dependency automatically |
+| ✅ | **Doc proxy з методами** | `doc.field = value`, `await doc.save()`, `await doc.submit()`, `await doc.add_comment()` |
+| ✅ | **Database shortcuts** | `db.get_value()`, `db.set_value()`, `db.exists()`, `db.count()` |
+| ✅ | **Permission helpers з DB** | `can_read()`, `can_write()`, `can_submit()`, `can_delete()`, `can_create()` **NOW queries DocTypePermission** |
+| ✅ | **Error handling** | `throw()` для abort + message |
+| ✅ | **Lazy loading** | `from grunt import Doc` без циклічних імпортів |
+| ✅ | **Comments & Activity** | `doc.add_comment()`, `get_comments()`, `activity.log()`, `get_activity_log()` |
+| ✅ | **Batch operations** | `Doc.set_value_batch()`, `Doc.delete_many()` |
+| ✅ | **Notification API** | `notify()`, `notify_all()`, `queue_email()` (структура готова) |
+| 💡 | **Async task enqueue** | `await enqueue("module.function", args, queue="default")` |
+
+### Реалізація
+
+✅ **Структура модулів:**
+- `grunt/api/context.py` — управління ContextVar для session/user/engine
+- `grunt/api/document.py` — Doc, DocProxy з методами get/create/save/submit/delete/add_comment + batch ops
+- `grunt/api/database.py` — Database клас з get_value/set_value/exists/count shortcuts
+- `grunt/api/messages.py` — msgprint, throw, notify, queue_email функції
+- `grunt/api/permissions.py` — **NOW queries DocTypePermission table** can_read/write/submit/delete з DB lookups ⭐
+- `grunt/api/activity.py` — add_comment, get_comments, log_activity, get_activity_log
+- `grunt/__init__.py` — ленивий імпорт через `__getattr__` для уникнення циклів
+- `grunt/core/db/session.py` — автоматично встановлює контекст при створенні сесії
+
+✅ **Permission Checking Flow (NEW):**
+```python
+# Before: can_read("Invoice", "INV-001") → returned True for all users
+# Now: Queries DocTypePermission table
+
+async def can_read(doctype: str, doc_id: str) -> bool:
+    user = get_user()
+    if user.is_superadmin:
+        return True  # Superadmin bypass
+    if user.email == "system":
+        return True  # System user bypass
+    if not user.roles:
+        return False  # No roles → deny
+
+    # Query: SELECT * FROM DocTypePermission
+    #        WHERE doctype_name='Invoice' AND role IN (user.roles)
+    # Check if any row has read=True → return True
+    # Else → return False
+```
+
+✅ **Використання розробниками:**
+```python
+from grunt import Doc, db, msgprint, throw, can_read, get_current_user, notify, add_comment, log_activity
+
+class Invoice:
+    async def before_save(self):
+        # Отримати документ
+        order = await Doc.get("Order", self.doc.order_id)
+
+        # Простий доступ до значень
+        if not await db.exists("Contract", self.doc.contract_id):
+            throw("Contract not found")
+
+        # Перевірити дозволи (NOW queries DocTypePermission)
+        current_user = await get_current_user()
+        if not await can_write("Contract", self.doc.contract_id):
+            throw("Read-only access")
+
+        # Встановити значення
+        await db.set_value("Invoice", self.doc.id, "status", "Processing")
+
+        # Коментар
+        await add_comment("Invoice", self.doc.id, "Invoice being processed")
+
+        # Логувати активність
+        await log_activity("Invoice", self.doc.id, "processing",
+                          {"old_status": "draft", "new_status": "processing"})
+
+        # Показати повідомлення
+        msgprint("Операція завершена", type="success")
+
+        # Пакетне оновлення
+        invoice_ids = ["INV-001", "INV-002", "INV-003"]
+        count = await Doc.set_value_batch("Invoice", "status", "Sent", invoice_ids)
+
+        # Відправити сповіщення
+        await notify(
+            "Новий рахунок",
+            f"Рахунок {self.doc.name} обробляється",
+            doctype="Invoice",
+            doc_id=self.doc.id
+        )
+```
+
+### Переваги
+
+✅ **Менше boilerplate** — не потрібно імпортувати DocumentService, session, engine
+✅ **Інтуїтивний API** — схожий на Frappe, знайомий розробникам
+✅ **Автоматичний контекст** — session і user з ContextVar, не потрібно передавати
+✅ **Type hints** — IDE autocompletion для всіх методів
+✅ **Безпеки** — всі перевірки дозволів вбудовані, ленивий імпорт уникає циклів
+✅ **Role-based access control** — дозволи перевіряються через DocTypePermission ⭐ NEW
+
+---
+
+## 19. Повна типізація Python через PEP 563 (Postponed Annotations)
+
+> Ідея: мігрувати весь проект на `from __future__ import annotations` для забезпечення 100% type coverage з mypy strict mode.
+> Це поліпшить якість коду, IDE support, та попередить runtime помилки.
+
+### Реалізація (автоматична генерація типів)
+
+#### ✅ Auto-generated Type Hints для нових DocTypes
+
+**Scaffold команда тепер генерує типи автоматично:**
+
+```bash
+# Створити новий DocType з type hints
+$ grunt doctype scaffold Invoice --app web
+
+# Генерує:
+Invoice.json          # метадані з полями
+Invoice.py            # контроллер з auto-generated типами (див. below)
+Invoice.js            # клієнтський скрипт
+__init__.py
+```
+
+**Приклад згенерованого Invoice.py:**
+
+```python
+"""Invoice controller.
+
+Бізнес-логіка для DocType Invoice.
+"""
+
+from __future__ import annotations
+
+# begin: auto-generated types
+# This code is auto-generated. Do not modify anything in this block.
+
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from typing import DF
+
+    class Invoice:
+        """Type hints for Invoice fields."""
+
+        total_amount: float | None
+        due_date: str | None
+        status: str | None
+        notes: str | None
+        paid: bool | None
+
+# end: auto-generated types
+
+
+class InvoiceController:
+    """Контроллер для Invoice документів."""
+
+    async def before_save(self):
+        """Викликається перед збереженням."""
+        pass
+
+    async def after_save(self):
+        """Викликається після збереження."""
+        pass
+
+    async def before_delete(self):
+        """Викликається перед видаленням."""
+        pass
+```
+
+#### ✅ Регенерування типів при зміні схеми
+
+**Коли змінили Invoice.json, оновити типи:**
+
+```bash
+# Відредагуйте Invoice.json (додати/видалити поля)
+# Далі:
+$ grunt doctype generate-types Invoice --app web
+
+# Типи в Invoice.py автоматично оновлені
+```
+
+### Fieldtype → Python Type Mapping
+
+| Fieldtype | Python Type | Приклад |
+|-----------|------------|---------|
+| `Data` | `str \| None` | `name: str \| None` |
+| `Text`, `LongText` | `str \| None` | `description: str \| None` |
+| `Int` | `int \| None` | `quantity: int \| None` |
+| `Float` | `float \| None` | `amount: float \| None` |
+| `Check` | `bool \| None` | `is_active: bool \| None` |
+| `Date` | `str \| None` | `due_date: str \| None` |
+| `Datetime` | `str \| None` | `created_at: str \| None` |
+| `Link` | `str \| None` | `customer: str \| None` |
+| `MultiLink` | `list[str] \| None` | `tags: list[str] \| None` |
+| `Select` | `str \| None` | `status: str \| None` |
+| `JSON` | `dict \| None` | `metadata: dict \| None` |
+| `Table` | —  | (structural, skipped) |
+| `Section` | — | (structural, skipped) |
+
+### Поточний стан
+
+| # | Що | Статус |
+|---|-----|--------|
+| ✅ | **`grunt scaffold` генерує типи** | Реалізовано |
+| ✅ | **`grunt generate-types` регенерує типи** | Реалізовано |
+| ✅ | **`from __future__ import annotations` в scaffolds** | Реалізовано |
+| ✅ | **API модулі типізовані** | 25% (core/) |
+| 💡 | **Запустити mypy strict mode в CI** | Планується |
+| 💡 | **Типізувати core/** | Планується (25% done) |
+
+### Командні лінії
+
+```bash
+# Scaffold з auto-generated типами
+grunt doctype scaffold {Name} --app {app}
+
+# Регенерувати типи після зміни JSON
+grunt doctype generate-types {Name} --app {app}
+
+# Список всіх doctypes
+grunt doctype list
+
+# Синхронізувати doctype зі схемою БД
+grunt doctype sync {Name}
+```
+
+### Переваги
+
+✅ **Type Safety** — IDE покажить помилки типів при написанні
+✅ **IDE Support** — autocompletion для всіх полів DocType
+✅ **Auto-sync** — типи завжди синхронізовані зі schemaю
+✅ **Clean Code** — TYPE_CHECKING дає тип hints без runtime overhead
+✅ **Single Source** — JSON є единственным источником truth для полів
+
+### Статус реалізації
+
+- ✅ **Auto-generation:** Scaffold generates types from JSON (100%)
+- ✅ **Regeneration:** CLI command to update types (100%)
+- 🔨 **Core modules:** Applying to existing doctypes (in progress)
+- ⏳ **CI integration:** mypy strict mode checks (planned)
+
+---
+
+_Останнє оновлення: 2026-04-03 (розділи 1-19 розроблені, 17-18 завершені)_

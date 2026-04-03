@@ -16,12 +16,13 @@ class Settings(BaseSettings):
 
     # Core
     app_name: str = "Ґрунт"
-    debug: bool = False
+    debug: bool = True
     secret_key: str = "change-me-to-a-random-64-char-string"
 
     # Database
     database_url: str = "sqlite+aiosqlite:///./grunt.db"
     database_echo: bool = False
+    slow_query_threshold_ms: float = 200.0  # log queries slower than this (dev only)
 
     # Redis (optional)
     redis_url: str | None = None
@@ -54,7 +55,7 @@ class Settings(BaseSettings):
     ]
 
     # Localization
-    default_locale: str = "en"
+    default_locale: str = "uk"
     default_timezone: str = "Europe/Kyiv"
 
     # OAuth2 / SSO (optional — leave empty to disable)
