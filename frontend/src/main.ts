@@ -6,6 +6,7 @@ import router from './router'
 import i18n from './i18n'
 import { grunt } from '@/core/grunt'
 import './assets/main.css'
+import 'vue-sonner/style.css'
 
 // Expose globally for client scripts (JS controllers)
 window.grunt = grunt
