@@ -15,7 +15,7 @@ const builder = useBuilderStore()
 // Data fields — non-layout fields for selects
 const dataFields = computed(() =>
   (builder.doctype?.fields ?? []).filter(f =>
-    !['Section', 'Column', 'Tab'].includes(f.fieldtype)
+    !['Section', 'Column', 'Tab'].includes(f.fieldtype) && !!f.fieldname
   )
 )
 

@@ -4,7 +4,12 @@ import { VueQueryPlugin } from '@tanstack/vue-query'
 import App from './App.vue'
 import router from './router'
 import i18n from './i18n'
+import { grunt } from '@/core/grunt'
 import './assets/main.css'
+
+// Expose globally for client scripts (JS controllers)
+window.grunt = grunt
+window.frappe = grunt // Frappe-compatible alias
 
 const app = createApp(App)
 app.use(createPinia())

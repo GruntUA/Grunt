@@ -194,45 +194,57 @@ function validate(frm) {{
 # ── Helpers ──────────────────────────────────────────────────────────────
 
 
-def _find_app_dir(module: str) -> Path | None:
+def _find_app_dir(module: str, app_name: str | None = None) -> Path | None:
     """Find the app directory that owns a given module name.
 
-    Tries multiple patterns:
+    If *app_name* is given, we look for ``apps/{app_name}`` directly (no
+    directory-existence check needed — the module dir may not exist yet).
+
+    Otherwise tries multiple patterns:
     1. apps/{app}/{module}          — module-based structure (Frappe style)
     2. apps/{app}                   — flat structure where app == module
     3. grunt_apps/{app}/{module}    — relative grunt_apps (dev)
     4. grunt_apps/{app}             — flat relative grunt_apps
     """
-    # Pattern 1-2: Check bench-level apps
     apps_dir = site_manager.bench_dir / "apps"
+
+    # Fast path: app name known — go directly, no scanning
+    if app_name:
+        if apps_dir.is_dir():
+            candidate = apps_dir / app_name
+            if candidate.is_dir():
+                return candidate
+        grunt_apps_dir = Path("grunt_apps")
+        if grunt_apps_dir.is_dir():
+            candidate = grunt_apps_dir / app_name
+            if candidate.is_dir():
+                return candidate
+        return None
+
+    # Fallback: scan all app directories
     if apps_dir.is_dir():
         for app_dir in apps_dir.iterdir():
             if not app_dir.is_dir() or app_dir.name.startswith((".", "_")):
                 continue
-            # Pattern 1: apps/{app}/{module}
             if (app_dir / module).is_dir():
                 return app_dir
-            # Pattern 2: apps/{app} where app == module
             if app_dir.name == module:
                 return app_dir
 
-    # Pattern 3-4: Check relative grunt_apps (current working directory)
     grunt_apps_dir = Path("grunt_apps")
     if grunt_apps_dir.is_dir():
         for app_dir in grunt_apps_dir.iterdir():
             if not app_dir.is_dir() or app_dir.name.startswith((".", "_")):
                 continue
-            # Pattern 3: grunt_apps/{app}/{module}
             if (app_dir / module).is_dir():
                 return app_dir
-            # Pattern 4: grunt_apps/{app} where app == module
             if app_dir.name == module:
                 return app_dir
 
     return None
 
 
-def export_doctype_files(dt: DocType) -> None:
+def export_doctype_files(dt: DocType, app_name: str | None = None) -> None:
     """Write DocType metadata and scaffold files to disk.
 
     Creates ``{app}/{doctype_dir}/`` with:
@@ -243,19 +255,29 @@ def export_doctype_files(dt: DocType) -> None:
     Supports two directory structures:
     - apps/{app}/{module}/doctypes/{Name}/   (module-based)
     - apps/{app}/doctypes/{Name}/            (flat app structure)
+
+    *app_name* — when provided, used to locate the app directory directly
+    instead of scanning for a matching module subdirectory.  Pass this when
+    the module directory may not yet exist on disk (e.g. freshly created).
     """
     if dt.is_system:
         return
 
-    app_dir = _find_app_dir(dt.module)
+    app_dir = _find_app_dir(dt.module, app_name=app_name)
     if not app_dir:
         logger.warning("scaffold.export_skip", doctype=dt.name, reason=f"module '{dt.module}' not found in apps")
         return
 
-    # Determine path based on app structure
-    if (app_dir / dt.module).is_dir():
-        # Module-based structure: apps/{app}/{module}/doctypes/
-        dt_dir = app_dir / dt.module / "doctypes" / dt.name
+    # Determine path based on app structure.
+    # If the module directory already exists, use module-based layout.
+    # If not but app_name was provided, create the module directory now.
+    module_dir = app_dir / dt.module
+    if module_dir.is_dir():
+        dt_dir = module_dir / "doctypes" / dt.name
+    elif app_name:
+        # Module dir doesn't exist yet — create it (new module)
+        module_dir.mkdir(parents=True, exist_ok=True)
+        dt_dir = module_dir / "doctypes" / dt.name
     else:
         # Flat structure: apps/{app}/doctypes/
         dt_dir = app_dir / "doctypes" / dt.name

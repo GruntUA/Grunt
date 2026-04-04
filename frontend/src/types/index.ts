@@ -9,21 +9,31 @@ export interface DocField {
   fieldname: string
   label: string
   fieldtype: FieldType
+  // Validation
   required?: boolean
   unique?: boolean
   read_only?: boolean
   hidden?: boolean
+  bold?: boolean
+  // Display
   in_list_view?: boolean
   in_filter?: boolean
+  // Type-specific
   options?: string
   default?: unknown
   description?: string
   placeholder?: string
-  depends_on?: string
-  columns?: number
-  collapsible?: boolean
+  // Validation rules
   min_value?: number
   max_value?: number
+  max_length?: number
+  regex?: string
+  // Conditional
+  depends_on?: string
+  mandatory_depends_on?: string
+  // Layout
+  columns?: number
+  collapsible?: boolean
 }
 
 export interface DocTypeSummary {

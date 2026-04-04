@@ -26,6 +26,18 @@ logger = structlog.get_logger()
 router = APIRouter()
 
 
+async def _get_app_name_for_module(module: str, session: AsyncSession) -> str | None:
+    """Return the installed app name that owns *module*, or None."""
+    from sqlalchemy import select  # noqa: PLC0415
+    from grunt.core.db.system_tables import GruntInstalledApp  # noqa: PLC0415
+
+    result = await session.execute(select(GruntInstalledApp))
+    for app in result.scalars().all():
+        if module in (app.modules or []):
+            return app.name
+    return None
+
+
 def _doctype_to_schema(dt: DocType) -> DocTypeSchema:
     return DocTypeSchema.model_validate(dt.model_dump())
 
@@ -78,6 +90,7 @@ async def list_doctypes(
 ) -> list[DocTypeListItem]:
     """List all registered DocTypes, optionally filtered by module."""
     all_dt = await doctype_registry.list_all()
+    all_dt = [dt for dt in all_dt if dt.name]  # exclude unnamed (unsaved) doctypes
     if module:
         all_dt = [dt for dt in all_dt if dt.module == module]
     return [
@@ -96,7 +109,8 @@ async def create_doctype(
     """Create a new DocType — validates, persists, syncs table, exports files."""
     await doctype_registry.register(body, session, eng)
     await _sync_doctype_doc(body, session)
-    export_doctype_files(body)
+    app_name = await _get_app_name_for_module(body.module or "", session)
+    export_doctype_files(body, app_name=app_name)
     return _doctype_to_schema(body)
 
 
@@ -126,7 +140,8 @@ async def update_doctype(
         )
     await doctype_registry.update(body, session, eng)
     await _sync_doctype_doc(body, session)
-    export_doctype_files(body)
+    app_name = await _get_app_name_for_module(body.module or "", session)
+    export_doctype_files(body, app_name=app_name)
     return _doctype_to_schema(body)
 
 
@@ -211,5 +226,6 @@ async def patch_permissions(
     updated = type(dt)(**dt_dict)
     await doctype_registry.update(updated, session, eng)
     await _sync_doctype_doc(updated, session)
-    export_doctype_files(updated)
+    app_name = await _get_app_name_for_module(updated.module or "", session)
+    export_doctype_files(updated, app_name=app_name)
     return _doctype_to_schema(updated)

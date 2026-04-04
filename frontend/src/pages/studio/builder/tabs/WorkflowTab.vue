@@ -108,7 +108,7 @@ function removeTransition(idx: number) {
 function selectState(idx: number) { selectedStateIndex.value = idx; selectedTransitionIndex.value = null }
 function selectTransition(idx: number) { selectedTransitionIndex.value = idx; selectedStateIndex.value = null }
 
-const stateNames = computed(() => workflow.value.states.map(s => s.name))
+const stateNames = computed(() => workflow.value.states.map(s => s.name).filter(Boolean))
 
 // ── Steps view state ───────────────────────────────────────────────────────
 
@@ -149,7 +149,7 @@ const visibleSteps = computed(() => {
   return steps
 })
 
-const activeSteps = computed(() => (workflow.value.steps ?? []).filter(s => s.is_active))
+// const activeSteps = computed(() => (workflow.value.steps ?? []).filter(s => s.is_active))
 const inactiveSteps = computed(() => (workflow.value.steps ?? []).filter(s => !s.is_active))
 
 function addStep(type: WorkflowStepType) {
@@ -472,7 +472,7 @@ function toggleNextStepMenu(id: string) {
                 @change="addNextStep(selectedStep.id, ($event.target as HTMLSelectElement).value); ($event.target as HTMLSelectElement).value = ''">
                 <option value="">+ Додати наступний крок…</option>
                 <option
-                  v-for="s in (workflow.steps ?? []).filter(s => s.id !== selectedStep.id && !selectedStep.next_steps.includes(s.id))"
+                  v-for="s in (workflow.steps ?? []).filter(s => s.id !== selectedStep!.id && !selectedStep!.next_steps.includes(s.id))"
                   :key="s.id" :value="s.id">
                   {{ stepSeq(s) }} {{ s.title || s.name }}
                 </option>

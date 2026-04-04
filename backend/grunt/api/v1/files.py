@@ -86,6 +86,7 @@ async def _delete_file_doc(session: AsyncSession, grunt_file_id: str) -> None:
         pass
 
 
+@router.post("/", include_in_schema=False)
 @router.post("")
 async def upload_file(
     file: UploadFile,
@@ -151,6 +152,7 @@ async def upload_file(
     }
 
 
+@router.get("/", include_in_schema=False)
 @router.get("")
 async def list_files(
     limit: int = 50,

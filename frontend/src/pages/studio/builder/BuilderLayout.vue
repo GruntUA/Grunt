@@ -2,6 +2,7 @@
 import { onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useBuilderStore } from '@/stores/builder'
+import { grunt } from '@/core/grunt'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Loader2, ArrowLeft } from 'lucide-vue-next'
@@ -23,9 +24,16 @@ const backWorkspace = props.workspaceName ?? (route.params.workspaceName as stri
 onMounted(() => builder.loadDocType(props.doctype))
 
 async function handleSave() {
-  const saved = await builder.save()
-  if (saved && props.doctype === 'new') {
-    router.replace(`/${backWorkspace}/list/DocType/${saved.name}`)
+  try {
+    const saved = await builder.save()
+    if (!saved) return
+    grunt.show_alert(`DocType «${saved.label || saved.name}» збережено`, 'success')
+    if (props.doctype === 'new') {
+      router.replace(`/${backWorkspace}/list/DocType/${saved.name}`)
+    }
+  } catch (err: unknown) {
+    const msg = (err as { message?: string })?.message ?? 'Помилка збереження'
+    grunt.show_alert(msg, 'error')
   }
 }
 </script>

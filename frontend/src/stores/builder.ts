@@ -9,16 +9,20 @@ export const useBuilderStore = defineStore('builder', () => {
   const doctype = ref<DocType | null>(null)
   const isDirty = ref(false)
   const isNew = ref(false)
-  const selectedFieldName = ref<string | null>(null)
+  const _selectedFieldIdx = ref<number | null>(null)
   const isSaving = ref(false)
   const activeTab = ref<string>('form')
 
   // ── Computed ─────────────────────────────────────────────────────────
 
   const selectedField = computed<DocField | null>(() => {
-    if (!selectedFieldName.value || !doctype.value) return null
-    return doctype.value.fields.find((f) => f.fieldname === selectedFieldName.value) ?? null
+    if (_selectedFieldIdx.value === null || !doctype.value) return null
+    return doctype.value.fields[_selectedFieldIdx.value] ?? null
   })
+
+  const selectedFieldName = computed<string | null>(() =>
+    selectedField.value?.fieldname ?? null
+  )
 
   const layout = computed<FormLayout>(() => {
     if (!doctype.value) return []
@@ -32,13 +36,13 @@ export const useBuilderStore = defineStore('builder', () => {
       doctype.value = { name: '', label: '', module: '', fields: [], permissions: [] }
       isNew.value = true
       isDirty.value = false
-      selectedFieldName.value = null
+      _selectedFieldIdx.value = null
       return
     }
     doctype.value = await metaApi.get(name)
     isNew.value = false
     isDirty.value = false
-    selectedFieldName.value = null
+    _selectedFieldIdx.value = null
   }
 
   async function save(): Promise<DocType | null> {
@@ -75,7 +79,9 @@ export const useBuilderStore = defineStore('builder', () => {
   // ── Selection ────────────────────────────────────────────────────────
 
   function selectField(fieldname: string | null) {
-    selectedFieldName.value = fieldname
+    if (fieldname === null || !doctype.value) { _selectedFieldIdx.value = null; return }
+    const idx = doctype.value.fields.findIndex((f) => f.fieldname === fieldname)
+    _selectedFieldIdx.value = idx === -1 ? null : idx
   }
 
   // ── Field CRUD (by fieldname) ────────────────────────────────────────
@@ -85,6 +91,7 @@ export const useBuilderStore = defineStore('builder', () => {
     const idx = doctype.value.fields.findIndex((f) => f.fieldname === fieldname)
     if (idx === -1) return
     doctype.value.fields[idx] = { ...doctype.value.fields[idx], ...patch }
+    // Index stays the same even if fieldname changed
     isDirty.value = true
   }
 
@@ -93,7 +100,11 @@ export const useBuilderStore = defineStore('builder', () => {
     const idx = doctype.value.fields.findIndex((f) => f.fieldname === fieldname)
     if (idx === -1) return
     doctype.value.fields.splice(idx, 1)
-    if (selectedFieldName.value === fieldname) selectedFieldName.value = null
+    if (_selectedFieldIdx.value === idx) {
+      _selectedFieldIdx.value = null
+    } else if (_selectedFieldIdx.value !== null && _selectedFieldIdx.value > idx) {
+      _selectedFieldIdx.value -= 1
+    }
     isDirty.value = true
   }
 
@@ -163,8 +174,10 @@ export const useBuilderStore = defineStore('builder', () => {
 
     const removed = doctype.value.fields.splice(tabIdx, endIdx - tabIdx)
     // Deselect if selection was within removed range
-    if (selectedFieldName.value && removed.some((f) => f.fieldname === selectedFieldName.value)) {
-      selectedFieldName.value = null
+    if (_selectedFieldIdx.value !== null && _selectedFieldIdx.value >= tabIdx && _selectedFieldIdx.value < tabIdx + removed.length) {
+      _selectedFieldIdx.value = null
+    } else if (_selectedFieldIdx.value !== null && _selectedFieldIdx.value >= tabIdx + removed.length) {
+      _selectedFieldIdx.value -= removed.length
     }
     isDirty.value = true
   }
@@ -210,8 +223,10 @@ export const useBuilderStore = defineStore('builder', () => {
     }
 
     const removed = doctype.value.fields.splice(secIdx, endIdx - secIdx)
-    if (selectedFieldName.value && removed.some((f) => f.fieldname === selectedFieldName.value)) {
-      selectedFieldName.value = null
+    if (_selectedFieldIdx.value !== null && _selectedFieldIdx.value >= secIdx && _selectedFieldIdx.value < secIdx + removed.length) {
+      _selectedFieldIdx.value = null
+    } else if (_selectedFieldIdx.value !== null && _selectedFieldIdx.value >= secIdx + removed.length) {
+      _selectedFieldIdx.value -= removed.length
     }
     isDirty.value = true
   }
@@ -269,7 +284,7 @@ export const useBuilderStore = defineStore('builder', () => {
           if (col) {
             col.push(newField)
             doctype.value.fields = flattenLayout(currentLayout)
-            selectedFieldName.value = newField.fieldname
+            _selectedFieldIdx.value = doctype.value.fields.findIndex((f) => f.fieldname === newField.fieldname)
             isDirty.value = true
             return
           }
@@ -279,7 +294,7 @@ export const useBuilderStore = defineStore('builder', () => {
 
     // Fallback: append to end
     doctype.value.fields.push(newField)
-    selectedFieldName.value = newField.fieldname
+    _selectedFieldIdx.value = doctype.value.fields.length - 1
     isDirty.value = true
   }
 
@@ -293,7 +308,7 @@ export const useBuilderStore = defineStore('builder', () => {
       fieldtype,
     }
     doctype.value.fields.push(newField)
-    selectedFieldName.value = newField.fieldname
+    _selectedFieldIdx.value = doctype.value.fields.length - 1
     isDirty.value = true
   }
 
@@ -327,14 +342,14 @@ export const useBuilderStore = defineStore('builder', () => {
 
   function updateWorkflow(patch: Partial<WorkflowDef>) {
     if (!doctype.value) return
-    const wf = doctype.value.workflow ?? { state_field: 'status', states: [], transitions: [] }
+    const wf = doctype.value.workflow ?? { state_field: 'status', states: [], transitions: [], steps: [] }
     doctype.value = { ...doctype.value, workflow: { ...wf, ...patch } }
     isDirty.value = true
   }
 
   function addWorkflowState(state?: Partial<WorkflowState>) {
     if (!doctype.value) return
-    const wf = doctype.value.workflow ?? { state_field: 'status', states: [], transitions: [] }
+    const wf = doctype.value.workflow ?? { state_field: 'status', states: [], transitions: [], steps: [] }
     const newState: WorkflowState = {
       name: state?.name ?? `state_${wf.states.length + 1}`,
       label: state?.label ?? `State ${wf.states.length + 1}`,

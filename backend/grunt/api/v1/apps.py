@@ -65,6 +65,33 @@ async def register_app(
     return {"success": True, "data": {"name": app.name, "title": app.title}}
 
 
+@router.post("/{name}/modules")
+async def add_module(
+    name: str,
+    body: dict,
+    session: AsyncSession = Depends(get_session),
+    _: GruntUser = Depends(current_user),
+) -> dict:
+    """Add a module to an installed app."""
+    result = await session.execute(
+        select(GruntInstalledApp).where(GruntInstalledApp.name == name)
+    )
+    app = result.scalar_one_or_none()
+    if not app:
+        raise HTTPException(status_code=404, detail=f"Додаток '{name}' не знайдено")
+
+    module_name = (body.get("module") or "").strip()
+    if not module_name:
+        raise HTTPException(status_code=422, detail="module є обов'язковим")
+
+    if module_name in app.modules:
+        raise HTTPException(status_code=409, detail=f"Модуль '{module_name}' вже існує")
+
+    app.modules = [*app.modules, module_name]
+    await session.flush()
+    return {"success": True, "data": {"name": app.name, "title": app.title, "modules": app.modules}}
+
+
 @router.delete("/{name}")
 async def delete_app(
     name: str,

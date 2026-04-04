@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, nextTick } from 'vue'
+import type { DocField } from '@/types'
 import { useBuilderStore } from '@/stores/builder'
 import type { LayoutSection } from '@/core/composables/useFormLayout'
 import CanvasColumn from './CanvasColumn.vue'
@@ -17,6 +18,16 @@ const builder = useBuilderStore()
 const isEditingLabel = ref(false)
 const editLabel = ref('')
 
+// Local mutable copy of columns — allows both drag events (remove + add)
+// to accumulate before we emit a single consistent update.
+const localColumns = ref<DocField[][]>([])
+
+watch(
+  () => props.section.columns,
+  (cols) => { localColumns.value = cols.map((c) => [...c]) },
+  { immediate: true, deep: false },
+)
+
 function startEditLabel() {
   editLabel.value = props.section.label
   isEditingLabel.value = true
@@ -33,11 +44,16 @@ function setColumns(count: number) {
   builder.setSectionColumns(props.section._fieldname, count)
 }
 
-function updateColumnFields(colIndex: number, newFields: typeof props.section.columns[0]) {
-  const updated = { ...props.section }
-  const newColumns = [...updated.columns]
-  newColumns[colIndex] = newFields
-  emit('update:section', { ...updated, columns: newColumns })
+let _pendingEmit = false
+function updateColumnFields(colIndex: number, newFields: DocField[]) {
+  localColumns.value[colIndex] = newFields
+  if (!_pendingEmit) {
+    _pendingEmit = true
+    nextTick(() => {
+      emit('update:section', { ...props.section, columns: localColumns.value })
+      _pendingEmit = false
+    })
+  }
 }
 
 function toggleCollapsible() {

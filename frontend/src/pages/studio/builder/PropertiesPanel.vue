@@ -1,18 +1,33 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
+import { getFieldConfig } from '@/core/fieldRegistry'
 import { metaApi } from '@/core/api'
 import type { DocTypeSummary } from '@/types'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
+const linkSearch = ref('')
+const tableSearch = ref('')
 
 const builder = useBuilderStore()
-
 const field = computed(() => builder.selectedField)
+const config = computed(() => field.value ? getFieldConfig(field.value.fieldtype) : null)
+const sections = computed(() => config.value?.sections ?? [])
 
+function has(section: string) {
+  return sections.value.includes(section as never)
+}
+
+function updateField(key: string, val: unknown) {
+  if (builder.selectedFieldName === null) return
+  builder.updateField(builder.selectedFieldName, { [key]: val } as never)
+}
+
+// DocType lists for Link / Table selectors
 const doctypeList = ref<DocTypeSummary[]>([])
 const childDoctypes = ref<DocTypeSummary[]>([])
 
@@ -23,160 +38,236 @@ onMounted(async () => {
   } catch {}
 })
 
-function updateField(key: string, val: unknown) {
-  if (!builder.selectedFieldName) return
-  builder.updateField(builder.selectedFieldName, { [key]: val } as Record<string, unknown>)
-}
-
-const doctypeOptionsList = computed(() => doctypeList.value.map((d) => d.name))
-const childDoctypeOptionsList = computed(() => childDoctypes.value.map((d) => d.name))
-
-const isLayoutField = computed(() =>
-  field.value ? ['Section', 'Column', 'Tab'].includes(field.value.fieldtype) : false
-)
+const doctypeOptions = computed(() => {
+  const q = linkSearch.value.toLowerCase()
+  return doctypeList.value.map((d) => d.name).filter((n) => n && (!q || n.toLowerCase().includes(q)))
+})
+const childDoctypeOptions = computed(() => {
+  const q = tableSearch.value.toLowerCase()
+  return childDoctypes.value.map((d) => d.name).filter((n) => n && (!q || n.toLowerCase().includes(q)))
+})
 </script>
 
 <template>
   <div class="h-full overflow-y-auto p-4 border-l border-border bg-card">
-    <!-- Tab field selected -->
-    <template v-if="field && field.fieldtype === 'Tab'">
-      <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Tab</p>
-      <div class="flex flex-col gap-3">
-        <div class="space-y-1.5">
-          <Label class="text-sm">Label *</Label>
-          <Input :model-value="field.label" @update:model-value="updateField('label', $event)" />
-        </div>
-        <div class="space-y-1.5">
-          <Label class="text-sm text-muted-foreground">Fieldname</Label>
-          <Input :model-value="field.fieldname" disabled />
-        </div>
-      </div>
-    </template>
+    <template v-if="field && config">
+      <!-- Header -->
+      <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+        {{ config.label }}
+      </p>
 
-    <!-- Section field selected -->
-    <template v-else-if="field && field.fieldtype === 'Section'">
-      <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Section</p>
-      <div class="flex flex-col gap-3">
+      <!-- CORE: Label + Fieldname -->
+      <div v-if="has('core')" class="flex flex-col gap-3 mb-4">
         <div class="space-y-1.5">
           <Label class="text-sm">Label</Label>
           <Input :model-value="field.label" @update:model-value="updateField('label', $event)" />
         </div>
         <div class="space-y-1.5">
           <Label class="text-sm text-muted-foreground">Fieldname</Label>
-          <Input :model-value="field.fieldname" disabled />
+          <Input
+            :model-value="field.fieldname"
+            :disabled="['Section','Column','Tab'].includes(field.fieldtype)"
+            @update:model-value="updateField('fieldname', $event)"
+          />
         </div>
+      </div>
+
+      <!-- COLLAPSIBLE: for Section -->
+      <div v-if="has('collapsible')" class="mb-4">
         <div class="flex items-center gap-2">
-          <Checkbox :checked="!!field.collapsible" @update:checked="updateField('collapsible', $event)" />
+          <Checkbox :model-value="!!field.collapsible" @update:model-value="updateField('collapsible', $event)" />
           <Label class="text-sm">Collapsible</Label>
         </div>
-        <div class="space-y-1.5">
-          <Label class="text-sm">Depends On</Label>
-          <Input :model-value="field.depends_on ?? ''" placeholder="eval: doc.status == 'Active'" @update:model-value="updateField('depends_on', $event || undefined)" />
-        </div>
-      </div>
-    </template>
-
-    <!-- Regular field selected -->
-    <template v-else-if="field && !isLayoutField">
-      <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">{{ field.fieldtype }}</p>
-
-      <!-- Core -->
-      <div class="flex flex-col gap-3 mb-5">
-        <div class="space-y-1.5">
-          <Label class="text-sm">Label *</Label>
-          <Input :model-value="field.label" @update:model-value="updateField('label', $event)" />
-        </div>
-        <div class="space-y-1.5">
-          <Label class="text-sm">Fieldname *</Label>
-          <Input :model-value="field.fieldname" @update:model-value="updateField('fieldname', $event)" />
-        </div>
-        <div class="flex items-center gap-2">
-          <Checkbox :checked="!!field.required" @update:checked="updateField('required', $event)" />
-          <Label class="text-sm">Required</Label>
-        </div>
-        <div class="flex items-center gap-2">
-          <Checkbox :checked="!!field.hidden" @update:checked="updateField('hidden', $event)" />
-          <Label class="text-sm">Hidden</Label>
-        </div>
-        <div class="flex items-center gap-2">
-          <Checkbox :checked="!!field.read_only" @update:checked="updateField('read_only', $event)" />
-          <Label class="text-sm">Read Only</Label>
-        </div>
       </div>
 
-      <Separator class="mb-4" />
-
-      <!-- Display -->
-      <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Display</p>
-      <div class="flex flex-col gap-3 mb-5">
-        <div class="flex items-center gap-2">
-          <Checkbox :checked="!!field.in_list_view" @update:checked="updateField('in_list_view', $event)" />
-          <Label class="text-sm">In List View</Label>
+      <!-- FLAGS: Required, Hidden, Read Only, Bold, Unique -->
+      <template v-if="has('flags')">
+        <Separator class="mb-3" />
+        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Flags</p>
+        <div class="flex flex-col gap-2 mb-4">
+          <div class="flex items-center gap-2">
+            <Checkbox :model-value="!!field.required" @update:model-value="updateField('required', $event)" />
+            <Label class="text-sm">Required</Label>
+          </div>
+          <div class="flex items-center gap-2">
+            <Checkbox :model-value="!!field.hidden" @update:model-value="updateField('hidden', $event)" />
+            <Label class="text-sm">Hidden</Label>
+          </div>
+          <div class="flex items-center gap-2">
+            <Checkbox :model-value="!!field.read_only" @update:model-value="updateField('read_only', $event)" />
+            <Label class="text-sm">Read Only</Label>
+          </div>
+          <div class="flex items-center gap-2">
+            <Checkbox :model-value="!!field.bold" @update:model-value="updateField('bold', $event)" />
+            <Label class="text-sm">Bold</Label>
+          </div>
+          <div class="flex items-center gap-2">
+            <Checkbox :model-value="!!field.unique" @update:model-value="updateField('unique', $event)" />
+            <Label class="text-sm">Unique</Label>
+          </div>
         </div>
-        <div class="flex items-center gap-2">
-          <Checkbox :checked="!!field.in_filter" @update:checked="updateField('in_filter', $event)" />
-          <Label class="text-sm">In Filter</Label>
-        </div>
-        <div class="space-y-1.5">
-          <Label class="text-sm">Description</Label>
-          <Input :model-value="field.description ?? ''" @update:model-value="updateField('description', $event || undefined)" />
-        </div>
-        <div class="space-y-1.5">
-          <Label class="text-sm">Placeholder</Label>
-          <Input :model-value="field.placeholder ?? ''" @update:model-value="updateField('placeholder', $event || undefined)" />
-        </div>
-        <div class="space-y-1.5">
-          <Label class="text-sm">Depends On</Label>
-          <Input :model-value="field.depends_on ?? ''" placeholder="eval: doc.status == 'Active'" @update:model-value="updateField('depends_on', $event || undefined)" />
-        </div>
-      </div>
-
-      <!-- Type-specific -->
-      <template v-if="field.fieldtype === 'Select'">
-        <Separator class="mb-4" />
-        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Options</p>
-        <textarea
-          :value="field.options ?? ''"
-          rows="5"
-          placeholder="Each option on a new line"
-          class="w-full text-sm border border-input rounded-md px-2 py-1.5 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
-          @input="updateField('options', ($event.target as HTMLTextAreaElement).value)"
-        />
       </template>
 
-      <template v-if="field.fieldtype === 'Link'">
-        <Separator class="mb-4" />
-        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Linked DocType *</p>
-        <Select :model-value="field.options ?? ''" @update:model-value="updateField('options', $event)">
-          <SelectTrigger><SelectValue placeholder="— оберіть —" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="opt in doctypeOptionsList" :key="opt" :value="opt">{{ opt }}</SelectItem>
-          </SelectContent>
-        </Select>
+      <!-- DISPLAY: In List View, In Filter -->
+      <template v-if="has('display')">
+        <Separator class="mb-3" />
+        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Display</p>
+        <div class="flex flex-col gap-2 mb-4">
+          <div class="flex items-center gap-2">
+            <Checkbox :model-value="!!field.in_list_view" @update:model-value="updateField('in_list_view', $event)" />
+            <Label class="text-sm">In List View</Label>
+          </div>
+          <div class="flex items-center gap-2">
+            <Checkbox :model-value="!!field.in_filter" @update:model-value="updateField('in_filter', $event)" />
+            <Label class="text-sm">In Filter</Label>
+          </div>
+        </div>
       </template>
 
-      <template v-if="field.fieldtype === 'Table'">
-        <Separator class="mb-4" />
-        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Child DocType *</p>
-        <Select :model-value="field.options ?? ''" @update:model-value="updateField('options', $event)">
-          <SelectTrigger><SelectValue placeholder="— оберіть —" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="opt in childDoctypeOptionsList" :key="opt" :value="opt">{{ opt }}</SelectItem>
-          </SelectContent>
-        </Select>
+      <!-- TEXT: Description, Placeholder, Depends On, Mandatory Depends On -->
+      <template v-if="has('text')">
+        <Separator class="mb-3" />
+        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Text</p>
+        <div class="flex flex-col gap-3 mb-4">
+          <div class="space-y-1.5">
+            <Label class="text-sm">Description</Label>
+            <Input :model-value="field.description ?? ''" @update:model-value="updateField('description', $event || undefined)" />
+          </div>
+          <div class="space-y-1.5">
+            <Label class="text-sm">Placeholder</Label>
+            <Input :model-value="field.placeholder ?? ''" @update:model-value="updateField('placeholder', $event || undefined)" />
+          </div>
+          <div class="space-y-1.5">
+            <Label class="text-sm">Depends On</Label>
+            <Input :model-value="field.depends_on ?? ''" placeholder="eval: doc.status == 'Active'" @update:model-value="updateField('depends_on', $event || undefined)" />
+          </div>
+          <div class="space-y-1.5">
+            <Label class="text-sm">Mandatory Depends On</Label>
+            <Input :model-value="field.mandatory_depends_on ?? ''" placeholder="eval: doc.type == 'Full'" @update:model-value="updateField('mandatory_depends_on', $event || undefined)" />
+          </div>
+        </div>
       </template>
 
-      <template v-if="['Int', 'Float'].includes(field.fieldtype)">
-        <Separator class="mb-4" />
-        <div class="flex gap-2">
+      <!-- DEFAULT VALUE -->
+      <template v-if="has('default')">
+        <Separator class="mb-3" />
+        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Default</p>
+        <div class="mb-4">
+          <Input
+            :model-value="String(field.default ?? '')"
+            placeholder="Default value"
+            @update:model-value="updateField('default', $event || undefined)"
+          />
+        </div>
+      </template>
+
+      <!-- NUMBER: Min / Max Value -->
+      <template v-if="has('number')">
+        <Separator class="mb-3" />
+        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Range</p>
+        <div class="flex gap-2 mb-4">
           <div class="flex-1 space-y-1.5">
             <Label class="text-sm">Min</Label>
-            <Input :model-value="String(field.min_value ?? '')" type="number" @update:model-value="updateField('min_value', $event ? Number($event) : undefined)" />
+            <Input
+              :model-value="String(field.min_value ?? '')"
+              type="number"
+              @update:model-value="updateField('min_value', $event ? Number($event) : undefined)"
+            />
           </div>
           <div class="flex-1 space-y-1.5">
             <Label class="text-sm">Max</Label>
-            <Input :model-value="String(field.max_value ?? '')" type="number" @update:model-value="updateField('max_value', $event ? Number($event) : undefined)" />
+            <Input
+              :model-value="String(field.max_value ?? '')"
+              type="number"
+              @update:model-value="updateField('max_value', $event ? Number($event) : undefined)"
+            />
           </div>
+        </div>
+      </template>
+
+      <!-- VALIDATION: Max Length, Regex -->
+      <template v-if="has('validation')">
+        <Separator class="mb-3" />
+        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Validation</p>
+        <div class="flex flex-col gap-3 mb-4">
+          <div v-if="['Text', 'LongText'].includes(field.fieldtype)" class="space-y-1.5">
+            <Label class="text-sm">Max Length</Label>
+            <Input
+              :model-value="String(field.max_length ?? '')"
+              type="number"
+              placeholder="255"
+              @update:model-value="updateField('max_length', $event ? Number($event) : undefined)"
+            />
+          </div>
+          <div class="space-y-1.5">
+            <Label class="text-sm">Regex</Label>
+            <Input
+              :model-value="field.regex ?? ''"
+              placeholder="^[A-Z].*"
+              @update:model-value="updateField('regex', $event || undefined)"
+            />
+          </div>
+        </div>
+      </template>
+
+      <!-- OPTIONS: Select -->
+      <template v-if="has('options')">
+        <Separator class="mb-3" />
+        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Options</p>
+        <div class="mb-4">
+          <textarea
+            :value="field.options ?? ''"
+            rows="5"
+            placeholder="Each option on a new line"
+            class="w-full text-sm border border-input rounded-md px-2 py-1.5 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+            @input="updateField('options', ($event.target as HTMLTextAreaElement).value)"
+          />
+        </div>
+      </template>
+
+      <!-- LINK: Linked DocType -->
+      <template v-if="has('link')">
+        <Separator class="mb-3" />
+        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Linked DocType</p>
+        <div class="mb-4">
+          <Select :model-value="field.options ?? ''" @update:model-value="updateField('options', $event)" @update:open="(o) => { if (!o) linkSearch = '' }">
+            <SelectTrigger><SelectValue placeholder="— оберіть —" /></SelectTrigger>
+            <SelectContent>
+              <div class="px-2 pb-1">
+                <input
+                  v-model="linkSearch"
+                  placeholder="Пошук..."
+                  class="w-full h-7 px-2 text-sm rounded border border-input bg-background outline-none focus:ring-1 focus:ring-ring"
+                  @keydown.stop
+                />
+              </div>
+              <SelectItem v-for="opt in doctypeOptions" :key="opt" :value="opt">{{ opt }}</SelectItem>
+              <div v-if="!doctypeOptions.length" class="px-2 py-1.5 text-xs text-muted-foreground">Нічого не знайдено</div>
+            </SelectContent>
+          </Select>
+        </div>
+      </template>
+
+      <!-- TABLE: Child DocType -->
+      <template v-if="has('table')">
+        <Separator class="mb-3" />
+        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Child DocType</p>
+        <div class="mb-4">
+          <Select :model-value="field.options ?? ''" @update:model-value="updateField('options', $event)" @update:open="(o) => { if (!o) tableSearch = '' }">
+            <SelectTrigger><SelectValue placeholder="— оберіть —" /></SelectTrigger>
+            <SelectContent>
+              <div class="px-2 pb-1">
+                <input
+                  v-model="tableSearch"
+                  placeholder="Пошук..."
+                  class="w-full h-7 px-2 text-sm rounded border border-input bg-background outline-none focus:ring-1 focus:ring-ring"
+                  @keydown.stop
+                />
+              </div>
+              <SelectItem v-for="opt in childDoctypeOptions" :key="opt" :value="opt">{{ opt }}</SelectItem>
+              <div v-if="!childDoctypeOptions.length" class="px-2 py-1.5 text-xs text-muted-foreground">Нічого не знайдено</div>
+            </SelectContent>
+          </Select>
         </div>
       </template>
     </template>

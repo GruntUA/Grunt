@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
+import { appsApi, type GruntApp } from '@/core/api'
 import { Input } from '@/components/ui/input'
 import { FormField } from '@/components/ui/form-field'
 import { Switch } from '@/components/ui/switch'
@@ -19,11 +20,106 @@ import { X } from 'lucide-vue-next'
 
 const builder = useBuilderStore()
 
+// --- Apps ---
+
+const apps = ref<GruntApp[]>([])
+const isLoadingApps = ref(false)
+
+onMounted(async () => {
+  isLoadingApps.value = true
+  try {
+    apps.value = await appsApi.list()
+  } finally {
+    isLoadingApps.value = false
+  }
+})
+
+const selectedApp = computed(() => {
+  const module = builder.doctype?.module ?? ''
+  if (!module) return pendingAppName.value ? apps.value.find(a => a.name === pendingAppName.value) ?? null : null
+  return apps.value.find(app => app.modules.includes(module)) ?? null
+})
+
+// Tracks which app is selected, even before a module is chosen
+const pendingAppName = ref<string | null>(null)
+
+// Sync pendingAppName from existing doctype module on load
+watch(apps, (list: GruntApp[]) => {
+  if (pendingAppName.value !== null) return
+  const module = builder.doctype?.module ?? ''
+  if (!module) return
+  const app = list.find((a: GruntApp) => a.modules.includes(module))
+  if (app) pendingAppName.value = app.name
+}, { immediate: true })
+
+function setApp(appName: string | null) {
+  pendingAppName.value = appName
+  if (!appName) {
+    builder.updateDocType({ module: '' })
+    return
+  }
+  const app = apps.value.find(a => a.name === appName)
+  if (!app) return
+  if (app.modules.length === 1) {
+    builder.updateDocType({ module: app.modules[0] })
+  } else {
+    // Either no modules or multiple — clear module until user picks/creates one
+    builder.updateDocType({ module: '' })
+  }
+}
+
+function setModule(moduleName: string) {
+  builder.updateDocType({ module: moduleName })
+}
+
+// --- Create module ---
+const newModuleName = ref('')
+const isCreatingModule = ref(false)
+
+async function createModule() {
+  const name = newModuleName.value.trim()
+  if (!name || !pendingAppName.value) return
+  isCreatingModule.value = true
+  try {
+    const updated = await appsApi.addModule(pendingAppName.value, name)
+    // Patch apps list in place
+    const idx = apps.value.findIndex(a => a.name === updated.name)
+    if (idx !== -1) apps.value[idx] = { ...apps.value[idx], modules: updated.modules }
+    builder.updateDocType({ module: name })
+    newModuleName.value = ''
+  } finally {
+    isCreatingModule.value = false
+  }
+}
+
+// --- Name derivation ---
+
+function labelToName(label: string): string {
+  return label
+    .split(/[\s_\-]+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join('')
+    .replace(/[^A-Za-z0-9]/g, '')
+}
+
+function onLabelChange(val: string) {
+  if (builder.isNew) {
+    // Auto-sync name while it hasn't been manually diverged from the label
+    const currentName = builder.doctype?.name ?? ''
+    const prevDerived = labelToName(builder.doctype?.label ?? '')
+    if (currentName === '' || currentName === prevDerived) {
+      builder.updateDocType({ label: val, name: labelToName(val) })
+      return
+    }
+  }
+  builder.updateDocType({ label: val })
+}
+
 // --- Computed helpers ---
 
 const dataFields = computed(() =>
   (builder.doctype?.fields ?? []).filter(
-    (f) => !['Section', 'Column', 'Tab', 'Table'].includes(f.fieldtype),
+    (f) => !['Section', 'Column', 'Tab', 'Table'].includes(f.fieldtype) && !!f.fieldname,
   ),
 )
 
@@ -106,51 +202,84 @@ function removeSearchField(fieldname: string) {
 
       <FormField class="mb-4">
         <Label class="text-muted-foreground">Назва</Label>
-        <Input
-          :model-value="builder.doctype?.label ?? ''"
-          @update:model-value="builder.updateDocType({ label: String($event) })"
-        />
+        <Input :model-value="builder.doctype?.label ?? ''" @update:model-value="onLabelChange(String($event))" />
       </FormField>
 
       <FormField class="mb-4">
+        <Label class="text-muted-foreground">Системна назва</Label>
+        <Input :model-value="builder.doctype?.name ?? ''" :disabled="!builder.isNew" placeholder="PascalCase"
+          @update:model-value="builder.isNew && builder.updateDocType({ name: String($event) })" />
+      </FormField>
+
+      <FormField class="mb-4">
+        <Label class="text-muted-foreground">Додаток</Label>
+        <Select :model-value="pendingAppName ?? '__none__'"
+          @update:model-value="setApp(String($event) === '__none__' ? null : (String($event) || null))"
+          :disabled="isLoadingApps">
+          <SelectTrigger>
+            <SelectValue :placeholder="isLoadingApps ? 'Завантажує...' : 'Оберіть додаток'" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">Немає додатку</SelectItem>
+            <SelectItem v-for="app in apps" :key="app.name" :value="app.name">
+              {{ app.title }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </FormField>
+
+      <!-- Module selector — shown only when an app is selected -->
+      <FormField v-if="pendingAppName" class="mb-4">
         <Label class="text-muted-foreground">Модуль</Label>
-        <Input
-          :model-value="builder.doctype?.module ?? ''"
-          @update:model-value="builder.updateDocType({ module: String($event) })"
-        />
+
+        <!-- App has modules → show select -->
+        <Select v-if="selectedApp && selectedApp.modules.length > 0" :model-value="builder.doctype?.module || ''"
+          @update:model-value="setModule(String($event))">
+          <SelectTrigger>
+            <SelectValue placeholder="Оберіть модуль" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="mod in selectedApp.modules" :key="mod" :value="mod">
+              {{ mod }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+
+        <!-- App has no modules → create form -->
+        <div v-else class="space-y-2">
+          <p class="text-sm text-muted-foreground">У цьому додатку немає модулів. Введіть назву нового модуля:</p>
+          <div class="flex gap-2">
+            <Input v-model="newModuleName" placeholder="Назва модуля" @keydown.enter="createModule" />
+            <Button type="button" :disabled="!newModuleName.trim() || isCreatingModule" @click="createModule">
+              {{ isCreatingModule ? 'Створення...' : 'Створити' }}
+            </Button>
+          </div>
+        </div>
       </FormField>
 
       <div class="grid grid-cols-2 gap-4">
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Сінглтон</Label>
-          <Switch
-            :checked="!!builder.doctype?.is_singleton"
-            @update:checked="builder.updateDocType({ is_singleton: $event })"
-          />
+          <Switch :checked="!!builder.doctype?.is_singleton"
+            @update:checked="builder.updateDocType({ is_singleton: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Подання</Label>
-          <Switch
-            :checked="!!builder.doctype?.is_submittable"
-            @update:checked="builder.updateDocType({ is_submittable: $event })"
-          />
+          <Switch :checked="!!builder.doctype?.is_submittable"
+            @update:checked="builder.updateDocType({ is_submittable: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Дочірній</Label>
-          <Switch
-            :checked="!!builder.doctype?.is_child"
-            @update:checked="builder.updateDocType({ is_child: $event })"
-          />
+          <Switch :checked="!!builder.doctype?.is_child"
+            @update:checked="builder.updateDocType({ is_child: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Відстеження змін</Label>
-          <Switch
-            :checked="!!builder.doctype?.track_changes"
-            @update:checked="builder.updateDocType({ track_changes: $event })"
-          />
+          <Switch :checked="!!builder.doctype?.track_changes"
+            @update:checked="builder.updateDocType({ track_changes: $event })" />
         </div>
       </div>
     </section>
@@ -185,11 +314,7 @@ function removeSearchField(fieldname: string) {
             <SelectValue placeholder="Оберіть поле" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem
-              v-for="field in dataFields"
-              :key="field.fieldname"
-              :value="field.fieldname"
-            >
+            <SelectItem v-for="field in dataFields" :key="field.fieldname" :value="field.fieldname">
               {{ field.label || field.fieldname }}
             </SelectItem>
           </SelectContent>
@@ -198,29 +323,20 @@ function removeSearchField(fieldname: string) {
 
       <FormField v-if="autonameStrategy === 'format:'" class="mb-4">
         <Label class="text-muted-foreground">Шаблон</Label>
-        <Input
-          :model-value="autonameValue"
-          placeholder="CONTR-.YYYY.-.####"
-          @update:model-value="setAutonameValue($event as any)"
-        />
+        <Input :model-value="autonameValue" placeholder="CONTR-.YYYY.-.####"
+          @update:model-value="setAutonameValue($event as any)" />
       </FormField>
 
       <FormField class="mb-4">
         <Label class="text-muted-foreground">Поле заголовка</Label>
-        <Select
-          :model-value="builder.doctype?.title_field || '__name__'"
-          @update:model-value="builder.updateDocType({ title_field: String($event) === '__name__' ? undefined : String($event) })"
-        >
+        <Select :model-value="builder.doctype?.title_field || '__name__'"
+          @update:model-value="builder.updateDocType({ title_field: String($event) === '__name__' ? undefined : String($event) })">
           <SelectTrigger>
             <SelectValue placeholder="Оберіть поле" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__name__">name</SelectItem>
-            <SelectItem
-              v-for="field in dataFields"
-              :key="field.fieldname"
-              :value="field.fieldname"
-            >
+            <SelectItem v-for="field in dataFields" :key="field.fieldname" :value="field.fieldname">
               {{ field.label || field.fieldname }}
             </SelectItem>
           </SelectContent>
@@ -236,10 +352,8 @@ function removeSearchField(fieldname: string) {
 
       <FormField class="mb-4">
         <Label class="text-muted-foreground">Вигляд за замовчуванням</Label>
-        <Select
-          :model-value="builder.doctype?.default_view ?? 'list'"
-          @update:model-value="builder.updateDocType({ default_view: String($event) === 'list' ? null : String($event) as 'kanban' | 'calendar' | 'tree' })"
-        >
+        <Select :model-value="builder.doctype?.default_view ?? 'list'"
+          @update:model-value="builder.updateDocType({ default_view: String($event) === 'list' ? null : String($event) as 'kanban' | 'calendar' | 'tree' })">
           <SelectTrigger>
             <SelectValue placeholder="Оберіть вигляд" />
           </SelectTrigger>
@@ -263,37 +377,20 @@ function removeSearchField(fieldname: string) {
         <Label class="text-muted-foreground">Поля пошуку</Label>
 
         <div v-if="searchFields.length" class="mb-2 flex flex-wrap gap-2">
-          <Badge
-            v-for="sf in searchFields"
-            :key="sf"
-            variant="secondary"
-            class="flex items-center gap-1"
-          >
+          <Badge v-for="sf in searchFields" :key="sf" variant="secondary" class="flex items-center gap-1">
             {{ sf }}
-            <Button
-              variant="ghost"
-              size="icon"
-              class="h-4 w-4 p-0 hover:bg-transparent"
-              @click="removeSearchField(sf)"
-            >
+            <Button variant="ghost" size="icon" class="h-4 w-4 p-0 hover:bg-transparent" @click="removeSearchField(sf)">
               <X class="h-3 w-3" />
             </Button>
           </Badge>
         </div>
 
-        <Select
-          :model-value="searchFieldSelect"
-          @update:model-value="addSearchField($event as string)"
-        >
+        <Select :model-value="searchFieldSelect" @update:model-value="addSearchField($event as string)">
           <SelectTrigger>
             <SelectValue placeholder="Додати поле для пошуку" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem
-              v-for="field in availableSearchFields"
-              :key="field.fieldname"
-              :value="field.fieldname"
-            >
+            <SelectItem v-for="field in availableSearchFields" :key="field.fieldname" :value="field.fieldname">
               {{ field.label || field.fieldname }}
             </SelectItem>
           </SelectContent>
