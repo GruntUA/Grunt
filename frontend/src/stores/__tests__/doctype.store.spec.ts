@@ -23,7 +23,7 @@ vi.mock('@/core/api/meta', () => ({
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
 
-const fakeSummary: DocTypeSummary = { name: 'Order', label: 'Order', module: 'crm', is_system: false }
+const fakeSummary: DocTypeSummary = { name: 'Order', label: 'Order', module: 'crm' }
 
 const fakeDocType: DocType = {
   name: 'Order',

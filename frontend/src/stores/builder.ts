@@ -208,6 +208,33 @@ export const useBuilderStore = defineStore('builder', () => {
     isDirty.value = true
   }
 
+  /**
+   * Converts an implicit (auto-generated) section into an explicit Section field.
+   * Returns the new fieldname, or the original fieldname if already explicit.
+   */
+  function promoteImplicitSection(implicitFieldname: string): string {
+    if (!doctype.value) return implicitFieldname
+    const currentLayout = parseLayout(doctype.value.fields)
+    for (const tab of currentLayout) {
+      for (const section of tab.sections) {
+        if (section._fieldname !== implicitFieldname || section._field) continue
+        const fieldname = generateFieldname('Section')
+        const sectionField: DocField = { fieldname, label: section.label, fieldtype: 'Section' }
+        let insertIdx: number
+        if (tab._field) {
+          const tabIdx = doctype.value.fields.findIndex((f) => f.fieldname === tab._fieldname)
+          insertIdx = tabIdx + 1
+        } else {
+          insertIdx = 0
+        }
+        doctype.value.fields.splice(insertIdx, 0, sectionField)
+        isDirty.value = true
+        return fieldname
+      }
+    }
+    return implicitFieldname
+  }
+
   function removeSection(sectionFieldname: string) {
     if (!doctype.value) return
     const secIdx = doctype.value.fields.findIndex((f) => f.fieldname === sectionFieldname)
@@ -453,6 +480,7 @@ export const useBuilderStore = defineStore('builder', () => {
     addTab,
     removeTab,
     addSection,
+    promoteImplicitSection,
     removeSection,
     setSectionColumns,
     addFieldToColumn,

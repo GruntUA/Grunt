@@ -17,17 +17,14 @@ export const isOnline = ref(typeof navigator !== 'undefined' ? navigator.onLine 
 // "restored" toast only after an actual disconnect, not on first load).
 const wentOffline = ref(false)
 
-// ID of the persistent "offline" toast so we can dismiss it on reconnect
-let offlineToastId: string | number | undefined
-
 function onOffline() {
   isOnline.value = false
   wentOffline.value = true
-  offlineToastId = toast.warning('Немає з\'єднання', {
+  toast.warning('Немає з\'єднання', {
     description: 'Зміни зберігаються локально та будуть синхронізовані при відновленні зв\'язку.',
     duration: Infinity,
     id: 'network-offline',
-  }) as string | number
+  })
 }
 
 async function onOnline() {

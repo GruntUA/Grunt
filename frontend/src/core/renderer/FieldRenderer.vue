@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineAsyncComponent, computed } from 'vue'
-import { fieldComponents, FallbackField } from '@/components/fields'
+import { getFieldDef, FallbackFieldLoader } from '@/core/fieldRegistry'
 import { FormField } from '@/components/ui/form-field'
 import { useDevMode } from '@/core/composables/useDevMode'
 import type { DocField } from '@/types'
@@ -32,7 +32,7 @@ const isVisible = computed(() => {
 })
 
 const component = computed(() =>
-  defineAsyncComponent(fieldComponents[props.field.fieldtype] ?? FallbackField)
+  defineAsyncComponent(getFieldDef(props.field.fieldtype)?.component ?? FallbackFieldLoader)
 )
 
 const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype))

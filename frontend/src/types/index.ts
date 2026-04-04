@@ -1,9 +1,16 @@
-export type FieldType =
+/**
+ * Known core field types — for reference and autocomplete.
+ * Plugin apps may register additional types via registerField().
+ */
+export type CoreFieldType =
   | "Text" | "LongText" | "Int" | "Float" | "Check"
   | "Date" | "Datetime" | "Time" | "Select" | "Link"
   | "MultiLink" | "Attach" | "Image" | "RichText"
   | "JSON" | "Code" | "Color" | "Section" | "Column"
   | "Tab" | "Table" | "Signature" | "Geolocation"
+
+/** Open type — allows custom field types registered by any app */
+export type FieldType = string
 
 export interface DocField {
   fieldname: string

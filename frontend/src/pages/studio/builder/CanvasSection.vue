@@ -35,8 +35,14 @@ function startEditLabel() {
 
 function finishEditLabel() {
   isEditingLabel.value = false
+  const label = editLabel.value
+  if (!label.trim()) return
   if (props.section._field) {
-    builder.updateField(props.section._fieldname, { label: editLabel.value })
+    builder.updateField(props.section._fieldname, { label })
+  } else {
+    // Promote implicit section to explicit, then set its label
+    const newFieldname = builder.promoteImplicitSection(props.section._fieldname)
+    builder.updateField(newFieldname, { label })
   }
 }
 
@@ -79,6 +85,13 @@ function selectSection() {
       class="flex items-center gap-2 px-3 py-2 bg-background border-b border-border cursor-pointer select-none"
       @click="selectSection"
     >
+      <!-- Drag handle -->
+      <span
+        class="section-drag-handle text-muted-foreground/30 hover:text-muted-foreground/70 cursor-grab active:cursor-grabbing text-sm shrink-0 select-none"
+        title="Перетягнути секцію"
+        @click.stop
+      >⠿</span>
+
       <!-- Collapsible indicator -->
       <button
         v-if="section._field"
@@ -95,7 +108,7 @@ function selectSection() {
         <input
           v-model="editLabel"
           type="text"
-          class="flex-1 text-xs font-semibold uppercase tracking-wide bg-transparent border-b border-primary outline-none text-foreground px-0 py-0"
+          class="flex-1 text-xs font-semibold tracking-wide bg-transparent border-b border-primary outline-none text-foreground px-0 py-0"
           @blur="finishEditLabel"
           @keydown.enter="finishEditLabel"
           @keydown.escape="isEditingLabel = false"
@@ -105,7 +118,7 @@ function selectSection() {
       </template>
       <template v-else>
         <span
-          class="flex-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground truncate"
+          class="flex-1 text-xs font-semibold tracking-wide text-muted-foreground truncate"
           :class="{ 'text-muted-foreground/70 italic': !section.label }"
           @dblclick.stop="startEditLabel"
         >

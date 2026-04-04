@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import draggable from 'vuedraggable'
 import { useBuilderStore } from '@/stores/builder'
 import type { LayoutTab, LayoutSection } from '@/core/composables/useFormLayout'
 import CanvasTabBar from './CanvasTabBar.vue'
@@ -57,6 +58,21 @@ function onDeleteSection(sectionFieldname: string) {
   builder.removeSection(sectionFieldname)
 }
 
+function onReorderSections(tabIndex: number, newSections: LayoutSection[]) {
+  // Promote any implicit sections so they get a real Section field when serialized
+  const promotedSections = newSections.map((section) => {
+    if (section._field) return section
+    const fieldname = builder.generateFieldname('Section')
+    const field = { fieldname, label: section.label, fieldtype: 'Section' as const }
+    return { ...section, _fieldname: fieldname, _field: field }
+  })
+  const newLayout = builder.layout.map((tab, ti) => {
+    if (ti !== tabIndex) return tab
+    return { ...tab, sections: promotedSections }
+  })
+  builder.rebuildFlatFields(newLayout)
+}
+
 function onAddSection() {
   const currentTab = builder.layout[activeTabIndex.value]
   if (!currentTab) return
@@ -85,13 +101,23 @@ function deselect() {
     <div class="flex-1 overflow-y-auto p-4" @click.self="deselect">
       <template v-if="builder.layout[activeTabIndex]">
         <div class="flex flex-col gap-3 max-w-4xl mx-auto">
-          <CanvasSection
-            v-for="(section, si) in builder.layout[activeTabIndex].sections"
-            :key="section._fieldname"
-            :section="section"
-            @update:section="onUpdateSection(activeTabIndex, si, $event)"
-            @delete="onDeleteSection(section._fieldname)"
-          />
+          <draggable
+            :model-value="builder.layout[activeTabIndex].sections"
+            item-key="_fieldname"
+            handle=".section-drag-handle"
+            ghost-class="opacity-30"
+            :animation="200"
+            class="flex flex-col gap-3"
+            @update:model-value="onReorderSections(activeTabIndex, $event)"
+          >
+            <template #item="{ element: section, index: si }">
+              <CanvasSection
+                :section="section"
+                @update:section="onUpdateSection(activeTabIndex, si, $event)"
+                @delete="onDeleteSection(section._fieldname)"
+              />
+            </template>
+          </draggable>
 
           <!-- Add section button -->
           <button
