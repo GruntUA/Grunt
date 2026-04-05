@@ -10,6 +10,7 @@ class FieldType(str, Enum):
     """Every supported field type in the Grunt metadata engine."""
 
     # Simple data types
+    DATA = "Data"   # varchar(255) — alias used by tools and imported doctypes
     TEXT = "Text"  # varchar(255)
     LONG_TEXT = "LongText"  # text
     INT = "Int"  # integer

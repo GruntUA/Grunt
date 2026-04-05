@@ -59,6 +59,7 @@ MULTI_LINK_TABLE = Table(
 # ── Field type → SQLAlchemy Column builder ───────────────────────────────
 
 FIELDTYPE_TO_SA: dict[str, object] = {
+    "Data": lambda f: Column(f.fieldname, String(f.max_length or 255)),
     "Text": lambda f: Column(f.fieldname, String(f.max_length or 255)),
     "LongText": lambda f: Column(f.fieldname, Text),
     "Int": lambda f: Column(f.fieldname, Integer),

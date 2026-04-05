@@ -125,7 +125,7 @@ def _load_doctype_dir_scripts(dt_dir: Path, app_name: str) -> None:
             event = meta.get("event")
             if event:
                 FILE_SCRIPT_REGISTRY[("doctype_event", doctype, event)] = entry_dict
-                logger.info("file_scripts.server_loaded", app=app_name, type="DocType Event", doctype=doctype, event=event)
+                logger.info("file_scripts.server_loaded", app=app_name, type="DocType Event", doctype=doctype, hook_event=event)
         else:
             # Default: treat extra .py as API script using filename as method
             method = py_file.stem

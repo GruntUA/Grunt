@@ -131,7 +131,7 @@ async def fire(event: str, **kwargs: Any) -> None:
                 user_email=user_email,
             )
         except Exception:  # noqa: BLE001
-            logger.exception("server_script.hook_error", event=event, doctype=doctype)
+            logger.exception("server_script.hook_error", hook_event=event, doctype=doctype)
 
     # 4. Sync document links (backlinks)
     if event in ("after_save", "after_insert") and doctype and kwargs.get("doc") and kwargs.get("session"):
@@ -142,7 +142,7 @@ async def fire(event: str, **kwargs: Any) -> None:
             doc_id = doc.get("id", doc.get("name", ""))
             await link_service.sync_links(kwargs["session"], doctype, str(doc_id), doc)
         except Exception:  # noqa: BLE001
-            logger.exception("links.sync_error", event=event, doctype=doctype)
+            logger.exception("links.sync_error", hook_event=event, doctype=doctype)
 
     if event == "after_delete" and doctype and kwargs.get("doc") and kwargs.get("session"):
         try:
@@ -152,7 +152,7 @@ async def fire(event: str, **kwargs: Any) -> None:
             doc_id = doc.get("id", doc.get("name", ""))
             await link_service.delete_links(kwargs["session"], doctype, str(doc_id))
         except Exception:  # noqa: BLE001
-            logger.exception("links.delete_error", event=event, doctype=doctype)
+            logger.exception("links.delete_error", hook_event=event, doctype=doctype)
 
     # 5. Evaluate notification rules
     if event in _NOTIFICATION_EVENTS and doctype and kwargs.get("doc") and kwargs.get("session"):
@@ -172,7 +172,7 @@ async def fire(event: str, **kwargs: Any) -> None:
                 user_email=user_email,
             )
         except Exception:  # noqa: BLE001
-            logger.exception("notification.evaluate_error", event=event, doctype=doctype)
+            logger.exception("notification.evaluate_error", hook_event=event, doctype=doctype)
 
     # 6. Evaluate assignment rules
     if event in ("after_save", "after_insert") and doctype and kwargs.get("doc") and kwargs.get("session"):
@@ -185,7 +185,7 @@ async def fire(event: str, **kwargs: Any) -> None:
                 session=kwargs["session"],
             )
         except Exception:  # noqa: BLE001
-            logger.exception("assignment.evaluate_error", event=event, doctype=doctype)
+            logger.exception("assignment.evaluate_error", hook_event=event, doctype=doctype)
 
 
 async def _call_hook(fn: Callable, event_name: str, **kwargs: Any) -> None:
@@ -258,7 +258,7 @@ def register_doc_events(events: dict[str, dict[str, Union[str, list[Union[str, d
                         "hook.register_failed",
                         path=path,
                         doctype=doctype,
-                        event=event,
+                        hook_event=event,
                         error=str(e),
                     )
 

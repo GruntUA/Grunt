@@ -6,7 +6,7 @@ and is the single source of truth for DB tables, REST API and UI forms.
 
 from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from grunt.core.metadata.field import DocField
 
@@ -54,12 +54,15 @@ class DocTypeWorkflow(BaseModel):
 
 
 class DocTypePermission(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     role: str
     read: bool = False
     write: bool = False
     create: bool = False
     delete: bool = False
     submit: bool = False
+    cancel: bool = False
     report: bool = False
     # Row-level filter — e.g. "owner == user"
     match: str | None = None

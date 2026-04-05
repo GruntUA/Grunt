@@ -7,10 +7,10 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt.api.deps import get_session
 from grunt.core.assignment import assignment_service
-from grunt.core.auth.service import current_user
-from grunt.core.db.models import User
+from grunt.core.auth.dependencies import current_user
+from grunt.core.auth.models import GruntUser
+from grunt.core.db.session import get_session
 
 router = APIRouter(prefix="/assignment-rules", tags=["assignment"])
 
@@ -20,7 +20,7 @@ async def test_assignment_rule(
     rule_id: str,
     test_doc: dict[str, Any],
     session: AsyncSession = Depends(get_session),
-    user: User = Depends(current_user),
+    user: GruntUser = Depends(current_user),
 ) -> dict[str, Any]:
     """Test an assignment rule against a sample document.
 
@@ -132,7 +132,7 @@ async def list_assignment_logs(
     status: str | None = None,
     limit: int = 100,
     session: AsyncSession = Depends(get_session),
-    user: User = Depends(current_user),
+    user: GruntUser = Depends(current_user),
 ) -> dict[str, Any]:
     """List assignment logs with filters.
 

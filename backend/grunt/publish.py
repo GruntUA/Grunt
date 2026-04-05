@@ -153,7 +153,7 @@ async def publish(
     try:
         await manager.send_to_user(user, payload)
     except Exception:  # noqa: BLE001
-        logger.debug("publish.ws_send_failed", user=user, event=event)
+        logger.debug("publish.ws_send_failed", user=user, ws_event=event)
 
 
 async def broadcast(
@@ -186,7 +186,7 @@ async def broadcast(
     try:
         await manager.broadcast_all_users(payload)
     except Exception:  # noqa: BLE001
-        logger.debug("publish.broadcast_failed", event=event)
+        logger.debug("publish.broadcast_failed", ws_event=event)
 
 
 async def publish_channel(
@@ -219,7 +219,7 @@ async def publish_channel(
     try:
         await manager.broadcast(full_channel, event, data or {})
     except Exception:  # noqa: BLE001
-        logger.debug("publish.channel_failed", channel=channel, event=event)
+        logger.debug("publish.channel_failed", channel=channel, ws_event=event)
 
 
 async def msgprint(

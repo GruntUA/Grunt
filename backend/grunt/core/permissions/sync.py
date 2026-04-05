@@ -75,6 +75,7 @@ async def _reload_doctype_perms(doctype_name: str, session) -> None:  # noqa: AN
 
 
 async def _apply_perms_to_doctype(doctype_name: str, perm_rows: list[dict]) -> None:
+    from grunt.core.metadata.doctype import DocTypePermission  # noqa: PLC0415
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
     target = doctype_registry._doctypes.get(doctype_name)
@@ -83,25 +84,23 @@ async def _apply_perms_to_doctype(doctype_name: str, perm_rows: list[dict]) -> N
 
     perms = []
     for r in perm_rows:
-        perm: dict = {
-            "role": r.get("role", ""),
-            "read":   bool(r.get("read", False)),
-            "write":  bool(r.get("write", False)),
-            "create": bool(r.get("create", False)),
-            "delete": bool(r.get("delete", False)),
-            "submit": bool(r.get("submit", False)),
-            "cancel": bool(r.get("cancel", False)),
-            "report": bool(r.get("report", False)),
-        }
-        if r.get("match"):
-            perm["match"] = r["match"]
-        hf = r.get("hidden_fields") or ""
-        if hf:
-            perm["hidden_fields"] = [f.strip() for f in hf.split(",") if f.strip()]
-        perms.append(perm)
+        hf_raw = r.get("hidden_fields") or ""
+        hidden = [f.strip() for f in hf_raw.split(",") if f.strip()] if hf_raw else []
+        perms.append(DocTypePermission(
+            role=r.get("role", ""),
+            read=bool(r.get("read", False)),
+            write=bool(r.get("write", False)),
+            create=bool(r.get("create", False)),
+            delete=bool(r.get("delete", False)),
+            submit=bool(r.get("submit", False)),
+            cancel=bool(r.get("cancel", False)),
+            report=bool(r.get("report", False)),
+            match=r.get("match") or None,
+            hidden_fields=hidden,
+        ))
 
     # DocTypePermission records replace (not augment) in-memory permissions
-    target.permissions = perms  # type: ignore[assignment]
+    target.permissions = perms
 
 
 async def migrate_doctype_meta_permissions(session) -> None:  # noqa: ANN001
@@ -133,29 +132,22 @@ async def migrate_doctype_meta_permissions(session) -> None:  # noqa: ANN001
             if not target_dt.permissions:
                 continue
             for perm in target_dt.permissions:
-                role = perm.role if hasattr(perm, "role") else perm.get("role", "")
+                # perm may be a DocTypePermission Pydantic model or a plain dict
+                if isinstance(perm, dict):
+                    role = perm.get("role", "")
+                    _b = lambda attr: bool(perm.get(attr, False))  # noqa: E731
+                    hf_raw = perm.get("hidden_fields", [])
+                    match_val = perm.get("match")
+                else:
+                    role = getattr(perm, "role", "")
+                    _b = lambda attr: bool(getattr(perm, attr, False))  # noqa: E731
+                    hf_raw = getattr(perm, "hidden_fields", [])
+                    match_val = getattr(perm, "match", None)
+
                 if not role:
                     continue
 
-                def _b(attr: str) -> bool:
-                    return bool(
-                        getattr(perm, attr, False)
-                        if hasattr(perm, attr)
-                        else perm.get(attr, False)
-                    )
-
-                hf_raw = (
-                    getattr(perm, "hidden_fields", [])
-                    if hasattr(perm, "hidden_fields")
-                    else perm.get("hidden_fields", [])
-                )
                 hf_str = ", ".join(hf_raw) if isinstance(hf_raw, list) else str(hf_raw or "")
-
-                match_val = (
-                    getattr(perm, "match", None)
-                    if hasattr(perm, "match")
-                    else perm.get("match")
-                )
 
                 row_id = str(uuid.uuid4())
                 await session.execute(

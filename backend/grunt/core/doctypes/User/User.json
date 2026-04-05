@@ -46,11 +46,10 @@
     },
     {
       "fieldname": "theme",
-      "label": "Тема",
+      "label": "Тема оформлення",
       "fieldtype": "Select",
       "options": "light\ndark\nsystem",
-      "default": "system",
-      "hidden": true
+      "default": "system"
     },
     {
       "fieldname": "login_attempts",

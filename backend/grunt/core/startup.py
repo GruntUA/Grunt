@@ -328,6 +328,7 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
     from grunt.core.site.manager import site_manager  # noqa: PLC0415
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
+    from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
 
     site_file = site_manager.sites_dir / site_name / "grunt.site"
     if not site_file.exists():
@@ -392,11 +393,11 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                     else:
                         # Update if JSON definition changed
                         existing = doctype_registry._doctypes[dt_name]
-                        if existing.model_dump() != dt_obj.model_dump():
+                        if existing.model_dump(mode="json") != dt_obj.model_dump(mode="json"):
                             await session.execute(
                                 sa_update(GruntMetaDoctype)
                                 .where(GruntMetaDoctype.name == dt_name)
-                                .values(module=dt_obj.module, data=dt_obj.model_dump())
+                                .values(module=dt_obj.module, data=dt_obj.model_dump(mode="json"))
                             )
                             await sync_table(dt_obj, eng, session=session)
                             doctype_registry._doctypes[dt_name] = dt_obj
@@ -551,6 +552,47 @@ async def _apply_workspace_fixture(
     return applied
 
 
+def _coerce_fixture_value(fieldtype: str, value: object) -> object:
+    """Coerce a JSON fixture value to the Python type expected by SQLAlchemy.
+
+    JSON has no native date/time/datetime types — everything arrives as str.
+    SQLite (and other backends) reject raw strings for Time/Date/Datetime columns.
+    """
+    if value is None:
+        return None
+    if fieldtype == "Time" and isinstance(value, str):
+        from datetime import time as _time  # noqa: PLC0415
+
+        parts = value.split(":")
+        try:
+            h, m = int(parts[0]), int(parts[1])
+            s = int(parts[2]) if len(parts) > 2 else 0
+            return _time(h, m, s)
+        except (ValueError, IndexError):
+            return None
+    if fieldtype == "Date" and isinstance(value, str):
+        from datetime import date as _date  # noqa: PLC0415
+        import re as _re  # noqa: PLC0415
+
+        if _re.match(r"^\d{4}-\d{2}-\d{2}$", value):
+            try:
+                y, mo, d = value.split("-")
+                return _date(int(y), int(mo), int(d))
+            except ValueError:
+                return None
+    if fieldtype == "Datetime" and isinstance(value, str):
+        from datetime import datetime as _datetime, timezone as _tz  # noqa: PLC0415
+
+        try:
+            dt = _datetime.fromisoformat(value.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=_tz.utc)
+            return dt
+        except ValueError:
+            return None
+    return value
+
+
 async def _apply_doctype_fixture(
     doctype_name: str,
     records: list,
@@ -601,11 +643,19 @@ async def _apply_doctype_fixture(
             if field.fieldtype in NON_PHYSICAL_FIELDS:
                 continue
             if field.fieldname in rec:
-                row[field.fieldname] = rec[field.fieldname]
+                row[field.fieldname] = _coerce_fixture_value(field.fieldtype, rec[field.fieldname])
             elif field.default is not None:
-                row[field.fieldname] = field.default
+                row[field.fieldname] = _coerce_fixture_value(field.fieldtype, field.default)
 
-        await session.execute(table.insert().values(**row))
+        try:
+            await session.execute(table.insert().values(**row))
+        except Exception as _insert_exc:  # noqa: BLE001
+            # Catch any UNIQUE / constraint violation — record already exists
+            from sqlalchemy.exc import IntegrityError as _IntegrityError  # noqa: PLC0415
+            if isinstance(_insert_exc, _IntegrityError):
+                await session.rollback()
+                continue
+            raise
 
         # Save child table rows
         for field in dt.fields:

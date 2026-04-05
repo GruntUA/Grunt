@@ -25,12 +25,22 @@ def register_scheduler_events(events: dict[str, list[Union[str, dict]]]) -> None
     }
     """
     for event_type, tasks in events.items():
+        # Support dict form for "cron": {"expr": ["handler", ...]} as well as list form
+        if event_type == "cron" and isinstance(tasks, dict):
+            expanded: list = []
+            for expr, handlers in tasks.items():
+                if isinstance(handlers, str):
+                    handlers = [handlers]
+                for h in handlers:
+                    expanded.append({"handler": h, "expression": expr})
+            tasks = expanded
+
         if not isinstance(tasks, list):
             tasks = [tasks]
 
         for item in tasks:
             path = item if isinstance(item, str) else item.get("handler")
-            
+
             # Map standard Frappe-like event names to Cron
             cron_expr = None
             if event_type == "all":
@@ -44,10 +54,10 @@ def register_scheduler_events(events: dict[str, list[Union[str, dict]]]) -> None
             elif event_type == "monthly":
                 cron_expr = "0 0 1 * *"
             elif event_type == "cron":
-                cron_expr = item.get("expression")
+                cron_expr = item.get("expression") if isinstance(item, dict) else None
 
             if not cron_expr or not path:
-                logger.warning("scheduler.invalid_task", event=event_type, item=item)
+                logger.warning("scheduler.invalid_task", event_type=event_type, item=item)
                 continue
 
             _add_scheduled_job(path, cron_expr)

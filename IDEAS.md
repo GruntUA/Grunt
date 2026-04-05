@@ -157,11 +157,11 @@
 
 | # | Що | Деталі |
 |---|-----|--------|
-| 💡 | **grunt shell** | Python REPL з preloaded context (як frappe shell) |
+| ✅ | **grunt shell** | Python REPL з preloaded context (як frappe shell) |
 | 💡 | **grunt fixtures** | Зберегти/відновити тестові дані |
-| 💡 | **grunt migrate --dry-run** | Показати що зміниться без застосування |
+| ✅ | **grunt migrate --dry-run** | Показати що зміниться без застосування |
 | 💡 | **API Playground** | Вбудований Swagger з авто-заповненням токену |
-| 💡 | **DocType Test Generator** | Авто-генерація pytest тестів для DocType |
+| ✅ | **DocType Test Generator** | Авто-генерація pytest тестів для DocType |
 | 💡 | **Performance profiler** | Profiling slow queries у dev режимі |
 | 💡 | **grunt bench** | Аналог frappe-bench: керування кількома apps |
 
@@ -224,7 +224,7 @@
 | ✅ | **`ScheduledJob`** | `ServerScript` з `script_type = "Scheduler Event"` вже виконує роль. `_register_server_script_jobs()` завантажує їх з БД при старті |
 | ✅ | **Вбудований "grunt" workspace** | `grunt_workspace.json` оновлено: 8 секцій, 25+ DocType включно з File, DocTypePermission, OutgoingWebhook, PushSubscription, SystemSettings, Report, Users |
 | ✅ | **`SystemSettings` як єдина точка входу** | Сторінки EmailSettings, Push, Security ще є окремими — можна перенести як секції SystemSettings FormView |
-| 💡 | **ClientScript для PrintFormat preview** | Додати ClientScript що рендерить iframe preview при редагуванні шаблону |
+| ✅ | **ClientScript для PrintFormat preview** | Додати ClientScript що рендерить iframe preview при редагуванні шаблону |
 | 💡 | **ClientScript для Report runner** | Додати кнопку "Запустити" через ClientScript в FormView Report |
 | 💡 | **ClientScript для EmailAccount test** | Додати кнопку "Тест SMTP" через ClientScript в FormView EmailAccount |
 
@@ -744,4 +744,4 @@ grunt doctype sync {Name}
 
 ---
 
-_Останнє оновлення: 2026-04-03 (розділи 1-19 розроблені, 17-18 завершені)_
+_Останнє оновлення: 2026-04-05 (розділи 1-19 розроблені, 13, 16-18 завершені; додано: grunt shell, grunt migrate --dry-run, grunt doctype test-gen, grunt doctype scaffold, PrintFormat live preview)_
