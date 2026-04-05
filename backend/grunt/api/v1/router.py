@@ -25,6 +25,7 @@ from grunt.api.v1.activity import router as activity_router
 from grunt.api.v1.hooks import router as hooks_router
 from grunt.api.v1.email import router as email_router
 from grunt.api.v1.assignment import router as assignment_router
+from grunt.api.v1.dev import router as dev_router
 
 v1_router = APIRouter()
 
@@ -51,3 +52,4 @@ v1_router.include_router(activity_router, prefix="/activity", tags=["activity"])
 v1_router.include_router(hooks_router, prefix="/hooks", tags=["hooks"])
 v1_router.include_router(email_router, tags=["email"])
 v1_router.include_router(assignment_router, tags=["assignment"])
+v1_router.include_router(dev_router, tags=["dev"])

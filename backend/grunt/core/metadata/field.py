@@ -42,6 +42,7 @@ class FieldType(str, Enum):
     COLOR = "Color"  # color picker
     SIGNATURE = "Signature"  # signature pad
     GEOLOCATION = "Geolocation"  # coordinates
+    BARCODE = "BarCode"  # barcode / QR-code scanner
 
 
 # Field types that do NOT produce a column in the database

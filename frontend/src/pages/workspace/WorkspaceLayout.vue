@@ -3,6 +3,7 @@ import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWorkspaceStore } from '@/stores/workspace'
 import WorkspaceSidebar from '@/components/workspace/WorkspaceSidebar.vue'
+import MobileBottomNav from '@/components/mobile/MobileBottomNav.vue'
 import { Menu } from 'lucide-vue-next'
 
 const props = defineProps<{ workspaceName: string }>()
@@ -34,14 +35,16 @@ watch(() => props.workspaceName, (name) => {
 
     <WorkspaceSidebar ref="sidebarRef" :workspace-name="workspaceName" />
 
-    <!-- Main content -->
-    <main class="flex-1 overflow-y-auto">
+    <!-- Main content — extra bottom padding on mobile for the nav bar -->
+    <main class="flex-1 overflow-y-auto pb-14 md:pb-0">
       <RouterView v-slot="{ Component }" :key="route.fullPath">
         <Transition name="fade" mode="out-in">
           <component :is="Component" />
         </Transition>
       </RouterView>
     </main>
+
+    <MobileBottomNav :workspace-name="workspaceName" />
   </div>
 </template>
 

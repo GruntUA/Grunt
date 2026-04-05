@@ -208,6 +208,10 @@ registerField({ type: 'Geolocation', label: 'Geolocation', icon: '📍', categor
   component: () => import('@/components/fields/FieldGeolocation.vue').then(m => m.default as Component),
   propertySections: ['core', 'flags', 'display', 'text'] })
 
+registerField({ type: 'BarCode', label: 'Barcode / QR', icon: '▌▌', category: 'Спеціальні',
+  component: () => import('@/components/fields/FieldBarcode.vue').then(m => m.default as Component),
+  propertySections: ['core', 'flags', 'display', 'text'] })
+
 // Структурні (layout-only, not DB-backed)
 registerField({ type: 'Section', label: 'Section', icon: '═', category: '', is_layout: true,
   propertySections: ['core', 'collapsible', 'text'] })

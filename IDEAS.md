@@ -162,7 +162,7 @@
 | ✅ | **grunt migrate --dry-run** | Показати що зміниться без застосування |
 | 💡 | **API Playground** | Вбудований Swagger з авто-заповненням токену |
 | ✅ | **DocType Test Generator** | Авто-генерація pytest тестів для DocType |
-| 💡 | **Performance profiler** | Profiling slow queries у dev режимі |
+| ✅ | **Performance profiler** | Per-request SQL ring buffer, slow query log, ProfilerPanel overlay (Ctrl+Shift+P) |
 | 💡 | **grunt bench** | Аналог frappe-bench: керування кількома apps |
 
 ---
@@ -171,9 +171,9 @@
 
 | # | Що | Деталі |
 |---|-----|--------|
-| 💡 | **PWA підтримка** | Service Worker, offline cache, install prompt |
-| 💡 | **Мобільна адаптація** | Адаптивний layout для FormView/ListView |
-| 💡 | **Barcode/QR scanner** | Поле з camera input для сканування |
+| ✅ | **PWA підтримка** | vite-plugin-pwa, Workbox precache + runtime cache, manifest, install prompt |
+| ✅ | **Мобільна адаптація** | MobileBottomNav з overflow sheet, `pb-14 md:pb-0` в layout |
+| ✅ | **Barcode/QR scanner** | FieldBarcode: BarcodeDetector API + camera viewfinder + file upload fallback |
 | ✅ | **Offline mode** | Запис у локальний IndexedDB + sync при підключенні |
 
 ---
