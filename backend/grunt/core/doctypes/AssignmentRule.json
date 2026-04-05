@@ -1,0 +1,79 @@
+{
+  "name": "AssignmentRule",
+  "label": "Assignment Rule",
+  "doctype": "DocType",
+  "module": "core",
+  "is_system": true,
+  "track_changes": false,
+  "fields": [
+    {
+      "fieldname": "enabled",
+      "label": "Enabled",
+      "fieldtype": "Check",
+      "default": 1
+    },
+    {
+      "fieldname": "doctype_target",
+      "label": "Target DocType",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "help": "DocType для якого буде застосовуватися це правило"
+    },
+    {
+      "fieldname": "section_condition",
+      "label": "Conditions",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "filters",
+      "label": "Filters (JSON)",
+      "fieldtype": "Code",
+      "options": "json",
+      "help": "JSON умови, напр: {\"status\": \"Draft\", \"total\": {\">=\": 10000}}",
+      "default": "{}"
+    },
+    {
+      "fieldname": "section_assignment",
+      "label": "Assignment",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "assign_to_role",
+      "label": "Assign to Role",
+      "fieldtype": "Link",
+      "options": "Role",
+      "help": "Всім користувачам з цієї ролі (або вибирай assign_to_user)"
+    },
+    {
+      "fieldname": "assign_to_user",
+      "label": "Assign to User",
+      "fieldtype": "Link",
+      "options": "User",
+      "help": "Конкретному користувачеві (пріоритет над ролю)"
+    },
+    {
+      "fieldname": "section_meta",
+      "label": "Metadata",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "description",
+      "label": "Description",
+      "fieldtype": "Text",
+      "help": "Для чого це правило"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "permlevel": 0,
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "submit": 0,
+      "amend": 0
+    }
+  ]
+}

@@ -174,6 +174,19 @@ async def fire(event: str, **kwargs: Any) -> None:
         except Exception:  # noqa: BLE001
             logger.exception("notification.evaluate_error", event=event, doctype=doctype)
 
+    # 6. Evaluate assignment rules
+    if event in ("after_save", "after_insert") and doctype and kwargs.get("doc") and kwargs.get("session"):
+        try:
+            from grunt.core.assignment import assignment_service  # noqa: PLC0415
+
+            await assignment_service.evaluate_and_assign(
+                doctype=doctype,
+                doc=kwargs["doc"],
+                session=kwargs["session"],
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("assignment.evaluate_error", event=event, doctype=doctype)
+
 
 async def _call_hook(fn: Callable, event_name: str, **kwargs: Any) -> None:
     try:

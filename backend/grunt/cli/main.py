@@ -248,107 +248,18 @@ def db_backup(output, site):
 
 @cli.command("create-app")
 @click.argument("name")
-def create_app(name: str):
-    """Створити новий Grunt додаток з базовою структурою.
+@click.option("--no-git", is_flag=True, default=False, help="Не ініціалізувати git репозиторій")
+@click.option("--dest", default=None, help="Директорія для створення додатку (за замовчуванням: grunt_apps/)")
+def create_app(name: str, no_git: bool, dest: str | None):
+    """Інтерактивно створити новий Grunt додаток.
 
     NAME — назва додатку (snake_case), наприклад: my_crm
     """
-    app_dir = Path("grunt_apps") / name
-    if app_dir.exists():
-        click.echo(f"Помилка: директорія '{app_dir}' вже існує.", err=True)
-        raise SystemExit(1)
+    from grunt.utils.boilerplate import make_boilerplate  # noqa: PLC0415
 
-    label = name.replace("_", " ").title()
-    
-    # Default module name (inside which doctypes, fixtures, etc. live)
-    default_module = "core"
-
-    # Scaffold directory structure: app/core/{doctypes, fixtures, tasks, hooks}
-    (app_dir / default_module / "doctypes").mkdir(parents=True)
-    (app_dir / default_module / "fixtures").mkdir(parents=True)
-    (app_dir / default_module / "tasks").mkdir(parents=True)
-    (app_dir / default_module / "hooks").mkdir(parents=True)
-
-    # __init__.py files
-    (app_dir / "__init__.py").write_text(
-        f'"""Grunt app: {label}"""\n\n__version__ = "0.1.0"\n'
-    )
-    (app_dir / default_module / "__init__.py").write_text(
-        f'"""Module {default_module} for {label}."""\n'
-    )
-    (app_dir / default_module / "doctypes" / "__init__.py").write_text("")
-    (app_dir / default_module / "fixtures" / "__init__.py").write_text("")
-    (app_dir / default_module / "tasks" / "__init__.py").write_text("")
-    (app_dir / default_module / "hooks" / "__init__.py").write_text("")
-
-    # app.json — app manifest with full metadata
-    app_json_content = {
-        "name": name,
-        "title": label,
-        "version": "0.1.0",
-        "description": f"{label} Grunt app",
-        "author": "",
-        "modules": [default_module],
-        "icon": "📦",
-        "color": "#2D6A4F",
-    }
-    import json as _json
-    (app_dir / "app.json").write_text(
-        _json.dumps(app_json_content, ensure_ascii=False, indent=2) + "\n"
-    )
-
-    # grunt_app.py — app constants for metadata (for use when app.json is unavailable)
-    (app_dir / "grunt_app.py").write_text(
-        f'"""Metadata for {label}."""\n\n'
-        f'APP_NAME = "{name}"\n'
-        f'APP_TITLE = "{label}"\n'
-        f'APP_VERSION = "0.1.0"\n'
-        f'APP_DESCRIPTION = "{label} Grunt app"\n'
-        f'APP_AUTHOR = ""\n'
-        f'APP_ICON = "📦"\n'
-        f'APP_COLOR = "#2D6A4F"\n'
-        f'MODULES = ["{default_module}"]\n'
-        f'DEPENDS_ON = []\n'
-    )
-
-    # fixtures directory with workspace definition and README
-    (app_dir / default_module / "fixtures" / "00_workspace.json").write_text(
-        _json.dumps([{
-            "name": name,
-            "label": label,
-            "icon": "📦",
-            "color": "#2D6A4F",
-            "description": "",
-            "items": []
-        }], ensure_ascii=False, indent=2) + "\n"
-    )
-    (app_dir / default_module / "fixtures" / "README.md").write_text(
-        f"# Fixtures for {label}\n\n"
-        f"Place JSON fixture files here. They'll be loaded when the app is installed.\n\n"
-        f"Example: `00_workspace.json` — initial workspace definition.\n"
-    )
-
-    # tasks/tasks.py — sample task file
-    (app_dir / default_module / "tasks" / "tasks.py").write_text(
-        f'"""Background tasks for {label}."""\n'
-        f'# from grunt.core.tasks.broker import retryable_task\n'
-        f'#\n'
-        f'# @retryable_task()\n'
-        f'# async def my_task():\n'
-        f'#     pass\n'
-    )
-
-    # hooks/__init__.py
-    (app_dir / default_module / "hooks" / "hooks.py").write_text(
-        f'"""Hooks for {label}."""\n'
-        f'# Hook functions registered for specific events\n'
-    )
-
-    click.echo(f"Додаток '{name}' створено в {app_dir}/")
-    click.echo("Структура:")
-    for p in sorted(app_dir.rglob("*")):
-        if not p.is_dir():
-            click.echo(f"  {p.relative_to(app_dir.parent)}")
+    dest_path = Path(dest) if dest else Path("grunt_apps")
+    dest_path.mkdir(parents=True, exist_ok=True)
+    make_boilerplate(dest_path, name, no_git=no_git)
 
 
 # ── app group ────────────────────────────────────────────────────────────────
