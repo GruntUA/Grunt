@@ -275,7 +275,7 @@ async def workspace_counts(
 
         from grunt.core.metadata.compiler import get_table_name  # noqa: PLC0415
 
-        table_name = get_table_name(dt.module, dt.name)
+        table_name = dt.table_name or get_table_name(dt.module, dt.name)
 
         try:
             # Build count query

@@ -1,0 +1,56 @@
+"""{{ name }} controller.
+
+Business logic for {{ name }} DocType.
+"""
+
+from __future__ import annotations
+
+{% if needs_datetime %}import datetime
+{% endif %}{% if physical_fields %}from typing import TYPE_CHECKING, Any
+{% else %}from typing import Any
+{% endif %}
+
+{% if physical_fields %}
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    if TYPE_CHECKING:
+{% for field in physical_fields %}
+{% if field.fieldtype == "Table" %}
+        {{ field.fieldname }}: list[dict]  # Table: {{ field.options or "?" }}
+{% else %}
+        {{ field.fieldname }}: {{ field.py_type }}{% if field.label and field.label != field.fieldname %}  # {{ field.label }}{% endif %}
+
+{% endif %}
+{% endfor %}
+    # end: auto-generated types
+
+{% endif %}
+
+class {{ name }}Controller:
+    """Controller for {{ name }} documents."""
+
+    def __init__(self, doc: dict[str, Any], session: Any | None = None) -> None:
+        self.doc = doc
+        self.session = session
+
+    async def before_insert(self) -> None:
+        """Called before inserting a new document."""
+
+    async def after_insert(self) -> None:
+        """Called after inserting a new document."""
+
+    async def before_save(self) -> None:
+        """Called before saving (new or existing)."""
+
+    async def after_save(self) -> None:
+        """Called after saving."""
+
+    async def before_delete(self) -> None:
+        """Called before deletion."""
+
+    async def after_delete(self) -> None:
+        """Called after deletion."""
+
+    async def validate(self) -> None:
+        """Called during validation — raise ValueError to block save."""

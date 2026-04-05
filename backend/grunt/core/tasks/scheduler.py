@@ -74,8 +74,12 @@ def _add_scheduled_job(path: str, cron_expr: str) -> None:
         
         async def trigger_task():
             logger.info("scheduler.triggering_task", path=path)
-            # Use TaskIQ's kiq to send to worker
-            await task_fn.kiq()
+            if hasattr(task_fn, "kiq"):
+                # TaskIQ-decorated task — send to worker
+                await task_fn.kiq()
+            else:
+                # Plain async function — call directly
+                await task_fn()
 
         scheduler.add_job(
             trigger_task,

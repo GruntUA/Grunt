@@ -4,6 +4,7 @@ import click
 import subprocess
 import shutil
 from contextlib import asynccontextmanager
+from importlib.metadata import entry_points
 from pathlib import Path
 
 
@@ -11,6 +12,28 @@ from pathlib import Path
 def cli():
     """Ґрунт CLI — інструмент управління фреймворком."""
     pass
+
+
+def _load_plugins() -> None:
+    """Discover and register CLI commands from installed Grunt apps.
+
+    Apps declare their commands in pyproject.toml:
+
+        [project.entry-points."grunt.commands"]
+        myapp = "myapp.cli:cli"
+
+    The registered group/command is added to the top-level ``cli`` group.
+    """
+    for ep in entry_points(group="grunt.commands"):
+        try:
+            cmd = ep.load()
+            if isinstance(cmd, (click.BaseCommand,)):
+                cli.add_command(cmd, name=ep.name)
+        except Exception as exc:  # noqa: BLE001
+            click.echo(f"[warn] grunt.commands plugin '{ep.name}' failed to load: {exc}", err=True)
+
+
+_load_plugins()
 
 
 # ── Shared helpers ────────────────────────────────────────────────────────────
@@ -449,20 +472,19 @@ def doctype_list(site: str | None):
 @click.option("--app", default="web", help="Папка app куди розмістити DocType (за замовчуванням: web)")
 @click.option("--module", default=None, help="Модуль (за замовчуванням: app name)")
 @click.option("--force", is_flag=True, help="Перезаписати існуючі файли")
-def doctype_scaffold(name: str, app: str, module: str, force: bool):
+def doctype_scaffold(name: str, app: str, module: str | None, force: bool):
     """Створити новий DocType з шаблонами.
 
     Генерує папку структури:
         {app}/doctypes/{Name}/
             ├── {Name}.json          # метадані DocType
-            ├── {Name}.py            # контроллер з auto-generated типами
+            ├── {Name}.py            # контролер з auto-generated типами
             ├── {Name}.js            # client script
             └── __init__.py
     """
     import json  # noqa: PLC0415
-    from datetime import datetime  # noqa: PLC0415
+    from grunt.utils.codegen import build_controller_context, render_template  # noqa: PLC0415
 
-    # Validate name
     if not name or name[0].islower():
         click.echo("Помилка: ім'я DocType повинно починатися з великої літери.", err=True)
         raise SystemExit(1)
@@ -479,84 +501,33 @@ def doctype_scaffold(name: str, app: str, module: str, force: bool):
 
     doctype_dir.mkdir(parents=True, exist_ok=True)
 
-    # Module name (default to app name)
     module_name = module or app
+    initial_fields = [{"fieldname": "name", "label": "Назва", "fieldtype": "Data", "required": True}]
 
-    # JSON template
-    json_content = f"""{{
-  "name": "{name}",
-  "label": "{name}",
-  "module": "{module_name}",
-  "doctype": "DocType",
-  "is_system": false,
-  "fields": [
-    {{"fieldname": "name", "label": "Назва", "fieldtype": "Data", "required": true}}
-  ]
-}}"""
-
-    # Write JSON first so we can read it to generate types
+    # 1. JSON metadata
+    json_content = {
+        "name": name,
+        "label": name,
+        "module": module_name,
+        "doctype": "DocType",
+        "is_system": False,
+        "fields": initial_fields,
+    }
     json_file = doctype_dir / f"{name}.json"
-    json_file.write_text(json_content, encoding="utf-8")
+    json_file.write_text(json.dumps(json_content, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-    # Parse JSON to get fields for type generation
-    doctype_data = json.loads(json_content)
-    type_hints = _generate_type_hints(name, doctype_data.get("fields", []))
-
-    # Python controller template with auto-generated types
-    py_content = f'''"""{name} controller.
-
-Бізнес-логіка для DocType {name}.
-"""
-
-from __future__ import annotations
-
-{type_hints}
-
-
-class {name}Controller:
-    """Контроллер для {name} документів."""
-
-    async def before_save(self):
-        """Викликається перед збереженням."""
-        pass
-
-    async def after_save(self):
-        """Викликається після збереження."""
-        pass
-
-    async def before_delete(self):
-        """Викликається перед видаленням."""
-        pass
-'''
-
-    # JavaScript template
-    js_content = f'''/**
- * {name} Client Script
- *
- * Викликається на UI сторінці при редагуванні {name}.
- */
-
-function on_load(frm) {{
-    // Код що виконується при завантаженні форми
-    console.log('Loaded {name}', frm.doc)
-}}
-
-function on_save(frm) {{
-    // Код що виконується при збереженні форми
-    console.log('Saved {name}', frm.doc)
-}}
-'''
-
-    # Write files
+    # 2. Python controller via Jinja template
+    py_ctx = build_controller_context(name, initial_fields)
     py_file = doctype_dir / f"{name}.py"
+    py_file.write_text(render_template("doctype/controller.py.jinja", py_ctx), encoding="utf-8")
+
+    # 3. JS client script via Jinja template
     js_file = doctype_dir / f"{name}.js"
-    init_file = doctype_dir / "__init__.py"
+    js_file.write_text(render_template("doctype/client_script.js.jinja", {"name": name}), encoding="utf-8")
 
-    py_file.write_text(py_content, encoding="utf-8")
-    js_file.write_text(js_content, encoding="utf-8")
-    init_file.write_text("", encoding="utf-8")
+    # 4. __init__.py
+    (doctype_dir / "__init__.py").write_text("", encoding="utf-8")
 
-    # Try to show relative path, fallback to absolute
     try:
         rel_path = doctype_dir.relative_to(Path.cwd())
     except ValueError:
@@ -564,149 +535,75 @@ function on_save(frm) {{
 
     click.echo(f"✓ Створено DocType '{name}' в {rel_path}")
     click.echo(f"  ├── {name}.json")
-    click.echo(f"  ├── {name}.py (з auto-generated типами)")
-    click.echo(f"  ├── {name}.js")
+    click.echo(f"  ├── {name}.py  (controller з auto-generated типами)")
+    click.echo(f"  ├── {name}.js  (client script)")
     click.echo(f"  └── __init__.py")
     click.echo()
     click.echo("Наступні кроки:")
     click.echo(f"1. Відредагуйте {name}.json для визначення полів")
-    click.echo(f"2. Запустіть: grunt doctype generate-types {name} --app {app}")
+    click.echo(f"2. Запустіть: grunt doctype sync-types {name} --app {app}")
     click.echo(f"3. Запустіть: grunt serve --reload")
-    click.echo(f"4. Перейдіть на http://localhost:8000/desk/list/{name}")
 
 
-@doctype_group.command("generate-types")
+@doctype_group.command("sync-types")
 @click.argument("name")
 @click.option("--app", default="web", help="Папка app де знаходиться DocType")
-def doctype_generate_types(name: str, app: str):
-    """Регенерувати auto-generated типи для існуючого DocType.
+@click.option("--all", "all_doctypes", is_flag=True, help="Оновити всі DocTypes в app")
+def doctype_sync_types(name: str, app: str, all_doctypes: bool):
+    """Оновити auto-generated типи в контролері на основі JSON метаданих.
 
-    Читає JSON файл і оновлює type hints у .py контролері.
+    Замінює тільки блок між:
+        # begin: auto-generated types
+        # end: auto-generated types
+    Решта коду контролера не чіпається.
+
+    \b
+    Приклади:
+      grunt doctype sync-types Invoice --app crm
+      grunt doctype sync-types --all --app crm
     """
     import json  # noqa: PLC0415
+    from grunt.utils.codegen import sync_controller_types  # noqa: PLC0415
 
     app_path = Path("grunt_apps") / app
-    doctype_dir = app_path / "doctypes" / name
-    json_file = doctype_dir / f"{name}.json"
-    py_file = doctype_dir / f"{name}.py"
+
+    if all_doctypes:
+        updated = 0
+        skipped = 0
+        for json_file in sorted(app_path.glob("doctypes/*/*.json")):
+            dt_name = json_file.stem
+            py_file = json_file.parent / f"{dt_name}.py"
+            if not py_file.exists():
+                continue
+            try:
+                fields = json.loads(json_file.read_text(encoding="utf-8")).get("fields", [])
+                changed = sync_controller_types(py_file, dt_name, fields)
+                if changed:
+                    click.echo(f"  ✓ {dt_name}")
+                    updated += 1
+                else:
+                    skipped += 1
+            except Exception as exc:
+                click.echo(f"  ! {dt_name}: {exc}", err=True)
+        click.echo(f"\nОновлено: {updated}, без змін: {skipped}")
+        return
+
+    json_file = app_path / "doctypes" / name / f"{name}.json"
+    py_file = app_path / "doctypes" / name / f"{name}.py"
 
     if not json_file.exists():
-        click.echo(f"Помилка: DocType JSON не знайдено: {json_file}", err=True)
+        click.echo(f"Помилка: {json_file} не знайдено.", err=True)
         raise SystemExit(1)
-
     if not py_file.exists():
-        click.echo(f"Помилка: DocType контроллер не знайдено: {py_file}", err=True)
+        click.echo(f"Помилка: {py_file} не знайдено.", err=True)
         raise SystemExit(1)
 
-    # Read JSON and generate types
-    doctype_data = json.loads(json_file.read_text(encoding="utf-8"))
-    type_hints = _generate_type_hints(name, doctype_data.get("fields", []))
-
-    # Read current Python file
-    py_content = py_file.read_text(encoding="utf-8")
-
-    # Remove old type hints block if exists
-    if "# begin: auto-generated types" in py_content:
-        start = py_content.find("# begin: auto-generated types")
-        end = py_content.find("# end: auto-generated types")
-        if start != -1 and end != -1:
-            # Keep everything before begin marker and after end marker
-            before = py_content[:start].rstrip()
-            after = py_content[end:].split("\n", 1)[1] if "\n" in py_content[end:] else ""
-            py_content = before + "\n\n" + type_hints + "\n\n" + after
-
-            py_file.write_text(py_content, encoding="utf-8")
-            click.echo(f"✓ Типи оновлено для {name}")
-            return
-
-    # If no marker found, insert after imports
-    lines = py_content.split("\n")
-    insert_pos = 0
-
-    # Find position after __future__ imports and blank lines
-    for i, line in enumerate(lines):
-        if line.startswith("from __future__"):
-            insert_pos = i + 1
-        elif line.strip() and not line.startswith("from ") and not line.startswith("import "):
-            break
-
-    # Insert type hints after imports
-    lines.insert(insert_pos + 1, "")
-    lines.insert(insert_pos + 2, type_hints)
-    lines.insert(insert_pos + 3, "")
-
-    py_file.write_text("\n".join(lines), encoding="utf-8")
-    click.echo(f"✓ Типи додано для {name}")
-
-
-def _generate_type_hints(doctype_name: str, fields: list) -> str:
-    """Generate auto-typed field annotations from a DocType definition.
-
-    Maps fieldtype to Python type hints.
-    """
-    # Fieldtype to Python type mapping
-    fieldtype_map = {
-        "Data": "str | None",
-        "Text": "str | None",
-        "LongText": "str | None",
-        "Int": "int | None",
-        "Float": "float | None",
-        "Check": "bool | None",
-        "Date": "str | None",  # ISO date string
-        "Datetime": "str | None",  # ISO datetime string
-        "Time": "str | None",
-        "Link": "str | None",
-        "MultiLink": "list[str] | None",
-        "Attach": "str | None",
-        "Image": "str | None",
-        "Select": "str | None",
-        "RichText": "str | None",
-        "JSON": "dict | None",
-        "Code": "str | None",
-        "Color": "str | None",
-        "Signature": "str | None",
-        "Geolocation": "str | None",
-        "HTMLEditor": "str | None",
-        "BarCode": "str | None",
-        "Rating": "int | None",
-        "Percent": "float | None",
-        "Duration": "float | None",
-    }
-
-    # Collect field type annotations (skip structural fields)
-    field_lines = []
-    for field in fields:
-        fieldname = field.get("fieldname", "")
-        fieldtype = field.get("fieldtype", "Data")
-
-        # Skip structural fields
-        if fieldtype in ("Section", "Column", "Tab", "Table", "Empty"):
-            continue
-
-        # Skip standard fields
-        if fieldname in ("name", "docstatus", "idx", "owner", "creation", "modified", "modified_by"):
-            continue
-
-        py_type = fieldtype_map.get(fieldtype, "Any | None")
-        field_lines.append(f"\t\t{fieldname}: {py_type}")
-
-    # Build the type hints block
-    type_block = f"""# begin: auto-generated types
-# This code is auto-generated. Do not modify anything in this block.
-
-from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-	from typing import DF
-
-	class {doctype_name}:
-		\"\"\"Type hints for {doctype_name} fields.\"\"\"
-
-{chr(10).join(field_lines) if field_lines else chr(9)*2 + 'name: str | None'}
-
-# end: auto-generated types"""
-
-    return type_block
+    fields = json.loads(json_file.read_text(encoding="utf-8")).get("fields", [])
+    changed = sync_controller_types(py_file, name, fields)
+    if changed:
+        click.echo(f"✓ Типи оновлено: {py_file}")
+    else:
+        click.echo(f"Без змін: {py_file}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,28 @@
+/**
+ * {{ name }} Client Script
+ *
+ * Called in the UI when editing {{ name }} documents.
+ */
+
+function on_load(frm) {
+    // Code that runs when form loads
+    console.log('Loaded {{ name }}', frm.doc)
+}
+
+function on_change(frm, fieldname) {
+    // Code that runs when a field changes
+    console.log('Changed field:', fieldname)
+}
+
+function validate(frm) {
+    // Return false to prevent save
+    return true
+}
+
+function before_save(frm) {
+    // Called before saving
+}
+
+function after_save(frm) {
+    // Called after saving
+}
