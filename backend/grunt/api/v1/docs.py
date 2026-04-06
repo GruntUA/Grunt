@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
-import io
-import uuid as _uuid
 import csv
+import io
+import json
+import uuid as _uuid
 from datetime import date, datetime, timezone
 from typing import Any
-from fastapi.responses import StreamingResponse
 
 import openpyxl
-from openpyxl.styles import Alignment, Font, PatternFill
+import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
+from openpyxl.styles import Alignment, Font, PatternFill
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.core.auth.dependencies import current_user
@@ -21,10 +22,7 @@ from grunt.core.db.session import get_engine, get_session
 from grunt.core.document.service import DocumentService
 from grunt.core.metadata.registry import doctype_registry
 
-import json
-import logging
-
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 router = APIRouter()
 
@@ -33,58 +31,50 @@ router = APIRouter()
 
 
 async def _audit_log(
-    session: AsyncSession,
+    svc: DocumentService,
     doctype: str,
     doc_id: str,
     action: str,
-    user_email: str,
+    user: GruntUser,
     changes: dict[str, Any] | None = None,
 ) -> None:
-    """Write an activity entry to grunt_log_activity."""
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+    """Write an ActivityLog entry via grunt.new_doc and broadcast via WebSocket."""
+    from grunt.app import grunt  # noqa: PLC0415
 
-    table = compile_doctype_to_table(doctype_registry._doctypes["ActivityLog"])
-    entry_id = str(_uuid.uuid4())
-    now = datetime.now(timezone.utc)
+    tokens = grunt.set_context(session=svc.session, engine=svc.engine, user=user)
     try:
-        await session.execute(
-            table.insert().values(
-                id=entry_id,
-                name=entry_id,
-                owner=user_email,
-                created_at=now,
-                modified_at=now,
-                modified_by=user_email,
-                docstatus=0,
-                doctype=doctype,
-                doc_id=str(doc_id),
-                action=action,
-                user=user_email,
-                details=changes,
-            )
+        doc = await grunt.new_doc(
+            "ActivityLog",
+            {
+                "doctype": doctype,
+                "doc_id": str(doc_id),
+                "action": action,
+                "user": user.email,
+                "details": changes,
+            },
         )
-        await session.commit()
-
-        # Broadcast via WebSocket
         try:
             from grunt.api.v1.ws import manager  # noqa: PLC0415
+
+            created_at = doc.get("created_at")
             await manager.broadcast(
                 "public:site",
                 "activity",
                 {
-                    "id": entry_id,
+                    "id": doc.get("id"),
                     "doctype": doctype,
                     "doc_id": str(doc_id),
                     "action": action,
-                    "user": user_email,
-                    "created_at": now.isoformat(),
-                }
+                    "user": user.email,
+                    "created_at": created_at.isoformat() if isinstance(created_at, datetime) else str(created_at or ""),
+                },
             )
         except Exception:  # noqa: BLE001
             pass
     except Exception:  # noqa: BLE001
-        await session.rollback()
+        logger.warning("audit_log_failed", doctype=doctype, doc_id=doc_id, action=action)
+    finally:
+        grunt.reset_context(tokens)
 
 
 # ── Document generation helpers ──────────────────────────────────────────
@@ -219,8 +209,7 @@ async def list_documents(
 async def export_documents(
     doctype: str,
     user: GruntUser = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
-    engine: AsyncEngine = Depends(get_engine),
+    svc: DocumentService = Depends(get_doc_service),
     sort_by: str = "modified_at",
     sort_order: str = "desc",
     filters: str | None = None,
@@ -228,22 +217,16 @@ async def export_documents(
     fields: str | None = None,
 ) -> StreamingResponse:
     """Export documents as CSV."""
-    service = DocumentService(session, engine)
-    
-    # Parse filters / fields
     parsed_filters: dict[str, Any] = {}
     if filters:
         try:
             parsed_filters = json.loads(filters)
         except json.JSONDecodeError:
-            # If filters are not valid JSON, ignore them and proceed without filtering.
-            logger.debug("Invalid JSON for 'filters' in export_documents; ignoring filters", exc_info=True)
-            
+            logger.debug("export_invalid_filters", doctype=doctype)
+
     parsed_fields = fields.split(",") if fields else None
-    
-    # 1. Fetch data (un-paginated for export)
-    # We'll fetch in batches if too large, but for now 1000 is fine
-    res = await service.list_documents(
+
+    res = await svc.list_documents(
         doctype,
         user,
         per_page=1000,
@@ -279,10 +262,9 @@ async def create_document(
     body: dict[str, Any],
     user: GruntUser = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
-    session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     doc = await svc.create_document(doctype, body, user)
-    await _audit_log(session, doctype, str(doc.get("id", "")), "create", user.email)
+    await _audit_log(svc, doctype, str(doc.get("id", "")), "create", user)
     return {"success": True, "data": doc}
 
 
@@ -304,10 +286,9 @@ async def update_document(
     body: dict[str, Any],
     user: GruntUser = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
-    session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     doc = await svc.update_document(doctype, doc_id, body, user)
-    await _audit_log(session, doctype, doc_id, "update", user.email, body)
+    await _audit_log(svc, doctype, doc_id, "update", user, body)
     return {"success": True, "data": doc}
 
 
@@ -317,10 +298,9 @@ async def delete_document(
     doc_id: str,
     user: GruntUser = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
-    session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     await svc.delete_document(doctype, doc_id, user)
-    await _audit_log(session, doctype, doc_id, "delete", user.email)
+    await _audit_log(svc, doctype, doc_id, "delete", user)
     return {"success": True, "message": "Документ видалено"}
 
 
@@ -330,7 +310,6 @@ async def bulk_delete_documents(
     body: dict[str, Any],
     user: GruntUser = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
-    session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     """Delete multiple documents by IDs."""
     ids: list[str] = body.get("ids", [])
@@ -342,7 +321,7 @@ async def bulk_delete_documents(
     for doc_id in ids:
         try:
             await svc.delete_document(doctype, doc_id, user)
-            await _audit_log(session, doctype, doc_id, "delete", user.email)
+            await _audit_log(svc, doctype, doc_id, "delete", user)
             deleted += 1
         except Exception as e:
             errors.append(f"{doc_id}: {e}")
@@ -373,8 +352,8 @@ async def apply_workflow_transition(
 async def get_workflow_transitions(
     doctype: str,
     doc_id: str,
-    eng: AsyncEngine = Depends(get_engine),
     user: GruntUser = Depends(current_user),
+    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Return available workflow transitions for a document."""
     dt = await doctype_registry.get(doctype)
@@ -382,22 +361,8 @@ async def get_workflow_transitions(
         return {"success": True, "data": []}
 
     from grunt.core.workflow.engine import workflow_engine  # noqa: PLC0415
-    from grunt.core.metadata.compiler import get_table_name  # noqa: PLC0415
-    from sqlalchemy import select, Table, MetaData  # noqa: PLC0415
 
-    table_name = get_table_name(dt.module, dt.name)
-    meta = MetaData()
-    async with eng.connect() as conn:
-        table = await conn.run_sync(
-            lambda sync_conn: Table(table_name, meta, autoload_with=sync_conn)
-        )
-        result = await conn.execute(select(table).where(table.c.id == doc_id))
-        row = result.mappings().first()
-
-    if not row:
-        raise HTTPException(status_code=404, detail="Документ не знайдено")
-
-    doc = dict(row)
+    doc = await svc.get_document(doctype, doc_id, user)
     transitions = await workflow_engine.get_available_transitions(dt, doc, user)
     return {
         "success": True,

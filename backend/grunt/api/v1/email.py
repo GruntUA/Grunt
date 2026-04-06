@@ -8,45 +8,40 @@ import aiosmtplib
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import select, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import GruntUser
-from grunt.core.db.session import get_session
+from grunt.core.db.session import get_engine, get_session
+from grunt.core.document.service import DocumentService
 
 logger = structlog.get_logger()
 router = APIRouter(prefix="/email", tags=["email"])
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Dependencies ──────────────────────────────────────────────────────────────
+
 
 def _require_admin(user: GruntUser) -> None:
     if not getattr(user, "is_superadmin", False):
         raise HTTPException(403, "Admin only")
 
 
-async def _get_account_table(session: AsyncSession):  # noqa: ANN201
-    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
-    dt = doctype_registry._doctypes.get("EmailAccount")
-    if not dt:
-        raise HTTPException(503, "EmailAccount DocType not loaded")
-    return compile_doctype_to_table(dt)
+def _mask_password(account: dict[str, Any]) -> dict[str, Any]:
+    if account.get("smtp_password"):
+        account["smtp_password"] = "••••••••"
+    return account
 
 
-async def _get_queue_table(session: AsyncSession):  # noqa: ANN201
-    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
-    dt = doctype_registry._doctypes.get("EmailQueue")
-    if not dt:
-        raise HTTPException(503, "EmailQueue DocType not loaded")
-    return compile_doctype_to_table(dt)
+def get_doc_service(
+    session: AsyncSession = Depends(get_session),
+    engine: AsyncEngine = Depends(get_engine),
+) -> DocumentService:
+    return DocumentService(session, engine)
 
 
 # ── Test connection ───────────────────────────────────────────────────────────
+
 
 class TestConnectionRequest(BaseModel):
     smtp_server: str
@@ -59,7 +54,6 @@ class TestConnectionRequest(BaseModel):
 @router.post("/test-connection")
 async def test_smtp_connection(
     body: TestConnectionRequest,
-    session: AsyncSession = Depends(get_session),
     user: GruntUser = Depends(current_user),
 ) -> dict[str, Any]:
     """Attempt SMTP connect+login without sending a message."""
@@ -80,84 +74,65 @@ async def test_smtp_connection(
 
 # ── Email Accounts ────────────────────────────────────────────────────────────
 
+
 @router.get("/accounts")
 async def list_accounts(
-    session: AsyncSession = Depends(get_session),
     user: GruntUser = Depends(current_user),
+    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     _require_admin(user)
-    table = await _get_account_table(session)
-    result = await session.execute(select(table).order_by(table.c.created_at.desc()))
-    rows = [dict(r._mapping) for r in result.fetchall()]
-    # Mask password
-    for row in rows:
-        if row.get("smtp_password"):
-            row["smtp_password"] = "••••••••"
-    return {"success": True, "data": rows}
+    result = await svc.list_documents("EmailAccount", user, per_page=10000, sort_by="created_at")
+    return {
+        "success": True,
+        "data": [_mask_password(acc) for acc in result["data"]],
+    }
 
 
 @router.get("/accounts/{account_id}")
 async def get_account(
     account_id: str,
-    session: AsyncSession = Depends(get_session),
     user: GruntUser = Depends(current_user),
+    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     _require_admin(user)
-    table = await _get_account_table(session)
-    result = await session.execute(select(table).where(table.c.id == account_id))
-    row = result.first()
-    if not row:
-        raise HTTPException(404, "Account not found")
-    data = dict(row._mapping)
-    if data.get("smtp_password"):
-        data["smtp_password"] = "••••••••"
-    return {"success": True, "data": data}
+    data = await svc.get_document("EmailAccount", account_id, user)
+    return {"success": True, "data": _mask_password(data)}
 
 
 # ── Email Queue ───────────────────────────────────────────────────────────────
+
 
 @router.get("/queue")
 async def list_queue(
     status: str | None = Query(None),
     page: int = Query(1, ge=1),
     per_page: int = Query(25, ge=1, le=100),
-    session: AsyncSession = Depends(get_session),
     user: GruntUser = Depends(current_user),
+    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     _require_admin(user)
-    table = await _get_queue_table(session)
-    q = select(table).order_by(table.c.created_at.desc())
-    if status:
-        q = q.where(table.c.status == status)
-
-    count_q = select(table.c.id)
-    if status:
-        count_q = count_q.where(table.c.status == status)
-
-    total = len((await session.execute(count_q)).fetchall())
-    offset = (page - 1) * per_page
-    result = await session.execute(q.offset(offset).limit(per_page))
-    rows = [dict(r._mapping) for r in result.fetchall()]
-
-    return {
-        "success": True,
-        "data": rows,
-        "meta": {"total": total, "page": page, "per_page": per_page},
-    }
+    return await svc.list_documents(
+        "EmailQueue",
+        user,
+        page=page,
+        per_page=per_page,
+        sort_by="created_at",
+        filters={"status": status} if status else None,
+    )
 
 
 @router.post("/queue/{queue_id}/retry")
 async def retry_queue_item(
     queue_id: str,
-    session: AsyncSession = Depends(get_session),
     user: GruntUser = Depends(current_user),
+    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     _require_admin(user)
-    table = await _get_queue_table(session)
-    await session.execute(
-        update(table)
-        .where(table.c.id == queue_id)
-        .values(status="Pending", error_message=None)
-    )
-    await session.commit()
+    from grunt.app import grunt  # noqa: PLC0415
+
+    tokens = grunt.set_context(session=svc.session, engine=svc.engine, user=user)
+    try:
+        await grunt.db.set_value("EmailQueue", queue_id, {"status": "Pending", "error_message": None})
+    finally:
+        grunt.reset_context(tokens)
     return {"success": True}
