@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 import fs from 'fs'
 
@@ -26,39 +25,6 @@ const appAliases = discoverAppAliases()
 export default defineConfig({
     plugins: [
         vue(),
-        VitePWA({
-            registerType: 'prompt',         // expose updateSW() so we can show custom UI
-            injectRegister: null,           // we register manually in main.ts
-            devOptions: { enabled: false }, // off in dev — no stale assets
-            manifest: false,               // manifest lives in public/manifest.webmanifest
-            workbox: {
-                // Precache all build assets (JS/CSS/fonts/icons)
-                globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-                // Runtime: cache API metadata (DocType definitions) — stale-while-revalidate
-                runtimeCaching: [
-                    {
-                        urlPattern: /\/api\/v1\/meta\/doctypes/,
-                        handler: 'StaleWhileRevalidate',
-                        options: {
-                            cacheName: 'grunt-meta',
-                            expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 },
-                        },
-                    },
-                    // Cache Google Fonts
-                    {
-                        urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com/,
-                        handler: 'CacheFirst',
-                        options: {
-                            cacheName: 'grunt-fonts',
-                            expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
-                        },
-                    },
-                ],
-                // Don't intercept push-notification SW
-                navigateFallback: '/index.html',
-                navigateFallbackDenylist: [/^\/api/, /^\/sw\.js/],
-            },
-        }),
     ],
     resolve: {
         alias: {

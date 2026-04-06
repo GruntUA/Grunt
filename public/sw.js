@@ -1,11 +1,94 @@
 /**
- * Grunt Service Worker — handles Web Push notifications.
+ * Grunt Service Worker
  *
- * Registered by the frontend on first load (see main.ts / App.vue).
- * Receives encrypted push payloads, shows browser notifications,
- * and handles click-to-open behaviour.
+ * Handles:
+ *  - Web Push notifications
+ *  - Offline caching (cache-first for assets, stale-while-revalidate for meta API)
+ *  - Navigation fallback to /index.html
  */
 
+// ── Cache names ───────────────────────────────────────────────────────────────
+const SHELL_CACHE = 'grunt-shell-v1'
+const RUNTIME_CACHE = 'grunt-runtime-v1'
+
+// ── Install: pre-cache app shell ──────────────────────────────────────────────
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(SHELL_CACHE).then((cache) =>
+      cache.addAll(['/index.html', '/favicon.ico'])
+    ).then(() => self.skipWaiting())
+  )
+})
+
+// ── Activate: clean up old caches ────────────────────────────────────────────
+self.addEventListener('activate', (event) => {
+  const keep = new Set([SHELL_CACHE, RUNTIME_CACHE])
+  event.waitUntil(
+    caches.keys()
+      .then((names) => Promise.all(
+        names
+          .filter((n) => !keep.has(n))
+          .map((n) => caches.delete(n))
+      ))
+      .then(() => clients.claim())
+  )
+})
+
+// ── Fetch: routing strategy ───────────────────────────────────────────────────
+self.addEventListener('fetch', (event) => {
+  const { request } = event
+  const url = new URL(request.url)
+
+  // Only handle same-origin GET requests
+  if (request.method !== 'GET' || url.origin !== self.location.origin) return
+
+  // ① API — stale-while-revalidate for DocType metadata; skip all other /api/
+  if (url.pathname.startsWith('/api/')) {
+    if (url.pathname.includes('/meta/doctypes')) {
+      event.respondWith(_staleWhileRevalidate(request, RUNTIME_CACHE))
+    }
+    // All other API calls: network-only (mutations, auth, etc.)
+    return
+  }
+
+  // ② Navigation (HTML) — network first, fall back to /index.html
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(() =>
+        caches.match('/index.html').then((r) => r ?? fetch('/index.html'))
+      )
+    )
+    return
+  }
+
+  // ③ Static assets — cache first
+  event.respondWith(_cacheFirst(request, SHELL_CACHE))
+})
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+async function _cacheFirst(request, cacheName) {
+  const cached = await caches.match(request)
+  if (cached) return cached
+  const response = await fetch(request)
+  if (response.ok) {
+    const cache = await caches.open(cacheName)
+    cache.put(request, response.clone())
+  }
+  return response
+}
+
+async function _staleWhileRevalidate(request, cacheName) {
+  const cache = await caches.open(cacheName)
+  const cached = await cache.match(request)
+  const fetchPromise = fetch(request).then((response) => {
+    if (response.ok) cache.put(request, response.clone())
+    return response
+  })
+  return cached ?? fetchPromise
+}
+
+// ── Push notifications ────────────────────────────────────────────────────────
 self.addEventListener('push', (event) => {
   if (!event.data) return
 
@@ -16,17 +99,15 @@ self.addEventListener('push', (event) => {
     payload.body = event.data.text()
   }
 
-  const options = {
-    body: payload.body,
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
-    data: { url: payload.url || '/' },
-    vibrate: [100, 50, 100],
-    requireInteraction: false,
-  }
-
   event.waitUntil(
-    self.registration.showNotification(payload.title, options)
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: '/favicon.ico',
+      badge: '/favicon.ico',
+      data: { url: payload.url || '/' },
+      vibrate: [100, 50, 100],
+      requireInteraction: false,
+    })
   )
 })
 
@@ -45,7 +126,3 @@ self.addEventListener('notificationclick', (event) => {
     })
   )
 })
-
-// Activate immediately — no waiting for old tabs to close
-self.addEventListener('install', () => self.skipWaiting())
-self.addEventListener('activate', (event) => event.waitUntil(clients.claim()))
