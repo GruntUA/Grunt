@@ -9,6 +9,8 @@
 
 import { toast } from 'vue-sonner'
 import client from '@/core/api/client'
+import { useDialog } from '@/core/composables/useDialog'
+import type { MsgprintOptions, PromptOptions, DialogOptions } from '@/core/composables/useDialog'
 
 export type AlertType = 'success' | 'error' | 'info' | 'warning'
 
@@ -34,10 +36,34 @@ export const grunt = {
     else toast.info(msg, { description: desc })
   },
 
-  msgprint(msgOrOpts: string | { message: string; title?: string }): void {
-    const text = typeof msgOrOpts === 'string' ? msgOrOpts : msgOrOpts.message
-    const title = typeof msgOrOpts === 'object' ? msgOrOpts.title : undefined
-    toast(title ?? text, { description: title ? text : undefined })
+  msgprint(msgOrOpts: string | MsgprintOptions): Promise<void> {
+    const dialog = useDialog()
+    return dialog.msgprint(msgOrOpts)
+  },
+
+  prompt(labelOrOpts: string | PromptOptions, title?: string): Promise<string | null> {
+    const dialog = useDialog()
+    return dialog.prompt(labelOrOpts, title)
+  },
+
+  confirm(msg: string, title?: string): Promise<boolean> {
+    const dialog = useDialog()
+    return dialog.confirm(msg, title)
+  },
+
+  warn(title: string, message: string, primaryLabel?: string): Promise<boolean> {
+    const dialog = useDialog()
+    return dialog.warn(title, message, primaryLabel)
+  },
+
+  form(opts: DialogOptions): Promise<Record<string, unknown> | null> {
+    const dialog = useDialog()
+    return dialog.form(opts)
+  },
+
+  show_progress(title: string, count: number, total: number, description?: string): void {
+    const dialog = useDialog()
+    dialog.progress(title, count, total, description)
   },
 
   async call(opts: { method: string; args?: Record<string, unknown> }): Promise<unknown> {
@@ -52,9 +78,5 @@ export const grunt = {
 
   throw(msg: string): never {
     throw new Error(msg)
-  },
-
-  async confirm(msg: string): Promise<boolean> {
-    return window.confirm(msg)
   },
 }

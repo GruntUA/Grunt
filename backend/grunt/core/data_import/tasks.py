@@ -4,16 +4,9 @@ import structlog
 from grunt.core.tasks.broker import retryable_task
 from grunt.core.data_import.service import DataImportService
 from grunt.core.site.manager import site_manager
-from grunt.core.auth.models import GruntUser
+from grunt.core.auth.models import SYSTEM_USER
 
 logger = structlog.get_logger()
-
-# System user for data import tasks
-SYSTEM_USER = GruntUser(
-    email="system@grunt.local",
-    full_name="System",
-    is_superadmin=True
-)
 
 @retryable_task(max_retries=3, delay=60)
 async def run_data_import(data_import_id: str):

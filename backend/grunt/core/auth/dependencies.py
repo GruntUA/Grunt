@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
-from fastapi import Depends, HTTPException, status, Request
+from collections.abc import AsyncGenerator
+from typing import Any
+
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 import jwt
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.config import settings
 from grunt.core.auth.models import GruntUser
 from grunt.core.doctypes.User.User import get_user_by_email
-from grunt.core.db.session import get_session
+from grunt.core.db.session import get_engine, get_session
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 _oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)
@@ -78,3 +81,30 @@ async def superadmin_user(
             detail="Superadmin privileges required",
         )
     return user
+
+
+async def grunt_context(
+    session: AsyncSession = Depends(get_session),
+    engine: AsyncEngine = Depends(get_engine),
+    user: GruntUser = Depends(current_user),
+) -> AsyncGenerator[None, Any]:
+    """FastAPI dependency that sets up the grunt SDK context for the duration of a request.
+
+    Automatically calls ``grunt.set_context`` before the endpoint runs and
+    ``grunt.reset_context`` when it finishes (even on error).
+
+    Usage::
+
+        @router.get("/")
+        async def my_endpoint(_: None = Depends(grunt_context)) -> dict:
+            items = await grunt.get_list("MyDocType", filters={"status": "Active"})
+            return {"data": items}
+    """
+    from grunt.app import grunt  # noqa: PLC0415
+
+    tokens = grunt.set_context(session, engine, user)
+    try:
+        yield
+    finally:
+        grunt.reset_context(tokens)
+

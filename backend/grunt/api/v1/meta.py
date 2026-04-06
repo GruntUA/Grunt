@@ -203,11 +203,18 @@ async def list_roles(
     session: AsyncSession = Depends(get_session),
     _user: GruntUser = Depends(current_user),
 ) -> list[dict]:
-    """Return all GruntRole rows."""
-    from sqlalchemy import text  # noqa: PLC0415
-    result = await session.execute(text("SELECT name, description FROM grunt_auth_role ORDER BY name"))
-    rows = result.fetchall()
-    return [{"name": r.name, "description": r.description} for r in rows]
+    """Return all Role documents."""
+    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        roles = await grunt.db.get_all(
+            "Role", fields=["role_name", "description"], order_by="role_name", order="asc", limit=1000
+        )
+    finally:
+        grunt.reset_context(_tokens)
+    return [{"name": r["role_name"], "description": r.get("description")} for r in roles]
 
 
 @router.patch("/doctypes/{name}/permissions", response_model=DocTypeSchema)

@@ -5,13 +5,12 @@ from __future__ import annotations
 from pydantic import BaseModel, EmailStr
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.core.middleware.rate_limit import limiter
 
 from grunt.core.auth.dependencies import current_user, superadmin_user
-from grunt.core.auth.models import GruntRole, GruntUser, GruntUserRole
+from grunt.core.auth.models import GruntUser, SYSTEM_USER
 from grunt.core.auth.service import (
     consume_password_reset_token,
     create_access_token,
@@ -27,7 +26,6 @@ from grunt.core.doctypes.User.User import (
     get_user_by_id,
     hash_password,
     list_users as service_list_users,
-    _user_table,
 )
 from grunt.core.db.session import get_session
 
@@ -162,7 +160,7 @@ async def update_me(
     session: AsyncSession = Depends(get_session),
 ) -> UserResponse:
     """Update current user preferences (theme, etc.)."""
-    from sqlalchemy import update as sa_update  # noqa: PLC0415
+    from grunt.app import grunt  # noqa: PLC0415
 
     values: dict = {}
     if body.theme is not None:
@@ -171,9 +169,11 @@ async def update_me(
         values["theme"] = body.theme
 
     if values:
-        table = _user_table()
-        await session.execute(sa_update(table).where(table.c.id == user.id).values(**values))
-        await session.flush()
+        _tokens = grunt.set_context(session, None, SYSTEM_USER)
+        try:
+            await grunt.db.set_value("User", user.id, values)
+        finally:
+            grunt.reset_context(_tokens)
 
     updated = await get_user_by_id(user.id, session)
     if updated is None:
@@ -266,35 +266,26 @@ async def forgot_password(
 
     reset_url = f"{settings.app_url}/reset-password?token={token}"
 
-    # Queue email via DocumentService
     try:
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        import uuid as _uuid  # noqa: PLC0415
-        from datetime import datetime, timezone  # noqa: PLC0415
+        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.core.email.service import email_service  # noqa: PLC0415
 
-        eq_table = compile_doctype_to_table(doctype_registry._doctypes["EmailQueue"])
-        now = datetime.now(timezone.utc)
-        eq_id = str(_uuid.uuid4())
-        await session.execute(
-            eq_table.insert().values(
-                id=eq_id,
-                name=eq_id,
-                owner="system",
-                created_at=now,
-                modified_at=now,
-                modified_by="system",
-                docstatus=0,
-                recipient=user.email,
-                subject="Password Reset",
-                content=(
-                    f"Hello {user.full_name},\n\n"
-                    f"Click the link below to reset your password (valid for 1 hour):\n\n"
-                    f"{reset_url}\n\n"
-                    f"If you did not request a password reset, ignore this email."
-                ),
-                status="Pending",
-            )
+        html_body = await grunt.render_template(
+            "password_reset.html",
+            {"full_name": user.full_name, "reset_url": reset_url},
+        )
+        plain = (
+            f"Привіт, {user.full_name}.\n\n"
+            f"Посилання для скидання пароля (дійсне 1 годину):\n\n"
+            f"{reset_url}\n\n"
+            f"Якщо ви не надсилали цей запит — проігноруйте цей лист."
+        )
+        await email_service.queue_email(
+            session=session,
+            to=user.email,
+            subject="Скидання пароля",
+            body=plain,
+            html_body=html_body,
         )
         await session.flush()
         log.info("auth.forgot_password", email=user.email)
@@ -351,11 +342,16 @@ async def list_roles(
     _: GruntUser = Depends(superadmin_user),
 ) -> dict:
     """Return all defined roles."""
-    result = await session.execute(select(GruntRole))
-    roles = result.scalars().all()
+    from grunt.app import grunt  # noqa: PLC0415
+
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        roles = await grunt.db.get_all("Role", fields=["role_name", "description"], limit=1000)
+    finally:
+        grunt.reset_context(_tokens)
     return {
         "success": True,
-        "data": [{"name": r.name, "description": r.description} for r in roles],
+        "data": [{"name": r["role_name"], "description": r.get("description")} for r in roles],
     }
 
 
@@ -370,15 +366,18 @@ async def create_role(
     _: GruntUser = Depends(superadmin_user),
 ) -> dict:
     """Create a new role."""
-    existing = await session.execute(
-        select(GruntRole).where(GruntRole.name == body.role_name)
-    )
-    if existing.scalar_one_or_none():
-        raise HTTPException(status_code=409, detail=f"Роль '{body.role_name}' вже існує")
-    role = GruntRole(name=body.role_name)
-    session.add(role)
-    await session.flush()
-    return {"success": True, "data": {"name": role.name}}
+    from grunt.app import grunt  # noqa: PLC0415
+
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        existing = await grunt.db.get_all("Role", filters={"role_name": body.role_name}, limit=1)
+        if existing:
+            raise HTTPException(status_code=409, detail=f"Роль '{body.role_name}' вже існує")
+        doc = await grunt.new_doc("Role", {"role_name": body.role_name})
+        await session.flush()
+    finally:
+        grunt.reset_context(_tokens)
+    return {"success": True, "data": {"name": doc["role_name"]}}
 
 
 @router.post("/users/{user_id}/roles")
@@ -389,32 +388,31 @@ async def add_user_role(
     _: GruntUser = Depends(superadmin_user),
 ) -> dict:
     """Assign a role to a user."""
+    from grunt.app import grunt  # noqa: PLC0415
+
     target_user = await get_user_by_id(user_id, session)
     if not target_user:
         raise HTTPException(status_code=404, detail="Користувача не знайдено")
 
-    # Ensure role exists
-    role_result = await session.execute(
-        select(GruntRole).where(GruntRole.name == body.role_name)
-    )
-    if not role_result.scalar_one_or_none():
-        role = GruntRole(name=body.role_name)
-        session.add(role)
-        await session.flush()
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        # Ensure role exists
+        if not await grunt.db.get_all("Role", filters={"role_name": body.role_name}, limit=1):
+            await grunt.new_doc("Role", {"role_name": body.role_name})
 
-    # Check if already assigned
-    existing_result = await session.execute(
-        select(GruntUserRole).where(
-            GruntUserRole.user_id == user_id,
-            GruntUserRole.role_name == body.role_name,
+        # Check if already assigned
+        existing = await grunt.db.get_all(
+            "UserRole",
+            filters={"user_id": user_id, "role_name": body.role_name},
+            limit=1,
         )
-    )
-    if existing_result.scalar_one_or_none():
-        return {"success": True, "message": "Роль вже призначено"}
+        if existing:
+            return {"success": True, "message": "Роль вже призначено"}
 
-    user_role = GruntUserRole(user_id=user_id, role_name=body.role_name)
-    session.add(user_role)
-    await session.flush()
+        await grunt.new_doc("UserRole", {"user_id": user_id, "role_name": body.role_name})
+        await session.flush()
+    finally:
+        grunt.reset_context(_tokens)
     return {"success": True, "data": {"user_id": user_id, "role": body.role_name}}
 
 
@@ -430,19 +428,17 @@ async def set_user_password(
     _: GruntUser = Depends(superadmin_user),
 ) -> dict:
     """Change a user's password (superadmin only)."""
-    from sqlalchemy import update as sa_update  # noqa: PLC0415
+    from grunt.app import grunt  # noqa: PLC0415
 
     user = await get_user_by_email(body.email, session)
     if not user:
         raise HTTPException(status_code=404, detail="Користувача не знайдено")
 
-    table = _user_table()
-    await session.execute(
-        sa_update(table)
-        .where(table.c.id == user.id)
-        .values(hashed_password=hash_password(body.password))
-    )
-    await session.flush()
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        await grunt.db.set_value("User", user.id, "hashed_password", hash_password(body.password))
+    finally:
+        grunt.reset_context(_tokens)
     return {"success": True}
 
 
@@ -454,17 +450,22 @@ async def remove_user_role(
     _: GruntUser = Depends(superadmin_user),
 ) -> dict:
     """Remove a role from a user."""
-    result = await session.execute(
-        select(GruntUserRole).where(
-            GruntUserRole.user_id == user_id,
-            GruntUserRole.role_name == role,
+    from grunt.app import grunt  # noqa: PLC0415
+
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        rows = await grunt.db.get_all(
+            "UserRole",
+            filters={"user_id": user_id, "role_name": role},
+            fields=["id"],
+            limit=1,
         )
-    )
-    user_role = result.scalar_one_or_none()
-    if not user_role:
-        raise HTTPException(status_code=404, detail="Роль не знайдено у користувача")
-    await session.delete(user_role)
-    await session.flush()
+        if not rows:
+            raise HTTPException(status_code=404, detail="Роль не знайдено у користувача")
+        await grunt.db.delete("UserRole", {"id": rows[0]["id"]})
+        await session.flush()
+    finally:
+        grunt.reset_context(_tokens)
     return {"success": True, "message": "Роль знято"}
 
 

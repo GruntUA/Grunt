@@ -135,8 +135,9 @@ async def consume_password_reset_token(
 ) -> bool:
     """Verify token and update the user's password. Returns True on success."""
     from grunt.core.db.system_tables import GruntPasswordResetToken  # noqa: PLC0415
-    from grunt.core.doctypes.User.User import hash_password, _user_table  # noqa: PLC0415
-    from sqlalchemy import update as sa_update  # noqa: PLC0415
+    from grunt.core.doctypes.User.User import hash_password  # noqa: PLC0415
+    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
 
     now = datetime.now(timezone.utc)
     result = await session.execute(
@@ -152,11 +153,15 @@ async def consume_password_reset_token(
     reset_token.used = True
     await session.flush()
 
-    table = _user_table()
-    await session.execute(
-        sa_update(table)
-        .where(table.c.id == reset_token.user_id)
-        .values(hashed_password=hash_password(new_password))
-    )
-    await session.flush()
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        await grunt.db.set_value(
+            "User",
+            reset_token.user_id,
+            "hashed_password",
+            hash_password(new_password),
+        )
+    finally:
+        grunt.reset_context(_tokens)
+
     return True

@@ -11,9 +11,10 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import structlog
-from sqlalchemy import Table, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from grunt.core.auth.models import GruntUser, SYSTEM_USER
 from grunt.core.document.base import Document
 
 logger = structlog.get_logger()
@@ -33,11 +34,14 @@ def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
-# ── Table / row helpers ───────────────────────────────────────────────────
+# ── Internal helpers ──────────────────────────────────────────────────────
 
 
-def _user_table() -> Table:
-    """Return the SQLAlchemy Core Table for the User DocType (grunt_core_user)."""
+def _user_table():
+    """Return the SQLAlchemy Core Table for the User DocType (grunt_core_user).
+
+    Used only in bootstrap/low-level paths (create_user, password reset).
+    """
     from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
@@ -50,18 +54,7 @@ def _user_table() -> Table:
     return compile_doctype_to_table(dt)
 
 
-async def _load_user_roles(user_id: str, session: AsyncSession):
-    from grunt.core.auth.models import GruntUserRole  # noqa: PLC0415
-
-    result = await session.execute(
-        select(GruntUserRole).where(GruntUserRole.user_id == user_id)
-    )
-    return list(result.scalars().all())
-
-
-def _row_to_user(row: dict, user_roles: list):
-    from grunt.core.auth.models import GruntUser  # noqa: PLC0415
-
+def _row_to_user(row: dict, roles: list[str]) -> GruntUser:
     return GruntUser(
         id=row["id"],
         email=row["email"] or "",
@@ -74,44 +67,71 @@ def _row_to_user(row: dict, user_roles: list):
         locked_until=row.get("locked_until"),
         mfa_enabled=bool(row["mfa_enabled"]) if row.get("mfa_enabled") is not None else False,
         mfa_secret=row.get("mfa_secret") or "",
-        created_at=row["created_at"],
-        modified_at=row["modified_at"],
-        user_roles=user_roles,
+        created_at=row.get("created_at"),
+        modified_at=row.get("modified_at"),
+        roles=roles,
     )
+
+
+async def _load_roles(user_id: str) -> list[str]:
+    """Load role names for a user. Requires grunt context to be already set."""
+    from grunt.app import grunt  # noqa: PLC0415
+
+    rows = await grunt.db.get_all(
+        "UserRole",
+        filters={"user_id": user_id},
+        fields=["role_name"],
+        limit=100,
+    )
+    return [r["role_name"] for r in rows]
 
 
 # ── User CRUD ─────────────────────────────────────────────────────────────
 
 
-async def get_user_by_email(email: str, session: AsyncSession):
-    table = _user_table()
-    result = await session.execute(select(table).where(table.c.email == email))
-    row = result.mappings().one_or_none()
-    if row is None:
-        return None
-    user_roles = await _load_user_roles(row["id"], session)
-    return _row_to_user(dict(row), user_roles)
+async def get_user_by_email(email: str, session: AsyncSession) -> GruntUser | None:
+    from grunt.app import grunt  # noqa: PLC0415
+
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        rows = await grunt.db.get_all("User", filters={"email": email}, limit=1)
+        if not rows:
+            return None
+        row = rows[0]
+        roles = await _load_roles(row["id"])
+        return _row_to_user(row, roles)
+    finally:
+        grunt.reset_context(_tokens)
 
 
-async def get_user_by_id(user_id: str, session: AsyncSession):
-    table = _user_table()
-    result = await session.execute(select(table).where(table.c.id == user_id))
-    row = result.mappings().one_or_none()
-    if row is None:
-        return None
-    user_roles = await _load_user_roles(row["id"], session)
-    return _row_to_user(dict(row), user_roles)
+async def get_user_by_id(user_id: str, session: AsyncSession) -> GruntUser | None:
+    from grunt.app import grunt  # noqa: PLC0415
+
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        rows = await grunt.db.get_all("User", filters={"id": user_id}, limit=1)
+        if not rows:
+            return None
+        row = rows[0]
+        roles = await _load_roles(row["id"])
+        return _row_to_user(row, roles)
+    finally:
+        grunt.reset_context(_tokens)
 
 
-async def list_users(session: AsyncSession):
-    table = _user_table()
-    result = await session.execute(select(table))
-    rows = result.mappings().all()
-    users = []
-    for row in rows:
-        user_roles = await _load_user_roles(row["id"], session)
-        users.append(_row_to_user(dict(row), user_roles))
-    return users
+async def list_users(session: AsyncSession) -> list[GruntUser]:
+    from grunt.app import grunt  # noqa: PLC0415
+
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        rows = await grunt.db.get_all("User", limit=10_000)
+        users = []
+        for row in rows:
+            roles = await _load_roles(row["id"])
+            users.append(_row_to_user(row, roles))
+        return users
+    finally:
+        grunt.reset_context(_tokens)
 
 
 async def create_user(
@@ -119,8 +139,11 @@ async def create_user(
     password: str,
     full_name: str,
     session: AsyncSession,
-):
-    """Create a new user. The first user automatically becomes superadmin."""
+) -> GruntUser:
+    """Create a new user. The first user automatically becomes superadmin.
+
+    Uses a raw insert to bypass the permission layer during bootstrap.
+    """
     table = _user_table()
 
     count_result = await session.execute(select(func.count()).select_from(table))
@@ -154,13 +177,13 @@ async def create_user(
     return user
 
 
-async def authenticate(email: str, password: str, session: AsyncSession):
+async def authenticate(email: str, password: str, session: AsyncSession) -> GruntUser | None:
     """Return user if credentials are valid, else None.
 
     Tracks failed attempts and locks the account after _MAX_ATTEMPTS failures.
     Raises ``ValueError("locked")`` when the account is temporarily locked.
     """
-    from sqlalchemy import update as sa_update  # noqa: PLC0415
+    from grunt.app import grunt  # noqa: PLC0415
 
     user = await get_user_by_email(email, session)
     if user is None:
@@ -176,26 +199,21 @@ async def authenticate(email: str, password: str, session: AsyncSession):
         if locked_until_utc > now:
             raise ValueError("locked")
 
-    if not verify_password(password, user.hashed_password):
-        new_attempts = (user.login_attempts or 0) + 1
-        values: dict = {"login_attempts": new_attempts}
-        if new_attempts >= _MAX_ATTEMPTS:
-            values["locked_until"] = now + timedelta(minutes=_LOCKOUT_MINUTES)
-            values["login_attempts"] = 0
-        table = _user_table()
-        await session.execute(
-            sa_update(table).where(table.c.id == user.id).values(**values)
-        )
-        await session.flush()
-        return None
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        if not verify_password(password, user.hashed_password):
+            new_attempts = (user.login_attempts or 0) + 1
+            updates: dict = {"login_attempts": new_attempts}
+            if new_attempts >= _MAX_ATTEMPTS:
+                updates["locked_until"] = now + timedelta(minutes=_LOCKOUT_MINUTES)
+                updates["login_attempts"] = 0
+            await grunt.db.set_value("User", user.id, updates)
+            return None
 
-    table = _user_table()
-    await session.execute(
-        sa_update(table)
-        .where(table.c.id == user.id)
-        .values(login_attempts=0, locked_until=None)
-    )
-    await session.flush()
+        await grunt.db.set_value("User", user.id, {"login_attempts": 0, "locked_until": None})
+    finally:
+        grunt.reset_context(_tokens)
+
     return user
 
 

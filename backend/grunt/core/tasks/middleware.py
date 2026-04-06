@@ -9,16 +9,9 @@ from taskiq import TaskiqMiddleware, TaskiqMessage, TaskiqResult
 
 from grunt.core.site.manager import site_manager
 from grunt.core.document.service import DocumentService
-from grunt.core.auth.models import GruntUser
+from grunt.core.auth.models import SYSTEM_USER
 
 logger = structlog.get_logger()
-
-# System user for background tasks
-SYSTEM_USER = GruntUser(
-    email="system@grunt.local",
-    full_name="System",
-    is_superadmin=True
-)
 
 class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
     """Middleware to log TaskIQ task execution to BackgroundTaskLog DocType."""

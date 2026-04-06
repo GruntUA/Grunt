@@ -98,9 +98,9 @@ class TestAssignmentFilters:
         assert self.service._match_filters(doc, filters) is True
 
     def test_none_filters(self):
-        """None filters are treated as empty."""
+        """None filters are treated as empty and match all."""
         doc = {"status": "Anything"}
-        assert self.service._match_filters(doc, None) is False  # None is falsy
+        assert self.service._match_filters(doc, None) is True
 
     def test_missing_field_in_doc(self):
         """Field doesn't exist in document."""
@@ -157,5 +157,64 @@ class TestAssignmentIntegration:
         # 2. Insert a rule into DB
         # 3. Call evaluate_and_assign
         # 4. Verify ToDo was created
-        # (Skipped for now pending full integration)
         pass
+
+class TestAssignmentAPI:
+    """Test assignment endpoints logic."""
+
+    @pytest.mark.asyncio
+    async def test_test_assignment_rule(self, client, auth_headers, setup_db):
+        """Test the POST /api/v1/assignment-rules/{rule_id}/test endpoint."""
+        rule_data = {
+            "name": "Test Rule API",
+            "doctype_target": "Invoice",
+            "filters": '{"status": "Draft"}',
+            "assign_to_user": "admin@grunt.local",
+            "enabled": True,
+        }
+        resp = await client.post("/api/v1/docs/AssignmentRule", headers=auth_headers, json=rule_data)
+        assert resp.status_code in (200, 201), resp.text
+        rule_id = resp.json()["data"]["id"]
+
+        test_doc = {"status": "Draft", "amount": 100}
+        resp = await client.post(
+            f"/api/v1/assignment-rules/{rule_id}/test",
+            headers=auth_headers,
+            json={"test_doc": test_doc}
+        )
+        assert resp.status_code == 200, resp.text
+        data = resp.json()
+        assert data["success"] is True
+        assert data["matched"] is True
+        assert data["will_assign_to"] == ["admin@grunt.local"]
+
+    @pytest.mark.asyncio
+    async def test_list_assignment_logs(self, client, auth_headers, setup_db):
+        """Test the GET /api/v1/assignment-rules/logs endpoint."""
+        from grunt.app import grunt
+        from grunt.core.auth.models import SYSTEM_USER
+        from grunt.core.db.session import get_session
+        
+        # Insert a log to test filtering
+        log_doc = {
+            "doctype_affected": "Invoice",
+            "document_id": "INV-TEST",
+            "assigned_to": "admin@grunt.local",
+            "assignment_method": "user",
+            "status": "Success",
+        }
+        
+        async for session in get_session():
+            _tokens = grunt.set_context(session, None, SYSTEM_USER)
+            try:
+                await grunt.bulk_insert("AssignmentLog", [log_doc])
+            finally:
+                grunt.reset_context(_tokens)
+            break
+            
+        resp = await client.get("/api/v1/assignment-rules/logs?doctype=Invoice", headers=auth_headers)
+        assert resp.status_code == 200, resp.text
+        data = resp.json()
+        assert data["success"] is True
+        assert data["count"] >= 1
+        assert any(log["document_id"] == "INV-TEST" for log in data["data"])

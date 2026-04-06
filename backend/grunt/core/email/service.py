@@ -122,24 +122,25 @@ class EmailService:
         The ``process_email_queue`` task picks it up and sends via the default
         outgoing EmailAccount (the first account with enable_outgoing=True).
         """
+        from grunt.app import grunt  # noqa: PLC0415
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
         # Find the default outgoing account id (best-effort — None if unconfigured)
         email_account_id: str | None = None
         try:
-            rule_dt = doctype_registry._doctypes.get("EmailAccount")
-            if rule_dt:
-                account_table = compile_doctype_to_table(rule_dt)
-                from sqlalchemy import select  # noqa: PLC0415
-                result = await session.execute(
-                    select(account_table.c.id)
-                    .where(account_table.c.enable_outgoing.is_(True))
-                    .limit(1)
+            _tokens = grunt.set_context(session, None, None)
+            try:
+                accounts = await grunt.db.get_all(
+                    "EmailAccount",
+                    filters={"enable_outgoing": True},
+                    fields=["id"],
+                    limit=1,
                 )
-                row = result.first()
-                if row:
-                    email_account_id = str(row[0])
+            finally:
+                grunt.reset_context(_tokens)
+            if accounts:
+                email_account_id = str(accounts[0]["id"])
         except Exception:  # noqa: BLE001
             pass
 

@@ -33,23 +33,21 @@ class WebhookService:
     ) -> None:
         """Load matching enabled webhooks and fire them concurrently (best-effort)."""
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from sqlalchemy import select  # noqa: PLC0415
+        from grunt.app import grunt  # noqa: PLC0415
 
-        wh_dt = doctype_registry._doctypes.get("OutgoingWebhook")
-        if not wh_dt:
+        if not doctype_registry._doctypes.get("OutgoingWebhook"):
             return
 
-        table = compile_doctype_to_table(wh_dt)
-        stmt = (
-            select(table)
-            .where(table.c.doctype_name == doctype)
-            .where(table.c.event == event)
-            .where(table.c.is_enabled.is_(True))
-        )
         try:
-            result = await session.execute(stmt)
-            webhooks = result.mappings().all()
+            _tokens = grunt.set_context(session, None, None)
+            try:
+                webhooks = await grunt.db.get_all(
+                    "OutgoingWebhook",
+                    filters={"doctype_name": doctype, "event": event, "is_enabled": True},
+                    limit=100,
+                )
+            finally:
+                grunt.reset_context(_tokens)
         except Exception:  # noqa: BLE001
             return
 

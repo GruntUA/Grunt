@@ -43,9 +43,13 @@ export interface FormProxy {
 export interface GruntProxy {
   call: (opts: { method: string; args?: Record<string, unknown> }) => Promise<unknown>
   throw: (msg: string) => never
-  confirm: (msg: string) => Promise<boolean>
-  msgprint: (msgOrOpts: string | { message: string; title?: string; indicator?: string }) => void
+  confirm: (msg: string, title?: string) => Promise<boolean>
+  msgprint: (msgOrOpts: string | { message: string; title?: string; indicator?: string }) => Promise<void>
   show_alert: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void
+  prompt: (labelOrOpts: string | { label: string; fieldtype?: string; title?: string }, title?: string) => Promise<string | null>
+  warn: (title: string, message: string, primaryLabel?: string) => Promise<boolean>
+  form: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: string }) => Promise<Record<string, unknown> | null>
+  show_progress: (title: string, count: number, total: number, description?: string) => void
 }
 
 export type ClientScriptEvent = 'on_load' | 'on_change' | 'validate' | 'before_save' | 'after_save'
@@ -162,9 +166,13 @@ export function createFormProxy(
  */
 export function createGruntProxy(
   callbacks: {
-    msgprint?: (msgOrOpts: string | { message: string; title?: string; indicator?: string }) => void
-    confirm?: (msg: string) => Promise<boolean>
+    msgprint?: (msgOrOpts: string | { message: string; title?: string; indicator?: string }) => Promise<void>
+    confirm?: (msg: string, title?: string) => Promise<boolean>
     showAlert?: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void
+    prompt?: (labelOrOpts: string | { label: string; fieldtype?: string; title?: string }, title?: string) => Promise<string | null>
+    warn?: (title: string, message: string, primaryLabel?: string) => Promise<boolean>
+    form?: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: string }) => Promise<Record<string, unknown> | null>
+    showProgress?: (title: string, count: number, total: number, description?: string) => void
   } = {}
 ): GruntProxy {
   return {
@@ -183,26 +191,51 @@ export function createGruntProxy(
       throw new Error(msg)
     },
 
-    async confirm(msg: string) {
+    async confirm(msg: string, title?: string) {
       if (callbacks.confirm) {
-        return callbacks.confirm(msg)
+        return callbacks.confirm(msg, title)
       }
       return window.confirm(msg)
     },
 
-    msgprint(msgOrOpts: string | { message: string; title?: string; indicator?: string }) {
+    async msgprint(msgOrOpts: string | { message: string; title?: string; indicator?: string }) {
       if (callbacks.msgprint) {
-        callbacks.msgprint(msgOrOpts)
-      } else {
-        const text = typeof msgOrOpts === 'string' ? msgOrOpts : msgOrOpts.message
-        alert(text)
+        return callbacks.msgprint(msgOrOpts)
       }
+      const text = typeof msgOrOpts === 'string' ? msgOrOpts : msgOrOpts.message
+      alert(text)
     },
 
     show_alert(msg: string, type?: 'success' | 'error' | 'info' | 'warning') {
       if (callbacks.showAlert) {
         callbacks.showAlert(msg, type)
       }
+    },
+
+    async prompt(labelOrOpts, title?) {
+      if (callbacks.prompt) {
+        return callbacks.prompt(labelOrOpts, title)
+      }
+      const label = typeof labelOrOpts === 'string' ? labelOrOpts : labelOrOpts.label
+      return window.prompt(label) ?? null
+    },
+
+    async warn(title: string, message: string, primaryLabel?: string) {
+      if (callbacks.warn) {
+        return callbacks.warn(title, message, primaryLabel)
+      }
+      return window.confirm(`${title}\n${message}`)
+    },
+
+    async form(opts) {
+      if (callbacks.form) {
+        return callbacks.form(opts)
+      }
+      return null
+    },
+
+    show_progress(title: string, count: number, total: number, description?: string) {
+      callbacks.showProgress?.(title, count, total, description)
     },
   }
 }

@@ -54,7 +54,16 @@ export interface PromptOptions {
   title?: string
 }
 
-export type DialogType = 'msgprint' | 'confirm' | 'prompt' | 'progress'
+export type DialogSize = 'small' | 'large' | 'extra-large'
+
+export type DialogType = 'msgprint' | 'confirm' | 'prompt' | 'warn' | 'dialog' | 'progress'
+
+export interface DialogOptions {
+  title: string
+  fields: DialogField[]
+  primaryLabel?: string
+  size?: DialogSize
+}
 
 export interface DialogState {
   open: boolean
@@ -63,6 +72,9 @@ export interface DialogState {
   message: string
   indicator: string | null
   fields: DialogField[]
+  primaryLabel: string
+  size: DialogSize
+  proceedAction: (() => void | Promise<void>) | null
   progress: { count: number; total: number; percent: number; description: string | null }
   resolve: ((value: unknown) => void) | null
 }
@@ -76,6 +88,9 @@ const state = reactive<DialogState>({
   message: '',
   indicator: null,
   fields: [],
+  primaryLabel: 'OK',
+  size: 'small',
+  proceedAction: null,
   progress: { count: 0, total: 0, percent: 0, description: null },
   resolve: null,
 })
@@ -87,6 +102,9 @@ function reset() {
   state.message = ''
   state.indicator = null
   state.fields = []
+  state.primaryLabel = 'OK'
+  state.size = 'small'
+  state.proceedAction = null
   state.progress = { count: 0, total: 0, percent: 0, description: null }
   state.resolve = null
 }
@@ -151,6 +169,63 @@ export function useDialog() {
   }
 
   /**
+   * Show a warning dialog with a "Proceed" button.
+   * Resolves with true if the user proceeds, false if cancelled.
+   *
+   * @example
+   * const ok = await dialog.warn('Увага', 'Ця дія незворотна. Продовжити?')
+   * const ok = await dialog.warn('Увага', 'Видалити всі записи?', 'Видалити')
+   */
+  function warn(
+    title: string,
+    message: string,
+    primaryLabel: string = 'Продовжити',
+  ): Promise<boolean> {
+    return new Promise((resolve) => {
+      reset()
+      state.type = 'warn'
+      state.title = title
+      state.message = message
+      state.indicator = 'orange'
+      state.primaryLabel = primaryLabel
+      state.resolve = resolve as (value: unknown) => void
+      state.open = true
+    })
+  }
+
+  /**
+   * Open a form dialog with one or more fields.
+   * Resolves with the submitted values dict, or null if cancelled.
+   *
+   * Mirrors `frappe.ui.Dialog` / `frappe.prompt` with multiple fields.
+   *
+   * @example
+   * const values = await dialog.form({
+   *   title: 'Новий клієнт',
+   *   fields: [
+   *     { fieldname: 'name',  label: 'Назва',  fieldtype: 'Text',   required: true },
+   *     { fieldname: 'email', label: 'Email',  fieldtype: 'Text' },
+   *     { fieldname: 'type',  label: 'Тип',    fieldtype: 'Select', options: 'Фіз. особа\nЮр. особа' },
+   *   ],
+   *   primaryLabel: 'Створити',
+   *   size: 'large',
+   * })
+   * if (values) console.log(values.name, values.email)
+   */
+  function form(opts: DialogOptions): Promise<Record<string, unknown> | null> {
+    return new Promise((resolve) => {
+      reset()
+      state.type = 'dialog'
+      state.title = opts.title
+      state.fields = opts.fields
+      state.primaryLabel = opts.primaryLabel ?? 'OK'
+      state.size = opts.size ?? 'small'
+      state.resolve = resolve as (value: unknown) => void
+      state.open = true
+    })
+  }
+
+  /**
    * Show/update a progress bar. Does not block — call repeatedly to update.
    */
   function progress(title: string, count: number, total: number, description?: string) {
@@ -184,6 +259,8 @@ export function useDialog() {
     msgprint,
     confirm,
     prompt,
+    warn,
+    form,
     progress,
     close,
   }

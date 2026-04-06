@@ -70,18 +70,13 @@ async def unread_count(
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     """Get the count of unread notifications for the current user."""
-    from sqlalchemy import select, func  # noqa: PLC0415
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+    from grunt.app import grunt  # noqa: PLC0415
 
-    table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
-    result = await session.execute(
-        select(func.count())
-        .select_from(table)
-        .where(table.c.user == user.email)
-        .where(table.c.is_read.is_(False))
-    )
-    count = result.scalar() or 0
+    _tokens = grunt.set_context(session, None, None)
+    try:
+        count = await grunt.count("Notification", filters={"user": user.email, "is_read": False})
+    finally:
+        grunt.reset_context(_tokens)
     return {"success": True, "count": count}
 
 

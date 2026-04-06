@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from grunt.app import grunt
 from grunt.core.assignment import assignment_service
-from grunt.core.auth.dependencies import current_user
-from grunt.core.auth.models import GruntUser
-from grunt.core.db.session import get_session
+from grunt.core.auth.dependencies import grunt_context
 
 router = APIRouter(prefix="/assignment-rules", tags=["assignment"])
 
@@ -19,8 +18,7 @@ router = APIRouter(prefix="/assignment-rules", tags=["assignment"])
 async def test_assignment_rule(
     rule_id: str,
     test_doc: dict[str, Any],
-    session: AsyncSession = Depends(get_session),
-    user: GruntUser = Depends(current_user),
+    _: None = Depends(grunt_context),
 ) -> dict[str, Any]:
     """Test an assignment rule against a sample document.
 
@@ -50,24 +48,13 @@ async def test_assignment_rule(
     ```
     """
     try:
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        import json  # noqa: PLC0415
-        from sqlalchemy import select  # noqa: PLC0415
+        try:
+            rule = await grunt.get_doc("AssignmentRule", rule_id)
+        except HTTPException as exc:
+            if exc.status_code == 404:
+                raise HTTPException(status_code=404, detail=f"Rule '{rule_id}' not found")
+            raise
 
-        # Load rule from DB
-        rule_dt = await doctype_registry.get("AssignmentRule")
-        rule_table = compile_doctype_to_table(rule_dt)
-
-        result = await session.execute(
-            select(rule_table).where(rule_table.c.id == rule_id)
-        )
-        row = result.mappings().one_or_none()
-
-        if not row:
-            raise HTTPException(status_code=404, detail=f"Rule '{rule_id}' not found")
-
-        rule = dict(row)
         doctype_target = rule.get("doctype_target")
         filters = {}
         try:
@@ -85,19 +72,18 @@ async def test_assignment_rule(
                 will_assign_to.append(rule["assign_to_user"])
             elif rule.get("assign_to_role"):
                 # List users in role
-                from grunt.core.auth.models import GruntUserRole  # noqa: PLC0415
-                from sqlalchemy import select  # noqa: PLC0415
-
-                res = await session.execute(
-                    select(GruntUserRole.user_id).where(
-                        GruntUserRole.role_name == rule["assign_to_role"]
-                    )
+                ur_rows = await grunt.get_list(
+                    "UserRole",
+                    filters={"role_name": rule["assign_to_role"]},
+                    fields=["user_id"],
+                    limit=500,
                 )
-                user_ids = res.scalars().all()
-                for u_id in user_ids:
-                    from grunt.core.doctypes.User.User import get_user_by_id  # noqa: PLC0415
-
-                    u = await get_user_by_id(u_id, session)
+                
+                from grunt.core.doctypes.User.User import get_user_by_id
+                session = grunt._require_session()
+                
+                for ur in ur_rows:
+                    u = await get_user_by_id(ur["user_id"], session)
                     if u and u.is_active:
                         will_assign_to.append(u.email)
 
@@ -131,8 +117,7 @@ async def list_assignment_logs(
     assigned_to: str | None = None,
     status: str | None = None,
     limit: int = 100,
-    session: AsyncSession = Depends(get_session),
-    user: GruntUser = Depends(current_user),
+    _: None = Depends(grunt_context),
 ) -> dict[str, Any]:
     """List assignment logs with filters.
 
@@ -144,37 +129,31 @@ async def list_assignment_logs(
     - `limit`: Max records (default 100)
     """
     try:
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from sqlalchemy import select, and_  # noqa: PLC0415
-
-        log_dt = await doctype_registry.get("AssignmentLog")
-        log_table = compile_doctype_to_table(log_dt)
-
         # Build filters
-        filters = []
+        filters = {}
         if doctype:
-            filters.append(log_table.c.doctype_affected == doctype)
+            filters["doctype_affected"] = doctype
         if document_id:
-            filters.append(log_table.c.document_id == document_id)
+            filters["document_id"] = document_id
         if assigned_to:
-            filters.append(log_table.c.assigned_to == assigned_to)
+            filters["assigned_to"] = assigned_to
         if status:
-            filters.append(log_table.c.status == status)
+            filters["status"] = status
 
-        # Query
-        query = select(log_table)
-        if filters:
-            query = query.where(and_(*filters))
-        query = query.order_by(log_table.c.timestamp.desc()).limit(limit)
-
-        result = await session.execute(query)
-        logs = [dict(row) for row in result.mappings().all()]
+        logs = await grunt.get_list(
+            "AssignmentLog",
+            filters=filters,
+            limit=limit,
+            order_by="timestamp",
+            order="desc"
+        )
+        total = await grunt.count("AssignmentLog", filters=filters)
 
         return {
             "success": True,
             "data": logs,
             "count": len(logs),
+            "total": total,
         }
 
     except Exception as exc:

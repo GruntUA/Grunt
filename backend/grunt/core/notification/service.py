@@ -15,6 +15,8 @@ import structlog
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from grunt.app import grunt
+
 logger = structlog.get_logger()
 
 
@@ -44,18 +46,15 @@ class NotificationService:
         Returns:
             Number of notifications created.
         """
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-
-        rule_table = compile_doctype_to_table(doctype_registry._doctypes["NotificationRule"])
-        stmt = (
-            select(rule_table)
-            .where(rule_table.c.doctype == doctype)
-            .where(rule_table.c.event == event)
-            .where(rule_table.c.is_enabled.is_(True))
-        )
-        result = await session.execute(stmt)
-        rules = result.mappings().all()
+        _tokens = grunt.set_context(session, None, None)
+        try:
+            rules = await grunt.db.get_all(
+                "NotificationRule",
+                filters={"doctype": doctype, "event": event, "is_enabled": True},
+                limit=100,
+            )
+        finally:
+            grunt.reset_context(_tokens)
 
         count = 0
         for rule in rules:
@@ -149,16 +148,11 @@ class NotificationService:
 
     async def mark_read(self, session: AsyncSession, notification_id: str) -> None:
         """Mark a single notification as read."""
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-
-        table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
-        await session.execute(
-            update(table)
-            .where(table.c.id == notification_id)
-            .values(is_read=True)
-        )
-        await session.flush()
+        _tokens = grunt.set_context(session, None, None)
+        try:
+            await grunt.db.set_value("Notification", notification_id, "is_read", True)
+        finally:
+            grunt.reset_context(_tokens)
 
     async def mark_all_read(self, session: AsyncSession, user: str) -> int:
         """Mark all notifications as read for a user. Returns count of affected."""
@@ -275,27 +269,39 @@ class NotificationService:
         if not role_names:
             return []
         try:
-            from grunt.core.auth.models import GruntUserRole  # noqa: PLC0415
-            from grunt.core.auth.service import _user_table  # noqa: PLC0415
-            from sqlalchemy import select  # noqa: PLC0415
-            from sqlalchemy.orm import aliased  # noqa: PLC0415
+            from grunt.app import grunt  # noqa: PLC0415
+            from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
 
-            user_table = _user_table()
-            # Get user_ids that have any of the requested roles
-            role_result = await session.execute(
-                select(GruntUserRole.user_id)
-                .where(GruntUserRole.role_name.in_(role_names))
-                .distinct()
-            )
-            user_ids = [r[0] for r in role_result.all()]
-            if not user_ids:
-                return []
-            email_result = await session.execute(
-                select(user_table.c.email)
-                .where(user_table.c.id.in_(user_ids))
-                .where(user_table.c.is_active.is_(True))
-            )
-            return [r[0] for r in email_result.all() if r[0]]
+            _tokens = grunt.set_context(session, None, SYSTEM_USER)
+            try:
+                # Collect user_ids for all requested roles
+                user_ids: set[str] = set()
+                for role in role_names:
+                    rows = await grunt.db.get_all(
+                        "UserRole",
+                        filters={"role_name": role},
+                        fields=["user_id"],
+                        limit=1000,
+                    )
+                    user_ids.update(r["user_id"] for r in rows)
+
+                if not user_ids:
+                    return []
+
+                # Resolve to emails — only active users
+                emails: list[str] = []
+                for user_id in user_ids:
+                    user_rows = await grunt.db.get_all(
+                        "User",
+                        filters={"id": user_id, "is_active": True},
+                        fields=["email"],
+                        limit=1,
+                    )
+                    if user_rows and user_rows[0].get("email"):
+                        emails.append(user_rows[0]["email"])
+                return emails
+            finally:
+                grunt.reset_context(_tokens)
         except Exception:  # noqa: BLE001
             logger.warning("notification.role_resolution_failed", roles=role_names)
             return []

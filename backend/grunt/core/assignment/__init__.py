@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.core.metadata.compiler import compile_doctype_to_table
 from grunt.core.metadata.registry import doctype_registry
+from grunt.app import grunt
 
 logger = structlog.get_logger()
 
@@ -57,39 +58,31 @@ class AssignmentService:
     async def _get_enabled_rules(self, doctype: str, session: AsyncSession) -> list[dict]:
         """Завантажити всі enabled правила для DocType."""
         try:
-            rule_dt = await doctype_registry.get("AssignmentRule")
-            rule_table = compile_doctype_to_table(rule_dt)
-
-            result = await session.execute(
-                select(
-                    rule_table.c.id,
-                    rule_table.c.doctype_target,
-                    rule_table.c.filters,
-                    rule_table.c.assign_to_role,
-                    rule_table.c.assign_to_user,
-                ).where(
-                    and_(
-                        rule_table.c.doctype_target == doctype,
-                        rule_table.c.enabled == True,  # noqa: E712
-                    )
+            _tokens = grunt.set_context(session, None, None)
+            try:
+                rows = await grunt.db.get_all(
+                    "AssignmentRule",
+                    filters={"doctype_target": doctype, "enabled": True},
+                    fields=["id", "doctype_target", "filters", "assign_to_role", "assign_to_user"],
+                    limit=100,
                 )
-            )
-            rows = result.fetchall()
+            finally:
+                grunt.reset_context(_tokens)
 
             rules = []
             for row in rows:
                 try:
-                    filters = json.loads(row.filters) if row.filters else {}
+                    filters = json.loads(row["filters"]) if row.get("filters") else {}
                 except json.JSONDecodeError:
                     filters = {}
 
                 rules.append(
                     {
-                        "id": row.id,
-                        "doctype_target": row.doctype_target,
+                        "id": row["id"],
+                        "doctype_target": row["doctype_target"],
                         "filters": filters,
-                        "assign_to_role": row.assign_to_role,
-                        "assign_to_user": row.assign_to_user,
+                        "assign_to_role": row.get("assign_to_role"),
+                        "assign_to_user": row.get("assign_to_user"),
                     }
                 )
 
@@ -150,10 +143,8 @@ class AssignmentService:
                 session=session,
             )
 
-            # Create ToDo linking to document
-            todo_dt_name = "ToDo"
-            todo_dt = await doctype_registry.get(todo_dt_name)
-            todo_table = compile_doctype_to_table(todo_dt)
+            from grunt.app import grunt  # noqa: PLC0415
+            from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
 
             todo_doc = {
                 "title": f"{doctype}: {doc.get('name', doc.get('id', 'Document'))}",
@@ -164,10 +155,11 @@ class AssignmentService:
                 "status": "Open",
             }
 
-            # Insert ToDo
-            stmt = todo_table.insert().values(**todo_doc)
-            await session.execute(stmt)
-            await session.commit()
+            _tokens = grunt.set_context(session, None, SYSTEM_USER)
+            try:
+                await grunt.bulk_insert("ToDo", [todo_doc])
+            finally:
+                grunt.reset_context(_tokens)
 
             logger.info(
                 "assignment.assigned_user",
@@ -188,14 +180,19 @@ class AssignmentService:
     ) -> None:
         """Призначити документ всім користувачам ролі."""
         try:
-            from grunt.core.auth.models import GruntUserRole  # noqa: PLC0415
+            from grunt.app import grunt  # noqa: PLC0415
+            from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
             from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
             # Завантажити всіх користувачів з цієї ролі
-            result = await session.execute(
-                select(GruntUserRole.user_id).where(GruntUserRole.role_name == role)
-            )
-            user_ids = result.scalars().all()
+            _tokens = grunt.set_context(session, None, SYSTEM_USER)
+            try:
+                ur_rows = await grunt.db.get_all(
+                    "UserRole", filters={"role_name": role}, fields=["user_id"], limit=500
+                )
+            finally:
+                grunt.reset_context(_tokens)
+            user_ids = [r["user_id"] for r in ur_rows]
 
             if not user_ids:
                 logger.info(
@@ -204,10 +201,6 @@ class AssignmentService:
                     role=role,
                 )
                 return
-
-            # Для кожного користувача дати йому ToDo
-            todo_dt = await doctype_registry.get("ToDo")
-            todo_table = compile_doctype_to_table(todo_dt)
 
             for user_id in user_ids:
                 # Завантажити email користувача
@@ -226,8 +219,11 @@ class AssignmentService:
                     "status": "Open",
                 }
 
-                stmt = todo_table.insert().values(**todo_doc)
-                await session.execute(stmt)
+                _tokens2 = grunt.set_context(session, None, SYSTEM_USER)
+                try:
+                    await grunt.bulk_insert("ToDo", [todo_doc])
+                finally:
+                    grunt.reset_context(_tokens2)
 
                 # Log each assignment
                 await self._log_assignment(
@@ -239,8 +235,6 @@ class AssignmentService:
                     status="Success",
                     session=session,
                 )
-
-            await session.commit()
 
             logger.info(
                 "assignment.assigned_role",
@@ -274,10 +268,8 @@ class AssignmentService:
             return
 
         try:
-            from datetime import datetime, timezone  # noqa: PLC0415
-
-            log_dt = await doctype_registry.get("AssignmentLog")
-            log_table = compile_doctype_to_table(log_dt)
+            from grunt.app import grunt  # noqa: PLC0415
+            from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
 
             log_doc = {
                 "rule_id": rule_id,
@@ -288,12 +280,13 @@ class AssignmentService:
                 "status": status,
                 "error_message": error_message,
                 "filters_matched": filters_matched,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
-            stmt = log_table.insert().values(**log_doc)
-            await session.execute(stmt)
-            await session.commit()
+            _tokens = grunt.set_context(session, None, SYSTEM_USER)
+            try:
+                await grunt.bulk_insert("AssignmentLog", [log_doc])
+            finally:
+                grunt.reset_context(_tokens)
         except Exception as exc:
             logger.exception("assignment.log_error", exc_info=exc)
 
