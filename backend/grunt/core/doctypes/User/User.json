@@ -11,6 +11,7 @@
       "label": "Email",
       "fieldtype": "Text",
       "required": true,
+      "unique": true,
       "in_list_view": true,
       "in_filter": true
     },

@@ -24,14 +24,19 @@ logger = structlog.get_logger()
 
 
 def create_access_token(user: GruntUser) -> str:
-    """Create a JWT containing sub=email, roles=[], exp."""
+    """Create a JWT with user identity claims to avoid DB lookups on every request."""
     expire = datetime.now(timezone.utc) + timedelta(
         minutes=settings.access_token_expire_minutes
     )
     payload = {
-        "sub": user.email,
-        "roles": user.roles,
-        "exp": expire,
+        "sub":          user.email,
+        "uid":          user.id,
+        "full_name":    user.full_name,
+        "is_superadmin": user.is_superadmin,
+        "is_active":    user.is_active,
+        "theme":        user.theme,
+        "roles":        user.roles,
+        "exp":          expire,
     }
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 

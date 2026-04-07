@@ -12,6 +12,11 @@ export type CoreFieldType =
 /** Open type — allows custom field types registered by any app */
 export type FieldType = string
 
+export interface IndexHint {
+  field: string
+  reason: string
+}
+
 export interface DocField {
   fieldname: string
   label: string
@@ -19,6 +24,7 @@ export interface DocField {
   // Validation
   required?: boolean
   unique?: boolean
+  index?: boolean
   read_only?: boolean
   hidden?: boolean
   bold?: boolean
@@ -172,6 +178,7 @@ export interface DocType {
   is_child?: boolean
   is_submittable?: boolean
   is_singleton?: boolean
+  is_system?: boolean
   track_changes?: boolean
   fields: DocField[]
   title_field?: string

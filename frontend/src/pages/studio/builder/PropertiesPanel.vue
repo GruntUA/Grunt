@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { TriangleAlert } from 'lucide-vue-next'
 
 const linkSearch = ref('')
 const tableSearch = ref('')
@@ -17,6 +18,11 @@ const builder = useBuilderStore()
 const field = computed(() => builder.selectedField)
 const config = computed(() => field.value ? getFieldConfig(field.value.fieldtype) : null)
 const sections = computed(() => config.value?.sections ?? [])
+const fieldHint = computed(() =>
+  field.value
+    ? builder.indexHints.find(h => h.field === field.value!.fieldname) ?? null
+    : null
+)
 
 function has(section: string) {
   return sections.value.includes(section as never)
@@ -55,6 +61,19 @@ const childDoctypeOptions = computed(() => {
       <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
         {{ config.label }}
       </p>
+
+      <!-- Index hint -->
+      <div v-if="fieldHint" class="flex gap-2 rounded-md border border-yellow-400 bg-yellow-50 dark:bg-yellow-950/30 p-3 mb-4 text-xs text-yellow-800 dark:text-yellow-300">
+        <TriangleAlert class="size-4 shrink-0 mt-px text-yellow-500" />
+        <div class="flex-1">
+          <p>{{ fieldHint.reason }}</p>
+          <button
+            type="button"
+            class="mt-1.5 font-semibold underline underline-offset-2 hover:opacity-75"
+            @click="updateField('index', true)"
+          >Додати index: true</button>
+        </div>
+      </div>
 
       <!-- CORE: Label + Fieldname -->
       <div v-if="has('core')" class="flex flex-col gap-3 mb-4">
@@ -104,6 +123,10 @@ const childDoctypeOptions = computed(() => {
           <div class="flex items-center gap-2">
             <Checkbox :model-value="!!field.unique" @update:model-value="updateField('unique', $event)" />
             <Label class="text-sm">Unique</Label>
+          </div>
+          <div class="flex items-center gap-2">
+            <Checkbox :model-value="!!field.index" :disabled="!!field.unique" @update:model-value="updateField('index', $event)" />
+            <Label class="text-sm" :class="{ 'text-muted-foreground': !!field.unique }">Index</Label>
           </div>
         </div>
       </template>

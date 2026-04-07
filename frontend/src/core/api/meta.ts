@@ -1,5 +1,11 @@
 import client from './client'
-import type { DocType, DocTypeSummary } from '@/types'
+import type { DocType, DocTypeSummary, IndexHint } from '@/types'
+
+export interface DocTypeSaveResult {
+  data: DocType
+  hints: IndexHint[]
+  exported_to: string | null
+}
 
 export const metaApi = {
   list: (module?: string): Promise<DocTypeSummary[]> =>
@@ -10,11 +16,11 @@ export const metaApi = {
     client.get(`/api/v1/meta/doctypes/${name}`)
       .then(r => r.data),
 
-  create: (dt: DocType): Promise<DocType> =>
+  create: (dt: DocType): Promise<DocTypeSaveResult> =>
     client.post('/api/v1/meta/doctypes', dt)
       .then(r => r.data),
 
-  update: (dt: DocType): Promise<DocType> =>
+  update: (dt: DocType): Promise<DocTypeSaveResult> =>
     client.put(`/api/v1/meta/doctypes/${dt.name}`, dt)
       .then(r => r.data),
 

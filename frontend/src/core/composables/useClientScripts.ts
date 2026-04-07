@@ -24,7 +24,7 @@
 
 import { ref, reactive } from 'vue'
 import { useDialog } from '@/core/composables/useDialog'
-import { useToast } from '@/core/composables/useToast'
+import { toast } from 'vue-sonner'
 import {
   createFormProxy,
   createGruntProxy,
@@ -51,7 +51,6 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
   const dfPropOverrides = reactive<Record<string, Record<string, unknown>>>({})
 
   const dialog = useDialog()
-  const toast = useToast()
 
   let gruntProxy: GruntProxy | null = null
 
@@ -106,6 +105,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
         showAlert: (msg, type) => {
           if (type === 'error') toast.error(msg)
           else if (type === 'success') toast.success(msg)
+          else if (type === 'warning') toast.warning(msg)
           else toast.info(msg)
         },
       })

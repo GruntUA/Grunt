@@ -10,6 +10,7 @@
       "label": "Користувач (ID)",
       "fieldtype": "Text",
       "required": true,
+      "index": true,
       "in_list_view": true,
       "in_filter": true
     },

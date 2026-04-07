@@ -19,6 +19,11 @@ export interface ScriptButton {
   variant?: string
 }
 
+/** Handle returned by listview.add_button — allows in-place updates. */
+export interface ScriptButtonHandle {
+  update: (updates: { label?: string; variant?: string }) => void
+}
+
 /** Form proxy exposed to client scripts as `cur_frm`. */
 export interface FormProxy {
   doctype: string
@@ -39,9 +44,25 @@ export interface FormProxy {
   _df_props: Record<string, Record<string, unknown>>
 }
 
+/** ListView proxy exposed to client scripts as `listview` in `setup_list`. */
+export interface ListViewProxy {
+  doctype: string
+  /** Add a custom button to the ListView toolbar. Returns a handle to update it later. */
+  add_button: (label: string, action: () => void | Promise<void>, options?: { variant?: string }) => ScriptButtonHandle
+  /** Reload the list data. */
+  refresh: () => void
+}
+
 /** Framework helpers exposed as `grunt`. */
 export interface GruntProxy {
   call: (opts: { method: string; args?: Record<string, unknown> }) => Promise<unknown>
+  /** Raw HTTP helpers for arbitrary API calls. */
+  api: {
+    get:    (url: string, params?: Record<string, unknown>) => Promise<unknown>
+    post:   (url: string, data?: unknown) => Promise<unknown>
+    put:    (url: string, data?: unknown) => Promise<unknown>
+    delete: (url: string) => Promise<unknown>
+  }
   throw: (msg: string) => never
   confirm: (msg: string, title?: string) => Promise<boolean>
   msgprint: (msgOrOpts: string | { message: string; title?: string; indicator?: string }) => Promise<void>
@@ -187,6 +208,25 @@ export function createGruntProxy(
       }
     },
 
+    api: {
+      async get(url: string, params?: Record<string, unknown>) {
+        const { data } = await client.get(url, { params })
+        return data
+      },
+      async post(url: string, body?: unknown) {
+        const { data } = await client.post(url, body)
+        return data
+      },
+      async put(url: string, body?: unknown) {
+        const { data } = await client.put(url, body)
+        return data
+      },
+      async delete(url: string) {
+        const { data } = await client.delete(url)
+        return data
+      },
+    },
+
     throw(msg: string): never {
       throw new Error(msg)
     },
@@ -290,4 +330,56 @@ export async function executeClientScripts(
   }
 
   return true
+}
+
+// ── ListView setup ────────────────────────────────────────────────────────
+
+/**
+ * Create a ListView proxy for client scripts.
+ */
+export function createListViewProxy(
+  doctype: string,
+  callbacks: {
+    addButton?: (label: string, action: () => void | Promise<void>, options?: { variant?: string }) => ScriptButtonHandle
+    refresh?: () => void
+  } = {},
+): ListViewProxy {
+  return {
+    doctype,
+    add_button(label, action, options): ScriptButtonHandle {
+      return callbacks.addButton?.(label, action, options) ?? { update: () => {} }
+    },
+    refresh() {
+      callbacks.refresh?.()
+    },
+  }
+}
+
+/**
+ * Execute `setup_list(listview)` from all client scripts for a DocType.
+ *
+ * Call once when the ListView mounts.
+ */
+export async function executeListSetup(
+  doctype: string,
+  listview: ListViewProxy,
+  gruntProxy: GruntProxy,
+): Promise<void> {
+  const scripts = await loadClientScripts(doctype)
+  if (!scripts.length) return
+
+  for (const entry of scripts) {
+    try {
+      const fn = new Function(
+        'listview',
+        'grunt',
+        'frappe',
+        `${entry.script};\n` +
+        `if (typeof setup_list === 'function') { return setup_list(listview); }`,
+      )
+      await fn(listview, gruntProxy, gruntProxy)
+    } catch (err) {
+      console.warn(`[ClientScript] Error in "${entry.name}" (setup_list):`, err)
+    }
+  }
 }

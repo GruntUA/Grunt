@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
 
 from grunt.config import settings
 
@@ -45,3 +46,28 @@ def profiler_clear():
     from grunt.core.db.profiler import clear_buffers  # noqa: PLC0415
     clear_buffers()
     return {"data": {"cleared": True}}
+
+
+class ProfilerSettings(BaseModel):
+    enabled: bool | None = None
+    threshold_ms: float | None = None
+
+
+@router.get("/profiler/settings")
+def profiler_get_settings():
+    """Return current profiler runtime settings."""
+    _require_debug()
+    from grunt.core.db.profiler import get_settings  # noqa: PLC0415
+    return {"data": get_settings()}
+
+
+@router.put("/profiler/settings")
+def profiler_update_settings(body: ProfilerSettings):
+    """Update enabled flag and/or slow-query threshold."""
+    _require_debug()
+    from grunt.core.db.profiler import set_enabled, set_threshold, get_settings  # noqa: PLC0415
+    if body.enabled is not None:
+        set_enabled(body.enabled)
+    if body.threshold_ms is not None:
+        set_threshold(max(1.0, body.threshold_ms))
+    return {"data": get_settings()}

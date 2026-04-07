@@ -64,6 +64,25 @@ _request_buffer: deque[RequestProfile] = deque(maxlen=_MAX_REQUESTS)
 _query_buffer:   deque[QueryRecord]    = deque(maxlen=_MAX_QUERIES)
 _buffer_lock = threading.Lock()
 
+# ── Runtime settings (mutable via API) ────────────────────────────────────
+
+_profiling_enabled:   bool  = True
+_global_threshold_ms: float = 200.0
+
+
+def get_settings() -> dict:
+    return {"enabled": _profiling_enabled, "threshold_ms": _global_threshold_ms}
+
+
+def set_enabled(enabled: bool) -> None:
+    global _profiling_enabled
+    _profiling_enabled = enabled
+
+
+def set_threshold(threshold_ms: float) -> None:
+    global _global_threshold_ms
+    _global_threshold_ms = threshold_ms
+
 # ── Per-request context ────────────────────────────────────────────────────
 
 # Holds list of QueryRecord being accumulated for the current request
@@ -79,11 +98,18 @@ def collect_for_request(
     request_id: str,
     threshold_ms: float = 200.0,
 ) -> Generator[None, None, None]:
-    """Context manager: accumulates queries for *request_id* in a per-request list."""
+    """Context manager: accumulates queries for *request_id* in a per-request list.
+
+    When profiling is disabled the context manager is a no-op.
+    """
+    if not _profiling_enabled:
+        yield
+        return
+
     queries: list[QueryRecord] = []
     token_q  = _request_queries.set(queries)
     token_id = _request_id_var.set(request_id)
-    token_th = _threshold_var.set(threshold_ms)
+    token_th = _threshold_var.set(_global_threshold_ms)
     try:
         yield
     finally:
@@ -190,13 +216,10 @@ def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> N
             return
 
         duration_ms = (time.perf_counter() - start_times.pop()) * 1000
-        threshold   = _threshold_var.get(threshold_ms)
+        threshold   = _threshold_var.get(_global_threshold_ms)
         is_slow     = duration_ms >= threshold
 
-        # Truncate SQL
-        sql_preview = statement.strip().replace("\n", " ")
-        if len(sql_preview) > 500:
-            sql_preview = sql_preview[:500] + "…"
+        sql_preview = statement.strip()
 
         param_count = len(parameters) if isinstance(parameters, (list, tuple)) else 0
         req_id      = _request_id_var.get(None)

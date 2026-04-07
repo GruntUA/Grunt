@@ -107,29 +107,40 @@ class DocTypeRegistry:
         existing = existing_row.scalar_one_or_none()
 
         if existing:
-            # Preserve user customisations — do NOT overwrite data from JSON.
-            # Only keep module in sync (rarely changes).
-            await session.execute(
-                update(GruntMetaDoctype)
-                .where(GruntMetaDoctype.name == doctype.name)
-                .values(module=doctype.module)
-            )
-            # Load the stored definition for table sync & in-memory cache.
-            try:
-                active_dt = DocType.model_validate(existing.data)
-            except Exception:
-                # Stored data is invalid — fall back to JSON and repair.
-                logger.warning(
-                    "registry.core_stored_invalid",
-                    name=doctype.name,
-                    action="falling_back_to_json",
-                )
+            # Virtual DocTypes have no physical DB tables, so there is nothing
+            # to migrate and no risk of data loss.  Always keep them in sync
+            # with the bundled JSON so that field changes take effect on restart.
+            if doctype.is_virtual:
                 active_dt = doctype
                 await session.execute(
                     update(GruntMetaDoctype)
                     .where(GruntMetaDoctype.name == doctype.name)
-                    .values(data=doctype.model_dump())
+                    .values(module=doctype.module, data=doctype.model_dump())
                 )
+            else:
+                # Preserve user customisations — do NOT overwrite data from JSON.
+                # Only keep module in sync (rarely changes).
+                await session.execute(
+                    update(GruntMetaDoctype)
+                    .where(GruntMetaDoctype.name == doctype.name)
+                    .values(module=doctype.module)
+                )
+                # Load the stored definition for table sync & in-memory cache.
+                try:
+                    active_dt = DocType.model_validate(existing.data)
+                except Exception:
+                    # Stored data is invalid — fall back to JSON and repair.
+                    logger.warning(
+                        "registry.core_stored_invalid",
+                        name=doctype.name,
+                        action="falling_back_to_json",
+                    )
+                    active_dt = doctype
+                    await session.execute(
+                        update(GruntMetaDoctype)
+                        .where(GruntMetaDoctype.name == doctype.name)
+                        .values(data=doctype.model_dump())
+                    )
         else:
             # First run: seed from the bundled JSON file.
             session.add(GruntMetaDoctype(

@@ -32,10 +32,20 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             from grunt.core.db.profiler import collect_for_request, finish_request  # noqa: PLC0415
             with collect_for_request(request_id, threshold_ms=settings.slow_query_threshold_ms):
                 response = await call_next(request)
+                duration_ms = round((time.perf_counter() - start) * 1000, 1)
+                # finish_request must be called inside the `with` block while
+                # the per-request ContextVar is still set
+                finish_request(
+                    request_id=request_id,
+                    method=request.method,
+                    path=path,
+                    status_code=response.status_code,
+                    duration_ms=duration_ms,
+                )
         else:
             response = await call_next(request)
+            duration_ms = round((time.perf_counter() - start) * 1000, 1)
 
-        duration_ms = round((time.perf_counter() - start) * 1000, 1)
         response.headers["X-Request-ID"] = request_id
 
         # Record Prometheus metrics (always)
@@ -44,15 +54,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             record_request(request.method, path, response.status_code, duration_ms / 1000)
         except Exception:  # noqa: BLE001
             pass
-
-        if use_profiler:
-            finish_request(  # type: ignore[possibly-undefined]
-                request_id=request_id,
-                method=request.method,
-                path=path,
-                status_code=response.status_code,
-                duration_ms=duration_ms,
-            )
 
         if path not in _SKIP_PATHS:
             logger.info(

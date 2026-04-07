@@ -10,6 +10,13 @@ import { useListColumns } from '@/core/composables/useListColumns'
 import { useDevMode } from '@/core/composables/useDevMode'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, DocField } from '@/types'
+import {
+  createListViewProxy,
+  createGruntProxy,
+  executeListSetup,
+  type ScriptButton,
+  type ScriptButtonHandle,
+} from '@/core/scripting/executor'
 import { Button } from '@/components/ui/button'
 import { Download, Plus, Search, Columns3, X, LayoutList, LayoutGrid, CalendarDays, GitBranch, Pencil, MoreHorizontal, Rows3, ChevronRight, Check, FileBarChart, Image as ImageIcon } from 'lucide-vue-next'
 import {
@@ -67,6 +74,9 @@ watch(inlineSearch, (v) => {
 
 const selection = useListSelection()
 const columns = useListColumns(props.doctype, () => dt.value?.fields ?? [])
+
+// Custom buttons registered by client scripts via setup_list(listview)
+const listButtons = ref<ScriptButton[]>([])
 
 // ── Grouping ─────────────────────────────────────────────────────────
 
@@ -148,6 +158,25 @@ onMounted(async () => {
   const urlOrder = route.query.order as string | undefined
   if (urlSort) sortKey.value = urlSort
   if (urlOrder === 'asc' || urlOrder === 'desc') sortOrder.value = urlOrder
+
+  // Run client script setup_list hooks
+  const gruntProxy = createGruntProxy()
+  const listview = createListViewProxy(props.doctype, {
+    addButton(label, action, options): ScriptButtonHandle {
+      const btn: ScriptButton = { label, action, variant: options?.variant }
+      const idx = listButtons.value.push(btn) - 1
+      return {
+        update(updates) {
+          // Replace the element — Vue 3 tracks array index assignments reactively
+          listButtons.value[idx] = { ...listButtons.value[idx], ...updates }
+        },
+      }
+    },
+    refresh() {
+      queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
+    },
+  })
+  await executeListSetup(props.doctype, listview, gruntProxy)
 })
 
 // Sync viewMode → URL query param
@@ -331,6 +360,17 @@ function navigateToDoc(row: Record<string, unknown>) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <!-- Custom buttons from client scripts (setup_list) -->
+        <Button
+          v-for="btn in listButtons"
+          :key="btn.label"
+          :variant="(btn.variant as 'default' | 'outline' | 'ghost' | 'destructive' | 'secondary' | 'link') || 'outline'"
+          size="sm"
+          @click="btn.action()"
+        >
+          {{ btn.label }}
+        </Button>
+
         <!-- New button -->
         <Button v-if="isSystemDocType" size="sm" @click="router.push(`/${workspace ?? 'grunt'}/list/DocType/new`)">
           <Plus class="size-4 mr-1.5" />

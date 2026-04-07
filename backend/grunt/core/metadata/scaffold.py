@@ -244,7 +244,7 @@ def _find_app_dir(module: str, app_name: str | None = None) -> Path | None:
     return None
 
 
-def export_doctype_files(dt: DocType, app_name: str | None = None) -> None:
+def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None:
     """Write DocType metadata and scaffold files to disk.
 
     Creates ``{app}/{doctype_dir}/`` with:
@@ -259,14 +259,17 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> None:
     *app_name* — when provided, used to locate the app directory directly
     instead of scanning for a matching module subdirectory.  Pass this when
     the module directory may not yet exist on disk (e.g. freshly created).
+
+    Returns the absolute path to the written JSON file, or ``None`` if export
+    was skipped (system DocType or module directory not found).
     """
     if dt.is_system:
-        return
+        return None
 
     app_dir = _find_app_dir(dt.module, app_name=app_name)
     if not app_dir:
         logger.warning("scaffold.export_skip", doctype=dt.name, reason=f"module '{dt.module}' not found in apps")
-        return
+        return None
 
     # Determine path based on app structure.
     # If the module directory already exists, use module-based layout.
@@ -284,10 +287,12 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> None:
 
     dt_dir.mkdir(parents=True, exist_ok=True)
 
-    # JSON — always overwrite with current state
+    # JSON — always overwrite with current state.
+    # exclude_defaults=True keeps only non-default values so the file stays
+    # readable and diffs are meaningful (no noise from False/0/"" defaults).
     json_file = dt_dir / f"{dt.name}.json"
     json_file.write_text(
-        json.dumps(dt.model_dump(exclude_none=True), ensure_ascii=False, indent=2) + "\n",
+        json.dumps(dt.model_dump(exclude_defaults=True), ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -305,3 +310,4 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> None:
         js_file.write_text(CLIENT_SCRIPT_TEMPLATE.format(name=dt.name), encoding="utf-8")
 
     logger.info("scaffold.exported", doctype=dt.name, path=str(dt_dir))
+    return str(json_file.resolve())

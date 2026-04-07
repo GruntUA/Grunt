@@ -1,0 +1,23 @@
+{
+  "name": "SqlProfilerRequest",
+  "label": "SQL Profiler — Запити",
+  "module": "core",
+  "is_system": true,
+  "is_virtual": true,
+  "track_changes": false,
+  "title_field": "path",
+  "search_fields": ["path", "method"],
+  "fields": [
+    {"fieldname": "method",           "label": "Метод",         "fieldtype": "Data",  "in_list_view": true, "read_only": true},
+    {"fieldname": "path",             "label": "Шлях",          "fieldtype": "Data",  "in_list_view": true, "read_only": true},
+    {"fieldname": "status_code",      "label": "Статус",        "fieldtype": "Int",   "in_list_view": true, "read_only": true},
+    {"fieldname": "duration_ms",      "label": "Тривалість (ms)","fieldtype": "Float", "in_list_view": true, "read_only": true},
+    {"fieldname": "query_count",      "label": "Запитів до БД", "fieldtype": "Int",   "in_list_view": true, "read_only": true},
+    {"fieldname": "total_query_ms",   "label": "Час у БД (ms)", "fieldtype": "Float", "in_list_view": true, "read_only": true},
+    {"fieldname": "slow_query_count", "label": "Повільних",     "fieldtype": "Int",   "in_list_view": true, "read_only": true},
+    {"fieldname": "queries",          "label": "SQL запити",    "fieldtype": "Table", "options": "SqlProfilerQuery", "read_only": true}
+  ],
+  "permissions": [
+    {"role": "System Manager", "read": true}
+  ]
+}

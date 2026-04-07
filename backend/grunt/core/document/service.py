@@ -107,8 +107,12 @@ class DocumentService:
         if search:
             query = self._apply_search(query, table, dt, search)
 
-        # Count
-        count_q = select(func.count()).select_from(query.subquery())
+        # Count — build a dedicated query to avoid the full-column subquery anti-pattern
+        count_q = select(func.count()).select_from(table)
+        if filters:
+            count_q = self._apply_filters(count_q, table, filters)
+        if search:
+            count_q = self._apply_search(count_q, table, dt, search)
         count_result = await self.session.execute(count_q)
         total = count_result.scalar() or 0
 
@@ -172,10 +176,11 @@ class DocumentService:
         if dt.is_virtual:
             return await self._virtual_create(dt, doctype_name, user, data)
 
+        table = compile_doctype_to_table(dt)
+
         # Singleton — allow only one document
         if dt.is_singleton:
-            table_check = compile_doctype_to_table(dt)
-            existing = await self.session.execute(select(func.count()).select_from(table_check))
+            existing = await self.session.execute(select(func.count()).select_from(table))
             if (existing.scalar() or 0) > 0:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
@@ -187,8 +192,6 @@ class DocumentService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"'{doctype_name}' is managed by the system. Please use the appropriate API.",
             )
-        dt = await doctype_registry.get(doctype_name)
-        table = compile_doctype_to_table(dt)
 
         # Validate
         errors = self._validate_data(dt, data)
@@ -349,7 +352,8 @@ class DocumentService:
                 await self.session.execute(
                     child_table.delete().where(child_table.c.parent_id == parent_id)
                 )
-                # Insert new rows
+                # Build all rows then insert in one batch
+                rows_to_insert: list[dict[str, Any]] = []
                 for idx, child_data in enumerate(child_rows):
                     if not isinstance(child_data, dict):
                         continue
@@ -377,7 +381,9 @@ class DocumentService:
                             row[child_field.fieldname] = self._coerce_value(
                                 child_field.default, child_field.fieldtype
                             )
-                    await self.session.execute(child_table.insert().values(**row))
+                    rows_to_insert.append(row)
+                if rows_to_insert:
+                    await self.session.execute(child_table.insert(), rows_to_insert)
             except Exception:
                 logger.exception(
                     "child_table.save_error", doctype=dt.name, field=field.fieldname, parent_id=parent_id
@@ -441,16 +447,15 @@ class DocumentService:
         data: dict[str, Any],
         user: GruntUser,
     ) -> dict[str, Any]:
-        dt_check = await doctype_registry.get(doctype_name)
-        if dt_check.is_virtual:
-            return await self._virtual_update(dt_check, doctype_name, user, doc_id, data)
+        dt = await doctype_registry.get(doctype_name)
+        if dt.is_virtual:
+            return await self._virtual_update(dt, doctype_name, user, doc_id, data)
 
         if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"'{doctype_name}' is managed by the system. Please use the appropriate API.",
             )
-        dt = await doctype_registry.get(doctype_name)
         table = compile_doctype_to_table(dt)
 
         # Ensure document exists
@@ -513,7 +518,21 @@ class DocumentService:
 
             logger.info("document.updated", doctype=doctype_name, id=real_id)
 
-            result = await self.get_document(doctype_name, real_id, user)
+            # Build result from merged state — avoids a redundant SELECT of the main row.
+            # Child tables and MultiLinks are re-read from DB since their rows were replaced.
+            result = dict(merged)
+            for k, v in result.items():
+                if isinstance(v, datetime):
+                    result[k] = v.isoformat()
+            await self._load_child_tables(dt, result)
+            ml_fields = _get_multi_link_fields(dt)
+            if ml_fields:
+                ml_data = await self._ml.get_all_for_doc(doctype_name, real_id)
+                for mlf in ml_fields:
+                    result[mlf.fieldname] = ml_data.get(mlf.fieldname, [])
+            from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+            for field in permission_checker.hidden_fields(user, dt):
+                result.pop(field, None)
 
             # Create version record if track_changes is enabled
             if dt.track_changes:
@@ -560,9 +579,9 @@ class DocumentService:
         doc_id: str,
         user: GruntUser,
     ) -> None:
-        dt_check = await doctype_registry.get(doctype_name)
-        if dt_check.is_virtual:
-            await self._virtual_delete(dt_check, doctype_name, user, doc_id)
+        dt = await doctype_registry.get(doctype_name)
+        if dt.is_virtual:
+            await self._virtual_delete(dt, doctype_name, user, doc_id)
             return
 
         if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
@@ -570,7 +589,6 @@ class DocumentService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"'{doctype_name}' is managed by the system. Please use the appropriate API.",
             )
-        dt = await doctype_registry.get(doctype_name)
         table = compile_doctype_to_table(dt)
 
         existing = await self.get_document(doctype_name, doc_id, user)

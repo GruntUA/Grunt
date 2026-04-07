@@ -24,9 +24,13 @@ async def current_user(
     token: str | None = Depends(_oauth2_scheme_optional),
     session: AsyncSession = Depends(get_session),
 ) -> GruntUser:
-    """Decode JWT and return the authenticated user, or raise 401."""
+    """Decode JWT and return the authenticated user.
+
+    When the token contains full identity claims (uid, full_name, etc.) the user
+    object is built directly from the payload — zero DB queries.
+    Older tokens that only carry ``sub`` fall back to a DB lookup.
+    """
     if not token:
-        # Fallback to query param 'token' for file downloads (a href)
         token = request.query_params.get("token")
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -43,11 +47,28 @@ async def current_user(
     except jwt.PyJWTError:
         raise credentials_exception
 
-    user = await get_user_by_email(email, session)
-    if user is None or not user.is_active:
-        raise credentials_exception
-    from grunt.api.context import set_user  # noqa: PLC0415
+    # Fast path: all identity fields are embedded in the token.
+    uid: str | None = payload.get("uid")
+    if uid:
+        user = GruntUser(
+            id=uid,
+            email=email,
+            full_name=payload.get("full_name") or "",
+            is_superadmin=bool(payload.get("is_superadmin", False)),
+            is_active=bool(payload.get("is_active", True)),
+            theme=payload.get("theme") or "system",
+            roles=payload.get("roles") or [],
+        )
+    else:
+        # Legacy token — fall back to DB lookup.
+        user = await get_user_by_email(email, session)
+        if user is None:
+            raise credentials_exception
 
+    if not user.is_active:
+        raise credentials_exception
+
+    from grunt.api.context import set_user  # noqa: PLC0415
     set_user(user)
     return user
 

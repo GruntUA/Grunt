@@ -103,3 +103,92 @@ class VirtualDocType:
         """
         result = await self.get_list(filters=filters, page=1, per_page=1, **kwargs)
         return result.get("meta", {}).get("total", 0)
+
+    # ── In-memory helpers ─────────────────────────────────────────────────
+    # Useful for virtual DocTypes backed by in-memory data (ring buffers,
+    # external API responses, etc.).  Subclasses may call these directly
+    # instead of re-implementing filtering / sorting / pagination logic.
+
+    def apply_filters(self, rows: list[dict], filters: dict[str, Any]) -> list[dict]:
+        """Filter *rows* using the standard Grunt filter syntax.
+
+        Supported operators (appended to fieldname with ``__``):
+          eq (default), gt, gte, lt, lte, like, ilike, in, isnull
+        """
+        for key, val in filters.items():
+            if "__" in key:
+                field, op = key.rsplit("__", 1)
+            else:
+                field, op = key, "eq"
+
+            result: list[dict] = []
+            for r in rows:
+                raw = r.get(field)
+                try:
+                    if op == "eq":
+                        match = str(raw) == str(val)
+                    elif op in ("like", "ilike"):
+                        match = str(val).lower().strip("%") in str(raw).lower()
+                    elif op in ("gt", "gte", "lt", "lte"):
+                        a, b = float(raw), float(val)
+                        match = (
+                            a > b  if op == "gt"  else
+                            a >= b if op == "gte" else
+                            a < b  if op == "lt"  else
+                            a <= b
+                        )
+                    elif op == "in":
+                        match = str(raw) in [v.strip() for v in str(val).split(",")]
+                    elif op == "isnull":
+                        match = (raw is None) if str(val).lower() in ("true", "1") else (raw is not None)
+                    else:
+                        match = str(raw) == str(val)
+                except (TypeError, ValueError):
+                    match = False
+                if match:
+                    result.append(r)
+            rows = result
+        return rows
+
+    def apply_sort(self, rows: list[dict], sort_by: str, sort_order: str) -> list[dict]:
+        """Sort *rows* by *sort_by* field.  Nones are always placed last."""
+        reverse = sort_order.lower() == "desc"
+        try:
+            return sorted(
+                rows,
+                key=lambda r: (r.get(sort_by) is None, r.get(sort_by) or 0),
+                reverse=reverse,
+            )
+        except TypeError:
+            return sorted(
+                rows,
+                key=lambda r: str(r.get(sort_by) or ""),
+                reverse=reverse,
+            )
+
+    def apply_search(self, rows: list[dict], search: str, fields: list[str]) -> list[dict]:
+        """Keep rows where *search* appears (case-insensitive) in any of *fields*."""
+        q = search.lower()
+        return [r for r in rows if any(q in str(r.get(f) or "").lower() for f in fields)]
+
+    def build_response(
+        self,
+        rows: list[dict],
+        page: int,
+        per_page: int,
+    ) -> dict[str, Any]:
+        """Paginate *rows* and wrap in the standard Grunt list response."""
+        import math  # noqa: PLC0415
+
+        total = len(rows)
+        offset = (page - 1) * per_page
+        page_rows = rows[offset: offset + per_page]
+        return {
+            "data": page_rows,
+            "meta": {
+                "total": total,
+                "page": page,
+                "per_page": per_page,
+                "pages": math.ceil(total / per_page) if per_page else 1,
+            },
+        }

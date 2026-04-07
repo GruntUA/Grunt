@@ -61,6 +61,7 @@ class DocField(BaseModel):
     # Validation
     required: bool = False
     unique: bool = False
+    index: bool = False
     read_only: bool = False
     hidden: bool = False
 

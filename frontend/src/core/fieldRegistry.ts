@@ -192,7 +192,7 @@ registerField({ type: 'JSON', label: 'JSON', icon: '{}', category: 'Текст',
 
 registerField({ type: 'Code', label: 'Code', icon: '<>', category: 'Текст',
   component: () => import('@/components/fields/FieldCode.vue').then(m => m.default as Component),
-  propertySections: DATA })
+  propertySections: [...DATA, 'options'] })
 
 // Таблиці
 registerField({ type: 'Table', label: 'Table', icon: '▦', category: 'Таблиці',

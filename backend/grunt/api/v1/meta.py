@@ -15,7 +15,9 @@ from grunt.core.metadata.scaffold import export_doctype_files
 from grunt.api.v1.schemas.meta import (
     DocTypeListItem,
     DocTypeSchema,
+    DocTypeSaveResult,
     DocTypeSyncResult,
+    IndexHint,
 )
 
 from sqlalchemy import inspect as sa_inspect
@@ -40,6 +42,28 @@ async def _get_app_name_for_module(module: str, session: AsyncSession) -> str | 
 
 def _doctype_to_schema(dt: DocType) -> DocTypeSchema:
     return DocTypeSchema.model_validate(dt.model_dump())
+
+
+_NON_PHYSICAL = frozenset({"Section", "Column", "Tab", "Table", "MultiLink"})
+
+
+def _get_index_hints(dt: DocType) -> list[IndexHint]:
+    """Return index recommendations for fields that are likely to be queried."""
+    hints = []
+    for f in dt.fields:
+        if f.fieldtype in _NON_PHYSICAL or f.hidden or f.unique or f.index:
+            continue
+        if f.in_filter:
+            hints.append(IndexHint(
+                field=f.fieldname,
+                reason=f"Поле «{f.label or f.fieldname}» використовується у фільтрах (in_filter: true) — рекомендується додати index: true",
+            ))
+        elif f.fieldtype == "Link":
+            hints.append(IndexHint(
+                field=f.fieldname,
+                reason=f"Link-поле «{f.label or f.fieldname}» часто фігурує у WHERE-умовах — рекомендується додати index: true",
+            ))
+    return hints
 
 
 async def _sync_doctype_doc(dt: DocType, session: AsyncSession, *, delete: bool = False) -> None:
@@ -99,19 +123,19 @@ async def list_doctypes(
     ]
 
 
-@router.post("/doctypes", status_code=status.HTTP_201_CREATED)
+@router.post("/doctypes", status_code=status.HTTP_201_CREATED, response_model=DocTypeSaveResult)
 async def create_doctype(
     body: DocType,
     session: AsyncSession = Depends(get_session),
     _user: GruntUser = Depends(superadmin_user),
     eng: AsyncEngine = Depends(get_engine),
-) -> dict:
+) -> DocTypeSaveResult:
     """Create a new DocType — validates, persists, syncs table, exports files."""
     await doctype_registry.register(body, session, eng)
     await _sync_doctype_doc(body, session)
     app_name = await _get_app_name_for_module(body.module or "", session)
-    export_doctype_files(body, app_name=app_name)
-    return {"success": True, "data": _doctype_to_schema(body).model_dump()}
+    exported_to = export_doctype_files(body, app_name=app_name)
+    return DocTypeSaveResult(data=_doctype_to_schema(body), hints=_get_index_hints(body), exported_to=exported_to)
 
 
 @router.get("/doctypes/{name}", response_model=DocTypeSchema)
@@ -124,14 +148,14 @@ async def get_doctype(
     return _doctype_to_schema(dt)
 
 
-@router.put("/doctypes/{name}", response_model=DocTypeSchema)
+@router.put("/doctypes/{name}", response_model=DocTypeSaveResult)
 async def update_doctype(
     name: str,
     body: DocType,
     session: AsyncSession = Depends(get_session),
     _user: GruntUser = Depends(superadmin_user),
     eng: AsyncEngine = Depends(get_engine),
-) -> DocTypeSchema:
+) -> DocTypeSaveResult:
     """Update an existing DocType."""
     if body.name != name:
         raise HTTPException(
@@ -141,8 +165,8 @@ async def update_doctype(
     await doctype_registry.update(body, session, eng)
     await _sync_doctype_doc(body, session)
     app_name = await _get_app_name_for_module(body.module or "", session)
-    export_doctype_files(body, app_name=app_name)
-    return _doctype_to_schema(body)
+    exported_to = export_doctype_files(body, app_name=app_name)
+    return DocTypeSaveResult(data=_doctype_to_schema(body), hints=_get_index_hints(body), exported_to=exported_to)
 
 
 @router.delete("/doctypes/{name}")

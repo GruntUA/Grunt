@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import type { DocType, DocField, DocTypePermission, WorkflowDef, WorkflowState, WorkflowTransition, WorkflowStep, FieldType } from '@/types'
+import type { DocType, DocField, DocTypePermission, WorkflowDef, WorkflowState, WorkflowTransition, WorkflowStep, FieldType, IndexHint } from '@/types'
 import { metaApi } from '@/core/api'
 import { parseLayout, flattenLayout } from '@/core/composables/useFormLayout'
 import type { FormLayout } from '@/core/composables/useFormLayout'
@@ -12,6 +12,8 @@ export const useBuilderStore = defineStore('builder', () => {
   const _selectedFieldIdx = ref<number | null>(null)
   const isSaving = ref(false)
   const activeTab = ref<string>('form')
+  const indexHints = ref<IndexHint[]>([])
+  const exportedTo = ref<string | null>(null)
 
   // ── Computed ─────────────────────────────────────────────────────────
 
@@ -49,17 +51,16 @@ export const useBuilderStore = defineStore('builder', () => {
     if (!doctype.value) return null
     isSaving.value = true
     try {
-      let saved: DocType
-      if (isNew.value) {
-        saved = await metaApi.create(doctype.value)
-        isNew.value = false
-      } else {
-        saved = await metaApi.update(doctype.value)
-      }
-      await metaApi.sync(saved.name)
-      doctype.value = saved
+      const result = isNew.value
+        ? await metaApi.create(doctype.value)
+        : await metaApi.update(doctype.value)
+      if (isNew.value) isNew.value = false
+      await metaApi.sync(result.data.name)
+      doctype.value = result.data
+      indexHints.value = result.hints ?? []
+      exportedTo.value = result.exported_to ?? null
       isDirty.value = false
-      return saved
+      return result.data
     } finally {
       isSaving.value = false
     }
@@ -468,6 +469,8 @@ export const useBuilderStore = defineStore('builder', () => {
     isSaving,
     activeTab,
     layout,
+    indexHints,
+    exportedTo,
     loadDocType,
     addField,
     removeField,

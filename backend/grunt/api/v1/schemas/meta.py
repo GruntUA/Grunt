@@ -7,6 +7,18 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict
 
 
+class IndexHint(BaseModel):
+    field: str
+    reason: str
+
+
+class DocTypeSaveResult(BaseModel):
+    success: bool = True
+    data: "DocTypeSchema"
+    hints: list[IndexHint] = []
+    exported_to: str | None = None
+
+
 class DocFieldSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -16,6 +28,7 @@ class DocFieldSchema(BaseModel):
 
     required: bool = False
     unique: bool = False
+    index: bool = False
     read_only: bool = False
     hidden: bool = False
 
@@ -137,6 +150,9 @@ class DocTypeSchema(BaseModel):
     kanban_view: DocTypeKanbanViewSchema | None = None
     calendar_view: DocTypeCalendarViewSchema | None = None
     status_config: DocTypeStatusConfigSchema | None = None
+
+
+DocTypeSaveResult.model_rebuild()
 
 
 class DocTypeListItem(BaseModel):

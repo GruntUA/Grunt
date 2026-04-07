@@ -15,6 +15,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     Float,
+    Index,
     Integer,
     JSON,
     MetaData,
@@ -150,10 +151,17 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
         columns.append(col)
 
     # Unique constraints
-    constraints: list[UniqueConstraint] = []
+    constraints: list = []
     unique_fields = [f.fieldname for f in doctype.fields if f.unique]
     if unique_fields:
         constraints.append(UniqueConstraint(*unique_fields))
+
+    # Non-unique indexes
+    for field in doctype.fields:
+        if field.index and not field.unique:
+            constraints.append(
+                Index(f"ix_{table_name}_{field.fieldname}", field.fieldname)
+            )
 
     return Table(table_name, SA_METADATA, *columns, *constraints, extend_existing=True)
 
@@ -204,6 +212,13 @@ async def sync_table(
                         table=table.name,
                         column=col.name,
                     )
+
+            # Apply any new indexes that don't exist yet
+            existing_indexes = {ix["name"] for ix in insp.get_indexes(table.name)}
+            for index in table.indexes:
+                if index.name and index.name not in existing_indexes:
+                    index.create(connection)
+                    logger.info("compiler.index_created", table=table.name, index=index.name)
 
     if session is not None:
         conn = await session.connection()

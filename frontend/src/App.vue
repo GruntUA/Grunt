@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, defineAsyncComponent } from 'vue'
+import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import GruntDialog from '@/components/desk/GruntDialog.vue'
@@ -7,10 +7,6 @@ import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import CommandPalette from '@/components/layout/CommandPalette.vue'
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt.vue'
 import { loadRemoteTranslations } from '@/plugins/i18n'
-
-const ProfilerPanel = import.meta.env.DEV
-  ? defineAsyncComponent(() => import('@/components/dev/ProfilerPanel.vue'))
-  : null
 import { useNetworkStatus, isOnline } from '@/core/composables/useNetworkStatus'
 import { pendingCount } from '@/core/composables/useOfflineQueue'
 import { WifiOff } from 'lucide-vue-next'
@@ -42,11 +38,10 @@ onMounted(() => {
 
     <RouterView />
     <Teleport to="body">
-      <Sonner position="top-right" :style="{ zIndex: 99999 }" />
+      <Sonner position="bottom-right" :style="{ zIndex: 99999 }" />
     </Teleport>
 
     <CommandPalette />
     <PWAInstallPrompt />
-    <component :is="ProfilerPanel" v-if="ProfilerPanel" />
   </ErrorBoundary>
 </template>
