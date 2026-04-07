@@ -189,29 +189,28 @@ class TestAssignmentAPI:
         assert data["will_assign_to"] == ["admin@grunt.local"]
 
     @pytest.mark.asyncio
-    async def test_list_assignment_logs(self, client, auth_headers, setup_db):
+    async def test_list_assignment_logs(self, client, auth_headers, db_session, engine):
         """Test the GET /api/v1/assignment-rules/logs endpoint."""
         from grunt.app import grunt
         from grunt.core.auth.models import SYSTEM_USER
-        from grunt.core.db.session import get_session
-        
-        # Insert a log to test filtering
+        import datetime
+
         log_doc = {
             "doctype_affected": "Invoice",
             "document_id": "INV-TEST",
-            "assigned_to": "admin@grunt.local",
+            "assigned_to": "admin@grunt.example.com",
             "assignment_method": "user",
             "status": "Success",
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
-        
-        async for session in get_session():
-            _tokens = grunt.set_context(session, None, SYSTEM_USER)
-            try:
-                await grunt.bulk_insert("AssignmentLog", [log_doc])
-            finally:
-                grunt.reset_context(_tokens)
-            break
-            
+
+        _tokens = grunt.set_context(db_session, engine, SYSTEM_USER)
+        try:
+            await grunt.new_doc("AssignmentLog", log_doc)
+            await db_session.commit()
+        finally:
+            grunt.reset_context(_tokens)
+
         resp = await client.get("/api/v1/assignment-rules/logs?doctype=Invoice", headers=auth_headers)
         assert resp.status_code == 200, resp.text
         data = resp.json()

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -103,12 +104,12 @@ class TestCreateApp:
 
             assert module.APP_NAME == "test_app"
             assert module.APP_TITLE == "Test App"
-            assert module.MODULES == []
+            assert module.MODULES == [default_module]
             assert module.APP_ICON == "📦"
             assert module.APP_COLOR == "#2D6A4F"
 
         # Verify fixtures content
-        fixtures = json.loads((app_dir / "fixtures" / "00_workspace.json").read_text())
+        fixtures = json.loads((app_dir / default_module / "fixtures" / "00_workspace.json").read_text())
         assert isinstance(fixtures, list)
         assert len(fixtures) == 1
         assert fixtures[0]["name"] == "test_app"

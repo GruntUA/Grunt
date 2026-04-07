@@ -23,18 +23,44 @@ router = APIRouter()
 async def global_search(
     q: str = Query(..., min_length=2),
     doctype: str | None = Query(None),
-    limit: int = Query(30, ge=1, le=100),
+    limit: int = Query(10, ge=1, le=100),
     user: GruntUser = Depends(current_user),
     session: AsyncSession = Depends(get_session),
-) -> list[dict[str, Any]]:
+) -> dict[str, Any]:
     """Search across all non-child DocTypes using the full-text index."""
-    results = await search_index_service.search(
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+
+    raw = await search_index_service.search(
         session=session,
         q=q,
         limit=limit,
         doctype=doctype,
     )
-    return results
+
+    # Check read permission per doctype (superadmin bypasses via permission_checker)
+    allowed_doctypes: dict[str, bool] = {}
+    for r in raw:
+        dt_name = r["doctype"]
+        if dt_name not in allowed_doctypes:
+            try:
+                dt = await doctype_registry.get(dt_name)
+                allowed_doctypes[dt_name] = await permission_checker.check(user, dt, "read")
+            except Exception:  # noqa: BLE001
+                allowed_doctypes[dt_name] = False
+
+    results = [
+        {
+            "doctype": r["doctype"],
+            "id": r["doc_id"],
+            "name": r["doc_name"],
+            "display_title": r.get("title") or r.get("doc_name", ""),
+            "module": r.get("module", ""),
+        }
+        for r in raw
+        if allowed_doctypes.get(r["doctype"], False)
+    ]
+    return {"success": True, "data": results}
 
 
 @router.post("/reindex", status_code=status.HTTP_200_OK)

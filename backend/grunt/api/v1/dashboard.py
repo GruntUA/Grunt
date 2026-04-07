@@ -23,6 +23,25 @@ router = APIRouter()
 
 _PERIOD_DAYS = {"7d": 7, "30d": 30, "90d": 90, "365d": 365}
 
+# Human-readable timespan → days mapping (0 = no date filter)
+_TIMESPAN_DAYS: dict[str, int] = {
+    "last_week": 7,
+    "last_month": 30,
+    "last_quarter": 90,
+    "last_year": 365,
+    "all_time": 0,
+}
+
+# Supported aggregation functions (name → SQLAlchemy func)
+from sqlalchemy import func as _sa_func  # noqa: E402
+_AGGREGATION_FNS: dict[str, Any] = {
+    "count": _sa_func.count,
+    "sum": _sa_func.sum,
+    "avg": _sa_func.avg,
+    "min": _sa_func.min,
+    "max": _sa_func.max,
+}
+
 
 # ── Widget data computation ────────────────────────────────────────────────
 

@@ -17,12 +17,9 @@ Example:
 
 from __future__ import annotations
 
-from sqlalchemy import select
-
-from grunt.api.context import get_session, get_user
+from grunt.api.context import get_user
+from grunt.app import grunt
 from grunt.core.auth.models import GruntUser
-from grunt.core.metadata.compiler import compile_doctype_to_table
-from grunt.core.metadata.registry import doctype_registry
 
 
 async def get_current_user() -> GruntUser:
@@ -46,50 +43,28 @@ async def _check_doctype_permission(doctype: str, permission: str) -> bool:
     """
     user = get_user()
 
-    # Superadmin bypass
     if user.is_superadmin:
         return True
 
-    # System user always allowed
     if user.email == "system":
         return True
 
-    # Get user roles
     user_roles = user.roles or []
     if not user_roles:
         return False
 
     try:
-        session = get_session()
-
-        # Get DocTypePermission table
-        doctype_perm_def = doctype_registry.get_doctype("DocTypePermission")
-        if not doctype_perm_def:
-            # DocTypePermission not defined, allow all
-            return True
-
-        doctype_perm_table = compile_doctype_to_table(doctype_perm_def)
-
-        # Query: find permission for this doctype + user roles
-        stmt = select(doctype_perm_table).where(
-            doctype_perm_table.c.doctype_name == doctype,
-            doctype_perm_table.c.role.in_(user_roles),
+        rows = await grunt.db.get_all(
+            "DocTypePermission",
+            filters={"doctype_name": doctype},
+            limit=1000,
         )
-
-        result = await session.execute(stmt)
-        rows = result.fetchall()
-
-        # Check if any role has this permission
         for row in rows:
-            # Get the permission value (read, write, create, delete, submit, etc.)
-            perm_value = getattr(row, permission, False)
-            if perm_value:
+            if row.get("role") in user_roles and row.get(permission):
                 return True
-
         return False
 
     except Exception:
-        # On error, default to False (deny access)
         return False
 
 

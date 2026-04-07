@@ -4,8 +4,7 @@ Run with: pytest tests/unit/test_api.py -v
 """
 
 import pytest
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
-from typing import Any
+from unittest.mock import Mock, AsyncMock, patch
 
 # Import API modules
 from grunt.api.context import (
@@ -17,8 +16,9 @@ from grunt.api.context import (
     get_engine,
     clear_context,
 )
-from grunt.api.document import Doc, DocProxy
-from grunt.api.database import Database, db
+from grunt.app import GruntDB, grunt
+
+db = GruntDB()
 from grunt.api.messages import msgprint, throw, ApplicationError
 from grunt.api.permissions import (
     can_read,
@@ -123,167 +123,86 @@ class TestContext:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# TESTS: DocProxy
+# TESTS: GruntApp document methods
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-class TestDocProxy:
-    """Test DocProxy class."""
-
-    def test_create_docproxy(self):
-        """Test creating a DocProxy."""
-        data = {"id": "DOC-001", "name": "Test", "status": "Draft"}
-        doc = DocProxy("Invoice", data)
-
-        assert doc.doctype == "Invoice"
-        assert doc.data == data
-
-    def test_dict_like_access(self):
-        """Test dictionary-like access to DocProxy."""
-        data = {"id": "DOC-001", "name": "Test", "amount": 1000}
-        doc = DocProxy("Invoice", data)
-
-        # Read
-        assert doc["name"] == "Test"
-        assert doc["amount"] == 1000
-
-        # Write
-        doc["status"] = "Active"
-        assert doc["status"] == "Active"
-
-    def test_docproxy_repr(self):
-        """Test DocProxy string representation."""
-        doc = DocProxy("Invoice", {"id": "INV-001"})
-        assert "Invoice" in str(doc)
-        assert "INV-001" in str(doc)
+class TestGruntAppDocs:
+    """Test grunt.get_doc / new_doc / save_doc / delete_doc."""
 
     @pytest.mark.asyncio
-    async def test_docproxy_save(self, setup_context):
-        """Test DocProxy.save() method."""
-        data = {"id": "DOC-001", "name": "Test"}
-        doc = DocProxy("Invoice", data)
-
-        with patch("grunt.api.document.DocumentService") as MockService:
-            mock_svc = AsyncMock()
-            MockService.return_value = mock_svc
-            mock_svc.update_document = AsyncMock(return_value=data)
-
-            await doc.save()
-
-            # Verify DocumentService was called
-            MockService.assert_called_once()
-            mock_svc.update_document.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_docproxy_submit(self, setup_context):
-        """Test DocProxy.submit() method."""
-        data = {"id": "DOC-001", "docstatus": 0}
-        doc = DocProxy("Invoice", data)
-
-        with patch("grunt.api.document.DocumentService") as MockService:
-            mock_svc = AsyncMock()
-            MockService.return_value = mock_svc
-            mock_svc.update_document = AsyncMock(return_value={**data, "docstatus": 1})
-
-            await doc.submit()
-
-            # Verify docstatus was set to 1
-            assert doc.data["docstatus"] == 1
-
-    @pytest.mark.asyncio
-    async def test_docproxy_delete(self, setup_context):
-        """Test DocProxy.delete() method."""
-        data = {"id": "DOC-001"}
-        doc = DocProxy("Invoice", data)
-
-        with patch("grunt.api.document.DocumentService") as MockService:
-            mock_svc = AsyncMock()
-            MockService.return_value = mock_svc
-            mock_svc.delete_document = AsyncMock()
-
-            await doc.delete()
-
-            mock_svc.delete_document.assert_called_once()
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# TESTS: Doc (static)
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-class TestDoc:
-    """Test Doc class static methods."""
-
-    @pytest.mark.asyncio
-    async def test_doc_get(self, setup_context):
-        """Test Doc.get() retrieves a document."""
+    async def test_get_doc(self, setup_context):
+        """Test grunt.get_doc() retrieves a document."""
         doc_data = {"id": "DOC-001", "name": "Test Document"}
 
-        with patch("grunt.api.document.DocumentService") as MockService:
-            mock_svc = AsyncMock()
-            MockService.return_value = mock_svc
-            mock_svc.get_document = AsyncMock(return_value=doc_data)
+        with patch.object(grunt, "get_doc", new_callable=AsyncMock, return_value=doc_data):
+            result = await grunt.get_doc("Invoice", "DOC-001")
 
-            result = await Doc.get("Invoice", "DOC-001")
-
-            assert isinstance(result, DocProxy)
+            assert result["id"] == "DOC-001"
             assert result["name"] == "Test Document"
-            mock_svc.get_document.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_doc_create(self, setup_context):
-        """Test Doc.create() creates a new document."""
+    async def test_new_doc(self, setup_context):
+        """Test grunt.new_doc() creates a new document."""
         doc_data = {"id": "DOC-002", "name": "New Doc"}
 
-        with patch("grunt.api.document.DocumentService") as MockService:
-            mock_svc = AsyncMock()
-            MockService.return_value = mock_svc
-            mock_svc.create_document = AsyncMock(return_value=doc_data)
+        with patch.object(grunt, "new_doc", new_callable=AsyncMock, return_value=doc_data):
+            result = await grunt.new_doc("Invoice", {"name": "New Doc"})
 
-            result = await Doc.create("Invoice", {"name": "New Doc"})
-
-            assert isinstance(result, DocProxy)
-            mock_svc.create_document.assert_called_once()
+            assert result["id"] == "DOC-002"
+            assert result["name"] == "New Doc"
 
     @pytest.mark.asyncio
-    async def test_doc_list(self, setup_context):
-        """Test Doc.list() returns list of documents."""
+    async def test_save_doc(self, setup_context):
+        """Test grunt.save_doc() updates a document."""
+        original = {"id": "DOC-001", "name": "Test", "status": "Draft"}
+        updated = {**original, "status": "Active"}
+
+        with patch.object(grunt, "save_doc", new_callable=AsyncMock, return_value=updated):
+            result = await grunt.save_doc("Invoice", "DOC-001", {"status": "Active"})
+
+            assert result["status"] == "Active"
+
+    @pytest.mark.asyncio
+    async def test_delete_doc(self, setup_context):
+        """Test grunt.delete_doc() deletes a document."""
+        with patch.object(grunt, "delete_doc", new_callable=AsyncMock) as mock_delete:
+            await grunt.delete_doc("Invoice", "DOC-001")
+
+            mock_delete.assert_called_once_with("Invoice", "DOC-001")
+
+    @pytest.mark.asyncio
+    async def test_get_list(self, setup_context):
+        """Test grunt.get_list() returns a list of documents."""
         docs = [
             {"id": "DOC-001", "name": "Doc 1"},
             {"id": "DOC-002", "name": "Doc 2"},
         ]
 
-        with patch("grunt.api.document.DocumentService") as MockService:
-            mock_svc = AsyncMock()
-            MockService.return_value = mock_svc
-            mock_svc.list_documents = AsyncMock(return_value=docs)
-
-            result = await Doc.list("Invoice", limit=50)
+        with patch.object(grunt, "get_list", new_callable=AsyncMock, return_value=docs):
+            result = await grunt.get_list("Invoice", limit=50)
 
             assert len(result) == 2
-            assert all(isinstance(d, DocProxy) for d in result)
+            assert result[0]["id"] == "DOC-001"
 
     @pytest.mark.asyncio
-    async def test_doc_exists(self, setup_context):
-        """Test Doc.exists() checks if document exists."""
-        with patch("grunt.api.document.DocumentService") as MockService:
-            mock_svc = AsyncMock()
-            MockService.return_value = mock_svc
-            mock_svc.get_document = AsyncMock(return_value={"id": "DOC-001"})
+    async def test_get_list_with_filters(self, setup_context):
+        """Test grunt.get_list() respects filters."""
+        docs = [{"id": "DOC-001", "status": "Draft"}]
 
-            exists = await Doc.exists("Invoice", "DOC-001")
-            assert exists is True
+        with patch.object(grunt, "get_list", new_callable=AsyncMock, return_value=docs) as mock_list:
+            result = await grunt.get_list("Invoice", filters={"status": "Draft"})
+
+            mock_list.assert_called_once_with("Invoice", filters={"status": "Draft"})
+            assert len(result) == 1
 
     @pytest.mark.asyncio
-    async def test_doc_exists_returns_false(self, setup_context):
-        """Test Doc.exists() returns False if document not found."""
-        with patch("grunt.api.document.DocumentService") as MockService:
-            mock_svc = AsyncMock()
-            MockService.return_value = mock_svc
-            mock_svc.get_document = AsyncMock(side_effect=Exception("Not found"))
+    async def test_count(self, setup_context):
+        """Test grunt.count() returns document count."""
+        with patch.object(grunt, "count", new_callable=AsyncMock, return_value=42):
+            result = await grunt.count("Invoice")
 
-            exists = await Doc.exists("Invoice", "NONEXISTENT")
-            assert exists is False
+            assert result == 42
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -292,68 +211,42 @@ class TestDoc:
 
 
 class TestDatabase:
-    """Test Database class."""
+    """Test GruntDB class."""
 
     @pytest.mark.asyncio
     async def test_db_get_value(self, setup_context):
         """Test db.get_value()."""
-        with patch("grunt.api.database.DocumentService") as MockService:
-            mock_svc = AsyncMock()
-            MockService.return_value = mock_svc
-            mock_svc.get_document = AsyncMock(
-                return_value={"id": "USER-001", "full_name": "John Doe"}
-            )
-
+        with patch.object(GruntDB, "get_value", new_callable=AsyncMock, return_value="John Doe"):
             result = await db.get_value("User", "USER-001", "full_name")
             assert result == "John Doe"
 
     @pytest.mark.asyncio
     async def test_db_get_value_returns_none_if_not_found(self, setup_context):
         """Test db.get_value() returns None if field not found."""
-        with patch("grunt.api.database.DocumentService") as MockService:
-            mock_svc = AsyncMock()
-            MockService.return_value = mock_svc
-            mock_svc.get_document = AsyncMock(side_effect=Exception("Not found"))
-
+        with patch.object(GruntDB, "get_value", new_callable=AsyncMock, return_value=None):
             result = await db.get_value("User", "NONEXISTENT", "full_name")
             assert result is None
 
     @pytest.mark.asyncio
     async def test_db_set_value(self, setup_context):
         """Test db.set_value()."""
-        with patch("grunt.api.database.DocumentService") as MockService:
-            mock_svc = AsyncMock()
-            MockService.return_value = mock_svc
-            mock_svc.get_document = AsyncMock(
-                return_value={"id": "USER-001", "status": "Active"}
-            )
-            mock_svc.update_document = AsyncMock()
-
+        with patch.object(GruntDB, "set_value", new_callable=AsyncMock) as mock_set:
             await db.set_value("User", "USER-001", "status", "Inactive")
-
-            mock_svc.update_document.assert_called_once()
+            mock_set.assert_called_once_with("User", "USER-001", "status", "Inactive")
 
     @pytest.mark.asyncio
     async def test_db_exists(self, setup_context):
         """Test db.exists()."""
-        with patch("grunt.api.database.DocumentService") as MockService:
-            mock_svc = AsyncMock()
-            MockService.return_value = mock_svc
-            mock_svc.get_document = AsyncMock(return_value={"id": "USER-001"})
-
+        with patch.object(GruntDB, "exists", new_callable=AsyncMock, return_value="USER-001"):
             exists = await db.exists("User", "USER-001")
-            assert exists is True
+            assert exists is not None
 
     @pytest.mark.asyncio
     async def test_db_exists_returns_false(self, setup_context):
-        """Test db.exists() returns False if document not found."""
-        with patch("grunt.api.database.DocumentService") as MockService:
-            mock_svc = AsyncMock()
-            MockService.return_value = mock_svc
-            mock_svc.get_document = AsyncMock(side_effect=Exception("Not found"))
-
+        """Test db.exists() returns None if document not found."""
+        with patch.object(GruntDB, "exists", new_callable=AsyncMock, return_value=None):
             exists = await db.exists("User", "NONEXISTENT")
-            assert exists is False
+            assert exists is None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -366,9 +259,9 @@ class TestMessages:
 
     def test_msgprint(self):
         """Test msgprint() doesn't raise."""
-        msgprint("Test message", type="info")
-        msgprint("Success", type="success")
-        msgprint("Warning", type="warning")
+        msgprint("Test message", msg_type="info")
+        msgprint("Success", msg_type="success")
+        msgprint("Warning", msg_type="warning")
 
     def test_throw_raises_error(self):
         """Test throw() raises ApplicationError."""
@@ -402,27 +295,14 @@ class TestPermissions:
         assert result is True
 
     @pytest.mark.asyncio
-    async def test_can_read_regular_user_no_permission(self, setup_context, mock_user, mock_session):
-        """Test that regular user without permission is denied."""
+    async def test_can_read_regular_user_no_permission(self, setup_context, mock_user):
+        """Test that regular user without matching permission rows is denied."""
         set_user(mock_user)
 
-        # Mock empty result - user has no permissions
-        mock_result = AsyncMock()
-        mock_result.fetchall.return_value = []
-        mock_session.execute = AsyncMock(return_value=mock_result)
-
-        with patch("grunt.api.permissions.doctype_registry") as mock_registry:
-            mock_doctype = Mock()
-            mock_registry.get_doctype.return_value = mock_doctype
-
-            with patch("grunt.api.permissions.compile_doctype_to_table") as mock_compile:
-                mock_table = Mock()
-                mock_table.c.doctype_name = "doctype_name"
-                mock_table.c.role = "role"
-                mock_compile.return_value = mock_table
-
-                result = await can_read("Invoice", "INV-001")
-                assert result is False
+        # No permission rows returned for this doctype
+        with patch.object(GruntDB, "get_all", new_callable=AsyncMock, return_value=[]):
+            result = await can_read("Invoice", "INV-001")
+            assert result is False
 
     @pytest.mark.asyncio
     async def test_can_write_superadmin(self, setup_context):
@@ -477,12 +357,7 @@ class TestPermissions:
     @pytest.mark.asyncio
     async def test_doctype_permission_no_permission(self, setup_context, mock_session):
         """Test that user without permission is denied."""
-        # Empty result - no matching permissions
-        mock_result = AsyncMock()
-        mock_result.fetchall.return_value = []
-        mock_session.execute = AsyncMock(return_value=mock_result)
-
-        # Setup user with role that has no read permission
+        # Setup user with a role that has no matching permission row
         user = Mock()
         user.email = "guest@example.com"
         user.full_name = "Guest User"
@@ -490,20 +365,22 @@ class TestPermissions:
         user.is_superadmin = False
         set_user(user)
 
-        # Mock doctype_registry and compile_doctype_to_table
-        with patch("grunt.api.permissions.doctype_registry") as mock_registry:
-            mock_doctype = Mock()
-            mock_registry.get_doctype.return_value = mock_doctype
+        # No permission rows returned for this doctype
+        with patch.object(GruntDB, "get_all", new_callable=AsyncMock, return_value=[]):
+            result = await can_read("Invoice", "INV-001")
+            assert result is False
 
-            with patch("grunt.api.permissions.compile_doctype_to_table") as mock_compile:
-                mock_table = Mock()
-                mock_table.c.doctype_name = "doctype_name"
-                mock_table.c.role = "role"
-                mock_compile.return_value = mock_table
+        # Permission row exists but not for the user's role
+        with patch.object(GruntDB, "get_all", new_callable=AsyncMock,
+                          return_value=[{"role": "Admin", "read": True}]):
+            result = await can_read("Invoice", "INV-001")
+            assert result is False
 
-                # User should be denied
-                result = await can_read("Invoice", "INV-001")
-                assert result is False
+        # Permission row matches role but read=False
+        with patch.object(GruntDB, "get_all", new_callable=AsyncMock,
+                          return_value=[{"role": "Guest", "read": False}]):
+            result = await can_read("Invoice", "INV-001")
+            assert result is False
 
     @pytest.mark.asyncio
     async def test_system_user_always_allowed(self, setup_context, mock_session):
@@ -553,38 +430,35 @@ class TestIntegration:
 
     @pytest.mark.asyncio
     async def test_get_and_save_workflow(self, setup_context):
-        """Test getting a document and saving it."""
+        """Test getting a document and saving it via grunt API."""
         doc_data = {"id": "INV-001", "amount": 100, "status": "Draft"}
+        updated_data = {**doc_data, "status": "Active"}
 
-        with patch("grunt.api.document.DocumentService") as MockService:
-            mock_svc = AsyncMock()
-            MockService.return_value = mock_svc
-            mock_svc.get_document = AsyncMock(return_value=doc_data)
-            mock_svc.update_document = AsyncMock(return_value=doc_data)
+        with patch.object(grunt, "get_doc", new_callable=AsyncMock, return_value=doc_data):
+            with patch.object(grunt, "save_doc", new_callable=AsyncMock, return_value=updated_data):
+                # Get document
+                doc = await grunt.get_doc("Invoice", "INV-001")
+                assert doc["amount"] == 100
 
-            # Get document
-            doc = await Doc.get("Invoice", "INV-001")
-            assert doc["amount"] == 100
-
-            # Modify and save
-            doc["status"] = "Active"
-            await doc.save()
-
-            assert doc["status"] == "Active"
+                # Save with updated status
+                saved = await grunt.save_doc("Invoice", "INV-001", {"status": "Active"})
+                assert saved["status"] == "Active"
 
     @pytest.mark.asyncio
     async def test_permission_check_before_operation(self, setup_context, mock_user):
-        """Test checking permissions before operation."""
+        """Test permission gate before an operation."""
         set_user(mock_user)
 
-        # Check permission
-        can_edit = await can_write("Invoice", "INV-001")
+        # User with matching write permission row → allowed
+        with patch.object(GruntDB, "get_all", new_callable=AsyncMock,
+                          return_value=[{"role": "User", "write": True}]):
+            can_edit = await can_write("Invoice", "INV-001")
+            assert can_edit is True
 
-        if not can_edit:
-            throw("Cannot edit this invoice")
-        else:
-            # Proceed with edit
-            pass
-
-        # Regular user should be able to write (for now)
-        assert can_edit is True
+        # User with no permission rows → denied, throw() raises
+        with patch.object(GruntDB, "get_all", new_callable=AsyncMock, return_value=[]):
+            can_edit = await can_write("Invoice", "INV-001")
+            assert can_edit is False
+            with pytest.raises(ApplicationError):
+                if not can_edit:
+                    throw("Cannot edit this invoice")

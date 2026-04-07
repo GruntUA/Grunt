@@ -227,6 +227,17 @@ class DocumentService:
             elif field.fieldtype == "Check":
                 row[field.fieldname] = False  # Check fields default to False, never NULL
 
+        # Copy workflow state field (added as a column by compiler, not in dt.fields)
+        if dt.workflow:
+            sf = dt.workflow.state_field
+            if sf in data:
+                row[sf] = data[sf]
+            elif sf not in row:
+                # Auto-set to initial state if not provided
+                initial = next((s for s in dt.workflow.states if s.is_initial), None)
+                if initial:
+                    row[sf] = initial.name
+
         # Custom Controller Hooks
         _tokens = self._set_grunt_context(user)
         try:

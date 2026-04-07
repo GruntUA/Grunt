@@ -1,15 +1,16 @@
 """Ґрунт — Python Framework for Building CMS, ERP, and Business Apps.
 
 Primary imports for app developers:
-    from grunt import Doc, db, msgprint, throw, notify, can_read, can_write
+    from grunt import db, msgprint, throw, notify, can_read, can_write
 
 Example usage in a DocType controller:
-    from grunt import Doc, db, msgprint, get_current_user, can_read
+    from grunt import db, msgprint, get_current_user, can_read
+    from grunt.app import grunt
 
     class Invoice:
         async def before_save(self):
             # Get related document
-            order = await Doc.get("Order", self.doc.order_id)
+            order = await grunt.get_doc("Order", self.doc.order_id)
 
             # Check business rule
             if await db.exists("Lock", self.doc.id):
@@ -28,10 +29,8 @@ Example usage in a DocType controller:
 def __getattr__(name: str):
     """Lazy load API exports when first accessed."""
     if name in (
-        "Doc",
-        "DocProxy",
         "db",
-        "Database",
+        "GruntDB",
         "msgprint",
         "msgprint_list",
         "throw",
@@ -69,10 +68,8 @@ def __getattr__(name: str):
 
 
 __all__ = [
-    "Doc",
-    "DocProxy",
     "db",
-    "Database",
+    "GruntDB",
     "msgprint",
     "msgprint_list",
     "throw",

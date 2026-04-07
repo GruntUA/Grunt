@@ -74,7 +74,7 @@ class _DBProxy:
         self, doctype: str, filters: str | dict[str, Any], fieldname: str
     ) -> Any:
         from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.app import _session_ctx  # noqa: PLC0415
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
         token = _session_ctx.set(self._session)
         try:
@@ -92,7 +92,7 @@ class _DBProxy:
         self, doctype: str, doc_id: str, fieldname: str, value: Any
     ) -> None:
         from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.app import _session_ctx  # noqa: PLC0415
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
         token = _session_ctx.set(self._session)
         try:
@@ -106,7 +106,7 @@ class _DBProxy:
 
     async def _async_exists(self, doctype: str, filters: str | dict[str, Any]) -> str | None:
         from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.app import _session_ctx  # noqa: PLC0415
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
         token = _session_ctx.set(self._session)
         try:
@@ -137,7 +137,7 @@ class _DBProxy:
         order: str,
     ) -> list[dict[str, Any]]:
         from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.app import _session_ctx  # noqa: PLC0415
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
         token = _session_ctx.set(self._session)
         try:
@@ -299,7 +299,8 @@ class ScriptContext:
         return self._bridge.run(self._async_new_doc(doctype, data))
 
     async def _async_new_doc(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
-        from grunt.app import grunt as _grunt, _session_ctx, _engine_ctx, _user_ctx  # noqa: PLC0415
+        from grunt.app import grunt as _grunt  # noqa: PLC0415
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
         token = _session_ctx.set(self._session)
         try:
@@ -319,7 +320,7 @@ class ScriptContext:
         return self._bridge.run(self._async_save_doc(doctype, id_or_name, data))
 
     async def _async_save_doc(self, doctype: str, id_or_name: str, data: dict[str, Any]) -> dict[str, Any]:
-        from grunt.app import _session_ctx  # noqa: PLC0415
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from datetime import datetime, timezone  # noqa: PLC0415

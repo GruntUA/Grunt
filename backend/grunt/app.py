@@ -44,11 +44,15 @@ Typical usage in a hook function::
 
 from __future__ import annotations
 
-from contextvars import ContextVar
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import structlog
+from sqlalchemy import func, or_, select
+
+from grunt.core.context import _engine_ctx, _session_ctx, _user_ctx
+from grunt.core.metadata.compiler import compile_doctype_to_table
+from grunt.core.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -57,12 +61,6 @@ if TYPE_CHECKING:
     from grunt.core.metadata.doctype import DocType
 
 logger = structlog.get_logger()
-
-# ── Per-request context ───────────────────────────────────────────────────────
-
-_session_ctx: ContextVar[AsyncSession | None] = ContextVar("grunt_session", default=None)
-_engine_ctx: ContextVar[AsyncEngine | None] = ContextVar("grunt_engine", default=None)
-_user_ctx: ContextVar[GruntUser | None] = ContextVar("grunt_user", default=None)
 
 
 # ── GruntError ────────────────────────────────────────────────────────────────
@@ -117,11 +115,6 @@ class GruntDB:
         Returns:
             Field value, or ``None`` if no document matches.
         """
-        from sqlalchemy import select  # noqa: PLC0415
-
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
         col = table.c.get(fieldname)
@@ -150,9 +143,6 @@ class GruntDB:
             fieldname: Field name (str) or a dict of {field: value} pairs.
             value: New value (ignored when fieldname is a dict).
         """
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
         values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
@@ -177,11 +167,6 @@ class GruntDB:
         Returns:
             Document ``name`` value, or ``None``.
         """
-        from sqlalchemy import select  # noqa: PLC0415
-
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
         stmt = select(table.c.name)
@@ -228,11 +213,6 @@ class GruntDB:
         Returns:
             List of dicts, or a flat list of values when ``pluck`` is set.
         """
-        from sqlalchemy import select, or_  # noqa: PLC0415
-
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
 
@@ -247,10 +227,9 @@ class GruntDB:
             stmt = _apply_db_filters(stmt, table, filters)
 
         if or_filters:
-            from sqlalchemy import or_ as _or  # noqa: PLC0415
-            or_clauses = _build_or_clauses(table, or_filters)
+            or_clauses = _build_clauses(table, or_filters)
             if or_clauses:
-                stmt = stmt.where(_or(*or_clauses))
+                stmt = stmt.where(or_(*or_clauses))
 
         sort_col = table.c.get(order_by or "modified_at")
         if sort_col is None:
@@ -287,11 +266,6 @@ class GruntDB:
             data = await grunt.db.get_values("User", "admin@grunt.local", ["full_name", "email"])
             # {"full_name": "Admin", "email": "admin@grunt.local"}
         """
-        from sqlalchemy import select  # noqa: PLC0415
-
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
         cols = [table.c[f] for f in fieldnames if f in table.c]
@@ -321,11 +295,6 @@ class GruntDB:
 
             lang = await grunt.db.get_single_value("SystemSettings", "language")
         """
-        from sqlalchemy import select  # noqa: PLC0415
-
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
         col = table.c.get(fieldname)
@@ -349,11 +318,6 @@ class GruntDB:
 
             total = await grunt.db.count("Order", {"status": "Open"})
         """
-        from sqlalchemy import func, select  # noqa: PLC0415
-
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
         stmt = select(func.count()).select_from(table)
@@ -386,9 +350,6 @@ class GruntDB:
         """
         if not filters:
             raise ValueError("grunt.db.delete requires at least one filter to prevent accidental full-table deletion.")
-
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
@@ -427,10 +388,7 @@ class GruntDB:
             List of dicts with aggregated data.
         """
         import re  # noqa: PLC0415
-        from sqlalchemy import func, select, text  # noqa: PLC0415
-
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from sqlalchemy import text  # noqa: PLC0415
 
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
@@ -636,6 +594,11 @@ class GruntApp:
 
     # ── Document CRUD ─────────────────────────────────────────────────────
 
+    def _svc(self):
+        from grunt.core.document.service import DocumentService  # noqa: PLC0415
+
+        return DocumentService(self._require_session(), self._require_engine())
+
     async def get_doc(self, doctype: str, id_or_name: str) -> dict[str, Any]:
         """Fetch a single document by id or name.
 
@@ -649,10 +612,7 @@ class GruntApp:
         Raises:
             :class:`~fastapi.HTTPException` (404) if not found.
         """
-        from grunt.core.document.service import DocumentService  # noqa: PLC0415
-
-        svc = DocumentService(self._require_session(), self._require_engine())
-        return await svc.get_document(doctype, id_or_name, self._require_user())
+        return await self._svc().get_document(doctype, id_or_name, self._require_user())
 
     async def new_doc(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
         """Create a new document and return it.
@@ -667,10 +627,7 @@ class GruntApp:
         Returns:
             The created document as a plain dict (includes generated ``id`` and ``name``).
         """
-        from grunt.core.document.service import DocumentService  # noqa: PLC0415
-
-        svc = DocumentService(self._require_session(), self._require_engine())
-        return await svc.create_document(doctype, data, self._require_user())
+        return await self._svc().create_document(doctype, data, self._require_user())
 
     async def save_doc(
         self,
@@ -690,10 +647,7 @@ class GruntApp:
         Returns:
             The updated document as a plain dict.
         """
-        from grunt.core.document.service import DocumentService  # noqa: PLC0415
-
-        svc = DocumentService(self._require_session(), self._require_engine())
-        return await svc.update_document(doctype, id_or_name, data, self._require_user())
+        return await self._svc().update_document(doctype, id_or_name, data, self._require_user())
 
     async def delete_doc(self, doctype: str, id_or_name: str) -> None:
         """Delete a document.
@@ -704,10 +658,7 @@ class GruntApp:
             doctype: DocType name.
             id_or_name: Document id or name.
         """
-        from grunt.core.document.service import DocumentService  # noqa: PLC0415
-
-        svc = DocumentService(self._require_session(), self._require_engine())
-        await svc.delete_document(doctype, id_or_name, self._require_user())
+        await self._svc().delete_document(doctype, id_or_name, self._require_user())
 
     async def get_list(
         self,
@@ -736,10 +687,7 @@ class GruntApp:
         Returns:
             List of document dicts.
         """
-        from grunt.core.document.service import DocumentService  # noqa: PLC0415
-
-        svc = DocumentService(self._require_session(), self._require_engine())
-        result = await svc.list_documents(
+        result = await self._svc().list_documents(
             doctype,
             self._require_user(),
             page=page,
@@ -776,9 +724,6 @@ class GruntApp:
 
         from sqlalchemy.dialects.postgresql import insert as pg_insert  # noqa: PLC0415
         from sqlalchemy import insert  # noqa: PLC0415
-
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
@@ -832,9 +777,6 @@ class GruntApp:
         from datetime import datetime, timezone  # noqa: PLC0415
         from sqlalchemy import update  # noqa: PLC0415
 
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
         session = self._require_session()
@@ -871,21 +813,7 @@ class GruntApp:
         Returns:
             Number of matching documents.
         """
-        from sqlalchemy import func, select  # noqa: PLC0415
-
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
-        stmt = select(func.count()).select_from(table)
-        if filters:
-            for key, value in filters.items():
-                col = table.c.get(key)
-                if col is not None:
-                    stmt = stmt.where(col == value)
-        result = await self._require_session().execute(stmt)
-        return result.scalar() or 0
+        return await self.db.count(doctype, filters=filters)
 
     # ── Meta ──────────────────────────────────────────────────────────────
 
@@ -898,8 +826,6 @@ class GruntApp:
         Returns:
             DocType pydantic model instance.
         """
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
         return await doctype_registry.get(doctype)
 
     # ── Notifications / realtime ──────────────────────────────────────────
@@ -1208,14 +1134,11 @@ def _collect_template_dirs() -> list[str]:
 
 
 def _apply_filters(stmt: Any, table: Any, filters: str | dict[str, Any]) -> Any:
-    """Apply id/name or dict filters to a select statement."""
+    """Apply id/name (str) or operator-aware dict filters to a statement."""
     if isinstance(filters, str):
         stmt = stmt.where((table.c.id == filters) | (table.c.name == filters))
     elif isinstance(filters, dict):
-        for k, v in filters.items():
-            col = table.c.get(k)
-            if col is not None:
-                stmt = stmt.where(col == v)
+        stmt = _apply_db_filters(stmt, table, filters)
     return stmt
 
 
@@ -1243,14 +1166,27 @@ def _format_msgprint(
     return str(msg)
 
 
-def _build_or_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
-    """Build a list of SQLAlchemy clauses from a flat filter dict (for OR composition)."""
-    _OPS = ("__gte", "__lte", "__gt", "__lt", "__like", "__in")
+_FILTER_OPS = ("__gte", "__lte", "__gt", "__lt", "__like", "__in", "__nin")
+
+
+def _build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
+    """Build SQLAlchemy WHERE clauses from a filter dict.
+
+    Supported operator suffixes:
+        ``__gte``  → ``>=``
+        ``__lte``  → ``<=``
+        ``__gt``   → ``>``
+        ``__lt``   → ``<``
+        ``__like`` → ``LIKE '%value%'``
+        ``__in``   → ``IN (value)``   (value must be a list)
+        ``__nin``  → ``NOT IN (value)`` (value must be a list)
+        (none)     → ``=``
+    """
     clauses: list[Any] = []
     for key, value in filters.items():
         op = "eq"
         fieldname = key
-        for suffix in _OPS:
+        for suffix in _FILTER_OPS:
             if key.endswith(suffix):
                 fieldname = key[: -len(suffix)]
                 op = suffix[2:]
@@ -1272,21 +1208,13 @@ def _build_or_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
             clauses.append(col.like(f"%{value}%"))
         elif op == "in":
             clauses.append(col.in_(value))
+        elif op == "nin":
+            clauses.append(col.not_in(value))
     return clauses
 
 
 def _apply_db_filters(stmt: Any, table: Any, filters: dict[str, Any]) -> Any:
-    """Apply AND-filters with operator suffixes to a statement.
-
-    Supported operators (appended to the field name with ``__``):
-        ``__gte``  → ``>=``
-        ``__lte``  → ``<=``
-        ``__gt``   → ``>``
-        ``__lt``   → ``<``
-        ``__like`` → ``LIKE '%value%'``
-        ``__in``   → ``IN (value)``  (value must be a list)
-        (none)     → ``=``
-    """
-    for clause in _build_or_clauses(table, filters):
+    """Apply AND-filters with operator suffixes to a statement."""
+    for clause in _build_clauses(table, filters):
         stmt = stmt.where(clause)
     return stmt

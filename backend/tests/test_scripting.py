@@ -1,5 +1,9 @@
 """Tests for the scripting module — Server Script sandbox and Client Script loading."""
 
+import pytest
+from grunt.core.scripting.server_script import ServerScriptRunner, ScriptResult
+from grunt.core.scripting.safe_globals import build_safe_globals, validate_script
+
 
 try:
     validate_script  # type: ignore[name-defined]
@@ -94,95 +98,108 @@ class TestServerScriptExecute:
     def setup_method(self):
         self.runner = ServerScriptRunner()
 
-    def test_simple_script(self):
-        result = self.runner.execute("x = 1 + 2")
+    @pytest.mark.asyncio
+    async def test_simple_script(self):
+        result = await self.runner.execute("x = 1 + 2")
         assert result.success is True
         assert result.error == ""
 
-    def test_script_with_doc(self):
-        result = self.runner.execute(
+    @pytest.mark.asyncio
+    async def test_script_with_doc(self):
+        result = await self.runner.execute(
             "grunt.response = {'total': doc['qty'] * doc['rate']}",
             doc={"qty": 5, "rate": 100},
         )
         assert result.success is True
         assert result.response["total"] == 500
 
-    def test_script_output_capture(self):
-        result = self.runner.execute('print("hello world")')
+    @pytest.mark.asyncio
+    async def test_script_output_capture(self):
+        result = await self.runner.execute('print("hello world")')
         assert result.success is True
         assert "hello world" in result.output
 
-    def test_script_throw(self):
-        result = self.runner.execute('grunt.throw("not allowed")')
+    @pytest.mark.asyncio
+    async def test_script_throw(self):
+        result = await self.runner.execute('grunt.throw("not allowed")')
         assert result.success is False
         assert "not allowed" in result.error
 
-    def test_script_runtime_error(self):
-        result = self.runner.execute("x = 1 / 0")
+    @pytest.mark.asyncio
+    async def test_script_runtime_error(self):
+        result = await self.runner.execute("x = 1 / 0")
         assert result.success is False
         assert "ZeroDivisionError" in result.error
 
-    def test_script_name_error(self):
+    @pytest.mark.asyncio
+    async def test_script_name_error(self):
         """Accessing undefined names raises an error (os. is blocked by validator)."""
-        result = self.runner.execute("os.system('ls')")
+        result = await self.runner.execute("os.system('ls')")
         assert result.success is False
-        # Blocked at validation stage — contains "os" error message
         assert "os" in result.error.lower()
 
-    def test_blocked_script_rejected(self):
-        result = self.runner.execute("import os\nos.system('ls')")
+    @pytest.mark.asyncio
+    async def test_blocked_script_rejected(self):
+        result = await self.runner.execute("import os\nos.system('ls')")
         assert result.success is False
         assert "import" in result.error.lower() or "заборонено" in result.error.lower()
 
-    def test_script_can_use_datetime(self):
-        result = self.runner.execute(
+    @pytest.mark.asyncio
+    async def test_script_can_use_datetime(self):
+        result = await self.runner.execute(
             "grunt.response = {'year': datetime.now().year}"
         )
         assert result.success is True
         from datetime import datetime
         assert result.response["year"] == datetime.now().year
 
-    def test_script_can_use_json(self):
-        result = self.runner.execute(
+    @pytest.mark.asyncio
+    async def test_script_can_use_json(self):
+        result = await self.runner.execute(
             'grunt.response = json.loads(\'{"a": 1}\')'
         )
         assert result.success is True
         assert result.response == {"a": 1}
 
-    def test_script_can_use_math(self):
-        result = self.runner.execute(
+    @pytest.mark.asyncio
+    async def test_script_can_use_math(self):
+        result = await self.runner.execute(
             "grunt.response = {'pi': round(math.pi, 2)}"
         )
         assert result.success is True
         assert result.response["pi"] == 3.14
 
-    def test_script_can_use_re(self):
-        result = self.runner.execute(
+    @pytest.mark.asyncio
+    async def test_script_can_use_re(self):
+        result = await self.runner.execute(
             "grunt.response = {'match': bool(re.match(r'^INV-', 'INV-001'))}"
         )
         assert result.success is True
         assert result.response["match"] is True
 
-    def test_script_extra_context(self):
-        result = self.runner.execute(
+    @pytest.mark.asyncio
+    async def test_script_extra_context(self):
+        result = await self.runner.execute(
             "grunt.response = {'sum': params['a'] + params['b']}",
             extra_context={"params": {"a": 3, "b": 7}},
         )
         assert result.success is True
         assert result.response["sum"] == 10
 
-    def test_script_flags(self):
-        result = self.runner.execute(
+    @pytest.mark.asyncio
+    async def test_script_flags(self):
+        result = await self.runner.execute(
             "grunt.flags['skip_email'] = True\n"
             "grunt.response = {'flags': dict(grunt.flags)}"
         )
         assert result.success is True
         assert result.response["flags"]["skip_email"] is True
 
-    def test_doc_mutation(self):
+    @pytest.mark.asyncio
+    async def test_doc_mutation(self):
         """Scripts can modify doc dict."""
         doc = {"status": "Draft", "amount": 100}
-        result = self.runner.execute(
+        result = await self.runner.execute(
             "doc['status'] = 'Validated'\ndoc['tax'] = doc['amount'] * 0.2",
             doc=doc,
         )

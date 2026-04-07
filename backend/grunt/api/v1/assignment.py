@@ -6,6 +6,7 @@ import json
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
 from grunt.app import grunt
 from grunt.core.assignment import assignment_service
@@ -14,10 +15,14 @@ from grunt.core.auth.dependencies import grunt_context
 router = APIRouter(prefix="/assignment-rules", tags=["assignment"])
 
 
+class TestRuleRequest(BaseModel):
+    test_doc: dict[str, Any]
+
+
 @router.post("/{rule_id}/test")
 async def test_assignment_rule(
     rule_id: str,
-    test_doc: dict[str, Any],
+    body: TestRuleRequest,
     _: None = Depends(grunt_context),
 ) -> dict[str, Any]:
     """Test an assignment rule against a sample document.
@@ -63,6 +68,7 @@ async def test_assignment_rule(
             pass
 
         # Test if doc matches filters
+        test_doc = body.test_doc
         matched = assignment_service._match_filters(test_doc, filters)
 
         # Determine who would be assigned

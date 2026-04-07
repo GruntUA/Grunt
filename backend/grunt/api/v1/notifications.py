@@ -4,16 +4,21 @@ from __future__ import annotations
 
 from typing import Any
 
+import structlog
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt.core.auth.dependencies import current_user
+from grunt.app import grunt
+from grunt.core.auth.dependencies import current_user, grunt_context
 from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_session
-from grunt.core.notification import notification_service
 
+logger = structlog.get_logger()
 router = APIRouter(prefix="/notifications", tags=["notifications"])
+
+
+# ── Schemas ───────────────────────────────────────────────────────────────────
 
 
 class SendNotificationRequest(BaseModel):
@@ -26,69 +31,76 @@ class SendNotificationRequest(BaseModel):
     doc_id: str | None = None
 
 
-@router.get("")
-async def list_notifications(
-    unread_only: bool = Query(False),
-    limit: int = Query(20, ge=1, le=100),
-    offset: int = Query(0, ge=0),
-    user: GruntUser = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
-) -> dict[str, Any]:
-    """Get notifications for the current user."""
-    data = await notification_service.get_notifications(
-        session, user.email, unread_only=unread_only, limit=limit, offset=offset
-    )
-    return {"success": True, "data": data}
-
-
-@router.patch("/{notification_id}/read")
-async def mark_notification_read(
-    notification_id: str,
-    user: GruntUser = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
-) -> dict[str, Any]:
-    """Mark a notification as read."""
-    await notification_service.mark_read(session, notification_id)
-    await session.commit()
-    return {"success": True}
-
-
-@router.post("/read-all")
-async def mark_all_notifications_read(
-    user: GruntUser = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
-) -> dict[str, Any]:
-    """Mark all notifications as read for the current user."""
-    count = await notification_service.mark_all_read(session, user.email)
-    await session.commit()
-    return {"success": True, "count": count}
-
-
-@router.get("/unread-count")
-async def unread_count(
-    user: GruntUser = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
-) -> dict[str, Any]:
-    """Get the count of unread notifications for the current user."""
-    from grunt.app import grunt  # noqa: PLC0415
-
-    _tokens = grunt.set_context(session, None, None)
-    try:
-        count = await grunt.count("Notification", filters={"user": user.email, "is_read": False})
-    finally:
-        grunt.reset_context(_tokens)
-    return {"success": True, "count": count}
-
-
 class PushSubscribeRequest(BaseModel):
     endpoint: str
     p256dh: str
     auth: str
 
 
+# ── Endpoints ─────────────────────────────────────────────────────────────────
+
+
+@router.get("")
+async def list_notifications(
+    unread_only: bool = Query(False),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
+    user: GruntUser = Depends(current_user),
+    _: None = Depends(grunt_context),
+) -> dict[str, Any]:
+    """Get notifications for the current user."""
+    filters: dict[str, Any] = {"user": user.email}
+    if unread_only:
+        filters["is_read"] = False
+    total = await grunt.count("Notification", filters=filters)
+    data = await grunt.get_list(
+        "Notification",
+        filters=filters,
+        page=page,
+        limit=per_page,
+        order_by="created_at",
+        order="desc",
+    )
+    return {"data": data, "total": total, "page": page, "per_page": per_page}
+
+
+@router.patch("/{notification_id}/read")
+async def mark_notification_read(
+    notification_id: str,
+    _: None = Depends(grunt_context),
+) -> dict[str, Any]:
+    """Mark a notification as read."""
+    await grunt.db.set_value("Notification", notification_id, "is_read", True)
+    return {"success": True}
+
+
+@router.post("/read-all")
+async def mark_all_notifications_read(
+    user: GruntUser = Depends(current_user),
+    _: None = Depends(grunt_context),
+) -> dict[str, Any]:
+    """Mark all notifications as read for the current user."""
+    count = await grunt.bulk_update(
+        "Notification",
+        filters={"user": user.email, "is_read": False},
+        values={"is_read": True},
+    )
+    return {"success": True, "count": count}
+
+
+@router.get("/unread-count")
+async def unread_count(
+    user: GruntUser = Depends(current_user),
+    _: None = Depends(grunt_context),
+) -> dict[str, Any]:
+    """Get the count of unread notifications for the current user."""
+    count = await grunt.count("Notification", filters={"user": user.email, "is_read": False})
+    return {"success": True, "count": count}
+
+
 @router.get("/vapid-public-key")
 async def get_vapid_public_key(
-    user: GruntUser = Depends(current_user),
+    _: GruntUser = Depends(current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     """Return the VAPID public key needed to subscribe to Web Push."""
@@ -97,8 +109,6 @@ async def get_vapid_public_key(
     key = await webpush_service.get_vapid_public_key(session)
     if not key:
         key = await webpush_service.ensure_vapid_keys(session)
-        if key:
-            await session.commit()
     return {"success": True, "public_key": key}
 
 
@@ -122,7 +132,7 @@ async def push_subscribe(
 @router.delete("/push-subscribe")
 async def push_unsubscribe(
     body: PushSubscribeRequest,
-    user: GruntUser = Depends(current_user),
+    _: GruntUser = Depends(current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     """Remove a browser push subscription."""
@@ -135,20 +145,13 @@ async def push_unsubscribe(
 @router.post("/send")
 async def send_notification(
     body: SendNotificationRequest,
-    user: GruntUser = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
+    _: None = Depends(grunt_context),
 ) -> dict[str, Any]:
-    """Send a notification to one or more users programmatically.
-
-    This endpoint wraps ``grunt.publish.notify`` for use via REST API.
-    """
-    from grunt.publish import notify  # noqa: PLC0415
-
-    ids = await notify(
+    """Send a notification to one or more users programmatically."""
+    ids = await grunt.notify(
         users=body.users,
         subject=body.subject,
         message=body.message,
-        session=session,
         doctype=body.doctype,
         doc_id=body.doc_id,
     )

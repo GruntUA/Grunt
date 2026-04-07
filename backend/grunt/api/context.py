@@ -1,10 +1,7 @@
 """Context management for Grunt API — access session/user/engine without passing parameters.
 
-Uses contextvars to store:
-- Current session (AsyncSession)
-- Current user (GruntUser)
-- Current engine (AsyncEngine)
-- Current site
+Uses contextvars (defined in grunt.core.context) to store the current session,
+user, engine, and site for the duration of each request or task.
 
 This allows developers to write:
     from grunt import Doc
@@ -13,48 +10,42 @@ This allows developers to write:
 Without needing to import and pass session/user/engine everywhere.
 """
 
-from contextvars import ContextVar
+from __future__ import annotations
+
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.core.auth.models import GruntUser
-
-# Context variables (per-request or per-task)
-_session_var: ContextVar[Optional[AsyncSession]] = ContextVar("grunt_session", default=None)
-_user_var: ContextVar[Optional[GruntUser]] = ContextVar("grunt_user", default=None)
-_engine_var: ContextVar[Optional[AsyncEngine]] = ContextVar("grunt_engine", default=None)
-_site_var: ContextVar[Optional[str]] = ContextVar("grunt_site", default=None)
+from grunt.core.context import _engine_ctx, _session_ctx, _site_ctx, _user_ctx
 
 
 def set_session(session: AsyncSession) -> None:
     """Set the current async session (called by FastAPI dependency or scheduler)."""
-    _session_var.set(session)
+    _session_ctx.set(session)
 
 
 def get_session() -> AsyncSession:
     """Get the current session from context."""
-    session = _session_var.get()
+    session = _session_ctx.get()
     if session is None:
         raise RuntimeError(
             "No session in context. "
-            "Grunt API must be called from within a request or task with active session. "
-            "Use: async with grunt.api.set_session_context(session, user, engine) as ctx:"
+            "Grunt API must be called from within a request or task with active session."
         )
     return session
 
 
 def set_user(user: GruntUser) -> None:
     """Set the current user."""
-    _user_var.set(user)
+    _user_ctx.set(user)
 
 
 def get_user() -> GruntUser:
     """Get the current user (may be anonymous for scheduler tasks)."""
-    user = _user_var.get()
+    user = _user_ctx.get()
     if user is None:
-        # Return a system user (for scheduler tasks)
-        from grunt.core.auth.models import GruntUser as _GruntUser
+        from grunt.core.auth.models import GruntUser as _GruntUser  # noqa: PLC0415
 
         return _GruntUser(
             id="system",
@@ -68,14 +59,14 @@ def get_user() -> GruntUser:
 
 def set_engine(engine: AsyncEngine) -> None:
     """Set the current engine."""
-    _engine_var.set(engine)
+    _engine_ctx.set(engine)
 
 
 def get_engine() -> AsyncEngine:
     """Get the current engine."""
-    engine = _engine_var.get()
+    engine = _engine_ctx.get()
     if engine is None:
-        from grunt.core.site.manager import site_manager
+        from grunt.core.site.manager import site_manager  # noqa: PLC0415
 
         site = get_site()
         engine = site_manager.get_engine(site)
@@ -85,14 +76,14 @@ def get_engine() -> AsyncEngine:
 
 def set_site(site: str) -> None:
     """Set the current site."""
-    _site_var.set(site)
+    _site_ctx.set(site)
 
 
 def get_site() -> str:
     """Get the current site."""
-    site = _site_var.get()
+    site = _site_ctx.get()
     if site is None:
-        from grunt.core.site.manager import site_manager
+        from grunt.core.site.manager import site_manager  # noqa: PLC0415
 
         site = site_manager.get_active_site()
         return site
@@ -101,7 +92,7 @@ def get_site() -> str:
 
 def clear_context() -> None:
     """Clear all context variables (on request end)."""
-    _session_var.set(None)
-    _user_var.set(None)
-    _engine_var.set(None)
-    _site_var.set(None)
+    _session_ctx.set(None)
+    _user_ctx.set(None)
+    _engine_ctx.set(None)
+    _site_ctx.set(None)

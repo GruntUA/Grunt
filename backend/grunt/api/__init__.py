@@ -5,12 +5,13 @@ needing to import and manage session/user/engine manually.
 
 Usage in your app:
 
-    from grunt import Doc, db, msgprint, throw, notify, get_current_user, can_read
+    from grunt import db, msgprint, throw, notify, get_current_user, can_read
 
     class MyDocType:
         async def before_save(self):
             # Get another document
-            user = await Doc.get("User", self.doc.owner)
+            from grunt.app import grunt
+            user = await grunt.get_doc("User", self.doc.owner)
 
             # Check a value
             if await db.exists("Contract", self.doc.contract_id):
@@ -42,16 +43,15 @@ from grunt.api.context import (
     set_user,
 )
 from grunt.api.activity import (
-    Comment,
-    ActivityEntry,
     add_comment,
     get_comments,
     delete_comment,
     log_activity,
     get_activity_log,
 )
-from grunt.api.database import Database, db
-from grunt.api.document import Doc, DocProxy
+from grunt.app import GruntDB
+
+db = GruntDB()
 from grunt.api.messages import (
     ApplicationError,
     msgprint,
@@ -71,12 +71,9 @@ from grunt.api.permissions import (
 )
 
 __all__ = [
-    # Document API
-    "Doc",
-    "DocProxy",
     # Database API
     "db",
-    "Database",
+    "GruntDB",
     # Messages
     "msgprint",
     "msgprint_list",
@@ -86,8 +83,6 @@ __all__ = [
     "queue_email",
     "ApplicationError",
     # Comments & Activity
-    "Comment",
-    "ActivityEntry",
     "add_comment",
     "get_comments",
     "delete_comment",

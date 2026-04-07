@@ -99,19 +99,19 @@ async def list_doctypes(
     ]
 
 
-@router.post("/doctypes", response_model=DocTypeSchema, status_code=status.HTTP_201_CREATED)
+@router.post("/doctypes", status_code=status.HTTP_201_CREATED)
 async def create_doctype(
     body: DocType,
     session: AsyncSession = Depends(get_session),
     _user: GruntUser = Depends(superadmin_user),
     eng: AsyncEngine = Depends(get_engine),
-) -> DocTypeSchema:
+) -> dict:
     """Create a new DocType — validates, persists, syncs table, exports files."""
     await doctype_registry.register(body, session, eng)
     await _sync_doctype_doc(body, session)
     app_name = await _get_app_name_for_module(body.module or "", session)
     export_doctype_files(body, app_name=app_name)
-    return _doctype_to_schema(body)
+    return {"success": True, "data": _doctype_to_schema(body).model_dump()}
 
 
 @router.get("/doctypes/{name}", response_model=DocTypeSchema)

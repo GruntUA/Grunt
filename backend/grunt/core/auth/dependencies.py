@@ -46,6 +46,9 @@ async def current_user(
     user = await get_user_by_email(email, session)
     if user is None or not user.is_active:
         raise credentials_exception
+    from grunt.api.context import set_user  # noqa: PLC0415
+
+    set_user(user)
     return user
 
 

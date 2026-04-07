@@ -12,8 +12,8 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
     """FastAPI dependency that yields a transactional async session for the active site.
 
     Also sets the session in the Grunt API context so developers can use:
-        from grunt import Doc
-        doc = await Doc.get(...)
+        from grunt.app import grunt
+        doc = await grunt.get_doc(...)
     """
     site_name = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site_name)

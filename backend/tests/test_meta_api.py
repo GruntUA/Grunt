@@ -30,7 +30,7 @@ async def test_create_doctype(client: AsyncClient, auth_headers: dict):
         headers=auth_headers,
     )
     assert resp.status_code == 201
-    data = resp.json()
+    data = resp.json()["data"]
     assert data["name"] == "Task"
     assert data["module"] == "core"
     assert len(data["fields"]) == 3

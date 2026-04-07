@@ -5,7 +5,7 @@ from __future__ import annotations
 from pydantic import BaseModel, EmailStr
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.core.middleware.rate_limit import limiter
 
@@ -27,7 +27,7 @@ from grunt.core.doctypes.User.User import (
     hash_password,
     list_users as service_list_users,
 )
-from grunt.core.db.session import get_session
+from grunt.core.db.session import get_session, get_engine
 
 router = APIRouter()
 
@@ -363,12 +363,13 @@ class AddRoleRequest(BaseModel):
 async def create_role(
     body: AddRoleRequest,
     session: AsyncSession = Depends(get_session),
+    engine: AsyncEngine = Depends(get_engine),
     _: GruntUser = Depends(superadmin_user),
 ) -> dict:
     """Create a new role."""
     from grunt.app import grunt  # noqa: PLC0415
 
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    _tokens = grunt.set_context(session, engine, SYSTEM_USER)
     try:
         existing = await grunt.db.get_all("Role", filters={"role_name": body.role_name}, limit=1)
         if existing:
@@ -385,6 +386,7 @@ async def add_user_role(
     user_id: str,
     body: AddRoleRequest,
     session: AsyncSession = Depends(get_session),
+    engine: AsyncEngine = Depends(get_engine),
     _: GruntUser = Depends(superadmin_user),
 ) -> dict:
     """Assign a role to a user."""
@@ -394,7 +396,7 @@ async def add_user_role(
     if not target_user:
         raise HTTPException(status_code=404, detail="Користувача не знайдено")
 
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    _tokens = grunt.set_context(session, engine, SYSTEM_USER)
     try:
         # Ensure role exists
         if not await grunt.db.get_all("Role", filters={"role_name": body.role_name}, limit=1):
