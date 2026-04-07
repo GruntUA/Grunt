@@ -14,18 +14,22 @@ Results are exposed via /api/v1/dev/profiler.
 
 from __future__ import annotations
 
+import asyncio
+import functools
 import time
 import threading
 from collections import deque
-from contextlib import contextmanager
+from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field, asdict
-from typing import Generator
+from typing import Any, AsyncGenerator, Callable, Generator, TypeVar
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 logger = structlog.get_logger()
+
+F = TypeVar("F", bound=Callable[..., Any])
 
 # ── Data structures ────────────────────────────────────────────────────────
 
@@ -36,6 +40,13 @@ class QueryRecord:
     param_count: int
     slow: bool
     request_id: str | None = None
+
+
+@dataclass
+class SpanRecord:
+    """One named code span (method call, service operation, etc.)."""
+    name: str
+    duration_ms: float
 
 
 @dataclass
@@ -50,6 +61,7 @@ class RequestProfile:
     total_query_ms: float
     slow: bool = False
     queries: list[QueryRecord] = field(default_factory=list)
+    spans: list[SpanRecord] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -107,6 +119,9 @@ def set_request_threshold(ms: float) -> None:
 _request_queries: ContextVar[list[QueryRecord] | None] = ContextVar(
     "_request_queries", default=None
 )
+_request_spans:  ContextVar[list[SpanRecord] | None] = ContextVar(
+    "_request_spans", default=None
+)
 _request_id_var: ContextVar[str | None] = ContextVar("_request_id_var", default=None)
 _threshold_var:  ContextVar[float] = ContextVar("_threshold_var", default=200.0)
 
@@ -116,7 +131,7 @@ def collect_for_request(
     request_id: str,
     threshold_ms: float = 200.0,
 ) -> Generator[None, None, None]:
-    """Context manager: accumulates queries for *request_id* in a per-request list.
+    """Context manager: accumulates queries and spans for *request_id*.
 
     When profiling is disabled the context manager is a no-op.
     """
@@ -125,13 +140,16 @@ def collect_for_request(
         return
 
     queries: list[QueryRecord] = []
+    spans:   list[SpanRecord]  = []
     token_q  = _request_queries.set(queries)
+    token_sp = _request_spans.set(spans)
     token_id = _request_id_var.set(request_id)
     token_th = _threshold_var.set(_global_threshold_ms)
     try:
         yield
     finally:
         _request_queries.reset(token_q)
+        _request_spans.reset(token_sp)
         _request_id_var.reset(token_id)
         _threshold_var.reset(token_th)
 
@@ -152,6 +170,8 @@ def finish_request(
     total_q_ms = sum(q.duration_ms for q in queries)
     is_slow = duration_ms >= _slow_request_ms or total_q_ms >= _slow_request_db_ms
 
+    spans: list[SpanRecord] = _request_spans.get(None) or []
+
     profile = RequestProfile(
         request_id=request_id,
         method=method,
@@ -163,6 +183,7 @@ def finish_request(
         total_query_ms=round(total_q_ms, 2),
         slow=is_slow,
         queries=list(queries),
+        spans=list(spans),
     )
 
     with _buffer_lock:
@@ -284,3 +305,52 @@ def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> N
                 param_count=param_count,
                 request_id=req_id,
             )
+
+
+# ── Method span profiling ──────────────────────────────────────────────────
+
+
+@asynccontextmanager
+async def profile_span(name: str) -> AsyncGenerator[None, None]:
+    """Async context manager that records a named span in the current request profile.
+
+    Usage::
+
+        async with profile_span("grunt.get_doc"):
+            doc = await session.execute(...)
+    """
+    if not _profiling_enabled:
+        yield
+        return
+
+    start = time.perf_counter()
+    try:
+        yield
+    finally:
+        duration_ms = (time.perf_counter() - start) * 1000
+        spans = _request_spans.get(None)
+        if spans is not None:
+            spans.append(SpanRecord(name=name, duration_ms=round(duration_ms, 2)))
+
+
+def profile(name: str) -> Callable[[F], F]:
+    """Decorator that wraps an async function with a named profiling span.
+
+    Usage::
+
+        @profile("grunt.db.get_all")
+        async def get_all(self, doctype, ...):
+            ...
+    """
+    def decorator(fn: F) -> F:
+        if not asyncio.iscoroutinefunction(fn):
+            raise TypeError(f"@profile can only wrap async functions, got {fn!r}")
+
+        @functools.wraps(fn)
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            async with profile_span(name):
+                return await fn(*args, **kwargs)
+
+        return wrapper  # type: ignore[return-value]
+
+    return decorator

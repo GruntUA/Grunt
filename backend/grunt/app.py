@@ -51,6 +51,7 @@ import structlog
 from sqlalchemy import func, or_, select
 
 from grunt.core.context import _engine_ctx, _session_ctx, _user_ctx
+from grunt.core.db.profiler import profile
 from grunt.core.metadata.compiler import compile_doctype_to_table
 from grunt.core.metadata.registry import doctype_registry
 
@@ -599,6 +600,7 @@ class GruntApp:
 
         return DocumentService(self._require_session(), self._require_engine())
 
+    @profile("grunt.get_doc")
     async def get_doc(self, doctype: str, id_or_name: str) -> dict[str, Any]:
         """Fetch a single document by id or name.
 
@@ -660,6 +662,7 @@ class GruntApp:
         """
         await self._svc().delete_document(doctype, id_or_name, self._require_user())
 
+    @profile("grunt.get_list")
     async def get_list(
         self,
         doctype: str,
@@ -798,6 +801,7 @@ class GruntApp:
         logger.info("grunt.bulk_update", doctype=doctype, rows=row_count)
         return row_count
 
+    @profile("grunt.count")
     async def count(
         self,
         doctype: str,

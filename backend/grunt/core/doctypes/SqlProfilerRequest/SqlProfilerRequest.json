@@ -14,7 +14,9 @@
     {"fieldname": "duration_ms",      "label": "Тривалість (ms)","fieldtype": "Float", "in_list_view": true, "read_only": true},
     {"fieldname": "query_count",      "label": "Запитів до БД", "fieldtype": "Int",   "in_list_view": true, "read_only": true},
     {"fieldname": "total_query_ms",   "label": "Час у БД (ms)", "fieldtype": "Float", "in_list_view": true, "read_only": true},
-    {"fieldname": "slow_query_count", "label": "Повільних",     "fieldtype": "Int",   "in_list_view": true, "read_only": true},
+    {"fieldname": "slow_query_count", "label": "Повільних",     "fieldtype": "Int",   "in_list_view": true,  "read_only": true},
+    {"fieldname": "slow",             "label": "Повільний",     "fieldtype": "Check", "in_list_view": true,  "read_only": true},
+    {"fieldname": "spans",            "label": "Спани методів", "fieldtype": "Table", "options": "SqlProfilerSpan",  "read_only": true},
     {"fieldname": "queries",          "label": "SQL запити",    "fieldtype": "Table", "options": "SqlProfilerQuery", "read_only": true}
   ],
   "permissions": [
