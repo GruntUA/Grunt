@@ -18,7 +18,7 @@ import {
   type ScriptButtonHandle,
 } from '@/core/scripting/executor'
 import { Button } from '@/components/ui/button'
-import { Download, Plus, Search, Columns3, X, LayoutList, LayoutGrid, CalendarDays, GitBranch, Pencil, MoreHorizontal, Rows3, ChevronRight, Check, FileBarChart, Image as ImageIcon } from 'lucide-vue-next'
+import { Download, Plus, Search, Columns3, X, LayoutList, LayoutGrid, CalendarDays, GitBranch, Pencil, MoreHorizontal, Rows3, ChevronRight, Check, FileBarChart, Image as ImageIcon, RefreshCw } from 'lucide-vue-next'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -228,11 +228,24 @@ const calendarDateField = computed<DocField | null>(() => {
 
 // ── Data fetching ────────────────────────────────────────────────────
 
-const { data, isLoading } = useQuery({
+// Build minimal field list for the list query — only what the view actually needs
+const listFields = computed<string>(() => {
+  const fields = new Set<string>([
+    ...columns.visibleKeys.value,
+    'modified_at',  // default sort + shown in sidebar
+    'docstatus',    // workflow status badge
+  ])
+  if (groupBy.value) fields.add(groupBy.value)
+  if (sortKey.value) fields.add(sortKey.value)
+  if (dt.value?.status_config?.field) fields.add(dt.value.status_config.field)
+  return [...fields].join(',')
+})
+
+const { data, isLoading, isFetching } = useQuery({
   queryKey: computed(() => [
     'documents', props.doctype, page.value, debouncedSearch.value,
     sortKey.value, sortOrder.value, JSON.stringify(activeFilters.value),
-    groupBy.value,
+    groupBy.value, listFields.value,
   ]),
   queryFn: () => docsApi.list(props.doctype, {
     page: page.value,
@@ -241,6 +254,7 @@ const { data, isLoading } = useQuery({
     sort: groupBy.value ?? sortKey.value ?? undefined,
     order: groupBy.value ? 'asc' : (sortKey.value ? sortOrder.value : undefined),
     filters: activeFilters.value,
+    fields: listFields.value,
   }),
   refetchOnMount: 'always',
 })
@@ -332,6 +346,12 @@ function navigateToDoc(row: Record<string, unknown>) {
         </p>
       </div>
       <div class="flex items-center gap-2">
+        <!-- Refresh button -->
+        <Button variant="outline" size="sm" class="h-9 w-9 p-0 text-foreground" title="Оновити"
+          @click="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })">
+          <RefreshCw class="size-4" :class="{ 'animate-spin': isFetching }" />
+        </Button>
+
         <!-- Actions menu -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child>

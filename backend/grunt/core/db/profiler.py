@@ -48,6 +48,7 @@ class RequestProfile:
     query_count: int
     slow_query_count: int
     total_query_ms: float
+    slow: bool = False
     queries: list[QueryRecord] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -66,12 +67,19 @@ _buffer_lock = threading.Lock()
 
 # ── Runtime settings (mutable via API) ────────────────────────────────────
 
-_profiling_enabled:   bool  = True
-_global_threshold_ms: float = 200.0
+_profiling_enabled:      bool  = True
+_global_threshold_ms:    float = 10.0
+_slow_request_db_ms:     float = 20.0
+_slow_request_ms:        float = 100.0
 
 
 def get_settings() -> dict:
-    return {"enabled": _profiling_enabled, "threshold_ms": _global_threshold_ms}
+    return {
+        "enabled": _profiling_enabled,
+        "threshold_ms": _global_threshold_ms,
+        "slow_request_db_ms": _slow_request_db_ms,
+        "slow_request_ms": _slow_request_ms,
+    }
 
 
 def set_enabled(enabled: bool) -> None:
@@ -82,6 +90,16 @@ def set_enabled(enabled: bool) -> None:
 def set_threshold(threshold_ms: float) -> None:
     global _global_threshold_ms
     _global_threshold_ms = threshold_ms
+
+
+def set_request_db_threshold(ms: float) -> None:
+    global _slow_request_db_ms
+    _slow_request_db_ms = ms
+
+
+def set_request_threshold(ms: float) -> None:
+    global _slow_request_ms
+    _slow_request_ms = ms
 
 # ── Per-request context ────────────────────────────────────────────────────
 
@@ -132,6 +150,7 @@ def finish_request(
 
     slow_count = sum(1 for q in queries if q.slow)
     total_q_ms = sum(q.duration_ms for q in queries)
+    is_slow = duration_ms >= _slow_request_ms or total_q_ms >= _slow_request_db_ms
 
     profile = RequestProfile(
         request_id=request_id,
@@ -142,11 +161,26 @@ def finish_request(
         query_count=len(queries),
         slow_query_count=slow_count,
         total_query_ms=round(total_q_ms, 2),
+        slow=is_slow,
         queries=list(queries),
     )
 
     with _buffer_lock:
         _request_buffer.appendleft(profile)
+
+    if is_slow:
+        logger.warning(
+            "slow_request",
+            request_id=request_id,
+            method=method,
+            path=path,
+            duration_ms=duration_ms,
+            total_query_ms=round(total_q_ms, 2),
+            query_count=len(queries),
+            slow_query_count=slow_count,
+            threshold_request_ms=_slow_request_ms,
+            threshold_db_ms=_slow_request_db_ms,
+        )
 
     return profile
 

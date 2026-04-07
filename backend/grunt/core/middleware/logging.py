@@ -29,7 +29,14 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         use_profiler = settings.debug and not path.startswith(_PROFILER_PREFIX)
 
         if use_profiler:
-            from grunt.core.db.profiler import collect_for_request, finish_request  # noqa: PLC0415
+            from grunt.core.db.profiler import (  # noqa: PLC0415
+                collect_for_request,
+                finish_request,
+                set_request_db_threshold,
+                set_request_threshold,
+            )
+            set_request_db_threshold(settings.slow_request_db_ms)
+            set_request_threshold(settings.slow_request_ms)
             with collect_for_request(request_id, threshold_ms=settings.slow_query_threshold_ms):
                 response = await call_next(request)
                 duration_ms = round((time.perf_counter() - start) * 1000, 1)

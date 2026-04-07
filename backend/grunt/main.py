@@ -45,11 +45,12 @@ register_doc_events({
     }
 })
 
-# Register client scripts for core doctypes (not scanned by discover_file_scripts)
+# Register core doctypes dir for lazy client script loading + eager server script loading
 from pathlib import Path as _Path
-from grunt.core.scripting.file_scripts import FILE_CLIENT_SCRIPT_REGISTRY as _CLIENT_SCRIPTS, _load_doctype_dir_scripts as _load_dt_scripts
+from grunt.core.scripting.file_scripts import register_client_script_dir as _reg_client_dirs, _load_doctype_dir_scripts as _load_dt_scripts
 
 _core_doctypes_dir = _Path(__file__).parent / "core" / "doctypes"
+_reg_client_dirs("grunt", _core_doctypes_dir)
 for _dt_dir in sorted(_core_doctypes_dir.iterdir()):
     if _dt_dir.is_dir() and not _dt_dir.name.startswith((".", "_")):
         _load_dt_scripts(_dt_dir, "grunt")

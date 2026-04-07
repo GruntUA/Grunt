@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.config import settings
 from grunt.core.auth.models import GruntUser
-from grunt.core.doctypes.User.User import get_user_by_email
+from grunt.core.doctypes.User.User import get_user_by_email, _SESSION_FIELDS
 from grunt.core.db.session import get_engine, get_session
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
@@ -60,8 +60,8 @@ async def current_user(
             roles=payload.get("roles") or [],
         )
     else:
-        # Legacy token — fall back to DB lookup.
-        user = await get_user_by_email(email, session)
+        # Legacy token — fall back to DB lookup (session fields only, no password/mfa secrets).
+        user = await get_user_by_email(email, session, fields=_SESSION_FIELDS)
         if user is None:
             raise credentials_exception
 

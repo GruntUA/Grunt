@@ -38,8 +38,15 @@ logger = structlog.get_logger()
 # Server scripts: {("api", method): {...}} or {("doctype_event", doctype, event): {...}}
 FILE_SCRIPT_REGISTRY: dict[tuple[str, ...], dict[str, Any]] = {}
 
-# Client scripts: {doctype: [{name, script}]}
+# Client scripts: lazy cache — populated on first request per DocType
+# {doctype: [{name, script}]}
 FILE_CLIENT_SCRIPT_REGISTRY: dict[str, list[dict[str, str]]] = {}
+
+# Registered (app_name, doctypes_dir) pairs for lazy client script scanning
+_client_script_dirs: list[tuple[str, Path]] = []
+
+# Doctypes already scanned (including misses) — avoids repeated disk reads
+_client_script_scanned: set[str] = set()
 
 _HEADER_RE = re.compile(r"^#\s*(\w[\w\s]+\w)\s*:\s*(.+)$", re.MULTILINE)
 
@@ -53,8 +60,20 @@ def _parse_script_meta(source: str) -> dict[str, str]:
     return meta
 
 
+def register_client_script_dir(app_name: str, doctypes_dir: str | Path) -> None:
+    """Register a doctypes directory for lazy client script scanning.
+
+    Call this instead of eagerly loading .js files at startup.
+    Scripts are read from disk only when first requested per DocType.
+    """
+    _client_script_dirs.append((app_name, Path(doctypes_dir)))
+
+
 def discover_file_scripts(apps_dir: str | Path, *, app_filter: str | None = None) -> None:
-    """Scan all app module directories for client and server scripts.
+    """Scan all app module directories for server scripts; register dirs for lazy client script loading.
+
+    Server-side .py scripts are loaded eagerly (needed for hook system).
+    Client-side .js scripts are registered for lazy loading per DocType.
 
     Called once during startup in ``main.py``.
     If *app_filter* is given, only that app subdirectory is scanned.
@@ -73,6 +92,9 @@ def discover_file_scripts(apps_dir: str | Path, *, app_filter: str | None = None
         for doctypes_dir in app_dir.glob("*/doctypes"):
             if not doctypes_dir.is_dir():
                 continue
+            # Register dir for lazy client script loading
+            register_client_script_dir(app_dir.name, doctypes_dir)
+            # Eagerly load server-side scripts
             for dt_dir in sorted(doctypes_dir.iterdir()):
                 if not dt_dir.is_dir() or dt_dir.name.startswith((".", "_")):
                     continue
@@ -80,22 +102,14 @@ def discover_file_scripts(apps_dir: str | Path, *, app_filter: str | None = None
 
 
 def _load_doctype_dir_scripts(dt_dir: Path, app_name: str) -> None:
-    """Load scripts colocated with a DocType definition.
+    """Load server-side scripts colocated with a DocType definition.
 
     Expects a directory like ``doctypes/Applicant/`` containing:
-    - ``Applicant.js``  → client script for DocType "Applicant"
+    - ``Applicant.js``  → client script (registered for lazy loading, NOT read here)
     - ``Applicant.py``  → server-side controller/script (trusted)
     - Any other ``.py`` files → server scripts with metadata headers
     """
     doctype = dt_dir.name
-
-    # Client script: {DocType}.js
-    js_file = dt_dir / f"{doctype}.js"
-    if js_file.exists():
-        source = js_file.read_text(encoding="utf-8")
-        entry = {"name": f"{app_name}:{doctype}.js", "script": source}
-        FILE_CLIENT_SCRIPT_REGISTRY.setdefault(doctype, []).append(entry)
-        logger.info("file_scripts.client_loaded", app=app_name, doctype=doctype, file=str(js_file))
 
     # Server scripts: any .py file in the directory (except __init__.py)
     for py_file in sorted(dt_dir.glob("*.py")):
@@ -150,5 +164,23 @@ def get_file_doctype_scripts(doctype: str, event: str) -> list[dict[str, Any]]:
 
 
 def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
-    """Get file-based client scripts for a DocType."""
-    return FILE_CLIENT_SCRIPT_REGISTRY.get(doctype, [])
+    """Get file-based client scripts for a DocType (lazy — read from disk on first request)."""
+    if doctype in FILE_CLIENT_SCRIPT_REGISTRY:
+        return FILE_CLIENT_SCRIPT_REGISTRY[doctype]
+
+    if doctype in _client_script_scanned:
+        return []
+
+    _client_script_scanned.add(doctype)
+    results: list[dict[str, str]] = []
+
+    for app_name, doctypes_dir in _client_script_dirs:
+        js_file = doctypes_dir / doctype / f"{doctype}.js"
+        if js_file.exists():
+            source = js_file.read_text(encoding="utf-8")
+            results.append({"name": f"{app_name}:{doctype}.js", "script": source})
+            logger.info("file_scripts.client_loaded", app=app_name, doctype=doctype, file=str(js_file))
+
+    # Cache result (including empty — to avoid repeated disk reads)
+    FILE_CLIENT_SCRIPT_REGISTRY[doctype] = results
+    return results

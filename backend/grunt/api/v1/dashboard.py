@@ -7,6 +7,7 @@ aggregation queries for each widget.
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -160,12 +161,14 @@ async def _compute_widget_data(
             return {"items": [], "title_field": None}
 
     if widget_type == "shortcut":
-        target = doctype_name
         try:
-            count = await grunt.count(target)
+            # Singleton DocTypes always have exactly one record — skip the DB count
+            if dt.is_singleton:
+                return {"count": 1}
+            count = await grunt.count(doctype_name)
             return {"count": count}
         except Exception:
-            logger.warning("dashboard.shortcut_unknown_doctype", doctype=target)
+            logger.warning("dashboard.shortcut_unknown_doctype", doctype=doctype_name)
             return None
 
     if widget_type == "shortcuts_grid":
@@ -315,10 +318,10 @@ async def get_dashboard_data(
     if not user.is_superadmin and not dashboard.get("is_published"):
         raise HTTPException(status_code=403, detail="Дашборд не опубліковано")
 
-    widgets = await grunt.get_list(
-        "Dashboard Widget",
-        filters={"parent_id": dashboard.get("id")},
-        order_by="sequence"
+    # Widgets are already loaded as a child table by get_doc — no extra query needed
+    widgets: list[dict[str, Any]] = sorted(
+        dashboard.get("widgets") or [],
+        key=lambda w: (w.get("sequence") or 0),
     )
 
     global_since: datetime | None = None
@@ -334,14 +337,13 @@ async def get_dashboard_data(
         except ValueError:
             pass
 
-    widget_data: dict[str, Any] = {}
-    for w_dict in widgets:
+    async def _safe_compute(w_dict: dict[str, Any]) -> tuple[str, Any]:
         try:
-            widget_data[w_dict["id"]] = await _compute_widget_data(
-                w_dict, global_since=global_since, global_until=global_until
-            )
+            result = await _compute_widget_data(w_dict, global_since=global_since, global_until=global_until)
         except Exception as e:  # noqa: BLE001
             logger.warning("dashboard.widget_data_error", widget_id=w_dict.get("id"), error=str(e))
-            widget_data[w_dict["id"]] = None
+            result = None
+        return w_dict["id"], result
 
-    return {"success": True, "data": widget_data}
+    pairs = await asyncio.gather(*(_safe_compute(w) for w in widgets))
+    return {"success": True, "data": dict(pairs)}

@@ -9,6 +9,7 @@ import { useWebSocket } from '@/core/composables/useWebSocket'
 import { usePresence } from '@/core/composables/usePresence'
 import { useClientScripts } from '@/core/composables/useClientScripts'
 import { useQueryClient } from '@tanstack/vue-query'
+import { clearScriptCache } from '@/core/scripting/executor'
 import type { DocType, GruntDocument } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -48,6 +49,7 @@ import {
   EllipsisVertical,
   ExternalLink,
   Settings2,
+  RefreshCw,
 } from 'lucide-vue-next'
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
@@ -201,6 +203,10 @@ async function handleSave() {
     runScriptEvent('after_save')
     dtStore.invalidate(props.doctype)
     queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
+    // Invalidate script cache when a ClientScript document is saved
+    if (props.doctype === 'ClientScript') {
+      clearScriptCache()
+    }
     if (!props.id) {
       allowLeave = true
       const newId = (saved as { id: string }).id
@@ -330,6 +336,12 @@ function onFormUpdate(updated: Record<string, unknown>) {
           <Button v-for="btn in scriptButtons" :key="btn.label" :variant="(btn.variant as any) ?? 'outline'" size="sm"
             @click="btn.action">
             {{ btn.label }}
+          </Button>
+
+          <Button v-if="id" variant="outline" size="sm" class="w-9 p-0" title="Оновити"
+            :disabled="isDirty || isLoading"
+            @click="queryClient.invalidateQueries({ queryKey: ['document', doctype, id] })">
+            <RefreshCw class="size-4" :class="{ 'animate-spin': isLoading }" />
           </Button>
 
           <Button :disabled="isSaving" size="sm" @click="handleSave">

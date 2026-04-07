@@ -91,7 +91,7 @@ class DocumentService:
 
         # Select columns
         if fields:
-            required = {"id", "name"}
+            required = {"id", "name", "modified_at", "docstatus"}
             requested = required | set(fields)
             cols = [table.c[c] for c in requested if c in table.c]
         else:

@@ -57,11 +57,11 @@ def _user_table():
 def _row_to_user(row: dict, roles: list[str]) -> GruntUser:
     return GruntUser(
         id=row["id"],
-        email=row["email"] or "",
-        full_name=row["full_name"] or "",
-        hashed_password=row["hashed_password"] or "",
-        is_active=bool(row["is_active"]) if row["is_active"] is not None else True,
-        is_superadmin=bool(row["is_superadmin"]) if row["is_superadmin"] is not None else False,
+        email=row.get("email") or "",
+        full_name=row.get("full_name") or "",
+        hashed_password=row.get("hashed_password") or "",
+        is_active=bool(row["is_active"]) if row.get("is_active") is not None else True,
+        is_superadmin=bool(row["is_superadmin"]) if row.get("is_superadmin") is not None else False,
         theme=row.get("theme") or "system",
         login_attempts=int(row["login_attempts"]) if row.get("login_attempts") is not None else 0,
         locked_until=row.get("locked_until"),
@@ -89,12 +89,23 @@ async def _load_roles(user_id: str) -> list[str]:
 # ── User CRUD ─────────────────────────────────────────────────────────────
 
 
-async def get_user_by_email(email: str, session: AsyncSession) -> GruntUser | None:
+# Fields needed for session auth — excludes hashed_password, mfa_secret, mfa_backup_codes
+_SESSION_FIELDS = [
+    "id", "email", "full_name", "is_active", "is_superadmin",
+    "theme", "mfa_enabled", "login_attempts", "locked_until",
+]
+
+
+async def get_user_by_email(
+    email: str,
+    session: AsyncSession,
+    fields: list[str] | None = None,
+) -> GruntUser | None:
     from grunt.app import grunt  # noqa: PLC0415
 
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:
-        rows = await grunt.db.get_all("User", filters={"email": email}, limit=1)
+        rows = await grunt.db.get_all("User", filters={"email": email}, fields=fields, limit=1)
         if not rows:
             return None
         row = rows[0]
