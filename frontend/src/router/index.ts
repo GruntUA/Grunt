@@ -69,8 +69,7 @@ const router = createRouter({
         {
           path: '',
           name: 'workspace-home',
-          component: () => import('@/pages/workspace/WorkspaceHome.vue'),
-          props: true,
+          redirect: (route) => `/${route.params.workspaceName}/dashboard/${route.params.workspaceName}`,
         },
         {
           path: 'list/:doctype',

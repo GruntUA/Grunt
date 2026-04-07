@@ -14,6 +14,7 @@ import CalendarWidget from './CalendarWidget.vue'
 import HeatmapWidget from './HeatmapWidget.vue'
 import FunnelWidget from './FunnelWidget.vue'
 import TableWidget from './TableWidget.vue'
+import LinksWidget from './LinksWidget.vue'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -39,6 +40,7 @@ const minH = computed(() => {
   if (props.widget.widget_type === 'metric') return 'min-h-[120px]'
   if (props.widget.widget_type === 'shortcut') return 'min-h-[120px]'
   if (props.widget.widget_type === 'clock') return 'min-h-[140px]'
+  if (props.widget.widget_type === 'links') return 'min-h-[100px]'
   return 'min-h-[220px]'
 })
 </script>
@@ -149,6 +151,11 @@ const minH = computed(() => {
         :widget="widget"
         :data="(data as { rows: { label: string; value: number }[]; aggregation?: string; field?: string | null } | null)"
         :loading="loading"
+      />
+      <LinksWidget
+        v-else-if="widget.widget_type === 'links'"
+        :widget="widget"
+        :workspace-name="workspaceName"
       />
     </div>
   </div>

@@ -274,7 +274,7 @@ export interface ApiError {
 
 export type WidgetType = 'metric' | 'chart_area' | 'chart_bar' | 'donut' | 'list'
   | 'shortcut' | 'shortcuts_grid' | 'text' | 'clock' | 'activity'
-  | 'calendar' | 'heatmap' | 'funnel' | 'table'
+  | 'calendar' | 'heatmap' | 'funnel' | 'table' | 'links'
 export type WidgetAggregation = 'count' | 'sum' | 'avg' | 'min' | 'max'
 export type WidgetPeriod = '7d' | '30d' | '90d' | '365d'
 export type WidgetCols = 1 | 2 | 3 | 4

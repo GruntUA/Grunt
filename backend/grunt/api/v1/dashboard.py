@@ -199,11 +199,10 @@ async def _compute_widget_data(
         date_field = widget.get("date_field")
         if not date_field:
             return {"entries": []}
-        
-        heatmap_since = now - timedelta(days=364)
+
         try:
             group_by_expr = f"date({date_field})"
-            filters = {f"{date_field}__gte": heatmap_since.isoformat()}
+            filters = {f"{date_field}__gte": since.isoformat()}
             
             rows = await grunt.db.aggregate(
                 doctype_name,

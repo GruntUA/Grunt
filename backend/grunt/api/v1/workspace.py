@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,6 +18,7 @@ from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_session
 from grunt.core.db.system_tables import GruntWorkspace, GruntWorkspaceLink
 from grunt.core.metadata.registry import doctype_registry
+from grunt.api.v1.dashboard import _compute_widget_data
 
 logger = structlog.get_logger()
 
@@ -36,6 +39,7 @@ def _workspace_to_dict(ws: GruntWorkspace) -> dict[str, Any]:
         "sequence": ws.sequence,
         "is_hidden": ws.is_hidden,
         "roles": ws.roles,
+        "widgets": json.loads(ws.widgets) if ws.widgets else [],
         "items": [
             {
                 "section": item.section,
@@ -158,6 +162,7 @@ async def create_workspace(
         sequence=body.get("sequence", 0),
         is_hidden=body.get("is_hidden", False),
         roles=body.get("roles", ""),
+        widgets=json.dumps(body.get("widgets", [])),
     )
     session.add(ws)
 
@@ -201,6 +206,9 @@ async def update_workspace(
     for field in ("label", "app", "icon", "color", "description", "sequence", "is_hidden", "roles"):
         if field in body:
             setattr(ws, field, body[field])
+
+    if "widgets" in body:
+        ws.widgets = json.dumps(body["widgets"])
 
     if "items" in body:
         # Delete old items and replace
@@ -324,3 +332,51 @@ async def workspace_counts(
             continue
 
     return {"success": True, "data": counts}
+
+
+@router.get("/{name}/widget-data")
+async def workspace_widget_data(
+    name: str,
+    date_from: str | None = Query(None),
+    date_to: str | None = Query(None),
+    session: AsyncSession = Depends(get_session),
+    user: GruntUser = Depends(current_user),
+) -> dict[str, Any]:
+    """Compute widget data for all widgets in a workspace."""
+    result = await session.execute(
+        select(GruntWorkspace).where(GruntWorkspace.name == name)
+    )
+    ws = result.scalar_one_or_none()
+    if not ws:
+        raise HTTPException(status_code=404, detail=f"Workspace '{name}' не знайдено")
+    if not _user_has_workspace_access(ws, user):
+        raise HTTPException(status_code=403, detail="Немає доступу до цього workspace")
+
+    widgets: list[dict[str, Any]] = sorted(
+        json.loads(ws.widgets) if ws.widgets else [],
+        key=lambda w: (w.get("sequence") or 0),
+    )
+
+    global_since: datetime | None = None
+    global_until: datetime | None = None
+    if date_from:
+        try:
+            global_since = datetime.fromisoformat(date_from).replace(tzinfo=timezone.utc)
+        except ValueError:
+            pass
+    if date_to:
+        try:
+            global_until = datetime.fromisoformat(date_to).replace(tzinfo=timezone.utc)
+        except ValueError:
+            pass
+
+    async def _safe_compute(w: dict[str, Any]) -> tuple[str, Any]:
+        try:
+            result = await _compute_widget_data(w, global_since=global_since, global_until=global_until)
+        except Exception as e:
+            logger.warning("workspace.widget_data_error", widget_id=w.get("id"), error=str(e))
+            result = None
+        return w["id"], result
+
+    pairs = await asyncio.gather(*(_safe_compute(w) for w in widgets if w.get("id")))
+    return {"success": True, "data": dict(pairs)}

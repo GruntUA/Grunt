@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input'
 import { FormField } from '@/components/ui/form-field'
 import { Spinner } from '@/components/ui/spinner'
 import { Loader2 } from 'lucide-vue-next'
+import WidgetConfigPanel from '@/components/dashboard/WidgetConfigPanel.vue'
+import type { DashboardWidget, WidgetType } from '@/types'
 
 const dtStore = useDocTypeStore()
 const toast = useToast()
@@ -154,11 +156,73 @@ function resequence() {
   editForm.value.items.forEach((item, i) => { item.sequence = i })
 }
 
-const activeTab = ref<'general' | 'navigation'>('navigation')
+const activeTab = ref<'general' | 'navigation' | 'widgets'>('navigation')
 
 const doctypeOptions = computed(() =>
   dtStore.doctypes.map(dt => ({ value: dt.name, label: dt.label }))
 )
+
+// ── Widget editor ─────────────────────────────────────────────────────────────
+
+const selectedWidget = ref<DashboardWidget | null>(null)
+
+const WIDGET_PALETTE: { type: WidgetType; label: string; icon: string }[] = [
+  { type: 'links',          label: 'Посилання',     icon: '🔗' },
+  { type: 'metric',         label: 'Метрика',       icon: '🔢' },
+  { type: 'shortcuts_grid', label: 'Ярлики',        icon: '⊞' },
+  { type: 'list',           label: 'Список',        icon: '📋' },
+  { type: 'chart_bar',      label: 'Діаграма',      icon: '📊' },
+  { type: 'donut',          label: 'Кругова',       icon: '🍩' },
+  { type: 'text',           label: 'Текст',         icon: '📝' },
+  { type: 'activity',       label: 'Активність',    icon: '🕒' },
+]
+
+function addWidget(type: WidgetType) {
+  if (!editForm.value) return
+  const newWidget: DashboardWidget = {
+    id: crypto.randomUUID(),
+    widget_type: type,
+    title: WIDGET_PALETTE.find(p => p.type === type)?.label ?? type,
+    doctype: '',
+    aggregation: 'count',
+    period: '30d',
+    cols: 2,
+    color: 'primary',
+    sequence: (editForm.value.widgets ?? []).length,
+    content: type === 'links' || type === 'shortcuts_grid' ? '[]' : null,
+  }
+  editForm.value.widgets = [...(editForm.value.widgets ?? []), newWidget]
+  selectedWidget.value = newWidget
+}
+
+function removeWidget(id: string) {
+  if (!editForm.value) return
+  if (selectedWidget.value?.id === id) selectedWidget.value = null
+  editForm.value.widgets = (editForm.value.widgets ?? []).filter(w => w.id !== id)
+  resequenceWidgets()
+}
+
+function resequenceWidgets() {
+  if (!editForm.value) return
+  editForm.value.widgets = (editForm.value.widgets ?? []).map((w, i) => ({ ...w, sequence: i }))
+}
+
+function moveWidget(id: string, dir: -1 | 1) {
+  if (!editForm.value) return
+  const arr = [...(editForm.value.widgets ?? [])]
+  const i = arr.findIndex(w => w.id === id)
+  const j = i + dir
+  if (j < 0 || j >= arr.length) return
+  ;[arr[i], arr[j]] = [arr[j], arr[i]]
+  editForm.value.widgets = arr
+  resequenceWidgets()
+}
+
+function onWidgetChange(updated: DashboardWidget) {
+  if (!editForm.value) return
+  editForm.value.widgets = (editForm.value.widgets ?? []).map(w => w.id === updated.id ? updated : w)
+  selectedWidget.value = updated
+}
 </script>
 
 <template>
@@ -203,6 +267,11 @@ const doctypeOptions = computed(() =>
             :class="activeTab === 'navigation' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'"
             @click="activeTab = 'navigation'"
           >Навігація</button>
+          <button
+            class="px-4 py-2 text-sm font-medium transition-colors"
+            :class="activeTab === 'widgets' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'"
+            @click="activeTab = 'widgets'"
+          >Widgets</button>
         </div>
 
         <!-- General tab -->
@@ -326,6 +395,57 @@ const doctypeOptions = computed(() =>
                 </template>
               </template>
             </div>
+          </div>
+        </div>
+
+        <!-- Widgets tab -->
+        <div v-if="activeTab === 'widgets'" class="flex gap-4 min-h-0">
+          <!-- Left: widget list + palette -->
+          <div class="w-64 shrink-0 flex flex-col gap-3">
+            <!-- Palette -->
+            <div>
+              <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Додати блок</p>
+              <div class="grid grid-cols-2 gap-1">
+                <button
+                  v-for="p in WIDGET_PALETTE"
+                  :key="p.type"
+                  class="flex items-center gap-1.5 px-2 py-1.5 text-xs rounded-md border border-border hover:border-primary hover:bg-accent transition-colors"
+                  @click="addWidget(p.type)"
+                >
+                  <span>{{ p.icon }}</span>{{ p.label }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Widget list -->
+            <div v-if="(editForm.widgets ?? []).length" class="space-y-1">
+              <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Блоки</p>
+              <div
+                v-for="w in (editForm.widgets ?? []).slice().sort((a, b) => a.sequence - b.sequence)"
+                :key="w.id"
+                class="flex items-center gap-2 px-2 py-1.5 rounded-md border text-xs cursor-pointer transition-colors"
+                :class="selectedWidget?.id === w.id ? 'border-primary bg-accent' : 'border-border hover:border-primary'"
+                @click="selectedWidget = w"
+              >
+                <span>{{ WIDGET_PALETTE.find(p => p.type === w.widget_type)?.icon ?? '📦' }}</span>
+                <span class="flex-1 truncate">{{ w.title || w.widget_type }}</span>
+                <div class="flex flex-col gap-px shrink-0">
+                  <button class="text-muted-foreground/60 hover:text-foreground leading-none" @click.stop="moveWidget(w.id, -1)">▲</button>
+                  <button class="text-muted-foreground/60 hover:text-foreground leading-none" @click.stop="moveWidget(w.id, 1)">▼</button>
+                </div>
+                <button class="text-muted-foreground/60 hover:text-destructive leading-none" @click.stop="removeWidget(w.id)">×</button>
+              </div>
+            </div>
+            <p v-else class="text-xs text-muted-foreground/60 italic">Додайте блок з палітри вище</p>
+          </div>
+
+          <!-- Right: config panel -->
+          <div class="flex-1 min-w-0 border border-border rounded-lg overflow-hidden">
+            <WidgetConfigPanel
+              :widget="selectedWidget"
+              @change="onWidgetChange"
+              @remove="selectedWidget && removeWidget(selectedWidget.id)"
+            />
           </div>
         </div>
 

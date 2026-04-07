@@ -1,4 +1,5 @@
 import client from './client'
+import type { DashboardWidget } from '@/types'
 
 export interface WorkspaceLink {
   section: string
@@ -14,6 +15,14 @@ export interface WorkspaceLink {
   is_singleton?: boolean
 }
 
+export interface WorkspaceLinkItem {
+  label: string
+  icon?: string
+  type: 'DocType' | 'Report' | 'Dashboard' | 'URL'
+  link_to: string
+  description?: string
+}
+
 export interface Workspace {
   name: string
   label: string
@@ -25,6 +34,7 @@ export interface Workspace {
   is_hidden: boolean
   roles: string
   items: WorkspaceLink[]
+  widgets: DashboardWidget[]
 }
 
 export interface SearchResult {
@@ -66,6 +76,16 @@ export const workspaceApi = {
 
   search: async (q: string, limit = 10): Promise<SearchResult[]> => {
     const r = await client.get('/api/v1/search', { params: { q, limit } })
+    return r.data.data
+  },
+
+  getWidgetData: async (
+    name: string,
+    opts?: { dateFrom?: string; dateTo?: string },
+  ): Promise<Record<string, unknown>> => {
+    const r = await client.get(`/api/v1/workspaces/${name}/widget-data`, {
+      params: { date_from: opts?.dateFrom, date_to: opts?.dateTo },
+    })
     return r.data.data
   },
 }
