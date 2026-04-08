@@ -7,14 +7,16 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import text
 
 from grunt.app import grunt
 from grunt.core.document.base import Document
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 logger = structlog.get_logger()
 

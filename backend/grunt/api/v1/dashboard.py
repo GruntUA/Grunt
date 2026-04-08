@@ -34,6 +34,8 @@ _TIMESPAN_DAYS: dict[str, int] = {
 }
 
 # Supported aggregation functions (name → SQLAlchemy func)
+import contextlib
+
 from sqlalchemy import func as _sa_func  # noqa: E402
 
 _AGGREGATION_FNS: dict[str, Any] = {
@@ -340,15 +342,11 @@ async def get_dashboard_data(
     global_since: datetime | None = None
     global_until: datetime | None = None
     if date_from:
-        try:
+        with contextlib.suppress(ValueError):
             global_since = datetime.fromisoformat(date_from).replace(tzinfo=UTC)
-        except ValueError:
-            pass
     if date_to:
-        try:
+        with contextlib.suppress(ValueError):
             global_until = datetime.fromisoformat(date_to).replace(tzinfo=UTC)
-        except ValueError:
-            pass
 
     async def _safe_compute(w_dict: dict[str, Any]) -> tuple[str, Any]:
         try:

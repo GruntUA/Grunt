@@ -2,18 +2,22 @@
 
 from __future__ import annotations
 
+import contextlib
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.app import grunt
 from grunt.core.auth.dependencies import current_user, superadmin_user
-from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_engine, get_session
 from grunt.core.document.registry import document_registry
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
+    from grunt.core.auth.models import GruntUser
 
 logger = structlog.get_logger()
 
@@ -260,15 +264,11 @@ async def workspace_widget_data(
         global_since: datetime | None = None
         global_until: datetime | None = None
         if date_from:
-            try:
+            with contextlib.suppress(ValueError):
                 global_since = datetime.fromisoformat(date_from).replace(tzinfo=UTC)
-            except ValueError:
-                pass
         if date_to:
-            try:
+            with contextlib.suppress(ValueError):
                 global_until = datetime.fromisoformat(date_to).replace(tzinfo=UTC)
-            except ValueError:
-                pass
 
         data = await ws.get_widget_data(date_from=global_since, date_to=global_until)
         return {"success": True, "data": data}

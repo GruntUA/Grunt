@@ -5,9 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Table, or_
-from sqlalchemy.sql import Select
 
 if TYPE_CHECKING:
+    from sqlalchemy.sql import Select
+
     from grunt.core.auth.models import GruntUser
     from grunt.core.metadata.doctype import DocType
 

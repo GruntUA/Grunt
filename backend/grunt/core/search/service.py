@@ -11,7 +11,7 @@ DocumentService (no hook overhead, always consistent).
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import (
@@ -28,9 +28,11 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt.core.metadata.doctype import DocType
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
+    from grunt.core.metadata.doctype import DocType
 
 logger = structlog.get_logger()
 

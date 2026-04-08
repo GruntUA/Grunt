@@ -10,7 +10,8 @@ now DocType-driven — defined in core/doctypes/*.json.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime  # noqa: TC003
+from typing import TYPE_CHECKING  # noqa: F401
 
 from sqlalchemy import JSON, DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column

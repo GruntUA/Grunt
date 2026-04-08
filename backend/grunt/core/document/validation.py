@@ -43,8 +43,7 @@ def _validate_data(doctype: DocType, data: dict[str, Any], partial: bool = False
         value = data.get(field.fieldname)
 
         # Required check (skip for partial updates if field not provided)
-        if field.required and not partial:
-            if value is None or value == "":
-                errors.append(f"{field.fieldname}: Поле '{field.label}' є обов'язковим")
+        if field.required and not partial and (value is None or value == ""):
+            errors.append(f"{field.fieldname}: Поле '{field.label}' є обов'язковим")
 
     return errors

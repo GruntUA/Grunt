@@ -8,9 +8,10 @@ from typing import TYPE_CHECKING, Any
 import structlog
 from fastapi import HTTPException
 from sqlalchemy import func, select, text
-from sqlalchemy.ext.asyncio import AsyncSession
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
     from grunt.core.auth.models import GruntUser
 
 logger = structlog.get_logger()
@@ -92,7 +93,7 @@ class ReportEngine:
         start = time.time()
         result = await session.execute(text(query_str))
         keys = list(result.keys())
-        rows = [dict(zip(keys, row)) for row in result.fetchall()]
+        rows = [dict(zip(keys, row, strict=False)) for row in result.fetchall()]
         elapsed = int((time.time() - start) * 1000)
 
         columns = [{"fieldname": k, "label": k, "fieldtype": "Text"} for k in keys]
@@ -289,7 +290,7 @@ class ReportEngine:
         start = time.time()
         db_result = await session.execute(stmt)
         keys = list(db_result.keys())
-        rows = [dict(zip(keys, row)) for row in db_result.fetchall()]
+        rows = [dict(zip(keys, row, strict=False)) for row in db_result.fetchall()]
         elapsed = int((time.time() - start) * 1000)
 
         return {

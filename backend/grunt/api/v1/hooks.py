@@ -54,7 +54,7 @@ async def get_hooks(
     try:
         ss_dt = doctype_registry.get_sync("ServerScript")  # Use get_sync if async not easier here
         table = compile_doctype_to_table(ss_dt)
-        q = select(table).where(table.c.disabled == False)
+        q = select(table).where(not table.c.disabled)
         result = await session.execute(q)
         scripts = result.mappings().all()
 

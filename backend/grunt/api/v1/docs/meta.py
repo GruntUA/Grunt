@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.api.v1.docs.utils import get_doc_service
 from grunt.core.auth.dependencies import current_user
-from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_session
-from grunt.core.document.service import DocumentService
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from grunt.core.auth.models import GruntUser
+    from grunt.core.document.service import DocumentService
 
 router = APIRouter()
 

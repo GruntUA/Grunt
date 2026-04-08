@@ -9,13 +9,15 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import and_, delete, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.core.metadata.registry import doctype_registry
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 

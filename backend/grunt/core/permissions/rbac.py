@@ -41,9 +41,8 @@ class PermissionChecker:
                 continue
             # Check match expression
             match_expr = perm.match if hasattr(perm, "match") else perm.get("match")
-            if match_expr and doc:
-                if not self._eval_match(match_expr, user, doc):
-                    continue
+            if match_expr and doc and not self._eval_match(match_expr, user, doc):
+                continue
             return True
 
         return False

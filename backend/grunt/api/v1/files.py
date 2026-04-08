@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastapi.responses import Response
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.app import grunt
 from grunt.config import settings
@@ -16,6 +15,8 @@ from grunt.core.document.registry import document_registry
 from grunt.core.storage import get_storage_backend
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
     from grunt.core.auth.models import GruntUser
 
 router = APIRouter()
@@ -56,7 +57,7 @@ async def upload_file(
         raise HTTPException(415, str(exc)) from exc
 
     # Create the File DocType record directly
-    filename = path.split("/")[-1]
+    path.split("/")[-1]
     is_image = content_type in _IMAGE_TYPES
 
     _tokens = grunt.set_context(session, engine, user)

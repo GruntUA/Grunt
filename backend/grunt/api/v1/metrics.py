@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from fastapi import APIRouter, Depends
 from fastapi.responses import Response
 
 from grunt.core.auth.dependencies import current_user
-from grunt.core.auth.models import GruntUser
+
+if TYPE_CHECKING:
+    from grunt.core.auth.models import GruntUser
 
 router = APIRouter()
 

@@ -4,17 +4,20 @@ from __future__ import annotations
 
 import io
 from datetime import date, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import openpyxl
 import structlog
 from fastapi import Depends
 from openpyxl.styles import Alignment, Font, PatternFill
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_engine, get_session
 from grunt.core.document.service import DocumentService
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
+    from grunt.core.auth.models import GruntUser
 
 logger = structlog.get_logger()
 

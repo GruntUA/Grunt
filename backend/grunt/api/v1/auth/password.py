@@ -7,10 +7,6 @@ from typing import TYPE_CHECKING
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
-from grunt.api.v1.auth.schemas import (
-    ForgotPasswordRequest,
-    ResetPasswordRequest,
-)
 from grunt.core.auth.service import (
     consume_password_reset_token,
     create_password_reset_token,
@@ -21,6 +17,11 @@ from grunt.core.middleware.rate_limit import limiter
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+
+    from grunt.api.v1.auth.schemas import (
+        ForgotPasswordRequest,
+        ResetPasswordRequest,
+    )
 
 router = APIRouter()
 

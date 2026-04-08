@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any
 import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.config import settings
 from grunt.core.auth.models import GruntUser
@@ -16,6 +15,8 @@ from grunt.core.doctypes.user.user import _SESSION_FIELDS, get_user_by_email
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
+
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 _oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)

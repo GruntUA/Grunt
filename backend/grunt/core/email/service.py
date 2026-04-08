@@ -4,12 +4,14 @@ import email
 import uuid
 from datetime import UTC, datetime
 from email.message import EmailMessage
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import aioimaplib
 import aiosmtplib
 import structlog
-from sqlalchemy.ext.asyncio import AsyncSession
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from pydantic import BaseModel
 
@@ -16,12 +16,12 @@ class PaginationMeta(BaseModel):
     pages: int
 
 
-class StandardResponse(BaseModel, Generic[T]):
+class StandardResponse[T](BaseModel):
     success: bool = True
     data: T
 
 
-class StandardListResponse(BaseModel, Generic[T]):
+class StandardListResponse[T](BaseModel):
     success: bool = True
     data: list[T]
     meta: PaginationMeta

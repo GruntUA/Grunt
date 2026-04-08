@@ -30,14 +30,16 @@ import asyncio
 import contextlib
 import io
 from datetime import UTC
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import select
 from sqlalchemy import update as sa_update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.core.scripting.safe_globals import build_safe_globals, validate_script
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 

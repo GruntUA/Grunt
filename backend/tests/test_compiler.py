@@ -13,7 +13,7 @@ from grunt.core.metadata.compiler import (
     sync_table,
 )
 from grunt.core.metadata.doctype import DocType
-from grunt.core.metadata.field import DocField, FieldType
+from grunt.core.metadata.field import DocField
 
 # ── Fixtures ─────────────────────────────────────────────────────────────
 
@@ -21,20 +21,20 @@ from grunt.core.metadata.field import DocField, FieldType
 def _make_test_doctype(name: str = "TestDoc", **kwargs) -> DocType:
     """Helper to build a DocType with 8 different field types."""
     fields = [
-        DocField(fieldname="title", label="Title", fieldtype=FieldType.TEXT, in_list_view=True),
-        DocField(fieldname="description", label="Description", fieldtype=FieldType.LONG_TEXT),
-        DocField(fieldname="quantity", label="Quantity", fieldtype=FieldType.INT),
-        DocField(fieldname="price", label="Price", fieldtype=FieldType.FLOAT),
-        DocField(fieldname="is_active", label="Active", fieldtype=FieldType.BOOL),
-        DocField(fieldname="due_date", label="Due Date", fieldtype=FieldType.DATE),
+        DocField(fieldname="title", label="Title", fieldtype="Text", in_list_view=True),
+        DocField(fieldname="description", label="Description", fieldtype="LongText"),
+        DocField(fieldname="quantity", label="Quantity", fieldtype="Int"),
+        DocField(fieldname="price", label="Price", fieldtype="Float"),
+        DocField(fieldname="is_active", label="Active", fieldtype="Check"),
+        DocField(fieldname="due_date", label="Due Date", fieldtype="Date"),
         DocField(
-            fieldname="status", label="Status", fieldtype=FieldType.SELECT, options="Draft\nActive"
+            fieldname="status", label="Status", fieldtype="Select", options="Draft\nActive"
         ),
-        DocField(fieldname="metadata", label="Meta", fieldtype=FieldType.JSON),
+        DocField(fieldname="metadata", label="Meta", fieldtype="JSON"),
         # Non-physical fields — should NOT produce columns
-        DocField(fieldname="section_main", label="Main", fieldtype=FieldType.SECTION),
-        DocField(fieldname="col_left", label="Left", fieldtype=FieldType.COLUMN),
-        DocField(fieldname="tab_details", label="Details", fieldtype=FieldType.TAB),
+        DocField(fieldname="section_main", label="Main", fieldtype="Section"),
+        DocField(fieldname="col_left", label="Left", fieldtype="Column"),
+        DocField(fieldname="tab_details", label="Details", fieldtype="Tab"),
     ]
     return DocType(name=name, label="Test Document", module="test", fields=fields, **kwargs)
 
@@ -52,13 +52,15 @@ async def async_engine():
 # ── Tests ────────────────────────────────────────────────────────────────
 
 
-def test_get_table_name():
+@pytest.mark.asyncio
+async def test_get_table_name():
     assert get_table_name("crm", "SalesOrder") == "grunt_crm_sales_order"
     assert get_table_name("hr", "Employee") == "grunt_hr_employee"
     assert get_table_name("system", "DocType") == "grunt_system_doc_type"
 
 
-def test_compile_produces_correct_columns():
+@pytest.mark.asyncio
+async def test_compile_produces_correct_columns():
     """DocType with 8 field types → table has correct columns."""
     dt = _make_test_doctype()
     table = compile_doctype_to_table(dt)
@@ -83,7 +85,8 @@ def test_compile_produces_correct_columns():
         assert expected in col_names, f"Missing field column: {expected}"
 
 
-def test_non_physical_fields_excluded():
+@pytest.mark.asyncio
+async def test_non_physical_fields_excluded():
     """Section, Column, Tab fields do NOT create database columns."""
     dt = _make_test_doctype()
     table = compile_doctype_to_table(dt)
@@ -93,7 +96,8 @@ def test_non_physical_fields_excluded():
         assert non_phys not in col_names, f"Non-physical field leaked into table: {non_phys}"
 
 
-def test_child_doctype_has_parent_columns():
+@pytest.mark.asyncio
+async def test_child_doctype_has_parent_columns():
     """A child DocType adds parent_id, parent_doctype, parent_field, idx."""
     dt = _make_test_doctype(name="ChildDoc", is_child=True)
     table = compile_doctype_to_table(dt)
@@ -133,7 +137,7 @@ async def test_sync_table_adds_new_column(async_engine):
     await sync_table(dt, async_engine)
 
     # Add a new field
-    dt.fields.append(DocField(fieldname="extra_col", label="Extra", fieldtype=FieldType.TEXT))
+    dt.fields.append(DocField(fieldname="extra_col", label="Extra", fieldtype="Text"))
     # Must clear to avoid extend_existing stale cache
     SA_METADATA.remove(SA_METADATA.tables["grunt_test_sync_alter"])
     await sync_table(dt, async_engine)

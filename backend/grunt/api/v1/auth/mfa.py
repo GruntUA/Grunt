@@ -6,13 +6,14 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends
 
-from grunt.api.v1.auth.schemas import MfaVerifyRequest
 from grunt.core.auth.dependencies import current_user
-from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_session
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+
+    from grunt.api.v1.auth.schemas import MfaVerifyRequest
+    from grunt.core.auth.models import GruntUser
 
 router = APIRouter()
 

@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from datetime import UTC
+from typing import TYPE_CHECKING
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import inspect as sa_inspect
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.api.v1.schemas.meta import (
     DocTypeListItem,
@@ -17,12 +17,16 @@ from grunt.api.v1.schemas.meta import (
     IndexHint,
 )
 from grunt.core.auth.dependencies import current_user, superadmin_user
-from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_engine, get_session
 from grunt.core.metadata.compiler import compile_doctype_to_table, get_table_name, sync_table
-from grunt.core.metadata.doctype import DocType
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.metadata.scaffold import export_doctype_files
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from grunt.core.auth.models import GruntUser
+    from grunt.core.metadata.doctype import DocType
 
 logger = structlog.get_logger()
 router = APIRouter()

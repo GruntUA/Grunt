@@ -6,15 +6,18 @@ POST /api/v1/search/reindex   (superadmin only — rebuild entire index)
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.core.auth.dependencies import current_user, get_session
-from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_engine
 from grunt.core.search.service import search_index_service
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
+    from grunt.core.auth.models import GruntUser
 
 router = APIRouter()
 

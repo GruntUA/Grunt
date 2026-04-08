@@ -6,7 +6,7 @@ Role and UserRole are proper DocTypes managed via grunt.db.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime  # noqa: TC003
 
 from pydantic import BaseModel, Field
 
