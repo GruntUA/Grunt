@@ -11,7 +11,6 @@ from typing import Any
 
 from grunt.app import grunt
 
-
 # ── Comments ──────────────────────────────────────────────────────────────────
 
 
@@ -22,13 +21,16 @@ async def add_comment(
     is_private: bool = False,
 ) -> dict[str, Any]:
     """Add a comment to a document."""
-    return await grunt.new_doc("Comment", {
-        "reference_doctype": doctype,
-        "reference_id": doc_id,
-        "content": text,
-        "comment_type": "Comment",
-        "is_private": is_private,
-    })
+    return await grunt.new_doc(
+        "Comment",
+        {
+            "reference_doctype": doctype,
+            "reference_id": doc_id,
+            "content": text,
+            "comment_type": "Comment",
+            "is_private": is_private,
+        },
+    )
 
 
 async def get_comments(doctype: str, doc_id: str) -> list[dict[str, Any]]:
@@ -57,12 +59,15 @@ async def log_activity(
     details: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Log an activity entry. Controller auto-fills user from context."""
-    return await grunt.new_doc("ActivityLog", {
-        "doctype": doctype,
-        "doc_id": doc_id,
-        "action": action,
-        "details": details,
-    })
+    return await grunt.new_doc(
+        "ActivityLog",
+        {
+            "doctype": doctype,
+            "doc_id": doc_id,
+            "action": action,
+            "details": details,
+        },
+    )
 
 
 async def get_activity_log(

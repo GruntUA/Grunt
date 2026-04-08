@@ -17,7 +17,6 @@ from sqlalchemy import (
     MetaData,
     String,
     Table,
-    Text,
     UniqueConstraint,
     inspect,
     text,
@@ -129,9 +128,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     # Non-unique indexes
     for field in doctype.fields:
         if field.index and not field.unique:
-            constraints.append(
-                Index(f"ix_{table_name}_{field.fieldname}", field.fieldname)
-            )
+            constraints.append(Index(f"ix_{table_name}_{field.fieldname}", field.fieldname))
 
     return Table(table_name, SA_METADATA, *columns, *constraints, extend_existing=True)
 
@@ -172,10 +169,7 @@ async def sync_table(
                     col_type = col.type.compile(connection.dialect)
                     # Always add as NULL to avoid failures on tables with existing rows
                     connection.execute(
-                        text(
-                            f'ALTER TABLE "{table.name}" '
-                            f'ADD COLUMN "{col.name}" {col_type} NULL'
-                        )
+                        text(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {col_type} NULL')
                     )
                     logger.info(
                         "compiler.column_added",

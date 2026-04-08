@@ -2,18 +2,21 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
+import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
-import jwt
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.config import settings
 from grunt.core.auth.models import GruntUser
-from grunt.core.doctypes.User.User import get_user_by_email, _SESSION_FIELDS
 from grunt.core.db.session import get_engine, get_session
+from grunt.core.doctypes.User.User import _SESSION_FIELDS, get_user_by_email
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 _oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)
@@ -38,14 +41,12 @@ async def current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(
-            token, settings.secret_key, algorithms=[settings.algorithm]
-        )
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         email: str | None = payload.get("sub")
         if email is None:
             raise credentials_exception
     except jwt.PyJWTError:
-        raise credentials_exception
+        raise credentials_exception from None
 
     # Fast path: all identity fields are embedded in the token.
     uid: str | None = payload.get("uid")
@@ -69,10 +70,9 @@ async def current_user(
         raise credentials_exception
 
     from grunt.api.context import set_user  # noqa: PLC0415
+
     set_user(user)
     return user
-
-
 
 
 async def optional_user(
@@ -131,4 +131,3 @@ async def grunt_context(
         yield
     finally:
         grunt.reset_context(tokens)
-

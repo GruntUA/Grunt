@@ -12,12 +12,14 @@ Without needing to import and pass session/user/engine everywhere.
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import TYPE_CHECKING
 
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-from grunt.core.auth.models import GruntUser
 from grunt.core.context import _engine_ctx, _session_ctx, _site_ctx, _user_ctx
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
+    from grunt.core.auth.models import GruntUser
 
 
 def set_session(session: AsyncSession) -> None:

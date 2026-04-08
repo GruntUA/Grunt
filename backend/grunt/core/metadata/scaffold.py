@@ -79,7 +79,15 @@ def _generate_type_block(doctype_name: str, fields: list) -> str:
             continue
 
         # Skip standard fields
-        if fieldname in ("name", "docstatus", "idx", "owner", "creation", "modified", "modified_by"):
+        if fieldname in (
+            "name",
+            "docstatus",
+            "idx",
+            "owner",
+            "creation",
+            "modified",
+            "modified_by",
+        ):
             continue
 
         py_type = FIELDTYPE_TO_PYTHON.get(fieldtype, "Any | None")
@@ -97,7 +105,7 @@ if TYPE_CHECKING:
 \tclass {doctype_name}:
 \t\t\"\"\"Type hints for {doctype_name} fields.\"\"\"
 
-{chr(10).join(field_lines) if field_lines else chr(9)*2 + 'name: str | None'}
+{chr(10).join(field_lines) if field_lines else chr(9) * 2 + "name: str | None"}
 
 # end: auto-generated types
 """
@@ -150,7 +158,7 @@ class {name}(Document):
         pass
 '''
 
-CLIENT_SCRIPT_TEMPLATE = '''\
+CLIENT_SCRIPT_TEMPLATE = """\
 // Client script for {name}
 //
 // Available objects:
@@ -188,7 +196,7 @@ function validate(frm) {{
   // Called before save — return false to cancel
   return true
 }}
-'''
+"""
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────
@@ -268,7 +276,11 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
 
     app_dir = _find_app_dir(dt.module, app_name=app_name)
     if not app_dir:
-        logger.warning("scaffold.export_skip", doctype=dt.name, reason=f"module '{dt.module}' not found in apps")
+        logger.warning(
+            "scaffold.export_skip",
+            doctype=dt.name,
+            reason=f"module '{dt.module}' not found in apps",
+        )
         return None
 
     # Determine path based on app structure.

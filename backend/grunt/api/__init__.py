@@ -31,6 +31,13 @@ Usage in your app:
             await notify("Update", f"{self.doc.name} was processed")
 """
 
+from grunt.api.activity import (
+    add_comment,
+    delete_comment,
+    get_activity_log,
+    get_comments,
+    log_activity,
+)
 from grunt.api.context import (
     clear_context,
     get_engine,
@@ -41,13 +48,6 @@ from grunt.api.context import (
     set_session,
     set_site,
     set_user,
-)
-from grunt.api.activity import (
-    add_comment,
-    get_comments,
-    delete_comment,
-    log_activity,
-    get_activity_log,
 )
 from grunt.app import GruntDB
 
@@ -106,4 +106,3 @@ __all__ = [
     "get_site",
     "clear_context",
 ]
-

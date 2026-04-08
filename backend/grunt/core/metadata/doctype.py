@@ -10,7 +10,6 @@ from pydantic import BaseModel, ConfigDict
 
 from grunt.core.metadata.field import DocField
 
-
 # ── Workflow sub-models ──────────────────────────────────────────────────
 
 
@@ -34,7 +33,9 @@ class WorkflowStep(BaseModel):
     id: str
     name: str
     title: str = ""
-    step_type: str = "state"  # state | form | approval | notification | script | condition | create_doc | stop
+    step_type: str = (
+        "state"  # state | form | approval | notification | script | condition | create_doc | stop
+    )
     variable: str | None = None  # variable binding (e.g. req.vars.input_docs)
     sequence: int = 0
     is_active: bool = True

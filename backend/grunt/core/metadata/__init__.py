@@ -10,7 +10,7 @@ from grunt.core.metadata.doctype import (
     WorkflowState,
     WorkflowTransition,
 )
-from grunt.core.metadata.field import DocField, NON_PHYSICAL_FIELDS
+from grunt.core.metadata.field import NON_PHYSICAL_FIELDS, DocField
 
 __all__ = [
     "DocType",

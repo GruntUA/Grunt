@@ -17,9 +17,13 @@ Example:
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from grunt.api.context import get_user
 from grunt.app import grunt
-from grunt.core.auth.models import GruntUser
+
+if TYPE_CHECKING:
+    from grunt.core.auth.models import GruntUser
 
 
 async def get_current_user() -> GruntUser:
@@ -59,10 +63,7 @@ async def _check_doctype_permission(doctype: str, permission: str) -> bool:
             filters={"doctype_name": doctype},
             limit=1000,
         )
-        for row in rows:
-            if row.get("role") in user_roles and row.get(permission):
-                return True
-        return False
+        return any(row.get("role") in user_roles and row.get(permission) for row in rows)
 
     except Exception:
         return False
@@ -130,4 +131,3 @@ async def can_create(doctype: str) -> bool:
         True if user has create permission
     """
     return await _check_doctype_permission(doctype, "create")
-

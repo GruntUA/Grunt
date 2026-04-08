@@ -11,8 +11,6 @@ Example:
     await notify("New Request", "From client ABC", doctype="Request", doc_id="REQ-001")
 """
 
-from typing import Any
-
 import structlog
 
 from grunt.api.context import get_session, get_user
@@ -98,7 +96,7 @@ async def notify(
             doc_id="INV-001"
         )
     """
-    session = get_session()
+    get_session()
     user = get_user()
 
     if recipient is None:
@@ -168,7 +166,7 @@ async def queue_email(
             doc_id="INV-001"
         )
     """
-    session = get_session()
+    get_session()
 
     logger.info(
         "email.queued",

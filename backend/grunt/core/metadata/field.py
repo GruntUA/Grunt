@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
@@ -11,13 +10,8 @@ if TYPE_CHECKING:
     from sqlalchemy import Column
 
 
-
-
 import importlib.util
-import os
 from pathlib import Path
-
-
 
 # Core field types (for documentation / reference)
 # Plugins can use any string identifier. Built-in types:
@@ -28,9 +22,6 @@ from pathlib import Path
 #  - Special: RichText, JSON, Code, Color, Signature, Geolocation, BarCode
 
 
-
-
-
 # Global registry for SQLAlchemy column mapping
 _SA_TYPE_MAP: dict[str, Any] = {}
 
@@ -38,7 +29,6 @@ _SA_TYPE_MAP: dict[str, Any] = {}
 def register_field_type(name: str, factory: Any) -> None:
     """Register a new field type and its SQLAlchemy column factory."""
     _SA_TYPE_MAP[name] = factory
-
 
 
 def discover_field_types() -> None:
@@ -91,8 +81,7 @@ def discover_field_types() -> None:
             if py_file.exists():
                 try:
                     spec = importlib.util.spec_from_file_location(
-                        f"grunt_field_{field_dir.name.lower()}",
-                        str(py_file)
+                        f"grunt_field_{field_dir.name.lower()}", str(py_file)
                     )
                     if spec and spec.loader:
                         module = importlib.util.module_from_spec(spec)
@@ -114,9 +103,7 @@ _init_core_mappings()
 
 
 # Field types that do NOT produce a column in the database
-NON_PHYSICAL_FIELDS: frozenset[str] = frozenset(
-    {"Section", "Column", "Tab", "Table", "MultiLink"}
-)
+NON_PHYSICAL_FIELDS: frozenset[str] = frozenset({"Section", "Column", "Tab", "Table", "MultiLink"})
 
 
 class DocField(BaseModel):
@@ -160,11 +147,23 @@ class DocField(BaseModel):
 
     model_config = {"use_enum_values": True}
 
-    def to_sa_column(self) -> "Column":
+    def to_sa_column(self) -> Column:
         """Return a SQLAlchemy :class:`Column` for this field."""
         from sqlalchemy import (
-            Boolean, Column, Date, DateTime, Float as SAFloat,
-            Integer, JSON as SAJSON, String, Text, Time,
+            JSON as SAJSON,
+        )
+        from sqlalchemy import (
+            Boolean,
+            Column,
+            Date,
+            DateTime,
+            Integer,
+            String,
+            Text,
+            Time,
+        )
+        from sqlalchemy import (
+            Float as SAFloat,
         )
 
         factory = _SA_TYPE_MAP.get(self.fieldtype)
@@ -176,7 +175,7 @@ class DocField(BaseModel):
         spec = factory(self)
         sa_type_name, *args = spec
 
-        _TYPES = {
+        _TYPES = {  # noqa: N806
             "String": lambda a: String(a[0]) if a else String(255),
             "Text": lambda a: Text(),
             "Integer": lambda a: Integer(),
@@ -189,4 +188,3 @@ class DocField(BaseModel):
         }
         sa_type = _TYPES[sa_type_name](args)
         return Column(self.fieldname, sa_type)
-

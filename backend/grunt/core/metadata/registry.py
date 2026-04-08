@@ -12,9 +12,9 @@ import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import delete, select, update
 
+from grunt.core.db.system_tables import GruntMetaDoctype
 from grunt.core.metadata.compiler import sync_table
 from grunt.core.metadata.doctype import DocType
-from grunt.core.db.system_tables import GruntMetaDoctype
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -57,15 +57,15 @@ class DocTypeRegistry:
             for k, v in self._doctypes.items():
                 if k.lower() == name.lower():
                     return v
-            
+
             # Simple plural/singular fallback for common UI requests (e.g. 'users' -> 'User')
-            if name.lower().endswith('s'):
+            if name.lower().endswith("s"):
                 singular = name[:-1]
                 for k, v in self._doctypes.items():
                     if k.lower() == singular.lower():
                         return v
-            elif not name.lower().endswith('s'):
-                plural = name + 's'
+            elif not name.lower().endswith("s"):
+                plural = name + "s"
                 for k, v in self._doctypes.items():
                     if k.lower() == plural.lower():
                         return v
@@ -138,10 +138,7 @@ class DocTypeRegistry:
                     # Merge: add fields from JSON that are missing in the stored
                     # definition (framework upgrades).  Never remove existing fields.
                     stored_fieldnames = {f.fieldname for f in active_dt.fields}
-                    new_fields = [
-                        f for f in doctype.fields
-                        if f.fieldname not in stored_fieldnames
-                    ]
+                    new_fields = [f for f in doctype.fields if f.fieldname not in stored_fieldnames]
                     if new_fields:
                         active_dt.fields.extend(new_fields)
                         logger.info(
@@ -167,11 +164,13 @@ class DocTypeRegistry:
                         )
         else:
             # First run: seed from the bundled JSON file.
-            session.add(GruntMetaDoctype(
-                name=doctype.name,
-                module=doctype.module,
-                data=doctype.model_dump(),
-            ))
+            session.add(
+                GruntMetaDoctype(
+                    name=doctype.name,
+                    module=doctype.module,
+                    data=doctype.model_dump(),
+                )
+            )
             active_dt = doctype
             await session.flush()
 
@@ -241,9 +240,7 @@ class DocTypeRegistry:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"DocType '{name}' not found",
             )
-        await session.execute(
-            delete(GruntMetaDoctype).where(GruntMetaDoctype.name == name)
-        )
+        await session.execute(delete(GruntMetaDoctype).where(GruntMetaDoctype.name == name))
         await session.flush()
         del self._doctypes[name]
         logger.info("registry.deleted", name=name)

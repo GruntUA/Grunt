@@ -54,48 +54,34 @@ class VirtualDocType:
 
         Must return: {"data": [...], "meta": {"total": N, "page": N, "per_page": N}}
         """
-        raise NotImplementedError(
-            f"Virtual DocType '{self.doctype}' must implement get_list()"
-        )
+        raise NotImplementedError(f"Virtual DocType '{self.doctype}' must implement get_list()")
 
     async def get(self, doc_id: str, **kwargs: Any) -> dict[str, Any]:
         """Return a single document by ID.
 
         Must return a dict matching the DocType fields.
         """
-        raise NotImplementedError(
-            f"Virtual DocType '{self.doctype}' must implement get()"
-        )
+        raise NotImplementedError(f"Virtual DocType '{self.doctype}' must implement get()")
 
     async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         """Create a new document.
 
         Returns the created document dict.
         """
-        raise NotImplementedError(
-            f"Virtual DocType '{self.doctype}' must implement create()"
-        )
+        raise NotImplementedError(f"Virtual DocType '{self.doctype}' must implement create()")
 
-    async def update(
-        self, doc_id: str, data: dict[str, Any], **kwargs: Any
-    ) -> dict[str, Any]:
+    async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         """Update an existing document.
 
         Returns the updated document dict.
         """
-        raise NotImplementedError(
-            f"Virtual DocType '{self.doctype}' must implement update()"
-        )
+        raise NotImplementedError(f"Virtual DocType '{self.doctype}' must implement update()")
 
     async def delete(self, doc_id: str, **kwargs: Any) -> None:
         """Delete a document by ID."""
-        raise NotImplementedError(
-            f"Virtual DocType '{self.doctype}' must implement delete()"
-        )
+        raise NotImplementedError(f"Virtual DocType '{self.doctype}' must implement delete()")
 
-    async def get_count(
-        self, filters: dict[str, Any] | None = None, **kwargs: Any
-    ) -> int:
+    async def get_count(self, filters: dict[str, Any] | None = None, **kwargs: Any) -> int:
         """Return the total count of documents matching filters.
 
         Default implementation calls get_list and reads meta.total.
@@ -132,15 +118,22 @@ class VirtualDocType:
                     elif op in ("gt", "gte", "lt", "lte"):
                         a, b = float(raw), float(val)
                         match = (
-                            a > b  if op == "gt"  else
-                            a >= b if op == "gte" else
-                            a < b  if op == "lt"  else
-                            a <= b
+                            a > b
+                            if op == "gt"
+                            else a >= b
+                            if op == "gte"
+                            else a < b
+                            if op == "lt"
+                            else a <= b
                         )
                     elif op == "in":
                         match = str(raw) in [v.strip() for v in str(val).split(",")]
                     elif op == "isnull":
-                        match = (raw is None) if str(val).lower() in ("true", "1") else (raw is not None)
+                        match = (
+                            (raw is None)
+                            if str(val).lower() in ("true", "1")
+                            else (raw is not None)
+                        )
                     else:
                         match = str(raw) == str(val)
                 except (TypeError, ValueError):
@@ -182,7 +175,7 @@ class VirtualDocType:
 
         total = len(rows)
         offset = (page - 1) * per_page
-        page_rows = rows[offset: offset + per_page]
+        page_rows = rows[offset : offset + per_page]
         return {
             "data": page_rows,
             "meta": {
