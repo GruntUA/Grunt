@@ -385,3 +385,6 @@ class NotificationService:
                 )
         except Exception:  # noqa: BLE001
             pass  # WS broadcast is best-effort
+
+
+notification_service = NotificationService()

@@ -64,13 +64,7 @@
       "default": true,
       "in_list_view": true,
       "in_filter": true
-    },
-    {
-      "fieldname": "grunt_file_id",
-      "label": "ID системного файлу",
-      "fieldtype": "Text",
-      "read_only": true,
-      "hidden": true
+
     },
     {
       "fieldname": "sec_attachment",

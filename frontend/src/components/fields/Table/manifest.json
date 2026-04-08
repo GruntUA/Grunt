@@ -1,0 +1,13 @@
+{
+  "type": "Table",
+  "label": "Table",
+  "icon": "▦",
+  "category": "Таблиці",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text",
+    "table"
+  ]
+}

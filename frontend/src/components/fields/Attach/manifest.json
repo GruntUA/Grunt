@@ -1,0 +1,13 @@
+{
+  "type": "Attach",
+  "label": "Attach",
+  "icon": "📎",
+  "category": "Медіа",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text",
+    "default"
+  ]
+}

@@ -113,111 +113,51 @@ export function getFieldConfig(type: string): { label: string; sections: PropSec
   return def ? { label: def.label, sections: def.propertySections } : null
 }
 
+
 /** Fallback component loader for unrecognised field types. */
 export const FallbackFieldLoader = (): Promise<Component> =>
-  import('@/components/fields/FieldText.vue').then((m) => m.default as Component)
+  import('@/components/fields/Text/Text.vue').then((m) => m.default as Component)
+
 
 // ── Core field registrations ─────────────────────────────────────────────────
 
-const DATA: PropSection[] = ['core', 'flags', 'display', 'text', 'default']
+/**
+ * Discover and register all fields from the components/fields/ directory.
+ * Each field should be in its own directory with:
+ *  - manifest.json: Definition (label, icon, category, propertySections)
+ *  - [FieldName].vue: The UI component
+ */
+async function discoverFields() {
+  const manifests = import.meta.glob('@/components/fields/*/manifest.json', { eager: true })
+  const components = import.meta.glob('@/components/fields/*/*.vue')
 
-// Базові
-registerField({ type: 'Text',     label: 'Text',      icon: 'T',   category: 'Базові',
-  component: () => import('@/components/fields/FieldText.vue').then(m => m.default as Component),
-  propertySections: [...DATA, 'validation'] })
+  for (const path in manifests) {
+    const config = (manifests[path] as any).default
+    const dir = path.split('/').slice(0, -2).join('/') // Remove manifest.json
+    
+    // Config should have 'type'
+    const fieldType = config.type
 
-registerField({ type: 'LongText', label: 'Long Text', icon: '¶',   category: 'Базові',
-  component: () => import('@/components/fields/FieldLongText.vue').then(m => m.default as Component),
-  propertySections: [...DATA, 'validation'] })
+    // Find the Vue component in the same dir
+    // Path looks like: /src/components/fields/Text/manifest.json
+    const searchDir = path.replace('/manifest.json', '/')
+    const componentPath = Object.keys(components).find(p => p.startsWith(searchDir) && p.endsWith('.vue'))
 
-registerField({ type: 'Int',      label: 'Integer',   icon: '#',   category: 'Базові',
-  component: () => import('@/components/fields/FieldInt.vue').then(m => m.default as Component),
-  propertySections: [...DATA, 'number', 'validation'] })
+    if (componentPath) {
+      registerField({
+        ...config,
+        component: () => components[componentPath]().then((m: any) => m.default as Component)
+      })
+    } else if (!config.is_layout) {
+      console.warn(`[FieldRegistry] No Vue component found for field type "${fieldType}" at ${searchDir}`)
+      registerField(config)
+    } else {
+      // Layout fields don't need a component
+      registerField(config)
+    }
+  }
+}
 
-registerField({ type: 'Float',    label: 'Float',     icon: '.1',  category: 'Базові',
-  component: () => import('@/components/fields/FieldFloat.vue').then(m => m.default as Component),
-  propertySections: [...DATA, 'number', 'validation'] })
+// Initialise registry
+discoverFields()
 
-registerField({ type: 'Check',    label: 'Checkbox',  icon: '✓',   category: 'Базові',
-  component: () => import('@/components/fields/FieldCheck.vue').then(m => m.default as Component),
-  propertySections: ['core', 'flags', 'display', 'text', 'default'] })
-
-registerField({ type: 'Color',    label: 'Color',     icon: '🎨',  category: 'Базові',
-  component: () => import('@/components/fields/FieldColor.vue').then(m => m.default as Component),
-  propertySections: DATA })
-
-// Дата і час
-registerField({ type: 'Date',     label: 'Date',      icon: '📅',  category: 'Дата і час',
-  component: () => import('@/components/fields/FieldDate.vue').then(m => m.default as Component),
-  propertySections: DATA })
-
-registerField({ type: 'Datetime', label: 'Datetime',  icon: '🕐',  category: 'Дата і час',
-  component: () => import('@/components/fields/FieldDatetime.vue').then(m => m.default as Component),
-  propertySections: DATA })
-
-registerField({ type: 'Time',     label: 'Time',      icon: '⏰',  category: 'Дата і час',
-  component: () => import('@/components/fields/FieldText.vue').then(m => m.default as Component),
-  propertySections: DATA })
-
-// Вибір і зв'язки
-registerField({ type: 'Select',    label: 'Select',    icon: '▼',    category: "Вибір і зв'язки",
-  component: () => import('@/components/fields/FieldSelect.vue').then(m => m.default as Component),
-  propertySections: [...DATA, 'options'] })
-
-registerField({ type: 'Link',      label: 'Link',      icon: '🔗',   category: "Вибір і зв'язки",
-  component: () => import('@/components/fields/FieldLink.vue').then(m => m.default as Component),
-  propertySections: [...DATA, 'link'] })
-
-registerField({ type: 'MultiLink', label: 'Multi Link', icon: '⛓',  category: "Вибір і зв'язки",
-  component: () => import('@/components/fields/FieldMultiLink.vue').then(m => m.default as Component),
-  propertySections: [...DATA, 'link'] })
-
-// Медіа
-registerField({ type: 'Attach', label: 'Attach', icon: '📎', category: 'Медіа',
-  component: () => import('@/components/fields/FieldAttach.vue').then(m => m.default as Component),
-  propertySections: DATA })
-
-registerField({ type: 'Image',  label: 'Image',  icon: '🖼',  category: 'Медіа',
-  component: () => import('@/components/fields/FieldImage.vue').then(m => m.default as Component),
-  propertySections: DATA })
-
-// Текст
-registerField({ type: 'RichText', label: 'Rich Text', icon: '✍',  category: 'Текст',
-  component: () => import('@/components/fields/FieldRichText.vue').then(m => m.default as Component),
-  propertySections: DATA })
-
-registerField({ type: 'JSON', label: 'JSON', icon: '{}', category: 'Текст',
-  component: () => import('@/components/fields/FieldJson.vue').then(m => m.default as Component),
-  propertySections: DATA })
-
-registerField({ type: 'Code', label: 'Code', icon: '<>', category: 'Текст',
-  component: () => import('@/components/fields/FieldCode.vue').then(m => m.default as Component),
-  propertySections: [...DATA, 'options'] })
-
-// Таблиці
-registerField({ type: 'Table', label: 'Table', icon: '▦', category: 'Таблиці',
-  component: () => import('@/components/fields/FieldTable.vue').then(m => m.default as Component),
-  propertySections: ['core', 'flags', 'display', 'text', 'table'] })
-
-// Спеціальні
-registerField({ type: 'Signature',   label: 'Signature',   icon: '✏',  category: 'Спеціальні',
-  component: () => import('@/components/fields/FieldText.vue').then(m => m.default as Component),
-  propertySections: ['core', 'flags', 'display', 'text'] })
-
-registerField({ type: 'Geolocation', label: 'Geolocation', icon: '📍', category: 'Спеціальні',
-  component: () => import('@/components/fields/FieldGeolocation.vue').then(m => m.default as Component),
-  propertySections: ['core', 'flags', 'display', 'text'] })
-
-registerField({ type: 'BarCode', label: 'Barcode / QR', icon: '▌▌', category: 'Спеціальні',
-  component: () => import('@/components/fields/FieldBarcode.vue').then(m => m.default as Component),
-  propertySections: ['core', 'flags', 'display', 'text'] })
-
-// Структурні (layout-only, not DB-backed)
-registerField({ type: 'Section', label: 'Section', icon: '═', category: '', is_layout: true,
-  propertySections: ['core', 'collapsible', 'text'] })
-
-registerField({ type: 'Column', label: 'Column', icon: '║', category: '', is_layout: true,
-  propertySections: ['core'] })
-
-registerField({ type: 'Tab', label: 'Tab', icon: '⊟', category: '', is_layout: true,
-  propertySections: ['core'] })

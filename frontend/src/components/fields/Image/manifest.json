@@ -1,0 +1,13 @@
+{
+  "type": "Image",
+  "label": "Image",
+  "icon": "🖼",
+  "category": "Медіа",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text",
+    "default"
+  ]
+}

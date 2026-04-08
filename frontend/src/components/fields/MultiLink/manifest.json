@@ -1,0 +1,14 @@
+{
+  "type": "MultiLink",
+  "label": "Multi Link",
+  "icon": "⛓",
+  "category": "Вибір і зв'язки",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text",
+    "default",
+    "link"
+  ]
+}

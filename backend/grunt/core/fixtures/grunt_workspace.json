@@ -1,4 +1,5 @@
 {
+  "doctype": "WorkspaceSidebar",
   "name": "grunt",
   "label": "Ґрунт",
   "app": "grunt",
@@ -8,7 +9,7 @@
   "sequence": 999,
   "is_hidden": false,
   "roles": "",
-  "items": [
+  "sidebar_items": [
     {
       "section": "Метадані",
       "type": "DocType",

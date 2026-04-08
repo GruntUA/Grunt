@@ -1,5 +1,5 @@
 {
-  "doctype": "GruntWorkspace",
+  "doctype": "WorkspaceSidebar",
   "records": [
     {
       "name": "hr",

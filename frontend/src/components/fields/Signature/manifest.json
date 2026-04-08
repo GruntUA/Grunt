@@ -1,0 +1,12 @@
+{
+  "type": "Signature",
+  "label": "Signature",
+  "icon": "✏",
+  "category": "Спеціальні",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text"
+  ]
+}

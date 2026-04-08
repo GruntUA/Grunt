@@ -1,0 +1,13 @@
+{
+  "type": "Datetime",
+  "label": "Datetime",
+  "icon": "🕐",
+  "category": "Дата і час",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text",
+    "default"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "type": "Column",
+  "label": "Column",
+  "icon": "║",
+  "category": "",
+  "is_layout": true,
+  "propertySections": [
+    "core"
+  ]
+}

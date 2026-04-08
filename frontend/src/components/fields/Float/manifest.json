@@ -1,0 +1,15 @@
+{
+  "type": "Float",
+  "label": "Float",
+  "icon": ".1",
+  "category": "Базові",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text",
+    "default",
+    "number",
+    "validation"
+  ]
+}

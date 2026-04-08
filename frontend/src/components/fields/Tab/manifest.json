@@ -1,0 +1,10 @@
+{
+  "type": "Tab",
+  "label": "Tab",
+  "icon": "⊟",
+  "category": "",
+  "is_layout": true,
+  "propertySections": [
+    "core"
+  ]
+}

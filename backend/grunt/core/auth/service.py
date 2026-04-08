@@ -46,12 +46,19 @@ def create_access_token(user: GruntUser) -> str:
 
 async def create_refresh_token(user_id: str, session: AsyncSession) -> str:
     """Issue a 7-day refresh token for a user."""
-    from grunt.core.db.system_tables import GruntRefreshToken  # noqa: PLC0415
+    from grunt.app import grunt
+    from grunt.core.auth.models import SYSTEM_USER
 
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
     expires_at = datetime.now(timezone.utc) + timedelta(days=7)
-    session.add(GruntRefreshToken(user_id=user_id, token=token, expires_at=expires_at))
-    await session.flush()
+    
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        await grunt.db.set_value("User", user_id, "refresh_token", token)
+        await grunt.db.set_value("User", user_id, "refresh_token_expires_at", expires_at)
+    finally:
+        grunt.reset_context(_tokens)
+    
     return token
 
 
@@ -63,24 +70,40 @@ async def rotate_refresh_token(
 
     Returns (new_refresh_token, user) on success, None if invalid/expired.
     """
-    from grunt.core.db.system_tables import GruntRefreshToken  # noqa: PLC0415
-    from grunt.core.doctypes.User.User import get_user_by_id  # noqa: PLC0415
+    from grunt.app import grunt
+    from grunt.core.doctypes.User.User import get_user_by_id
+    from grunt.core.auth.models import SYSTEM_USER
 
     now = datetime.now(timezone.utc)
-    result = await session.execute(
-        select(GruntRefreshToken)
-        .where(GruntRefreshToken.token == token)
-        .where(GruntRefreshToken.revoked.is_(False))
-        .where(GruntRefreshToken.expires_at > now)
-    )
-    rt = result.scalar_one_or_none()
-    if rt is None:
-        return None
+    
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        users = await grunt.get_list(
+            "User",
+            filters={"refresh_token": token},
+            fields=["id", "refresh_token_expires_at"],
+            limit=1,
+        )
+        if not users:
+            return None
+            
+        user_data = users[0]
+        expires_at = user_data.get("refresh_token_expires_at")
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at)
+            
+        if not expires_at or expires_at.replace(tzinfo=timezone.utc) < now:
+            return None
+            
+        # Revoke token
+        await grunt.db.set_value("User", user_data["id"], "refresh_token", None)
+        await grunt.db.set_value("User", user_data["id"], "refresh_token_expires_at", None)
+        
+        user_id = user_data["id"]
+    finally:
+        grunt.reset_context(_tokens)
 
-    rt.revoked = True
-    await session.flush()
-
-    user = await get_user_by_id(rt.user_id, session)
+    user = await get_user_by_id(user_id, session)
     if user is None:
         return None
 
@@ -90,16 +113,15 @@ async def rotate_refresh_token(
 
 async def revoke_refresh_tokens_for_user(user_id: str, session: AsyncSession) -> None:
     """Revoke all active refresh tokens for a user (e.g., on logout)."""
-    from grunt.core.db.system_tables import GruntRefreshToken  # noqa: PLC0415
-    from sqlalchemy import update as sa_update  # noqa: PLC0415
-
-    await session.execute(
-        sa_update(GruntRefreshToken)
-        .where(GruntRefreshToken.user_id == user_id)
-        .where(GruntRefreshToken.revoked.is_(False))
-        .values(revoked=True)
-    )
-    await session.flush()
+    from grunt.app import grunt
+    from grunt.core.auth.models import SYSTEM_USER
+    
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        await grunt.db.set_value("User", user_id, "refresh_token", None)
+        await grunt.db.set_value("User", user_id, "refresh_token_expires_at", None)
+    finally:
+        grunt.reset_context(_tokens)
 
 
 # ── Password reset tokens ─────────────────────────────────────────────────
@@ -110,26 +132,19 @@ async def create_password_reset_token(
     session: AsyncSession,
 ) -> str:
     """Create a 1-hour password reset token. Invalidates prior unused tokens."""
-    from grunt.core.db.system_tables import GruntPasswordResetToken  # noqa: PLC0415
-    from sqlalchemy import update as sa_update  # noqa: PLC0415
-
-    await session.execute(
-        sa_update(GruntPasswordResetToken)
-        .where(GruntPasswordResetToken.user_id == user_id)
-        .where(GruntPasswordResetToken.used.is_(False))
-        .values(used=True)
-    )
+    from grunt.app import grunt
+    from grunt.core.auth.models import SYSTEM_USER
 
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
     expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
-    session.add(
-        GruntPasswordResetToken(
-            user_id=user_id,
-            token=token,
-            expires_at=expires_at,
-        )
-    )
-    await session.flush()
+    
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        await grunt.db.set_value("User", user_id, "reset_token", token)
+        await grunt.db.set_value("User", user_id, "reset_token_expires_at", expires_at)
+    finally:
+        grunt.reset_context(_tokens)
+        
     return token
 
 
@@ -139,30 +154,39 @@ async def consume_password_reset_token(
     session: AsyncSession,
 ) -> bool:
     """Verify token and update the user's password. Returns True on success."""
-    from grunt.core.db.system_tables import GruntPasswordResetToken  # noqa: PLC0415
-    from grunt.core.doctypes.User.User import hash_password  # noqa: PLC0415
-    from grunt.app import grunt  # noqa: PLC0415
-    from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+    from grunt.app import grunt
+    from grunt.core.doctypes.User.User import hash_password
+    from grunt.core.auth.models import SYSTEM_USER
 
     now = datetime.now(timezone.utc)
-    result = await session.execute(
-        select(GruntPasswordResetToken)
-        .where(GruntPasswordResetToken.token == token)
-        .where(GruntPasswordResetToken.used.is_(False))
-        .where(GruntPasswordResetToken.expires_at > now)
-    )
-    reset_token = result.scalar_one_or_none()
-    if reset_token is None:
-        return False
-
-    reset_token.used = True
-    await session.flush()
-
+    
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:
+        users = await grunt.get_list(
+            "User",
+            filters={"reset_token": token},
+            fields=["id", "reset_token_expires_at"],
+            limit=1,
+        )
+        if not users:
+            return False
+            
+        user_data = users[0]
+        expires_at = user_data.get("reset_token_expires_at")
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at)
+            
+        if not expires_at or expires_at.replace(tzinfo=timezone.utc) < now:
+            return False
+
+        # Invalidate token
+        await grunt.db.set_value("User", user_data["id"], "reset_token", None)
+        await grunt.db.set_value("User", user_data["id"], "reset_token_expires_at", None)
+
+        # Update password
         await grunt.db.set_value(
             "User",
-            reset_token.user_id,
+            user_data["id"],
             "hashed_password",
             hash_password(new_password),
         )

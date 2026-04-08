@@ -1,0 +1,13 @@
+{
+  "type": "Time",
+  "label": "Time",
+  "icon": "⏰",
+  "category": "Дата і час",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text",
+    "default"
+  ]
+}

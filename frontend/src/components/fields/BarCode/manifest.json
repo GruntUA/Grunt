@@ -1,0 +1,12 @@
+{
+  "type": "BarCode",
+  "label": "Barcode / QR",
+  "icon": "▌▌",
+  "category": "Спеціальні",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text"
+  ]
+}

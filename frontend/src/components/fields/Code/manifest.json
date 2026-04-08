@@ -1,0 +1,14 @@
+{
+  "type": "Code",
+  "label": "Code",
+  "icon": "<>",
+  "category": "Текст",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text",
+    "default",
+    "options"
+  ]
+}

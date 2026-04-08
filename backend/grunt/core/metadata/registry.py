@@ -118,14 +118,7 @@ class DocTypeRegistry:
                     .values(module=doctype.module, data=doctype.model_dump())
                 )
             else:
-                # Preserve user customisations — do NOT overwrite data from JSON.
-                # Only keep module in sync (rarely changes).
-                await session.execute(
-                    update(GruntMetaDoctype)
-                    .where(GruntMetaDoctype.name == doctype.name)
-                    .values(module=doctype.module)
-                )
-                # Load the stored definition for table sync & in-memory cache.
+                # Load the stored definition (preserves Studio customisations).
                 try:
                     active_dt = DocType.model_validate(existing.data)
                 except Exception:
@@ -139,8 +132,39 @@ class DocTypeRegistry:
                     await session.execute(
                         update(GruntMetaDoctype)
                         .where(GruntMetaDoctype.name == doctype.name)
-                        .values(data=doctype.model_dump())
+                        .values(module=doctype.module, data=doctype.model_dump())
                     )
+                else:
+                    # Merge: add fields from JSON that are missing in the stored
+                    # definition (framework upgrades).  Never remove existing fields.
+                    stored_fieldnames = {f.fieldname for f in active_dt.fields}
+                    new_fields = [
+                        f for f in doctype.fields
+                        if f.fieldname not in stored_fieldnames
+                    ]
+                    if new_fields:
+                        active_dt.fields.extend(new_fields)
+                        logger.info(
+                            "registry.core_fields_merged",
+                            name=doctype.name,
+                            added=[f.fieldname for f in new_fields],
+                        )
+                    # Persist the merged definition and keep module in sync.
+                    # Wrapped separately so a transient DB lock does not prevent
+                    # the physical table sync or in-memory registration below.
+                    try:
+                        await session.execute(
+                            update(GruntMetaDoctype)
+                            .where(GruntMetaDoctype.name == doctype.name)
+                            .values(module=doctype.module, data=active_dt.model_dump())
+                        )
+                        await session.flush()
+                    except Exception as _upd_err:  # noqa: BLE001
+                        logger.warning(
+                            "registry.core_metadata_update_failed",
+                            name=doctype.name,
+                            error=str(_upd_err),
+                        )
         else:
             # First run: seed from the bundled JSON file.
             session.add(GruntMetaDoctype(
@@ -149,8 +173,8 @@ class DocTypeRegistry:
                 data=doctype.model_dump(),
             ))
             active_dt = doctype
+            await session.flush()
 
-        await session.flush()
         await sync_table(active_dt, async_engine, session=session)
         self._doctypes[active_dt.name] = active_dt
         logger.info("registry.core_injected", name=active_dt.name)

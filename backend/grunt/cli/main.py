@@ -429,15 +429,45 @@ def doctype_group():
 @doctype_group.command("sync")
 @click.argument("name")
 @click.option("--site", default=None, help="Назва сайту")
-def doctype_sync(name: str, site: str | None):
-    """Синхронізувати конкретний DocType зі схемою БД."""
+@click.option("--force", is_flag=True, help="Перезаписати метадані в БД з JSON-файлу (для core DocTypes)")
+def doctype_sync(name: str, site: str | None, force: bool):
+    """Синхронізувати конкретний DocType зі схемою БД.
+
+    За замовчуванням синхронізує лише фізичну схему таблиці.
+    З --force також оновлює метадані в grunt_meta_doctype з JSON-файлу на диску.
+    """
 
     async def _run():
+        import json  # noqa: PLC0415
+        from sqlalchemy import update as sa_update  # noqa: PLC0415
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
+        from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
+        from grunt.core.db.system_tables import GruntMetaDoctype  # noqa: PLC0415
 
         async with _site_session(site) as (session, eng):
             dt = await doctype_registry.get(name)
+
+            if force and dt.is_system:
+                # Find JSON file on disk and reload definition
+                from grunt.core.startup.doctypes import _CORE_DOCTYPES_DIR  # noqa: PLC0415
+                json_file = _CORE_DOCTYPES_DIR / name / f"{name}.json"
+                if not json_file.exists():
+                    # Try flat .json files too
+                    json_file = _CORE_DOCTYPES_DIR / f"{name}.json"
+                if not json_file.exists():
+                    click.echo(f"Помилка: JSON-файл для '{name}' не знайдено.", err=True)
+                    raise SystemExit(1)
+                dt_data = json.loads(json_file.read_text(encoding="utf-8"))
+                dt = DocType.model_validate(dt_data)
+                await session.execute(
+                    sa_update(GruntMetaDoctype)
+                    .where(GruntMetaDoctype.name == name)
+                    .values(data=dt.model_dump())
+                )
+                doctype_registry._doctypes[name] = dt
+                click.echo(f"Метадані '{name}' оновлено з {json_file.name}.")
+
             await sync_table(dt, eng, session=session)
             await session.commit()
             click.echo(f"DocType '{name}' синхронізовано.")

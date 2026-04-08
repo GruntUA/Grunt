@@ -1,0 +1,7 @@
+{
+  "type": "Int",
+  "label": "Integer",
+  "icon": "#",
+  "category": "Базові",
+  "propertySections": ["core", "flags", "display", "text", "default", "number", "validation"]
+}

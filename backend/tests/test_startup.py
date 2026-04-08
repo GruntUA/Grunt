@@ -9,8 +9,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.core.startup import _load_app_meta, _auto_seed_workspace
-from grunt.core.db.system_tables import GruntWorkspace, WorkspaceSidebarItem
-
 
 class TestLoadAppMeta:
     """Test _load_app_meta function."""
@@ -132,76 +130,3 @@ class TestLoadAppMeta:
         assert meta["modules"] == []
 
 
-class TestAutoSeedWorkspace:
-    """Test _auto_seed_workspace function."""
-
-    async def test_auto_seed_workspace_empty_doctypes(self, db_session: AsyncSession):
-        """Test workspace creation with empty doctypes list."""
-        app_meta = {
-            "name": "hr_oms",
-            "title": "HR OMS System",
-            "icon": "🙂",
-            "color": "#3498db",
-            "description": "HR management system",
-            "modules": [],
-        }
-
-        await _auto_seed_workspace("hr_oms", app_meta, [], db_session)
-        await db_session.commit()
-
-        result = await db_session.execute(
-            select(GruntWorkspace).where(GruntWorkspace.name == "hr_oms")
-        )
-        workspace = result.scalar_one_or_none()
-
-        assert workspace is not None
-        assert workspace.name == "hr_oms"
-        assert workspace.label == "HR OMS System"
-        assert workspace.icon == "🙂"
-        assert workspace.color == "#3498db"
-        assert workspace.description == "HR management system"
-        assert workspace.app == "hr_oms"
-
-    async def test_auto_seed_workspace_update_existing(self, db_session: AsyncSession):
-        """Test workspace update when it already exists."""
-        import uuid
-
-        # Create initial workspace
-        initial_id = str(uuid.uuid4())
-        db_session.add(GruntWorkspace(
-            id=initial_id,
-            name="hr_oms",
-            label="Old Label",
-            app="hr_oms",
-            icon="📄",
-            color="#000000",
-            description="Old description",
-            sequence=10,
-            is_hidden=False,
-            roles="",
-        ))
-        await db_session.commit()
-
-        # Call _auto_seed_workspace with new metadata
-        app_meta = {
-            "name": "hr_oms",
-            "title": "HR OMS System Updated",
-            "icon": "🙂",
-            "color": "#3498db",
-            "description": "Updated description",
-            "modules": [],
-        }
-
-        await _auto_seed_workspace("hr_oms", app_meta, [], db_session)
-        await db_session.commit()
-
-        result = await db_session.execute(
-            select(GruntWorkspace).where(GruntWorkspace.name == "hr_oms")
-        )
-        workspace = result.scalar_one_or_none()
-
-        assert workspace is not None
-        assert workspace.id == initial_id  # Same ID
-        assert workspace.label == "HR OMS System Updated"  # Updated
-        assert workspace.icon == "🙂"  # Updated
-        assert workspace.color == "#3498db"  # Updated

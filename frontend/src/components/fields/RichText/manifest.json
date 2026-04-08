@@ -1,0 +1,13 @@
+{
+  "type": "RichText",
+  "label": "Rich Text",
+  "icon": "✍",
+  "category": "Текст",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text",
+    "default"
+  ]
+}

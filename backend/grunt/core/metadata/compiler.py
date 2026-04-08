@@ -10,19 +10,14 @@ import uuid
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
-    Boolean,
     Column,
-    Date,
     DateTime,
-    Float,
     Index,
     Integer,
-    JSON,
     MetaData,
     String,
     Table,
     Text,
-    Time,
     UniqueConstraint,
     inspect,
     text,
@@ -56,30 +51,6 @@ MULTI_LINK_TABLE = Table(
     Column("idx", Integer, default=0),
     extend_existing=True,
 )
-
-# ── Field type → SQLAlchemy Column builder ───────────────────────────────
-
-FIELDTYPE_TO_SA: dict[str, object] = {
-    "Data": lambda f: Column(f.fieldname, String(f.max_length or 255)),
-    "Text": lambda f: Column(f.fieldname, String(f.max_length or 255)),
-    "LongText": lambda f: Column(f.fieldname, Text),
-    "Int": lambda f: Column(f.fieldname, Integer),
-    "Float": lambda f: Column(f.fieldname, Float(precision=6)),
-    "Check": lambda f: Column(f.fieldname, Boolean, default=False),
-    "Date": lambda f: Column(f.fieldname, Date),
-    "Datetime": lambda f: Column(f.fieldname, DateTime(timezone=True)),
-    "Time": lambda f: Column(f.fieldname, Time),
-    "Select": lambda f: Column(f.fieldname, String(100)),
-    "Link": lambda f: Column(f.fieldname, String(255)),
-    "Attach": lambda f: Column(f.fieldname, String(500)),
-    "Image": lambda f: Column(f.fieldname, String(500)),
-    "RichText": lambda f: Column(f.fieldname, Text),
-    "JSON": lambda f: Column(f.fieldname, JSON),
-    "Color": lambda f: Column(f.fieldname, String(20)),
-    "Code": lambda f: Column(f.fieldname, Text),
-    "Geolocation": lambda f: Column(f.fieldname, JSON),
-    "Signature": lambda f: Column(f.fieldname, Text),
-}
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────
@@ -137,13 +108,12 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
         if field.fieldtype in NON_PHYSICAL_FIELDS:
             continue
 
-        builder = FIELDTYPE_TO_SA.get(
-            field.fieldtype.value if hasattr(field.fieldtype, "value") else field.fieldtype
-        )
-        if not builder:
+        try:
+            col = field.to_sa_column()
+        except ValueError:
+            # Non-physical or unknown type — skip silently
             continue
 
-        col = builder(field)
         col.nullable = True
         # Defaults are handled at the application level (DocumentService),
         # not at the DB column level, to avoid SA compile issues.

@@ -1,0 +1,14 @@
+{
+  "type": "LongText",
+  "label": "Long Text",
+  "icon": "¶",
+  "category": "Базові",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text",
+    "default",
+    "validation"
+  ]
+}

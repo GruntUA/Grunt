@@ -1,0 +1,12 @@
+{
+  "type": "Section",
+  "label": "Section",
+  "icon": "═",
+  "category": "",
+  "is_layout": true,
+  "propertySections": [
+    "core",
+    "collapsible",
+    "text"
+  ]
+}

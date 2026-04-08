@@ -1,0 +1,13 @@
+{
+  "type": "JSON",
+  "label": "JSON",
+  "icon": "{}",
+  "category": "Текст",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text",
+    "default"
+  ]
+}

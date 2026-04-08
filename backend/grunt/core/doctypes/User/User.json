@@ -83,6 +83,30 @@
       "label": "MFA backup codes",
       "fieldtype": "JSON",
       "hidden": true
+    },
+    {
+      "fieldname": "refresh_token",
+      "label": "Refresh Token",
+      "fieldtype": "Text",
+      "hidden": true
+    },
+    {
+      "fieldname": "refresh_token_expires_at",
+      "label": "Refresh Token Expires",
+      "fieldtype": "Datetime",
+      "hidden": true
+    },
+    {
+      "fieldname": "reset_token",
+      "label": "Password Reset Token",
+      "fieldtype": "Text",
+      "hidden": true
+    },
+    {
+      "fieldname": "reset_token_expires_at",
+      "label": "Password Reset Expires",
+      "fieldtype": "Datetime",
+      "hidden": true
     }
   ]
 }

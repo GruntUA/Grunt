@@ -1,0 +1,12 @@
+{
+  "type": "Geolocation",
+  "label": "Geolocation",
+  "icon": "📍",
+  "category": "Спеціальні",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text"
+  ]
+}

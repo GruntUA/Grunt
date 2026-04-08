@@ -1,0 +1,14 @@
+{
+  "type": "Select",
+  "label": "Select",
+  "icon": "▼",
+  "category": "Вибір і зв'язки",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text",
+    "default",
+    "options"
+  ]
+}

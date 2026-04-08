@@ -1,0 +1,13 @@
+{
+  "type": "Color",
+  "label": "Color",
+  "icon": "🎨",
+  "category": "Базові",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "text",
+    "default"
+  ]
+}
