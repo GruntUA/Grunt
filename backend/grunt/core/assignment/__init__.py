@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import and_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt.core.metadata.compiler import compile_doctype_to_table
-from grunt.core.metadata.registry import doctype_registry
 from grunt.app import grunt
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -108,17 +107,20 @@ class AssignmentService:
             if isinstance(condition, dict):
                 # Оператори: {">": 100}, {">=": 50}, {"<": 10}, {"<=": 20}, {"!=": "Draft"}
                 for op, target in condition.items():
-                    if op == ">" and not (value and value > target):
-                        return False
-                    elif op == ">=" and not (value is not None and value >= target):
-                        return False
-                    elif op == "<" and not (value and value < target):
-                        return False
-                    elif op == "<=" and not (value is not None and value <= target):
-                        return False
-                    elif op == "!=" and value == target:
-                        return False
-                    elif op == "in" and value not in target:
+                    if (
+                        op == ">"
+                        and not (value and value > target)
+                        or op == ">="
+                        and not (value is not None and value >= target)
+                        or op == "<"
+                        and not (value and value < target)
+                        or op == "<="
+                        and not (value is not None and value <= target)
+                        or op == "!="
+                        and value == target
+                        or op == "in"
+                        and value not in target
+                    ):
                         return False
             else:
                 # Простий збіг: {"status": "Draft"}
@@ -128,7 +130,12 @@ class AssignmentService:
         return True
 
     async def _assign_to_user(
-        self, doctype: str, doc: dict[str, Any], user_email: str, session: AsyncSession, rule_id: str | None = None
+        self,
+        doctype: str,
+        doc: dict[str, Any],
+        user_email: str,
+        session: AsyncSession,
+        rule_id: str | None = None,
     ) -> None:
         """Призначити документ конкретному користувачеві (create ToDo)."""
         try:
@@ -176,13 +183,17 @@ class AssignmentService:
             )
 
     async def _assign_to_role(
-        self, doctype: str, doc: dict[str, Any], role: str, session: AsyncSession, rule_id: str | None = None
+        self,
+        doctype: str,
+        doc: dict[str, Any],
+        role: str,
+        session: AsyncSession,
+        rule_id: str | None = None,
     ) -> None:
         """Призначити документ всім користувачам ролі."""
         try:
             from grunt.app import grunt  # noqa: PLC0415
             from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
-            from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
             # Завантажити всіх користувачів з цієї ролі
             _tokens = grunt.set_context(session, None, SYSTEM_USER)

@@ -16,22 +16,26 @@ from __future__ import annotations
 
 import asyncio
 import functools
-import time
 import threading
+import time
 from collections import deque
+from collections.abc import AsyncGenerator, Callable, Generator
 from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
-from dataclasses import dataclass, field, asdict
-from typing import Any, AsyncGenerator, Callable, Generator, TypeVar
+from dataclasses import asdict, dataclass, field
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import structlog
-from sqlalchemy.ext.asyncio import AsyncEngine
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncEngine
 
 logger = structlog.get_logger()
 
 F = TypeVar("F", bound=Callable[..., Any])
 
 # ── Data structures ────────────────────────────────────────────────────────
+
 
 @dataclass
 class QueryRecord:
@@ -45,6 +49,7 @@ class QueryRecord:
 @dataclass
 class SpanRecord:
     """One named code span (method call, service operation, etc.)."""
+
     name: str
     duration_ms: float
 
@@ -71,18 +76,18 @@ class RequestProfile:
 # ── Global ring buffer (last 200 requests) ────────────────────────────────
 
 _MAX_REQUESTS = 200
-_MAX_QUERIES  = 1000  # per ring buffer (across all requests)
+_MAX_QUERIES = 1000  # per ring buffer (across all requests)
 
 _request_buffer: deque[RequestProfile] = deque(maxlen=_MAX_REQUESTS)
-_query_buffer:   deque[QueryRecord]    = deque(maxlen=_MAX_QUERIES)
+_query_buffer: deque[QueryRecord] = deque(maxlen=_MAX_QUERIES)
 _buffer_lock = threading.Lock()
 
 # ── Runtime settings (mutable via API) ────────────────────────────────────
 
-_profiling_enabled:      bool  = True
-_global_threshold_ms:    float = 10.0
-_slow_request_db_ms:     float = 20.0
-_slow_request_ms:        float = 100.0
+_profiling_enabled: bool = True
+_global_threshold_ms: float = 10.0
+_slow_request_db_ms: float = 20.0
+_slow_request_ms: float = 100.0
 
 
 def get_settings() -> dict:
@@ -113,17 +118,16 @@ def set_request_threshold(ms: float) -> None:
     global _slow_request_ms
     _slow_request_ms = ms
 
+
 # ── Per-request context ────────────────────────────────────────────────────
 
 # Holds list of QueryRecord being accumulated for the current request
 _request_queries: ContextVar[list[QueryRecord] | None] = ContextVar(
     "_request_queries", default=None
 )
-_request_spans:  ContextVar[list[SpanRecord] | None] = ContextVar(
-    "_request_spans", default=None
-)
+_request_spans: ContextVar[list[SpanRecord] | None] = ContextVar("_request_spans", default=None)
 _request_id_var: ContextVar[str | None] = ContextVar("_request_id_var", default=None)
-_threshold_var:  ContextVar[float] = ContextVar("_threshold_var", default=200.0)
+_threshold_var: ContextVar[float] = ContextVar("_threshold_var", default=200.0)
 
 
 @contextmanager
@@ -140,8 +144,8 @@ def collect_for_request(
         return
 
     queries: list[QueryRecord] = []
-    spans:   list[SpanRecord]  = []
-    token_q  = _request_queries.set(queries)
+    spans: list[SpanRecord] = []
+    token_q = _request_queries.set(queries)
     token_sp = _request_spans.set(spans)
     token_id = _request_id_var.set(request_id)
     token_th = _threshold_var.set(_global_threshold_ms)
@@ -208,6 +212,7 @@ def finish_request(
 
 # ── Public API for the /dev/profiler endpoint ─────────────────────────────
 
+
 def get_recent_requests(limit: int = 50) -> list[dict]:
     with _buffer_lock:
         items = list(_request_buffer)[:limit]
@@ -229,7 +234,7 @@ def clear_buffers() -> None:
 def get_stats() -> dict:
     with _buffer_lock:
         requests = list(_request_buffer)
-        queries  = list(_query_buffer)
+        queries = list(_query_buffer)
 
     if not requests:
         return {"request_count": 0, "slow_query_count": 0, "avg_duration_ms": 0}
@@ -247,6 +252,7 @@ def get_stats() -> dict:
 
 
 # ── SQLAlchemy event hooks ─────────────────────────────────────────────────
+
 
 def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> None:
     """Register before/after cursor hooks on *engine*.
@@ -271,13 +277,13 @@ def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> N
             return
 
         duration_ms = (time.perf_counter() - start_times.pop()) * 1000
-        threshold   = _threshold_var.get(_global_threshold_ms)
-        is_slow     = duration_ms >= threshold
+        threshold = _threshold_var.get(_global_threshold_ms)
+        is_slow = duration_ms >= threshold
 
         sql_preview = statement.strip()
 
         param_count = len(parameters) if isinstance(parameters, (list, tuple)) else 0
-        req_id      = _request_id_var.get(None)
+        req_id = _request_id_var.get(None)
 
         record = QueryRecord(
             sql=sql_preview,
@@ -342,6 +348,7 @@ def profile(name: str) -> Callable[[F], F]:
         async def get_all(self, doctype, ...):
             ...
     """
+
     def decorator(fn: F) -> F:
         if not asyncio.iscoroutinefunction(fn):
             raise TypeError(f"@profile can only wrap async functions, got {fn!r}")

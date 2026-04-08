@@ -7,6 +7,7 @@ Requires the ``mfa`` optional extras::
 
     uv pip install grunt[mfa]
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -18,11 +19,12 @@ from typing import TYPE_CHECKING
 import structlog
 from fastapi import HTTPException
 from sqlalchemy import select, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.core.doctypes.User.User import _user_table
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
     from grunt.core.auth.models import GruntUser
 
 logger = structlog.get_logger()
@@ -34,6 +36,7 @@ _BACKUP_CODE_COUNT = 8
 def _require_pyotp():
     try:
         import pyotp  # noqa: PLC0415
+
         return pyotp
     except ImportError as exc:
         raise HTTPException(
@@ -114,7 +117,7 @@ def verify_backup_code(stored_hashes: list[str], code: str) -> tuple[bool, list[
 # ── DB operations ─────────────────────────────────────────────────────────────
 
 
-async def begin_mfa_setup(user: "GruntUser", session: AsyncSession) -> dict:
+async def begin_mfa_setup(user: GruntUser, session: AsyncSession) -> dict:
     """Generate a new TOTP secret, store it (unconfirmed), and return setup info.
 
     The secret is saved immediately but ``mfa_enabled`` stays ``False`` until
@@ -130,9 +133,7 @@ async def begin_mfa_setup(user: "GruntUser", session: AsyncSession) -> dict:
     secret = generate_mfa_secret()
     table = _user_table()
     await session.execute(
-        update(table)
-        .where(table.c.id == user.id)
-        .values(mfa_secret=secret, mfa_enabled=False)
+        update(table).where(table.c.id == user.id).values(mfa_secret=secret, mfa_enabled=False)
     )
     await session.flush()
     logger.info("mfa.setup_started", user=user.email)
@@ -143,7 +144,7 @@ async def begin_mfa_setup(user: "GruntUser", session: AsyncSession) -> dict:
 
 
 async def confirm_mfa_setup(
-    user: "GruntUser",
+    user: GruntUser,
     code: str,
     session: AsyncSession,
 ) -> list[str]:
@@ -154,11 +155,7 @@ async def confirm_mfa_setup(
     """
     # Load current secret
     table = _user_table()
-    row = (
-        await session.execute(
-            select(table.c.mfa_secret).where(table.c.id == user.id)
-        )
-    ).first()
+    row = (await session.execute(select(table.c.mfa_secret).where(table.c.id == user.id))).first()
     if not row or not row[0]:
         raise HTTPException(422, detail="MFA не налаштовано. Спочатку запустіть setup.")
 
@@ -183,7 +180,7 @@ async def confirm_mfa_setup(
     return backup_codes
 
 
-async def disable_mfa(user: "GruntUser", session: AsyncSession) -> None:
+async def disable_mfa(user: GruntUser, session: AsyncSession) -> None:
     """Disable MFA and clear stored secrets for the user."""
     table = _user_table()
     await session.execute(
@@ -196,7 +193,7 @@ async def disable_mfa(user: "GruntUser", session: AsyncSession) -> None:
 
 
 async def check_mfa_code(
-    user: "GruntUser",
+    user: GruntUser,
     code: str,
     session: AsyncSession,
 ) -> None:
@@ -207,8 +204,7 @@ async def check_mfa_code(
     table = _user_table()
     row = (
         await session.execute(
-            select(table.c.mfa_secret, table.c.mfa_backup_codes)
-            .where(table.c.id == user.id)
+            select(table.c.mfa_secret, table.c.mfa_backup_codes).where(table.c.id == user.id)
         )
     ).first()
 

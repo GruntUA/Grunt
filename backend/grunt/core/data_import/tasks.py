@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import structlog
-from grunt.core.tasks.broker import retryable_task
 from grunt.core.data_import.service import DataImportService
-from grunt.core.site.manager import site_manager
+
 from grunt.core.auth.models import SYSTEM_USER
+from grunt.core.site.manager import site_manager
+from grunt.core.tasks.broker import retryable_task
 
 logger = structlog.get_logger()
+
 
 @retryable_task(max_retries=3, delay=60)
 async def run_data_import(data_import_id: str):

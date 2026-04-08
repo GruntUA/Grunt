@@ -10,12 +10,15 @@ now DocType-driven — defined in core/doctypes/*.json.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, JSON, String, Text, func
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import JSON, DateTime, String, func
+from sqlalchemy.orm import Mapped, mapped_column
 
 from grunt.core.db.base import Base
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 class GruntMetaDoctype(Base):
@@ -23,15 +26,11 @@ class GruntMetaDoctype(Base):
 
     __tablename__ = "grunt_meta_doctype"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     module: Mapped[str] = mapped_column(String(255), nullable=False)
     data: Mapped[dict] = mapped_column(JSON, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     modified_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
@@ -42,9 +41,7 @@ class GruntInstalledApp(Base):
 
     __tablename__ = "grunt_meta_installed_app"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     version: Mapped[str] = mapped_column(String(50), nullable=False, default="0.1.0")
@@ -52,5 +49,3 @@ class GruntInstalledApp(Base):
     installed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
-
-

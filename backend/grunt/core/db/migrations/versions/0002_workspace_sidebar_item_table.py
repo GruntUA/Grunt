@@ -36,9 +36,19 @@ def upgrade() -> None:
             sa.Column("modified_by", sa.String(255), nullable=False, server_default=""),
             sa.Column("docstatus", sa.Integer(), nullable=False, server_default="0"),
             # DocType child table required columns
-            sa.Column("parent_id", sa.String(36), sa.ForeignKey("grunt_workspace.id", ondelete="CASCADE"), nullable=True, index=True),
-            sa.Column("parent_doctype", sa.String(255), nullable=False, server_default="WorkspaceSidebar"),
-            sa.Column("parent_field", sa.String(255), nullable=False, server_default="sidebar_items"),
+            sa.Column(
+                "parent_id",
+                sa.String(36),
+                sa.ForeignKey("grunt_workspace.id", ondelete="CASCADE"),
+                nullable=True,
+                index=True,
+            ),
+            sa.Column(
+                "parent_doctype", sa.String(255), nullable=False, server_default="WorkspaceSidebar"
+            ),
+            sa.Column(
+                "parent_field", sa.String(255), nullable=False, server_default="sidebar_items"
+            ),
             sa.Column("idx", sa.Integer(), nullable=False, server_default="0"),
             # Business fields
             sa.Column("section", sa.String(255), nullable=False, server_default=""),
@@ -97,7 +107,13 @@ def downgrade() -> None:
     op.create_table(
         "grunt_workspace_link",
         sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("workspace_id", sa.String(36), sa.ForeignKey("grunt_workspace.id", ondelete="CASCADE"), nullable=False, index=True),
+        sa.Column(
+            "workspace_id",
+            sa.String(36),
+            sa.ForeignKey("grunt_workspace.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
         sa.Column("section", sa.String(255), nullable=False, server_default=""),
         sa.Column("type", sa.String(50), nullable=False, server_default="DocType"),
         sa.Column("label", sa.String(255), nullable=False, server_default=""),

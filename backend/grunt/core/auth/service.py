@@ -7,15 +7,18 @@ User DocType controller: ``grunt.core.doctypes.User.User``.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 import jwt
 import structlog
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.config import settings
-from grunt.core.auth.models import GruntUser
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from grunt.core.auth.models import GruntUser
 
 logger = structlog.get_logger()
 
@@ -25,18 +28,16 @@ logger = structlog.get_logger()
 
 def create_access_token(user: GruntUser) -> str:
     """Create a JWT with user identity claims to avoid DB lookups on every request."""
-    expire = datetime.now(timezone.utc) + timedelta(
-        minutes=settings.access_token_expire_minutes
-    )
+    expire = datetime.now(UTC) + timedelta(minutes=settings.access_token_expire_minutes)
     payload = {
-        "sub":          user.email,
-        "uid":          user.id,
-        "full_name":    user.full_name,
+        "sub": user.email,
+        "uid": user.id,
+        "full_name": user.full_name,
         "is_superadmin": user.is_superadmin,
-        "is_active":    user.is_active,
-        "theme":        user.theme,
-        "roles":        user.roles,
-        "exp":          expire,
+        "is_active": user.is_active,
+        "theme": user.theme,
+        "roles": user.roles,
+        "exp": expire,
     }
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
@@ -50,15 +51,15 @@ async def create_refresh_token(user_id: str, session: AsyncSession) -> str:
     from grunt.core.auth.models import SYSTEM_USER
 
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
-    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
-    
+    expires_at = datetime.now(UTC) + timedelta(days=7)
+
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:
         await grunt.db.set_value("User", user_id, "refresh_token", token)
         await grunt.db.set_value("User", user_id, "refresh_token_expires_at", expires_at)
     finally:
         grunt.reset_context(_tokens)
-    
+
     return token
 
 
@@ -71,11 +72,11 @@ async def rotate_refresh_token(
     Returns (new_refresh_token, user) on success, None if invalid/expired.
     """
     from grunt.app import grunt
-    from grunt.core.doctypes.User.User import get_user_by_id
     from grunt.core.auth.models import SYSTEM_USER
+    from grunt.core.doctypes.User.User import get_user_by_id
 
-    now = datetime.now(timezone.utc)
-    
+    now = datetime.now(UTC)
+
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:
         users = await grunt.get_list(
@@ -86,19 +87,19 @@ async def rotate_refresh_token(
         )
         if not users:
             return None
-            
+
         user_data = users[0]
         expires_at = user_data.get("refresh_token_expires_at")
         if isinstance(expires_at, str):
             expires_at = datetime.fromisoformat(expires_at)
-            
-        if not expires_at or expires_at.replace(tzinfo=timezone.utc) < now:
+
+        if not expires_at or expires_at.replace(tzinfo=UTC) < now:
             return None
-            
+
         # Revoke token
         await grunt.db.set_value("User", user_data["id"], "refresh_token", None)
         await grunt.db.set_value("User", user_data["id"], "refresh_token_expires_at", None)
-        
+
         user_id = user_data["id"]
     finally:
         grunt.reset_context(_tokens)
@@ -115,7 +116,7 @@ async def revoke_refresh_tokens_for_user(user_id: str, session: AsyncSession) ->
     """Revoke all active refresh tokens for a user (e.g., on logout)."""
     from grunt.app import grunt
     from grunt.core.auth.models import SYSTEM_USER
-    
+
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:
         await grunt.db.set_value("User", user_id, "refresh_token", None)
@@ -136,15 +137,15 @@ async def create_password_reset_token(
     from grunt.core.auth.models import SYSTEM_USER
 
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
-    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
-    
+    expires_at = datetime.now(UTC) + timedelta(hours=1)
+
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:
         await grunt.db.set_value("User", user_id, "reset_token", token)
         await grunt.db.set_value("User", user_id, "reset_token_expires_at", expires_at)
     finally:
         grunt.reset_context(_tokens)
-        
+
     return token
 
 
@@ -155,11 +156,11 @@ async def consume_password_reset_token(
 ) -> bool:
     """Verify token and update the user's password. Returns True on success."""
     from grunt.app import grunt
-    from grunt.core.doctypes.User.User import hash_password
     from grunt.core.auth.models import SYSTEM_USER
+    from grunt.core.doctypes.User.User import hash_password
 
-    now = datetime.now(timezone.utc)
-    
+    now = datetime.now(UTC)
+
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:
         users = await grunt.get_list(
@@ -170,13 +171,13 @@ async def consume_password_reset_token(
         )
         if not users:
             return False
-            
+
         user_data = users[0]
         expires_at = user_data.get("reset_token_expires_at")
         if isinstance(expires_at, str):
             expires_at = datetime.fromisoformat(expires_at)
-            
-        if not expires_at or expires_at.replace(tzinfo=timezone.utc) < now:
+
+        if not expires_at or expires_at.replace(tzinfo=UTC) < now:
             return False
 
         # Invalidate token
