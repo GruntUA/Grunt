@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { workspaceApi } from '@/core/api/workspace'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
 
 const props = defineProps<{ workspaceName: string }>()
-const router = useRouter()
 const wsStore = useWorkspaceStore()
 
 const widgetData = ref<Record<string, unknown>>({})
@@ -35,19 +33,6 @@ async function loadWidgetData() {
 async function init() {
   if (!wsStore.active || wsStore.active.name !== props.workspaceName) {
     await wsStore.setActive(props.workspaceName)
-  }
-
-  if (!hasWidgets.value) {
-    // Fallback: redirect to first DocType list (legacy behavior)
-    const firstDocType = wsStore.active?.items
-      .slice()
-      .sort((a, b) => a.sequence - b.sequence)
-      .find(item => item.type === 'DocType' && item.link_to)
-
-    if (firstDocType) {
-      router.replace(`/${props.workspaceName}/list/${firstDocType.link_to}`)
-      return
-    }
   }
 
   await loadWidgetData()
@@ -86,7 +71,13 @@ watch(() => props.workspaceName, init)
     <div v-else-if="wsStore.active" class="flex flex-col items-center justify-center py-20 text-center">
       <span class="text-5xl mb-4">{{ wsStore.active.icon }}</span>
       <p class="text-muted-foreground text-sm">Цей воркспейс ще не має модулів.</p>
-      <p class="text-muted-foreground/60 text-xs mt-1">Додайте віджети у Studio → Воркспейси.</p>
+      <p class="text-muted-foreground/60 text-xs mt-1">
+        Додайте віджети у
+        <router-link
+          :to="`/${workspaceName}/studio/workspaces`"
+          class="text-primary hover:underline"
+        >Studio → Воркспейси</router-link>.
+      </p>
     </div>
   </div>
 </template>

@@ -16,12 +16,32 @@ dtStore.loadAll()
 
 const draft = ref<DashboardWidget | null>(null)
 
+// ── Links editor ─────────────────────────────────────────────────────────────
+
+const linkItems = ref<WorkspaceLinkItem[]>([])
+
+function syncLinksFromContent(content: string | null | undefined) {
+  try { linkItems.value = JSON.parse(content ?? '[]') } catch { linkItems.value = [] }
+}
+
+// ── Tile list editor (shortcuts_grid) ─────────────────────────────────────────
+
+const tiles = ref<ShortcutItem[]>([])
+
+function syncTilesFromContent(content: string | null | undefined) {
+  try { tiles.value = JSON.parse(content ?? '[]') } catch { tiles.value = [] }
+}
+
 watch(() => props.widget, (w) => {
   // Reset draft only when switching to a different widget, not on parent sync-back
   if (!w) {
     draft.value = null
+    tiles.value = []
+    linkItems.value = []
   } else if (draft.value?.id !== w.id) {
     draft.value = { ...w }
+    syncTilesFromContent(w.content)
+    syncLinksFromContent(w.content)
   }
 }, { immediate: true })
 
@@ -111,15 +131,11 @@ const needsField = computed(() =>
   draft.value ? ['sum', 'avg', 'min', 'max'].includes(draft.value.aggregation) : false
 )
 
-// ── Links editor ─────────────────────────────────────────────────────────────
-
-const linkItems = computed<WorkspaceLinkItem[]>(() => {
-  if (!draft.value) return []
-  try { return JSON.parse(draft.value.content ?? '[]') } catch { return [] }
-})
+// ── Links editor setters ─────────────────────────────────────────────────────
 
 function setLinks(val: WorkspaceLinkItem[]) {
   if (!draft.value) return
+  linkItems.value = val
   draft.value = { ...draft.value, content: JSON.stringify(val) }
   apply()
 }
@@ -139,15 +155,11 @@ function updateLink(i: number, key: keyof WorkspaceLinkItem, value: string) {
   setLinks(arr)
 }
 
-// ── Tile list editor (shortcuts_grid) ─────────────────────────────────────────
-
-const tiles = computed<ShortcutItem[]>(() => {
-  if (!draft.value) return []
-  try { return JSON.parse(draft.value.content ?? '[]') } catch { return [] }
-})
+// ── Tile list editor setters (shortcuts_grid) ─────────────────────────────────
 
 function setTiles(val: ShortcutItem[]) {
   if (!draft.value) return
+  tiles.value = val
   draft.value = { ...draft.value, content: JSON.stringify(val) }
   apply()
 }
@@ -346,10 +358,20 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
               <option value="URL">URL</option>
             </select>
           </div>
+          <select
+            v-if="tile.link_type === 'DocType'"
+            :value="tile.link_to"
+            class="w-full h-7 px-2 rounded border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+            @change="updateTile(i, 'link_to', ($event.target as HTMLSelectElement).value)"
+          >
+            <option value="">— Виберіть —</option>
+            <option v-for="dt in dtStore.doctypes.filter(d => !d.is_child)" :key="dt.name" :value="dt.name">{{ dt.label }}</option>
+          </select>
           <input
+            v-else
             :value="tile.link_to"
             class="w-full h-7 px-2.5 rounded border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
-            placeholder="Ціль (DocType name, URL...)"
+            placeholder="URL або назва..."
             @input="updateTile(i, 'link_to', ($event.target as HTMLInputElement).value)"
           />
           <!-- Tile color -->
@@ -393,7 +415,22 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
             </select>
           </div>
           <input :value="link.label" class="w-full h-7 px-2.5 rounded border bg-background text-xs focus:outline-none" placeholder="Назва" @input="updateLink(i, 'label', ($event.target as HTMLInputElement).value)" />
-          <input :value="link.link_to" class="w-full h-7 px-2.5 rounded border bg-background text-xs focus:outline-none" placeholder="DocType name або URL" @input="updateLink(i, 'link_to', ($event.target as HTMLInputElement).value)" />
+          <select
+            v-if="link.type === 'DocType'"
+            :value="link.link_to"
+            class="w-full h-7 px-2 rounded border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+            @change="updateLink(i, 'link_to', ($event.target as HTMLSelectElement).value)"
+          >
+            <option value="">— Виберіть —</option>
+            <option v-for="dt in dtStore.doctypes.filter(d => !d.is_child)" :key="dt.name" :value="dt.name">{{ dt.label }}</option>
+          </select>
+          <input
+            v-else
+            :value="link.link_to"
+            class="w-full h-7 px-2.5 rounded border bg-background text-xs focus:outline-none"
+            placeholder="URL або назва..."
+            @input="updateLink(i, 'link_to', ($event.target as HTMLInputElement).value)"
+          />
           <input :value="link.description" class="w-full h-7 px-2.5 rounded border bg-background text-xs focus:outline-none" placeholder="Опис (опціонально)" @input="updateLink(i, 'description', ($event.target as HTMLInputElement).value)" />
         </div>
       </div>

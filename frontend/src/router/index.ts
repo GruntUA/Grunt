@@ -69,7 +69,8 @@ const router = createRouter({
         {
           path: '',
           name: 'workspace-home',
-          redirect: (route) => `/${route.params.workspaceName}/dashboard/${route.params.workspaceName}`,
+          component: () => import('@/pages/workspace/WorkspaceHome.vue'),
+          props: true,
         },
         {
           path: 'list/:doctype',
@@ -93,6 +94,11 @@ const router = createRouter({
           name: 'doctype-builder',
           component: () => import('@/pages/studio/builder/BuilderLayout.vue'),
           props: (route) => ({ doctype: route.params.id, workspaceName: route.params.workspaceName }),
+        },
+        // Workspace Sidebar list (Studio → Воркспейси)
+        {
+          path: 'studio/workspaces',
+          redirect: (route) => `/${route.params.workspaceName}/list/WorkspaceSidebar`,
         },
         {
           path: 'list/:doctype/:id',

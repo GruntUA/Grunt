@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from grunt.core.auth.dependencies import current_user, superadmin_user
 from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_session
-from grunt.core.db.system_tables import GruntWorkspace, GruntWorkspaceLink
+from grunt.core.db.system_tables import GruntWorkspace, WorkspaceSidebarItem
 from grunt.core.metadata.registry import doctype_registry
 from grunt.api.v1.dashboard import _compute_widget_data
 
@@ -51,14 +51,14 @@ def _workspace_to_dict(ws: GruntWorkspace) -> dict[str, Any]:
                 "count_filters": item.count_filters,
                 "show_new_btn": item.show_new_btn,
                 "roles": item.roles,
-                "sequence": item.sequence,
+                "sequence": item.idx,
                 "is_singleton": (
                     doctype_registry._doctypes[item.link_to].is_singleton
                     if item.type == "DocType" and item.link_to in doctype_registry._doctypes
                     else False
                 ),
             }
-            for item in sorted(ws.items, key=lambda i: i.sequence)
+            for item in sorted(ws.sidebar_items, key=lambda i: i.idx)
         ],
     }
 
@@ -166,10 +166,15 @@ async def create_workspace(
     )
     session.add(ws)
 
-    for item_data in body.get("items", []):
-        link = GruntWorkspaceLink(
-            id=str(uuid.uuid4()),
-            workspace_id=ws.id,
+    for i, item_data in enumerate(body.get("items", [])):
+        new_id = str(uuid.uuid4())
+        link = WorkspaceSidebarItem(
+            id=new_id,
+            name=new_id,
+            parent_id=ws.id,
+            parent_doctype="WorkspaceSidebar",
+            parent_field="sidebar_items",
+            idx=item_data.get("sequence", i),
             section=item_data.get("section", ""),
             type=item_data.get("type", "DocType"),
             label=item_data.get("label", ""),
@@ -179,7 +184,6 @@ async def create_workspace(
             count_filters=item_data.get("count_filters", ""),
             show_new_btn=item_data.get("show_new_btn", False),
             roles=item_data.get("roles", ""),
-            sequence=item_data.get("sequence", 0),
         )
         session.add(link)
 
@@ -213,12 +217,17 @@ async def update_workspace(
     if "items" in body:
         # Delete old items and replace
         await session.execute(
-            delete(GruntWorkspaceLink).where(GruntWorkspaceLink.workspace_id == ws.id)
+            delete(WorkspaceSidebarItem).where(WorkspaceSidebarItem.parent_id == ws.id)
         )
-        for item_data in body["items"]:
-            link = GruntWorkspaceLink(
-                id=str(uuid.uuid4()),
-                workspace_id=ws.id,
+        for i, item_data in enumerate(body["items"]):
+            new_id = str(uuid.uuid4())
+            link = WorkspaceSidebarItem(
+                id=new_id,
+                name=new_id,
+                parent_id=ws.id,
+                parent_doctype="WorkspaceSidebar",
+                parent_field="sidebar_items",
+                idx=item_data.get("sequence", i),
                 section=item_data.get("section", ""),
                 type=item_data.get("type", "DocType"),
                 label=item_data.get("label", ""),
@@ -228,7 +237,6 @@ async def update_workspace(
                 count_filters=item_data.get("count_filters", ""),
                 show_new_btn=item_data.get("show_new_btn", False),
                 roles=item_data.get("roles", ""),
-                sequence=item_data.get("sequence", 0),
             )
             session.add(link)
 
@@ -272,7 +280,7 @@ async def workspace_counts(
 
     counts: dict[str, int] = {}
 
-    for item in ws.items:
+    for item in ws.sidebar_items:
         if not item.show_count or item.type != "DocType":
             continue
 

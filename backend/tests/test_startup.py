@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.core.startup import _load_app_meta, _auto_seed_workspace
-from grunt.core.db.system_tables import GruntWorkspace, GruntWorkspaceLink
+from grunt.core.db.system_tables import GruntWorkspace, WorkspaceSidebarItem
 
 
 class TestLoadAppMeta:

@@ -140,13 +140,18 @@ class TestAssignmentIntegration:
         from grunt.core.assignment import assignment_service
         from grunt.core.db.session import get_session
 
+        from grunt.app import grunt
+        from grunt.core.auth.models import SYSTEM_USER
+
         async for session in get_session():
-            await assignment_service.evaluate_and_assign(
-                doctype="Invoice",
-                doc={"id": "1", "status": "Draft"},
-                session=session,
-            )
-            # Should not raise, just skip
+            _tokens = grunt.set_context(session, None, SYSTEM_USER)
+            try:
+                await assignment_service.evaluate_and_assign(
+                    doctype="Invoice",
+                    doc={"id": "1", "status": "Draft"},
+                )
+            finally:
+                grunt.reset_context(_tokens)
             break
 
     @pytest.mark.asyncio

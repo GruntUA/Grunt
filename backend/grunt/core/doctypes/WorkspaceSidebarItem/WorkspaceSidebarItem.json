@@ -1,0 +1,64 @@
+{
+  "name": "WorkspaceSidebarItem",
+  "label": "Пункт Workspace Sidebar",
+  "module": "core",
+  "is_child": true,
+  "title_field": "label",
+  "table_name": "grunt_workspace_sidebar_item",
+  "fields": [
+    {
+      "fieldname": "section",
+      "label": "Секція",
+      "fieldtype": "Text",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "type",
+      "label": "Тип",
+      "fieldtype": "Select",
+      "options": "DocType\nReport\nDashboard\nURL\nDivider",
+      "default": "DocType",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "label",
+      "label": "Назва",
+      "fieldtype": "Text",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "icon",
+      "label": "Іконка",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "link_to",
+      "label": "Посилання на",
+      "fieldtype": "Text",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "show_count",
+      "label": "Показати лічильник",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "count_filters",
+      "label": "Фільтри лічильника",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "show_new_btn",
+      "label": "Кнопка «Новий»",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "roles",
+      "label": "Ролі (через кому)",
+      "fieldtype": "Text"
+    }
+  ]
+}

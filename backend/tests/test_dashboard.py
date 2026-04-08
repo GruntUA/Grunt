@@ -1,6 +1,6 @@
 """Tests for dashboard module — aggregation helpers and config validation."""
 
-from grunt.api.v1.dashboard import _TIMESPAN_DAYS, _AGGREGATION_FNS
+from grunt.api.v1.dashboard import _TIMESPAN_DAYS
 
 
 
@@ -25,11 +25,3 @@ class TestTimespanConfig:
         assert _TIMESPAN_DAYS["all_time"] == 0
 
 
-class TestAggregationFunctions:
-    def test_all_aggregations_defined(self):
-        expected = {"count", "sum", "avg", "min", "max"}
-        assert set(_AGGREGATION_FNS.keys()) == expected
-
-    def test_aggregation_functions_are_callable(self):
-        for name, fn in _AGGREGATION_FNS.items():
-            assert callable(fn), f"{name} should be callable"

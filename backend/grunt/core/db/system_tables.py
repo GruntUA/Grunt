@@ -135,28 +135,37 @@ class GruntWorkspace(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    items: Mapped[list[GruntWorkspaceLink]] = relationship(
+    sidebar_items: Mapped[list[WorkspaceSidebarItem]] = relationship(
         back_populates="workspace",
         cascade="all, delete-orphan",
         lazy="selectin",
-        order_by="GruntWorkspaceLink.sequence",
+        order_by="WorkspaceSidebarItem.idx",
     )
 
 
-class GruntWorkspaceLink(Base):
-    """Navigation item inside a workspace sidebar."""
+class WorkspaceSidebarItem(Base):
+    """Navigation item inside a workspace sidebar (DocType-managed child table)."""
 
-    __tablename__ = "grunt_workspace_link"
+    __tablename__ = "grunt_workspace_sidebar_item"
 
     id: Mapped[str] = mapped_column(
         String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
-    workspace_id: Mapped[str] = mapped_column(
+    name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
+    owner: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    modified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    modified_by: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+    docstatus: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    parent_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("grunt_workspace.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
         index=True,
     )
+    parent_doctype: Mapped[str] = mapped_column(String(255), nullable=False, default="WorkspaceSidebar")
+    parent_field: Mapped[str] = mapped_column(String(255), nullable=False, default="sidebar_items")
+    idx: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     section: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     type: Mapped[str] = mapped_column(String(50), nullable=False, default="DocType")
     label: Mapped[str] = mapped_column(String(255), nullable=False, default="")
@@ -166,6 +175,5 @@ class GruntWorkspaceLink(Base):
     count_filters: Mapped[str] = mapped_column(String(1000), nullable=False, default="")
     show_new_btn: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     roles: Mapped[str] = mapped_column(String(1000), nullable=False, default="")
-    sequence: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
-    workspace: Mapped[GruntWorkspace] = relationship(back_populates="items")
+    workspace: Mapped[GruntWorkspace] = relationship(back_populates="sidebar_items")

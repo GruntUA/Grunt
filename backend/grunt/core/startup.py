@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from grunt.core.db.system_tables import (
     GruntMetaDoctype,
     GruntWorkspace,
-    GruntWorkspaceLink,
+    WorkspaceSidebarItem,
 )
 from grunt.core.metadata.compiler import compile_doctype_to_table
 
@@ -270,7 +270,7 @@ async def seed_grunt_workspace(session: AsyncSession) -> None:
         existing.description = data.get("description", "")
         existing.sequence = data.get("sequence", 0)
         await session.execute(
-            delete(GruntWorkspaceLink).where(GruntWorkspaceLink.workspace_id == ws_id)
+            delete(WorkspaceSidebarItem).where(WorkspaceSidebarItem.parent_id == ws_id)
         )
         await session.flush()
         logger.info("startup.grunt_workspace_updating")
@@ -291,10 +291,15 @@ async def seed_grunt_workspace(session: AsyncSession) -> None:
         session.add(ws)
         await session.flush()
 
-    for item_data in data.get("items", []):
-        link = GruntWorkspaceLink(
-            id=str(uuid.uuid4()),
-            workspace_id=ws_id,
+    for i, item_data in enumerate(data.get("items", [])):
+        new_id = str(uuid.uuid4())
+        link = WorkspaceSidebarItem(
+            id=new_id,
+            name=new_id,
+            parent_id=ws_id,
+            parent_doctype="WorkspaceSidebar",
+            parent_field="sidebar_items",
+            idx=item_data.get("sequence", i),
             section=item_data.get("section", ""),
             type=item_data.get("type", "DocType"),
             label=item_data.get("label", ""),
@@ -304,7 +309,6 @@ async def seed_grunt_workspace(session: AsyncSession) -> None:
             count_filters=item_data.get("count_filters", ""),
             show_new_btn=item_data.get("show_new_btn", False),
             roles=item_data.get("roles", ""),
-            sequence=item_data.get("sequence", 0),
         )
         session.add(link)
 
@@ -485,7 +489,7 @@ async def _apply_workspace_fixture(
     app_meta: dict,
     session: AsyncSession,
 ) -> bool:
-    """Upsert GruntWorkspace + GruntWorkspaceLink rows from fixture data.
+    """Upsert GruntWorkspace + WorkspaceSidebarItem rows from fixture data.
 
     Returns True if at least one workspace record was processed.
     """
@@ -509,8 +513,8 @@ async def _apply_workspace_fixture(
             existing.roles = rec.get("roles", existing.roles)
             existing.is_hidden = rec.get("is_hidden", existing.is_hidden)
             await session.execute(
-                sa_delete(GruntWorkspaceLink).where(
-                    GruntWorkspaceLink.workspace_id == ws_id
+                sa_delete(WorkspaceSidebarItem).where(
+                    WorkspaceSidebarItem.parent_id == ws_id
                 )
             )
         else:
@@ -530,10 +534,15 @@ async def _apply_workspace_fixture(
 
         await session.flush()
 
-        for item in rec.get("items", []):
-            session.add(GruntWorkspaceLink(
-                id=str(uuid.uuid4()),
-                workspace_id=ws_id,
+        for i, item in enumerate(rec.get("items", [])):
+            new_id = str(uuid.uuid4())
+            session.add(WorkspaceSidebarItem(
+                id=new_id,
+                name=new_id,
+                parent_id=ws_id,
+                parent_doctype="WorkspaceSidebar",
+                parent_field="sidebar_items",
+                idx=item.get("sequence", i),
                 section=item.get("section", ""),
                 type=item.get("type", "DocType"),
                 label=item.get("label", ""),
@@ -543,7 +552,6 @@ async def _apply_workspace_fixture(
                 count_filters=item.get("count_filters", ""),
                 show_new_btn=item.get("show_new_btn", False),
                 roles=item.get("roles", ""),
-                sequence=item.get("sequence", 0),
             ))
 
         await session.flush()
@@ -722,7 +730,7 @@ async def _auto_seed_workspace(
         existing.color = app_meta.get("color", "#2D6A4F")
         existing.description = app_meta.get("description", "")
         await session.execute(
-            sa_delete(GruntWorkspaceLink).where(GruntWorkspaceLink.workspace_id == ws_id)
+            sa_delete(WorkspaceSidebarItem).where(WorkspaceSidebarItem.parent_id == ws_id)
         )
         await session.flush()
     else:
@@ -742,9 +750,14 @@ async def _auto_seed_workspace(
         await session.flush()
 
     for seq, dt in enumerate(app_doctypes, start=1):
-        session.add(GruntWorkspaceLink(
-            id=str(uuid.uuid4()),
-            workspace_id=ws_id,
+        new_id = str(uuid.uuid4())
+        session.add(WorkspaceSidebarItem(
+            id=new_id,
+            name=new_id,
+            parent_id=ws_id,
+            parent_doctype="WorkspaceSidebar",
+            parent_field="sidebar_items",
+            idx=seq,
             section=app_meta.get("title", app_name),
             type="DocType",
             label=dt.label,
@@ -754,7 +767,6 @@ async def _auto_seed_workspace(
             count_filters="",
             show_new_btn=True,
             roles="",
-            sequence=seq,
         ))
 
     await session.flush()
