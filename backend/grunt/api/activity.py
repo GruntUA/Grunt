@@ -1,8 +1,8 @@
 """Comments and Activity helpers for the grunt.api module.
 
 Business logic lives in the DocType controllers:
-  - grunt.core.doctypes.Comment.Comment  (validate, before_delete)
-  - grunt.core.doctypes.ActivityLog.ActivityLog  (before_insert)
+  - grunt.core.doctypes.comment.comment  (validate, before_delete)
+  - grunt.core.doctypes.activity_log.activity_log  (before_insert)
 """
 
 from __future__ import annotations

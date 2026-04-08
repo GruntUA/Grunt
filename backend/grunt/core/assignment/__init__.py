@@ -215,7 +215,7 @@ class AssignmentService:
 
             for user_id in user_ids:
                 # Завантажити email користувача
-                from grunt.core.doctypes.User.User import get_user_by_id  # noqa: PLC0415
+                from grunt.core.doctypes.user.user import get_user_by_id  # noqa: PLC0415
 
                 user = await get_user_by_id(user_id, session)
                 if not user or not user.is_active:

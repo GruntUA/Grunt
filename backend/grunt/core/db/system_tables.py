@@ -10,15 +10,12 @@ now DocType-driven — defined in core/doctypes/*.json.
 from __future__ import annotations
 
 import uuid
-from typing import TYPE_CHECKING
+from datetime import datetime
 
 from sqlalchemy import JSON, DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from grunt.core.db.base import Base
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 
 class GruntMetaDoctype(Base):

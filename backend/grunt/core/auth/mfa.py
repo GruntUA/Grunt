@@ -20,7 +20,7 @@ import structlog
 from fastapi import HTTPException
 from sqlalchemy import select, update
 
-from grunt.core.doctypes.User.User import _user_table
+from grunt.core.doctypes.user.user import _user_table
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

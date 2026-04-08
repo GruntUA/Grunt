@@ -1,14 +1,9 @@
-"""DocType Compiler — converts a DocType definition into a SQLAlchemy Table.
-
-Also provides helpers to create / alter the physical table in the database.
-"""
-
 from __future__ import annotations
 
-import re
 import uuid
 from typing import TYPE_CHECKING
 
+import structlog
 from sqlalchemy import (
     Column,
     DateTime,
@@ -23,19 +18,18 @@ from sqlalchemy import (
 )
 
 from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
+from grunt.utils.strings import to_snake_case
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
     from grunt.core.metadata.doctype import DocType
 
-import structlog
-
-logger = structlog.get_logger()
 
 # Shared SA MetaData for all dynamically compiled tables
 SA_METADATA = MetaData()
 
+logger = structlog.get_logger()
 # ── MultiLink junction table ─────────────────────────────────────────────
 
 MULTI_LINK_TABLE = Table(
@@ -55,15 +49,9 @@ MULTI_LINK_TABLE = Table(
 # ── Helpers ──────────────────────────────────────────────────────────────
 
 
-def _to_snake(name: str) -> str:
-    """Convert PascalCase to snake_case."""
-    s1 = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", name)
-    return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
-
-
 def get_table_name(module: str, doctype_name: str) -> str:
     """Return the physical table name: ``grunt_{module}_{snake_case_name}``."""
-    return f"grunt_{module}_{_to_snake(doctype_name)}"
+    return f"grunt_{module}_{to_snake_case(doctype_name)}"
 
 
 # ── Compiler ─────────────────────────────────────────────────────────────

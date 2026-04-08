@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, EmailStr
+import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt.core.middleware.rate_limit import limiter
-
 from grunt.core.auth.dependencies import current_user, superadmin_user
-from grunt.core.auth.models import GruntUser, SYSTEM_USER
+from grunt.core.auth.models import SYSTEM_USER, GruntUser
 from grunt.core.auth.service import (
     consume_password_reset_token,
     create_access_token,
@@ -19,7 +18,8 @@ from grunt.core.auth.service import (
     revoke_refresh_tokens_for_user,
     rotate_refresh_token,
 )
-from grunt.core.doctypes.User.User import (
+from grunt.core.db.session import get_engine, get_session
+from grunt.core.doctypes.user.user import (
     authenticate,
     create_user,
     get_user_by_email,
@@ -27,7 +27,7 @@ from grunt.core.doctypes.User.User import (
     hash_password,
     list_users as service_list_users,
 )
-from grunt.core.db.session import get_session, get_engine
+from grunt.core.middleware.rate_limit import limiter
 
 router = APIRouter()
 
@@ -93,10 +93,12 @@ async def register(
 
 def _rate_limit(limit: str):
     """Decorator that applies slowapi rate limiting when available, no-op otherwise."""
+
     def decorator(func):  # type: ignore[return]
         if limiter is not None:
             return limiter.limit(limit)(func)
         return func
+
     return decorator
 
 
@@ -114,7 +116,8 @@ async def login(
         if str(exc) == "locked":
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Account temporarily locked due to too many failed login attempts. Try again later.",
+                detail="Account temporarily locked due to too many failed login attempts. "
+                "Try again later.",
             ) from exc
         raise
     if user is None:
@@ -252,7 +255,6 @@ async def forgot_password(
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Send a password reset email. Always returns 200 to avoid user enumeration."""
-    import structlog  # noqa: PLC0415
 
     log = structlog.get_logger()
     user = await get_user_by_email(body.email, session)

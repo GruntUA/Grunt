@@ -8,11 +8,12 @@ Provides:
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+from grunt.utils.strings import to_snake_case
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -22,29 +23,29 @@ _BEGIN_MARKER = "# begin: auto-generated types"
 _END_MARKER = "# end: auto-generated types"
 
 _FIELDTYPE_TO_PY: dict[str, str] = {
-    "Data":        "str | None",
-    "Text":        "str | None",
-    "LongText":    "str | None",
-    "RichText":    "str | None",
-    "Code":        "str | None",
-    "Select":      "str | None",
-    "Link":        "str | None",
-    "Attach":      "str | None",
-    "Image":       "str | None",
-    "Color":       "str | None",
-    "Signature":   "str | None",
-    "Int":         "int | None",
-    "Float":       "float | None",
-    "Check":       "bool",
-    "Date":        "datetime.date | None",
-    "Datetime":    "datetime.datetime | None",
-    "Time":        "datetime.time | None",
-    "JSON":        "dict | list | None",
+    "Data": "str | None",
+    "Text": "str | None",
+    "LongText": "str | None",
+    "RichText": "str | None",
+    "Code": "str | None",
+    "Select": "str | None",
+    "Link": "str | None",
+    "Attach": "str | None",
+    "Image": "str | None",
+    "Color": "str | None",
+    "Signature": "str | None",
+    "Int": "int | None",
+    "Float": "float | None",
+    "Check": "bool",
+    "Date": "datetime.date | None",
+    "Datetime": "datetime.datetime | None",
+    "Time": "datetime.time | None",
+    "JSON": "dict | list | None",
     "Geolocation": "dict | None",
-    "MultiLink":   "list[str]",
-    "Rating":      "int | None",
-    "Percent":     "float | None",
-    "Duration":    "float | None",
+    "MultiLink": "list[str]",
+    "Rating": "int | None",
+    "Percent": "float | None",
+    "Duration": "float | None",
 }
 
 _NON_PHYSICAL = {"Section", "Column", "Tab", "Empty"}
@@ -54,6 +55,7 @@ _SKIP_FIELDNAMES = {"name", "id", "docstatus", "owner", "created_at", "modified_
 # ---------------------------------------------------------------------------
 # Template environment
 # ---------------------------------------------------------------------------
+
 
 def _build_env(extra_template_dirs: list[Path] | None = None) -> Environment:
     """Build a Jinja2 Environment searching framework templates + any app overrides.
@@ -98,24 +100,25 @@ def render_template(
 # Field helpers
 # ---------------------------------------------------------------------------
 
+
 def build_controller_context(name: str, fields: list[dict]) -> dict[str, Any]:
     """Prepare the template context for doctype/controller.py.jinja."""
     physical = [
-        f for f in fields
-        if f.get("fieldtype") not in _NON_PHYSICAL
-        and f.get("fieldname") not in _SKIP_FIELDNAMES
+        f
+        for f in fields
+        if f.get("fieldtype") not in _NON_PHYSICAL and f.get("fieldname") not in _SKIP_FIELDNAMES
     ]
 
-    needs_datetime = any(
-        f["fieldtype"] in {"Date", "Datetime", "Time"} for f in physical
-    )
+    needs_datetime = any(f["fieldtype"] in {"Date", "Datetime", "Time"} for f in physical)
 
     enriched = []
     for f in physical:
-        enriched.append({
-            **f,
-            "py_type": _FIELDTYPE_TO_PY.get(f["fieldtype"], "Any"),
-        })
+        enriched.append(
+            {
+                **f,
+                "py_type": _FIELDTYPE_TO_PY.get(f["fieldtype"], "Any"),
+            }
+        )
 
     return {
         "name": name,
@@ -128,18 +131,20 @@ def build_controller_context(name: str, fields: list[dict]) -> dict[str, Any]:
 # Smart controller sync
 # ---------------------------------------------------------------------------
 
+
 def _render_type_block(name: str, fields: list[dict]) -> str:
     """Render only the auto-generated types block (without surrounding class)."""
     physical = [
-        f for f in fields
+        f
+        for f in fields
         if f.get("fieldtype") not in _NON_PHYSICAL
         and f.get("fieldtype") != "Table"
         and f.get("fieldname") not in _SKIP_FIELDNAMES
     ]
     table_fields = [
-        f for f in fields
-        if f.get("fieldtype") == "Table"
-        and f.get("fieldname") not in _SKIP_FIELDNAMES
+        f
+        for f in fields
+        if f.get("fieldtype") == "Table" and f.get("fieldname") not in _SKIP_FIELDNAMES
     ]
 
     I = "    "
@@ -154,12 +159,13 @@ def _render_type_block(name: str, fields: list[dict]) -> str:
         field_lines.append(f"{II}{f['fieldname']}: list[dict]  # Table: {f.get('options', '?')}")
 
     needs_datetime = any(
-        f["fieldtype"] in {"Date", "Datetime", "Time"} for f in fields
+        f["fieldtype"] in {"Date", "Datetime", "Time"}
+        for f in fields
         if f.get("fieldtype") not in _NON_PHYSICAL and f.get("fieldname") not in _SKIP_FIELDNAMES
     )
 
     if field_lines:
-        imports = f"from typing import TYPE_CHECKING, Any"
+        imports = "from typing import TYPE_CHECKING, Any"
         if needs_datetime:
             imports = f"import datetime\n{imports}"
         type_if = f"{I}if TYPE_CHECKING:\n" + "\n".join(field_lines)
@@ -227,22 +233,22 @@ def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
 # ---------------------------------------------------------------------------
 
 _FAKE_VALUES: dict[str, object] = {
-    "Data":     "Test Value",
-    "Text":     "Test text value",
+    "Data": "Test Value",
+    "Text": "Test text value",
     "LongText": "Long text content",
-    "Int":      42,
-    "Float":    3.14,
-    "Check":    True,
-    "Date":     "2026-01-15",
+    "Int": 42,
+    "Float": 3.14,
+    "Check": True,
+    "Date": "2026-01-15",
     "Datetime": "2026-01-15T10:00:00",
-    "Time":     "10:00:00",
-    "Color":    "#2D6A4F",
+    "Time": "10:00:00",
+    "Color": "#2D6A4F",
     "RichText": "<p>Test content</p>",
-    "Code":     "# test code",
-    "Rating":   4,
-    "Percent":  75.0,
+    "Code": "# test code",
+    "Rating": 4,
+    "Percent": 75.0,
     "Duration": 3600.0,
-    "JSON":     {},
+    "JSON": {},
 }
 
 
@@ -260,25 +266,51 @@ def fake_value(fieldtype: str, fieldname: str, options: str | None = None) -> ob
 def build_test_context(dt: dict) -> dict[str, Any]:
     """Prepare the template context for doctype/test.py.jinja."""
     name = dt["name"]
-    snake = re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower().replace(" ", "_")
+    snake = to_snake_case(name)
     fields = dt.get("fields", [])
 
     skip_types = {
-        "Section", "Column", "Tab", "Table", "Empty", "Attach", "Image",
-        "MultiLink", "Link", "Geolocation", "Signature", "BarCode", "HTMLEditor",
+        "Section",
+        "Column",
+        "Tab",
+        "Table",
+        "Empty",
+        "Attach",
+        "Image",
+        "MultiLink",
+        "Link",
+        "Geolocation",
+        "Signature",
+        "BarCode",
+        "HTMLEditor",
     }
     skip_names = {
-        "name", "id", "docstatus", "idx", "owner", "creation",
-        "modified", "modified_at", "modified_by", "created_at", "created_by",
+        "name",
+        "id",
+        "docstatus",
+        "idx",
+        "owner",
+        "creation",
+        "modified",
+        "modified_at",
+        "modified_by",
+        "created_at",
+        "created_by",
     }
 
     required = [
-        f for f in fields
-        if f.get("required") and f["fieldtype"] not in skip_types and f["fieldname"] not in skip_names
+        f
+        for f in fields
+        if f.get("required")
+        and f["fieldtype"] not in skip_types
+        and f["fieldname"] not in skip_names
     ]
     optional = [
-        f for f in fields
-        if not f.get("required") and f["fieldtype"] not in skip_types and f["fieldname"] not in skip_names
+        f
+        for f in fields
+        if not f.get("required")
+        and f["fieldtype"] not in skip_types
+        and f["fieldname"] not in skip_names
     ][:3]
 
     def _dict_repr(flist: list) -> str:

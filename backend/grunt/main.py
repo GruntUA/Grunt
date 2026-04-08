@@ -25,12 +25,12 @@ from grunt.core.site.middleware import SiteContextMiddleware
 import grunt.core.db.system_tables  # noqa: F401
 import grunt.core.auth.models  # noqa: F401
 import grunt.core.print.hooks  # noqa: F401
-from grunt.core.doctypes.ActivityLog.ActivityLog import ActivityLog as ActivityLogController
-from grunt.core.doctypes.Comment.Comment import Comment as CommentController
-from grunt.core.doctypes.DataImport.DataImport import DataImport as DataImportController
-from grunt.core.doctypes.User.User import User as UserController
-from grunt.core.doctypes.SqlProfilerRequest.SqlProfilerRequest import SqlProfilerRequest as SqlProfilerRequestController
-from grunt.core.doctypes.WorkspaceSidebar.WorkspaceSidebar import WorkspaceSidebar as WorkspaceSidebarController
+from grunt.core.doctypes.activity_log.activity_log import ActivityLog as ActivityLogController
+from grunt.core.doctypes.comment.comment import Comment as CommentController
+from grunt.core.doctypes.data_import.data_import import DataImport as DataImportController
+from grunt.core.doctypes.user.user import User as UserController
+from grunt.core.doctypes.sql_profiler_request.sql_profiler_request import SqlProfilerRequest as SqlProfilerRequestController
+from grunt.core.doctypes.workspace_sidebar.workspace_sidebar import WorkspaceSidebar as WorkspaceSidebarController
 
 document_registry.register("ActivityLog", ActivityLogController)
 document_registry.register("Comment", CommentController)

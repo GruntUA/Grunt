@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 from typing import Any
 
@@ -62,10 +63,8 @@ async def test_assignment_rule(
 
         doctype_target = rule.get("doctype_target")
         filters = {}
-        try:
+        with contextlib.suppress(json.JSONDecodeError):
             filters = json.loads(rule.get("filters", "{}"))
-        except json.JSONDecodeError:
-            pass
 
         # Test if doc matches filters
         test_doc = body.test_doc
@@ -84,16 +83,17 @@ async def test_assignment_rule(
                     fields=["user_id"],
                     limit=500,
                 )
-                
-                from grunt.core.doctypes.User.User import get_user_by_id
+
+                from grunt.core.doctypes.user.user import get_user_by_id
+
                 session = grunt._require_session()
-                
+
                 for ur in ur_rows:
                     u = await get_user_by_id(ur["user_id"], session)
                     if u and u.is_active:
                         will_assign_to.append(u.email)
 
-        matching_fields = [field for field in filters.keys() if field in test_doc]
+        matching_fields = [field for field in filters if field in test_doc]
 
         return {
             "success": True,
@@ -147,11 +147,7 @@ async def list_assignment_logs(
             filters["status"] = status
 
         logs = await grunt.get_list(
-            "AssignmentLog",
-            filters=filters,
-            limit=limit,
-            order_by="timestamp",
-            order="desc"
+            "AssignmentLog", filters=filters, limit=limit, order_by="timestamp", order="desc"
         )
         total = await grunt.count("AssignmentLog", filters=filters)
 

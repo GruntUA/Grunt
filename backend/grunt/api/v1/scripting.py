@@ -59,8 +59,13 @@ async def _handle_builtin_method(
         return {"data": doc}
 
     if method == "grunt.api.v1.auth.set_user_password":
-        from grunt.core.doctypes.User.User import get_user_by_email, hash_password, _user_table  # noqa: PLC0415
-        from sqlalchemy import update as sa_update  # noqa: PLC0415
+        from sqlalchemy import update as sa_update
+
+        from grunt.core.doctypes.user.user import (
+            _user_table,
+            get_user_by_email,
+            hash_password,
+        )
 
         if not user.is_superadmin and user.email != body.get("email"):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостатньо прав")
@@ -68,15 +73,21 @@ async def _handle_builtin_method(
         email = body.get("email")
         password = body.get("password")
         if not email or not password:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="email та password обов'язкові")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="email та password обов'язкові"
+            )
 
         target = await get_user_by_email(str(email), session)
         if not target:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Користувача не знайдено")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Користувача не знайдено"
+            )
 
         table = _user_table()
         await session.execute(
-            sa_update(table).where(table.c.id == target.id).values(hashed_password=hash_password(str(password)))
+            sa_update(table)
+            .where(table.c.id == target.id)
+            .values(hashed_password=hash_password(str(password)))
         )
         await session.flush()
         return {"success": True}
@@ -130,6 +141,7 @@ async def run_server_script_api(
 
     if not result.success:
         import structlog  # noqa: PLC0415
+
         structlog.get_logger().warning(
             "server_script.api_error",
             method=method,

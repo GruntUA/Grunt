@@ -7,13 +7,14 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastapi.responses import Response
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
 from grunt.app import grunt
 from grunt.config import settings
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_engine, get_session
 from grunt.core.document.registry import document_registry
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from grunt.core.storage import get_storage_backend
 
 router = APIRouter()
@@ -43,7 +44,7 @@ async def upload_file(
 
     content_type = file.content_type or "application/octet-stream"
     storage = get_storage_backend()
-    
+
     try:
         path = await storage.save(
             content=content,
@@ -56,30 +57,35 @@ async def upload_file(
     # Create the File DocType record directly
     filename = path.split("/")[-1]
     is_image = content_type in _IMAGE_TYPES
-    
+
     _tokens = grunt.set_context(session, engine, user)
     try:
         # Use controller to create the record
         File = document_registry.get("File")
-        file_doc = File("File", {
-            "file_name": file.filename,
-            "path": path,
-            "content_type": content_type,
-            "file_size": len(content),
-            "uploaded_by": user.id,
-            "is_public": True,
-        }, user, session)
-        
+        file_doc = File(
+            "File",
+            {
+                "file_name": file.filename,
+                "path": path,
+                "content_type": content_type,
+                "file_size": len(content),
+                "uploaded_by": user.id,
+                "is_public": True,
+            },
+            user,
+            session,
+        )
+
         await file_doc.insert()
-        
+
         # Update URL with the generated ID
         file_url = f"/api/v1/files/{file_doc.id}"
         file_doc.file_url = file_url
         if is_image:
             file_doc.thumbnail_url = file_url
-        
+
         await file_doc.save()
-        
+
         return {
             "success": True,
             "data": {
@@ -110,19 +116,27 @@ async def list_files(
         filters = {}
         if search:
             filters["file_name"] = ["like", f"%{search}%"]
-            
+
         records = await grunt.get_list(
             "File",
             filters=filters,
-            fields=["id", "file_name", "file_url", "content_type", "file_size", "created_at", "uploaded_by"],
+            fields=[
+                "id",
+                "file_name",
+                "file_url",
+                "content_type",
+                "file_size",
+                "created_at",
+                "uploaded_by",
+            ],
             order_by="created_at desc",
             limit=limit,
             offset=offset,
         )
-        
+
         # Get total count
         total = await grunt.db.count("File", filters=filters)
-        
+
         data = [
             {
                 "id": r["id"],
@@ -135,7 +149,7 @@ async def list_files(
             }
             for r in records
         ]
-        
+
         return {
             "success": True,
             "data": data,
@@ -154,7 +168,7 @@ async def get_file(
     """Download / serve a file using File DocType metadata."""
     # Note: We use system user here because file access might be public or bypass normal RBAC in some cases
     # For now, let's just stick to the session
-    _tokens = grunt.set_context(session, engine, None) 
+    _tokens = grunt.set_context(session, engine, None)
     try:
         try:
             doc = await grunt.get_doc("File", file_id)
@@ -192,14 +206,14 @@ async def delete_file(
             doc = File("File", doc_data, user, session)
         except Exception:
             raise HTTPException(status_code=404, detail="File metadata not found")
-        
+
         # Delete from storage
         storage = get_storage_backend()
         await storage.delete(doc.path)
-        
+
         # Delete DocType record
         await doc.delete()
-        
+
         return {"success": True, "data": {"id": file_id}}
     finally:
         grunt.reset_context(_tokens)

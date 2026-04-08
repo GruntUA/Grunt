@@ -3,14 +3,11 @@ from __future__ import annotations
 import importlib
 import inspect
 from pathlib import Path
-from typing import TYPE_CHECKING, Type
 
 import structlog
 
 from grunt.core.document.base import Document
-
-if TYPE_CHECKING:
-    pass
+from grunt.utils.strings import to_snake_case
 
 logger = structlog.get_logger()
 
@@ -19,10 +16,10 @@ class DocumentRegistry:
     """Registry for custom DocType controller classes."""
 
     def __init__(self) -> None:
-        self._controllers: dict[str, Type[Document]] = {}
+        self._controllers: dict[str, type[Document]] = {}
         self._overrides: dict[str, str] = {}
 
-    def register(self, doctype: str, controller: Type[Document]) -> None:
+    def register(self, doctype: str, controller: type[Document]) -> None:
         """Manually register a controller for a DocType."""
         self._controllers[doctype] = controller
         logger.debug("document.registered", doctype=doctype, controller=controller.__name__)
@@ -41,7 +38,7 @@ class DocumentRegistry:
             except (ImportError, AttributeError, ValueError) as e:
                 logger.warning("document.override_failed", doctype=doctype, path=path, error=str(e))
 
-    def get(self, doctype: str) -> Type[Document]:
+    def get(self, doctype: str) -> type[Document]:
         """Return the controller for a DocType, or the base Document class."""
         return self._controllers.get(doctype, Document)
 
@@ -62,10 +59,14 @@ class DocumentRegistry:
                     if not dt_dir.is_dir() or dt_dir.name.startswith((".", "_")):
                         continue
                     py_file = dt_dir / f"{dt_dir.name}.py"
+                    module_file = to_snake_case(dt_dir.name)
+                    if not py_file.exists():
+                        py_file = dt_dir / f"{module_file}.py"
+
                     if py_file.exists():
                         self._load_controller(
                             py_file,
-                            f"grunt_apps.{app_dir.name}.{module_name}.doctypes.{dt_dir.name}.{dt_dir.name}",
+                            f"grunt_apps.{app_dir.name}.{module_name}.doctypes.{dt_dir.name}.{py_file.stem}",
                         )
 
     def discover_controllers_from_app(self, app_dir: str | Path) -> None:
@@ -85,10 +86,14 @@ class DocumentRegistry:
                 if not dt_dir.is_dir() or dt_dir.name.startswith((".", "_")):
                     continue
                 py_file = dt_dir / f"{dt_dir.name}.py"
+                module_file = to_snake_case(dt_dir.name)
+                if not py_file.exists():
+                    py_file = dt_dir / f"{module_file}.py"
+
                 if py_file.exists():
                     self._load_controller(
                         py_file,
-                        f"{app_name}.{module_name}.doctypes.{dt_dir.name}.{dt_dir.name}",
+                        f"{app_name}.{module_name}.doctypes.{dt_dir.name}.{py_file.stem}",
                     )
 
     def _load_controller(self, py_file: Path, module_path: str) -> None:

@@ -4,6 +4,7 @@ from pathlib import Path
 import click
 
 from grunt.cli.utils import _site_session
+from grunt.utils.strings import to_snake_case
 
 
 @click.group("doctype")
@@ -44,8 +45,12 @@ def doctype_sync(name: str, site: str | None, force: bool):
 
                 json_file = _CORE_DOCTYPES_DIR / name / f"{name}.json"
                 if not json_file.exists():
+                    json_file = _CORE_DOCTYPES_DIR / to_snake_case(name) / f"{to_snake_case(name)}.json"
+                if not json_file.exists():
                     # Try flat .json files too
                     json_file = _CORE_DOCTYPES_DIR / f"{name}.json"
+                if not json_file.exists():
+                    json_file = _CORE_DOCTYPES_DIR / f"{to_snake_case(name)}.json"
                 if not json_file.exists():
                     click.echo(f"Помилка: JSON-файл для '{name}' не знайдено.", err=True)
                     raise SystemExit(1)
@@ -142,18 +147,18 @@ def doctype_scaffold(name: str, app: str, module: str | None, force: bool):
         "is_system": False,
         "fields": initial_fields,
     }
-    json_file = doctype_dir / f"{name}.json"
+    json_file = doctype_dir / f"{to_snake_case(name)}.json"
     json_file.write_text(
         json.dumps(json_content, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
 
     # 2. Python controller via Jinja template
     py_ctx = build_controller_context(name, initial_fields)
-    py_file = doctype_dir / f"{name}.py"
+    py_file = doctype_dir / f"{to_snake_case(name)}.py"
     py_file.write_text(render_template("doctype/controller.py.jinja", py_ctx), encoding="utf-8")
 
     # 3. JS client script via Jinja template
-    js_file = doctype_dir / f"{name}.js"
+    js_file = doctype_dir / f"{to_snake_case(name)}.js"
     js_file.write_text(
         render_template("doctype/client_script.js.jinja", {"name": name}), encoding="utf-8"
     )
@@ -167,9 +172,9 @@ def doctype_scaffold(name: str, app: str, module: str | None, force: bool):
         rel_path = doctype_dir
 
     click.echo(f"✓ Створено DocType '{name}' в {rel_path}")
-    click.echo(f"  ├── {name}.json")
-    click.echo(f"  ├── {name}.py  (controller з auto-generated типами)")
-    click.echo(f"  ├── {name}.js  (client script)")
+    click.echo(f"  ├── {to_snake_case(name)}.json")
+    click.echo(f"  ├── {to_snake_case(name)}.py  (controller з auto-generated типами)")
+    click.echo(f"  ├── {to_snake_case(name)}.js  (client script)")
     click.echo("  └── __init__.py")
     click.echo()
     click.echo("Наступні кроки:")
