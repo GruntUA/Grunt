@@ -1,10 +1,11 @@
-from typing import Any, Dict, List
+from typing import Any
+
+from grunt.core.document.controller import DocumentController
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt.core.document.controller import DocumentController
-from grunt.core.metadata.registry import doctype_registry
 from grunt.core.metadata.compiler import compile_doctype_to_table
+from grunt.core.metadata.registry import doctype_registry
 
 
 class ScheduledJobController(DocumentController):
@@ -13,12 +14,12 @@ class ScheduledJobController(DocumentController):
     async def get_list(
         self,
         session: AsyncSession,
-        filters: Dict[str, Any] | None = None,
+        filters: dict[str, Any] | None = None,
         limit: int = 50,
         offset: int = 0,
         order_by: str | None = None,
-        fields: List[str] | None = None,
-    ) -> List[Dict[str, Any]]:
+        fields: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
         """Get list of scheduled jobs from ServerScript table."""
         table = compile_doctype_to_table(doctype_registry._doctypes["ServerScript"])
 
@@ -52,7 +53,7 @@ class ScheduledJobController(DocumentController):
 
         return jobs
 
-    async def get_doc(self, session: AsyncSession, name: str) -> Dict[str, Any] | None:
+    async def get_doc(self, session: AsyncSession, name: str) -> dict[str, Any] | None:
         """Get single scheduled job by name."""
         table = compile_doctype_to_table(doctype_registry._doctypes["ServerScript"])
 
@@ -83,7 +84,7 @@ class ScheduledJobController(DocumentController):
             "params": {},
         }
 
-    async def create_doc(self, session: AsyncSession, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_doc(self, session: AsyncSession, data: dict[str, Any]) -> dict[str, Any]:
         """Create new scheduled job (actually creates ServerScript)."""
         # This would create a ServerScript with script_type = "Scheduler Event"
         # For now, return mock response
@@ -95,7 +96,9 @@ class ScheduledJobController(DocumentController):
             "status": "Pending",
         }
 
-    async def update_doc(self, session: AsyncSession, name: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def update_doc(
+        self, session: AsyncSession, name: str, data: dict[str, Any]
+    ) -> dict[str, Any]:
         """Update scheduled job (actually updates ServerScript)."""
         # This would update the corresponding ServerScript
         # For now, return mock response

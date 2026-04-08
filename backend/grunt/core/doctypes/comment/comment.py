@@ -16,6 +16,9 @@ class Comment(Document):
             self.grunt.throw("Вміст коментаря не може бути порожнім")
 
     async def before_delete(self) -> None:
-        if self.user and not getattr(self.user, "is_superadmin", False):
-            if self.owner != self.user.email:
-                self.grunt.throw("Видалити коментар може лише автор або адміністратор")
+        if (
+            self.user
+            and not getattr(self.user, "is_superadmin", False)
+            and self.owner != self.user.email
+        ):
+            self.grunt.throw("Видалити коментар може лише автор або адміністратор")

@@ -56,7 +56,8 @@ async def save_print_format_to_app(doc: dict[str, Any], **kwargs: Any) -> None:
     # We save as JSON metadata + the actual template file?
     # Or just as a fixture?
     # User said "в теці обраного додатку".
-    # Creating a dedicated folder for each print format might be better if we have multiple files (html + css).
+    # Creating a dedicated folder for each print format might be better if
+    # we have multiple files (html + css).
     # But for now, one file is fine.
 
     file_path = pf_dir / f"{safe_name}.{ext}"
@@ -80,7 +81,8 @@ async def save_print_format_to_app(doc: dict[str, Any], **kwargs: Any) -> None:
             "is_default": doc.get("is_default"),
             "is_app_format": True,
             "app": app_name,
-            # We don't store the template in JSON if it's external, but here it's easier to keep together
+        # We don't store the template in JSON if it's external,
+        # but here it's easier to keep together
             "template": content,
         }
         meta_path.write_text(json.dumps(meta_data, indent=2, ensure_ascii=False), encoding="utf-8")

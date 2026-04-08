@@ -1,32 +1,26 @@
-"""TestPayment controller.
+"""ApiTest controller.
 
-Бізнес-логіка для DocType TestPayment.
+Бізнес-логіка для DocType ApiTest.
 """
 
 from __future__ import annotations
 
 # begin: auto-generated types
 # This code is auto-generated. Do not modify anything in this block.
-
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-	from typing import DF
 
-	class TestPayment:
-		"""Type hints for TestPayment fields."""
+	class ApiTest:
+		"""Type hints for ApiTest fields."""
 
-		amount: float | None
-		payment_date: str | None
-		method: str | None
-		is_approved: bool | None
+		name: str | None
 
 # end: auto-generated types
 
 
-
-class TestPaymentController:
-    """Контроллер для TestPayment документів."""
+class ApiTestController:
+    """Контроллер для ApiTest документів."""
 
     async def before_save(self):
         """Викликається перед збереженням."""

@@ -103,11 +103,11 @@ async def list_workspaces(
         )
 
         data = []
-        WorkspaceSidebar = document_registry.get("WorkspaceSidebar")
+        ws_cls = document_registry.get("WorkspaceSidebar")
         for ws_data in all_ws:
             # We need the full doc to use has_access and child tables
             ws_dict = await grunt.get_doc("WorkspaceSidebar", ws_data["name"])
-            ws = WorkspaceSidebar("WorkspaceSidebar", ws_dict, user, session)
+            ws = ws_cls("WorkspaceSidebar", ws_dict, user, session)
 
             if ws.get("is_hidden") and not user.is_superadmin:
                 continue
@@ -132,11 +132,11 @@ async def get_workspace(
     try:
         try:
             ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
-        except HTTPException:
-            raise HTTPException(status_code=404, detail=f"Workspace '{name}' не знайдено")
+        except HTTPException as err:
+            raise HTTPException(status_code=404, detail=f"Workspace '{name}' не знайдено") from err
 
-        WorkspaceSidebar = document_registry.get("WorkspaceSidebar")
-        ws = WorkspaceSidebar("WorkspaceSidebar", ws_dict, user, session)
+        ws_cls = document_registry.get("WorkspaceSidebar")
+        ws = ws_cls("WorkspaceSidebar", ws_dict, user, session)
 
         if not ws.has_access(user):
             raise HTTPException(status_code=403, detail="Немає доступу до цього workspace")
@@ -161,8 +161,8 @@ async def create_workspace(
         if "items" in data:
             data["sidebar_items"] = data.pop("items")
 
-        WorkspaceSidebar = document_registry.get("WorkspaceSidebar")
-        ws = WorkspaceSidebar("WorkspaceSidebar", data, user, session)
+        ws_cls = document_registry.get("WorkspaceSidebar")
+        ws = ws_cls("WorkspaceSidebar", data, user, session)
         await ws.insert()
         return {"success": True, "data": _workspace_to_dict(ws, user)}
     finally:
@@ -181,8 +181,8 @@ async def update_workspace(
     _tokens = grunt.set_context(session, engine, user)
     try:
         ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
-        WorkspaceSidebar = document_registry.get("WorkspaceSidebar")
-        ws = WorkspaceSidebar("WorkspaceSidebar", ws_dict, user, session)
+        ws_cls = document_registry.get("WorkspaceSidebar")
+        ws = ws_cls("WorkspaceSidebar", ws_dict, user, session)
 
         data = body.copy()
         if "items" in data:
@@ -206,8 +206,8 @@ async def delete_workspace(
     _tokens = grunt.set_context(session, engine, user)
     try:
         ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
-        WorkspaceSidebar = document_registry.get("WorkspaceSidebar")
-        ws = WorkspaceSidebar("WorkspaceSidebar", ws_dict, user, session)
+        ws_cls = document_registry.get("WorkspaceSidebar")
+        ws = ws_cls("WorkspaceSidebar", ws_dict, user, session)
         await ws.delete()
         return {"success": True, "data": {"deleted": name}}
     finally:
@@ -226,11 +226,11 @@ async def workspace_counts(
     try:
         try:
             ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
-        except HTTPException:
-            raise HTTPException(status_code=404, detail="Workspace found")
+        except HTTPException as err:
+            raise HTTPException(status_code=404, detail="Workspace found") from err
 
-        WorkspaceSidebar = document_registry.get("WorkspaceSidebar")
-        ws = WorkspaceSidebar("WorkspaceSidebar", ws_dict, user, session)
+        ws_cls = document_registry.get("WorkspaceSidebar")
+        ws = ws_cls("WorkspaceSidebar", ws_dict, user, session)
 
         counts = await ws.get_counts()
         return {"success": True, "data": counts}
@@ -252,11 +252,11 @@ async def workspace_widget_data(
     try:
         try:
             ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
-        except HTTPException:
-            raise HTTPException(status_code=404, detail=f"Workspace '{name}' не знайдено")
+        except HTTPException as err:
+            raise HTTPException(status_code=404, detail=f"Workspace '{name}' не знайдено") from err
 
-        WorkspaceSidebar = document_registry.get("WorkspaceSidebar")
-        ws = WorkspaceSidebar("WorkspaceSidebar", ws_dict, user, session)
+        ws_cls = document_registry.get("WorkspaceSidebar")
+        ws = ws_cls("WorkspaceSidebar", ws_dict, user, session)
 
         if not ws.has_access(user):
             raise HTTPException(status_code=403, detail="Немає доступу до цього workspace")

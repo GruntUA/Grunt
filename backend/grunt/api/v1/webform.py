@@ -73,11 +73,11 @@ async def submit_web_form(
 
     try:
         body = await request.json()
-    except Exception:
+    except Exception as err:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Невалідний JSON",
-        )
+        ) from err
 
     user_email = await _extract_user_email(request, session)
 
@@ -93,4 +93,4 @@ async def submit_web_form(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(e),
-        )
+        ) from e

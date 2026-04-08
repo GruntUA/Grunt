@@ -24,10 +24,15 @@ Flow:
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from grunt.config import settings
 from grunt.core.db.session import get_session
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
@@ -87,7 +92,7 @@ async def oauth_authorize(provider: str) -> dict:
 
     The frontend should redirect the browser to ``data.url``.
     """
-    AsyncOAuth2Client = _require_authlib()
+    oauth_client_cls = _require_authlib()
     cfg = _get_provider_config(provider)
 
     import httpx  # noqa: PLC0415
@@ -98,7 +103,7 @@ async def oauth_authorize(provider: str) -> dict:
         resp.raise_for_status()
         oidc = resp.json()
 
-    async with AsyncOAuth2Client(
+    async with oauth_client_cls(
         client_id=cfg["client_id"],
         redirect_uri=_callback_url(provider),
         scope=cfg["scope"],
@@ -118,7 +123,7 @@ async def oauth_callback(
 
     Returns the same ``TokenResponse`` shape as ``POST /auth/token``.
     """
-    AsyncOAuth2Client = _require_authlib()
+    oauth_client_cls = _require_authlib()
     cfg = _get_provider_config(provider)
 
     import httpx  # noqa: PLC0415
@@ -137,7 +142,7 @@ async def oauth_callback(
         oidc = oidc_resp.json()
 
     # Exchange code for tokens and fetch user info
-    async with AsyncOAuth2Client(
+    async with oauth_client_cls(
         client_id=cfg["client_id"],
         client_secret=cfg["client_secret"],
         redirect_uri=_callback_url(provider),

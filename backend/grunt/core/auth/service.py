@@ -18,7 +18,7 @@ from grunt.config import settings
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.doctypes.user.user import GruntUser
 
 logger = structlog.get_logger()
 
@@ -48,7 +48,7 @@ def create_access_token(user: GruntUser) -> str:
 async def create_refresh_token(user_id: str, session: AsyncSession) -> str:
     """Issue a 7-day refresh token for a user."""
     from grunt.app import grunt
-    from grunt.core.auth.models import SYSTEM_USER
+    from grunt.core.doctypes.user.user import SYSTEM_USER
 
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
     expires_at = datetime.now(UTC) + timedelta(days=7)
@@ -72,8 +72,7 @@ async def rotate_refresh_token(
     Returns (new_refresh_token, user) on success, None if invalid/expired.
     """
     from grunt.app import grunt
-    from grunt.core.auth.models import SYSTEM_USER
-    from grunt.core.doctypes.user.user import get_user_by_id
+    from grunt.core.doctypes.user.user import SYSTEM_USER, get_user_by_id
 
     now = datetime.now(UTC)
 
@@ -115,7 +114,7 @@ async def rotate_refresh_token(
 async def revoke_refresh_tokens_for_user(user_id: str, session: AsyncSession) -> None:
     """Revoke all active refresh tokens for a user (e.g., on logout)."""
     from grunt.app import grunt
-    from grunt.core.auth.models import SYSTEM_USER
+    from grunt.core.doctypes.user.user import SYSTEM_USER
 
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:
@@ -134,7 +133,7 @@ async def create_password_reset_token(
 ) -> str:
     """Create a 1-hour password reset token. Invalidates prior unused tokens."""
     from grunt.app import grunt
-    from grunt.core.auth.models import SYSTEM_USER
+    from grunt.core.doctypes.user.user import SYSTEM_USER
 
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
     expires_at = datetime.now(UTC) + timedelta(hours=1)
@@ -156,8 +155,7 @@ async def consume_password_reset_token(
 ) -> bool:
     """Verify token and update the user's password. Returns True on success."""
     from grunt.app import grunt
-    from grunt.core.auth.models import SYSTEM_USER
-    from grunt.core.doctypes.user.user import hash_password
+    from grunt.core.doctypes.user.user import SYSTEM_USER, hash_password
 
     now = datetime.now(UTC)
 

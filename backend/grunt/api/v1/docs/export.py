@@ -124,7 +124,7 @@ async def print_document(
                     },
                 )
             except Exception as e:
-                raise HTTPException(status_code=500, detail=f"DOCX generation error: {e}")
+                raise HTTPException(status_code=500, detail=f"DOCX generation error: {e}") from e
         raise HTTPException(
             status_code=404,
             detail="Шаблон DOCX не знайдено. Створіть PrintFormat з template_type='docx'.",
@@ -139,13 +139,12 @@ async def print_document(
 
         html = None
 
+        import contextlib
         # 1. Try custom PrintFormat from DB
         pf = await get_print_format_template(session, doctype, print_format)
         if pf and pf[1] == "html":
-            try:
+            with contextlib.suppress(Exception):
                 html = render_from_string(pf[0], doc, doctype_label=dt.label, fields=dt.fields)
-            except Exception:
-                pass  # Fall back to standard
 
         # 2. Standard template (auto-generated from fields)
         if html is None:
@@ -156,9 +155,9 @@ async def print_document(
 
         # PDF via WeasyPrint
         try:
-            from weasyprint import HTML as WeasyprintHTML  # noqa: PLC0415
+            from weasyprint import HTML as WP_HTML  # noqa: PLC0415
 
-            pdf_bytes = WeasyprintHTML(string=html).write_pdf()
+            pdf_bytes = WP_HTML(string=html).write_pdf()
             return Response(
                 content=pdf_bytes,
                 media_type="application/pdf",
@@ -166,11 +165,11 @@ async def print_document(
                     "Content-Disposition": f'attachment; filename="{doctype}_{doc_id[:8]}.pdf"'
                 },
             )
-        except ImportError:
+        except ImportError as err:
             raise HTTPException(
                 status_code=501,
                 detail="WeasyPrint не встановлено. Використайте fmt=xlsx або fmt=html",
-            )
+            ) from err
 
     raise HTTPException(
         status_code=400,

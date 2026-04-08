@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import structlog
 
@@ -34,8 +34,8 @@ async def log_activity(event: str, **kwargs) -> None:
     # If it's the system user pulling emails or running bg tasks, we can log it too.
     
     try:
-        from grunt.core.metadata.registry import doctype_registry
         from grunt.core.metadata.compiler import compile_doctype_to_table
+        from grunt.core.metadata.registry import doctype_registry
 
         dt = await doctype_registry.get("ActivityLog")
         table = compile_doctype_to_table(dt)
@@ -43,7 +43,7 @@ async def log_activity(event: str, **kwargs) -> None:
         # Basic ID and standard fields
         new_id = str(uuid.uuid4())
         name = new_id.split("-")[0]
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         row = {
             "id": new_id,
@@ -62,7 +62,8 @@ async def log_activity(event: str, **kwargs) -> None:
             "details": f"Document {action.lower()}d via {event}"
         }
         
-        # Raw insert using the current transaction to avoid nested flushes triggering infinite events
+        # Raw insert using the current transaction to avoid nested flushes
+        # triggering infinite events
         await session.execute(table.insert().values(**row))
         
     except Exception as e:

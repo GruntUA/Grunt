@@ -70,7 +70,9 @@ def register_client_script_dir(app_name: str, doctypes_dir: str | Path) -> None:
 
 
 def discover_file_scripts(apps_dir: str | Path, *, app_filter: str | None = None) -> None:
-    """Scan all app module directories for server scripts; register dirs for lazy client script loading.
+    """Scan all app module directories for server scripts.
+
+    Register dirs for lazy client script loading.
 
     Server-side .py scripts are loaded eagerly (needed for hook system).
     Client-side .js scripts are registered for lazy loading per DocType.

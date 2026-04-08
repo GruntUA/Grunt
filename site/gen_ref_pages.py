@@ -76,9 +76,7 @@ def _should_skip(py_file: Path) -> bool:
     for part in py_file.parts:
         if part in SKIP_DIRS:
             return True
-    if py_file.stem in SKIP_STEMS or py_file.stem.startswith("test_"):
-        return True
-    return False
+    return py_file.stem in SKIP_STEMS or py_file.stem.startswith("test_")
 
 
 def _section_for(rel: Path) -> str:

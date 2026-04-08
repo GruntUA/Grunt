@@ -12,9 +12,9 @@ from typing import TYPE_CHECKING
 
 import bcrypt
 import structlog
+from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 
-from grunt.core.auth.models import SYSTEM_USER, GruntUser
 from grunt.core.document.base import Document
 
 if TYPE_CHECKING:
@@ -25,6 +25,39 @@ logger = structlog.get_logger()
 
 _MAX_ATTEMPTS = 10
 _LOCKOUT_MINUTES = 30
+
+
+class GruntUser(BaseModel):
+    """Runtime user object populated from the ``User`` DocType.
+
+    Not a SQLAlchemy ORM model — use ``grunt.core.doctypes.User.User``
+    helpers to load/create users.
+    """
+
+    model_config = {"frozen": True}
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: str = ""
+    full_name: str = ""
+    hashed_password: str = ""
+    is_active: bool = True
+    is_superadmin: bool = False
+    theme: str = "system"
+    login_attempts: int = 0
+    locked_until: datetime | None = None
+    mfa_enabled: bool = False
+    mfa_secret: str = ""
+    created_at: datetime | None = None
+    modified_at: datetime | None = None
+    roles: list[str] = Field(default_factory=list)
+
+
+# Convenience system-user singleton for internal tasks.
+SYSTEM_USER = GruntUser(
+    email="system@grunt.local",
+    full_name="System",
+    is_superadmin=True,
+)
 
 
 # ── Password helpers ──────────────────────────────────────────────────────
@@ -77,19 +110,6 @@ def _row_to_user(row: dict, roles: list[str]) -> GruntUser:
     )
 
 
-async def _load_roles(user_id: str) -> list[str]:
-    """Load role names for a user. Requires grunt context to be already set."""
-    from grunt.app import grunt  # noqa: PLC0415
-
-    rows = await grunt.db.get_all(
-        "UserRole",
-        filters={"user_id": user_id},
-        fields=["role_name"],
-        limit=100,
-    )
-    return [r["role_name"] for r in rows]
-
-
 # ── User CRUD ─────────────────────────────────────────────────────────────
 
 
@@ -116,11 +136,13 @@ async def get_user_by_email(
 
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:
+        from grunt.core.doctypes.user_role.user_role import get_user_roles  # noqa: PLC0415
+
         rows = await grunt.db.get_all("User", filters={"email": email}, fields=fields, limit=1)
         if not rows:
             return None
         row = rows[0]
-        roles = await _load_roles(row["id"])
+        roles = await get_user_roles(row["id"], session)
         return _row_to_user(row, roles)
     finally:
         grunt.reset_context(_tokens)
@@ -131,11 +153,13 @@ async def get_user_by_id(user_id: str, session: AsyncSession) -> GruntUser | Non
 
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:
+        from grunt.core.doctypes.user_role.user_role import get_user_roles  # noqa: PLC0415
+
         rows = await grunt.db.get_all("User", filters={"id": user_id}, limit=1)
         if not rows:
             return None
         row = rows[0]
-        roles = await _load_roles(row["id"])
+        roles = await get_user_roles(row["id"], session)
         return _row_to_user(row, roles)
     finally:
         grunt.reset_context(_tokens)
@@ -146,10 +170,12 @@ async def list_users(session: AsyncSession) -> list[GruntUser]:
 
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:
+        from grunt.core.doctypes.user_role.user_role import get_user_roles  # noqa: PLC0415
+
         rows = await grunt.db.get_all("User", limit=10_000)
         users = []
         for row in rows:
-            roles = await _load_roles(row["id"])
+            roles = await get_user_roles(row["id"], session)
             users.append(_row_to_user(row, roles))
         return users
     finally:

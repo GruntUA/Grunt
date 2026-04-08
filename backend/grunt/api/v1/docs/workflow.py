@@ -4,18 +4,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from fastapi import APIRouter, Depends
+from fastapi import Body, APIRouter, Depends
 
 from grunt.api.v1.docs.utils import get_doc_service
 from grunt.core.auth.dependencies import current_user
 from grunt.core.db.session import get_engine, get_session
 from grunt.core.metadata.registry import doctype_registry
 
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.core.auth.models import GruntUser
-    from grunt.core.document.service import DocumentService
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+from grunt.core.auth.models import GruntUser
+from grunt.core.document.service import DocumentService
 
 router = APIRouter()
 
@@ -24,7 +22,7 @@ router = APIRouter()
 async def apply_workflow_transition(
     doctype: str,
     doc_id: str,
-    body: dict[str, Any],
+    body: dict[str, Any] = Body(...),
     session: AsyncSession = Depends(get_session),
     eng: AsyncEngine = Depends(get_engine),
     user: GruntUser = Depends(current_user),

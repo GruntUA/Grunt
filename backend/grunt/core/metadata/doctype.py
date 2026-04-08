@@ -6,8 +6,9 @@ and is the single source of truth for DB tables, REST API and UI forms.
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
+from grunt.core.doctypes.doc_type_permission.doc_type_permission import DocTypePermission
 from grunt.core.metadata.field import DocField
 
 # ── Workflow sub-models ──────────────────────────────────────────────────
@@ -54,21 +55,6 @@ class DocTypeWorkflow(BaseModel):
 # ── Permission sub-model ─────────────────────────────────────────────────
 
 
-class DocTypePermission(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-
-    role: str
-    read: bool = False
-    write: bool = False
-    create: bool = False
-    delete: bool = False
-    submit: bool = False
-    cancel: bool = False
-    report: bool = False
-    # Row-level filter — e.g. "owner == user"
-    match: str | None = None
-    # Fields hidden for this role (field names)
-    hidden_fields: list[str] = []
 
 
 # ── View configuration sub-models ────────────────────────────────────────

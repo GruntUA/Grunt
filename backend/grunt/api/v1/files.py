@@ -168,7 +168,8 @@ async def get_file(
     engine: AsyncEngine = Depends(get_engine),
 ):
     """Download / serve a file using File DocType metadata."""
-    # Note: We use system user here because file access might be public or bypass normal RBAC in some cases
+    # Note: We use system user here because file access might be public
+    # or bypass normal RBAC in some cases
     # For now, let's just stick to the session
     _tokens = grunt.set_context(session, engine, None)
     try:

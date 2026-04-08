@@ -231,7 +231,7 @@ class ReportEngine:
                 if getattr(f, "in_list_view", False)
             ]
 
-        _AGG_MAP = {
+        agg_map = {
             "count": func.count,
             "sum": func.sum,
             "avg": func.avg,
@@ -254,8 +254,8 @@ class ReportEngine:
             if sa_col is None:
                 continue
 
-            if agg and agg in _AGG_MAP:
-                select_cols.append(_AGG_MAP[agg](sa_col).label(fn))
+            if agg and agg in agg_map:
+                select_cols.append(agg_map[agg](sa_col).label(fn))
                 result_columns.append({"fieldname": fn, "label": label, "fieldtype": fieldtype})
             elif has_aggregation:
                 # Non-aggregated column when aggregation is present → GROUP BY

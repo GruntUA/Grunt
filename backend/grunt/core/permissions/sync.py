@@ -142,12 +142,12 @@ async def migrate_doctype_meta_permissions(session) -> None:  # noqa: ANN001
                 # perm may be a DocTypePermission Pydantic model or a plain dict
                 if isinstance(perm, dict):
                     role = perm.get("role", "")
-                    _b = lambda attr: bool(perm.get(attr, False))  # noqa: E731
+                    _b = lambda attr, p=perm: bool(p.get(attr, False))  # noqa: E731
                     hf_raw = perm.get("hidden_fields", [])
                     match_val = perm.get("match")
                 else:
                     role = getattr(perm, "role", "")
-                    _b = lambda attr: bool(getattr(perm, attr, False))  # noqa: E731
+                    _b = lambda attr, p=perm: bool(getattr(p, attr, False))  # noqa: E731
                     hf_raw = getattr(perm, "hidden_fields", [])
                     match_val = getattr(perm, "match", None)
 

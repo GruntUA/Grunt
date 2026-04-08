@@ -52,7 +52,7 @@ from grunt.api.context import (
 from grunt.app import GruntDB
 
 db = GruntDB()
-from grunt.api.messages import (
+from grunt.api.messages import (  # noqa: E402
     ApplicationError,
     msgprint,
     msgprint_list,
@@ -61,7 +61,7 @@ from grunt.api.messages import (
     queue_email,
     throw,
 )
-from grunt.api.permissions import (
+from grunt.api.permissions import (  # noqa: E402
     can_create,
     can_delete,
     can_read,

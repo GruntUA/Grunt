@@ -4,14 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import Body, APIRouter, Depends, HTTPException, Query, Request, status
 
 from grunt.api.v1.docs.utils import _audit_log, get_doc_service
 from grunt.core.auth.dependencies import current_user
 
-if TYPE_CHECKING:
-    from grunt.core.auth.models import GruntUser
-    from grunt.core.document.service import DocumentService
+from grunt.core.auth.models import GruntUser
+from grunt.core.document.service import DocumentService
 
 router = APIRouter()
 
@@ -55,7 +54,7 @@ async def list_documents(
 @router.post("/{doctype}", status_code=status.HTTP_201_CREATED)
 async def create_document(
     doctype: str,
-    body: dict[str, Any],
+    body: dict[str, Any] = Body(...),
     user: GruntUser = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
@@ -81,7 +80,7 @@ async def get_document(
 async def update_document(
     doctype: str,
     doc_id: str,
-    body: dict[str, Any],
+    body: dict[str, Any] = Body(...),
     user: GruntUser = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
@@ -107,7 +106,7 @@ async def delete_document(
 @router.post("/{doctype}/bulk-delete")
 async def bulk_delete_documents(
     doctype: str,
-    body: dict[str, Any],
+    body: dict[str, Any] = Body(...),
     user: GruntUser = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
@@ -132,7 +131,7 @@ async def bulk_delete_documents(
 @router.post("/{doctype}/bulk-update")
 async def bulk_update_documents(
     doctype: str,
-    body: dict[str, Any],
+    body: dict[str, Any] = Body(...),
     user: GruntUser = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:

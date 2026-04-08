@@ -9,9 +9,12 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 
 from grunt.config import settings
-from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_engine, get_session
-from grunt.core.doctypes.user.user import _SESSION_FIELDS, get_user_by_email
+from grunt.core.doctypes.user.user import (
+    _SESSION_FIELDS,
+    GruntUser,
+    get_user_by_email,
+)
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator

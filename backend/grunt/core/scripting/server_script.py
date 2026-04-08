@@ -250,7 +250,9 @@ class ScriptContext:
 
         Usage::
 
-            docs = grunt.get_list("Applicant", filters={"applicant_type": "Фізична особа"}, limit=10)
+            docs = grunt.get_list(
+                "Applicant", filters={"applicant_type": "Фізична особа"}, limit=10
+            )
         """
         if not self._bridge or not self._session:
             return []

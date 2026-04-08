@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import structlog
-from grunt.core.document.base import Document
+
 from grunt.core.data_import.tasks import run_data_import
+from grunt.core.document.base import Document
 
 logger = structlog.get_logger()
 

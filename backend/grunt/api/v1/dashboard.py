@@ -8,6 +8,7 @@ aggregation queries for each widget.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -34,7 +35,6 @@ _TIMESPAN_DAYS: dict[str, int] = {
 }
 
 # Supported aggregation functions (name → SQLAlchemy func)
-import contextlib
 
 from sqlalchemy import func as _sa_func  # noqa: E402
 
@@ -324,10 +324,10 @@ async def get_dashboard_data(
         dashboard = dict(await grunt.get_doc("Dashboard", name))
     except HTTPException as exc:
         if exc.status_code == 404:
-            raise HTTPException(status_code=404, detail="Дашборд не знайдено")
+            raise HTTPException(status_code=404, detail="Дашборд не знайдено") from exc
         raise
-    except Exception:
-        raise HTTPException(status_code=503, detail="Помилка завантаження Дашборду")
+    except Exception as err:
+        raise HTTPException(status_code=503, detail="Помилка завантаження Дашборду") from err
 
     user = grunt._require_user()
     if not user.is_superadmin and not dashboard.get("is_published"):

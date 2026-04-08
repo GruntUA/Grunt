@@ -21,12 +21,11 @@ from grunt.core.db.session import get_engine, get_session
 from grunt.core.metadata.compiler import compile_doctype_to_table, get_table_name, sync_table
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.metadata.scaffold import export_doctype_files
+from grunt.core.metadata.doctype import DocType
+from grunt.core.auth.models import GruntUser
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from grunt.core.auth.models import GruntUser
-    from grunt.core.metadata.doctype import DocType
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 logger = structlog.get_logger()
 router = APIRouter()
@@ -62,14 +61,20 @@ def _get_index_hints(dt: DocType) -> list[IndexHint]:
             hints.append(
                 IndexHint(
                     field=f.fieldname,
-                    reason=f"Поле «{f.label or f.fieldname}» використовується у фільтрах (in_filter: true) — рекомендується додати index: true",
+                    reason=(
+                        f"Поле «{f.label or f.fieldname}» використовується у фільтрах "
+                        "(in_filter: true) — рекомендується додати index: true"
+                    ),
                 )
             )
         elif f.fieldtype == "Link":
             hints.append(
                 IndexHint(
                     field=f.fieldname,
-                    reason=f"Link-поле «{f.label or f.fieldname}» часто фігурує у WHERE-умовах — рекомендується додати index: true",
+                    reason=(
+                        f"Link-поле «{f.label or f.fieldname}» часто фігурує у "
+                        "WHERE-умовах — рекомендується додати index: true"
+                    ),
                 )
             )
     return hints

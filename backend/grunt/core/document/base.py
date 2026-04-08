@@ -131,7 +131,9 @@ class Document:
 
     @property
     def grunt(self) -> GruntApp:
-        """The :class:`~grunt.app.GruntApp` singleton — a shorthand for ``from grunt.app import grunt``.
+        """The :class:`~grunt.app.GruntApp` singleton.
+
+        A shorthand for ``from grunt.app import grunt``.
 
         Available inside all lifecycle hooks as ``self.grunt``.
 

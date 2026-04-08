@@ -78,9 +78,12 @@ def upgrade() -> None:
                 sa.text(
                     "INSERT OR IGNORE INTO grunt_workspace_sidebar_item "
                     "(id, name, parent_id, parent_doctype, parent_field, idx, "
-                    " section, type, label, icon, link_to, show_count, count_filters, show_new_btn, roles) "
-                    "VALUES (:id, :name, :parent_id, 'WorkspaceSidebar', 'sidebar_items', :idx, "
-                    "        :section, :type, :label, :icon, :link_to, :show_count, :count_filters, :show_new_btn, :roles)"
+                    " section, type, label, icon, link_to, show_count, "
+                    " count_filters, show_new_btn, roles) "
+                    "VALUES (:id, :name, :parent_id, 'WorkspaceSidebar', "
+                    "        'sidebar_items', :idx, :section, :type, "
+                    "        :label, :icon, :link_to, :show_count, "
+                    "        :count_filters, :show_new_btn, :roles)"
                 ),
                 {
                     "id": new_id,
