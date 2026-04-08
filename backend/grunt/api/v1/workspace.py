@@ -243,9 +243,12 @@ async def workspace_widget_data(
     _tokens = grunt.set_context(session, engine, user)
     try:
         try:
-            ws = await grunt.get_doc("WorkspaceSidebar", name)
+            ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
         except HTTPException:
             raise HTTPException(status_code=404, detail=f"Workspace '{name}' не знайдено")
+        
+        WorkspaceSidebar = document_registry.get("WorkspaceSidebar")
+        ws = WorkspaceSidebar("WorkspaceSidebar", ws_dict, user, session)
         
         if not ws.has_access(user):
             raise HTTPException(status_code=403, detail="Немає доступу до цього workspace")
