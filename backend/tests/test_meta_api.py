@@ -74,7 +74,7 @@ async def test_update_doctype(client: AsyncClient, auth_headers: dict):
         headers=auth_headers,
     )
     assert resp.status_code == 200
-    assert len(resp.json()["fields"]) == 4
+    assert len(resp.json()["data"]["fields"]) == 4
 
 
 @pytest.mark.asyncio

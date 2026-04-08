@@ -22,13 +22,10 @@ class DataImport(Document):
             # If it's a URL from /api/v1/files/, we need to resolve it to a path
             if self.file.startswith("/api/v1/files/"):
                 file_id = self.file.split("/")[-1]
-                from sqlalchemy import select
-                from grunt.core.db.system_tables import GruntFile
-                result = await self.session.execute(select(GruntFile).where(GruntFile.id == file_id))
-                record = result.scalar_one_or_none()
-                if record:
-                    file_path = Path(record.path)
-                else:
+                try:
+                    doc = await self.grunt.get_doc("File", file_id)
+                    file_path = Path(doc.path)
+                except Exception:
                     raise FileNotFoundError(f"File record not found for {file_id}")
             else:
                 raise FileNotFoundError(f"Import file not found: {self.file}")
@@ -62,12 +59,11 @@ class DataImport(Document):
         file_path = Path(self.file)
         if self.file.startswith("/api/v1/files/"):
             file_id = self.file.split("/")[-1]
-            from sqlalchemy import select
-            from grunt.core.db.system_tables import GruntFile
-            result = await self.session.execute(select(GruntFile).where(GruntFile.id == file_id))
-            record = result.scalar_one_or_none()
-            if record:
-                file_path = Path(record.path)
+            try:
+                doc = await self.grunt.get_doc("File", file_id)
+                file_path = Path(doc.path)
+            except Exception:
+                pass
 
         all_rows = self._read_file(file_path)
         if not all_rows:

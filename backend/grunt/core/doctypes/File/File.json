@@ -7,15 +7,87 @@
   "image_field": "thumbnail_url",
   "default_view": "gallery",
   "fields": [
-    {"fieldname": "file_name", "label": "Назва файлу", "fieldtype": "Text", "required": true, "in_list_view": true, "search": true},
-    {"fieldname": "file_url", "label": "URL файлу", "fieldtype": "Text", "required": true, "read_only": true},
-    {"fieldname": "thumbnail_url", "label": "Мініатюра", "fieldtype": "Image", "read_only": true},
-    {"fieldname": "file_size", "label": "Розмір (байт)", "fieldtype": "Int", "read_only": true, "in_list_view": true},
-    {"fieldname": "content_type", "label": "Тип контенту", "fieldtype": "Text", "read_only": true, "in_list_view": true, "in_filter": true},
-    {"fieldname": "is_public", "label": "Публічний", "fieldtype": "Check", "default": true, "in_list_view": true, "in_filter": true},
-    {"fieldname": "grunt_file_id", "label": "ID системного файлу", "fieldtype": "Text", "read_only": true, "hidden": true},
-    {"fieldname": "sec_attachment", "label": "Прив'язка", "fieldtype": "Section"},
-    {"fieldname": "attached_to_doctype", "label": "DocType документа", "fieldtype": "Link", "options": "DocType", "in_filter": true},
-    {"fieldname": "attached_to_id", "label": "ID документа", "fieldtype": "Text"}
+    {
+      "fieldname": "file_name",
+      "label": "Назва файлу",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true,
+      "search": true
+    },
+    {
+      "fieldname": "file_url",
+      "label": "URL файлу",
+      "fieldtype": "Text",
+      "required": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "path",
+      "label": "Шлях у сховищі",
+      "fieldtype": "Text",
+      "read_only": true
+    },
+    {
+      "fieldname": "thumbnail_url",
+      "label": "Мініатюра",
+      "fieldtype": "Image",
+      "read_only": true
+    },
+    {
+      "fieldname": "file_size",
+      "label": "Розмір (байт)",
+      "fieldtype": "Int",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "content_type",
+      "label": "Тип контенту",
+      "fieldtype": "Text",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "uploaded_by",
+      "label": "Завантажив",
+      "fieldtype": "Link",
+      "options": "User",
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "is_public",
+      "label": "Публічний",
+      "fieldtype": "Check",
+      "default": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "grunt_file_id",
+      "label": "ID системного файлу",
+      "fieldtype": "Text",
+      "read_only": true,
+      "hidden": true
+    },
+    {
+      "fieldname": "sec_attachment",
+      "label": "Прив'язка",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "attached_to_doctype",
+      "label": "DocType документа",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "in_filter": true
+    },
+    {
+      "fieldname": "attached_to_id",
+      "label": "ID документа",
+      "fieldtype": "Text"
+    }
   ]
 }

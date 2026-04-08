@@ -30,12 +30,14 @@ from grunt.core.doctypes.Comment.Comment import Comment as CommentController
 from grunt.core.doctypes.DataImport.DataImport import DataImport as DataImportController
 from grunt.core.doctypes.User.User import User as UserController
 from grunt.core.doctypes.SqlProfilerRequest.SqlProfilerRequest import SqlProfilerRequest as SqlProfilerRequestController
+from grunt.core.doctypes.WorkspaceSidebar.WorkspaceSidebar import WorkspaceSidebar as WorkspaceSidebarController
 
 document_registry.register("ActivityLog", ActivityLogController)
 document_registry.register("Comment", CommentController)
 document_registry.register("DataImport", DataImportController)
 document_registry.register("User", UserController)
 document_registry.register("SqlProfilerRequest", SqlProfilerRequestController)
+document_registry.register("WorkspaceSidebar", WorkspaceSidebarController)
 
 # Auto-refresh in-memory permissions when DocTypePermission is saved/deleted
 register_doc_events({

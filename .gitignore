@@ -54,3 +54,5 @@ uploads/
 
 # ──── OS ───────────────────────────────────
 Thumbs.db
+.agents/
+.claude/

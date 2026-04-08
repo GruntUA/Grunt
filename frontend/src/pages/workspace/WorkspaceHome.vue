@@ -11,9 +11,19 @@ const widgetData = ref<Record<string, unknown>>({})
 const loading = ref(false)
 
 const widgets = computed(() => {
-  const ws = wsStore.active
-  if (!ws) return []
-  return (ws.widgets ?? []).slice().sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0))
+  const raw = wsStore.active ? wsStore.active.widgets : []
+  let items: any[] = []
+  if (Array.isArray(raw)) {
+    items = raw
+  } else if (typeof raw === 'string') {
+    try {
+      items = JSON.parse(raw) || []
+    } catch {
+      items = []
+    }
+  }
+
+  return [...items].sort((a, b) => (a.sequence || 0) - (b.sequence || 0))
 })
 
 const hasWidgets = computed(() => widgets.value.length > 0)
@@ -57,14 +67,8 @@ watch(() => props.workspaceName, init)
 
     <!-- Widgets grid -->
     <div v-if="hasWidgets" class="grid grid-cols-4 gap-4">
-      <WidgetCard
-        v-for="widget in widgets"
-        :key="widget.id"
-        :widget="widget"
-        :data="widgetData[widget.id]"
-        :loading="loading"
-        :workspace-name="workspaceName"
-      />
+      <WidgetCard v-for="widget in widgets" :key="widget.id" :widget="widget" :data="widgetData[widget.id]"
+        :loading="loading" :workspace-name="workspaceName" />
     </div>
 
     <!-- Empty state (no widgets, no redirect target) -->
@@ -73,10 +77,8 @@ watch(() => props.workspaceName, init)
       <p class="text-muted-foreground text-sm">Цей воркспейс ще не має модулів.</p>
       <p class="text-muted-foreground/60 text-xs mt-1">
         Додайте віджети у
-        <router-link
-          :to="`/${workspaceName}/studio/workspaces`"
-          class="text-primary hover:underline"
-        >Studio → Воркспейси</router-link>.
+        <router-link :to="`/${workspaceName}/studio/workspaces`" class="text-primary hover:underline">Studio →
+          Воркспейси</router-link>.
       </p>
     </div>
   </div>

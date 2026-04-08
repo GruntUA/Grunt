@@ -1,0 +1,33 @@
+from __future__ import annotations
+
+from typing import Any
+import structlog
+from grunt.core.tasks.broker import task
+from grunt.core.db.session import async_session_factory
+from grunt.core.notification.service import notification_service
+
+logger = structlog.get_logger()
+
+@task
+async def evaluate_notification_rules_task(
+    event: str,
+    doctype: str,
+    doc: dict[str, Any],
+    user_email: str,
+) -> None:
+    """Background task to evaluate notification rules.
+    
+    Creates its own database session to avoid sharing with the main request.
+    """
+    try:
+        async with async_session_factory() as session:
+            await notification_service.evaluate_rules(
+                session=session,
+                event=event,
+                doctype=doctype,
+                doc=doc,
+                user_email=user_email,
+            )
+            await session.commit()
+    except Exception:
+        logger.exception("notification.task_error", event=event, doctype=doctype)

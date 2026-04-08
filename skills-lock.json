@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "grunt-dev": {
+      "source": "GruntUA/grunt-agent-skills",
+      "sourceType": "github",
+      "computedHash": "9fb67dbc55e9e5b444ea550003068fae86dade6414525b4fd0d7809e2ee7d94c"
+    }
+  }
+}

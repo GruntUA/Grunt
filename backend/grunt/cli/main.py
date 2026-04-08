@@ -434,11 +434,11 @@ def doctype_sync(name: str, site: str | None):
 
     async def _run():
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.core.metadata.sync import sync_doctype  # noqa: PLC0415
+        from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
 
         async with _site_session(site) as (session, eng):
             dt = await doctype_registry.get(name)
-            await sync_doctype(dt, session, eng)
+            await sync_table(dt, eng, session=session)
             await session.commit()
             click.echo(f"DocType '{name}' синхронізовано.")
 

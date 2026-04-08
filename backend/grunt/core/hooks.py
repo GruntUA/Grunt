@@ -154,25 +154,25 @@ async def fire(event: str, **kwargs: Any) -> None:
         except Exception:  # noqa: BLE001
             logger.exception("links.delete_error", hook_event=event, doctype=doctype)
 
-    # 5. Evaluate notification rules
+    # 5. Evaluate notification rules (Background)
     if event in _NOTIFICATION_EVENTS and doctype and kwargs.get("doc") and kwargs.get("session"):
         try:
-            from grunt.core.notification import notification_service  # noqa: PLC0415
+            from grunt.core.notification.tasks import evaluate_notification_rules_task  # noqa: PLC0415
 
             user_email = ""
             user_obj = kwargs.get("user")
             if user_obj:
                 user_email = getattr(user_obj, "email", str(user_obj))
 
-            await notification_service.evaluate_rules(
-                session=kwargs["session"],
+            # Send to background worker
+            await evaluate_notification_rules_task.kiq(
                 event=event,
                 doctype=doctype,
                 doc=kwargs["doc"],
                 user_email=user_email,
             )
         except Exception:  # noqa: BLE001
-            logger.exception("notification.evaluate_error", hook_event=event, doctype=doctype)
+            logger.exception("notification.offload_error", hook_event=event, doctype=doctype)
 
     # 6. Evaluate assignment rules
     if event in ("after_save", "after_insert") and doctype and kwargs.get("doc") and kwargs.get("session"):

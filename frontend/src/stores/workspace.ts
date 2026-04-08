@@ -77,8 +77,9 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const groupedItems = computed<SidebarGroup[]>(() => {
     if (!active.value) return []
     const raw = active.value.items
-    const items = (Array.isArray(raw) ? raw : []) as unknown as WorkspaceLink[]
-    const sorted = items.slice().sort((a, b) => a.sequence - b.sequence)
+    const items = (Array.isArray(raw) ? raw : []) as WorkspaceLink[]
+    if (items.length === 0) return []
+    const sorted = [...items].sort((a, b) => (a.sequence || 0) - (b.sequence || 0))
     return buildGroups(sorted)
   })
 
