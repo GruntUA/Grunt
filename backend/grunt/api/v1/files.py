@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import io
-from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastapi.responses import Response
@@ -12,10 +11,12 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from grunt.app import grunt
 from grunt.config import settings
 from grunt.core.auth.dependencies import current_user
-from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_engine, get_session
 from grunt.core.document.registry import document_registry
 from grunt.core.storage import get_storage_backend
+
+if TYPE_CHECKING:
+    from grunt.core.auth.models import GruntUser
 
 router = APIRouter()
 
@@ -61,8 +62,8 @@ async def upload_file(
     _tokens = grunt.set_context(session, engine, user)
     try:
         # Use controller to create the record
-        File = document_registry.get("File")
-        file_doc = File(
+        file_doctype = document_registry.get("File")
+        file_doc = file_doctype(
             "File",
             {
                 "file_name": file.filename,
@@ -173,13 +174,13 @@ async def get_file(
         try:
             doc = await grunt.get_doc("File", file_id)
         except Exception:
-            raise HTTPException(404, "File not found")
+            raise HTTPException(404, "File not found") from None
 
         storage = get_storage_backend()
         try:
             content = await storage.get(doc.path)
         except Exception:
-            raise HTTPException(404, "File not found on storage")
+            raise HTTPException(404, "File not found on storage") from None
 
         return Response(
             content=content,
@@ -202,10 +203,10 @@ async def delete_file(
     try:
         try:
             doc_data = await grunt.get_doc("File", file_id)
-            File = document_registry.get("File")
-            doc = File("File", doc_data, user, session)
+            file_doctype = document_registry.get("File")
+            doc = file_doctype("File", doc_data, user, session)
         except Exception:
-            raise HTTPException(status_code=404, detail="File metadata not found")
+            raise HTTPException(status_code=404, detail="File metadata not found") from None
 
         # Delete from storage
         storage = get_storage_backend()

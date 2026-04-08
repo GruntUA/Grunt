@@ -58,7 +58,7 @@ async def test_assignment_rule(
             rule = await grunt.get_doc("AssignmentRule", rule_id)
         except HTTPException as exc:
             if exc.status_code == 404:
-                raise HTTPException(status_code=404, detail=f"Rule '{rule_id}' not found")
+                raise HTTPException(status_code=404, detail=f"Rule '{rule_id}' not found") from exc
             raise
 
         doctype_target = rule.get("doctype_target")
@@ -113,7 +113,7 @@ async def test_assignment_rule(
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.get("/logs")
@@ -159,4 +159,4 @@ async def list_assignment_logs(
         }
 
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc

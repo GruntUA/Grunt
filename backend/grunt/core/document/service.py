@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import math
 import uuid
-from datetime import date, datetime, time, timezone
+from datetime import datetime, timezone
 from typing import Any
 
 import structlog
@@ -18,23 +18,28 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.core.auth.models import GruntUser
 from grunt.core.metadata.compiler import compile_doctype_to_table
-from grunt.core.metadata.doctype import DocType
-from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.hooks import fire
 from grunt.core.document.registry import document_registry
 from grunt.core.document.multi_link import MultiLinkService
 from grunt.app import grunt as _grunt, GruntError
 
+# Sub-module imports
+from grunt.core.document.query import _apply_filters, _apply_search
+from grunt.core.document.relations import _load_child_tables, _save_child_tables, _get_multi_link_fields
+from grunt.core.document.validation import _coerce_value, _validate_data
+from grunt.core.document.virtual import (
+    _virtual_list,
+    _virtual_get,
+    _virtual_create,
+    _virtual_update,
+    _virtual_delete,
+)
+
 logger = structlog.get_logger()
 
 # Fields that users may never set or overwrite
 PROTECTED_FIELDS = frozenset({"id", "owner", "created_at", "docstatus"})
-
-
-def _get_multi_link_fields(dt: DocType) -> list:
-    """Return MultiLink fields from a DocType."""
-    return [f for f in dt.fields if f.fieldtype == "MultiLink"]
 
 
 class DocumentService:
@@ -69,9 +74,9 @@ class DocumentService:
     ) -> dict[str, Any]:
         dt = await doctype_registry.get(doctype_name)
 
-        # Virtual DocType — delegate to controller
+        # Virtual DocType — delegate to sub-module
         if dt.is_virtual:
-            return await self._virtual_list(dt, doctype_name, user, page, per_page, sort_by, sort_order, filters, search)
+            return await _virtual_list(doctype_name, user, page, per_page, sort_by, sort_order, filters, search)
 
         table = compile_doctype_to_table(dt)
 
@@ -101,24 +106,23 @@ class DocumentService:
 
         # Filters
         if filters:
-            query = self._apply_filters(query, table, filters)
+            query = _apply_filters(query, table, filters)
 
         # Search
         if search:
-            query = self._apply_search(query, table, dt, search)
+            query = _apply_search(query, table, dt, search)
 
-        # Count — build a dedicated query to avoid the full-column subquery anti-pattern
+        # Count
         count_q = select(func.count()).select_from(table)
         if filters:
-            count_q = self._apply_filters(count_q, table, filters)
+            count_q = _apply_filters(count_q, table, filters)
         if search:
-            count_q = self._apply_search(count_q, table, dt, search)
+            count_q = _apply_search(count_q, table, dt, search)
         count_result = await self.session.execute(count_q)
         total = count_result.scalar() or 0
 
         # Sort
         sort_col = table.c.get(sort_by, table.c.modified_at)
-        # Apply Ukrainian sort key for text columns so Cyrillic letters sort correctly
         TEXT_TYPES = {"TEXT", "VARCHAR", "CHAR", "CLOB", "STRING", "NVARCHAR", "NCHAR"}
         col_type = str(sort_col.type).upper()
         is_text = any(t in col_type for t in TEXT_TYPES)
@@ -174,7 +178,7 @@ class DocumentService:
     ) -> dict[str, Any]:
         dt = await doctype_registry.get(doctype_name)
         if dt.is_virtual:
-            return await self._virtual_create(dt, doctype_name, user, data)
+            return await _virtual_create(doctype_name, user, data)
 
         table = compile_doctype_to_table(dt)
 
@@ -184,17 +188,17 @@ class DocumentService:
             if (existing.scalar() or 0) > 0:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail=f"'{doctype_name}' is a singleton — a document already exists. Use PUT to update it.",
+                    detail=f"'{doctype_name}' is a singleton.",
                 )
 
         if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"'{doctype_name}' is managed by the system. Please use the appropriate API.",
+                detail=f"'{doctype_name}' is managed by the system.",
             )
 
         # Validate
-        errors = self._validate_data(dt, data)
+        errors = _validate_data(dt, data)
         if errors:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -204,9 +208,8 @@ class DocumentService:
         now = datetime.now(timezone.utc)
         doc_id = str(uuid.uuid4())
 
-        # Generate document name via NamingService
+        # Generate document name
         from grunt.core.naming import naming_service  # noqa: PLC0415
-
         generated_name = await naming_service.generate(dt.autoname or "", data, self.session)
 
         row = {
@@ -219,24 +222,24 @@ class DocumentService:
             "docstatus": 0,
         }
 
-        # Copy user-supplied fields (only those that exist as columns)
+        # Copy user-supplied fields
+        from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
         for field in dt.fields:
             if field.fieldtype in NON_PHYSICAL_FIELDS:
                 continue
             if field.fieldname in data:
-                row[field.fieldname] = self._coerce_value(data[field.fieldname], field.fieldtype)
+                row[field.fieldname] = _coerce_value(data[field.fieldname], field.fieldtype)
             elif field.default is not None:
-                row[field.fieldname] = self._coerce_value(field.default, field.fieldtype)
+                row[field.fieldname] = _coerce_value(field.default, field.fieldtype)
             elif field.fieldtype == "Check":
-                row[field.fieldname] = False  # Check fields default to False, never NULL
+                row[field.fieldname] = False
 
-        # Copy workflow state field (added as a column by compiler, not in dt.fields)
+        # Copy workflow state field
         if dt.workflow:
             sf = dt.workflow.state_field
             if sf in data:
                 row[sf] = data[sf]
             elif sf not in row:
-                # Auto-set to initial state if not provided
                 initial = next((s for s in dt.workflow.states if s.is_initial), None)
                 if initial:
                     row[sf] = initial.name
@@ -259,7 +262,7 @@ class DocumentService:
             await self.session.flush()
 
             # Save child table fields
-            await self._save_child_tables(dt, doc_id, data, user, now)
+            await _save_child_tables(self.session, dt, doc_id, data, user, now)
 
             # Save MultiLink fields
             for mlf in _get_multi_link_fields(dt):
@@ -292,102 +295,16 @@ class DocumentService:
         finally:
             self._reset_grunt_context(_tokens)
 
-        # Serialise datetimes for response
+        # Serialise datetimes
         for k, v in row.items():
             if isinstance(v, datetime):
                 row[k] = v.isoformat()
 
-        # Attach MultiLink values to response
+        # Attach MultiLink values
         for mlf in _get_multi_link_fields(dt):
             row[mlf.fieldname] = await self._ml.get_values(doctype_name, doc_id, mlf.fieldname)
 
         return row
-
-    # ── Child table helpers ────────────────────────────────────────────
-
-    async def _load_child_tables(self, dt: DocType, doc: dict[str, Any]) -> None:
-        """Attach child table rows to *doc* in-place for all TABLE fields."""
-        for field in dt.fields:
-            if field.fieldtype != "Table" or not field.options:
-                continue
-            try:
-                child_dt = await doctype_registry.get(field.options)
-                child_table = compile_doctype_to_table(child_dt)
-                result = await self.session.execute(
-                    select(child_table)
-                    .where(child_table.c.parent_id == doc["id"])
-                    .order_by(child_table.c.idx)
-                )
-                rows = [dict(r._mapping) for r in result.all()]
-                for row in rows:
-                    for k, v in row.items():
-                        if isinstance(v, datetime):
-                            row[k] = v.isoformat()
-                doc[field.fieldname] = rows
-            except Exception:
-                logger.exception("child_table.load_error", doctype=dt.name, field=field.fieldname)
-                doc[field.fieldname] = []
-
-    async def _save_child_tables(
-        self,
-        dt: DocType,
-        parent_id: str,
-        data: dict[str, Any],
-        user: GruntUser,
-        now: datetime,
-    ) -> None:
-        """Replace child table rows for all TABLE fields present in *data*."""
-        for field in dt.fields:
-            if field.fieldtype != "Table" or not field.options:
-                continue
-            if field.fieldname not in data:
-                continue
-            child_rows = data[field.fieldname]
-            if not isinstance(child_rows, list):
-                child_rows = []
-            try:
-                child_dt = await doctype_registry.get(field.options)
-                child_table = compile_doctype_to_table(child_dt)
-                # Delete existing rows for this parent
-                await self.session.execute(
-                    child_table.delete().where(child_table.c.parent_id == parent_id)
-                )
-                # Build all rows then insert in one batch
-                rows_to_insert: list[dict[str, Any]] = []
-                for idx, child_data in enumerate(child_rows):
-                    if not isinstance(child_data, dict):
-                        continue
-                    row: dict[str, Any] = {
-                        "id": str(uuid.uuid4()),
-                        "name": str(uuid.uuid4())[:8],
-                        "parent_id": parent_id,
-                        "parent_doctype": dt.name,
-                        "parent_field": field.fieldname,
-                        "idx": child_data.get("idx", idx),
-                        "owner": user.email,
-                        "created_at": now,
-                        "modified_at": now,
-                        "modified_by": user.email,
-                        "docstatus": 0,
-                    }
-                    for child_field in child_dt.fields:
-                        if child_field.fieldtype in NON_PHYSICAL_FIELDS:
-                            continue
-                        if child_field.fieldname in child_data:
-                            row[child_field.fieldname] = self._coerce_value(
-                                child_data[child_field.fieldname], child_field.fieldtype
-                            )
-                        elif child_field.default is not None:
-                            row[child_field.fieldname] = self._coerce_value(
-                                child_field.default, child_field.fieldtype
-                            )
-                    rows_to_insert.append(row)
-                if rows_to_insert:
-                    await self.session.execute(child_table.insert(), rows_to_insert)
-            except Exception:
-                logger.exception(
-                    "child_table.save_error", doctype=dt.name, field=field.fieldname, parent_id=parent_id
-                )
 
     # ── Get ────────────────────────────────────────────────────────────
 
@@ -399,7 +316,7 @@ class DocumentService:
     ) -> dict[str, Any]:
         dt = await doctype_registry.get(doctype_name)
         if dt.is_virtual:
-            return await self._virtual_get(dt, doctype_name, user, doc_id)
+            return await _virtual_get(doctype_name, user, doc_id)
 
         table = compile_doctype_to_table(dt)
 
@@ -411,7 +328,7 @@ class DocumentService:
         if row is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Document '{doc_id}' not found in '{doctype_name}'",
+                detail=f"Document '{doc_id}' not found.",
             )
 
         doc = dict(row._mapping)
@@ -420,7 +337,7 @@ class DocumentService:
                 doc[k] = v.isoformat()
 
         # Attach child table values
-        await self._load_child_tables(dt, doc)
+        await _load_child_tables(self.session, dt, doc)
 
         # Attach MultiLink values
         ml_fields = _get_multi_link_fields(dt)
@@ -431,7 +348,6 @@ class DocumentService:
 
         # Apply field-level permissions
         from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
-
         hidden = permission_checker.hidden_fields(user, dt)
         for field in hidden:
             doc.pop(field, None)
@@ -449,12 +365,12 @@ class DocumentService:
     ) -> dict[str, Any]:
         dt = await doctype_registry.get(doctype_name)
         if dt.is_virtual:
-            return await self._virtual_update(dt, doctype_name, user, doc_id, data)
+            return await _virtual_update(doctype_name, user, doc_id, data)
 
         if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"'{doctype_name}' is managed by the system. Please use the appropriate API.",
+                detail=f"'{doctype_name}' is managed by the system.",
             )
         table = compile_doctype_to_table(dt)
 
@@ -462,20 +378,20 @@ class DocumentService:
         existing = await self.get_document(doctype_name, doc_id, user)
 
         # Validate partial
-        errors = self._validate_data(dt, data, partial=True)
+        errors = _validate_data(dt, data, partial=True)
         if errors:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=errors,
             )
 
-        # Strip protected fields from user data
+        # Strip protected fields
         update_data: dict[str, Any] = {}
         for field in dt.fields:
             if field.fieldtype in NON_PHYSICAL_FIELDS:
                 continue
             if field.fieldname in data and field.fieldname not in PROTECTED_FIELDS:
-                update_data[field.fieldname] = self._coerce_value(data[field.fieldname], field.fieldtype)
+                update_data[field.fieldname] = _coerce_value(data[field.fieldname], field.fieldtype)
 
         update_data["modified_at"] = datetime.now(timezone.utc)
         update_data["modified_by"] = user.email
@@ -487,7 +403,6 @@ class DocumentService:
         _tokens = self._set_grunt_context(user)
         try:
             controller_cls = document_registry.get(doctype_name)
-            logger.debug("document.controller_resolved", doctype=doctype_name, controller=controller_cls.__name__)
             doc = controller_cls(doctype_name, merged, user, self.session)
             try:
                 await doc.validate()
@@ -502,7 +417,7 @@ class DocumentService:
             )
 
             # Update child table fields
-            await self._save_child_tables(dt, real_id, data, user, datetime.now(timezone.utc))
+            await _save_child_tables(self.session, dt, real_id, data, user, datetime.now(timezone.utc))
 
             # Update MultiLink fields
             for mlf in _get_multi_link_fields(dt):
@@ -518,13 +433,12 @@ class DocumentService:
 
             logger.info("document.updated", doctype=doctype_name, id=real_id)
 
-            # Build result from merged state — avoids a redundant SELECT of the main row.
-            # Child tables and MultiLinks are re-read from DB since their rows were replaced.
+            # Build result
             result = dict(merged)
             for k, v in result.items():
                 if isinstance(v, datetime):
                     result[k] = v.isoformat()
-            await self._load_child_tables(dt, result)
+            await _load_child_tables(self.session, dt, result)
             ml_fields = _get_multi_link_fields(dt)
             if ml_fields:
                 ml_data = await self._ml.get_all_for_doc(doctype_name, real_id)
@@ -534,10 +448,9 @@ class DocumentService:
             for field in permission_checker.hidden_fields(user, dt):
                 result.pop(field, None)
 
-            # Create version record if track_changes is enabled
+            # Create version record
             if dt.track_changes:
                 from grunt.core.document.versioning import version_service  # noqa: PLC0415
-
                 try:
                     await version_service.create_version(
                         session=self.session,
@@ -547,10 +460,10 @@ class DocumentService:
                         new_doc=result,
                         user=user.email,
                     )
-                except Exception:  # noqa: BLE001
+                except Exception:
                     logger.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
 
-            doc.data = result  # refresh with actual data after save
+            doc.data = result
             try:
                 await doc.after_save()
             except GruntError as e:
@@ -563,7 +476,7 @@ class DocumentService:
             from grunt.core.search.service import search_index_service  # noqa: PLC0415
             await search_index_service.index_document(self.session, doctype_name, dt, result)
 
-            # Fire outgoing webhooks
+            # Fire webhooks
             from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
             await webhook_service.fire(self.session, "after_update", doctype_name, result)
 
@@ -581,13 +494,13 @@ class DocumentService:
     ) -> None:
         dt = await doctype_registry.get(doctype_name)
         if dt.is_virtual:
-            await self._virtual_delete(dt, doctype_name, user, doc_id)
+            await _virtual_delete(doctype_name, user, doc_id)
             return
 
         if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"'{doctype_name}' is managed by the system. Please use the appropriate API.",
+                detail=f"'{doctype_name}' is managed by the system.",
             )
         table = compile_doctype_to_table(dt)
 
@@ -596,7 +509,7 @@ class DocumentService:
         if dt.is_submittable and existing.get("docstatus") == 1:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Спочатку скасуйте документ перед видаленням",
+                detail="Скасуйте документ перед видаленням",
             )
 
         real_id = existing["id"]
@@ -616,13 +529,12 @@ class DocumentService:
             await self.session.execute(table.delete().where(table.c.id == real_id))
             await self._ml.delete_all_for_doc(doctype_name, real_id)
             await self.session.flush()
-            logger.info("document.deleted", doctype=doctype_name, id=real_id)
 
             # Remove from search index
             from grunt.core.search.service import search_index_service  # noqa: PLC0415
             await search_index_service.remove_document(self.session, doctype_name, real_id)
 
-            # Fire outgoing webhooks
+            # Fire webhooks
             from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
             await webhook_service.fire(self.session, "after_delete", doctype_name, existing)
 
@@ -634,138 +546,3 @@ class DocumentService:
             await fire("after_delete", doctype=doctype_name, doc_id=real_id, user=user, session=self.session)
         finally:
             self._reset_grunt_context(_tokens)
-
-    # ── Type coercion ────────────────────────────────────────────────────
-
-    @staticmethod
-    def _coerce_value(value: Any, fieldtype: str) -> Any:
-        """Convert string values to proper Python types for SQLAlchemy."""
-        # Check fields always coerce to bool — never store NULL
-        if fieldtype == "Check":
-            if value is None or value == "":
-                return False
-            return bool(value)
-        if value is None or value == "":
-            return None if fieldtype in ("Date", "Datetime", "Time", "Int", "Float") else value
-        if fieldtype == "Date" and isinstance(value, str):
-            return date.fromisoformat(value)
-        if fieldtype == "Datetime" and isinstance(value, str):
-            return datetime.fromisoformat(value)
-        if fieldtype == "Time" and isinstance(value, str):
-            return time.fromisoformat(value)
-        if fieldtype == "Int" and isinstance(value, str):
-            return int(value)
-        if fieldtype == "Float" and isinstance(value, str):
-            return float(value)
-        return value
-
-    # ── Validation ────────────────────────────────────────────────────────
-
-    def _validate_data(
-        self, doctype: DocType, data: dict[str, Any], partial: bool = False
-    ) -> list[str]:
-        errors: list[str] = []
-        for field in doctype.fields:
-            if field.fieldtype in NON_PHYSICAL_FIELDS:
-                continue
-
-            value = data.get(field.fieldname)
-
-            # Required check (skip for partial updates if field not provided)
-            if field.required and not partial:
-                if value is None or value == "":
-                    errors.append(f"{field.fieldname}: Поле '{field.label}' є обов'язковим")
-
-        return errors
-
-    # ── Filter builder ────────────────────────────────────────────────────
-
-    def _apply_filters(self, query, table, filters: dict[str, str]):
-        for key, value in filters.items():
-            if "__" in key:
-                fieldname, op = key.rsplit("__", 1)
-            else:
-                fieldname, op = key, "eq"
-
-            col = table.c.get(fieldname)
-            if col is None:
-                continue
-
-            if op == "eq":
-                query = query.where(col == value)
-            elif op == "gte":
-                query = query.where(col >= value)
-            elif op == "lte":
-                query = query.where(col <= value)
-            elif op == "gt":
-                query = query.where(col > value)
-            elif op == "lt":
-                query = query.where(col < value)
-            elif op == "like":
-                query = query.where(col.like(f"%{value}%"))
-            elif op == "ilike":
-                query = query.where(col.ilike(f"%{value}%"))
-            elif op == "in":
-                query = query.where(col.in_(value.split(",")))
-            elif op == "isnull":
-                if value.lower() in ("true", "1"):
-                    query = query.where(col.is_(None))
-                else:
-                    query = query.where(col.isnot(None))
-
-        return query
-
-    # ── Search ────────────────────────────────────────────────────────────
-
-    def _apply_search(self, query, table, dt: DocType, search: str):
-        search_cols = []
-        if dt.search_fields:
-            for fname in dt.search_fields:
-                col = table.c.get(fname)
-                if col is not None:
-                    search_cols.append(col)
-        if not search_cols:
-            search_cols = [table.c.name]
-
-        conditions = [col.ilike(f"%{search}%") for col in search_cols]
-        from sqlalchemy import or_
-
-        return query.where(or_(*conditions))
-
-    # ── Virtual DocType delegation ──────────────────────────────────────
-
-    def _get_virtual_controller(self, doctype_name: str, user: GruntUser):
-        """Get the VirtualDocType controller instance for a virtual DocType."""
-        from grunt.core.metadata.virtual import VirtualDocType  # noqa: PLC0415
-
-        controller_cls = document_registry.get(doctype_name)
-        # Check if it's a VirtualDocType subclass
-        if issubclass(controller_cls, VirtualDocType):
-            return controller_cls(doctype_name, user)
-        # Fallback — create a base VirtualDocType (will raise NotImplementedError)
-        return VirtualDocType(doctype_name, user)
-
-    async def _virtual_list(self, dt, doctype_name, user, page, per_page, sort_by, sort_order, filters, search):
-        ctrl = self._get_virtual_controller(doctype_name, user)
-        return await ctrl.get_list(
-            filters=filters, page=page, per_page=per_page,
-            sort_by=sort_by, sort_order=sort_order, search=search,
-        )
-
-    async def _virtual_get(self, dt, doctype_name, user, doc_id):
-        ctrl = self._get_virtual_controller(doctype_name, user)
-        return await ctrl.get(doc_id)
-
-    async def _virtual_create(self, dt, doctype_name, user, data):
-        ctrl = self._get_virtual_controller(doctype_name, user)
-        return await ctrl.create(data)
-
-    async def _virtual_update(self, dt, doctype_name, user, doc_id, data):
-        ctrl = self._get_virtual_controller(doctype_name, user)
-        return await ctrl.update(doc_id, data)
-
-    async def _virtual_delete(self, dt, doctype_name, user, doc_id):
-        ctrl = self._get_virtual_controller(doctype_name, user)
-        return await ctrl.delete(doc_id)
-
-    # ── Autoname (delegated to NamingService) ────────────────────────────
