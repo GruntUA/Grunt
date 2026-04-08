@@ -40,7 +40,7 @@ async def override_get_session():
 app.dependency_overrides[get_session] = override_get_session
 
 # Override engine for docs router
-from grunt.api.v1.docs import get_engine  # noqa: E402
+from grunt.api.v1.docs.utils import get_engine  # noqa: E402
 
 
 async def override_get_engine():

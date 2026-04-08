@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceStore } from '@/stores/workspace'
@@ -37,7 +37,6 @@ import {
   LayoutDashboard,
   Activity,
   Mail,
-  StarOff,
   X,
 } from 'lucide-vue-next'
 import { useColorMode } from '@/core/composables/useColorMode'
@@ -193,13 +192,6 @@ function loadPinnedItems() {
   }
 }
 
-function openQuickCreate() {
-  window.dispatchEvent(new CustomEvent('open-quick-create'))
-}
-
-function gotoRecentDoc(doc: { workspace: string; doctype: string; id: string }) {
-  router.push(`/${doc.workspace}/list/${doc.doctype}/${doc.id}`)
-}
 
 defineExpose({ mobileOpen })
 </script>
@@ -318,8 +310,7 @@ defineExpose({ mobileOpen })
       <ScrollArea class="flex-1">
         <nav class="p-2 flex flex-col gap-0.5">
           <!-- Workspace Dashboard — always shown at top of navigation -->
-          <RouterLink :to="`/${workspaceName}/dashboard/${workspaceName}`" custom
-            v-slot="{ isActive, href, navigate }">
+          <RouterLink :to="`/${workspaceName}/dashboard/${workspaceName}`" custom v-slot="{ isActive, href, navigate }">
             <a :href="href" @click="navigate"
               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all"
               :class="isActive ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'">
@@ -330,7 +321,7 @@ defineExpose({ mobileOpen })
           </RouterLink>
           <Separator class="my-2" />
 
-<template v-for="(group, gi) in wsStore.groupedItems" :key="gi">
+          <template v-for="(group, gi) in wsStore.groupedItems" :key="gi">
             <!-- Divider -->
             <Separator v-if="group.section === '__divider__'" class="my-2" />
 
