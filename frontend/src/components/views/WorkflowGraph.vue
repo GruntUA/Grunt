@@ -153,12 +153,12 @@ watch(() => props.states.length, async () => {
 
 // ── Event handlers ────────────────────────────────────────────────────────
 
-function onNodeClick(event: { event: MouseEvent; node: Node }) {
+function onNodeClick(event: any) {
   const idx = props.states.findIndex(s => s.name === event.node.id)
   if (idx !== -1) emit('selectState', idx)
 }
 
-function onEdgeClick(event: { event: MouseEvent; edge: Edge }) {
+function onEdgeClick(event: any) {
   const idx = event.edge.data?.index as number
   if (idx !== undefined) emit('selectTransition', idx)
 }

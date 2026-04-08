@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import type { DashboardWidget } from '@/types'
 
 const props = defineProps<{
@@ -14,9 +13,9 @@ const now = new Date()
 const year = now.getFullYear()
 const month = now.getMonth() // 0-indexed
 
-const MONTHS_UK = ['Січень','Лютий','Березень','Квітень','Травень','Червень',
-                   'Липень','Серпень','Вересень','Жовтень','Листопад','Грудень']
-const DAYS_UK = ['Пн','Вт','Ср','Чт','Пт','Сб','Нд']
+const MONTHS_UK = ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
+  'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень']
+const DAYS_UK = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
 
 const monthLabel = computed(() => `${MONTHS_UK[month]} ${year}`)
 
@@ -71,8 +70,7 @@ function dotColor(count: number): string {
     <template v-else>
       <!-- Weekday headers -->
       <div class="grid grid-cols-7 mb-1 shrink-0">
-        <div v-for="d in DAYS_UK" :key="d"
-          class="text-center text-[10px] font-bold text-muted-foreground/60 uppercase">
+        <div v-for="d in DAYS_UK" :key="d" class="text-center text-[10px] font-bold text-muted-foreground/60 uppercase">
           {{ d }}
         </div>
       </div>
@@ -86,8 +84,7 @@ function dotColor(count: number): string {
             <span class="leading-none" :class="cell.isToday ? 'font-bold text-primary' : 'text-foreground/70'">
               {{ cell.day }}
             </span>
-            <div v-if="cell.count > 0"
-              :class="['mt-0.5 size-1 rounded-full', dotColor(cell.count)]" />
+            <div v-if="cell.count > 0" :class="['mt-0.5 size-1 rounded-full', dotColor(cell.count)]" />
           </template>
         </div>
       </div>

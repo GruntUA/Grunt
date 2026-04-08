@@ -8,6 +8,7 @@ are set by the framework at the start of each request / lifecycle hook call.
 
 from __future__ import annotations
 
+from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -15,8 +16,8 @@ import structlog
 from grunt.core.context import _engine_ctx, _session_ctx, _user_ctx
 from grunt.core.db.profiler import profile
 from grunt.core.metadata.registry import doctype_registry
-from grunt.errors import GruntError
 from grunt.db import GruntDB
+from grunt.errors import GruntError
 from grunt.session import GruntSession
 from grunt.utils.app_helpers import _collect_template_dirs, _format_msgprint
 
@@ -104,7 +105,9 @@ class GruntApp:
     def _require_session(self) -> AsyncSession:
         s = _session_ctx.get()
         if s is None:
-            raise RuntimeError("grunt: no active session — are you inside a request context or lifecycle hook?")
+            raise RuntimeError(
+                "grunt: no active session — are you inside a request context or lifecycle hook?"
+            )
         return s
 
     def _require_engine(self) -> AsyncEngine:
@@ -182,16 +185,18 @@ class GruntApp:
     ) -> list[str]:
         """Create multiple documents in a single database round-trip."""
         import uuid  # noqa: PLC0415
-        from datetime import datetime, timezone  # noqa: PLC0415
+        from datetime import datetime  # noqa: PLC0415
+
         from sqlalchemy import insert  # noqa: PLC0415
-        from grunt.core.metadata.compiler import compile_doctype_to_table # noqa: PLC0415
+
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
         user = self._require_user()
         session = self._require_session()
 
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         rows: list[dict[str, Any]] = []
         ids: list[str] = []
 
@@ -222,9 +227,11 @@ class GruntApp:
         values: dict[str, Any],
     ) -> int:
         """Update multiple documents matching ``filters`` in a single query."""
-        from datetime import datetime, timezone  # noqa: PLC0415
+        from datetime import datetime  # noqa: PLC0415
+
         from sqlalchemy import update  # noqa: PLC0415
-        from grunt.core.metadata.compiler import compile_doctype_to_table # noqa: PLC0415
+
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
@@ -233,7 +240,7 @@ class GruntApp:
 
         stmt = update(table).values(
             **{k: v for k, v in values.items() if k in table.c},
-            modified_at=datetime.now(timezone.utc).isoformat(),
+            modified_at=datetime.now(UTC).isoformat(),
             modified_by=user.email,
         )
         for key, val in filters.items():
@@ -334,14 +341,14 @@ class GruntApp:
         """Show a message dialog to the current user via WebSocket."""
         formatted = _format_msgprint(msg, as_list=as_list, as_table=as_table)
 
-        _INDICATOR_TO_TYPE = {
+        indicator_to_type = {
             "blue": "info",
             "green": "success",
             "red": "error",
             "orange": "warning",
             "yellow": "warning",
         }
-        msg_type = _INDICATOR_TO_TYPE.get(indicator, "info")
+        msg_type = indicator_to_type.get(indicator, "info")
 
         await self.publish(
             user=self.session.user,
@@ -376,26 +383,36 @@ class GruntApp:
         autoescape: bool = True,
     ) -> str:
         """Render a Jinja2 template and return the result as a string."""
-        from datetime import datetime, timezone  # noqa: PLC0415
-        from jinja2 import Environment, FileSystemLoader, DictLoader, select_autoescape  # noqa: PLC0415
+        from datetime import datetime  # noqa: PLC0415
+
+        from jinja2 import (  # noqa: PLC0415
+            DictLoader,
+            Environment,
+            FileSystemLoader,
+            select_autoescape,
+        )
 
         ctx = context or {}
-        _FILE_EXTENSIONS = (".html", ".txt", ".md", ".xml", ".jinja", ".j2")
-        is_file = any(template.endswith(ext) for ext in _FILE_EXTENSIONS)
+        file_extensions = (".html", ".txt", ".md", ".xml", ".jinja", ".j2")
+        is_file = any(template.endswith(ext) for ext in file_extensions)
 
         env = Environment(
-            loader=FileSystemLoader(_collect_template_dirs()) if is_file else DictLoader({"_": template}),
+            loader=FileSystemLoader(_collect_template_dirs())
+            if is_file
+            else DictLoader({"_": template}),
             autoescape=select_autoescape(["html", "xml"]) if autoescape else False,
             enable_async=True,
         )
 
         # Globals available in every grunt template — mirrors Frappe's Jinja API
-        env.globals.update({
-            "grunt": self,
-            "session": self.session,
-            "_": self._,
-            "now": datetime.now(timezone.utc),
-        })
+        env.globals.update(
+            {
+                "grunt": self,
+                "session": self.session,
+                "_": self._,
+                "now": datetime.now(UTC),
+            }
+        )
 
         tpl = env.get_template(template if is_file else "_")
         return await tpl.render_async(**ctx)

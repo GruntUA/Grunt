@@ -65,9 +65,7 @@ class GruntDB:
         table = compile_doctype_to_table(dt)
         values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
         await self._session().execute(
-            table.update()
-            .where((table.c.id == doc_id) | (table.c.name == doc_id))
-            .values(values)
+            table.update().where((table.c.id == doc_id) | (table.c.name == doc_id)).values(values)
         )
         await self._session().flush()
 
@@ -211,6 +209,7 @@ class GruntDB:
     ) -> list[dict[str, Any]]:
         """Fetch aggregated data (GROUP BY, SUM, COUNT, etc)."""
         import re
+
         from sqlalchemy import text
 
         dt = await doctype_registry.get(doctype)
@@ -221,7 +220,7 @@ class GruntDB:
 
         if isinstance(group_by, str):
             group_by = [group_by]
-        
+
         if group_by:
             for gb in group_by:
                 gb = gb.strip()
@@ -238,12 +237,12 @@ class GruntDB:
         if aggregations:
             for label, agg_expr in aggregations.items():
                 agg_expr = agg_expr.strip().lower()
-                m = re.match(r'^([a-z_]+)(?:\((.*)\))?$', agg_expr)
+                m = re.match(r"^([a-z_]+)(?:\((.*)\))?$", agg_expr)
                 if not m:
                     raise ValueError(f"Invalid aggregation expression: {agg_expr}")
                 fn_name, field = m.groups()
                 field = field.strip() if field else None
-                
+
                 if fn_name == "count":
                     col = func.count()
                 else:
@@ -259,7 +258,7 @@ class GruntDB:
                         col = func.max(table.c[field])
                     else:
                         raise ValueError(f"Unsupported aggregation function: {fn_name}")
-                
+
                 select_exprs.append(col.label(label))
 
         if not select_exprs:
@@ -268,7 +267,7 @@ class GruntDB:
         stmt = select(*select_exprs)
         if filters:
             stmt = _apply_db_filters(stmt, table, filters)
-        
+
         if group_by_exprs:
             stmt = stmt.group_by(*group_by_exprs)
 

@@ -10,9 +10,12 @@ from __future__ import annotations
 import json
 import re
 import subprocess
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 # ── Validation ───────────────────────────────────────────────────────────────
@@ -54,10 +57,16 @@ def make_boilerplate(dest: Path, app_name: str, no_git: bool = False) -> None:
 # ── Interactive prompts ───────────────────────────────────────────────────────
 
 
-def _prompt_validated(prompt_text: str, validator, error_msg: str, default: str | None = None) -> str:
+def _prompt_validated(
+    prompt_text: str, validator, error_msg: str, default: str | None = None
+) -> str:
     """Re-prompt until the value passes validation."""
     while True:
-        value = click.prompt(prompt_text, default=default) if default is not None else click.prompt(prompt_text)
+        value = (
+            click.prompt(prompt_text, default=default)
+            if default is not None
+            else click.prompt(prompt_text)
+        )
         if validator(value):
             return value
         click.echo(f"  ! {error_msg}", err=True)
@@ -166,12 +175,12 @@ def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> No
     click.echo("  grunt serve --reload")
 
 
-
 # ── File writers ──────────────────────────────────────────────────────────────
 
 
 def _write_grunt_app_py(app_dir: Path, module: str, h: dict) -> None:
     from grunt.utils.codegen import render_template  # noqa: PLC0415
+
     (app_dir / "grunt_app.py").write_text(
         render_template("app/app.py.jinja", {**h, "module": module}),
         encoding="utf-8",
@@ -199,6 +208,7 @@ def _write_app_json(app_dir: Path, module: str, h: dict) -> None:
 
 def _write_install_py(app_dir: Path, h: dict) -> None:
     from grunt.utils.codegen import render_template  # noqa: PLC0415
+
     (app_dir / "install.py").write_text(
         render_template("app/install.py.jinja", h),
         encoding="utf-8",
@@ -207,6 +217,7 @@ def _write_install_py(app_dir: Path, h: dict) -> None:
 
 def _write_readme(app_dir: Path, h: dict) -> None:
     from grunt.utils.codegen import render_template  # noqa: PLC0415
+
     (app_dir / "README.md").write_text(
         render_template("app/README.md.jinja", h),
         encoding="utf-8",
@@ -215,6 +226,7 @@ def _write_readme(app_dir: Path, h: dict) -> None:
 
 def _write_gitignore(app_dir: Path) -> None:
     from grunt.utils.codegen import render_template  # noqa: PLC0415
+
     (app_dir / ".gitignore").write_text(
         render_template("app/.gitignore.jinja", {}),
         encoding="utf-8",
@@ -230,6 +242,7 @@ def _write_module_init(app_dir: Path, module: str, h: dict) -> None:
 
 def _write_hooks_py(app_dir: Path, module: str, h: dict) -> None:
     from grunt.utils.codegen import render_template  # noqa: PLC0415
+
     (app_dir / module / "hooks.py").write_text(
         render_template("app/hooks.py.jinja", h),
         encoding="utf-8",
@@ -238,6 +251,7 @@ def _write_hooks_py(app_dir: Path, module: str, h: dict) -> None:
 
 def _write_tasks_py(app_dir: Path, module: str, h: dict) -> None:
     from grunt.utils.codegen import render_template  # noqa: PLC0415
+
     (app_dir / module / "tasks.py").write_text(
         render_template("app/tasks.py.jinja", h),
         encoding="utf-8",
@@ -246,6 +260,7 @@ def _write_tasks_py(app_dir: Path, module: str, h: dict) -> None:
 
 def _write_routes_py(app_dir: Path, module: str, h: dict) -> None:
     from grunt.utils.codegen import render_template  # noqa: PLC0415
+
     (app_dir / module / "routes.py").write_text(
         render_template("app/routes.py.jinja", h),
         encoding="utf-8",
@@ -298,5 +313,3 @@ def _init_git(app_dir: Path) -> None:
         click.echo(f"  git: не вдалося ініціалізувати — {exc}", err=True)
     except FileNotFoundError:
         click.echo("  git: не знайдено, пропускаємо.", err=True)
-
-

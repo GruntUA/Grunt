@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import importlib
-from typing import Union
 
 import structlog
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -13,7 +12,7 @@ logger = structlog.get_logger()
 scheduler = AsyncIOScheduler()
 
 
-def register_scheduler_events(events: dict[str, list[Union[str, dict]]]) -> None:
+def register_scheduler_events(events: dict[str, list[str | dict]]) -> None:
     """Register scheduled tasks from a dictionary (e.g. from app's hooks.py).
 
     Format:
@@ -68,10 +67,10 @@ def _add_scheduled_job(path: str, cron_expr: str) -> None:
         module_path, func_name = path.rsplit(".", 1)
         module = importlib.import_module(module_path)
         task_fn = getattr(module, func_name)
-        
+
         # We don't call the task directly, we send it to TaskIQ broker
         # This assumes the function is decorated with @task (wrapped in TaskIQ task)
-        
+
         async def trigger_task():
             logger.info("scheduler.triggering_task", path=path)
             if hasattr(task_fn, "kiq"):
@@ -88,7 +87,7 @@ def _add_scheduled_job(path: str, cron_expr: str) -> None:
             replace_existing=True,
         )
         logger.info("scheduler.job_added", path=path, cron=cron_expr)
-        
+
     except (ImportError, AttributeError, ValueError) as e:
         logger.warning("scheduler.register_failed", path=path, error=str(e))
 
@@ -107,16 +106,26 @@ def _register_framework_jobs() -> None:
 
     async def _daily_digest():
         from grunt.core.email.tasks import send_notification_digest  # noqa: PLC0415
+
         await send_notification_digest.kiq(period="daily")
 
     async def _weekly_digest():
         from grunt.core.email.tasks import send_notification_digest  # noqa: PLC0415
+
         await send_notification_digest.kiq(period="weekly")
 
-    scheduler.add_job(_daily_digest, CronTrigger.from_crontab("0 8 * * *"),
-                      id="grunt.digest.daily", replace_existing=True)
-    scheduler.add_job(_weekly_digest, CronTrigger.from_crontab("0 8 * * 1"),
-                      id="grunt.digest.weekly", replace_existing=True)
+    scheduler.add_job(
+        _daily_digest,
+        CronTrigger.from_crontab("0 8 * * *"),
+        id="grunt.digest.daily",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        _weekly_digest,
+        CronTrigger.from_crontab("0 8 * * 1"),
+        id="grunt.digest.weekly",
+        replace_existing=True,
+    )
     logger.info("scheduler.framework_jobs_registered")
 
 
@@ -144,15 +153,17 @@ async def _register_server_script_jobs() -> None:
 
 def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None:
     """Register a single server script as an APScheduler cron job."""
-    from grunt.core.scripting.server_script import ServerScriptRunner  # noqa: PLC0415
     from grunt.core.db.session import async_session_factory  # noqa: PLC0415
+    from grunt.core.scripting.server_script import ServerScriptRunner  # noqa: PLC0415
 
     async def _run() -> None:
         logger.info("scheduler.server_script_run", name=name)
         try:
             async with async_session_factory() as session:
                 runner = ServerScriptRunner()
-                result = await runner.execute(script, session=session, trusted=True, user_email="system")
+                result = await runner.execute(
+                    script, session=session, trusted=True, user_email="system"
+                )
             if result.output:
                 logger.debug("scheduler.server_script_output", name=name, output=result.output)
         except Exception as exc:

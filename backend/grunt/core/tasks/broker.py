@@ -3,9 +3,9 @@ from __future__ import annotations
 import structlog
 from taskiq import AsyncBroker, InMemoryBroker, SmartRetryMiddleware
 from taskiq_redis import RedisStreamBroker
-from grunt.core.tasks.middleware import BackgroundTaskLoggingMiddleware
 
 from grunt.config import settings
+from grunt.core.tasks.middleware import BackgroundTaskLoggingMiddleware
 
 logger = structlog.get_logger()
 
@@ -63,10 +63,12 @@ def retryable_task(max_retries: int = _DEFAULT_MAX_RETRIES, delay: int = _DEFAUL
         async def important_task():
             ...
     """
+
     def decorator(func):
         return broker.task(
             retry_on_error=True,
             max_retries=max_retries,
             delay=delay,
         )(func)
+
     return decorator

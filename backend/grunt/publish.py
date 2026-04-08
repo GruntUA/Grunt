@@ -34,11 +34,13 @@ Usage in app hooks::
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Literal
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any, Literal
 
 import structlog
-from sqlalchemy.ext.asyncio import AsyncSession
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -72,12 +74,12 @@ async def notify(
     Returns:
         List of created notification IDs.
     """
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
     table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
     ids: list[str] = []
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     for user_email in users:
         notif_id = str(uuid.uuid4())
         await session.execute(

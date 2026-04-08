@@ -23,7 +23,6 @@ import {
   FileText,
   Globe,
   Trash2,
-  ChevronDown,
   History,
   Copy,
   Undo2,

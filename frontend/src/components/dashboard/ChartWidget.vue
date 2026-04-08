@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { Bar, Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -24,12 +24,12 @@ const props = defineProps<{
 
 const colorAccents: Record<string, string> = {
   primary: '#2D6A4F',
-  blue:    '#3b82f6',
-  green:   '#10b981',
-  amber:   '#f59e0b',
-  red:     '#ef4444',
-  violet:  '#8b5cf6',
-  cyan:    '#06b6d4',
+  blue: '#3b82f6',
+  green: '#10b981',
+  amber: '#f59e0b',
+  red: '#ef4444',
+  violet: '#8b5cf6',
+  cyan: '#06b6d4',
 }
 
 const accent = computed(() => colorAccents[props.widget.color] ?? colorAccents.primary)
@@ -78,7 +78,8 @@ const chartOptions = computed(() => ({
 
     <div v-if="loading" class="flex-1 bg-muted animate-pulse rounded" />
 
-    <div v-else-if="!data?.labels?.length" class="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+    <div v-else-if="!data?.labels?.length"
+      class="flex-1 flex items-center justify-center text-muted-foreground text-sm">
       Немає даних
     </div>
 

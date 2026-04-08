@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import select, update as sa_update
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+from sqlalchemy import select
 
-from grunt.core.db.system_tables import GruntMetaDoctype
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
 from grunt.core.metadata.compiler import compile_doctype_to_table
 
 logger = structlog.get_logger()
@@ -26,10 +28,10 @@ async def apply_doctype_overrides(session: AsyncSession, engine: AsyncEngine) ->
 
     Must be called after all DocTypes are loaded into the registry.
     """
-    from grunt.core.hooks import DOCTYPE_OVERRIDES  # noqa: PLC0415
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-    from grunt.core.metadata.field import DocField  # noqa: PLC0415
-    from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
+    from grunt.core.hooks import DOCTYPE_OVERRIDES
+    from grunt.core.metadata.compiler import sync_table
+    from grunt.core.metadata.field import DocField
+    from grunt.core.metadata.registry import doctype_registry
 
     if not DOCTYPE_OVERRIDES:
         return
@@ -128,7 +130,7 @@ async def populate_system_doctypes(
     except Exception:
         existing_names = set()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     # Only include columns that actually exist in the compiled table to
     # avoid errors when the schema hasn't been migrated yet.
@@ -139,20 +141,20 @@ async def populate_system_doctypes(
 
     for dt in all_doctypes:
         scalar_fields: dict = {
-            **_col("label",          dt.label),
-            **_col("module",         dt.module),
-            **_col("is_child",       dt.is_child),
+            **_col("label", dt.label),
+            **_col("module", dt.module),
+            **_col("is_child", dt.is_child),
             **_col("is_submittable", dt.is_submittable),
-            **_col("is_singleton",   dt.is_singleton),
-            **_col("is_virtual",     dt.is_virtual),
-            **_col("track_changes",  dt.track_changes),
-            **_col("is_system",      dt.is_system),
-            **_col("autoname",       dt.autoname),
-            **_col("title_field",    dt.title_field),
-            **_col("image_field",    dt.image_field),
-            **_col("default_view",   dt.default_view),
-            **_col("table_name",     dt.table_name),
-            **_col("search_fields",  dt.search_fields if dt.search_fields else None),
+            **_col("is_singleton", dt.is_singleton),
+            **_col("is_virtual", dt.is_virtual),
+            **_col("track_changes", dt.track_changes),
+            **_col("is_system", dt.is_system),
+            **_col("autoname", dt.autoname),
+            **_col("title_field", dt.title_field),
+            **_col("image_field", dt.image_field),
+            **_col("default_view", dt.default_view),
+            **_col("table_name", dt.table_name),
+            **_col("search_fields", dt.search_fields if dt.search_fields else None),
         }
 
         if dt.name in existing_names:

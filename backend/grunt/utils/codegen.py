@@ -147,16 +147,17 @@ def _render_type_block(name: str, fields: list[dict]) -> str:
         if f.get("fieldtype") == "Table" and f.get("fieldname") not in _SKIP_FIELDNAMES
     ]
 
-    I = "    "
-    II = I * 2
+    indent = "    "
+    indent2 = indent * 2
 
     field_lines: list[str] = []
     for f in physical:
         py_type = _FIELDTYPE_TO_PY.get(f["fieldtype"], "Any")
         comment = f"  # {f['label']}" if f.get("label") and f["label"] != f["fieldname"] else ""
-        field_lines.append(f"{II}{f['fieldname']}: {py_type}{comment}")
+        field_lines.append(f"{indent2}{f['fieldname']}: {py_type}{comment}")
     for f in table_fields:
-        field_lines.append(f"{II}{f['fieldname']}: list[dict]  # Table: {f.get('options', '?')}")
+        table_opt = f.get("options", "?")
+        field_lines.append(f"{indent2}{f['fieldname']}: list[dict]  # Table: {table_opt}")
 
     needs_datetime = any(
         f["fieldtype"] in {"Date", "Datetime", "Time"}
@@ -168,14 +169,14 @@ def _render_type_block(name: str, fields: list[dict]) -> str:
         imports = "from typing import TYPE_CHECKING, Any"
         if needs_datetime:
             imports = f"import datetime\n{imports}"
-        type_if = f"{I}if TYPE_CHECKING:\n" + "\n".join(field_lines)
+        type_if = f"{indent}if TYPE_CHECKING:\n" + "\n".join(field_lines)
     else:
         imports = "from typing import Any"
-        type_if = f"{I}if TYPE_CHECKING:\n{II}pass"
+        type_if = f"{indent}if TYPE_CHECKING:\n{indent2}pass"
 
     return (
         f"{_BEGIN_MARKER}\n"
-        f"{I}# This code is auto-generated. Do not modify anything in this block.\n"
+        f"{indent}# This code is auto-generated. Do not modify anything in this block.\n"
         f"\n"
         f"{imports}\n"
         f"\n"
@@ -317,13 +318,17 @@ def build_test_context(dt: dict) -> dict[str, Any]:
         if not flist:
             return "{}"
         items = [
-            f'    "{f["fieldname"]}": {fake_value(f["fieldtype"], f["fieldname"], f.get("options"))!r}'
+            f'    "{f["fieldname"]}": {
+                fake_value(f["fieldtype"], f["fieldname"], f.get("options"))!r
+            }'
             for f in flist
         ]
         return "{\n" + ",\n".join(items) + ",\n}"
 
     assertions = [
-        f'assert data["{f["fieldname"]}"] == {fake_value(f["fieldtype"], f["fieldname"], f.get("options"))!r}'
+        f'assert data["{f["fieldname"]}"] == {
+            fake_value(f["fieldtype"], f["fieldname"], f.get("options"))!r
+        }'
         for f in required
     ]
 

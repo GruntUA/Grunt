@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from datetime import UTC
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 logger = structlog.get_logger()
 
@@ -37,23 +41,34 @@ def _load_app_meta(app_dir: Path) -> dict | None:
         ns: dict = {}
         try:
             exec(grunt_app.read_text(), ns)  # noqa: S102
-            result.update({
-                "name": ns.get("APP_NAME", result["name"]),
-                "title": ns.get("APP_TITLE", result["title"]),
-                "version": ns.get("APP_VERSION", result["version"]),
-                "description": ns.get("APP_DESCRIPTION", result["description"]),
-                "author": ns.get("APP_AUTHOR", result["author"]),
-                "modules": ns.get("MODULES", result["modules"]),
-                "icon": ns.get("APP_ICON", result["icon"]),
-                "color": ns.get("APP_COLOR", result["color"]),
-            })
+            result.update(
+                {
+                    "name": ns.get("APP_NAME", result["name"]),
+                    "title": ns.get("APP_TITLE", result["title"]),
+                    "version": ns.get("APP_VERSION", result["version"]),
+                    "description": ns.get("APP_DESCRIPTION", result["description"]),
+                    "author": ns.get("APP_AUTHOR", result["author"]),
+                    "modules": ns.get("MODULES", result["modules"]),
+                    "icon": ns.get("APP_ICON", result["icon"]),
+                    "color": ns.get("APP_COLOR", result["color"]),
+                }
+            )
         except Exception:  # noqa: BLE001
             pass
 
     if app_json.exists():
         try:
             app_data = json.loads(app_json.read_text())
-            for key in ("name", "title", "version", "description", "author", "modules", "icon", "color"):
+            for key in (
+                "name",
+                "title",
+                "version",
+                "description",
+                "author",
+                "modules",
+                "icon",
+                "color",
+            ):
                 if key in app_data:
                     result[key] = app_data[key]
         except Exception:  # noqa: BLE001
@@ -81,8 +96,8 @@ def _coerce_fixture_value(fieldtype: str, value: object) -> object:
         except (ValueError, IndexError):
             return None
     if fieldtype == "Date" and isinstance(value, str):
-        from datetime import date as _date  # noqa: PLC0415
         import re as _re  # noqa: PLC0415
+        from datetime import date as _date  # noqa: PLC0415
 
         if _re.match(r"^\d{4}-\d{2}-\d{2}$", value):
             try:
@@ -91,12 +106,12 @@ def _coerce_fixture_value(fieldtype: str, value: object) -> object:
             except ValueError:
                 return None
     if fieldtype == "Datetime" and isinstance(value, str):
-        from datetime import datetime as _datetime, timezone as _tz  # noqa: PLC0415
+        from datetime import datetime as _datetime  # noqa: PLC0415
 
         try:
             dt = _datetime.fromisoformat(value.replace("Z", "+00:00"))
             if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=_tz.utc)
+                dt = dt.replace(tzinfo=UTC)
             return dt
         except ValueError:
             return None
@@ -111,10 +126,10 @@ async def _apply_doctype_fixture(
 ) -> None:
     """Insert fixture records for a regular DocType, skipping duplicates."""
     import uuid as _uuid  # noqa: PLC0415
-    from datetime import datetime, timezone  # noqa: PLC0415
+    from datetime import datetime  # noqa: PLC0415
 
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
     try:
         dt = await doctype_registry.get(doctype_name)
@@ -123,14 +138,12 @@ async def _apply_doctype_fixture(
         return
 
     table = compile_doctype_to_table(dt)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     for rec in records:
         name_val = rec.get("name") or rec.get(dt.title_field or "") or str(_uuid.uuid4())[:8]
 
-        exists = await session.execute(
-            table.select().where(table.c.name == name_val).limit(1)
-        )
+        exists = await session.execute(table.select().where(table.c.name == name_val).limit(1))
         if exists.first():
             continue
 
@@ -158,6 +171,7 @@ async def _apply_doctype_fixture(
             await session.execute(table.insert().values(**row))
         except Exception as _insert_exc:  # noqa: BLE001
             from sqlalchemy.exc import IntegrityError as _IntegrityError  # noqa: PLC0415
+
             if isinstance(_insert_exc, _IntegrityError):
                 await session.rollback()
                 continue

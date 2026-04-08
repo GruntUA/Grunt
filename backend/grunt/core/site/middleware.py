@@ -3,6 +3,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from grunt.core.site.manager import current_site, site_manager
 
+
 class SiteContextMiddleware(BaseHTTPMiddleware):
     """Middleware to determine the active site based on request headers."""
 
@@ -20,10 +21,7 @@ class SiteContextMiddleware(BaseHTTPMiddleware):
 
         # 3. If still no site — don't set context, let get_active_site()
         #    fallback to currentsite.txt
-        if site:
-            token = current_site.set(site)
-        else:
-            token = None
+        token = current_site.set(site) if site else None
 
         try:
             response = await call_next(request)

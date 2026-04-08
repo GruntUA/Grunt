@@ -13,17 +13,18 @@ import hashlib
 import hmac
 import json
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import httpx
 import structlog
-from sqlalchemy.ext.asyncio import AsyncSession
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
 
 class WebhookService:
-
     async def fire(
         self,
         session: AsyncSession,
@@ -32,8 +33,8 @@ class WebhookService:
         doc: dict[str, Any],
     ) -> None:
         """Load matching enabled webhooks and fire them concurrently (best-effort)."""
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.app import grunt  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         if not doctype_registry._doctypes.get("OutgoingWebhook"):
             return
@@ -54,12 +55,15 @@ class WebhookService:
         if not webhooks:
             return
 
-        payload_str = json.dumps({
-            "event": event,
-            "doctype": doctype,
-            "doc": {k: str(v) if v is not None else None for k, v in doc.items()},
-            "timestamp": int(time.time()),
-        }, ensure_ascii=False)
+        payload_str = json.dumps(
+            {
+                "event": event,
+                "doctype": doctype,
+                "doc": {k: str(v) if v is not None else None for k, v in doc.items()},
+                "timestamp": int(time.time()),
+            },
+            ensure_ascii=False,
+        )
 
         for wh in webhooks:
             # Evaluate optional condition

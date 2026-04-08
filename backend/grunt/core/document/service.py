@@ -8,33 +8,42 @@ from __future__ import annotations
 
 import math
 import uuid
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt.core.auth.models import GruntUser
-from grunt.core.metadata.compiler import compile_doctype_to_table
-from grunt.core.metadata.registry import doctype_registry
-from grunt.core.hooks import fire
-from grunt.core.document.registry import document_registry
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
+    from grunt.core.auth.models import GruntUser
+
+from grunt.app import GruntError
+from grunt.app import grunt as _grunt
 from grunt.core.document.multi_link import MultiLinkService
-from grunt.app import grunt as _grunt, GruntError
 
 # Sub-module imports
 from grunt.core.document.query import _apply_filters, _apply_search
-from grunt.core.document.relations import _load_child_tables, _save_child_tables, _get_multi_link_fields
+from grunt.core.document.registry import document_registry
+from grunt.core.document.relations import (
+    _get_multi_link_fields,
+    _load_child_tables,
+    _save_child_tables,
+)
 from grunt.core.document.validation import _coerce_value, _validate_data
 from grunt.core.document.virtual import (
-    _virtual_list,
-    _virtual_get,
     _virtual_create,
-    _virtual_update,
     _virtual_delete,
+    _virtual_get,
+    _virtual_list,
+    _virtual_update,
 )
+from grunt.core.hooks import fire
+from grunt.core.metadata.compiler import compile_doctype_to_table
+from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
+from grunt.core.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()
 
@@ -76,7 +85,9 @@ class DocumentService:
 
         # Virtual DocType — delegate to sub-module
         if dt.is_virtual:
-            return await _virtual_list(doctype_name, user, page, per_page, sort_by, sort_order, filters, search)
+            return await _virtual_list(
+                doctype_name, user, page, per_page, sort_by, sort_order, filters, search
+            )
 
         table = compile_doctype_to_table(dt)
 
@@ -123,11 +134,12 @@ class DocumentService:
 
         # Sort
         sort_col = table.c.get(sort_by, table.c.modified_at)
-        TEXT_TYPES = {"TEXT", "VARCHAR", "CHAR", "CLOB", "STRING", "NVARCHAR", "NCHAR"}
+        text_types = {"TEXT", "VARCHAR", "CHAR", "CLOB", "STRING", "NVARCHAR", "NCHAR"}
         col_type = str(sort_col.type).upper()
-        is_text = any(t in col_type for t in TEXT_TYPES)
+        is_text = any(t in col_type for t in text_types)
         if is_text:
             from sqlalchemy import func as sa_func  # noqa: PLC0415
+
             sort_expr = sa_func.uk_sort_key(sort_col)
         else:
             sort_expr = sort_col
@@ -205,11 +217,12 @@ class DocumentService:
                 detail=errors,
             )
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         doc_id = str(uuid.uuid4())
 
         # Generate document name
         from grunt.core.naming import naming_service  # noqa: PLC0415
+
         generated_name = await naming_service.generate(dt.autoname or "", data, self.session)
 
         row = {
@@ -222,8 +235,6 @@ class DocumentService:
             "docstatus": 0,
         }
 
-        # Copy user-supplied fields
-        from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
         for field in dt.fields:
             if field.fieldtype in NON_PHYSICAL_FIELDS:
                 continue
@@ -254,9 +265,13 @@ class DocumentService:
                 await doc.before_insert()
                 await doc.before_save()
             except GruntError as e:
-                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from e
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+                ) from e
 
-            await fire("before_save", doctype=doctype_name, doc=row, user=user, session=self.session)
+            await fire(
+                "before_save", doctype=doctype_name, doc=row, user=user, session=self.session
+            )
 
             await self.session.execute(table.insert().values(**row))
             await self.session.flush()
@@ -269,8 +284,11 @@ class DocumentService:
                 values = data.get(mlf.fieldname)
                 if isinstance(values, list):
                     await self._ml.set_values(
-                        doctype_name, doc_id, mlf.fieldname,
-                        mlf.options or "", values,
+                        doctype_name,
+                        doc_id,
+                        mlf.fieldname,
+                        mlf.options or "",
+                        values,
                     )
 
             logger.info("document.created", doctype=doctype_name, id=doc_id)
@@ -279,17 +297,23 @@ class DocumentService:
                 await doc.after_insert()
                 await doc.after_save()
             except GruntError as e:
-                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from e
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+                ) from e
 
-            await fire("after_insert", doctype=doctype_name, doc=row, user=user, session=self.session)
+            await fire(
+                "after_insert", doctype=doctype_name, doc=row, user=user, session=self.session
+            )
             await fire("after_save", doctype=doctype_name, doc=row, user=user, session=self.session)
 
             # Update search index
             from grunt.core.search.service import search_index_service  # noqa: PLC0415
+
             await search_index_service.index_document(self.session, doctype_name, dt, row)
 
             # Fire outgoing webhooks
             from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
+
             await webhook_service.fire(self.session, "after_insert", doctype_name, row)
 
         finally:
@@ -320,9 +344,7 @@ class DocumentService:
 
         table = compile_doctype_to_table(dt)
 
-        query = select(table).where(
-            (table.c.id == doc_id) | (table.c.name == doc_id)
-        )
+        query = select(table).where((table.c.id == doc_id) | (table.c.name == doc_id))
         result = await self.session.execute(query)
         row = result.first()
         if row is None:
@@ -348,6 +370,7 @@ class DocumentService:
 
         # Apply field-level permissions
         from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+
         hidden = permission_checker.hidden_fields(user, dt)
         for field in hidden:
             doc.pop(field, None)
@@ -393,7 +416,7 @@ class DocumentService:
             if field.fieldname in data and field.fieldname not in PROTECTED_FIELDS:
                 update_data[field.fieldname] = _coerce_value(data[field.fieldname], field.fieldtype)
 
-        update_data["modified_at"] = datetime.now(timezone.utc)
+        update_data["modified_at"] = datetime.now(UTC)
         update_data["modified_by"] = user.email
 
         real_id = existing["id"]
@@ -408,16 +431,20 @@ class DocumentService:
                 await doc.validate()
                 await doc.before_save()
             except GruntError as e:
-                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from e
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+                ) from e
 
-            await fire("before_save", doctype=doctype_name, doc=merged, user=user, session=self.session)
+            await fire(
+                "before_save", doctype=doctype_name, doc=merged, user=user, session=self.session
+            )
 
             await self.session.execute(
                 table.update().where(table.c.id == real_id).values(**update_data)
             )
 
             # Update child table fields
-            await _save_child_tables(self.session, dt, real_id, data, user, datetime.now(timezone.utc))
+            await _save_child_tables(self.session, dt, real_id, data, user, datetime.now(UTC))
 
             # Update MultiLink fields
             for mlf in _get_multi_link_fields(dt):
@@ -425,8 +452,11 @@ class DocumentService:
                     values = data[mlf.fieldname]
                     if isinstance(values, list):
                         await self._ml.set_values(
-                            doctype_name, real_id, mlf.fieldname,
-                            mlf.options or "", values,
+                            doctype_name,
+                            real_id,
+                            mlf.fieldname,
+                            mlf.options or "",
+                            values,
                         )
 
             await self.session.flush()
@@ -445,12 +475,14 @@ class DocumentService:
                 for mlf in ml_fields:
                     result[mlf.fieldname] = ml_data.get(mlf.fieldname, [])
             from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+
             for field in permission_checker.hidden_fields(user, dt):
                 result.pop(field, None)
 
             # Create version record
             if dt.track_changes:
                 from grunt.core.document.versioning import version_service  # noqa: PLC0415
+
                 try:
                     await version_service.create_version(
                         session=self.session,
@@ -467,17 +499,25 @@ class DocumentService:
             try:
                 await doc.after_save()
             except GruntError as e:
-                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from e
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+                ) from e
 
-            await fire("after_update", doctype=doctype_name, doc=result, user=user, session=self.session)
-            await fire("after_save", doctype=doctype_name, doc=result, user=user, session=self.session)
+            await fire(
+                "after_update", doctype=doctype_name, doc=result, user=user, session=self.session
+            )
+            await fire(
+                "after_save", doctype=doctype_name, doc=result, user=user, session=self.session
+            )
 
             # Update search index
             from grunt.core.search.service import search_index_service  # noqa: PLC0415
+
             await search_index_service.index_document(self.session, doctype_name, dt, result)
 
             # Fire webhooks
             from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
+
             await webhook_service.fire(self.session, "after_update", doctype_name, result)
 
             return result
@@ -522,9 +562,13 @@ class DocumentService:
             try:
                 await doc.before_delete()
             except GruntError as e:
-                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from e
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+                ) from e
 
-            await fire("before_delete", doctype=doctype_name, doc=existing, user=user, session=self.session)
+            await fire(
+                "before_delete", doctype=doctype_name, doc=existing, user=user, session=self.session
+            )
 
             await self.session.execute(table.delete().where(table.c.id == real_id))
             await self._ml.delete_all_for_doc(doctype_name, real_id)
@@ -532,17 +576,27 @@ class DocumentService:
 
             # Remove from search index
             from grunt.core.search.service import search_index_service  # noqa: PLC0415
+
             await search_index_service.remove_document(self.session, doctype_name, real_id)
 
             # Fire webhooks
             from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
+
             await webhook_service.fire(self.session, "after_delete", doctype_name, existing)
 
             try:
                 await doc.after_delete()
             except GruntError as e:
-                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from e
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+                ) from e
 
-            await fire("after_delete", doctype=doctype_name, doc_id=real_id, user=user, session=self.session)
+            await fire(
+                "after_delete",
+                doctype=doctype_name,
+                doc_id=real_id,
+                user=user,
+                session=self.session,
+            )
         finally:
             self._reset_grunt_context(_tokens)

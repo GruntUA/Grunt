@@ -3,19 +3,22 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import structlog
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 logger = structlog.get_logger()
 
 
 async def seed_system_settings(session: AsyncSession, engine: AsyncEngine) -> None:
     """Ensure a row exists for the SystemSettings singleton."""
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
     dt = await doctype_registry.get("SystemSettings")
     table = compile_doctype_to_table(dt)
@@ -24,7 +27,7 @@ async def seed_system_settings(session: AsyncSession, engine: AsyncEngine) -> No
     if result.first():
         return
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     row = {
         "id": str(uuid.uuid4()),
         "name": "SystemSettings",

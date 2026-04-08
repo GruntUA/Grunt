@@ -11,11 +11,13 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy.ext.asyncio import AsyncSession
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -27,25 +29,32 @@ _VAPID_CLAIMS_SUB = "mailto:system@grunt.local"
 def _generate_vapid_keys() -> tuple[str, str]:
     """Generate a new VAPID key pair. Returns (private_pem, public_b64url)."""
     from py_vapid import Vapid  # type: ignore[import]
+
     v = Vapid()
     v.generate_keys()
     private_pem = v.private_key.private_bytes(
-        encoding=__import__("cryptography.hazmat.primitives.serialization", fromlist=["Encoding"]).Encoding.PEM,
-        format=__import__("cryptography.hazmat.primitives.serialization", fromlist=["PrivateFormat"]).PrivateFormat.TraditionalOpenSSL,
-        encryption_algorithm=__import__("cryptography.hazmat.primitives.serialization", fromlist=["NoEncryption"]).NoEncryption(),
+        encoding=__import__(
+            "cryptography.hazmat.primitives.serialization", fromlist=["Encoding"]
+        ).Encoding.PEM,
+        format=__import__(
+            "cryptography.hazmat.primitives.serialization", fromlist=["PrivateFormat"]
+        ).PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=__import__(
+            "cryptography.hazmat.primitives.serialization", fromlist=["NoEncryption"]
+        ).NoEncryption(),
     ).decode()
     public_b64 = v.public_key_urlsafe_base64
     return private_pem, public_b64
 
 
 class WebPushService:
-
     async def get_vapid_public_key(self, session: AsyncSession) -> str | None:
         """Return the VAPID public key stored in SystemSettings, or None."""
         try:
-            from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-            from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
             from sqlalchemy import select  # noqa: PLC0415
+
+            from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+            from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
             ss_dt = doctype_registry._doctypes.get("SystemSettings")
             if not ss_dt:
@@ -67,9 +76,10 @@ class WebPushService:
             return None
 
         try:
-            from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-            from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
             from sqlalchemy import select  # noqa: PLC0415
+
+            from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+            from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
             ss_dt = doctype_registry._doctypes.get("SystemSettings")
             if not ss_dt:
@@ -86,19 +96,30 @@ class WebPushService:
             private_pem, public_b64 = _generate_vapid_keys()
             if row:
                 await session.execute(
-                    table.update().values(**{
-                        _VAPID_PRIVATE_KEY_FIELD: private_pem,
-                        _VAPID_PUBLIC_KEY_FIELD: public_b64,
-                    })
+                    table.update().values(
+                        **{
+                            _VAPID_PRIVATE_KEY_FIELD: private_pem,
+                            _VAPID_PUBLIC_KEY_FIELD: public_b64,
+                        }
+                    )
                 )
             else:
-                now = datetime.now(timezone.utc)
-                await session.execute(table.insert().values(
-                    id=str(uuid.uuid4()), name="SystemSettings",
-                    owner="system", created_at=now, modified_at=now,
-                    modified_by="system", docstatus=0,
-                    **{_VAPID_PRIVATE_KEY_FIELD: private_pem, _VAPID_PUBLIC_KEY_FIELD: public_b64},
-                ))
+                now = datetime.now(UTC)
+                await session.execute(
+                    table.insert().values(
+                        id=str(uuid.uuid4()),
+                        name="SystemSettings",
+                        owner="system",
+                        created_at=now,
+                        modified_at=now,
+                        modified_by="system",
+                        docstatus=0,
+                        **{
+                            _VAPID_PRIVATE_KEY_FIELD: private_pem,
+                            _VAPID_PUBLIC_KEY_FIELD: public_b64,
+                        },
+                    )
+                )
             await session.flush()
             logger.info("webpush.vapid_keys_generated")
             return public_b64
@@ -116,9 +137,10 @@ class WebPushService:
         user_agent: str = "",
     ) -> None:
         """Upsert a push subscription for a user (one per endpoint)."""
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from sqlalchemy import delete  # noqa: PLC0415
+
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from sqlalchemy import select, delete  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         dt = doctype_registry._doctypes.get("PushSubscription")
         if not dt:
@@ -126,25 +148,34 @@ class WebPushService:
         table = compile_doctype_to_table(dt)
 
         # Remove old subscription at this endpoint if any
-        await session.execute(
-            delete(table).where(table.c.endpoint == endpoint)
-        )
+        await session.execute(delete(table).where(table.c.endpoint == endpoint))
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         sub_id = str(uuid.uuid4())
-        await session.execute(table.insert().values(
-            id=sub_id, name=sub_id, owner=user,
-            created_at=now, modified_at=now, modified_by=user, docstatus=0,
-            user=user, endpoint=endpoint, p256dh=p256dh, auth=auth,
-            user_agent=user_agent,
-        ))
+        await session.execute(
+            table.insert().values(
+                id=sub_id,
+                name=sub_id,
+                owner=user,
+                created_at=now,
+                modified_at=now,
+                modified_by=user,
+                docstatus=0,
+                user=user,
+                endpoint=endpoint,
+                p256dh=p256dh,
+                auth=auth,
+                user_agent=user_agent,
+            )
+        )
         await session.flush()
 
     async def remove_subscription(self, session: AsyncSession, endpoint: str) -> None:
         """Delete a push subscription by endpoint URL."""
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
         from sqlalchemy import delete  # noqa: PLC0415
+
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         dt = doctype_registry._doctypes.get("PushSubscription")
         if not dt:
@@ -163,13 +194,14 @@ class WebPushService:
     ) -> None:
         """Send a Web Push notification to all subscriptions of a user."""
         try:
-            from pywebpush import webpush, WebPushException  # type: ignore[import]
+            from pywebpush import webpush  # type: ignore[import]
         except ImportError:
             return  # Silently skip if not installed
 
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
         from sqlalchemy import select  # noqa: PLC0415
+
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         # Get VAPID private key
         try:
@@ -181,7 +213,7 @@ class WebPushService:
             if not ss_row or not ss_row._mapping.get(_VAPID_PRIVATE_KEY_FIELD):
                 return
             vapid_private = str(ss_row._mapping[_VAPID_PRIVATE_KEY_FIELD])
-            vapid_public = str(ss_row._mapping[_VAPID_PUBLIC_KEY_FIELD])
+            str(ss_row._mapping[_VAPID_PUBLIC_KEY_FIELD])
         except Exception:  # noqa: BLE001
             return
 
@@ -190,9 +222,11 @@ class WebPushService:
         if not sub_dt:
             return
         sub_table = compile_doctype_to_table(sub_dt)
-        subs = (await session.execute(
-            select(sub_table).where(sub_table.c.user == user)
-        )).mappings().all()
+        subs = (
+            (await session.execute(select(sub_table).where(sub_table.c.user == user)))
+            .mappings()
+            .all()
+        )
 
         payload = json.dumps({"title": subject, "body": body, "url": url})
 

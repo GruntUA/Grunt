@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNotifications } from '@/core/composables/useNotifications'
-import { Bell, Check, CheckCheck } from 'lucide-vue-next'
+import { Bell, CheckCheck } from 'lucide-vue-next'
 
 const router = useRouter()
 const { notifications, unreadCount, loading, markRead, markAllRead } = useNotifications()
@@ -44,39 +44,27 @@ function timeAgo(iso: string | null): string {
   <div class="relative">
     <button
       class="relative p-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-      title="Сповіщення"
-      @click="toggle"
-    >
+      title="Сповіщення" @click="toggle">
       <Bell class="w-[18px] h-[18px]" />
-      <span
-        v-if="unreadCount > 0"
-        class="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center leading-none"
-      >
+      <span v-if="unreadCount > 0"
+        class="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center leading-none">
         {{ unreadCount > 99 ? '99+' : unreadCount }}
       </span>
     </button>
 
     <!-- Dropdown -->
-    <Transition
-      enter-active-class="transition duration-150 ease-out"
-      enter-from-class="opacity-0 scale-95 -translate-y-1"
-      enter-to-class="opacity-100 scale-100 translate-y-0"
-      leave-active-class="transition duration-100 ease-in"
-      leave-from-class="opacity-100 scale-100"
-      leave-to-class="opacity-0 scale-95"
-    >
-      <div
-        v-if="open"
-        class="absolute right-0 top-full mt-2 w-80 bg-card border border-border/60 rounded-xl shadow-xl shadow-black/[0.08] z-50 overflow-hidden"
-      >
+    <Transition enter-active-class="transition duration-150 ease-out"
+      enter-from-class="opacity-0 scale-95 -translate-y-1" enter-to-class="opacity-100 scale-100 translate-y-0"
+      leave-active-class="transition duration-100 ease-in" leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-95">
+      <div v-if="open"
+        class="absolute right-0 top-full mt-2 w-80 bg-card border border-border/60 rounded-xl shadow-xl shadow-black/[0.08] z-50 overflow-hidden">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b border-border">
           <h3 class="text-sm font-semibold text-foreground">Сповіщення</h3>
-          <button
-            v-if="unreadCount > 0"
+          <button v-if="unreadCount > 0"
             class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            @click="onMarkAllRead"
-          >
+            @click="onMarkAllRead">
             <CheckCheck class="w-3.5 h-3.5" />
             Прочитати всі
           </button>
@@ -92,19 +80,13 @@ function timeAgo(iso: string | null): string {
             Немає сповіщень
           </div>
 
-          <div
-            v-for="n in notifications"
-            :key="n.id"
+          <div v-for="n in notifications" :key="n.id"
             class="flex gap-3 px-4 py-3 border-b border-border/50 last:border-0 cursor-pointer transition-colors"
             :class="n.is_read ? 'hover:bg-muted/40' : 'bg-primary/[0.03] hover:bg-primary/[0.06]'"
-            @click="onClickNotification(n)"
-          >
+            @click="onClickNotification(n)">
             <!-- Unread dot -->
             <div class="flex-shrink-0 pt-1.5">
-              <span
-                class="block w-2 h-2 rounded-full"
-                :class="n.is_read ? 'bg-transparent' : 'bg-primary'"
-              />
+              <span class="block w-2 h-2 rounded-full" :class="n.is_read ? 'bg-transparent' : 'bg-primary'" />
             </div>
 
             <div class="flex-1 min-w-0">

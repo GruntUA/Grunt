@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import structlog
-from taskiq import TaskiqMiddleware, TaskiqMessage, TaskiqResult
+from taskiq import TaskiqMessage, TaskiqMiddleware, TaskiqResult
 
-from grunt.core.site.manager import site_manager
-from grunt.core.document.service import DocumentService
 from grunt.core.auth.models import SYSTEM_USER
+from grunt.core.document.service import DocumentService
+from grunt.core.site.manager import site_manager
 
 logger = structlog.get_logger()
+
 
 class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
     """Middleware to log TaskIQ task execution to BackgroundTaskLog DocType."""
@@ -28,29 +29,24 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             eng = site_manager.get_engine(site)
             async with maker() as session:
                 service = DocumentService(session, eng)
-                
+
                 # Create a log entry with "Started" status
                 log_data = {
                     "task_name": message.task_name,
                     "status": "Started",
                     "started_at": datetime.now().isoformat(),
-                    "arguments": json.dumps({
-                        "args": message.args,
-                        "kwargs": message.kwargs
-                    })
+                    "arguments": json.dumps({"args": message.args, "kwargs": message.kwargs}),
                 }
-                
-                result = await service.create_document(
-                    "BackgroundTaskLog", 
-                    log_data, 
-                    SYSTEM_USER
-                )
+
+                result = await service.create_document("BackgroundTaskLog", log_data, SYSTEM_USER)
                 await session.commit()
                 self.log_ids[message.task_id] = result["id"]
-                
+
         except Exception as e:
-            logger.error("tasks.middleware.pre_execute_failed", error=str(e), task=message.task_name)
-            
+            logger.error(
+                "tasks.middleware.pre_execute_failed", error=str(e), task=message.task_name
+            )
+
         return message
 
     async def post_execute(self, message: TaskiqMessage, result: TaskiqResult[Any]) -> None:
@@ -65,23 +61,18 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             eng = site_manager.get_engine(site)
             async with maker() as session:
                 service = DocumentService(session, eng)
-                
+
                 update_data = {
                     "status": "Error" if result.is_err else "Success",
                     "finished_at": datetime.now().isoformat(),
                 }
-                
+
                 if result.is_err:
                     update_data["error_message"] = str(result.error)
-                
-                await service.update_document(
-                    "BackgroundTaskLog",
-                    log_id,
-                    update_data,
-                    SYSTEM_USER
-                )
+
+                await service.update_document("BackgroundTaskLog", log_id, update_data, SYSTEM_USER)
                 await session.commit()
-                
+
         except Exception as e:
             logger.error("tasks.middleware.post_execute_failed", error=str(e), log_id=log_id)
         finally:
@@ -101,10 +92,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
         return will_retry, attempt, max_retries, delay
 
     async def on_error(
-        self,
-        message: TaskiqMessage,
-        result: TaskiqResult[Any],
-        exception: Exception
+        self, message: TaskiqMessage, result: TaskiqResult[Any], exception: Exception
     ) -> None:
         """Called if an unhandled error occurs."""
         log_id = self.log_ids.get(message.task_id)
@@ -115,13 +103,13 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             will_retry, attempt, _max, delay = self._retry_info(message)
 
             update_data: dict[str, Any] = {
-                "finished_at": datetime.now(timezone.utc).isoformat(),
+                "finished_at": datetime.now(UTC).isoformat(),
                 "error_message": str(exception),
                 "retry_count": attempt,
             }
 
             if will_retry:
-                next_attempt = datetime.now(timezone.utc) + timedelta(seconds=delay)
+                next_attempt = datetime.now(UTC) + timedelta(seconds=delay)
                 update_data["status"] = "Retrying"
                 update_data["next_attempt_at"] = next_attempt.isoformat()
                 logger.info(
@@ -138,12 +126,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             eng = site_manager.get_engine(site)
             async with maker() as session:
                 service = DocumentService(session, eng)
-                await service.update_document(
-                    "BackgroundTaskLog",
-                    log_id,
-                    update_data,
-                    SYSTEM_USER
-                )
+                await service.update_document("BackgroundTaskLog", log_id, update_data, SYSTEM_USER)
                 await session.commit()
         except Exception:
             logger.error(

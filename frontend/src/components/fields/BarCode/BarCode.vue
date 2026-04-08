@@ -20,8 +20,8 @@ type BarcodeDetectorInstance = {
   detect(source: ImageBitmapSource): Promise<Array<{ rawValue: string; format: string }>>
 }
 type BarcodeDetectorClass = {
-  new(opts?: { formats?: string[] }): BarcodeDetectorInstance
-  getSupportedFormats(): Promise<string[]>
+  new(opts?: { formats?: string[] | readonly string[] }): BarcodeDetectorInstance
+  getSupportedFormats(): Promise<readonly string[]>
 }
 
 const props = defineProps<{
@@ -53,7 +53,7 @@ async function ensureDetector(): Promise<BarcodeDetectorClass | null> {
 
   // Native API (Android Chrome/Edge, macOS, Safari 17+)
   if ('BarcodeDetector' in window) {
-    BarcodeDetectorCtor = (window as Window & { BarcodeDetector: BarcodeDetectorClass }).BarcodeDetector
+    BarcodeDetectorCtor = (window as unknown as { BarcodeDetector: BarcodeDetectorClass }).BarcodeDetector
     return BarcodeDetectorCtor
   }
 

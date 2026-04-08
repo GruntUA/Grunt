@@ -7,16 +7,18 @@ Submissions create documents in the target DocType.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, select
 
 from grunt.core.metadata.compiler import compile_doctype_to_table
 from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.core.metadata.registry import doctype_registry
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -27,11 +29,11 @@ GUEST_USER = "guest@grunt.local"
 class WebFormService:
     """Manages web form loading, validation, and submission."""
 
-    async def get_form(
-        self, session: AsyncSession, route: str
-    ) -> dict[str, Any] | None:
+    async def get_form(self, session: AsyncSession, route: str) -> dict[str, Any] | None:
         """Load a published web form by its route slug."""
-        from grunt.core.metadata.compiler import compile_doctype_to_table as _ctable  # noqa: PLC0415
+        from grunt.core.metadata.compiler import (
+            compile_doctype_to_table as _ctable,  # noqa: PLC0415
+        )
 
         wf_table = _ctable(doctype_registry._doctypes["WebForm"])
         stmt = (
@@ -58,9 +60,7 @@ class WebFormService:
             "submit_label": row["submit_label"],
         }
 
-    async def get_form_fields(
-        self, session: AsyncSession, route: str
-    ) -> list[dict[str, Any]]:
+    async def get_form_fields(self, session: AsyncSession, route: str) -> list[dict[str, Any]]:
         """Return the full field definitions for a web form (with DocType metadata).
 
         Merges the web form's selected fields with DocType field definitions.
@@ -78,14 +78,16 @@ class WebFormService:
                 continue
             if field_names and field.fieldname not in field_names:
                 continue
-            result.append({
-                "fieldname": field.fieldname,
-                "fieldtype": field.fieldtype,
-                "label": field.label,
-                "required": field.required,
-                "options": field.options,
-                "default": field.default,
-            })
+            result.append(
+                {
+                    "fieldname": field.fieldname,
+                    "fieldtype": field.fieldtype,
+                    "label": field.label,
+                    "required": field.required,
+                    "options": field.options,
+                    "default": field.default,
+                }
+            )
 
         return result
 
@@ -131,7 +133,7 @@ class WebFormService:
         validated = self._validate_submission(dt, data, allowed_fields)
 
         # Build document row
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         doc_id = str(uuid.uuid4())
         owner = user_email or GUEST_USER
 
@@ -194,9 +196,7 @@ class WebFormService:
 
         return validated
 
-    async def _count_submissions(
-        self, session: AsyncSession, table: Any
-    ) -> int:
+    async def _count_submissions(self, session: AsyncSession, table: Any) -> int:
         """Count existing documents in the target table."""
         stmt = select(func.count()).select_from(table)
         result = await session.execute(stmt)

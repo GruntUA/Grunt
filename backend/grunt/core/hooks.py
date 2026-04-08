@@ -27,15 +27,20 @@ from __future__ import annotations
 import asyncio
 import importlib
 from collections import defaultdict
-from typing import Any, Callable, Union, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict
 
 import structlog
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 logger = structlog.get_logger()
+
 
 class HookDefinition(TypedDict):
     handler: Callable[..., Any]
     priority: int
+
 
 # Global event hooks: event -> [HookDefinition]
 HOOK_REGISTRY: dict[str, list[HookDefinition]] = defaultdict(list)
@@ -83,10 +88,18 @@ def on_doc(doctype: str, event: str, priority: int = 10) -> Callable:
 
 _NOTIFICATION_EVENTS = frozenset({"after_insert", "after_save", "after_update", "on_transition"})
 
-_SERVER_SCRIPT_EVENTS = frozenset({
-    "before_insert", "after_insert", "before_save", "after_save",
-    "before_delete", "after_delete", "validate", "on_transition",
-})
+_SERVER_SCRIPT_EVENTS = frozenset(
+    {
+        "before_insert",
+        "after_insert",
+        "before_save",
+        "after_save",
+        "before_delete",
+        "after_delete",
+        "validate",
+        "on_transition",
+    }
+)
 
 
 async def fire(event: str, **kwargs: Any) -> None:
@@ -134,7 +147,12 @@ async def fire(event: str, **kwargs: Any) -> None:
             logger.exception("server_script.hook_error", hook_event=event, doctype=doctype)
 
     # 4. Sync document links (backlinks)
-    if event in ("after_save", "after_insert") and doctype and kwargs.get("doc") and kwargs.get("session"):
+    if (
+        event in ("after_save", "after_insert")
+        and doctype
+        and kwargs.get("doc")
+        and kwargs.get("session")
+    ):
         try:
             from grunt.core.document.links import link_service  # noqa: PLC0415
 
@@ -157,7 +175,9 @@ async def fire(event: str, **kwargs: Any) -> None:
     # 5. Evaluate notification rules (Background)
     if event in _NOTIFICATION_EVENTS and doctype and kwargs.get("doc") and kwargs.get("session"):
         try:
-            from grunt.core.notification.tasks import evaluate_notification_rules_task  # noqa: PLC0415
+            from grunt.core.notification.tasks import (
+                evaluate_notification_rules_task,  # noqa: PLC0415
+            )
 
             user_email = ""
             user_obj = kwargs.get("user")
@@ -175,7 +195,12 @@ async def fire(event: str, **kwargs: Any) -> None:
             logger.exception("notification.offload_error", hook_event=event, doctype=doctype)
 
     # 6. Evaluate assignment rules
-    if event in ("after_save", "after_insert") and doctype and kwargs.get("doc") and kwargs.get("session"):
+    if (
+        event in ("after_save", "after_insert")
+        and doctype
+        and kwargs.get("doc")
+        and kwargs.get("session")
+    ):
         try:
             from grunt.core.assignment import assignment_service  # noqa: PLC0415
 
@@ -228,7 +253,7 @@ def register_doctype_overrides(overrides: dict[str, dict]) -> None:
         logger.debug("hooks.doctype_overrides_registered", doctype=doctype_name)
 
 
-def register_doc_events(events: dict[str, dict[str, Union[str, list[Union[str, dict]]]]]) -> None:
+def register_doc_events(events: dict[str, dict[str, str | list[str | dict]]]) -> None:
     """Register hooks from a dictionary (e.g. from app's hooks.py).
 
     Format:
@@ -242,11 +267,11 @@ def register_doc_events(events: dict[str, dict[str, Union[str, list[Union[str, d
         for event, handlers in event_map.items():
             if isinstance(handlers, (str, dict)):
                 handlers = [handlers]
-            
+
             for item in handlers:
                 path = item if isinstance(item, str) else item.get("handler")
                 priority = 10 if isinstance(item, str) else item.get("priority", 10)
-                
+
                 try:
                     module_path, func_name = path.rsplit(".", 1)
                     module = importlib.import_module(module_path)

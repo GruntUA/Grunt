@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import select, update as sa_update
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+from sqlalchemy import select
+from sqlalchemy import update as sa_update
 
-from grunt.core.db.system_tables import GruntMetaDoctype, GruntInstalledApp
+from grunt.core.db.system_tables import GruntInstalledApp, GruntMetaDoctype
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -21,8 +23,9 @@ _FIXTURES_DIR = __import__("pathlib").Path(__file__).parent.parent / "fixtures"
 async def seed_grunt_workspace(session: AsyncSession) -> None:
     """Create or update the Grunt system workspace from fixtures/grunt_workspace.json."""
     import json  # noqa: PLC0415
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
     from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
     fixture_file = _FIXTURES_DIR / "grunt_workspace.json"
     if not fixture_file.exists():
@@ -38,7 +41,7 @@ async def seed_grunt_workspace(session: AsyncSession) -> None:
 
     result = await session.execute(ws_table.select().where(ws_table.c.name == data["name"]))
     existing = result.first()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     if existing is not None:
         ws_id = existing.id
@@ -54,9 +57,7 @@ async def seed_grunt_workspace(session: AsyncSession) -> None:
                 modified_at=now,
             )
         )
-        await session.execute(
-            ws_item_table.delete().where(ws_item_table.c.parent_id == ws_id)
-        )
+        await session.execute(ws_item_table.delete().where(ws_item_table.c.parent_id == ws_id))
         await session.flush()
         logger.info("startup.grunt_workspace_updating")
     else:
@@ -121,11 +122,12 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
     with the app's DocTypes as sidebar items.
     """
     import json  # noqa: PLC0415
-    from grunt.core.startup.fixtures import _apply_doctype_fixture, _load_app_meta  # noqa: PLC0415
-    from grunt.core.site.manager import site_manager  # noqa: PLC0415
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-    from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
+
     from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
+    from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.core.site.manager import site_manager  # noqa: PLC0415
+    from grunt.core.startup.fixtures import _apply_doctype_fixture, _load_app_meta  # noqa: PLC0415
 
     site_file = site_manager.sites_dir / site_name / "grunt.site"
     if not site_file.exists():
@@ -150,12 +152,14 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
         )
         is_first_install = existing.scalar_one_or_none() is None
         if is_first_install:
-            session.add(GruntInstalledApp(
-                name=app_name,
-                title=app_meta.get("title", app_name),
-                version=app_meta.get("version", "0.1.0"),
-                modules=app_meta.get("modules", []),
-            ))
+            session.add(
+                GruntInstalledApp(
+                    name=app_name,
+                    title=app_meta.get("title", app_name),
+                    version=app_meta.get("version", "0.1.0"),
+                    modules=app_meta.get("modules", []),
+                )
+            )
             await session.flush()
             logger.info("startup.app_registered", app=app_name)
 
@@ -194,9 +198,16 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                             await sync_table(dt_obj, eng, session=session)
                             doctype_registry._doctypes[dt_name] = dt_obj
                             await session.flush()
-                            logger.info("startup.app_doctype_updated", app=app_name, doctype=dt_name)
+                            logger.info(
+                                "startup.app_doctype_updated", app=app_name, doctype=dt_name
+                            )
                 except Exception as e:  # noqa: BLE001
-                    logger.warning("startup.app_doctype_register_failed", app=app_name, file=dt_file.name, error=str(e))
+                    logger.warning(
+                        "startup.app_doctype_register_failed",
+                        app=app_name,
+                        file=dt_file.name,
+                        error=str(e),
+                    )
 
         # Apply fixtures from all module fixture directories
         workspace_from_fixture = False
@@ -219,7 +230,9 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
 
                     logger.info("startup.fixture_applied", app=app_name, file=fx_file.name)
                 except Exception as e:  # noqa: BLE001
-                    logger.warning("startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e))
+                    logger.warning(
+                        "startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e)
+                    )
 
         # Auto-register PrintFormats from app's module print_formats directories
         for module in app_modules:
@@ -234,16 +247,19 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                     if html_file.exists():
                         data["template"] = html_file.read_text(encoding="utf-8")
                     await _apply_doctype_fixture("PrintFormat", [data], session, eng)
-                    logger.info("startup.print_format_registered", app=app_name, name=data.get("name"))
+                    logger.info(
+                        "startup.print_format_registered", app=app_name, name=data.get("name")
+                    )
                 except Exception as e:  # noqa: BLE001
-                    logger.warning("startup.print_format_failed", app=app_name, file=pf_meta.name, error=str(e))
+                    logger.warning(
+                        "startup.print_format_failed", app=app_name, file=pf_meta.name, error=str(e)
+                    )
 
         # Auto-seed workspace from registry if no fixture provided one
         if not workspace_from_fixture:
             all_doctypes = await doctype_registry.list_all()
             app_doctypes = [
-                dt for dt in all_doctypes
-                if dt.module in app_modules and not dt.is_child
+                dt for dt in all_doctypes if dt.module in app_modules and not dt.is_child
             ]
             await _auto_seed_workspace(app_name, app_meta, app_doctypes, session)
 
@@ -276,8 +292,8 @@ async def _apply_workspace_fixture(
     session: AsyncSession,
 ) -> bool:
     """Upsert WorkspaceSidebar + WorkspaceSidebarItem rows from fixture data."""
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
     applied = False
 
@@ -285,13 +301,11 @@ async def _apply_workspace_fixture(
     ws_table = compile_doctype_to_table(ws_dt)
     ws_item_dt = await doctype_registry.get("WorkspaceSidebarItem")
     ws_item_table = compile_doctype_to_table(ws_item_dt)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     for rec in records:
         ws_name = rec.get("name", app_name)
-        result = await session.execute(
-            ws_table.select().where(ws_table.c.name == ws_name)
-        )
+        result = await session.execute(ws_table.select().where(ws_table.c.name == ws_name))
         existing = result.first()
 
         if existing is not None:
@@ -310,9 +324,7 @@ async def _apply_workspace_fixture(
                     modified_at=now,
                 )
             )
-            await session.execute(
-                ws_item_table.delete().where(ws_item_table.c.parent_id == ws_id)
-            )
+            await session.execute(ws_item_table.delete().where(ws_item_table.c.parent_id == ws_id))
         else:
             ws_id = str(uuid.uuid4())
             await session.execute(
@@ -377,18 +389,16 @@ async def _auto_seed_workspace(
     session: AsyncSession,
 ) -> None:
     """Create/update workspace from registry DocTypes (fallback when no fixture)."""
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
     ws_dt = await doctype_registry.get("WorkspaceSidebar")
     ws_table = compile_doctype_to_table(ws_dt)
     ws_item_dt = await doctype_registry.get("WorkspaceSidebarItem")
     ws_item_table = compile_doctype_to_table(ws_item_dt)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
-    result = await session.execute(
-        ws_table.select().where(ws_table.c.name == app_name)
-    )
+    result = await session.execute(ws_table.select().where(ws_table.c.name == app_name))
     existing = result.first()
 
     if existing is not None:
@@ -404,9 +414,7 @@ async def _auto_seed_workspace(
                 modified_at=now,
             )
         )
-        await session.execute(
-            ws_item_table.delete().where(ws_item_table.c.parent_id == ws_id)
-        )
+        await session.execute(ws_item_table.delete().where(ws_item_table.c.parent_id == ws_id))
         await session.flush()
     else:
         ws_id = str(uuid.uuid4())

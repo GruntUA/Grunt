@@ -155,6 +155,12 @@ export interface DocTypeTreeView {
   title_field?: string   // which field to display as node label (defaults to 'name')
 }
 
+export interface ScriptButton {
+  label: string
+  action: () => void | Promise<void>
+  variant?: string
+}
+
 // ── Status indicators ────────────────────────────────────────────────────
 
 export interface StatusIndicator {

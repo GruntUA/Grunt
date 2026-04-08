@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 
-
 def _collect_template_dirs() -> list[str]:
     """Return all Jinja2 template directories in priority order.
 
@@ -42,8 +41,7 @@ def _format_msgprint(
 
     if as_table and msg and isinstance(msg[0], (list, tuple)):
         rows_html = "".join(
-            "<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>"
-            for row in msg
+            "<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>" for row in msg
         )
         return f"<table>{rows_html}</table>"
 

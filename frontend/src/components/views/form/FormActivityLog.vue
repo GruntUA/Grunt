@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { History, ChevronDown } from 'lucide-vue-next'
 import { Spinner } from '@/components/ui/spinner'
 

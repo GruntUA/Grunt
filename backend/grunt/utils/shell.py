@@ -20,7 +20,6 @@ import code
 import sys
 from typing import Any
 
-
 # ── Bootstrap ─────────────────────────────────────────────────────────────────
 
 
@@ -63,6 +62,7 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
 
     async def _get_doc(doctype: str, name: str) -> dict:
         from grunt.core.document.service import DocumentService  # noqa: PLC0415
+
         return await DocumentService().get_document(doctype, name, session=session)
 
     async def _get_list(
@@ -72,6 +72,7 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
         limit: int = 20,
     ) -> list:
         from grunt.core.document.service import DocumentService  # noqa: PLC0415
+
         result = await DocumentService().list_documents(
             doctype, filters=filters or {}, fields=fields, per_page=limit, session=session
         )
@@ -79,6 +80,7 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
 
     async def _save_doc(doctype: str, data: dict) -> dict:
         from grunt.core.document.service import DocumentService  # noqa: PLC0415
+
         svc = DocumentService()
         doc_id = data.get("id") or data.get("name")
         if doc_id:
@@ -87,6 +89,7 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
 
     async def _delete_doc(doctype: str, name: str) -> None:
         from grunt.core.document.service import DocumentService  # noqa: PLC0415
+
         await DocumentService().delete_document(doctype, name, session=session)
 
     def get_doc(doctype: str, name: str) -> dict:
@@ -132,10 +135,10 @@ def start_shell(site: str | None = None) -> None:
 
     banner = _make_banner(ctx["site"])
     local_vars: dict[str, Any] = {
-        "session":  ctx["session"],
-        "engine":   ctx["engine"],
+        "session": ctx["session"],
+        "engine": ctx["engine"],
         "registry": ctx["registry"],
-        "asyncio":  asyncio,
+        "asyncio": asyncio,
         **helpers,
     }
 

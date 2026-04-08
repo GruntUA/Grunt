@@ -6,7 +6,6 @@ import { docsApi } from '@/core/api/docs'
 import { useToast } from '@/core/composables/useToast'
 import client from '@/core/api/client'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -14,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2, Save, Eye, EyeOff, Copy, RefreshCw, ChevronLeft, FileText } from 'lucide-vue-next'
+import { Loader2, Save, Eye, EyeOff, RefreshCw, ChevronLeft, FileText } from 'lucide-vue-next'
 import type { GruntDocument } from '@/types'
 
 const props = defineProps<{
@@ -130,6 +129,7 @@ watch([template, sampleDocId], () => {
 
 watch(doctype, async () => {
   await loadSampleDocs()
+  await loadDtFields()
   refreshPreview()
 })
 
@@ -166,12 +166,21 @@ function resetToDefault() {
 
 // ── Variable hints ────────────────────────────────────────────────────────
 
-const selectedDtFields = computed(() => {
-  if (!doctype.value) return []
-  const dt = dtStore.doctypes.find(d => d.name === doctype.value)
-  const SKIP = new Set(['Section', 'Column', 'Tab', 'Table'])
-  return (dt?.fields ?? []).filter(f => !SKIP.has(f.fieldtype))
-})
+const selectedDtFields = ref<any[]>([])
+
+async function loadDtFields() {
+  if (!doctype.value) {
+    selectedDtFields.value = []
+    return
+  }
+  try {
+    const fullDt = await dtStore.get(doctype.value)
+    const SKIP = new Set(['Section', 'Column', 'Tab', 'Table'])
+    selectedDtFields.value = (fullDt?.fields ?? []).filter((f: any) => !SKIP.has(f.fieldtype))
+  } catch {
+    selectedDtFields.value = []
+  }
+}
 
 function insertVariable(fieldname: string) {
   template.value += `{{ doc.${fieldname} }}`
@@ -182,6 +191,7 @@ function insertVariable(fieldname: string) {
 onMounted(async () => {
   if (dtStore.doctypes.length === 0) await dtStore.loadAll()
   await loadRecord()
+  await loadDtFields()
   if (doctype.value) refreshPreview()
 })
 </script>
@@ -253,12 +263,9 @@ onMounted(async () => {
         <!-- Variable hints -->
         <div v-if="selectedDtFields.length" class="px-3 py-2 border-b bg-muted/30 flex flex-wrap gap-1.5 shrink-0">
           <span class="text-xs text-muted-foreground font-medium self-center mr-1">Змінні:</span>
-          <button
-            v-for="f in selectedDtFields.slice(0, 12)"
-            :key="f.fieldname"
+          <button v-for="f in selectedDtFields.slice(0, 12)" :key="f.fieldname"
             class="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-mono"
-            @click="insertVariable(f.fieldname)"
-          >
+            @click="insertVariable(f.fieldname)">
             {{ f.fieldname }}
           </button>
           <span v-if="selectedDtFields.length > 12" class="text-[10px] text-muted-foreground self-center">
@@ -267,13 +274,9 @@ onMounted(async () => {
         </div>
 
         <!-- Code editor -->
-        <textarea
-          v-model="template"
-          spellcheck="false"
+        <textarea v-model="template" spellcheck="false"
           class="flex-1 w-full font-mono text-xs bg-[#1e1e2e] text-[#cdd6f4] p-4 resize-none focus:outline-none"
-          style="tab-size: 2;"
-          placeholder="Введіть Jinja2 HTML шаблон..."
-        />
+          style="tab-size: 2;" placeholder="Введіть Jinja2 HTML шаблон..." />
       </div>
 
       <!-- Right: preview -->
@@ -288,12 +291,7 @@ onMounted(async () => {
         <div v-if="!doctype" class="flex-1 flex items-center justify-center text-sm text-muted-foreground italic">
           Оберіть тип документа для попереднього перегляду
         </div>
-        <iframe
-          v-else
-          :srcdoc="previewHtml"
-          class="flex-1 w-full border-none"
-          sandbox="allow-same-origin"
-        />
+        <iframe v-else :srcdoc="previewHtml" class="flex-1 w-full border-none" sandbox="allow-same-origin" />
       </div>
     </div>
   </div>

@@ -17,7 +17,6 @@ import {
 } from '@/core/scripting/executor'
 
 // Shared UI components
-import FilterBar from '@/components/views/FilterBar.vue'
 import BulkActionBar from '@/components/views/BulkActionBar.vue'
 import DataTable from '@/components/views/DataTable.vue'
 import ListPagination from '@/components/views/ListPagination.vue'
@@ -224,7 +223,8 @@ function navigateToDoc(row: Record<string, unknown>) {
       v-model:view-mode="viewMode"
       v-model:inline-search="inlineSearch"
       v-model:active-filters="activeFilters"
-      v-model:group-by="groupBy"
+      :group-by="groupBy"
+      @update:group-by="setGroupBy"
       :dt="dt"
       :doctype="doctype"
       :columns="columns"

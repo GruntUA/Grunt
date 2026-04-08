@@ -1,7 +1,7 @@
+import unicodedata
+from contextlib import suppress
 from contextvars import ContextVar
 from pathlib import Path
-from typing import Dict
-import unicodedata
 
 import dotenv
 import structlog
@@ -15,8 +15,7 @@ from sqlalchemy.ext.asyncio import (
 
 from grunt.config import settings
 
-
-_UK_ALPHABET = 'абвгґдеєжзиіїйклмнопрстуфхцчшщьюя'
+_UK_ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя"
 _UK_ORDER = {ch: i for i, ch in enumerate(_UK_ALPHABET)}
 
 
@@ -28,24 +27,26 @@ def _uk_sort_key(s: str) -> str:
     Ukrainian alphabetical order, regardless of Unicode code points.
     """
     if not s:
-        return ''
+        return ""
     out = []
-    for ch in unicodedata.normalize('NFC', s).casefold():
+    for ch in unicodedata.normalize("NFC", s).casefold():
         pos = _UK_ORDER.get(ch)
         if pos is not None:
             out.append(chr(0xE000 + pos))  # Private Use Area, keeps uk order
         else:
             out.append(ch)
-    return ''.join(out)
+    return "".join(out)
+
 
 logger = structlog.get_logger()
 
 # Context variable to hold the name of the currently active site
 current_site: ContextVar[str] = ContextVar("current_site", default="")
 
+
 class SiteManager:
     """Manages multi-tenant sites and their database connections.
-    
+
     Assumes sites are stored in `my-bench/sites/`.
     Each site has its own `.env` and optionally `grunt.db` (for SQLite).
     """
@@ -71,8 +72,8 @@ class SiteManager:
         self.sites_dir = self.bench_dir / "sites"
 
         # Caches
-        self.engines: Dict[str, AsyncEngine] = {}
-        self.session_makers: Dict[str, async_sessionmaker[AsyncSession]] = {}
+        self.engines: dict[str, AsyncEngine] = {}
+        self.session_makers: dict[str, async_sessionmaker[AsyncSession]] = {}
 
     def get_sites(self) -> list[str]:
         """List all valid site directories in the bench."""
@@ -113,28 +114,31 @@ class SiteManager:
         site_db_path = (self.sites_dir / site_name / "grunt.db").resolve()
         return f"sqlite+aiosqlite:///{site_db_path}"
 
-
     def get_engine(self, site_name: str) -> AsyncEngine:
         """Get or create an SQLAlchemy AsyncEngine for the site."""
         if site_name not in self.engines:
             db_url = self.get_database_url(site_name)
-            
+
             engine_kwargs = {"echo": settings.database_echo, "pool_pre_ping": True}
             if "postgresql" in db_url:
                 engine_kwargs.update({"pool_size": 20, "max_overflow": 10})
-                
+            elif "sqlite" in db_url:
+                from sqlalchemy.pool import NullPool
+
+                engine_kwargs.update({"poolclass": NullPool})
+
             engine = create_async_engine(db_url, **engine_kwargs)
 
             if "sqlite" in db_url:
+
                 @event.listens_for(engine.sync_engine, "connect")
                 def _register_uk_sort(dbapi_conn, _connection_record):
-                    try:
+                    with suppress(Exception):
                         dbapi_conn.create_function("uk_sort_key", 1, _uk_sort_key)
-                    except Exception:
-                        pass  # Non-SQLite or unsupported — skip
 
             if settings.debug:
                 from grunt.core.db.profiler import attach_query_profiler  # noqa: PLC0415
+
                 attach_query_profiler(engine, threshold_ms=settings.slow_query_threshold_ms)
 
             self.engines[site_name] = engine
@@ -144,12 +148,12 @@ class SiteManager:
             # Safe logging: avoid logging password
             safe_url = db_url.split("@")[-1] if "@" in db_url else db_url
             logger.info("site_manager.engine_created", site=site_name, db_url=safe_url)
-            
+
         return self.engines[site_name]
 
     def get_session_maker(self, site_name: str) -> async_sessionmaker[AsyncSession]:
         """Get the session maker for the site."""
-        self.get_engine(site_name) # Ensure it exists
+        self.get_engine(site_name)  # Ensure it exists
         return self.session_makers[site_name]
 
     def get_active_site(self) -> str:
@@ -164,5 +168,6 @@ class SiteManager:
                     return site
             raise ValueError("No active site set in context and no currentsite.txt found.")
         return site
+
 
 site_manager = SiteManager()

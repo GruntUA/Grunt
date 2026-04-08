@@ -50,7 +50,7 @@ onKeyStroke(['k', 'K'], (e) => {
 onKeyStroke(['n', 'N'], (e) => {
     if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
         const active = document.activeElement
-        if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active?.isContentEditable) {
+        if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || (active instanceof HTMLElement && active.isContentEditable)) {
             return
         }
         e.preventDefault()

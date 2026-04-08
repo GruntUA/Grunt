@@ -4,7 +4,7 @@ import api from '@/core/api/client'
 import { useToast } from '@/core/composables/useToast'
 import {
   Mail, Plus, Trash2, RefreshCcw, Send, CheckCircle2,
-  XCircle, Clock, AlertCircle, ChevronLeft, ChevronRight,
+  XCircle, Clock, ChevronLeft, ChevronRight,
   Wifi, WifiOff, Eye, EyeOff,
 } from 'lucide-vue-next'
 
@@ -241,15 +241,10 @@ function fmtDate(d: string | null) {
 
     <!-- Tabs -->
     <div class="flex gap-1 border-b mb-6">
-      <button
-        v-for="tab in (['accounts', 'queue'] as Tab[])"
-        :key="tab"
-        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors"
-        :class="activeTab === tab
+      <button v-for="tab in (['accounts', 'queue'] as Tab[])" :key="tab"
+        class="px-4 py-2 text-sm font-medium border-b-2 transition-colors" :class="activeTab === tab
           ? 'border-primary text-primary'
-          : 'border-transparent text-muted-foreground hover:text-foreground'"
-        @click="activeTab = tab"
-      >
+          : 'border-transparent text-muted-foreground hover:text-foreground'" @click="activeTab = tab">
         {{ tab === 'accounts' ? 'Облікові записи' : 'Черга листів' }}
       </button>
     </div>
@@ -257,11 +252,11 @@ function fmtDate(d: string | null) {
     <!-- ── ACCOUNTS TAB ────────────────────────────────────────────────── -->
     <template v-if="activeTab === 'accounts'">
       <div class="flex justify-between items-center mb-4">
-        <span class="text-sm text-muted-foreground">{{ accounts.length }} {{ accounts.length === 1 ? 'обліковий запис' : 'облікових записів' }}</span>
+        <span class="text-sm text-muted-foreground">{{ accounts.length }} {{ accounts.length === 1 ? 'обліковий запис' :
+          'облікових записів' }}</span>
         <button
           class="flex items-center gap-1.5 text-sm px-3 py-1.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-          @click="openNew"
-        >
+          @click="openNew">
           <Plus class="size-4" /> Додати
         </button>
       </div>
@@ -274,26 +269,19 @@ function fmtDate(d: string | null) {
         <button class="mt-3 text-sm text-primary underline" @click="openNew">Додати перший</button>
       </div>
       <div v-else class="grid gap-3">
-        <div
-          v-for="acc in accounts"
-          :key="acc.id"
-          class="border rounded-lg p-4 bg-card hover:shadow-sm transition-shadow"
-        >
+        <div v-for="acc in accounts" :key="acc.id"
+          class="border rounded-lg p-4 bg-card hover:shadow-sm transition-shadow">
           <div class="flex items-start justify-between gap-4">
             <div>
               <p class="font-medium">{{ acc.email_address }}</p>
               <div class="flex gap-3 mt-1.5">
-                <span
-                  class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
-                  :class="acc.enable_outgoing ? 'bg-green-50 text-green-700' : 'bg-muted text-muted-foreground'"
-                >
+                <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
+                  :class="acc.enable_outgoing ? 'bg-green-50 text-green-700' : 'bg-muted text-muted-foreground'">
                   <component :is="acc.enable_outgoing ? Wifi : WifiOff" class="size-3" />
                   Вихідна {{ acc.enable_outgoing ? 'увімкнена' : 'вимкнена' }}
                 </span>
-                <span
-                  class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
-                  :class="acc.enable_incoming ? 'bg-blue-50 text-blue-700' : 'bg-muted text-muted-foreground'"
-                >
+                <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
+                  :class="acc.enable_incoming ? 'bg-blue-50 text-blue-700' : 'bg-muted text-muted-foreground'">
                   <Mail class="size-3" />
                   Вхідна {{ acc.enable_incoming ? 'увімкнена' : 'вимкнена' }}
                 </span>
@@ -304,16 +292,12 @@ function fmtDate(d: string | null) {
               </p>
             </div>
             <div class="flex gap-2 shrink-0">
-              <button
-                class="text-sm px-3 py-1.5 border rounded-md hover:bg-muted transition-colors"
-                @click="openEdit(acc)"
-              >
+              <button class="text-sm px-3 py-1.5 border rounded-md hover:bg-muted transition-colors"
+                @click="openEdit(acc)">
                 Редагувати
               </button>
-              <button
-                class="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
-                @click="deleteAccount(acc.id)"
-              >
+              <button class="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                @click="deleteAccount(acc.id)">
                 <Trash2 class="size-4" />
               </button>
             </div>
@@ -323,12 +307,8 @@ function fmtDate(d: string | null) {
 
       <!-- Account Form Dialog -->
       <Teleport to="body">
-        <Transition
-          enter-active-class="transition-opacity duration-200"
-          enter-from-class="opacity-0"
-          leave-active-class="transition-opacity duration-150"
-          leave-to-class="opacity-0"
-        >
+        <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0"
+          leave-active-class="transition-opacity duration-150" leave-to-class="opacity-0">
           <div v-if="showForm" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
             <div class="bg-background rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
               <div class="flex items-center justify-between p-5 border-b">
@@ -342,12 +322,9 @@ function fmtDate(d: string | null) {
                 <!-- Email address -->
                 <div>
                   <label class="block text-sm font-medium mb-1">Email адреса *</label>
-                  <input
-                    v-model="form.email_address"
-                    type="email"
+                  <input v-model="form.email_address" type="email"
                     class="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                    placeholder="noreply@example.com"
-                  />
+                    placeholder="noreply@example.com" />
                 </div>
 
                 <!-- Outgoing section -->
@@ -361,20 +338,14 @@ function fmtDate(d: string | null) {
                     <div class="grid grid-cols-3 gap-3">
                       <div class="col-span-2">
                         <label class="block text-xs text-muted-foreground mb-1">SMTP сервер</label>
-                        <input
-                          v-model="form.smtp_server"
-                          type="text"
+                        <input v-model="form.smtp_server" type="text"
                           class="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                          placeholder="smtp.gmail.com"
-                        />
+                          placeholder="smtp.gmail.com" />
                       </div>
                       <div>
                         <label class="block text-xs text-muted-foreground mb-1">Порт</label>
-                        <input
-                          v-model.number="form.smtp_port"
-                          type="number"
-                          class="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
+                        <input v-model.number="form.smtp_port" type="number"
+                          class="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                       </div>
                     </div>
 
@@ -385,28 +356,20 @@ function fmtDate(d: string | null) {
 
                     <div>
                       <label class="block text-xs text-muted-foreground mb-1">Користувач</label>
-                      <input
-                        v-model="form.smtp_user"
-                        type="text"
+                      <input v-model="form.smtp_user" type="text"
                         class="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        placeholder="user@example.com"
-                      />
+                        placeholder="user@example.com" />
                     </div>
 
                     <div>
                       <label class="block text-xs text-muted-foreground mb-1">Пароль</label>
                       <div class="relative">
-                        <input
-                          v-model="form.smtp_password"
-                          :type="showPassword ? 'text' : 'password'"
+                        <input v-model="form.smtp_password" :type="showPassword ? 'text' : 'password'"
                           class="w-full border rounded-md px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                          placeholder="••••••••"
-                        />
-                        <button
-                          type="button"
+                          placeholder="••••••••" />
+                        <button type="button"
                           class="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
-                          @click="showPassword = !showPassword"
-                        >
+                          @click="showPassword = !showPassword">
                           <component :is="showPassword ? EyeOff : Eye" class="size-4" />
                         </button>
                       </div>
@@ -414,12 +377,9 @@ function fmtDate(d: string | null) {
 
                     <!-- Test connection -->
                     <div class="flex items-center gap-3">
-                      <button
-                        type="button"
-                        :disabled="testLoading || !form.smtp_server"
+                      <button type="button" :disabled="testLoading || !form.smtp_server"
                         class="flex items-center gap-1.5 text-sm px-3 py-1.5 border rounded-md hover:bg-muted disabled:opacity-50 transition-colors"
-                        @click="testConnection"
-                      >
+                        @click="testConnection">
                         <Send class="size-3.5" />
                         {{ testLoading ? 'Перевірка…' : 'Тест підключення' }}
                       </button>
@@ -445,20 +405,14 @@ function fmtDate(d: string | null) {
                     <div class="grid grid-cols-3 gap-3">
                       <div class="col-span-2">
                         <label class="block text-xs text-muted-foreground mb-1">IMAP сервер</label>
-                        <input
-                          v-model="form.imap_server"
-                          type="text"
+                        <input v-model="form.imap_server" type="text"
                           class="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                          placeholder="imap.gmail.com"
-                        />
+                          placeholder="imap.gmail.com" />
                       </div>
                       <div>
                         <label class="block text-xs text-muted-foreground mb-1">Порт</label>
-                        <input
-                          v-model.number="form.imap_port"
-                          type="number"
-                          class="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
+                        <input v-model.number="form.imap_port" type="number"
+                          class="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                       </div>
                     </div>
 
@@ -471,17 +425,12 @@ function fmtDate(d: string | null) {
               </div>
 
               <div class="flex justify-end gap-2 p-5 border-t">
-                <button
-                  class="text-sm px-4 py-2 border rounded-md hover:bg-muted transition-colors"
-                  @click="closeForm"
-                >
+                <button class="text-sm px-4 py-2 border rounded-md hover:bg-muted transition-colors" @click="closeForm">
                   Скасувати
                 </button>
-                <button
-                  :disabled="formSaving || !form.email_address"
+                <button :disabled="formSaving || !form.email_address"
                   class="text-sm px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                  @click="saveAccount"
-                >
+                  @click="saveAccount">
                   {{ formSaving ? 'Збереження…' : editingId ? 'Зберегти' : 'Створити' }}
                 </button>
               </div>
@@ -495,11 +444,9 @@ function fmtDate(d: string | null) {
     <template v-else-if="activeTab === 'queue'">
       <div class="flex items-center gap-3 mb-4">
         <!-- Status filter -->
-        <select
-          v-model="queueStatus"
+        <select v-model="queueStatus"
           class="border rounded-md px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-          @change="queuePage = 1"
-        >
+          @change="queuePage = 1">
           <option value="">Всі статуси</option>
           <option value="Pending">Pending</option>
           <option value="Sent">Sent</option>
@@ -508,8 +455,7 @@ function fmtDate(d: string | null) {
 
         <button
           class="ml-auto flex items-center gap-1.5 text-sm px-3 py-1.5 border rounded-md hover:bg-muted transition-colors"
-          @click="fetchQueue"
-        >
+          @click="fetchQueue">
           <RefreshCcw class="size-3.5" /> Оновити
         </button>
       </div>
@@ -521,18 +467,12 @@ function fmtDate(d: string | null) {
         <p>Черга порожня</p>
       </div>
       <div v-else class="space-y-2">
-        <div
-          v-for="item in queueItems"
-          :key="item.id"
-          class="border rounded-lg p-4 bg-card"
-        >
+        <div v-for="item in queueItems" :key="item.id" class="border rounded-lg p-4 bg-card">
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
               <div class="flex items-center gap-2 mb-1">
-                <span
-                  class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
-                  :class="statusColor(item.status)"
-                >
+                <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
+                  :class="statusColor(item.status)">
                   <component :is="statusIcon(item.status)" class="size-3" />
                   {{ item.status }}
                 </span>
@@ -544,11 +484,9 @@ function fmtDate(d: string | null) {
                 {{ item.error_message }}
               </p>
             </div>
-            <button
-              v-if="item.status === 'Error'"
+            <button v-if="item.status === 'Error'"
               class="shrink-0 flex items-center gap-1 text-xs px-2.5 py-1.5 border rounded-md hover:bg-muted transition-colors"
-              @click="retryItem(item.id)"
-            >
+              @click="retryItem(item.id)">
               <RefreshCcw class="size-3" /> Повторити
             </button>
           </div>
@@ -557,19 +495,13 @@ function fmtDate(d: string | null) {
 
       <!-- Pagination -->
       <div v-if="queuePages > 1" class="flex items-center justify-center gap-3 mt-4">
-        <button
-          :disabled="queuePage <= 1"
-          class="p-1.5 border rounded-md disabled:opacity-40 hover:bg-muted transition-colors"
-          @click="queuePage--"
-        >
+        <button :disabled="queuePage <= 1"
+          class="p-1.5 border rounded-md disabled:opacity-40 hover:bg-muted transition-colors" @click="queuePage--">
           <ChevronLeft class="size-4" />
         </button>
         <span class="text-sm text-muted-foreground">{{ queuePage }} / {{ queuePages }}</span>
-        <button
-          :disabled="queuePage >= queuePages"
-          class="p-1.5 border rounded-md disabled:opacity-40 hover:bg-muted transition-colors"
-          @click="queuePage++"
-        >
+        <button :disabled="queuePage >= queuePages"
+          class="p-1.5 border rounded-md disabled:opacity-40 hover:bg-muted transition-colors" @click="queuePage++">
           <ChevronRight class="size-4" />
         </button>
       </div>

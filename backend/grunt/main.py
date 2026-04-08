@@ -8,29 +8,32 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
-from grunt.config import settings
-from grunt.api.v1.router import v1_router
-from grunt.core.db.base import Base
-from grunt.core.metadata.registry import doctype_registry
-from grunt.core.document.registry import document_registry
-from grunt.core.hooks import register_doc_events, register_doctype_overrides
-from grunt.core.tasks.broker import broker
-from grunt.core.tasks.registry import discover_tasks
-from grunt.core.tasks.scheduler import register_scheduler_events, start_scheduler, stop_scheduler
-from grunt.core.site.manager import site_manager, current_site
-from grunt.core.site.middleware import SiteContextMiddleware
-
+import grunt.core.auth.models  # noqa: F401
 
 # Ensure all ORM models are imported so Base.metadata is complete
 import grunt.core.db.system_tables  # noqa: F401
-import grunt.core.auth.models  # noqa: F401
 import grunt.core.print.hooks  # noqa: F401
+from grunt.api.v1.router import v1_router
+from grunt.config import settings
+from grunt.core.db.base import Base
 from grunt.core.doctypes.activity_log.activity_log import ActivityLog as ActivityLogController
 from grunt.core.doctypes.comment.comment import Comment as CommentController
 from grunt.core.doctypes.data_import.data_import import DataImport as DataImportController
+from grunt.core.doctypes.sql_profiler_request.sql_profiler_request import (
+    SqlProfilerRequest as SqlProfilerRequestController,
+)
 from grunt.core.doctypes.user.user import User as UserController
-from grunt.core.doctypes.sql_profiler_request.sql_profiler_request import SqlProfilerRequest as SqlProfilerRequestController
-from grunt.core.doctypes.workspace_sidebar.workspace_sidebar import WorkspaceSidebar as WorkspaceSidebarController
+from grunt.core.doctypes.workspace_sidebar.workspace_sidebar import (
+    WorkspaceSidebar as WorkspaceSidebarController,
+)
+from grunt.core.document.registry import document_registry
+from grunt.core.hooks import register_doc_events, register_doctype_overrides
+from grunt.core.metadata.registry import doctype_registry
+from grunt.core.site.manager import current_site, site_manager
+from grunt.core.site.middleware import SiteContextMiddleware
+from grunt.core.tasks.broker import broker
+from grunt.core.tasks.registry import discover_tasks
+from grunt.core.tasks.scheduler import register_scheduler_events, start_scheduler, stop_scheduler
 
 document_registry.register("ActivityLog", ActivityLogController)
 document_registry.register("Comment", CommentController)
@@ -40,17 +43,22 @@ document_registry.register("SqlProfilerRequest", SqlProfilerRequestController)
 document_registry.register("WorkspaceSidebar", WorkspaceSidebarController)
 
 # Auto-refresh in-memory permissions when DocTypePermission is saved/deleted
-register_doc_events({
-    "DocTypePermission": {
-        "after_save":   ["grunt.core.permissions.sync.sync_permissions"],
-        "after_delete": ["grunt.core.permissions.sync.sync_permissions"],
+register_doc_events(
+    {
+        "DocTypePermission": {
+            "after_save": ["grunt.core.permissions.sync.sync_permissions"],
+            "after_delete": ["grunt.core.permissions.sync.sync_permissions"],
+        }
     }
-})
+)
 
 # Register core doctypes dir for lazy client script loading + eager server script loading
-from pathlib import Path as _Path
-from grunt.core.scripting.file_scripts import register_client_script_dir as _reg_client_dirs, _load_doctype_dir_scripts as _load_dt_scripts
+from pathlib import Path as _Path  # noqa: E402, I001
 
+from grunt.core.scripting.file_scripts import (  # noqa: E402, I001
+    _load_doctype_dir_scripts as _load_dt_scripts,
+    register_client_script_dir as _reg_client_dirs,
+)
 _core_doctypes_dir = _Path(__file__).parent / "core" / "doctypes"
 _reg_client_dirs("grunt", _core_doctypes_dir)
 for _dt_dir in sorted(_core_doctypes_dir.iterdir()):
@@ -60,9 +68,9 @@ for _dt_dir in sorted(_core_doctypes_dir.iterdir()):
 # Phase 3 modules (imported for side-effects: table registration)
 # workflow, permissions, reports engines are imported on-demand in endpoints
 
-from grunt.core.middleware.security import SecurityHeadersMiddleware  # noqa: E402
-from grunt.core.middleware.logging import RequestLoggingMiddleware  # noqa: E402
 from grunt.core.middleware.language import LanguageMiddleware  # noqa: E402
+from grunt.core.middleware.logging import RequestLoggingMiddleware  # noqa: E402
+from grunt.core.middleware.security import SecurityHeadersMiddleware  # noqa: E402
 
 logger = structlog.get_logger()
 
@@ -72,12 +80,19 @@ async def lifespan(app: FastAPI):
     # ── Startup ──────────────────────────────────────────────────────
     logger.info("grunt.startup", version="0.1.0")
 
-    from grunt.core.startup import populate_system_doctypes, seed_system_settings, seed_grunt_workspace, seed_app_workspaces, load_core_doctypes, apply_doctype_overrides  # noqa: PLC0415
-
     # ── Load hooks from installed apps FIRST (collects doctype_overrides) ──
     import importlib  # noqa: PLC0415
-    from pathlib import Path  # noqa: PLC0415
     import sys  # noqa: PLC0415
+    from pathlib import Path  # noqa: PLC0415
+
+    from grunt.core.startup import (
+        apply_doctype_overrides,
+        load_core_doctypes,
+        populate_system_doctypes,
+        seed_app_workspaces,
+        seed_grunt_workspace,
+        seed_system_settings,
+    )  # noqa: PLC0415
 
     apps_dir = Path("grunt_apps")
     if apps_dir.exists():
@@ -91,16 +106,16 @@ async def lifespan(app: FastAPI):
                 module = importlib.import_module(module_path)
                 logger.info("hooks.loaded", module=module_path)
                 if hasattr(module, "doc_events"):
-                    register_doc_events(getattr(module, "doc_events"))
+                    register_doc_events(module.doc_events)
                     logger.info("hooks.doc_events_registered", module=module_path)
                 if hasattr(module, "doctype_overrides"):
-                    register_doctype_overrides(getattr(module, "doctype_overrides"))
+                    register_doctype_overrides(module.doctype_overrides)
                     logger.info("hooks.doctype_overrides_registered", module=module_path)
                 if hasattr(module, "override_doctype_class"):
-                    document_registry.register_overrides(getattr(module, "override_doctype_class"))
+                    document_registry.register_overrides(module.override_doctype_class)
                     logger.info("hooks.overrides_registered", module=module_path)
                 if hasattr(module, "scheduler_events"):
-                    register_scheduler_events(getattr(module, "scheduler_events"))
+                    register_scheduler_events(module.scheduler_events)
                     logger.info("hooks.scheduler_events_registered", module=module_path)
             except Exception as e:
                 logger.warning("hooks.load_error", module=module_path, error=str(e))
@@ -108,7 +123,7 @@ async def lifespan(app: FastAPI):
     sites = site_manager.get_sites()
     if not sites:
         logger.warning("grunt.startup.no_sites")
-    
+
     for site in sites:
         token = current_site.set(site)
         try:
@@ -116,17 +131,19 @@ async def lifespan(app: FastAPI):
             # Create all system tables if they don't exist
             eng = site_manager.get_engine(site)
             maker = site_manager.get_session_maker(site)
-            
+
             async with eng.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
 
             # Ensure shared infrastructure tables (MultiLink junction, etc.)
-            from grunt.core.metadata.compiler import SA_METADATA as _sa_meta  # noqa: PLC0415
+            from grunt.core.metadata.compiler import SA_METADATA as _SA_META  # noqa: PLC0415
+
             async with eng.begin() as conn:
-                await conn.run_sync(_sa_meta.create_all)
+                await conn.run_sync(_SA_META.create_all)
 
             # Ensure full-text search index table
             from grunt.core.search.service import search_index_service as _sis  # noqa: PLC0415
+
             await _sis.ensure_table(eng)
 
             async with maker() as session:
@@ -141,7 +158,11 @@ async def lifespan(app: FastAPI):
                 await seed_system_settings(session, eng)
                 await seed_grunt_workspace(session)
                 # Permissions: migrate DocType meta → DocTypePermission, then load into memory
-                from grunt.core.permissions.sync import migrate_doctype_meta_permissions, load_all_permissions_from_db  # noqa: PLC0415
+                from grunt.core.permissions.sync import (
+                    load_all_permissions_from_db,
+                    migrate_doctype_meta_permissions,
+                )  # noqa: PLC0415
+
                 await migrate_doctype_meta_permissions(session)
                 await session.flush()
                 await load_all_permissions_from_db(session)
@@ -151,18 +172,17 @@ async def lifespan(app: FastAPI):
             async with maker() as session:
                 await seed_app_workspaces(session, site)
                 await session.commit()
-                
+
         except Exception as e:
             logger.error("grunt.site.startup_error", site=site, error=str(e))
         finally:
             current_site.reset(token)
 
-
     # ── Post-startup: discover controllers, tasks, scripts ──────────────────
     if apps_dir.exists():
         # Discover custom DocType controllers
         document_registry.discover_controllers(apps_dir)
-        
+
         # Discover background tasks
         discover_tasks(apps_dir)
 
@@ -172,18 +192,25 @@ async def lifespan(app: FastAPI):
         discover_file_scripts(apps_dir)
 
     # Discover resources from installed external apps (bench_dir/apps/*)
-    from grunt.core.scripting.file_scripts import discover_file_scripts as _discover_scripts  # noqa: PLC0415
+    from grunt.core.scripting.file_scripts import (
+        discover_file_scripts as _discover_scripts,  # noqa: PLC0415
+    )
 
     ext_apps_dir = site_manager.bench_dir / "apps"
     if ext_apps_dir.is_dir():
         # Ensure external apps are importable
         import sys  # noqa: PLC0415
+
         ext_apps_str = str(ext_apps_dir)
         if ext_apps_str not in sys.path:
             sys.path.insert(0, ext_apps_str)
 
         for ext_app in sorted(ext_apps_dir.iterdir()):
-            if ext_app.is_dir() and ext_app.name not in ("grunt",) and not ext_app.name.startswith((".", "_")):
+            if (
+                ext_app.is_dir()
+                and ext_app.name not in ("grunt",)
+                and not ext_app.name.startswith((".", "_"))
+            ):
                 _discover_scripts(ext_app.parent, app_filter=ext_app.name)
                 document_registry.discover_controllers_from_app(ext_app)
 
@@ -196,11 +223,11 @@ async def lifespan(app: FastAPI):
                         logger.info("hooks.loaded", module=hooks_import)
 
                         if hasattr(hooks_mod, "doc_events"):
-                            register_doc_events(getattr(hooks_mod, "doc_events"))
+                            register_doc_events(hooks_mod.doc_events)
                         if hasattr(hooks_mod, "override_doctype_class"):
-                            document_registry.register_overrides(getattr(hooks_mod, "override_doctype_class"))
+                            document_registry.register_overrides(hooks_mod.override_doctype_class)
                         if hasattr(hooks_mod, "scheduler_events"):
-                            register_scheduler_events(getattr(hooks_mod, "scheduler_events"))
+                            register_scheduler_events(hooks_mod.scheduler_events)
                     except Exception as e:
                         logger.warning("hooks.load_error", module=hooks_import, error=str(e))
 
@@ -215,7 +242,9 @@ async def lifespan(app: FastAPI):
                                 mod.router,
                                 prefix=f"/api/v1/app/{ext_app.name}",
                             )
-                            logger.info("app_router.registered", app=ext_app.name, module=module_name)
+                            logger.info(
+                                "app_router.registered", app=ext_app.name, module=module_name
+                            )
                     except Exception as e:
                         logger.warning("app_router.load_error", path=import_path, error=str(e))
 
@@ -238,16 +267,16 @@ async def lifespan(app: FastAPI):
 
     # Initialize TaskIQ broker
     await broker.startup()
-    
+
     # Start Scheduler
     await start_scheduler()
 
     yield
-    
+
     # ── Shutdown ─────────────────────────────────────────────────────
     await stop_scheduler()
     await broker.shutdown()
-    
+
     for eng in site_manager.engines.values():
         await eng.dispose()
     logger.info("grunt.shutdown")
@@ -279,6 +308,7 @@ app.add_middleware(
 try:
     from slowapi import _rate_limit_exceeded_handler  # noqa: PLC0415
     from slowapi.errors import RateLimitExceeded  # noqa: PLC0415
+
     from grunt.core.middleware.rate_limit import limiter  # noqa: PLC0415
 
     app.state.limiter = limiter

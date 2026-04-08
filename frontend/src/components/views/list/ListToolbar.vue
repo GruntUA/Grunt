@@ -123,7 +123,7 @@ function setGroupBy(field: string | null) {
               </template>
             </draggable>
             <DropdownMenuItem
-              v-for="col in columns.allAvailableColumns.value.filter(c => !columns.isVisible(c.key))"
+              v-for="col in columns.allAvailableColumns.value.filter((c: any) => !columns.isVisible(c.key))"
               :key="col.key"
               class="gap-2 group"
               @select.prevent="columns.toggleCol(col.key)">
