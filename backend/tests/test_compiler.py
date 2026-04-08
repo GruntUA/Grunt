@@ -15,7 +15,6 @@ from grunt.core.metadata.compiler import (
 from grunt.core.metadata.doctype import DocType
 from grunt.core.metadata.field import DocField, FieldType
 
-
 # ── Fixtures ─────────────────────────────────────────────────────────────
 
 
@@ -28,7 +27,9 @@ def _make_test_doctype(name: str = "TestDoc", **kwargs) -> DocType:
         DocField(fieldname="price", label="Price", fieldtype=FieldType.FLOAT),
         DocField(fieldname="is_active", label="Active", fieldtype=FieldType.BOOL),
         DocField(fieldname="due_date", label="Due Date", fieldtype=FieldType.DATE),
-        DocField(fieldname="status", label="Status", fieldtype=FieldType.SELECT, options="Draft\nActive"),
+        DocField(
+            fieldname="status", label="Status", fieldtype=FieldType.SELECT, options="Draft\nActive"
+        ),
         DocField(fieldname="metadata", label="Meta", fieldtype=FieldType.JSON),
         # Non-physical fields — should NOT produce columns
         DocField(fieldname="section_main", label="Main", fieldtype=FieldType.SECTION),
@@ -69,7 +70,16 @@ def test_compile_produces_correct_columns():
         assert sys_col in col_names, f"Missing system column: {sys_col}"
 
     # User-defined physical columns
-    for expected in ("title", "description", "quantity", "price", "is_active", "due_date", "status", "metadata"):
+    for expected in (
+        "title",
+        "description",
+        "quantity",
+        "price",
+        "is_active",
+        "due_date",
+        "status",
+        "metadata",
+    ):
         assert expected in col_names, f"Missing field column: {expected}"
 
 
@@ -100,9 +110,7 @@ async def test_sync_table_creates_table(async_engine):
     await sync_table(dt, async_engine)
 
     async with async_engine.connect() as conn:
-        result = await conn.run_sync(
-            lambda c: inspect(c).has_table("grunt_test_sync_create")
-        )
+        result = await conn.run_sync(lambda c: inspect(c).has_table("grunt_test_sync_create"))
     assert result is True
 
 
@@ -114,9 +122,7 @@ async def test_sync_table_idempotent(async_engine):
     await sync_table(dt, async_engine)  # second call — must not fail
 
     async with async_engine.connect() as conn:
-        result = await conn.run_sync(
-            lambda c: inspect(c).has_table("grunt_test_sync_idem")
-        )
+        result = await conn.run_sync(lambda c: inspect(c).has_table("grunt_test_sync_idem"))
     assert result is True
 
 
@@ -127,9 +133,7 @@ async def test_sync_table_adds_new_column(async_engine):
     await sync_table(dt, async_engine)
 
     # Add a new field
-    dt.fields.append(
-        DocField(fieldname="extra_col", label="Extra", fieldtype=FieldType.TEXT)
-    )
+    dt.fields.append(DocField(fieldname="extra_col", label="Extra", fieldtype=FieldType.TEXT))
     # Must clear to avoid extend_existing stale cache
     SA_METADATA.remove(SA_METADATA.tables["grunt_test_sync_alter"])
     await sync_table(dt, async_engine)

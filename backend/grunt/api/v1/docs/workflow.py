@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
+from grunt.api.v1.docs.utils import get_doc_service
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_engine, get_session
-from grunt.core.metadata.registry import doctype_registry
 from grunt.core.document.service import DocumentService
-from grunt.api.v1.docs.utils import get_doc_service
+from grunt.core.metadata.registry import doctype_registry
 
 router = APIRouter()
 
@@ -30,9 +30,7 @@ async def apply_workflow_transition(
     dt = await doctype_registry.get(doctype)
     from grunt.core.workflow.engine import workflow_engine  # noqa: PLC0415
 
-    updated = await workflow_engine.apply_transition(
-        dt, doc_id, body["action"], user, session, eng
-    )
+    updated = await workflow_engine.apply_transition(dt, doc_id, body["action"], user, session, eng)
     return {"success": True, "data": updated}
 
 

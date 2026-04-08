@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import uuid
 
+import structlog
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.core.metadata.compiler import MULTI_LINK_TABLE
-
-import structlog
 
 logger = structlog.get_logger()
 

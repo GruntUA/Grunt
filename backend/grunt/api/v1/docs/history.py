@@ -8,13 +8,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from grunt.api.v1.docs.utils import _audit_log, get_doc_service
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_session
 from grunt.core.document.service import DocumentService
 from grunt.core.metadata.compiler import compile_doctype_to_table
 from grunt.core.metadata.registry import doctype_registry
-from grunt.api.v1.docs.utils import get_doc_service, _audit_log
 
 router = APIRouter()
 
@@ -63,9 +63,7 @@ async def restore_document_version(
     all_versions = await version_service.get_versions(session, doctype, doc_id)
 
     # Build restore data
-    restore_data = version_service.build_restore_data(
-        current_doc, all_versions, target["version"]
-    )
+    restore_data = version_service.build_restore_data(current_doc, all_versions, target["version"])
 
     # Apply as a regular update
     dt = await doctype_registry.get(doctype)
@@ -133,38 +131,53 @@ async def get_document_timeline(
     comment_table = compile_doctype_to_table(doctype_registry._doctypes["Comment"])
 
     act_rows = (
-        await session.execute(
-            select(activity_table)
-            .where(activity_table.c.doctype == doctype, activity_table.c.doc_id == doc_id)
+        (
+            await session.execute(
+                select(activity_table).where(
+                    activity_table.c.doctype == doctype, activity_table.c.doc_id == doc_id
+                )
+            )
         )
-    ).mappings().all()
+        .mappings()
+        .all()
+    )
 
     comment_rows = (
-        await session.execute(
-            select(comment_table)
-            .where(comment_table.c.reference_doctype == doctype, comment_table.c.reference_id == doc_id)
+        (
+            await session.execute(
+                select(comment_table).where(
+                    comment_table.c.reference_doctype == doctype,
+                    comment_table.c.reference_id == doc_id,
+                )
+            )
         )
-    ).mappings().all()
+        .mappings()
+        .all()
+    )
 
     items: list[dict[str, Any]] = []
     for r in act_rows:
-        items.append({
-            "type": "activity",
-            "id": str(r["id"]),
-            "action": r["action"],
-            "user": r["user"],
-            "details": r["details"],
-            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
-        })
+        items.append(
+            {
+                "type": "activity",
+                "id": str(r["id"]),
+                "action": r["action"],
+                "user": r["user"],
+                "details": r["details"],
+                "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+            }
+        )
     for r in comment_rows:
-        items.append({
-            "type": "comment",
-            "id": str(r["id"]),
-            "content": r["content"],
-            "comment_type": r["comment_type"],
-            "user": r["owner"],
-            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
-        })
+        items.append(
+            {
+                "type": "comment",
+                "id": str(r["id"]),
+                "content": r["content"],
+                "comment_type": r["comment_type"],
+                "user": r["owner"],
+                "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+            }
+        )
 
     items.sort(key=lambda x: x["created_at"] or "")
     return {"success": True, "data": items}

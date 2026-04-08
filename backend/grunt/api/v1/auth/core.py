@@ -7,6 +7,13 @@ from typing import TYPE_CHECKING
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 
+from grunt.api.v1.auth.schemas import (
+    RefreshRequest,
+    RegisterRequest,
+    TokenResponse,
+    UpdateMeRequest,
+    UserResponse,
+)
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import SYSTEM_USER, GruntUser
 from grunt.core.auth.service import (
@@ -23,13 +30,6 @@ from grunt.core.doctypes.user.user import (
     get_user_by_id,
 )
 from grunt.core.middleware.rate_limit import limiter
-from grunt.api.v1.auth.schemas import (
-    RegisterRequest,
-    TokenResponse,
-    UserResponse,
-    UpdateMeRequest,
-    RefreshRequest,
-)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,10 +39,12 @@ router = APIRouter()
 
 def _rate_limit(limit: str):
     """Decorator that applies slowapi rate limiting when available, no-op otherwise."""
+
     def decorator(func):  # type: ignore[return]
         if limiter is not None:
             return limiter.limit(limit)(func)
         return func
+
     return decorator
 
 
@@ -129,7 +131,7 @@ async def update_me(
     session: AsyncSession = Depends(get_session),
 ) -> UserResponse:
     """Update current user preferences."""
-    from grunt.app import grunt # noqa: PLC0415
+    from grunt.app import grunt  # noqa: PLC0415
 
     values: dict = {}
     if body.theme is not None:

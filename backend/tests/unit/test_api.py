@@ -3,32 +3,30 @@
 Run with: pytest tests/unit/test_api.py -v
 """
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
 
 # Import API modules
 from grunt.api.context import (
-    set_session,
+    clear_context,
+    get_engine,
     get_session,
-    set_user,
     get_user,
     set_engine,
-    get_engine,
-    clear_context,
+    set_session,
+    set_user,
+)
+from grunt.api.messages import ApplicationError, msgprint, throw
+from grunt.api.permissions import (
+    can_delete,
+    can_read,
+    can_write,
+    get_current_user,
 )
 from grunt.app import GruntDB, grunt
 
 db = GruntDB()
-from grunt.api.messages import msgprint, throw, ApplicationError
-from grunt.api.permissions import (
-    can_read,
-    can_write,
-    can_submit,
-    can_delete,
-    can_create,
-    get_current_user,
-)
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # FIXTURES
@@ -190,7 +188,9 @@ class TestGruntAppDocs:
         """Test grunt.get_list() respects filters."""
         docs = [{"id": "DOC-001", "status": "Draft"}]
 
-        with patch.object(grunt, "get_list", new_callable=AsyncMock, return_value=docs) as mock_list:
+        with patch.object(
+            grunt, "get_list", new_callable=AsyncMock, return_value=docs
+        ) as mock_list:
             result = await grunt.get_list("Invoice", filters={"status": "Draft"})
 
             mock_list.assert_called_once_with("Invoice", filters={"status": "Draft"})
@@ -371,14 +371,22 @@ class TestPermissions:
             assert result is False
 
         # Permission row exists but not for the user's role
-        with patch.object(GruntDB, "get_all", new_callable=AsyncMock,
-                          return_value=[{"role": "Admin", "read": True}]):
+        with patch.object(
+            GruntDB,
+            "get_all",
+            new_callable=AsyncMock,
+            return_value=[{"role": "Admin", "read": True}],
+        ):
             result = await can_read("Invoice", "INV-001")
             assert result is False
 
         # Permission row matches role but read=False
-        with patch.object(GruntDB, "get_all", new_callable=AsyncMock,
-                          return_value=[{"role": "Guest", "read": False}]):
+        with patch.object(
+            GruntDB,
+            "get_all",
+            new_callable=AsyncMock,
+            return_value=[{"role": "Guest", "read": False}],
+        ):
             result = await can_read("Invoice", "INV-001")
             assert result is False
 
@@ -434,9 +442,11 @@ class TestIntegration:
         doc_data = {"id": "INV-001", "amount": 100, "status": "Draft"}
         updated_data = {**doc_data, "status": "Active"}
 
-        with patch.object(grunt, "get_doc", new_callable=AsyncMock, return_value=doc_data):
-            with patch.object(grunt, "save_doc", new_callable=AsyncMock, return_value=updated_data):
-                # Get document
+        with (
+            patch.object(grunt, "get_doc", new_callable=AsyncMock, return_value=doc_data),
+            patch.object(grunt, "save_doc", new_callable=AsyncMock, return_value=updated_data),
+        ):
+            # Get document
                 doc = await grunt.get_doc("Invoice", "INV-001")
                 assert doc["amount"] == 100
 
@@ -450,8 +460,12 @@ class TestIntegration:
         set_user(mock_user)
 
         # User with matching write permission row → allowed
-        with patch.object(GruntDB, "get_all", new_callable=AsyncMock,
-                          return_value=[{"role": "User", "write": True}]):
+        with patch.object(
+            GruntDB,
+            "get_all",
+            new_callable=AsyncMock,
+            return_value=[{"role": "User", "write": True}],
+        ):
             can_edit = await can_write("Invoice", "INV-001")
             assert can_edit is True
 

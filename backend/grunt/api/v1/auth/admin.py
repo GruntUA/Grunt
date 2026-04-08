@@ -6,6 +6,11 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from grunt.api.v1.auth.schemas import (
+    AddRoleRequest,
+    SetPasswordRequest,
+    UserResponse,
+)
 from grunt.core.auth.dependencies import superadmin_user
 from grunt.core.auth.models import SYSTEM_USER, GruntUser
 from grunt.core.db.session import get_engine, get_session
@@ -13,12 +18,9 @@ from grunt.core.doctypes.user.user import (
     get_user_by_email,
     get_user_by_id,
     hash_password,
-    list_users as service_list_users,
 )
-from grunt.api.v1.auth.schemas import (
-    AddRoleRequest,
-    SetPasswordRequest,
-    UserResponse,
+from grunt.core.doctypes.user.user import (
+    list_users as service_list_users,
 )
 
 if TYPE_CHECKING:

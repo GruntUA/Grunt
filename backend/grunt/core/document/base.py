@@ -167,6 +167,7 @@ class Document:
     async def insert(self) -> dict[str, Any]:
         """Insert this document into the database and sync local data."""
         from grunt.app import grunt as _grunt  # noqa: PLC0415
+
         result = await _grunt.new_doc(self.doctype, self.data)
         object.__getattribute__(self, "data").update(result)
         return result
@@ -174,6 +175,7 @@ class Document:
     async def save(self) -> dict[str, Any]:
         """Save changes to the database and sync local data."""
         from grunt.app import grunt as _grunt  # noqa: PLC0415
+
         result = await _grunt.save_doc(self.doctype, self.id, self.data)
         object.__getattribute__(self, "data").update(result)
         return result
@@ -181,6 +183,7 @@ class Document:
     async def delete(self) -> None:
         """Delete this document from the database."""
         from grunt.app import grunt as _grunt  # noqa: PLC0415
+
         await _grunt.delete_doc(self.doctype, self.id)
 
     # ── Lifecycle hooks ───────────────────────────────────────────────────

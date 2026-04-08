@@ -1,16 +1,15 @@
 """Tests for the print template renderer."""
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from types import SimpleNamespace
 
-from grunt.core.print.filters import date_format, datetime_format, striptags, JINJA_FILTERS
+from grunt.core.print.filters import JINJA_FILTERS, date_format, datetime_format, striptags
 from grunt.core.print.renderer import (
+    _get_jinja_env,
+    _render_fallback,
     render_from_string,
     render_standard,
-    _render_fallback,
-    _get_jinja_env,
 )
-
 
 # ── Filter tests ─────────────────────────────────────────────────────────
 
@@ -116,16 +115,14 @@ class TestRenderFromString:
 
     def test_now_variable(self):
         html = render_from_string("{{ now.year }}", {})
-        assert str(datetime.now(timezone.utc).year) in html
+        assert str(datetime.now(UTC).year) in html
 
 
 # ── render_standard tests ────────────────────────────────────────────────
 
 
 def _make_field(fieldtype="Text", fieldname="title", label="Title", hidden=False):
-    return SimpleNamespace(
-        fieldtype=fieldtype, fieldname=fieldname, label=label, hidden=hidden
-    )
+    return SimpleNamespace(fieldtype=fieldtype, fieldname=fieldname, label=label, hidden=hidden)
 
 
 class TestRenderStandard:

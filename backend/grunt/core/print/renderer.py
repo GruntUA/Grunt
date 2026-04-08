@@ -8,12 +8,12 @@ Supports:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import structlog
-from jinja2 import Environment, FileSystemLoader, select_autoescape, BaseLoader, TemplateNotFound
+from jinja2 import BaseLoader, Environment, FileSystemLoader, TemplateNotFound, select_autoescape
 
 from grunt.core.print.filters import JINJA_FILTERS
 
@@ -50,7 +50,7 @@ def render_template(template_name: str, doc: dict[str, Any]) -> str:
     """Render a named Jinja2 print template with document data."""
     env = _get_jinja_env()
     template = env.get_template(template_name)
-    return template.render(doc=doc, now=datetime.now(timezone.utc))
+    return template.render(doc=doc, now=datetime.now(UTC))
 
 
 def render_standard(
@@ -70,7 +70,7 @@ def render_standard(
         doctype_label=doctype_label,
         fields=fields,
         doc=doc,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
     )
 
 
@@ -78,7 +78,7 @@ def render_from_string(template_str: str, doc: dict[str, Any], **extra: Any) -> 
     """Render a Jinja2 template from a raw string (for DB-stored PrintFormats)."""
     env = _get_jinja_env()
     template = env.from_string(template_str)
-    return template.render(doc=doc, now=datetime.now(timezone.utc), **extra)
+    return template.render(doc=doc, now=datetime.now(UTC), **extra)
 
 
 async def get_print_format_template(
@@ -97,19 +97,16 @@ async def get_print_format_template(
         Tuple of (template_content, template_type) or None.
     """
     from sqlalchemy import select  # noqa: PLC0415
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
     from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
     table = compile_doctype_to_table(doctype_registry._doctypes["PrintFormat"])
 
     if format_name:
         stmt = select(table).where(table.c.name == format_name)
     else:
-        stmt = (
-            select(table)
-            .where(table.c.doctype == doctype)
-            .where(table.c.is_default.is_(True))
-        )
+        stmt = select(table).where(table.c.doctype == doctype).where(table.c.is_default.is_(True))
 
     result = await session.execute(stmt)
     row = result.mappings().first()
@@ -133,7 +130,7 @@ def render_docx(template_path: str, doc: dict[str, Any]) -> bytes:
     from docxtpl import DocxTemplate  # noqa: PLC0415
 
     tpl = DocxTemplate(template_path)
-    tpl.render({"doc": doc, "now": datetime.now(timezone.utc)})
+    tpl.render({"doc": doc, "now": datetime.now(UTC)})
 
     buf = io.BytesIO()
     tpl.save(buf)
@@ -161,6 +158,6 @@ th{{text-align:left;padding:6px;background:#f0f4f0;width:35%}}
 td{{padding:6px;border-bottom:1px solid #eee}}</style>
 </head><body>
 <h1>{doctype_label}</h1>
-<p>{doc.get('name', '')}</p>
+<p>{doc.get("name", "")}</p>
 <table>{rows}</table>
 </body></html>"""

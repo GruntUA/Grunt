@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
 import logging
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,6 +22,7 @@ async def _extract_user_email(request: Request, session: AsyncSession) -> str | 
     token = auth_header[7:]
     try:
         import jwt  # noqa: PLC0415
+
         from grunt.config import settings  # noqa: PLC0415
         from grunt.core.auth.service import get_user_by_email  # noqa: PLC0415
 

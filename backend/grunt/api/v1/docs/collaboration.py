@@ -9,13 +9,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from grunt.api.v1.docs.utils import get_doc_service
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_session
+from grunt.core.document.service import DocumentService
 from grunt.core.metadata.compiler import compile_doctype_to_table
 from grunt.core.metadata.registry import doctype_registry
-from grunt.core.document.service import DocumentService
-from grunt.api.v1.docs.utils import get_doc_service
 
 router = APIRouter()
 
@@ -30,6 +30,7 @@ async def get_document_comments(
 ) -> dict[str, Any]:
     """Return all comments for a document."""
     from sqlalchemy import asc  # noqa: PLC0415
+
     await svc.get_document(doctype, doc_id, user)  # permission check
 
     table = compile_doctype_to_table(doctype_registry._doctypes["Comment"])

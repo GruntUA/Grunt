@@ -3,12 +3,9 @@
 from __future__ import annotations
 
 import json
-import pytest
-from pathlib import Path
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt.core.startup import _load_app_meta, _auto_seed_workspace
+from grunt.core.startup import _load_app_meta
+
 
 class TestLoadAppMeta:
     """Test _load_app_meta function."""
@@ -19,16 +16,20 @@ class TestLoadAppMeta:
         app_dir.mkdir()
 
         app_json = app_dir / "app.json"
-        app_json.write_text(json.dumps({
-            "name": "test_app",
-            "title": "Test App",
-            "version": "1.0.0",
-            "description": "A test application",
-            "author": "Test Author",
-            "modules": ["core"],
-            "icon": "🧪",
-            "color": "#FF5733",
-        }))
+        app_json.write_text(
+            json.dumps(
+                {
+                    "name": "test_app",
+                    "title": "Test App",
+                    "version": "1.0.0",
+                    "description": "A test application",
+                    "author": "Test Author",
+                    "modules": ["core"],
+                    "icon": "🧪",
+                    "color": "#FF5733",
+                }
+            )
+        )
 
         meta = _load_app_meta(app_dir)
 
@@ -85,10 +86,14 @@ class TestLoadAppMeta:
 
         # Create app.json that overrides some values
         app_json = app_dir / "app.json"
-        app_json.write_text(json.dumps({
-            "title": "Title from JSON",
-            "modules": ["new_module"],
-        }))
+        app_json.write_text(
+            json.dumps(
+                {
+                    "title": "Title from JSON",
+                    "modules": ["new_module"],
+                }
+            )
+        )
 
         meta = _load_app_meta(app_dir)
 
@@ -128,5 +133,3 @@ class TestLoadAppMeta:
         assert meta["name"] == "nonexistent"
         assert meta["icon"] == "📦"
         assert meta["modules"] == []
-
-

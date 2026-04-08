@@ -1,8 +1,8 @@
 """Tests for the i18n module (PO/gettext-based)."""
 
-from grunt.core.i18n.service import TranslationService, _parse_po_file
 from pathlib import Path
 
+from grunt.core.i18n.service import TranslationService, _parse_po_file
 
 LOCALES_DIR = Path(__file__).parent.parent / "grunt" / "core" / "i18n" / "locales"
 

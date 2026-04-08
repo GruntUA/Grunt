@@ -2,17 +2,32 @@
 
 from __future__ import annotations
 
-import pytest
-from httpx import AsyncClient
+from typing import TYPE_CHECKING
 
+import pytest
+
+if TYPE_CHECKING:
+    from httpx import AsyncClient
 
 SAMPLE_DOCTYPE = {
     "name": "Task",
     "label": "Завдання",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Назва", "fieldtype": "Text", "required": True, "in_list_view": True},
-        {"fieldname": "status", "label": "Статус", "fieldtype": "Select", "options": "Draft\nActive\nDone", "default": "Draft"},
+        {
+            "fieldname": "title",
+            "label": "Назва",
+            "fieldtype": "Text",
+            "required": True,
+            "in_list_view": True,
+        },
+        {
+            "fieldname": "status",
+            "label": "Статус",
+            "fieldtype": "Select",
+            "options": "Draft\nActive\nDone",
+            "default": "Draft",
+        },
         {"fieldname": "priority", "label": "Пріоритет", "fieldtype": "Int"},
     ],
 }
@@ -65,9 +80,13 @@ async def test_update_doctype(client: AsyncClient, auth_headers: dict):
     """PUT /meta/doctypes/{name} → 200, table updated."""
     await client.post("/api/v1/meta/doctypes", json=SAMPLE_DOCTYPE, headers=auth_headers)
 
-    updated = {**SAMPLE_DOCTYPE, "fields": SAMPLE_DOCTYPE["fields"] + [
-        {"fieldname": "deadline", "label": "Дедлайн", "fieldtype": "Date"},
-    ]}
+    updated = {
+        **SAMPLE_DOCTYPE,
+        "fields": SAMPLE_DOCTYPE["fields"]
+        + [
+            {"fieldname": "deadline", "label": "Дедлайн", "fieldtype": "Date"},
+        ],
+    }
     resp = await client.put(
         "/api/v1/meta/doctypes/Task",
         json=updated,

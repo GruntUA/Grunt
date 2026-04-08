@@ -1,6 +1,6 @@
 """Tests for the Naming Series module."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from grunt.core.naming.patterns import (
     build_prefix,
@@ -42,7 +42,7 @@ class TestParsePattern:
 class TestFormatName:
     def test_format_with_counter(self):
         parts = parse_pattern("INV-.YYYY.-.####")
-        now = datetime(2026, 3, 26, tzinfo=timezone.utc)
+        now = datetime(2026, 3, 26, tzinfo=UTC)
         name = format_name(parts, counter=42, now=now)
         assert name == "INV-2026-0042"
 
@@ -53,7 +53,7 @@ class TestFormatName:
 
     def test_format_with_month(self):
         parts = parse_pattern("DOC-.YYYY.-.MM.-.###")
-        now = datetime(2026, 1, 5, tzinfo=timezone.utc)
+        now = datetime(2026, 1, 5, tzinfo=UTC)
         name = format_name(parts, counter=1, now=now)
         assert name == "DOC-2026-01-001"
 
@@ -61,13 +61,13 @@ class TestFormatName:
 class TestBuildPrefix:
     def test_prefix_stops_at_counter(self):
         parts = parse_pattern("INV-.YYYY.-.####")
-        now = datetime(2026, 3, 26, tzinfo=timezone.utc)
+        now = datetime(2026, 3, 26, tzinfo=UTC)
         prefix = build_prefix(parts, now=now)
         assert prefix == "INV-2026-"
 
     def test_prefix_with_month(self):
         parts = parse_pattern("X-.YYYY.-.MM.-.###")
-        now = datetime(2026, 7, 15, tzinfo=timezone.utc)
+        now = datetime(2026, 7, 15, tzinfo=UTC)
         prefix = build_prefix(parts, now=now)
         assert prefix == "X-2026-07-"
 

@@ -1,4 +1,5 @@
 """Reports API — CRUD and execution of reports."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -12,7 +13,17 @@ from grunt.core.db.session import get_session
 
 router = APIRouter()
 
-_REPORT_FIELDS = ["id", "report_name", "report_type", "doctype", "query", "script", "columns", "filters_config", "created_at"]
+_REPORT_FIELDS = [
+    "id",
+    "report_name",
+    "report_type",
+    "doctype",
+    "query",
+    "script",
+    "columns",
+    "filters_config",
+    "created_at",
+]
 
 
 @router.get("/")
@@ -45,15 +56,18 @@ async def create_report(
     if existing:
         raise HTTPException(status_code=409, detail=f"Звіт '{report_name}' вже існує")
 
-    doc = await grunt.new_doc("Report", {
-        "report_name": report_name,
-        "report_type": body.get("report_type", "Query"),
-        "doctype": body.get("doctype"),
-        "query": body.get("query"),
-        "script": body.get("script"),
-        "columns": body.get("columns"),
-        "filters_config": body.get("filters_config"),
-    })
+    doc = await grunt.new_doc(
+        "Report",
+        {
+            "report_name": report_name,
+            "report_type": body.get("report_type", "Query"),
+            "doctype": body.get("doctype"),
+            "query": body.get("query"),
+            "script": body.get("script"),
+            "columns": body.get("columns"),
+            "filters_config": body.get("filters_config"),
+        },
+    )
     return {"success": True, "data": {"id": doc["id"], "report_name": report_name}}
 
 

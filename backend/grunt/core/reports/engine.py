@@ -1,4 +1,5 @@
 """Report engine — runs Query/Script/List reports."""
+
 from __future__ import annotations
 
 import time
@@ -6,8 +7,8 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 from fastapi import HTTPException
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import text, select, func
 
 if TYPE_CHECKING:
     from grunt.core.auth.models import GruntUser
@@ -20,25 +21,21 @@ class ReportEngine:
         self,
         report_name: str,
         filters: dict,
-        user: "GruntUser",
+        user: GruntUser,
         session: AsyncSession,
     ) -> dict[str, Any]:
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         table = compile_doctype_to_table(doctype_registry._doctypes["Report"])
-        result = await session.execute(
-            select(table).where(table.c.report_name == report_name)
-        )
+        result = await session.execute(select(table).where(table.c.report_name == report_name))
         report = result.mappings().first()
         if not report:
             raise HTTPException(status_code=404, detail=f"Звіт '{report_name}' не знайдено")
 
         report_type = report["report_type"]
         if report_type == "Query":
-            return await self._run_query_report(
-                {"query": report["query"] or ""}, filters, session
-            )
+            return await self._run_query_report({"query": report["query"] or ""}, filters, session)
         if report_type == "Script":
             return await self._run_script_report(
                 {"script": report["script"] or "", "columns": report.get("columns")},
@@ -111,7 +108,7 @@ class ReportEngine:
         self,
         report: dict,
         filters: dict,
-        user: "GruntUser",
+        user: GruntUser,
         session: AsyncSession,
     ) -> dict[str, Any]:
         """Execute a Python script in the sandbox and return {columns, data}.
@@ -137,9 +134,8 @@ class ReportEngine:
                 "data": rows,
             }
         """
-        from grunt.core.scripting.server_script import ScriptRunner  # noqa: PLC0415
-        from grunt.core.db.session import get_engine as _engine_factory  # noqa: PLC0415
         from grunt.app import grunt  # noqa: PLC0415
+        from grunt.core.db.session import get_engine as _engine_factory  # noqa: PLC0415
 
         script_src = report.get("script", "").strip()
         if not script_src:
@@ -195,7 +191,7 @@ class ReportEngine:
         doctype: str,
         report: dict,
         filters: dict,
-        user: "GruntUser",
+        user: GruntUser,
         session: AsyncSession,
     ) -> dict[str, Any]:
         """Run a dynamic aggregate report against a DocType table.
@@ -214,8 +210,8 @@ class ReportEngine:
         Columns without an aggregation are treated as GROUP BY columns when
         any aggregation column is present; otherwise a plain SELECT is used.
         """
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
 
         dt = await doctype_registry.get(doctype)
@@ -306,13 +302,12 @@ class ReportEngine:
 
     async def export_excel(self, result: dict, report_name: str) -> bytes:
         try:
+            from io import BytesIO  # noqa: PLC0415
+
             import openpyxl  # noqa: PLC0415
             from openpyxl.styles import Font  # noqa: PLC0415
-            from io import BytesIO  # noqa: PLC0415
         except ImportError as e:
-            raise HTTPException(
-                status_code=500, detail="openpyxl не встановлено"
-            ) from e
+            raise HTTPException(status_code=500, detail="openpyxl не встановлено") from e
 
         wb = openpyxl.Workbook()
         ws = wb.active

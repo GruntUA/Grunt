@@ -22,9 +22,9 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "sqlite+aiosqlite:///./grunt.db"
     database_echo: bool = False
-    slow_query_threshold_ms: float = 10.0    # individual SQL query slow threshold (dev only)
-    slow_request_db_ms: float = 20.0         # total DB time per request slow threshold
-    slow_request_ms: float = 100.0           # total request duration slow threshold
+    slow_query_threshold_ms: float = 10.0  # individual SQL query slow threshold (dev only)
+    slow_request_db_ms: float = 20.0  # total DB time per request slow threshold
+    slow_request_ms: float = 100.0  # total request duration slow threshold
 
     # Redis (optional)
     redis_url: str | None = None

@@ -1,12 +1,12 @@
 """Tests for the scripting module — Server Script sandbox and Client Script loading."""
 
 import pytest
-from grunt.core.scripting.server_script import ServerScriptRunner, ScriptResult
-from grunt.core.scripting.safe_globals import build_safe_globals, validate_script
 
+from grunt.core.scripting.safe_globals import build_safe_globals, validate_script
+from grunt.core.scripting.server_script import ScriptResult, ServerScriptRunner
 
 try:
-    validate_script  # type: ignore[name-defined]
+    _ = validate_script  # type: ignore[name-defined]
 except NameError:  # pragma: no cover - fallback stub for static analysis/tests
 
     def validate_script(source: str):
@@ -47,11 +47,13 @@ class TestBuildSafeGlobals:
 
     def test_has_datetime(self):
         from datetime import datetime
+
         g = build_safe_globals()
         assert g["__builtins__"]["datetime"] is datetime
 
     def test_has_json(self):
         import json
+
         g = build_safe_globals()
         assert g["__builtins__"]["json"] is json
 
@@ -146,26 +148,21 @@ class TestServerScriptExecute:
 
     @pytest.mark.asyncio
     async def test_script_can_use_datetime(self):
-        result = await self.runner.execute(
-            "grunt.response = {'year': datetime.now().year}"
-        )
+        result = await self.runner.execute("grunt.response = {'year': datetime.now().year}")
         assert result.success is True
         from datetime import datetime
+
         assert result.response["year"] == datetime.now().year
 
     @pytest.mark.asyncio
     async def test_script_can_use_json(self):
-        result = await self.runner.execute(
-            'grunt.response = json.loads(\'{"a": 1}\')'
-        )
+        result = await self.runner.execute("grunt.response = json.loads('{\"a\": 1}')")
         assert result.success is True
         assert result.response == {"a": 1}
 
     @pytest.mark.asyncio
     async def test_script_can_use_math(self):
-        result = await self.runner.execute(
-            "grunt.response = {'pi': round(math.pi, 2)}"
-        )
+        result = await self.runner.execute("grunt.response = {'pi': round(math.pi, 2)}")
         assert result.success is True
         assert result.response["pi"] == 3.14
 
@@ -189,8 +186,7 @@ class TestServerScriptExecute:
     @pytest.mark.asyncio
     async def test_script_flags(self):
         result = await self.runner.execute(
-            "grunt.flags['skip_email'] = True\n"
-            "grunt.response = {'flags': dict(grunt.flags)}"
+            "grunt.flags['skip_email'] = True\ngrunt.response = {'flags': dict(grunt.flags)}"
         )
         assert result.success is True
         assert result.response["flags"]["skip_email"] is True

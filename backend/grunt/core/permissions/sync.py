@@ -6,7 +6,10 @@ in-memory DocType registry (overriding permissions stored in DocType JSON).
 On after_save / after_delete of DocTypePermission: refresh in-memory perms
 for that specific DocType so changes are effective immediately without restart.
 """
+
 from __future__ import annotations
+
+from datetime import UTC
 
 import structlog
 
@@ -16,9 +19,10 @@ logger = structlog.get_logger()
 async def load_all_permissions_from_db(session) -> None:  # noqa: ANN001
     """Read DocTypePermission table and inject into registry. Called at startup."""
     try:
+        from sqlalchemy import select  # noqa: PLC0415
+
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from sqlalchemy import select  # noqa: PLC0415
 
         dt = doctype_registry._doctypes.get("DocTypePermission")
         if dt is None:
@@ -56,17 +60,16 @@ async def sync_permissions(doc: dict, session=None, **_kwargs) -> None:  # noqa:
 
 async def _reload_doctype_perms(doctype_name: str, session) -> None:  # noqa: ANN001
     try:
+        from sqlalchemy import select  # noqa: PLC0415
+
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from sqlalchemy import select  # noqa: PLC0415
 
         dt = doctype_registry._doctypes.get("DocTypePermission")
         if dt is None:
             return
         table = compile_doctype_to_table(dt)
-        result = await session.execute(
-            select(table).where(table.c.doctype_name == doctype_name)
-        )
+        result = await session.execute(select(table).where(table.c.doctype_name == doctype_name))
         rows = [dict(r._mapping) for r in result.fetchall()]
         await _apply_perms_to_doctype(doctype_name, rows)
         logger.info("permissions.refreshed", doctype=doctype_name, count=len(rows))
@@ -86,18 +89,20 @@ async def _apply_perms_to_doctype(doctype_name: str, perm_rows: list[dict]) -> N
     for r in perm_rows:
         hf_raw = r.get("hidden_fields") or ""
         hidden = [f.strip() for f in hf_raw.split(",") if f.strip()] if hf_raw else []
-        perms.append(DocTypePermission(
-            role=r.get("role", ""),
-            read=bool(r.get("read", False)),
-            write=bool(r.get("write", False)),
-            create=bool(r.get("create", False)),
-            delete=bool(r.get("delete", False)),
-            submit=bool(r.get("submit", False)),
-            cancel=bool(r.get("cancel", False)),
-            report=bool(r.get("report", False)),
-            match=r.get("match") or None,
-            hidden_fields=hidden,
-        ))
+        perms.append(
+            DocTypePermission(
+                role=r.get("role", ""),
+                read=bool(r.get("read", False)),
+                write=bool(r.get("write", False)),
+                create=bool(r.get("create", False)),
+                delete=bool(r.get("delete", False)),
+                submit=bool(r.get("submit", False)),
+                cancel=bool(r.get("cancel", False)),
+                report=bool(r.get("report", False)),
+                match=r.get("match") or None,
+                hidden_fields=hidden,
+            )
+        )
 
     # DocTypePermission records replace (not augment) in-memory permissions
     target.permissions = perms
@@ -109,11 +114,13 @@ async def migrate_doctype_meta_permissions(session) -> None:  # noqa: ANN001
     Only runs when the DocTypePermission table is empty.
     """
     try:
+        import uuid  # noqa: PLC0415
+        from datetime import datetime  # noqa: PLC0415
+
+        from sqlalchemy import select  # noqa: PLC0415
+
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from sqlalchemy import select  # noqa: PLC0415
-        import uuid  # noqa: PLC0415
-        from datetime import datetime, timezone  # noqa: PLC0415
 
         dt = doctype_registry._doctypes.get("DocTypePermission")
         if dt is None:
@@ -125,7 +132,7 @@ async def migrate_doctype_meta_permissions(session) -> None:  # noqa: ANN001
             return  # Already migrated
 
         all_dts = await doctype_registry.list_all()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         inserted = 0
 
         for target_dt in all_dts:

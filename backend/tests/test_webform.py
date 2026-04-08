@@ -1,12 +1,15 @@
 """Tests for the Web Form service — validation and submission logic."""
 
-import pytest
 from types import SimpleNamespace
 
-from grunt.core.webform.service import WebFormService, WebFormError
+import pytest
+
+from grunt.core.webform.service import WebFormError, WebFormService
 
 
-def _make_field(fieldname, fieldtype="Text", label=None, required=False, options=None, default=None):
+def _make_field(
+    fieldname, fieldtype="Text", label=None, required=False, options=None, default=None
+):
     return SimpleNamespace(
         fieldname=fieldname,
         fieldtype=fieldtype,
@@ -40,10 +43,12 @@ class TestValidateSubmission:
             self.svc._validate_submission(dt, {"title": ""}, None)
 
     def test_allowed_fields_filter(self):
-        dt = self._make_dt([
-            _make_field("title"),
-            _make_field("secret"),
-        ])
+        dt = self._make_dt(
+            [
+                _make_field("title"),
+                _make_field("secret"),
+            ]
+        )
         result = self.svc._validate_submission(
             dt,
             {"title": "OK", "secret": "HACK"},
@@ -53,47 +58,57 @@ class TestValidateSubmission:
         assert "secret" not in result
 
     def test_skips_non_physical_fields(self):
-        dt = self._make_dt([
-            _make_field("title"),
-            _make_field("sec", fieldtype="Section"),
-            _make_field("col", fieldtype="Column"),
-        ])
+        dt = self._make_dt(
+            [
+                _make_field("title"),
+                _make_field("sec", fieldtype="Section"),
+                _make_field("col", fieldtype="Column"),
+            ]
+        )
         result = self.svc._validate_submission(dt, {"title": "X"}, None)
         assert result == {"title": "X"}
 
     def test_none_values_excluded(self):
-        dt = self._make_dt([
-            _make_field("title"),
-            _make_field("notes"),
-        ])
+        dt = self._make_dt(
+            [
+                _make_field("title"),
+                _make_field("notes"),
+            ]
+        )
         result = self.svc._validate_submission(dt, {"title": "X"}, None)
         assert "notes" not in result
 
     def test_multiple_required_errors(self):
-        dt = self._make_dt([
-            _make_field("first_name", required=True),
-            _make_field("last_name", required=True),
-        ])
+        dt = self._make_dt(
+            [
+                _make_field("first_name", required=True),
+                _make_field("last_name", required=True),
+            ]
+        )
         with pytest.raises(WebFormError) as exc_info:
             self.svc._validate_submission(dt, {}, None)
         assert "First Name" in str(exc_info.value)
         assert "Last Name" in str(exc_info.value)
 
     def test_optional_field_accepted(self):
-        dt = self._make_dt([
-            _make_field("name", required=True),
-            _make_field("notes"),
-        ])
+        dt = self._make_dt(
+            [
+                _make_field("name", required=True),
+                _make_field("notes"),
+            ]
+        )
         result = self.svc._validate_submission(dt, {"name": "Test"}, None)
         assert result == {"name": "Test"}
 
     def test_check_field_skipped_in_non_physical(self):
         """Table, Tab, Column are non-physical and should be skipped."""
-        dt = self._make_dt([
-            _make_field("items", fieldtype="Table"),
-            _make_field("tab1", fieldtype="Tab"),
-            _make_field("title"),
-        ])
+        dt = self._make_dt(
+            [
+                _make_field("items", fieldtype="Table"),
+                _make_field("tab1", fieldtype="Tab"),
+                _make_field("title"),
+            ]
+        )
         result = self.svc._validate_submission(dt, {"title": "X", "items": "ignored"}, None)
         assert result == {"title": "X"}
 

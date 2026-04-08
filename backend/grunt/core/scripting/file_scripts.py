@@ -139,14 +139,22 @@ def _load_doctype_dir_scripts(dt_dir: Path, app_name: str) -> None:
             event = meta.get("event")
             if event:
                 FILE_SCRIPT_REGISTRY[("doctype_event", doctype, event)] = entry_dict
-                logger.info("file_scripts.server_loaded", app=app_name, type="DocType Event", doctype=doctype, hook_event=event)
+                logger.info(
+                    "file_scripts.server_loaded",
+                    app=app_name,
+                    type="DocType Event",
+                    doctype=doctype,
+                    hook_event=event,
+                )
         else:
             # Default: treat extra .py as API script using filename as method
             method = py_file.stem
             entry_dict["api_method"] = method
             entry_dict["allow_guest"] = False
             FILE_SCRIPT_REGISTRY[("api", method)] = entry_dict
-            logger.info("file_scripts.server_loaded", app=app_name, type="API (auto)", method=method)
+            logger.info(
+                "file_scripts.server_loaded", app=app_name, type="API (auto)", method=method
+            )
 
 
 # ── Lookup helpers (used by ServerScriptRunner) ──────────────────────────
@@ -179,7 +187,9 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
         if js_file.exists():
             source = js_file.read_text(encoding="utf-8")
             results.append({"name": f"{app_name}:{doctype}.js", "script": source})
-            logger.info("file_scripts.client_loaded", app=app_name, doctype=doctype, file=str(js_file))
+            logger.info(
+                "file_scripts.client_loaded", app=app_name, doctype=doctype, file=str(js_file)
+            )
 
     # Cache result (including empty — to avoid repeated disk reads)
     FILE_CLIENT_SCRIPT_REGISTRY[doctype] = results

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import email
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from email.message import EmailMessage
 from typing import Any
 
@@ -21,7 +21,9 @@ class EmailService:
     async def send_now(account: dict[str, Any], message: dict[str, Any]) -> None:
         """Send an email immediately using the provided account settings."""
         if not account.get("enable_outgoing"):
-            raise ValueError(f"Outgoing email is disabled for account {account.get('email_address')}")
+            raise ValueError(
+                f"Outgoing email is disabled for account {account.get('email_address')}"
+            )
 
         smtp_server = account.get("smtp_server")
         smtp_port = account.get("smtp_port", 587)
@@ -45,11 +47,9 @@ class EmailService:
                 if username and password:
                     await smtp.login(username, password)
                 await smtp.send_message(msg)
-            
+
             logger.info(
-                "email.sent", 
-                recipient=message.get("recipient"), 
-                subject=message.get("subject")
+                "email.sent", recipient=message.get("recipient"), subject=message.get("subject")
             )
         except Exception as e:
             logger.error("email.send_failed", error=str(e), recipient=message.get("recipient"))
@@ -64,13 +64,17 @@ class EmailService:
         imap_server = account.get("imap_server")
         imap_port = account.get("imap_port", 993)
         use_ssl = account.get("use_ssl", True)
-        username = account.get("email_address") # Often same as address
-        password = account.get("smtp_password") # Use common password for now
+        username = account.get("email_address")  # Often same as address
+        password = account.get("smtp_password")  # Use common password for now
 
         emails: list[dict[str, Any]] = []
 
         try:
-            imap = aioimaplib.IMAP4_SSL(imap_server, imap_port) if use_ssl else aioimaplib.IMAP4(imap_server, imap_port)
+            imap = (
+                aioimaplib.IMAP4_SSL(imap_server, imap_port)
+                if use_ssl
+                else aioimaplib.IMAP4(imap_server, imap_port)
+            )
             await imap.wait_hello()
             await imap.login(username, password)
             await imap.select("INBOX")
@@ -83,7 +87,7 @@ class EmailService:
                     if status == "OK":
                         raw_email = data[1]
                         msg = email.message_from_bytes(raw_email)
-                        
+
                         # Basic parsing
                         body = ""
                         if msg.is_multipart():
@@ -94,13 +98,15 @@ class EmailService:
                         else:
                             body = msg.get_payload(decode=True).decode()
 
-                        emails.append({
-                            "sender": msg["From"],
-                            "subject": msg["Subject"],
-                            "content": body,
-                            "date": msg["Date"]
-                        })
-                        
+                        emails.append(
+                            {
+                                "sender": msg["From"],
+                                "subject": msg["Subject"],
+                                "content": body,
+                                "date": msg["Date"],
+                            }
+                        )
+
             await imap.logout()
             logger.info("email.pulled", count=len(emails), account=account.get("email_address"))
 
@@ -123,8 +129,8 @@ class EmailService:
         outgoing EmailAccount (the first account with enable_outgoing=True).
         """
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         # Find the default outgoing account id (best-effort — None if unconfigured)
         email_account_id: str | None = None
@@ -151,7 +157,7 @@ class EmailService:
 
         queue_table = compile_doctype_to_table(queue_dt)
         record_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         await session.execute(
             queue_table.insert().values(

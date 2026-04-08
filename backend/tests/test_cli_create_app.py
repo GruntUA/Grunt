@@ -4,10 +4,6 @@ from __future__ import annotations
 
 import importlib
 import json
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-import pytest
 
 
 class TestCreateApp:
@@ -27,9 +23,7 @@ class TestCreateApp:
         (app_dir / default_module / "hooks").mkdir(parents=True)
 
         # Create __init__.py files
-        (app_dir / "__init__.py").write_text(
-            f'"""Grunt app: {label}"""\n\n__version__ = "0.1.0"\n'
-        )
+        (app_dir / "__init__.py").write_text(f'"""Grunt app: {label}"""\n\n__version__ = "0.1.0"\n')
         (app_dir / default_module / "__init__.py").write_text(
             f'"""Module {default_module} for {label}."""\n'
         )
@@ -41,10 +35,10 @@ class TestCreateApp:
         # app.json with full metadata
         app_json_content = {
             "name": name,
-                    "title": label,
-                    "version": "0.1.0",
-                    "description": f"{label} Grunt app",
-                    "author": "",
+            "title": label,
+            "version": "0.1.0",
+            "description": f"{label} Grunt app",
+            "author": "",
             "modules": [default_module],
             "icon": "📦",
             "color": "#2D6A4F",
@@ -64,19 +58,26 @@ class TestCreateApp:
             f'APP_ICON = "📦"\n'
             f'APP_COLOR = "#2D6A4F"\n'
             f'MODULES = ["{default_module}"]\n'
-            f'DEPENDS_ON = []\n'
+            f"DEPENDS_ON = []\n"
         )
 
         # fixtures/00_workspace.json (inside module)
         (app_dir / default_module / "fixtures" / "00_workspace.json").write_text(
-            json.dumps([{
-                "name": name,
-                "label": label,
-                "icon": "📦",
-                "color": "#2D6A4F",
-                "description": "",
-                "items": []
-            }], ensure_ascii=False, indent=2) + "\n"
+            json.dumps(
+                [
+                    {
+                        "name": name,
+                        "label": label,
+                        "icon": "📦",
+                        "color": "#2D6A4F",
+                        "description": "",
+                        "items": [],
+                    }
+                ],
+                ensure_ascii=False,
+                indent=2,
+            )
+            + "\n"
         )
 
         # Verify all files exist
@@ -104,12 +105,14 @@ class TestCreateApp:
 
             assert module.APP_NAME == "test_app"
             assert module.APP_TITLE == "Test App"
-            assert module.MODULES == [default_module]
+            assert [default_module] == module.MODULES
             assert module.APP_ICON == "📦"
             assert module.APP_COLOR == "#2D6A4F"
 
         # Verify fixtures content
-        fixtures = json.loads((app_dir / default_module / "fixtures" / "00_workspace.json").read_text())
+        fixtures = json.loads(
+            (app_dir / default_module / "fixtures" / "00_workspace.json").read_text()
+        )
         assert isinstance(fixtures, list)
         assert len(fixtures) == 1
         assert fixtures[0]["name"] == "test_app"

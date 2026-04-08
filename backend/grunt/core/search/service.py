@@ -17,7 +17,6 @@ import structlog
 from sqlalchemy import (
     Column,
     DateTime,
-    Index,
     MetaData,
     String,
     Table,
@@ -28,7 +27,7 @@ from sqlalchemy import (
     select,
     text,
 )
-from sqlalchemy.dialects.postgresql import TSVECTOR, insert as pg_insert
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.core.metadata.doctype import DocType
@@ -42,13 +41,13 @@ _INDEX_META = MetaData()
 _search_index_table = Table(
     _INDEX_TABLE_NAME,
     _INDEX_META,
-    Column("idx_id", String(512), primary_key=True),   # "{doctype}:{doc_id}"
+    Column("idx_id", String(512), primary_key=True),  # "{doctype}:{doc_id}"
     Column("doctype", String(255), nullable=False),
     Column("doc_id", String(255), nullable=False),
     Column("doc_name", Text),
     Column("title", Text),
     Column("module", String(255)),
-    Column("content_raw", Text),                        # space-joined text for fallback
+    Column("content_raw", Text),  # space-joined text for fallback
     Column("updated_at", DateTime(timezone=True), server_default=func.now()),
 )
 
@@ -59,19 +58,38 @@ _PG_TSVECTOR_INDEX_SQL = text(
     "USING GIN (to_tsvector('simple', coalesce(content_raw, '')))"
 )
 _PG_DOCTYPE_INDEX_SQL = text(
-    "CREATE INDEX IF NOT EXISTS grunt_search_idx_doctype "
-    "ON grunt_search_index (doctype)"
+    "CREATE INDEX IF NOT EXISTS grunt_search_idx_doctype ON grunt_search_index (doctype)"
 )
 
-_SKIP_FIELDTYPES = frozenset([
-    "Section", "Column", "Tab", "Table", "MultiLink",
-    "Image", "Attach", "Signature", "Geolocation", "JSON", "Code",
-])
-_TEXT_FIELDTYPES = frozenset([
-    "Text", "LongText", "RichText", "Data",
-    "Int", "Float", "Check",
-    "Select", "Link", "Color",
-])
+_SKIP_FIELDTYPES = frozenset(
+    [
+        "Section",
+        "Column",
+        "Tab",
+        "Table",
+        "MultiLink",
+        "Image",
+        "Attach",
+        "Signature",
+        "Geolocation",
+        "JSON",
+        "Code",
+    ]
+)
+_TEXT_FIELDTYPES = frozenset(
+    [
+        "Text",
+        "LongText",
+        "RichText",
+        "Data",
+        "Int",
+        "Float",
+        "Check",
+        "Select",
+        "Link",
+        "Color",
+    ]
+)
 
 
 def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
@@ -109,7 +127,6 @@ def _is_postgres(engine: AsyncEngine) -> bool:
 
 
 class SearchIndexService:
-
     async def ensure_table(self, engine: AsyncEngine) -> None:
         """Create grunt_search_index table + indexes if they don't exist."""
         async with engine.begin() as conn:
@@ -167,9 +184,7 @@ class SearchIndexService:
             else:
                 # SQLite: delete + insert (no native upsert for composite)
                 await session.execute(
-                    delete(_search_index_table).where(
-                        _search_index_table.c.idx_id == idx_id
-                    )
+                    delete(_search_index_table).where(_search_index_table.c.idx_id == idx_id)
                 )
                 stmt = _search_index_table.insert().values(**row)
 
@@ -187,9 +202,7 @@ class SearchIndexService:
         idx_id = f"{doctype}:{doc_id}"
         try:
             await session.execute(
-                delete(_search_index_table).where(
-                    _search_index_table.c.idx_id == idx_id
-                )
+                delete(_search_index_table).where(_search_index_table.c.idx_id == idx_id)
             )
         except Exception:  # noqa: BLE001
             logger.warning("search_index.remove_failed", doctype=doctype, doc_id=doc_id)
@@ -226,25 +239,20 @@ class SearchIndexService:
                 ts_query = func.plainto_tsquery("simple", q)
                 ts_vector = func.to_tsvector("simple", func.coalesce(t.c.content_raw, ""))
                 stmt = (
-                    base
-                    .where(ts_vector.op("@@")(ts_query))
+                    base.where(ts_vector.op("@@")(ts_query))
                     .order_by(func.ts_rank(ts_vector, ts_query).desc())
                     .limit(limit)
                 )
             else:
                 # SQLite fallback: simple ILIKE on raw content + name
                 pattern = f"%{q}%"
-                stmt = (
-                    base
-                    .where(
-                        or_(
-                            t.c.content_raw.ilike(pattern),
-                            t.c.doc_name.ilike(pattern),
-                            t.c.title.ilike(pattern),
-                        )
+                stmt = base.where(
+                    or_(
+                        t.c.content_raw.ilike(pattern),
+                        t.c.doc_name.ilike(pattern),
+                        t.c.title.ilike(pattern),
                     )
-                    .limit(limit)
-                )
+                ).limit(limit)
 
             rows = (await session.execute(stmt)).fetchall()
             return [dict(r._mapping) for r in rows]
@@ -259,8 +267,8 @@ class SearchIndexService:
         engine: AsyncEngine,
     ) -> int:
         """Rebuild the entire search index from all DocType tables. Returns count."""
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         # Clear index
         await session.execute(delete(_search_index_table))

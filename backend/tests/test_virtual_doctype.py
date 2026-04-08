@@ -2,8 +2,8 @@
 
 import pytest
 
-from grunt.core.metadata.virtual import VirtualDocType
 from grunt.core.metadata.doctype import DocType
+from grunt.core.metadata.virtual import VirtualDocType
 
 
 class TestVirtualDocTypeBase:
@@ -96,6 +96,7 @@ class TestVirtualDocTypeSubclass:
     async def test_custom_delete(self):
         class MockAPI(VirtualDocType):
             _deleted = []
+
             async def delete(self, doc_id, **kwargs):
                 self._deleted.append(doc_id)
 

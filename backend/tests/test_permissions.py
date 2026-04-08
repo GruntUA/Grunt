@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
-from httpx import AsyncClient
 
 from grunt.core.metadata.doctype import DocType, DocTypePermission
 from grunt.core.permissions.rbac import permission_checker
 
+if TYPE_CHECKING:
+    from httpx import AsyncClient
 
 # ── Unit tests for PermissionChecker ─────────────────────────────────────
 

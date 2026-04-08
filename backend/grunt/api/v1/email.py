@@ -132,7 +132,9 @@ async def retry_queue_item(
 
     tokens = grunt.set_context(session=svc.session, engine=svc.engine, user=user)
     try:
-        await grunt.db.set_value("EmailQueue", queue_id, {"status": "Pending", "error_message": None})
+        await grunt.db.set_value(
+            "EmailQueue", queue_id, {"status": "Pending", "error_message": None}
+        )
     finally:
         grunt.reset_context(tokens)
     return {"success": True}

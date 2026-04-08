@@ -25,6 +25,7 @@ Example usage in a DocType controller:
             msgprint(f"Amount: {self.doc.total}", type="success")
 """
 
+
 # Lazy loading to avoid circular imports
 def __getattr__(name: str):
     """Lazy load API exports when first accessed."""
@@ -100,5 +101,3 @@ __all__ = [
     "get_site",
     "clear_context",
 ]
-
-

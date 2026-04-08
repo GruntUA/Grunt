@@ -23,11 +23,26 @@ def get_doc_service(
 
 
 _PAGE_FIELDS = [
-    "id", "route", "title", "icon", "component",
-    "app", "sidebar_section", "sidebar_order", "is_default_home",
+    "id",
+    "route",
+    "title",
+    "icon",
+    "component",
+    "app",
+    "sidebar_section",
+    "sidebar_order",
+    "is_default_home",
 ]
 
-_PAGE_UPDATABLE = {"title", "icon", "component", "app", "sidebar_section", "sidebar_order", "is_default_home"}
+_PAGE_UPDATABLE = {
+    "title",
+    "icon",
+    "component",
+    "app",
+    "sidebar_section",
+    "sidebar_order",
+    "is_default_home",
+}
 
 
 @router.get("/")
@@ -37,7 +52,8 @@ async def list_pages(
 ) -> dict[str, Any]:
     """List all registered custom pages."""
     result = await svc.list_documents(
-        "Page", user,
+        "Page",
+        user,
         per_page=10000,
         sort_by="sidebar_order",
         sort_order="asc",

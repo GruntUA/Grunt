@@ -1,17 +1,19 @@
 """Workflow engine — state machine for DocType documents."""
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import contextlib
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import structlog
 from fastapi import HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-from grunt.core.metadata.doctype import DocType, WorkflowTransition, WorkflowState
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
     from grunt.core.auth.models import GruntUser
+    from grunt.core.metadata.doctype import DocType, WorkflowState, WorkflowTransition
 
 logger = structlog.get_logger()
 
@@ -30,7 +32,7 @@ class WorkflowEngine:
         self,
         doctype: DocType,
         doc: dict,
-        user: "GruntUser",
+        user: GruntUser,
     ) -> list[WorkflowTransition]:
         if not doctype.workflow:
             return []
@@ -44,13 +46,13 @@ class WorkflowEngine:
             # Check roles
             if t.allowed_roles:
                 user_roles = set(getattr(user, "roles", []) or [])
-                if not user_roles.intersection(set(t.allowed_roles)):
-                    if not getattr(user, "is_superadmin", False):
-                        continue
-            # Check condition
-            if t.condition:
-                if not self._eval_condition(t.condition, doc, user.email):
+                if not user_roles.intersection(set(t.allowed_roles)) and not getattr(
+                    user, "is_superadmin", False
+                ):
                     continue
+            # Check condition
+            if t.condition and not self._eval_condition(t.condition, doc, user.email):
+                continue
             available.append(t)
         return available
 
@@ -59,12 +61,13 @@ class WorkflowEngine:
         doctype: DocType,
         doc_id: str,
         action: str,
-        user: "GruntUser",
+        user: GruntUser,
         session: AsyncSession,
         engine: AsyncEngine,
     ) -> dict:
+        from sqlalchemy import MetaData, Table, select, update
+
         from grunt.core.metadata.compiler import get_table_name
-        from sqlalchemy import select, update, Table, MetaData
 
         table_name = get_table_name(doctype.module, doctype.name)
         meta = MetaData()
@@ -93,7 +96,7 @@ class WorkflowEngine:
 
         # Apply
         state_field = doctype.workflow.state_field  # type: ignore[union-attr]
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         async with engine.begin() as conn:
             await conn.execute(
                 update(table)
@@ -108,6 +111,7 @@ class WorkflowEngine:
 
         # Run controller after_save (so apps can react to state changes)
         from grunt.core.document.registry import document_registry  # noqa: PLC0415
+
         try:
             controller_cls = document_registry.get(doctype.name)
             controller = controller_cls(doctype.name, updated_doc, user, session)
@@ -117,6 +121,7 @@ class WorkflowEngine:
 
         # Fire on_transition hooks
         from grunt.core.hooks import fire as fire_hook  # noqa: PLC0415
+
         try:
             await fire_hook(
                 "on_transition",
@@ -144,7 +149,7 @@ class WorkflowEngine:
             logger.exception("hook.after_save_on_transition_error")
 
         # Log activity
-        try:
+        with contextlib.suppress(Exception):
             await self._log_activity(
                 doctype=doctype.name,
                 doc_id=doc_id,
@@ -157,11 +162,9 @@ class WorkflowEngine:
                 },
                 session=session,
             )
-        except Exception:  # noqa: BLE001
-            pass  # Non-critical
 
         # Broadcast WS
-        try:
+        with contextlib.suppress(Exception):
             from grunt.api.v1.ws import manager  # noqa: PLC0415
 
             await manager.broadcast_doc(
@@ -172,8 +175,6 @@ class WorkflowEngine:
                     "data": {"action": action, "to_state": transition.to_state},
                 },
             )
-        except Exception:  # noqa: BLE001
-            pass
 
         # Return updated doc (already read above)
         return updated_doc
@@ -188,12 +189,13 @@ class WorkflowEngine:
         session: AsyncSession,
     ) -> None:
         import uuid  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         table = compile_doctype_to_table(doctype_registry._doctypes["ActivityLog"])
         entry_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         await session.execute(
             table.insert().values(
                 id=entry_id,

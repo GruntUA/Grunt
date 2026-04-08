@@ -18,7 +18,7 @@ Pattern tokens:
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 # Regex to find .TOKEN. placeholders in the pattern.
@@ -63,7 +63,7 @@ def build_prefix(parts: list[str | tuple[str, int]], now: datetime | None = None
     This is used as the key for the counter in the naming_series table.
     """
     if now is None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
     prefix_parts: list[str] = []
     for part in parts:
@@ -78,10 +78,12 @@ def build_prefix(parts: list[str | tuple[str, int]], now: datetime | None = None
     return "".join(prefix_parts)
 
 
-def format_name(parts: list[str | tuple[str, int]], counter: int, now: datetime | None = None) -> str:
+def format_name(
+    parts: list[str | tuple[str, int]], counter: int, now: datetime | None = None
+) -> str:
     """Format a complete name from parsed parts and a counter value."""
     if now is None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
     result: list[str] = []
     for part in parts:
@@ -114,6 +116,7 @@ def resolve_simple(pattern: str, data: dict[str, Any]) -> str | None:
 
     if pattern == "hash":
         import uuid
+
         return uuid.uuid4().hex[:10]
 
     if pattern == "prompt":

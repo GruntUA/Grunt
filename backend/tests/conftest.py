@@ -7,24 +7,22 @@ import logging
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+import grunt.core.auth.models  # noqa: F401
+import grunt.core.db.system_tables  # noqa: F401
 from grunt.core.db.base import Base
 from grunt.core.db.session import get_session
-from grunt.core.metadata.compiler import SA_METADATA, MULTI_LINK_TABLE, compile_doctype_to_table
+from grunt.core.metadata.compiler import MULTI_LINK_TABLE, SA_METADATA, compile_doctype_to_table
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.search.service import search_index_service
 from grunt.main import app
-
-import grunt.core.db.system_tables  # noqa: F401
-import grunt.core.auth.models  # noqa: F401
 
 # ── Single shared test engine ─────────────────────────────────────────────
 
 TEST_DB_URL = "sqlite+aiosqlite://"
 
 test_engine = create_async_engine(TEST_DB_URL, echo=False)
-TestSessionLocal = async_sessionmaker(
-    test_engine, class_=AsyncSession, expire_on_commit=False
-)
+TestSessionLocal = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
 
 
 async def override_get_session():
@@ -65,7 +63,9 @@ async def setup_db():
     # Remove previously compiled dynamic doctype tables from SA_METADATA
     # Preserve static tables (e.g. grunt_core_multi_link) defined at module level
     _static_tables = {MULTI_LINK_TABLE.name}
-    to_remove = [t for t in SA_METADATA.tables if t.startswith("grunt_") and t not in _static_tables]
+    to_remove = [
+        t for t in SA_METADATA.tables if t.startswith("grunt_") and t not in _static_tables
+    ]
     for name in to_remove:
         if name in SA_METADATA.tables:
             SA_METADATA.remove(SA_METADATA.tables[name])
@@ -73,7 +73,9 @@ async def setup_db():
     # Compile and create core doctype tables from JSON files, and register in doctype_registry
     import json
     from pathlib import Path
+
     from grunt.core.metadata.doctype import DocType as _DocType
+
     _core_dir = Path(__file__).parent.parent / "grunt" / "core" / "doctypes"
     for _dt_file in sorted(_core_dir.glob("**/*.json")):
         try:
@@ -99,7 +101,9 @@ async def setup_db():
     # Remove dynamic doctype tables; preserve static tables (e.g. grunt_core_multi_link)
     # so they stay in SA_METADATA and get re-created by the next test's create_all.
     _static_tables = {MULTI_LINK_TABLE.name}
-    to_remove = [t for t in SA_METADATA.tables if t.startswith("grunt_") and t not in _static_tables]
+    to_remove = [
+        t for t in SA_METADATA.tables if t.startswith("grunt_") and t not in _static_tables
+    ]
     for name in to_remove:
         if name in SA_METADATA.tables:
             SA_METADATA.remove(SA_METADATA.tables[name])

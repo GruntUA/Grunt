@@ -7,6 +7,10 @@ from typing import TYPE_CHECKING
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
+from grunt.api.v1.auth.schemas import (
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
+)
 from grunt.core.auth.service import (
     consume_password_reset_token,
     create_password_reset_token,
@@ -14,10 +18,6 @@ from grunt.core.auth.service import (
 from grunt.core.db.session import get_session
 from grunt.core.doctypes.user.user import get_user_by_email
 from grunt.core.middleware.rate_limit import limiter
-from grunt.api.v1.auth.schemas import (
-    ForgotPasswordRequest,
-    ResetPasswordRequest,
-)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,10 +27,12 @@ router = APIRouter()
 
 def _rate_limit(limit: str):
     """Decorator for rate limiting."""
+
     def decorator(func):  # type: ignore[return]
         if limiter is not None:
             return limiter.limit(limit)(func)
         return func
+
     return decorator
 
 
@@ -50,6 +52,7 @@ async def forgot_password(
     token = await create_password_reset_token(user.id, session)
 
     from grunt.config import settings  # noqa: PLC0415
+
     reset_url = f"{settings.app_url}/reset-password?token={token}"
 
     try:

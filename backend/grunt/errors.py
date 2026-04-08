@@ -1,5 +1,6 @@
 """Grunt exception classes."""
 
+
 class GruntError(Exception):
     """User-facing error raised via ``grunt.throw()``.
 

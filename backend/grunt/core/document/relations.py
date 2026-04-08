@@ -9,13 +9,14 @@ from typing import TYPE_CHECKING, Any
 import structlog
 from sqlalchemy import select
 
+from grunt.core.document.validation import _coerce_value
 from grunt.core.metadata.compiler import compile_doctype_to_table
 from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.core.metadata.registry import doctype_registry
-from grunt.core.document.validation import _coerce_value
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+
     from grunt.core.auth.models import GruntUser
     from grunt.core.metadata.doctype import DocType
 
@@ -72,9 +73,7 @@ async def _save_child_tables(
             child_dt = await doctype_registry.get(field.options)
             child_table = compile_doctype_to_table(child_dt)
             # Delete existing rows for this parent
-            await session.execute(
-                child_table.delete().where(child_table.c.parent_id == parent_id)
-            )
+            await session.execute(child_table.delete().where(child_table.c.parent_id == parent_id))
             # Build all rows then insert in one batch
             rows_to_insert: list[dict[str, Any]] = []
             for idx, child_data in enumerate(child_rows):
@@ -109,5 +108,8 @@ async def _save_child_tables(
                 await session.execute(child_table.insert(), rows_to_insert)
         except Exception:
             logger.exception(
-                "child_table.save_error", doctype=dt.name, field=field.fieldname, parent_id=parent_id
+                "child_table.save_error",
+                doctype=dt.name,
+                field=field.fieldname,
+                parent_id=parent_id,
             )

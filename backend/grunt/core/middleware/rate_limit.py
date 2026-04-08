@@ -1,4 +1,5 @@
 """Rate limiting via slowapi (optional dependency)."""
+
 from __future__ import annotations
 
 try:

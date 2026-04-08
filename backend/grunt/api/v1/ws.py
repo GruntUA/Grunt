@@ -6,8 +6,7 @@ import json
 from typing import Any
 
 import structlog
-
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
 logger = structlog.get_logger()
 
@@ -49,6 +48,7 @@ class ConnectionManager:
         logger.debug("ws.connect", channel=channel, total=total)
         try:
             from grunt.core.monitoring.metrics import ws_connections_active  # noqa: PLC0415
+
             if ws_connections_active is not None:
                 ws_connections_active.set(total)
         except Exception:  # noqa: BLE001
@@ -61,6 +61,7 @@ class ConnectionManager:
         total = self._total_connections()
         try:
             from grunt.core.monitoring.metrics import ws_connections_active  # noqa: PLC0415
+
             if ws_connections_active is not None:
                 ws_connections_active.set(total)
         except Exception:  # noqa: BLE001
@@ -116,8 +117,9 @@ class ConnectionManager:
 
         while True:
             try:
-                from grunt.config import settings  # noqa: PLC0415
                 import redis.asyncio as aioredis  # noqa: PLC0415
+
+                from grunt.config import settings  # noqa: PLC0415
 
                 r = aioredis.from_url(settings.redis_url)
                 pubsub = r.pubsub()
@@ -125,9 +127,15 @@ class ConnectionManager:
                 async for msg in pubsub.listen():
                     if msg["type"] != "pmessage":
                         continue
-                    full_key: str = msg["channel"].decode() if isinstance(msg["channel"], bytes) else msg["channel"]
+                    full_key: str = (
+                        msg["channel"].decode()
+                        if isinstance(msg["channel"], bytes)
+                        else msg["channel"]
+                    )
                     channel = full_key.removeprefix("grunt:ws:")
-                    data: str = msg["data"].decode() if isinstance(msg["data"], bytes) else msg["data"]
+                    data: str = (
+                        msg["data"].decode() if isinstance(msg["data"], bytes) else msg["data"]
+                    )
                     if channel == "__broadcast_users__":
                         await self._handle_broadcast_users(data)
                     else:
@@ -174,13 +182,13 @@ class ConnectionManager:
     def _presence_list(self, channel: str) -> list[dict[str, str]]:
         return list(self._presence.get(channel, {}).values())
 
-    async def presence_join(
-        self, channel: str, ws: WebSocket, user_info: dict[str, str]
-    ) -> None:
+    async def presence_join(self, channel: str, ws: WebSocket, user_info: dict[str, str]) -> None:
         self._presence.setdefault(channel, {})[id(ws)] = user_info
         await self._send(
             channel,
-            json.dumps({"event": "presence_update", "data": {"users": self._presence_list(channel)}}),
+            json.dumps(
+                {"event": "presence_update", "data": {"users": self._presence_list(channel)}}
+            ),
         )
 
     async def presence_leave(self, channel: str, ws: WebSocket) -> None:
@@ -202,12 +210,12 @@ class ConnectionManager:
 
         await self._send(
             channel,
-            json.dumps({"event": "presence_update", "data": {"users": self._presence_list(channel)}}),
+            json.dumps(
+                {"event": "presence_update", "data": {"users": self._presence_list(channel)}}
+            ),
         )
 
-    async def field_focus(
-        self, channel: str, ws: WebSocket, fieldname: str
-    ) -> None:
+    async def field_focus(self, channel: str, ws: WebSocket, fieldname: str) -> None:
         presence = self._presence.get(channel, {})
         user_info = presence.get(id(ws))
         if user_info is None:
@@ -241,6 +249,7 @@ async def _authenticate_ws(websocket: WebSocket, token: str | None) -> str | Non
         return None
     try:
         import jwt  # noqa: PLC0415
+
         from grunt.config import settings  # noqa: PLC0415
 
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
@@ -327,6 +336,7 @@ async def ws_document(
     if not user_email:
         return
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
     try:
         dt = await doctype_registry.get(doctype)
         normalized_doctype = dt.name
@@ -377,6 +387,7 @@ async def ws_list(
     if not user_email:
         return
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
     try:
         dt = await doctype_registry.get(doctype)
         normalized_doctype = dt.name

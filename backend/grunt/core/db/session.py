@@ -95,5 +95,3 @@ async def async_session_factory() -> AsyncGenerator[AsyncSession, None]:
                 _clear()
             except ImportError:
                 pass
-
-

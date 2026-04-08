@@ -59,6 +59,7 @@ from grunt.core.scripting.file_scripts import (  # noqa: E402, I001
     _load_doctype_dir_scripts as _load_dt_scripts,
     register_client_script_dir as _reg_client_dirs,
 )
+
 _core_doctypes_dir = _Path(__file__).parent / "core" / "doctypes"
 _reg_client_dirs("grunt", _core_doctypes_dir)
 for _dt_dir in sorted(_core_doctypes_dir.iterdir()):

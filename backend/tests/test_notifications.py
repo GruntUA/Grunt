@@ -20,16 +20,12 @@ class TestResolveRecipients:
 
     def test_literal_email(self):
         doc = {}
-        recipients = self.svc._resolve_recipients(
-            "manager@example.com", doc, "admin@example.com"
-        )
+        recipients = self.svc._resolve_recipients("manager@example.com", doc, "admin@example.com")
         assert recipients == ["manager@example.com"]
 
     def test_field_reference(self):
         doc = {"assigned_to": "worker@example.com"}
-        recipients = self.svc._resolve_recipients(
-            "{field:assigned_to}", doc, "admin@example.com"
-        )
+        recipients = self.svc._resolve_recipients("{field:assigned_to}", doc, "admin@example.com")
         assert recipients == ["worker@example.com"]
 
     def test_multiple_recipients(self):
@@ -83,23 +79,32 @@ class TestEvalCondition:
         self.svc = NotificationService()
 
     def test_true_condition(self):
-        assert self.svc._eval_condition(
-            "doc.get('status') == 'Active'",
-            {"status": "Active"},
-            "user@example.com",
-        ) is True
+        assert (
+            self.svc._eval_condition(
+                "doc.get('status') == 'Active'",
+                {"status": "Active"},
+                "user@example.com",
+            )
+            is True
+        )
 
     def test_false_condition(self):
-        assert self.svc._eval_condition(
-            "doc.get('status') == 'Active'",
-            {"status": "Draft"},
-            "user@example.com",
-        ) is False
+        assert (
+            self.svc._eval_condition(
+                "doc.get('status') == 'Active'",
+                {"status": "Draft"},
+                "user@example.com",
+            )
+            is False
+        )
 
     def test_invalid_condition_returns_true(self):
         """Invalid conditions should not block notifications."""
-        assert self.svc._eval_condition(
-            "invalid python {{{{",
-            {},
-            "user@example.com",
-        ) is True
+        assert (
+            self.svc._eval_condition(
+                "invalid python {{{{",
+                {},
+                "user@example.com",
+            )
+            is True
+        )

@@ -2,30 +2,30 @@
 
 from fastapi import APIRouter
 
-from grunt.api.v1.health import router as health_router
-from grunt.api.v1.auth import router as auth_router
-from grunt.api.v1.meta import router as meta_router
-from grunt.api.v1.docs import router as docs_router
-from grunt.api.v1.ws import router as ws_router
-from grunt.api.v1.apps import router as apps_router
-from grunt.api.v1.reports import router as reports_router
-from grunt.api.v1.pages import router as pages_router
-from grunt.api.v1.workspace import router as workspace_router
-from grunt.api.v1.search import router as search_router
-from grunt.api.v1.files import router as files_router
-from grunt.api.v1.notifications import router as notifications_router
-from grunt.api.v1.translations import router as translations_router
-from grunt.api.v1.scripting import router as scripting_router
-from grunt.api.v1.webform import router as webform_router
-from grunt.api.v1.dashboard import router as dashboard_router
-from grunt.api.v1.metrics import router as metrics_router
-from grunt.api.v1.oauth import router as oauth_router
-from grunt.api.v1.data_import import router as data_import_router
 from grunt.api.v1.activity import router as activity_router
-from grunt.api.v1.hooks import router as hooks_router
-from grunt.api.v1.email import router as email_router
+from grunt.api.v1.apps import router as apps_router
 from grunt.api.v1.assignment import router as assignment_router
+from grunt.api.v1.auth import router as auth_router
+from grunt.api.v1.dashboard import router as dashboard_router
+from grunt.api.v1.data_import import router as data_import_router
 from grunt.api.v1.dev import router as dev_router
+from grunt.api.v1.docs import router as docs_router
+from grunt.api.v1.email import router as email_router
+from grunt.api.v1.files import router as files_router
+from grunt.api.v1.health import router as health_router
+from grunt.api.v1.hooks import router as hooks_router
+from grunt.api.v1.meta import router as meta_router
+from grunt.api.v1.metrics import router as metrics_router
+from grunt.api.v1.notifications import router as notifications_router
+from grunt.api.v1.oauth import router as oauth_router
+from grunt.api.v1.pages import router as pages_router
+from grunt.api.v1.reports import router as reports_router
+from grunt.api.v1.scripting import router as scripting_router
+from grunt.api.v1.search import router as search_router
+from grunt.api.v1.translations import router as translations_router
+from grunt.api.v1.webform import router as webform_router
+from grunt.api.v1.workspace import router as workspace_router
+from grunt.api.v1.ws import router as ws_router
 
 v1_router = APIRouter()
 

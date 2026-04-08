@@ -23,8 +23,8 @@ async def get_client_scripts(
 
     Returns a list of dicts with `name` and `script` keys.
     """
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
     table = compile_doctype_to_table(doctype_registry._doctypes["ClientScript"])
     stmt = (

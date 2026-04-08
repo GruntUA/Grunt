@@ -1,10 +1,11 @@
 """Role-based access control."""
+
 from __future__ import annotations
 
-from typing import Literal, TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
-from fastapi import HTTPException, status
 import structlog
+from fastapi import HTTPException, status
 
 if TYPE_CHECKING:
     from grunt.core.auth.models import GruntUser
@@ -16,8 +17,8 @@ logger = structlog.get_logger()
 class PermissionChecker:
     async def check(
         self,
-        user: "GruntUser",
-        doctype: "DocType",
+        user: GruntUser,
+        doctype: DocType,
         action: Literal["read", "write", "create", "delete", "submit"],
         doc: dict | None = None,
     ) -> bool:
@@ -34,16 +35,12 @@ class PermissionChecker:
             if role not in user_roles and role != "All":
                 continue
             perm_val = (
-                getattr(perm, action, False)
-                if hasattr(perm, action)
-                else perm.get(action, False)
+                getattr(perm, action, False) if hasattr(perm, action) else perm.get(action, False)
             )
             if not perm_val:
                 continue
             # Check match expression
-            match_expr = (
-                perm.match if hasattr(perm, "match") else perm.get("match")
-            )
+            match_expr = perm.match if hasattr(perm, "match") else perm.get("match")
             if match_expr and doc:
                 if not self._eval_match(match_expr, user, doc):
                     continue
@@ -53,8 +50,8 @@ class PermissionChecker:
 
     async def require(
         self,
-        user: "GruntUser",
-        doctype: "DocType",
+        user: GruntUser,
+        doctype: DocType,
         action: Literal["read", "write", "create", "delete", "submit"],
         doc: dict | None = None,
     ) -> None:
@@ -74,8 +71,8 @@ class PermissionChecker:
 
     def hidden_fields(
         self,
-        user: "GruntUser",
-        doctype: "DocType",
+        user: GruntUser,
+        doctype: DocType,
     ) -> frozenset[str]:
         """Return the set of field names the user is NOT allowed to see.
 
@@ -98,9 +95,7 @@ class PermissionChecker:
             if role not in user_roles and role != "All":
                 continue
             read_ok = (
-                getattr(perm, "read", False)
-                if hasattr(perm, "read")
-                else perm.get("read", False)
+                getattr(perm, "read", False) if hasattr(perm, "read") else perm.get("read", False)
             )
             if not read_ok:
                 continue
@@ -118,7 +113,7 @@ class PermissionChecker:
 
         return frozenset(hidden)
 
-    def _eval_match(self, match_expr: str, user: "GruntUser", doc: dict) -> bool:
+    def _eval_match(self, match_expr: str, user: GruntUser, doc: dict) -> bool:
         safe_globals: dict = {"__builtins__": {}}
         safe_locals: dict = {
             "user": user.email,

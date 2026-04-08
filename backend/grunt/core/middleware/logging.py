@@ -1,4 +1,5 @@
 """Request logging middleware — adds request_id, duration_ms, status_code to logs."""
+
 from __future__ import annotations
 
 import time
@@ -35,6 +36,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 set_request_db_threshold,
                 set_request_threshold,
             )
+
             set_request_db_threshold(settings.slow_request_db_ms)
             set_request_threshold(settings.slow_request_ms)
             with collect_for_request(request_id, threshold_ms=settings.slow_query_threshold_ms):
@@ -58,6 +60,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         # Record Prometheus metrics (always)
         try:
             from grunt.core.monitoring.metrics import record_request  # noqa: PLC0415
+
             record_request(request.method, path, response.status_code, duration_ms / 1000)
         except Exception:  # noqa: BLE001
             pass

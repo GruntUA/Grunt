@@ -63,7 +63,9 @@ async def _audit_log(
                     "doc_id": str(doc_id),
                     "action": action,
                     "user": user.email,
-                    "created_at": created_at.isoformat() if isinstance(created_at, datetime) else str(created_at or ""),
+                    "created_at": created_at.isoformat()
+                    if isinstance(created_at, datetime)
+                    else str(created_at or ""),
                 },
             )
         except Exception:  # noqa: BLE001
@@ -90,8 +92,7 @@ def _fmt(val: object) -> str:
 def _non_layout_fields(dt: Any) -> list[Any]:
     """Return fields that are not layout-only (Section, Column, Tab)."""
     return [
-        f for f in dt.fields
-        if f.fieldtype not in ("Section", "Column", "Tab") and not f.hidden
+        f for f in dt.fields if f.fieldtype not in ("Section", "Column", "Tab") and not f.hidden
     ]
 
 
@@ -151,6 +152,6 @@ def _generate_html_single(dt: Any, doc: dict[str, Any]) -> str:
 <body>
   <h1>{dt.label}</h1>
   <table>{rows}</table>
-  <div class="meta">Створено: {_fmt(doc.get('created_at'))} | Автор: {doc.get('owner', '')}</div>
+  <div class="meta">Створено: {_fmt(doc.get("created_at"))} | Автор: {doc.get("owner", "")}</div>
 </body>
 </html>"""

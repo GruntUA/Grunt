@@ -15,17 +15,17 @@ from fastapi.responses import Response, StreamingResponse
 from openpyxl.styles import Font, PatternFill
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from grunt.api.v1.docs.utils import (
+    _fmt,
+    _generate_xlsx_single,
+    _non_layout_fields,
+    get_doc_service,
+)
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_session
-from grunt.core.metadata.registry import doctype_registry
 from grunt.core.document.service import DocumentService
-from grunt.api.v1.docs.utils import (
-    get_doc_service,
-    _fmt,
-    _non_layout_fields,
-    _generate_xlsx_single,
-)
+from grunt.core.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()
 router = APIRouter()
@@ -63,22 +63,22 @@ async def export_documents(
         fields=parsed_fields,
     )
     data = res["data"]
-    
+
     # 2. Generate CSV
     output = io.StringIO()
     if data:
         writer = csv.DictWriter(output, fieldnames=data[0].keys())
         writer.writeheader()
         writer.writerows(data)
-    
+
     output.seek(0)
-    
+
     filename = f"{doctype}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-    
+
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
 
 
@@ -110,12 +110,15 @@ async def print_document(
         pf = await get_print_format_template(session, doctype, print_format)
         if pf and pf[1] == "docx":
             from grunt.core.print.renderer import render_docx  # noqa: PLC0415
+
             try:
                 docx_bytes = render_docx(pf[0], doc)
                 return Response(
                     content=docx_bytes,
                     media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    headers={"Content-Disposition": f'attachment; filename="{doctype}_{doc_id[:8]}.docx"'},
+                    headers={
+                        "Content-Disposition": f'attachment; filename="{doctype}_{doc_id[:8]}.docx"'
+                    },
                 )
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"DOCX generation error: {e}")
@@ -151,11 +154,14 @@ async def print_document(
         # PDF via WeasyPrint
         try:
             from weasyprint import HTML as WeasyprintHTML  # noqa: PLC0415
+
             pdf_bytes = WeasyprintHTML(string=html).write_pdf()
             return Response(
                 content=pdf_bytes,
                 media_type="application/pdf",
-                headers={"Content-Disposition": f'attachment; filename="{doctype}_{doc_id[:8]}.pdf"'},
+                headers={
+                    "Content-Disposition": f'attachment; filename="{doctype}_{doc_id[:8]}.pdf"'
+                },
             )
         except ImportError:
             raise HTTPException(

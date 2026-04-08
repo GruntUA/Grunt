@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query, Request, status, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
+from grunt.api.v1.docs.utils import _audit_log, get_doc_service
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import GruntUser
 from grunt.core.document.service import DocumentService
-from grunt.api.v1.docs.utils import get_doc_service, _audit_log
 
 router = APIRouter()
 
@@ -149,7 +149,9 @@ async def bulk_update_documents(
     for doc_id in ids:
         try:
             await svc.update_document(doctype, doc_id, {field: value}, user)
-            await _audit_log(svc, doctype, doc_id, "bulk_update", user, {"field": field, "value": value})
+            await _audit_log(
+                svc, doctype, doc_id, "bulk_update", user, {"field": field, "value": value}
+            )
             updated += 1
         except Exception as e:
             errors.append(f"{doc_id}: {e}")

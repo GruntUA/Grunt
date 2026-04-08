@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
 from grunt.app import grunt
 from grunt.core.auth.dependencies import current_user, superadmin_user
 from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_engine, get_session
 from grunt.core.document.registry import document_registry
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 logger = structlog.get_logger()
 
@@ -35,31 +36,34 @@ def _workspace_to_dict(ws: Any, user: GruntUser) -> dict[str, Any]:
 
         item_type = item.get("type", "DocType")
         link_to = item.get("link_to", "")
-        
+
         is_singleton = False
         if item_type == "DocType" and link_to:
             try:
                 # We can't easily await here in a sync list comp if we were using it,
                 # but we are in a loop. However, doctype_registry is often sync-cached.
                 from grunt.core.metadata.registry import doctype_registry
+
                 if link_to in doctype_registry._doctypes:
                     is_singleton = doctype_registry._doctypes[link_to].is_singleton
             except Exception:
                 pass
 
-        items.append({
-            "section": item.get("section", ""),
-            "type": item_type,
-            "label": item.get("label", ""),
-            "icon": item.get("icon", ""),
-            "link_to": link_to,
-            "show_count": item.get("show_count", False),
-            "count_filters": item.get("count_filters", ""),
-            "show_new_btn": item.get("show_new_btn", False),
-            "roles": item_roles,
-            "sequence": item.get("idx", 0),
-            "is_singleton": is_singleton,
-        })
+        items.append(
+            {
+                "section": item.get("section", ""),
+                "type": item_type,
+                "label": item.get("label", ""),
+                "icon": item.get("icon", ""),
+                "link_to": link_to,
+                "show_count": item.get("show_count", False),
+                "count_filters": item.get("count_filters", ""),
+                "show_new_btn": item.get("show_new_btn", False),
+                "roles": item_roles,
+                "sequence": item.get("idx", 0),
+                "is_singleton": is_singleton,
+            }
+        )
 
     return {
         "name": ws.name,
@@ -100,7 +104,7 @@ async def list_workspaces(
             # We need the full doc to use has_access and child tables
             ws_dict = await grunt.get_doc("WorkspaceSidebar", ws_data["name"])
             ws = WorkspaceSidebar("WorkspaceSidebar", ws_dict, user, session)
-            
+
             if ws.get("is_hidden") and not user.is_superadmin:
                 continue
             if not ws.has_access(user):
@@ -126,7 +130,7 @@ async def get_workspace(
             ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
         except HTTPException:
             raise HTTPException(status_code=404, detail=f"Workspace '{name}' не знайдено")
-        
+
         WorkspaceSidebar = document_registry.get("WorkspaceSidebar")
         ws = WorkspaceSidebar("WorkspaceSidebar", ws_dict, user, session)
 
@@ -175,11 +179,11 @@ async def update_workspace(
         ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
         WorkspaceSidebar = document_registry.get("WorkspaceSidebar")
         ws = WorkspaceSidebar("WorkspaceSidebar", ws_dict, user, session)
-        
+
         data = body.copy()
         if "items" in data:
             data["sidebar_items"] = data.pop("items")
-        
+
         ws.update(data)
         await ws.save()
         return {"success": True, "data": _workspace_to_dict(ws, user)}
@@ -220,10 +224,10 @@ async def workspace_counts(
             ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
         except HTTPException:
             raise HTTPException(status_code=404, detail="Workspace found")
-        
+
         WorkspaceSidebar = document_registry.get("WorkspaceSidebar")
         ws = WorkspaceSidebar("WorkspaceSidebar", ws_dict, user, session)
-        
+
         counts = await ws.get_counts()
         return {"success": True, "data": counts}
     finally:
@@ -246,10 +250,10 @@ async def workspace_widget_data(
             ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
         except HTTPException:
             raise HTTPException(status_code=404, detail=f"Workspace '{name}' не знайдено")
-        
+
         WorkspaceSidebar = document_registry.get("WorkspaceSidebar")
         ws = WorkspaceSidebar("WorkspaceSidebar", ws_dict, user, session)
-        
+
         if not ws.has_access(user):
             raise HTTPException(status_code=403, detail="Немає доступу до цього workspace")
 
@@ -257,12 +261,12 @@ async def workspace_widget_data(
         global_until: datetime | None = None
         if date_from:
             try:
-                global_since = datetime.fromisoformat(date_from).replace(tzinfo=timezone.utc)
+                global_since = datetime.fromisoformat(date_from).replace(tzinfo=UTC)
             except ValueError:
                 pass
         if date_to:
             try:
-                global_until = datetime.fromisoformat(date_to).replace(tzinfo=timezone.utc)
+                global_until = datetime.fromisoformat(date_to).replace(tzinfo=UTC)
             except ValueError:
                 pass
 

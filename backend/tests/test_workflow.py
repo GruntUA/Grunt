@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
-from httpx import AsyncClient
+
+if TYPE_CHECKING:
+    from httpx import AsyncClient
 
 # ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -23,9 +27,24 @@ DOCTYPE_PAYLOAD = {
             {"name": "Rejected", "label": "Відхилено", "is_final": True},
         ],
         "transitions": [
-            {"action": "Submit", "from_state": "Draft", "to_state": "Submitted", "allowed_roles": []},
-            {"action": "Approve", "from_state": "Submitted", "to_state": "Approved", "allowed_roles": []},
-            {"action": "Reject", "from_state": "Submitted", "to_state": "Rejected", "allowed_roles": []},
+            {
+                "action": "Submit",
+                "from_state": "Draft",
+                "to_state": "Submitted",
+                "allowed_roles": [],
+            },
+            {
+                "action": "Approve",
+                "from_state": "Submitted",
+                "to_state": "Approved",
+                "allowed_roles": [],
+            },
+            {
+                "action": "Reject",
+                "from_state": "Submitted",
+                "to_state": "Rejected",
+                "allowed_roles": [],
+            },
         ],
     },
 }

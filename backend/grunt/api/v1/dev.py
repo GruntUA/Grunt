@@ -20,6 +20,7 @@ def profiler_requests(limit: int = Query(50, ge=1, le=200)):
     """Recent requests with per-request query breakdown."""
     _require_debug()
     from grunt.core.db.profiler import get_recent_requests  # noqa: PLC0415
+
     return {"data": get_recent_requests(limit=limit)}
 
 
@@ -28,6 +29,7 @@ def profiler_slow_queries(limit: int = Query(100, ge=1, le=500)):
     """All slow queries from the global ring buffer."""
     _require_debug()
     from grunt.core.db.profiler import get_slow_queries  # noqa: PLC0415
+
     return {"data": get_slow_queries(limit=limit)}
 
 
@@ -36,6 +38,7 @@ def profiler_stats():
     """Aggregate stats: request count, slow query count, avg/p95 duration."""
     _require_debug()
     from grunt.core.db.profiler import get_stats  # noqa: PLC0415
+
     return {"data": get_stats()}
 
 
@@ -44,15 +47,16 @@ def profiler_clear():
     """Clear both ring buffers."""
     _require_debug()
     from grunt.core.db.profiler import clear_buffers  # noqa: PLC0415
+
     clear_buffers()
     return {"data": {"cleared": True}}
 
 
 class ProfilerSettings(BaseModel):
     enabled: bool | None = None
-    threshold_ms: float | None = None          # individual query slow threshold
-    slow_request_db_ms: float | None = None    # total DB time per request
-    slow_request_ms: float | None = None       # total request duration
+    threshold_ms: float | None = None  # individual query slow threshold
+    slow_request_db_ms: float | None = None  # total DB time per request
+    slow_request_ms: float | None = None  # total request duration
 
 
 @router.get("/profiler/settings")
@@ -60,6 +64,7 @@ def profiler_get_settings():
     """Return current profiler runtime settings."""
     _require_debug()
     from grunt.core.db.profiler import get_settings  # noqa: PLC0415
+
     return {"data": get_settings()}
 
 
@@ -68,8 +73,13 @@ def profiler_update_settings(body: ProfilerSettings):
     """Update profiler thresholds at runtime."""
     _require_debug()
     from grunt.core.db.profiler import (  # noqa: PLC0415
-        set_enabled, set_threshold, set_request_db_threshold, set_request_threshold, get_settings,
+        get_settings,
+        set_enabled,
+        set_request_db_threshold,
+        set_request_threshold,
+        set_threshold,
     )
+
     if body.enabled is not None:
         set_enabled(body.enabled)
     if body.threshold_ms is not None:

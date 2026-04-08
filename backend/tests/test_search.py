@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
-from httpx import AsyncClient
+
+if TYPE_CHECKING:
+    from httpx import AsyncClient
 
 # ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -14,9 +18,7 @@ async def create_and_sync(client: AsyncClient, headers: dict, doctype: dict) -> 
     assert resp.status_code == 201, resp.text
 
 
-async def create_doc(
-    client: AsyncClient, headers: dict, doctype: str, data: dict
-) -> dict:
+async def create_doc(client: AsyncClient, headers: dict, doctype: str, data: dict) -> dict:
     resp = await client.post(f"/api/v1/docs/{doctype}", json=data, headers=headers)
     assert resp.status_code == 201, resp.text
     return resp.json()["data"]
@@ -93,18 +95,14 @@ async def test_search_q_empty_string_rejected(client: AsyncClient, auth_headers:
 @pytest.mark.asyncio
 async def test_search_limit_above_max_rejected(client: AsyncClient, auth_headers: dict):
     """GET /search?limit=51 → 422 (max 50)."""
-    resp = await client.get(
-        "/api/v1/search", params={"q": "x", "limit": 51}, headers=auth_headers
-    )
+    resp = await client.get("/api/v1/search", params={"q": "x", "limit": 51}, headers=auth_headers)
     assert resp.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_search_limit_zero_rejected(client: AsyncClient, auth_headers: dict):
     """GET /search?limit=0 → 422 (min 1)."""
-    resp = await client.get(
-        "/api/v1/search", params={"q": "x", "limit": 0}, headers=auth_headers
-    )
+    resp = await client.get("/api/v1/search", params={"q": "x", "limit": 0}, headers=auth_headers)
     assert resp.status_code == 422
 
 
@@ -114,9 +112,7 @@ async def test_search_limit_zero_rejected(client: AsyncClient, auth_headers: dic
 @pytest.mark.asyncio
 async def test_search_response_structure(client: AsyncClient, auth_headers: dict):
     """Response always has success=True and data array."""
-    resp = await client.get(
-        "/api/v1/search", params={"q": "нічого"}, headers=auth_headers
-    )
+    resp = await client.get("/api/v1/search", params={"q": "нічого"}, headers=auth_headers)
     assert resp.status_code == 200
     body = resp.json()
     assert body["success"] is True
@@ -127,11 +123,11 @@ async def test_search_response_structure(client: AsyncClient, auth_headers: dict
 async def test_search_result_fields(client: AsyncClient, auth_headers: dict):
     """Each result contains doctype, id, name, display_title."""
     await create_and_sync(client, auth_headers, SIMPLE_DOCTYPE)
-    await create_doc(client, auth_headers, "Документ", {"name": "ДОК-001", "title": "Тестовий документ"})
-
-    resp = await client.get(
-        "/api/v1/search", params={"q": "Тестовий"}, headers=auth_headers
+    await create_doc(
+        client, auth_headers, "Документ", {"name": "ДОК-001", "title": "Тестовий документ"}
     )
+
+    resp = await client.get("/api/v1/search", params={"q": "Тестовий"}, headers=auth_headers)
     assert resp.status_code == 200
     results = resp.json()["data"]
     assert len(results) >= 1
@@ -163,9 +159,7 @@ async def test_search_finds_by_name_field(client: AsyncClient, auth_headers: dic
     await create_and_sync(client, auth_headers, SIMPLE_DOCTYPE)
     await create_doc(client, auth_headers, "Документ", {"name": "УН-2024-001", "title": "Щось"})
 
-    resp = await client.get(
-        "/api/v1/search", params={"q": "УН-2024"}, headers=auth_headers
-    )
+    resp = await client.get("/api/v1/search", params={"q": "УН-2024"}, headers=auth_headers)
     results = resp.json()["data"]
     assert any(r["name"] == "УН-2024-001" for r in results)
 
@@ -174,11 +168,11 @@ async def test_search_finds_by_name_field(client: AsyncClient, auth_headers: dic
 async def test_search_finds_by_title_field(client: AsyncClient, auth_headers: dict):
     """Search matches the title_field value."""
     await create_and_sync(client, auth_headers, SIMPLE_DOCTYPE)
-    await create_doc(client, auth_headers, "Документ", {"name": "ДОК-001", "title": "Договір оренди"})
-
-    resp = await client.get(
-        "/api/v1/search", params={"q": "оренди"}, headers=auth_headers
+    await create_doc(
+        client, auth_headers, "Документ", {"name": "ДОК-001", "title": "Договір оренди"}
     )
+
+    resp = await client.get("/api/v1/search", params={"q": "оренди"}, headers=auth_headers)
     results = resp.json()["data"]
     assert any(r["display_title"] == "Договір оренди" for r in results)
 
@@ -196,12 +190,13 @@ async def test_search_finds_by_search_fields(client: AsyncClient, auth_headers: 
     }
     await create_and_sync(client, auth_headers, doctype)
     await create_doc(
-        client, auth_headers, "Документ", {"name": "ДОК-001", "title": "Назва", "code": "UNIQUE-CODE-XYZ"}
+        client,
+        auth_headers,
+        "Документ",
+        {"name": "ДОК-001", "title": "Назва", "code": "UNIQUE-CODE-XYZ"},
     )
 
-    resp = await client.get(
-        "/api/v1/search", params={"q": "UNIQUE-CODE-XYZ"}, headers=auth_headers
-    )
+    resp = await client.get("/api/v1/search", params={"q": "UNIQUE-CODE-XYZ"}, headers=auth_headers)
     results = resp.json()["data"]
     assert len(results) >= 1
     assert results[0]["doctype"] == "Документ"
@@ -211,11 +206,11 @@ async def test_search_finds_by_search_fields(client: AsyncClient, auth_headers: 
 async def test_search_partial_match(client: AsyncClient, auth_headers: dict):
     """Search works with partial substring (LIKE %q%)."""
     await create_and_sync(client, auth_headers, SIMPLE_DOCTYPE)
-    await create_doc(client, auth_headers, "Документ", {"name": "ДОК-001", "title": "Акт приймання-передачі"})
-
-    resp = await client.get(
-        "/api/v1/search", params={"q": "прийм"}, headers=auth_headers
+    await create_doc(
+        client, auth_headers, "Документ", {"name": "ДОК-001", "title": "Акт приймання-передачі"}
     )
+
+    resp = await client.get("/api/v1/search", params={"q": "прийм"}, headers=auth_headers)
     results = resp.json()["data"]
     assert any("прийм" in r["display_title"].lower() for r in results)
 
@@ -228,9 +223,7 @@ async def test_display_title_uses_title_field(client: AsyncClient, auth_headers:
         client, auth_headers, "Документ", {"name": "ДОК-001", "title": "Людська назва"}
     )
 
-    resp = await client.get(
-        "/api/v1/search", params={"q": "Людська"}, headers=auth_headers
-    )
+    resp = await client.get("/api/v1/search", params={"q": "Людська"}, headers=auth_headers)
     result = resp.json()["data"][0]
     assert result["display_title"] == "Людська назва"
     assert result["name"] == "ДОК-001"
@@ -252,9 +245,7 @@ async def test_display_title_falls_back_to_name(client: AsyncClient, auth_header
     await create_and_sync(client, auth_headers, doctype_no_title)
     await create_doc(client, auth_headers, "Запис", {"name": "ЗАП-001", "info": "дані"})
 
-    resp = await client.get(
-        "/api/v1/search", params={"q": "ЗАП-001"}, headers=auth_headers
-    )
+    resp = await client.get("/api/v1/search", params={"q": "ЗАП-001"}, headers=auth_headers)
     results = resp.json()["data"]
     assert len(results) >= 1
     result = next(r for r in results if r["doctype"] == "Запис")
@@ -271,13 +262,13 @@ async def test_search_default_limit_is_10(client: AsyncClient, auth_headers: dic
     await create_and_sync(client, auth_headers, SIMPLE_DOCTYPE)
     for i in range(15):
         await create_doc(
-            client, auth_headers, "Документ",
-            {"name": f"ДОК-{i:03}", "title": f"Документ номер {i}"}
+            client,
+            auth_headers,
+            "Документ",
+            {"name": f"ДОК-{i:03}", "title": f"Документ номер {i}"},
         )
 
-    resp = await client.get(
-        "/api/v1/search", params={"q": "Документ"}, headers=auth_headers
-    )
+    resp = await client.get("/api/v1/search", params={"q": "Документ"}, headers=auth_headers)
     assert resp.status_code == 200
     assert len(resp.json()["data"]) <= 10
 
@@ -288,13 +279,10 @@ async def test_search_custom_limit_respected(client: AsyncClient, auth_headers: 
     await create_and_sync(client, auth_headers, SIMPLE_DOCTYPE)
     for i in range(10):
         await create_doc(
-            client, auth_headers, "Документ",
-            {"name": f"ДОК-{i:03}", "title": f"Акт {i}"}
+            client, auth_headers, "Документ", {"name": f"ДОК-{i:03}", "title": f"Акт {i}"}
         )
 
-    resp = await client.get(
-        "/api/v1/search", params={"q": "Акт", "limit": 3}, headers=auth_headers
-    )
+    resp = await client.get("/api/v1/search", params={"q": "Акт", "limit": 3}, headers=auth_headers)
     assert resp.status_code == 200
     assert len(resp.json()["data"]) <= 3
 
@@ -326,9 +314,7 @@ async def test_search_across_multiple_doctypes(client: AsyncClient, auth_headers
     await create_doc(client, auth_headers, "Клієнт", {"name": "КЛ-001", "name_ua": "Пошук ABC"})
     await create_doc(client, auth_headers, "Договір", {"name": "ДОГ-001", "subject": "Договір ABC"})
 
-    resp = await client.get(
-        "/api/v1/search", params={"q": "ABC"}, headers=auth_headers
-    )
+    resp = await client.get("/api/v1/search", params={"q": "ABC"}, headers=auth_headers)
     assert resp.status_code == 200
     results = resp.json()["data"]
     doctypes_found = {r["doctype"] for r in results}
@@ -341,13 +327,20 @@ async def test_search_total_limit_across_doctypes(client: AsyncClient, auth_head
     """Total results across all DocTypes respects limit."""
     for dt_name, module in [("ТипА", "mod_a"), ("ТипБ", "mod_b")]:
         dt = {
-            "name": dt_name, "label": dt_name, "module": module,
+            "name": dt_name,
+            "label": dt_name,
+            "module": module,
             "fields": [{"fieldname": "title", "label": "T", "fieldtype": "Text"}],
             "search_fields": ["title"],
         }
         await create_and_sync(client, auth_headers, dt)
         for i in range(5):
-            await create_doc(client, auth_headers, dt_name, {"name": f"{dt_name}-{i}", "title": f"Пошук {dt_name} {i}"})
+            await create_doc(
+                client,
+                auth_headers,
+                dt_name,
+                {"name": f"{dt_name}-{i}", "title": f"Пошук {dt_name} {i}"},
+            )
 
     resp = await client.get(
         "/api/v1/search", params={"q": "Пошук", "limit": 4}, headers=auth_headers
@@ -374,9 +367,7 @@ async def test_child_doctype_excluded_from_search(client: AsyncClient, auth_head
     # Child doctypes require parent_id so we skip document creation;
     # the search endpoint should skip the DocType entirely based on is_child flag.
 
-    resp = await client.get(
-        "/api/v1/search", params={"q": "щось"}, headers=auth_headers
-    )
+    resp = await client.get("/api/v1/search", params={"q": "щось"}, headers=auth_headers)
     assert resp.status_code == 200
     results = resp.json()["data"]
     assert not any(r["doctype"] == "РядокТаблиці" for r in results)
@@ -396,9 +387,7 @@ async def test_search_open_doctype_accessible_to_regular_user(
     )
 
     user_headers = await regular_user_headers(client)
-    resp = await client.get(
-        "/api/v1/search", params={"q": "Відкритий"}, headers=user_headers
-    )
+    resp = await client.get("/api/v1/search", params={"q": "Відкритий"}, headers=user_headers)
     assert resp.status_code == 200
     results = resp.json()["data"]
     assert any(r["doctype"] == "Документ" for r in results)
@@ -419,8 +408,7 @@ async def test_search_restricted_doctype_hidden_from_regular_user(
     }
     await create_and_sync(client, auth_headers, restricted_dt)
     await create_doc(
-        client, auth_headers, "СекретнийДок",
-        {"name": "СЕК-001", "title": "Секретний вміст XYZ123"}
+        client, auth_headers, "СекретнийДок", {"name": "СЕК-001", "title": "Секретний вміст XYZ123"}
     )
 
     # Regular user without Manager role → should not see results
@@ -480,8 +468,6 @@ async def test_search_skips_doctype_without_table(client: AsyncClient, auth_head
     assert resp.status_code == 201
 
     # Search should succeed even though БезТаблиці has no table
-    resp = await client.get(
-        "/api/v1/search", params={"q": "щось"}, headers=auth_headers
-    )
+    resp = await client.get("/api/v1/search", params={"q": "щось"}, headers=auth_headers)
     assert resp.status_code == 200
     assert resp.json()["success"] is True

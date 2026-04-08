@@ -21,9 +21,7 @@ def date_format(value: str | date | datetime | None, fmt: str = "%d.%m.%Y") -> s
     return str(value)
 
 
-def datetime_format(
-    value: str | datetime | None, fmt: str = "%d.%m.%Y %H:%M"
-) -> str:
+def datetime_format(value: str | datetime | None, fmt: str = "%d.%m.%Y %H:%M") -> str:
     if value is None:
         return ""
     if isinstance(value, str):

@@ -14,7 +14,7 @@ class IndexHint(BaseModel):
 
 class DocTypeSaveResult(BaseModel):
     success: bool = True
-    data: "DocTypeSchema"
+    data: DocTypeSchema
     hints: list[IndexHint] = []
     exported_to: str | None = None
 

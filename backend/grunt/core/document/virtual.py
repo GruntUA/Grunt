@@ -22,11 +22,24 @@ def _get_virtual_controller(doctype_name: str, user: GruntUser):
     return VirtualDocType(doctype_name, user)
 
 
-async def _virtual_list(doctype_name: str, user: GruntUser, page: int, per_page: int, sort_by: str, sort_order: str, filters: Any, search: str):
+async def _virtual_list(
+    doctype_name: str,
+    user: GruntUser,
+    page: int,
+    per_page: int,
+    sort_by: str,
+    sort_order: str,
+    filters: Any,
+    search: str,
+):
     ctrl = _get_virtual_controller(doctype_name, user)
     return await ctrl.get_list(
-        filters=filters, page=page, per_page=per_page,
-        sort_by=sort_by, sort_order=sort_order, search=search,
+        filters=filters,
+        page=page,
+        per_page=per_page,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        search=search,
     )
 
 

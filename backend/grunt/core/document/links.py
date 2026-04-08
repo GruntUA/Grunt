@@ -8,14 +8,14 @@ this one" efficiently.
 from __future__ import annotations
 
 import uuid
+from datetime import UTC
 from typing import Any
 
 import structlog
-from sqlalchemy import select, delete, and_
+from sqlalchemy import and_, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.core.metadata.registry import doctype_registry
-
 
 logger = structlog.get_logger()
 
@@ -66,8 +66,9 @@ class LinkService:
                 continue
 
             link_id = str(uuid.uuid4())
-            from datetime import datetime, timezone  # noqa: PLC0415
-            now = datetime.now(timezone.utc)
+            from datetime import datetime  # noqa: PLC0415
+
+            now = datetime.now(UTC)
             await session.execute(
                 table.insert().values(
                     id=link_id,
@@ -88,9 +89,7 @@ class LinkService:
 
         if count:
             await session.flush()
-            logger.debug(
-                "links.synced", doctype=doctype, doc_id=doc_id, links=count
-            )
+            logger.debug("links.synced", doctype=doctype, doc_id=doc_id, links=count)
 
         return count
 

@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends
 
+from grunt.api.v1.auth.schemas import MfaVerifyRequest
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_session
-from grunt.api.v1.auth.schemas import MfaVerifyRequest
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,6 +24,7 @@ async def mfa_setup(
 ) -> dict:
     """Start MFA setup."""
     from grunt.core.auth.mfa import begin_mfa_setup  # noqa: PLC0415
+
     info = await begin_mfa_setup(user, session)
     await session.commit()
     return {"success": True, "data": info}
@@ -37,6 +38,7 @@ async def mfa_confirm(
 ) -> dict:
     """Confirm MFA setup."""
     from grunt.core.auth.mfa import confirm_mfa_setup  # noqa: PLC0415
+
     backup_codes = await confirm_mfa_setup(user, body.code, session)
     await session.commit()
     return {"success": True, "data": {"backup_codes": backup_codes}}
@@ -50,6 +52,7 @@ async def mfa_verify(
 ) -> dict:
     """Verify a TOTP or backup code."""
     from grunt.core.auth.mfa import check_mfa_code  # noqa: PLC0415
+
     await check_mfa_code(user, body.code, session)
     await session.commit()
     return {"success": True}
@@ -62,6 +65,7 @@ async def mfa_disable(
 ) -> dict:
     """Disable MFA."""
     from grunt.core.auth.mfa import disable_mfa  # noqa: PLC0415
+
     await disable_mfa(user, session)
     await session.commit()
     return {"success": True, "message": "MFA вимкнено"}

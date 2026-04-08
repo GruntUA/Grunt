@@ -80,27 +80,29 @@ _SAFE_BUILTINS: dict[str, Any] = {
 }
 
 # Explicitly blocked names
-_BLOCKED_NAMES = frozenset({
-    "__import__",
-    "eval",
-    "exec",
-    "compile",
-    "open",
-    "input",
-    "exit",
-    "quit",
-    "breakpoint",
-    "globals",
-    "locals",
-    "vars",
-    "dir",
-    "getattr",
-    "setattr",
-    "delattr",
-    "__builtins__",
-    "__loader__",
-    "__spec__",
-})
+_BLOCKED_NAMES = frozenset(
+    {
+        "__import__",
+        "eval",
+        "exec",
+        "compile",
+        "open",
+        "input",
+        "exit",
+        "quit",
+        "breakpoint",
+        "globals",
+        "locals",
+        "vars",
+        "dir",
+        "getattr",
+        "setattr",
+        "delattr",
+        "__builtins__",
+        "__loader__",
+        "__spec__",
+    }
+)
 
 
 def build_safe_globals(extra: dict[str, Any] | None = None) -> dict[str, Any]:

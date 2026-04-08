@@ -50,7 +50,7 @@ def users_list(site):
             click.echo("Користувачів немає.")
             return
 
-        click.echo(f"{'Email':<35} {'Ім\'я':<25} {'Ролі':<20} Суперадмін")
+        click.echo(f"{'Email':<35} {"Ім'я":<25} {'Ролі':<20} Суперадмін")
         click.echo("-" * 90)
         for u in users:
             roles = ", ".join(u.roles) or "—"

@@ -3,7 +3,6 @@
 from grunt.api.v1.dashboard import _TIMESPAN_DAYS
 
 
-
 class TestTimespanConfig:
     def test_all_timespans_defined(self):
         expected = {"last_week", "last_month", "last_quarter", "last_year", "all_time"}
@@ -23,5 +22,3 @@ class TestTimespanConfig:
 
     def test_all_time_no_filter(self):
         assert _TIMESPAN_DAYS["all_time"] == 0
-
-

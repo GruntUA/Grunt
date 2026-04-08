@@ -8,17 +8,18 @@ Metrics exposed:
 
 If prometheus_client is not installed, a stub is used and /metrics returns a 501.
 """
+
 from __future__ import annotations
 
 import re
 
 try:
     from prometheus_client import (
+        CONTENT_TYPE_LATEST,
         Counter,
         Gauge,
         Histogram,
         generate_latest,
-        CONTENT_TYPE_LATEST,
     )
 
     _AVAILABLE = True

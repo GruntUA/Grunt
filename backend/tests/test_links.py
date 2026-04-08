@@ -1,6 +1,7 @@
 """Tests for the Document Links service — sync and backlinks logic."""
 
 from types import SimpleNamespace
+
 from grunt.core.document.links import LinkService
 
 
@@ -40,13 +41,15 @@ class TestLinkExtraction:
         links = []
         for f in fields:
             if f.fieldtype == "Link" and doc.get(f.fieldname):
-                links.append({
-                    "source_doctype": "Invoice",
-                    "source_id": "INV-001",
-                    "target_doctype": f.options,
-                    "target_id": str(doc[f.fieldname]),
-                    "link_fieldname": f.fieldname,
-                })
+                links.append(
+                    {
+                        "source_doctype": "Invoice",
+                        "source_id": "INV-001",
+                        "target_doctype": f.options,
+                        "target_id": str(doc[f.fieldname]),
+                        "link_fieldname": f.fieldname,
+                    }
+                )
 
         assert len(links) == 1
         assert links[0]["target_doctype"] == "Customer"
@@ -83,11 +86,13 @@ class TestLinkExtraction:
         links = []
         for f in fields:
             if f.fieldtype == "Link" and doc.get(f.fieldname) and f.options:
-                links.append({
-                    "target_doctype": f.options,
-                    "target_id": doc[f.fieldname],
-                    "link_fieldname": f.fieldname,
-                })
+                links.append(
+                    {
+                        "target_doctype": f.options,
+                        "target_id": doc[f.fieldname],
+                        "link_fieldname": f.fieldname,
+                    }
+                )
 
         assert len(links) == 2
         assert links[0]["target_id"] == "C-001"

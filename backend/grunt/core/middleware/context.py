@@ -4,8 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from grunt.api import clear_context, set_engine, set_session, set_user
-from grunt.core.db.session import get_session
+from grunt.api import clear_context
 
 
 class GruntContextMiddleware(BaseHTTPMiddleware):

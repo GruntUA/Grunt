@@ -7,7 +7,7 @@ and supports restoring a document to any previous version.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import structlog
@@ -49,8 +49,8 @@ class VersionService:
         if not changes:
             return None
 
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         table = compile_doctype_to_table(doctype_registry._doctypes["DocVersion"])
 
@@ -65,7 +65,7 @@ class VersionService:
         next_version = max_version + 1
 
         version_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         await session.execute(
             table.insert().values(
                 id=version_id,
@@ -100,8 +100,8 @@ class VersionService:
         doc_id: str,
     ) -> list[dict[str, Any]]:
         """Get all versions for a document, newest first."""
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         table = compile_doctype_to_table(doctype_registry._doctypes["DocVersion"])
         stmt = (
@@ -130,8 +130,8 @@ class VersionService:
         version_id: str,
     ) -> dict[str, Any] | None:
         """Get a specific version by ID."""
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         table = compile_doctype_to_table(doctype_registry._doctypes["DocVersion"])
         stmt = select(table).where(table.c.id == version_id)
@@ -199,11 +199,13 @@ class VersionService:
             old_val = old_doc.get(key)
             new_val = new_doc.get(key)
             if old_val != new_val:
-                changes.append({
-                    "field": key,
-                    "old": self._serialize(old_val),
-                    "new": self._serialize(new_val),
-                })
+                changes.append(
+                    {
+                        "field": key,
+                        "old": self._serialize(old_val),
+                        "new": self._serialize(new_val),
+                    }
+                )
 
         return changes
 

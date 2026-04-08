@@ -17,6 +17,7 @@ Usage::
     content = await storage.get(path)
     await storage.delete(path)
 """
+
 from __future__ import annotations
 
 import asyncio

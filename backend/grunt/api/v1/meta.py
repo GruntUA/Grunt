@@ -2,9 +2,20 @@
 
 from __future__ import annotations
 
+from datetime import UTC
+
+import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from grunt.api.v1.schemas.meta import (
+    DocTypeListItem,
+    DocTypeSaveResult,
+    DocTypeSchema,
+    DocTypeSyncResult,
+    IndexHint,
+)
 from grunt.core.auth.dependencies import current_user, superadmin_user
 from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_engine, get_session
@@ -12,17 +23,6 @@ from grunt.core.metadata.compiler import compile_doctype_to_table, get_table_nam
 from grunt.core.metadata.doctype import DocType
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.metadata.scaffold import export_doctype_files
-from grunt.api.v1.schemas.meta import (
-    DocTypeListItem,
-    DocTypeSchema,
-    DocTypeSaveResult,
-    DocTypeSyncResult,
-    IndexHint,
-)
-
-from sqlalchemy import inspect as sa_inspect
-
-import structlog
 
 logger = structlog.get_logger()
 router = APIRouter()
@@ -31,6 +31,7 @@ router = APIRouter()
 async def _get_app_name_for_module(module: str, session: AsyncSession) -> str | None:
     """Return the installed app name that owns *module*, or None."""
     from sqlalchemy import select  # noqa: PLC0415
+
     from grunt.core.db.system_tables import GruntInstalledApp  # noqa: PLC0415
 
     result = await session.execute(select(GruntInstalledApp))
@@ -54,52 +55,64 @@ def _get_index_hints(dt: DocType) -> list[IndexHint]:
         if f.fieldtype in _NON_PHYSICAL or f.hidden or f.unique or f.index:
             continue
         if f.in_filter:
-            hints.append(IndexHint(
-                field=f.fieldname,
-                reason=f"Поле «{f.label or f.fieldname}» використовується у фільтрах (in_filter: true) — рекомендується додати index: true",
-            ))
+            hints.append(
+                IndexHint(
+                    field=f.fieldname,
+                    reason=f"Поле «{f.label or f.fieldname}» використовується у фільтрах (in_filter: true) — рекомендується додати index: true",
+                )
+            )
         elif f.fieldtype == "Link":
-            hints.append(IndexHint(
-                field=f.fieldname,
-                reason=f"Link-поле «{f.label or f.fieldname}» часто фігурує у WHERE-умовах — рекомендується додати index: true",
-            ))
+            hints.append(
+                IndexHint(
+                    field=f.fieldname,
+                    reason=f"Link-поле «{f.label or f.fieldname}» часто фігурує у WHERE-умовах — рекомендується додати index: true",
+                )
+            )
     return hints
 
 
 async def _sync_doctype_doc(dt: DocType, session: AsyncSession, *, delete: bool = False) -> None:
     """Keep the DocType document table in sync after meta operations."""
     import uuid as _uuid  # noqa: PLC0415
-    from datetime import datetime, timezone  # noqa: PLC0415
+    from datetime import datetime  # noqa: PLC0415
 
     dt_def = doctype_registry._doctypes.get("DocType")
     if not dt_def:
         return
     table = compile_doctype_to_table(dt_def)
     conn = await session.connection()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     if delete:
         await conn.execute(table.delete().where(table.c.name == dt.name))
         return
 
     # Upsert
-    result = await conn.execute(
-        table.select().where(table.c.name == dt.name)
-    )
+    result = await conn.execute(table.select().where(table.c.name == dt.name))
     if result.first():
         await conn.execute(
-            table.update().where(table.c.name == dt.name).values(
-                label=dt.label, module=dt.module, is_child=dt.is_child,
+            table.update()
+            .where(table.c.name == dt.name)
+            .values(
+                label=dt.label,
+                module=dt.module,
+                is_child=dt.is_child,
                 modified_at=now,
             )
         )
     else:
         await conn.execute(
             table.insert().values(
-                id=str(_uuid.uuid4()), name=dt.name, label=dt.label,
-                module=dt.module, is_child=dt.is_child,
-                owner="system", created_at=now, modified_at=now,
-                modified_by="system", docstatus=0,
+                id=str(_uuid.uuid4()),
+                name=dt.name,
+                label=dt.label,
+                module=dt.module,
+                is_child=dt.is_child,
+                owner="system",
+                created_at=now,
+                modified_at=now,
+                modified_by="system",
+                docstatus=0,
             )
         )
 
@@ -118,7 +131,13 @@ async def list_doctypes(
     if module:
         all_dt = [dt for dt in all_dt if dt.module == module]
     return [
-        DocTypeListItem(name=dt.name, label=dt.label, module=dt.module, is_child=dt.is_child, is_singleton=dt.is_singleton)
+        DocTypeListItem(
+            name=dt.name,
+            label=dt.label,
+            module=dt.module,
+            is_child=dt.is_child,
+            is_singleton=dt.is_singleton,
+        )
         for dt in all_dt
     ]
 
@@ -135,7 +154,9 @@ async def create_doctype(
     await _sync_doctype_doc(body, session)
     app_name = await _get_app_name_for_module(body.module or "", session)
     exported_to = export_doctype_files(body, app_name=app_name)
-    return DocTypeSaveResult(data=_doctype_to_schema(body), hints=_get_index_hints(body), exported_to=exported_to)
+    return DocTypeSaveResult(
+        data=_doctype_to_schema(body), hints=_get_index_hints(body), exported_to=exported_to
+    )
 
 
 @router.get("/doctypes/{name}", response_model=DocTypeSchema)
@@ -166,7 +187,9 @@ async def update_doctype(
     await _sync_doctype_doc(body, session)
     app_name = await _get_app_name_for_module(body.module or "", session)
     exported_to = export_doctype_files(body, app_name=app_name)
-    return DocTypeSaveResult(data=_doctype_to_schema(body), hints=_get_index_hints(body), exported_to=exported_to)
+    return DocTypeSaveResult(
+        data=_doctype_to_schema(body), hints=_get_index_hints(body), exported_to=exported_to
+    )
 
 
 @router.delete("/doctypes/{name}")
@@ -234,7 +257,11 @@ async def list_roles(
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:
         roles = await grunt.db.get_all(
-            "Role", fields=["role_name", "description"], order_by="role_name", order="asc", limit=1000
+            "Role",
+            fields=["role_name", "description"],
+            order_by="role_name",
+            order="asc",
+            limit=1000,
         )
     finally:
         grunt.reset_context(_tokens)
@@ -252,6 +279,7 @@ async def patch_permissions(
     """Patch only the permissions field of a DocType."""
     dt = await doctype_registry.get(name)
     from grunt.core.metadata.doctype import DocTypePermission  # noqa: PLC0415
+
     dt_dict = dt.model_dump()
     dt_dict["permissions"] = [DocTypePermission(**p).model_dump() for p in permissions]
     updated = type(dt)(**dt_dict)

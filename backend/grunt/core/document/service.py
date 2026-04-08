@@ -137,12 +137,7 @@ class DocumentService:
         text_types = {"TEXT", "VARCHAR", "CHAR", "CLOB", "STRING", "NVARCHAR", "NCHAR"}
         col_type = str(sort_col.type).upper()
         is_text = any(t in col_type for t in text_types)
-        if is_text:
-            from sqlalchemy import func as sa_func  # noqa: PLC0415
-
-            sort_expr = sa_func.uk_sort_key(sort_col)
-        else:
-            sort_expr = sort_col
+        sort_expr = func.uk_sort_key(sort_col) if is_text else sort_col
         if sort_order == "asc":
             query = query.order_by(sort_expr.asc())
         else:

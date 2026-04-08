@@ -9,7 +9,7 @@ Supports:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import structlog
@@ -63,7 +63,7 @@ class NamingService:
         if not parts:
             return None
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if not has_counter(parts):
             # Pattern without counter — just format date tokens
@@ -74,7 +74,9 @@ class NamingService:
         counter = await self._next_counter(prefix, session)
         name = format_name(parts, counter=counter, now=now)
 
-        logger.debug("naming.generated", pattern=autoname, prefix=prefix, counter=counter, name=name)
+        logger.debug(
+            "naming.generated", pattern=autoname, prefix=prefix, counter=counter, name=name
+        )
         return name
 
     async def _next_counter(self, prefix: str, session: AsyncSession) -> int:
@@ -82,34 +84,29 @@ class NamingService:
 
         Uses SELECT ... FOR UPDATE to prevent race conditions.
         """
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
         import uuid  # noqa: PLC0415
+
+        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         table = compile_doctype_to_table(doctype_registry._doctypes["NamingSeries"])
 
         # Try to get existing row with lock
-        stmt = (
-            select(table)
-            .where(table.c.prefix == prefix)
-            .with_for_update()
-        )
+        stmt = select(table).where(table.c.prefix == prefix).with_for_update()
         result = await session.execute(stmt)
         row = result.mappings().first()
 
         if row is not None:
             new_counter = (row["current"] or 0) + 1
             await session.execute(
-                update(table)
-                .where(table.c.prefix == prefix)
-                .values(current=new_counter)
+                update(table).where(table.c.prefix == prefix).values(current=new_counter)
             )
             await session.flush()
             return new_counter
 
         # First time — insert with counter = 1
         entry_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         await session.execute(
             table.insert().values(
                 id=entry_id,

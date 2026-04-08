@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
-from httpx import AsyncClient
+
+if TYPE_CHECKING:
+    from httpx import AsyncClient
 
 
 @pytest.mark.asyncio
@@ -48,7 +52,11 @@ async def test_run_query_report(client: AsyncClient, auth_headers: dict):
     """Run a SELECT query report."""
     await client.post(
         "/api/v1/reports/",
-        json={"report_name": "Select Report", "report_type": "Query", "query": "SELECT 42 as answer"},
+        json={
+            "report_name": "Select Report",
+            "report_type": "Query",
+            "query": "SELECT 42 as answer",
+        },
         headers=auth_headers,
     )
 
@@ -68,7 +76,11 @@ async def test_run_report_forbids_delete(client: AsyncClient, auth_headers: dict
     """DELETE SQL is blocked in query reports."""
     await client.post(
         "/api/v1/reports/",
-        json={"report_name": "Bad Report", "report_type": "Query", "query": "DELETE FROM grunt_auth_user"},
+        json={
+            "report_name": "Bad Report",
+            "report_type": "Query",
+            "query": "DELETE FROM grunt_auth_user",
+        },
         headers=auth_headers,
     )
 

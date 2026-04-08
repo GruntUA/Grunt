@@ -137,11 +137,10 @@ class TestAssignmentIntegration:
         """When no rules exist, nothing happens."""
         # No AssignmentRules in DB
         # Call evaluate_and_assign
-        from grunt.core.assignment import assignment_service
-        from grunt.core.db.session import get_session
-
         from grunt.app import grunt
+        from grunt.core.assignment import assignment_service
         from grunt.core.auth.models import SYSTEM_USER
+        from grunt.core.db.session import get_session
 
         async for session in get_session():
             _tokens = grunt.set_context(session, None, SYSTEM_USER)
@@ -164,6 +163,7 @@ class TestAssignmentIntegration:
         # 4. Verify ToDo was created
         pass
 
+
 class TestAssignmentAPI:
     """Test assignment endpoints logic."""
 
@@ -177,7 +177,9 @@ class TestAssignmentAPI:
             "assign_to_user": "admin@grunt.local",
             "enabled": True,
         }
-        resp = await client.post("/api/v1/docs/AssignmentRule", headers=auth_headers, json=rule_data)
+        resp = await client.post(
+            "/api/v1/docs/AssignmentRule", headers=auth_headers, json=rule_data
+        )
         assert resp.status_code in (200, 201), resp.text
         rule_id = resp.json()["data"]["id"]
 
@@ -185,7 +187,7 @@ class TestAssignmentAPI:
         resp = await client.post(
             f"/api/v1/assignment-rules/{rule_id}/test",
             headers=auth_headers,
-            json={"test_doc": test_doc}
+            json={"test_doc": test_doc},
         )
         assert resp.status_code == 200, resp.text
         data = resp.json()
@@ -196,9 +198,10 @@ class TestAssignmentAPI:
     @pytest.mark.asyncio
     async def test_list_assignment_logs(self, client, auth_headers, db_session, engine):
         """Test the GET /api/v1/assignment-rules/logs endpoint."""
+        import datetime
+
         from grunt.app import grunt
         from grunt.core.auth.models import SYSTEM_USER
-        import datetime
 
         log_doc = {
             "doctype_affected": "Invoice",
@@ -206,7 +209,7 @@ class TestAssignmentAPI:
             "assigned_to": "admin@grunt.example.com",
             "assignment_method": "user",
             "status": "Success",
-            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
         }
 
         _tokens = grunt.set_context(db_session, engine, SYSTEM_USER)
@@ -216,7 +219,9 @@ class TestAssignmentAPI:
         finally:
             grunt.reset_context(_tokens)
 
-        resp = await client.get("/api/v1/assignment-rules/logs?doctype=Invoice", headers=auth_headers)
+        resp = await client.get(
+            "/api/v1/assignment-rules/logs?doctype=Invoice", headers=auth_headers
+        )
         assert resp.status_code == 200, resp.text
         data = resp.json()
         assert data["success"] is True

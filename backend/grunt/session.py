@@ -5,8 +5,6 @@ from __future__ import annotations
 from grunt.core.context import _user_ctx
 
 
-
-
 class GruntSession:
     """Current request session information — accessible as ``grunt.session``.
 

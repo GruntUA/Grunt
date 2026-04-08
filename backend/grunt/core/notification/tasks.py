@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from typing import Any
+
 import structlog
-from grunt.core.tasks.broker import task
+
 from grunt.core.db.session import async_session_factory
 from grunt.core.notification.service import notification_service
+from grunt.core.tasks.broker import task
 
 logger = structlog.get_logger()
+
 
 @task
 async def evaluate_notification_rules_task(
@@ -16,7 +19,7 @@ async def evaluate_notification_rules_task(
     user_email: str,
 ) -> None:
     """Background task to evaluate notification rules.
-    
+
     Creates its own database session to avoid sharing with the main request.
     """
     try:

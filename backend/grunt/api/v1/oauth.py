@@ -21,6 +21,7 @@ Flow:
 3. Backend exchanges code for tokens, fetches the user's profile, finds or
    creates a local GruntUser, and returns a Grunt access + refresh token pair.
 """
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -121,11 +122,12 @@ async def oauth_callback(
     cfg = _get_provider_config(provider)
 
     import httpx  # noqa: PLC0415
+
     from grunt.core.auth.service import (  # noqa: PLC0415
-        get_user_by_email,
-        create_user,
         create_access_token,
         create_refresh_token,
+        create_user,
+        get_user_by_email,
     )
 
     # Fetch OIDC discovery document

@@ -27,12 +27,14 @@ Available in scripts::
 from __future__ import annotations
 
 import asyncio
-import io
 import contextlib
+import io
+from datetime import UTC
 from typing import Any
 
 import structlog
-from sqlalchemy import select, update as sa_update
+from sqlalchemy import select
+from sqlalchemy import update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.core.scripting.safe_globals import build_safe_globals, validate_script
@@ -64,9 +66,7 @@ class _DBProxy:
         self._bridge = bridge
         self._session = session
 
-    def get_value(
-        self, doctype: str, filters: str | dict[str, Any], fieldname: str
-    ) -> Any:
+    def get_value(self, doctype: str, filters: str | dict[str, Any], fieldname: str) -> Any:
         """Get a single field value from a document."""
         return self._bridge.run(self._async_get_value(doctype, filters, fieldname))
 
@@ -82,15 +82,11 @@ class _DBProxy:
         finally:
             _session_ctx.reset(token)
 
-    def set_value(
-        self, doctype: str, doc_id: str, fieldname: str, value: Any
-    ) -> None:
+    def set_value(self, doctype: str, doc_id: str, fieldname: str, value: Any) -> None:
         """Update a single field value on a document."""
         self._bridge.run(self._async_set_value(doctype, doc_id, fieldname, value))
 
-    async def _async_set_value(
-        self, doctype: str, doc_id: str, fieldname: str, value: Any
-    ) -> None:
+    async def _async_set_value(self, doctype: str, doc_id: str, fieldname: str, value: Any) -> None:
         from grunt.app import GruntDB  # noqa: PLC0415
         from grunt.core.context import _session_ctx  # noqa: PLC0415
 
@@ -125,7 +121,9 @@ class _DBProxy:
         order: str = "desc",
     ) -> list[dict[str, Any]]:
         """Fetch a list of documents as plain dicts."""
-        return self._bridge.run(self._async_get_all(doctype, filters, fields, limit, order_by, order))
+        return self._bridge.run(
+            self._async_get_all(doctype, filters, fields, limit, order_by, order)
+        )
 
     async def _async_get_all(
         self,
@@ -141,7 +139,9 @@ class _DBProxy:
 
         token = _session_ctx.set(self._session)
         try:
-            return await GruntDB().get_all(doctype, filters=filters, fields=fields, limit=limit, order_by=order_by, order=order)
+            return await GruntDB().get_all(
+                doctype, filters=filters, fields=fields, limit=limit, order_by=order_by, order=order
+            )
         finally:
             _session_ctx.reset(token)
 
@@ -149,7 +149,9 @@ class _DBProxy:
 class _SessionProxy:
     """Session info exposed as ``grunt.session`` inside scripts."""
 
-    def __init__(self, user_email: str = "", roles: list[str] | None = None, is_superadmin: bool = False) -> None:
+    def __init__(
+        self, user_email: str = "", roles: list[str] | None = None, is_superadmin: bool = False
+    ) -> None:
         self.user = user_email
         self.roles = roles or []
         self.is_superadmin = is_superadmin
@@ -200,9 +202,7 @@ class ScriptContext:
         """Log a message (visible in script output)."""
         print(*args)  # noqa: T201 — captured by stdout redirect
 
-    def get_doc(
-        self, doctype: str, filters_or_id: str | dict[str, Any]
-    ) -> dict[str, Any] | None:
+    def get_doc(self, doctype: str, filters_or_id: str | dict[str, Any]) -> dict[str, Any] | None:
         """Fetch a single document by ID/name or filters.
 
         Usage::
@@ -217,16 +217,14 @@ class ScriptContext:
     async def _async_get_doc(
         self, doctype: str, filters_or_id: str | dict[str, Any]
     ) -> dict[str, Any] | None:
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
         stmt = select(table)
         if isinstance(filters_or_id, str):
-            stmt = stmt.where(
-                (table.c.id == filters_or_id) | (table.c.name == filters_or_id)
-            )
+            stmt = stmt.where((table.c.id == filters_or_id) | (table.c.name == filters_or_id))
         elif isinstance(filters_or_id, dict):
             for k, v in filters_or_id.items():
                 col = getattr(table.c, k, None)
@@ -254,9 +252,7 @@ class ScriptContext:
         """
         if not self._bridge or not self._session:
             return []
-        return self._bridge.run(
-            self._async_get_list(doctype, filters, fields, limit)
-        )
+        return self._bridge.run(self._async_get_list(doctype, filters, fields, limit))
 
     async def _async_get_list(
         self,
@@ -265,8 +261,8 @@ class ScriptContext:
         fields: list[str] | None,
         limit: int,
     ) -> list[dict[str, Any]]:
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
@@ -319,16 +315,18 @@ class ScriptContext:
             raise ScriptError("save_doc: no session available")
         return self._bridge.run(self._async_save_doc(doctype, id_or_name, data))
 
-    async def _async_save_doc(self, doctype: str, id_or_name: str, data: dict[str, Any]) -> dict[str, Any]:
-        from grunt.core.context import _session_ctx  # noqa: PLC0415
+    async def _async_save_doc(
+        self, doctype: str, id_or_name: str, data: dict[str, Any]
+    ) -> dict[str, Any]:
+        from datetime import datetime  # noqa: PLC0415
+
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from datetime import datetime, timezone  # noqa: PLC0415
 
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
         update_data = {k: v for k, v in data.items() if k in table.c}
-        update_data["modified_at"] = datetime.now(timezone.utc)
+        update_data["modified_at"] = datetime.now(UTC)
         await self._session.execute(
             sa_update(table)
             .where((table.c.id == id_or_name) | (table.c.name == id_or_name))
@@ -376,6 +374,7 @@ class ScriptContext:
 
     async def _async_count(self, doctype: str, filters: dict[str, Any] | None) -> int:
         from sqlalchemy import func  # noqa: PLC0415
+
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
@@ -455,8 +454,8 @@ class ServerScriptRunner:
         self, session: AsyncSession, doctype: str, event: str
     ) -> list[dict[str, Any]]:
         """Load enabled server scripts for a specific DocType event."""
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         table = compile_doctype_to_table(doctype_registry._doctypes["ServerScript"])
         stmt = (
@@ -485,12 +484,10 @@ class ServerScriptRunner:
 
         return scripts
 
-    async def load_api_script(
-        self, session: AsyncSession, method: str
-    ) -> dict[str, Any] | None:
+    async def load_api_script(self, session: AsyncSession, method: str) -> dict[str, Any] | None:
         """Load an API-type server script by method name."""
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         table = compile_doctype_to_table(doctype_registry._doctypes["ServerScript"])
         stmt = (
@@ -516,12 +513,10 @@ class ServerScriptRunner:
         except ImportError:
             return None
 
-    async def load_scheduler_scripts(
-        self, session: AsyncSession
-    ) -> list[dict[str, Any]]:
+    async def load_scheduler_scripts(self, session: AsyncSession) -> list[dict[str, Any]]:
         """Load all enabled scheduler-type server scripts."""
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         table = compile_doctype_to_table(doctype_registry._doctypes["ServerScript"])
         stmt = (

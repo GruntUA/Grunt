@@ -45,7 +45,9 @@ def doctype_sync(name: str, site: str | None, force: bool):
 
                 json_file = _CORE_DOCTYPES_DIR / name / f"{name}.json"
                 if not json_file.exists():
-                    json_file = _CORE_DOCTYPES_DIR / to_snake_case(name) / f"{to_snake_case(name)}.json"
+                    json_file = (
+                        _CORE_DOCTYPES_DIR / to_snake_case(name) / f"{to_snake_case(name)}.json"
+                    )
                 if not json_file.exists():
                     # Try flat .json files too
                     json_file = _CORE_DOCTYPES_DIR / f"{name}.json"

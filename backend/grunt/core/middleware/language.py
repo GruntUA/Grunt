@@ -6,7 +6,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from grunt.core.i18n.service import translation_service, _current_lang
+from grunt.core.i18n.service import _current_lang, translation_service
 
 SUPPORTED = {"uk", "en"}
 

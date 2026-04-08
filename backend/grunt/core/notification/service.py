@@ -8,7 +8,7 @@ queue emails.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import structlog
@@ -116,8 +116,8 @@ class NotificationService:
         offset: int = 0,
     ) -> list[dict[str, Any]]:
         """Get notifications for a user."""
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
         stmt = (
@@ -156,8 +156,8 @@ class NotificationService:
 
     async def mark_all_read(self, session: AsyncSession, user: str) -> int:
         """Mark all notifications as read for a user. Returns count of affected."""
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
         result = await session.execute(
@@ -180,12 +180,12 @@ class NotificationService:
         subject: str,
         message: str,
     ) -> str:
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
         notif_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         await session.execute(
             table.insert().values(
                 id=notif_id,
@@ -206,6 +206,7 @@ class NotificationService:
         # Send Web Push (best-effort)
         try:
             from grunt.core.webpush.service import webpush_service  # noqa: PLC0415
+
             await webpush_service.send_push(session, user, subject, message)
         except Exception:  # noqa: BLE001
             pass

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time
 from typing import TYPE_CHECKING, Any
 
 from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
@@ -33,9 +33,7 @@ def _coerce_value(value: Any, fieldtype: str) -> Any:
     return value
 
 
-def _validate_data(
-    doctype: DocType, data: dict[str, Any], partial: bool = False
-) -> list[str]:
+def _validate_data(doctype: DocType, data: dict[str, Any], partial: bool = False) -> list[str]:
     """Validate document data against DocType fields."""
     errors: list[str] = []
     for field in doctype.fields:

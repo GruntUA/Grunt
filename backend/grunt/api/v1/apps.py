@@ -1,4 +1,5 @@
 """Apps API — list and manage installed Grunt apps."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -73,9 +74,7 @@ async def add_module(
     _: GruntUser = Depends(current_user),
 ) -> dict:
     """Add a module to an installed app."""
-    result = await session.execute(
-        select(GruntInstalledApp).where(GruntInstalledApp.name == name)
-    )
+    result = await session.execute(select(GruntInstalledApp).where(GruntInstalledApp.name == name))
     app = result.scalar_one_or_none()
     if not app:
         raise HTTPException(status_code=404, detail=f"Додаток '{name}' не знайдено")
@@ -99,9 +98,7 @@ async def delete_app(
     _: GruntUser = Depends(superadmin_user),
 ) -> dict:
     """Uninstall an app."""
-    result = await session.execute(
-        select(GruntInstalledApp).where(GruntInstalledApp.name == name)
-    )
+    result = await session.execute(select(GruntInstalledApp).where(GruntInstalledApp.name == name))
     app = result.scalar_one_or_none()
     if not app:
         raise HTTPException(status_code=404, detail=f"Додаток '{name}' не знайдено")

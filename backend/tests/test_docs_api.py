@@ -2,17 +2,32 @@
 
 from __future__ import annotations
 
-import pytest
-from httpx import AsyncClient
+from typing import TYPE_CHECKING
 
+import pytest
+
+if TYPE_CHECKING:
+    from httpx import AsyncClient
 
 TEST_DOCTYPE = {
     "name": "TestItem",
     "label": "Test Item",
     "module": "core",
     "fields": [
-        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True, "in_list_view": True},
-        {"fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Draft\nActive\nArchived", "default": "Draft"},
+        {
+            "fieldname": "title",
+            "label": "Title",
+            "fieldtype": "Text",
+            "required": True,
+            "in_list_view": True,
+        },
+        {
+            "fieldname": "status",
+            "label": "Status",
+            "fieldtype": "Select",
+            "options": "Draft\nActive\nArchived",
+            "default": "Draft",
+        },
         {"fieldname": "count", "label": "Count", "fieldtype": "Int"},
         {"fieldname": "description", "label": "Description", "fieldtype": "LongText"},
     ],
@@ -48,7 +63,9 @@ async def test_create_document(client: AsyncClient, auth_headers: dict, setup_do
 
 
 @pytest.mark.asyncio
-async def test_create_without_required_field(client: AsyncClient, auth_headers: dict, setup_doctype):
+async def test_create_without_required_field(
+    client: AsyncClient, auth_headers: dict, setup_doctype
+):
     """POST without required field → 422."""
     resp = await client.post(
         "/api/v1/docs/TestItem",
@@ -73,8 +90,12 @@ async def test_list_documents(client: AsyncClient, auth_headers: dict, setup_doc
 @pytest.mark.asyncio
 async def test_list_filter_by_status(client: AsyncClient, auth_headers: dict, setup_doctype):
     """GET /docs/TestItem?filter[status]=Draft → only Draft."""
-    await client.post("/api/v1/docs/TestItem", json={"title": "A", "status": "Draft"}, headers=auth_headers)
-    await client.post("/api/v1/docs/TestItem", json={"title": "B", "status": "Active"}, headers=auth_headers)
+    await client.post(
+        "/api/v1/docs/TestItem", json={"title": "A", "status": "Draft"}, headers=auth_headers
+    )
+    await client.post(
+        "/api/v1/docs/TestItem", json={"title": "B", "status": "Active"}, headers=auth_headers
+    )
 
     resp = await client.get("/api/v1/docs/TestItem?filter[status]=Draft", headers=auth_headers)
     assert resp.status_code == 200
@@ -100,7 +121,9 @@ async def test_list_search(client: AsyncClient, auth_headers: dict, setup_doctyp
 async def test_list_pagination(client: AsyncClient, auth_headers: dict, setup_doctype):
     """GET ?page=2&per_page=2 → correct pagination meta."""
     for i in range(5):
-        await client.post("/api/v1/docs/TestItem", json={"title": f"Item {i}"}, headers=auth_headers)
+        await client.post(
+            "/api/v1/docs/TestItem", json={"title": f"Item {i}"}, headers=auth_headers
+        )
 
     resp = await client.get("/api/v1/docs/TestItem?page=2&per_page=2", headers=auth_headers)
     assert resp.status_code == 200
@@ -116,7 +139,9 @@ async def test_list_pagination(client: AsyncClient, auth_headers: dict, setup_do
 async def test_get_document(client: AsyncClient, auth_headers: dict, setup_doctype):
     """GET /docs/TestItem/{id} → returns the document."""
     create_resp = await client.post(
-        "/api/v1/docs/TestItem", json={"title": "Single Item"}, headers=auth_headers,
+        "/api/v1/docs/TestItem",
+        json={"title": "Single Item"},
+        headers=auth_headers,
     )
     doc_id = create_resp.json()["data"]["id"]
 
@@ -136,7 +161,9 @@ async def test_get_nonexistent_404(client: AsyncClient, auth_headers: dict, setu
 async def test_update_document(client: AsyncClient, auth_headers: dict, setup_doctype):
     """PUT update → modified_at changed."""
     create_resp = await client.post(
-        "/api/v1/docs/TestItem", json={"title": "Original"}, headers=auth_headers,
+        "/api/v1/docs/TestItem",
+        json={"title": "Original"},
+        headers=auth_headers,
     )
     doc = create_resp.json()["data"]
 
@@ -155,7 +182,9 @@ async def test_update_document(client: AsyncClient, auth_headers: dict, setup_do
 async def test_update_owner_ignored(client: AsyncClient, auth_headers: dict, setup_doctype):
     """PUT trying to change owner → ignored."""
     create_resp = await client.post(
-        "/api/v1/docs/TestItem", json={"title": "Test"}, headers=auth_headers,
+        "/api/v1/docs/TestItem",
+        json={"title": "Test"},
+        headers=auth_headers,
     )
     doc = create_resp.json()["data"]
 
@@ -172,7 +201,9 @@ async def test_update_owner_ignored(client: AsyncClient, auth_headers: dict, set
 async def test_delete_document(client: AsyncClient, auth_headers: dict, setup_doctype):
     """DELETE → 200, then GET → 404."""
     create_resp = await client.post(
-        "/api/v1/docs/TestItem", json={"title": "ToDelete"}, headers=auth_headers,
+        "/api/v1/docs/TestItem",
+        json={"title": "ToDelete"},
+        headers=auth_headers,
     )
     doc_id = create_resp.json()["data"]["id"]
 
@@ -196,7 +227,7 @@ async def test_list_partial_fields(client: AsyncClient, auth_headers: dict, setu
     assert resp.status_code == 200
     row = resp.json()["data"][0]
     assert "title" in row
-    assert "id" in row      # always included
-    assert "name" in row     # always included
+    assert "id" in row  # always included
+    assert "name" in row  # always included
     assert "status" not in row
     assert "count" not in row
