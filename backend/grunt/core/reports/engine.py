@@ -231,7 +231,7 @@ class ReportEngine:
                 if getattr(f, "in_list_view", False)
             ]
 
-        from typing import Callable  # noqa: PLC0415
+        from collections.abc import Callable  # noqa: PLC0415, TC003
         agg_map: dict[str, Callable[..., Any]] = {
             "count": func.count,
             "sum": func.sum,

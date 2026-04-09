@@ -150,7 +150,9 @@ class ConnectionManager:
         await self._redis_publish(channel, message)
         await self._send(channel, message)
 
-    async def broadcast_doc(self, doctype: str, doc_id: str, event: str, data: dict[str, Any]) -> None:
+    async def broadcast_doc(
+        self, doctype: str, doc_id: str, event: str, data: dict[str, Any]
+    ) -> None:
         await self.broadcast(f"doc:{doctype}:{doc_id}", event, data)
 
     async def broadcast_list(self, doctype: str, event: str, data: dict[str, Any]) -> None:

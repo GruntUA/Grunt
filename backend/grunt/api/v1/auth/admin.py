@@ -12,7 +12,6 @@ from grunt.api.v1.auth.schemas import (
 )
 from grunt.app import grunt
 from grunt.core.auth.dependencies import superadmin_user
-from grunt.core.auth.models import GruntUser
 from grunt.core.doctypes.user.user import (
     get_user_by_email,
     get_user_by_id,
@@ -22,13 +21,11 @@ from grunt.core.doctypes.user.user import (
     list_users as service_list_users,
 )
 
-router = GruntRouter()
+router = GruntRouter(dependencies=[Depends(superadmin_user)])
 
 
 @router.get("/users", response_model=list[UserResponse])
-async def list_users(
-    _: GruntUser = Depends(superadmin_user),
-) -> list[UserResponse]:
+async def list_users() -> list[UserResponse]:
     """List all users."""
     users = await service_list_users(grunt._require_session())
     return [
@@ -45,9 +42,7 @@ async def list_users(
 
 
 @router.get("/roles")
-async def list_roles(
-    _: GruntUser = Depends(superadmin_user),
-) -> dict:
+async def list_roles() -> dict:
     """Return all defined roles."""
     roles = await grunt.db.get_all("Role", fields=["role_name", "description"], limit=1000)
     return {
@@ -57,25 +52,17 @@ async def list_roles(
 
 
 @router.post("/roles")
-async def create_role(
-    body: AddRoleRequest,
-    _: GruntUser = Depends(superadmin_user),
-) -> dict:
+async def create_role(body: AddRoleRequest) -> dict:
     """Create a new role."""
     existing = await grunt.db.get_all("Role", filters={"role_name": body.role_name}, limit=1)
     if existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=409, detail=f"Роль '{body.role_name}' вже існує")
     doc = await grunt.new_doc("Role", {"role_name": body.role_name})
     return {"success": True, "data": {"name": doc["role_name"]}}
 
 
 @router.post("/users/{user_id}/roles")
-async def add_user_role(
-    user_id: str,
-    body: AddRoleRequest,
-    _: GruntUser = Depends(superadmin_user),
-) -> dict:
+async def add_user_role(user_id: str, body: AddRoleRequest) -> dict:
     """Assign a role to a user."""
     target_user = await get_user_by_id(user_id, grunt._require_session())
     if not target_user:
@@ -97,14 +84,10 @@ async def add_user_role(
 
 
 @router.post("/users/set-password")
-async def set_user_password(
-    body: SetPasswordRequest,
-    _: GruntUser = Depends(superadmin_user),
-) -> dict:
+async def set_user_password(body: SetPasswordRequest) -> dict:
     """Change a user's password (superadmin only)."""
     user = await get_user_by_email(body.email, grunt._require_session())
     if not user:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Користувача не знайдено")
 
     await grunt.db.set_value("User", user.id, "hashed_password", hash_password(body.password))
@@ -112,11 +95,7 @@ async def set_user_password(
 
 
 @router.delete("/users/{user_id}/roles/{role}")
-async def remove_user_role(
-    user_id: str,
-    role: str,
-    _: GruntUser = Depends(superadmin_user),
-) -> dict:
+async def remove_user_role(user_id: str, role: str) -> dict:
     """Remove a role from a user."""
     rows = await grunt.db.get_all(
         "UserRole",

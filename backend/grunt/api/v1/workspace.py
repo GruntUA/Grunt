@@ -85,7 +85,9 @@ def _get_ws_obj(ws_data: dict[str, Any]) -> Any:
     if isinstance(ws_data, dict):
         ws_cls = document_registry.get("WorkspaceSidebar")
         if ws_cls:
-            return ws_cls("WorkspaceSidebar", ws_data, grunt._require_user(), grunt._require_session())
+            return ws_cls(
+                "WorkspaceSidebar", ws_data, grunt._require_user(), grunt._require_session()
+            )
     return ws_data
 
 

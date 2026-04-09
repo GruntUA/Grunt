@@ -22,5 +22,5 @@ class DataImportService:
         from grunt.core.doctypes.data_import.data_import import DataImport  # noqa: PLC0415
 
         async with grunt.context(self._session, self._engine, user):  # type: ignore[arg-type]
-            doc = cast(DataImport, await grunt.get_doc("DataImport", data_import_id))
+            doc = cast("DataImport", await grunt.get_doc("DataImport", data_import_id))
             await doc.run()

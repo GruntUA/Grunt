@@ -13,7 +13,7 @@ router = GruntRouter(prefix="", tags=["data_import"])
 async def get_import_preview(
     data_import_id: str,
 ):
-    di_doc = cast(DataImport, await grunt.get_doc("DataImport", data_import_id))
+    di_doc = cast("DataImport", await grunt.get_doc("DataImport", data_import_id))
     return await di_doc.get_preview()
 
 
@@ -22,7 +22,7 @@ async def run_import(
     data_import_id: str,
     background_tasks: BackgroundTasks,
 ):
-    di_doc = cast(DataImport, await grunt.get_doc("DataImport", data_import_id))
+    di_doc = cast("DataImport", await grunt.get_doc("DataImport", data_import_id))
 
     # Run in background
     background_tasks.add_task(di_doc.run)

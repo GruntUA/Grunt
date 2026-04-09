@@ -302,6 +302,180 @@ class GruntApp:
         """Count documents matching optional filters."""
         return await self.db.count(doctype, filters=filters)
 
+    async def exists(
+        self,
+        doctype: str,
+        filters: dict[str, Any] | str,
+    ) -> str | None:
+        """Return the document id if a matching record exists, otherwise ``None``.
+
+        Unlike ``grunt.db.exists``, this respects the current user's read permission::
+
+            if await grunt.exists("Invoice", {"number": "INV-001", "status": "Unpaid"}):
+                ...
+        """
+        from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+
+        dt = await doctype_registry.get(doctype)
+        user = self._require_user()
+        if not await permission_checker.check(user, dt, "read"):
+            return None
+        return await self.db.exists(doctype, filters)
+
+    async def get_value(
+        self,
+        doctype: str,
+        id_or_name: str,
+        fieldname: str,
+    ) -> Any:
+        """Fetch a single field value from a document.
+
+        Checks read permission and returns ``None`` if the document does not
+        exist or the user has no access::
+
+            status = await grunt.get_value("Invoice", invoice_id, "status")
+        """
+        from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+
+        dt = await doctype_registry.get(doctype)
+        user = self._require_user()
+        if not await permission_checker.check(user, dt, "read"):
+            return None
+        return await self.db.get_value(doctype, id_or_name, fieldname)
+
+    async def set_value(
+        self,
+        doctype: str,
+        id_or_name: str,
+        fieldname: str | dict[str, Any],
+        value: Any = None,
+    ) -> None:
+        """Update one or more fields directly — lightweight, no lifecycle hooks.
+
+        Checks write permission then issues a single SQL UPDATE.
+        Use :meth:`save_doc` when you need ``before_save``/``after_save`` hooks
+        to run (e.g. validation, audit log)::
+
+            # single field
+            await grunt.set_value("Invoice", invoice_id, "status", "Paid")
+
+            # multiple fields at once
+            await grunt.set_value("Invoice", invoice_id, {"status": "Paid", "paid_at": now})
+        """
+        from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+
+        dt = await doctype_registry.get(doctype)
+        await permission_checker.require(self._require_user(), dt, "write")
+        await self.db.set_value(doctype, id_or_name, fieldname, value)
+
+    async def get_single(self, doctype: str, fieldname: str) -> Any:
+        """Fetch a field value from a Single DocType (singleton document).
+
+        Single DocTypes hold global settings and have no id — they are stored
+        as key/value rows rather than regular documents::
+
+            currency = await grunt.get_single("SystemSettings", "default_currency")
+        """
+        return await self.db.get_single_value(doctype, fieldname)
+
+    async def submit(
+        self,
+        doctype: str,
+        doc_id: str,
+        action: str,
+    ) -> dict[str, Any]:
+        """Apply a workflow transition to a document.
+
+        ``action`` must match a transition label defined in the DocType's workflow.
+        Raises ``HTTPException(409)`` if the transition is not available for the
+        current document state or the user lacks the required role::
+
+            await grunt.submit("LeaveRequest", request_id, "Approve")
+        """
+        from grunt.core.workflow.engine import workflow_engine  # noqa: PLC0415
+
+        dt = await doctype_registry.get(doctype)
+        return await workflow_engine.apply_transition(
+            dt,
+            doc_id,
+            action,
+            self._require_user(),
+            self._require_session(),
+            self._require_engine(),
+        )
+
+    async def duplicate(
+        self,
+        doctype: str,
+        id_or_name: str,
+        *,
+        overrides: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Create a copy of a document and return it.
+
+        Optionally pass ``overrides`` to change specific fields on the copy::
+
+            draft = await grunt.duplicate("Invoice", original_id, overrides={"status": "Draft"})
+        """
+        original = await self.get_doc(doctype, id_or_name)
+        data = {k: v for k, v in original.items() if k not in ("id", "name", "created_at")}
+        if overrides:
+            data.update(overrides)
+        return await self.new_doc(doctype, data)
+
+    async def has_permission(
+        self,
+        doctype: str,
+        action: str,
+        doc_id: str | None = None,
+    ) -> bool:
+        """Check whether the current user has the given permission.
+
+        ``action`` is one of ``"read"``, ``"write"``, ``"create"``, ``"delete"``,
+        ``"submit"``::
+
+            if not await grunt.has_permission("Invoice", "delete"):
+                grunt.throw("You cannot delete invoices")
+        """
+
+        from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+
+        dt = await doctype_registry.get(doctype)
+        user = self._require_user()
+        doc: dict[str, Any] | None = None
+        if doc_id:
+            doc = await self.db.get_value(doctype, doc_id, "*")
+        return await permission_checker.check(
+            user, dt, action, doc  # type: ignore[arg-type]
+        )
+
+    async def enqueue_doc(
+        self,
+        doctype: str,
+        doc_id: str,
+        method: str,
+        **kwargs: Any,
+    ) -> None:
+        """Enqueue a controller method to run as a background task.
+
+        The method must exist on the DocType controller and is called with
+        ``**kwargs`` in a fresh site context::
+
+            await grunt.enqueue_doc("Report", report_id, "generate", format="pdf")
+        """
+        from grunt.core.site.manager import site_manager  # noqa: PLC0415
+        from grunt.core.tasks.doc_method import enqueue_doc_method  # noqa: PLC0415
+
+        user = self._require_user()
+        await enqueue_doc_method(
+            site=site_manager.get_active_site(),
+            user_email=user.email,
+            doctype=doctype,
+            doc_id=doc_id,
+            method=method,
+            kwargs=kwargs,
+        )
+
     # ── Meta ──────────────────────────────────────────────────────────────
 
     async def get_meta(self, doctype: str) -> DocType:
