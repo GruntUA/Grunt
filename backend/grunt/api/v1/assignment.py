@@ -6,14 +6,14 @@ import contextlib
 import json
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import HTTPException
 from pydantic import BaseModel
 
+from grunt.api.router import GruntRouter
 from grunt.app import grunt
 from grunt.core.assignment import assignment_service
-from grunt.core.auth.dependencies import grunt_context
 
-router = APIRouter(prefix="/assignment-rules", tags=["assignment"])
+router = GruntRouter(prefix="/assignment-rules", tags=["assignment"])
 
 
 class TestRuleRequest(BaseModel):
@@ -24,7 +24,6 @@ class TestRuleRequest(BaseModel):
 async def test_assignment_rule(
     rule_id: str,
     body: TestRuleRequest,
-    _: None = Depends(grunt_context),
 ) -> dict[str, Any]:
     """Test an assignment rule against a sample document.
 
@@ -123,7 +122,6 @@ async def list_assignment_logs(
     assigned_to: str | None = None,
     status: str | None = None,
     limit: int = 100,
-    _: None = Depends(grunt_context),
 ) -> dict[str, Any]:
     """List assignment logs with filters.
 

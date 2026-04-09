@@ -2,41 +2,28 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import desc, select
 
-from grunt.api.v1.docs.utils import _audit_log, get_doc_service
-from grunt.core.auth.dependencies import current_user
-from grunt.core.db.session import get_session
-from grunt.core.metadata.compiler import compile_doctype_to_table
-from grunt.core.metadata.registry import doctype_registry
+from grunt.app import grunt
+from grunt.api.router import GruntRouter
 
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from grunt.core.auth.models import GruntUser
-    from grunt.core.document.service import DocumentService
-
-router = APIRouter()
+router = GruntRouter(prefix="", tags=["docs", "history"])
 
 
 @router.get("/{doctype}/{doc_id}/versions")
 async def get_document_versions(
     doctype: str,
     doc_id: str,
-    user: GruntUser = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
-    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Return version history for a document."""
-    # Ensure document exists
-    await svc.get_document(doctype, doc_id, user)
+    # Ensure document exists and user has access
+    await grunt.get_doc(doctype, doc_id)
 
-    from grunt.core.document.versioning import version_service  # noqa: PLC0415
+    from grunt.core.document.versioning import version_service
 
-    versions = await version_service.get_versions(session, doctype, doc_id)
+    versions = await version_service.get_versions(grunt._require_session(), doctype, doc_id)
     return {"success": True, "data": versions}
 
 
@@ -45,17 +32,14 @@ async def restore_document_version(
     doctype: str,
     doc_id: str,
     version_id: str,
-    user: GruntUser = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
-    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Restore a document to a previous version."""
-    from grunt.core.document.versioning import version_service  # noqa: PLC0415
+    from grunt.core.document.versioning import version_service
 
-    # Get current doc
-    current_doc = await svc.get_document(doctype, doc_id, user)
+    # Get current doc and verify access
+    current_doc = await grunt.get_doc(doctype, doc_id)
 
-    # Get target version
+    session = grunt._require_session()
     target = await version_service.get_version(session, version_id)
     if target is None:
         raise HTTPException(status_code=404, detail="Версію не знайдено")
@@ -69,8 +53,8 @@ async def restore_document_version(
     restore_data = version_service.build_restore_data(current_doc, all_versions, target["version"])
 
     # Apply as a regular update
-    dt = await doctype_registry.get(doctype)
-    from grunt.core.metadata.field import NON_PHYSICAL_FIELDS  # noqa: PLC0415
+    dt = await grunt.metadata.get_doctype(doctype)
+    from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
 
     update_fields = {}
     for field in dt.fields:
@@ -79,8 +63,19 @@ async def restore_document_version(
         if field.fieldname in restore_data:
             update_fields[field.fieldname] = restore_data[field.fieldname]
 
-    result = await svc.update_document(doctype, doc_id, update_fields, user)
-    await _audit_log(svc, doctype, doc_id, "restore", user, {"to_version": target["version"]})
+    result = await grunt.save_doc(doctype, doc_id, update_fields)
+    
+    # Add audit log
+    await grunt.new_doc(
+        "ActivityLog",
+        {
+            "doctype": doctype,
+            "doc_id": doc_id,
+            "action": "restore",
+            "user": grunt.session.user,
+            "details": f'{{"to_version": "{target["version"]}"}}',
+        }
+    )
 
     return {"success": True, "data": result, "restored_to_version": target["version"]}
 
@@ -90,29 +85,25 @@ async def get_document_log(
     doctype: str,
     doc_id: str,
     limit: int = Query(10, ge=1, le=100),
-    user: GruntUser = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     """Return the activity log for a document."""
-    table = compile_doctype_to_table(doctype_registry._doctypes["ActivityLog"])
-    q = (
-        select(table)
-        .where(
-            table.c.doctype == doctype,
-            table.c.doc_id == doc_id,
-        )
-        .order_by(desc(table.c.created_at))
-        .limit(limit)
+    await grunt.get_doc(doctype, doc_id)
+
+    entries = await grunt.get_list(
+        "ActivityLog",
+        filters={"doctype": doctype, "doc_id": doc_id},
+        order_by="created_at",
+        order="desc",
+        limit=limit,
     )
-    result = await session.execute(q)
-    entries = result.mappings().all()
+    
     data = [
         {
-            "id": e["id"],
-            "action": e["action"],
-            "user": e["user"],
-            "details": e["details"],
-            "created_at": e["created_at"].isoformat() if e["created_at"] else None,
+            "id": str(e["id"]),
+            "action": e.get("action"),
+            "user": e.get("user"),
+            "details": e.get("details"),
+            "created_at": str(e["created_at"]) if e.get("created_at") else None,
         }
         for e in entries
     ]
@@ -123,39 +114,20 @@ async def get_document_log(
 async def get_document_timeline(
     doctype: str,
     doc_id: str,
-    user: GruntUser = Depends(current_user),
-    svc: DocumentService = Depends(get_doc_service),
-    session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     """Return a merged timeline of activity and comments."""
-    await svc.get_document(doctype, doc_id, user)  # permission check
+    await grunt.get_doc(doctype, doc_id)  # permission check
 
-    activity_table = compile_doctype_to_table(doctype_registry._doctypes["ActivityLog"])
-    comment_table = compile_doctype_to_table(doctype_registry._doctypes["Comment"])
-
-    act_rows = (
-        (
-            await session.execute(
-                select(activity_table).where(
-                    activity_table.c.doctype == doctype, activity_table.c.doc_id == doc_id
-                )
-            )
-        )
-        .mappings()
-        .all()
+    act_rows = await grunt.get_list(
+        "ActivityLog",
+        filters={"doctype": doctype, "doc_id": doc_id},
+        limit=1000
     )
 
-    comment_rows = (
-        (
-            await session.execute(
-                select(comment_table).where(
-                    comment_table.c.reference_doctype == doctype,
-                    comment_table.c.reference_id == doc_id,
-                )
-            )
-        )
-        .mappings()
-        .all()
+    comment_rows = await grunt.get_list(
+        "Comment",
+        filters={"reference_doctype": doctype, "reference_id": doc_id},
+        limit=1000
     )
 
     items: list[dict[str, Any]] = []
@@ -164,10 +136,10 @@ async def get_document_timeline(
             {
                 "type": "activity",
                 "id": str(r["id"]),
-                "action": r["action"],
-                "user": r["user"],
-                "details": r["details"],
-                "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+                "action": r.get("action"),
+                "user": r.get("user"),
+                "details": r.get("details"),
+                "created_at": str(r["created_at"]) if r.get("created_at") else None,
             }
         )
     for r in comment_rows:
@@ -175,10 +147,10 @@ async def get_document_timeline(
             {
                 "type": "comment",
                 "id": str(r["id"]),
-                "content": r["content"],
-                "comment_type": r["comment_type"],
-                "user": r["owner"],
-                "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+                "content": r.get("content"),
+                "comment_type": r.get("comment_type"),
+                "user": r.get("owner"),
+                "created_at": str(r["created_at"]) if r.get("created_at") else None,
             }
         )
 

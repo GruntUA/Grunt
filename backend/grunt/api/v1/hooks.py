@@ -1,20 +1,22 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from grunt.app import grunt
 from grunt.core.auth.dependencies import superadmin_user
-from grunt.core.auth.models import GruntUser
-from grunt.core.db.session import get_session
 from grunt.core.hooks import DOC_EVENT_REGISTRY, HOOK_REGISTRY
 
 router = APIRouter()
 
 
+@router.get("/events")
+async def list_events() -> list[str]:
+    return list(HOOK_REGISTRY.keys())
+
+
 @router.get("/")
 async def get_hooks(
-    user: GruntUser = Depends(superadmin_user),
-    session: AsyncSession = Depends(get_session),
+    _: Any = Depends(superadmin_user),
 ) -> dict[str, Any]:
     """Return all registered hooks (Global and DocType-specific)."""
 
@@ -47,16 +49,13 @@ async def get_hooks(
                 )
 
     # 3. Collect Server Scripts from Database
-    from grunt.core.metadata.registry import doctype_registry  # noqa
-    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa
-    from sqlalchemy import select  # noqa
-
     try:
-        ss_dt = doctype_registry.get_sync("ServerScript")  # Use get_sync if async not easier here
-        table = compile_doctype_to_table(ss_dt)
-        q = select(table).where(not table.c.disabled)
-        result = await session.execute(q)
-        scripts = result.mappings().all()
+        scripts = await grunt.get_list(
+            "ServerScript",
+            filters={"disabled": False},
+            fields=["event", "script_type", "api_method", "name", "reference_doctype"],
+            limit=1000
+        )
 
         for s in scripts:
             hooks.append(
@@ -64,10 +63,10 @@ async def get_hooks(
                     "source": "Database (Server Script)",
                     "event": s["event"]
                     if s["script_type"] == "DocType Event"
-                    else s["api_method"] or "Global",
+                    else s.get("api_method") or "Global",
                     "handler": s["name"],
                     "priority": 10,  # Scripts use standard priority
-                    "doctype": s["reference_doctype"]
+                    "doctype": s.get("reference_doctype")
                     if s["script_type"] == "DocType Event"
                     else "*",
                 }

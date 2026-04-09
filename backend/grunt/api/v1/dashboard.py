@@ -13,15 +13,15 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import Depends, HTTPException, Query
 
+from grunt.api.router import GruntRouter
 from grunt.app import grunt
-from grunt.core.auth.dependencies import grunt_context
 from grunt.core.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()
 
-router = APIRouter()
+router = GruntRouter(prefix="", tags=["dashboard"])
 
 _PERIOD_DAYS = {"7d": 7, "30d": 30, "90d": 90, "365d": 365}
 
@@ -317,7 +317,6 @@ async def get_dashboard_data(
     name: str,
     date_from: str | None = Query(None, description="Global date filter from (ISO date)"),
     date_to: str | None = Query(None, description="Global date filter to (ISO date)"),
-    _: None = Depends(grunt_context),
 ) -> dict[str, Any]:
     """Return computed data for all widgets of a Dashboard document."""
     try:

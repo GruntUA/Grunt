@@ -203,7 +203,8 @@ class GruntApp:
         for rec in records:
             doc_id = str(uuid.uuid4())
             ids.append(doc_id)
-            row = {
+            row = {k: v for k, v in rec.items() if k in table.c}
+            standard = {
                 "id": doc_id,
                 "name": rec.get("name") or doc_id,
                 "owner": user.email,
@@ -211,8 +212,10 @@ class GruntApp:
                 "modified_at": now,
                 "modified_by": user.email,
                 "docstatus": 0,
-                **{k: v for k, v in rec.items() if k in table.c},
             }
+            for k, v in standard.items():
+                if k in table.c:
+                    row[k] = v
             rows.append(row)
 
         await session.execute(insert(table).values(rows))
@@ -238,11 +241,13 @@ class GruntApp:
         session = self._require_session()
         user = self._require_user()
 
-        stmt = update(table).values(
-            **{k: v for k, v in values.items() if k in table.c},
-            modified_at=datetime.now(UTC).isoformat(),
-            modified_by=user.email,
-        )
+        update_values = {k: v for k, v in values.items() if k in table.c}
+        if "modified_at" in table.c:
+            update_values["modified_at"] = datetime.now(UTC).isoformat()
+        if "modified_by" in table.c:
+            update_values["modified_by"] = user.email
+
+        stmt = update(table).values(**update_values)
         for key, val in filters.items():
             col = table.c.get(key)
             if col is not None:

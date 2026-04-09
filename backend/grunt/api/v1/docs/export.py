@@ -6,39 +6,30 @@ import csv
 import io
 import json
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import openpyxl
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import HTTPException, Query, Request
 from fastapi.responses import Response, StreamingResponse
 from openpyxl.styles import Font, PatternFill
 
+from grunt.api.router import GruntRouter
 from grunt.api.v1.docs.utils import (
     _fmt,
     _generate_xlsx_single,
     _non_layout_fields,
-    get_doc_service,
 )
-from grunt.core.auth.dependencies import current_user
-from grunt.core.db.session import get_session
+from grunt.app import grunt
 from grunt.core.metadata.registry import doctype_registry
 
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from grunt.core.auth.models import GruntUser
-    from grunt.core.document.service import DocumentService
-
 logger = structlog.get_logger()
-router = APIRouter()
+router = GruntRouter(prefix="", tags=["docs", "export"])
 
 
 @router.get("/{doctype}/export")
 async def export_documents(
     doctype: str,
-    user: GruntUser = Depends(current_user),
-    svc: DocumentService = Depends(get_doc_service),
     sort_by: str = "modified_at",
     sort_order: str = "desc",
     filters: str | None = None,
@@ -53,19 +44,17 @@ async def export_documents(
         except json.JSONDecodeError:
             logger.debug("export_invalid_filters", doctype=doctype)
 
-    parsed_fields = fields.split(",") if fields else None
+    parsed_fields = fields.split(",") if fields else ["*"]
 
-    res = await svc.list_documents(
+    data = await grunt.get_list(
         doctype,
-        user,
-        per_page=1000,
-        sort_by=sort_by,
-        sort_order=sort_order,
-        filters=parsed_filters,
+        limit=1000,
+        order_by=sort_by,
+        order=sort_order,
+        filters=parsed_filters if parsed_filters else None,
         search=search,
         fields=parsed_fields,
     )
-    data = res["data"]
 
     # 2. Generate CSV
     output = io.StringIO()
@@ -91,13 +80,11 @@ async def print_document(
     doc_id: str,
     fmt: str = Query("html"),  # html | pdf | xlsx | docx
     print_format: str | None = Query(None),
-    user: GruntUser = Depends(current_user),
-    svc: DocumentService = Depends(get_doc_service),
-    session: AsyncSession = Depends(get_session),
 ) -> Response:
     """Generate document in requested format: html, pdf, xlsx, or docx."""
-    doc = await svc.get_document(doctype, doc_id, user)
+    doc = await grunt.get_doc(doctype, doc_id)
     dt = await doctype_registry.get(doctype)
+    session = grunt._require_session()
 
     if fmt == "xlsx":
         content = _generate_xlsx_single(dt, doc)
@@ -108,11 +95,11 @@ async def print_document(
         )
 
     if fmt == "docx":
-        from grunt.core.print.renderer import get_print_format_template  # noqa: PLC0415
+        from grunt.core.print.renderer import get_print_format_template
 
         pf = await get_print_format_template(session, doctype, print_format)
         if pf and pf[1] == "docx":
-            from grunt.core.print.renderer import render_docx  # noqa: PLC0415
+            from grunt.core.print.renderer import render_docx
 
             try:
                 docx_bytes = render_docx(pf[0], doc)
@@ -131,7 +118,7 @@ async def print_document(
         )
 
     if fmt in ("pdf", "html"):
-        from grunt.core.print.renderer import (  # noqa: PLC0415
+        from grunt.core.print.renderer import (
             get_print_format_template,
             render_from_string,
             render_standard,
@@ -155,7 +142,7 @@ async def print_document(
 
         # PDF via WeasyPrint
         try:
-            from weasyprint import HTML as WP_HTML  # noqa: PLC0415
+            from weasyprint import HTML as WP_HTML
 
             pdf_bytes = WP_HTML(string=html).write_pdf()
             return Response(
@@ -181,11 +168,9 @@ async def print_document(
 async def print_format_preview(
     doctype: str,
     body: dict[str, Any],
-    user: GruntUser = Depends(current_user),
-    svc: DocumentService = Depends(get_doc_service),
 ) -> Response:
     """Render an arbitrary Jinja2 HTML template against a document (or sample)."""
-    from grunt.core.print.renderer import render_from_string  # noqa: PLC0415
+    from grunt.core.print.renderer import render_from_string
 
     template_str: str = (body.get("template") or "").strip()
     if not template_str:
@@ -195,13 +180,12 @@ async def print_format_preview(
     dt = await doctype_registry.get(doctype)
 
     if doc_id:
-        doc = await svc.get_document(doctype, doc_id, user)
+        doc = await grunt.get_doc(doctype, doc_id)
     else:
         # Use first available document as sample
-        result = await svc.list_documents(doctype, user=user, page=1, per_page=1)
-        sample_list = result.get("data") or []
+        sample_list = await grunt.get_list(doctype, limit=1)
         if sample_list:
-            doc = dict(sample_list[0])
+            doc = sample_list[0]
         else:
             # Synthetic empty doc with all field names set to None
             doc = {f.fieldname: None for f in dt.fields}
@@ -220,8 +204,6 @@ async def print_format_preview(
 async def export_documents_xlsx(
     doctype: str,
     request: Request,
-    user: GruntUser = Depends(current_user),
-    svc: DocumentService = Depends(get_doc_service),
 ) -> Response:
     """Export all documents (up to 10 000) for a DocType as XLSX."""
     filters: dict[str, str] = {}
@@ -229,14 +211,12 @@ async def export_documents_xlsx(
         if key.startswith("filter[") and key.endswith("]"):
             filters[key[7:-1]] = value
 
-    result = await svc.list_documents(
-        doctype_name=doctype,
-        user=user,
-        page=1,
-        per_page=10000,
+    rows = await grunt.get_list(
+        doctype,
+        limit=10000,
         filters=filters if filters else None,
     )
-    rows: list[dict[str, Any]] = result["data"]
+    
     dt = await doctype_registry.get(doctype)
     visible = _non_layout_fields(dt)
 

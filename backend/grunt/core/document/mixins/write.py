@@ -94,7 +94,8 @@ class DocumentWriteMixin:
 
         generated_name = await naming_service.generate(dt.autoname or "", data, self.session)
 
-        row = {
+        row: dict[str, Any] = {}
+        standard = {
             "id": doc_id,
             "name": generated_name or doc_id[:8],
             "owner": user.email,
@@ -103,6 +104,9 @@ class DocumentWriteMixin:
             "modified_by": user.email,
             "docstatus": 0,
         }
+        for k, v in standard.items():
+            if k in table.c:
+                row[k] = v
 
         for field in dt.fields:
             if field.fieldtype in NON_PHYSICAL_FIELDS:
@@ -238,8 +242,10 @@ class DocumentWriteMixin:
             if field.fieldname in data and field.fieldname not in PROTECTED_FIELDS:
                 update_data[field.fieldname] = _coerce_value(data[field.fieldname], field.fieldtype)
 
-        update_data["modified_at"] = datetime.now(UTC)
-        update_data["modified_by"] = user.email
+        if "modified_at" in table.c:
+            update_data["modified_at"] = datetime.now(UTC)
+        if "modified_by" in table.c:
+            update_data["modified_by"] = user.email
 
         real_id = existing["id"]
         merged = {**existing, **update_data}

@@ -2,35 +2,24 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from fastapi import APIRouter, Depends
+from grunt.api.router import GruntRouter
+from grunt.app import grunt
+from grunt.core.metadata.registry import doctype_registry
 
-from grunt.api.v1.docs.utils import get_doc_service
-from grunt.core.auth.dependencies import current_user
-from grunt.core.db.session import get_session
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from grunt.core.auth.models import GruntUser
-    from grunt.core.document.service import DocumentService
-
-router = APIRouter()
+router = GruntRouter(prefix="", tags=["meta"])
 
 
-@router.get("/{doctype}/{doc_id}/links")
-async def get_document_links(
+@router.get("/{doctype}/meta")
+async def get_meta(
     doctype: str,
-    doc_id: str,
-    user: GruntUser = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
-    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Return all documents that link to this document (backlinks)."""
-    await svc.get_document(doctype, doc_id, user)
+    # Permission verification
+    await grunt.get_doc(doctype, doc_id)
 
-    from grunt.core.document.links import link_service  # noqa: PLC0415
+    from grunt.core.document.links import link_service
 
-    links = await link_service.get_backlinks(session, doctype, doc_id)
+    links = await link_service.get_backlinks(grunt._require_session(), doctype, doc_id)
     return {"success": True, "data": links}

@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from datetime import UTC
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from sqlalchemy import inspect as sa_inspect
 
+from grunt.api.router import GruntRouter
 from grunt.api.v1.schemas.meta import (
     DocTypeListItem,
     DocTypeSaveResult,
@@ -28,7 +29,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 logger = structlog.get_logger()
-router = APIRouter()
+router = GruntRouter(prefix="", tags=["meta"])
 
 
 async def _get_app_name_for_module(module: str, session: AsyncSession) -> str | None:
@@ -168,14 +169,14 @@ async def create_doctype(
     )
 
 
-@router.get("/doctypes/{name}", response_model=DocTypeSchema)
-async def get_doctype(
+@router.get("/doctypes/{name}")
+async def get_doctype_meta(
     name: str,
     _user: GruntUser = Depends(current_user),
-) -> DocTypeSchema:
+) -> dict[str, Any]:
     """Get a single DocType by name."""
     dt = await doctype_registry.get(name)
-    return _doctype_to_schema(dt)
+    return _doctype_to_schema(dt).model_dump()
 
 
 @router.put("/doctypes/{name}", response_model=DocTypeSaveResult)
@@ -256,14 +257,10 @@ async def sync_doctype(
 
 @router.get("/roles")
 async def list_roles(
-    session: AsyncSession = Depends(get_session),
     _user: GruntUser = Depends(current_user),
 ) -> list[dict]:
     """Return all Role documents."""
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
-
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:
         roles = await grunt.db.get_all(
             "Role",

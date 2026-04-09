@@ -14,24 +14,46 @@ def init():
 @click.command()
 @click.option("--port", default=8000, help="Порт для API")
 @click.option("--reload", is_flag=True, help="Режим перезавантаження")
-def serve(port, reload):
-    """Запуск сервера FastAPI."""
-    click.echo(f"Запуск сервера на порту {port}...")
-    cmd = ["uvicorn", "grunt.main:app", "--port", str(port)]
+@click.option("--no-frontend", is_flag=True, help="Не запускати фронтенд")
+def serve(port, reload, no_frontend):
+    """Запуск сервера FastAPI (та Vite за замовчуванням)."""
+    root_dir = Path(__file__).parents[3]
+    
+    frontend_process = None
+    if not no_frontend:
+        click.echo("Запуск фронтенда (Vite)...")
+        # Ensure we run from the project root where package.json is
+        frontend_process = subprocess.Popen(
+            ["npm", "run", "dev"],
+            cwd=root_dir,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT,
+        )
+
+    click.echo(f"Запуск API сервера на порту {port}...")
+    cmd = ["uvicorn", "backend.grunt.main:app", "--port", str(port)]
     if reload:
         cmd += [
             "--reload",
-            "--reload-include",
-            "*.js",
-            "--reload-include",
-            "*.json",
-            "--reload-dir",
-            str(Path(__file__).parents[3]),  # backend/
+            "--reload-include", "*.js",
+            "--reload-include", "*.json",
+            "--reload-dir", str(root_dir / "backend"),
         ]
-        grunt_apps = Path("grunt_apps")
+        grunt_apps = root_dir / "grunt_apps"
         if grunt_apps.exists():
             cmd += ["--reload-dir", str(grunt_apps)]
-    subprocess.run(cmd)
+    
+    try:
+        subprocess.run(cmd, cwd=root_dir)
+    except KeyboardInterrupt:
+        click.echo("\nЗупинка серверів...")
+    finally:
+        if frontend_process:
+            frontend_process.terminate()
+            try:
+                frontend_process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                frontend_process.kill()
 
 
 @click.command()

@@ -4,25 +4,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Depends, HTTPException
 
-from grunt.core.auth.dependencies import current_user, superadmin_user
-from grunt.core.db.session import get_engine, get_session
-from grunt.core.document.service import DocumentService
+from grunt.api.router import GruntRouter
+from grunt.app import grunt
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
     from grunt.core.auth.models import GruntUser
 
-router = APIRouter()
-
-
-def get_doc_service(
-    session: AsyncSession = Depends(get_session),
-    engine: AsyncEngine = Depends(get_engine),
-) -> DocumentService:
-    return DocumentService(session, engine)
+router = GruntRouter(prefix="/pages", tags=["pages"])
 
 
 _PAGE_FIELDS = [
@@ -49,47 +41,37 @@ _PAGE_UPDATABLE = {
 
 
 @router.get("/")
-async def list_pages(
-    user: GruntUser = Depends(current_user),
-    svc: DocumentService = Depends(get_doc_service),
-) -> dict[str, Any]:
+async def list_pages() -> dict[str, Any]:
     """List all registered custom pages."""
-    result = await svc.list_documents(
+    data = await grunt.get_list(
         "Page",
-        user,
         per_page=10000,
         sort_by="sidebar_order",
         sort_order="asc",
         fields=_PAGE_FIELDS,
     )
-    return {"success": True, "data": result["data"]}
+    return {"success": True, "data": data}
 
 
 @router.post("/")
 async def register_page(
     body: dict[str, Any],
-    user: GruntUser = Depends(superadmin_user),
-    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Register or update a custom page from an app."""
+    if not grunt.session.is_superadmin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
     route = (body.get("route") or "").strip()
     if not route:
         raise HTTPException(status_code=422, detail="route є обов'язковим")
 
-    from grunt.app import grunt  # noqa: PLC0415
-
-    tokens = grunt.set_context(session=svc.session, engine=svc.engine, user=user)
-    try:
-        page_id = await grunt.db.get_value("Page", {"route": route}, "id")
-    finally:
-        grunt.reset_context(tokens)
-
+    page_id = await grunt.get_id("Page", {"route": route})
     update_data = {k: v for k, v in body.items() if k in _PAGE_UPDATABLE}
 
     if page_id:
-        doc = await svc.update_document("Page", page_id, update_data, user)
+        doc = await grunt.save_doc("Page", page_id, update_data)
     else:
-        doc = await svc.create_document("Page", {"route": route, **update_data}, user)
+        doc = await grunt.new_doc("Page", {"route": route, **update_data})
 
     return {"success": True, "data": {"route": route, "title": doc.get("title", route)}}
 
@@ -97,22 +79,16 @@ async def register_page(
 @router.delete("/{route:path}")
 async def delete_page(
     route: str,
-    user: GruntUser = Depends(superadmin_user),
-    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Remove a custom page registration."""
+    if not grunt.session.is_superadmin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
     full_route = f"/{route}"
-
-    from grunt.app import grunt  # noqa: PLC0415
-
-    tokens = grunt.set_context(session=svc.session, engine=svc.engine, user=user)
-    try:
-        page_id = await grunt.db.get_value("Page", {"route": full_route}, "id")
-    finally:
-        grunt.reset_context(tokens)
+    page_id = await grunt.get_id("Page", {"route": full_route})
 
     if not page_id:
         raise HTTPException(status_code=404, detail="Сторінку не знайдено")
 
-    await svc.delete_document("Page", page_id, user)
+    await grunt.delete_doc("Page", page_id)
     return {"success": True, "message": "Сторінку видалено"}

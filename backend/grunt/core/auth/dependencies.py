@@ -134,3 +134,18 @@ async def grunt_context(
         yield
     finally:
         grunt.reset_context(tokens)
+
+
+async def grunt_context_optional(
+    session: AsyncSession = Depends(get_session),
+    engine: AsyncEngine = Depends(get_engine),
+    user: GruntUser | None = Depends(optional_user),
+) -> AsyncGenerator[None, Any]:
+    """FastAPI dependency that sets up the grunt SDK context for the duration of a request, with an optional user."""
+    from grunt.app import grunt
+
+    tokens = grunt.set_context(session, engine, user)
+    try:
+        yield
+    finally:
+        grunt.reset_context(tokens)

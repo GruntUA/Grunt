@@ -2,21 +2,18 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import Response
+from fastapi import Depends, HTTPException
 
+from grunt.api.router import GruntRouter
 from grunt.app import grunt
-from grunt.core.auth.dependencies import current_user, grunt_context, superadmin_user
-from grunt.core.db.session import get_session
+from grunt.core.auth.dependencies import superadmin_user
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from grunt.core.auth.models import GruntUser
 
-router = APIRouter()
+router = GruntRouter(prefix="", tags=["reports"])
 
 _REPORT_FIELDS = [
     "id",
@@ -32,10 +29,8 @@ _REPORT_FIELDS = [
 
 
 @router.get("/")
-async def list_reports(
-    _: None = Depends(grunt_context),
-) -> dict:
-    """List all reports."""
+async def list_reports() -> dict:
+    """"List all reports."""
     data = await grunt.db.get_all(
         "Report",
         fields=["id", "report_name", "report_type", "doctype", "created_at"],
@@ -50,7 +45,6 @@ async def list_reports(
 async def create_report(
     body: dict,
     _: GruntUser = Depends(superadmin_user),
-    __: None = Depends(grunt_context),
 ) -> dict:
     """Create a new report."""
     report_name = body.get("report_name", "")
@@ -79,7 +73,6 @@ async def create_report(
 @router.get("/{name}")
 async def get_report(
     name: str,
-    _: None = Depends(grunt_context),
 ) -> dict:
     """Get a single report by name."""
     report = await grunt.db.get_values("Report", {"report_name": name}, _REPORT_FIELDS)
@@ -93,7 +86,6 @@ async def update_report(
     name: str,
     body: dict,
     _: GruntUser = Depends(superadmin_user),
-    __: None = Depends(grunt_context),
 ) -> dict:
     """Update a report."""
     report = await grunt.db.get_values("Report", {"report_name": name}, ["id"])
@@ -111,7 +103,6 @@ async def update_report(
 async def delete_report(
     name: str,
     _: GruntUser = Depends(superadmin_user),
-    __: None = Depends(grunt_context),
 ) -> dict:
     """Delete a report."""
     report = await grunt.db.get_values("Report", {"report_name": name}, ["id"])
@@ -125,24 +116,20 @@ async def delete_report(
 async def run_report(
     name: str,
     body: dict,
-    session: AsyncSession = Depends(get_session),
-    user: GruntUser = Depends(current_user),
-) -> dict:
+) -> dict[str, Any]:
     """Execute a report and return results."""
-    from grunt.core.reports.engine import report_engine  # noqa: PLC0415
+    from grunt.core.reports.engine import report_engine
 
-    result = await report_engine.run(name, body.get("filters", {}), user, session)
+    result = await report_engine.run(name, body.get("filters", {}), grunt._require_user(), grunt._require_session())
     return {"success": True, **result}
 
 
 @router.post("/run-preview")
 async def run_report_preview(
     body: dict,
-    session: AsyncSession = Depends(get_session),
-    user: GruntUser = Depends(current_user),
 ) -> dict:
     """Execute an ad-hoc report configuration for preview."""
-    from grunt.core.reports.engine import report_engine  # noqa: PLC0415
+    from grunt.core.reports.engine import report_engine
 
     doctype = body.get("doctype")
     if not doctype:
@@ -152,8 +139,8 @@ async def run_report_preview(
         doctype,
         {"columns": body.get("columns", [])},
         body.get("filters", {}),
-        user,
-        session,
+        grunt._require_user(),
+        grunt._require_session(),
     )
     return {"success": True, **result}
 
@@ -161,13 +148,11 @@ async def run_report_preview(
 @router.get("/{name}/export/xlsx")
 async def export_report_xlsx(
     name: str,
-    session: AsyncSession = Depends(get_session),
-    user: GruntUser = Depends(current_user),
 ) -> Response:
     """Export a report as an Excel file."""
-    from grunt.core.reports.engine import report_engine  # noqa: PLC0415
+    from grunt.core.reports.engine import report_engine
 
-    result = await report_engine.run(name, {}, user, session)
+    result = await report_engine.run(name, {}, grunt._require_user(), grunt._require_session())
     xlsx_bytes = await report_engine.export_excel(result, name)
     return Response(
         content=xlsx_bytes,

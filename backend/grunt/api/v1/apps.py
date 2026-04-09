@@ -2,41 +2,30 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from fastapi import HTTPException
 
-from grunt.core.auth.dependencies import current_user, superadmin_user
-from grunt.core.db.session import get_session
-from grunt.core.db.system_tables import GruntInstalledApp
+from grunt.api.router import GruntRouter
+from grunt.app import grunt
 
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from grunt.core.auth.models import GruntUser
-
-router = APIRouter()
+router = GruntRouter(prefix="", tags=["apps"])
 
 
 @router.get("/")
-async def list_apps(
-    session: AsyncSession = Depends(get_session),
-    _: GruntUser = Depends(current_user),
-) -> dict:
+async def list_apps() -> dict[str, Any]:
     """List all installed apps."""
-    result = await session.execute(select(GruntInstalledApp))
-    apps = result.scalars().all()
+    apps = await grunt.get_list("GruntInstalledApp")
     return {
         "success": True,
         "data": [
             {
-                "id": str(a.id),
-                "name": a.name,
-                "title": a.title,
-                "version": a.version,
-                "modules": a.modules,
-                "installed_at": a.installed_at.isoformat() if a.installed_at else None,
+                "id": str(a.get("id")),
+                "name": a.get("name"),
+                "title": a.get("title"),
+                "version": a.get("version", "0.1.0"),
+                "modules": a.get("modules", []),
+                "installed_at": str(a.get("installed_at")) if a.get("installed_at") else None,
             }
             for a in apps
         ],
@@ -45,68 +34,73 @@ async def list_apps(
 
 @router.post("/")
 async def register_app(
-    body: dict,
-    session: AsyncSession = Depends(get_session),
-    _: GruntUser = Depends(superadmin_user),
-) -> dict:
+    body: dict[str, Any],
+) -> dict[str, Any]:
     """Register a new installed app."""
+    if not grunt.session.is_superadmin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
     name = body.get("name", "")
     if not name:
         raise HTTPException(status_code=422, detail="name є обов'язковим")
 
-    existing = await session.execute(
-        select(GruntInstalledApp).where(GruntInstalledApp.name == name)
-    )
-    if existing.scalar_one_or_none():
+    existing = await grunt.get_list("GruntInstalledApp", filters={"name": name})
+    if existing:
         raise HTTPException(status_code=409, detail=f"Додаток '{name}' вже встановлено")
 
-    app = GruntInstalledApp(
-        name=name,
-        title=body.get("title", name),
-        version=body.get("version", "0.1.0"),
-        modules=body.get("modules", []),
+    app = await grunt.new_doc(
+        "GruntInstalledApp",
+        {
+            "name": name,
+            "title": body.get("title", name),
+            "version": body.get("version", "0.1.0"),
+            "modules": body.get("modules", []),
+        },
     )
-    session.add(app)
-    await session.flush()
-    return {"success": True, "data": {"name": app.name, "title": app.title}}
+    return {"success": True, "data": {"name": app.get("name"), "title": app.get("title")}}
 
 
 @router.post("/{name}/modules")
 async def add_module(
     name: str,
-    body: dict,
-    session: AsyncSession = Depends(get_session),
-    _: GruntUser = Depends(current_user),
-) -> dict:
+    body: dict[str, Any],
+) -> dict[str, Any]:
     """Add a module to an installed app."""
-    result = await session.execute(select(GruntInstalledApp).where(GruntInstalledApp.name == name))
-    app = result.scalar_one_or_none()
-    if not app:
+    apps = await grunt.get_list("GruntInstalledApp", filters={"name": name})
+    if not apps:
         raise HTTPException(status_code=404, detail=f"Додаток '{name}' не знайдено")
+
+    app_id = apps[0]["id"]
+    app = await grunt.get_doc("GruntInstalledApp", app_id)
 
     module_name = (body.get("module") or "").strip()
     if not module_name:
         raise HTTPException(status_code=422, detail="module є обов'язковим")
 
-    if module_name in app.modules:
+    current_modules = app.get("modules", [])
+    if module_name in current_modules:
         raise HTTPException(status_code=409, detail=f"Модуль '{module_name}' вже існує")
 
-    app.modules = [*app.modules, module_name]
-    await session.flush()
-    return {"success": True, "data": {"name": app.name, "title": app.title, "modules": app.modules}}
+    current_modules.append(module_name)
+    await grunt.save_doc("GruntInstalledApp", app_id, {"modules": current_modules})
+
+    return {
+        "success": True,
+        "data": {"name": app.get("name"), "title": app.get("title"), "modules": current_modules},
+    }
 
 
 @router.delete("/{name}")
 async def delete_app(
     name: str,
-    session: AsyncSession = Depends(get_session),
-    _: GruntUser = Depends(superadmin_user),
-) -> dict:
+) -> dict[str, Any]:
     """Uninstall an app."""
-    result = await session.execute(select(GruntInstalledApp).where(GruntInstalledApp.name == name))
-    app = result.scalar_one_or_none()
-    if not app:
+    if not grunt.session.is_superadmin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    apps = await grunt.get_list("GruntInstalledApp", filters={"name": name})
+    if not apps:
         raise HTTPException(status_code=404, detail=f"Додаток '{name}' не знайдено")
-    await session.delete(app)
-    await session.flush()
+
+    await grunt.delete_doc("GruntInstalledApp", apps[0]["id"])
     return {"success": True, "message": f"Додаток '{name}' видалено"}

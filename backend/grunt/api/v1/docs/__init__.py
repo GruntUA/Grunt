@@ -1,6 +1,4 @@
-"""Document API endpoints — dynamic CRUD for any DocType."""
-
-from fastapi import APIRouter
+from grunt.api.router import GruntRouter
 
 from grunt.api.v1.docs.collaboration import router as collaboration_router
 from grunt.api.v1.docs.crud import router as crud_router
@@ -9,7 +7,7 @@ from grunt.api.v1.docs.history import router as history_router
 from grunt.api.v1.docs.meta import router as meta_router
 from grunt.api.v1.docs.workflow import router as workflow_router
 
-router = APIRouter()
+router = GruntRouter()
 
 # Include sub-routers.  Order may matter if there are overlapping patterns,
 # but our paths are fairly distinct (except /doctype/doc_id/action).

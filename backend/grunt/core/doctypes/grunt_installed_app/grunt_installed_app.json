@@ -30,6 +30,11 @@
             "label": "Встановлено",
             "fieldtype": "Datetime",
             "in_list_view": true
+        },
+        {
+            "fieldname": "modules",
+            "label": "Модулі",
+            "fieldtype": "JSON"
         }
     ]
 }

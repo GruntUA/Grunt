@@ -1,27 +1,16 @@
-from fastapi import APIRouter, BackgroundTasks, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import BackgroundTasks, Depends
 
-from grunt.core.auth.dependencies import current_user, get_session
-from grunt.core.auth.models import GruntUser
-from grunt.core.document.registry import document_registry
-from grunt.core.document.service import DocumentService
+from grunt.app import grunt
+from grunt.api.router import GruntRouter
 
-router = APIRouter()
+router = GruntRouter(prefix="", tags=["data_import"])
 
 
 @router.get("/preview/{data_import_id}")
 async def get_import_preview(
     data_import_id: str,
-    user: GruntUser = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
 ):
-    doc_service = DocumentService(session)
-    # Get raw data
-    di_raw = await doc_service.get_document("DataImport", data_import_id, user)
-    # Get controller
-    controller_cls = document_registry.get("DataImport")
-    di_doc = controller_cls("DataImport", di_raw, user, session)
-
+    di_doc = await grunt.get_doc("DataImport", data_import_id)
     return await di_doc.get_preview()
 
 
@@ -29,13 +18,8 @@ async def get_import_preview(
 async def run_import(
     data_import_id: str,
     background_tasks: BackgroundTasks,
-    user: GruntUser = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
 ):
-    doc_service = DocumentService(session)
-    di_raw = await doc_service.get_document("DataImport", data_import_id, user)
-    controller_cls = document_registry.get("DataImport")
-    di_doc = controller_cls("DataImport", di_raw, user, session)
+    di_doc = await grunt.get_doc("DataImport", data_import_id)
 
     # Run in background
     background_tasks.add_task(di_doc.run)

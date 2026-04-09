@@ -13,7 +13,7 @@ import uuid
 from datetime import datetime  # noqa: TC003
 from typing import TYPE_CHECKING  # noqa: F401
 
-from sqlalchemy import JSON, DateTime, String, func
+from sqlalchemy import JSON, DateTime, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from grunt.core.db.base import Base
@@ -44,6 +44,15 @@ class GruntInstalledApp(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     version: Mapped[str] = mapped_column(String(50), nullable=False, default="0.1.0")
     modules: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    owner: Mapped[str] = mapped_column(String(255), nullable=False, default="system")
+    docstatus: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    modified_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    modified_by: Mapped[str] = mapped_column(String(255), nullable=True)
     installed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

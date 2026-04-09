@@ -6,20 +6,15 @@ POST /api/v1/search/reindex   (superadmin only — rebuild entire index)
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
+from fastapi import Depends, HTTPException, Query, status
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-
-from grunt.core.auth.dependencies import current_user, get_session
-from grunt.core.db.session import get_engine
+from grunt.api.router import GruntRouter
+from grunt.app import grunt
+from grunt.core.auth.dependencies import superadmin_user
 from grunt.core.search.service import search_index_service
 
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.core.auth.models import GruntUser
-
-router = APIRouter()
+router = GruntRouter(prefix="", tags=["search"])
 
 
 @router.get("")
@@ -27,21 +22,20 @@ async def global_search(
     q: str = Query(..., min_length=2),
     doctype: str | None = Query(None),
     limit: int = Query(10, ge=1, le=100),
-    user: GruntUser = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     """Search across all non-child DocTypes using the full-text index."""
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-    from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry
+    from grunt.core.permissions.rbac import permission_checker
 
     raw = await search_index_service.search(
-        session=session,
+        session=grunt._require_session(),
         q=q,
         limit=limit,
         doctype=doctype,
     )
 
-    # Check read permission per doctype (superadmin bypasses via permission_checker)
+    user = grunt._require_user()
+    # Check read permission per doctype (superadmin bypasses natively)
     allowed_doctypes: dict[str, bool] = {}
     for r in raw:
         dt_name = r["doctype"]
@@ -66,15 +60,11 @@ async def global_search(
     return {"success": True, "data": results}
 
 
-@router.post("/reindex", status_code=status.HTTP_200_OK)
-async def reindex(
-    user: GruntUser = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
-    engine: AsyncEngine = Depends(get_engine),
+@router.get("/rebuild-index")
+async def rebuild_search_index(
+    _: Any = Depends(superadmin_user),
 ) -> dict[str, Any]:
     """Rebuild the entire search index from scratch. Superadmin only."""
-    if not user.is_superadmin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Superadmin required")
-
-    count = await search_index_service.reindex_all(session, engine)
+    session = grunt._require_session()
+    count = await search_index_service.reindex_all(session, session.bind)
     return {"success": True, "indexed": count}

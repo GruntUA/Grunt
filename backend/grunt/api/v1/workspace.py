@@ -4,32 +4,27 @@ from __future__ import annotations
 
 import contextlib
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import Depends, HTTPException, Query
 
+from grunt.api.router import GruntRouter
 from grunt.app import grunt
-from grunt.core.auth.dependencies import current_user, superadmin_user
-from grunt.core.db.session import get_engine, get_session
 from grunt.core.document.registry import document_registry
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.core.auth.models import GruntUser
 
 logger = structlog.get_logger()
 
-router = APIRouter()
+router = GruntRouter(prefix="", tags=["workspace"])
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 
-def _workspace_to_dict(ws: Any, user: GruntUser) -> dict[str, Any]:
+def _workspace_to_dict(ws: Any) -> dict[str, Any]:
     """Convert WorkspaceSidebar document to dict, filtering items by role."""
     items = []
+    user = grunt.session
     for item in sorted(ws.get("sidebar_items") or [], key=lambda i: i.get("idx", 0)):
         # Role check for items
         item_roles = item.get("roles", "")
@@ -44,8 +39,6 @@ def _workspace_to_dict(ws: Any, user: GruntUser) -> dict[str, Any]:
         is_singleton = False
         if item_type == "DocType" and link_to:
             try:
-                # We can't easily await here in a sync list comp if we were using it,
-                # but we are in a loop. However, doctype_registry is often sync-cached.
                 from grunt.core.metadata.registry import doctype_registry
 
                 if link_to in doctype_registry._doctypes:
@@ -70,8 +63,8 @@ def _workspace_to_dict(ws: Any, user: GruntUser) -> dict[str, Any]:
         )
 
     return {
-        "name": ws.name,
-        "label": ws.label,
+        "name": ws.get("name"),
+        "label": ws.get("label"),
         "app": ws.get("app", ""),
         "icon": ws.get("icon", "📁"),
         "color": ws.get("color", "#2D6A4F"),
@@ -87,155 +80,124 @@ def _workspace_to_dict(ws: Any, user: GruntUser) -> dict[str, Any]:
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
 
-@router.get("/")
-async def list_workspaces(
-    session: AsyncSession = Depends(get_session),
-    engine: AsyncEngine = Depends(get_engine),
-    user: GruntUser = Depends(current_user),
-) -> dict[str, Any]:
-    """List workspaces visible to the current user."""
-    _tokens = grunt.set_context(session, engine, user)
-    try:
-        all_ws = await grunt.get_list(
-            "WorkspaceSidebar",
-            fields=["*"],
-            order_by="sequence",
-        )
-
-        data = []
+def _get_ws_obj(ws_data: dict[str, Any]) -> Any:
+    # Wrap dict in controller if needed
+    if isinstance(ws_data, dict):
         ws_cls = document_registry.get("WorkspaceSidebar")
-        for ws_data in all_ws:
-            # We need the full doc to use has_access and child tables
-            ws_dict = await grunt.get_doc("WorkspaceSidebar", ws_data["name"])
-            ws = ws_cls("WorkspaceSidebar", ws_dict, user, session)
+        if ws_cls:
+            return ws_cls("WorkspaceSidebar", ws_data, grunt.session, grunt._require_session())
+    return ws_data
 
-            if ws.get("is_hidden") and not user.is_superadmin:
-                continue
-            if not ws.has_access(user):
-                continue
-            data.append(_workspace_to_dict(ws, user))
 
-        return {"success": True, "data": data}
-    finally:
-        grunt.reset_context(_tokens)
+@router.get("/")
+async def list_workspaces() -> dict[str, Any]:
+    """List workspaces visible to the current user."""
+    all_ws = await grunt.get_list(
+        "WorkspaceSidebar",
+        fields=["name"],
+        order_by="sequence",
+    )
+
+    data = []
+    user = grunt.session
+    for ws_brief in all_ws:
+        ws_data = await grunt.get_doc("WorkspaceSidebar", ws_brief["name"])
+        ws = _get_ws_obj(ws_data)
+
+        if ws.get("is_hidden") and not user.is_superadmin:
+            continue
+        if hasattr(ws, "has_access") and not ws.has_access(user):
+            continue
+            
+        data.append(_workspace_to_dict(ws))
+
+    return {"success": True, "data": data}
 
 
 @router.get("/{name}")
 async def get_workspace(
     name: str,
-    session: AsyncSession = Depends(get_session),
-    engine: AsyncEngine = Depends(get_engine),
-    user: GruntUser = Depends(current_user),
 ) -> dict[str, Any]:
     """Get a single workspace with filtered items."""
-    _tokens = grunt.set_context(session, engine, user)
     try:
-        try:
-            ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
-        except HTTPException as err:
+        ws_data = await grunt.get_doc("WorkspaceSidebar", name)
+    except HTTPException as err:
+        if err.status_code == 404:
             raise HTTPException(status_code=404, detail=f"Workspace '{name}' не знайдено") from err
+        raise
 
-        ws_cls = document_registry.get("WorkspaceSidebar")
-        ws = ws_cls("WorkspaceSidebar", ws_dict, user, session)
+    ws = _get_ws_obj(ws_data)
 
-        if not ws.has_access(user):
-            raise HTTPException(status_code=403, detail="Немає доступу до цього workspace")
+    if hasattr(ws, "has_access") and not ws.has_access(grunt.session):
+        raise HTTPException(status_code=403, detail="Немає доступу до цього workspace")
 
-        return {"success": True, "data": _workspace_to_dict(ws, user)}
-    finally:
-        grunt.reset_context(_tokens)
+    return {"success": True, "data": _workspace_to_dict(ws)}
 
 
 @router.post("/", status_code=201)
 async def create_workspace(
     body: dict[str, Any],
-    session: AsyncSession = Depends(get_session),
-    engine: AsyncEngine = Depends(get_engine),
-    user: GruntUser = Depends(superadmin_user),
 ) -> dict[str, Any]:
     """Create a new workspace."""
-    _tokens = grunt.set_context(session, engine, user)
-    try:
-        # Convert items to child table format if needed
-        data = body.copy()
-        if "items" in data:
-            data["sidebar_items"] = data.pop("items")
+    if not grunt.session.is_superadmin:
+        raise HTTPException(status_code=403, detail="Not authorized")
 
-        ws_cls = document_registry.get("WorkspaceSidebar")
-        ws = ws_cls("WorkspaceSidebar", data, user, session)
-        await ws.insert()
-        return {"success": True, "data": _workspace_to_dict(ws, user)}
-    finally:
-        grunt.reset_context(_tokens)
+    data = body.copy()
+    if "items" in data:
+        data["sidebar_items"] = data.pop("items")
+
+    ws_data = await grunt.new_doc("WorkspaceSidebar", data)
+    ws = _get_ws_obj(ws_data)
+    
+    return {"success": True, "data": _workspace_to_dict(ws)}
 
 
 @router.put("/{name}")
 async def update_workspace(
     name: str,
     body: dict[str, Any],
-    session: AsyncSession = Depends(get_session),
-    engine: AsyncEngine = Depends(get_engine),
-    user: GruntUser = Depends(superadmin_user),
 ) -> dict[str, Any]:
     """Update a workspace."""
-    _tokens = grunt.set_context(session, engine, user)
-    try:
-        ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
-        ws_cls = document_registry.get("WorkspaceSidebar")
-        ws = ws_cls("WorkspaceSidebar", ws_dict, user, session)
+    if not grunt.session.is_superadmin:
+        raise HTTPException(status_code=403, detail="Not authorized")
 
-        data = body.copy()
-        if "items" in data:
-            data["sidebar_items"] = data.pop("items")
+    data = body.copy()
+    if "items" in data:
+        data["sidebar_items"] = data.pop("items")
 
-        ws.update(data)
-        await ws.save()
-        return {"success": True, "data": _workspace_to_dict(ws, user)}
-    finally:
-        grunt.reset_context(_tokens)
+    ws_data = await grunt.save_doc("WorkspaceSidebar", name, data)
+    ws = _get_ws_obj(ws_data)
+    return {"success": True, "data": _workspace_to_dict(ws)}
 
 
 @router.delete("/{name}")
 async def delete_workspace(
     name: str,
-    session: AsyncSession = Depends(get_session),
-    engine: AsyncEngine = Depends(get_engine),
-    user: GruntUser = Depends(superadmin_user),
 ) -> dict[str, Any]:
     """Delete a workspace."""
-    _tokens = grunt.set_context(session, engine, user)
-    try:
-        ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
-        ws_cls = document_registry.get("WorkspaceSidebar")
-        ws = ws_cls("WorkspaceSidebar", ws_dict, user, session)
-        await ws.delete()
-        return {"success": True, "data": {"deleted": name}}
-    finally:
-        grunt.reset_context(_tokens)
+    if not grunt.session.is_superadmin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    await grunt.delete_doc("WorkspaceSidebar", name)
+    return {"success": True, "data": {"deleted": name}}
 
 
 @router.get("/{name}/counts")
 async def workspace_counts(
     name: str,
-    session: AsyncSession = Depends(get_session),
-    engine: AsyncEngine = Depends(get_engine),
-    user: GruntUser = Depends(current_user),
 ) -> dict[str, Any]:
     """Get document counts for workspace links."""
-    _tokens = grunt.set_context(session, engine, user)
     try:
-        try:
-            ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
-        except HTTPException as err:
+        ws_data = await grunt.get_doc("WorkspaceSidebar", name)
+    except HTTPException as err:
+        if err.status_code == 404:
             raise HTTPException(status_code=404, detail="Workspace found") from err
+        raise
 
-        ws_cls = document_registry.get("WorkspaceSidebar")
-        ws = ws_cls("WorkspaceSidebar", ws_dict, user, session)
+    ws = _get_ws_obj(ws_data)
 
-        counts = await ws.get_counts()
-        return {"success": True, "data": counts}
-    finally:
-        grunt.reset_context(_tokens)
+    counts = await ws.get_counts() if hasattr(ws, "get_counts") else {}
+    return {"success": True, "data": counts}
 
 
 @router.get("/{name}/widget-data")
@@ -243,34 +205,28 @@ async def workspace_widget_data(
     name: str,
     date_from: str | None = Query(None),
     date_to: str | None = Query(None),
-    session: AsyncSession = Depends(get_session),
-    engine: AsyncEngine = Depends(get_engine),
-    user: GruntUser = Depends(current_user),
 ) -> dict[str, Any]:
     """Compute widget data for all widgets in a workspace."""
-    _tokens = grunt.set_context(session, engine, user)
     try:
-        try:
-            ws_dict = await grunt.get_doc("WorkspaceSidebar", name)
-        except HTTPException as err:
+        ws_data = await grunt.get_doc("WorkspaceSidebar", name)
+    except HTTPException as err:
+        if err.status_code == 404:
             raise HTTPException(status_code=404, detail=f"Workspace '{name}' не знайдено") from err
+        raise
 
-        ws_cls = document_registry.get("WorkspaceSidebar")
-        ws = ws_cls("WorkspaceSidebar", ws_dict, user, session)
+    ws = _get_ws_obj(ws_data)
 
-        if not ws.has_access(user):
-            raise HTTPException(status_code=403, detail="Немає доступу до цього workspace")
+    if hasattr(ws, "has_access") and not ws.has_access(grunt.session):
+        raise HTTPException(status_code=403, detail="Немає доступу до цього workspace")
 
-        global_since: datetime | None = None
-        global_until: datetime | None = None
-        if date_from:
-            with contextlib.suppress(ValueError):
-                global_since = datetime.fromisoformat(date_from).replace(tzinfo=UTC)
-        if date_to:
-            with contextlib.suppress(ValueError):
-                global_until = datetime.fromisoformat(date_to).replace(tzinfo=UTC)
+    global_since: datetime | None = None
+    global_until: datetime | None = None
+    if date_from:
+        with contextlib.suppress(ValueError):
+            global_since = datetime.fromisoformat(date_from).replace(tzinfo=UTC)
+    if date_to:
+        with contextlib.suppress(ValueError):
+            global_until = datetime.fromisoformat(date_to).replace(tzinfo=UTC)
 
-        data = await ws.get_widget_data(date_from=global_since, date_to=global_until)
-        return {"success": True, "data": data}
-    finally:
-        grunt.reset_context(_tokens)
+    data = await ws.get_widget_data(date_from=global_since, date_to=global_until) if hasattr(ws, "get_widget_data") else {}
+    return {"success": True, "data": data}

@@ -24,17 +24,15 @@ Flow:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from grunt.app import grunt
 from grunt.config import settings
-from grunt.core.db.session import get_session
+from grunt.core.auth.dependencies import grunt_context_optional
 
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-router = APIRouter()
+router = APIRouter(prefix="", tags=["oauth"])
 
 # ── Provider registry ─────────────────────────────────────────────────────────
 
@@ -46,7 +44,7 @@ _MICROSOFT_CONF_URL = (
 
 def _require_authlib():
     try:
-        from authlib.integrations.httpx_client import AsyncOAuth2Client  # noqa: PLC0415
+        from authlib.integrations.httpx_client import AsyncOAuth2Client
 
         return AsyncOAuth2Client
     except ImportError as exc:
@@ -95,7 +93,7 @@ async def oauth_authorize(provider: str) -> dict:
     oauth_client_cls = _require_authlib()
     cfg = _get_provider_config(provider)
 
-    import httpx  # noqa: PLC0415
+    import httpx
 
     # Fetch OIDC discovery document to get the authorization_endpoint
     async with httpx.AsyncClient() as http:
@@ -117,7 +115,7 @@ async def oauth_authorize(provider: str) -> dict:
 async def oauth_callback(
     provider: str,
     code: str,
-    session: AsyncSession = Depends(get_session),
+    _: None = Depends(grunt_context_optional),
 ) -> dict:
     """Exchange the authorization code for Grunt tokens.
 
@@ -126,9 +124,9 @@ async def oauth_callback(
     oauth_client_cls = _require_authlib()
     cfg = _get_provider_config(provider)
 
-    import httpx  # noqa: PLC0415
+    import httpx
 
-    from grunt.core.auth.service import (  # noqa: PLC0415
+    from grunt.core.auth.service import (
         create_access_token,
         create_refresh_token,
         create_user,
@@ -163,10 +161,12 @@ async def oauth_callback(
 
     full_name: str = profile.get("name") or profile.get("given_name") or email.split("@")[0]
 
+    session = grunt._require_session()
+
     # Find or create the local user
     user = await get_user_by_email(email, session)
     if user is None:
-        import secrets  # noqa: PLC0415
+        import secrets
 
         # Create user with a random unusable password
         user = await create_user(email, secrets.token_hex(32), full_name, session)
