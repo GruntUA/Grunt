@@ -6,10 +6,11 @@ from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Query, status
 from sqlalchemy import inspect as sa_inspect
 
 from grunt.api.router import GruntRouter
+from grunt.app import grunt
 from grunt.api.v1.schemas.meta import (
     DocTypeListItem,
     DocTypeSaveResult,
@@ -18,7 +19,6 @@ from grunt.api.v1.schemas.meta import (
     IndexHint,
 )
 from grunt.core.auth.dependencies import current_user, superadmin_user
-from grunt.core.db.session import get_engine, get_session
 from grunt.core.metadata.compiler import compile_doctype_to_table, get_table_name, sync_table
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.metadata.scaffold import export_doctype_files
@@ -155,14 +155,12 @@ async def list_doctypes(
 @router.post("/doctypes", status_code=status.HTTP_201_CREATED, response_model=DocTypeSaveResult)
 async def create_doctype(
     body: DocType,
-    session: AsyncSession = Depends(get_session),
-    _user: GruntUser = Depends(superadmin_user),
-    eng: AsyncEngine = Depends(get_engine),
+    _: GruntUser = Depends(superadmin_user),
 ) -> DocTypeSaveResult:
     """Create a new DocType — validates, persists, syncs table, exports files."""
-    await doctype_registry.register(body, session, eng)
-    await _sync_doctype_doc(body, session)
-    app_name = await _get_app_name_for_module(body.module or "", session)
+    await doctype_registry.register(body, grunt._require_session(), grunt._require_engine())
+    await _sync_doctype_doc(body, grunt._require_session())
+    app_name = await _get_app_name_for_module(body.module or "", grunt._require_session())
     exported_to = export_doctype_files(body, app_name=app_name)
     return DocTypeSaveResult(
         data=_doctype_to_schema(body), hints=_get_index_hints(body), exported_to=exported_to
@@ -183,9 +181,7 @@ async def get_doctype_meta(
 async def update_doctype(
     name: str,
     body: DocType,
-    session: AsyncSession = Depends(get_session),
-    _user: GruntUser = Depends(superadmin_user),
-    eng: AsyncEngine = Depends(get_engine),
+    _: GruntUser = Depends(superadmin_user),
 ) -> DocTypeSaveResult:
     """Update an existing DocType."""
     if body.name != name:
@@ -193,9 +189,9 @@ async def update_doctype(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="DocType name in URL and body must match",
         )
-    await doctype_registry.update(body, session, eng)
-    await _sync_doctype_doc(body, session)
-    app_name = await _get_app_name_for_module(body.module or "", session)
+    await doctype_registry.update(body, grunt._require_session(), grunt._require_engine())
+    await _sync_doctype_doc(body, grunt._require_session())
+    app_name = await _get_app_name_for_module(body.module or "", grunt._require_session())
     exported_to = export_doctype_files(body, app_name=app_name)
     return DocTypeSaveResult(
         data=_doctype_to_schema(body), hints=_get_index_hints(body), exported_to=exported_to
@@ -205,22 +201,19 @@ async def update_doctype(
 @router.delete("/doctypes/{name}")
 async def delete_doctype(
     name: str,
-    session: AsyncSession = Depends(get_session),
-    _user: GruntUser = Depends(superadmin_user),
+    _: GruntUser = Depends(superadmin_user),
 ) -> dict[str, str]:
     """Delete a DocType (table is NOT dropped)."""
     dt = await doctype_registry.get(name)
-    await doctype_registry.delete(name, session)
-    await _sync_doctype_doc(dt, session, delete=True)
+    await doctype_registry.delete(name, grunt._require_session())
+    await _sync_doctype_doc(dt, grunt._require_session(), delete=True)
     return {"message": f"DocType '{name}' видалено"}
 
 
 @router.post("/doctypes/{name}/sync", response_model=DocTypeSyncResult)
 async def sync_doctype(
     name: str,
-    session: AsyncSession = Depends(get_session),
-    _user: GruntUser = Depends(superadmin_user),
-    eng: AsyncEngine = Depends(get_engine),
+    _: GruntUser = Depends(superadmin_user),
 ) -> DocTypeSyncResult:
     """Force-sync a DocType's physical table with its definition."""
     dt = await doctype_registry.get(name)
@@ -233,10 +226,10 @@ async def sync_doctype(
             return {c["name"] for c in insp.get_columns(table_name)}
         return set()
 
-    conn = await session.connection()
+    conn = await grunt._require_session().connection()
     columns_before = await conn.run_sync(_get_columns)
 
-    await sync_table(dt, eng, session=session)
+    await sync_table(dt, grunt._require_engine(), session=grunt._require_session())
 
     columns_after = await conn.run_sync(_get_columns)
 
@@ -257,20 +250,17 @@ async def sync_doctype(
 
 @router.get("/roles")
 async def list_roles(
-    _user: GruntUser = Depends(current_user),
+    _: GruntUser = Depends(current_user),
 ) -> list[dict]:
     """Return all Role documents."""
     from grunt.app import grunt  # noqa: PLC0415
-    try:
-        roles = await grunt.db.get_all(
-            "Role",
-            fields=["role_name", "description"],
-            order_by="role_name",
-            order="asc",
-            limit=1000,
-        )
-    finally:
-        grunt.reset_context(_tokens)
+    roles = await grunt.db.get_all(
+        "Role",
+        fields=["role_name", "description"],
+        order_by="role_name",
+        order="asc",
+        limit=1000,
+    )
     return [{"name": r["role_name"], "description": r.get("description")} for r in roles]
 
 
@@ -278,19 +268,70 @@ async def list_roles(
 async def patch_permissions(
     name: str,
     permissions: list[dict],
-    session: AsyncSession = Depends(get_session),
-    _user: GruntUser = Depends(superadmin_user),
-    eng: AsyncEngine = Depends(get_engine),
+    _: GruntUser = Depends(superadmin_user),
 ) -> DocTypeSchema:
     """Patch only the permissions field of a DocType."""
+    from grunt.app import grunt  # noqa: PLC0415
     dt = await doctype_registry.get(name)
     from grunt.core.metadata.doctype import DocTypePermission  # noqa: PLC0415
 
     dt_dict = dt.model_dump()
     dt_dict["permissions"] = [DocTypePermission(**p).model_dump() for p in permissions]
     updated = type(dt)(**dt_dict)
-    await doctype_registry.update(updated, session, eng)
-    await _sync_doctype_doc(updated, session)
-    app_name = await _get_app_name_for_module(updated.module or "", session)
+    await doctype_registry.update(updated, grunt._require_session(), grunt._require_engine())
+    await _sync_doctype_doc(updated, grunt._require_session())
+    app_name = await _get_app_name_for_module(updated.module or "", grunt._require_session())
     export_doctype_files(updated, app_name=app_name)
     return _doctype_to_schema(updated)
+
+
+@router.get("/introspect/hooks")
+async def introspect_hooks(
+    _: GruntUser = Depends(superadmin_user),
+) -> dict:
+    """List all registered global hooks."""
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    return {
+        "success": True,
+        "data": {
+            event: [
+                {"doctype": dt, "fn": f.__name__, "priority": p}
+                for dt, p, f in hooks
+            ]
+            for event, hooks in doctype_registry._hooks.items()
+        }
+    }
+
+
+@router.get("/introspect/controllers")
+async def introspect_controllers(
+    _: GruntUser = Depends(superadmin_user),
+) -> dict:
+    """List all registered DocType controllers."""
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    return {
+        "success": True,
+        "data": {
+            name: {"class": cls.__name__, "module": cls.__module__}
+            for name, cls in doctype_registry._controllers.items()
+        }
+    }
+
+
+@router.get("/export-schemas", response_model=dict[str, DocTypeSchema])
+async def export_schemas(
+    module: str | None = None,
+    names: list[str] | None = Query(None),
+    _: GruntUser = Depends(current_user),
+) -> dict[str, DocTypeSchema]:
+    """Bulk export DocType schemas for the frontend (TypeScript generation, etc)."""
+    all_dt = await doctype_registry.list_all()
+
+    if names:
+        target_names = set(names)
+        all_dt = [dt for dt in all_dt if dt.name in target_names]
+
+    if module:
+        all_dt = [dt for dt in all_dt if dt.module == module]
+
+    return {dt.name: _doctype_to_schema(dt) for dt in all_dt if dt.name}

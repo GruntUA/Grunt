@@ -18,16 +18,25 @@ def init():
 def serve(port, reload, no_frontend):
     """Запуск сервера FastAPI (та Vite за замовчуванням)."""
     root_dir = Path(__file__).parents[3]
+    # Prefer locally installed Node 22 (required for Vite 8) over the system npm
+    local_npm = Path.home() / ".local" / "node-latest" / "bin" / "npm"
+    npm_cmd = str(local_npm) if local_npm.exists() else "npm"
     
     frontend_process = None
     if not no_frontend:
-        click.echo("Запуск фронтенда (Vite)...")
-        # Ensure we run from the project root where package.json is
+        # Kill any stale process on port 5173 so Vite always starts on the expected port
+        subprocess.run(
+            ["fuser", "-k", "5173/tcp"],
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        click.echo("Запуск фронтенда (Vite) на порту 5173...")
         frontend_process = subprocess.Popen(
-            ["npm", "run", "dev"],
+            [npm_cmd, "run", "dev"],
             cwd=root_dir,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.STDOUT,
+            # Inherit terminal so Vite URL and errors are visible
+            stdout=None,
+            stderr=None,
         )
 
     click.echo(f"Запуск API сервера на порту {port}...")
