@@ -1,5 +1,4 @@
 from grunt.api.router import GruntRouter
-
 from grunt.api.v1.docs.collaboration import router as collaboration_router
 from grunt.api.v1.docs.crud import router as crud_router
 from grunt.api.v1.docs.export import router as export_router

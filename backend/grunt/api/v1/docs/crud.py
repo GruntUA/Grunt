@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from fastapi import Body, Depends, HTTPException, Query, Request, status
 
+from grunt.api.router import GruntRouter
 from grunt.api.v1.docs.utils import _audit_log, get_doc_service
 from grunt.core.auth.dependencies import current_user
-
 from grunt.core.auth.models import GruntUser
 from grunt.core.document.service import DocumentService
-
-from grunt.api.router import GruntRouter
 
 router = GruntRouter()
 

@@ -1,6 +1,7 @@
 import pytest
 from httpx import AsyncClient
 
+
 @pytest.mark.asyncio
 async def test_export_schemas_all(client: AsyncClient, auth_headers: dict[str, str]):
     """Test that we can export all schemas."""

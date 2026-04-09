@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from fastapi import Depends, HTTPException
+
 from grunt.api.router import GruntRouter
 from grunt.api.v1.auth.schemas import (
     AddRoleRequest,
@@ -13,7 +12,7 @@ from grunt.api.v1.auth.schemas import (
 )
 from grunt.app import grunt
 from grunt.core.auth.dependencies import superadmin_user
-from grunt.core.auth.models import SYSTEM_USER, GruntUser
+from grunt.core.auth.models import GruntUser
 from grunt.core.doctypes.user.user import (
     get_user_by_email,
     get_user_by_id,
@@ -22,9 +21,6 @@ from grunt.core.doctypes.user.user import (
 from grunt.core.doctypes.user.user import (
     list_users as service_list_users,
 )
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 router = GruntRouter()
 

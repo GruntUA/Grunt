@@ -6,14 +6,14 @@ from typing import Any
 
 from grunt.api.router import GruntRouter
 from grunt.app import grunt
-from grunt.core.metadata.registry import doctype_registry
 
 router = GruntRouter(prefix="", tags=["meta"])
 
 
-@router.get("/{doctype}/meta")
-async def get_meta(
+@router.get("/{doctype}/{doc_id}/links")
+async def get_doc_links(
     doctype: str,
+    doc_id: str,
 ) -> dict[str, Any]:
     """Return all documents that link to this document (backlinks)."""
     # Permission verification

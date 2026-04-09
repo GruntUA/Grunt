@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import structlog
-from fastapi import Depends, HTTPException, Query
+from fastapi import HTTPException, Query
 
 from grunt.api.router import GruntRouter
 from grunt.app import grunt

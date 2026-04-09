@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Response
 
 from grunt.api.router import GruntRouter
 from grunt.app import grunt

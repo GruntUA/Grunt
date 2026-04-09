@@ -17,6 +17,9 @@ async def list_activity(
     doctype: str | None = Query(None),
     doc_id: str | None = Query(None),
     user: str | None = Query(None),
+    action: str | None = Query(None),
+    date_from: str | None = Query(None),
+    date_to: str | None = Query(None),
 ) -> dict[str, Any]:
     """Return a filtered, paginated activity feed."""
     filters: dict[str, str] = {}
@@ -38,7 +41,7 @@ async def list_activity(
         "ActivityLog",
         filters=filters,
         fields=["id", "doctype", "doc_id", "action", "user", "details", "created_at"],
-        limit=limit,
+        limit=per_page,
         page=page,
         order_by="created_at",
         order="desc",
@@ -47,5 +50,5 @@ async def list_activity(
     return {
         "success": True,
         "data": entries,
-        "meta": {"total": total, "page": page, "per_page": limit, "pages": -(-total // limit)},
+        "meta": {"total": total, "page": page, "per_page": per_page, "pages": -(-total // per_page)},
     }

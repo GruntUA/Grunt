@@ -5,12 +5,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from fastapi import Depends
+
 from grunt.api.router import GruntRouter
 from grunt.app import grunt
 from grunt.core.auth.dependencies import current_user
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
     from grunt.api.v1.auth.schemas import MfaVerifyRequest
     from grunt.core.auth.models import GruntUser

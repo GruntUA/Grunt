@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request, status
 
 from grunt.app import grunt
-from grunt.core.auth.dependencies import grunt_context_optional
 
 router = APIRouter(prefix="", tags=["webform"])
 

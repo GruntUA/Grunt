@@ -1,7 +1,7 @@
-from fastapi import BackgroundTasks, Depends
+from fastapi import BackgroundTasks
 
-from grunt.app import grunt
 from grunt.api.router import GruntRouter
+from grunt.app import grunt
 
 router = GruntRouter(prefix="", tags=["data_import"])
 

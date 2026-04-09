@@ -125,15 +125,19 @@ class SiteManager:
             elif "sqlite" in db_url:
                 from sqlalchemy.pool import NullPool
 
-                engine_kwargs.update({"poolclass": NullPool})
+                engine_kwargs.update({"poolclass": NullPool, "connect_args": {"timeout": 30}})
 
             engine = create_async_engine(db_url, **engine_kwargs)
 
             if "sqlite" in db_url:
 
                 @event.listens_for(engine.sync_engine, "connect")
-                def _register_uk_sort(dbapi_conn, _connection_record):
+                def _on_sqlite_connect(dbapi_conn, _connection_record):
                     with suppress(Exception):
+                        cursor = dbapi_conn.cursor()
+                        cursor.execute("PRAGMA journal_mode=WAL")
+                        cursor.execute("PRAGMA synchronous=NORMAL")
+                        cursor.close()
                         dbapi_conn.create_function("uk_sort_key", 1, _uk_sort_key)
 
             if settings.debug:

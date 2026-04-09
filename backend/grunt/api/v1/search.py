@@ -7,7 +7,8 @@ POST /api/v1/search/reindex   (superadmin only — rebuild entire index)
 from __future__ import annotations
 
 from typing import Any
-from fastapi import Depends, HTTPException, Query, status
+
+from fastapi import Depends, Query
 
 from grunt.api.router import GruntRouter
 from grunt.app import grunt

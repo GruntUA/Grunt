@@ -1,101 +1,62 @@
-# Ґрунт
+# Ґрунт Framework
 
 Metadata-driven application framework для побудови CMS, ERP, реєстрів та інших бізнес-додатків.
 
-## Швидкий старт
+## Швидкий старт (Development)
 
+Проєкт використовує **mise** для керування залежностями та задачами прямо з кореня репозиторію.
+
+### 1. Встановлення інструментів (одноразово)
+Встановіть `mise`:
 ```bash
-curl -sSL https://raw.githubusercontent.com/rareMaxim/grunt/master/setup.sh | bash
+curl https://mise.run | sh
+# Додайте активацію у ваш ~/.bashrc
+echo 'eval "$(/home/maks4/.local/bin/mise activate bash)"' >> ~/.bashrc
+source ~/.bashrc
 ```
 
-або якщо репозиторій вже склонований:
-
+### 2. Розгортання проєкту з 0
+Склонуйте репозиторій та запустіть підготовку прямо з кореня:
 ```bash
-git clone https://github.com/rareMaxim/grunt && cd grunt && bash setup.sh
+git clone https://github.com/rareMaxim/grunt && cd grunt
+
+# Встановлення рантаймів, пакетів та ініціалізація БД
+mise run setup
 ```
 
-Після цього:
+### 3. Запуск
+```bash
+# Запуск backend та frontend паралельно (працює з будь-якої папки проєкту)
+mise dev
+```
 
-- API: http://localhost:8000
-- Документація API: http://localhost:8000/docs
-- Інтерфейс: http://localhost:5173
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8000
+- **Swagger Docs**: http://localhost:8000/docs
 
 ---
 
-## Вимоги
+## Основні команди (через `mise`)
 
-| Інструмент | Версія |
-|-----------|--------|
-| Python | 3.12+ |
-| Node.js | 20+ |
-| [uv](https://astral.sh/uv) | будь-яка (авто-встановлюється) |
+Використовуйте `mise tasks` для повного списку. Всі команди автоматично виконуються у правильних піддиректоріях.
 
-Для production додатково: PostgreSQL 15+, Redis 7+
-
----
-
-## Режими розгортання
-
-### Dev (за замовчуванням)
-
-SQLite, без Redis. Достатньо для локальної розробки.
-
-```bash
-bash setup.sh
-# або
-bash setup.sh dev
-```
-
-Запуск після розгортання:
-
-```bash
-make dev
-```
-
-### Production
-
-PostgreSQL + Redis. Перед запуском заповни `DATABASE_URL` і `REDIS_URL` у `.env`.
-
-```bash
-bash setup.sh prod
-```
-
-### Docker
-
-```bash
-bash setup.sh docker
-```
-
-Запускає PostgreSQL, Redis і додаток через Docker Compose.
-
----
-
-## Команди
-
-```bash
-make dev          # запустити backend + frontend
-make backend      # тільки FastAPI (порт 8000)
-make frontend     # тільки Vite (порт 5173)
-
-make test         # всі тести
-make lint         # ruff + eslint
-make typecheck    # mypy + vue-tsc
-
-make db-migrate   # застосувати міграції
-make db-reset     # скинути БД (тільки dev)
-```
+| Команда | Опис |
+|---------|------|
+| `mise dev` | Backend + Frontend паралельно |
+| `mise test` | Всі тести (Python + Vitest) |
+| `mise lint` | Перевірка коду (Ruff + ESLint) |
+| `mise migrate`| Застосувати міграції БД |
+| `mise db-reset`| Скинути БД до початкового стану |
 
 ---
 
 ## Структура проєкту
 
 ```
-grunt/
-├── backend/        # Python / FastAPI
-├── frontend/       # Vue 3 / TypeScript
-├── grunt-cli/      # CLI інструмент
-├── setup.sh        # скрипт розгортання
-└── Makefile        # команди розробника
+grunt-bench/        # Корінь (Bench / Workspace)
+├── apps/grunt/     # Основний додаток
+│   ├── backend/    # Python / FastAPI
+│   └── frontend/   # Vue 3 / TypeScript
+├── mise.toml       # Глобальна конфігурація інструментів та задач
+└── ...
 ```
-
-Детальніше — у [ARCHITECTURE.md](ARCHITECTURE.md) та [CLAUDE.md](CLAUDE.md).

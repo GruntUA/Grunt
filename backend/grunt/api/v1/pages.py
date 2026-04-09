@@ -2,17 +2,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from fastapi import Depends, HTTPException
+from fastapi import HTTPException
 
 from grunt.api.router import GruntRouter
 from grunt.app import grunt
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.core.auth.models import GruntUser
 
 router = GruntRouter(prefix="/pages", tags=["pages"])
 

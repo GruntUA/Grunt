@@ -13,7 +13,6 @@ from grunt.app import grunt
 from grunt.core.auth.dependencies import current_user
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
     from grunt.core.auth.models import GruntUser
 

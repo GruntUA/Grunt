@@ -1,0 +1,65 @@
+[tools]
+node = "22.13.1"
+python = "3.12"
+uv = "latest"
+
+[tasks.dev]
+run = "uv run grunt serve"
+description = "Start backend and frontend servers concurrently"
+
+[tasks.setup]
+run = """
+mise install
+uv sync
+npm install
+mise run migrate
+"""
+description = "Full project setup: install runtimes, sync packages, and migrate DB"
+
+[tasks.backend]
+run = "uv run uvicorn backend.grunt.main:app --reload --port 8000"
+description = "Start only the FastAPI backend server"
+
+[tasks.frontend]
+run = "npm run dev"
+description = "Start only the Vite frontend dev server"
+
+[tasks.worker]
+run = "uv run backend/grunt/cli/main.py worker"
+description = "Start the TaskIQ background worker"
+
+[tasks.migrate]
+run = "uv run alembic -c backend/alembic.ini upgrade head"
+description = "Apply database migrations"
+
+[tasks.db-reset]
+run = "uv run alembic -c backend/alembic.ini downgrade base && uv run alembic -c backend/alembic.ini upgrade head"
+description = "Reset developer database (CAUTION: wipes all data)"
+
+[tasks.test]
+depends = ["test-py", "test-js"]
+description = "Run all tests"
+
+[tasks.test-py]
+run = "uv run pytest backend/tests/ -v --tb=short"
+description = "Run Python backend tests"
+
+[tasks.test-js]
+run = "npm test -- --run"
+description = "Run Vitest frontend tests"
+
+[tasks.lint]
+run = "uv run ruff check . --fix && npm run lint 2>/dev/null || true"
+description = "Run linting for Python and JavaScript"
+
+[tasks.typecheck]
+run = "uv run mypy backend/grunt && npm run typecheck"
+description = "Run type checks for Python and TypeScript"
+
+[tasks.build]
+run = "npm run build"
+description = "Build the frontend for production"
+
+[tasks.clean]
+run = "find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true && rm -rf frontend/dist frontend/node_modules/.vite .pytest_cache .mypy_cache .ruff_cache"
+description = "Clean build artifacts and caches"

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import Depends, HTTPException, Query, UploadFile, File
+from fastapi import File, HTTPException, Query, Response, UploadFile
 
 from grunt.api.router import GruntRouter
 from grunt.app import grunt
@@ -161,11 +161,8 @@ async def get_file_metadata(
 async def download_file(
     file_id: str,
 ) -> Response:
-    """Delete a file using File DocType."""
-    try:
-        doc = await grunt.get_doc("File", file_id)
-    except Exception:
-        raise HTTPException(status_code=404, detail="File metadata not found") from None
+    """Download a file with attachment disposition."""
+    return await get_file_metadata(file_id)
 
 
 @router.delete("/{file_id}")

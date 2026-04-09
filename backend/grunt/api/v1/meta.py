@@ -10,7 +10,6 @@ from fastapi import Depends, HTTPException, Query, status
 from sqlalchemy import inspect as sa_inspect
 
 from grunt.api.router import GruntRouter
-from grunt.app import grunt
 from grunt.api.v1.schemas.meta import (
     DocTypeListItem,
     DocTypeSaveResult,
@@ -18,15 +17,16 @@ from grunt.api.v1.schemas.meta import (
     DocTypeSyncResult,
     IndexHint,
 )
+from grunt.app import grunt
 from grunt.core.auth.dependencies import current_user, superadmin_user
+from grunt.core.auth.models import GruntUser
 from grunt.core.metadata.compiler import compile_doctype_to_table, get_table_name, sync_table
+from grunt.core.metadata.doctype import DocType
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.metadata.scaffold import export_doctype_files
-from grunt.core.metadata.doctype import DocType
-from grunt.core.auth.models import GruntUser
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 router = GruntRouter(prefix="", tags=["meta"])

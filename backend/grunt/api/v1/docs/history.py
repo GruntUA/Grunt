@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import HTTPException, Query
 
-from grunt.app import grunt
 from grunt.api.router import GruntRouter
+from grunt.app import grunt
 
 router = GruntRouter(prefix="", tags=["docs", "history"])
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import Body, Depends, HTTPException
+from fastapi import Body
 
 from grunt.api.router import GruntRouter
 from grunt.app import grunt

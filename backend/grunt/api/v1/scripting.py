@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import HTTPException, Request, status
 
 from grunt.api.router import GruntRouter
 from grunt.app import grunt
@@ -50,6 +50,7 @@ async def _handle_builtin_method(
 
     if method == "grunt.api.v1.auth.set_user_password":
         from sqlalchemy import update as sa_update
+
         from grunt.core.doctypes.user.user import (
             _user_table,
             get_user_by_email,
@@ -91,6 +92,7 @@ async def _handle_builtin_method(
 
 @router.post("/run-server-script")
 async def run_server_script(
+    request: Request,
     body: dict[str, Any],
 ) -> dict[str, Any]:
     """Execute a built-in framework method or an API-type Server Script."""
@@ -117,7 +119,7 @@ async def run_server_script(
             detail=f"API метод '{method}' не знайдено",
         )
 
-    params = {**dict(request.query_params), **body}
+    params = {**dict(request.query_params), **(body or {})}
     user = grunt.session
 
     result = await server_script_runner.execute(

@@ -6,7 +6,7 @@ from typing import Any
 
 import aiosmtplib
 import structlog
-from fastapi import Depends, HTTPException, Query
+from fastapi import HTTPException, Query
 from pydantic import BaseModel
 
 from grunt.api.router import GruntRouter
@@ -113,14 +113,7 @@ async def list_queue(
     }
 
 
-@router.post("/communications")
-async def create_communication(
-    body: dict[str, Any],
-) -> dict[str, Any]:
-    _require_admin(grunt.session)
-    await grunt.db.set_value(
-        "EmailQueue", queue_id, {"status": "Pending", "error_message": None}
-    )
+
 
 
 @router.post("/queue/{queue_id}/retry")

@@ -31,11 +31,15 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
                 service = DocumentService(session, eng)
 
                 # Create a log entry with "Started" status
+                args_str = json.dumps({"args": message.args, "kwargs": message.kwargs})
+                if len(args_str) > 5000:
+                    args_str = args_str[:5000] + "... [TRUNCATED]"
+
                 log_data = {
                     "task_name": message.task_name,
                     "status": "Started",
                     "started_at": datetime.now().isoformat(),
-                    "arguments": json.dumps({"args": message.args, "kwargs": message.kwargs}),
+                    "arguments": args_str,
                 }
 
                 result = await service.create_document("BackgroundTaskLog", log_data, SYSTEM_USER)
