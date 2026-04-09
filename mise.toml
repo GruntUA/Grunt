@@ -12,7 +12,7 @@ run = """
 mise install
 uv sync
 npm install
-mise run migrate
+mise run db:migrate
 """
 description = "Full project setup: install runtimes, sync packages, and migrate DB"
 
@@ -28,7 +28,11 @@ description = "Start only the Vite frontend dev server"
 run = "uv run backend/grunt/cli/main.py worker"
 description = "Start the TaskIQ background worker"
 
-[tasks.migrate]
+[tasks.bootstrap]
+run = "uv run python backend/bootstrap_site.py"
+description = "Initialize database and core doctypes"
+
+[tasks."db:migrate"]
 run = "uv run alembic -c backend/alembic.ini upgrade head"
 description = "Apply database migrations"
 

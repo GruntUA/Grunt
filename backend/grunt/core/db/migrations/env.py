@@ -18,6 +18,8 @@ import grunt.core.db.system_tables as _system_tables  # noqa: F401
 from grunt.config import settings
 from grunt.core.db.base import Base
 
+from grunt.core.site.manager import site_manager
+
 # Make dummy references so static analyzers treat these imports as used.
 _ = (_system_tables, _auth_models)
 
@@ -54,8 +56,13 @@ def _convert_async_url_to_sync(db_url: str) -> str:
     return prefix + "://" + rest
 
 
-# Override sqlalchemy.url from settings (sync driver for Alembic)
-db_url = settings.database_url
+# Use site_manager to get the site-specific database URL (resolves relative SQLite paths)
+try:
+    site_name = site_manager.get_active_site()
+    db_url = site_manager.get_database_url(site_name)
+except Exception:
+    # Fallback to default setting if no active site can be determined
+    db_url = settings.database_url
 # Alembic needs a sync driver — swap async drivers for sync equivalents
 db_url = _convert_async_url_to_sync(db_url)
 config.set_main_option("sqlalchemy.url", db_url)

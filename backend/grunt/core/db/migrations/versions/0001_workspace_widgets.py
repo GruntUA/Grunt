@@ -17,10 +17,15 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "grunt_workspace",
-        sa.Column("widgets", sa.Text(), nullable=False, server_default="[]"),
-    )
+    conn = op.get_bind()
+    insp = sa.inspect(conn)
+    existing_cols = {c["name"] for c in insp.get_columns("grunt_workspace")}
+    
+    if "widgets" not in existing_cols:
+        op.add_column(
+            "grunt_workspace",
+            sa.Column("widgets", sa.Text(), nullable=False, server_default="[]"),
+        )
 
 
 def downgrade() -> None:
