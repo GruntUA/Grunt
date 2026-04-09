@@ -113,7 +113,15 @@ class GruntApp:
     def _require_engine(self) -> AsyncEngine:
         e = _engine_ctx.get()
         if e is None:
-            raise RuntimeError("grunt: no active engine.")
+            # Fallback: get the engine for the active site.
+            # This handles internal service calls (auth, email, etc.) that set
+            # the context with engine=None because they run outside GruntRouter.
+            from grunt.core.site.manager import site_manager  # noqa: PLC0415
+
+            try:
+                return site_manager.get_engine(site_manager.get_active_site())
+            except Exception:
+                raise RuntimeError("grunt: no active engine.") from None
         return e
 
     def _require_user(self) -> GruntUser:

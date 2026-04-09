@@ -159,7 +159,8 @@ async def consume_password_reset_token(
 
     now = datetime.now(UTC)
 
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    _engine = site_manager.get_engine(site_manager.get_active_site())
+    _tokens = grunt.set_context(session, _engine, SYSTEM_USER)
     try:
         users = await grunt.get_list(
             "User",

@@ -168,7 +168,8 @@ async def get_user_by_id(user_id: str, session: AsyncSession) -> GruntUser | Non
 async def list_users(session: AsyncSession) -> list[GruntUser]:
     from grunt.app import grunt  # noqa: PLC0415
 
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    _engine = site_manager.get_engine(site_manager.get_active_site())
+    _tokens = grunt.set_context(session, _engine, SYSTEM_USER)
     try:
         from grunt.core.doctypes.user_role.user_role import get_user_roles  # noqa: PLC0415
 
