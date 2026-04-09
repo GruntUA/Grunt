@@ -33,14 +33,9 @@ Usage in app hooks::
 
 from __future__ import annotations
 
-import uuid
-from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any, Literal
+from typing import Any, Literal
 
 import structlog
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -52,21 +47,23 @@ async def notify(
     users: list[str],
     subject: str,
     message: str,
-    session: AsyncSession,
     doctype: str | None = None,
     doc_id: str | None = None,
     push: bool = True,
 ) -> list[str]:
     """Create a persistent notification for one or more users.
 
-    The notification is stored in the database and optionally pushed
-    to connected users via WebSocket in real time.
+    The notification is stored via ``grunt.new_doc`` (hooks included) and
+    optionally pushed to connected users via WebSocket in real time.
+
+    Requires an active grunt context (session + user). This is automatically
+    satisfied inside request handlers, lifecycle hooks, and background tasks
+    that use :meth:`grunt.context`.
 
     Args:
         users: List of user emails to notify.
         subject: Notification subject/title.
         message: Notification body text.
-        session: Active database session (from hook kwargs or dependency).
         doctype: Related DocType name (optional).
         doc_id: Related document ID (optional).
         push: Whether to also push via WebSocket (default True).
@@ -74,34 +71,22 @@ async def notify(
     Returns:
         List of created notification IDs.
     """
-    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.app import grunt  # noqa: PLC0415
 
-    table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
     ids: list[str] = []
-    now = datetime.now(UTC)
     for user_email in users:
-        notif_id = str(uuid.uuid4())
-        await session.execute(
-            table.insert().values(
-                id=notif_id,
-                name=notif_id,
-                owner=user_email,
-                created_at=now,
-                modified_at=now,
-                modified_by=user_email,
-                docstatus=0,
-                user=user_email,
-                doctype=doctype,
-                doc_id=doc_id,
-                subject=subject,
-                message=message,
-                is_read=False,
-            )
+        doc = await grunt.new_doc(
+            "Notification",
+            {
+                "user": user_email,
+                "subject": subject,
+                "message": message,
+                "doctype": doctype,
+                "doc_id": doc_id,
+                "is_read": False,
+            },
         )
-        ids.append(notif_id)
-
-    await session.flush()
+        ids.append(doc["id"])
 
     if push:
         for user_email in users:

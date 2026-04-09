@@ -430,7 +430,6 @@ class ScriptContext:
             users=users,
             subject=subject,
             message=message,
-            session=self._get_session(),
             doctype=doctype,
             doc_id=doc_id,
         )

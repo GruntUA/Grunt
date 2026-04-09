@@ -6,6 +6,7 @@ from grunt.cli.app import app_group, create_app
 from grunt.cli.db import db_group
 from grunt.cli.doctype import doctype_group
 from grunt.cli.server import init, serve, worker
+from grunt.cli.update import update
 from grunt.cli.user import users_group
 
 
@@ -38,6 +39,7 @@ def _load_plugins() -> None:
 cli.add_command(init)
 cli.add_command(serve)
 cli.add_command(worker)
+cli.add_command(update)
 cli.add_command(users_group)
 cli.add_command(db_group)
 cli.add_command(create_app)

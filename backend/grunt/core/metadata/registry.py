@@ -1,7 +1,15 @@
-"""DocType Registry — singleton in-memory cache of all DocType definitions.
+"""DocType Registry — in-memory cache of DocType definitions with lazy loading.
 
 Source of truth: ``grunt_meta_doctype`` table (JSON column ``data``).
-On application startup the registry loads all rows into memory.
+
+Startup behaviour
+-----------------
+* Core/system DocTypes are loaded eagerly (they need table sync on first run).
+* User-created DocTypes are **lazy-loaded**: only their names are fetched at
+  startup; the full definition is loaded from the DB the first time
+  ``get(name)`` is called for that DocType.
+
+This keeps startup fast regardless of how many DocTypes an application has.
 """
 
 from __future__ import annotations
@@ -23,18 +31,38 @@ logger = structlog.get_logger()
 
 
 class DocTypeRegistry:
-    """Singleton registry — keeps every registered DocType in ``_doctypes``."""
+    """Singleton registry with lazy loading for user-created DocTypes."""
 
     def __init__(self) -> None:
         self._doctypes: dict[str, DocType] = {}
+        # Names that exist in the DB but whose definitions are not yet loaded.
+        self._known_names: set[str] = set()
 
     # ── Read ─────────────────────────────────────────────────────────────
 
-    async def load_all(self, session: AsyncSession) -> None:
-        """Load user-created DocTypes from ``grunt_meta_doctype`` into memory.
+    async def prefetch_names(self, session: AsyncSession) -> None:
+        """Record names of all user-created DocTypes without loading their data.
 
-        Core/system DocTypes (is_system=True) are loaded separately via
-        load_core_doctypes() and are already in _doctypes — skip them here.
+        Call this at startup instead of :meth:`load_all`. Core/system DocTypes
+        are already in ``_doctypes``; their names are excluded from
+        ``_known_names`` so they are never lazy-loaded (their definition is
+        already in memory).
+        """
+        result = await session.execute(select(GruntMetaDoctype.name))
+        all_names = {row[0] for row in result}
+        self._known_names = all_names - set(self._doctypes)
+        logger.info(
+            "registry.names_prefetched",
+            core=len(self._doctypes),
+            lazy=len(self._known_names),
+        )
+
+    async def load_all(self, session: AsyncSession) -> None:
+        """Eagerly load ALL user-created DocTypes into memory.
+
+        Used by CLI commands and migration tooling that need the full registry
+        available synchronously. For the web server, prefer
+        :meth:`prefetch_names` + lazy loading via :meth:`get`.
         """
         result = await session.execute(select(GruntMetaDoctype))
         rows = result.scalars().all()
@@ -45,39 +73,100 @@ class DocTypeRegistry:
             try:
                 dt = DocType.model_validate(row.data)
                 self._doctypes[dt.name] = dt
+                self._known_names.discard(dt.name)
             except Exception:
                 logger.warning("registry.skip_invalid", name=row.name)
         logger.info("registry.loaded", count=len(self._doctypes))
 
-    async def get(self, name: str) -> DocType:
-        """Return a DocType by name or raise HTTP 404."""
-        dt = self._doctypes.get(name)
-        if dt is None:
-            # Fallback to case-insensitive match
-            for k, v in self._doctypes.items():
-                if k.lower() == name.lower():
-                    return v
+    async def _lazy_load(self, name: str) -> DocType | None:
+        """Load a single DocType from the DB and cache it."""
+        from grunt.core.site.manager import site_manager  # noqa: PLC0415
 
-            # Simple plural/singular fallback for common UI requests (e.g. 'users' -> 'User')
-            if name.lower().endswith("s"):
-                singular = name[:-1]
-                for k, v in self._doctypes.items():
-                    if k.lower() == singular.lower():
-                        return v
-            elif not name.lower().endswith("s"):
-                plural = name + "s"
-                for k, v in self._doctypes.items():
-                    if k.lower() == plural.lower():
-                        return v
+        try:
+            site_name = site_manager.get_active_site()
+            maker = site_manager.get_session_maker(site_name)
+        except Exception:
+            return None
 
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"DocType '{name}' not found",
+        async with maker() as session:
+            result = await session.execute(
+                select(GruntMetaDoctype).where(GruntMetaDoctype.name == name)
             )
+            row = result.scalar_one_or_none()
+
+        if row is None:
+            return None
+
+        try:
+            dt = DocType.model_validate(row.data)
+        except Exception:
+            logger.warning("registry.lazy_load_invalid", name=name)
+            return None
+
+        self._doctypes[dt.name] = dt
+        self._known_names.discard(dt.name)
+        logger.debug("registry.lazy_loaded", name=dt.name)
         return dt
 
+    async def get(self, name: str) -> DocType:
+        """Return a DocType by name, lazy-loading from DB if necessary."""
+        # 1. Fast path — already in memory
+        dt = self._doctypes.get(name)
+        if dt is not None:
+            return dt
+
+        # 2. Case-insensitive + plural/singular fallbacks (in-memory only)
+        name_lower = name.lower()
+        for k, v in self._doctypes.items():
+            if k.lower() == name_lower:
+                return v
+
+        if name_lower.endswith("s"):
+            singular = name[:-1]
+            for k, v in self._doctypes.items():
+                if k.lower() == singular.lower():
+                    return v
+        else:
+            plural = name + "s"
+            for k, v in self._doctypes.items():
+                if k.lower() == plural.lower():
+                    return v
+
+        # 3. Lazy-load from DB (if name is known to exist)
+        candidate = name
+        if candidate not in self._known_names:
+            # Try same fuzzy matches against _known_names
+            for k in self._known_names:
+                if k.lower() == name_lower:
+                    candidate = k
+                    break
+            else:
+                candidate = ""
+
+        if candidate:
+            dt = await self._lazy_load(candidate)
+            if dt is not None:
+                return dt
+
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"DocType '{name}' not found",
+        )
+
     async def list_all(self) -> list[DocType]:
-        """Return all registered DocTypes."""
+        """Return all registered DocTypes, loading any that are still lazy."""
+        if self._known_names:
+            # Load remaining lazy DocTypes so the list is complete
+            from grunt.core.site.manager import site_manager  # noqa: PLC0415
+
+            try:
+                site_name = site_manager.get_active_site()
+                maker = site_manager.get_session_maker(site_name)
+                async with maker() as session:
+                    await self.load_all(session)
+            except Exception as exc:
+                logger.warning("registry.list_all_lazy_failed", error=str(exc))
+
         return list(self._doctypes.values())
 
     def is_system(self, name: str) -> bool:
@@ -91,15 +180,15 @@ class DocTypeRegistry:
         self,
         doctype: DocType,
         session: AsyncSession,
-        async_engine: AsyncEngine,
+        async_engine: AsyncEngine | None = None,
     ) -> None:
         """Register a core (is_system=True) DocType from JSON.
 
-        On first run (no DB row): inserts from JSON and syncs physical table.
-        On subsequent runs (DB row exists): preserves the stored ``data`` so
-        that superadmin edits made via Studio Builder are not overwritten.
-        Only updates the ``module`` metadata field. Physical table is synced
-        from the stored definition (to pick up any columns added by Studio).
+        Loads the definition into the registry and keeps ``grunt_meta_doctype``
+        up to date (seeding on first run, merging new fields on upgrades).
+
+        Physical table creation/migration is intentionally NOT done here —
+        run ``grunt migrate`` to synchronise DB schema with DocType definitions.
         """
         existing_row = await session.execute(
             select(GruntMetaDoctype).where(GruntMetaDoctype.name == doctype.name)
@@ -174,7 +263,6 @@ class DocTypeRegistry:
             active_dt = doctype
             await session.flush()
 
-        await sync_table(active_dt, async_engine, session=session)
         self._doctypes[active_dt.name] = active_dt
         logger.info("registry.core_injected", name=active_dt.name)
 
@@ -201,6 +289,7 @@ class DocTypeRegistry:
 
         # Cache
         self._doctypes[doctype.name] = doctype
+        self._known_names.discard(doctype.name)
         logger.info("registry.registered", name=doctype.name)
 
     async def update(
@@ -242,7 +331,8 @@ class DocTypeRegistry:
             )
         await session.execute(delete(GruntMetaDoctype).where(GruntMetaDoctype.name == name))
         await session.flush()
-        del self._doctypes[name]
+        self._doctypes.pop(name, None)
+        self._known_names.discard(name)
         logger.info("registry.deleted", name=name)
 
     # ── Validation helpers ───────────────────────────────────────────────

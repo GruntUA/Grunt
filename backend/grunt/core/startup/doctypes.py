@@ -23,13 +23,14 @@ async def apply_doctype_overrides(session: AsyncSession, engine: AsyncEngine) ->
     """Apply field extensions registered by apps via ``doctype_overrides`` in hooks.py.
 
     For each DocType listed in ``hooks.DOCTYPE_OVERRIDES``, new fields that are
-    not yet present are appended to the in-memory DocType definition and the
-    physical table is altered (ALTER TABLE ADD COLUMN) via ``sync_table``.
+    not yet present are appended to the in-memory DocType definition.
+
+    Physical table changes (ALTER TABLE) are NOT applied here — run
+    ``grunt migrate`` to synchronise DB schema with DocType definitions.
 
     Must be called after all DocTypes are loaded into the registry.
     """
     from grunt.core.hooks import DOCTYPE_OVERRIDES
-    from grunt.core.metadata.compiler import sync_table
     from grunt.core.metadata.field import DocField
     from grunt.core.metadata.registry import doctype_registry
 
@@ -62,27 +63,22 @@ async def apply_doctype_overrides(session: AsyncSession, engine: AsyncEngine) ->
                 )
 
         if added:
-            try:
-                await sync_table(dt, engine, session=session)
-                logger.info(
-                    "startup.doctype_overrides_applied",
-                    doctype=doctype_name,
-                    added_fields=added,
-                )
-            except Exception as e:  # noqa: BLE001
-                logger.warning(
-                    "startup.override_sync_failed",
-                    doctype=doctype_name,
-                    error=str(e),
-                )
+            logger.info(
+                "startup.doctype_overrides_applied",
+                doctype=doctype_name,
+                added_fields=added,
+            )
 
 
-async def load_core_doctypes(session: AsyncSession, engine: AsyncEngine) -> None:
+async def load_core_doctypes(session: AsyncSession, engine: AsyncEngine | None = None) -> None:
     """Register DocTypes defined as JSON files in grunt/core/doctypes/.
 
     These are first-class framework DocTypes (DocType itself, Dashboard, etc.)
     that live in the grunt package rather than in external apps.
     Uses _inject_core to bypass user-facing validation.
+
+    The ``engine`` parameter is accepted for backwards compatibility but is no
+    longer used — table sync is handled by ``grunt migrate``.
     """
     import json  # noqa: PLC0415
 
@@ -99,7 +95,7 @@ async def load_core_doctypes(session: AsyncSession, engine: AsyncEngine) -> None
             if not dt_name:
                 continue
             dt_obj = DocType.model_validate(dt_data)
-            await doctype_registry._inject_core(dt_obj, session, engine)
+            await doctype_registry._inject_core(dt_obj, session)
             logger.info("startup.core_doctype_loaded", doctype=dt_name)
         except Exception as e:  # noqa: BLE001
             logger.warning("startup.core_doctype_failed", file=dt_file.name, error=str(e))

@@ -10,22 +10,11 @@ from pydantic import ValidationError
 
 import grunt.core.auth.models  # noqa: F401
 
-# Ensure all ORM models are imported so Base.metadata is complete
+# Ensure all ORM models are imported so metadata is complete
 import grunt.core.db.system_tables  # noqa: F401
 import grunt.core.print.hooks  # noqa: F401
 from grunt.api.v1.router import v1_router
 from grunt.config import settings
-from grunt.core.db.base import Base
-from grunt.core.doctypes.activity_log.activity_log import ActivityLog as ActivityLogController
-from grunt.core.doctypes.comment.comment import Comment as CommentController
-from grunt.core.doctypes.data_import.data_import import DataImport as DataImportController
-from grunt.core.doctypes.sql_profiler_request.sql_profiler_request import (
-    SqlProfilerRequest as SqlProfilerRequestController,
-)
-from grunt.core.doctypes.user.user import User as UserController
-from grunt.core.doctypes.workspace_sidebar.workspace_sidebar import (
-    WorkspaceSidebar as WorkspaceSidebarController,
-)
 from grunt.core.document.registry import document_registry
 from grunt.core.hooks import register_doc_events, register_doctype_overrides
 from grunt.core.metadata.registry import doctype_registry
@@ -35,12 +24,7 @@ from grunt.core.tasks.broker import broker
 from grunt.core.tasks.registry import discover_tasks
 from grunt.core.tasks.scheduler import register_scheduler_events, start_scheduler, stop_scheduler
 
-document_registry.register("ActivityLog", ActivityLogController)
-document_registry.register("Comment", CommentController)
-document_registry.register("DataImport", DataImportController)
-document_registry.register("User", UserController)
-document_registry.register("SqlProfilerRequest", SqlProfilerRequestController)  # type: ignore[arg-type]
-document_registry.register("WorkspaceSidebar", WorkspaceSidebarController)
+document_registry.discover_core_controllers()
 
 # Auto-refresh in-memory permissions when DocTypePermission is saved/deleted
 register_doc_events(
@@ -133,26 +117,12 @@ async def lifespan(app: FastAPI):
             eng = site_manager.get_engine(site)
             maker = site_manager.get_session_maker(site)
 
-            async with eng.begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
-
-            # Ensure shared infrastructure tables (MultiLink junction, etc.)
-            from grunt.core.metadata.compiler import SA_METADATA as _SA_META  # noqa: PLC0415
-
-            async with eng.begin() as conn:
-                await conn.run_sync(_SA_META.create_all)
-
-            # Ensure full-text search index table
-            from grunt.core.search.service import search_index_service as _sis  # noqa: PLC0415
-
-            await _sis.ensure_table(eng)
-
             async with maker() as session:
-                # Load/sync core JSON doctypes FIRST (creates physical tables, populates registry)
-                await load_core_doctypes(session, eng)
-                # Load user-created doctypes from grunt_meta_doctype
-                await doctype_registry.load_all(session)
-                # Apply field extensions registered by apps via doctype_overrides
+                # Load core DocType definitions into registry (no table sync — use grunt migrate)
+                await load_core_doctypes(session)
+                # Register names of user-created DocTypes for lazy loading
+                await doctype_registry.prefetch_names(session)
+                # Merge in-memory field extensions from app hooks (no table sync)
                 await apply_doctype_overrides(session, eng)
                 # Populate the DocType document table
                 await populate_system_doctypes(session, eng)

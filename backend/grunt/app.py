@@ -501,7 +501,6 @@ class GruntApp:
             users=users,
             subject=subject,
             message=message,
-            session=self._require_session(),
             doctype=doctype,
             doc_id=doc_id,
             push=push,
