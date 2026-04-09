@@ -9,7 +9,7 @@ try:
     limiter = Limiter(key_func=get_remote_address)
     _AVAILABLE = True
 except ImportError:
-    limiter = None  # type: ignore[assignment]
+    limiter = None
     _AVAILABLE = False
 
 

@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next'
 
-const props = defineProps<{
+defineProps<{
   page: number
   pages: number
   total: number

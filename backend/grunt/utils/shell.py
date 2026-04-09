@@ -28,7 +28,8 @@ async def _bootstrap(site: str | None) -> dict:
     from grunt.core.site.manager import current_site, site_manager  # noqa: PLC0415
     from grunt.core.startup import load_core_doctypes  # noqa: PLC0415
 
-    target = site or (site_manager.get_sites() or [None])[0]
+    sites = site_manager.get_sites()
+    target: str | None = site or (sites[0] if sites else None)
     if target is None:
         print("Помилка: сайт не знайдено.", file=sys.stderr)
         sys.exit(1)
@@ -56,14 +57,15 @@ async def _bootstrap(site: str | None) -> dict:
 
 
 def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) -> dict:
-    def run(coro):  # type: ignore[return]
+    def run(coro):
         """Run a coroutine synchronously."""
         return loop.run_until_complete(coro)
 
     async def _get_doc(doctype: str, name: str) -> dict:
+        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.document.service import DocumentService  # noqa: PLC0415
 
-        return await DocumentService().get_document(doctype, name, session=session)
+        return await DocumentService(session, engine).get_document(doctype, name, SYSTEM_USER)
 
     async def _get_list(
         doctype: str,
@@ -71,26 +73,29 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
         fields: list[str] | None = None,
         limit: int = 20,
     ) -> list:
+        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.document.service import DocumentService  # noqa: PLC0415
 
-        result = await DocumentService().list_documents(
-            doctype, filters=filters or {}, fields=fields, per_page=limit, session=session
+        result = await DocumentService(session, engine).list_documents(
+            doctype, SYSTEM_USER, filters=filters or {}, fields=fields, per_page=limit
         )
         return result.get("data", [])
 
     async def _save_doc(doctype: str, data: dict) -> dict:
+        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.document.service import DocumentService  # noqa: PLC0415
 
-        svc = DocumentService()
+        svc = DocumentService(session, engine)
         doc_id = data.get("id") or data.get("name")
         if doc_id:
-            return await svc.update_document(doctype, doc_id, data, session=session)
-        return await svc.create_document(doctype, data, session=session)
+            return await svc.update_document(doctype, doc_id, data, SYSTEM_USER)
+        return await svc.create_document(doctype, data, SYSTEM_USER)
 
     async def _delete_doc(doctype: str, name: str) -> None:
+        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.document.service import DocumentService  # noqa: PLC0415
 
-        await DocumentService().delete_document(doctype, name, session=session)
+        await DocumentService(session, engine).delete_document(doctype, name, SYSTEM_USER)
 
     def get_doc(doctype: str, name: str) -> dict:
         """Get a document by DocType and name/id."""

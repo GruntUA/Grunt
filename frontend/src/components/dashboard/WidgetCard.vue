@@ -29,6 +29,16 @@ const emit = defineEmits<{
   remove: [widget: DashboardWidget]
 }>()
 
+const metricData = computed(() => props.data as { value: number; trend?: number | null })
+const chartData = computed(() => props.data as { labels: string[]; values: number[] })
+const listData = computed(() => props.data as { items: Record<string, unknown>[]; title_field: string | null })
+const countData = computed(() => props.data as { count: number } | null)
+const activityData = computed(() => props.data as { items: { id: string; doctype: string; doc_id: string; action: string; user: string; created_at: string }[] } | null)
+const heatmapData = computed(() => props.data as { days: Record<string, number> } | null)
+const calendarData = computed(() => props.data as { entries: { date: string; count: number }[] } | null)
+const funnelData = computed(() => props.data as { stages: { label: string; count: number }[] } | null)
+const tableData = computed(() => props.data as { rows: { label: string; value: number }[]; aggregation?: string; field?: string | null } | null)
+
 const colSpanClass = computed(() => ({
   1: 'col-span-1',
   2: 'col-span-2',
@@ -79,32 +89,32 @@ const minH = computed(() => {
       <MetricWidget
         v-if="widget.widget_type === 'metric'"
         :widget="widget"
-        :data="(data as { value: number; trend?: number | null })"
+        :data="metricData"
         :loading="loading"
       />
       <ChartWidget
         v-else-if="widget.widget_type === 'chart_area' || widget.widget_type === 'chart_bar'"
         :widget="widget"
-        :data="(data as { labels: string[]; values: number[] })"
+        :data="chartData"
         :loading="loading"
       />
       <DonutWidget
         v-else-if="widget.widget_type === 'donut'"
         :widget="widget"
-        :data="(data as { labels: string[]; values: number[] })"
+        :data="chartData"
         :loading="loading"
       />
       <ListWidget
         v-else-if="widget.widget_type === 'list'"
         :widget="widget"
-        :data="(data as { items: Record<string, unknown>[]; title_field: string | null })"
+        :data="listData"
         :loading="loading"
         :workspace-name="workspaceName"
       />
       <ShortcutWidget
         v-else-if="widget.widget_type === 'shortcut'"
         :widget="widget"
-        :data="(data as { count: number } | null)"
+        :data="countData"
         :loading="loading"
         :workspace-name="workspaceName"
       />
@@ -124,32 +134,32 @@ const minH = computed(() => {
       <ActivityWidget
         v-else-if="widget.widget_type === 'activity'"
         :widget="widget"
-        :data="(data as { items: { id: string; doctype: string; doc_id: string; action: string; user: string; created_at: string }[] } | null)"
+        :data="activityData"
         :loading="loading"
         :workspace-name="workspaceName"
       />
       <CalendarWidget
         v-else-if="widget.widget_type === 'calendar'"
         :widget="widget"
-        :data="(data as { days: Record<string, number> } | null)"
+        :data="heatmapData"
         :loading="loading"
       />
       <HeatmapWidget
         v-else-if="widget.widget_type === 'heatmap'"
         :widget="widget"
-        :data="(data as { entries: { date: string; count: number }[] } | null)"
+        :data="calendarData"
         :loading="loading"
       />
       <FunnelWidget
         v-else-if="widget.widget_type === 'funnel'"
         :widget="widget"
-        :data="(data as { stages: { label: string; count: number }[] } | null)"
+        :data="funnelData"
         :loading="loading"
       />
       <TableWidget
         v-else-if="widget.widget_type === 'table'"
         :widget="widget"
-        :data="(data as { rows: { label: string; value: number }[]; aggregation?: string; field?: string | null } | null)"
+        :data="tableData"
         :loading="loading"
       />
       <LinksWidget

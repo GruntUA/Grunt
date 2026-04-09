@@ -40,7 +40,7 @@ router = APIRouter()
 def _rate_limit(limit: str):
     """Decorator that applies slowapi rate limiting when available, no-op otherwise."""
 
-    def decorator(func):  # type: ignore[return]
+    def decorator(func):
         if limiter is not None:
             return limiter.limit(limit)(func)
         return func

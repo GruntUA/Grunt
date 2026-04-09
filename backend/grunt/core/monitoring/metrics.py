@@ -44,10 +44,10 @@ try:
 
 except ImportError:
     _AVAILABLE = False
-    http_requests_total = None  # type: ignore[assignment]
-    http_request_duration = None  # type: ignore[assignment]
-    ws_connections_active = None  # type: ignore[assignment]
-    generate_latest = None  # type: ignore[assignment]
+    http_requests_total = None
+    http_request_duration = None
+    ws_connections_active = None
+    generate_latest = None
     CONTENT_TYPE_LATEST = "text/plain"
 
 

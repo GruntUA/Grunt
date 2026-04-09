@@ -238,6 +238,8 @@ function copyEmbedUrl() {
 }
 
 onMounted(load)
+
+const printPage = () => window.print()
 </script>
 
 <template>
@@ -298,7 +300,7 @@ onMounted(load)
           </button>
           <button v-if="dashboard"
             class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm hover:bg-muted transition-colors"
-            @click="() => window.print()">
+            @click="printPage">
             <Printer class="w-4 h-4" />
           </button>
         </template>

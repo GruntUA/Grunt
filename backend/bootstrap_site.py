@@ -1,12 +1,14 @@
 import asyncio
+
 import structlog
+
 from grunt.core.db.base import Base
-from grunt.core.db.session import get_engine, async_session_factory
+from grunt.core.db.session import async_session_factory, get_engine
 from grunt.core.startup import (
     load_core_doctypes,
     populate_system_doctypes,
-    seed_system_settings,
     seed_grunt_workspace,
+    seed_system_settings,
 )
 
 logger = structlog.get_logger()

@@ -14,7 +14,7 @@ class GruntContextMiddleware(BaseHTTPMiddleware):
     `await Doc.get()` without manually passing session/user/engine.
     """
 
-    async def dispatch(self, request: Request, call_next) -> Response:  # type: ignore[override]
+    async def dispatch(self, request: Request, call_next) -> Response:
         # Get dependencies from request state (set by auth/db middleware)
         try:
             # Get session from dependency injection machinery

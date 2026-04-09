@@ -143,7 +143,7 @@ class AssignmentService:
             await self._log_assignment(
                 rule_id=rule_id,
                 doctype_affected=doctype,
-                document_id=doc.get("id") or doc.get("name"),
+                document_id=doc.get("id") or doc.get("name") or "",
                 assigned_to=user_email,
                 assignment_method="user",
                 status="Success",
@@ -240,7 +240,7 @@ class AssignmentService:
                 await self._log_assignment(
                     rule_id=rule_id,
                     doctype_affected=doctype,
-                    document_id=doc.get("id") or doc.get("name"),
+                    document_id=doc.get("id") or doc.get("name") or "",
                     assigned_to=user.email,
                     assignment_method="role",
                     status="Success",

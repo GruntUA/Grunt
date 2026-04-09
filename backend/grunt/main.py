@@ -39,7 +39,7 @@ document_registry.register("ActivityLog", ActivityLogController)
 document_registry.register("Comment", CommentController)
 document_registry.register("DataImport", DataImportController)
 document_registry.register("User", UserController)
-document_registry.register("SqlProfilerRequest", SqlProfilerRequestController)
+document_registry.register("SqlProfilerRequest", SqlProfilerRequestController)  # type: ignore[arg-type]
 document_registry.register("WorkspaceSidebar", WorkspaceSidebarController)
 
 # Auto-refresh in-memory permissions when DocTypePermission is saved/deleted

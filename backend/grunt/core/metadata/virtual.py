@@ -116,7 +116,7 @@ class VirtualDocType:
                     elif op in ("like", "ilike"):
                         match = str(val).lower().strip("%") in str(raw).lower()
                     elif op in ("gt", "gte", "lt", "lte"):
-                        a, b = float(raw), float(val)
+                        a, b = float(raw or 0), float(val or 0)
                         match = (
                             a > b
                             if op == "gt"

@@ -31,16 +31,14 @@ class PermissionChecker:
         user_roles = set(getattr(user, "roles", []) or [])
 
         for perm in doctype.permissions:
-            role = perm.role if hasattr(perm, "role") else perm.get("role", "")
+            role = perm.role if hasattr(perm, "role") else ""
             if role not in user_roles and role != "All":
                 continue
-            perm_val = (
-                getattr(perm, action, False) if hasattr(perm, action) else perm.get(action, False)
-            )
+            perm_val = getattr(perm, action, False)
             if not perm_val:
                 continue
             # Check match expression
-            match_expr = perm.match if hasattr(perm, "match") else perm.get("match")
+            match_expr = perm.match if hasattr(perm, "match") else None
             if match_expr and doc and not self._eval_match(match_expr, user, doc):
                 continue
             return True
@@ -90,19 +88,13 @@ class PermissionChecker:
         matched = False
 
         for perm in doctype.permissions:
-            role = perm.role if hasattr(perm, "role") else perm.get("role", "")
+            role = perm.role if hasattr(perm, "role") else ""
             if role not in user_roles and role != "All":
                 continue
-            read_ok = (
-                getattr(perm, "read", False) if hasattr(perm, "read") else perm.get("read", False)
-            )
+            read_ok = getattr(perm, "read", False)
             if not read_ok:
                 continue
-            perm_hidden = (
-                getattr(perm, "hidden_fields", [])
-                if hasattr(perm, "hidden_fields")
-                else perm.get("hidden_fields", [])
-            )
+            perm_hidden = getattr(perm, "hidden_fields", [])
             if not matched:
                 hidden = set(perm_hidden)
                 matched = True

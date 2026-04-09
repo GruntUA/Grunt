@@ -40,9 +40,9 @@ async def list_pages() -> dict[str, Any]:
     """List all registered custom pages."""
     data = await grunt.get_list(
         "Page",
-        per_page=10000,
-        sort_by="sidebar_order",
-        sort_order="asc",
+        limit=10000,
+        order_by="sidebar_order",
+        order="asc",
         fields=_PAGE_FIELDS,
     )
     return {"success": True, "data": data}
@@ -60,7 +60,8 @@ async def register_page(
     if not route:
         raise HTTPException(status_code=422, detail="route є обов'язковим")
 
-    page_id = await grunt.get_id("Page", {"route": route})
+    existing = await grunt.get_list("Page", filters={"route": route}, limit=1)
+    page_id = existing[0]["id"] if existing else None
     update_data = {k: v for k, v in body.items() if k in _PAGE_UPDATABLE}
 
     if page_id:
@@ -80,7 +81,8 @@ async def delete_page(
         raise HTTPException(status_code=403, detail="Not authorized")
 
     full_route = f"/{route}"
-    page_id = await grunt.get_id("Page", {"route": full_route})
+    existing = await grunt.get_list("Page", filters={"route": full_route}, limit=1)
+    page_id = existing[0]["id"] if existing else None
 
     if not page_id:
         raise HTTPException(status_code=404, detail="Сторінку не знайдено")

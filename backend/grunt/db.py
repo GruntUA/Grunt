@@ -194,7 +194,7 @@ class GruntDB:
 
         result = await self._session().execute(stmt)
         await self._session().flush()
-        return result.rowcount  # type: ignore[return-value]
+        return result.rowcount  # type: ignore[attr-defined]
 
     async def aggregate(
         self,
@@ -215,8 +215,8 @@ class GruntDB:
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
 
-        select_exprs = []
-        group_by_exprs = []
+        select_exprs: list[Any] = []
+        group_by_exprs: list[Any] = []
 
         if isinstance(group_by, str):
             group_by = [group_by]
@@ -241,21 +241,22 @@ class GruntDB:
                 if not m:
                     raise ValueError(f"Invalid aggregation expression: {agg_expr}")
                 fn_name, field = m.groups()
-                field = field.strip() if field else None
+                field_name: str | None = field.strip() if field else None
 
+                col: Any
                 if fn_name == "count":
                     col = func.count()
                 else:
-                    if not field or field == "*":
+                    if not field_name or field_name == "*":
                         raise ValueError(f"Function {fn_name} requires a field name.")
                     if fn_name == "sum":
-                        col = func.sum(table.c[field])
+                        col = func.sum(table.c[field_name])
                     elif fn_name == "avg":
-                        col = func.avg(table.c[field])
+                        col = func.avg(table.c[field_name])
                     elif fn_name == "min":
-                        col = func.min(table.c[field])
+                        col = func.min(table.c[field_name])
                     elif fn_name == "max":
-                        col = func.max(table.c[field])
+                        col = func.max(table.c[field_name])
                     else:
                         raise ValueError(f"Unsupported aggregation function: {fn_name}")
 

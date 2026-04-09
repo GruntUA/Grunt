@@ -50,5 +50,7 @@ async def list_activity(
     return {
         "success": True,
         "data": entries,
-        "meta": {"total": total, "page": page, "per_page": per_page, "pages": -(-total // per_page)},
+        "meta": {
+            "total": total, "page": page, "per_page": per_page, "pages": -(-total // per_page)
+        },
     }

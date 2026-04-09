@@ -4,7 +4,6 @@ python = "3.12"
 uv = "latest"
 
 
-
 [tasks.setup]
 run = """
 uv sync
@@ -55,7 +54,7 @@ run = "uv run ruff check . --fix && npm run lint 2>/dev/null || true"
 description = "Run linting for Python and JavaScript"
 
 [tasks.typecheck]
-run = "uv run mypy backend/grunt && npm run typecheck"
+run = "uv run mypy -p grunt && npm run typecheck"
 description = "Run type checks for Python and TypeScript"
 
 [tasks.build]

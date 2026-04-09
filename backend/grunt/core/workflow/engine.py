@@ -170,10 +170,8 @@ class WorkflowEngine:
             await manager.broadcast_doc(
                 doctype.name,
                 doc_id,
-                {
-                    "event": "workflow_transition",
-                    "data": {"action": action, "to_state": transition.to_state},
-                },
+                "workflow_transition",
+                {"action": action, "to_state": transition.to_state},
             )
 
         # Return updated doc (already read above)

@@ -187,4 +187,4 @@ class DocField(BaseModel):
             "JSON": lambda a: SAJSON(),
         }
         sa_type = _TYPES[sa_type_name](args)
-        return Column(self.fieldname, sa_type)
+        return Column(self.fieldname, sa_type)  # type: ignore[arg-type]

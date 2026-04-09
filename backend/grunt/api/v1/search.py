@@ -67,5 +67,5 @@ async def rebuild_search_index(
 ) -> dict[str, Any]:
     """Rebuild the entire search index from scratch. Superadmin only."""
     session = grunt._require_session()
-    count = await search_index_service.reindex_all(session, session.bind)
+    count = await search_index_service.reindex_all(session, grunt._require_engine())
     return {"success": True, "indexed": count}

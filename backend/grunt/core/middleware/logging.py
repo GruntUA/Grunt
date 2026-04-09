@@ -23,7 +23,7 @@ _PROFILER_PREFIX = "/api/v1/dev"
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next) -> Response:  # type: ignore[override]
+    async def dispatch(self, request: Request, call_next) -> Response:
         request_id = str(uuid.uuid4())
         start = time.perf_counter()
 

@@ -32,6 +32,7 @@ const workflow = ref<WorkflowDef>({
   state_field: 'status',
   states: [],
   transitions: [],
+  steps: [],
 })
 
 // SVG layout — positions stored in localStorage

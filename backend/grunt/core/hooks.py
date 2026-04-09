@@ -273,6 +273,8 @@ def register_doc_events(events: dict[str, dict[str, str | list[str | dict]]]) ->
                 priority = 10 if isinstance(item, str) else item.get("priority", 10)
 
                 try:
+                    if not path:
+                        continue
                     module_path, func_name = path.rsplit(".", 1)
                     module = importlib.import_module(module_path)
                     fn = getattr(module, func_name)

@@ -174,6 +174,7 @@ class SearchIndexService:
             }
 
             dialect = session.bind.dialect.name if session.bind else "sqlite"
+            stmt: Any
             if dialect == "postgresql":
                 stmt = (
                     pg_insert(_search_index_table)

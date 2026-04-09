@@ -60,6 +60,10 @@ function onFiltersChange(f: Record<string, string>) {
 function setGroupBy(field: string | null) {
   emit('update:groupBy', field)
 }
+
+function onColReorder(e: { oldIndex: number; newIndex: number }) {
+  props.columns.reorderCols(e.oldIndex, e.newIndex)
+}
 </script>
 
 <template>
@@ -110,7 +114,7 @@ function setGroupBy(field: string | null) {
               :model-value="columns.visibleColumns.value"
               item-key="key"
               handle=".drag-handle"
-              @end="(e: { oldIndex: number; newIndex: number }) => columns.reorderCols(e.oldIndex, e.newIndex)"
+              @end="onColReorder"
             >
               <template #item="{ element: col }">
                 <DropdownMenuItem class="gap-2 focus:bg-primary/5" @select.prevent="columns.toggleCol(col.key)">

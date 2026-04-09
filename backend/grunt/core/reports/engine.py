@@ -145,10 +145,10 @@ class ReportEngine:
         # Inject 'grunt.result' placeholder and 'filters' into the context
         from grunt.core.scripting.safe_globals import build_safe_globals  # noqa: PLC0415
 
-        engine = _engine_factory()
+        engine = await _engine_factory()
         tokens = grunt.set_context(session, engine, user)
         try:
-            extra_globals = build_safe_globals(session, engine, user)
+            extra_globals = build_safe_globals()
             extra_globals["filters"] = filters
 
             # grunt.result will be set by the script
@@ -231,7 +231,8 @@ class ReportEngine:
                 if getattr(f, "in_list_view", False)
             ]
 
-        agg_map = {
+        from typing import Callable  # noqa: PLC0415
+        agg_map: dict[str, Callable[..., Any]] = {
             "count": func.count,
             "sum": func.sum,
             "avg": func.avg,
@@ -312,25 +313,26 @@ class ReportEngine:
 
         wb = openpyxl.Workbook()
         ws = wb.active
-        ws.title = report_name[:31]  # type: ignore[union-attr]
+        assert ws is not None
+        ws.title = report_name[:31]
 
         columns = result.get("columns", [])
         data = result.get("data", [])
 
         # Header row
         for ci, col in enumerate(columns, 1):
-            cell = ws.cell(row=1, column=ci, value=col.get("label", col["fieldname"]))  # type: ignore[union-attr]
-            cell.font = Font(bold=True)  # type: ignore[union-attr]
+            cell = ws.cell(row=1, column=ci, value=col.get("label", col["fieldname"]))
+            cell.font = Font(bold=True)
 
         # Data rows
         for ri, row in enumerate(data, 2):
             for ci, col in enumerate(columns, 1):
-                ws.cell(row=ri, column=ci, value=row.get(col["fieldname"]))  # type: ignore[union-attr]
+                ws.cell(row=ri, column=ci, value=row.get(col["fieldname"]))
 
         # Auto-width
-        for col in ws.columns:  # type: ignore[union-attr]
+        for col in ws.columns:
             max_len = max((len(str(cell.value or "")) for cell in col), default=0)
-            ws.column_dimensions[col[0].column_letter].width = min(max_len + 2, 50)  # type: ignore[union-attr]
+            ws.column_dimensions[col[0].column_letter].width = min(max_len + 2, 50)
 
         buf = BytesIO()
         wb.save(buf)

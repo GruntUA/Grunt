@@ -48,7 +48,7 @@ class WorkspaceSidebar(Document):
                 return None
 
             try:
-                dt = await grunt.metadata.get_doctype(link_to)
+                dt = await grunt.get_meta(link_to)
             except Exception:
                 return None
 
@@ -71,7 +71,7 @@ class WorkspaceSidebar(Document):
                     except (json.JSONDecodeError, ValueError):
                         pass
 
-                result_count = await grunt.db.session.execute(text(count_sql), filters)
+                result_count = await grunt.db._session().execute(text(count_sql), filters)
                 count_val = result_count.scalar() or 0
 
                 # Build key: use link_to + suffix if filters exist

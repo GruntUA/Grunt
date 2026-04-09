@@ -30,7 +30,7 @@ async def _virtual_list(
     sort_by: str,
     sort_order: str,
     filters: Any,
-    search: str,
+    search: str | None,
 ):
     ctrl = _get_virtual_controller(doctype_name, user)
     return await ctrl.get_list(

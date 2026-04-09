@@ -99,8 +99,9 @@ async def list_queue(
     records = await grunt.get_list(
         "EmailQueue",
         limit=per_page,
-        offset=offset,
-        order_by="created_at desc",
+        page=max(1, offset // per_page + 1) if per_page else 1,
+        order_by="created_at",
+        order="desc",
         filters={"status": status} if status else None,
     )
     

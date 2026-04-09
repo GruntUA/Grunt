@@ -65,7 +65,7 @@ def _build_env(extra_template_dirs: list[Path] | None = None) -> Environment:
       2. grunt/templates/ (framework defaults)
     """
     framework_templates = Path(__file__).parent.parent / "templates"
-    search_paths: list[str | Path] = list(extra_template_dirs or []) + [framework_templates]
+    search_paths: list[str | Path] = [*(extra_template_dirs or []), framework_templates]
 
     return Environment(
         loader=FileSystemLoader([str(p) for p in search_paths]),

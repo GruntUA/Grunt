@@ -53,7 +53,7 @@ async def restore_document_version(
     restore_data = version_service.build_restore_data(current_doc, all_versions, target["version"])
 
     # Apply as a regular update
-    dt = await grunt.metadata.get_doctype(doctype)
+    dt = await grunt.get_meta(doctype)
     from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
 
     update_fields = {}

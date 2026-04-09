@@ -11,9 +11,10 @@ def date_format(value: str | date | datetime | None, fmt: str = "%d.%m.%Y") -> s
         return ""
     if isinstance(value, str):
         try:
-            value = date.fromisoformat(value)
+            parsed = date.fromisoformat(value)
         except ValueError:
             return value
+        value = parsed
     if isinstance(value, datetime):
         return value.strftime(fmt)
     if isinstance(value, date):
@@ -26,9 +27,10 @@ def datetime_format(value: str | datetime | None, fmt: str = "%d.%m.%Y %H:%M") -
         return ""
     if isinstance(value, str):
         try:
-            value = datetime.fromisoformat(value)
+            parsed_dt = datetime.fromisoformat(value)
         except ValueError:
             return value
+        value = parsed_dt
     if isinstance(value, datetime):
         return value.strftime(fmt)
     return str(value)

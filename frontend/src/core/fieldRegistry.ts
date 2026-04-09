@@ -133,8 +133,6 @@ async function discoverFields() {
 
   for (const path in manifests) {
     const config = (manifests[path] as any).default
-    const dir = path.split('/').slice(0, -2).join('/') // Remove manifest.json
-    
     // Config should have 'type'
     const fieldType = config.type
 

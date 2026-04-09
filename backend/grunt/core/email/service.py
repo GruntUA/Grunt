@@ -95,10 +95,12 @@ class EmailService:
                         if msg.is_multipart():
                             for part in msg.walk():
                                 if part.get_content_type() == "text/plain":
-                                    body = part.get_payload(decode=True).decode()
+                                    raw = part.get_payload(decode=True)
+                                    body = raw.decode() if isinstance(raw, bytes) else ""
                                     break
                         else:
-                            body = msg.get_payload(decode=True).decode()
+                            raw = msg.get_payload(decode=True)
+                            body = raw.decode() if isinstance(raw, bytes) else ""
 
                         emails.append(
                             {

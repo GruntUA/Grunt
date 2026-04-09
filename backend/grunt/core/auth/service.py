@@ -156,6 +156,7 @@ async def consume_password_reset_token(
     """Verify token and update the user's password. Returns True on success."""
     from grunt.app import grunt
     from grunt.core.doctypes.user.user import SYSTEM_USER, hash_password
+    from grunt.core.site.manager import site_manager
 
     now = datetime.now(UTC)
 

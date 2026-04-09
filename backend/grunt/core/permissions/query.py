@@ -30,14 +30,14 @@ def apply_permission_filter(
     has_unrestricted = False
 
     for perm in doctype.permissions:
-        role = perm.role if hasattr(perm, "role") else perm.get("role", "")
+        role = perm.role if hasattr(perm, "role") else ""
         if role not in user_roles and role != "All":
             continue
-        read_ok = perm.read if hasattr(perm, "read") else perm.get("read", False)
+        read_ok = perm.read if hasattr(perm, "read") else False
         if not read_ok:
             continue
 
-        match_expr = perm.match if hasattr(perm, "match") else perm.get("match")
+        match_expr = perm.match if hasattr(perm, "match") else None
         if not match_expr:
             has_unrestricted = True
             break
@@ -52,7 +52,7 @@ def apply_permission_filter(
     return query.where(or_(*conditions))
 
 
-def _parse_match_to_sqlalchemy(match_expr: str, table: Table, user: GruntUser):  # type: ignore[return]
+def _parse_match_to_sqlalchemy(match_expr: str, table: Table, user: GruntUser):
     """Parse simple match expressions to SQLAlchemy conditions."""
     expr = match_expr.strip()
 

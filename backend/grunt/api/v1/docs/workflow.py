@@ -48,6 +48,6 @@ async def apply_workflow_transition(
     session = grunt._require_session()
 
     updated = await workflow_engine.apply_transition(
-        dt, doc_id, body["action"], user, session, session.bind
+        dt, doc_id, body["action"], user, session, grunt._require_engine()
     )
     return {"success": True, "data": updated}

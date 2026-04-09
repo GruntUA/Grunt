@@ -43,6 +43,8 @@ async def current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    if not token:
+        raise credentials_exception
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         email: str | None = payload.get("sub")
@@ -53,6 +55,7 @@ async def current_user(
 
     # Fast path: all identity fields are embedded in the token.
     uid: str | None = payload.get("uid")
+    user: GruntUser | None
     if uid:
         user = GruntUser(
             id=uid,
@@ -69,6 +72,7 @@ async def current_user(
         if user is None:
             raise credentials_exception
 
+    assert user is not None
     if not user.is_active:
         raise credentials_exception
 
@@ -141,7 +145,7 @@ async def grunt_context_optional(
     engine: AsyncEngine = Depends(get_engine),
     user: GruntUser | None = Depends(optional_user),
 ) -> AsyncGenerator[None, Any]:
-    """FastAPI dependency that sets up the grunt SDK context for the duration of a request, with an optional user."""
+    """FastAPI dependency: sets up grunt SDK context for the request, with an optional user."""
     from grunt.app import grunt
 
     tokens = grunt.set_context(session, engine, user)

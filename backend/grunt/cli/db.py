@@ -41,7 +41,7 @@ def db_backup(output, site):
     async def _run():
         from grunt.config import settings  # noqa: PLC0415
 
-        db_url: str = settings.database_url  # type: ignore[attr-defined]
+        db_url: str = settings.database_url
 
         if db_url.startswith("postgresql"):
             if shutil.which("pg_dump") is None:

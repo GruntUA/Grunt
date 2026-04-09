@@ -8,7 +8,7 @@ _ALLOWED_TAGS = {"p", "br", "b", "i", "u", "s", "h2", "h3", "ul", "ol", "li", "a
 def sanitize_html(html: str) -> str:
     """Sanitize HTML from RichText fields, stripping dangerous tags/attributes."""
     try:
-        import nh3  # type: ignore[import-untyped]
+        import nh3
 
         return nh3.clean(html, tags=_ALLOWED_TAGS)
     except ImportError:

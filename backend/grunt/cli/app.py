@@ -142,7 +142,8 @@ def app_list(site: str | None):
 
     from grunt.core.site.manager import site_manager  # noqa: PLC0415
 
-    target_site = site or (site_manager.get_sites() or [None])[0]
+    _sites = site_manager.get_sites()
+    target_site: str | None = site or (_sites[0] if _sites else None)
     if target_site is None:
         click.echo("Помилка: сайт не знайдено.", err=True)
         raise SystemExit(1)

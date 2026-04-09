@@ -252,7 +252,7 @@ async def _compute_widget_data(
                 stages = [{"label": o, "count": counts.get(o, 0)} for o in ordered_options]
             else:
                 stages = [
-                    {"label": k, "count": v} for k, v in sorted(counts.items(), key=lambda x: -x[1])
+                    {"label": k, "count": v} for k, v in sorted(counts.items(), key=lambda x: -(x[1] or 0))
                 ]
 
             return {"stages": stages}

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/core/api/client'
 import { useWebSocket } from '@/core/composables/useWebSocket'
+import { useAuthStore } from '@/stores/auth'
 import {
     FileText,
     Plus,
@@ -26,6 +27,7 @@ interface ActivityEntry {
 const activities = ref<ActivityEntry[]>([])
 const loading = ref(true)
 const router = useRouter()
+const auth = useAuthStore()
 
 // WebSocket for real-time activity
 const ws = useWebSocket('/api/v1/ws/public/site') // Connect to global site channel via public route
@@ -77,7 +79,9 @@ function goToDoc(item: ActivityEntry) {
     router.push(`/grunt/list/${item.doctype}/${item.doc_id}`)
 }
 
-onMounted(fetchActivity)
+watch(() => auth.isLoggedIn, (loggedIn) => {
+    if (loggedIn) fetchActivity()
+}, { immediate: true })
 </script>
 
 <template>

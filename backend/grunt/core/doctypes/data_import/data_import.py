@@ -25,7 +25,7 @@ class DataImport(Document):
                 file_id = self.file.split("/")[-1]
                 try:
                     doc = await self.grunt.get_doc("File", file_id)
-                    file_path = Path(doc.path)
+                    file_path = Path(doc["path"])
                 except Exception as err:
                     raise FileNotFoundError(f"File record not found for {file_id}") from err
             else:
@@ -66,7 +66,7 @@ class DataImport(Document):
             file_id = self.file.split("/")[-1]
             try:
                 doc = await self.grunt.get_doc("File", file_id)
-                file_path = Path(doc.path)
+                file_path = Path(doc["path"])
             except Exception:
                 pass
 

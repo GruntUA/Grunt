@@ -127,6 +127,8 @@ async def oauth_callback(
     from grunt.core.auth.service import (
         create_access_token,
         create_refresh_token,
+    )
+    from grunt.core.doctypes.user.user import (
         create_user,
         get_user_by_email,
     )

@@ -10,7 +10,7 @@ import {
   AlertDialogAction,
 } from '@/components/ui/alert-dialog'
 
-const props = defineProps<{
+defineProps<{
   showDelete: boolean
   showLeave: boolean
 }>()

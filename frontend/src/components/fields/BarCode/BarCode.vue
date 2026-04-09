@@ -24,7 +24,7 @@ type BarcodeDetectorClass = {
   getSupportedFormats(): Promise<readonly string[]>
 }
 
-const props = defineProps<{
+defineProps<{
   field: DocField
   modelValue: unknown
   disabled?: boolean

@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import type { DashboardWidget } from '@/types'
 
-const props = defineProps<{ widget: DashboardWidget }>()
+defineProps<{ widget: DashboardWidget }>()
 
 const now = ref(new Date())
 let timer: ReturnType<typeof setInterval>

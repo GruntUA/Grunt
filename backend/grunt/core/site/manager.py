@@ -2,6 +2,7 @@ import unicodedata
 from contextlib import suppress
 from contextvars import ContextVar
 from pathlib import Path
+from typing import Any
 
 import dotenv
 import structlog
@@ -119,7 +120,7 @@ class SiteManager:
         if site_name not in self.engines:
             db_url = self.get_database_url(site_name)
 
-            engine_kwargs = {"echo": settings.database_echo, "pool_pre_ping": True}
+            engine_kwargs: dict[str, Any] = {"echo": settings.database_echo, "pool_pre_ping": True}
             if "postgresql" in db_url:
                 engine_kwargs.update({"pool_size": 20, "max_overflow": 10})
             elif "sqlite" in db_url:

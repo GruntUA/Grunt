@@ -90,7 +90,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
   function ensureGrunt(): GruntProxy {
     if (!gruntProxy) {
       gruntProxy = createGruntProxy({
-        msgprint: (msgOrOpts) => {
+        msgprint: async (msgOrOpts) => {
           dialog.msgprint(
             typeof msgOrOpts === 'string'
               ? msgOrOpts

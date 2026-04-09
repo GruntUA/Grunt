@@ -101,9 +101,9 @@ async def get_vapid_public_key() -> dict[str, Any]:
     """Return the VAPID public key needed to subscribe to Web Push."""
     from grunt.core.webpush.service import webpush_service  # noqa: PLC0415
 
-    key = await webpush_service.get_vapid_public_key(grunt.session)
+    key = await webpush_service.get_vapid_public_key(grunt._require_session())
     if not key:
-        key = await webpush_service.ensure_vapid_keys(grunt.session)
+        key = await webpush_service.ensure_vapid_keys(grunt._require_session())
     return {"success": True, "public_key": key}
 
 
@@ -118,7 +118,7 @@ async def push_subscribe(
 
     user_agent = request.headers.get("user-agent", "")
     await webpush_service.save_subscription(
-        grunt.session, user.email, body.endpoint, body.p256dh, body.auth, user_agent
+        grunt._require_session(), user.email, body.endpoint, body.p256dh, body.auth, user_agent
     )
     return {"success": True}
 
@@ -130,7 +130,7 @@ async def push_unsubscribe(
     """Remove a browser push subscription."""
     from grunt.core.webpush.service import webpush_service  # noqa: PLC0415
 
-    await webpush_service.remove_subscription(grunt.session, body.endpoint)
+    await webpush_service.remove_subscription(grunt._require_session(), body.endpoint)
     return {"success": True}
 
 

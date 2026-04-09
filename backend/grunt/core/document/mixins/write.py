@@ -44,10 +44,20 @@ class DocumentWriteMixin:
     engine: AsyncEngine
     _ml: MultiLinkService
 
-    def _set_grunt_context(self, user: GruntUser) -> tuple: ...
+    def _set_grunt_context(self, user: GruntUser) -> tuple:  # type: ignore[empty-body]
+        ...
 
     @staticmethod
-    def _reset_grunt_context(tokens: tuple) -> None: ...
+    def _reset_grunt_context(tokens: tuple) -> None:
+        ...
+
+    async def get_document(
+        self,
+        doctype_name: str,
+        doc_id: str,
+        user: GruntUser,
+    ) -> dict[str, Any]:
+        raise NotImplementedError
 
     # ── Create ────────────────────────────────────────────────────────────
 
@@ -304,8 +314,8 @@ class DocumentWriteMixin:
                     result[mlf.fieldname] = ml_data.get(mlf.fieldname, [])
             from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
 
-            for field in permission_checker.hidden_fields(user, dt):
-                result.pop(field, None)
+            for hidden_field in permission_checker.hidden_fields(user, dt):
+                result.pop(hidden_field, None)
 
             # Create version record
             if dt.track_changes:

@@ -169,7 +169,7 @@ class NotificationService:
             .values(is_read=True)
         )
         await session.flush()
-        return result.rowcount  # type: ignore[return-value]
+        return result.rowcount  # type: ignore[attr-defined]
 
     # ── Internal helpers ──────────────────────────────────────────────────
 

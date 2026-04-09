@@ -98,14 +98,20 @@ async def run_server_script(
     """Execute a built-in framework method or an API-type Server Script."""
     from grunt.core.scripting import server_script_runner
 
+    method: str | None = None
     try:
         method = body.get("method")
         if not method:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Method is required")
-        
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Method is required"
+            )
+
         params = body.get("params", {})
     except Exception:
         body = {}
+
+    if not method:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Method is required")
 
     builtin_result = await _handle_builtin_method(method, body)
     if builtin_result is not None:

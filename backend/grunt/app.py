@@ -8,6 +8,7 @@ are set by the framework at the start of each request / lifecycle hook call.
 
 from __future__ import annotations
 
+import contextlib
 from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
@@ -22,6 +23,8 @@ from grunt.session import GruntSession
 from grunt.utils.app_helpers import _collect_template_dirs, _format_msgprint
 
 if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
     from grunt.core.auth.models import GruntUser
@@ -101,6 +104,28 @@ class GruntApp:
         _session_ctx.reset(tokens[0])
         _engine_ctx.reset(tokens[1])
         _user_ctx.reset(tokens[2])
+
+    @contextlib.asynccontextmanager
+    async def context(
+        self,
+        session: AsyncSession,
+        engine: AsyncEngine | None = None,
+        user: GruntUser | None = None,
+    ) -> AsyncGenerator[None, None]:
+        """Async context manager that activates a grunt context for background tasks.
+
+        Use this in background tasks and CLI commands instead of calling
+        :meth:`set_context` / :meth:`reset_context` directly::
+
+            async with grunt.context(session, engine, SYSTEM_USER):
+                doc = await grunt.get_doc("Invoice", invoice_id)
+                await doc.submit()
+        """
+        tokens = self.set_context(session, engine, user)
+        try:
+            yield
+        finally:
+            self.reset_context(tokens)
 
     def _require_session(self) -> AsyncSession:
         s = _session_ctx.get()
@@ -263,7 +288,7 @@ class GruntApp:
 
         result = await session.execute(stmt)
         await session.flush()
-        row_count: int = result.rowcount  # type: ignore[assignment]
+        row_count: int = result.rowcount  # type: ignore[attr-defined]
         logger.info("grunt.bulk_update", doctype=doctype, rows=row_count)
         return row_count
 

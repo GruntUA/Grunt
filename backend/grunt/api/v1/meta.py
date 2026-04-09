@@ -298,7 +298,7 @@ async def introspect_hooks(
                 {"doctype": dt, "fn": f.__name__, "priority": p}
                 for dt, p, f in hooks
             ]
-            for event, hooks in doctype_registry._hooks.items()
+            for event, hooks in doctype_registry._hooks.items()  # type: ignore[attr-defined]
         }
     }
 
@@ -313,7 +313,7 @@ async def introspect_controllers(
         "success": True,
         "data": {
             name: {"class": cls.__name__, "module": cls.__module__}
-            for name, cls in doctype_registry._controllers.items()
+            for name, cls in doctype_registry._controllers.items()  # type: ignore[attr-defined]
         }
     }
 

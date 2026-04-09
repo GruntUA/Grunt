@@ -182,7 +182,12 @@ class ScriptContext:
         self._response: dict[str, Any] = {}
         self._flags: dict[str, Any] = {}
         self.session = _SessionProxy(user_email, roles=user_roles, is_superadmin=is_superadmin)
-        self.db = _DBProxy(bridge, session) if bridge and session else None  # type: ignore[arg-type]
+        self.db = _DBProxy(bridge, session) if bridge and session else None
+
+    def _get_session(self) -> AsyncSession:
+        """Return the session, raising if not set."""
+        assert self._session is not None, "No session available in ScriptContext"
+        return self._session
 
     @property
     def response(self) -> dict[str, Any]:
@@ -233,7 +238,7 @@ class ScriptContext:
                 if col is not None:
                     stmt = stmt.where(col == v)
         stmt = stmt.limit(1)
-        result = await self._session.execute(stmt)
+        result = await self._get_session().execute(stmt)
         row = result.first()
         if not row:
             return None
@@ -284,7 +289,7 @@ class ScriptContext:
                     stmt = stmt.where(col == v)
 
         stmt = stmt.limit(limit)
-        result = await self._session.execute(stmt)
+        result = await self._get_session().execute(stmt)
         return [dict(row._mapping) for row in result.fetchall()]
 
     def new_doc(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
@@ -331,13 +336,13 @@ class ScriptContext:
         table = compile_doctype_to_table(dt)
         update_data = {k: v for k, v in data.items() if k in table.c}
         update_data["modified_at"] = datetime.now(UTC)
-        await self._session.execute(
+        await self._get_session().execute(
             sa_update(table)
             .where((table.c.id == id_or_name) | (table.c.name == id_or_name))
             .values(**update_data)
         )
-        await self._session.flush()
-        result = await self._session.execute(
+        await self._get_session().flush()
+        result = await self._get_session().execute(
             select(table).where((table.c.id == id_or_name) | (table.c.name == id_or_name)).limit(1)
         )
         row = result.first()
@@ -360,10 +365,10 @@ class ScriptContext:
 
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
-        await self._session.execute(
+        await self._get_session().execute(
             table.delete().where((table.c.id == id_or_name) | (table.c.name == id_or_name))
         )
-        await self._session.flush()
+        await self._get_session().flush()
 
     def count(self, doctype: str, filters: dict[str, Any] | None = None) -> int:
         """Count documents matching optional filters.
@@ -390,7 +395,7 @@ class ScriptContext:
                 col = table.c.get(k)
                 if col is not None:
                     stmt = stmt.where(col == v)
-        result = await self._session.execute(stmt)
+        result = await self._get_session().execute(stmt)
         return result.scalar() or 0
 
     def notify(
@@ -425,7 +430,7 @@ class ScriptContext:
             users=users,
             subject=subject,
             message=message,
-            session=self._session,
+            session=self._get_session(),
             doctype=doctype,
             doc_id=doc_id,
         )

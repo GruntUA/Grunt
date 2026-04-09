@@ -129,7 +129,7 @@ class S3StorageBackend(StorageBackend):
         self._access_key_id = access_key_id
         self._secret_access_key = secret_access_key
 
-    def _session(self):  # type: ignore[return]
+    def _session(self):
         try:
             import aioboto3  # noqa: PLC0415
         except ImportError as e:

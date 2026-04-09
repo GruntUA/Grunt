@@ -77,6 +77,7 @@ class DocumentReadMixin:
             }
 
         # Select columns
+        cols: list[Any]
         if fields:
             required = {"id", "name", "modified_at", "docstatus"}
             requested = required | set(fields)
@@ -119,22 +120,22 @@ class DocumentReadMixin:
         query = query.limit(per_page).offset(offset)
 
         result = await self.session.execute(query)
-        rows = [dict(row._mapping) for row in result]
+        rows: list[dict[Any, Any]] = [dict(r._mapping) for r in result]
 
         # Serialise datetimes
-        for row in rows:
-            for k, v in row.items():
+        for doc_row in rows:
+            for k, v in doc_row.items():
                 if isinstance(v, datetime):
-                    row[k] = v.isoformat()
+                    doc_row[k] = v.isoformat()
 
         # Apply field-level permissions
         from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
 
         hidden = permission_checker.hidden_fields(user, dt)
         if hidden:
-            for row in rows:
+            for doc_row in rows:
                 for field in hidden:
-                    row.pop(field, None)
+                    doc_row.pop(field, None)
 
         return {
             "data": rows,

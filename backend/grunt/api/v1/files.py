@@ -106,9 +106,10 @@ async def list_files(
             "created_at",
             "uploaded_by",
         ],
-        order_by="created_at desc",
+        order_by="created_at",
+        order="desc",
         limit=limit,
-        offset=offset,
+        page=max(1, offset // limit + 1) if limit else 1,
     )
 
     # Get total count
@@ -137,7 +138,7 @@ async def list_files(
 @router.get("/{file_id}")
 async def get_file_metadata(
     file_id: str,
-) -> dict[str, Any]:
+) -> Response:
     """Download / serve a file using File DocType metadata."""
     try:
         doc = await grunt.get_doc("File", file_id)
@@ -146,7 +147,8 @@ async def get_file_metadata(
 
     storage = get_storage_backend()
     try:
-        content = await storage.get(doc.get("path"))
+        file_path = doc.get("path") or ""
+        content = await storage.get(file_path)
     except Exception:
         raise HTTPException(404, "File not found on storage") from None
 
@@ -177,7 +179,7 @@ async def delete_file(
 
     # Delete from storage first
     storage = get_storage_backend()
-    await storage.delete(doc.get("path"))
+    await storage.delete(doc.get("path") or "")
 
     # Delete DocType record
     await grunt.delete_doc("File", file_id)

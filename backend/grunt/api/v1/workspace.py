@@ -85,7 +85,7 @@ def _get_ws_obj(ws_data: dict[str, Any]) -> Any:
     if isinstance(ws_data, dict):
         ws_cls = document_registry.get("WorkspaceSidebar")
         if ws_cls:
-            return ws_cls("WorkspaceSidebar", ws_data, grunt.session, grunt._require_session())
+            return ws_cls("WorkspaceSidebar", ws_data, grunt._require_user(), grunt._require_session())
     return ws_data
 
 
@@ -228,5 +228,9 @@ async def workspace_widget_data(
         with contextlib.suppress(ValueError):
             global_until = datetime.fromisoformat(date_to).replace(tzinfo=UTC)
 
-    data = await ws.get_widget_data(date_from=global_since, date_to=global_until) if hasattr(ws, "get_widget_data") else {}
+    data = (
+        await ws.get_widget_data(date_from=global_since, date_to=global_until)
+        if hasattr(ws, "get_widget_data")
+        else {}
+    )
     return {"success": True, "data": data}

@@ -28,7 +28,7 @@ _VAPID_CLAIMS_SUB = "mailto:system@grunt.local"
 
 def _generate_vapid_keys() -> tuple[str, str]:
     """Generate a new VAPID key pair. Returns (private_pem, public_b64url)."""
-    from py_vapid import Vapid  # type: ignore[import]
+    from py_vapid import Vapid
 
     v = Vapid()
     v.generate_keys()
@@ -194,7 +194,7 @@ class WebPushService:
     ) -> None:
         """Send a Web Push notification to all subscriptions of a user."""
         try:
-            from pywebpush import webpush  # type: ignore[import]
+            from pywebpush import webpush
         except ImportError:
             return  # Silently skip if not installed
 

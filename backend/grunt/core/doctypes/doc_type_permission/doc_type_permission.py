@@ -34,7 +34,7 @@ class DocTypePermissionController(Document):
     read: bool
     write: bool
     create: bool
-    delete: bool
+    delete: bool  # type: ignore[assignment]
     submit: bool
     cancel: bool
     report: bool

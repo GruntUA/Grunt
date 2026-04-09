@@ -11,7 +11,7 @@ import {
 import { Search, Settings2 } from 'lucide-vue-next'
 import type { ListColumn } from '@/core/composables/useListColumns'
 
-const props = defineProps<{
+defineProps<{
   allColumns: ListColumn[]
   hiddenCols: string[]
 }>()

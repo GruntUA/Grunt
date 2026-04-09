@@ -17,7 +17,6 @@ import grunt.core.db.system_tables as _system_tables  # noqa: F401
 # ── Grunt imports ────────────────────────────────────────────────────────
 from grunt.config import settings
 from grunt.core.db.base import Base
-
 from grunt.core.site.manager import site_manager
 
 # Make dummy references so static analyzers treat these imports as used.

@@ -18,7 +18,7 @@ Usage:
 from __future__ import annotations
 
 import gettext as _gettext
-from contextvars import ContextVar
+from contextvars import ContextVar, Token
 from pathlib import Path
 from typing import Any
 
@@ -51,7 +51,7 @@ def _load_translations(lang: str) -> _gettext.GNUTranslations | _gettext.NullTra
     mo_path = _LOCALE_DIR / lang / "LC_MESSAGES" / "grunt.mo"
     if mo_path.exists():
         with open(mo_path, "rb") as f:
-            trans = _gettext.GNUTranslations(f)
+            trans: _gettext.GNUTranslations | _gettext.NullTranslations = _gettext.GNUTranslations(f)
             _translations[lang] = trans
             logger.debug("i18n.loaded_mo", lang=lang)
             return trans
@@ -182,7 +182,7 @@ class TranslationService:
     def get_lang(self) -> str:
         return _current_lang.get()
 
-    def set_lang(self, lang: str) -> str:
+    def set_lang(self, lang: str) -> Token[str]:
         """Set the current language. Returns a token for reset."""
         return _current_lang.set(lang)
 

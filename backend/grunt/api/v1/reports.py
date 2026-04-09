@@ -120,7 +120,9 @@ async def run_report(
     """Execute a report and return results."""
     from grunt.core.reports.engine import report_engine
 
-    result = await report_engine.run(name, body.get("filters", {}), grunt._require_user(), grunt._require_session())
+    result = await report_engine.run(
+        name, body.get("filters", {}), grunt._require_user(), grunt._require_session()
+    )
     return {"success": True, **result}
 
 
