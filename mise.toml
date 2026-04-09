@@ -3,21 +3,19 @@ node = "22.13.1"
 python = "3.12"
 uv = "latest"
 
-[tasks.dev]
-run = "uv run grunt serve"
-description = "Start backend and frontend servers concurrently"
+
 
 [tasks.setup]
 run = """
-mise install
 uv sync
 npm install
+mise run bootstrap
 mise run db:migrate
 """
 description = "Full project setup: install runtimes, sync packages, and migrate DB"
 
 [tasks.backend]
-run = "uv run uvicorn backend.grunt.main:app --reload --port 8000"
+run = "uv run uvicorn grunt.main:app --host ${HOST:-0.0.0.0} --port ${PORT:-8000} ${RELOAD}"
 description = "Start only the FastAPI backend server"
 
 [tasks.frontend]
