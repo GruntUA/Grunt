@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
 import { docsApi, metaApi } from '@/core/api'
 import { X, Loader2 } from 'lucide-vue-next'
@@ -15,6 +16,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
+const { t } = useI18n()
 const query = ref('')
 const results = ref<Record<string, string>[]>([])
 const isOpen = ref(false)
@@ -236,7 +238,7 @@ function highlight(text: string): string {
         <input
           ref="inputEl"
           :value="query"
-          :placeholder="selectedValues.length ? '' : (field.placeholder ?? `Пошук ${field.options ?? ''}...`)"
+          :placeholder="selectedValues.length ? '' : (field.placeholder ?? t('Search {doctype}...', { doctype: field.options ?? '' }))"
           class="w-full bg-transparent outline-none text-sm py-0.5"
           autocomplete="off"
           @input="onInput(($event.target as HTMLInputElement).value)"
@@ -275,9 +277,9 @@ function highlight(text: string): string {
       </template>
 
       <div v-else class="px-3 py-3 text-sm text-muted-foreground text-center">
-        <span v-if="isLoading">Пошук...</span>
-        <span v-else-if="query">Нічого не знайдено для «{{ query }}»</span>
-        <span v-else>Немає записів</span>
+        <span v-if="isLoading">{{ t('Searching...') }}</span>
+        <span v-else-if="query">{{ t('Nothing found for «{query}»', { query }) }}</span>
+        <span v-else>{{ t('No records') }}</span>
       </div>
     </div>
   </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { DashboardWidget, ShortcutItem } from '@/types'
 import * as LucideIcons from 'lucide-vue-next'
 import { ExternalLink } from 'lucide-vue-next'
@@ -11,6 +12,7 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
+const { t } = useI18n()
 
 const tiles = computed<ShortcutItem[]>(() => {
   try { return JSON.parse(props.widget.content ?? '[]') } catch { return [] }
@@ -62,7 +64,7 @@ function navigate(tile: ShortcutItem) {
       </button>
       <div v-if="tiles.length === 0"
         class="col-span-2 flex items-center justify-center text-muted-foreground text-xs py-4">
-        Немає плиток
+        {{ t('No tiles') }}
       </div>
     </div>
   </div>

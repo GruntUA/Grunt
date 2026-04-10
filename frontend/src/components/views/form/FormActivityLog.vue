@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { History, ChevronDown } from 'lucide-vue-next'
 import { Spinner } from '@/components/ui/spinner'
 
@@ -16,6 +17,7 @@ const props = defineProps<{
   id: string | null
 }>()
 
+const { t } = useI18n()
 const showLog = ref(false)
 const activityLog = ref<ActivityEntry[]>([])
 const logLoading = ref(false)
@@ -49,7 +51,7 @@ defineExpose({ toggleLog, forceReload: loadLog })
       class="w-full flex items-center gap-2 px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:bg-muted/50"
       @click="toggleLog">
       <History class="size-4" />
-      <span class="flex-1 text-left">Журнал активності</span>
+      <span class="flex-1 text-left">{{ t('Activity log') }}</span>
       <ChevronDown class="size-4 transition-transform duration-300" :class="{ 'rotate-180': showLog }" />
     </button>
     <Transition name="log">

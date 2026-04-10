@@ -11,6 +11,7 @@
  * the `barcode-detector` npm polyfill (ZXing-WASM) is loaded dynamically.
  */
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -35,6 +36,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
 // ── State ──────────────────────────────────────────────────────────────────
 
+const { t } = useI18n()
 const scanning = ref(false)
 const scanError = ref('')
 const scanSuccess = ref(false)
@@ -84,12 +86,12 @@ async function startScan() {
 
   const Ctor = await ensureDetector()
   if (!Ctor) {
-    scanError.value = 'Сканування не підтримується у цьому браузері. Скористайтесь завантаженням зображення.'
+    scanError.value = t('Scanning is not supported in this browser. Use image upload.')
     return
   }
 
   if (!navigator.mediaDevices?.getUserMedia) {
-    scanError.value = 'Камера недоступна.'
+    scanError.value = t('Camera unavailable.')
     return
   }
 
@@ -112,8 +114,8 @@ async function startScan() {
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     scanError.value = msg.includes('Permission') || msg.includes('NotAllowed')
-      ? 'Доступ до камери заборонено. Дозвольте доступ у налаштуваннях браузера.'
-      : `Помилка камери: ${msg}`
+      ? t('Camera access denied. Allow access in browser settings.')
+      : t('Camera error: {msg}', { msg })
     stopScan()
   }
 }
@@ -158,7 +160,7 @@ async function onFileChange(e: Event) {
 
   const Ctor = await ensureDetector()
   if (!Ctor) {
-    scanError.value = 'Сканування не підтримується у цьому браузері.'
+    scanError.value = t('Scanning is not supported in this browser.')
     return
   }
 
@@ -172,10 +174,10 @@ async function onFileChange(e: Event) {
     if (results.length > 0) {
       onDecoded(results[0].rawValue)
     } else {
-      scanError.value = 'Штрих-код не знайдено на зображенні.'
+      scanError.value = t('Barcode not found in image.')
     }
   } catch (err: unknown) {
-    scanError.value = `Помилка: ${err instanceof Error ? err.message : String(err)}`
+    scanError.value = t('Error: {msg}', { msg: err instanceof Error ? err.message : String(err) })
   }
 
   if (fileInputRef.value) fileInputRef.value.value = ''
@@ -193,7 +195,7 @@ onUnmounted(stopScan)
       <div class="relative flex-1">
         <Input
           :model-value="String(modelValue ?? '')"
-          :placeholder="field.placeholder ?? 'Відскануйте або введіть вручну'"
+          :placeholder="field.placeholder ?? t('Scan or enter manually')"
           :required="field.required"
           :disabled="disabled || field.read_only"
           class="pr-8"
@@ -212,7 +214,7 @@ onUnmounted(stopScan)
         variant="outline"
         size="icon"
         :disabled="disabled || field.read_only"
-        title="Сканувати камерою"
+        :title="t('Scan with camera')"
         @click="startScan"
       >
         <ScanLine class="w-4 h-4" />
@@ -224,7 +226,7 @@ onUnmounted(stopScan)
         type="button"
         variant="outline"
         size="icon"
-        title="Зупинити"
+        :title="t('Stop')"
         @click="stopScan"
       >
         <X class="w-4 h-4" />
@@ -237,7 +239,7 @@ onUnmounted(stopScan)
         variant="outline"
         size="icon"
         :disabled="disabled || field.read_only"
-        title="Завантажити зображення зі штрих-кодом"
+        :title="t('Upload image with barcode')"
         @click="fileInputRef?.click()"
       >
         <Upload class="w-4 h-4" />

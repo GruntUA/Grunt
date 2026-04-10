@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Bar, Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -15,6 +16,8 @@ import {
 import type { DashboardWidget } from '@/types'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler, Tooltip, Legend)
+
+const { t } = useI18n()
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -80,7 +83,7 @@ const chartOptions = computed(() => ({
 
     <div v-else-if="!data?.labels?.length"
       class="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-      Немає даних
+      {{ t('No data') }}
     </div>
 
     <div v-else class="flex-1 min-h-0" style="min-height:140px">

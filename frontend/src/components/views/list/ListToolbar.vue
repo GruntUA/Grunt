@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   Search,
   Columns3,
@@ -47,6 +48,7 @@ const emit = defineEmits<{
   (e: 'reset'): void
 }>()
 
+const { t } = useI18n()
 const showColMenu = ref(false)
 
 const localSearch = ref(props.inlineSearch)
@@ -75,13 +77,14 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
         <Search
           class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
         <input v-model="localSearch" placeholder="Пошук..."
-          class="flex h-9 w-full rounded-lg border-transparent bg-background/60 px-3 py-1 pl-9 text-sm text-foreground transition-all placeholder:text-muted-foreground/60 focus-visible:outline-none focus:bg-background focus:ring-1 focus:ring-primary/30" />
+          class="flex h-9 w-full rounded-lg border-transparent bg-background/60 px-3 py-1 pl-9 text-sm text-foreground transition-all placeholder:text-muted-foreground/60 focus-visible:outline-none focus:bg-background focus:ring-1 focus:ring-primary/30"
+        :placeholder="t('Search...')" />
       </div>
       <FilterBar v-if="dt" :fields="dt.fields" :doctype="doctype" @change="onFiltersChange" class="!mb-0" />
       <Button v-if="inlineSearch || Object.keys(activeFilters).length" variant="ghost" size="sm"
         class="h-8 px-2 text-muted-foreground hover:text-foreground" @click="emit('reset')">
         <X class="size-4 mr-1" />
-        Скинути
+        {{ t('Reset') }}
       </Button>
     </div>
     <div v-else class="flex-1" />

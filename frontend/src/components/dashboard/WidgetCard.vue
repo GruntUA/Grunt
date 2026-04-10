@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { DashboardWidget } from '@/types'
 import MetricWidget from './MetricWidget.vue'
 import ChartWidget from './ChartWidget.vue'
@@ -23,6 +24,8 @@ const props = defineProps<{
   editMode?: boolean
   workspaceName?: string
 }>()
+
+const { t } = useI18n()
 
 const emit = defineEmits<{
   edit: [widget: DashboardWidget]
@@ -66,7 +69,7 @@ const minH = computed(() => {
       @click.stop>
       <button
         class="p-1.5 rounded-md bg-card border hover:bg-muted transition-colors"
-        title="Налаштувати"
+        :title="t('Configure')"
         @click="emit('edit', widget)">
         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
@@ -75,7 +78,7 @@ const minH = computed(() => {
       </button>
       <button
         class="p-1.5 rounded-md bg-card border hover:bg-destructive hover:text-destructive-foreground transition-colors"
-        title="Видалити"
+        :title="t('Delete')"
         @click="emit('remove', widget)">
         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>

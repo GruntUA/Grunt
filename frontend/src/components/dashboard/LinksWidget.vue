@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import type { DashboardWidget } from '@/types'
 import type { WorkspaceLinkItem } from '@/core/api/workspace'
@@ -10,6 +11,7 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
+const { t } = useI18n()
 
 const links = computed<WorkspaceLinkItem[]>(() => {
   try {
@@ -56,6 +58,6 @@ function navigate(link: WorkspaceLinkItem) {
       </button>
     </div>
 
-    <p v-else class="text-sm text-muted-foreground/60 italic">Немає посилань</p>
+    <p v-else class="text-sm text-muted-foreground/60 italic">{{ t('No links') }}</p>
   </div>
 </template>

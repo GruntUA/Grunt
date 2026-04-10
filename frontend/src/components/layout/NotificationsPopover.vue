@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { Bell, Check, MailOpen, Mail, BellOff, BellRing } from 'lucide-vue-next'
 import { useWebPush } from '@/core/composables/useWebPush'
 
@@ -21,6 +22,7 @@ const props = defineProps<{
     workspace?: string
 }>()
 
+const { t } = useI18n()
 const router = useRouter()
 const toast = useToast()
 const notifications = ref<NotificationItem[]>([])
@@ -31,7 +33,7 @@ const isOpen = ref(false)
 const ws = useWebSocket('/api/v1/ws/user')
 ws.onEvent('notification', (data: any) => {
     fetchNotifications()
-    toast.info(data.subject || 'Нове сповіщення')
+    toast.info(data.subject || t('New notification'))
 })
 
 async function fetchNotifications() {
@@ -95,7 +97,7 @@ onUnmounted(() => {
                             <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                         </span>
                     </div>
-                    <span class="text-sm font-medium truncate">Сповіщення</span>
+                    <span class="text-sm font-medium truncate">{{ t('Notifications') }}</span>
                 </div>
                 <Badge v-if="unreadCount > 0" variant="default" class="h-5 px-1.5 text-[10px] font-bold tabular-nums">
                     {{ unreadCount }}
@@ -108,13 +110,13 @@ onUnmounted(() => {
             <!-- Header -->
             <div class="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
                 <div class="flex items-center gap-2">
-                    <h3 class="font-bold text-sm">Сповіщення</h3>
+                    <h3 class="font-bold text-sm">{{ t('Notifications') }}</h3>
                     <Badge v-if="unreadCount > 0" variant="secondary" class="h-5 text-[10px]">{{ unreadCount }} нових
                     </Badge>
                 </div>
                 <Button v-if="unreadCount > 0" variant="ghost" size="icon"
                     class="h-6 w-6 text-muted-foreground hover:text-primary" @click="markAllAsRead"
-                    title="Позначити всі як прочитані">
+                    :title="t('Mark all as read')">
                     <Check class="size-3.5" />
                 </Button>
             </div>
@@ -124,7 +126,7 @@ onUnmounted(() => {
                 <div v-if="notifications.length === 0"
                     class="flex flex-col items-center justify-center h-40 text-center px-4">
                     <Bell class="size-10 text-muted-foreground/20 mb-3" />
-                    <p class="text-sm font-medium text-foreground">Немає сповіщень</p>
+                    <p class="text-sm font-medium text-foreground">{{ t('No notifications') }}</p>
                     <p class="text-xs text-muted-foreground mt-1">Тут з'являться ваші останні сповіщення.</p>
                 </div>
                 <div v-else class="flex flex-col">
@@ -168,7 +170,7 @@ onUnmounted(() => {
             <!-- Push subscribe footer -->
             <div v-if="pushSupported" class="px-4 py-2.5 border-t bg-muted/20 flex items-center justify-between">
                 <span class="text-[11px] text-muted-foreground">
-                    {{ pushSubscribed ? 'Push-сповіщення увімкнено' : 'Push-сповіщення вимкнено' }}
+                    {{ pushSubscribed ? t('Push notifications enabled') : t('Push notifications disabled') }}
                 </span>
                 <Button
                     variant="ghost"
@@ -179,7 +181,7 @@ onUnmounted(() => {
                 >
                     <BellOff v-if="pushSubscribed" class="size-3 mr-1" />
                     <BellRing v-else class="size-3 mr-1" />
-                    {{ pushSubscribed ? 'Вимкнути' : 'Увімкнути' }}
+                    {{ pushSubscribed ? t('Disable') : t('Enable') }}
                 </Button>
             </div>
         </PopoverContent>

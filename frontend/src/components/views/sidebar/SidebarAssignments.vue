@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,6 +26,7 @@ const props = defineProps<{
   document: GruntDocument
 }>()
 
+const { t } = useI18n()
 const assignees = ref<GruntDocument[]>([])
 const assignLoading = ref(false)
 
@@ -70,15 +72,15 @@ onMounted(loadAssignees)
         <TooltipTrigger as-child>
           <Button variant="outline" size="sm" class="w-full text-foreground" @click="showAssignDialog = true">
             <UserPlus class="size-4 mr-1.5" />
-            Призначити
+            {{ t('Assign') }}
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Призначити відповідальну особу</TooltipContent>
+        <TooltipContent>{{ t('Assign responsible person') }}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
 
     <div v-if="assignees.length > 0" class="flex flex-col gap-1.5">
-      <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Відповідальні</span>
+      <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">{{ t('Assignees') }}</span>
       <div class="flex flex-wrap gap-1.5">
         <Badge v-for="a in assignees" :key="a.id" variant="secondary" class="text-xs gap-1 pr-1">
           {{ a.assigned_to }}
@@ -96,7 +98,7 @@ onMounted(loadAssignees)
         <DialogHeader>
           <DialogTitle class="flex items-center gap-2">
             <UserPlus class="size-4" />
-            Призначити відповідального
+            {{ t('Assign responsible') }}
           </DialogTitle>
           <DialogDescription class="sr-only">Введіть email або логін користувача для призначення</DialogDescription>
         </DialogHeader>
@@ -109,10 +111,10 @@ onMounted(loadAssignees)
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" class="text-foreground" @click="showAssignDialog = false">Скасувати</Button>
+          <Button variant="outline" class="text-foreground" @click="showAssignDialog = false">{{ t('Cancel') }}</Button>
           <Button :disabled="!assignUser.trim() || assignSaving" @click="submitAssign">
             <Loader2 v-if="assignSaving" class="size-4 animate-spin mr-1.5" />
-            Призначити
+            {{ t('Assign') }}
           </Button>
         </DialogFooter>
       </DialogContent>

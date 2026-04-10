@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import draggable from 'vuedraggable'
 import type { DocField, DocType } from '@/types'
 import { metaApi } from '@/core/api'
@@ -25,6 +26,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
+const { t } = useI18n()
 const childDocType = ref<DocType | null>(null)
 const rows = ref<Record<string, unknown>[]>([])
 const loading = ref(false)
@@ -156,7 +158,7 @@ function onCellKeydown(e: KeyboardEvent, rowIdx: number, colIdx: number) {
 function cellDisplay(row: Record<string, unknown>, f: DocField): string {
   const val = row[f.fieldname]
   if (val === null || val === undefined || val === '') return ''
-  if (f.fieldtype === 'Check') return val ? 'Так' : 'Ні'
+  if (f.fieldtype === 'Check') return val ? t('Yes') : t('No')
   const str = String(val)
   return str.length > 40 ? str.slice(0, 40) + '…' : str
 }
@@ -281,7 +283,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
                     v-if="allFields.length"
                     type="button"
                     class="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                    :title="disabled ? 'Переглянути' : 'Редагувати'"
+                    :title="disabled ? t('View') : t('Edit')"
                     @click="openEditor(i)"
                   >
                     <Pencil class="size-3.5" />
@@ -290,7 +292,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
                     v-if="!disabled"
                     type="button"
                     class="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                    title="Видалити рядок"
+                    :title="t('Delete row')"
                     @click="removeRow(i)"
                   >
                     <X class="size-3.5" />
@@ -304,8 +306,8 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
           <template #footer>
             <tr v-if="!rows.length">
               <td :colspan="tableColumns.length + (disabled ? 2 : 3)" class="px-3 py-8 text-center text-muted-foreground text-sm">
-                <span v-if="loading">Завантаження...</span>
-                <span v-else>Немає рядків</span>
+                <span v-if="loading">{{ t('Loading...') }}</span>
+                <span v-else>{{ t('No rows') }}</span>
               </td>
             </tr>
           </template>
@@ -323,7 +325,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
       @click="addRow"
     >
       <Plus class="size-4 mr-1" />
-      Додати рядок
+      {{ t('Add row') }}
     </Button>
 
     <!-- Row edit dialog -->
@@ -348,8 +350,8 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" type="button" @click="editIdx = null">Скасувати</Button>
-          <Button v-if="!disabled" type="button" @click="saveEditor">Зберегти</Button>
+          <Button variant="ghost" type="button" @click="editIdx = null">{{ t('Cancel') }}</Button>
+          <Button v-if="!disabled" type="button" @click="saveEditor">{{ t('Save') }}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

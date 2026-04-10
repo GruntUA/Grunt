@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { DashboardWidget } from '@/types'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -36,7 +39,7 @@ function widthPct(count: number): number {
     <!-- Empty -->
     <div v-else-if="stages.length === 0"
       class="flex-1 flex items-center justify-center text-sm text-muted-foreground">
-      Немає даних
+      {{ t('No data') }}
     </div>
 
     <!-- Funnel -->
@@ -54,7 +57,7 @@ function widthPct(count: number): number {
 
       <!-- Conversion hint -->
       <div v-if="stages.length >= 2" class="text-center text-[10px] text-muted-foreground mt-1">
-        Конверсія: {{ stages[0].count > 0 ? Math.round(stages[stages.length - 1].count / stages[0].count * 100) : 0 }}%
+        {{ t('Conversion:') }} {{ stages[0].count > 0 ? Math.round(stages[stages.length - 1].count / stages[0].count * 100) : 0 }}%
       </div>
     </div>
   </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DashboardWidget } from '@/types'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -10,6 +11,7 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
+const { t } = useI18n()
 
 function formatDate(val: unknown): string {
   if (!val) return ''
@@ -46,7 +48,7 @@ function open(item: Record<string, unknown>) {
     <!-- Empty -->
     <div v-else-if="!data?.items?.length"
       class="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-      Немає записів
+      {{ t('No records') }}
     </div>
 
     <!-- List -->

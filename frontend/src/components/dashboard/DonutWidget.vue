@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import type { DashboardWidget } from '@/types'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
+
+const { t } = useI18n()
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -48,13 +51,13 @@ const chartOptions = {
   <div class="flex flex-col gap-2 p-5 h-full">
     <div class="flex items-start justify-between">
       <p class="text-sm text-muted-foreground font-medium">{{ widget.title }}</p>
-      <span v-if="total" class="text-xs text-muted-foreground tabular-nums">{{ total }} всього</span>
+      <span v-if="total" class="text-xs text-muted-foreground tabular-nums">{{ total }} {{ t('total') }}</span>
     </div>
 
     <div v-if="loading" class="flex-1 bg-muted animate-pulse rounded" />
 
     <div v-else-if="!data?.labels?.length" class="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-      Немає даних
+      {{ t('No data') }}
     </div>
 
     <div v-else class="flex-1 min-h-0" style="min-height:160px">

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
 import client from '@/core/api/client'
 import { ImageIcon, X } from 'lucide-vue-next'
@@ -13,6 +14,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
+const { t } = useI18n()
 const isDragging = ref(false)
 const isUploading = ref(false)
 const fileInput = ref<HTMLInputElement>()
@@ -72,7 +74,7 @@ function onFileChange(e: Event) {
       @drop.prevent="onDrop"
       @click="fileInput?.click()"
     >
-      <div v-if="isUploading" class="text-sm text-muted-foreground">Завантаження...</div>
+      <div v-if="isUploading" class="text-sm text-muted-foreground">{{ t('Loading...') }}</div>
       <div v-else class="flex flex-col items-center gap-1">
         <ImageIcon class="size-8 text-muted-foreground/50" />
         <p class="text-sm text-muted-foreground">Перетягни зображення або <span class="text-primary font-medium">клікни</span></p>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -44,6 +45,7 @@ const emit = defineEmits<{
   (e: 'update', field: string, value: string): void
 }>()
 
+const { t } = useI18n()
 const showDeleteModal = ref(false)
 const showUpdateModal = ref(false)
 const updateField = ref('')
@@ -85,7 +87,7 @@ async function submitUpdate() {
   <div v-if="count > 0 || allSelected"
     class="flex items-center gap-3 mb-3 px-4 py-2.5 bg-primary/5 rounded-lg border border-primary/20">
     <span class="text-sm text-primary font-medium">
-      Вибрано: {{ allSelected ? `всі ${total ?? ''}` : count }}
+      {{ t('Selected:') }} {{ allSelected ? `всі ${total ?? ''}` : count }}
     </span>
 
     <button
@@ -94,18 +96,18 @@ async function submitUpdate() {
       class="text-sm text-primary underline hover:text-primary/80 transition-colors"
       @click="emit('selectAll')"
     >
-      Обрати всі {{ total }} документів
+      {{ t('Select all {total} records', { total }) }}
     </button>
 
     <Button variant="outline" size="sm" class="text-foreground" @click="openUpdateModal"
       :disabled="!updatableFields.length">
       <Pencil class="size-3.5 mr-1" />
-      Змінити поле
+      {{ t('Edit field') }}
     </Button>
 
     <Button variant="destructive" size="sm" @click="showDeleteModal = true">
       <Trash2 class="size-3.5 mr-1" />
-      Видалити{{ allSelected ? ' всі' : '' }}
+      {{ t('Delete') }}{{ allSelected ? ' всі' : '' }}
     </Button>
 
     <button type="button" class="ml-auto text-muted-foreground hover:text-foreground transition-colors"
@@ -117,18 +119,18 @@ async function submitUpdate() {
     <AlertDialog :open="showDeleteModal" @update:open="showDeleteModal = $event">
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Видалити вибрані записи?</AlertDialogTitle>
+          <AlertDialogTitle>{{ t('Delete selected records?') }}</AlertDialogTitle>
           <AlertDialogDescription>
             Буде видалено {{ displayCount }} записів. Цю дію не можна скасувати.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Скасувати</AlertDialogCancel>
+          <AlertDialogCancel>{{ t('Cancel') }}</AlertDialogCancel>
           <AlertDialogAction
             class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             @click="showDeleteModal = false; emit('delete')"
           >
-            Видалити
+            {{ t('Delete') }}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -140,7 +142,7 @@ async function submitUpdate() {
         <DialogHeader>
           <DialogTitle class="flex items-center gap-2">
             <Pencil class="size-4" />
-            Змінити поле для {{ displayCount }} записів
+            {{ t('Edit field for {count} records', { count: displayCount }) }}
           </DialogTitle>
           <DialogDescription class="sr-only">Оберіть поле і введіть нове значення</DialogDescription>
         </DialogHeader>
@@ -149,7 +151,7 @@ async function submitUpdate() {
             <label class="text-sm font-medium text-foreground">Поле</label>
             <Select v-model="updateField">
               <SelectTrigger>
-                <SelectValue placeholder="Оберіть поле..." />
+                <SelectValue :placeholder="t('Select field...')" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem v-for="f in updatableFields" :key="f.fieldname" :value="f.fieldname">
@@ -159,17 +161,17 @@ async function submitUpdate() {
             </Select>
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium text-foreground">Нове значення</label>
-            <input v-model="updateValue" placeholder="Введіть значення..."
+            <label class="text-sm font-medium text-foreground">{{ t('New value') }}</label>
+            <input v-model="updateValue" :placeholder="t('Enter value...')"
               class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
               @keydown.enter="submitUpdate" />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" class="text-foreground" @click="showUpdateModal = false">Скасувати</Button>
+          <Button variant="outline" class="text-foreground" @click="showUpdateModal = false">{{ t('Cancel') }}</Button>
           <Button :disabled="!updateField || updateSaving" @click="submitUpdate">
             <Loader2 v-if="updateSaving" class="size-4 animate-spin mr-1.5" />
-            Застосувати
+            {{ t('Apply') }}
           </Button>
         </DialogFooter>
       </DialogContent>

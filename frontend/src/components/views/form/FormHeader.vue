@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { DocType } from '@/types'
@@ -54,6 +55,7 @@ const emit = defineEmits<{
   (e: 'invalidate'): void
 }>()
 
+const { t } = useI18n()
 const auth = useAuthStore()
 const router = useRouter()
 const queryClient = useQueryClient()
@@ -85,7 +87,7 @@ function handleUndo() {
         <div class="flex items-center gap-3">
           <h1 class="text-2xl font-bold text-foreground truncate selection:bg-primary/20">{{ docTitle }}</h1>
           <Badge v-if="isDirty" variant="outline" class="border-amber-400 bg-amber-50/50 text-amber-600 animate-in fade-in slide-in-from-left-2 duration-300">
-            Не збережено
+            {{ t('Unsaved') }}
           </Badge>
         </div>
       </div>
@@ -96,7 +98,7 @@ function handleUndo() {
           {{ btn.label }}
         </Button>
 
-        <Button v-if="id" variant="outline" size="sm" class="w-9 p-0 text-foreground" title="Оновити"
+        <Button v-if="id" variant="outline" size="sm" class="w-9 p-0 text-foreground" :title="t('Refresh')"
           :disabled="isDirty || isLoading"
           @click="handleRefresh">
           <RefreshCw class="size-4" :class="{ 'animate-spin': isLoading }" />
@@ -104,7 +106,7 @@ function handleUndo() {
 
         <Button :disabled="isSaving" size="sm" @click="emit('save')" class="shadow-sm hover:shadow-md transition-shadow">
           <Loader2 v-if="isSaving" class="size-4 animate-spin mr-1.5" />
-          Зберегти
+          {{ t('Save') }}
         </Button>
 
         <!-- Context menu -->
@@ -119,7 +121,7 @@ function handleUndo() {
             <DropdownMenuSub v-if="id">
               <DropdownMenuSubTrigger class="gap-2">
                 <Printer class="size-4 text-muted-foreground" />
-                <span>Друкувати</span>
+                <span>{{ t('Print') }}</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent class="p-1.5">
                 <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=xlsx&token=${auth.token}`" class="gap-2">
@@ -141,42 +143,42 @@ function handleUndo() {
             <DropdownMenuItem v-if="id" as="a" :href="`/${props.workspace ?? ''}/list/${doctype}/${id}`"
               target="_blank" class="gap-2">
               <ExternalLink class="size-4 text-muted-foreground" />
-              <span>Відкрити у новій вкладці</span>
+              <span>{{ t('Open in new tab') }}</span>
             </DropdownMenuItem>
 
             <DropdownMenuItem as="a" :href="`/${props.workspace ?? ''}/list/DocType/${doctype}`" target="_blank" class="gap-2">
               <Settings2 class="size-4 text-muted-foreground" />
-              <span>Редагувати Доктайп</span>
+              <span>{{ t('Edit DocType') }}</span>
             </DropdownMenuItem>
 
             <DropdownMenuItem v-if="dt" as="a"
               :href="`/${props.workspace ?? 'grunt'}/list/PrintFormat?filter[doctype]=${doctype}`" target="_blank" class="gap-2">
               <Printer class="size-4 text-muted-foreground" />
-              <span>Налаштувати друк</span>
+              <span>{{ t('Configure print') }}</span>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
             <DropdownMenuItem v-if="id" @click="emit('duplicate')" class="gap-2">
               <Copy class="size-4 text-muted-foreground" />
-              <span>Створити копію</span>
+              <span>{{ t('Duplicate') }}</span>
             </DropdownMenuItem>
 
             <DropdownMenuItem v-if="id && isDirty" @click="handleUndo" class="gap-2">
               <Undo2 class="size-4 text-muted-foreground" />
-              <span>Скасувати зміни</span>
+              <span>{{ t('Discard changes') }}</span>
             </DropdownMenuItem>
 
             <DropdownMenuItem v-if="id" @click="emit('toggleLog')" class="gap-2">
               <History class="size-4 text-muted-foreground" />
-              <span>Журнал активності</span>
+              <span>{{ t('Activity log') }}</span>
             </DropdownMenuItem>
 
             <template v-if="id">
               <DropdownMenuSeparator />
               <DropdownMenuItem class="text-destructive focus:text-destructive focus:bg-destructive/10 gap-2" @click="emit('delete')">
                 <Trash2 class="size-4" />
-                <span>Видалити</span>
+                <span>{{ t('Delete') }}</span>
               </DropdownMenuItem>
             </template>
           </DropdownMenuContent>

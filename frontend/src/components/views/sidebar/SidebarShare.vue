@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -32,6 +33,7 @@ const props = defineProps<{
   document: GruntDocument
 }>()
 
+const { t } = useI18n()
 const sharedWith = ref<GruntDocument[]>([])
 const shareLoading = ref(false)
 
@@ -79,15 +81,15 @@ onMounted(loadShared)
         <TooltipTrigger as-child>
           <Button variant="outline" size="sm" class="w-full text-foreground" @click="showShareDialog = true">
             <Share2 class="size-4 mr-1.5" />
-            Поділитися
+            {{ t('Share') }}
           </Button>
         </TooltipTrigger>
-        <TooltipContent>Надати доступ до документа</TooltipContent>
+        <TooltipContent>{{ t('Share document') }}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
 
     <div v-if="sharedWith.length > 0" class="flex flex-col gap-1.5">
-      <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Доступ</span>
+      <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">{{ t('Access') }}</span>
       <div class="flex flex-wrap gap-1.5">
         <Badge v-for="s in sharedWith" :key="s.id" variant="outline" class="text-xs gap-1 pr-1">
           {{ s.user }} · {{ s.permission }}
@@ -105,7 +107,7 @@ onMounted(loadShared)
         <DialogHeader>
           <DialogTitle class="flex items-center gap-2">
             <Share2 class="size-4" />
-            Поділитися документом
+            {{ t('Share document') }}
           </DialogTitle>
           <DialogDescription class="sr-only">Введіть email або логін користувача та оберіть рівень доступу</DialogDescription>
         </DialogHeader>
@@ -130,10 +132,10 @@ onMounted(loadShared)
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" class="text-foreground" @click="showShareDialog = false">Скасувати</Button>
+          <Button variant="outline" class="text-foreground" @click="showShareDialog = false">{{ t('Cancel') }}</Button>
           <Button :disabled="!shareUser.trim() || shareSaving" @click="submitShare">
             <Loader2 v-if="shareSaving" class="size-4 animate-spin mr-1.5" />
-            Надати доступ
+            {{ t('Grant access') }}
           </Button>
         </DialogFooter>
       </DialogContent>

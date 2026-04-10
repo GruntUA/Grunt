@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useBuilderStore } from '@/stores/builder'
 import { grunt } from '@/core/grunt'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,7 @@ import WorkflowTab from './tabs/WorkflowTab.vue'
 import ViewsTab from './tabs/ViewsTab.vue'
 
 const props = defineProps<{ doctype: string; workspaceName?: string }>()
+const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const builder = useBuilderStore()
@@ -36,23 +38,23 @@ const jsonBadge = computed(() => {
   }
 
   if (dt.is_system) {
-    return { label: 'Системний DocType', tooltip: 'Файл не оновлюється — вбудований доктайп', variant: 'system' as const }
+    return { label: t('System DocType'), tooltip: t('File is not updated — built-in doctype'), variant: 'system' as const }
   }
 
   const short = `${dt.module}/doctypes/${dt.name}/${dt.name}.json`
-  return { label: short, tooltip: 'Очікуваний шлях (збережіть щоб підтвердити)', variant: 'pending' as const }
+  return { label: short, tooltip: t('Expected path (save to confirm)'), variant: 'pending' as const }
 })
 
 async function handleSave() {
   try {
     const saved = await builder.save()
     if (!saved) return
-    grunt.show_alert(`DocType «${saved.label || saved.name}» збережено`, 'success')
+    grunt.show_alert(t('DocType {label} saved', { label: saved.label || saved.name }), 'success')
     if (props.doctype === 'new') {
       router.replace(`/${backWorkspace}/list/DocType/${saved.name}`)
     }
   } catch (err: unknown) {
-    const msg = (err as { message?: string })?.message ?? 'Помилка збереження'
+    const msg = (err as { message?: string })?.message ?? t('Save error')
     grunt.show_alert(msg, 'error')
   }
 }
@@ -104,7 +106,7 @@ async function handleSave() {
         </TooltipProvider>
         <Button size="sm" :disabled="builder.isSaving || !builder.isDirty" @click="handleSave()">
           <Loader2 v-if="builder.isSaving" class="size-4 animate-spin" />
-          Зберегти
+          {{ t('Save') }}
         </Button>
       </div>
     </div>
@@ -114,19 +116,19 @@ async function handleSave() {
       <div class="border-b border-border bg-muted/30 px-4 shrink-0">
         <TabsList class="bg-transparent h-auto gap-0 p-0">
           <TabsTrigger value="form" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
-            Форма
+            {{ t('Form') }}
           </TabsTrigger>
           <TabsTrigger value="settings" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
-            Налаштування
+            {{ t('Settings') }}
           </TabsTrigger>
           <TabsTrigger value="permissions" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
-            Права
+            {{ t('Permissions') }}
           </TabsTrigger>
           <TabsTrigger value="workflow" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
             Workflow
           </TabsTrigger>
           <TabsTrigger value="views" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
-            Вигляди
+            {{ t('Views') }}
           </TabsTrigger>
         </TabsList>
       </div>

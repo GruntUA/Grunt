@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -29,6 +30,7 @@ const emit = defineEmits<{ change: [filters: Record<string, string>] }>()
 interface ActiveFilter { fieldname: string; label: string; op: string; value: string }
 interface FilterPreset { name: string; filters: ActiveFilter[] }
 
+const { t } = useI18n()
 const activeFilters = ref<ActiveFilter[]>([])
 const showDropdown = ref(false)
 const pickedField = ref<DocField | null>(null)
@@ -135,7 +137,7 @@ function emitChange() {
       <PopoverTrigger as-child>
         <Button variant="ghost" size="sm" class="h-7 text-xs border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/50">
           <Filter class="size-3 mr-1" />
-          Фільтр
+          {{ t('Filter') }}
         </Button>
       </PopoverTrigger>
       <PopoverContent class="w-72 p-3" align="start">
@@ -165,7 +167,7 @@ function emitChange() {
               @keydown.enter="addFilter"
             />
           </div>
-          <Button size="sm" class="w-full mt-2" @click="addFilter">Застосувати</Button>
+          <Button size="sm" class="w-full mt-2" @click="addFilter">{{ t('Apply') }}</Button>
         </template>
         <p v-else-if="!filterableFields.length" class="text-xs text-muted-foreground mt-2">Немає полів для фільтрації</p>
       </PopoverContent>
@@ -193,7 +195,7 @@ function emitChange() {
         </template>
         <Button v-else variant="ghost" size="sm" class="h-7 text-xs text-muted-foreground hover:text-foreground" @click="showSaveName = true">
           <Bookmark class="size-3 mr-1" />
-          Зберегти
+          {{ t('Save') }}
         </Button>
       </template>
 

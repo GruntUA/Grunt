@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useWorkspaceStore } from '@/stores/workspace'
@@ -25,6 +26,7 @@ import {
 } from 'lucide-vue-next'
 import { onKeyStroke } from '@vueuse/core'
 
+const { t } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
 const dtStore = useDocTypeStore()
@@ -94,14 +96,14 @@ onMounted(() => {
 })
 
 // Static actions
-const staticActions = [
-    { id: 'quick-create', title: 'Швидке створення (Ctrl+N)', icon: FilePlus, action: () => { quickCreateOpen.value = true; uiStore.openCommandPalette() }, category: 'Дії' },
-    { id: 'new-doctype', title: 'Створити новий Доктайп', icon: Plus, action: () => navigateTo('/grunt/list/DocType/new'), category: 'Дії' },
-    { id: 'view-hooks', title: 'Переглянути хуки', icon: Zap, action: () => navigateTo('/grunt/hooks'), category: 'Налаштування' },
-    { id: 'activity-log', title: 'Журнал активності', icon: Activity, action: () => navigateTo('/grunt/activity-log'), category: 'Налаштування' },
-    { id: 'settings', title: 'Налаштування системи', icon: Settings, action: () => navigateTo('/grunt/list/SystemSettings/SystemSettings'), category: 'Дії' },
-    { id: 'logout', title: 'Вийти з системи', icon: LogOut, action: () => auth.logout(), category: 'Дії' },
-]
+const staticActions = computed(() => [
+    { id: 'quick-create', title: t('Quick create (Ctrl+N)'), icon: FilePlus, action: () => { quickCreateOpen.value = true; uiStore.openCommandPalette() }, category: t('Actions') },
+    { id: 'new-doctype', title: t('Create new DocType'), icon: Plus, action: () => navigateTo('/grunt/list/DocType/new'), category: t('Actions') },
+    { id: 'view-hooks', title: t('View hooks'), icon: Zap, action: () => navigateTo('/grunt/hooks'), category: t('Settings') },
+    { id: 'activity-log', title: t('Activity log'), icon: Activity, action: () => navigateTo('/grunt/activity-log'), category: t('Settings') },
+    { id: 'settings', title: t('System settings'), icon: Settings, action: () => navigateTo('/grunt/list/SystemSettings/SystemSettings'), category: t('Actions') },
+    { id: 'logout', title: t('Log out'), icon: LogOut, action: () => auth.logout(), category: t('Actions') },
+])
 
 // Search logic
 watch(search, async (val) => {
@@ -116,7 +118,7 @@ watch(search, async (val) => {
         const matchedResults: any[] = []
 
         // 1. Match Static Actions
-        staticActions.forEach(a => {
+        staticActions.value.forEach(a => {
             if (a.title.toLowerCase().includes(q)) matchedResults.push({ ...a, type: 'action' })
         })
 
@@ -130,7 +132,7 @@ watch(search, async (val) => {
                     type: 'workspace',
                     icon: LayoutGrid,
                     action: () => navigateTo(`/${ws.name}`),
-                    category: 'Додатки'
+                    category: t('Apps')
                 })
             }
         })
@@ -142,7 +144,7 @@ watch(search, async (val) => {
                 matchedResults.push({
                     id: `dt-${dt.name}`,
                     title: dt.label,
-                    subtitle: `Перейти до списку ${dt.label}`,
+                    subtitle: t('Go to list {label}', { label: dt.label }),
                     type: 'doctype',
                     icon: FilePlus,
                     action: () => {
@@ -153,7 +155,7 @@ watch(search, async (val) => {
                             navigateTo(`/${ws?.name || 'grunt'}/list/${dt.name}`)
                         }
                     },
-                    category: 'Доктайпи'
+                    category: t('DocTypes')
                 })
             }
         })
@@ -170,7 +172,7 @@ watch(search, async (val) => {
                     const ws = wsStore.workspaces.find(w => w.items.some(i => i.link_to === d.doctype))
                     navigateTo(`/${ws?.name || 'grunt'}/list/${d.doctype}/${d.id || d.name}`)
                 },
-                category: 'Документи'
+                category: t('Documents')
             }))
             matchedResults.push(...docs)
         }
@@ -206,7 +208,7 @@ function onKeyDown(e: KeyboardEvent) {
 const groupedResults = computed(() => {
     const groups: Record<string, any[]> = {}
     results.value.forEach(r => {
-        const cat = r.category || 'Різне'
+        const cat = r.category || t('Other')
         if (!groups[cat]) groups[cat] = []
         groups[cat].push(r)
     })
@@ -222,7 +224,7 @@ const flatResults = computed(() => results.value)
         <DialogContent class="p-0 overflow-hidden max-w-2xl border-none shadow-2xl bg-card">
             <div class="relative flex items-center border-b px-4 py-4">
                 <Search class="mr-3 h-5 w-5 shrink-0 opacity-50 text-primary" />
-                <input v-model="search" placeholder="Шукайте документи, додатки або дії..."
+                <input v-model="search" :placeholder="t('Search documents, apps or actions...')"
                     class="flex h-10 w-full rounded-md bg-transparent py-3 text-base outline-none placeholder:text-muted-foreground"
                     @keydown="onKeyDown" autofocus />
                 <div class="flex items-center gap-1.5 ml-2">
@@ -235,19 +237,19 @@ const flatResults = computed(() => results.value)
                 <div v-if="loading && results.length === 0"
                     class="py-12 text-center text-sm text-muted-foreground flex flex-col items-center gap-3">
                     <div class="size-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-                    Шукаємо...
+                    {{ t('Searching...') }}
                 </div>
 
                 <div v-else-if="search.length > 0 && results.length === 0 && !loading"
                     class="py-12 text-center text-sm text-muted-foreground italic">
-                    Нічого не знайдено для "{{ search }}"
+                    {{ t('Nothing found for') }} "{{ search }}"
                 </div>
 
                 <div v-if="quickCreateOpen" class="px-4 py-4 border-b">
                     <div class="flex items-center justify-between mb-2">
                         <div>
                             <p class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quick Create</p>
-                            <p class="text-xs text-muted-foreground">Оберіть DocType, щоб створити новий запис</p>
+                            <p class="text-xs text-muted-foreground">{{ t('Select DocType to create a new record') }}</p>
                         </div>
                         <button class="text-muted-foreground hover:text-foreground" @click="quickCreateOpen = false">Esc</button>
                     </div>
@@ -258,13 +260,13 @@ const flatResults = computed(() => results.value)
                         </select>
                         <button class="px-3 py-2 rounded bg-primary text-primary-foreground" :disabled="!quickCreateDoctype"
                             @click="{ const ws = wsStore.active?.name || 'grunt'; uiStore.closeCommandPalette(); quickCreateOpen = false; router.push(`/${ws}/list/${quickCreateDoctype}/new`) }">
-                            Створити
+                            {{ t('Create') }}
                         </button>
                     </div>
                 </div>
 
                 <div v-else-if="search.length === 0" class="py-6 px-4">
-                    <p class="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">Швидкі дії</p>
+                    <p class="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">{{ t('Quick actions') }}</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <button v-for="action in staticActions" :key="action.id"
                             class="flex items-center gap-3 p-3 rounded-xl border bg-muted/30 hover:bg-primary/5 hover:border-primary/30 transition-all text-left group"

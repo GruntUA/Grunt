@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
 import { docsApi, metaApi } from '@/core/api'
 import { Search, X, Loader2 } from 'lucide-vue-next'
@@ -15,6 +16,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
+const { t } = useI18n()
 const query = ref('')
 const results = ref<Record<string, string>[]>([])
 const isOpen = ref(false)
@@ -195,7 +197,7 @@ const isSelected = computed(() => props.modelValue !== null && props.modelValue 
 
       <input
         :value="query"
-        :placeholder="field.placeholder ?? `Пошук ${field.options ?? ''}...`"
+        :placeholder="field.placeholder ?? t('Search {doctype}...', { doctype: field.options ?? '' })"
         :disabled="disabled || field.read_only"
         class="w-full rounded-md border border-input bg-transparent pl-8 pr-8 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:bg-muted disabled:cursor-not-allowed transition-colors"
         :class="{ 'border-destructive focus-visible:ring-destructive': error }"
@@ -247,9 +249,9 @@ const isSelected = computed(() => props.modelValue !== null && props.modelValue 
 
       <!-- States -->
       <div v-else class="px-3 py-3 text-sm text-muted-foreground text-center">
-        <span v-if="isLoading">Пошук...</span>
-        <span v-else-if="query">Нічого не знайдено для «{{ query }}»</span>
-        <span v-else>Немає записів</span>
+        <span v-if="isLoading">{{ t('Searching...') }}</span>
+        <span v-else-if="query">{{ t('Nothing found for «{query}»', { query }) }}</span>
+        <span v-else>{{ t('No records') }}</span>
       </div>
     </div>
   </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { docsApi } from '@/core/api/docs'
 import { Spinner } from '@/components/ui/spinner'
 import { Button } from '@/components/ui/button'
@@ -15,6 +16,7 @@ const props = defineProps<{
   workspace?: string
 }>()
 
+const { t } = useI18n()
 const router = useRouter()
 
 // ── State ────────────────────────────────────────────────────────────────
@@ -34,7 +36,7 @@ async function loadAll() {
     const result = await docsApi.list(props.doctype.name, { per_page: 500 })
     allDocs.value = result.data
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : 'Помилка завантаження'
+    error.value = e instanceof Error ? e.message : t('Load error')
   } finally {
     loading.value = false
   }
@@ -177,7 +179,7 @@ function countDescendants(node: TreeNode): number {
         </Button>
       </div>
       <div class="flex items-center gap-2">
-        <Button variant="ghost" size="icon-sm" title="Оновити" @click="loadAll">
+        <Button variant="ghost" size="icon-sm" :title="t('Refresh')" @click="loadAll">
           <RefreshCw class="size-4" :class="{ 'animate-spin': loading }" />
         </Button>
         <Button size="sm" @click="createRoot">
@@ -196,7 +198,7 @@ function countDescendants(node: TreeNode): number {
     <div v-else-if="error" class="flex items-center gap-3 p-4 rounded-lg bg-destructive/10 text-destructive text-sm">
       <AlertCircle class="size-4 flex-shrink-0" />
       {{ error }}
-      <Button variant="ghost" size="sm" class="ml-auto" @click="loadAll">Повторити</Button>
+      <Button variant="ghost" size="sm" class="ml-auto" @click="loadAll">{{ t('Retry') }}</Button>
     </div>
 
     <!-- Empty -->
@@ -235,6 +237,7 @@ function countDescendants(node: TreeNode): number {
 <!-- ── Recursive tree node ──────────────────────────────────────────────── -->
 <script lang="ts">
 import { defineComponent, h, type PropType } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ChevronRight as CR, ChevronDown as CD, Plus as PL, Folder as FL, FolderOpen as FO, FileText as FT } from 'lucide-vue-next'
 import type { DocType, GruntDocument } from '@/types'
 
@@ -258,6 +261,7 @@ import type { DocType, GruntDocument } from '@/types'
   },
   emits: ['toggle', 'navigate', 'create-child'],
   setup(props, { emit }) {
+    const { t } = useI18n()
     return () => {
       const { node, depth, expandedIds } = props
       const isExpanded = expandedIds.has(node.id)
@@ -292,7 +296,7 @@ import type { DocType, GruntDocument } from '@/types'
         }, String(descendants)),
         h('button', {
           class: 'opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1 rounded hover:bg-primary/10 hover:text-primary text-muted-foreground',
-          title: 'Додати підлеглий',
+          title: t('Add child'),
           onClick: (e: Event) => { e.stopPropagation(); emit('create-child', node) },
         }, h(PL, { class: 'size-3.5' })),
       ])

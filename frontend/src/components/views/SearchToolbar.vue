@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -21,6 +22,7 @@ const emit = defineEmits<{
   toggleCol: [key: string]
 }>()
 
+const { t } = useI18n()
 const search = ref('')
 const showColMenu = ref(false)
 
@@ -35,7 +37,7 @@ watch(search, (v) => {
   <div class="flex items-center gap-3 mb-3">
     <div class="relative w-72">
       <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-      <Input v-model="search" placeholder="Пошук..." class="pl-9" />
+      <Input v-model="search" :placeholder="t('Search...')" class="pl-9" />
     </div>
 
     <div class="ml-auto">

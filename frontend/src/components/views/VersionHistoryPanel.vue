@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Clock, RotateCcw, ChevronRight, Loader2, User } from 'lucide-vue-next'
 import api from '@/core/api/client'
 
@@ -20,6 +21,7 @@ interface VersionEntry {
   changes: Record<string, { old: unknown; new: unknown }> | null
 }
 
+const { t } = useI18n()
 const versions = ref<VersionEntry[]>([])
 const loading = ref(false)
 const restoring = ref<string | null>(null)
@@ -40,7 +42,7 @@ async function load() {
 watch(() => props.docId, (id) => { if (id) load() }, { immediate: true })
 
 async function restore(versionId: string) {
-  if (!confirm('Відновити документ до цієї версії?')) return
+  if (!confirm(t('Restore document to this version?'))) return
   restoring.value = versionId
   try {
     await api.post(`/api/v1/docs/${props.doctype}/${props.docId}/restore/${versionId}`)
@@ -71,7 +73,7 @@ function changedFields(changes: VersionEntry['changes']): string[] {
 
 function formatValue(val: unknown): string {
   if (val === null || val === undefined || val === '') return '—'
-  if (typeof val === 'boolean') return val ? 'Так' : 'Ні'
+  if (typeof val === 'boolean') return val ? t('Yes') : t('No')
   return String(val)
 }
 </script>
@@ -85,7 +87,7 @@ function formatValue(val: unknown): string {
 
     <!-- Empty -->
     <div v-else-if="versions.length === 0" class="py-5 text-center text-sm text-muted-foreground">
-      Немає збережених версій
+      {{ t('No saved versions') }}
     </div>
 
     <!-- List -->
@@ -136,7 +138,7 @@ function formatValue(val: unknown): string {
           >
             <Loader2 v-if="restoring === v.id" class="size-3 animate-spin" />
             <RotateCcw v-else class="size-3" />
-            Відновити
+            {{ t('Restore') }}
           </button>
         </div>
 

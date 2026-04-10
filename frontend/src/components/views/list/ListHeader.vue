@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import type { DocType, ScriptButton } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -34,6 +35,7 @@ const emit = defineEmits<{
   (e: 'refresh'): void
 }>()
 
+const { t } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
 
@@ -62,7 +64,7 @@ function handleNew() {
     </div>
     <div class="flex items-center gap-2.5">
       <!-- Refresh button -->
-      <Button variant="outline" size="sm" class="h-9 w-9 p-0 text-foreground transition-all active:scale-95" title="Оновити"
+      <Button variant="outline" size="sm" class="h-9 w-9 p-0 text-foreground transition-all active:scale-95" :title="t('Refresh')"
         @click="emit('refresh')">
         <RefreshCw class="size-4" :class="{ 'animate-spin': isFetching }" />
       </Button>
@@ -78,20 +80,20 @@ function handleNew() {
           <DropdownMenuItem v-if="!isSystemDocType" as="a"
             :href="`/api/v1/docs/${doctype}/export/xlsx?token=${auth.token}`" download class="gap-2">
             <Download class="size-4 text-muted-foreground" />
-            <span>Завантажити Excel</span>
+            <span>{{ t('Download Excel') }}</span>
           </DropdownMenuItem>
           <template v-if="showDevActions">
             <DropdownMenuSeparator v-if="!isSystemDocType" />
             <DropdownMenuItem class="gap-2" @click="router.push(`/${workspace ?? 'grunt'}/list/DocType/${doctype}`)">
               <Pencil class="size-4 text-muted-foreground" />
-              <span>Редагувати доктайп</span>
+              <span>{{ t('Edit DocType') }}</span>
             </DropdownMenuItem>
           </template>
           <DropdownMenuSeparator />
           <DropdownMenuItem class="gap-2"
             @click="router.push({ name: 'report-builder', params: { workspaceName: workspace ?? 'grunt' }, query: { doctype: doctype } })">
             <FileBarChart class="size-4 text-muted-foreground" />
-            <span>Створити звіт</span>
+            <span>{{ t('Create report') }}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -111,7 +113,7 @@ function handleNew() {
       <!-- New button -->
       <Button size="sm" class="h-9 px-4 shadow-md hover:shadow-lg transition-all active:scale-95 gap-1.5" @click="handleNew">
         <Plus class="size-4" />
-        <span>{{ isSystemDocType ? 'Новий DocType' : 'Додати' }}</span>
+        <span>{{ isSystemDocType ? 'New DocType' : t('Add') }}</span>
       </Button>
     </div>
   </div>

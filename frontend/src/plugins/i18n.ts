@@ -3,22 +3,19 @@
  *
  * Source of truth: PO/POT files on the backend.
  * Frontend receives a JSON bundle via GET /api/v1/translations/{locale}.
- * Fallback: bundled uk.json / en.json for offline dev.
+ * English source strings are used as keys — vue-i18n returns the key itself
+ * when no translation is found, so English always works without a translation file.
  *
  * Default language: Ukrainian (uk).
  *
  * Usage in components:
  *   import { useI18n } from 'vue-i18n'
  *   const { t } = useI18n()
- *   t('Document not found')  // "Документ не знайдено"
- *   t('button|Save')         // "Зберегти" (with context)
+ *   t('Document not found')  // → "Документ не знайдено"
+ *   t('button|Save')         // → "Зберегти" (with context)
  */
 
 import { createI18n } from 'vue-i18n'
-
-// Bundled fallback translations (subset for offline dev)
-import ukFallback from '@/locales/uk.json'
-import enFallback from '@/locales/en.json'
 
 export type SupportedLocale = 'uk' | 'en'
 
@@ -34,17 +31,14 @@ export const i18n = createI18n({
   legacy: false,
   locale: getSavedLocale(),
   fallbackLocale: 'en',
-  messages: {
-    uk: ukFallback,
-    en: enFallback,
-  },
+  messages: { uk: {}, en: {} },
   missingWarn: false,
   fallbackWarn: false,
 })
 
 /**
  * Load translations from the backend API and merge into vue-i18n.
- * Call this after the API client is initialized (e.g., in App.vue onMounted).
+ * Called from App.vue onMounted after the API client is ready.
  */
 export async function loadRemoteTranslations(locale?: SupportedLocale): Promise<void> {
   const lang = locale || getSavedLocale()
@@ -57,7 +51,7 @@ export async function loadRemoteTranslations(locale?: SupportedLocale): Promise<
       }
     }
   } catch {
-    // Fallback to bundled translations — already loaded
+    // No translations available — English source strings shown as-is
   }
 }
 
@@ -65,7 +59,6 @@ export function setLocale(locale: SupportedLocale): void {
   i18n.global.locale.value = locale
   localStorage.setItem(STORAGE_KEY, locale)
   document.documentElement.setAttribute('lang', locale)
-  // Optionally load remote translations for the new locale
   loadRemoteTranslations(locale)
 }
 
