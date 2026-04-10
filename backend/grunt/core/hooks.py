@@ -173,7 +173,13 @@ async def fire(event: str, **kwargs: Any) -> None:
             logger.exception("links.delete_error", hook_event=event, doctype=doctype)
 
     # 5. Evaluate notification rules (Background)
-    if event in _NOTIFICATION_EVENTS and doctype and kwargs.get("doc") and kwargs.get("session"):
+    if (
+        event in _NOTIFICATION_EVENTS
+        and doctype
+        and doctype not in {"BackgroundTaskLog", "ErrorLog", "ActivityLog"}
+        and kwargs.get("doc")
+        and kwargs.get("session")
+    ):
         try:
             from grunt.core.notification.tasks import (
                 evaluate_notification_rules_task,  # noqa: PLC0415
