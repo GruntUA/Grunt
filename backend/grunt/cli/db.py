@@ -27,13 +27,14 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
     import asyncio  # noqa: PLC0415
 
     async def _run() -> None:
+        from sqlalchemy import select  # noqa: PLC0415
+
         from grunt.core.db.base import Base  # noqa: PLC0415
         from grunt.core.db.system_tables import GruntMetaDoctype  # noqa: PLC0415
         from grunt.core.metadata.compiler import SA_METADATA, sync_table  # noqa: PLC0415
         from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
         from grunt.core.site.manager import site_manager  # noqa: PLC0415
         from grunt.core.startup import load_core_doctypes  # noqa: PLC0415
-        from sqlalchemy import select  # noqa: PLC0415
 
         sites = [site] if site else site_manager.get_sites()
         if not sites:

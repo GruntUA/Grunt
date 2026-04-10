@@ -66,12 +66,19 @@ class DocumentRegistry:
             try:
                 module = importlib.import_module(mod_path)
                 controller_cls = getattr(module, class_name, None)
-                if controller_cls and inspect.isclass(controller_cls) and issubclass(controller_cls, Document):
+                is_doc_cls = (
+                    controller_cls
+                    and inspect.isclass(controller_cls)
+                    and issubclass(controller_cls, Document)
+                )
+                if is_doc_cls:
                     self.register(doctype, controller_cls)
                     logger.info("document.lazy_loaded", doctype=doctype, controller=module_path)
                     return
             except ImportError as e:
-                logger.warning("document.lazy_load_failed", doctype=doctype, module=mod_path, error=str(e))
+                logger.warning(
+                    "document.lazy_load_failed", doctype=doctype, module=mod_path, error=str(e)
+                )
                 return
 
         # Scan module for Document subclass
@@ -88,7 +95,9 @@ class DocumentRegistry:
                     logger.debug("document.lazy_loaded", doctype=doctype, controller=_name)
                     return
         except ImportError as e:
-            logger.warning("document.lazy_load_failed", doctype=doctype, module=module_path, error=str(e))
+            logger.warning(
+                "document.lazy_load_failed", doctype=doctype, module=module_path, error=str(e)
+            )
 
     # ── Index builders (no imports, no I/O beyond filesystem stat) ────────────
 
@@ -113,7 +122,6 @@ class DocumentRegistry:
                 module_file = to_snake_case(dt_dir.name)
                 py_file = dt_dir / f"{module_file}.py"
             if py_file.exists():
-                doctype = dt_dir.name  # e.g. "user" → resolved on first get()
                 module_path = f"grunt.core.doctypes.{dt_dir.name}.{py_file.stem}"
                 # We don't know the DocType name until import, so index by folder name
                 # and also by PascalCase variant as a hint
@@ -146,7 +154,10 @@ class DocumentRegistry:
                     if not py_file.exists():
                         py_file = dt_dir / f"{to_snake_case(dt_dir.name)}.py"
                     if py_file.exists():
-                        module_path = f"grunt_apps.{app_dir.name}.{module_name}.doctypes.{dt_dir.name}.{py_file.stem}"
+                        module_path = (
+                            f"grunt_apps.{app_dir.name}.{module_name}"
+                            f".doctypes.{dt_dir.name}.{py_file.stem}"
+                        )
                         self._index[dt_dir.name] = module_path
                         pascal = "".join(w.capitalize() for w in dt_dir.name.split("_"))
                         self._index[pascal] = module_path
