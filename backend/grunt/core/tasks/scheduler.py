@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import importlib
+import uuid
+from datetime import UTC, datetime
 
 import structlog
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -158,6 +160,19 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
 
     async def _run() -> None:
         logger.info("scheduler.server_script_run", name=name)
+        log_id = str(uuid.uuid4())
+        started_at = datetime.now(UTC)
+
+        async with async_session_factory() as session:
+            await _write_job_log(
+                session,
+                log_id=log_id,
+                job_name=name,
+                started_at=started_at,
+                status="Running",
+                cron_expression=cron_expr,
+            )
+
         try:
             async with async_session_factory() as session:
                 runner = ServerScriptRunner()
@@ -166,8 +181,16 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
                 )
             if result.output:
                 logger.debug("scheduler.server_script_output", name=name, output=result.output)
+
+            async with async_session_factory() as session:
+                await _update_job_log(session, log_id=log_id, status="Success")
+
         except Exception as exc:
             logger.error("scheduler.server_script_error", name=name, error=str(exc))
+            async with async_session_factory() as session:
+                await _update_job_log(
+                    session, log_id=log_id, status="Failed", error_message=str(exc)
+                )
 
     try:
         scheduler.add_job(
@@ -179,6 +202,57 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
         logger.info("scheduler.server_script_registered", name=name, cron=cron_expr)
     except Exception as exc:
         logger.warning("scheduler.server_script_register_failed", name=name, error=str(exc))
+
+
+async def _write_job_log(
+    session: object,
+    *,
+    log_id: str,
+    job_name: str,
+    started_at: datetime,
+    status: str,
+    cron_expression: str,
+) -> None:
+    """Insert a new ScheduledJobLog record via Grunt ORM."""
+    try:
+        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+
+        async with grunt.context(session, None, SYSTEM_USER):
+            await grunt.new_doc(
+                "ScheduledJobLog",
+                {
+                    "id": log_id,
+                    "job_name": job_name,
+                    "started_at": started_at,
+                    "status": status,
+                    "cron_expression": cron_expression,
+                },
+            )
+    except Exception as exc:
+        logger.warning("scheduler.log_write_failed", job_name=job_name, error=str(exc))
+
+
+async def _update_job_log(
+    session: object,
+    *,
+    log_id: str,
+    status: str,
+    error_message: str | None = None,
+) -> None:
+    """Update a ScheduledJobLog record after job completion via Grunt ORM."""
+    try:
+        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+
+        values: dict = {"status": status, "finished_at": datetime.now(UTC)}
+        if error_message is not None:
+            values["error_message"] = error_message
+
+        async with grunt.context(session, None, SYSTEM_USER):
+            await grunt.db.set_value("ScheduledJobLog", log_id, values)
+    except Exception as exc:
+        logger.warning("scheduler.log_update_failed", log_id=log_id, error=str(exc))
 
 
 async def stop_scheduler() -> None:

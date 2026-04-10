@@ -29,18 +29,22 @@ class ApplicationError(Exception):
 
 
 def msgprint(message: str, title: str = "", msg_type: str = "info") -> None:
-    """Queue a message for the current request response.
+    """Queue a message for delivery to the frontend via WebSocket.
 
-    Messages are collected and returned to the frontend in the response.
+    Messages are collected during the request and sent as a batch
+    through the user's WebSocket channel after the response is returned.
 
     Args:
         message: Message text
         title: Optional title
         msg_type: "success", "info", "warning", "error" (default: "info")
     """
-    # TODO: Implement message queue in request context
-    # For now, just log
-    logger.info("msgprint", message=message, title=title, type=msg_type)
+    from grunt.api.context import add_message  # noqa: PLC0415
+    from grunt.core.context import _messages_ctx  # noqa: PLC0415
+
+    if _messages_ctx.get() is None:
+        _messages_ctx.set([])
+    add_message(message, title=title, msg_type=msg_type)
 
 
 def msgprint_list(items: list[str], title: str = "") -> None:
@@ -96,23 +100,19 @@ async def notify(
             doc_id="INV-001"
         )
     """
-    get_session()
-    user = get_user()
+    from grunt.publish import notify as _notify  # noqa: PLC0415
 
+    user = get_user()
     if recipient is None:
         recipient = user.email
 
-    logger.info(
-        "notification.queued",
-        title=title,
+    await _notify(
+        users=[recipient],
+        subject=title,
         message=message,
-        doctype=doctype,
-        doc_id=doc_id,
-        recipient=recipient,
+        doctype=doctype or None,
+        doc_id=doc_id or None,
     )
-
-    # TODO: Create Notification DocType record
-    # TODO: Trigger notification delivery (in-app, email, push)
 
 
 async def notify_all(
@@ -126,17 +126,33 @@ async def notify_all(
     Args:
         title: Notification title
         message: Message body
-        roles: List of role names (default: all users if None)
+        roles: List of role names (default: all active users if None)
         exclude_user: Optionally exclude a user email
     """
-    # TODO: Query users by roles
-    # TODO: Send notify() to each in bulk
-    logger.info(
-        "notification.broadcast",
-        title=title,
-        message=message,
-        roles=roles,
-    )
+    from grunt.core.notification.service import NotificationService  # noqa: PLC0415
+    from grunt.publish import notify as _notify  # noqa: PLC0415
+
+    session = get_session()
+    svc = NotificationService()
+
+    if roles:
+        emails = await svc._resolve_role_recipients(roles, session)
+    else:
+        from grunt.app import grunt  # noqa: PLC0415
+
+        rows = await grunt.db.get_all(
+            "User",
+            filters={"is_active": True},
+            fields=["email"],
+            limit=5000,
+        )
+        emails = [r["email"] for r in rows if r.get("email")]
+
+    if exclude_user:
+        emails = [e for e in emails if e != exclude_user]
+
+    if emails:
+        await _notify(users=emails, subject=title, message=message)
 
 
 async def queue_email(

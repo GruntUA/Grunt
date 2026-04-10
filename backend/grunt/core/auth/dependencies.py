@@ -132,11 +132,25 @@ async def grunt_context(
             return {"data": items}
     """
     from grunt.app import grunt  # noqa: PLC0415
+    from grunt.core.context import _messages_ctx  # noqa: PLC0415
 
     tokens = grunt.set_context(session, engine, user)
+    _messages_ctx.set([])
     try:
         yield
     finally:
+        from grunt.api.context import clear_messages, get_messages  # noqa: PLC0415
+
+        messages = get_messages()
+        if messages and user:
+            try:
+                from grunt.api.v1.ws import manager  # noqa: PLC0415
+
+                for msg in messages:
+                    await manager.send_to_user(user.email, {"event": "msgprint", "data": msg})
+            except Exception:
+                pass
+        clear_messages()
         grunt.reset_context(tokens)
 
 

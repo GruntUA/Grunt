@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from grunt.core.context import _engine_ctx, _session_ctx, _site_ctx, _user_ctx
+from grunt.core.context import _engine_ctx, _messages_ctx, _session_ctx, _site_ctx, _user_ctx
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -92,9 +92,27 @@ def get_site() -> str:
     return site
 
 
+def add_message(message: str, title: str = "", msg_type: str = "info") -> None:
+    """Append a message to the current request message queue."""
+    msgs = _messages_ctx.get()
+    if msgs is not None:
+        msgs.append({"message": message, "title": title, "type": msg_type})
+
+
+def get_messages() -> list[dict]:
+    """Return queued messages for the current request."""
+    return _messages_ctx.get() or []
+
+
+def clear_messages() -> None:
+    """Clear the message queue."""
+    _messages_ctx.set(None)
+
+
 def clear_context() -> None:
     """Clear all context variables (on request end)."""
     _session_ctx.set(None)
     _user_ctx.set(None)
     _engine_ctx.set(None)
     _site_ctx.set(None)
+    _messages_ctx.set(None)
