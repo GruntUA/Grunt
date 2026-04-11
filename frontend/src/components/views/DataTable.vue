@@ -40,7 +40,7 @@ interface InlineEdit { rowId: string; field: string; value: string }
 const inlineEdit = ref<InlineEdit | null>(null)
 const inlineInput = ref<HTMLInputElement | null>(null)
 
-const INLINE_SKIP = new Set(['Check', 'Select', 'Date', 'Datetime', 'Image', 'Attach', 'RichText', 'JSON', 'Code', 'Signature'])
+const INLINE_SKIP = new Set(['Check', 'Select', 'Date', 'Datetime', 'Image', 'Attach', 'RichText', 'JSON', 'Code', 'Signature', 'Link'])
 
 function canInlineEdit(fieldtype: string): boolean {
   return !INLINE_SKIP.has(fieldtype)
@@ -252,6 +252,14 @@ function isSelected(id: string) {
                   {{ Number((row[col.key] as any).lng).toFixed(5) }}
                 </span>
               </template>
+              <span v-else class="text-muted-foreground/30">—</span>
+            </template>
+
+            <!-- Link field: show __label if resolved, fallback to raw value -->
+            <template v-else-if="getFieldType(col.key) === 'Link'">
+              <span v-if="row[col.key] !== null && row[col.key] !== undefined && row[col.key] !== ''" class="text-foreground/90 font-medium">
+                {{ (row[col.key + '__label'] as string) || formatCell(row[col.key]) }}
+              </span>
               <span v-else class="text-muted-foreground/30">—</span>
             </template>
 

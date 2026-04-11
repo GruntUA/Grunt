@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DashboardWidget } from '@/types'
 import MetricWidget from './MetricWidget.vue'
+import GaugeWidget from './GaugeWidget.vue'
 import ChartWidget from './ChartWidget.vue'
 import DonutWidget from './DonutWidget.vue'
 import ListWidget from './ListWidget.vue'
@@ -91,6 +92,12 @@ const minH = computed(() => {
     <div class="h-full">
       <MetricWidget
         v-if="widget.widget_type === 'metric'"
+        :widget="widget"
+        :data="metricData"
+        :loading="loading"
+      />
+      <GaugeWidget
+        v-else-if="widget.widget_type === 'gauge'"
         :widget="widget"
         :data="metricData"
         :loading="loading"

@@ -55,6 +55,7 @@ function apply() {
 
 const WIDGET_TYPES = computed<{ value: WidgetType; label: string; icon: string }[]>(() => [
   { value: 'metric',         label: t('Metric'),        icon: '🔢' },
+  { value: 'gauge',          label: t('Gauge'),         icon: '🎯' },
   { value: 'chart_area',     label: 'Area',             icon: '📈' },
   { value: 'chart_bar',      label: 'Bar',              icon: '📊' },
   { value: 'donut',          label: t('Donut'),         icon: '🍩' },
@@ -115,6 +116,7 @@ const isChart        = computed(() => draft.value?.widget_type === 'chart_area' 
 const isDonut        = computed(() => draft.value?.widget_type === 'donut')
 const isList         = computed(() => draft.value?.widget_type === 'list')
 const isMetric       = computed(() => draft.value?.widget_type === 'metric')
+const isGauge        = computed(() => draft.value?.widget_type === 'gauge')
 const isShortcut     = computed(() => draft.value?.widget_type === 'shortcut')
 const isShortcutsGrid = computed(() => draft.value?.widget_type === 'shortcuts_grid')
 const isText         = computed(() => draft.value?.widget_type === 'text')
@@ -126,7 +128,7 @@ const isFunnel       = computed(() => draft.value?.widget_type === 'funnel')
 const isTableWidget  = computed(() => draft.value?.widget_type === 'table')
 const isLinks        = computed(() => draft.value?.widget_type === 'links')
 const isDataWidget   = computed(() =>
-  isMetric.value || isChart.value || isDonut.value || isList.value ||
+  isMetric.value || isGauge.value || isChart.value || isDonut.value || isList.value ||
   isCalendar.value || isHeatmap.value || isFunnel.value || isTableWidget.value
 )
 const needsField = computed(() =>
@@ -437,8 +439,26 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
         </div>
       </div>
 
-      <!-- Aggregation (metric / table) -->
-      <template v-if="isMetric || isTableWidget">
+      <!-- Gauge range -->
+      <template v-if="isGauge">
+        <div class="grid grid-cols-2 gap-2">
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Min') }}</label>
+            <input v-model.number="draft.min_value" type="number"
+              class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              @change="apply" />
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Max') }}</label>
+            <input v-model.number="draft.max_value" type="number"
+              class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              @change="apply" />
+          </div>
+        </div>
+      </template>
+
+      <!-- Aggregation (metric / gauge / table) -->
+      <template v-if="isMetric || isGauge || isTableWidget">
         <div class="space-y-1">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Aggregation') }}</label>
           <div class="grid grid-cols-1 gap-1">
@@ -465,7 +485,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
       </div>
 
       <!-- Date field + period -->
-      <template v-if="isChart || isMetric || isCalendar || isHeatmap || isFunnel || isTableWidget">
+      <template v-if="isChart || isMetric || isGauge || isCalendar || isHeatmap || isFunnel || isTableWidget">
         <div class="space-y-1">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Date field') }}</label>
           <input v-model="draft.date_field" class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="created_at" @change="apply" />

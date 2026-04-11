@@ -295,7 +295,7 @@ export interface ApiError {
 
 // ── Dashboard ─────────────────────────────────────────────────────────────
 
-export type WidgetType = 'metric' | 'chart_area' | 'chart_bar' | 'donut' | 'list'
+export type WidgetType = 'metric' | 'gauge' | 'chart_area' | 'chart_bar' | 'donut' | 'list'
   | 'shortcut' | 'shortcuts_grid' | 'text' | 'clock' | 'activity'
   | 'calendar' | 'heatmap' | 'funnel' | 'table' | 'links'
 export type WidgetAggregation = 'count' | 'sum' | 'avg' | 'min' | 'max'
@@ -324,6 +324,8 @@ export interface DashboardWidget {
   date_field?: string | null
   period: WidgetPeriod
   filters?: Record<string, string>
+  min_value?: number | null
+  max_value?: number | null
   cols: WidgetCols
   color: string
   icon?: string | null

@@ -73,7 +73,7 @@ async def _compute_widget_data(
     until = global_until if global_until is not None else now
     widget_type: str = widget.get("widget_type") or "metric"
 
-    if widget_type == "metric":
+    if widget_type in ("metric", "gauge"):
         agg = widget.get("aggregation") or "count"
         field = widget.get("field") or "*"
 

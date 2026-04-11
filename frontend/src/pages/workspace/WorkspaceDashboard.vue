@@ -62,6 +62,7 @@ const embedUrl = computed(() => `${window.location.origin}/dashboard/${props.das
 
 const WIDGET_TYPES: { value: WidgetType; label: string; icon: string }[] = [
   { value: 'metric',         label: 'Метрика',       icon: '🔢' },
+  { value: 'gauge',          label: 'Gauge',         icon: '🎯' },
   { value: 'chart_area',     label: 'Area',          icon: '📈' },
   { value: 'chart_bar',      label: 'Bar',           icon: '📊' },
   { value: 'donut',          label: 'Кругова',       icon: '🍩' },
@@ -189,7 +190,7 @@ function addWidget(type: WidgetType) {
     id,
     widget_type: type,
     title: WIDGET_TYPES.find(t => t.value === type)?.label ?? 'Новий',
-    cols: type === 'shortcut' || type === 'clock' ? 1 : 2,
+    cols: type === 'shortcut' || type === 'clock' ? 1 : type === 'gauge' ? 1 : 2,
     color: 'primary',
     doctype: '',
     aggregation: 'count',
@@ -202,6 +203,8 @@ function addWidget(type: WidgetType) {
     icon: '',
     link_type: null,
     description: null,
+    min_value: type === 'gauge' ? 0 : undefined,
+    max_value: type === 'gauge' ? 100 : undefined,
     content: type === 'shortcuts_grid' ? '[]' : null,
   }
   dashboard.value.widgets.push(newWidget)
