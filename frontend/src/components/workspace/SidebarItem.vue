@@ -129,36 +129,42 @@ const displayCount = computed(() => {
   </Tooltip>
 
   <div v-else role="button" tabindex="0"
-    class="group w-full flex items-center gap-3 px-2.5 h-9 rounded-lg text-left transition-all duration-200 relative mb-0.5 cursor-pointer"
+    class="group w-full flex items-center gap-3 px-3 h-10 rounded-xl text-left transition-all duration-300 relative mb-1 cursor-pointer overflow-hidden border border-transparent"
     :class="isActive
-      ? 'bg-primary/5 text-primary font-bold'
-      : 'text-muted-foreground hover:bg-accent/60 hover:text-accent-foreground'" @click="navigate"
+      ? 'bg-primary/10 text-primary font-bold shadow-sm border-primary/20'
+      : 'text-muted-foreground/80 hover:bg-accent/50 hover:text-foreground hover:border-accent-foreground/5'" @click="navigate"
     @keydown.enter.prevent="navigate" @keydown.space.prevent="navigate">
-    <!-- Indicator Pill -->
-    <div v-if="isActive" class="absolute left-0 top-2 bottom-2 w-1 bg-primary rounded-r-full" />
+    
+    <!-- Hover/Active Glow -->
+    <div v-if="isActive" class="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent pointer-events-none" />
+    <div class="absolute inset-y-2 left-0 w-1 bg-primary rounded-r-full transition-all duration-300 transform"
+      :class="isActive ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 group-hover:scale-y-50 group-hover:opacity-50'" />
 
-    <span class="text-sm shrink-0 w-5 text-center transition-transform duration-200 group-hover:scale-110"
-      :class="isActive ? 'text-primary' : 'text-muted-foreground/80'">{{ item.icon || '📄' }}</span>
-    <span class="text-[13px] truncate flex-1 tracking-tight font-medium">{{ item.label }}</span>
+    <span class="text-base shrink-0 w-5 text-center transition-all duration-300 group-hover:scale-125 group-hover:rotate-6"
+      :class="isActive ? 'text-primary drop-shadow-sm' : 'text-muted-foreground/70'">{{ item.icon || '📄' }}</span>
+    <span class="text-[13px] truncate flex-1 tracking-tight font-semibold relative z-10">{{ item.label }}</span>
 
     <!-- Count badge -->
     <Badge v-if="displayCount" variant="secondary"
-      class="h-5 min-w-5 px-1.5 text-[10px] font-semibold justify-center shrink-0 bg-accent/80 border-none rounded-full">
+      class="h-5 min-w-5 px-1.5 text-[10px] font-black justify-center shrink-0 bg-primary/10 text-primary border-none rounded-lg shadow-inner">
       {{ displayCount }}</Badge>
 
-    <!-- Pin toggle -->
-    <button
-      class="opacity-0 group-hover:opacity-100 rounded-md p-1 text-muted-foreground/60 hover:text-primary hover:bg-primary/10 transition-all shrink-0"
-      :title="pinned ? 'Відкріпити' : 'Закріпити'" @click="togglePin">
-      <component :is="pinned ? Star : StarOff" class="size-3.5" />
-    </button>
+    <!-- Actions Container -->
+    <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <!-- Pin toggle -->
+      <button
+        class="rounded-lg p-1.5 text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-all shrink-0"
+        :title="pinned ? 'Відкріпити' : 'Закріпити'" @click.stop="togglePin">
+        <component :is="pinned ? Star : StarOff" class="size-3.5" :class="pinned ? 'fill-primary text-primary opacity-100' : ''" />
+      </button>
 
-    <!-- New button -->
-    <button v-if="item.show_new_btn"
-      class="opacity-0 group-hover:opacity-100 rounded-md p-1 text-muted-foreground/60 hover:text-primary hover:bg-primary/10 transition-all shrink-0"
-      title="Створити новий" @click="createNew">
-      <Plus class="size-3.5" />
-    </button>
+      <!-- New button -->
+      <button v-if="item.show_new_btn"
+        class="rounded-lg p-1.5 text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-all shrink-0"
+        title="Створити новий" @click.stop="createNew">
+        <Plus class="size-3.5" />
+      </button>
+    </div>
   </div>
 
 </template>
