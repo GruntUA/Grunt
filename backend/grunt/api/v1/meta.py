@@ -245,6 +245,79 @@ async def sync_doctype(
     )
 
 
+# ── Sidebar search ────────────────────────────────────────────────────────
+
+
+@router.get("/search")
+async def search_meta(
+    q: str = Query(..., min_length=1),
+    limit: int = Query(20, ge=1, le=100),
+    _user: GruntUser = Depends(current_user),
+) -> dict:
+    """Search DocTypes and Reports by name/label for Workspace Sidebar editor.
+
+    Reads directly from the DocType registry — always up to date, no index lag.
+    """
+    q_lower = q.lower()
+    results: list[dict] = []
+
+    # 1. DocTypes from registry (non-child, non-virtual)
+    all_dts = await doctype_registry.list_all()
+    for dt in all_dts:
+        if dt.is_child or dt.is_virtual:
+            continue
+        name_lower = dt.name.lower()
+        label_lower = (dt.label or dt.name).lower()
+        if q_lower in name_lower or q_lower in label_lower:
+            results.append({
+                "doctype": "DocType",
+                "id": dt.name,
+                "name": dt.name,
+                "display_title": dt.label or dt.name,
+                "module": dt.module or "",
+            })
+
+    # 2. Reports from document service
+    try:
+        report_dt = await doctype_registry.get("Report")
+        if report_dt:
+            from sqlalchemy import or_, select  # noqa: PLC0415
+
+            from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+
+            table = compile_doctype_to_table(report_dt)
+            has_title = "title" in table.c
+            title_col = table.c.title if has_title else table.c.name
+            pattern = f"%{q}%"
+            stmt = (
+                select(table.c.id, table.c.name, title_col.label("title"))
+                .where(
+                    or_(
+                        table.c.name.ilike(pattern),
+                        title_col.ilike(pattern),
+                    )
+                )
+                .limit(limit)
+            )
+            rows = (await grunt._require_session().execute(stmt)).fetchall()
+            for row in rows:
+                row_d = dict(row._mapping)
+                results.append({
+                    "doctype": "Report",
+                    "id": row_d.get("id", row_d.get("name", "")),
+                    "name": row_d.get("name", ""),
+                    "display_title": row_d.get("title") or row_d.get("name", ""),
+                    "module": "",
+                })
+    except Exception:  # noqa: BLE001
+        pass
+
+    # Sort: exact name match first, then by name
+    results.sort(key=lambda r: (0 if r["name"].lower() == q_lower else 1, r["name"].lower()))
+
+    return {"success": True, "data": results[:limit]}
+
+
 # ── RBAC helpers ──────────────────────────────────────────────────────────
 
 
