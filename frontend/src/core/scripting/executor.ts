@@ -44,11 +44,19 @@ export interface FormProxy {
   _df_props: Record<string, Record<string, unknown>>
 }
 
+/** Handle returned by listview.add_menu_item — allows in-place updates. */
+export interface ScriptMenuItemHandle {
+  update: (updates: { label?: string }) => void
+  remove: () => void
+}
+
 /** ListView proxy exposed to client scripts as `listview` in `setup_list`. */
 export interface ListViewProxy {
   doctype: string
   /** Add a custom button to the ListView toolbar. Returns a handle to update it later. */
   add_button: (label: string, action: () => void | Promise<void>, options?: { variant?: string }) => ScriptButtonHandle
+  /** Add an item to the "⋯" header dropdown menu. Returns a handle to update or remove it. */
+  add_menu_item: (label: string, action: () => void | Promise<void>, options?: { separator_before?: boolean }) => ScriptMenuItemHandle
   /** Reload the list data. */
   refresh: () => void
 }
@@ -341,6 +349,7 @@ export function createListViewProxy(
   doctype: string,
   callbacks: {
     addButton?: (label: string, action: () => void | Promise<void>, options?: { variant?: string }) => ScriptButtonHandle
+    addMenuItem?: (label: string, action: () => void | Promise<void>, options?: { separator_before?: boolean }) => ScriptMenuItemHandle
     refresh?: () => void
   } = {},
 ): ListViewProxy {
@@ -348,6 +357,9 @@ export function createListViewProxy(
     doctype,
     add_button(label, action, options): ScriptButtonHandle {
       return callbacks.addButton?.(label, action, options) ?? { update: () => {} }
+    },
+    add_menu_item(label, action, options): ScriptMenuItemHandle {
+      return callbacks.addMenuItem?.(label, action, options) ?? { update: () => {}, remove: () => {} }
     },
     refresh() {
       callbacks.refresh?.()

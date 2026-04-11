@@ -155,10 +155,26 @@ export interface DocTypeTreeView {
   title_field?: string   // which field to display as node label (defaults to 'name')
 }
 
+export interface DocTypeMapView {
+  geo_field?: string                  // override auto-detected Geolocation field
+  label_field?: string                // field shown in marker popup (defaults to title_field)
+  color_field?: string                // field whose value drives marker color
+  color_map?: Record<string, string>  // { value: '#hex' } mapping for color_field
+  default_color?: string              // fallback marker color (defaults to primary)
+}
+
 export interface ScriptButton {
   label: string
   action: () => void | Promise<void>
   variant?: string
+}
+
+/** Item registered via `listview.add_menu_item()` — appears in the "⋯" header dropdown. */
+export interface ScriptMenuItem {
+  label: string
+  action: () => void | Promise<void>
+  icon?: string           // reserved for future icon support
+  separator_before?: boolean
 }
 
 // ── Status indicators ────────────────────────────────────────────────────
@@ -197,6 +213,7 @@ export interface DocType {
   kanban_view?: DocTypeKanbanView | null
   calendar_view?: DocTypeCalendarView | null
   tree_view?: DocTypeTreeView | null
+  map_view?: DocTypeMapView | null
   status_config?: DocTypeStatusConfig | null
   workflow?: WorkflowDef | null
   permissions?: DocTypePermission[]

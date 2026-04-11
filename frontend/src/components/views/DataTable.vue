@@ -239,6 +239,17 @@ function isSelected(id: string) {
               </span>
             </template>
 
+            <!-- Geolocation: lat, lng -->
+            <template v-else-if="getFieldType(col.key) === 'Geolocation'">
+              <template v-if="row[col.key] && typeof row[col.key] === 'object'">
+                <span class="tabular-nums text-muted-foreground font-mono text-xs">
+                  {{ Number((row[col.key] as any).lat).toFixed(5) }},
+                  {{ Number((row[col.key] as any).lng).toFixed(5) }}
+                </span>
+              </template>
+              <span v-else class="text-muted-foreground/30">—</span>
+            </template>
+
             <!-- Default -->
             <template v-else>
               <span class="text-foreground/90 font-medium">{{ formatCell(row[col.key]) }}</span>

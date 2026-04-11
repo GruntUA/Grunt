@@ -28,6 +28,15 @@ function update(key: 'lat' | 'lng', val: string) {
   emit('update:modelValue', { ...parsed.value, [key]: num })
 }
 
+function parsePaste(e: ClipboardEvent) {
+  const text = e.clipboardData?.getData('text') ?? ''
+  const match = text.trim().match(/^(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)$/)
+  if (match) {
+    e.preventDefault()
+    emit('update:modelValue', { lat: Number(match[1]), lng: Number(match[2]) })
+  }
+}
+
 function locate() {
   if (!navigator.geolocation) return
   isLocating.value = true
@@ -52,6 +61,7 @@ function locate() {
         placeholder="Latitude"
         class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:bg-muted disabled:cursor-not-allowed"
         @input="update('lat', ($event.target as HTMLInputElement).value)"
+        @paste="parsePaste"
       />
     </div>
     <div class="flex-1">
@@ -63,6 +73,7 @@ function locate() {
         placeholder="Longitude"
         class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:bg-muted disabled:cursor-not-allowed"
         @input="update('lng', ($event.target as HTMLInputElement).value)"
+        @paste="parsePaste"
       />
     </div>
     <Button

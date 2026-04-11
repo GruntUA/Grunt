@@ -45,13 +45,17 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     }
   }
 
-  async function setActive(name: string) {
+  async function setActive(name: string, forceRefresh = false) {
     const cached = workspaces.value.find(w => w.name === name)
-    if (cached) {
+    if (cached && !forceRefresh) {
       active.value = cached
     } else {
       try {
-        active.value = await workspaceApi.get(name)
+        const fresh = await workspaceApi.get(name)
+        active.value = fresh
+        // update cache
+        const idx = workspaces.value.findIndex(w => w.name === name)
+        if (idx !== -1) workspaces.value[idx] = fresh
       } catch {
         active.value = null
         return

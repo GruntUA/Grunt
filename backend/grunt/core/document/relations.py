@@ -103,6 +103,17 @@ async def _save_child_tables(
                         row[child_field.fieldname] = _coerce_value(
                             child_field.default, child_field.fieldtype
                         )
+                    else:
+                        # Always include every column to avoid NOT NULL constraint
+                        # errors. Use a type-appropriate empty value.
+                        if child_field.fieldtype == "Check":
+                            row[child_field.fieldname] = False
+                        elif child_field.fieldtype in ("Int", "Float"):
+                            row[child_field.fieldname] = 0
+                        elif child_field.fieldtype in ("Date", "Datetime", "Time"):
+                            row[child_field.fieldname] = None
+                        else:
+                            row[child_field.fieldname] = ""
                 rows_to_insert.append(row)
             if rows_to_insert:
                 await session.execute(child_table.insert(), rows_to_insert)

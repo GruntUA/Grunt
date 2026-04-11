@@ -375,7 +375,7 @@ defineExpose({ mobileOpen })
       </ScrollArea>
 
       <SidebarEditor v-if="wsStore.active" v-model:open="showEditor" :workspace="wsStore.active"
-        @saved="wsStore.setActive(workspaceName)" />
+        @saved="wsStore.setActive(workspaceName, true)" />
 
       <!-- Footer -->
       <div class="border-t border-sidebar-border shrink-0 p-2">

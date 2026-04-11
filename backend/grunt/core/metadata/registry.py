@@ -226,7 +226,7 @@ class DocTypeRegistry:
                 else:
                     # Merge: add fields from JSON that are missing in the stored
                     # definition (framework upgrades).  Never remove existing fields.
-                    stored_fieldnames = {f.fieldname for f in active_dt.fields}
+                    stored_fieldnames = {f.fieldname: f for f in active_dt.fields}
                     new_fields = [f for f in doctype.fields if f.fieldname not in stored_fieldnames]
                     if new_fields:
                         active_dt.fields.extend(new_fields)
@@ -235,6 +235,11 @@ class DocTypeRegistry:
                             name=doctype.name,
                             added=[f.fieldname for f in new_fields],
                         )
+                    # Sync default values for existing fields from JSON
+                    for json_field in doctype.fields:
+                        stored_field = stored_fieldnames.get(json_field.fieldname)
+                        if stored_field is not None and stored_field.default != json_field.default:
+                            stored_field.default = json_field.default
                     # Persist the merged definition and keep module in sync.
                     # Wrapped separately so a transient DB lock does not prevent
                     # the physical table sync or in-memory registration below.
