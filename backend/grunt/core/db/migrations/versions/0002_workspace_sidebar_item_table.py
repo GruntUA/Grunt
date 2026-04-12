@@ -72,11 +72,23 @@ def upgrade() -> None:
             )
         ).fetchall()
 
+        # Build a dialect-portable INSERT that ignores duplicate PKs.
+        _d = conn.dialect.name
+        if _d == "sqlite":
+            _insert_sql = "INSERT OR IGNORE INTO grunt_workspace_sidebar_item"
+        elif _d == "mysql":
+            _insert_sql = "INSERT IGNORE INTO grunt_workspace_sidebar_item"
+        else:  # postgresql and others
+            _insert_sql = (
+                "INSERT INTO grunt_workspace_sidebar_item"
+                " ON CONFLICT (id) DO NOTHING --"
+            )
+
         for row in rows:
             new_id = str(_uuid.uuid4())
             conn.execute(
                 sa.text(
-                    "INSERT OR IGNORE INTO grunt_workspace_sidebar_item "
+                    f"{_insert_sql} "
                     "(id, name, parent_id, parent_doctype, parent_field, idx, "
                     " section, type, label, icon, link_to, show_count, "
                     " count_filters, show_new_btn, roles) "

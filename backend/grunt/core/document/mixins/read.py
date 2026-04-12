@@ -109,7 +109,13 @@ class DocumentReadMixin:
         text_types = {"TEXT", "VARCHAR", "CHAR", "CLOB", "STRING", "NVARCHAR", "NCHAR"}
         col_type = str(sort_col.type).upper()
         is_text = any(t in col_type for t in text_types)
-        sort_expr = func.uk_sort_key(sort_col) if is_text else sort_col
+        if is_text:
+            from grunt.core.site.manager import text_sort_expr  # noqa: PLC0415
+
+            dialect_name = self.session.bind.dialect.name if self.session.bind else "sqlite"
+            sort_expr = text_sort_expr(sort_col, dialect_name)
+        else:
+            sort_expr = sort_col
         if sort_order == "asc":
             query = query.order_by(sort_expr.asc())
         else:

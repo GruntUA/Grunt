@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -18,8 +19,11 @@ from grunt.core.search.service import search_index_service
 from grunt.main import app
 
 # ── Single shared test engine ─────────────────────────────────────────────
+# Override via env to test against PostgreSQL or MySQL:
+#   TEST_DATABASE_URL=postgresql+asyncpg://user:pass@localhost/grunt_test pytest
+#   TEST_DATABASE_URL=mysql+aiomysql://user:pass@localhost/grunt_test pytest
 
-TEST_DB_URL = "sqlite+aiosqlite://"
+TEST_DB_URL = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite://")
 
 test_engine = create_async_engine(TEST_DB_URL, echo=False)
 TestSessionLocal = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
