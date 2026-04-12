@@ -10,6 +10,7 @@ import structlog
 from fastapi import HTTPException, Query
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.core.document.registry import document_registry
 
@@ -118,7 +119,7 @@ async def list_workspaces() -> dict[str, Any]:
 
         data.append(_workspace_to_dict(ws_data))
 
-    return {"success": True, "data": data}
+    return ok(data)
 
 
 @router.get("/{name}")
@@ -145,7 +146,7 @@ async def get_workspace(
     if hasattr(ws, "has_access") and not ws.has_access(grunt.session):
         raise HTTPException(status_code=403, detail="Немає доступу до цього workspace")
 
-    return {"success": True, "data": _workspace_to_dict(ws_data)}
+    return ok(_workspace_to_dict(ws_data))
 
 
 @router.post("/", status_code=201)
@@ -161,7 +162,7 @@ async def create_workspace(
         data["sidebar_items"] = data.pop("items")
 
     ws_data = await grunt.new_doc("WorkspaceSidebar", data)
-    return {"success": True, "data": _workspace_to_dict(ws_data)}
+    return ok(_workspace_to_dict(ws_data))
 
 
 @router.put("/{name}")
@@ -178,7 +179,7 @@ async def update_workspace(
         data["sidebar_items"] = data.pop("items")
 
     ws_data = await grunt.save_doc("WorkspaceSidebar", name, data)
-    return {"success": True, "data": _workspace_to_dict(ws_data)}
+    return ok(_workspace_to_dict(ws_data))
 
 
 @router.delete("/{name}")
@@ -190,7 +191,7 @@ async def delete_workspace(
         raise HTTPException(status_code=403, detail="Not authorized")
 
     await grunt.delete_doc("WorkspaceSidebar", name)
-    return {"success": True, "data": {"deleted": name}}
+    return ok({"deleted": name})
 
 
 @router.get("/{name}/counts")
@@ -208,7 +209,7 @@ async def workspace_counts(
     ws = _get_ws_obj(ws_data)
 
     counts = await ws.get_counts() if hasattr(ws, "get_counts") else {}
-    return {"success": True, "data": counts}
+    return ok(counts)
 
 
 @router.get("/{name}/widget-data")
@@ -244,4 +245,4 @@ async def workspace_widget_data(
         if hasattr(ws, "get_widget_data")
         else {}
     )
-    return {"success": True, "data": data}
+    return ok(data)

@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 
+from grunt.api.v1.schemas.response import ok
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import SYSTEM_USER, GruntUser
 from grunt.core.db.session import get_engine, get_session
@@ -92,17 +93,14 @@ async def get_shared_document(
         if f.fieldtype not in layout_types and not f.hidden
     ]
 
-    return {
-        "success": True,
-        "data": {
-            "doctype": doctype_name,
-            "doctype_label": dt.label,
-            "doc_id": doc_id,
-            "expires_at": share.get("expires_at"),
-            "doc": {k: (str(v) if v is not None else None) for k, v in doc.items()},
-            "fields": visible_fields,
-        },
-    }
+    return ok({
+        "doctype": doctype_name,
+        "doctype_label": dt.label,
+        "doc_id": doc_id,
+        "expires_at": share.get("expires_at"),
+        "doc": {k: (str(v) if v is not None else None) for k, v in doc.items()},
+        "fields": visible_fields,
+    })
 
 
 @router.post("/share")
@@ -138,4 +136,4 @@ async def create_share(
     finally:
         grunt.reset_context(_tokens)
 
-    return {"success": True, "data": {"id": doc["id"], "token": doc["token"]}}
+    return ok({"id": doc["id"], "token": doc["token"]})

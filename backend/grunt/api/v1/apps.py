@@ -7,6 +7,7 @@ from typing import Any
 from fastapi import HTTPException
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 
 router = GruntRouter(prefix="", tags=["apps"])
@@ -16,20 +17,17 @@ router = GruntRouter(prefix="", tags=["apps"])
 async def list_apps() -> dict[str, Any]:
     """List all installed apps."""
     apps = await grunt.get_list("GruntInstalledApp")
-    return {
-        "success": True,
-        "data": [
-            {
-                "id": str(a.get("id")),
-                "name": a.get("name"),
-                "title": a.get("title"),
-                "version": a.get("version", "0.1.0"),
-                "modules": a.get("modules", []),
-                "installed_at": str(a.get("installed_at")) if a.get("installed_at") else None,
-            }
-            for a in apps
-        ],
-    }
+    return ok([
+        {
+            "id": str(a.get("id")),
+            "name": a.get("name"),
+            "title": a.get("title"),
+            "version": a.get("version", "0.1.0"),
+            "modules": a.get("modules", []),
+            "installed_at": str(a.get("installed_at")) if a.get("installed_at") else None,
+        }
+        for a in apps
+    ])
 
 
 @router.post("/")
@@ -57,7 +55,7 @@ async def register_app(
             "modules": body.get("modules", []),
         },
     )
-    return {"success": True, "data": {"name": app.get("name"), "title": app.get("title")}}
+    return ok({"name": app.get("name"), "title": app.get("title")})
 
 
 @router.post("/{name}/modules")
@@ -84,10 +82,7 @@ async def add_module(
     current_modules.append(module_name)
     await grunt.save_doc("GruntInstalledApp", app_id, {"modules": current_modules})
 
-    return {
-        "success": True,
-        "data": {"name": app.get("name"), "title": app.get("title"), "modules": current_modules},
-    }
+    return ok({"name": app.get("name"), "title": app.get("title"), "modules": current_modules})
 
 
 @router.delete("/{name}")
@@ -103,4 +98,4 @@ async def delete_app(
         raise HTTPException(status_code=404, detail=f"Додаток '{name}' не знайдено")
 
     await grunt.delete_doc("GruntInstalledApp", apps[0]["id"])
-    return {"success": True, "message": f"Додаток '{name}' видалено"}
+    return ok(message=f"Додаток '{name}' видалено")

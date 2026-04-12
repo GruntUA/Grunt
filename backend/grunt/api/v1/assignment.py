@@ -10,6 +10,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok, ok_list
 from grunt.app import grunt
 from grunt.core.assignment import assignment_service
 
@@ -94,20 +95,19 @@ async def test_assignment_rule(
 
         matching_fields = [field for field in filters if field in test_doc]
 
-        return {
-            "success": True,
-            "rule_id": rule_id,
-            "doctype_target": doctype_target,
-            "filters": filters,
-            "matched": matched,
-            "matching_fields": matching_fields,
-            "will_assign_to": will_assign_to,
-            "message": (
+        return ok(
+            rule_id=rule_id,
+            doctype_target=doctype_target,
+            filters=filters,
+            matched=matched,
+            matching_fields=matching_fields,
+            will_assign_to=will_assign_to,
+            message=(
                 f"Rule matches! Will assign to {len(will_assign_to)} user(s)"
                 if matched
                 else "Rule does not match"
             ),
-        }
+        )
 
     except HTTPException:
         raise
@@ -149,12 +149,7 @@ async def list_assignment_logs(
         )
         total = await grunt.count("AssignmentLog", filters=filters)
 
-        return {
-            "success": True,
-            "data": logs,
-            "count": len(logs),
-            "total": total,
-        }
+        return ok_list(logs, total=total)
 
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc

@@ -10,6 +10,7 @@ from fastapi import HTTPException, Query
 from pydantic import BaseModel
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok, ok_list
 from grunt.app import grunt
 
 logger = structlog.get_logger()
@@ -56,7 +57,7 @@ async def test_smtp_connection(
         ) as smtp:
             if body.smtp_user and body.smtp_password:
                 await smtp.login(body.smtp_user, body.smtp_password)
-        return {"success": True}
+        return ok()
     except Exception as e:  # noqa: BLE001
         return {"success": False, "error": str(e)}
 
@@ -68,10 +69,7 @@ async def test_smtp_connection(
 async def list_email_accounts() -> dict[str, Any]:
     _require_admin(grunt.session)
     result = await grunt.get_list("EmailAccount", limit=10000, order_by="created_at")
-    return {
-        "success": True,
-        "data": [_mask_password(dict(acc)) for acc in result],
-    }
+    return ok([_mask_password(dict(acc)) for acc in result])
 
 
 @router.get("/accounts/{account_id}")
@@ -80,7 +78,7 @@ async def get_email_account(
 ) -> dict[str, Any]:
     _require_admin(grunt.session)
     data = await grunt.get_doc("EmailAccount", account_id)
-    return {"success": True, "data": _mask_password(dict(data))}
+    return ok(_mask_password(dict(data)))
 
 
 # ── Email Queue ───────────────────────────────────────────────────────────────
@@ -107,11 +105,7 @@ async def list_queue(
     
     total = await grunt.count("EmailQueue", filters={"status": status} if status else None)
     
-    return {
-        "success": True,
-        "data": records,
-        "meta": {"total": total, "page": page, "per_page": per_page},
-    }
+    return ok_list(records, total=total, page=page, per_page=per_page)
 
 
 
@@ -125,4 +119,4 @@ async def retry_queue_item(
     await grunt.db.set_value(
         "EmailQueue", queue_id, {"status": "Pending", "error_message": None}
     )
-    return {"success": True}
+    return ok()

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from grunt.api.v1.schemas.response import ok
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import GruntUser
 from grunt.core.db.session import get_session
@@ -32,4 +33,4 @@ async def test_webhook(
         )
 
     result = await webhook_service.test_delivery(session, webhook_id, user.email)
-    return {"success": True, "data": result}
+    return ok(result)

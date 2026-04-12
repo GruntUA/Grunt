@@ -7,6 +7,7 @@ from typing import Any
 from fastapi import File, HTTPException, Query, Response, UploadFile
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.config import settings
 from grunt.core.storage import get_storage_backend
@@ -184,4 +185,4 @@ async def delete_file(
     # Delete DocType record
     await grunt.delete_doc("File", file_id)
 
-    return {"success": True, "data": {"id": file_id}}
+    return ok({"id": file_id})

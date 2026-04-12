@@ -7,6 +7,7 @@ from typing import Any
 from fastapi import HTTPException
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 
 router = GruntRouter(prefix="/pages", tags=["pages"])
@@ -45,7 +46,7 @@ async def list_pages() -> dict[str, Any]:
         order="asc",
         fields=_PAGE_FIELDS,
     )
-    return {"success": True, "data": data}
+    return ok(data)
 
 
 @router.post("/")
@@ -69,7 +70,7 @@ async def register_page(
     else:
         doc = await grunt.new_doc("Page", {"route": route, **update_data})
 
-    return {"success": True, "data": {"route": route, "title": doc.get("title", route)}}
+    return ok({"route": route, "title": doc.get("title", route)})
 
 
 @router.delete("/{route:path}")
@@ -88,4 +89,4 @@ async def delete_page(
         raise HTTPException(status_code=404, detail="Сторінку не знайдено")
 
     await grunt.delete_doc("Page", page_id)
-    return {"success": True, "message": "Сторінку видалено"}
+    return ok(message="Сторінку видалено")

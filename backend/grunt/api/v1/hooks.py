@@ -2,6 +2,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends
 
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.core.auth.dependencies import superadmin_user
 from grunt.core.hooks import DOC_EVENT_REGISTRY, HOOK_REGISTRY
@@ -74,4 +75,4 @@ async def get_hooks(
     except Exception:
         pass  # ServerScript might not exist yet or error
 
-    return {"success": True, "data": hooks}
+    return ok(hooks)

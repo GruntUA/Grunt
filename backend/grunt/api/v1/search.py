@@ -11,6 +11,7 @@ from typing import Any
 from fastapi import Depends, Query
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.core.auth.dependencies import superadmin_user
 from grunt.core.search.service import search_index_service
@@ -58,7 +59,7 @@ async def global_search(
         for r in raw
         if allowed_doctypes.get(r["doctype"], False)
     ]
-    return {"success": True, "data": results}
+    return ok(results)
 
 
 @router.get("/rebuild-index")
@@ -68,4 +69,4 @@ async def rebuild_search_index(
     """Rebuild the entire search index from scratch. Superadmin only."""
     session = grunt._require_session()
     count = await search_index_service.reindex_all(session, grunt._require_engine())
-    return {"success": True, "indexed": count}
+    return ok(indexed=count)

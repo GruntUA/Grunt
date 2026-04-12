@@ -17,6 +17,7 @@ from grunt.api.v1.schemas.meta import (
     DocTypeSyncResult,
     IndexHint,
 )
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.core.auth.dependencies import current_user, superadmin_user
 from grunt.core.auth.models import GruntUser
@@ -315,7 +316,7 @@ async def search_meta(
     # Sort: exact name match first, then by name
     results.sort(key=lambda r: (0 if r["name"].lower() == q_lower else 1, r["name"].lower()))
 
-    return {"success": True, "data": results[:limit]}
+    return ok(results[:limit])
 
 
 # ── RBAC helpers ──────────────────────────────────────────────────────────
@@ -364,16 +365,13 @@ async def introspect_hooks(
 ) -> dict:
     """List all registered global hooks."""
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-    return {
-        "success": True,
-        "data": {
-            event: [
-                {"doctype": dt, "fn": f.__name__, "priority": p}
-                for dt, p, f in hooks
-            ]
-            for event, hooks in doctype_registry._hooks.items()  # type: ignore[attr-defined]
-        }
-    }
+    return ok({
+        event: [
+            {"doctype": dt, "fn": f.__name__, "priority": p}
+            for dt, p, f in hooks
+        ]
+        for event, hooks in doctype_registry._hooks.items()  # type: ignore[attr-defined]
+    })
 
 
 @router.get("/introspect/controllers")
@@ -382,13 +380,10 @@ async def introspect_controllers(
 ) -> dict:
     """List all registered DocType controllers."""
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-    return {
-        "success": True,
-        "data": {
-            name: {"class": cls.__name__, "module": cls.__module__}
-            for name, cls in doctype_registry._controllers.items()  # type: ignore[attr-defined]
-        }
-    }
+    return ok({
+        name: {"class": cls.__name__, "module": cls.__module__}
+        for name, cls in doctype_registry._controllers.items()  # type: ignore[attr-defined]
+    })
 
 
 @router.get("/export-schemas", response_model=dict[str, DocTypeSchema])

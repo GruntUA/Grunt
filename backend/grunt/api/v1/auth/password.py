@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
+from grunt.api.v1.schemas.response import ok
 from grunt.core.auth.service import (
     consume_password_reset_token,
     create_password_reset_token,
@@ -48,7 +49,7 @@ async def forgot_password(
     log = structlog.get_logger()
     user = await get_user_by_email(body.email, session)
     if user is None:
-        return {"success": True}
+        return ok()
 
     token = await create_password_reset_token(user.id, session)
 
@@ -82,7 +83,7 @@ async def forgot_password(
     except Exception:  # noqa: BLE001
         log.warning("auth.forgot_password_email_queue_failed", email=user.email)
 
-    return {"success": True}
+    return ok()
 
 
 @router.post("/reset-password", status_code=status.HTTP_200_OK)
@@ -94,10 +95,10 @@ async def reset_password(
     if len(body.new_password) < 8:
         raise HTTPException(status_code=422, detail="Password must be at least 8 characters")
 
-    ok = await consume_password_reset_token(body.token, body.new_password, session)
-    if not ok:
+    reset_ok = await consume_password_reset_token(body.token, body.new_password, session)
+    if not reset_ok:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired reset token",
         )
-    return {"success": True}
+    return ok()

@@ -64,35 +64,6 @@ _PG_DOCTYPE_INDEX_SQL = text(
     "CREATE INDEX IF NOT EXISTS grunt_search_idx_doctype ON grunt_search_index (doctype)"
 )
 
-_SKIP_FIELDTYPES = frozenset(
-    [
-        "Section",
-        "Column",
-        "Tab",
-        "Table",
-        "MultiLink",
-        "Image",
-        "Attach",
-        "Signature",
-        "Geolocation",
-        "JSON",
-        "Code",
-    ]
-)
-_TEXT_FIELDTYPES = frozenset(
-    [
-        "Text",
-        "LongText",
-        "RichText",
-        "Data",
-        "Int",
-        "Float",
-        "Check",
-        "Select",
-        "Link",
-        "Color",
-    ]
-)
 
 
 def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
@@ -112,7 +83,7 @@ def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
 
     # All other text-ish fields
     for field in dt.fields:
-        if field.fieldtype in _SKIP_FIELDTYPES:
+        if not field.is_searchable:
             continue
         val = doc.get(field.fieldname)
         if val is None or val is False or val == "":

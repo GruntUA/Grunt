@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 
 router = GruntRouter(prefix="", tags=["meta"])
@@ -22,4 +23,4 @@ async def get_doc_links(
     from grunt.core.document.links import link_service
 
     links = await link_service.get_backlinks(grunt._require_session(), doctype, doc_id)
-    return {"success": True, "data": links}
+    return ok(links)

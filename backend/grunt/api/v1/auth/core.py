@@ -14,6 +14,7 @@ from grunt.api.v1.auth.schemas import (
     UpdateMeRequest,
     UserResponse,
 )
+from grunt.api.v1.schemas.response import ok
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import SYSTEM_USER, GruntUser
 from grunt.core.auth.service import (
@@ -212,7 +213,7 @@ async def logout(
         await terminate_all_user_sessions(user.id, session)
     except Exception:  # noqa: BLE001
         pass
-    return {"success": True}
+    return ok()
 
 
 @router.get("/sessions")
@@ -235,7 +236,7 @@ async def list_sessions(
     finally:
         grunt.reset_context(_tokens)
 
-    return {"success": True, "data": sessions}
+    return ok(sessions)
 
 
 @router.delete("/sessions/{session_id}")
@@ -247,7 +248,7 @@ async def revoke_session(
     """Terminate a specific session. Only the owner can revoke their own sessions."""
     from grunt.core.doctypes.user_session.user_session import terminate_session  # noqa: PLC0415
 
-    ok = await terminate_session(session_id, user.id, session)
-    if not ok:
+    terminated = await terminate_session(session_id, user.id, session)
+    if not terminated:
         raise HTTPException(status_code=404, detail="Session not found")
-    return {"success": True}
+    return ok()
