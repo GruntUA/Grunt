@@ -10,6 +10,7 @@ from grunt.core.metadata.compiler import (
     SA_METADATA,
     compile_doctype_to_table,
     get_table_name,
+    invalidate_table_cache,
     sync_table,
 )
 from grunt.core.metadata.doctype import DocType
@@ -138,8 +139,10 @@ async def test_sync_table_adds_new_column(async_engine):
 
     # Add a new field
     dt.fields.append(DocField(fieldname="extra_col", label="Extra", fieldtype="Text"))
-    # Must clear to avoid extend_existing stale cache
+    # Must clear both the SA_METADATA Table object and the compile cache so
+    # sync_table rebuilds the Table with the new column.
     SA_METADATA.remove(SA_METADATA.tables["grunt_test_sync_alter"])
+    invalidate_table_cache("SyncAlter")
     await sync_table(dt, async_engine)
 
     async with async_engine.connect() as conn:

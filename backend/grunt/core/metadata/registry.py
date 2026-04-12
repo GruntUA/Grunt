@@ -21,8 +21,9 @@ from fastapi import HTTPException, status
 from sqlalchemy import delete, select, update
 
 from grunt.core.db.system_tables import GruntMetaDoctype
-from grunt.core.metadata.compiler import sync_table
+from grunt.core.metadata.compiler import invalidate_table_cache, sync_table
 from grunt.core.metadata.doctype import DocType
+from grunt.core.permissions.rbac import invalidate_permission_cache
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -318,6 +319,10 @@ class DocTypeRegistry:
         )
         await session.flush()
 
+        # Invalidate caches BEFORE sync so compile_doctype_to_table() rebuilds
+        # the Table with the new column list when sync_table calls it internally.
+        invalidate_table_cache(doctype.name)
+        invalidate_permission_cache(doctype.name)
         await sync_table(doctype, async_engine, session=session)
         self._doctypes[doctype.name] = doctype
         logger.info("registry.updated", name=doctype.name)
@@ -338,6 +343,8 @@ class DocTypeRegistry:
         await session.flush()
         self._doctypes.pop(name, None)
         self._known_names.discard(name)
+        invalidate_table_cache(name)
+        invalidate_permission_cache(name)
         logger.info("registry.deleted", name=name)
 
     # ── Validation helpers ───────────────────────────────────────────────
