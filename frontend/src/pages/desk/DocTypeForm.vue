@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, provide } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useDocument } from '@/core/composables/useDocument'
@@ -7,6 +7,7 @@ import { useToast } from '@/core/composables/useToast'
 import { useWebSocket } from '@/core/composables/useWebSocket'
 import { usePresence } from '@/core/composables/usePresence'
 import { useClientScripts } from '@/core/composables/useClientScripts'
+import { useLinkCreate } from '@/core/composables/useLinkCreate'
 import { useQueryClient } from '@tanstack/vue-query'
 import { clearScriptCache } from '@/core/scripting/executor'
 import type { DocType, GruntDocument } from '@/types'
@@ -25,6 +26,7 @@ const router = useRouter()
 const dtStore = useDocTypeStore()
 const toast = useToast()
 const queryClient = useQueryClient()
+const { startLinkCreate, finishLinkCreate, restoreLinkDraft } = useLinkCreate()
 
 const dt = ref<DocType | null>(null)
 const { document, form, isLoading, isDirty, isSaving, save, remove } = useDocument(props.doctype, props.id)
@@ -36,6 +38,7 @@ const {
   displayOverrides,
   reqdOverrides,
   runEvent: runScriptEvent,
+  getLinkFilters,
 } = useClientScripts(props.doctype, {
   getDoc: () => form.value,
   getFields: () => (dt.value?.fields ?? []) as Record<string, unknown>[],
@@ -43,6 +46,9 @@ const {
   setValue: (field, value) => { form.value[field] = value },
   save: () => handleSave(),
 })
+
+// Provide link filter resolver to all descendant Link fields via inject
+provide('getLinkFilters', getLinkFilters)
 
 // ── Modals & Navigation ──────────────────────────────────────────────────────
 const showDeleteModal = ref(false)
@@ -76,8 +82,32 @@ onMounted(async () => {
     } catch { /* ignore malformed state */ }
   }
 
+  // Restore draft + set link field after returning from a link-create flow
+  const linkReturn = restoreLinkDraft(props.doctype, props.id, form.value)
+  if (linkReturn) {
+    form.value[linkReturn.fieldname] = linkReturn.value
+    toast.info(`Поле встановлено: ${linkReturn.value}`)
+  }
+
   await runScriptEvent('on_load')
 })
+
+/**
+ * Handle "create-new" event from a Link field inside the form.
+ * Saves the current form data as a draft and navigates to the linked doc form.
+ */
+function handleCreateNew(linkedDoctype: string, preset: string, fieldname: string) {
+  allowLeave = true
+  startLinkCreate(
+    linkedDoctype,
+    preset,
+    fieldname,
+    props.doctype,
+    props.id,
+    { ...form.value },
+    props.workspace,
+  )
+}
 
 // ── WebSocket real-time + presence ───────────────────────────────────────────
 const wsUrl = computed(() => props.id ? `/api/v1/ws/${props.doctype}/${props.id}` : null)
@@ -132,10 +162,12 @@ async function handleSave() {
     
     if (!props.id) {
       allowLeave = true
-      const newId = (saved as { id: string }).id
+      const savedDoc = saved as { id: string; name: string }
+      // If this save is part of a link-create flow — navigate back to origin
+      if (finishLinkCreate(props.doctype, savedDoc.name)) return
       const path = props.workspace
-        ? `/${props.workspace}/list/${props.doctype}/${newId}`
-        : `/${props.doctype}/${newId}`
+        ? `/${props.workspace}/list/${props.doctype}/${savedDoc.id}`
+        : `/${props.doctype}/${savedDoc.id}`
       router.replace(path)
     }
   } catch (err: unknown) {
@@ -261,6 +293,7 @@ function onFormUpdate(updated: Record<string, unknown>) {
               @update:model-value="onFormUpdate($event)"
               @field-focus="focusField($event)"
               @field-blur="blurField($event)"
+              @create-new="handleCreateNew"
             />
           </div>
 

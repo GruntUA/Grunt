@@ -24,6 +24,11 @@ export interface ScriptButtonHandle {
   update: (updates: { label?: string; variant?: string }) => void
 }
 
+/** Callback registered via frm.set_query — returns filters for a link field. */
+export type LinkQueryFn = (
+  doc: Record<string, unknown>,
+) => { filters: Record<string, string> } | Record<string, string>
+
 /** Form proxy exposed to client scripts as `cur_frm`. */
 export interface FormProxy {
   doctype: string
@@ -35,6 +40,16 @@ export interface FormProxy {
   toggle_display: (fieldname: string, show: boolean) => void
   toggle_reqd: (fieldname: string, reqd: boolean) => void
   set_df_property: (fieldname: string, prop: string, value: unknown) => void
+  /**
+   * Register a dynamic filter for a Link field.
+   *
+   * ```js
+   * frm.set_query('customer', function(doc) {
+   *   return { filters: { company: doc.company, status: 'Active' } }
+   * })
+   * ```
+   */
+  set_query: (fieldname: string, fn: LinkQueryFn) => void
   refresh_field: (fieldname: string) => void
   add_button: (label: string, action: () => void | Promise<void>, options?: { variant?: string }) => void
   save: () => Promise<void>
@@ -42,6 +57,7 @@ export interface FormProxy {
   _display: Record<string, boolean>
   _reqd: Record<string, boolean>
   _df_props: Record<string, Record<string, unknown>>
+  _queries: Record<string, LinkQueryFn>
 }
 
 /** Handle returned by listview.add_menu_item — allows in-place updates. */
@@ -149,6 +165,7 @@ export function createFormProxy(
     _display: {},
     _reqd: {},
     _df_props: {},
+    _queries: {},
 
     get_value(fieldname: string) {
       return proxy.doc[fieldname]
@@ -172,6 +189,10 @@ export function createFormProxy(
         proxy._df_props[fieldname] = {}
       }
       proxy._df_props[fieldname][prop] = value
+    },
+
+    set_query(fieldname: string, fn: LinkQueryFn) {
+      proxy._queries[fieldname] = fn
     },
 
     refresh_field(fieldname: string) {

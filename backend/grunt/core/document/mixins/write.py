@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from grunt.core.document.multi_link import MultiLinkService
 
 from grunt.app import GruntError
+from grunt.core.document.aggregate import compute_aggregations
 from grunt.core.document.formula import compute_formulas
 from grunt.core.document.registry import document_registry
 from grunt.core.document.relations import (
@@ -166,6 +167,15 @@ class DocumentWriteMixin:
             # Save child table fields
             await _save_child_tables(self.session, dt, doc_id, data, user, now)
 
+            # Compute aggregation fields from child table rows
+            agg_values = await compute_aggregations(self.session, dt, doc_id)
+            if agg_values:
+                await self.session.execute(
+                    table.update().where(table.c.id == doc_id).values(**agg_values)
+                )
+                row.update(agg_values)
+                await self.session.flush()
+
             # Save MultiLink fields
             for mlf in _get_multi_link_fields(dt):
                 values = data.get(mlf.fieldname)
@@ -294,6 +304,15 @@ class DocumentWriteMixin:
 
             # Update child table fields
             await _save_child_tables(self.session, dt, real_id, data, user, datetime.now(UTC))
+
+            # Recompute aggregation fields after child rows are saved
+            agg_values = await compute_aggregations(self.session, dt, real_id)
+            if agg_values:
+                await self.session.execute(
+                    table.update().where(table.c.id == real_id).values(**agg_values)
+                )
+                update_data.update(agg_values)
+                merged.update(agg_values)
 
             # Update MultiLink fields
             for mlf in _get_multi_link_fields(dt):

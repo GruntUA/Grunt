@@ -38,6 +38,7 @@ export type PropSection =
   | 'table'
   | 'number'
   | 'collapsible'
+  | 'aggregate'
 
 export interface FieldDefinition {
   /** Unique identifier — matches DocField.fieldtype */

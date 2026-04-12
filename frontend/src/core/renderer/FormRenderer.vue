@@ -22,6 +22,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: Record<string, unknown>]
   'field-focus': [fieldname: string]
   'field-blur': [fieldname: string]
+  'create-new': [doctype: string, preset: string, fieldname: string]
 }>()
 
 const layout = computed(() => parseLayout(props.doctype.fields))
@@ -87,7 +88,10 @@ function toggleSection(section: LayoutSection) {
                   :field="reqdOverrides?.[f.fieldname] !== undefined ? { ...f, required: reqdOverrides[f.fieldname] } : f"
                   :model-value="modelValue[f.fieldname]"
                   :disabled="disabled || f.read_only || !!fieldLocks?.[f.fieldname]" :error="errors?.[f.fieldname]"
-                  :doc-values="modelValue" @update:model-value="update(f.fieldname, $event)" />
+                  :doc-values="modelValue"
+                  @update:model-value="update(f.fieldname, $event)"
+                  @create-new="(doctype, preset, fieldname) => emit('create-new', doctype, preset, fieldname)"
+                />
               </div>
             </div>
           </div>

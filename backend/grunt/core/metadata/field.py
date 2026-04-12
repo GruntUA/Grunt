@@ -147,6 +147,10 @@ class DocField(BaseModel):
     description: str | None = None
     placeholder: str | None = None
 
+    # Link field — optional filters for the link_search dropdown.
+    # JSON object: '{"status": "Active"}' or expression 'eval: {"company": doc.company}'.
+    link_filters: str | None = None
+
     # Layout
     collapsible: bool = False
     columns: int = 12
@@ -166,6 +170,14 @@ class DocField(BaseModel):
     # Built-ins: abs, round, min, max, sum, len, str, int, float, bool.
     # If set, the field is effectively read-only (computed value).
     formula: str | None = None
+
+    # Aggregation — computes a summary value from a child TABLE field.
+    # aggregate_function: "sum" | "count" | "avg" | "min" | "max"
+    # aggregate_table:    fieldname of the TABLE field in this DocType
+    # aggregate_field:    fieldname in the child DocType to aggregate (not needed for "count")
+    aggregate_function: str | None = None
+    aggregate_table: str | None = None
+    aggregate_field: str | None = None
 
     model_config = {"use_enum_values": True}
 

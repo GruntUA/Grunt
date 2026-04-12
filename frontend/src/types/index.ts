@@ -45,6 +45,12 @@ export interface DocField {
   depends_on?: string
   mandatory_depends_on?: string
   formula?: string | null
+  // Aggregation
+  aggregate_function?: string | null
+  aggregate_table?: string | null
+  aggregate_field?: string | null
+  // Link
+  link_filters?: string | null
   // Layout
   columns?: number
   collapsible?: boolean

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
-import { getFieldConfig } from '@/core/fieldRegistry'
+import { getFieldDef } from '@/core/fieldRegistry'
 import { metaApi } from '@/core/api'
 import type { DocTypeSummary } from '@/types'
 import { Input } from '@/components/ui/input'
@@ -16,8 +16,13 @@ const tableSearch = ref('')
 
 const builder = useBuilderStore()
 const field = computed(() => builder.selectedField)
-const config = computed(() => field.value ? getFieldConfig(field.value.fieldtype) : null)
-const sections = computed(() => config.value?.sections ?? [])
+const config = computed(() => field.value ? getFieldDef(field.value.fieldtype) : undefined)
+const sections = computed(() => config.value?.propertySections ?? [])
+
+// Table fields in the current DocType (for aggregate_table selector)
+const tableFields = computed(() =>
+  (builder.doctype?.fields ?? []).filter((f) => f.fieldtype === 'Table')
+)
 const fieldHint = computed(() =>
   field.value
     ? builder.indexHints.find(h => h.field === field.value!.fieldname) ?? null
@@ -236,24 +241,93 @@ const childDoctypeOptions = computed(() => {
       <!-- FORMULA -->
       <template v-if="has('formula')">
         <Separator class="mb-3" />
-        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Formula</p>
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Formula</p>
+          <span
+            v-if="field.formula"
+            class="text-[10px] font-mono text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-1.5 py-0.5 rounded"
+          >ƒx активна</span>
+        </div>
         <div class="flex flex-col gap-2 mb-4">
           <div class="space-y-1.5">
             <Label class="text-sm">Вираз (Python)</Label>
-            <Input
-              :model-value="field.formula ?? ''"
+            <textarea
+              :value="field.formula ?? ''"
+              rows="2"
               placeholder="qty * unit_price"
-              @update:model-value="updateField('formula', $event || null)"
+              class="w-full text-sm font-mono border border-input rounded-md px-2 py-1.5 bg-background focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+              @input="updateField('formula', ($event.target as HTMLTextAreaElement).value.trim() || null)"
             />
-            <p class="text-[11px] text-muted-foreground">
-              Обчислюється при збереженні. Доступні всі поля документа як змінні.
-              Приклади: <code>qty * price</code>, <code>round(a + b, 2)</code>
+            <p class="text-[11px] text-muted-foreground leading-relaxed">
+              Обчислюється при кожному збереженні. Доступні всі поля документа як змінні.<br>
+              Приклади: <code class="bg-muted px-1 rounded">qty * price</code>,
+              <code class="bg-muted px-1 rounded">round(a + b, 2)</code>,
+              <code class="bg-muted px-1 rounded">first_name + ' ' + last_name</code>
             </p>
           </div>
-          <div v-if="field.formula" class="flex items-center gap-2 pt-1">
+          <div v-if="field.formula" class="flex items-center gap-2 pt-1 pl-0.5">
             <Checkbox :model-value="!!field.read_only" @update:model-value="updateField('read_only', $event)" />
-            <Label class="text-sm text-muted-foreground">Read Only (рекомендовано для формульних полів)</Label>
+            <Label class="text-sm text-muted-foreground cursor-pointer">Read Only (рекомендовано)</Label>
           </div>
+        </div>
+      </template>
+
+      <!-- AGGREGATE -->
+      <template v-if="has('aggregate')">
+        <Separator class="mb-3" />
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Aggregation</p>
+          <span
+            v-if="field.aggregate_function"
+            class="text-[10px] font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-1.5 py-0.5 rounded"
+          >∑ активна</span>
+        </div>
+        <div class="flex flex-col gap-3 mb-4">
+          <div class="space-y-1.5">
+            <Label class="text-sm">Функція</Label>
+            <Select
+              :model-value="field.aggregate_function ?? ''"
+              @update:model-value="updateField('aggregate_function', $event || null)"
+            >
+              <SelectTrigger><SelectValue placeholder="— без агрегації —" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">— без агрегації —</SelectItem>
+                <SelectItem value="sum">sum — сума</SelectItem>
+                <SelectItem value="count">count — кількість рядків</SelectItem>
+                <SelectItem value="avg">avg — середнє</SelectItem>
+                <SelectItem value="min">min — мінімум</SelectItem>
+                <SelectItem value="max">max — максимум</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <template v-if="field.aggregate_function">
+            <div class="space-y-1.5">
+              <Label class="text-sm">Таблиця (TABLE поле)</Label>
+              <Select
+                :model-value="field.aggregate_table ?? ''"
+                @update:model-value="updateField('aggregate_table', $event || null)"
+              >
+                <SelectTrigger><SelectValue placeholder="— оберіть TABLE поле —" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="tf in tableFields" :key="tf.fieldname" :value="tf.fieldname">
+                    {{ tf.label || tf.fieldname }} ({{ tf.fieldname }})
+                  </SelectItem>
+                  <div v-if="!tableFields.length" class="px-2 py-1.5 text-xs text-muted-foreground">
+                    Немає TABLE полів у цьому DocType
+                  </div>
+                </SelectContent>
+              </Select>
+            </div>
+            <div v-if="field.aggregate_function !== 'count'" class="space-y-1.5">
+              <Label class="text-sm">Поле дочірнього DocType</Label>
+              <Input
+                :model-value="field.aggregate_field ?? ''"
+                placeholder="напр. amount"
+                @update:model-value="updateField('aggregate_field', $event || null)"
+              />
+              <p class="text-[11px] text-muted-foreground">Fieldname числового поля у дочірньому DocType</p>
+            </div>
+          </template>
         </div>
       </template>
 
@@ -292,6 +366,21 @@ const childDoctypeOptions = computed(() => {
               <div v-if="!doctypeOptions.length" class="px-2 py-1.5 text-xs text-muted-foreground">Нічого не знайдено</div>
             </SelectContent>
           </Select>
+        </div>
+      </template>
+
+      <!-- LINK FILTERS -->
+      <template v-if="has('link') && field.options">
+        <div class="mb-4">
+          <Label class="text-sm">Link Filters</Label>
+          <textarea
+            :value="field.link_filters ?? ''"
+            rows="2"
+            placeholder='{"status": "Active"} або eval: {"company": doc.company}'
+            class="w-full mt-1.5 text-sm font-mono border border-input rounded-md px-2 py-1.5 bg-background focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+            @input="updateField('link_filters', ($event.target as HTMLTextAreaElement).value.trim() || null)"
+          />
+          <p class="text-[11px] text-muted-foreground mt-1">JSON об'єкт або <code class="bg-muted px-1 rounded">eval: {"field": doc.field}</code></p>
         </div>
       </template>
 

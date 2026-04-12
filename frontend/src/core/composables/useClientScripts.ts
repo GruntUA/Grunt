@@ -135,11 +135,38 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
     return result
   }
 
+  /**
+   * Resolve script-registered link filters for a field.
+   * Called by Link.vue via injected context.
+   *
+   * @param fieldname  The Link field's fieldname
+   * @param doc        Current document values
+   * @returns          Flat filters dict, e.g. `{ status: 'Active' }`
+   */
+  function getLinkFilters(
+    fieldname: string,
+    doc: Record<string, unknown>,
+  ): Record<string, string> {
+    const fn = frm._queries[fieldname]
+    if (!fn) return {}
+    try {
+      const result = fn(doc)
+      // Support both `{ filters: {...} }` and bare `{...}`
+      if (result && typeof result === 'object' && 'filters' in result) {
+        return (result as { filters: Record<string, string> }).filters ?? {}
+      }
+      return result as Record<string, string>
+    } catch {
+      return {}
+    }
+  }
+
   return {
     buttons,
     displayOverrides,
     reqdOverrides,
     dfPropOverrides,
     runEvent,
+    getLinkFilters,
   }
 }
