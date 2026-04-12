@@ -30,6 +30,7 @@ export type PropSection =
   | 'flags'
   | 'display'
   | 'text'
+  | 'formula'
   | 'validation'
   | 'default'
   | 'options'

@@ -4,15 +4,15 @@ from grunt.api.v1.docs.crud import router as crud_router
 from grunt.api.v1.docs.export import router as export_router
 from grunt.api.v1.docs.history import router as history_router
 from grunt.api.v1.docs.meta import router as meta_router
+from grunt.api.v1.docs.tree import router as tree_router
 from grunt.api.v1.docs.workflow import router as workflow_router
 
 router = GruntRouter()
 
-# Include sub-routers.  Order may matter if there are overlapping patterns,
-# but our paths are fairly distinct (except /doctype/doc_id/action).
-# Actually, crud has /{doctype} and /{doctype}/{doc_id}. So we should include
-# more specific paths FIRST.
+# Include sub-routers.  Order matters: more specific paths FIRST so they are
+# not shadowed by the generic /{doctype}/{doc_id} patterns in crud_router.
 
+router.include_router(tree_router)   # /{doctype}/tree/...
 router.include_router(workflow_router)
 router.include_router(export_router)
 router.include_router(history_router)

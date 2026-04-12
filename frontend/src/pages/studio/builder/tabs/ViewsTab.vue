@@ -159,9 +159,9 @@ const hasTree = computed(() => !!builder.doctype?.tree_view)
 function toggleTree(enabled: boolean) {
   if (enabled) {
     const firstLink = linkFields.value[0]?.fieldname ?? ''
-    builder.updateDocType({ tree_view: { parent_field: firstLink, title_field: 'name' } })
+    builder.updateDocType({ is_tree: true, tree_view: { parent_field: firstLink, title_field: 'name' } })
   } else {
-    builder.updateDocType({ tree_view: null })
+    builder.updateDocType({ is_tree: false, tree_view: null })
   }
 }
 

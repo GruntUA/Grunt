@@ -277,6 +277,12 @@ function removeSearchField(fieldname: string) {
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
+          <Label class="text-sm text-foreground">Ієрархія (дерево)</Label>
+          <Switch :checked="!!builder.doctype?.is_tree"
+            @update:checked="builder.updateDocType({ is_tree: $event })" />
+        </div>
+
+        <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Відстеження змін</Label>
           <Switch :checked="!!builder.doctype?.track_changes"
             @update:checked="builder.updateDocType({ track_changes: $event })" />

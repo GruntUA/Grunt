@@ -30,21 +30,43 @@ async def current_user(
     token: str | None = Depends(_oauth2_scheme_optional),
     session: AsyncSession = Depends(get_session),
 ) -> GruntUser:
-    """Decode JWT and return the authenticated user.
+    """Decode JWT or validate an API key and return the authenticated user.
 
-    When the token contains full identity claims (uid, full_name, etc.) the user
+    Auth priority:
+    1. ``X-Api-Key: grnt_<key>`` header — static API key (for integrations/CI)
+    2. ``Authorization: Bearer <jwt>`` header — standard JWT
+    3. ``?token=<jwt>`` query parameter — legacy WebSocket support
+
+    When the JWT contains full identity claims (uid, full_name, etc.) the user
     object is built directly from the payload — zero DB queries.
-    Older tokens that only carry ``sub`` fall back to a DB lookup.
     """
-    if not token:
-        token = request.query_params.get("token")
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    # ── 1. API Key ────────────────────────────────────────────────────────
+    api_key_header = request.headers.get("X-Api-Key")
+    if api_key_header:
+        from grunt.core.auth.api_key_service import authenticate_api_key  # noqa: PLC0415
+
+        client_ip = request.client.host if request.client else None
+        user = await authenticate_api_key(api_key_header, session, client_ip)
+        if user is None:
+            raise credentials_exception
+
+        from grunt.api.context import set_user  # noqa: PLC0415
+
+        set_user(user)
+        return user
+
+    # ── 2. JWT Bearer / query param ───────────────────────────────────────
+    if not token:
+        token = request.query_params.get("token")
     if not token:
         raise credentials_exception
+
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         email: str | None = payload.get("sub")

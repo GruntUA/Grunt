@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from grunt.core.document.multi_link import MultiLinkService
 
 from grunt.app import GruntError
+from grunt.core.document.formula import compute_formulas
 from grunt.core.document.registry import document_registry
 from grunt.core.document.relations import (
     _get_multi_link_fields,
@@ -152,6 +153,9 @@ class DocumentWriteMixin:
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
                 ) from e
 
+            # Compute formula fields after validation, before DB write
+            compute_formulas(dt, row)
+
             await fire(
                 "before_save", doctype=doctype_name, doc=row, user=user, session=self.session
             )
@@ -272,6 +276,13 @@ class DocumentWriteMixin:
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
                 ) from e
+
+            # Compute formula fields on the merged document, then propagate
+            # changed formula values back into update_data for the DB write
+            compute_formulas(dt, merged)
+            for field in dt.fields:
+                if field.formula and field.fieldname in merged and field.fieldname not in PROTECTED_FIELDS:
+                    update_data[field.fieldname] = merged[field.fieldname]
 
             await fire(
                 "before_save", doctype=doctype_name, doc=merged, user=user, session=self.session

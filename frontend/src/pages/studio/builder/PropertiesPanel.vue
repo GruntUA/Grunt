@@ -233,6 +233,30 @@ const childDoctypeOptions = computed(() => {
         </div>
       </template>
 
+      <!-- FORMULA -->
+      <template v-if="has('formula')">
+        <Separator class="mb-3" />
+        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Formula</p>
+        <div class="flex flex-col gap-2 mb-4">
+          <div class="space-y-1.5">
+            <Label class="text-sm">Вираз (Python)</Label>
+            <Input
+              :model-value="field.formula ?? ''"
+              placeholder="qty * unit_price"
+              @update:model-value="updateField('formula', $event || null)"
+            />
+            <p class="text-[11px] text-muted-foreground">
+              Обчислюється при збереженні. Доступні всі поля документа як змінні.
+              Приклади: <code>qty * price</code>, <code>round(a + b, 2)</code>
+            </p>
+          </div>
+          <div v-if="field.formula" class="flex items-center gap-2 pt-1">
+            <Checkbox :model-value="!!field.read_only" @update:model-value="updateField('read_only', $event)" />
+            <Label class="text-sm text-muted-foreground">Read Only (рекомендовано для формульних полів)</Label>
+          </div>
+        </div>
+      </template>
+
       <!-- OPTIONS: Select -->
       <template v-if="has('options')">
         <Separator class="mb-3" />

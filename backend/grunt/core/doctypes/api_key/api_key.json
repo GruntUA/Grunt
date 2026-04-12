@@ -1,0 +1,20 @@
+{
+  "name": "ApiKey",
+  "label": "API Key",
+  "module": "core",
+  "is_system": true,
+  "track_changes": false,
+  "fields": [
+    {"fieldname": "label", "label": "Назва", "fieldtype": "Data", "required": true, "in_list_view": true},
+    {"fieldname": "user_id", "label": "Користувач", "fieldtype": "Link", "options": "User", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "key_prefix", "label": "Префікс ключа", "fieldtype": "Data", "read_only": true, "in_list_view": true},
+    {"fieldname": "key_hash", "label": "Хеш ключа", "fieldtype": "Text", "hidden": true},
+    {"fieldname": "is_active", "label": "Активний", "fieldtype": "Check", "default": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "last_used_at", "label": "Останнє використання", "fieldtype": "Datetime", "read_only": true, "in_list_view": true},
+    {"fieldname": "expires_at", "label": "Дійсний до", "fieldtype": "Datetime"},
+    {"fieldname": "allowed_ips", "label": "Дозволені IP (через кому)", "fieldtype": "Text"}
+  ],
+  "permissions": [
+    {"role": "System Manager", "read": true, "write": true, "create": true, "delete": true}
+  ]
+}

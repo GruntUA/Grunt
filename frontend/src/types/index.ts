@@ -44,6 +44,7 @@ export interface DocField {
   // Conditional
   depends_on?: string
   mandatory_depends_on?: string
+  formula?: string | null
   // Layout
   columns?: number
   collapsible?: boolean
@@ -200,6 +201,7 @@ export interface DocType {
   is_child?: boolean
   is_submittable?: boolean
   is_singleton?: boolean
+  is_tree?: boolean
   is_system?: boolean
   track_changes?: boolean
   fields: DocField[]

@@ -161,6 +161,12 @@ class DocField(BaseModel):
     depends_on: str | None = None
     mandatory_depends_on: str | None = None
 
+    # Formula — Python expression evaluated at save time.
+    # Variables: all field values of the document (e.g. ``qty * unit_price``).
+    # Built-ins: abs, round, min, max, sum, len, str, int, float, bool.
+    # If set, the field is effectively read-only (computed value).
+    formula: str | None = None
+
     model_config = {"use_enum_values": True}
 
     @property

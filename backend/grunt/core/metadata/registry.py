@@ -39,6 +39,27 @@ class DocTypeRegistry:
         # Names that exist in the DB but whose definitions are not yet loaded.
         self._known_names: set[str] = set()
 
+        # O(1) case-insensitive lookup indices.
+        # Maps name.lower() → canonical name.  Updated by every write method.
+        self._lower_index: dict[str, str] = {}   # for loaded _doctypes
+        self._known_lower: dict[str, str] = {}   # for lazy _known_names
+
+    # ── Index helpers ─────────────────────────────────────────────────────
+
+    def _index_add(self, name: str) -> None:
+        """Add *name* to the loaded-doctype index."""
+        self._lower_index[name.lower()] = name
+
+    def _index_remove(self, name: str) -> None:
+        """Remove *name* from the loaded-doctype index (if present)."""
+        self._lower_index.pop(name.lower(), None)
+
+    def _known_index_add(self, name: str) -> None:
+        self._known_lower[name.lower()] = name
+
+    def _known_index_remove(self, name: str) -> None:
+        self._known_lower.pop(name.lower(), None)
+
     # ── Read ─────────────────────────────────────────────────────────────
 
     async def prefetch_names(self, session: AsyncSession) -> None:
@@ -52,6 +73,8 @@ class DocTypeRegistry:
         result = await session.execute(select(GruntMetaDoctype.name))
         all_names = {row[0] for row in result}
         self._known_names = all_names - set(self._doctypes)
+        # Rebuild the known-names index in one pass
+        self._known_lower = {n.lower(): n for n in self._known_names}
         logger.info(
             "registry.names_prefetched",
             core=len(self._doctypes),
@@ -74,7 +97,9 @@ class DocTypeRegistry:
             try:
                 dt = DocType.model_validate(row.data)
                 self._doctypes[dt.name] = dt
+                self._index_add(dt.name)
                 self._known_names.discard(dt.name)
+                self._known_index_remove(dt.name)
             except Exception:
                 logger.warning("registry.skip_invalid", name=row.name)
         logger.info("registry.loaded", count=len(self._doctypes))
@@ -105,44 +130,50 @@ class DocTypeRegistry:
             return None
 
         self._doctypes[dt.name] = dt
+        self._index_add(dt.name)
         self._known_names.discard(dt.name)
+        self._known_index_remove(dt.name)
         logger.debug("registry.lazy_loaded", name=dt.name)
         return dt
 
     async def get(self, name: str) -> DocType:
-        """Return a DocType by name, lazy-loading from DB if necessary."""
-        # 1. Fast path — already in memory
+        """Return a DocType by name, lazy-loading from DB if necessary.
+
+        Lookup order (all O(1)):
+        1. Exact match in loaded doctypes.
+        2. Case-insensitive match in loaded doctypes via ``_lower_index``.
+        3. Singular/plural heuristic via ``_lower_index`` (e.g. "customer" → "Customer").
+        4. Case-insensitive match in lazy ``_known_names`` via ``_known_lower``,
+           then load from DB.
+        """
+        # 1. Exact match — O(1)
         dt = self._doctypes.get(name)
         if dt is not None:
             return dt
 
-        # 2. Case-insensitive + plural/singular fallbacks (in-memory only)
         name_lower = name.lower()
-        for k, v in self._doctypes.items():
-            if k.lower() == name_lower:
-                return v
 
+        # 2. Case-insensitive match against loaded doctypes — O(1)
+        canonical = self._lower_index.get(name_lower)
+        if canonical:
+            return self._doctypes[canonical]
+
+        # 3. Singular/plural heuristic against loaded doctypes — O(1)
         if name_lower.endswith("s"):
-            singular = name[:-1]
-            for k, v in self._doctypes.items():
-                if k.lower() == singular.lower():
-                    return v
+            canonical = self._lower_index.get(name_lower[:-1])
         else:
-            plural = name + "s"
-            for k, v in self._doctypes.items():
-                if k.lower() == plural.lower():
-                    return v
+            canonical = self._lower_index.get(name_lower + "s")
+        if canonical:
+            return self._doctypes[canonical]
 
-        # 3. Lazy-load from DB (if name is known to exist)
-        candidate = name
-        if candidate not in self._known_names:
-            # Try same fuzzy matches against _known_names
-            for k in self._known_names:
-                if k.lower() == name_lower:
-                    candidate = k
-                    break
-            else:
-                candidate = ""
+        # 4. Resolve against lazy known-names index — O(1)
+        candidate = (
+            name
+            if name in self._known_names
+            else self._known_lower.get(name_lower)
+            or (self._known_lower.get(name_lower[:-1]) if name_lower.endswith("s") else None)
+            or (self._known_lower.get(name_lower + "s"))
+        )
 
         if candidate:
             dt = await self._lazy_load(candidate)
@@ -270,6 +301,7 @@ class DocTypeRegistry:
             await session.flush()
 
         self._doctypes[active_dt.name] = active_dt
+        self._index_add(active_dt.name)
         logger.info("registry.core_injected", name=active_dt.name)
 
     async def register(
@@ -295,7 +327,9 @@ class DocTypeRegistry:
 
         # Cache
         self._doctypes[doctype.name] = doctype
+        self._index_add(doctype.name)
         self._known_names.discard(doctype.name)
+        self._known_index_remove(doctype.name)
         logger.info("registry.registered", name=doctype.name)
 
     async def update(
@@ -325,6 +359,7 @@ class DocTypeRegistry:
         invalidate_permission_cache(doctype.name)
         await sync_table(doctype, async_engine, session=session)
         self._doctypes[doctype.name] = doctype
+        self._index_add(doctype.name)
         logger.info("registry.updated", name=doctype.name)
 
     async def delete(self, name: str, session: AsyncSession) -> None:
@@ -342,7 +377,9 @@ class DocTypeRegistry:
         await session.execute(delete(GruntMetaDoctype).where(GruntMetaDoctype.name == name))
         await session.flush()
         self._doctypes.pop(name, None)
+        self._index_remove(name)
         self._known_names.discard(name)
+        self._known_index_remove(name)
         invalidate_table_cache(name)
         invalidate_permission_cache(name)
         logger.info("registry.deleted", name=name)
