@@ -202,7 +202,7 @@ class DocumentReadMixin:
 
 
 async def _resolve_link_labels(
-    session: "AsyncSession",
+    session: AsyncSession,
     dt: Any,
     rows: list[dict[str, Any]],
 ) -> None:

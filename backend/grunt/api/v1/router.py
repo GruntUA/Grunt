@@ -5,8 +5,6 @@ from fastapi import APIRouter
 from grunt.api.v1.activity import router as activity_router
 from grunt.api.v1.apps import router as apps_router
 from grunt.api.v1.assignment import router as assignment_router
-from grunt.api.v1.webhooks import router as webhooks_router
-from grunt.api.v1.share import router as share_router
 from grunt.api.v1.auth import router as auth_router
 from grunt.api.v1.dashboard import router as dashboard_router
 from grunt.api.v1.data_import import router as data_import_router
@@ -24,8 +22,10 @@ from grunt.api.v1.pages import router as pages_router
 from grunt.api.v1.reports import router as reports_router
 from grunt.api.v1.scripting import router as scripting_router
 from grunt.api.v1.search import router as search_router
+from grunt.api.v1.share import router as share_router
 from grunt.api.v1.translations import router as translations_router
 from grunt.api.v1.webform import router as webform_router
+from grunt.api.v1.webhooks import router as webhooks_router
 from grunt.api.v1.workspace import router as workspace_router
 from grunt.api.v1.ws import router as ws_router
 

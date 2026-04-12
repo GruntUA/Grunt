@@ -1,7 +1,10 @@
-import asyncio, json
-from grunt.core.site.manager import site_manager
-from grunt.core.db.system_tables import GruntMetaDoctype
+import asyncio
+
 from sqlalchemy import select
+
+from grunt.core.db.system_tables import GruntMetaDoctype
+from grunt.core.site.manager import site_manager
+
 
 async def check_db():
     site_name = site_manager.get_active_site()
