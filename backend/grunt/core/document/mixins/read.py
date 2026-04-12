@@ -126,7 +126,9 @@ class DocumentReadMixin:
         try:
             await _resolve_link_labels(self.session, dt, rows)
         except Exception as _lbl_err:  # noqa: BLE001
-            logger.warning("list_documents.link_labels_failed", doctype=doctype_name, error=str(_lbl_err))
+            logger.warning(
+                "list_documents.link_labels_failed", doctype=doctype_name, error=str(_lbl_err)
+            )
 
         # Serialise datetimes
         for doc_row in rows:

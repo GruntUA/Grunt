@@ -42,7 +42,10 @@ async def get_shared_document(
         grunt.reset_context(_tokens)
 
     if not shares:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Посилання не знайдено або деактивовано")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Посилання не знайдено або деактивовано",
+        )
 
     share = shares[0]
 
@@ -57,7 +60,10 @@ async def get_shared_document(
         if expires_at:
             exp = expires_at if expires_at.tzinfo else expires_at.replace(tzinfo=UTC)
             if exp < datetime.now(UTC):
-                raise HTTPException(status_code=status.HTTP_410_GONE, detail="Термін дії посилання закінчився")
+                raise HTTPException(
+                    status_code=status.HTTP_410_GONE,
+                    detail="Термін дії посилання закінчився",
+                )
 
     doctype_name = share["doctype_name"]
     doc_id = share["doc_id"]
@@ -79,11 +85,11 @@ async def get_shared_document(
     if not doc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Документ не знайдено")
 
-    LAYOUT_TYPES = {"Section", "Column", "Tab"}
+    layout_types = {"Section", "Column", "Tab"}
     visible_fields = [
         {"fieldname": f.fieldname, "label": f.label, "fieldtype": f.fieldtype}
         for f in dt.fields
-        if f.fieldtype not in LAYOUT_TYPES and not f.hidden
+        if f.fieldtype not in layout_types and not f.hidden
     ]
 
     return {

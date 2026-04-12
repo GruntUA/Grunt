@@ -146,9 +146,6 @@ async def bulk_update_documents(
     for doc_id in ids:
         try:
             await svc.update_document(doctype, doc_id, {field: value}, user)
-            await _audit_log(
-                svc, doctype, doc_id, "bulk_update", user, {"field": field, "value": value}
-            )
             updated += 1
         except Exception as e:
             errors.append(f"{doc_id}: {e}")

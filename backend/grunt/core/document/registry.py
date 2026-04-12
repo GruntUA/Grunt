@@ -66,12 +66,11 @@ class DocumentRegistry:
             try:
                 module = importlib.import_module(mod_path)
                 controller_cls = getattr(module, class_name, None)
-                is_doc_cls = (
+                if (
                     controller_cls
                     and inspect.isclass(controller_cls)
                     and issubclass(controller_cls, Document)
-                )
-                if is_doc_cls:
+                ):
                     self.register(doctype, controller_cls)
                     logger.info("document.lazy_loaded", doctype=doctype, controller=module_path)
                     return

@@ -3,10 +3,14 @@ from __future__ import annotations
 import importlib
 import uuid
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import structlog
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -205,7 +209,7 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
 
 
 async def _write_job_log(
-    session: object,
+    session: AsyncSession,
     *,
     log_id: str,
     job_name: str,
@@ -234,7 +238,7 @@ async def _write_job_log(
 
 
 async def _update_job_log(
-    session: object,
+    session: AsyncSession,
     *,
     log_id: str,
     status: str,

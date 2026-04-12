@@ -28,7 +28,7 @@ async def create_session(
 
     _tokens = grunt.set_context(db_session, None, SYSTEM_USER)
     try:
-        await grunt.db.insert(
+        await grunt.new_doc(
             "UserSession",
             {
                 "user": user_id,

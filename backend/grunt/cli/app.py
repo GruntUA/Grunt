@@ -39,7 +39,8 @@ async def _do_install(name: str, site: str | None) -> None:
     from grunt.core.site.manager import current_site, site_manager  # noqa: PLC0415
     from grunt.core.startup import load_core_doctypes, seed_app_workspaces  # noqa: PLC0415
 
-    target_site = site or (site_manager.get_sites() or [None])[0]
+    _sites = site_manager.get_sites()
+    target_site = site or (_sites[0] if _sites else None)
     if target_site is None:
         raise SystemExit("Помилка: сайт не знайдено.")
 
@@ -105,7 +106,8 @@ def app_uninstall(name: str, site: str | None):
 
         from grunt.core.site.manager import site_manager  # noqa: PLC0415
 
-        target_site = site or (site_manager.get_sites() or [None])[0]
+        _sites = site_manager.get_sites()
+        target_site = site or (_sites[0] if _sites else None)
         if target_site is None:
             click.echo("Помилка: сайт не знайдено.", err=True)
             raise SystemExit(1)
