@@ -75,25 +75,80 @@ class WebhookService:
                 except Exception:  # noqa: BLE001
                     continue
 
-            await self._send(
+            await self._send_and_log(
+                session=session,
+                webhook_id=str(wh.get("id") or wh.get("name") or ""),
+                event=event,
                 url=str(wh["url"]),
                 payload=payload_str,
                 secret=wh.get("secret") or "",
                 extra_headers=wh.get("headers") or "",
                 timeout=int(wh.get("timeout") or 10),
+                is_test=False,
             )
 
-    async def _send(
+    async def test_delivery(
         self,
+        session: AsyncSession,
+        webhook_id: str,
+        user_email: str,
+    ) -> dict[str, Any]:
+        """Send a test payload for the given webhook and return the log entry."""
+        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+
+        _tokens = grunt.set_context(session, None, SYSTEM_USER)
+        try:
+            wh_data = await grunt.get_doc("OutgoingWebhook", webhook_id)
+        finally:
+            grunt.reset_context(_tokens)
+
+        if not wh_data:
+            return {"success": False, "error": "Вебхук не знайдено"}
+
+        payload_str = json.dumps(
+            {
+                "event": wh_data.get("event", "test"),
+                "doctype": wh_data.get("doctype_name", ""),
+                "doc": {"id": "test-doc-id", "name": "test-document", "_test": True},
+                "timestamp": int(time.time()),
+                "is_test": True,
+            },
+            ensure_ascii=False,
+        )
+
+        log = await self._send_and_log(
+            session=session,
+            webhook_id=webhook_id,
+            event=wh_data.get("event", "test"),
+            url=str(wh_data["url"]),
+            payload=payload_str,
+            secret=wh_data.get("secret") or "",
+            extra_headers=wh_data.get("headers") or "",
+            timeout=int(wh_data.get("timeout") or 10),
+            is_test=True,
+        )
+        return log
+
+    async def _send_and_log(
+        self,
+        session: AsyncSession,
+        webhook_id: str,
+        event: str,
         url: str,
         payload: str,
         secret: str,
         extra_headers: str,
         timeout: int,
-    ) -> None:
+        is_test: bool = False,
+    ) -> dict[str, Any]:
+        """Send a webhook POST and write a WebhookLog record. Returns log data."""
+        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
         headers: dict[str, str] = {"Content-Type": "application/json"}
 
-        # HMAC-SHA256 signature
         if secret:
             sig = hmac.new(
                 secret.encode(),
@@ -102,7 +157,6 @@ class WebhookService:
             ).hexdigest()
             headers["X-Grunt-Signature"] = f"sha256={sig}"
 
-        # Merge extra headers from JSON
         if extra_headers:
             try:
                 extra = json.loads(extra_headers)
@@ -111,16 +165,49 @@ class WebhookService:
             except Exception:  # noqa: BLE001
                 pass
 
+        status_code: int | None = None
+        response_body: str = ""
+        error: str = ""
+        success = False
+        start = time.monotonic()
+
         try:
             async with httpx.AsyncClient(timeout=timeout) as client:
                 resp = await client.post(url, content=payload, headers=headers)
-                logger.info(
-                    "webhook.fired",
-                    url=url,
-                    status=resp.status_code,
-                )
+                status_code = resp.status_code
+                response_body = resp.text[:4000]
+                success = 200 <= resp.status_code < 300
+                logger.info("webhook.fired", url=url, status=resp.status_code, is_test=is_test)
         except Exception as exc:  # noqa: BLE001
-            logger.warning("webhook.fire_failed", url=url, error=str(exc))
+            error = str(exc)
+            logger.warning("webhook.fire_failed", url=url, error=error, is_test=is_test)
+
+        duration_ms = int((time.monotonic() - start) * 1000)
+
+        log_entry: dict[str, Any] = {
+            "webhook": webhook_id,
+            "event": event,
+            "url": url,
+            "status_code": status_code,
+            "success": success,
+            "duration_ms": duration_ms,
+            "response_body": response_body,
+            "error": error,
+            "is_test": is_test,
+        }
+
+        # Write WebhookLog best-effort
+        if doctype_registry._doctypes.get("WebhookLog"):
+            try:
+                _tokens = grunt.set_context(session, None, SYSTEM_USER)
+                try:
+                    await grunt.new_doc("WebhookLog", log_entry)
+                finally:
+                    grunt.reset_context(_tokens)
+            except Exception:  # noqa: BLE001
+                logger.warning("webhook_log.write_failed", webhook_id=webhook_id)
+
+        return {**log_entry, "success": success}
 
 
 webhook_service = WebhookService()

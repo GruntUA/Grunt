@@ -5,6 +5,8 @@ from fastapi import APIRouter
 from grunt.api.v1.activity import router as activity_router
 from grunt.api.v1.apps import router as apps_router
 from grunt.api.v1.assignment import router as assignment_router
+from grunt.api.v1.webhooks import router as webhooks_router
+from grunt.api.v1.share import router as share_router
 from grunt.api.v1.auth import router as auth_router
 from grunt.api.v1.dashboard import router as dashboard_router
 from grunt.api.v1.data_import import router as data_import_router
@@ -53,3 +55,5 @@ v1_router.include_router(hooks_router, prefix="/hooks", tags=["hooks"])
 v1_router.include_router(email_router, tags=["email"])
 v1_router.include_router(assignment_router, tags=["assignment"])
 v1_router.include_router(dev_router, tags=["dev"])
+v1_router.include_router(webhooks_router, prefix="/webhooks", tags=["webhooks"])
+v1_router.include_router(share_router, tags=["share"])

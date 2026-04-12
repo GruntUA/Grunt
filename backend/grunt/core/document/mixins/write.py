@@ -317,10 +317,12 @@ class DocumentWriteMixin:
             for hidden_field in permission_checker.hidden_fields(user, dt):
                 result.pop(hidden_field, None)
 
-            # Create version record
-            if dt.track_changes:
-                from grunt.core.document.versioning import version_service  # noqa: PLC0415
+            # Create version record and ActivityLog diff
+            from grunt.core.document.versioning import version_service  # noqa: PLC0415
 
+            diff_changes = version_service._compute_diff(existing, result)
+
+            if dt.track_changes and diff_changes:
                 try:
                     await version_service.create_version(
                         session=self.session,
@@ -332,6 +334,34 @@ class DocumentWriteMixin:
                     )
                 except Exception:
                     logger.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
+
+            # Write ActivityLog entry with field-level diff (best-effort)
+            if diff_changes:
+                try:
+                    from grunt.app import grunt as _g  # noqa: PLC0415
+
+                    _log_tokens = _g.set_context(
+                        session=self.session, engine=self.engine, user=user
+                    )
+                    try:
+                        await _g.new_doc(
+                            "ActivityLog",
+                            {
+                                "doctype": doctype_name,
+                                "doc_id": real_id,
+                                "action": "Update",
+                                "user": user.email,
+                                "details": {"changes": diff_changes},
+                            },
+                        )
+                    finally:
+                        _g.reset_context(_log_tokens)
+                except Exception:  # noqa: BLE001
+                    logger.warning(
+                        "activity_log.update_failed",
+                        doctype=doctype_name,
+                        doc_id=real_id,
+                    )
 
             doc.data = result
             try:

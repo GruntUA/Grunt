@@ -88,6 +88,8 @@ _profiling_enabled: bool = True
 _global_threshold_ms: float = 10.0
 _slow_request_db_ms: float = 20.0
 _slow_request_ms: float = 100.0
+# N+1 detector: warn when a single request fires more than this many SQL queries
+_n1_threshold: int = 10
 
 
 def get_settings() -> dict:
@@ -96,6 +98,7 @@ def get_settings() -> dict:
         "threshold_ms": _global_threshold_ms,
         "slow_request_db_ms": _slow_request_db_ms,
         "slow_request_ms": _slow_request_ms,
+        "n1_threshold": _n1_threshold,
     }
 
 
@@ -117,6 +120,15 @@ def set_request_db_threshold(ms: float) -> None:
 def set_request_threshold(ms: float) -> None:
     global _slow_request_ms
     _slow_request_ms = ms
+
+
+def set_n1_threshold(n: int) -> None:
+    global _n1_threshold
+    _n1_threshold = max(1, n)
+
+
+def get_n1_threshold() -> int:
+    return _n1_threshold
 
 
 # ── Per-request context ────────────────────────────────────────────────────
@@ -205,6 +217,18 @@ def finish_request(
             slow_query_count=slow_count,
             threshold_request_ms=_slow_request_ms,
             threshold_db_ms=_slow_request_db_ms,
+        )
+
+    # N+1 detector: warn if more SQL queries than the threshold fired for one request
+    if len(queries) > _n1_threshold:
+        logger.warning(
+            "n1_suspect",
+            request_id=request_id,
+            method=method,
+            path=path,
+            query_count=len(queries),
+            n1_threshold=_n1_threshold,
+            hint="Consider using select_related / batch loading to reduce query count",
         )
 
     return profile

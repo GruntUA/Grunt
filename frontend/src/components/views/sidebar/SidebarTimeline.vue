@@ -34,8 +34,11 @@ function timelineLabel(item: TimelineItem): string {
   if (item.type === 'comment') return item.content ?? ''
   const labels: Record<string, string> = {
     create: 'Створив документ',
+    Create: 'Створив документ',
     update: 'Оновив документ',
+    Update: 'Оновив документ',
     delete: 'Видалив документ',
+    Delete: 'Видалив документ',
     bulk_update: 'Масове оновлення',
     restore: 'Відновив версію',
     transition: 'Змінив статус',
@@ -176,7 +179,8 @@ onMounted(loadTimeline)
             </button>
           </div>
         </div>
-        <p v-if="item.type === 'comment'" class="text-sm text-foreground bg-muted/50 rounded-lg px-3 py-2 mt-1 whitespace-pre-wrap">
+        <p v-if="item.type === 'comment'"
+          class="text-sm text-foreground bg-muted/50 rounded-lg px-3 py-2 mt-1 whitespace-pre-wrap">
           {{ item.content }}
         </p>
       </div>
@@ -188,7 +192,8 @@ onMounted(loadTimeline)
         Коментар
       </span>
       <div class="relative">
-        <textarea v-model="commentInput" rows="3" placeholder="Напишіть коментар... @email для згадки (Ctrl+Enter щоб надіслати)"
+        <textarea v-model="commentInput" rows="3"
+          placeholder="Напишіть коментар... @email для згадки (Ctrl+Enter щоб надіслати)"
           class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors resize-none"
           @keydown="onCommentKeydown" @input="onCommentInput" />
         <div v-if="mentionDropdown.length"

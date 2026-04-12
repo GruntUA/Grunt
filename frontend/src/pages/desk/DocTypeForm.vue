@@ -18,7 +18,6 @@ import VersionHistoryPanel from '@/components/views/VersionHistoryPanel.vue'
 
 // Custom sub-components
 import FormHeader from '@/components/views/form/FormHeader.vue'
-import FormActivityLog from '@/components/views/form/FormActivityLog.vue'
 import FormModals from '@/components/views/form/FormModals.vue'
 
 const props = defineProps<{ doctype: string; id: string | null; workspace?: string }>()
@@ -51,7 +50,6 @@ const showLeaveModal = ref(false)
 let pendingRoute: string | null = null
 let allowLeave = false
 
-const activityLogRef = ref<InstanceType<typeof FormActivityLog> | null>(null)
 const showVersions = ref(false)
 
 function onVersionRestored() {
@@ -222,7 +220,7 @@ function onFormUpdate(updated: Record<string, unknown>) {
 </script>
 
 <template>
-  <div class="p-4 sm:p-6 lg:p-8 max-w-full xl:max-w-7xl animate-in fade-in duration-500">
+  <div class="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
     <!-- Header -->
     <FormHeader
       :dt="dt"
@@ -238,7 +236,6 @@ function onFormUpdate(updated: Record<string, unknown>) {
       @save="handleSave"
       @delete="showDeleteModal = true"
       @duplicate="handleDuplicate"
-      @toggle-log="activityLogRef?.toggleLog()"
       @invalidate="queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })"
     />
 
@@ -248,11 +245,11 @@ function onFormUpdate(updated: Record<string, unknown>) {
     </div>
 
     <template v-else>
-      <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
         <!-- Left Column -->
-        <div class="min-w-0 flex flex-col gap-6">
+        <div class="min-w-0 flex flex-col gap-4">
           <!-- Main Form Card -->
-          <div class="bg-card rounded-xl p-6 sm:p-8 shadow-md ring-1 ring-border/60 transition-all">
+          <div class="bg-card border border-border rounded-md shadow-sm p-5">
             <FormRenderer
               :doctype="dt"
               :model-value="form"
@@ -267,21 +264,19 @@ function onFormUpdate(updated: Record<string, unknown>) {
             />
           </div>
 
-          <!-- Activity log -->
-          <FormActivityLog ref="activityLogRef" :doctype="doctype" :id="id" />
 
           <!-- Version history -->
-          <div v-if="id && dt?.track_changes" class="bg-card rounded-xl overflow-hidden shadow-sm ring-1 ring-border/60">
+          <div v-if="id && dt?.track_changes" class="form-section">
             <button type="button"
-              class="w-full flex items-center gap-2 px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              class="form-section-header w-full hover:bg-muted/70 transition-colors"
               @click="showVersions = !showVersions">
-              <History class="size-4" />
+              <History class="size-3.5 text-muted-foreground" />
               <span class="flex-1 text-left">Версії документа</span>
               <div class="size-4 flex items-center justify-center transition-transform duration-300" :class="{ 'rotate-180': showVersions }">
                 <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1L5 5L9 1"/></svg>
               </div>
             </button>
-            <div v-if="showVersions" class="border-t border-border bg-muted/5">
+            <div v-if="showVersions">
               <VersionHistoryPanel :doctype="doctype" :doc-id="id" @restored="onVersionRestored" />
             </div>
           </div>

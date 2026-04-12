@@ -173,3 +173,165 @@ msgstr ""
 
 msgid "No"
 msgstr ""
+
+#. ── Document lifecycle ────────────────────────────────────────
+msgid "Document submitted"
+msgstr ""
+
+msgid "Document cancelled"
+msgstr ""
+
+msgid "Document amended"
+msgstr ""
+
+msgid "Document duplicated"
+msgstr ""
+
+msgid "Cannot delete a submitted document"
+msgstr ""
+
+msgid "Cannot submit an already submitted document"
+msgstr ""
+
+msgid "Cannot cancel a document that is not submitted"
+msgstr ""
+
+msgid "Doctype '%(doctype)s' not found"
+msgstr ""
+
+msgid "%(doctype)s '%(name)s' already exists"
+msgstr ""
+
+#. ── Permissions ───────────────────────────────────────────────
+msgid "You do not have permission to read %(doctype)s"
+msgstr ""
+
+msgid "You do not have permission to create %(doctype)s"
+msgstr ""
+
+msgid "You do not have permission to write %(doctype)s"
+msgstr ""
+
+msgid "You do not have permission to delete %(doctype)s"
+msgstr ""
+
+msgid "You do not have permission to submit %(doctype)s"
+msgstr ""
+
+#. ── Email ─────────────────────────────────────────────────────
+msgid "Email sent"
+msgstr ""
+
+msgid "Email queued"
+msgstr ""
+
+msgid "Email account not configured"
+msgstr ""
+
+msgid "Invalid email address"
+msgstr ""
+
+msgid "Email template not found"
+msgstr ""
+
+#. ── File uploads ──────────────────────────────────────────────
+msgid "File not found"
+msgstr ""
+
+msgid "File too large"
+msgstr ""
+
+msgid "File type not allowed"
+msgstr ""
+
+msgid "File uploaded"
+msgstr ""
+
+msgid "File deleted"
+msgstr ""
+
+#. ── Search ────────────────────────────────────────────────────
+msgid "Search results for '%(query)s'"
+msgstr ""
+
+msgid "No results for '%(query)s'"
+msgstr ""
+
+#. ── Reports ───────────────────────────────────────────────────
+msgid "Report not found"
+msgstr ""
+
+msgid "Report generated"
+msgstr ""
+
+msgid "Report access denied"
+msgstr ""
+
+#. ── Scripting ─────────────────────────────────────────────────
+msgid "Script executed"
+msgstr ""
+
+msgid "Script error"
+msgstr ""
+
+msgid "Script not found"
+msgstr ""
+
+#. ── Scheduled jobs ────────────────────────────────────────────
+msgid "Job started"
+msgstr ""
+
+msgid "Job completed"
+msgstr ""
+
+msgid "Job failed"
+msgstr ""
+
+msgid "Job '%(name)s' not found"
+msgstr ""
+
+#. ── Sessions ──────────────────────────────────────────────────
+msgid "Session not found"
+msgstr ""
+
+msgid "Session terminated"
+msgstr ""
+
+msgid "Active sessions"
+msgstr ""
+
+msgid "Current session"
+msgstr ""
+
+#. ── Assignments ───────────────────────────────────────────────
+msgid "Assigned to %(user)s"
+msgstr ""
+
+msgid "Assignment removed"
+msgstr ""
+
+#. ── UI messages ───────────────────────────────────────────────
+msgid "Changes saved"
+msgstr ""
+
+msgid "Operation failed"
+msgstr ""
+
+msgid "Confirm delete"
+msgstr ""
+
+msgid "Are you sure you want to delete this document?"
+msgstr ""
+
+msgid "This action cannot be undone"
+msgstr ""
+
+msgid "%(count)d selected"
+msgid_plural "%(count)d selected"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#. ── N+1 detector ──────────────────────────────────────────────
+msgid "Possible N+1 query detected: %(count)d queries in one request (%(path)s). Threshold: %(threshold)d."
+msgstr ""
