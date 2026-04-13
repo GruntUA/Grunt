@@ -6,8 +6,10 @@ import api from '@/core/api/client'
 import {
   Search, RefreshCcw, Plus, FileText, Trash2, Send,
   Share2, MessageSquare, GitBranch, ChevronLeft, ChevronRight,
-  Filter, X,
+  Filter, X, ChevronDown,
 } from 'lucide-vue-next'
+
+interface DiffChange { field: string; old: unknown; new: unknown }
 
 interface ActivityEntry {
   id: string
@@ -15,7 +17,7 @@ interface ActivityEntry {
   doc_id: string
   action: string
   user: string
-  details: unknown
+  details: Record<string, unknown> | null
   created_at: string | null
 }
 
@@ -24,6 +26,19 @@ interface Meta { total: number; page: number; per_page: number; pages: number }
 const router = useRouter()
 const dtStore = useDocTypeStore()
 dtStore.loadAll()
+
+// ── Expanded rows ─────────────────────────────────────────────────────────────
+const expanded = ref<Set<string>>(new Set())
+function toggleRow(id: string) {
+  if (expanded.value.has(id)) {
+    expanded.value.delete(id)
+  } else {
+    expanded.value.add(id)
+  }
+}
+function hasDetails(entry: ActivityEntry): boolean {
+  return entry.details !== null && entry.details !== undefined && Object.keys(entry.details).length > 0
+}
 
 // ── Filters ──────────────────────────────────────────────────────────────────
 const filters = reactive({
@@ -83,8 +98,34 @@ const hasFilters = computed(() =>
 )
 
 // ── Navigation ────────────────────────────────────────────────────────────────
-function goToDoc(entry: ActivityEntry) {
+function goToDoc(entry: ActivityEntry, e: MouseEvent) {
+  // Don't navigate if clicking the expand toggle
+  if ((e.target as HTMLElement).closest('.expand-btn')) return
   router.push(`/grunt/list/${entry.doctype}/${entry.doc_id}`)
+}
+
+// ── Details parsing ───────────────────────────────────────────────────────────
+function getDiffChanges(entry: ActivityEntry): DiffChange[] | null {
+  if (!entry.details) return null
+  // Standard Update format: { changes: [{field, old, new}] }
+  const changes = (entry.details as { changes?: DiffChange[] }).changes
+  if (Array.isArray(changes)) return changes
+  return null
+}
+
+function getSimpleDetails(entry: ActivityEntry): Array<{ label: string; value: unknown }> | null {
+  if (!entry.details) return null
+  const d = entry.details
+  if ((d as { changes?: unknown }).changes) return null // handled by getDiffChanges
+
+  return Object.entries(d).map(([k, v]) => ({ label: k, value: v }))
+}
+
+function formatVal(v: unknown): string {
+  if (v === null || v === undefined || v === '') return '—'
+  if (typeof v === 'boolean') return v ? 'Так' : 'Ні'
+  if (typeof v === 'object') return JSON.stringify(v)
+  return String(v)
 }
 
 // ── Formatting ────────────────────────────────────────────────────────────────
@@ -96,7 +137,8 @@ function getActionIcon(action: string) {
     case 'submit':   return Send
     case 'share':    return Share2
     case 'comment':  return MessageSquare
-    case 'workflow': return GitBranch
+    case 'workflow':
+    case 'workflow_transition': return GitBranch
     default:         return FileText
   }
 }
@@ -107,7 +149,8 @@ function getActionColor(action: string): string {
     case 'update':   return 'text-amber-600 bg-amber-500/10 border-amber-200'
     case 'delete':   return 'text-rose-600 bg-rose-500/10 border-rose-200'
     case 'submit':   return 'text-blue-600 bg-blue-500/10 border-blue-200'
-    case 'workflow': return 'text-violet-600 bg-violet-500/10 border-violet-200'
+    case 'workflow':
+    case 'workflow_transition': return 'text-violet-600 bg-violet-500/10 border-violet-200'
     default:         return 'text-muted-foreground bg-muted border-border'
   }
 }
@@ -116,7 +159,9 @@ function getActionLabel(action: string): string {
   const map: Record<string, string> = {
     create: 'Створення', update: 'Оновлення', delete: 'Видалення',
     submit: 'Фіксація', cancel: 'Скасування',
-    share: 'Поширення', comment: 'Коментар', workflow: 'Workflow',
+    share: 'Поширення', comment: 'Коментар',
+    workflow: 'Workflow', workflow_transition: 'Workflow',
+    bulk_update: 'Масове оновлення', restore: 'Відновлення',
   }
   return map[action?.toLowerCase()] ?? action
 }
@@ -234,53 +279,136 @@ function formatTime(val: string | null): string {
       <table v-else class="w-full text-sm">
         <thead class="sticky top-0 bg-background border-b z-10">
           <tr class="text-left text-xs text-muted-foreground font-medium">
-            <th class="px-6 py-3 w-8"></th>
+            <th class="px-4 py-3 w-8"></th>
             <th class="px-3 py-3">Дія</th>
             <th class="px-3 py-3">DocType</th>
             <th class="px-3 py-3">Документ</th>
             <th class="px-3 py-3">Користувач</th>
-            <th class="px-6 py-3 text-right">Час</th>
+            <th class="px-4 py-3 text-right">Час</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border/50">
-          <tr
-            v-for="entry in entries"
-            :key="entry.id"
-            class="hover:bg-muted/30 transition-colors cursor-pointer group"
-            @click="goToDoc(entry)"
-          >
-            <!-- Action icon -->
-            <td class="px-6 py-3">
-              <div :class="['size-7 rounded-md border flex items-center justify-center', getActionColor(entry.action)]">
-                <component :is="getActionIcon(entry.action)" class="size-3.5" />
-              </div>
-            </td>
+          <template v-for="entry in entries" :key="entry.id">
+            <!-- Main row -->
+            <tr
+              class="hover:bg-muted/30 transition-colors cursor-pointer group"
+              @click="goToDoc(entry, $event)"
+            >
+              <!-- Expand toggle -->
+              <td class="px-4 py-3 w-8">
+                <button
+                  v-if="hasDetails(entry)"
+                  class="expand-btn size-6 flex items-center justify-center rounded hover:bg-muted text-muted-foreground transition-all"
+                  :class="expanded.has(entry.id) ? 'bg-muted text-foreground' : ''"
+                  @click.stop="toggleRow(entry.id)"
+                >
+                  <ChevronDown
+                    class="size-3.5 transition-transform duration-150"
+                    :class="expanded.has(entry.id) ? 'rotate-180' : ''"
+                  />
+                </button>
+                <div v-else class="size-6" />
+              </td>
 
-            <!-- Action label -->
-            <td class="px-3 py-3">
-              <span :class="['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', getActionColor(entry.action)]">
-                {{ getActionLabel(entry.action) }}
-              </span>
-            </td>
+              <!-- Action label -->
+              <td class="px-3 py-3">
+                <div class="flex items-center gap-2">
+                  <div :class="['size-7 rounded-md border flex items-center justify-center shrink-0', getActionColor(entry.action)]">
+                    <component :is="getActionIcon(entry.action)" class="size-3.5" />
+                  </div>
+                  <span :class="['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', getActionColor(entry.action)]">
+                    {{ getActionLabel(entry.action) }}
+                  </span>
+                </div>
+              </td>
 
-            <!-- DocType -->
-            <td class="px-3 py-3 text-muted-foreground">{{ entry.doctype }}</td>
+              <!-- DocType -->
+              <td class="px-3 py-3 text-muted-foreground">{{ entry.doctype }}</td>
 
-            <!-- Doc ID -->
-            <td class="px-3 py-3">
-              <span class="font-medium text-foreground group-hover:text-primary transition-colors truncate max-w-[200px] block">
-                {{ entry.doc_id }}
-              </span>
-            </td>
+              <!-- Doc ID -->
+              <td class="px-3 py-3">
+                <span class="font-medium text-foreground group-hover:text-primary transition-colors truncate max-w-[200px] block">
+                  {{ entry.doc_id }}
+                </span>
+              </td>
 
-            <!-- User -->
-            <td class="px-3 py-3 text-muted-foreground truncate max-w-[160px]">{{ entry.user }}</td>
+              <!-- User -->
+              <td class="px-3 py-3 text-muted-foreground truncate max-w-[160px]">{{ entry.user }}</td>
 
-            <!-- Time -->
-            <td class="px-6 py-3 text-right text-muted-foreground tabular-nums text-xs">
-              {{ formatTime(entry.created_at) }}
-            </td>
-          </tr>
+              <!-- Time -->
+              <td class="px-4 py-3 text-right text-muted-foreground tabular-nums text-xs">
+                {{ formatTime(entry.created_at) }}
+              </td>
+            </tr>
+
+            <!-- Expanded diff row -->
+            <tr v-if="expanded.has(entry.id) && hasDetails(entry)">
+              <td colspan="6" class="px-4 pb-3 pt-0 bg-muted/20">
+                <div class="ml-8 rounded-lg border border-border/60 overflow-hidden">
+
+                  <!-- Field-level diff (Update action) -->
+                  <template v-if="getDiffChanges(entry)">
+                    <div class="px-3 py-2 bg-muted/50 border-b border-border/60 flex items-center gap-2">
+                      <span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Змінені поля</span>
+                      <span class="text-xs text-muted-foreground">({{ getDiffChanges(entry)!.length }})</span>
+                    </div>
+                    <table class="w-full text-xs">
+                      <thead>
+                        <tr class="border-b border-border/40 text-muted-foreground">
+                          <th class="px-3 py-1.5 text-left font-medium w-1/4">Поле</th>
+                          <th class="px-3 py-1.5 text-left font-medium w-[37.5%]">Було</th>
+                          <th class="px-3 py-1.5 text-left font-medium w-[37.5%]">Стало</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-border/30">
+                        <tr
+                          v-for="change in getDiffChanges(entry)"
+                          :key="change.field"
+                          class="group/row hover:bg-muted/30"
+                        >
+                          <td class="px-3 py-2 font-mono text-foreground/70">{{ change.field }}</td>
+                          <td class="px-3 py-2">
+                            <span
+                              class="inline-block max-w-[280px] truncate align-bottom px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-700 dark:text-rose-400 font-mono"
+                              :title="formatVal(change.old)"
+                            >
+                              {{ formatVal(change.old) }}
+                            </span>
+                          </td>
+                          <td class="px-3 py-2">
+                            <span
+                              class="inline-block max-w-[280px] truncate align-bottom px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-mono"
+                              :title="formatVal(change.new)"
+                            >
+                              {{ formatVal(change.new) }}
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </template>
+
+                  <!-- Simple key-value details (bulk_update, workflow, etc.) -->
+                  <template v-else-if="getSimpleDetails(entry)">
+                    <div class="px-3 py-2 bg-muted/50 border-b border-border/60">
+                      <span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Деталі</span>
+                    </div>
+                    <div class="divide-y divide-border/30">
+                      <div
+                        v-for="item in getSimpleDetails(entry)"
+                        :key="item.label"
+                        class="flex items-baseline gap-3 px-3 py-2 text-xs"
+                      >
+                        <span class="font-mono text-muted-foreground w-32 shrink-0">{{ item.label }}</span>
+                        <span class="font-mono text-foreground">{{ formatVal(item.value) }}</span>
+                      </div>
+                    </div>
+                  </template>
+
+                </div>
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>

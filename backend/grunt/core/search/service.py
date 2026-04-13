@@ -1,8 +1,8 @@
 """Full-text search index service.
 
 Maintains a ``grunt_search_index`` table with a ``tsvector`` column for
-PostgreSQL.  On SQLite (dev) falls back to simple ``ILIKE`` search against
-the stored raw text.
+PostgreSQL.  On MySQL uses native ``FULLTEXT`` matching.  On SQLite (dev)
+falls back to simple ``ILIKE`` search against the stored raw text.
 
 Index is updated on every document save/delete through direct calls from
 DocumentService (no hook overhead, always consistent).
@@ -27,6 +27,7 @@ from sqlalchemy import (
     select,
     text,
 )
+from sqlalchemy.dialects.mysql import insert as mysql_insert
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 if TYPE_CHECKING:
@@ -63,35 +64,6 @@ _PG_DOCTYPE_INDEX_SQL = text(
     "CREATE INDEX IF NOT EXISTS grunt_search_idx_doctype ON grunt_search_index (doctype)"
 )
 
-_SKIP_FIELDTYPES = frozenset(
-    [
-        "Section",
-        "Column",
-        "Tab",
-        "Table",
-        "MultiLink",
-        "Image",
-        "Attach",
-        "Signature",
-        "Geolocation",
-        "JSON",
-        "Code",
-    ]
-)
-_TEXT_FIELDTYPES = frozenset(
-    [
-        "Text",
-        "LongText",
-        "RichText",
-        "Data",
-        "Int",
-        "Float",
-        "Check",
-        "Select",
-        "Link",
-        "Color",
-    ]
-)
 
 
 def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
@@ -111,7 +83,7 @@ def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
 
     # All other text-ish fields
     for field in dt.fields:
-        if field.fieldtype in _SKIP_FIELDTYPES:
+        if not field.is_searchable:
             continue
         val = doc.get(field.fieldname)
         if val is None or val is False or val == "":
@@ -124,8 +96,12 @@ def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
     return " ".join(parts)
 
 
-def _is_postgres(engine: AsyncEngine) -> bool:
-    return engine.dialect.name == "postgresql"
+def _dialect(engine_or_session: Any) -> str:
+    """Return the dialect name for an engine or session."""
+    if hasattr(engine_or_session, "dialect"):
+        return engine_or_session.dialect.name
+    bind = getattr(engine_or_session, "bind", None)
+    return bind.dialect.name if bind else "sqlite"
 
 
 class SearchIndexService:
@@ -136,9 +112,17 @@ class SearchIndexService:
                 _INDEX_META.create_all,
                 checkfirst=True,
             )
-            if _is_postgres(engine):
+            if _dialect(engine) == "postgresql":
                 await conn.execute(_PG_TSVECTOR_INDEX_SQL)
                 await conn.execute(_PG_DOCTYPE_INDEX_SQL)
+            elif _dialect(engine) == "mysql":
+                # FULLTEXT index on content_raw for MySQL native full-text search
+                await conn.execute(
+                    text(
+                        "ALTER TABLE grunt_search_index "
+                        "ADD FULLTEXT IF NOT EXISTS idx_ft_content (content_raw, title, doc_name)"
+                    )
+                )
 
     async def index_document(
         self,
@@ -173,7 +157,8 @@ class SearchIndexService:
                 "updated_at": func.now(),
             }
 
-            dialect = session.bind.dialect.name if session.bind else "sqlite"
+            dialect = _dialect(session)
+            update_cols = {k: v for k, v in row.items() if k != "idx_id"}
             stmt: Any
             if dialect == "postgresql":
                 stmt = (
@@ -181,11 +166,17 @@ class SearchIndexService:
                     .values(**row)
                     .on_conflict_do_update(
                         index_elements=["idx_id"],
-                        set_={k: v for k, v in row.items() if k != "idx_id"},
+                        set_=update_cols,
                     )
                 )
+            elif dialect == "mysql":
+                stmt = (
+                    mysql_insert(_search_index_table)
+                    .values(**row)
+                    .on_duplicate_key_update(**update_cols)
+                )
             else:
-                # SQLite: delete + insert (no native upsert for composite)
+                # SQLite: delete + insert (no native upsert in old versions)
                 await session.execute(
                     delete(_search_index_table).where(_search_index_table.c.idx_id == idx_id)
                 )
@@ -234,7 +225,7 @@ class SearchIndexService:
         if doctype:
             base = base.where(t.c.doctype == doctype)
 
-        dialect = session.bind.dialect.name if session.bind else "sqlite"
+        dialect = _dialect(session)
 
         try:
             if dialect == "postgresql":
@@ -246,6 +237,12 @@ class SearchIndexService:
                     .order_by(func.ts_rank(ts_vector, ts_query).desc())
                     .limit(limit)
                 )
+            elif dialect == "mysql":
+                # MySQL FULLTEXT MATCH ... AGAINST
+                match_expr = func.match(
+                    t.c.content_raw, t.c.title, t.c.doc_name
+                ).op("AGAINST")(text(f"('{q}' IN BOOLEAN MODE)"))
+                stmt = base.where(match_expr).limit(limit)
             else:
                 # SQLite fallback: simple ILIKE on raw content + name
                 pattern = f"%{q}%"

@@ -40,6 +40,20 @@ const FIELD_ICONS: Record<string, string> = {
       <span v-if="field.required" class="text-destructive text-xs">*</span>
     </div>
 
+    <!-- Formula badge -->
+    <span
+      v-if="field.formula"
+      title="Формульне поле"
+      class="text-[10px] font-mono text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-1.5 py-0.5 rounded shrink-0"
+    >ƒx</span>
+
+    <!-- Aggregate badge -->
+    <span
+      v-if="field.aggregate_function"
+      title="Агрегаційне поле"
+      class="text-[10px] font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-1.5 py-0.5 rounded shrink-0"
+    >∑</span>
+
     <!-- Type badge -->
     <span class="text-[10px] text-muted-foreground/70 bg-background px-1.5 py-0.5 rounded shrink-0">
       {{ field.fieldtype }}

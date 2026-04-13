@@ -17,12 +17,13 @@ def db_group():
 @click.option("--dry-run", is_flag=True, help="Показати SQL без виконання (для DocType таблиць)")
 @click.option("--site", default=None, help="Назва сайту")
 def db_migrate(dry_run: bool, site: str | None) -> None:
-    """Синхронізувати схему БД: system tables (Alembic) + DocType tables (sync_table).
+    """Синхронізувати схему БД: system tables + DocType tables + fixtures.
 
     Запускати після:
     - Оновлення фреймворку (нові core DocTypes або зміни полів)
     - Додавання нових DocTypes через Studio
     - Встановлення нових додатків із DocTypes
+    - Змін у fixture файлах (00_workspace.json тощо)
     """
     import asyncio  # noqa: PLC0415
 
@@ -34,7 +35,14 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
         from grunt.core.metadata.compiler import SA_METADATA, sync_table  # noqa: PLC0415
         from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
         from grunt.core.site.manager import site_manager  # noqa: PLC0415
-        from grunt.core.startup import load_core_doctypes  # noqa: PLC0415
+        from grunt.core.startup import (  # noqa: PLC0415
+            apply_doctype_overrides,
+            load_core_doctypes,
+            populate_system_doctypes,
+            seed_app_workspaces,
+            seed_grunt_workspace,
+            seed_system_settings,
+        )
 
         sites = [site] if site else site_manager.get_sites()
         if not sites:
@@ -47,21 +55,22 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
             maker = site_manager.get_session_maker(site_name)
 
             # 1. System ORM tables
-            click.echo("  [1/3] System tables (Base.metadata)...")
+            click.echo("  [1/4] System tables (Base.metadata)...")
             async with eng.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
 
             # 2. Shared infrastructure tables (MultiLink junction, etc.)
-            click.echo("  [2/3] Infrastructure tables (SA_METADATA)...")
+            click.echo("  [2/4] Infrastructure tables (SA_METADATA)...")
             async with eng.begin() as conn:
                 await conn.run_sync(SA_METADATA.create_all)
 
             # 3. DocType tables
-            click.echo("  [3/3] DocType tables (sync_table)...")
+            click.echo("  [3/4] DocType tables (sync_table)...")
             async with maker() as session:
-                # Load core doctype definitions into registry
                 await load_core_doctypes(session)
-                # Load user-created doctype definitions
+                await apply_doctype_overrides(session, eng)
+                await populate_system_doctypes(session, eng)
+
                 result = await session.execute(select(GruntMetaDoctype))
                 rows = result.scalars().all()
 
@@ -84,9 +93,23 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
 
                 await session.commit()
 
-            click.echo(
-                f"  Done: {synced} synced, {skipped} skipped (virtual)."
-            )
+            click.echo(f"  Done: {synced} synced, {skipped} skipped (virtual).")
+
+            # 4. Seed fixtures (skip on dry-run)
+            if dry_run:
+                click.echo("  [4/4] Seed fixtures — пропущено (dry-run).")
+            else:
+                click.echo("  [4/4] Seed fixtures...")
+                async with maker() as session:
+                    await seed_system_settings(session, eng)
+                    await seed_grunt_workspace(session)
+                    await session.commit()
+
+                async with maker() as session:
+                    await seed_app_workspaces(session, site_name)
+                    await session.commit()
+
+                click.echo("  Fixtures applied.")
 
     asyncio.run(_run())
     click.echo("\nМіграцію завершено.")

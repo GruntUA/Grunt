@@ -2,7 +2,7 @@
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
-import type { DocType, ScriptButton } from '@/types'
+import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -29,6 +29,7 @@ const props = defineProps<{
   isSystemDocType: boolean
   showDevActions: boolean
   listButtons: ScriptButton[]
+  listMenuItems: ScriptMenuItem[]
 }>()
 
 const emit = defineEmits<{
@@ -95,6 +96,14 @@ function handleNew() {
             <FileBarChart class="size-4 text-muted-foreground" />
             <span>{{ t('Create report') }}</span>
           </DropdownMenuItem>
+          <template v-if="listMenuItems.length">
+            <template v-for="item in listMenuItems" :key="item.label">
+              <DropdownMenuSeparator v-if="item.separator_before" />
+              <DropdownMenuItem class="gap-2" @click="item.action()">
+                <span>{{ item.label }}</span>
+              </DropdownMenuItem>
+            </template>
+          </template>
         </DropdownMenuContent>
       </DropdownMenu>
 

@@ -1,0 +1,15 @@
+{
+  "name": "UserSession",
+  "label": "Сесія користувача",
+  "module": "core",
+  "is_system": true,
+  "track_changes": false,
+  "fields": [
+    {"fieldname": "user", "label": "Користувач", "fieldtype": "Link", "options": "User", "required": true, "in_list_view": true, "in_filter": true},
+    {"fieldname": "session_key", "label": "Ключ сесії", "fieldtype": "Text", "required": true, "hidden": true},
+    {"fieldname": "ip_address", "label": "IP-адреса", "fieldtype": "Text", "in_list_view": true},
+    {"fieldname": "user_agent", "label": "Браузер / клієнт", "fieldtype": "LongText"},
+    {"fieldname": "last_active_at", "label": "Остання активність", "fieldtype": "Datetime", "in_list_view": true},
+    {"fieldname": "is_active", "label": "Активна", "fieldtype": "Check", "default": true, "in_list_view": true, "in_filter": true}
+  ]
+}

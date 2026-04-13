@@ -9,6 +9,7 @@ from fastapi import Depends, Query, Request
 from pydantic import BaseModel
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok, ok_list
 from grunt.app import grunt
 from grunt.core.auth.dependencies import current_user
 
@@ -62,7 +63,7 @@ async def list_notifications(
         order_by="created_at",
         order="desc",
     )
-    return {"data": data, "total": total, "page": page, "per_page": per_page}
+    return ok_list(data, total=total, page=page, per_page=per_page)
 
 
 @router.patch("/{notification_id}/read")
@@ -71,7 +72,7 @@ async def mark_notification_read(
 ) -> dict[str, Any]:
     """Mark a notification as read."""
     await grunt.db.set_value("Notification", notification_id, "is_read", True)
-    return {"success": True}
+    return ok()
 
 
 @router.post("/read-all")
@@ -84,7 +85,7 @@ async def mark_all_notifications_read(
         filters={"user": user.email, "is_read": False},
         values={"is_read": True},
     )
-    return {"success": True, "count": count}
+    return ok(count=count)
 
 
 @router.get("/unread-count")
@@ -93,7 +94,7 @@ async def unread_count(
 ) -> dict[str, Any]:
     """Get the count of unread notifications for the current user."""
     count = await grunt.count("Notification", filters={"user": user.email, "is_read": False})
-    return {"success": True, "count": count}
+    return ok(count=count)
 
 
 @router.get("/vapid-public-key")
@@ -104,7 +105,7 @@ async def get_vapid_public_key() -> dict[str, Any]:
     key = await webpush_service.get_vapid_public_key(grunt._require_session())
     if not key:
         key = await webpush_service.ensure_vapid_keys(grunt._require_session())
-    return {"success": True, "public_key": key}
+    return ok(public_key=key)
 
 
 @router.post("/push-subscribe")
@@ -120,7 +121,7 @@ async def push_subscribe(
     await webpush_service.save_subscription(
         grunt._require_session(), user.email, body.endpoint, body.p256dh, body.auth, user_agent
     )
-    return {"success": True}
+    return ok()
 
 
 @router.delete("/push-subscribe")
@@ -131,7 +132,7 @@ async def push_unsubscribe(
     from grunt.core.webpush.service import webpush_service  # noqa: PLC0415
 
     await webpush_service.remove_subscription(grunt._require_session(), body.endpoint)
-    return {"success": True}
+    return ok()
 
 
 @router.post("/send")
@@ -146,4 +147,4 @@ async def send_notification(
         doctype=body.doctype,
         doc_id=body.doc_id,
     )
-    return {"success": True, "data": {"ids": ids, "count": len(ids)}}
+    return ok({"ids": ids, "count": len(ids)})

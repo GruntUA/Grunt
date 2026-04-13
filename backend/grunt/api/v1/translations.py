@@ -6,6 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter
 
+from grunt.api.v1.schemas.response import ok
 from grunt.core.i18n import translation_service
 
 router = APIRouter(prefix="/translations", tags=["i18n"])
@@ -18,4 +19,4 @@ async def get_translations(locale: str) -> dict[str, Any]:
     Used by the frontend to load translations from PO source of truth.
     """
     translations = translation_service.get_all_translations(locale)
-    return {"success": True, "data": translations}
+    return ok(translations)

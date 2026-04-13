@@ -237,7 +237,6 @@ function countDescendants(node: TreeNode): number {
 <!-- ── Recursive tree node ──────────────────────────────────────────────── -->
 <script lang="ts">
 import { defineComponent, h, type PropType } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { ChevronRight as CR, ChevronDown as CD, Plus as PL, Folder as FL, FolderOpen as FO, FileText as FT } from 'lucide-vue-next'
 import type { DocType, GruntDocument } from '@/types'
 

@@ -8,6 +8,7 @@ from typing import Any
 from fastapi import HTTPException, status
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 
 router = GruntRouter(prefix="", tags=["docs", "collaboration"])
@@ -39,7 +40,7 @@ async def get_document_comments(
         }
         for r in rows
     ]
-    return {"success": True, "data": data}
+    return ok(data)
 
 
 @router.post("/{doctype}/{doc_id}/comments", status_code=status.HTTP_201_CREATED)
@@ -78,7 +79,7 @@ async def add_document_comment(
                 doc_id=doc_id,
             )
 
-    return {"success": True, "data": comment}
+    return ok(comment)
 
 
 @router.delete("/{doctype}/{doc_id}/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -117,7 +118,7 @@ async def get_bookmark(
     data = dict(rows[0]) if rows else None
     if data and data.get("created_at"):
         data["created_at"] = str(data["created_at"])
-    return {"success": True, "data": data}
+    return ok(data)
 
 
 @router.post("/{doctype}/{doc_id}/bookmark", status_code=status.HTTP_201_CREATED)
@@ -137,7 +138,7 @@ async def add_bookmark(
             "title": body.get("title", ""),
         },
     )
-    return {"success": True, "data": bookmark}
+    return ok(bookmark)
 
 
 @router.delete("/{doctype}/{doc_id}/bookmark", status_code=status.HTTP_204_NO_CONTENT)

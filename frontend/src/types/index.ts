@@ -44,6 +44,13 @@ export interface DocField {
   // Conditional
   depends_on?: string
   mandatory_depends_on?: string
+  formula?: string | null
+  // Aggregation
+  aggregate_function?: string | null
+  aggregate_table?: string | null
+  aggregate_field?: string | null
+  // Link
+  link_filters?: string | null
   // Layout
   columns?: number
   collapsible?: boolean
@@ -155,10 +162,26 @@ export interface DocTypeTreeView {
   title_field?: string   // which field to display as node label (defaults to 'name')
 }
 
+export interface DocTypeMapView {
+  geo_field?: string                  // override auto-detected Geolocation field
+  label_field?: string                // field shown in marker popup (defaults to title_field)
+  color_field?: string                // field whose value drives marker color
+  color_map?: Record<string, string>  // { value: '#hex' } mapping for color_field
+  default_color?: string              // fallback marker color (defaults to primary)
+}
+
 export interface ScriptButton {
   label: string
   action: () => void | Promise<void>
   variant?: string
+}
+
+/** Item registered via `listview.add_menu_item()` — appears in the "⋯" header dropdown. */
+export interface ScriptMenuItem {
+  label: string
+  action: () => void | Promise<void>
+  icon?: string           // reserved for future icon support
+  separator_before?: boolean
 }
 
 // ── Status indicators ────────────────────────────────────────────────────
@@ -184,6 +207,7 @@ export interface DocType {
   is_child?: boolean
   is_submittable?: boolean
   is_singleton?: boolean
+  is_tree?: boolean
   is_system?: boolean
   track_changes?: boolean
   fields: DocField[]
@@ -197,6 +221,7 @@ export interface DocType {
   kanban_view?: DocTypeKanbanView | null
   calendar_view?: DocTypeCalendarView | null
   tree_view?: DocTypeTreeView | null
+  map_view?: DocTypeMapView | null
   status_config?: DocTypeStatusConfig | null
   workflow?: WorkflowDef | null
   permissions?: DocTypePermission[]
@@ -278,7 +303,7 @@ export interface ApiError {
 
 // ── Dashboard ─────────────────────────────────────────────────────────────
 
-export type WidgetType = 'metric' | 'chart_area' | 'chart_bar' | 'donut' | 'list'
+export type WidgetType = 'metric' | 'gauge' | 'chart_area' | 'chart_bar' | 'donut' | 'list'
   | 'shortcut' | 'shortcuts_grid' | 'text' | 'clock' | 'activity'
   | 'calendar' | 'heatmap' | 'funnel' | 'table' | 'links'
 export type WidgetAggregation = 'count' | 'sum' | 'avg' | 'min' | 'max'
@@ -307,6 +332,8 @@ export interface DashboardWidget {
   date_field?: string | null
   period: WidgetPeriod
   filters?: Record<string, string>
+  min_value?: number | null
+  max_value?: number | null
   cols: WidgetCols
   color: string
   icon?: string | null

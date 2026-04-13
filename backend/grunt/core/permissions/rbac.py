@@ -13,6 +13,22 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
+# _PERM_CACHE key: (user_email, frozenset(roles), doctype_name, id(permissions_list), action)
+# _HIDDEN_CACHE key: (user_email, frozenset(roles), doctype_name, id(permissions_list))
+# id(permissions_list) distinguishes different DocType objects sharing the same name.
+# Only populated for the doc=None path (list/count operations).
+# Invalidated per-doctype via invalidate_permission_cache().
+_PERM_CACHE: dict[tuple, bool] = {}
+_HIDDEN_CACHE: dict[tuple, frozenset] = {}
+
+
+def invalidate_permission_cache(doctype_name: str) -> None:
+    """Evict all cached permission results for a given DocType."""
+    for cache in (_PERM_CACHE, _HIDDEN_CACHE):
+        stale = [k for k in cache if k[2] == doctype_name]
+        for k in stale:
+            cache.pop(k, None)
+
 
 class PermissionChecker:
     async def check(
@@ -28,8 +44,19 @@ class PermissionChecker:
         if not doctype.permissions:
             return True  # No permissions defined = open (dev mode)
 
-        user_roles = set(getattr(user, "roles", []) or [])
+        user_roles = frozenset(getattr(user, "roles", []) or [])
 
+        # Cache only when doc is None (list/count); match-expression checks are doc-specific.
+        # Include id(doctype.permissions) so that different DocType objects with the same
+        # name but different permission lists (common in tests) get separate cache entries.
+        cache_key: tuple | None = None
+        if doc is None:
+            cache_key = (user.email, user_roles, doctype.name, id(doctype.permissions), action)
+            cached = _PERM_CACHE.get(cache_key)
+            if cached is not None:
+                return cached
+
+        result = False
         for perm in doctype.permissions:
             role = perm.role if hasattr(perm, "role") else ""
             if role not in user_roles and role != "All":
@@ -41,9 +68,12 @@ class PermissionChecker:
             match_expr = perm.match if hasattr(perm, "match") else None
             if match_expr and doc and not self._eval_match(match_expr, user, doc):
                 continue
-            return True
+            result = True
+            break
 
-        return False
+        if cache_key is not None:
+            _PERM_CACHE[cache_key] = result
+        return result
 
     async def require(
         self,
@@ -83,7 +113,15 @@ class PermissionChecker:
         if not doctype.permissions:
             return frozenset()
 
-        user_roles = set(getattr(user, "roles", []) or [])
+        user_roles = frozenset(getattr(user, "roles", []) or [])
+
+        # id(doctype.permissions) distinguishes DocType objects with the same name
+        # but different permission lists (see check() for the same pattern).
+        cache_key = (user.email, user_roles, doctype.name, id(doctype.permissions))
+        cached_hidden = _HIDDEN_CACHE.get(cache_key)
+        if cached_hidden is not None:
+            return cached_hidden
+
         hidden: set[str] = set()
         matched = False
 
@@ -102,7 +140,9 @@ class PermissionChecker:
                 # Intersect: a field is hidden only if ALL matching rules hide it
                 hidden &= set(perm_hidden)
 
-        return frozenset(hidden)
+        result = frozenset(hidden)
+        _HIDDEN_CACHE[cache_key] = result
+        return result
 
     def _eval_match(self, match_expr: str, user: GruntUser, doc: dict) -> bool:
         safe_globals: dict = {"__builtins__": {}}

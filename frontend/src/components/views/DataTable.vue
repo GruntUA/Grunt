@@ -40,7 +40,7 @@ interface InlineEdit { rowId: string; field: string; value: string }
 const inlineEdit = ref<InlineEdit | null>(null)
 const inlineInput = ref<HTMLInputElement | null>(null)
 
-const INLINE_SKIP = new Set(['Check', 'Select', 'Date', 'Datetime', 'Image', 'Attach', 'RichText', 'JSON', 'Code', 'Signature'])
+const INLINE_SKIP = new Set(['Check', 'Select', 'Date', 'Datetime', 'Image', 'Attach', 'RichText', 'JSON', 'Code', 'Signature', 'Link'])
 
 function canInlineEdit(fieldtype: string): boolean {
   return !INLINE_SKIP.has(fieldtype)
@@ -164,35 +164,40 @@ function isSelected(id: string) {
   </div>
 
   <!-- Table -->
-  <div v-else class="overflow-hidden rounded-md border">
+  <div v-else class="overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm">
     <table class="w-full text-sm">
       <thead v-if="!hideHeader">
-        <tr class="border-b border-border bg-muted/50">
-          <th class="w-10 px-3 py-3">
+        <tr class="border-b border-border/40 bg-muted/40 backdrop-blur-sm">
+          <th class="w-10 px-4 py-3.5">
             <Checkbox :model-value="allSelected || (rows.length > 0 && selectedIds.length === rows.length)"
-              @update:model-value="emit('selectAll')" />
+              @update:model-value="emit('selectAll')" class="bg-background" />
           </th>
           <th v-for="col in columns" :key="col.key"
-            class="text-left px-3 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground select-none transition-colors"
-            :class="{ 'cursor-pointer hover:text-foreground': col.sortable }"
+            class="text-left px-4 py-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/80 select-none transition-colors"
+            :class="{ 'cursor-pointer hover:text-foreground group/th': col.sortable }"
             @click="col.sortable && emit('sort', col.key)">
             <span class="inline-flex items-center gap-1">
               {{ col.label }}
-              <ArrowUp v-if="sortKey === col.key && sortOrder === 'asc'" class="size-3.5" />
-              <ArrowDown v-else-if="sortKey === col.key && sortOrder === 'desc'" class="size-3.5" />
-              <ArrowUpDown v-else-if="col.sortable" class="size-3.5 opacity-0 group-hover:opacity-30" />
+              <ArrowUp v-if="sortKey === col.key && sortOrder === 'asc'" class="size-3.5 text-primary" />
+              <ArrowDown v-else-if="sortKey === col.key && sortOrder === 'desc'" class="size-3.5 text-primary" />
+              <ArrowUpDown v-else-if="col.sortable" class="size-3.5 opacity-0 group-hover/th:opacity-40 transition-opacity" />
             </span>
           </th>
         </tr>
       </thead>
       <tbody v-if="!hideBody">
         <tr v-for="row in rows" :key="String(row.id)"
-          class="border-b border-border last:border-0 hover:bg-muted/30 cursor-pointer transition-colors group"
-          :class="{ 'bg-primary/5': isSelected(String(row.id)) }">
-          <td class="px-3 py-3" @click.stop>
-            <Checkbox :model-value="isSelected(String(row.id))" @update:model-value="emit('select', String(row.id))" />
+          class="border-b border-border/30 last:border-0 hover:bg-muted/40 cursor-pointer transition-all duration-200 group relative"
+          :class="{ 'bg-primary/[0.03] hover:bg-primary/[0.05]': isSelected(String(row.id)) }">
+          
+          <!-- Selected active indicator -->
+          <td v-if="isSelected(String(row.id))" class="absolute left-0 top-0 bottom-0 w-0.5 bg-primary rounded-r-full pointer-events-none" />
+          
+          <td class="px-4 py-3" @click.stop>
+            <Checkbox :model-value="isSelected(String(row.id))" @update:model-value="emit('select', String(row.id))"
+              class="transition-transform duration-200" :class="{ 'scale-110': isSelected(String(row.id)) }" />
           </td>
-          <td v-for="(col, ci) in columns" :key="col.key" class="px-3 py-3"
+          <td v-for="(col, ci) in columns" :key="col.key" class="px-4 py-3 text-[13px]"
             @click="!isEditing(String(row.id), col.key) && emit('rowClick', row)"
             @dblclick.stop="ci > 0 && startEdit(row, col.key, getFieldType(col.key))">
             <!-- Inline edit input -->
@@ -200,7 +205,7 @@ function isSelected(id: string) {
               <input
                 ref="inlineInput"
                 v-model="inlineEdit!.value"
-                class="w-full rounded border border-primary px-1.5 py-0.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                class="w-full rounded-md border border-primary px-2 py-1 text-sm bg-background shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow"
                 @blur="commitEdit"
                 @keydown.enter.prevent="commitEdit"
                 @keydown.escape.prevent="cancelEdit"
@@ -237,6 +242,25 @@ function isSelected(id: string) {
               <span class="text-muted-foreground tabular-nums">
                 {{ formatDate(row[col.key], getFieldType(col.key)) }}
               </span>
+            </template>
+
+            <!-- Geolocation: lat, lng -->
+            <template v-else-if="getFieldType(col.key) === 'Geolocation'">
+              <template v-if="row[col.key] && typeof row[col.key] === 'object'">
+                <span class="tabular-nums text-muted-foreground font-mono text-xs">
+                  {{ Number((row[col.key] as any).lat).toFixed(5) }},
+                  {{ Number((row[col.key] as any).lng).toFixed(5) }}
+                </span>
+              </template>
+              <span v-else class="text-muted-foreground/30">—</span>
+            </template>
+
+            <!-- Link field: show __label if resolved, fallback to raw value -->
+            <template v-else-if="getFieldType(col.key) === 'Link'">
+              <span v-if="row[col.key] !== null && row[col.key] !== undefined && row[col.key] !== ''" class="text-foreground/90 font-medium">
+                {{ (row[col.key + '__label'] as string) || formatCell(row[col.key]) }}
+              </span>
+              <span v-else class="text-muted-foreground/30">—</span>
             </template>
 
             <!-- Default -->

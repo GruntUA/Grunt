@@ -53,11 +53,27 @@ const router = createRouter({
       props: true,
     },
 
+    // Public Document Share (no auth required)
+    {
+      path: '/share/:token',
+      name: 'document-share',
+      component: () => import('@/pages/public/DocumentShareView.vue'),
+      meta: { public: true },
+      props: true,
+    },
+
     // Desk (app launcher)
     {
       path: '/',
       name: 'desk',
       component: () => import('@/pages/DeskPage.vue'),
+    },
+
+    // User profile & session management
+    {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('@/pages/account/ProfilePage.vue'),
     },
 
     // App Workspace (dynamic /:workspaceName)

@@ -22,8 +22,10 @@ from grunt.api.v1.pages import router as pages_router
 from grunt.api.v1.reports import router as reports_router
 from grunt.api.v1.scripting import router as scripting_router
 from grunt.api.v1.search import router as search_router
+from grunt.api.v1.share import router as share_router
 from grunt.api.v1.translations import router as translations_router
 from grunt.api.v1.webform import router as webform_router
+from grunt.api.v1.webhooks import router as webhooks_router
 from grunt.api.v1.workspace import router as workspace_router
 from grunt.api.v1.ws import router as ws_router
 
@@ -53,3 +55,5 @@ v1_router.include_router(hooks_router, prefix="/hooks", tags=["hooks"])
 v1_router.include_router(email_router, tags=["email"])
 v1_router.include_router(assignment_router, tags=["assignment"])
 v1_router.include_router(dev_router, tags=["dev"])
+v1_router.include_router(webhooks_router, prefix="/webhooks", tags=["webhooks"])
+v1_router.include_router(share_router, tags=["share"])

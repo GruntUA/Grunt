@@ -17,6 +17,8 @@ if TYPE_CHECKING:
     from grunt.core.document.multi_link import MultiLinkService
 
 from grunt.app import GruntError
+from grunt.core.document.aggregate import compute_aggregations
+from grunt.core.document.formula import compute_formulas
 from grunt.core.document.registry import document_registry
 from grunt.core.document.relations import (
     _get_multi_link_fields,
@@ -152,6 +154,9 @@ class DocumentWriteMixin:
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
                 ) from e
 
+            # Compute formula fields after validation, before DB write
+            compute_formulas(dt, row)
+
             await fire(
                 "before_save", doctype=doctype_name, doc=row, user=user, session=self.session
             )
@@ -161,6 +166,15 @@ class DocumentWriteMixin:
 
             # Save child table fields
             await _save_child_tables(self.session, dt, doc_id, data, user, now)
+
+            # Compute aggregation fields from child table rows
+            agg_values = await compute_aggregations(self.session, dt, doc_id)
+            if agg_values:
+                await self.session.execute(
+                    table.update().where(table.c.id == doc_id).values(**agg_values)
+                )
+                row.update(agg_values)
+                await self.session.flush()
 
             # Save MultiLink fields
             for mlf in _get_multi_link_fields(dt):
@@ -273,6 +287,13 @@ class DocumentWriteMixin:
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
                 ) from e
 
+            # Compute formula fields on the merged document, then propagate
+            # changed formula values back into update_data for the DB write
+            compute_formulas(dt, merged)
+            for field in dt.fields:
+                if field.formula and field.fieldname in merged and field.fieldname not in PROTECTED_FIELDS:
+                    update_data[field.fieldname] = merged[field.fieldname]
+
             await fire(
                 "before_save", doctype=doctype_name, doc=merged, user=user, session=self.session
             )
@@ -283,6 +304,15 @@ class DocumentWriteMixin:
 
             # Update child table fields
             await _save_child_tables(self.session, dt, real_id, data, user, datetime.now(UTC))
+
+            # Recompute aggregation fields after child rows are saved
+            agg_values = await compute_aggregations(self.session, dt, real_id)
+            if agg_values:
+                await self.session.execute(
+                    table.update().where(table.c.id == real_id).values(**agg_values)
+                )
+                update_data.update(agg_values)
+                merged.update(agg_values)
 
             # Update MultiLink fields
             for mlf in _get_multi_link_fields(dt):
@@ -317,10 +347,12 @@ class DocumentWriteMixin:
             for hidden_field in permission_checker.hidden_fields(user, dt):
                 result.pop(hidden_field, None)
 
-            # Create version record
-            if dt.track_changes:
-                from grunt.core.document.versioning import version_service  # noqa: PLC0415
+            # Create version record and ActivityLog diff
+            from grunt.core.document.versioning import version_service  # noqa: PLC0415
 
+            diff_changes = version_service._compute_diff(existing, result)
+
+            if dt.track_changes and diff_changes:
                 try:
                     await version_service.create_version(
                         session=self.session,
@@ -332,6 +364,34 @@ class DocumentWriteMixin:
                     )
                 except Exception:
                     logger.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
+
+            # Write ActivityLog entry with field-level diff (best-effort)
+            if diff_changes:
+                try:
+                    from grunt.app import grunt as _g  # noqa: PLC0415
+
+                    _log_tokens = _g.set_context(
+                        session=self.session, engine=self.engine, user=user
+                    )
+                    try:
+                        await _g.new_doc(
+                            "ActivityLog",
+                            {
+                                "doctype": doctype_name,
+                                "doc_id": real_id,
+                                "action": "Update",
+                                "user": user.email,
+                                "details": {"changes": diff_changes},
+                            },
+                        )
+                    finally:
+                        _g.reset_context(_log_tokens)
+                except Exception:  # noqa: BLE001
+                    logger.warning(
+                        "activity_log.update_failed",
+                        doctype=doctype_name,
+                        doc_id=real_id,
+                    )
 
             doc.data = result
             try:

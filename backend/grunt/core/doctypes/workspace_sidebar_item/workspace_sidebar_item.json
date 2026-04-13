@@ -47,7 +47,8 @@
     {
       "fieldname": "count_filters",
       "label": "Фільтри лічильника",
-      "fieldtype": "Text"
+      "fieldtype": "Text",
+      "default": ""
     },
     {
       "fieldname": "show_new_btn",

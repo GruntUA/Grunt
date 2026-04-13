@@ -41,7 +41,26 @@ export interface ListParams {
   filters?: Record<string, string>
 }
 
+export interface LinkSearchItem {
+  id: string
+  name: string
+  title: string
+  subtitle: string | null
+}
+
 export const docsApi = {
+  linkSearch: async (
+    doctype: string,
+    q: string,
+    filters: Record<string, string> = {},
+    pageLength = 10,
+  ): Promise<LinkSearchItem[]> => {
+    const r = await client.get(`/api/v1/docs/${doctype}/link_search`, {
+      params: { q, filters: JSON.stringify(filters), page_length: pageLength },
+    })
+    return r.data.data ?? []
+  },
+
   list: async (doctype: string, params: ListParams = {}): Promise<StandardListResponse<GruntDocument>> => {
     const { filters = {}, sort, order, ...rest } = params
     const filterParams = Object.fromEntries(

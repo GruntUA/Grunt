@@ -45,6 +45,28 @@ logger = structlog.get_logger()
 current_site: ContextVar[str] = ContextVar("current_site", default="")
 
 
+def text_sort_expr(col: Any, dialect_name: str) -> Any:
+    """Return a dialect-aware sort expression for text columns.
+
+    * SQLite  — uses the custom ``uk_sort_key()`` SQLite function registered
+                at connect time, which maps Ukrainian letters to Private Use
+                Area code points for correct alphabetical ordering.
+    * PostgreSQL — ``col COLLATE "C"`` with lower() for a portable fallback.
+                   For full Ukrainian ordering install the ``uk_UA`` ICU
+                   collation and use ``col.collate('uk-x-icu')``.
+    * MySQL   — ``CONVERT(col USING utf8mb4) COLLATE utf8mb4_unicode_ci``
+                gives good case-insensitive, accent-sensitive ordering.
+    """
+    from sqlalchemy import func  # noqa: PLC0415
+
+    if dialect_name == "sqlite":
+        return func.uk_sort_key(col)
+    if dialect_name == "mysql":
+        return func.lower(col)
+    # postgresql and everything else
+    return func.lower(col)
+
+
 class SiteManager:
     """Manages multi-tenant sites and their database connections.
 
@@ -123,8 +145,16 @@ class SiteManager:
             engine_kwargs: dict[str, Any] = {"echo": settings.database_echo, "pool_pre_ping": True}
             if "postgresql" in db_url:
                 engine_kwargs.update({"pool_size": 20, "max_overflow": 10})
+            elif "mysql" in db_url:
+                engine_kwargs.update(
+                    {
+                        "pool_size": 20,
+                        "max_overflow": 10,
+                        "connect_args": {"charset": "utf8mb4"},
+                    }
+                )
             elif "sqlite" in db_url:
-                from sqlalchemy.pool import NullPool
+                from sqlalchemy.pool import NullPool  # noqa: PLC0415
 
                 engine_kwargs.update({"poolclass": NullPool, "connect_args": {"timeout": 30}})
 

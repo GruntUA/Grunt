@@ -215,21 +215,24 @@ defineExpose({ mobileOpen })
         <DropdownMenu v-if="!collapsed">
           <DropdownMenuTrigger as-child>
             <button
-              class="group w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-sidebar-border/50 hover:border-primary/20 hover:bg-primary/5 transition-all duration-300 shadow-sm hover:shadow-md">
-              <div class="flex items-center gap-3 min-w-0">
+              class="group w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-sidebar-border bg-gradient-to-br from-sidebar-background via-sidebar-background to-primary/5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 relative overflow-hidden">
+              <!-- Glossy overlay -->
+              <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              
+              <div class="flex items-center gap-3 min-w-0 relative z-10">
                 <div
-                  class="size-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                  <span class="text-xl leading-none">{{ wsStore.active?.icon || '📁' }}</span>
+                  class="size-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-inner">
+                  <span class="text-xl leading-none filter drop-shadow-sm">{{ wsStore.active?.icon || '📁' }}</span>
                 </div>
                 <div class="flex flex-col items-start min-w-0">
-                  <span class="text-[11px] font-bold text-primary/80 uppercase tracking-widest leading-none mb-1">
+                  <span class="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em] leading-none mb-1.5">
                     {{ wsStore.active?.name === 'grunt' ? 'СИСТЕМА' : 'РОБОЧИЙ ПРОСТІР' }}
                   </span>
-                  <span class="text-sm font-semibold text-foreground truncate w-full">{{ wsStore.active?.label }}</span>
+                  <span class="text-sm font-bold text-foreground truncate w-full group-hover:text-primary transition-colors">{{ wsStore.active?.label }}</span>
                 </div>
               </div>
               <ChevronsUpDown
-                class="size-4 text-muted-foreground/60 group-hover:text-primary/70 transition-colors shrink-0 ml-2" />
+                class="size-4 text-muted-foreground/40 group-hover:text-primary transition-all shrink-0 ml-2 group-hover:translate-y-0.5" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" class="w-[200px] rounded-xl shadow-xl p-1.5 z-[100]">
@@ -267,15 +270,16 @@ defineExpose({ mobileOpen })
       <!-- Search Trigger -->
       <div class="px-3 py-2">
         <button
-          class="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-sidebar-border/30 bg-muted/30 hover:bg-muted/50 hover:border-primary/20 transition-all group shadow-sm"
+          class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-sidebar-border/50 bg-muted/20 hover:bg-muted/40 hover:border-primary/30 hover:shadow-sm transition-all group overflow-hidden relative"
           @click="triggerSearch">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <Search class="size-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+          <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div class="flex items-center gap-2.5 min-w-0 relative z-10">
+            <Search class="size-4 text-muted-foreground group-hover:text-primary group-hover:scale-110 transition-all shrink-0" />
             <span v-if="!collapsed"
-              class="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">Пошук...</span>
+              class="text-xs font-semibold text-muted-foreground/80 group-hover:text-foreground transition-colors">Пошук...</span>
           </div>
           <div v-if="!collapsed"
-            class="flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-sidebar-border/50 bg-background text-[9px] font-bold text-muted-foreground shadow-sm group-hover:border-primary/20 transition-all">
+            class="flex items-center gap-0.5 px-2 py-0.5 rounded-md border border-sidebar-border/50 bg-background/50 backdrop-blur-sm text-[9px] font-bold text-muted-foreground shadow-sm group-hover:border-primary/30 transition-all relative z-10">
             <span class="opacity-70 text-[10px]">⌘</span>
             <span>K</span>
           </div>
@@ -312,11 +316,12 @@ defineExpose({ mobileOpen })
           <!-- Workspace Dashboard — always shown at top of navigation -->
           <RouterLink :to="`/${workspaceName}/dashboard/${workspaceName}`" custom v-slot="{ isActive, href, navigate }">
             <a :href="href" @click="navigate"
-              class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all"
-              :class="isActive ? 'bg-primary/5 text-primary font-medium' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'">
-              <LayoutDashboard class="w-4 h-4 shrink-0"
-                :class="isActive ? 'text-primary' : 'text-muted-foreground/70'" />
-              <span v-if="!collapsed" class="truncate font-medium">Огляд</span>
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 relative group overflow-hidden"
+              :class="isActive ? 'bg-primary/10 text-primary shadow-sm' : 'text-muted-foreground/80 hover:bg-muted/50 hover:text-foreground'">
+              <div v-if="isActive" class="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent" />
+              <LayoutDashboard class="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:scale-110"
+                :class="isActive ? 'text-primary' : 'text-muted-foreground/60'" />
+              <span v-if="!collapsed" class="truncate font-bold tracking-tight relative z-10">Огляд</span>
             </a>
           </RouterLink>
           <Separator class="my-2" />
@@ -375,13 +380,13 @@ defineExpose({ mobileOpen })
       </ScrollArea>
 
       <SidebarEditor v-if="wsStore.active" v-model:open="showEditor" :workspace="wsStore.active"
-        @saved="wsStore.setActive(workspaceName)" />
+        @saved="wsStore.setActive(workspaceName, true)" />
 
       <!-- Footer -->
       <div class="border-t border-sidebar-border shrink-0 p-2">
         <!-- Collapse toggle (desktop only) -->
         <button
-          class="w-full flex items-center justify-center p-1.5 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors mb-1 hidden md:flex"
+          class="w-full hidden md:flex items-center justify-center p-1.5 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors mb-1"
           :title="collapsed ? 'Розгорнути' : 'Згорнути'" @click="toggleCollapse">
           <PanelLeft v-if="collapsed" class="size-4" />
           <PanelLeftClose v-else class="size-4" />

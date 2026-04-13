@@ -139,6 +139,7 @@ class DocType(BaseModel):
     is_submittable: bool = False  # adds Submit button
     is_singleton: bool = False  # only one document per DocType
     is_virtual: bool = False  # True → no DB table, data from controller
+    is_tree: bool = False  # True → hierarchical; requires tree_view.parent_field to name the self-referential Link
     track_changes: bool = True  # audit log
     is_system: bool = False  # True → built-in core doctype, cannot be modified/deleted by users
 

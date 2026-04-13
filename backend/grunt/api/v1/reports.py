@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 from fastapi import Depends, HTTPException, Response
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.core.auth.dependencies import superadmin_user
 
@@ -38,7 +39,7 @@ async def list_reports() -> dict:
         order_by="created_at",
         order="asc",
     )
-    return {"success": True, "data": data}
+    return ok(data)
 
 
 @router.post("/")
@@ -67,7 +68,7 @@ async def create_report(
             "filters_config": body.get("filters_config"),
         },
     )
-    return {"success": True, "data": {"id": doc["id"], "report_name": report_name}}
+    return ok({"id": doc["id"], "report_name": report_name})
 
 
 @router.get("/{name}")
@@ -78,7 +79,7 @@ async def get_report(
     report = await grunt.db.get_values("Report", {"report_name": name}, _REPORT_FIELDS)
     if not report:
         raise HTTPException(status_code=404, detail=f"Звіт '{name}' не знайдено")
-    return {"success": True, "data": report}
+    return ok(report)
 
 
 @router.put("/{name}")
@@ -96,7 +97,7 @@ async def update_report(
     values = {k: body[k] for k in updatable if k in body}
     if values:
         await grunt.save_doc("Report", report["id"], values)
-    return {"success": True, "data": {"report_name": name}}
+    return ok({"report_name": name})
 
 
 @router.delete("/{name}")
@@ -109,7 +110,7 @@ async def delete_report(
     if not report:
         raise HTTPException(status_code=404, detail=f"Звіт '{name}' не знайдено")
     await grunt.delete_doc("Report", report["id"])
-    return {"success": True, "message": f"Звіт '{name}' видалено"}
+    return ok(message=f"Звіт '{name}' видалено")
 
 
 @router.post("/{name}/run")

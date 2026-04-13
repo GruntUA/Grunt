@@ -30,6 +30,7 @@ export type PropSection =
   | 'flags'
   | 'display'
   | 'text'
+  | 'formula'
   | 'validation'
   | 'default'
   | 'options'
@@ -37,6 +38,7 @@ export type PropSection =
   | 'table'
   | 'number'
   | 'collapsible'
+  | 'aggregate'
 
 export interface FieldDefinition {
   /** Unique identifier — matches DocField.fieldtype */

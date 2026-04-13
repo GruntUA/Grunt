@@ -109,7 +109,13 @@ class DocumentReadMixin:
         text_types = {"TEXT", "VARCHAR", "CHAR", "CLOB", "STRING", "NVARCHAR", "NCHAR"}
         col_type = str(sort_col.type).upper()
         is_text = any(t in col_type for t in text_types)
-        sort_expr = func.uk_sort_key(sort_col) if is_text else sort_col
+        if is_text:
+            from grunt.core.site.manager import text_sort_expr  # noqa: PLC0415
+
+            dialect_name = self.session.bind.dialect.name if self.session.bind else "sqlite"
+            sort_expr = text_sort_expr(sort_col, dialect_name)
+        else:
+            sort_expr = sort_col
         if sort_order == "asc":
             query = query.order_by(sort_expr.asc())
         else:
@@ -121,6 +127,14 @@ class DocumentReadMixin:
 
         result = await self.session.execute(query)
         rows: list[dict[Any, Any]] = [dict(r._mapping) for r in result]
+
+        # Resolve Link field labels (inject fieldname__label into each row)
+        try:
+            await _resolve_link_labels(self.session, dt, rows)
+        except Exception as _lbl_err:  # noqa: BLE001
+            logger.warning(
+                "list_documents.link_labels_failed", doctype=doctype_name, error=str(_lbl_err)
+            )
 
         # Serialise datetimes
         for doc_row in rows:
@@ -193,3 +207,81 @@ class DocumentReadMixin:
             doc.pop(field, None)
 
         return doc
+
+
+async def _resolve_link_labels(
+    session: AsyncSession,
+    dt: Any,
+    rows: list[dict[str, Any]],
+) -> None:
+    """Inject ``fieldname__label`` values for Link fields in-place.
+
+    For each Link field present in the rows, batch-fetches the title_field
+    of the linked DocType and adds ``{fieldname}__label`` to every row.
+    Skips fields whose linked DocType cannot be resolved.
+    """
+    if not rows:
+        return
+
+    from sqlalchemy import or_  # noqa: PLC0415
+
+    link_fields = [f for f in dt.fields if f.fieldtype == "Link" and f.options]
+
+    # Only process fields that are actually in the result rows
+    present_keys = set(rows[0].keys())
+    link_fields = [f for f in link_fields if f.fieldname in present_keys]
+
+    if not link_fields:
+        return
+
+    for lf in link_fields:
+        target_name = lf.options
+        try:
+            target_dt = await doctype_registry.get(target_name)
+        except Exception:  # noqa: BLE001
+            continue
+
+        title_field = getattr(target_dt, "title_field", "name") or "name"
+        target_table = compile_doctype_to_table(target_dt)
+
+        # Collect unique non-null raw values from rows
+        raw_ids: set[str] = {
+            str(row[lf.fieldname])
+            for row in rows
+            if row.get(lf.fieldname) not in (None, "")
+        }
+        if not raw_ids:
+            continue
+
+        # Batch-fetch id + name + title_field from linked table
+        cols_to_fetch = [target_table.c.id, target_table.c.name]
+        if title_field != "name" and title_field in target_table.c:
+            cols_to_fetch.append(target_table.c[title_field])
+
+        q = (
+            select(*cols_to_fetch)
+            .where(or_(target_table.c.id.in_(raw_ids), target_table.c.name.in_(raw_ids)))
+        )
+
+        # Use a savepoint so a failed query (e.g. table doesn't exist) doesn't
+        # corrupt the outer session state.
+        try:
+            async with session.begin_nested():
+                result = await session.execute(q)
+                linked_rows = result.mappings().all()
+        except Exception:  # noqa: BLE001
+            continue
+
+        # Build lookup: raw_id → display label
+        label_map: dict[str, str] = {}
+        for lr in linked_rows:
+            label = str(lr.get(title_field) or lr.get("name") or "")
+            label_map[str(lr["id"])] = label
+            label_map[str(lr["name"])] = label
+
+        # Inject __label into each row
+        label_key = f"{lf.fieldname}__label"
+        for row in rows:
+            raw = row.get(lf.fieldname)
+            if raw not in (None, ""):
+                row[label_key] = label_map.get(str(raw), str(raw))

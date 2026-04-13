@@ -6,6 +6,7 @@ from grunt.cli.app import app_group, create_app
 from grunt.cli.db import db_group
 from grunt.cli.doctype import doctype_group
 from grunt.cli.server import init, serve, worker
+from grunt.cli.site import site_group
 from grunt.cli.update import update
 from grunt.cli.user import users_group
 
@@ -45,6 +46,7 @@ cli.add_command(db_group)
 cli.add_command(create_app)
 cli.add_command(app_group)
 cli.add_command(doctype_group)
+cli.add_command(site_group)
 
 # Load dynamic plugins
 _load_plugins()

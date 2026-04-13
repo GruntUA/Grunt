@@ -25,10 +25,24 @@ from pathlib import Path
 # Global registry for SQLAlchemy column mapping
 _SA_TYPE_MAP: dict[str, Any] = {}
 
+# Per-field-type metadata declared at registration time.
+# Keys: field type name. Values: dict with "searchable" flag.
+_FIELD_META: dict[str, dict[str, Any]] = {}
 
-def register_field_type(name: str, factory: Any) -> None:
-    """Register a new field type and its SQLAlchemy column factory."""
+
+def register_field_type(name: str, factory: Any, *, searchable: bool = True) -> None:
+    """Register a new field type and its SQLAlchemy column factory.
+
+    Args:
+        name:       Field type identifier (e.g. ``"Text"``, ``"Image"``).
+        factory:    Callable ``(DocField) -> (sa_type_name, *args)`` that
+                    returns the SQLAlchemy type spec for the field.
+        searchable: Whether the field's value should be included in
+                    full-text search indexing.  Set to ``False`` for
+                    binary data, structured blobs, or layout-only types.
+    """
     _SA_TYPE_MAP[name] = factory
+    _FIELD_META[name] = {"searchable": searchable}
 
 
 def discover_field_types() -> None:
@@ -102,7 +116,9 @@ def _init_core_mappings():
 _init_core_mappings()
 
 
-# Field types that do NOT produce a column in the database
+# Field types that do NOT produce a column in the database.
+# These are layout helpers (Section/Column/Tab) or relation containers
+# (Table/MultiLink) — they never store a plain value on the document row.
 NON_PHYSICAL_FIELDS: frozenset[str] = frozenset({"Section", "Column", "Tab", "Table", "MultiLink"})
 
 
@@ -131,6 +147,10 @@ class DocField(BaseModel):
     description: str | None = None
     placeholder: str | None = None
 
+    # Link field — optional filters for the link_search dropdown.
+    # JSON object: '{"status": "Active"}' or expression 'eval: {"company": doc.company}'.
+    link_filters: str | None = None
+
     # Layout
     collapsible: bool = False
     columns: int = 12
@@ -145,7 +165,38 @@ class DocField(BaseModel):
     depends_on: str | None = None
     mandatory_depends_on: str | None = None
 
+    # Formula — Python expression evaluated at save time.
+    # Variables: all field values of the document (e.g. ``qty * unit_price``).
+    # Built-ins: abs, round, min, max, sum, len, str, int, float, bool.
+    # If set, the field is effectively read-only (computed value).
+    formula: str | None = None
+
+    # Aggregation — computes a summary value from a child TABLE field.
+    # aggregate_function: "sum" | "count" | "avg" | "min" | "max"
+    # aggregate_table:    fieldname of the TABLE field in this DocType
+    # aggregate_field:    fieldname in the child DocType to aggregate (not needed for "count")
+    aggregate_function: str | None = None
+    aggregate_table: str | None = None
+    aggregate_field: str | None = None
+
     model_config = {"use_enum_values": True}
+
+    @property
+    def is_searchable(self) -> bool:
+        """Return True if this field's value should be included in full-text search.
+
+        Relies on the ``searchable`` flag declared when the field type was
+        registered via :func:`register_field_type`.  Non-physical fields
+        (layout helpers) are never searchable.  Unknown / plugin field types
+        default to ``True`` so they are indexed by default.
+        """
+        if self.fieldtype in NON_PHYSICAL_FIELDS:
+            return False
+        meta = _FIELD_META.get(self.fieldtype)
+        if meta is not None:
+            return meta["searchable"]
+        # Unknown field type from a plugin — include in search by default.
+        return True
 
     def to_sa_column(self) -> Column:
         """Return a SQLAlchemy :class:`Column` for this field."""

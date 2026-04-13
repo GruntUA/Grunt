@@ -3,5 +3,5 @@
   "label": "Integer",
   "icon": "#",
   "category": "Базові",
-  "propertySections": ["core", "flags", "display", "text", "default", "number", "validation"]
+  "propertySections": ["core", "flags", "display", "text", "formula", "aggregate", "default", "number", "validation"]
 }

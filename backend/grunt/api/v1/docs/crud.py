@@ -7,7 +7,8 @@ from typing import Any
 from fastapi import Body, Depends, HTTPException, Query, Request, status
 
 from grunt.api.router import GruntRouter
-from grunt.api.v1.docs.utils import _audit_log, get_doc_service
+from grunt.api.v1.docs.utils import get_doc_service
+from grunt.api.v1.schemas.response import ok
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import GruntUser
 from grunt.core.document.service import DocumentService
@@ -60,8 +61,7 @@ async def create_document(
 ) -> dict[str, Any]:
     """Create a new document."""
     doc = await svc.create_document(doctype, body, user)
-    await _audit_log(svc, doctype, str(doc.get("id", "")), "create", user)
-    return {"success": True, "data": doc}
+    return ok(doc)
 
 
 @router.get("/{doctype}/{doc_id}")
@@ -73,7 +73,7 @@ async def get_document(
 ) -> dict[str, Any]:
     """Get document data."""
     doc = await svc.get_document(doctype, doc_id, user)
-    return {"success": True, "data": doc}
+    return ok(doc)
 
 
 @router.put("/{doctype}/{doc_id}")
@@ -86,8 +86,7 @@ async def update_document(
 ) -> dict[str, Any]:
     """Update an existing document."""
     doc = await svc.update_document(doctype, doc_id, body, user)
-    await _audit_log(svc, doctype, doc_id, "update", user, body)
-    return {"success": True, "data": doc}
+    return ok(doc)
 
 
 @router.delete("/{doctype}/{doc_id}")
@@ -99,8 +98,7 @@ async def delete_document(
 ) -> dict[str, Any]:
     """Delete a document."""
     await svc.delete_document(doctype, doc_id, user)
-    await _audit_log(svc, doctype, doc_id, "delete", user)
-    return {"success": True, "message": "Документ видалено"}
+    return ok(message="Документ видалено")
 
 
 @router.post("/{doctype}/bulk-delete")
@@ -120,12 +118,11 @@ async def bulk_delete_documents(
     for doc_id in ids:
         try:
             await svc.delete_document(doctype, doc_id, user)
-            await _audit_log(svc, doctype, doc_id, "delete", user)
             deleted += 1
         except Exception as e:
             errors.append(f"{doc_id}: {e}")
 
-    return {"success": True, "data": {"deleted": deleted, "errors": errors}}
+    return ok({"deleted": deleted, "errors": errors})
 
 
 @router.post("/{doctype}/bulk-update")
@@ -150,11 +147,8 @@ async def bulk_update_documents(
     for doc_id in ids:
         try:
             await svc.update_document(doctype, doc_id, {field: value}, user)
-            await _audit_log(
-                svc, doctype, doc_id, "bulk_update", user, {"field": field, "value": value}
-            )
             updated += 1
         except Exception as e:
             errors.append(f"{doc_id}: {e}")
 
-    return {"success": True, "data": {"updated": updated, "errors": errors}}
+    return ok({"updated": updated, "errors": errors})

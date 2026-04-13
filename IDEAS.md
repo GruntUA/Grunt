@@ -12,7 +12,7 @@
 | 1.1 | ✅ | **Система сповіщень** | `grunt.notify()` і `notify_all()` є заглушками — не створюють записів у БД, не ставлять листи в чергу. Потрібно дописати: збереження Notification-документа, відправка email через чергу, підключення WebPush. |
 | 1.2 | ✅ | **Трекінг запланованих завдань** | ScheduledJob має поля `next_run_at`, `last_run_at`, `run_count`, `status`, `last_error` — але вони ніколи не заповнюються. Потрібно оновлювати після кожного виконання та рахувати помилки. |
 | 1.3 | ✅ | **msgprint у контексті запиту** | `grunt.msgprint()` зараз логує через structlog. Потрібно: складати повідомлення в чергу поточного запиту й відправляти через WebSocket одним пакетом після відповіді. |
-| 1.4 | 🔨 | **i18n — повні переклади** | Рядки вже помічені через `_()`, але файли перекладу (`locale/uk.json`) майже порожні. Треба пройтися по всіх модулях і заповнити UA-переклади. **Переклад повинен працювати через po/pot файли. json - і все що з ним пов'язано - прибрати**  |
+| 1.4 | ✅ | **i18n — повні переклади** | PO/POT інфраструктура повністю реалізована, json-файлів перекладу немає. Frontend завантажує переклади через `/api/v1/translations/{locale}`. `grunt.po` розширено: +60 рядків для auth, documents, permissions, email, files, sessions, jobs, UI. |
 
 ---
 
@@ -24,7 +24,7 @@
 | 2.2 | 💡 | **Візуальний Query Builder** | Drag-and-drop конструктор запитів для Query Reports — вибір полів, умов, групування — без SQL. Генерує SQLAlchemy-запит у фоні. |
 | 2.3 | 💡 | **Scheduled Report Delivery** | Запуск звіту за розкладом (cron) → генерація XLSX/PDF → відправка на список email. Конфігурація через DocType `ReportSchedule`. |
 | 2.4 | 💡 | **Drill-down у звітах** | Клік на рядок/стовпець у зведеному звіті відкриває деталізований список документів, що стоять за цифрою. |
-| 2.5 | 💡 | **Збережені фільтри** | Користувач зберігає набір фільтрів у ListView під іменем → повертається до них у будь-який момент. Зберігається як `SavedFilter` DocType на рівні user + doctype. |
+| 2.5 | ✅ | **Збережені фільтри** | Реалізовано в `FilterBar.vue`: збереження пресетів фільтрів за іменем у localStorage (per-user per-doctype), завантаження та видалення через dropdown меню. |
 
 ---
 
@@ -32,11 +32,11 @@
 
 | # | Статус | Ідея | Опис |
 |---|--------|------|------|
-| 3.1 | 💡 | **@mentions у коментарях** | При введенні `@ім'я` у Comment-полі — dropdown з користувачами. Отримувач отримує сповіщення. Comment DocType вже є, треба додати mention-парсинг і hook. |
+| 3.1 | ✅ | **@mentions у коментарях** | При введенні `@ім'я` у Comment-полі — dropdown з користувачами. Отримувач отримує сповіщення. Comment DocType вже є, треба додати mention-парсинг і hook. |
 | 3.2 | 💡 | **Thread-reply у коментарях** | Можливість відповідати на конкретний коментар. Поле `parent_comment` у Comment, UI рендерить дерево. |
-| 3.3 | 💡 | **Document diff (версії)** | Сторінка "Історія змін" показує diff між двома версіями документа. `DocVersion` вже логується — треба UI для порівняння. |
+| 3.3 | ✅ | **Document diff (версії)** | Реалізовано: `VersionHistoryPanel.vue` відображає список версій з inline diff (старе → нове значення поля), кнопкою відновлення. Вбудовано у `DocTypeForm.vue` через боковий sidebar. |
 | 3.4 | 💡 | **Реакції на коментарі** | Emoji-реакції (👍 ✅ ❓) на коментарях через окрему таблицю `CommentReaction`. Невелика, але дає соціальну динаміку. |
-| 3.5 | 💡 | **Гостьовий доступ до документа** | Генерація захищеного посилання на документ для перегляду/підпису зовнішнім користувачем (без логіну в систему). |
+| 3.5 | ✅ | **Гостьовий доступ до документа** | Генерація захищеного посилання на документ для перегляду/підпису зовнішнім користувачем (без логіну в систему). |
 
 ---
 
@@ -44,7 +44,7 @@
 
 | # | Статус | Ідея | Опис |
 |---|--------|------|------|
-| 4.1 | 💡 | **Webhooks UI** | Сторінка керування вихідними вебхуками: список, тестовий запит, лог останніх доставок (WebhookLog вже є). |
+| 4.1 | ✅ | **Webhooks UI** | Сторінка керування вихідними вебхуками: список, тестовий запит, лог останніх доставок (WebhookLog вже є). |
 | 4.2 | 💡 | **OAuth-провайдери** | Логін через Google, Microsoft, GitHub. Таблиця `OAuthProvider` у Studio, backend через `authlib`. Partial implementation вже є. |
 | 4.3 | 💡 | **REST API Connector** | DocType `ApiConnector` — конфігурація зовнішнього REST API (base URL, auth, headers). `grunt.call_api("MyConnector", "/endpoint", data)` у Server Scripts. |
 | 4.4 | 💡 | **Zapier / Make (n8n) webhooks** | Incoming webhook endpoint `/api/v1/webhook/{token}` → виконує Server Script або створює документ. Дозволяє підключити будь-який no-code інструмент. |
@@ -58,7 +58,7 @@
 |---|--------|------|------|
 | 5.1 | 💡 | **Query-level кешування** | Результати `get_list` для read-only DocTypes кешувати в Redis з TTL. Інвалідація при `after_save`/`after_delete`. |
 | 5.2 | 💡 | **Read replica підтримка** | Конфігурація `DATABASE_REPLICA_URL` → всі SELECT-запити без транзакції йдуть на репліку. Прозоро через кастомний session factory. |
-| 5.3 | 💡 | **N+1 query detector** | У dev-режимі: якщо один HTTP-запит генерує >N SQL-запитів — виводити попередження в лог. Використовувати SQLAlchemy event hooks для підрахунку. |
+| 5.3 | ✅ | **N+1 query detector** | Реалізовано в `profiler.py`: якщо один HTTP-запит генерує >N SQL-запитів — виводить `WARNING n1_suspect` у structlog з кількістю запитів і шляхом. Поріг `n1_threshold=10` (змінюється через `PUT /api/v1/dev/profiler/settings`). |
 | 5.4 | 💡 | **Пагінація курсором** | Для великих таблиць замість `OFFSET` — курсорна пагінація за `(created_at, id)`. Швидше на мільйонах рядків. Опціональний параметр `cursor=` до `/api/v1/docs/{doctype}`. |
 | 5.5 | 💡 | **Lazy-load зв'язків у формі** | Link-поля та Child Tables зараз завантажуються разом із документом. Додати `?expand=field1,field2` до GET-запиту для явного розгортання. |
 
@@ -69,10 +69,10 @@
 | # | Статус | Ідея | Опис |
 |---|--------|------|------|
 | 6.1 | 💡 | **Field Validation Builder** | Візуальний конструктор regex/range валідацій у Studio — без написання JS. Зберігається в `DocField.validation_rule`. |
-| 6.2 | 💡 | **Темна тема** | CSS variables вже є. Додати `prefers-color-scheme` + ручний toggle у профілі. Зберігати в `UserSettings`. |
+| 6.2 | ✅ | **Темна тема** | Повністю реалізовано: `useColorMode.ts`, Theme Engine (`/api/v1/theme.css`), per-user theme у `User.theme`, ручний toggle, cross-tab sync, темна варіація кольорів через HEX→HSL. |
 | 6.3 | 💡 | **Guided onboarding / Setup Wizard** | При першому запуску — покроковий wizard: назва системи, email SMTP, перший користувач, тестовий DocType. Зменшує поріг входу для нових розробників. |
-| 6.4 | 💡 | **Keyboard shortcuts** | Глобальні хоткеї: `Ctrl+K` — command palette (пошук документів/сторінок), `Ctrl+S` — зберегти форму, `N` у ListView — новий документ. |
-| 6.5 | 💡 | **Command Palette** | `Ctrl+K` відкриває fuzzy-пошук по всіх DocTypes, документах, сторінках і командах. Як у Notion/Linear. |
+| 6.4 | ✅ | **Keyboard shortcuts** | Реалізовано в `CommandPalette.vue`: `Ctrl+K` — command palette, `Ctrl+N` — quick create. Форма: `Ctrl+S` — зберегти. |
+| 6.5 | ✅ | **Command Palette** | Реалізовано: `CommandPalette.vue` — fuzzy-пошук по DocTypes, документах, workspaces і командах. Групований результат, навігація клавіатурою, quick create, статичні дії. |
 | 6.6 | 💡 | **Inline edit у ListView** | Подвійний клік на комірку таблиці — редагування на місці без відкриття форми. Для полів типу Text, Select, Check. |
 | 6.7 | 💡 | **DocType Playground** | Сторінка в Studio де можна протестувати DocType: заповнити форму, побачити згенерований JSON, перевірити API. |
 
@@ -94,10 +94,10 @@
 | # | Статус | Ідея | Опис |
 |---|--------|------|------|
 | 8.1 | 💡 | **2FA Enforcement Policy** | Системна настройка `require_2fa_for_roles: [Admin, Manager]` — при логіні без 2FA переадресовує на setup. MFA-код вже є, треба policy. |
-| 8.2 | 💡 | **Audit Log Diff UI** | Сторінка `ActivityLog` показує не просто "Update", а конкретно які поля змінилися і з якого на яке значення (diff). |
+| 8.2 | ✅ | **Audit Log Diff UI** | Сторінка `ActivityLog` показує не просто "Update", а конкретно які поля змінилися і з якого на яке значення (diff). |
 | 8.3 | 💡 | **Data Retention Rules** | DocType `RetentionPolicy`: автоматичне видалення/архівування документів старших N днів. Запускається через Scheduled Job. |
 | 8.4 | 💡 | **IP Allowlist** | Обмеження входу за IP-адресою для окремих ролей. Конфігурується в `Role` або `SystemSettings`. |
-| 8.5 | 💡 | **Session management** | Сторінка профілю показує активні сесії (пристрій, IP, остання активність) з можливістю їх завершити. |
+| 8.5 | ✅ | **Session management** | Реалізовано: `UserSession` DocType (таблиця `grunt_core_user_session`), сесія створюється при логіні, завершується при logout. API: `GET/DELETE /api/v1/auth/sessions`. Frontend: `/profile` — сторінка з картками сесій (IP, браузер, ОС, остання активність, завершення). Посилання у DeskTopBar. |
 
 ---
 
@@ -106,7 +106,7 @@
 | # | Статус | Ідея | Опис |
 |---|--------|------|------|
 | 9.1 | 💡 | **App Marketplace** | Каталог готових grunt-apps (CRM, HR, Склад) з встановленням через `grunt install-app <url>`. Аналог Frappe Cloud Apps. |
-| 9.2 | 💡 | **grunt scaffold** | CLI-команда `grunt scaffold doctype MyName` — генерує `.json` + `.py` + тест для нового DocType за шаблоном. |
+| 9.2 | ✅ | **grunt scaffold** | Реалізовано: `grunt doctype scaffold MyName` — генерує `.json` + `.py` controller + JavaScript client script за шаблоном. |
 | 9.3 | 💡 | **VS Code Extension** | Підсвічування JSON-схеми DocType, автодоповнення fieldtype/options, команда "Open in Studio". |
 | 9.4 | 💡 | **DocType Import/Export** | Експорт DocType (і його даних-фікстур) в ZIP → імпорт на іншому сайті. `grunt export-doctype MyApp` / `grunt import-doctype myapp.zip`. |
 | 9.5 | 💡 | **Grunt DevTools (браузерне розширення)** | Панель для відлагодження: поточний DocType, активні WebSocket-підписки, останні API-запити, SQL-запити поточної сторінки. |

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, provide } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useDocument } from '@/core/composables/useDocument'
@@ -7,6 +7,7 @@ import { useToast } from '@/core/composables/useToast'
 import { useWebSocket } from '@/core/composables/useWebSocket'
 import { usePresence } from '@/core/composables/usePresence'
 import { useClientScripts } from '@/core/composables/useClientScripts'
+import { useLinkCreate } from '@/core/composables/useLinkCreate'
 import { useQueryClient } from '@tanstack/vue-query'
 import { clearScriptCache } from '@/core/scripting/executor'
 import type { DocType, GruntDocument } from '@/types'
@@ -18,7 +19,6 @@ import VersionHistoryPanel from '@/components/views/VersionHistoryPanel.vue'
 
 // Custom sub-components
 import FormHeader from '@/components/views/form/FormHeader.vue'
-import FormActivityLog from '@/components/views/form/FormActivityLog.vue'
 import FormModals from '@/components/views/form/FormModals.vue'
 
 const props = defineProps<{ doctype: string; id: string | null; workspace?: string }>()
@@ -26,6 +26,7 @@ const router = useRouter()
 const dtStore = useDocTypeStore()
 const toast = useToast()
 const queryClient = useQueryClient()
+const { startLinkCreate, finishLinkCreate, restoreLinkDraft } = useLinkCreate()
 
 const dt = ref<DocType | null>(null)
 const { document, form, isLoading, isDirty, isSaving, save, remove } = useDocument(props.doctype, props.id)
@@ -37,6 +38,7 @@ const {
   displayOverrides,
   reqdOverrides,
   runEvent: runScriptEvent,
+  getLinkFilters,
 } = useClientScripts(props.doctype, {
   getDoc: () => form.value,
   getFields: () => (dt.value?.fields ?? []) as Record<string, unknown>[],
@@ -45,13 +47,15 @@ const {
   save: () => handleSave(),
 })
 
+// Provide link filter resolver to all descendant Link fields via inject
+provide('getLinkFilters', getLinkFilters)
+
 // ── Modals & Navigation ──────────────────────────────────────────────────────
 const showDeleteModal = ref(false)
 const showLeaveModal = ref(false)
 let pendingRoute: string | null = null
 let allowLeave = false
 
-const activityLogRef = ref<InstanceType<typeof FormActivityLog> | null>(null)
 const showVersions = ref(false)
 
 function onVersionRestored() {
@@ -78,8 +82,32 @@ onMounted(async () => {
     } catch { /* ignore malformed state */ }
   }
 
+  // Restore draft + set link field after returning from a link-create flow
+  const linkReturn = restoreLinkDraft(props.doctype, props.id, form.value)
+  if (linkReturn) {
+    form.value[linkReturn.fieldname] = linkReturn.value
+    toast.info(`Поле встановлено: ${linkReturn.value}`)
+  }
+
   await runScriptEvent('on_load')
 })
+
+/**
+ * Handle "create-new" event from a Link field inside the form.
+ * Saves the current form data as a draft and navigates to the linked doc form.
+ */
+function handleCreateNew(linkedDoctype: string, preset: string, fieldname: string) {
+  allowLeave = true
+  startLinkCreate(
+    linkedDoctype,
+    preset,
+    fieldname,
+    props.doctype,
+    props.id,
+    { ...form.value },
+    props.workspace,
+  )
+}
 
 // ── WebSocket real-time + presence ───────────────────────────────────────────
 const wsUrl = computed(() => props.id ? `/api/v1/ws/${props.doctype}/${props.id}` : null)
@@ -134,10 +162,12 @@ async function handleSave() {
     
     if (!props.id) {
       allowLeave = true
-      const newId = (saved as { id: string }).id
+      const savedDoc = saved as { id: string; name: string }
+      // If this save is part of a link-create flow — navigate back to origin
+      if (finishLinkCreate(props.doctype, savedDoc.name)) return
       const path = props.workspace
-        ? `/${props.workspace}/list/${props.doctype}/${newId}`
-        : `/${props.doctype}/${newId}`
+        ? `/${props.workspace}/list/${props.doctype}/${savedDoc.id}`
+        : `/${props.doctype}/${savedDoc.id}`
       router.replace(path)
     }
   } catch (err: unknown) {
@@ -222,7 +252,7 @@ function onFormUpdate(updated: Record<string, unknown>) {
 </script>
 
 <template>
-  <div class="p-4 sm:p-6 lg:p-8 max-w-full xl:max-w-7xl animate-in fade-in duration-500">
+  <div class="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
     <!-- Header -->
     <FormHeader
       :dt="dt"
@@ -238,7 +268,6 @@ function onFormUpdate(updated: Record<string, unknown>) {
       @save="handleSave"
       @delete="showDeleteModal = true"
       @duplicate="handleDuplicate"
-      @toggle-log="activityLogRef?.toggleLog()"
       @invalidate="queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })"
     />
 
@@ -248,11 +277,11 @@ function onFormUpdate(updated: Record<string, unknown>) {
     </div>
 
     <template v-else>
-      <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
         <!-- Left Column -->
-        <div class="min-w-0 flex flex-col gap-6">
+        <div class="min-w-0 flex flex-col gap-4">
           <!-- Main Form Card -->
-          <div class="bg-card rounded-xl p-6 sm:p-8 shadow-md ring-1 ring-border/60 transition-all">
+          <div class="bg-card border border-border rounded-md shadow-sm p-5">
             <FormRenderer
               :doctype="dt"
               :model-value="form"
@@ -264,24 +293,23 @@ function onFormUpdate(updated: Record<string, unknown>) {
               @update:model-value="onFormUpdate($event)"
               @field-focus="focusField($event)"
               @field-blur="blurField($event)"
+              @create-new="handleCreateNew"
             />
           </div>
 
-          <!-- Activity log -->
-          <FormActivityLog ref="activityLogRef" :doctype="doctype" :id="id" />
 
           <!-- Version history -->
-          <div v-if="id && dt?.track_changes" class="bg-card rounded-xl overflow-hidden shadow-sm ring-1 ring-border/60">
+          <div v-if="id && dt?.track_changes" class="form-section">
             <button type="button"
-              class="w-full flex items-center gap-2 px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              class="form-section-header w-full hover:bg-muted/70 transition-colors"
               @click="showVersions = !showVersions">
-              <History class="size-4" />
+              <History class="size-3.5 text-muted-foreground" />
               <span class="flex-1 text-left">Версії документа</span>
               <div class="size-4 flex items-center justify-center transition-transform duration-300" :class="{ 'rotate-180': showVersions }">
                 <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1L5 5L9 1"/></svg>
               </div>
             </button>
-            <div v-if="showVersions" class="border-t border-border bg-muted/5">
+            <div v-if="showVersions">
               <VersionHistoryPanel :doctype="doctype" :doc-id="id" @restored="onVersionRestored" />
             </div>
           </div>

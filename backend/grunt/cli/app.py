@@ -29,71 +29,71 @@ def app_group():
     pass
 
 
+async def _do_install(name: str, site: str | None) -> None:
+    """Встановлює додаток: реєструє в grunt.site, завантажує DocTypes, fixtures, after_install."""
+    import json  # noqa: PLC0415
+
+    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+    from grunt.core.db.base import Base  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.core.site.manager import current_site, site_manager  # noqa: PLC0415
+    from grunt.core.startup import load_core_doctypes, seed_app_workspaces  # noqa: PLC0415
+
+    _sites = site_manager.get_sites()
+    target_site = site or (_sites[0] if _sites else None)
+    if target_site is None:
+        raise SystemExit("Помилка: сайт не знайдено.")
+
+    app_dir = site_manager.bench_dir / "apps" / name
+    app_json = app_dir / "app.json"
+    if not app_dir.is_dir():
+        raise SystemExit(f"Помилка: директорія '{app_dir}' не існує.")
+    if not app_json.exists():
+        raise SystemExit(f"Помилка: '{app_json}' не знайдено.")
+
+    app_meta = json.loads(app_json.read_text(encoding="utf-8"))
+
+    # Реєструємо в grunt.site
+    site_file = site_manager.sites_dir / target_site / "grunt.site"
+    site_config = json.loads(site_file.read_text(encoding="utf-8"))
+    installed = site_config.get("installed_apps", [])
+    if name not in installed:
+        installed.append(name)
+        site_config["installed_apps"] = installed
+        site_file.write_text(
+            json.dumps(site_config, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+
+    # Завантажуємо DocTypes, fixtures, workspace, after_install
+    token = current_site.set(target_site)
+    try:
+        eng = site_manager.get_engine(target_site)
+        maker = site_manager.get_session_maker(target_site)
+
+        async with eng.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+        async with maker() as session:
+            await load_core_doctypes(session, eng)
+            await doctype_registry.load_all(session)
+            async with grunt.context(session, eng, SYSTEM_USER):
+                await seed_app_workspaces(session, target_site)
+            await session.commit()
+    finally:
+        current_site.reset(token)
+
+    title = app_meta.get("title", name)
+    print(f"✓ Додаток {title} встановлено на сайт {target_site}")
+    print(f"  Додатки: {', '.join(site_config.get('installed_apps', []))}")
+
+
 @app_group.command("install")
 @click.argument("name")
 @click.option("--site", default=None, help="Назва сайту")
 def app_install(name: str, site: str | None):
     """Встановити додаток та одразу зареєструвати його workspace."""
-
-    async def _run():
-        import json  # noqa: PLC0415
-
-        from grunt.core.db.base import Base  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.core.site.manager import current_site, site_manager  # noqa: PLC0415
-        from grunt.core.startup import load_core_doctypes, seed_app_workspaces  # noqa: PLC0415
-
-        target_site = site or (site_manager.get_sites() or [None])[0]
-        if target_site is None:
-            click.echo("Помилка: сайт не знайдено.", err=True)
-            raise SystemExit(1)
-
-        # Validate app exists
-        app_dir = site_manager.bench_dir / "apps" / name
-        app_json = app_dir / "app.json"
-        if not app_dir.is_dir():
-            click.echo(f"Помилка: директорія '{app_dir}' не існує.", err=True)
-            raise SystemExit(1)
-        if not app_json.exists():
-            click.echo(f"Помилка: '{app_json}' не знайдено.", err=True)
-            raise SystemExit(1)
-
-        app_meta = json.loads(app_json.read_text(encoding="utf-8"))
-
-        # Update grunt.site installed_apps
-        site_file = site_manager.sites_dir / target_site / "grunt.site"
-        site_config = json.loads(site_file.read_text(encoding="utf-8"))
-        installed = site_config.get("installed_apps", [])
-        if name not in installed:
-            installed.append(name)
-            site_config["installed_apps"] = installed
-            site_file.write_text(
-                json.dumps(site_config, ensure_ascii=False, indent=2), encoding="utf-8"
-            )
-
-        # Seed workspace immediately (no server restart needed)
-        token = current_site.set(target_site)
-        try:
-            eng = site_manager.get_engine(target_site)
-            maker = site_manager.get_session_maker(target_site)
-
-            async with eng.begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
-
-            async with maker() as session:
-                await load_core_doctypes(session, eng)
-                await doctype_registry.load_all(session)
-                await seed_app_workspaces(session, target_site)
-                await session.commit()
-        finally:
-            current_site.reset(token)
-
-        title = app_meta.get("title", name)
-        click.echo(f"✓ Додаток {title} встановлено на сайт {target_site}")
-        all_apps = site_config.get("installed_apps", [])
-        click.echo(f"  Додатки: {', '.join(all_apps)}")
-
-    asyncio.run(_run())
+    asyncio.run(_do_install(name, site))
 
 
 @app_group.command("uninstall")
@@ -107,7 +107,8 @@ def app_uninstall(name: str, site: str | None):
 
         from grunt.core.site.manager import site_manager  # noqa: PLC0415
 
-        target_site = site or (site_manager.get_sites() or [None])[0]
+        _sites = site_manager.get_sites()
+        target_site = site or (_sites[0] if _sites else None)
         if target_site is None:
             click.echo("Помилка: сайт не знайдено.", err=True)
             raise SystemExit(1)

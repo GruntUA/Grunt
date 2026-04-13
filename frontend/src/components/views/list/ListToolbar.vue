@@ -12,6 +12,7 @@ import {
   Rows3,
   Check,
   Image as ImageIcon,
+  Map as MapIcon,
 } from 'lucide-vue-next'
 import draggable from 'vuedraggable'
 import { Button } from '@/components/ui/button'
@@ -38,6 +39,7 @@ const props = defineProps<{
   kanbanColumnField: any
   treeParentField: any
   calendarDateField: any
+  geoField: any
 }>()
 
 const emit = defineEmits<{
@@ -76,9 +78,9 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
       <div class="relative flex-1 max-w-[320px] group">
         <Search
           class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
-        <input v-model="localSearch" placeholder="Пошук..."
+        <input v-model="localSearch"
           class="flex h-9 w-full rounded-lg border-transparent bg-background/60 px-3 py-1 pl-9 text-sm text-foreground transition-all placeholder:text-muted-foreground/60 focus-visible:outline-none focus:bg-background focus:ring-1 focus:ring-primary/30"
-        :placeholder="t('Search...')" />
+          :placeholder="t('Search...')" />
       </div>
       <FilterBar v-if="dt" :fields="dt.fields" :doctype="doctype" @change="onFiltersChange" class="!mb-0" />
       <Button v-if="inlineSearch || Object.keys(activeFilters).length" variant="ghost" size="sm"
@@ -203,6 +205,12 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
           :class="viewMode === 'gallery' ? 'bg-background shadow-sm text-primary ring-1 ring-border/60' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'"
           title="Галерея" @click="emit('update:viewMode', 'gallery')">
           <ImageIcon class="size-4" />
+        </button>
+        <button v-if="geoField" type="button"
+          class="size-8 flex items-center justify-center rounded-md transition-all active:scale-90 ml-1"
+          :class="viewMode === 'map' ? 'bg-background shadow-sm text-primary ring-1 ring-border/60' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'"
+          title="Карта" @click="emit('update:viewMode', 'map')">
+          <MapIcon class="size-4" />
         </button>
       </div>
     </div>

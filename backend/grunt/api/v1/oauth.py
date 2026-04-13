@@ -26,6 +26,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.config import settings
 from grunt.core.auth.dependencies import grunt_context_optional
@@ -106,7 +107,7 @@ async def oauth_authorize(provider: str) -> dict:
     ) as client:
         url, _state = client.create_authorization_url(oidc["authorization_endpoint"])
 
-    return {"success": True, "data": {"url": url}}
+    return ok({"url": url})
 
 
 @router.get("/{provider}/callback")
@@ -176,20 +177,17 @@ async def oauth_callback(
     refresh_token = await create_refresh_token(user.id, session)
     await session.commit()
 
-    return {
-        "success": True,
-        "data": {
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-            "token_type": "bearer",
-            "mfa_required": user.mfa_enabled,
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "full_name": user.full_name,
-                "roles": user.roles,
-                "is_superadmin": user.is_superadmin,
-                "theme": user.theme,
-            },
+    return ok({
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "mfa_required": user.mfa_enabled,
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "roles": user.roles,
+            "is_superadmin": user.is_superadmin,
+            "theme": user.theme,
         },
-    }
+    })

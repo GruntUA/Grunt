@@ -172,3 +172,165 @@ msgstr "Так"
 
 msgid "No"
 msgstr "Ні"
+
+#. ── Document lifecycle ────────────────────────────────────────
+msgid "Document submitted"
+msgstr "Документ подано"
+
+msgid "Document cancelled"
+msgstr "Документ скасовано"
+
+msgid "Document amended"
+msgstr "Документ виправлено"
+
+msgid "Document duplicated"
+msgstr "Документ продубльовано"
+
+msgid "Cannot delete a submitted document"
+msgstr "Не можна видалити поданий документ"
+
+msgid "Cannot submit an already submitted document"
+msgstr "Документ вже подано"
+
+msgid "Cannot cancel a document that is not submitted"
+msgstr "Скасувати можна лише поданий документ"
+
+msgid "Doctype '%(doctype)s' not found"
+msgstr "Тип документа '%(doctype)s' не знайдено"
+
+msgid "%(doctype)s '%(name)s' already exists"
+msgstr "%(doctype)s '%(name)s' вже існує"
+
+#. ── Permissions ───────────────────────────────────────────────
+msgid "You do not have permission to read %(doctype)s"
+msgstr "Недостатньо прав для читання %(doctype)s"
+
+msgid "You do not have permission to create %(doctype)s"
+msgstr "Недостатньо прав для створення %(doctype)s"
+
+msgid "You do not have permission to write %(doctype)s"
+msgstr "Недостатньо прав для редагування %(doctype)s"
+
+msgid "You do not have permission to delete %(doctype)s"
+msgstr "Недостатньо прав для видалення %(doctype)s"
+
+msgid "You do not have permission to submit %(doctype)s"
+msgstr "Недостатньо прав для подання %(doctype)s"
+
+#. ── Email ─────────────────────────────────────────────────────
+msgid "Email sent"
+msgstr "Листа відправлено"
+
+msgid "Email queued"
+msgstr "Лист поставлено в чергу"
+
+msgid "Email account not configured"
+msgstr "Обліковий запис пошти не налаштовано"
+
+msgid "Invalid email address"
+msgstr "Невірна адреса електронної пошти"
+
+msgid "Email template not found"
+msgstr "Шаблон листа не знайдено"
+
+#. ── File uploads ──────────────────────────────────────────────
+msgid "File not found"
+msgstr "Файл не знайдено"
+
+msgid "File too large"
+msgstr "Файл занадто великий"
+
+msgid "File type not allowed"
+msgstr "Даний тип файлу не дозволено"
+
+msgid "File uploaded"
+msgstr "Файл завантажено"
+
+msgid "File deleted"
+msgstr "Файл видалено"
+
+#. ── Search ────────────────────────────────────────────────────
+msgid "Search results for '%(query)s'"
+msgstr "Результати пошуку за '%(query)s'"
+
+msgid "No results for '%(query)s'"
+msgstr "Нічого не знайдено за '%(query)s'"
+
+#. ── Reports ───────────────────────────────────────────────────
+msgid "Report not found"
+msgstr "Звіт не знайдено"
+
+msgid "Report generated"
+msgstr "Звіт сформовано"
+
+msgid "Report access denied"
+msgstr "Доступ до звіту заборонено"
+
+#. ── Scripting ─────────────────────────────────────────────────
+msgid "Script executed"
+msgstr "Скрипт виконано"
+
+msgid "Script error"
+msgstr "Помилка скрипта"
+
+msgid "Script not found"
+msgstr "Скрипт не знайдено"
+
+#. ── Scheduled jobs ────────────────────────────────────────────
+msgid "Job started"
+msgstr "Завдання запущено"
+
+msgid "Job completed"
+msgstr "Завдання виконано"
+
+msgid "Job failed"
+msgstr "Завдання завершилось з помилкою"
+
+msgid "Job '%(name)s' not found"
+msgstr "Завдання '%(name)s' не знайдено"
+
+#. ── Sessions ──────────────────────────────────────────────────
+msgid "Session not found"
+msgstr "Сесію не знайдено"
+
+msgid "Session terminated"
+msgstr "Сесію завершено"
+
+msgid "Active sessions"
+msgstr "Активні сесії"
+
+msgid "Current session"
+msgstr "Поточна сесія"
+
+#. ── Assignments ───────────────────────────────────────────────
+msgid "Assigned to %(user)s"
+msgstr "Призначено %(user)s"
+
+msgid "Assignment removed"
+msgstr "Призначення знято"
+
+#. ── UI messages ───────────────────────────────────────────────
+msgid "Changes saved"
+msgstr "Зміни збережено"
+
+msgid "Operation failed"
+msgstr "Операція не вдалася"
+
+msgid "Confirm delete"
+msgstr "Підтвердити видалення"
+
+msgid "Are you sure you want to delete this document?"
+msgstr "Ви впевнені, що хочете видалити цей документ?"
+
+msgid "This action cannot be undone"
+msgstr "Цю дію не можна скасувати"
+
+msgid "%(count)d selected"
+msgid_plural "%(count)d selected"
+msgstr[0] "%(count)d вибрано"
+msgstr[1] "%(count)d вибрано"
+msgstr[2] "%(count)d вибрано"
+
+#. ── N+1 detector ──────────────────────────────────────────────
+msgid "Possible N+1 query detected: %(count)d queries in one request (%(path)s). Threshold: %(threshold)d."
+msgstr "Виявлено можливу N+1 проблему: %(count)d запитів за один HTTP-запит (%(path)s). Поріг: %(threshold)d."

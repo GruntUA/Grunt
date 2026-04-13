@@ -9,7 +9,7 @@ import { useListSelection } from '@/core/composables/useListSelection'
 import { useListColumns } from '@/core/composables/useListColumns'
 import { useDevMode } from '@/core/composables/useDevMode'
 import { docsApi } from '@/core/api/docs'
-import type { DocType, DocField, ScriptButton } from '@/types'
+import type { DocType, DocField, ScriptButton, ScriptMenuItem } from '@/types'
 import {
   createListViewProxy,
   createGruntProxy,
@@ -24,6 +24,7 @@ import KanbanView from '@/components/views/KanbanView.vue'
 import CalendarView from '@/components/views/CalendarView.vue'
 import TreeView from '@/components/views/TreeView.vue'
 import GalleryView from '@/components/views/GalleryView.vue'
+import MapView from '@/components/views/MapView.vue'
 
 // Custom sub-components
 import ListHeader from '@/components/views/list/ListHeader.vue'
@@ -51,8 +52,8 @@ const debouncedSearch = ref('')
 const sortKey = ref('')
 const sortOrder = ref<'asc' | 'desc'>('asc')
 const activeFilters = ref<Record<string, string>>({})
-type ViewMode = 'list' | 'kanban' | 'calendar' | 'tree' | 'gallery'
-const VALID_VIEWS: ViewMode[] = ['list', 'kanban', 'calendar', 'tree', 'gallery']
+type ViewMode = 'list' | 'kanban' | 'calendar' | 'tree' | 'gallery' | 'map'
+const VALID_VIEWS: ViewMode[] = ['list', 'kanban', 'calendar', 'tree', 'gallery', 'map']
 
 const viewMode = ref<ViewMode>('list')
 const inlineSearch = ref('')
@@ -68,6 +69,7 @@ watch(inlineSearch, (v) => {
 const selection = useListSelection()
 const columns = useListColumns(props.doctype, () => dt.value?.fields ?? [])
 const listButtons = ref<ScriptButton[]>([])
+const listMenuItems = ref<ScriptMenuItem[]>([])
 
 // ── Grouping Logic ───────────────────────────────────────────────────────────
 const NON_GROUPABLE = new Set(['Section', 'Column', 'Tab', 'Table', 'MultiLink', 'RichText', 'JSON', 'Code', 'LongText', 'Attach', 'Image', 'Signature', 'Geolocation'])
@@ -122,6 +124,14 @@ onMounted(async () => {
       const idx = listButtons.value.push(btn) - 1
       return { update(updates) { listButtons.value[idx] = { ...listButtons.value[idx], ...updates } } }
     },
+    addMenuItem(label, action, options) {
+      const item: ScriptMenuItem = { label, action, separator_before: options?.separator_before }
+      const idx = listMenuItems.value.push(item) - 1
+      return {
+        update(updates) { listMenuItems.value[idx] = { ...listMenuItems.value[idx], ...updates } },
+        remove() { listMenuItems.value.splice(idx, 1) },
+      }
+    },
     refresh() { queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] }) }
   })
   await executeListSetup(props.doctype, listview, gruntProxy)
@@ -140,6 +150,13 @@ const treeParentField = computed(() => {
   if (dt.value.tree_view?.parent_field) return dt.value.fields.find(f => f.fieldname === dt.value!.tree_view!.parent_field) ?? null
   return dt.value.fields.find(f => f.fieldtype === 'Link' && f.options === dt.value!.name) ?? null
 })
+const geoField = computed(() => {
+  if (!dt.value) return null
+  const override = dt.value.map_view?.geo_field
+  if (override) return dt.value.fields.find(f => f.fieldname === override) ?? null
+  return dt.value.fields.find(f => f.fieldtype === 'Geolocation' && f.in_list_view && !f.hidden) ?? null
+})
+
 const calendarDateField = computed(() => {
   if (!dt.value) return null
   const f = dt.value.calendar_view?.field
@@ -215,6 +232,7 @@ function navigateToDoc(row: Record<string, unknown>) {
       :is-system-doc-type="doctype === 'DocType'"
       :show-dev-actions="!!(isDev && auth.user?.is_superadmin)"
       :list-buttons="listButtons"
+      :list-menu-items="listMenuItems"
       @refresh="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })"
     />
 
@@ -233,6 +251,7 @@ function navigateToDoc(row: Record<string, unknown>) {
       :kanban-column-field="kanbanColumnField"
       :tree-parent-field="treeParentField"
       :calendar-date-field="calendarDateField"
+      :geo-field="geoField"
       @reset="inlineSearch = ''; debouncedSearch = ''; activeFilters = {}; page = 1"
     />
 
@@ -246,6 +265,15 @@ function navigateToDoc(row: Record<string, unknown>) {
       </div>
       <div v-else-if="viewMode === 'tree' && treeParentField && dt">
         <TreeView :doctype="dt" :parent-field="treeParentField.fieldname" :workspace="workspace" />
+      </div>
+      <div v-else-if="viewMode === 'map' && geoField && dt">
+        <MapView
+          :doctype="dt"
+          :geo-field="geoField.fieldname"
+          :workspace="workspace"
+          @register-menu-items="(items) => listMenuItems.push(...items)"
+          @unregister-menu-items="(items) => { for (const item of items) { const i = listMenuItems.indexOf(item); if (i !== -1) listMenuItems.splice(i, 1) } }"
+        />
       </div>
       <div v-else-if="viewMode === 'gallery'">
         <GalleryView :rows="rows" :columns="columns.visibleColumns.value" :fields="dt?.fields ?? []" :doctype="doctype" :workspace="workspace" :is-loading="isLoading && !data" />

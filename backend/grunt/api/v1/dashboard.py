@@ -16,6 +16,7 @@ import structlog
 from fastapi import HTTPException, Query
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.core.metadata.registry import doctype_registry
 
@@ -73,7 +74,7 @@ async def _compute_widget_data(
     until = global_until if global_until is not None else now
     widget_type: str = widget.get("widget_type") or "metric"
 
-    if widget_type == "metric":
+    if widget_type in ("metric", "gauge"):
         agg = widget.get("aggregation") or "count"
         field = widget.get("field") or "*"
 
@@ -359,4 +360,4 @@ async def get_dashboard_data(
         return w_dict["id"], result
 
     pairs = await asyncio.gather(*(_safe_compute(w) for w in widgets))
-    return {"success": True, "data": dict(pairs)}
+    return ok(dict(pairs))

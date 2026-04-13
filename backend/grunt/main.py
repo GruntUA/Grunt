@@ -61,6 +61,7 @@ for _dt_dir in sorted(_core_doctypes_dir.iterdir()):
 
 from grunt.core.middleware.language import LanguageMiddleware  # noqa: E402
 from grunt.core.middleware.logging import RequestLoggingMiddleware  # noqa: E402
+from grunt.core.middleware.rate_limit import RateLimitMiddleware  # noqa: E402
 from grunt.core.middleware.security import SecurityHeadersMiddleware  # noqa: E402
 
 logger = structlog.get_logger()
@@ -227,9 +228,9 @@ app = FastAPI(
 
 app.add_middleware(LanguageMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(RateLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(SiteContextMiddleware)
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -238,18 +239,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Optional: rate limiting via slowapi
-try:
-    from slowapi import _rate_limit_exceeded_handler  # noqa: PLC0415
-    from slowapi.errors import RateLimitExceeded  # noqa: PLC0415
-
-    from grunt.core.middleware.rate_limit import limiter  # noqa: PLC0415
-
-    app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-except ImportError:
-    pass  # slowapi not installed — rate limiting disabled
 
 app.include_router(v1_router, prefix="/api/v1")
 

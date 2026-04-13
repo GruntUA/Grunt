@@ -57,6 +57,7 @@ class ProfilerSettings(BaseModel):
     threshold_ms: float | None = None  # individual query slow threshold
     slow_request_db_ms: float | None = None  # total DB time per request
     slow_request_ms: float | None = None  # total request duration
+    n1_threshold: int | None = None  # N+1 detector query count threshold
 
 
 @router.get("/profiler/settings")
@@ -75,6 +76,7 @@ def profiler_update_settings(body: ProfilerSettings):
     from grunt.core.db.profiler import (  # noqa: PLC0415
         get_settings,
         set_enabled,
+        set_n1_threshold,
         set_request_db_threshold,
         set_request_threshold,
         set_threshold,
@@ -88,4 +90,6 @@ def profiler_update_settings(body: ProfilerSettings):
         set_request_db_threshold(max(1.0, body.slow_request_db_ms))
     if body.slow_request_ms is not None:
         set_request_threshold(max(1.0, body.slow_request_ms))
+    if body.n1_threshold is not None:
+        set_n1_threshold(body.n1_threshold)
     return {"data": get_settings()}

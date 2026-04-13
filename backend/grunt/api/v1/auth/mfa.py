@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from fastapi import Depends
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.core.auth.dependencies import current_user
 
@@ -26,7 +27,7 @@ async def mfa_setup(
     from grunt.core.auth.mfa import begin_mfa_setup  # noqa: PLC0415
 
     info = await begin_mfa_setup(user, grunt._require_session())
-    return {"success": True, "data": info}
+    return ok(info)
 
 
 @router.post("/mfa/confirm")
@@ -38,7 +39,7 @@ async def mfa_confirm(
     from grunt.core.auth.mfa import confirm_mfa_setup  # noqa: PLC0415
 
     backup_codes = await confirm_mfa_setup(user, body.code, grunt._require_session())
-    return {"success": True, "data": {"backup_codes": backup_codes}}
+    return ok({"backup_codes": backup_codes})
 
 
 @router.post("/mfa/verify")
@@ -50,7 +51,7 @@ async def mfa_verify(
     from grunt.core.auth.mfa import check_mfa_code  # noqa: PLC0415
 
     await check_mfa_code(user, body.code, grunt._require_session())
-    return {"success": True}
+    return ok()
 
 
 @router.delete("/mfa/disable")
@@ -61,4 +62,4 @@ async def mfa_disable(
     from grunt.core.auth.mfa import disable_mfa  # noqa: PLC0415
 
     await disable_mfa(user, grunt._require_session())
-    return {"success": True, "message": "MFA вимкнено"}
+    return ok(message="MFA вимкнено")

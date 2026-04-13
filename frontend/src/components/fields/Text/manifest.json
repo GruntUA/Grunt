@@ -3,5 +3,5 @@
   "label": "Text",
   "icon": "T",
   "category": "Базові",
-  "propertySections": ["core", "flags", "display", "text", "default", "validation"]
+  "propertySections": ["core", "flags", "display", "text", "formula", "default", "validation"]
 }

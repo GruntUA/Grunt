@@ -7,6 +7,7 @@ from typing import Any
 from fastapi import HTTPException, Request, status
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 
 router = GruntRouter(prefix="", tags=["scripting"])
@@ -23,7 +24,7 @@ async def get_client_scripts(
     from grunt.core.scripting.client_script import get_client_scripts as _get
 
     scripts = await _get(grunt._require_session(), doctype)
-    return {"data": scripts}
+    return ok(scripts)
 
 
 # ── Built-in whitelisted methods ─────────────────────────────────────────
@@ -82,7 +83,7 @@ async def _handle_builtin_method(
             .values(hashed_password=hash_password(str(password)))
         )
         await session.flush()
-        return {"success": True}
+        return ok()
 
     return None
 
@@ -152,7 +153,4 @@ async def run_server_script(
             detail=result.error,
         )
 
-    return {
-        "data": result.response,
-        "output": result.output,
-    }
+    return ok(result.response, output=result.output)

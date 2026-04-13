@@ -101,14 +101,14 @@ function addItem(res: SearchResult) {
     roles: '',
     sequence: items.value.length,
   }
-  items.value.push(newItem)
+  items.value = [...items.value, newItem]
   activePanel.value = null
   searchQuery.value = ''
   searchResults.value = []
 }
 
 function addDivider() {
-  items.value.push({
+  items.value = [...items.value, {
     section: '__divider__',
     type: 'Divider',
     label: '',
@@ -118,7 +118,7 @@ function addDivider() {
     show_new_btn: false,
     roles: '',
     sequence: items.value.length,
-  })
+  }]
 }
 
 // ── Dashboard panel ───────────────────────────────────────────────────────
@@ -314,6 +314,7 @@ async function save() {
               <button
                 v-for="res in searchResults"
                 :key="res.id"
+                type="button"
                 class="w-full px-3 py-2 text-sm text-left hover:bg-accent transition-colors flex items-center justify-between"
                 @click="addItem(res)"
               >
@@ -364,6 +365,7 @@ async function save() {
                 <button
                   v-for="doc in dashboardResults"
                   :key="doc.id"
+                  type="button"
                   class="w-full px-3 py-2 text-sm text-left hover:bg-accent transition-colors flex items-center justify-between"
                   @click="addDashboardItem(doc)"
                 >

@@ -29,7 +29,19 @@ if TYPE_CHECKING:
 # Shared SA MetaData for all dynamically compiled tables
 SA_METADATA = MetaData()
 
+# Module-level Table cache keyed by DocType name.
+# Avoids rebuilding Column objects on every call to compile_doctype_to_table().
+# Invalidated via invalidate_table_cache() when a DocType is updated or deleted.
+_TABLE_CACHE: dict[str, Table] = {}
+
 logger = structlog.get_logger()
+
+
+def invalidate_table_cache(doctype_name: str) -> None:
+    """Remove a cached Table for the given DocType (call on update/delete)."""
+    _TABLE_CACHE.pop(doctype_name, None)
+
+
 # ── MultiLink junction table ─────────────────────────────────────────────
 
 MULTI_LINK_TABLE = Table(
@@ -62,7 +74,16 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
 
     The table includes system columns (``id``, ``name``, ``owner``, timestamps)
     plus one column per physical field.
+
+    Results are cached by DocType name; call :func:`invalidate_table_cache`
+    after updating or deleting a DocType so the new definition is picked up.
     """
+    cached = _TABLE_CACHE.get(doctype.name)
+    # Guard against stale entries: if SA_METADATA no longer holds the Table
+    # (e.g. dropped during tests or hot-reload), rebuild and re-cache.
+    if cached is not None and cached.name in SA_METADATA.tables:
+        return cached
+
     table_name = doctype.table_name or get_table_name(doctype.module, doctype.name)
 
     columns: list[Column] = [
@@ -118,7 +139,9 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
         if field.index and not field.unique:
             constraints.append(Index(f"ix_{table_name}_{field.fieldname}", field.fieldname))
 
-    return Table(table_name, SA_METADATA, *columns, *constraints, extend_existing=True)
+    table = Table(table_name, SA_METADATA, *columns, *constraints, extend_existing=True)
+    _TABLE_CACHE[doctype.name] = table
+    return table
 
 
 # ── Sync (create / alter) ───────────────────────────────────────────────

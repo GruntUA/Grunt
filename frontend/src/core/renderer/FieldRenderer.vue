@@ -17,7 +17,10 @@ const props = defineProps<{
   docValues?: Record<string, unknown>
 }>()
 
-const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
+const emit = defineEmits<{
+  'update:modelValue': [value: unknown]
+  'create-new': [doctype: string, preset: string, fieldname: string]
+}>()
 
 const isVisible = computed(() => {
   if (!props.field.depends_on) return true
@@ -54,7 +57,9 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
       :modelValue="modelValue"
       :disabled="disabled"
       :error="error"
+      :doc="docValues"
       @update:modelValue="emit('update:modelValue', $event)"
+      @create-new="(doctype: string, preset: string) => emit('create-new', doctype, preset, field.fieldname)"
     />
     <span
       v-if="isDev && altPressed"

@@ -56,6 +56,11 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
     ]
 
+    # Rate limiting
+    rate_limit_enabled: bool = True
+    rate_limit_user: int = 200   # req/min for authenticated users
+    rate_limit_anon: int = 30    # req/min for anonymous (IP-based)
+
     # Localization
     default_locale: str = "uk"
     default_timezone: str = "Europe/Kyiv"

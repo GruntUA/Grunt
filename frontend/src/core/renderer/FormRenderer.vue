@@ -22,6 +22,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: Record<string, unknown>]
   'field-focus': [fieldname: string]
   'field-blur': [fieldname: string]
+  'create-new': [doctype: string, preset: string, fieldname: string]
 }>()
 
 const layout = computed(() => parseLayout(props.doctype.fields))
@@ -50,24 +51,26 @@ function toggleSection(section: LayoutSection) {
 
   <!-- Sections -->
   <template v-for="(tab, ti) in layout" :key="ti">
-    <div v-show="activeTab === ti" class="flex flex-col gap-6">
-      <div v-for="(section, si) in tab.sections" :key="si">
-        <!-- Section header -->
-        <div v-if="section.label" class="flex items-center gap-2 mb-4"
-          :class="{ 'cursor-pointer select-none': section.collapsible }" @click="toggleSection(section)">
-          <ChevronDown v-if="section.collapsible" class="size-4 text-muted-foreground transition-transform duration-200"
+    <div v-show="activeTab === ti" class="flex flex-col gap-3">
+      <div v-for="(section, si) in tab.sections" :key="si"
+        :class="section.label ? 'form-section' : ''">
+
+        <!-- Section header (Frappe-style card header) -->
+        <div v-if="section.label" class="form-section-header"
+          :class="{ 'cursor-pointer select-none': section.collapsible }"
+          @click="toggleSection(section)">
+          <ChevronDown v-if="section.collapsible"
+            class="size-3.5 text-muted-foreground transition-transform duration-200"
             :class="{ '-rotate-90': section.collapsed }" />
-          <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">{{ section.label }}</span>
-          <div class="flex-1 h-px bg-border" />
+          <span>{{ section.label }}</span>
         </div>
 
         <!-- Fields layout -->
         <Transition name="section">
-          <div v-if="!section.collapsed" class="grid grid-cols-1 gap-y-4 md:gap-x-8" :class="[
-            section.columns.length === 2 ? 'md:grid-cols-2' : '',
-            section.columns.length === 3 ? 'md:grid-cols-3' : '',
-            section.columns.length >= 4 ? 'md:grid-cols-4' : '',
-          ]">
+          <div v-if="!section.collapsed"
+            :class="section.label ? 'form-section-body' : ''"
+            class="grid grid-cols-1 gap-y-4 md:gap-x-6"
+            :style="section.columns.length > 1 ? `grid-template-columns: repeat(${Math.min(section.columns.length, 4)}, minmax(0, 1fr))` : ''">
             <div v-for="(col, ci) in section.columns" :key="ci" class="flex-1 flex flex-col gap-4 min-w-0">
               <div v-for="f in col" v-show="overrides?.[f.fieldname] !== false" :key="f.fieldname"
                 class="relative group" @focusin="emit('field-focus', f.fieldname)"
@@ -85,7 +88,10 @@ function toggleSection(section: LayoutSection) {
                   :field="reqdOverrides?.[f.fieldname] !== undefined ? { ...f, required: reqdOverrides[f.fieldname] } : f"
                   :model-value="modelValue[f.fieldname]"
                   :disabled="disabled || f.read_only || !!fieldLocks?.[f.fieldname]" :error="errors?.[f.fieldname]"
-                  :doc-values="modelValue" @update:model-value="update(f.fieldname, $event)" />
+                  :doc-values="modelValue"
+                  @update:model-value="update(f.fieldname, $event)"
+                  @create-new="(doctype, preset, fieldname) => emit('create-new', doctype, preset, fieldname)"
+                />
               </div>
             </div>
           </div>

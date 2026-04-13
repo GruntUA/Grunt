@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import Depends, HTTPException
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok
 from grunt.api.v1.auth.schemas import (
     AddRoleRequest,
     SetPasswordRequest,
@@ -45,10 +46,7 @@ async def list_users() -> list[UserResponse]:
 async def list_roles() -> dict:
     """Return all defined roles."""
     roles = await grunt.db.get_all("Role", fields=["role_name", "description"], limit=1000)
-    return {
-        "success": True,
-        "data": [{"name": r["role_name"], "description": r.get("description")} for r in roles],
-    }
+    return ok([{"name": r["role_name"], "description": r.get("description")} for r in roles])
 
 
 @router.post("/roles")
@@ -58,7 +56,7 @@ async def create_role(body: AddRoleRequest) -> dict:
     if existing:
         raise HTTPException(status_code=409, detail=f"Роль '{body.role_name}' вже існує")
     doc = await grunt.new_doc("Role", {"role_name": body.role_name})
-    return {"success": True, "data": {"name": doc["role_name"]}}
+    return ok({"name": doc["role_name"]})
 
 
 @router.post("/users/{user_id}/roles")
@@ -77,10 +75,10 @@ async def add_user_role(user_id: str, body: AddRoleRequest) -> dict:
         limit=1,
     )
     if existing:
-        return {"success": True, "message": "Роль вже призначено"}
+        return ok(message="Роль вже призначено")
 
     await grunt.new_doc("UserRole", {"user_id": user_id, "role_name": body.role_name})
-    return {"success": True, "data": {"user_id": user_id, "role": body.role_name}}
+    return ok({"user_id": user_id, "role": body.role_name})
 
 
 @router.post("/users/set-password")
@@ -91,7 +89,7 @@ async def set_user_password(body: SetPasswordRequest) -> dict:
         raise HTTPException(status_code=404, detail="Користувача не знайдено")
 
     await grunt.db.set_value("User", user.id, "hashed_password", hash_password(body.password))
-    return {"success": True}
+    return ok()
 
 
 @router.delete("/users/{user_id}/roles/{role}")
@@ -106,4 +104,4 @@ async def remove_user_role(user_id: str, role: str) -> dict:
     if not rows:
         raise HTTPException(status_code=404, detail="Роль не знайдено у користувача")
     await grunt.db.delete("UserRole", {"id": rows[0]["id"]})
-    return {"success": True, "message": "Роль знято"}
+    return ok(message="Роль знято")

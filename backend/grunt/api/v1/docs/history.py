@@ -7,6 +7,7 @@ from typing import Any
 from fastapi import HTTPException, Query
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 
 router = GruntRouter(prefix="", tags=["docs", "history"])
@@ -24,7 +25,7 @@ async def get_document_versions(
     from grunt.core.document.versioning import version_service
 
     versions = await version_service.get_versions(grunt._require_session(), doctype, doc_id)
-    return {"success": True, "data": versions}
+    return ok(versions)
 
 
 @router.post("/{doctype}/{doc_id}/restore/{version_id}")
@@ -77,7 +78,7 @@ async def restore_document_version(
         }
     )
 
-    return {"success": True, "data": result, "restored_to_version": target["version"]}
+    return ok(result, restored_to_version=target["version"])
 
 
 @router.get("/{doctype}/{doc_id}/log")
@@ -107,7 +108,7 @@ async def get_document_log(
         }
         for e in entries
     ]
-    return {"success": True, "data": data}
+    return ok(data)
 
 
 @router.get("/{doctype}/{doc_id}/timeline")
@@ -155,4 +156,4 @@ async def get_document_timeline(
         )
 
     items.sort(key=lambda x: x["created_at"] or "")
-    return {"success": True, "data": items}
+    return ok(items)

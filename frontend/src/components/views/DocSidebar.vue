@@ -67,56 +67,61 @@ loadBookmark()
 
 <template>
   <aside v-bind="attrs" class="flex flex-col gap-0 w-full">
-    <!-- Tab nav -->
-    <div class="flex border-b border-border mb-4 -mx-0">
-      <button
-        class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold border-b-2 transition-colors"
-        :class="activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'"
-        @click="activeTab = 'details'"
-      >
-        <User class="size-3.5" />
-        Деталі
-      </button>
-      <button
-        class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold border-b-2 transition-colors"
-        :class="activeTab === 'timeline' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'"
-        @click="activeTab = 'timeline'"
-      >
-        <Activity class="size-3.5" />
-        Активність
-      </button>
-    </div>
-
-    <!-- ── DETAILS TAB ── -->
-    <div v-if="activeTab === 'details'" class="flex flex-col gap-4">
-      <SidebarFileInfo :doctype="doctype" :document="document" :users="users" />
-
-      <!-- Actions: Bookmark (Assign & Share moved to their components) -->
-      <div class="flex gap-2">
-        <SidebarAssignments :doctype="doctype" :document="document" class="flex-1 mb-0" />
-        <SidebarShare :doctype="doctype" :document="document" class="flex-1 mb-0" />
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <Button variant="outline" size="icon" class="size-9 shrink-0"
-                :class="bookmark ? 'text-amber-500 border-amber-300 bg-amber-50 dark:bg-amber-950/30' : 'text-foreground'"
-                :disabled="bookmarkLoading"
-                @click="toggleBookmark">
-                <Bookmark class="size-4" :fill="bookmark ? 'currentColor' : 'none'" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{{ bookmark ? 'Прибрати із закладок' : 'Додати до закладок' }}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+    <div class="form-section">
+      <!-- Tab nav as section header -->
+      <div class="flex border-b border-border bg-muted/50">
+        <button
+          class="flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider border-b-2 transition-colors"
+          :class="activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'"
+          @click="activeTab = 'details'"
+        >
+          <User class="size-3.5" />
+          Деталі
+        </button>
+        <button
+          class="flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider border-b-2 transition-colors"
+          :class="activeTab === 'timeline' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'"
+          @click="activeTab = 'timeline'"
+        >
+          <Activity class="size-3.5" />
+          Активність
+        </button>
       </div>
 
-      <SidebarTags :doctype="doctype" :document="document" />
-      <SidebarBacklinks :doctype="doctype" :document="document" :workspace="workspace" />
-    </div>
+      <!-- Content -->
+      <div class="form-section-body">
+        <!-- ── DETAILS TAB ── -->
+        <div v-if="activeTab === 'details'" class="flex flex-col gap-4">
+          <SidebarFileInfo :doctype="doctype" :document="document" :users="users" />
 
-    <!-- ── TIMELINE TAB ── -->
-    <div v-else>
-      <SidebarTimeline :doctype="doctype" :document="document" />
+          <!-- Actions -->
+          <div class="flex gap-2">
+            <SidebarAssignments :doctype="doctype" :document="document" class="flex-1 mb-0" />
+            <SidebarShare :doctype="doctype" :document="document" class="flex-1 mb-0" />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button variant="outline" size="icon" class="size-9 shrink-0"
+                    :class="bookmark ? 'text-amber-500 border-amber-300 bg-amber-50 dark:bg-amber-950/30' : 'text-foreground'"
+                    :disabled="bookmarkLoading"
+                    @click="toggleBookmark">
+                    <Bookmark class="size-4" :fill="bookmark ? 'currentColor' : 'none'" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{{ bookmark ? 'Прибрати із закладок' : 'Додати до закладок' }}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+
+          <SidebarTags :doctype="doctype" :document="document" />
+          <SidebarBacklinks :doctype="doctype" :document="document" :workspace="workspace" />
+        </div>
+
+        <!-- ── TIMELINE TAB ── -->
+        <div v-else>
+          <SidebarTimeline :doctype="doctype" :document="document" />
+        </div>
+      </div>
     </div>
   </aside>
 </template>

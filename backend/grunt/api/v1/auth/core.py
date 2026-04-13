@@ -14,6 +14,7 @@ from grunt.api.v1.auth.schemas import (
     UpdateMeRequest,
     UserResponse,
 )
+from grunt.api.v1.schemas.response import ok
 from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import SYSTEM_USER, GruntUser
 from grunt.core.auth.service import (
@@ -96,6 +97,17 @@ async def login(
         )
     access_token = create_access_token(user)
     refresh_token = await create_refresh_token(user.id, session)
+
+    # Track login session (best-effort)
+    try:
+        from grunt.core.doctypes.user_session.user_session import create_session  # noqa: PLC0415
+
+        ip = request.client.host if request.client else None
+        ua = request.headers.get("user-agent")
+        await create_session(user.id, ip, ua, session)
+    except Exception:  # noqa: BLE001
+        pass
+
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -191,6 +203,52 @@ async def logout(
     user: GruntUser = Depends(current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict:
-    """Revoke all refresh tokens."""
+    """Revoke all refresh tokens and terminate all sessions."""
     await revoke_refresh_tokens_for_user(user.id, session)
-    return {"success": True}
+    try:
+        from grunt.core.doctypes.user_session.user_session import (  # noqa: PLC0415
+            terminate_all_user_sessions,
+        )
+
+        await terminate_all_user_sessions(user.id, session)
+    except Exception:  # noqa: BLE001
+        pass
+    return ok()
+
+
+@router.get("/sessions")
+async def list_sessions(
+    user: GruntUser = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict:
+    """Return all active sessions for the current user."""
+    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
+
+    _tokens = grunt.set_context(session, None, SYSTEM_USER)
+    try:
+        sessions = await grunt.get_list(
+            "UserSession",
+            filters={"user": user.id, "is_active": True},
+            fields=["id", "ip_address", "user_agent", "last_active_at", "creation"],
+            order_by="last_active_at desc",
+        )
+    finally:
+        grunt.reset_context(_tokens)
+
+    return ok(sessions)
+
+
+@router.delete("/sessions/{session_id}")
+async def revoke_session(
+    session_id: str,
+    user: GruntUser = Depends(current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict:
+    """Terminate a specific session. Only the owner can revoke their own sessions."""
+    from grunt.core.doctypes.user_session.user_session import terminate_session  # noqa: PLC0415
+
+    terminated = await terminate_session(session_id, user.id, session)
+    if not terminated:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return ok()

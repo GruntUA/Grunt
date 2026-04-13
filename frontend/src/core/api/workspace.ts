@@ -74,8 +74,8 @@ export const workspaceApi = {
     return r.data.data
   },
 
-  search: async (q: string, limit = 10): Promise<SearchResult[]> => {
-    const r = await client.get('/api/v1/search', { params: { q, limit } })
+  search: async (q: string, limit = 20): Promise<SearchResult[]> => {
+    const r = await client.get('/api/v1/meta/search', { params: { q, limit } })
     return r.data.data
   },
 
