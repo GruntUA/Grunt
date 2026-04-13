@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, shallowRef, onMounted, onUnmounted } from 'vue'
+import type { Component } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { WorkspaceLink } from '@/core/api/workspace'
 import { Badge } from '@/components/ui/badge'
@@ -9,6 +10,25 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { Plus, Star, StarOff } from 'lucide-vue-next'
+
+// ── Lucide icon resolution ────────────────────────────────────────────────────
+type IconMap = Record<string, Component>
+const lucideIcons = shallowRef<IconMap>({})
+let lucideLoaded = false
+
+function loadLucide() {
+  if (lucideLoaded) return
+  lucideLoaded = true
+  import('lucide-vue-next').then(lib => { lucideIcons.value = lib as unknown as IconMap })
+}
+
+/** Returns the Lucide component for a kebab-case name, or null if not lucide. */
+function getLucideIcon(icon: string | undefined): Component | null {
+  if (!icon || !/^[a-z][a-z0-9-]+$/.test(icon)) return null
+  loadLucide()
+  const pascal = icon.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('')
+  return (lucideIcons.value[pascal] as Component) ?? null
+}
 
 const props = defineProps<{
   item: WorkspaceLink
@@ -119,7 +139,8 @@ const displayCount = computed(() => {
       <button class="w-full flex items-center justify-center h-9 rounded-md transition-colors" :class="isActive
         ? 'bg-primary/10 text-primary'
         : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'" @click="navigate">
-        <span class="text-sm">{{ item.icon }}</span>
+        <component :is="getLucideIcon(item.icon)" v-if="getLucideIcon(item.icon)" class="size-4" />
+        <span v-else class="text-sm">{{ item.icon || '📄' }}</span>
       </button>
     </TooltipTrigger>
     <TooltipContent side="right" :side-offset="8">
@@ -140,8 +161,11 @@ const displayCount = computed(() => {
     <div class="absolute inset-y-2 left-0 w-1 bg-primary rounded-r-full transition-all duration-300 transform"
       :class="isActive ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 group-hover:scale-y-50 group-hover:opacity-50'" />
 
-    <span class="text-base shrink-0 w-5 text-center transition-all duration-300 group-hover:scale-125 group-hover:rotate-6"
-      :class="isActive ? 'text-primary drop-shadow-sm' : 'text-muted-foreground/70'">{{ item.icon || '📄' }}</span>
+    <span class="text-base shrink-0 w-5 flex items-center justify-center transition-all duration-300 group-hover:scale-125 group-hover:rotate-6"
+      :class="isActive ? 'text-primary drop-shadow-sm' : 'text-muted-foreground/70'">
+      <component :is="getLucideIcon(item.icon)" v-if="getLucideIcon(item.icon)" class="size-4" />
+      <template v-else>{{ item.icon || '📄' }}</template>
+    </span>
     <span class="text-[13px] truncate flex-1 tracking-tight font-semibold relative z-10">{{ item.label }}</span>
 
     <!-- Count badge -->

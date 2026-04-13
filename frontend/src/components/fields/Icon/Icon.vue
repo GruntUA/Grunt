@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, shallowRef, onMounted } from 'vue'
+import { ref, computed, shallowRef } from 'vue'
 import type { Component } from 'vue'
 import type { DocField } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -26,8 +26,12 @@ async function ensureLoaded() {
   loaded = true
   const lib = await import('lucide-vue-next') as unknown as IconMap
   allIcons.value = lib
-  // Extract valid component names (PascalCase, not utility exports)
-  allNames.value = Object.keys(lib).filter(k => /^[A-Z]/.test(k) && typeof lib[k] === 'object')
+  // Extract canonical icon names: PascalCase functions, no *Icon suffix aliases
+  allNames.value = Object.keys(lib).filter(k =>
+    /^[A-Z]/.test(k) &&
+    !k.endsWith('Icon') &&
+    (typeof lib[k] === 'function' || typeof lib[k] === 'object')
+  )
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -36,7 +40,7 @@ function toPascal(kebab: string): string {
 }
 
 function toKebab(pascal: string): string {
-  return pascal.replace(/([A-Z])/g, (m, l, i) => (i === 0 ? '' : '-') + l.toLowerCase())
+  return pascal.replace(/([A-Z])/g, (_m, l, i) => (i === 0 ? '' : '-') + l.toLowerCase())
 }
 
 function getComponent(name: string): Component | null {

@@ -16,6 +16,7 @@ import {
 } from 'lucide-vue-next'
 import draggable from 'vuedraggable'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,

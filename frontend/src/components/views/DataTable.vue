@@ -150,9 +150,7 @@ function loadIcons() {
 function getIconComponent(name: string): Component | null {
   loadIcons()
   if (!name) return null
-  const pascal = name.includes('-')
-    ? name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('')
-    : name
+  const pascal = name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('')
   return (lucideIcons.value[pascal] ?? null) as Component | null
 }
 </script>
@@ -309,9 +307,10 @@ function getIconComponent(name: string): Component | null {
               <span v-else class="text-muted-foreground/30">—</span>
             </template>
 
-            <!-- Link field: show __label if resolved, fallback to raw value -->
+            <!-- Link field: show icon + label if resolved, fallback to raw value -->
             <template v-else-if="getFieldType(col.key) === 'Link'">
-              <span v-if="row[col.key] !== null && row[col.key] !== undefined && row[col.key] !== ''" class="text-foreground/90 font-medium">
+              <span v-if="row[col.key] !== null && row[col.key] !== undefined && row[col.key] !== ''" class="inline-flex items-center gap-1.5 text-foreground/90 font-medium">
+                <component :is="getIconComponent(String(row[col.key + '__icon'] ?? ''))" v-if="row[col.key + '__icon']" class="size-3.5 shrink-0 text-muted-foreground" />
                 {{ (row[col.key + '__label'] as string) || formatCell(row[col.key]) }}
               </span>
               <span v-else class="text-muted-foreground/30">—</span>

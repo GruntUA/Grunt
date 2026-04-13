@@ -168,6 +168,7 @@ export interface DocTypeMapView {
   color_field?: string                // field whose value drives marker color
   color_map?: Record<string, string>  // { value: '#hex' } mapping for color_field
   default_color?: string              // fallback marker color (defaults to primary)
+  icon_field?: string                 // field containing a lucide icon name for the marker
 }
 
 export interface ScriptButton {

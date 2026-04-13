@@ -112,6 +112,20 @@ class DocTypeCalendarViewSchema(BaseModel):
     sources: list[dict[str, Any]] = []
 
 
+class DocTypeTreeViewSchema(BaseModel):
+    parent_field: str
+    title_field: str = "name"
+
+
+class DocTypeMapViewSchema(BaseModel):
+    geo_field: str | None = None
+    label_field: str | None = None
+    color_field: str | None = None
+    color_map: dict[str, str] | None = None
+    default_color: str | None = None
+    icon_field: str | None = None
+
+
 class StatusIndicatorSchema(BaseModel):
     value: str
     color: str = "gray"
@@ -145,10 +159,15 @@ class DocTypeSchema(BaseModel):
     title_field: str = "name"
     search_fields: list[str] = []
 
+    default_view: str | None = None
+    image_field: str | None = None
+
     list_view: DocTypeListViewSchema = DocTypeListViewSchema()
     form_view: DocTypeFormViewSchema = DocTypeFormViewSchema()
     kanban_view: DocTypeKanbanViewSchema | None = None
     calendar_view: DocTypeCalendarViewSchema | None = None
+    tree_view: DocTypeTreeViewSchema | None = None
+    map_view: DocTypeMapViewSchema | None = None
     status_config: DocTypeStatusConfigSchema | None = None
 
 

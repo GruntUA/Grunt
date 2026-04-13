@@ -39,6 +39,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "leaflet": "^1.9.4",
+    "leaflet.browser.print": "^2.0.2",
     "lucide-vue-next": "^0.378.0",
     "pinia": "^2.1.0",
     "reka-ui": "^2.9.2",
