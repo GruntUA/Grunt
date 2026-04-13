@@ -44,9 +44,6 @@ def serve(port, reload, no_frontend):
             "--reload-include", "*.json",
             "--reload-dir", str(root_dir / "backend"),
         ]
-        grunt_apps = root_dir / "grunt_apps"
-        if grunt_apps.exists():
-            cmd += ["--reload-dir", str(grunt_apps)]
     
     try:
         subprocess.run(cmd, cwd=root_dir)
@@ -64,9 +61,9 @@ def serve(port, reload, no_frontend):
 @click.command()
 def worker():
     """Запуск воркера фонових завдань (TaskIQ)."""
-    click.echo("Запуск воркера TaskIQ...")
+    from grunt.core.site.manager import site_manager  # noqa: PLC0415
     from grunt.core.tasks.registry import discover_tasks  # noqa: PLC0415
 
-    apps_dir = Path("grunt_apps")
-    discover_tasks(apps_dir)
+    click.echo("Запуск воркера TaskIQ...")
+    discover_tasks(site_manager.bench_dir / "apps")
     subprocess.run(["taskiq", "worker", "grunt.core.tasks.broker:broker"])

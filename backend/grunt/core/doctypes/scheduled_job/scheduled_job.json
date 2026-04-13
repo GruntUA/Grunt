@@ -1,7 +1,7 @@
 {
     "name": "ScheduledJob",
     "label": "Заплановані завдання",
-    "module": "system",
+    "module": "core",
     "is_virtual": true,
     "fields": [
         {

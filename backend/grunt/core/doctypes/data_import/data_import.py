@@ -15,6 +15,14 @@ logger = structlog.get_logger()
 class DataImport(Document):
     """DocType controller for DataImport."""
 
+    async def after_insert(self) -> None:
+        """Trigger the import task after the document is created."""
+        if self.data.get("status") == "Pending":
+            from grunt.core.data_import.tasks import run_data_import  # noqa: PLC0415
+
+            logger.info("data_import.triggering_task", id=self.data["id"])
+            await run_data_import.kiq(self.data["id"])
+
     async def get_preview(self) -> dict[str, Any]:
         """Extract headers and first 5 rows for mapping."""
         file_path = Path(self.file)

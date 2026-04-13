@@ -9,16 +9,20 @@ def _collect_template_dirs() -> list[str]:
     """Return all Jinja2 template directories in priority order.
 
     Search order (first match wins in Jinja2 FileSystemLoader):
-    1. ``grunt_apps/<app>/templates/``     — user app templates
-    2. ``grunt/core/<module>/templates/``  — framework module templates
+    1. ``bench_dir/apps/<app>/*/templates/``  — installed app templates
+    2. ``grunt/core/<module>/templates/``     — framework module templates
     """
+    from grunt.core.site.manager import site_manager  # noqa: PLC0415
+
     dirs: list[str] = []
 
-    # 1. Installed grunt apps
-    for pattern in ("grunt_apps/*/templates", "grunt_apps/*/*/templates"):
-        for p in sorted(Path(".").glob(pattern)):
-            if p.is_dir():
-                dirs.append(str(p))
+    # 1. Installed external apps
+    ext_apps_dir = site_manager.bench_dir / "apps"
+    if ext_apps_dir.is_dir():
+        for pattern in ("*/templates", "*/*/templates"):
+            for p in sorted(ext_apps_dir.glob(pattern)):
+                if p.is_dir():
+                    dirs.append(str(p))
 
     # 2. All grunt core module template directories
     _core_dir = Path(__file__).parent.parent / "core"

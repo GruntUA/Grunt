@@ -1,7 +1,7 @@
 {
   "name": "ScheduledJobLog",
   "label": "Лог завдань планувальника",
-  "module": "system",
+  "module": "core",
   "track_changes": false,
   "is_system": true,
   "table_name": "grunt_scheduled_job_log",

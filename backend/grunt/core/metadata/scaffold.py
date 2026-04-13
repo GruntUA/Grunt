@@ -205,26 +205,18 @@ function validate(frm) {{
 def _find_app_dir(module: str, app_name: str | None = None) -> Path | None:
     """Find the app directory that owns a given module name.
 
-    If *app_name* is given, we look for ``apps/{app_name}`` directly (no
-    directory-existence check needed — the module dir may not exist yet).
+    If *app_name* is given, we look for ``bench_dir/apps/{app_name}`` directly.
 
-    Otherwise tries multiple patterns:
-    1. apps/{app}/{module}          — module-based structure (Frappe style)
-    2. apps/{app}                   — flat structure where app == module
-    3. grunt_apps/{app}/{module}    — relative grunt_apps (dev)
-    4. grunt_apps/{app}             — flat relative grunt_apps
+    Otherwise scans all app directories for:
+    1. apps/{app}/{module}  — module-based structure (Frappe style)
+    2. apps/{app}           — flat structure where app == module
     """
     apps_dir = site_manager.bench_dir / "apps"
 
-    # Fast path: app name known — go directly, no scanning
+    # Fast path: app name known
     if app_name:
         if apps_dir.is_dir():
             candidate = apps_dir / app_name
-            if candidate.is_dir():
-                return candidate
-        grunt_apps_dir = Path("grunt_apps")
-        if grunt_apps_dir.is_dir():
-            candidate = grunt_apps_dir / app_name
             if candidate.is_dir():
                 return candidate
         return None
@@ -232,16 +224,6 @@ def _find_app_dir(module: str, app_name: str | None = None) -> Path | None:
     # Fallback: scan all app directories
     if apps_dir.is_dir():
         for app_dir in apps_dir.iterdir():
-            if not app_dir.is_dir() or app_dir.name.startswith((".", "_")):
-                continue
-            if (app_dir / module).is_dir():
-                return app_dir
-            if app_dir.name == module:
-                return app_dir
-
-    grunt_apps_dir = Path("grunt_apps")
-    if grunt_apps_dir.is_dir():
-        for app_dir in grunt_apps_dir.iterdir():
             if not app_dir.is_dir() or app_dir.name.startswith((".", "_")):
                 continue
             if (app_dir / module).is_dir():
