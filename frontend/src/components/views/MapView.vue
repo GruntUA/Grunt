@@ -13,6 +13,8 @@ const props = defineProps<{
   doctype: DocType
   geoField: string
   workspace?: string
+  search?: string
+  filters?: Record<string, string>
 }>()
 
 const emit = defineEmits<{
@@ -26,6 +28,48 @@ const labelField = computed(() => cfg.value.label_field ?? props.doctype.title_f
 const colorField = computed(() => cfg.value.color_field ?? null)
 const colorMap = computed(() => cfg.value.color_map ?? {})
 const defaultColor = computed(() => cfg.value.default_color ?? 'var(--color-primary, #3b82f6)')
+
+// ── Popup fields (user-configured columns or in_list_view fallback) ───────────
+const POPUP_SKIP_TYPES = new Set([
+  'Section', 'Column', 'Tab', 'Table', 'MultiLink',
+  'LongText', 'RichText', 'Code', 'Geolocation', 'Attach', 'Image', 'Signature', 'JSON',
+])
+
+const popupFields = computed(() => {
+  const storageKey = `grunt_columns_v2_${props.doctype.name}`
+  const saved = localStorage.getItem(storageKey)
+  const savedKeys: string[] | null = saved ? (JSON.parse(saved) as string[]) : null
+
+  const allFields = props.doctype.fields.filter(
+    f => !POPUP_SKIP_TYPES.has(f.fieldtype) && !f.hidden && f.fieldname !== props.geoField
+  )
+
+  if (savedKeys?.length) {
+    // Respect user's column order/selection
+    return savedKeys
+      .map(key => allFields.find(f => f.fieldname === key))
+      .filter((f): f is NonNullable<typeof f> => f !== undefined)
+  }
+  // Fallback: in_list_view fields
+  const listFields = allFields.filter(f => f.in_list_view)
+  return listFields.length ? listFields : allFields.slice(0, 5)
+})
+
+function formatPopupValue(value: unknown, fieldtype: string): string {
+  if (value === null || value === undefined || value === '') return '—'
+  if (fieldtype === 'Check') return value ? '✓' : '✗'
+  if (fieldtype === 'Rating') {
+    const n = Number(value)
+    if (isNaN(n)) return '—'
+    const full = Math.floor(n)
+    const half = n - full >= 0.5
+    const empty = 5 - full - (half ? 1 : 0)
+    return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty) + ` ${n}`
+  }
+  if (fieldtype === 'Float' && typeof value === 'number') return value.toFixed(2).replace(/\.?0+$/, '')
+  if (typeof value === 'object') return JSON.stringify(value)
+  return String(value)
+}
 
 // ── State ────────────────────────────────────────────────────────────────────
 const router = useRouter()
@@ -82,13 +126,16 @@ async function loadMarkers() {
   loadedRows.value = []
 
   try {
-    const fields = new Set([props.geoField, labelField.value, 'name'])
+    const fields = new Set([props.geoField, labelField.value, 'name', 'id'])
     if (colorField.value) fields.add(colorField.value)
+    popupFields.value.forEach(f => fields.add(f.fieldname))
 
     const result = await docsApi.list(props.doctype.name, {
       page: 1,
       per_page: 5000,
       fields: [...fields].join(','),
+      search: props.search || undefined,
+      filters: props.filters && Object.keys(props.filters).length ? props.filters : undefined,
     })
 
     const bounds: L.LatLngTuple[] = []
@@ -108,15 +155,32 @@ async function loadMarkers() {
       const icon = createIcon(color)
       const label = String(row[labelField.value] ?? row['name'] ?? '')
 
+      // Build popup field rows (skip label field — already shown as title)
+      const fieldRows = popupFields.value
+        .filter(f => f.fieldname !== labelField.value)
+        .map(f => {
+          const val = formatPopupValue(row[f.fieldname], f.fieldtype)
+          return `<tr>
+            <td class="popup-field-label">${f.label}</td>
+            <td class="popup-field-value">${val}</td>
+          </tr>`
+        })
+        .join('')
+
+      const tableHtml = fieldRows
+        ? `<table class="popup-fields">${fieldRows}</table>`
+        : ''
+
       const marker = L.marker([latN, lngN], { icon })
       marker.bindPopup(
-        `<div class="font-medium">${label}</div>
-         <div class="text-xs text-gray-500 mt-1">${latN.toFixed(6)}, ${lngN.toFixed(6)}</div>
+        `<div class="popup-title">${label}</div>
+         ${tableHtml}
+         <div class="popup-coords">${latN.toFixed(6)}, ${lngN.toFixed(6)}</div>
          <a href="#" data-id="${String(row['id'] ?? row['name'])}"
-            class="text-xs text-blue-600 hover:underline mt-2 block open-doc">
+            class="popup-open-link open-doc">
            Відкрити →
          </a>`,
-        { maxWidth: 260 }
+        { maxWidth: 280 }
       )
       marker.on('popupopen', () => {
         const el = marker.getPopup()?.getElement()
@@ -225,6 +289,8 @@ onUnmounted(() => {
 })
 
 watch(() => props.geoField, loadMarkers)
+watch(() => props.search, loadMarkers)
+watch(() => props.filters, loadMarkers, { deep: true })
 </script>
 
 <template>
@@ -268,6 +334,45 @@ watch(() => props.geoField, loadMarkers)
 }
 .leaflet-popup-tip {
   background: white;
+}
+
+/* Popup content styles */
+.popup-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 6px;
+}
+.popup-fields {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 6px;
+}
+.popup-field-label {
+  font-size: 0.7rem;
+  color: #6b7280;
+  padding: 1px 8px 1px 0;
+  white-space: nowrap;
+  vertical-align: top;
+}
+.popup-field-value {
+  font-size: 0.75rem;
+  color: #111827;
+  padding: 1px 0;
+  word-break: break-word;
+}
+.popup-coords {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+.popup-open-link {
+  font-size: 0.75rem;
+  color: #2563eb;
+  text-decoration: none;
+  display: block;
+}
+.popup-open-link:hover {
+  text-decoration: underline;
 }
 
 /* Fix sub-pixel gaps between tiles */

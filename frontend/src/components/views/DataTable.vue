@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, nextTick } from 'vue'
+import { computed, ref, nextTick, shallowRef } from 'vue'
+import type { Component } from 'vue'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -40,7 +41,7 @@ interface InlineEdit { rowId: string; field: string; value: string }
 const inlineEdit = ref<InlineEdit | null>(null)
 const inlineInput = ref<HTMLInputElement | null>(null)
 
-const INLINE_SKIP = new Set(['Check', 'Select', 'Date', 'Datetime', 'Image', 'Attach', 'RichText', 'JSON', 'Code', 'Signature', 'Link'])
+const INLINE_SKIP = new Set(['Check', 'Select', 'Date', 'Datetime', 'Image', 'Attach', 'RichText', 'JSON', 'Code', 'Signature', 'Link', 'Rating', 'Icon'])
 
 function canInlineEdit(fieldtype: string): boolean {
   return !INLINE_SKIP.has(fieldtype)
@@ -133,6 +134,26 @@ function formatCell(val: unknown): string {
 
 function isSelected(id: string) {
   return props.allSelected || props.selectedIds.includes(id)
+}
+
+// ── Icon field ────────────────────────────────────────────────────────────────
+type IconMap = Record<string, Component>
+const lucideIcons = shallowRef<IconMap>({})
+let iconsLoaded = false
+
+function loadIcons() {
+  if (iconsLoaded) return
+  iconsLoaded = true
+  import('lucide-vue-next').then((lib) => { lucideIcons.value = lib as unknown as IconMap })
+}
+
+function getIconComponent(name: string): Component | null {
+  loadIcons()
+  if (!name) return null
+  const pascal = name.includes('-')
+    ? name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('')
+    : name
+  return (lucideIcons.value[pascal] ?? null) as Component | null
 }
 </script>
 
@@ -250,6 +271,39 @@ function isSelected(id: string) {
                 <span class="tabular-nums text-muted-foreground font-mono text-xs">
                   {{ Number((row[col.key] as any).lat).toFixed(5) }},
                   {{ Number((row[col.key] as any).lng).toFixed(5) }}
+                </span>
+              </template>
+              <span v-else class="text-muted-foreground/30">—</span>
+            </template>
+
+            <!-- Rating field: star display -->
+            <template v-else-if="getFieldType(col.key) === 'Rating'">
+              <template v-if="row[col.key] !== null && row[col.key] !== undefined && row[col.key] !== ''">
+                <span class="inline-flex items-center gap-0.5">
+                  <template v-for="i in 5" :key="i">
+                    <svg v-if="Number(row[col.key]) >= i" xmlns="http://www.w3.org/2000/svg" class="size-3.5 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg v-else-if="Number(row[col.key]) >= i - 0.5" xmlns="http://www.w3.org/2000/svg" class="size-3.5" viewBox="0 0 24 24">
+                      <defs><linearGradient :id="`hstar-${String(row.id)}-${i}`"><stop offset="50%" stop-color="#fbbf24"/><stop offset="50%" stop-color="#d1d5db"/></linearGradient></defs>
+                      <path :fill="`url(#hstar-${String(row.id)}-${i})`" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="size-3.5 text-gray-200" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                  </template>
+                  <span class="ml-1 text-xs text-muted-foreground tabular-nums">{{ Number(row[col.key]).toFixed(1).replace(/\.0$/, '') }}</span>
+                </span>
+              </template>
+              <span v-else class="text-muted-foreground/30">—</span>
+            </template>
+
+            <!-- Icon field: render lucide icon -->
+            <template v-else-if="getFieldType(col.key) === 'Icon'">
+              <template v-if="row[col.key]">
+                <span class="inline-flex items-center gap-1.5 text-foreground/80">
+                  <component :is="getIconComponent(String(row[col.key]))" v-if="getIconComponent(String(row[col.key]))" class="size-4 shrink-0" />
+                  <span class="text-xs text-muted-foreground">{{ row[col.key] }}</span>
                 </span>
               </template>
               <span v-else class="text-muted-foreground/30">—</span>

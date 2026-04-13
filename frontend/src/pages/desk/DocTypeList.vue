@@ -271,6 +271,8 @@ function navigateToDoc(row: Record<string, unknown>) {
           :doctype="dt"
           :geo-field="geoField.fieldname"
           :workspace="workspace"
+          :search="debouncedSearch || undefined"
+          :filters="activeFilters"
           @register-menu-items="(items) => listMenuItems.push(...items)"
           @unregister-menu-items="(items) => { for (const item of items) { const i = listMenuItems.indexOf(item); if (i !== -1) listMenuItems.splice(i, 1) } }"
         />

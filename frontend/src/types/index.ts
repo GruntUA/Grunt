@@ -7,7 +7,7 @@ export type CoreFieldType =
   | "Date" | "Datetime" | "Time" | "Select" | "Link"
   | "MultiLink" | "Attach" | "Image" | "RichText"
   | "JSON" | "Code" | "Color" | "Section" | "Column"
-  | "Tab" | "Table" | "Signature" | "Geolocation"
+  | "Tab" | "Table" | "Signature" | "Geolocation" | "Rating" | "Icon"
 
 /** Open type — allows custom field types registered by any app */
 export type FieldType = string

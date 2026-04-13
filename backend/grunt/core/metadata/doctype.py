@@ -105,6 +105,16 @@ class DocTypeTreeView(BaseModel):
     title_field: str = "name"  # field displayed as node label
 
 
+class DocTypeMapView(BaseModel):
+    """Configuration for the map view — requires a Geolocation field."""
+
+    geo_field: str | None = None          # override auto-detected Geolocation field
+    label_field: str | None = None        # field shown in marker popup (defaults to title_field)
+    color_field: str | None = None        # field whose value drives marker color
+    color_map: dict[str, str] | None = None  # { value: '#hex' } mapping for color_field
+    default_color: str | None = None      # fallback marker color
+
+
 # ── Status indicators ───────────────────────────────────────────────────
 
 
@@ -147,12 +157,13 @@ class DocType(BaseModel):
     fields: list[DocField] = []
 
     # View configuration
-    default_view: str | None = None  # "list" | "kanban" | "calendar" | "tree"
+    default_view: str | None = None  # "list" | "kanban" | "calendar" | "tree" | "map"
     list_view: DocTypeListView = DocTypeListView()
     form_view: DocTypeFormView = DocTypeFormView()
     kanban_view: DocTypeKanbanView | None = None
     calendar_view: DocTypeCalendarView | None = None
     tree_view: DocTypeTreeView | None = None
+    map_view: DocTypeMapView | None = None
 
     # Status display
     status_config: DocTypeStatusConfig | None = None

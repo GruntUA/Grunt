@@ -1,0 +1,12 @@
+{
+  "type": "Icon",
+  "label": "Іконка",
+  "icon": "◈",
+  "category": "Базові",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "default"
+  ]
+}

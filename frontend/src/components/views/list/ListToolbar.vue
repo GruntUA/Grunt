@@ -72,9 +72,8 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
 
 <template>
   <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-1.5 bg-muted/30 rounded-xl ring-1 ring-border/40 mb-2">
-    <!-- Left: search + filters (list mode only) -->
-    <div v-if="viewMode === 'list'"
-      class="flex flex-1 items-center gap-2">
+    <!-- Left: search + filters -->
+    <div class="flex flex-1 items-center gap-2">
       <div class="relative flex-1 max-w-[320px] group">
         <Search
           class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
@@ -89,7 +88,6 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
         {{ t('Reset') }}
       </Button>
     </div>
-    <div v-else class="flex-1" />
 
     <!-- Right: columns + grouping + view switcher -->
     <div class="flex items-center gap-2 px-1">
