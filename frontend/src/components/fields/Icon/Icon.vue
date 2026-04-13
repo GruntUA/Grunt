@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, shallowRef } from 'vue'
+import { ref, computed, shallowRef, onMounted } from 'vue'
 import type { Component } from 'vue'
 import type { DocField } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -45,8 +45,10 @@ function toKebab(pascal: string): string {
 
 function getComponent(name: string): Component | null {
   if (!name) return null
-  // Accept both kebab and PascalCase
-  const pascal = name.includes('-') ? toPascal(name) : name
+  // Accept kebab-case ("fuel", "arrow-left") and PascalCase ("Fuel", "ArrowLeft")
+  const pascal = name.includes('-')
+    ? toPascal(name)
+    : name.charAt(0).toUpperCase() + name.slice(1)
   return (allIcons.value[pascal] ?? null) as Component | null
 }
 
@@ -78,6 +80,11 @@ function select(pascalName: string) {
 function clear() {
   emit('update:modelValue', null)
 }
+
+// Pre-load icon library if there's already a value so the preview renders immediately
+onMounted(() => {
+  if (props.modelValue) ensureLoaded()
+})
 </script>
 
 <template>
