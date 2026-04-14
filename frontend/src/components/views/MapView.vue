@@ -87,6 +87,11 @@ const isLoading = ref(false)
 const markerCount = ref(0)
 const skippedCount = ref(0)
 
+// Coordinate jump
+const coordInput = ref('')
+const coordError = ref(false)
+let coordMarker: L.Marker | null = null
+
 let map: L.Map | null = null
 let markerLayer: L.LayerGroup | null = null
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -274,6 +279,58 @@ async function loadMarkers() {
 function navigateToDoc(id: string) {
   const ws = props.workspace ?? 'grunt'
   router.push(`/${ws}/list/${props.doctype.name}/${id}`)
+}
+
+// ── Coordinate jump ───────────────────────────────────────────────────────────
+function gotoCoord() {
+  coordError.value = false
+  const raw = coordInput.value.trim()
+  if (!raw) return
+
+  // Accept "lat,lng" or "lat, lng" or "lat lng" or "lat;lng"
+  const parts = raw.split(/[\s,;]+/).map(s => s.trim()).filter(Boolean)
+  if (parts.length < 2) { coordError.value = true; return }
+  const lat = parseFloat(parts[0])
+  const lng = parseFloat(parts[1])
+  if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    coordError.value = true
+    return
+  }
+
+  if (!map) return
+
+  // Remove previous coord marker
+  if (coordMarker) { coordMarker.remove(); coordMarker = null }
+
+  const crosshairSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40" width="32" height="40">
+    <path d="M16 0C8.268 0 2 6.268 2 14c0 10.5 14 26 14 26S30 24.5 30 14C30 6.268 23.732 0 16 0z"
+      fill="#ef4444" stroke="white" stroke-width="1.5"/>
+    <circle cx="16" cy="14" r="5" fill="white" opacity="0.9"/>
+    <line x1="16" y1="6" x2="16" y2="22" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+    <line x1="8" y1="14" x2="24" y2="14" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+  </svg>`
+
+  const icon = L.divIcon({
+    html: crosshairSvg,
+    className: '',
+    iconSize: [32, 40],
+    iconAnchor: [16, 40],
+    popupAnchor: [0, -42],
+  })
+
+  coordMarker = L.marker([lat, lng], { icon })
+    .addTo(map)
+    .bindPopup(`<div class="popup-title">📍 Позначена точка</div>
+      <div class="popup-coords">${lat.toFixed(6)}, ${lng.toFixed(6)}</div>`)
+    .openPopup()
+
+  map.flyTo([lat, lng], 15, { duration: 1.2 })
+}
+
+function clearCoordMarker() {
+  if (coordMarker) { coordMarker.remove(); coordMarker = null }
+  coordInput.value = ''
+  coordError.value = false
 }
 
 // ── Export ────────────────────────────────────────────────────────────────────
@@ -528,8 +585,8 @@ watch(() => props.filters, loadMarkers, { deep: true })
 <template>
   <div class="flex flex-col h-[calc(100vh-14rem)] rounded-xl overflow-hidden shadow-md ring-1 ring-border/60">
     <!-- Toolbar -->
-    <div class="flex items-center justify-between px-4 py-2 bg-card border-b border-border/60 shrink-0">
-      <div class="flex items-center gap-2 text-sm text-muted-foreground">
+    <div class="flex items-center justify-between px-4 py-2 bg-card border-b border-border/60 shrink-0 gap-3">
+      <div class="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
         <MapPin class="size-4 text-primary" />
         <span v-if="isLoading" class="flex items-center gap-1.5">
           <Loader2 class="size-3.5 animate-spin" /> Завантаження...
@@ -542,7 +599,29 @@ watch(() => props.filters, loadMarkers, { deep: true })
         </span>
       </div>
 
-      <Button variant="ghost" size="sm" class="h-8 w-8 p-0" :disabled="isLoading" @click="loadMarkers">
+      <!-- Coordinate jump input -->
+      <div class="flex items-center gap-1.5 flex-1 max-w-xs relative">
+        <input
+          v-model="coordInput"
+          placeholder="46.844167, 35.402538"
+          class="h-8 w-full rounded-md border px-2.5 py-1 text-xs bg-background placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 transition-colors"
+          :class="coordError
+            ? 'border-destructive focus:ring-destructive/40 text-destructive'
+            : 'border-input focus:ring-primary/30'"
+          @keydown.enter="gotoCoord"
+          @input="coordError = false"
+        />
+        <button
+          v-if="coordInput"
+          type="button"
+          class="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground transition-colors p-0.5"
+          @click="clearCoordMarker"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <Button variant="ghost" size="sm" class="h-8 w-8 p-0 shrink-0" :disabled="isLoading" @click="loadMarkers">
         <RefreshCw class="size-3.5" :class="{ 'animate-spin': isLoading }" />
       </Button>
     </div>
