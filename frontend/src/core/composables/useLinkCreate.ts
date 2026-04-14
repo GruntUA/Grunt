@@ -144,8 +144,8 @@ export function useLinkCreate() {
    * and returns the `{fieldname, value}` to set — or null if not applicable.
    */
   function restoreLinkDraft(
-    doctype: string,
-    id: string | null,
+    _doctype: string,
+    _id: string | null,
     form: Record<string, unknown>,
   ): { fieldname: string; value: string } | null {
     const state = window.history.state as Record<string, unknown> | null
