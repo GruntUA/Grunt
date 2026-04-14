@@ -87,7 +87,7 @@ async function submitUpdate() {
   <div v-if="count > 0 || allSelected"
     class="flex items-center gap-3 mb-3 px-4 py-2.5 bg-primary/5 rounded-lg border border-primary/20">
     <span class="text-sm text-primary font-medium">
-      {{ t('Selected:') }} {{ allSelected ? `всі ${total ?? ''}` : count }}
+      {{ t('Selected:') }} {{ allSelected ? `всі ${total ?? count}` : count }}
     </span>
 
     <button
@@ -96,7 +96,7 @@ async function submitUpdate() {
       class="text-sm text-primary underline hover:text-primary/80 transition-colors"
       @click="emit('selectAll')"
     >
-      {{ t('Select all {total} records', { total }) }}
+      Вибрати всі {{ total }} записів
     </button>
 
     <Button variant="outline" size="sm" class="text-foreground" @click="openUpdateModal"
