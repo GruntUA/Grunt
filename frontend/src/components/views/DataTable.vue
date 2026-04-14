@@ -248,7 +248,7 @@ function getIconComponent(name: string): Component | null {
             <!-- Select / status field: colored badge -->
             <template v-else-if="getFieldType(col.key) === 'Select' || statusFieldName === col.key">
               <template v-if="row[col.key] !== null && row[col.key] !== undefined && row[col.key] !== ''">
-                <Badge :variant="getStatusBadge(String(row[col.key]), col.key).variant" class="font-normal"
+                <Badge :variant="getStatusBadge(String(row[col.key]), col.key).variant" class="font-normal whitespace-nowrap"
                   :class="getStatusBadge(String(row[col.key]), col.key).class">
                   {{ getStatusBadge(String(row[col.key]), col.key).label }}
                 </Badge>

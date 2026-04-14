@@ -26,6 +26,18 @@ from grunt.core.tasks.scheduler import register_scheduler_events, start_schedule
 
 document_registry.discover_core_controllers()
 
+# Register built-in io exporters / importers
+from grunt.core.io import register_exporter, register_importer  # noqa: E402
+from grunt.core.io.exporters.csv import CsvExporter  # noqa: E402
+from grunt.core.io.exporters.xlsx import XlsxExporter  # noqa: E402
+from grunt.core.io.importers.csv import CsvImporter  # noqa: E402
+from grunt.core.io.importers.xlsx import XlsxImporter  # noqa: E402
+
+register_exporter(XlsxExporter())
+register_exporter(CsvExporter())
+register_importer(CsvImporter())
+register_importer(XlsxImporter())
+
 # Auto-refresh in-memory permissions when DocTypePermission is saved/deleted
 register_doc_events(
     {
@@ -164,6 +176,16 @@ async def lifespan(app: FastAPI):
                             document_registry.register_overrides(hooks_mod.override_doctype_class)
                         if hasattr(hooks_mod, "scheduler_events"):
                             register_scheduler_events(hooks_mod.scheduler_events)
+                        if hasattr(hooks_mod, "io_exporters"):
+                            from grunt.core.io import register_exporter as _reg_exp  # noqa: PLC0415
+                            for _exp in hooks_mod.io_exporters:
+                                _reg_exp(_exp)
+                                logger.info("io.exporter.registered", id=_exp.id, app=ext_app.name)
+                        if hasattr(hooks_mod, "io_importers"):
+                            from grunt.core.io import register_importer as _reg_imp  # noqa: PLC0415
+                            for _imp in hooks_mod.io_importers:
+                                _reg_imp(_imp)
+                                logger.info("io.importer.registered", id=_imp.id, app=ext_app.name)
                     except Exception as e:
                         logger.warning("hooks.load_error", module=hooks_import, error=str(e))
 

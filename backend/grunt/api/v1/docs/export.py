@@ -8,19 +8,14 @@ import json
 from datetime import datetime
 from typing import Any
 
-import openpyxl
 import structlog
 from fastapi import HTTPException, Query, Request
 from fastapi.responses import Response, StreamingResponse
-from openpyxl.styles import Font, PatternFill
 
 from grunt.api.router import GruntRouter
-from grunt.api.v1.docs.utils import (
-    _fmt,
-    _generate_xlsx_single,
-    _non_layout_fields,
-)
+from grunt.api.v1.docs.utils import _generate_xlsx_single, _non_layout_fields
 from grunt.app import grunt
+from grunt.core.io import get_exporter, get_exporters
 from grunt.core.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()
@@ -205,48 +200,50 @@ async def export_documents_xlsx(
     doctype: str,
     request: Request,
 ) -> Response:
-    """Export all documents (up to 10 000) for a DocType as XLSX."""
+    """Export all documents (up to 10 000) for a DocType — dispatches through io registry."""
+    return await _export_via_registry(doctype, fmt="xlsx", request=request)
+
+
+@router.get("/{doctype}/export/{fmt}")
+async def export_documents_fmt(
+    doctype: str,
+    fmt: str,
+    request: Request,
+) -> Response:
+    """Export documents in any registered format (csv, xlsx, …)."""
+    return await _export_via_registry(doctype, fmt=fmt, request=request)
+
+
+async def _export_via_registry(doctype: str, fmt: str, request: Request) -> Response:
+    exporter = get_exporter(fmt)
+    if exporter is None:
+        available = [e.id for e in get_exporters()]
+        raise HTTPException(
+            status_code=400,
+            detail=f"Невідомий формат '{fmt}'. Доступні: {', '.join(available)}",
+        )
+
     filters: dict[str, str] = {}
     for key, value in request.query_params.items():
         if key.startswith("filter[") and key.endswith("]"):
             filters[key[7:-1]] = value
 
+    dt = await doctype_registry.get(doctype)
+    fields = _non_layout_fields(dt)
+    field_names = [f.fieldname for f in fields]
+
     rows = await grunt.get_list(
         doctype,
-        limit=10000,
+        limit=10_000,
         filters=filters if filters else None,
+        fields=field_names,
     )
-    
-    dt = await doctype_registry.get(doctype)
-    visible = _non_layout_fields(dt)
 
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = dt.label[:31]
+    content = await exporter.export(doctype, rows, fields)
+    filename = exporter.filename(doctype)
 
-    header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill("solid", fgColor="2D6A4F")
-
-    # Header row
-    headers = ["ID", "Назва", "Власник", "Створено"] + [f.label for f in visible]
-    for col_idx, h in enumerate(headers, start=1):
-        cell = ws.cell(row=1, column=col_idx, value=h)
-        cell.font = header_font
-        cell.fill = header_fill
-
-    # Data rows
-    for row_idx, row in enumerate(rows, start=2):
-        ws.cell(row=row_idx, column=1, value=str(row.get("id", "")))
-        ws.cell(row=row_idx, column=2, value=str(row.get("name", "")))
-        ws.cell(row=row_idx, column=3, value=str(row.get("owner", "")))
-        ws.cell(row=row_idx, column=4, value=_fmt(row.get("created_at")))
-        for col_idx, field in enumerate(visible, start=5):
-            ws.cell(row=row_idx, column=col_idx, value=_fmt(row.get(field.fieldname)))
-
-    buf = io.BytesIO()
-    wb.save(buf)
     return Response(
-        content=buf.getvalue(),
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f'attachment; filename="{doctype}_export.xlsx"'},
+        content=content,
+        media_type=exporter.content_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
