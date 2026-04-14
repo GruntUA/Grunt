@@ -7,7 +7,7 @@ import 'leaflet.browser.print/dist/leaflet.browser.print.js'
 import { MapPin, RefreshCw, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { docsApi } from '@/core/api/docs'
-import type { DocType, DocTypeMapView, ScriptMenuItem } from '@/types'
+import type { DocType, DocTypeMapView, ScriptMenuItem, ActiveFilter } from '@/types'
 import type { Component } from 'vue'
 
 // ── Props ────────────────────────────────────────────────────────────────────
@@ -16,7 +16,7 @@ const props = defineProps<{
   geoField: string
   workspace?: string
   search?: string
-  filters?: Record<string, string>
+  filters?: ActiveFilter[]
 }>()
 
 const emit = defineEmits<{
@@ -194,7 +194,7 @@ async function loadMarkers() {
       per_page: 5000,
       fields: [...fields].join(','),
       search: props.search || undefined,
-      filters: props.filters && Object.keys(props.filters).length ? props.filters : undefined,
+      filters: props.filters?.length ? props.filters : undefined,
     })
 
     // Pre-render all unique icon paths before building markers

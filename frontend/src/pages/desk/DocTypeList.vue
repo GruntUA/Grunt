@@ -9,7 +9,7 @@ import { useListSelection } from '@/core/composables/useListSelection'
 import { useListColumns } from '@/core/composables/useListColumns'
 import { useDevMode } from '@/core/composables/useDevMode'
 import { docsApi } from '@/core/api/docs'
-import type { DocType, DocField, ScriptButton, ScriptMenuItem } from '@/types'
+import type { ActiveFilter, DocType, DocField, ScriptButton, ScriptMenuItem } from '@/types'
 import {
   createListViewProxy,
   createGruntProxy,
@@ -51,7 +51,7 @@ const page = ref(1)
 const debouncedSearch = ref('')
 const sortKey = ref('')
 const sortOrder = ref<'asc' | 'desc'>('asc')
-const activeFilters = ref<Record<string, string>>({})
+const activeFilters = ref<ActiveFilter[]>([])
 type ViewMode = 'list' | 'kanban' | 'calendar' | 'tree' | 'gallery' | 'map'
 const VALID_VIEWS: ViewMode[] = ['list', 'kanban', 'calendar', 'tree', 'gallery', 'map']
 
@@ -252,7 +252,7 @@ function navigateToDoc(row: Record<string, unknown>) {
       :tree-parent-field="treeParentField"
       :calendar-date-field="calendarDateField"
       :geo-field="geoField"
-      @reset="inlineSearch = ''; debouncedSearch = ''; activeFilters = {}; page = 1"
+      @reset="inlineSearch = ''; debouncedSearch = ''; activeFilters = []; page = 1"
     />
 
     <!-- Main Content Area -->

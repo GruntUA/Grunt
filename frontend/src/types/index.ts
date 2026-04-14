@@ -162,6 +162,16 @@ export interface DocTypeTreeView {
   title_field?: string   // which field to display as node label (defaults to 'name')
 }
 
+/** A single active filter — used by FilterBar, DocTypeList, and docsApi */
+export interface ActiveFilter {
+  fieldname: string
+  label: string
+  fieldtype?: string   // stored for display logic in chips
+  op: string          // display op: '=', '!=', 'like', '>', '<', '>=', '<='
+  value: string
+  displayValue?: string  // human-readable label (Link fields: title instead of name)
+}
+
 export interface DocTypeMapView {
   geo_field?: string                  // override auto-detected Geolocation field
   label_field?: string                // field shown in marker popup (defaults to title_field)

@@ -25,6 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import type { ActiveFilter } from '@/types'
 import FilterBar from '@/components/views/FilterBar.vue'
 
 const props = defineProps<{
@@ -32,7 +33,7 @@ const props = defineProps<{
   doctype: string
   viewMode: string
   inlineSearch: string
-  activeFilters: Record<string, string>
+  activeFilters: ActiveFilter[]
   columns: any
   groupableFields: any[]
   groupBy: string | null
@@ -46,7 +47,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:viewMode', val: any): void
   (e: 'update:inlineSearch', val: string): void
-  (e: 'update:activeFilters', val: Record<string, string>): void
+  (e: 'update:activeFilters', val: ActiveFilter[]): void
   (e: 'update:groupBy', val: string | null): void
   (e: 'reset'): void
 }>()
@@ -58,7 +59,7 @@ const localSearch = ref(props.inlineSearch)
 watch(() => props.inlineSearch, (v) => { localSearch.value = v })
 watch(localSearch, (v) => { emit('update:inlineSearch', v) })
 
-function onFiltersChange(f: Record<string, string>) {
+function onFiltersChange(f: ActiveFilter[]) {
   emit('update:activeFilters', f)
 }
 
@@ -83,7 +84,7 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
           :placeholder="t('Search...')" />
       </div>
       <FilterBar v-if="dt" :fields="dt.fields" :doctype="doctype" @change="onFiltersChange" class="!mb-0" />
-      <Button v-if="inlineSearch || Object.keys(activeFilters).length" variant="ghost" size="sm"
+      <Button v-if="inlineSearch || activeFilters.length" variant="ghost" size="sm"
         class="h-8 px-2 text-muted-foreground hover:text-foreground" @click="emit('reset')">
         <X class="size-4 mr-1" />
         {{ t('Reset') }}
