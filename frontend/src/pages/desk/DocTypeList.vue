@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useAuthStore } from '@/stores/auth'
 import { useWebSocket } from '@/core/composables/useWebSocket'
+import { useNotifications } from '@/core/composables/useNotifications'
 import { useListSelection } from '@/core/composables/useListSelection'
 import { useListColumns } from '@/core/composables/useListColumns'
 import { useDevMode } from '@/core/composables/useDevMode'
-import { docsApi } from '@/core/api/docs'
+import { docsApi, OP_MAP } from '@/core/api/docs'
 import type { ActiveFilter, DocType, DocField, ScriptButton, ScriptMenuItem } from '@/types'
 import {
   createListViewProxy,
@@ -18,6 +19,7 @@ import {
 import type { ExportContext } from '@/core/io'
 
 // Shared UI components
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import BulkActionBar from '@/components/views/BulkActionBar.vue'
 import DataTable from '@/components/views/DataTable.vue'
@@ -46,6 +48,7 @@ listWs.onEvent('doc_change', () => {
   queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
 })
 const { isDev } = useDevMode()
+const { onUserEvent, offUserEvent } = useNotifications()
 
 // ── State ────────────────────────────────────────────────────────────────────
 const dt = ref<DocType | null>(null)
@@ -225,10 +228,70 @@ function onSort(key: string) {
   router.replace({ query: { ...route.query, sort: key, order: sortOrder.value } })
 }
 
+// ── Bulk delete progress ─────────────────────────────────────────────────────
+const deleteProgress = ref({ active: false, total: 0, done: 0, errors: 0 })
+
+// Stored so onUnmounted can clean up if navigation happens mid-delete
+let _deleteProgressHandler: ((d: Record<string, unknown>) => void) | null = null
+let _deleteDoneHandler: ((d: Record<string, unknown>) => void) | null = null
+
+onUnmounted(() => {
+  if (_deleteProgressHandler) offUserEvent('bulk_delete_progress', _deleteProgressHandler)
+  if (_deleteDoneHandler) offUserEvent('bulk_delete_done', _deleteDoneHandler)
+})
+
+function buildRawFilters(filters: ActiveFilter[]): Record<string, string> {
+  const raw: Record<string, string> = {}
+  for (const f of filters) {
+    raw[`${f.fieldname}__${OP_MAP[f.op] ?? 'eq'}`] = f.value
+  }
+  return raw
+}
+
 async function bulkDelete() {
-  const ids = selection.allSelected.value ? (await docsApi.list(props.doctype, { page: 1, per_page: 10000, fields: 'id', search: debouncedSearch.value || undefined, filters: activeFilters.value })).data.map((r: any) => String(r.id)) : selection.selectedIds.value
-  if (ids.length) await docsApi.bulkDelete(props.doctype, ids)
-  selection.clear(); queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
+  const ids = selection.allSelected.value ? [] : selection.selectedIds.value
+  if (!selection.allSelected.value && !ids.length) return
+
+  const total = selection.allSelected.value ? (meta.value?.total ?? 0) : ids.length
+  deleteProgress.value = { active: true, total, done: 0, errors: 0 }
+
+  function onProgress(data: Record<string, unknown>) {
+    deleteProgress.value.done = (data.done as number) ?? deleteProgress.value.done
+    deleteProgress.value.errors = (data.errors as number) ?? deleteProgress.value.errors
+  }
+
+  function onDone(_data: Record<string, unknown>) {
+    offUserEvent('bulk_delete_progress', onProgress)
+    offUserEvent('bulk_delete_done', onDone)
+    _deleteProgressHandler = null
+    _deleteDoneHandler = null
+    deleteProgress.value.active = false
+    selection.clear()
+    queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
+  }
+
+  _deleteProgressHandler = onProgress
+  _deleteDoneHandler = onDone
+  onUserEvent('bulk_delete_progress', onProgress)
+  onUserEvent('bulk_delete_done', onDone)
+
+  try {
+    if (selection.allSelected.value) {
+      await docsApi.bulkDelete(props.doctype, [], {
+        deleteAll: true,
+        rawFilters: buildRawFilters(activeFilters.value),
+        search: debouncedSearch.value || undefined,
+      })
+    } else {
+      await docsApi.bulkDelete(props.doctype, ids)
+    }
+  } catch {
+    offUserEvent('bulk_delete_progress', onProgress)
+    offUserEvent('bulk_delete_done', onDone)
+    _deleteProgressHandler = null
+    _deleteDoneHandler = null
+    deleteProgress.value.active = false
+  }
 }
 
 async function bulkUpdate(field: string, value: string) {
@@ -377,5 +440,37 @@ function navigateToDoc(row: Record<string, unknown>) {
       @close="showQuickEntry = false"
       @saved="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })"
     />
+
+    <!-- Bulk delete progress dialog -->
+    <Dialog :open="deleteProgress.active" :modal="true">
+      <DialogContent class="max-w-sm" hide-close>
+        <div class="flex flex-col gap-4 py-2">
+          <div class="flex items-center gap-3">
+            <div class="size-5 shrink-0 rounded-full border-2 border-destructive/20 border-t-destructive animate-spin" />
+            <p class="text-sm font-medium text-foreground">
+              Видалення записів…
+            </p>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="flex flex-col gap-1.5">
+            <div class="h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div
+                class="h-full rounded-full bg-destructive transition-all duration-300"
+                :style="{ width: `${deleteProgress.total ? Math.round(deleteProgress.done / deleteProgress.total * 100) : 0}%` }"
+              />
+            </div>
+            <div class="flex justify-between text-xs text-muted-foreground tabular-nums">
+              <span>{{ deleteProgress.done }} / {{ deleteProgress.total }}</span>
+              <span>{{ deleteProgress.total ? Math.round(deleteProgress.done / deleteProgress.total * 100) : 0 }}%</span>
+            </div>
+          </div>
+
+          <p v-if="deleteProgress.errors > 0" class="text-xs text-destructive">
+            Помилок: {{ deleteProgress.errors }}
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

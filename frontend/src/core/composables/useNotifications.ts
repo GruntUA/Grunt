@@ -10,6 +10,10 @@ const notifications = ref<GruntNotification[]>([])
 const unreadCount = ref(0)
 const loading = ref(false)
 
+// Custom event handler registry for user-channel WS events
+type UserEventHandler = (data: Record<string, unknown>) => void
+const customEventHandlers = new Map<string, Set<UserEventHandler>>()
+
 let ws: WebSocket | null = null
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null
 let refCount = 0
@@ -81,6 +85,13 @@ function disconnectWs() {
 }
 
 function handleRealtimeEvent(msg: RealtimeEvent) {
+  // Dispatch to custom handlers first (e.g. bulk_delete_progress)
+  const custom = customEventHandlers.get(msg.event)
+  if (custom?.size) {
+    for (const handler of custom) handler(msg.data as Record<string, unknown>)
+    return
+  }
+
   const toast = useToast()
   const dialog = useDialog()
 
@@ -193,6 +204,15 @@ export function useNotifications() {
     }
   })
 
+  function onUserEvent(event: string, handler: UserEventHandler) {
+    if (!customEventHandlers.has(event)) customEventHandlers.set(event, new Set())
+    customEventHandlers.get(event)!.add(handler)
+  }
+
+  function offUserEvent(event: string, handler: UserEventHandler) {
+    customEventHandlers.get(event)?.delete(handler)
+  }
+
   return {
     notifications: computed(() => notifications.value),
     unreadCount: computed(() => unreadCount.value),
@@ -200,5 +220,7 @@ export function useNotifications() {
     load,
     markRead,
     markAllRead,
+    onUserEvent,
+    offUserEvent,
   }
 }

@@ -168,6 +168,9 @@ class SiteManager:
                         cursor = dbapi_conn.cursor()
                         cursor.execute("PRAGMA journal_mode=WAL")
                         cursor.execute("PRAGMA synchronous=NORMAL")
+                        # Automatically return freed pages to the OS over time
+                        # (INCREMENTAL = pages freed lazily, no full-file rewrite)
+                        cursor.execute("PRAGMA auto_vacuum=INCREMENTAL")
                         cursor.close()
                         dbapi_conn.create_function("uk_sort_key", 1, _uk_sort_key)
 

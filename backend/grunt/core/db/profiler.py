@@ -326,7 +326,9 @@ def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> N
         with _buffer_lock:
             _query_buffer.append(record)
 
-        if is_slow:
+        # Only warn about slow queries within an HTTP request context;
+        # background tasks inherit low thresholds but run outside requests.
+        if is_slow and req_id is not None:
             logger.warning(
                 "slow_query",
                 duration_ms=record.duration_ms,

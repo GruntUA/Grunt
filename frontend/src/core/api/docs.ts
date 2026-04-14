@@ -32,7 +32,7 @@ export interface BacklinkItem {
 }
 
 // Maps FilterBar display operators to backend query suffixes
-const OP_MAP: Record<string, string> = {
+export const OP_MAP: Record<string, string> = {
   '=': 'eq', '!=': 'ne', 'like': 'ilike',
   '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte',
 }
@@ -105,9 +105,16 @@ export const docsApi = {
   delete: (doctype: string, id: string) =>
     client.delete(`/api/v1/docs/${doctype}/${id}`),
 
-  bulkDelete: (doctype: string, ids: string[]): Promise<{ deleted: number; errors: string[] }> =>
-    client.post(`/api/v1/docs/${doctype}/bulk-delete`, { ids })
-      .then(r => r.data.data),
+  bulkDelete: (
+    doctype: string,
+    ids: string[],
+    options?: { deleteAll?: boolean; rawFilters?: Record<string, string>; search?: string }
+  ): Promise<{ started: boolean; total: number }> => {
+    const body = options?.deleteAll
+      ? { delete_all: true, filters: options.rawFilters ?? {}, search: options.search ?? null }
+      : { ids }
+    return client.post(`/api/v1/docs/${doctype}/bulk-delete`, body).then(r => r.data.data)
+  },
 
   getTransitions: (doctype: string, id: string): Promise<{ data: WorkflowTransitionItem[] }> =>
     client.get(`/api/v1/docs/${doctype}/${id}/transitions`).then(r => r.data),

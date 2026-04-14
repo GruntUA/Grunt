@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import contextvars
 from typing import Any
 
 from fastapi import Body, Depends, HTTPException, Query, Request, status
@@ -101,28 +103,66 @@ async def delete_document(
     return ok(message="Документ видалено")
 
 
-@router.post("/{doctype}/bulk-delete")
+@router.post("/{doctype}/bulk-delete", status_code=status.HTTP_202_ACCEPTED)
 async def bulk_delete_documents(
     doctype: str,
     body: dict[str, Any] = Body(...),
     user: GruntUser = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
-    """Delete multiple documents by IDs."""
-    ids: list[str] = body.get("ids", [])
-    if not ids:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="ids is required")
+    """Delete multiple documents by IDs, or all documents matching filters.
 
-    deleted = 0
-    errors: list[str] = []
-    for doc_id in ids:
-        try:
-            await svc.delete_document(doctype, doc_id, user)
-            deleted += 1
-        except Exception as e:
-            errors.append(f"{doc_id}: {e}")
+    Deletion runs as a background task; progress is pushed via WebSocket
+    (event ``bulk_delete_progress`` / ``bulk_delete_done``) to the requesting user.
 
-    return ok({"deleted": deleted, "errors": errors})
+    Body variants:
+      { "ids": ["id1", "id2"] }          — delete by explicit IDs
+      { "delete_all": true, "filters": {"status__eq": "Draft"} }  — delete all matching
+    """
+    from grunt.api.v1.ws import manager  # noqa: PLC0415
+
+    delete_all: bool = body.get("delete_all", False)
+
+    if delete_all:
+        raw_filters: dict[str, str] = body.get("filters", {}) or {}
+        search: str | None = body.get("search") or None
+        result = await svc.list_documents(
+            doctype, user,
+            page=1, per_page=100_000,
+            fields=["id"],
+            filters=raw_filters if raw_filters else None,
+            search=search,
+        )
+        ids: list[str] = [str(row["id"]) for row in result.get("data", [])]
+    else:
+        ids = body.get("ids", [])
+        if not ids:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="ids or delete_all is required")
+
+    total = len(ids)
+    user_email = user.email
+    engine = svc.engine
+
+    async def _run() -> None:
+        from grunt.core.db.session import async_session_factory  # noqa: PLC0415
+
+        async def _progress(done: int, _total: int, error_count: int) -> None:
+            await manager.send_to_user(user_email, {
+                "event": "bulk_delete_progress",
+                "data": {"done": done, "total": _total, "errors": error_count},
+            })
+
+        async with async_session_factory() as session:
+            bg_svc = DocumentService(session, engine)
+            deleted, errors = await bg_svc.bulk_delete(doctype, ids, user, progress_cb=_progress)
+
+        await manager.send_to_user(user_email, {
+            "event": "bulk_delete_done",
+            "data": {"deleted": deleted, "total": total, "errors": errors},
+        })
+
+    asyncio.create_task(_run(), context=contextvars.Context())
+    return ok({"started": True, "total": total})
 
 
 @router.post("/{doctype}/bulk-update")

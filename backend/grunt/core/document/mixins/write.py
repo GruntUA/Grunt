@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
+from itertools import islice
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -39,6 +40,15 @@ from grunt.core.metadata.registry import doctype_registry
 logger = structlog.get_logger()
 
 PROTECTED_FIELDS = frozenset({"id", "owner", "created_at", "docstatus"})
+
+# SQLite degrades with large IN (...) lists; 500 is safe for all backends.
+_IN_CHUNK = 500
+
+
+def _chunks(lst: list, size: int):
+    it = iter(lst)
+    while chunk := list(islice(it, size)):
+        yield chunk
 
 
 class DocumentWriteMixin:
@@ -498,3 +508,129 @@ class DocumentWriteMixin:
             )
         finally:
             self._reset_grunt_context(_tokens)
+
+    async def bulk_delete(
+        self,
+        doctype_name: str,
+        ids: list[str],
+        user: "GruntUser",
+        progress_cb: "Any | None" = None,
+    ) -> tuple[int, list[str]]:
+        """Delete multiple documents efficiently in a single transaction.
+
+        Runs per-document hooks (before/after_delete) but batches all DB
+        writes (DELETE, multi-link cleanup, search index) into one flush.
+
+        ``progress_cb`` is an optional async callable
+        ``(done: int, total: int, errors: int) -> None`` called after each
+        before_delete hook phase and once after the batch commit.
+
+        Returns ``(deleted_count, error_messages)``.
+        """
+        if not ids:
+            return 0, []
+
+        from grunt.core.search.service import search_index_service  # noqa: PLC0415
+        from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
+
+        dt = await doctype_registry.get(doctype_name)
+
+        if dt.is_virtual:
+            deleted = 0
+            errors: list[str] = []
+            for doc_id in ids:
+                try:
+                    await _virtual_delete(doctype_name, user, doc_id)
+                    deleted += 1
+                except Exception as e:  # noqa: BLE001
+                    errors.append(f"{doc_id}: {e}")
+            return deleted, errors
+
+        if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"'{doctype_name}' is managed by the system.",
+            )
+
+        table = compile_doctype_to_table(dt)
+
+        # ── 1. Fetch all documents — chunked to avoid large IN lists ─────
+        from sqlalchemy import select as sa_select  # noqa: PLC0415
+
+        existing_rows: dict[str, dict] = {}
+        for chunk in _chunks(ids, _IN_CHUNK):
+            result = await self.session.execute(
+                sa_select(table).where(table.c.id.in_(chunk))
+            )
+            for row in result.fetchall():
+                existing_rows[str(row._mapping["id"])] = dict(row._mapping)
+
+        errors = []
+        to_delete: list[dict] = []
+
+        for doc_id in ids:
+            doc = existing_rows.get(doc_id)
+            if doc is None:
+                errors.append(f"{doc_id}: not found")
+                continue
+            if dt.is_submittable and doc.get("docstatus") == 1:
+                errors.append(f"{doc_id}: submitted — cancel before delete")
+                continue
+            to_delete.append(doc)
+
+        if not to_delete:
+            return 0, errors
+
+        total = len(ids)
+
+        async def _report(done: int) -> None:
+            if progress_cb is not None:
+                await progress_cb(done, total, len(errors))
+
+        # ── 2. before_delete hooks (per-document) ─────────────────────────
+        _tokens = self._set_grunt_context(user)
+        controllers = []
+        try:
+            for i, doc in enumerate(to_delete):
+                controller_cls = document_registry.get(doctype_name)
+                ctrl = controller_cls(doctype_name, doc, user, self.session)
+                try:
+                    await ctrl.before_delete()
+                except GruntError as e:
+                    errors.append(f"{doc['id']}: {e}")
+                    continue
+                await fire("before_delete", doctype=doctype_name, doc=doc, user=user, session=self.session)
+                controllers.append((doc, ctrl))
+                await _report(i + 1)
+        finally:
+            self._reset_grunt_context(_tokens)
+
+        if not controllers:
+            return 0, errors
+
+        final_ids = [str(d["id"]) for d, _ in controllers]
+
+        # ── 3. Batch DELETE — chunked to avoid large IN lists ────────────
+        _tokens = self._set_grunt_context(user)
+        try:
+            for chunk in _chunks(final_ids, _IN_CHUNK):
+                await self.session.execute(table.delete().where(table.c.id.in_(chunk)))
+            await self._ml.delete_all_for_docs(doctype_name, final_ids)
+            await self.session.flush()
+            await search_index_service.remove_documents(self.session, doctype_name, final_ids)
+
+            # ── 4. after_delete hooks (per-document) ──────────────────────
+            for doc, ctrl in controllers:
+                real_id = str(doc["id"])
+                try:
+                    await ctrl.after_delete()
+                except GruntError as e:
+                    errors.append(f"{real_id}: {e}")
+                await webhook_service.fire(self.session, "after_delete", doctype_name, doc)
+                await fire("after_delete", doctype=doctype_name, doc_id=real_id, user=user, session=self.session)
+        finally:
+            self._reset_grunt_context(_tokens)
+
+        deleted = len(final_ids)
+        await _report(total)
+        return deleted, errors

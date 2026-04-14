@@ -201,6 +201,27 @@ class SearchIndexService:
         except Exception:  # noqa: BLE001
             logger.warning("search_index.remove_failed", doctype=doctype, doc_id=doc_id)
 
+    async def remove_documents(
+        self,
+        session: AsyncSession,
+        doctype: str,
+        doc_ids: list[str],
+        chunk_size: int = 500,
+    ) -> None:
+        """Remove multiple documents from the search index, chunked to avoid large IN lists."""
+        if not doc_ids:
+            return
+        try:
+            from itertools import islice  # noqa: PLC0415
+            it = iter(doc_ids)
+            while chunk := list(islice(it, chunk_size)):
+                idx_ids = [f"{doctype}:{doc_id}" for doc_id in chunk]
+                await session.execute(
+                    delete(_search_index_table).where(_search_index_table.c.idx_id.in_(idx_ids))
+                )
+        except Exception:  # noqa: BLE001
+            logger.warning("search_index.remove_bulk_failed", doctype=doctype, count=len(doc_ids))
+
     async def search(
         self,
         session: AsyncSession,

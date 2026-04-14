@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from itertools import islice
 from typing import TYPE_CHECKING
 
 import structlog
@@ -110,3 +111,22 @@ class MultiLinkService:
                 t.c.parent_id == parent_id,
             )
         )
+
+    async def delete_all_for_docs(
+        self,
+        parent_doctype: str,
+        parent_ids: list[str],
+        chunk_size: int = 500,
+    ) -> None:
+        """Remove all MultiLink entries for multiple documents, chunked to avoid large IN lists."""
+        if not parent_ids:
+            return
+        t = MULTI_LINK_TABLE
+        it = iter(parent_ids)
+        while chunk := list(islice(it, chunk_size)):
+            await self.session.execute(
+                delete(t).where(
+                    t.c.parent_doctype == parent_doctype,
+                    t.c.parent_id.in_(chunk),
+                )
+            )
