@@ -143,10 +143,8 @@ function isSelected(id: string) {
           class="border-b border-border/30 last:border-0 hover:bg-muted/40 cursor-pointer transition-all duration-200 group relative"
           :class="{ 'bg-primary/[0.03] hover:bg-primary/[0.05]': isSelected(String(row.id)) }">
           
-          <!-- Selected active indicator -->
-          <td v-if="isSelected(String(row.id))" class="absolute left-0 top-0 bottom-0 w-0.5 bg-primary rounded-r-full pointer-events-none" />
-          
-          <td class="px-4 py-3" @click.stop>
+          <td class="relative px-4 py-3" @click.stop>
+            <div v-if="isSelected(String(row.id))" class="absolute left-0 top-0 bottom-0 w-0.5 bg-primary rounded-r-full pointer-events-none" />
             <Checkbox :model-value="isSelected(String(row.id))" @update:model-value="emit('select', String(row.id))"
               class="transition-transform duration-200" :class="{ 'scale-110': isSelected(String(row.id)) }" />
           </td>
