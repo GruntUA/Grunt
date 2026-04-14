@@ -3,7 +3,7 @@ import { shallowRef } from 'vue'
 import type { Component } from 'vue'
 import type { DocField, DocTypeStatusConfig } from '@/types'
 
-const props = defineProps<{
+defineProps<{
   value: unknown
   row: Record<string, unknown>
   field: DocField

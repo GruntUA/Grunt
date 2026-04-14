@@ -14,6 +14,34 @@
  *   registerExporter(myCustomExporter)
  */
 
+// ── Filter Operators & Inputs ──────────────────────────────────────────────
+import { registerFilterConfig } from '@/core/filterRegistry'
+import DefaultFilterInput from '@/components/fields/Default/FilterInput.vue'
+import CheckFilterInput from '@/components/fields/Check/FilterInput.vue'
+import SelectFilterInput from '@/components/fields/Select/FilterInput.vue'
+import DateFilterInput from '@/components/fields/Date/FilterInput.vue'
+import DatetimeFilterInput from '@/components/fields/Datetime/FilterInput.vue'
+import LinkFilterInput from '@/components/fields/Link/FilterInput.vue'
+
+const TEXT_OPS = ['=', '!=', 'like']
+const NUM_OPS  = ['=', '!=', '>', '<', '>=', '<=']
+const DATE_OPS = ['=', '!=', '>', '<', '>=', '<=']
+
+registerFilterConfig('_default',  { operators: TEXT_OPS,  filterInput: DefaultFilterInput })
+registerFilterConfig('Data',      { operators: TEXT_OPS,  filterInput: DefaultFilterInput })
+registerFilterConfig('Text',      { operators: TEXT_OPS,  filterInput: DefaultFilterInput })
+registerFilterConfig('LongText',  { operators: TEXT_OPS,  filterInput: DefaultFilterInput })
+registerFilterConfig('Int',       { operators: NUM_OPS,   filterInput: DefaultFilterInput })
+registerFilterConfig('Float',     { operators: NUM_OPS,   filterInput: DefaultFilterInput })
+registerFilterConfig('Currency',  { operators: NUM_OPS,   filterInput: DefaultFilterInput })
+registerFilterConfig('Rating',    { operators: NUM_OPS,   filterInput: DefaultFilterInput })
+registerFilterConfig('Date',      { operators: DATE_OPS,  filterInput: DateFilterInput })
+registerFilterConfig('Datetime',  { operators: DATE_OPS,  filterInput: DatetimeFilterInput })
+registerFilterConfig('Time',      { operators: DATE_OPS,  filterInput: DefaultFilterInput })
+registerFilterConfig('Check',     { operators: ['='],     filterInput: CheckFilterInput })
+registerFilterConfig('Select',    { operators: ['=', '!='], filterInput: SelectFilterInput })
+registerFilterConfig('Link',      { operators: ['=', '!='], filterInput: LinkFilterInput })
+
 // ── List Cell Renderers ────────────────────────────────────────────────────
 import { registerListCell } from '@/core/listCellRegistry'
 import CheckListCell from '@/components/fields/Check/ListCell.vue'

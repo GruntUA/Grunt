@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DocField, DocTypeStatusConfig } from '@/types'
 
-const props = defineProps<{
+defineProps<{
   value: unknown
   row: Record<string, unknown>
   field: DocField

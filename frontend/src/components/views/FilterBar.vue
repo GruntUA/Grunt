@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField, ActiveFilter } from '@/types'
-import type { LinkSearchItem } from '@/core/api/docs'
-import { docsApi } from '@/core/api/docs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -20,7 +18,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Filter, X, Bookmark, ChevronDown, Trash2, Loader2, Pencil } from 'lucide-vue-next'
+import { Filter, X, Bookmark, ChevronDown, Trash2, Pencil } from 'lucide-vue-next'
+import { getFilterConfig } from '@/core/filterRegistry'
 
 const props = defineProps<{
   fields: DocField[]
@@ -41,21 +40,6 @@ const pickedDisplayValue = ref('')
 
 // null = adding new; number = editing existing at that index
 const editingIndex = ref<number | null>(null)
-
-// ── Ops per field type ──────────────────────────────────────────────────────
-const TEXT_OPS  = ['=', '!=', 'like']
-const NUM_OPS   = ['=', '!=', '>', '<', '>=', '<=']
-const DATE_OPS  = ['=', '!=', '>', '<', '>=', '<=']
-const LINK_OPS  = ['=', '!=']
-const CHECK_OPS = ['=']
-
-function opsFor(fieldtype: string): string[] {
-  if (['Int', 'Float', 'Currency', 'Rating'].includes(fieldtype)) return NUM_OPS
-  if (['Date', 'Datetime', 'Time'].includes(fieldtype)) return DATE_OPS
-  if (fieldtype === 'Check') return CHECK_OPS
-  if (fieldtype === 'Link') return LINK_OPS
-  return TEXT_OPS
-}
 
 // ── Saved presets ───────────────────────────────────────────────────────────
 const presetKey = computed(() => props.doctype ? `grunt_filter_presets_${props.doctype}` : null)
@@ -103,11 +87,9 @@ const filterableFields = computed(() =>
 // ── Pick field (new filter) ─────────────────────────────────────────────────
 function pickField(f: DocField) {
   pickedField.value = f
-  pickedOp.value = opsFor(f.fieldtype)[0]
+  pickedOp.value = getFilterConfig(f.fieldtype).operators[0]
   pickedValue.value = ''
   pickedDisplayValue.value = ''
-  linkQuery.value = ''
-  linkResults.value = []
 }
 
 // ── Edit existing filter ────────────────────────────────────────────────────
@@ -121,62 +103,7 @@ function startEdit(i: number) {
   pickedOp.value = f.op
   pickedValue.value = f.value
   pickedDisplayValue.value = f.displayValue ?? ''
-
-  if (field.fieldtype === 'Link') {
-    _suppressLinkClear.value = true
-    linkQuery.value = f.displayValue || f.value
-    nextTick(() => { _suppressLinkClear.value = false })
-  } else {
-    linkQuery.value = ''
-    linkResults.value = []
-  }
-
   showDropdown.value = true
-}
-
-// ── Parsed Select options ───────────────────────────────────────────────────
-const selectOptions = computed(() => {
-  const f = pickedField.value
-  if (!f || f.fieldtype !== 'Select' || !f.options) return []
-  return typeof f.options === 'string'
-    ? f.options.split('\n').map(o => o.trim()).filter(Boolean)
-    : (f.options as string[])
-})
-
-// ── Link field search ───────────────────────────────────────────────────────
-const linkQuery = ref('')
-const linkResults = ref<LinkSearchItem[]>([])
-const linkLoading = ref(false)
-const _suppressLinkClear = ref(false)
-
-let linkDebounce: ReturnType<typeof setTimeout>
-watch(linkQuery, (q) => {
-  if (_suppressLinkClear.value) return
-  clearTimeout(linkDebounce)
-  pickedValue.value = ''
-  pickedDisplayValue.value = ''
-  if (!q.trim()) { linkResults.value = []; return }
-  linkDebounce = setTimeout(() => searchLinks(q), 280)
-})
-
-async function searchLinks(q: string) {
-  const linkedDoctype = pickedField.value?.options
-  if (!linkedDoctype || typeof linkedDoctype !== 'string') return
-  linkLoading.value = true
-  try {
-    linkResults.value = await docsApi.linkSearch(linkedDoctype, q)
-  } catch {
-    linkResults.value = []
-  } finally {
-    linkLoading.value = false
-  }
-}
-
-function selectLinkItem(item: LinkSearchItem) {
-  pickedValue.value = item.name
-  pickedDisplayValue.value = item.title || item.name
-  linkQuery.value = item.title || item.name
-  linkResults.value = []
 }
 
 // ── Reset popover state ─────────────────────────────────────────────────────
@@ -184,8 +111,6 @@ function resetPopover() {
   pickedField.value = null
   pickedValue.value = ''
   pickedDisplayValue.value = ''
-  linkQuery.value = ''
-  linkResults.value = []
   editingIndex.value = null
 }
 
@@ -313,7 +238,7 @@ function chipLabel(f: ActiveFilter): string {
           <!-- Operator row -->
           <div class="flex gap-1 mb-3 flex-wrap">
             <button
-              v-for="op in opsFor(pickedField.fieldtype)"
+              v-for="op in getFilterConfig(pickedField.fieldtype).operators"
               :key="op"
               type="button"
               class="px-2 py-0.5 text-xs rounded border transition-colors font-mono"
@@ -324,100 +249,17 @@ function chipLabel(f: ActiveFilter): string {
             >{{ op }}</button>
           </div>
 
-          <!-- Value: Select — option buttons -->
-          <template v-if="pickedField.fieldtype === 'Select'">
-            <div class="flex flex-wrap gap-1 max-h-32 overflow-y-auto mb-3">
-              <button
-                v-for="opt in selectOptions"
-                :key="opt"
-                type="button"
-                class="px-2 py-1 text-xs rounded-md border transition-colors"
-                :class="pickedValue === opt
-                  ? 'border-primary bg-primary/10 text-primary font-semibold'
-                  : 'border-border hover:border-primary/40'"
-                @click="pickedValue = opt"
-              >{{ opt }}</button>
-            </div>
-          </template>
-
-          <!-- Value: Check — Yes/No toggle -->
-          <template v-else-if="pickedField.fieldtype === 'Check'">
-            <div class="flex gap-2 mb-3">
-              <button
-                type="button"
-                class="flex-1 py-1.5 text-xs rounded border transition-colors"
-                :class="pickedValue === '1'
-                  ? 'border-primary bg-primary/10 text-primary font-semibold'
-                  : 'border-border hover:border-primary/40 text-muted-foreground'"
-                @click="pickedValue = '1'"
-              >✓ Так</button>
-              <button
-                type="button"
-                class="flex-1 py-1.5 text-xs rounded border transition-colors"
-                :class="pickedValue === '0'
-                  ? 'border-primary bg-primary/10 text-primary font-semibold'
-                  : 'border-border hover:border-primary/40 text-muted-foreground'"
-                @click="pickedValue = '0'"
-              >✗ Ні</button>
-            </div>
-          </template>
-
-          <!-- Value: Link — live search -->
-          <template v-else-if="pickedField.fieldtype === 'Link'">
-            <div class="mb-3 space-y-1.5">
-              <div class="relative">
-                <Input
-                  v-model="linkQuery"
-                  class="h-8 text-xs pr-7"
-                  :placeholder="`Пошук ${pickedField.options}...`"
-                  @keydown.enter.prevent="linkResults[0] && selectLinkItem(linkResults[0])"
-                />
-                <Loader2 v-if="linkLoading" class="absolute right-2 top-1/2 -translate-y-1/2 size-3.5 animate-spin text-muted-foreground" />
-              </div>
-              <div v-if="linkResults.length" class="border border-border rounded-md overflow-hidden max-h-40 overflow-y-auto divide-y divide-border/60">
-                <button
-                  v-for="item in linkResults"
-                  :key="item.id"
-                  type="button"
-                  class="w-full px-3 py-2 text-left text-xs hover:bg-primary/5 transition-colors flex items-center gap-2"
-                  :class="pickedValue === item.name ? 'bg-primary/10' : ''"
-                  @click="selectLinkItem(item)"
-                >
-                  <span class="font-medium text-foreground truncate flex-1">{{ item.title || item.name }}</span>
-                  <span v-if="item.subtitle" class="text-muted-foreground/60 shrink-0 truncate max-w-[80px]">{{ item.subtitle }}</span>
-                </button>
-              </div>
-              <p v-else-if="linkQuery && !linkLoading" class="text-xs text-muted-foreground/60 italic px-1">
-                Нічого не знайдено
-              </p>
-              <div v-if="pickedValue" class="flex items-center gap-1.5 px-2 py-1 bg-primary/5 border border-primary/20 rounded-md text-xs text-primary">
-                <span class="truncate flex-1">{{ pickedDisplayValue || pickedValue }}</span>
-                <button type="button" class="shrink-0 hover:text-destructive" @click="pickedValue = ''; pickedDisplayValue = ''; linkQuery = ''">
-                  <X class="size-3" />
-                </button>
-              </div>
-            </div>
-          </template>
-
-          <!-- Value: Date / Datetime -->
-          <template v-else-if="['Date', 'Datetime'].includes(pickedField.fieldtype)">
-            <Input
-              v-model="pickedValue"
-              :type="pickedField.fieldtype === 'Datetime' ? 'datetime-local' : 'date'"
-              class="h-8 text-xs mb-3"
-              @keydown.enter="applyFilter"
-            />
-          </template>
-
-          <!-- Value: plain text -->
-          <template v-else>
-            <Input
-              v-model="pickedValue"
-              class="h-8 text-xs mb-3"
-              :placeholder="pickedOp === 'like' ? 'частина тексту...' : 'Значення'"
-              @keydown.enter="applyFilter"
-            />
-          </template>
+          <!-- Value input — dispatched via filter registry -->
+          <component
+            :is="getFilterConfig(pickedField.fieldtype).filterInput"
+            :field="pickedField"
+            :model-value="pickedValue"
+            :display-value="pickedDisplayValue"
+            :op="pickedOp"
+            @update:model-value="pickedValue = $event"
+            @update:display-value="pickedDisplayValue = $event"
+            @submit="applyFilter"
+          />
 
           <Button size="sm" class="w-full" :disabled="!pickedValue" @click="applyFilter">
             {{ editingIndex !== null ? 'Зберегти зміни' : t('Apply') }}
