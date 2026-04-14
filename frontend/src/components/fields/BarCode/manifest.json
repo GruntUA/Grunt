@@ -1,7 +1,7 @@
 {
   "type": "BarCode",
   "label": "Barcode / QR",
-  "icon": "▌▌",
+  "icon": "barcode",
   "category": "Спеціальні",
   "propertySections": [
     "core",

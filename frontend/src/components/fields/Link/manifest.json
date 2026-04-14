@@ -1,7 +1,7 @@
 {
   "type": "Link",
   "label": "Link",
-  "icon": "🔗",
+  "icon": "link",
   "category": "Вибір і зв'язки",
   "propertySections": [
     "core",

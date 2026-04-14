@@ -1,7 +1,7 @@
 {
   "type": "LongText",
   "label": "Long Text",
-  "icon": "¶",
+  "icon": "align-left",
   "category": "Базові",
   "propertySections": [
     "core",

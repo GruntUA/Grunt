@@ -1,7 +1,7 @@
 {
   "type": "Datetime",
   "label": "Datetime",
-  "icon": "🕐",
+  "icon": "calendar-clock",
   "category": "Дата і час",
   "propertySections": [
     "core",

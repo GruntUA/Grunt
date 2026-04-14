@@ -1,7 +1,7 @@
 {
   "type": "Attach",
   "label": "Attach",
-  "icon": "📎",
+  "icon": "paperclip",
   "category": "Медіа",
   "propertySections": [
     "core",

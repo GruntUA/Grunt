@@ -1,7 +1,7 @@
 {
   "type": "Select",
   "label": "Select",
-  "icon": "▼",
+  "icon": "chevron-down",
   "category": "Вибір і зв'язки",
   "propertySections": [
     "core",

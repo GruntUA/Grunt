@@ -1,7 +1,7 @@
 {
   "type": "Color",
   "label": "Color",
-  "icon": "🎨",
+  "icon": "palette",
   "category": "Базові",
   "propertySections": [
     "core",

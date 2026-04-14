@@ -1,7 +1,7 @@
 {
   "type": "Rating",
   "label": "Рейтинг",
-  "icon": "★",
+  "icon": "star",
   "category": "Базові",
   "propertySections": [
     "core",

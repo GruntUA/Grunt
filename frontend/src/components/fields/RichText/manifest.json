@@ -1,7 +1,7 @@
 {
   "type": "RichText",
   "label": "Rich Text",
-  "icon": "✍",
+  "icon": "file-pen",
   "category": "Текст",
   "propertySections": [
     "core",

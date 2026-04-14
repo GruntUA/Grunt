@@ -1,7 +1,7 @@
 {
   "type": "Check",
   "label": "Checkbox",
-  "icon": "✓",
+  "icon": "square-check",
   "category": "Базові",
   "propertySections": ["core", "flags", "display", "text", "default"]
 }

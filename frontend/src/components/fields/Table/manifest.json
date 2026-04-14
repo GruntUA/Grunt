@@ -1,7 +1,7 @@
 {
   "type": "Table",
   "label": "Table",
-  "icon": "▦",
+  "icon": "table-2",
   "category": "Таблиці",
   "propertySections": [
     "core",

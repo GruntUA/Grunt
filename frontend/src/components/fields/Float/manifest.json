@@ -1,7 +1,7 @@
 {
   "type": "Float",
   "label": "Float",
-  "icon": ".1",
+  "icon": "sigma",
   "category": "Базові",
   "propertySections": [
     "core",

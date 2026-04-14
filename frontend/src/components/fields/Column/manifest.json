@@ -1,7 +1,7 @@
 {
   "type": "Column",
   "label": "Column",
-  "icon": "║",
+  "icon": "columns-2",
   "category": "",
   "is_layout": true,
   "propertySections": [

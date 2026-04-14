@@ -1,7 +1,7 @@
 {
   "type": "JSON",
   "label": "JSON",
-  "icon": "{}",
+  "icon": "braces",
   "category": "Текст",
   "propertySections": [
     "core",

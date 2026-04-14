@@ -1,7 +1,7 @@
 {
   "type": "Geolocation",
   "label": "Geolocation",
-  "icon": "📍",
+  "icon": "map-pin",
   "category": "Спеціальні",
   "propertySections": [
     "core",

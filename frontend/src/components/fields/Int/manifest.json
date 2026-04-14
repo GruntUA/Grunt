@@ -1,7 +1,7 @@
 {
   "type": "Int",
   "label": "Integer",
-  "icon": "#",
+  "icon": "hash",
   "category": "Базові",
   "propertySections": ["core", "flags", "display", "text", "formula", "aggregate", "default", "number", "validation"]
 }

@@ -1,7 +1,7 @@
 {
   "type": "Code",
   "label": "Code",
-  "icon": "<>",
+  "icon": "code",
   "category": "Текст",
   "propertySections": [
     "core",

@@ -11,7 +11,7 @@
  *   registerField({
  *     type: 'CustomGeo',
  *     label: 'My Geolocation',
- *     icon: '📍',
+ *     icon: 'map-pin',
  *     category: 'Custom',
  *     component: () => import('./MyGeoField.vue').then(m => m.default),
  *     propertySections: ['core', 'flags', 'display', 'text'],
@@ -45,7 +45,7 @@ export interface FieldDefinition {
   type: string
   /** Human-readable name shown in the palette and properties panel */
   label: string
-  /** Icon displayed in the palette (emoji or text symbol) */
+  /** Icon displayed in the palette — kebab-case Lucide name (e.g. "calendar-clock") or emoji fallback */
   icon: string
   /** Group label for the palette (e.g. "Базові", "Медіа") */
   category: string

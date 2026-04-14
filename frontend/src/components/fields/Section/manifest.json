@@ -1,7 +1,7 @@
 {
   "type": "Section",
   "label": "Section",
-  "icon": "═",
+  "icon": "separator-horizontal",
   "category": "",
   "is_layout": true,
   "propertySections": [

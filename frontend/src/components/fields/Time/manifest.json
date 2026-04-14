@@ -1,7 +1,7 @@
 {
   "type": "Time",
   "label": "Time",
-  "icon": "⏰",
+  "icon": "clock",
   "category": "Дата і час",
   "propertySections": [
     "core",

@@ -1,7 +1,7 @@
 {
   "type": "Icon",
   "label": "Іконка",
-  "icon": "◈",
+  "icon": "shapes",
   "category": "Базові",
   "propertySections": [
     "core",

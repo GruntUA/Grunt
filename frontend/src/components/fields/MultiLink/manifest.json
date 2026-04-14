@@ -1,7 +1,7 @@
 {
   "type": "MultiLink",
   "label": "Multi Link",
-  "icon": "⛓",
+  "icon": "link-2",
   "category": "Вибір і зв'язки",
   "propertySections": [
     "core",

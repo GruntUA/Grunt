@@ -1,7 +1,7 @@
 {
   "type": "Signature",
   "label": "Signature",
-  "icon": "✏",
+  "icon": "pen",
   "category": "Спеціальні",
   "propertySections": [
     "core",

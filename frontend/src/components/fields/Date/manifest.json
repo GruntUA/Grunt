@@ -1,7 +1,7 @@
 {
   "type": "Date",
   "label": "Date",
-  "icon": "📅",
+  "icon": "calendar",
   "category": "Дата і час",
   "propertySections": [
     "core",
