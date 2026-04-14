@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '@/stores/auth'
 import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
+import { getExporters } from '@/core/io'
+import type { ExportContext } from '@/core/io'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -30,7 +31,10 @@ const props = defineProps<{
   showDevActions: boolean
   listButtons: ScriptButton[]
   listMenuItems: ScriptMenuItem[]
+  exportCtx: ExportContext | null
 }>()
+
+const exporters = getExporters()
 
 const emit = defineEmits<{
   (e: 'refresh'): void
@@ -38,7 +42,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const router = useRouter()
-const auth = useAuthStore()
 
 function handleNew() {
   const ws = props.workspace ?? 'grunt'
@@ -78,24 +81,37 @@ function handleNew() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" class="w-56 p-1.5">
-          <DropdownMenuItem v-if="!isSystemDocType" as="a"
-            :href="`/api/v1/docs/${doctype}/export/xlsx?token=${auth.token}`" download class="gap-2">
-            <Download class="size-4 text-muted-foreground" />
-            <span>{{ t('Download Excel') }}</span>
-          </DropdownMenuItem>
+          <!-- Dynamic exporters -->
+          <template v-if="!isSystemDocType && exportCtx">
+            <DropdownMenuItem
+              v-for="exp in exporters"
+              :key="exp.id"
+              class="gap-2"
+              @click="exp.export(exportCtx!)"
+            >
+              <Download class="size-4 text-muted-foreground" />
+              <span>{{ exp.label }}</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </template>
+
+          <!-- Dev actions -->
           <template v-if="showDevActions">
-            <DropdownMenuSeparator v-if="!isSystemDocType" />
             <DropdownMenuItem class="gap-2" @click="router.push(`/${workspace ?? 'grunt'}/list/DocType/${doctype}`)">
               <Pencil class="size-4 text-muted-foreground" />
               <span>{{ t('Edit DocType') }}</span>
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
           </template>
-          <DropdownMenuSeparator />
+
+          <!-- Report builder -->
           <DropdownMenuItem class="gap-2"
             @click="router.push({ name: 'report-builder', params: { workspaceName: workspace ?? 'grunt' }, query: { doctype: doctype } })">
             <FileBarChart class="size-4 text-muted-foreground" />
             <span>{{ t('Create report') }}</span>
           </DropdownMenuItem>
+
+          <!-- Script menu items -->
           <template v-if="listMenuItems.length">
             <template v-for="item in listMenuItems" :key="item.label">
               <DropdownMenuSeparator v-if="item.separator_before" />

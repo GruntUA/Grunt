@@ -15,6 +15,7 @@ import {
   createGruntProxy,
   executeListSetup,
 } from '@/core/scripting/executor'
+import type { ExportContext } from '@/core/io'
 
 // Shared UI components
 import BulkActionBar from '@/components/views/BulkActionBar.vue'
@@ -190,6 +191,31 @@ const { data, isLoading, isFetching } = useQuery({
 const meta = computed(() => data.value?.meta)
 const rows = computed(() => (data.value?.data ?? []) as Record<string, unknown>[])
 
+const exportCtx = computed<ExportContext>(() => ({
+  doctypeName: props.doctype,
+  doctypeLabel: dt.value?.label ?? props.doctype,
+  rows: rows.value,
+  columns: columns.visibleColumns.value,
+  fields: dt.value?.fields ?? [],
+  filters: activeFilters.value,
+  statusConfig: dt.value?.status_config ?? null,
+  total: meta.value?.total ?? rows.value.length,
+  groupBy: groupBy.value,
+  getAll: async () => {
+    const total = meta.value?.total ?? 0
+    const result = await docsApi.list(props.doctype, {
+      page: 1,
+      per_page: Math.min(total, 10_000),
+      search: debouncedSearch.value || undefined,
+      sort: groupBy.value ?? sortKey.value ?? undefined,
+      order: groupBy.value ? 'asc' : (sortKey.value ? sortOrder.value : undefined),
+      filters: activeFilters.value,
+      fields: listFields.value,
+    })
+    return result.data as Record<string, unknown>[]
+  },
+}))
+
 // ── Handlers ─────────────────────────────────────────────────────────────────
 function onSort(key: string) {
   sortOrder.value = sortKey.value === key && sortOrder.value === 'asc' ? 'desc' : 'asc'
@@ -233,6 +259,7 @@ function navigateToDoc(row: Record<string, unknown>) {
       :show-dev-actions="!!(isDev && auth.user?.is_superadmin)"
       :list-buttons="listButtons"
       :list-menu-items="listMenuItems"
+      :export-ctx="exportCtx"
       @refresh="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })"
     />
 

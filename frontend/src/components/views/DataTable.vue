@@ -216,7 +216,7 @@ function getIconComponent(name: string): Component | null {
             <Checkbox :model-value="isSelected(String(row.id))" @update:model-value="emit('select', String(row.id))"
               class="transition-transform duration-200" :class="{ 'scale-110': isSelected(String(row.id)) }" />
           </td>
-          <td v-for="(col, ci) in columns" :key="col.key" class="px-4 py-3 text-[13px]"
+          <td v-for="(col, ci) in columns" :key="col.key" class="px-4 py-3 text-[13px] max-w-xs break-words"
             @click="!isEditing(String(row.id), col.key) && emit('rowClick', row)"
             @dblclick.stop="ci > 0 && startEdit(row, col.key, getFieldType(col.key))">
             <!-- Inline edit input -->

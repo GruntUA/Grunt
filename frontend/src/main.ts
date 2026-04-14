@@ -5,6 +5,7 @@ import App from './App.vue'
 import router from './router'
 import i18n from './plugins/i18n'
 import { grunt } from '@/core/grunt'
+import '@/app-hooks'
 import './assets/main.css'
 import 'vue-sonner/style.css'
 
