@@ -16,6 +16,7 @@ import { Spinner } from '@/components/ui/spinner'
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import DocSidebar from '@/components/views/DocSidebar.vue'
 import VersionHistoryPanel from '@/components/views/VersionHistoryPanel.vue'
+import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 
 // Custom sub-components
 import FormHeader from '@/components/views/form/FormHeader.vue'
@@ -56,6 +57,11 @@ const showLeaveModal = ref(false)
 let pendingRoute: string | null = null
 let allowLeave = false
 
+// Quick Entry Dialog state
+const quickEntryDt = ref<import('@/types').DocType | null>(null)
+const quickEntryPreset = ref<Record<string, unknown>>({})
+const quickEntryFieldname = ref('')
+
 const showVersions = ref(false)
 
 function onVersionRestored() {
@@ -94,9 +100,17 @@ onMounted(async () => {
 
 /**
  * Handle "create-new" event from a Link field inside the form.
- * Saves the current form data as a draft and navigates to the linked doc form.
+ * If the linked DocType has quick_entry enabled — show the Quick Entry dialog.
+ * Otherwise save a draft and navigate to the full linked-doc form.
  */
-function handleCreateNew(linkedDoctype: string, preset: string, fieldname: string) {
+async function handleCreateNew(linkedDoctype: string, preset: string, fieldname: string) {
+  const linkedDt = await dtStore.get(linkedDoctype)
+  if (linkedDt?.quick_entry) {
+    quickEntryDt.value = linkedDt
+    quickEntryPreset.value = preset ? { name: preset } : {}
+    quickEntryFieldname.value = fieldname
+    return
+  }
   allowLeave = true
   startLinkCreate(
     linkedDoctype,
@@ -107,6 +121,14 @@ function handleCreateNew(linkedDoctype: string, preset: string, fieldname: strin
     { ...form.value },
     props.workspace,
   )
+}
+
+/** Called after QuickEntryDialog saves — set the Link field value on the current form. */
+function onQuickEntrySaved(docname: string) {
+  if (quickEntryFieldname.value) {
+    form.value[quickEntryFieldname.value] = docname
+  }
+  quickEntryDt.value = null
 }
 
 // ── WebSocket real-time + presence ───────────────────────────────────────────
@@ -326,6 +348,17 @@ function onFormUpdate(updated: Record<string, unknown>) {
         />
       </div>
     </template>
+
+    <!-- Quick Entry Dialog (from Link field) -->
+    <QuickEntryDialog
+      v-if="quickEntryDt"
+      :dt="quickEntryDt"
+      :preset="quickEntryPreset"
+      :workspace="workspace"
+      mode="link"
+      @close="quickEntryDt = null"
+      @saved="onQuickEntrySaved"
+    />
 
     <!-- Modals -->
     <FormModals

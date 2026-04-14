@@ -34,6 +34,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'refresh'): void
+  (e: 'create-quick'): void
 }>()
 
 const { t } = useI18n()
@@ -41,6 +42,10 @@ const router = useRouter()
 const auth = useAuthStore()
 
 function handleNew() {
+  if (!props.isSystemDocType && props.dt?.quick_entry) {
+    emit('create-quick')
+    return
+  }
   const ws = props.workspace ?? 'grunt'
   if (props.isSystemDocType) {
     router.push(`/${ws}/list/DocType/new`)

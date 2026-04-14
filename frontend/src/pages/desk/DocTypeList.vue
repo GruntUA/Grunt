@@ -17,6 +17,7 @@ import {
 } from '@/core/scripting/executor'
 
 // Shared UI components
+import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import BulkActionBar from '@/components/views/BulkActionBar.vue'
 import DataTable from '@/components/views/DataTable.vue'
 import ListPagination from '@/components/views/ListPagination.vue'
@@ -70,6 +71,7 @@ const selection = useListSelection()
 const columns = useListColumns(props.doctype, () => dt.value?.fields ?? [])
 const listButtons = ref<ScriptButton[]>([])
 const listMenuItems = ref<ScriptMenuItem[]>([])
+const showQuickEntry = ref(false)
 
 // ── Grouping Logic ───────────────────────────────────────────────────────────
 const NON_GROUPABLE = new Set(['Section', 'Column', 'Tab', 'Table', 'MultiLink', 'RichText', 'JSON', 'Code', 'LongText', 'Attach', 'Image', 'Signature', 'Geolocation'])
@@ -234,6 +236,7 @@ function navigateToDoc(row: Record<string, unknown>) {
       :list-buttons="listButtons"
       :list-menu-items="listMenuItems"
       @refresh="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })"
+      @create-quick="showQuickEntry = true"
     />
 
     <!-- Toolbar -->
@@ -336,5 +339,14 @@ function navigateToDoc(row: Record<string, unknown>) {
         </div>
       </template>
     </div>
+    <!-- Quick Entry Dialog -->
+    <QuickEntryDialog
+      v-if="showQuickEntry && dt"
+      :dt="dt"
+      :workspace="workspace"
+      mode="list"
+      @close="showQuickEntry = false"
+      @saved="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })"
+    />
   </div>
 </template>

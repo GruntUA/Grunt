@@ -179,6 +179,10 @@ class DocField(BaseModel):
     aggregate_table: str | None = None
     aggregate_field: str | None = None
 
+    # Quick Entry — show this field in the quick-entry dialog.
+    # If False, field is only shown when quick_entry shows required fields.
+    in_quick_entry: bool = False
+
     model_config = {"use_enum_values": True}
 
     @property

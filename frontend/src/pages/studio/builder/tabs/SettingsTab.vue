@@ -287,6 +287,15 @@ function removeSearchField(fieldname: string) {
           <Switch :checked="!!builder.doctype?.track_changes"
             @update:checked="builder.updateDocType({ track_changes: $event })" />
         </div>
+
+        <div class="flex items-center justify-between rounded-md border border-border p-3">
+          <div>
+            <Label class="text-sm text-foreground">Швидке створення</Label>
+            <p class="text-xs text-muted-foreground mt-0.5">Відкривати діалог замість повної форми</p>
+          </div>
+          <Switch :checked="!!builder.doctype?.quick_entry"
+            @update:checked="builder.updateDocType({ quick_entry: $event })" />
+        </div>
       </div>
     </section>
 

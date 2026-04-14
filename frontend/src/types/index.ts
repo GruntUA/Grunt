@@ -51,6 +51,8 @@ export interface DocField {
   aggregate_field?: string | null
   // Link
   link_filters?: string | null
+  // Quick Entry
+  in_quick_entry?: boolean
   // Layout
   columns?: number
   collapsible?: boolean
@@ -210,6 +212,7 @@ export interface DocType {
   is_tree?: boolean
   is_system?: boolean
   track_changes?: boolean
+  quick_entry?: boolean
   fields: DocField[]
   title_field?: string
   image_field?: string | null

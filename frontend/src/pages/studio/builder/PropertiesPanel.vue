@@ -149,6 +149,10 @@ const childDoctypeOptions = computed(() => {
             <Checkbox :model-value="!!field.in_filter" @update:model-value="updateField('in_filter', $event)" />
             <Label class="text-sm">In Filter</Label>
           </div>
+          <div class="flex items-center gap-2">
+            <Checkbox :model-value="!!field.in_quick_entry" @update:model-value="updateField('in_quick_entry', $event)" />
+            <Label class="text-sm">In Quick Entry</Label>
+          </div>
         </div>
       </template>
 
