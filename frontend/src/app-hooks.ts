@@ -14,6 +14,26 @@
  *   registerExporter(myCustomExporter)
  */
 
+// ── List Cell Renderers ────────────────────────────────────────────────────
+import { registerListCell } from '@/core/listCellRegistry'
+import CheckListCell from '@/components/fields/Check/ListCell.vue'
+import SelectListCell from '@/components/fields/Select/ListCell.vue'
+import DateListCell from '@/components/fields/Date/ListCell.vue'
+import DatetimeListCell from '@/components/fields/Datetime/ListCell.vue'
+import GeolocationListCell from '@/components/fields/Geolocation/ListCell.vue'
+import RatingListCell from '@/components/fields/Rating/ListCell.vue'
+import IconListCell from '@/components/fields/Icon/ListCell.vue'
+import LinkListCell from '@/components/fields/Link/ListCell.vue'
+
+registerListCell('Check', CheckListCell)
+registerListCell('Select', SelectListCell)
+registerListCell('Date', DateListCell)
+registerListCell('Datetime', DatetimeListCell)
+registerListCell('Geolocation', GeolocationListCell)
+registerListCell('Rating', RatingListCell)
+registerListCell('Icon', IconListCell)
+registerListCell('Link', LinkListCell)
+
 // ── Exporters ──────────────────────────────────────────────────────────────
 import { registerExporter } from '@/core/io'
 import { excelExporter } from '@/core/io/exporters/excelExporter'

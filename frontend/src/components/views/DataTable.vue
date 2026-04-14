@@ -1,18 +1,17 @@
 <script setup lang="ts">
-import { computed, ref, nextTick, shallowRef } from 'vue'
-import type { Component } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
   FileX,
-  Check as CheckIcon,
 } from 'lucide-vue-next'
 import type { DocField, DocTypeStatusConfig } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
+import { getListCell } from '@/core/listCellRegistry'
+import DefaultListCell from '@/components/fields/Default/ListCell.vue'
 
 const props = defineProps<{
   columns: ListColumn[]
@@ -79,53 +78,6 @@ function getFieldType(key: string): string {
   return fieldMap.value[key]?.fieldtype ?? 'Text'
 }
 
-// Status indicator lookup map (built from status_config)
-const statusIndicatorMap = computed(() => {
-  const m = new Map<string, { color: string; icon?: string | null; label?: string | null }>()
-  if (!props.statusConfig?.indicators) return m
-  for (const ind of props.statusConfig.indicators) {
-    m.set(ind.value, ind)
-  }
-  return m
-})
-
-const statusFieldName = computed(() => props.statusConfig?.field ?? null)
-
-// Color → Tailwind badge classes
-const colorToBadge: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; class?: string }> = {
-  gray: { variant: 'outline' },
-  blue: { variant: 'outline', class: 'border-blue-400 text-blue-700 bg-blue-50' },
-  green: { variant: 'outline', class: 'border-green-500 text-green-700 bg-green-50' },
-  yellow: { variant: 'outline', class: 'border-yellow-400 text-yellow-700 bg-yellow-50' },
-  orange: { variant: 'outline', class: 'border-orange-400 text-orange-700 bg-orange-50' },
-  red: { variant: 'destructive' },
-  purple: { variant: 'outline', class: 'border-purple-400 text-purple-700 bg-purple-50' },
-  pink: { variant: 'outline', class: 'border-pink-400 text-pink-700 bg-pink-50' },
-}
-
-function getStatusBadge(val: string, fieldname: string): { variant: 'default' | 'secondary' | 'destructive' | 'outline'; class?: string; label: string } {
-  // Use configured indicator if this is the status field
-  if (statusFieldName.value === fieldname) {
-    const ind = statusIndicatorMap.value.get(val)
-    if (ind) {
-      const badge = colorToBadge[ind.color] ?? { variant: 'outline' as const }
-      return { ...badge, label: ind.label ?? val }
-    }
-  }
-  return { variant: 'outline', label: val }
-}
-
-function formatDate(val: unknown, type: string): string {
-  if (!val) return '—'
-  try {
-    const d = new Date(String(val))
-    if (isNaN(d.getTime())) return String(val)
-    if (type === 'Date') return d.toLocaleDateString('uk-UA')
-    return d.toLocaleString('uk-UA', { dateStyle: 'short', timeStyle: 'short' })
-  } catch {
-    return String(val)
-  }
-}
 
 function formatCell(val: unknown): string {
   if (val === null || val === undefined || val === '') return '—'
@@ -134,24 +86,6 @@ function formatCell(val: unknown): string {
 
 function isSelected(id: string) {
   return props.allSelected || props.selectedIds.includes(id)
-}
-
-// ── Icon field ────────────────────────────────────────────────────────────────
-type IconMap = Record<string, Component>
-const lucideIcons = shallowRef<IconMap>({})
-let iconsLoaded = false
-
-function loadIcons() {
-  if (iconsLoaded) return
-  iconsLoaded = true
-  import('lucide-vue-next').then((lib) => { lucideIcons.value = lib as unknown as IconMap })
-}
-
-function getIconComponent(name: string): Component | null {
-  loadIcons()
-  if (!name) return null
-  const pascal = name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('')
-  return (lucideIcons.value[pascal] ?? null) as Component | null
 }
 </script>
 
@@ -239,87 +173,15 @@ function getIconComponent(name: string): Component | null {
               </span>
             </template>
 
-            <!-- Check field: icon -->
-            <template v-else-if="getFieldType(col.key) === 'Check'">
-              <CheckIcon v-if="row[col.key]" class="size-4 text-emerald-500" />
-              <span v-else class="text-muted-foreground/30">—</span>
-            </template>
-
-            <!-- Select / status field: colored badge -->
-            <template v-else-if="getFieldType(col.key) === 'Select' || statusFieldName === col.key">
-              <template v-if="row[col.key] !== null && row[col.key] !== undefined && row[col.key] !== ''">
-                <Badge :variant="getStatusBadge(String(row[col.key]), col.key).variant" class="font-normal whitespace-nowrap"
-                  :class="getStatusBadge(String(row[col.key]), col.key).class">
-                  {{ getStatusBadge(String(row[col.key]), col.key).label }}
-                </Badge>
-              </template>
-              <span v-else class="text-muted-foreground/30">—</span>
-            </template>
-
-            <!-- Date / Datetime: formatted -->
-            <template v-else-if="getFieldType(col.key) === 'Date' || getFieldType(col.key) === 'Datetime'">
-              <span class="text-muted-foreground tabular-nums">
-                {{ formatDate(row[col.key], getFieldType(col.key)) }}
-              </span>
-            </template>
-
-            <!-- Geolocation: lat, lng -->
-            <template v-else-if="getFieldType(col.key) === 'Geolocation'">
-              <template v-if="row[col.key] && typeof row[col.key] === 'object'">
-                <span class="tabular-nums text-muted-foreground font-mono text-xs">
-                  {{ Number((row[col.key] as any).lat).toFixed(5) }},
-                  {{ Number((row[col.key] as any).lng).toFixed(5) }}
-                </span>
-              </template>
-              <span v-else class="text-muted-foreground/30">—</span>
-            </template>
-
-            <!-- Rating field: star display -->
-            <template v-else-if="getFieldType(col.key) === 'Rating'">
-              <template v-if="row[col.key] !== null && row[col.key] !== undefined && row[col.key] !== ''">
-                <span class="inline-flex items-center gap-0.5">
-                  <template v-for="i in 5" :key="i">
-                    <svg v-if="Number(row[col.key]) >= i" xmlns="http://www.w3.org/2000/svg" class="size-3.5 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                    <svg v-else-if="Number(row[col.key]) >= i - 0.5" xmlns="http://www.w3.org/2000/svg" class="size-3.5" viewBox="0 0 24 24">
-                      <defs><linearGradient :id="`hstar-${String(row.id)}-${i}`"><stop offset="50%" stop-color="#fbbf24"/><stop offset="50%" stop-color="#d1d5db"/></linearGradient></defs>
-                      <path :fill="`url(#hstar-${String(row.id)}-${i})`" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="size-3.5 text-gray-200" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                  </template>
-                  <span class="ml-1 text-xs text-muted-foreground tabular-nums">{{ Number(row[col.key]).toFixed(1).replace(/\.0$/, '') }}</span>
-                </span>
-              </template>
-              <span v-else class="text-muted-foreground/30">—</span>
-            </template>
-
-            <!-- Icon field: render lucide icon -->
-            <template v-else-if="getFieldType(col.key) === 'Icon'">
-              <template v-if="row[col.key]">
-                <span class="inline-flex items-center gap-1.5 text-foreground/80">
-                  <component :is="getIconComponent(String(row[col.key]))" v-if="getIconComponent(String(row[col.key]))" class="size-4 shrink-0" />
-                  <span class="text-xs text-muted-foreground">{{ row[col.key] }}</span>
-                </span>
-              </template>
-              <span v-else class="text-muted-foreground/30">—</span>
-            </template>
-
-            <!-- Link field: show icon + label if resolved, fallback to raw value -->
-            <template v-else-if="getFieldType(col.key) === 'Link'">
-              <span v-if="row[col.key] !== null && row[col.key] !== undefined && row[col.key] !== ''" class="inline-flex items-center gap-1.5 text-foreground/90 font-medium">
-                <component :is="getIconComponent(String(row[col.key + '__icon'] ?? ''))" v-if="row[col.key + '__icon']" class="size-3.5 shrink-0 text-muted-foreground" />
-                {{ (row[col.key + '__label'] as string) || formatCell(row[col.key]) }}
-              </span>
-              <span v-else class="text-muted-foreground/30">—</span>
-            </template>
-
-            <!-- Default -->
-            <template v-else>
-              <span class="text-foreground/90 font-medium">{{ formatCell(row[col.key]) }}</span>
-            </template>
+            <!-- Field-type cell renderer (registry) -->
+            <component
+              v-else
+              :is="getListCell(getFieldType(col.key)) ?? DefaultListCell"
+              :value="row[col.key]"
+              :row="row"
+              :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
+              :status-config="statusConfig"
+            />
           </td>
         </tr>
         <!-- Empty state -->
