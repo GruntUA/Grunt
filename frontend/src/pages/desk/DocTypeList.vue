@@ -9,12 +9,13 @@ import { useListSelection } from '@/core/composables/useListSelection'
 import { useListColumns } from '@/core/composables/useListColumns'
 import { useDevMode } from '@/core/composables/useDevMode'
 import { docsApi } from '@/core/api/docs'
-import type { DocType, DocField, ScriptButton, ScriptMenuItem } from '@/types'
+import type { ActiveFilter, DocType, DocField, ScriptButton, ScriptMenuItem } from '@/types'
 import {
   createListViewProxy,
   createGruntProxy,
   executeListSetup,
 } from '@/core/scripting/executor'
+import type { ExportContext } from '@/core/io'
 
 // Shared UI components
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
@@ -52,7 +53,7 @@ const page = ref(1)
 const debouncedSearch = ref('')
 const sortKey = ref('')
 const sortOrder = ref<'asc' | 'desc'>('asc')
-const activeFilters = ref<Record<string, string>>({})
+const activeFilters = ref<ActiveFilter[]>([])
 type ViewMode = 'list' | 'kanban' | 'calendar' | 'tree' | 'gallery' | 'map'
 const VALID_VIEWS: ViewMode[] = ['list', 'kanban', 'calendar', 'tree', 'gallery', 'map']
 
@@ -192,6 +193,31 @@ const { data, isLoading, isFetching } = useQuery({
 const meta = computed(() => data.value?.meta)
 const rows = computed(() => (data.value?.data ?? []) as Record<string, unknown>[])
 
+const exportCtx = computed<ExportContext>(() => ({
+  doctypeName: props.doctype,
+  doctypeLabel: dt.value?.label ?? props.doctype,
+  rows: rows.value,
+  columns: columns.visibleColumns.value,
+  fields: dt.value?.fields ?? [],
+  filters: activeFilters.value,
+  statusConfig: dt.value?.status_config ?? null,
+  total: meta.value?.total ?? rows.value.length,
+  groupBy: groupBy.value,
+  getAll: async () => {
+    const total = meta.value?.total ?? 0
+    const result = await docsApi.list(props.doctype, {
+      page: 1,
+      per_page: Math.min(total, 10_000),
+      search: debouncedSearch.value || undefined,
+      sort: groupBy.value ?? sortKey.value ?? undefined,
+      order: groupBy.value ? 'asc' : (sortKey.value ? sortOrder.value : undefined),
+      filters: activeFilters.value,
+      fields: listFields.value,
+    })
+    return result.data as Record<string, unknown>[]
+  },
+}))
+
 // ── Handlers ─────────────────────────────────────────────────────────────────
 function onSort(key: string) {
   sortOrder.value = sortKey.value === key && sortOrder.value === 'asc' ? 'desc' : 'asc'
@@ -235,6 +261,7 @@ function navigateToDoc(row: Record<string, unknown>) {
       :show-dev-actions="!!(isDev && auth.user?.is_superadmin)"
       :list-buttons="listButtons"
       :list-menu-items="listMenuItems"
+      :export-ctx="exportCtx"
       @refresh="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })"
       @create-quick="showQuickEntry = true"
     />
@@ -255,7 +282,7 @@ function navigateToDoc(row: Record<string, unknown>) {
       :tree-parent-field="treeParentField"
       :calendar-date-field="calendarDateField"
       :geo-field="geoField"
-      @reset="inlineSearch = ''; debouncedSearch = ''; activeFilters = {}; page = 1"
+      @reset="inlineSearch = ''; debouncedSearch = ''; activeFilters = []; page = 1"
     />
 
     <!-- Main Content Area -->
@@ -274,6 +301,8 @@ function navigateToDoc(row: Record<string, unknown>) {
           :doctype="dt"
           :geo-field="geoField.fieldname"
           :workspace="workspace"
+          :search="debouncedSearch || undefined"
+          :filters="activeFilters"
           @register-menu-items="(items) => listMenuItems.push(...items)"
           @unregister-menu-items="(items) => { for (const item of items) { const i = listMenuItems.indexOf(item); if (i !== -1) listMenuItems.splice(i, 1) } }"
         />

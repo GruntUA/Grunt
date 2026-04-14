@@ -1,0 +1,14 @@
+{
+  "type": "Rating",
+  "label": "Рейтинг",
+  "icon": "★",
+  "category": "Базові",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "default",
+    "number",
+    "validation"
+  ]
+}

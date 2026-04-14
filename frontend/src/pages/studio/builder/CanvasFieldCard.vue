@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { defineAsyncComponent, shallowRef, watchEffect } from 'vue'
+import type { Component } from 'vue'
 import type { DocField } from '@/types'
+import { getFieldDef, FallbackFieldLoader } from '@/core/fieldRegistry'
 
-defineProps<{
+const props = defineProps<{
   field: DocField
   selected: boolean
 }>()
@@ -11,59 +14,55 @@ const emit = defineEmits<{
   remove: []
 }>()
 
-const FIELD_ICONS: Record<string, string> = {
-  Text: 'T', LongText: '¶', Int: '#', Float: '.1', Check: '✓', Date: '📅',
-  Datetime: '🕐', Time: '⏰', Select: '▼', Link: '🔗', Attach: '📎', Image: '🖼',
-  RichText: '✍', JSON: '{}', Code: '<>', Color: '🎨', Geolocation: '📍',
-  Table: '▦', Signature: '✒', MultiLink: '⛓',
-}
+// Recreate async component only when fieldtype changes
+const previewComponent = shallowRef<Component | null>(null)
+watchEffect(() => {
+  const def = getFieldDef(props.field.fieldtype)
+  const loader = def?.designerPreview ?? def?.component ?? FallbackFieldLoader
+  previewComponent.value = defineAsyncComponent({ loader, timeout: 5000 })
+})
 </script>
 
 <template>
   <div
-    class="group flex items-center gap-2 bg-card border rounded-sm transition-all cursor-pointer text-sm"
+    class="group bg-card border rounded-md transition-all cursor-pointer overflow-hidden"
     :class="selected
-      ? 'border-primary ring-2 ring-primary/20'
-      : 'border-border hover:border-border'"
+      ? 'border-primary ring-2 ring-primary/20 shadow-sm'
+      : 'border-border hover:border-border/80 hover:shadow-sm'"
     @click.stop="emit('select')"
   >
-    <!-- Drag handle -->
-    <div class="drag-handle px-1.5 py-2 text-muted-foreground/70 hover:text-muted-foreground cursor-grab active:cursor-grabbing shrink-0 text-xs">
-      ⠿
+    <!-- ── Header row ── -->
+    <div class="flex items-center gap-1.5 px-2 py-1.5 border-b border-border/50 bg-muted/30">
+      <span class="drag-handle text-muted-foreground/50 hover:text-muted-foreground cursor-grab active:cursor-grabbing text-xs shrink-0 select-none">⠿</span>
+
+      <span class="font-medium text-foreground text-xs truncate flex-1">
+        {{ field.label || field.fieldname }}
+        <span v-if="field.required" class="text-destructive ml-0.5">*</span>
+      </span>
+
+      <span v-if="field.formula"
+        class="text-[10px] font-mono text-amber-600 bg-amber-50 border border-amber-200 px-1 py-px rounded shrink-0">ƒx</span>
+      <span v-if="field.aggregate_function"
+        class="text-[10px] font-mono text-blue-600 bg-blue-50 border border-blue-200 px-1 py-px rounded shrink-0">∑</span>
+
+      <span class="text-[10px] text-muted-foreground/60 shrink-0">{{ field.fieldtype }}</span>
+
+      <button
+        type="button"
+        class="text-muted-foreground/40 hover:text-destructive opacity-0 group-hover:opacity-100 transition-all shrink-0 leading-none px-0.5"
+        @click.stop="emit('remove')"
+      >×</button>
     </div>
 
-    <!-- Icon + label -->
-    <div class="flex-1 py-2 min-w-0 flex items-center gap-1.5">
-      <span class="text-xs shrink-0 w-4 text-center">{{ FIELD_ICONS[field.fieldtype] ?? '?' }}</span>
-      <span class="font-medium text-foreground truncate">{{ field.label || field.fieldname }}</span>
-      <span class="text-xs text-muted-foreground/70 truncate hidden sm:inline">({{ field.fieldname }})</span>
-      <span v-if="field.required" class="text-destructive text-xs">*</span>
+    <!-- ── Field preview ── -->
+    <div class="px-3 pt-2 pb-2.5 pointer-events-none select-none">
+      <component
+        :is="previewComponent"
+        :field="field"
+        :model-value="field.default"
+        :disabled="true"
+      />
+      <p class="mt-1.5 text-[10px] text-muted-foreground/40 font-mono">{{ field.fieldname }}</p>
     </div>
-
-    <!-- Formula badge -->
-    <span
-      v-if="field.formula"
-      title="Формульне поле"
-      class="text-[10px] font-mono text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-1.5 py-0.5 rounded shrink-0"
-    >ƒx</span>
-
-    <!-- Aggregate badge -->
-    <span
-      v-if="field.aggregate_function"
-      title="Агрегаційне поле"
-      class="text-[10px] font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-1.5 py-0.5 rounded shrink-0"
-    >∑</span>
-
-    <!-- Type badge -->
-    <span class="text-[10px] text-muted-foreground/70 bg-background px-1.5 py-0.5 rounded shrink-0">
-      {{ field.fieldtype }}
-    </span>
-
-    <!-- Delete -->
-    <button
-      type="button"
-      class="px-2 py-2 text-muted-foreground/70 hover:text-destructive opacity-0 group-hover:opacity-100 transition-all shrink-0"
-      @click.stop="emit('remove')"
-    >×</button>
   </div>
 </template>

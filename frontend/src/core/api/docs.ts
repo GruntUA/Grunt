@@ -1,5 +1,5 @@
 import client from './client'
-import type { GruntDocument, StandardListResponse } from '@/types'
+import type { ActiveFilter, GruntDocument, StandardListResponse } from '@/types'
 
 export interface WorkflowTransitionItem {
   action: string
@@ -31,6 +31,12 @@ export interface BacklinkItem {
   link_fieldname: string
 }
 
+// Maps FilterBar display operators to backend query suffixes
+const OP_MAP: Record<string, string> = {
+  '=': 'eq', '!=': 'ne', 'like': 'ilike',
+  '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte',
+}
+
 export interface ListParams {
   page?: number
   per_page?: number
@@ -38,7 +44,9 @@ export interface ListParams {
   order?: 'asc' | 'desc'
   search?: string
   fields?: string
-  filters?: Record<string, string>
+  filters?: ActiveFilter[]
+  /** Raw backend filters — keys may already contain __op suffixes (e.g. { 'date__lte': '2024-01-31' }) */
+  rawFilters?: Record<string, string>
 }
 
 export interface LinkSearchItem {
@@ -62,10 +70,15 @@ export const docsApi = {
   },
 
   list: async (doctype: string, params: ListParams = {}): Promise<StandardListResponse<GruntDocument>> => {
-    const { filters = {}, sort, order, ...rest } = params
-    const filterParams = Object.fromEntries(
-      Object.entries(filters).map(([k, v]) => [`filter[${k}]`, v])
-    )
+    const { filters = [], rawFilters = {}, sort, order, ...rest } = params
+    const filterParams: Record<string, string> = {}
+    for (const f of filters) {
+      const backendOp = OP_MAP[f.op] ?? 'eq'
+      filterParams[`filter[${f.fieldname}__${backendOp}]`] = f.value
+    }
+    for (const [k, v] of Object.entries(rawFilters)) {
+      filterParams[`filter[${k}]`] = v
+    }
     const r = await client.get(`/api/v1/docs/${doctype}`, {
       params: {
         ...rest,

@@ -8,16 +8,17 @@ import click
 @click.argument("name")
 @click.option("--no-git", is_flag=True, default=False, help="Не ініціалізувати git репозиторій")
 @click.option(
-    "--dest", default=None, help="Директорія для створення додатку (за замовчуванням: grunt_apps/)"
+    "--dest", default=None, help="Директорія для створення додатку (за замовчуванням: bench_dir/apps/)"
 )
 def create_app(name: str, no_git: bool, dest: str | None):
     """Інтерактивно створити новий Grunt додаток.
 
     NAME — назва додатку (snake_case), наприклад: my_crm
     """
+    from grunt.core.site.manager import site_manager  # noqa: PLC0415
     from grunt.utils.boilerplate import make_boilerplate  # noqa: PLC0415
 
-    dest_path = Path(dest) if dest else Path("grunt_apps")
+    dest_path = Path(dest) if dest else site_manager.bench_dir / "apps"
     dest_path.mkdir(parents=True, exist_ok=True)
     make_boilerplate(dest_path, name, no_git=no_git)
 

@@ -109,6 +109,7 @@ async def start_scheduler() -> None:
 def _register_framework_jobs() -> None:
     """Register built-in framework recurring tasks."""
     _add_scheduled_job("grunt.core.email.tasks.process_email_queue", "*/5 * * * *")  # every 5 min
+    _add_scheduled_job("grunt.core.email.tasks.pull_from_accounts", "*/10 * * * *")  # every 10 min
 
     async def _daily_digest():
         from grunt.core.email.tasks import send_notification_digest  # noqa: PLC0415

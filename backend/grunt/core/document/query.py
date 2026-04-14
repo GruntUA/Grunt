@@ -38,6 +38,8 @@ def _apply_filters(query: Any, table: Any, filters: dict[str, str]) -> Any:
             query = query.where(col.ilike(f"%{value}%"))
         elif op == "in":
             query = query.where(col.in_(value.split(",")))
+        elif op in ("ne", "neq"):
+            query = query.where(col != value)
         elif op == "isnull":
             if value.lower() in ("true", "1"):
                 query = query.where(col.is_(None))

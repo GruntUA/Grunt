@@ -26,13 +26,31 @@ from grunt.core.tasks.scheduler import register_scheduler_events, start_schedule
 
 document_registry.discover_core_controllers()
 
+# Register built-in io exporters / importers
+from grunt.core.io import register_exporter, register_importer  # noqa: E402
+from grunt.core.io.exporters.csv import CsvExporter  # noqa: E402
+from grunt.core.io.exporters.xlsx import XlsxExporter  # noqa: E402
+from grunt.core.io.importers.csv import CsvImporter  # noqa: E402
+from grunt.core.io.importers.xlsx import XlsxImporter  # noqa: E402
+
+register_exporter(XlsxExporter())
+register_exporter(CsvExporter())
+register_importer(CsvImporter())
+register_importer(XlsxImporter())
+
 # Auto-refresh in-memory permissions when DocTypePermission is saved/deleted
 register_doc_events(
     {
         "DocTypePermission": {
             "after_save": ["grunt.core.permissions.sync.sync_permissions"],
             "after_delete": ["grunt.core.permissions.sync.sync_permissions"],
-        }
+        },
+        # Log all document lifecycle events to ActivityLog
+        "*": {
+            "after_insert": ["grunt.core.activity.log_activity"],
+            "after_update": ["grunt.core.activity.log_activity"],
+            "after_delete": ["grunt.core.activity.log_activity"],
+        },
     }
 )
 
@@ -66,10 +84,7 @@ async def lifespan(app: FastAPI):
     # ── Startup ──────────────────────────────────────────────────────
     logger.info("grunt.startup", version="0.1.0")
 
-    # ── Load hooks from installed apps FIRST (collects doctype_overrides) ──
     import importlib  # noqa: PLC0415
-    import sys  # noqa: PLC0415
-    from pathlib import Path  # noqa: PLC0415
 
     from grunt.core.startup import (
         apply_doctype_overrides,
@@ -79,32 +94,6 @@ async def lifespan(app: FastAPI):
         seed_grunt_workspace,
         seed_system_settings,
     )  # noqa: PLC0415
-
-    apps_dir = Path("grunt_apps")
-    if apps_dir.exists():
-        project_root = str(Path.cwd())
-        if project_root not in sys.path:
-            sys.path.insert(0, project_root)
-
-        for app_hooks in sorted(apps_dir.glob("*/hooks.py")):
-            module_path = str(app_hooks).replace("/", ".").replace("\\", ".").removesuffix(".py")
-            try:
-                module = importlib.import_module(module_path)
-                logger.info("hooks.loaded", module=module_path)
-                if hasattr(module, "doc_events"):
-                    register_doc_events(module.doc_events)
-                    logger.info("hooks.doc_events_registered", module=module_path)
-                if hasattr(module, "doctype_overrides"):
-                    register_doctype_overrides(module.doctype_overrides)
-                    logger.info("hooks.doctype_overrides_registered", module=module_path)
-                if hasattr(module, "override_doctype_class"):
-                    document_registry.register_overrides(module.override_doctype_class)
-                    logger.info("hooks.overrides_registered", module=module_path)
-                if hasattr(module, "scheduler_events"):
-                    register_scheduler_events(module.scheduler_events)
-                    logger.info("hooks.scheduler_events_registered", module=module_path)
-            except Exception as e:
-                logger.warning("hooks.load_error", module=module_path, error=str(e))
 
     sites = site_manager.get_sites()
     if not sites:
@@ -150,29 +139,16 @@ async def lifespan(app: FastAPI):
         finally:
             current_site.reset(token)
 
-    # ── Post-startup: discover controllers, tasks, scripts ──────────────────
-    if apps_dir.exists():
-        # Discover custom DocType controllers
-        document_registry.discover_controllers(apps_dir)
-
-        # Discover background tasks
-        discover_tasks(apps_dir)
-
-        # Discover file-based scripts (client JS + server Python)
-        from grunt.core.scripting.file_scripts import discover_file_scripts  # noqa: PLC0415
-
-        discover_file_scripts(apps_dir)
-
-    # Discover resources from installed external apps (bench_dir/apps/*)
+    # ── Post-startup: discover resources from installed external apps (bench_dir/apps/*) ──
     from grunt.core.scripting.file_scripts import (
         discover_file_scripts as _discover_scripts,  # noqa: PLC0415
     )
 
+    import sys  # noqa: PLC0415
+
     ext_apps_dir = site_manager.bench_dir / "apps"
     if ext_apps_dir.is_dir():
         # Ensure external apps are importable
-        import sys  # noqa: PLC0415
-
         ext_apps_str = str(ext_apps_dir)
         if ext_apps_str not in sys.path:
             sys.path.insert(0, ext_apps_str)
@@ -200,6 +176,16 @@ async def lifespan(app: FastAPI):
                             document_registry.register_overrides(hooks_mod.override_doctype_class)
                         if hasattr(hooks_mod, "scheduler_events"):
                             register_scheduler_events(hooks_mod.scheduler_events)
+                        if hasattr(hooks_mod, "io_exporters"):
+                            from grunt.core.io import register_exporter as _reg_exp  # noqa: PLC0415
+                            for _exp in hooks_mod.io_exporters:
+                                _reg_exp(_exp)
+                                logger.info("io.exporter.registered", id=_exp.id, app=ext_app.name)
+                        if hasattr(hooks_mod, "io_importers"):
+                            from grunt.core.io import register_importer as _reg_imp  # noqa: PLC0415
+                            for _imp in hooks_mod.io_importers:
+                                _reg_imp(_imp)
+                                logger.info("io.importer.registered", id=_imp.id, app=ext_app.name)
                     except Exception as e:
                         logger.warning("hooks.load_error", module=hooks_import, error=str(e))
 

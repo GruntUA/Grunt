@@ -214,16 +214,20 @@ async def _resolve_link_labels(
     dt: Any,
     rows: list[dict[str, Any]],
 ) -> None:
-    """Inject ``fieldname__label`` values for Link fields in-place.
+    """Inject ``fieldname__label`` (and extra display fields) for Link fields.
 
-    For each Link field present in the rows, batch-fetches the title_field
-    of the linked DocType and adds ``{fieldname}__label`` to every row.
-    Skips fields whose linked DocType cannot be resolved.
+    For each Link field present in the rows:
+    - Injects ``{fieldname}__label`` — the title_field of the linked record.
+    - Injects ``{fieldname}__color`` / ``{fieldname}__icon`` if the linked
+      DocType has ``color`` / ``icon`` fields (used by MapView, etc.).
     """
     if not rows:
         return
 
     from sqlalchemy import or_  # noqa: PLC0415
+
+    # Extra field names to inject in addition to __label when available
+    _EXTRA_INJECT = ("color", "icon")
 
     link_fields = [f for f in dt.fields if f.fieldtype == "Link" and f.options]
 
@@ -258,6 +262,15 @@ async def _resolve_link_labels(
         if title_field != "name" and title_field in target_table.c:
             cols_to_fetch.append(target_table.c[title_field])
 
+        # Include extra display fields if the linked DocType has them
+        linked_field_names = {f.fieldname for f in target_dt.fields}
+        extra_to_fetch = [
+            fname for fname in _EXTRA_INJECT
+            if fname in linked_field_names and fname in target_table.c
+        ]
+        for fname in extra_to_fetch:
+            cols_to_fetch.append(target_table.c[fname])
+
         q = (
             select(*cols_to_fetch)
             .where(or_(target_table.c.id.in_(raw_ids), target_table.c.name.in_(raw_ids)))
@@ -272,16 +285,27 @@ async def _resolve_link_labels(
         except Exception:  # noqa: BLE001
             continue
 
-        # Build lookup: raw_id → display label
+        # Build lookup: raw_id/name → label + extra fields
         label_map: dict[str, str] = {}
+        extra_maps: dict[str, dict[str, Any]] = {fname: {} for fname in extra_to_fetch}
+
         for lr in linked_rows:
             label = str(lr.get(title_field) or lr.get("name") or "")
-            label_map[str(lr["id"])] = label
-            label_map[str(lr["name"])] = label
+            for key in (str(lr["id"]), str(lr["name"])):
+                label_map[key] = label
+                for fname in extra_to_fetch:
+                    val = lr.get(fname)
+                    if val is not None:
+                        extra_maps[fname][key] = val
 
-        # Inject __label into each row
+        # Inject into each row
         label_key = f"{lf.fieldname}__label"
         for row in rows:
             raw = row.get(lf.fieldname)
             if raw not in (None, ""):
-                row[label_key] = label_map.get(str(raw), str(raw))
+                raw_str = str(raw)
+                row[label_key] = label_map.get(raw_str, raw_str)
+                for fname in extra_to_fetch:
+                    val = extra_maps[fname].get(raw_str)
+                    if val is not None:
+                        row[f"{lf.fieldname}__{fname}"] = val

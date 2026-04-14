@@ -25,10 +25,12 @@ _CORE_TEMPLATE_DIR = Path(__file__).parent / "templates"
 
 def _get_template_dirs() -> list[str]:
     """Collect all template directories from installed apps."""
+    from grunt.core.site.manager import site_manager  # noqa: PLC0415
+
     dirs: list[str] = []
-    apps_dir = Path("grunt_apps")
-    if apps_dir.exists():
-        for tpl_dir in apps_dir.glob("*/*/templates"):
+    ext_apps_dir = site_manager.bench_dir / "apps"
+    if ext_apps_dir.is_dir():
+        for tpl_dir in ext_apps_dir.glob("*/*/templates"):
             dirs.append(str(tpl_dir))
     if _CORE_TEMPLATE_DIR.exists():
         dirs.append(str(_CORE_TEMPLATE_DIR))

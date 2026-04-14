@@ -7,7 +7,7 @@ export type CoreFieldType =
   | "Date" | "Datetime" | "Time" | "Select" | "Link"
   | "MultiLink" | "Attach" | "Image" | "RichText"
   | "JSON" | "Code" | "Color" | "Section" | "Column"
-  | "Tab" | "Table" | "Signature" | "Geolocation"
+  | "Tab" | "Table" | "Signature" | "Geolocation" | "Rating" | "Icon"
 
 /** Open type — allows custom field types registered by any app */
 export type FieldType = string
@@ -164,12 +164,23 @@ export interface DocTypeTreeView {
   title_field?: string   // which field to display as node label (defaults to 'name')
 }
 
+/** A single active filter — used by FilterBar, DocTypeList, and docsApi */
+export interface ActiveFilter {
+  fieldname: string
+  label: string
+  fieldtype?: string   // stored for display logic in chips
+  op: string          // display op: '=', '!=', 'like', '>', '<', '>=', '<='
+  value: string
+  displayValue?: string  // human-readable label (Link fields: title instead of name)
+}
+
 export interface DocTypeMapView {
   geo_field?: string                  // override auto-detected Geolocation field
   label_field?: string                // field shown in marker popup (defaults to title_field)
   color_field?: string                // field whose value drives marker color
   color_map?: Record<string, string>  // { value: '#hex' } mapping for color_field
   default_color?: string              // fallback marker color (defaults to primary)
+  icon_field?: string                 // field containing a lucide icon name for the marker
 }
 
 export interface ScriptButton {

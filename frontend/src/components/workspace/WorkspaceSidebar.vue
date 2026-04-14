@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, useAttrs } from 'vue'
+
+defineOptions({ inheritAttrs: false })
+const attrs = useAttrs()
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceStore } from '@/stores/workspace'
@@ -204,7 +207,7 @@ defineExpose({ mobileOpen })
   </Transition>
 
   <TooltipProvider :delay-duration="0">
-    <aside class="flex flex-col bg-sidebar border-r border-sidebar-border h-screen transition-all duration-200 shrink-0"
+    <aside v-bind="attrs" class="flex flex-col bg-sidebar border-r border-sidebar-border h-screen transition-all duration-200 shrink-0"
       :class="[
         collapsed ? 'w-[52px]' : 'w-[240px]',
         mobileOpen ? 'fixed inset-y-0 left-0 z-50' : 'hidden md:flex'

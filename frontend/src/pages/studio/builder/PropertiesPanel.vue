@@ -290,12 +290,12 @@ const childDoctypeOptions = computed(() => {
           <div class="space-y-1.5">
             <Label class="text-sm">Функція</Label>
             <Select
-              :model-value="field.aggregate_function ?? ''"
-              @update:model-value="updateField('aggregate_function', $event || null)"
+              :model-value="field.aggregate_function ?? '__none__'"
+              @update:model-value="updateField('aggregate_function', $event === '__none__' ? null : $event)"
             >
               <SelectTrigger><SelectValue placeholder="— без агрегації —" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">— без агрегації —</SelectItem>
+                <SelectItem value="__none__">— без агрегації —</SelectItem>
                 <SelectItem value="sum">sum — сума</SelectItem>
                 <SelectItem value="count">count — кількість рядків</SelectItem>
                 <SelectItem value="avg">avg — середнє</SelectItem>

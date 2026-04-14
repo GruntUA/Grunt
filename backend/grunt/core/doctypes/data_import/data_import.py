@@ -1,10 +1,7 @@
-import csv
-import io
 import json
 from pathlib import Path
 from typing import Any
 
-import openpyxl
 import structlog
 
 from grunt.core.document.base import Document
@@ -18,6 +15,14 @@ _SKIP_FIELDTYPES = frozenset({"Section", "Column", "Tab", "Table", "MultiLink", 
 
 class DataImport(Document):
     """DocType controller for DataImport."""
+
+    async def after_insert(self) -> None:
+        """Trigger the import task after the document is created."""
+        if self.data.get("status") == "Pending":
+            from grunt.core.data_import.tasks import run_data_import  # noqa: PLC0415
+
+            logger.info("data_import.triggering_task", id=self.data["id"])
+            await run_data_import.kiq(self.data["id"])
 
     async def get_preview(self) -> dict[str, Any]:
         """Extract headers and first 5 data rows for column mapping."""
@@ -158,27 +163,13 @@ class DataImport(Document):
 
     @staticmethod
     def _read_file(file_path: Path, limit: int | None = None) -> list[list[Any]]:
-        """Read CSV or XLSX file, returning a list of rows (first row = headers)."""
-        suffix = file_path.suffix.lower()
-        if suffix in (".xlsx", ".xls"):
-            wb = openpyxl.load_workbook(file_path, data_only=True, read_only=True)
-            ws = wb.active
-            rows: list[list[Any]] = []
-            for i, row in enumerate(ws.iter_rows(values_only=True)):
-                if limit is not None and i >= limit:
-                    break
-                rows.append(list(row))
-            wb.close()
-            return rows
-        else:
-            with open(file_path, encoding="utf-8-sig", newline="") as f:
-                reader = csv.reader(f)
-                rows = []
-                for i, row in enumerate(reader):
-                    if limit is not None and i >= limit:
-                        break
-                    rows.append(row)
-                return rows
+        """Read CSV or XLSX file via the io importer registry."""
+        from grunt.core.io.importers.registry import get_importer_for_file  # noqa: PLC0415
+
+        imp = get_importer_for_file(file_path.name)
+        if imp is None:
+            raise ValueError(f"Непідтримуваний формат файлу: {file_path.suffix}")
+        return imp.read(file_path, limit=limit)
 
     # ──────────────────────────────────────────────────────────────────
     # Export helpers (called from API endpoints)
@@ -195,31 +186,30 @@ class DataImport(Document):
         fmt: str = "csv",
         limit: int = 10_000,
     ) -> tuple[bytes, str]:
-        """Export documents of *doctype* as CSV or XLSX bytes.
+        """Export documents of *doctype* via the io exporter registry.
 
         Returns ``(file_bytes, filename)``.
         """
+        from grunt.core.io.exporters.registry import get_exporter  # noqa: PLC0415
+
+        exporter = get_exporter(fmt)
+        if exporter is None:
+            raise ValueError(f"Невідомий формат експорту: {fmt}")
+
         dt = await doctype_registry.get(doctype)
-        exportable = [
-            f for f in dt.fields
-            if f.fieldtype not in _SKIP_FIELDTYPES
-        ]
+        exportable = [f for f in dt.fields if f.fieldtype not in _SKIP_FIELDTYPES]
         if fields:
             exportable = [f for f in exportable if f.fieldname in fields]
-
-        col_names = [f.fieldname for f in exportable]
-        col_labels = [f.label for f in exportable]
 
         rows = await grunt_app.get_list(
             doctype,
             filters=filters,
-            fields=col_names,
+            fields=[f.fieldname for f in exportable],
             limit=limit,
         )
 
-        if fmt == "xlsx":
-            return cls._to_xlsx(col_labels, col_names, rows), f"{doctype.lower()}_export.xlsx"
-        return cls._to_csv(col_labels, col_names, rows), f"{doctype.lower()}_export.csv"
+        content = await exporter.export(doctype, rows, exportable)
+        return content, exporter.filename(doctype)
 
     @classmethod
     async def download_template(
@@ -229,31 +219,14 @@ class DataImport(Document):
         fmt: str = "csv",
     ) -> tuple[bytes, str]:
         """Return an empty import template (headers only) for *doctype*."""
+        from grunt.core.io.exporters.registry import get_exporter  # noqa: PLC0415
+
+        exporter = get_exporter(fmt)
+        if exporter is None:
+            raise ValueError(f"Невідомий формат: {fmt}")
+
         dt = await doctype_registry.get(doctype)
         exportable = [f for f in dt.fields if f.fieldtype not in _SKIP_FIELDTYPES]
-        col_labels = [f.label for f in exportable]
-        col_names = [f.fieldname for f in exportable]
-
-        if fmt == "xlsx":
-            return cls._to_xlsx(col_labels, col_names, []), f"{doctype.lower()}_template.xlsx"
-        return cls._to_csv(col_labels, col_names, []), f"{doctype.lower()}_template.csv"
-
-    @staticmethod
-    def _to_csv(col_labels: list[str], col_names: list[str], rows: list[dict[str, Any]]) -> bytes:
-        buf = io.StringIO()
-        writer = csv.writer(buf)
-        writer.writerow(col_labels)
-        for row in rows:
-            writer.writerow([row.get(c, "") for c in col_names])
-        return buf.getvalue().encode("utf-8-sig")  # BOM for Excel compatibility
-
-    @staticmethod
-    def _to_xlsx(col_labels: list[str], col_names: list[str], rows: list[dict[str, Any]]) -> bytes:
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.append(col_labels)
-        for row in rows:
-            ws.append([row.get(c, "") for c in col_names])
-        buf = io.BytesIO()
-        wb.save(buf)
-        return buf.getvalue()
+        content = await exporter.export(doctype, [], exportable)
+        filename = f"{doctype.lower()}_template.{exporter.file_extension}"
+        return content, filename

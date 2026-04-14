@@ -120,7 +120,9 @@ def doctype_scaffold(name: str, app: str, module: str | None, force: bool):
         click.echo("Помилка: ім'я DocType повинно починатися з великої літери.", err=True)
         raise SystemExit(1)
 
-    app_path = Path("grunt_apps") / app
+    from grunt.core.site.manager import site_manager  # noqa: PLC0415
+
+    app_path = site_manager.bench_dir / "apps" / app
     if not app_path.exists():
         click.echo(f"Помилка: app '{app}' не знайдено по шляху {app_path}.", err=True)
         raise SystemExit(1)
@@ -206,7 +208,9 @@ def doctype_sync_types(name: str, app: str, all_doctypes: bool):
 
     from grunt.utils.codegen import sync_controller_types
 
-    app_path = Path("grunt_apps") / app
+    from grunt.core.site.manager import site_manager  # noqa: PLC0415
+
+    app_path = site_manager.bench_dir / "apps" / app
 
     if all_doctypes:
         updated = 0

@@ -16,6 +16,7 @@ import {
 } from 'lucide-vue-next'
 import draggable from 'vuedraggable'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import type { ActiveFilter } from '@/types'
 import FilterBar from '@/components/views/FilterBar.vue'
 
 const props = defineProps<{
@@ -31,7 +33,7 @@ const props = defineProps<{
   doctype: string
   viewMode: string
   inlineSearch: string
-  activeFilters: Record<string, string>
+  activeFilters: ActiveFilter[]
   columns: any
   groupableFields: any[]
   groupBy: string | null
@@ -45,7 +47,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:viewMode', val: any): void
   (e: 'update:inlineSearch', val: string): void
-  (e: 'update:activeFilters', val: Record<string, string>): void
+  (e: 'update:activeFilters', val: ActiveFilter[]): void
   (e: 'update:groupBy', val: string | null): void
   (e: 'reset'): void
 }>()
@@ -57,7 +59,7 @@ const localSearch = ref(props.inlineSearch)
 watch(() => props.inlineSearch, (v) => { localSearch.value = v })
 watch(localSearch, (v) => { emit('update:inlineSearch', v) })
 
-function onFiltersChange(f: Record<string, string>) {
+function onFiltersChange(f: ActiveFilter[]) {
   emit('update:activeFilters', f)
 }
 
@@ -72,9 +74,8 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
 
 <template>
   <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-1.5 bg-muted/30 rounded-xl ring-1 ring-border/40 mb-2">
-    <!-- Left: search + filters (list mode only) -->
-    <div v-if="viewMode === 'list'"
-      class="flex flex-1 items-center gap-2">
+    <!-- Left: search + filters -->
+    <div class="flex flex-1 items-center gap-2">
       <div class="relative flex-1 max-w-[320px] group">
         <Search
           class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
@@ -83,13 +84,12 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
           :placeholder="t('Search...')" />
       </div>
       <FilterBar v-if="dt" :fields="dt.fields" :doctype="doctype" @change="onFiltersChange" class="!mb-0" />
-      <Button v-if="inlineSearch || Object.keys(activeFilters).length" variant="ghost" size="sm"
+      <Button v-if="inlineSearch || activeFilters.length" variant="ghost" size="sm"
         class="h-8 px-2 text-muted-foreground hover:text-foreground" @click="emit('reset')">
         <X class="size-4 mr-1" />
         {{ t('Reset') }}
       </Button>
     </div>
-    <div v-else class="flex-1" />
 
     <!-- Right: columns + grouping + view switcher -->
     <div class="flex items-center gap-2 px-1">

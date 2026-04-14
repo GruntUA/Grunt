@@ -1,0 +1,89 @@
+{
+    "name": "ScheduledJob",
+    "label": "Заплановані завдання",
+    "module": "core",
+    "is_virtual": true,
+    "fields": [
+        {
+            "fieldname": "job_id",
+            "label": "ID завдання",
+            "fieldtype": "Data",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "name",
+            "label": "Назва",
+            "fieldtype": "Data",
+            "reqd": 1
+        },
+        {
+            "fieldname": "enabled",
+            "label": "Увімкнено",
+            "fieldtype": "Check",
+            "default": 1
+        },
+        {
+            "fieldname": "cron_expression",
+            "label": "Cron вираз",
+            "fieldtype": "Data",
+            "reqd": 1,
+            "description": "Наприклад: '*/5 * * * *' для кожні 5 хвилин"
+        },
+        {
+            "fieldname": "next_run_at",
+            "label": "Наступний запуск",
+            "fieldtype": "Datetime",
+            "read_only": 1
+        },
+        {
+            "fieldname": "last_run_at",
+            "label": "Останній запуск",
+            "fieldtype": "Datetime",
+            "read_only": 1
+        },
+        {
+            "fieldname": "status",
+            "label": "Статус",
+            "fieldtype": "Select",
+            "options": "Pending\nRunning\nSuccess\nFailed",
+            "read_only": 1,
+            "default": "Pending"
+        },
+        {
+            "fieldname": "last_error",
+            "label": "Остання помилка",
+            "fieldtype": "Text",
+            "read_only": 1
+        },
+        {
+            "fieldname": "run_count",
+            "label": "Кількість запусків",
+            "fieldtype": "Int",
+            "read_only": 1,
+            "default": 0
+        },
+        {
+            "fieldname": "executor",
+            "label": "Виконавець",
+            "fieldtype": "Data",
+            "reqd": 1,
+            "description": "Ім'я функції або модуля для виконання"
+        },
+        {
+            "fieldname": "params",
+            "label": "Параметри",
+            "fieldtype": "JSON",
+            "description": "JSON параметри для виконання"
+        }
+    ],
+    "permissions": [
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1
+        }
+    ]
+}

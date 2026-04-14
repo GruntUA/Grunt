@@ -67,7 +67,7 @@ async function loadDocuments() {
     // 1. Primary source
     const endField = props.doctype.calendar_view?.end_field
     const primaryFetch = docsApi.list(props.doctype.name, {
-      filters: {
+      rawFilters: {
         [`${props.dateField}__lte`]: endStr,
       },
       per_page: 200,
@@ -77,7 +77,7 @@ async function loadDocuments() {
     const sources = props.doctype.calendar_view?.sources || []
     const secondaryFetches = sources.map(source =>
       docsApi.list(source.doctype, {
-        filters: {
+        rawFilters: {
           ...(source.filters || {}),
           ...(!source.recurring ? { [`${source.date_field}__lte`]: endStr } : {}),
         },

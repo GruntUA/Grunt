@@ -4,10 +4,16 @@ python = "3.12"
 uv = "latest"
 
 
-[tasks.setup]
+[tasks.deps]
 run = """
 uv sync
 npm install
+"""
+description = "Sync Python and Node.js dependencies"
+
+[tasks.setup]
+run = """
+mise run deps
 mise run bootstrap
 mise run db:migrate
 """
