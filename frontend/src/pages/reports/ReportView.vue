@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import api from '@/core/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
-import { Download, RefreshCw, Settings2, FileBarChart2, FileX } from 'lucide-vue-next'
+import { Download, RefreshCw, Settings2, FileBarChart2, FileX } from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 

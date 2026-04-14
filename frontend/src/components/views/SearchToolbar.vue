@@ -9,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Search, Settings2 } from 'lucide-vue-next'
+import { Search, Settings2 } from '@lucide/vue'
 import type { ListColumn } from '@/core/composables/useListColumns'
 
 defineProps<{

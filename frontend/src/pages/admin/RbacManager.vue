@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { Shield, Search, Check, ChevronRight, Save, Trash2, AlertCircle } from 'lucide-vue-next'
+import { Shield, Search, Check, ChevronRight, Save, Trash2, AlertCircle } from '@lucide/vue'
 import { metaApi } from '@/core/api/meta'
 import { useDocTypeStore } from '@/stores/doctype'
 import client from '@/core/api/client'

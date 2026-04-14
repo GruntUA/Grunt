@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
 import client from '@/core/api/client'
-import { ImageIcon, X } from 'lucide-vue-next'
+import { ImageIcon, X } from '@lucide/vue'
 
 const props = defineProps<{
   field: DocField

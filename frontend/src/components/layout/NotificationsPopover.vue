@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Bell, Check, MailOpen, Mail, BellOff, BellRing } from 'lucide-vue-next'
+import { Bell, Check, MailOpen, Mail, BellOff, BellRing } from '@lucide/vue'
 import { useWebPush } from '@/core/composables/useWebPush'
 
 const { isSupported: pushSupported, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = useWebPush()

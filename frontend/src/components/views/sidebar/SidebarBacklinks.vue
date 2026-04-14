@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Link as LinkIcon, ChevronRight } from 'lucide-vue-next'
+import { Link as LinkIcon, ChevronRight } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { docsApi, type BacklinkItem } from '@/core/api/docs'
 import type { DocType, GruntDocument } from '@/types'

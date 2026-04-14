@@ -9,7 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Plus, Star, StarOff } from 'lucide-vue-next'
+import { Plus, Star, StarOff } from '@lucide/vue'
 
 // ── Lucide icon resolution ────────────────────────────────────────────────────
 type IconMap = Record<string, Component>
@@ -19,7 +19,7 @@ let lucideLoaded = false
 function loadLucide() {
   if (lucideLoaded) return
   lucideLoaded = true
-  import('lucide-vue-next').then(lib => { lucideIcons.value = lib as unknown as IconMap })
+  import('@lucide/vue').then(lib => { lucideIcons.value = lib as unknown as IconMap })
 }
 
 /** Returns the Lucide component for a kebab-case name, or null if not lucide. */

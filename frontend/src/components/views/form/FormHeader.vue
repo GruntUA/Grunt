@@ -33,7 +33,7 @@ import {
   Settings2,
   RefreshCw,
   Share2,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 
 const props = defineProps<{

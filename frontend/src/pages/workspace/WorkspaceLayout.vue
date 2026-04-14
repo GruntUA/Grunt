@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import { useWorkspaceStore } from '@/stores/workspace'
 import WorkspaceSidebar from '@/components/workspace/WorkspaceSidebar.vue'
 import MobileBottomNav from '@/components/mobile/MobileBottomNav.vue'
-import { Menu } from 'lucide-vue-next'
+import { Menu } from '@lucide/vue'
 
 const props = defineProps<{ workspaceName: string }>()
 const wsStore = useWorkspaceStore()

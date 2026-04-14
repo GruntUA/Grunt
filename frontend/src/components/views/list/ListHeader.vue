@@ -19,7 +19,7 @@ import {
   Pencil,
   FileBarChart,
   RefreshCw,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const props = defineProps<{
   doctype: string

@@ -3,7 +3,7 @@ import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
 import { docsApi, metaApi } from '@/core/api'
-import { X, Loader2 } from 'lucide-vue-next'
+import { X, Loader2 } from '@lucide/vue'
 
 const props = defineProps<{
   field: DocField

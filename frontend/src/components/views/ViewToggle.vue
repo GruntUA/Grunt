@@ -4,7 +4,7 @@ import {
   LayoutGrid,
   CalendarDays as CalendarIcon,
   GitBranch,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 export type ViewMode = 'list' | 'kanban' | 'calendar' | 'tree'
 

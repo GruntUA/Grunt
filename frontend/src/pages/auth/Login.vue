@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
-import { Loader2, Sprout } from 'lucide-vue-next'
+import { Loader2, Sprout } from '@lucide/vue'
 
 const router = useRouter()
 const auth = useAuthStore()

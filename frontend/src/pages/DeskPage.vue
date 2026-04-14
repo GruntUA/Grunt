@@ -9,7 +9,7 @@ import DeskTopBar from '@/components/desk/DeskTopBar.vue'
 import AppCard from '@/components/desk/AppCard.vue'
 import ActivityStream from '@/components/dashboard/ActivityStream.vue'
 import { Spinner } from '@/components/ui/spinner'
-import { Clock, LayoutGrid, Search } from 'lucide-vue-next'
+import { Clock, LayoutGrid, Search } from '@lucide/vue'
 
 const auth = useAuthStore()
 const wsStore = useWorkspaceStore()

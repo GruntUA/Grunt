@@ -15,7 +15,7 @@ import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { ScanLine, Upload, X, CheckCircle2, AlertCircle } from 'lucide-vue-next'
+import { ScanLine, Upload, X, CheckCircle2, AlertCircle } from '@lucide/vue'
 
 type BarcodeDetectorInstance = {
   detect(source: ImageBitmapSource): Promise<Array<{ rawValue: string; format: string }>>

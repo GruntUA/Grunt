@@ -4,7 +4,7 @@ import type { Component } from 'vue'
 import type { DocField } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Search, X } from 'lucide-vue-next'
+import { Search, X } from '@lucide/vue'
 
 const props = defineProps<{
   field: DocField
@@ -24,7 +24,7 @@ let loaded = false
 async function ensureLoaded() {
   if (loaded) return
   loaded = true
-  const lib = await import('lucide-vue-next') as unknown as IconMap
+  const lib = await import('@lucide/vue') as unknown as IconMap
   allIcons.value = lib
   // Extract canonical icon names: PascalCase functions, no *Icon suffix aliases
   allNames.value = Object.keys(lib).filter(k =>

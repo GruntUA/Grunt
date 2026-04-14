@@ -16,7 +16,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { X } from 'lucide-vue-next'
+import { X } from '@lucide/vue'
 
 const builder = useBuilderStore()
 

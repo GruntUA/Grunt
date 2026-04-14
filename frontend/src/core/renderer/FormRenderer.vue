@@ -5,7 +5,7 @@ import { parseLayout } from '@/core/composables/useFormLayout'
 import type { LayoutSection } from '@/core/composables/useFormLayout'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { initials } from '@/core/composables/usePresence'
-import { ChevronDown } from 'lucide-vue-next'
+import { ChevronDown } from '@lucide/vue'
 import FieldRenderer from './FieldRenderer.vue'
 
 const props = defineProps<{

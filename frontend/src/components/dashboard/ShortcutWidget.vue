@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { DashboardWidget } from '@/types'
-import * as LucideIcons from 'lucide-vue-next'
-import { ExternalLink } from 'lucide-vue-next'
+import * as LucideIcons from '@lucide/vue'
+import { ExternalLink } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{

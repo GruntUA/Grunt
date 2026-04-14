@@ -11,7 +11,7 @@ import {
   ArrowRight,
   Sparkles,
   Command
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 
 interface ActivityEntry {

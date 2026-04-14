@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNotifications } from '@/core/composables/useNotifications'
-import { Bell, CheckCheck } from 'lucide-vue-next'
+import { Bell, CheckCheck } from '@lucide/vue'
 
 const router = useRouter()
 const { notifications, unreadCount, loading, markRead, markAllRead } = useNotifications()

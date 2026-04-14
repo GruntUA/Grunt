@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DashboardWidget } from '@/types'
-import { FileText, Plus, RefreshCcw, Trash2, Send, Share2, MessageSquare, GitBranch } from 'lucide-vue-next'
+import { FileText, Plus, RefreshCcw, Trash2, Send, Share2, MessageSquare, GitBranch } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{

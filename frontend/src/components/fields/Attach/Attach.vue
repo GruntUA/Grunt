@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import type { DocField } from '@/types'
 import client from '@/core/api/client'
-import { Paperclip, ExternalLink, X, Upload } from 'lucide-vue-next'
+import { Paperclip, ExternalLink, X, Upload } from '@lucide/vue'
 
 const props = defineProps<{
   field: DocField

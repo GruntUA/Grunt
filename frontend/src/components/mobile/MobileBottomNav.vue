@@ -9,7 +9,7 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useWorkspaceStore } from '@/stores/workspace'
-import { MoreHorizontal, Home, X } from 'lucide-vue-next'
+import { MoreHorizontal, Home, X } from '@lucide/vue'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 const props = defineProps<{ workspaceName: string }>()

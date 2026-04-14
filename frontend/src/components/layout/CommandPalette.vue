@@ -23,7 +23,7 @@ import {
     FilePlus,
     Zap,
     Activity,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { onKeyStroke } from '@vueuse/core'
 
 const { t } = useI18n()

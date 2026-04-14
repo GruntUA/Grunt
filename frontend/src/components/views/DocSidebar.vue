@@ -13,7 +13,7 @@ import {
   User,
   Activity,
   Bookmark,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import type { PresenceUser } from '@/core/composables/usePresence'
 
 // Sub-components

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { Loader2, AlertCircle, Sprout, Eye, Clock } from 'lucide-vue-next'
+import { Loader2, AlertCircle, Sprout, Eye, Clock } from '@lucide/vue'
 
 const route = useRoute()
 const token = route.params.token as string

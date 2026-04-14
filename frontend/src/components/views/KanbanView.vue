@@ -5,7 +5,7 @@ import type { DocType, DocField } from '@/types'
 import { docsApi } from '@/core/api/docs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
-import { Plus, MoreHorizontal, User, Calendar, FileText } from 'lucide-vue-next'
+import { Plus, MoreHorizontal, User, Calendar, FileText } from '@lucide/vue'
 import { Input } from '@/components/ui/input'
 
 const props = defineProps<{

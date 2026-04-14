@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { FormField } from '@/components/ui/form-field'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Spinner } from '@/components/ui/spinner'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@lucide/vue'
 
 const router = useRouter()
 const doctypes = ref<DocTypeSummary[]>([])

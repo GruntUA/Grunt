@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { DashboardWidget, WidgetType, WidgetAggregation, WidgetPeriod, WidgetCols, ShortcutItem } from '@/types'
 import type { WorkspaceLinkItem } from '@/core/api/workspace'
 import { useDocTypeStore } from '@/stores/doctype'
-import { Plus, Trash2 } from 'lucide-vue-next'
+import { Plus, Trash2 } from '@lucide/vue'
 
 const props = defineProps<{ widget: DashboardWidget | null }>()
 const emit = defineEmits<{

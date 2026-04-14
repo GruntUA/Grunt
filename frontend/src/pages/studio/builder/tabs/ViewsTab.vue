@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { X, List, FileText, Columns3, Calendar, Plus, CircleDot, Network } from 'lucide-vue-next'
+import { X, List, FileText, Columns3, Calendar, Plus, CircleDot, Network } from '@lucide/vue'
 import type { StatusIndicator } from '@/types'
 
 const builder = useBuilderStore()

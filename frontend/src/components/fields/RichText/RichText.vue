@@ -18,7 +18,7 @@ import {
   Redo,
   Code,
   Link as LinkIcon,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import type { DocField } from '@/types'
 
 const props = defineProps<{

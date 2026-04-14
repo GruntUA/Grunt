@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { UserPlus, X, Loader2 } from 'lucide-vue-next'
+import { UserPlus, X, Loader2 } from '@lucide/vue'
 import {
   Tooltip,
   TooltipContent,

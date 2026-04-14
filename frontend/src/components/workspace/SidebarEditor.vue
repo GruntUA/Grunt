@@ -24,7 +24,7 @@ import {
   Settings2,
   LayoutDashboard,
   Loader2,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { useToast } from '@/core/composables/useToast'
 
 const props = defineProps<{

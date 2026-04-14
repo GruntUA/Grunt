@@ -4,7 +4,7 @@ import { authAdminApi } from '@/core/api/auth-admin'
 import { useDocTypeStore } from '@/stores/doctype'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@lucide/vue'
 
 interface RoleInfo {
   name: string

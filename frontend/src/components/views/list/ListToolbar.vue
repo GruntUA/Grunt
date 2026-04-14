@@ -13,7 +13,7 @@ import {
   Check,
   Image as ImageIcon,
   Map as MapIcon,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import draggable from 'vuedraggable'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'

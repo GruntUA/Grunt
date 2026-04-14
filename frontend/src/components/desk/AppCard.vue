@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import type { Workspace } from '@/core/api/workspace'
-import { ArrowUpRight } from 'lucide-vue-next'
+import { ArrowUpRight } from '@lucide/vue'
 
 const props = defineProps<{
   workspace: Workspace

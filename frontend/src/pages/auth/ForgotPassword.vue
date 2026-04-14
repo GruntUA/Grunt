@@ -5,7 +5,7 @@ import { authApi } from '@/core/api/auth-admin'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
-import { Loader2, Sprout, ArrowLeft } from 'lucide-vue-next'
+import { Loader2, Sprout, ArrowLeft } from '@lucide/vue'
 
 const router = useRouter()
 

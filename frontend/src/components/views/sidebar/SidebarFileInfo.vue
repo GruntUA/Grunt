@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { User, Clock, ImageIcon } from 'lucide-vue-next'
+import { User, Clock, ImageIcon } from '@lucide/vue'
 import PresenceAvatars from '@/components/ui/PresenceAvatars.vue'
 import type { DocType, GruntDocument } from '@/types'
 import type { PresenceUser } from '@/core/composables/usePresence'

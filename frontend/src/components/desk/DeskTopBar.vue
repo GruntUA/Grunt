@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import NotificationBell from '@/components/desk/NotificationBell.vue'
-import { LogOut, Sprout, UserCircle } from 'lucide-vue-next'
+import { LogOut, Sprout, UserCircle } from '@lucide/vue'
 
 const auth = useAuthStore()
 const router = useRouter()

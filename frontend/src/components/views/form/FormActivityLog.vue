@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { History, ChevronDown } from 'lucide-vue-next'
+import { History, ChevronDown } from '@lucide/vue'
 import { Spinner } from '@/components/ui/spinner'
 
 interface ActivityEntry {

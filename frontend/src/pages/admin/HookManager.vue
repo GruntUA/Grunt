@@ -9,7 +9,7 @@ import {
     CheckCircle2,
     AlertCircle,
     ExternalLink
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'

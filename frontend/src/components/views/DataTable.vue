@@ -7,7 +7,7 @@ import {
   ArrowUp,
   ArrowDown,
   FileX,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import type { DocField, DocTypeStatusConfig } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'

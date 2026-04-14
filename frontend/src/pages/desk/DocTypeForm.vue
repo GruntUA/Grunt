@@ -12,7 +12,7 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { clearScriptCache } from '@/core/scripting/executor'
 import type { DocType, GruntDocument } from '@/types'
 import { Spinner } from '@/components/ui/spinner'
-import { History } from 'lucide-vue-next'
+import { History } from '@lucide/vue'
 
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import DocSidebar from '@/components/views/DocSidebar.vue'

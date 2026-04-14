@@ -6,7 +6,7 @@ import {
   Mail, Plus, Trash2, RefreshCcw, Send, CheckCircle2,
   XCircle, Clock, ChevronLeft, ChevronRight,
   Wifi, WifiOff, Eye, EyeOff,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const { success: toastSuccess, error: toastError } = useToast()
 

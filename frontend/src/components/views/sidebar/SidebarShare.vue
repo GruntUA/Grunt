@@ -24,7 +24,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Share2, X, Loader2 } from 'lucide-vue-next'
+import { Share2, X, Loader2 } from '@lucide/vue'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, GruntDocument } from '@/types'
 

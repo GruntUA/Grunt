@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.browser.print/dist/leaflet.browser.print.js'
-import { MapPin, RefreshCw, Loader2 } from 'lucide-vue-next'
+import { MapPin, RefreshCw, Loader2 } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, DocTypeMapView, ScriptMenuItem, ActiveFilter } from '@/types'
@@ -127,7 +127,7 @@ type IconMap = Record<string, Component>
 let _lucideLib: IconMap | null = null
 
 async function ensureLucide(): Promise<IconMap> {
-  if (!_lucideLib) _lucideLib = await import('lucide-vue-next') as unknown as IconMap
+  if (!_lucideLib) _lucideLib = await import('@lucide/vue') as unknown as IconMap
   return _lucideLib
 }
 

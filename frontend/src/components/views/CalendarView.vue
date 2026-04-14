@@ -17,7 +17,7 @@ import { uk } from 'date-fns/locale'
 import type { DocType } from '@/types'
 import { docsApi } from '@/core/api/docs'
 import { Spinner } from '@/components/ui/spinner'
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Plus } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{

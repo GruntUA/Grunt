@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { UploadCloud, File as FileIcon, Trash2, Search, Download, Folder } from 'lucide-vue-next'
+import { UploadCloud, File as FileIcon, Trash2, Search, Download, Folder } from '@lucide/vue'
 import { filesApi, type FileItem } from '@/core/api/files'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

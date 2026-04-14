@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Trash2, X, Pencil, Loader2 } from 'lucide-vue-next'
+import { Trash2, X, Pencil, Loader2 } from '@lucide/vue'
 import type { DocField } from '@/types'
 
 const props = defineProps<{

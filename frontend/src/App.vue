@@ -9,7 +9,7 @@ import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt.vue'
 import { loadRemoteTranslations } from '@/plugins/i18n'
 import { useNetworkStatus, isOnline } from '@/core/composables/useNetworkStatus'
 import { pendingCount } from '@/core/composables/useOfflineQueue'
-import { WifiOff } from 'lucide-vue-next'
+import { WifiOff } from '@lucide/vue'
 
 useNetworkStatus()
 

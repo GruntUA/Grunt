@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { DashboardWidget } from '@/types'
-import * as LucideIcons from 'lucide-vue-next'
-import { TrendingUp, TrendingDown, Minus } from 'lucide-vue-next'
+import * as LucideIcons from '@lucide/vue'
+import { TrendingUp, TrendingDown, Minus } from '@lucide/vue'
 
 const props = defineProps<{
   widget: DashboardWidget

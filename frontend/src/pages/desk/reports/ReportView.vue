@@ -5,7 +5,7 @@ import { reportsApi } from '@/core/api/reports'
 import type { ReportDetail, ReportResult, ReportColumn } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@lucide/vue'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 import { useAuthStore } from '@/stores/auth'

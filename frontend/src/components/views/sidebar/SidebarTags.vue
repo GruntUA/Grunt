@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Tag, X, Plus, Loader2 } from 'lucide-vue-next'
+import { Tag, X, Plus, Loader2 } from '@lucide/vue'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, GruntDocument } from '@/types'
 

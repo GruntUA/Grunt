@@ -5,7 +5,7 @@ import { docsApi } from '@/core/api/docs'
 import type { WorkflowTransitionItem } from '@/core/api/docs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@lucide/vue'
 
 const props = defineProps<{
   doctype: DocType

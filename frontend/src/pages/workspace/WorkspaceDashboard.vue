@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import {
   RefreshCw, LayoutDashboard, Pencil, Plus, Save, X,
   Calendar, Timer, Link2, Printer, GripVertical,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import draggable from 'vuedraggable'
 import { docsApi } from '@/core/api/docs'
 import { getDashboardData } from '@/core/api/dashboards'

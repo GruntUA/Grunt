@@ -7,7 +7,7 @@ import {
   Search, RefreshCcw, Plus, FileText, Trash2, Send,
   Share2, MessageSquare, GitBranch, ChevronLeft, ChevronRight,
   Filter, X, ChevronDown,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 interface DiffChange { field: string; old: unknown; new: unknown }
 

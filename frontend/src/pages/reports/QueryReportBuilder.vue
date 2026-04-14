@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import {
     Plus, Search, Save, Play, Trash2, ChevronRight,
     Layout, Table as TableIcon, FileBarChart
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { Skeleton } from '@/components/ui/skeleton'
 
 const props = defineProps<{

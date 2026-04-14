@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import type { DocField } from '@/types'
 import { Button } from '@/components/ui/button'
-import { MapPin } from 'lucide-vue-next'
+import { MapPin } from '@lucide/vue'
 
 const props = defineProps<{
   field: DocField

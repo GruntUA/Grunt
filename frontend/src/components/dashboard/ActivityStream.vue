@@ -11,7 +11,7 @@ import {
     Trash2,
     Clock,
     ExternalLink
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface ActivityEntry {

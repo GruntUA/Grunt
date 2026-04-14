@@ -5,7 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import type { DocField } from '@/types'
 import { docsApi, metaApi } from '@/core/api'
 import type { LinkSearchItem } from '@/core/api/docs'
-import { Search, X, Loader2, Plus, ArrowUpRight } from 'lucide-vue-next'
+import { Search, X, Loader2, Plus, ArrowUpRight } from '@lucide/vue'
 
 const props = defineProps<{
   field: DocField

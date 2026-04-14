@@ -7,7 +7,7 @@ import { useToast } from '@/core/composables/useToast'
 import type { DocType, WorkflowDef, WorkflowState, WorkflowTransition } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@lucide/vue'
 import WorkflowStatePanel from './WorkflowStatePanel.vue'
 import WorkflowTransitionPanel from './WorkflowTransitionPanel.vue'
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { Input } from '@/components/ui/input'
-import { X, Loader2 } from 'lucide-vue-next'
+import { X, Loader2 } from '@lucide/vue'
 import type { DocField } from '@/types'
 import type { LinkSearchItem } from '@/core/api/docs'
 import { docsApi } from '@/core/api/docs'

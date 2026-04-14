@@ -41,7 +41,7 @@ import {
   Activity,
   Mail,
   X,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { useColorMode } from '@/core/composables/useColorMode'
 import type { Theme } from '@/core/composables/useColorMode'
 import { Button } from '@/components/ui/button'

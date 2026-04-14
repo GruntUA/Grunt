@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Clock, RotateCcw, ChevronRight, Loader2, User } from 'lucide-vue-next'
+import { Clock, RotateCcw, ChevronRight, Loader2, User } from '@lucide/vue'
 import api from '@/core/api/client'
 
 const props = defineProps<{

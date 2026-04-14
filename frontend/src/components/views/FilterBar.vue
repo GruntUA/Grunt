@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Filter, X, Bookmark, ChevronDown, Trash2, Pencil } from 'lucide-vue-next'
+import { Filter, X, Bookmark, ChevronDown, Trash2, Pencil } from '@lucide/vue'
 import { getFilterConfig } from '@/core/filterRegistry'
 
 const props = defineProps<{

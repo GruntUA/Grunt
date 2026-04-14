@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2, Save, Eye, EyeOff, RefreshCw, ChevronLeft, FileText } from 'lucide-vue-next'
+import { Loader2, Save, Eye, EyeOff, RefreshCw, ChevronLeft, FileText } from '@lucide/vue'
 import type { GruntDocument } from '@/types'
 
 const props = defineProps<{

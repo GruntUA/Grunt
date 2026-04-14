@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import {
   ChevronRight, ChevronDown, Plus, FolderOpen,
   AlertCircle, RefreshCw
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const props = defineProps<{
   doctype: DocType
@@ -237,7 +237,7 @@ function countDescendants(node: TreeNode): number {
 <!-- ── Recursive tree node ──────────────────────────────────────────────── -->
 <script lang="ts">
 import { defineComponent, h, type PropType } from 'vue'
-import { ChevronRight as CR, ChevronDown as CD, Plus as PL, Folder as FL, FolderOpen as FO, FileText as FT } from 'lucide-vue-next'
+import { ChevronRight as CR, ChevronDown as CD, Plus as PL, Folder as FL, FolderOpen as FO, FileText as FT } from '@lucide/vue'
 import type { DocType, GruntDocument } from '@/types'
 
 // Recursive component defined separately to allow self-reference

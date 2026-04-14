@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-vue-next'
+import { CheckCircle2, AlertCircle, Loader2 } from '@lucide/vue'
 
 const route = useRoute()
 const formRoute = computed(() => route.params.route as string)

@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DashboardWidget, ShortcutItem } from '@/types'
-import * as LucideIcons from 'lucide-vue-next'
-import { ExternalLink } from 'lucide-vue-next'
+import * as LucideIcons from '@lucide/vue'
+import { ExternalLink } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{

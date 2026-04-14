@@ -4,7 +4,7 @@ import { authAdminApi } from '@/core/api/auth-admin'
 import type { GruntUserPublic } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@lucide/vue'
 
 const users = ref<GruntUserPublic[]>([])
 const isLoading = ref(true)

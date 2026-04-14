@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import draggable from 'vuedraggable'
 import type { DocField, DocType } from '@/types'
 import { metaApi } from '@/core/api'
-import { Plus, X, Pencil, GripVertical } from 'lucide-vue-next'
+import { Plus, X, Pencil, GripVertical } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,

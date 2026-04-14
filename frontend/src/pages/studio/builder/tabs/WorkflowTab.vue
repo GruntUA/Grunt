@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Trash2, Plus, GitBranch, List, ChevronDown, GripVertical, X } from 'lucide-vue-next'
+import { Trash2, Plus, GitBranch, List, ChevronDown, GripVertical, X } from '@lucide/vue'
 import WorkflowGraph from '@/components/views/WorkflowGraph.vue'
 
 const builder = useBuilderStore()

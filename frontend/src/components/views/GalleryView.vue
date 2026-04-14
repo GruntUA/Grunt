@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
-import { FileX } from 'lucide-vue-next'
+import { FileX } from '@lucide/vue'
 
 const props = defineProps<{
   rows: Record<string, unknown>[]

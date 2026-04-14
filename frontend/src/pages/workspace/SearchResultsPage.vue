@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/core/composables/useToast'
 import client from '@/core/api/client'
 import { Button } from '@/components/ui/button'
-import { Search, FileText, Loader2, RefreshCw, X } from 'lucide-vue-next'
+import { Search, FileText, Loader2, RefreshCw, X } from '@lucide/vue'
 
 const props = defineProps<{ workspaceName?: string }>()
 

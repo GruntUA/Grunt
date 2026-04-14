@@ -7,7 +7,7 @@ import {
   Trash2,
   Loader2,
   Send,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { docsApi, type TimelineItem } from '@/core/api/docs'
 import { authAdminApi } from '@/core/api/auth-admin'
 import { useAuthStore } from '@/stores/auth'

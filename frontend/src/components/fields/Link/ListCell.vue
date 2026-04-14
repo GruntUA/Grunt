@@ -17,7 +17,7 @@ let iconsLoaded = false
 function loadIcons() {
   if (iconsLoaded) return
   iconsLoaded = true
-  import('lucide-vue-next').then((lib) => { lucideIcons.value = lib as unknown as IconMap })
+  import('@lucide/vue').then((lib) => { lucideIcons.value = lib as unknown as IconMap })
 }
 
 function getIconComponent(name: string): Component | null {

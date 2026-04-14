@@ -15,7 +15,7 @@ import {
   Shield,
   Loader2,
   Trash2,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 const { t } = useI18n()
 const auth = useAuthStore()
