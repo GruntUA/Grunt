@@ -61,6 +61,13 @@ export interface FieldDefinition {
    * Layout fields do not need a component.
    */
   component?: () => Promise<Component>
+  /**
+   * Optional override for the designer canvas preview.
+   * If absent, CanvasFieldCard renders the real `component` with disabled=true.
+   * Use this only for heavy or canvas-based fields (Code editor, Signature, etc.)
+   * where the full runtime component is too expensive for a small preview card.
+   */
+  designerPreview?: () => Promise<Component>
   /** Property sections shown in PropertiesPanel, in order */
   propertySections: PropSection[]
 }
@@ -131,30 +138,31 @@ export const FallbackFieldLoader = (): Promise<Component> =>
  */
 async function discoverFields() {
   const manifests = import.meta.glob('@/components/fields/*/manifest.json', { eager: true })
-  const components = import.meta.glob('@/components/fields/*/*.vue')
+  const allVues = import.meta.glob('@/components/fields/*/*.vue')
 
   for (const path in manifests) {
     const config = (manifests[path] as any).default
-    // Config should have 'type'
-    const fieldType = config.type
-
-    // Find the Vue component in the same dir
-    // Path looks like: /src/components/fields/Text/manifest.json
+    const dirName = path.split('/').at(-2)!  // e.g. "Check", "Rating"
     const searchDir = path.replace('/manifest.json', '/')
-    const componentPath = Object.keys(components).find(p => p.startsWith(searchDir) && p.endsWith('.vue'))
 
-    if (componentPath) {
-      registerField({
-        ...config,
-        component: () => components[componentPath]().then((m: any) => m.default as Component)
-      })
+    // Main runtime component: {DirName}/{DirName}.vue (exact match by convention)
+    const componentPath = `${searchDir}${dirName}.vue`
+    // Designer preview: {DirName}/DesignerPreview.vue
+    const previewPath = `${searchDir}DesignerPreview.vue`
+
+    const entry: FieldDefinition = { ...config }
+
+    if (componentPath in allVues) {
+      entry.component = () => allVues[componentPath]().then((m: any) => m.default as Component)
     } else if (!config.is_layout) {
-      console.warn(`[FieldRegistry] No Vue component found for field type "${fieldType}" at ${searchDir}`)
-      registerField(config)
-    } else {
-      // Layout fields don't need a component
-      registerField(config)
+      console.warn(`[FieldRegistry] No Vue component found for field type "${config.type}" at ${searchDir}`)
     }
+
+    if (previewPath in allVues) {
+      entry.designerPreview = () => allVues[previewPath]().then((m: any) => m.default as Component)
+    }
+
+    registerField(entry)
   }
 }
 
