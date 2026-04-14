@@ -40,9 +40,10 @@ function wasDismissed() {
 }
 
 function onBeforeInstallPrompt(e: Event) {
+  if (wasDismissed()) return
   e.preventDefault()
   deferredPrompt = e
-  if (!wasDismissed()) state.value = 'available'
+  state.value = 'available'
 }
 
 onMounted(() => {

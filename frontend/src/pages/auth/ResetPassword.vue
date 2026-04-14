@@ -83,6 +83,7 @@ async function handleSubmit() {
                 :id="id"
                 v-model="newPassword"
                 type="password"
+                autocomplete="new-password"
                 placeholder="••••••••"
                 required
                 class="h-11"
@@ -96,6 +97,7 @@ async function handleSubmit() {
                 :id="id"
                 v-model="confirmPassword"
                 type="password"
+                autocomplete="new-password"
                 placeholder="••••••••"
                 required
                 class="h-11"

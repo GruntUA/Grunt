@@ -63,6 +63,7 @@ async function handleLogin() {
                 :id="id"
                 v-model="email"
                 type="email"
+                autocomplete="username"
                 placeholder="admin@grunt.local"
                 required
                 class="h-11"
@@ -80,6 +81,7 @@ async function handleLogin() {
             <Input
               v-model="password"
               type="password"
+              autocomplete="current-password"
               placeholder="••••••••"
               required
               class="h-11"

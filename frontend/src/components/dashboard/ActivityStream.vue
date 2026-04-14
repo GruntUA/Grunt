@@ -39,8 +39,10 @@ ws.onEvent('activity', (data: any) => {
 async function fetchActivity() {
     loading.value = true
     try {
-        const res = await api.get('/api/v1/activity/')
+        const res = await api.get('/api/v1/activity')
         activities.value = res.data.data
+    } catch {
+        // silently ignore — empty state shown
     } finally {
         loading.value = false
     }
