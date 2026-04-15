@@ -63,13 +63,39 @@ def _grunt_app_dir() -> "Path":
 
 
 def _run_npm_install() -> None:
-    """Run npm install in the grunt app root (where package.json lives)."""
+    """Run npm install in the grunt app root (where package.json lives).
+
+    Uses ``mise exec`` to ensure the correct Node.js version (from .mise.toml)
+    is active. On ENOTEMPTY failures (corrupted node_modules) cleans and retries once.
+    """
+    import shutil as _shutil  # noqa: PLC0415
+    from pathlib import Path  # noqa: PLC0415
+
+    app_dir = _grunt_app_dir()
     npm = shutil.which("npm")
     if not npm:
         click.echo("  [warn] npm не знайдено, пропускаю встановлення npm пакетів", err=True)
         return
 
-    result = subprocess.run([npm, "install"], cwd=_grunt_app_dir(), check=False)
+    mise = shutil.which("mise")
+    if mise:
+        # Ensure the pinned Node version from .mise.toml is installed
+        subprocess.run([mise, "install"], cwd=app_dir, check=False)
+        cmd = [mise, "exec", "--", npm, "install"]
+    else:
+        click.echo("  [info] mise не знайдено, використовую системний npm", err=True)
+        cmd = [npm, "install"]
+
+    result = subprocess.run(cmd, cwd=app_dir, check=False)
+
+    if result.returncode != 0:
+        # Retry once after cleaning node_modules (fixes ENOTEMPTY and stale lock issues)
+        nm = Path(app_dir) / "node_modules"
+        if nm.exists():
+            click.echo("  [info] Очищення node_modules, повторна спроба...")
+            _shutil.rmtree(nm)
+        result = subprocess.run(cmd, cwd=app_dir, check=False)
+
     if result.returncode != 0:
         click.echo("  [warn] npm install завершився з помилкою", err=True)
 
