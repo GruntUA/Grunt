@@ -268,10 +268,13 @@ class DocumentWriteMixin:
                 detail=errors,
             )
 
-        # Strip protected fields
+        # Strip protected fields; only include fields that have a physical column
+        table_columns = {c.name for c in table.columns}
         update_data: dict[str, Any] = {}
         for field in dt.fields:
             if field.fieldtype in NON_PHYSICAL_FIELDS:
+                continue
+            if field.fieldname not in table_columns:
                 continue
             if field.fieldname in data and field.fieldname not in PROTECTED_FIELDS:
                 update_data[field.fieldname] = _coerce_value(data[field.fieldname], field.fieldtype)

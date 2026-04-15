@@ -45,6 +45,18 @@ def register_field_type(name: str, factory: Any, *, searchable: bool = True) -> 
     _FIELD_META[name] = {"searchable": searchable}
 
 
+def _find_bench_dir_for_fields(start: Path) -> Path | None:
+    """Walk up from *start* looking for a directory that contains apps/."""
+    check = start if start.is_dir() else start.parent
+    for _ in range(8):
+        if (check / "apps").is_dir():
+            return check
+        if check == check.parent:
+            break
+        check = check.parent
+    return None
+
+
 def discover_field_types() -> None:
     """Discover and register field types from all apps in the bench.
 
@@ -52,18 +64,10 @@ def discover_field_types() -> None:
     subdirectories that contain a [FieldName].py with a register() function.
     Also scans the frontend components/fields for convenience.
     """
-    # Find bench dir: look for apps/ directory in parent chain
-    cwd = Path.cwd()
-    bench_dir = None
-    check = cwd
-    for _ in range(5):
-        if (check / "apps").is_dir():
-            bench_dir = check
-            break
-        if check == check.parent:
-            break
-        check = check.parent
-
+    # Find bench dir: first try cwd, then fall back to package location
+    bench_dir = _find_bench_dir_for_fields(Path.cwd()) or _find_bench_dir_for_fields(
+        Path(__file__).resolve()
+    )
     if not bench_dir:
         return
 
