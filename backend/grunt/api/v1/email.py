@@ -1,4 +1,4 @@
-"""Email management API — account config, queue, test connection."""
+"""Email management whitelisted methods."""
 
 from __future__ import annotations
 
@@ -6,23 +6,17 @@ from typing import Any
 
 import aiosmtplib
 import structlog
-from fastapi import HTTPException, Query
-from pydantic import BaseModel
 
-from grunt.api.router import GruntRouter
-from grunt.api.v1.schemas.response import ok, ok_list
-from grunt.app import grunt
+import grunt
 
 logger = structlog.get_logger()
-router = GruntRouter(prefix="", tags=["email"])
 
 
-# ── Dependencies ──────────────────────────────────────────────────────────────
-
-
-def _require_admin(user: Any) -> None:
-    if not getattr(user, "is_superadmin", False):
-        raise HTTPException(403, "Admin only")
+def _require_admin() -> None:
+    from grunt.app import grunt as grunt_app
+    user = grunt_app._require_user()
+    if not user.is_superadmin:
+        grunt.throw("Admin only", "PERMISSION_DENIED")
 
 
 def _mask_password(account: dict[str, Any]) -> dict[str, Any]:
@@ -31,92 +25,70 @@ def _mask_password(account: dict[str, Any]) -> dict[str, Any]:
     return account
 
 
-# ── Test connection ───────────────────────────────────────────────────────────
-
-
-class TestConnectionRequest(BaseModel):
-    smtp_server: str
-    smtp_port: int = 587
-    use_tls: bool = True
-    smtp_user: str | None = None
-    smtp_password: str | None = None
-
-
-@router.post("/test-connection")
+@grunt.whitelist()
 async def test_smtp_connection(
-    body: TestConnectionRequest,
+    smtp_server: str,
+    smtp_port: int = 587,
+    use_tls: bool = True,
+    smtp_user: str | None = None,
+    smtp_password: str | None = None,
 ) -> dict[str, Any]:
     """Attempt SMTP connect+login without sending a message."""
-    _require_admin(grunt.session)
+    _require_admin()
     try:
         async with aiosmtplib.SMTP(
-            hostname=body.smtp_server,
-            port=body.smtp_port,
-            use_tls=body.use_tls,
+            hostname=smtp_server,
+            port=int(smtp_port),
+            use_tls=bool(use_tls),
             timeout=10,
         ) as smtp:
-            if body.smtp_user and body.smtp_password:
-                await smtp.login(body.smtp_user, body.smtp_password)
-        return ok()
-    except Exception as e:  # noqa: BLE001
+            if smtp_user and smtp_password:
+                await smtp.login(smtp_user, smtp_password)
+        return {"success": True}
+    except Exception as e:
         return {"success": False, "error": str(e)}
 
 
-# ── Email Accounts ────────────────────────────────────────────────────────────
+@grunt.whitelist()
+async def list_accounts() -> list[dict[str, Any]]:
+    _require_admin()
+    result = await grunt.get_list("EmailAccount", limit=1000, order_by="created_at")
+    return [_mask_password(dict(acc)) for acc in result]
 
 
-@router.get("/accounts")
-async def list_email_accounts() -> dict[str, Any]:
-    _require_admin(grunt.session)
-    result = await grunt.get_list("EmailAccount", limit=10000, order_by="created_at")
-    return ok([_mask_password(dict(acc)) for acc in result])
-
-
-@router.get("/accounts/{account_id}")
-async def get_email_account(
-    account_id: str,
-) -> dict[str, Any]:
-    _require_admin(grunt.session)
+@grunt.whitelist()
+async def get_account(account_id: str) -> dict[str, Any]:
+    _require_admin()
     data = await grunt.get_doc("EmailAccount", account_id)
-    return ok(_mask_password(dict(data)))
+    return _mask_password(dict(data))
 
 
-# ── Email Queue ───────────────────────────────────────────────────────────────
-
-
-@router.get("/queue")
+@grunt.whitelist()
 async def list_queue(
-    status: str | None = Query(None),
-    page: int = Query(1, ge=1),
-    per_page: int = Query(25, ge=1, le=100),
+    status: str | None = None,
+    page: int = 1,
+    per_page: int = 25,
 ) -> dict[str, Any]:
-    _require_admin(grunt.session)
-    
-    offset = (page - 1) * per_page
-    
+    _require_admin()
+    page = int(page)
+    per_page = int(per_page)
+    filters = {"status": status} if status else None
     records = await grunt.get_list(
         "EmailQueue",
         limit=per_page,
-        page=max(1, offset // per_page + 1) if per_page else 1,
+        page=page,
         order_by="created_at",
         order="desc",
-        filters={"status": status} if status else None,
+        filters=filters,
     )
-    
-    total = await grunt.count("EmailQueue", filters={"status": status} if status else None)
-    
-    return ok_list(records, total=total, page=page, per_page=per_page)
+    total = await grunt.count("EmailQueue", filters=filters)
+    return {"items": records, "total": total, "page": page, "per_page": per_page}
 
 
-
-
-
-@router.post("/queue/{queue_id}/retry")
-async def retry_queue_item(
-    queue_id: str,
-) -> dict[str, Any]:
-    _require_admin(grunt.session)
+@grunt.whitelist()
+async def retry_item(queue_id: str) -> bool:
+    _require_admin()
     await grunt.db.set_value(
         "EmailQueue", queue_id, {"status": "Pending", "error_message": None}
     )
-    return ok()
+    return True

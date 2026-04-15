@@ -1,164 +1,83 @@
-"""Reports API — CRUD and execution of reports."""
+"""Reports whitelisted methods."""
 
 from __future__ import annotations
+from typing import Any
+import grunt
+from grunt.app import grunt as grunt_app
 
-from typing import TYPE_CHECKING, Any
-
-from fastapi import Depends, HTTPException, Response
-
-from grunt.api.router import GruntRouter
-from grunt.api.v1.schemas.response import ok
-from grunt.app import grunt
-from grunt.core.auth.dependencies import superadmin_user
-
-if TYPE_CHECKING:
-    from grunt.core.auth.models import GruntUser
-
-router = GruntRouter(prefix="", tags=["reports"])
-
-_REPORT_FIELDS = [
-    "id",
-    "report_name",
-    "report_type",
-    "doctype",
-    "query",
-    "script",
-    "columns",
-    "filters_config",
-    "created_at",
-]
-
-
-@router.get("/")
-async def list_reports() -> dict:
-    """"List all reports."""
-    data = await grunt.db.get_all(
+@grunt.whitelist()
+async def list_reports() -> list[dict[str, Any]]:
+    """List all reports."""
+    return await grunt_app.db.get_all(
         "Report",
         fields=["id", "report_name", "report_type", "doctype", "created_at"],
         limit=1000,
-        order_by="created_at",
-        order="asc",
+        order_by="created_at"
     )
-    return ok(data)
 
-
-@router.post("/")
-async def create_report(
-    body: dict,
-    _: GruntUser = Depends(superadmin_user),
-) -> dict:
-    """Create a new report."""
-    report_name = body.get("report_name", "")
-    if not report_name:
-        raise HTTPException(status_code=422, detail="report_name є обов'язковим")
-
-    existing = await grunt.db.get_all("Report", filters={"report_name": report_name}, limit=1)
-    if existing:
-        raise HTTPException(status_code=409, detail=f"Звіт '{report_name}' вже існує")
-
-    doc = await grunt.new_doc(
-        "Report",
-        {
-            "report_name": report_name,
-            "report_type": body.get("report_type", "Query"),
-            "doctype": body.get("doctype"),
-            "query": body.get("query"),
-            "script": body.get("script"),
-            "columns": body.get("columns"),
-            "filters_config": body.get("filters_config"),
-        },
-    )
-    return ok({"id": doc["id"], "report_name": report_name})
-
-
-@router.get("/{name}")
-async def get_report(
-    name: str,
-) -> dict:
+@grunt.whitelist()
+async def get_report(name: str) -> dict[str, Any]:
     """Get a single report by name."""
-    report = await grunt.db.get_values("Report", {"report_name": name}, _REPORT_FIELDS)
+    report = await grunt_app.db.get_values("Report", {"report_name": name}, [
+        "id", "report_name", "report_type", "doctype", "query", "script", "columns", "filters_config", "created_at"
+    ])
     if not report:
-        raise HTTPException(status_code=404, detail=f"Звіт '{name}' не знайдено")
-    return ok(report)
+        grunt_app.throw(f"Звіт '{name}' не знайдено", "NOT_FOUND")
+    return report
 
+@grunt.whitelist()
+async def save_report(report_data: dict[str, Any]) -> dict[str, Any]:
+    """Create or update a report. Admin only."""
+    if not grunt_app._require_user().is_superadmin:
+        grunt_app.throw("Admin only", "PERMISSION_DENIED")
 
-@router.put("/{name}")
-async def update_report(
-    name: str,
-    body: dict,
-    _: GruntUser = Depends(superadmin_user),
-) -> dict:
-    """Update a report."""
-    report = await grunt.db.get_values("Report", {"report_name": name}, ["id"])
-    if not report:
-        raise HTTPException(status_code=404, detail=f"Звіт '{name}' не знайдено")
+    name = report_data.get("report_name")
+    if not name:
+        grunt_app.throw("report_name є обов'язковим", "VALIDATION_ERROR")
 
-    updatable = ("report_type", "doctype", "query", "script", "columns", "filters_config")
-    values = {k: body[k] for k in updatable if k in body}
-    if values:
-        await grunt.save_doc("Report", report["id"], values)
-    return ok({"report_name": name})
+    existing = await grunt_app.db.get_values("Report", {"report_name": name}, ["id"])
+    if existing:
+        if report_data.get("__is_new"):
+            grunt_app.throw(f"Звіт '{name}' вже існує", "CONFLICT")
+        await grunt_app.save_doc("Report", existing["id"], report_data)
+        return {"report_name": name, "id": existing["id"]}
+    
+    doc = await grunt_app.new_doc("Report", report_data)
+    return {"id": doc["id"], "report_name": name}
 
+@grunt.whitelist()
+async def delete_report(name: str) -> bool:
+    """Delete a report by name. Admin only."""
+    if not grunt_app._require_user().is_superadmin:
+        grunt_app.throw("Admin only", "PERMISSION_DENIED")
 
-@router.delete("/{name}")
-async def delete_report(
-    name: str,
-    _: GruntUser = Depends(superadmin_user),
-) -> dict:
-    """Delete a report."""
-    report = await grunt.db.get_values("Report", {"report_name": name}, ["id"])
-    if not report:
-        raise HTTPException(status_code=404, detail=f"Звіт '{name}' не знайдено")
-    await grunt.delete_doc("Report", report["id"])
-    return ok(message=f"Звіт '{name}' видалено")
+    existing = await grunt_app.db.get_values("Report", {"report_name": name}, ["id"])
+    if not existing:
+        grunt_app.throw(f"Звіт '{name}' не знайдено", "NOT_FOUND")
+    
+    await grunt_app.delete_doc("Report", existing["id"])
+    return True
 
-
-@router.post("/{name}/run")
-async def run_report(
-    name: str,
-    body: dict,
-) -> dict[str, Any]:
+@grunt.whitelist()
+async def run_report(name: str, filters: dict[str, Any] | None = None) -> dict[str, Any]:
     """Execute a report and return results."""
     from grunt.core.reports.engine import report_engine
-
+    
     result = await report_engine.run(
-        name, body.get("filters", {}), grunt._require_user(), grunt._require_session()
+        name, filters or {}, grunt_app._require_user(), grunt_app._require_session()
     )
-    return {"success": True, **result}
+    return result
 
-
-@router.post("/run-preview")
-async def run_report_preview(
-    body: dict,
-) -> dict:
+@grunt.whitelist()
+async def run_preview(doctype: str, columns: list[str] | None = None, filters: dict[str, Any] | None = None) -> dict[str, Any]:
     """Execute an ad-hoc report configuration for preview."""
     from grunt.core.reports.engine import report_engine
-
-    doctype = body.get("doctype")
-    if not doctype:
-        raise HTTPException(400, detail="Тип документа не вказано")
-
+    
     result = await report_engine._run_list_report(
         doctype,
-        {"columns": body.get("columns", [])},
-        body.get("filters", {}),
-        grunt._require_user(),
-        grunt._require_session(),
+        {"columns": columns or []},
+        filters or {},
+        grunt_app._require_user(),
+        grunt_app._require_session(),
     )
-    return {"success": True, **result}
-
-
-@router.get("/{name}/export/xlsx")
-async def export_report_xlsx(
-    name: str,
-) -> Response:
-    """Export a report as an Excel file."""
-    from grunt.core.reports.engine import report_engine
-
-    result = await report_engine.run(name, {}, grunt._require_user(), grunt._require_session())
-    xlsx_bytes = await report_engine.export_excel(result, name)
-    return Response(
-        content=xlsx_bytes,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f'attachment; filename="{name}.xlsx"'},
-    )
+    return result

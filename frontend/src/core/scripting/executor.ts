@@ -82,9 +82,9 @@ export interface GruntProxy {
   call: (opts: { method: string; args?: Record<string, unknown> }) => Promise<unknown>
   /** Raw HTTP helpers for arbitrary API calls. */
   api: {
-    get:    (url: string, params?: Record<string, unknown>) => Promise<unknown>
-    post:   (url: string, data?: unknown) => Promise<unknown>
-    put:    (url: string, data?: unknown) => Promise<unknown>
+    get: (url: string, params?: Record<string, unknown>) => Promise<unknown>
+    post: (url: string, data?: unknown) => Promise<unknown>
+    put: (url: string, data?: unknown) => Promise<unknown>
     delete: (url: string) => Promise<unknown>
   }
   throw: (msg: string) => never
@@ -119,7 +119,7 @@ export async function loadClientScripts(doctype: string): Promise<ClientScriptEn
 
   try {
     const { data } = await client.get<{ data: ClientScriptEntry[] }>(
-      `/api/v1/client-script/${encodeURIComponent(doctype)}`
+      `/api/v1/method/grunt.api.v1.scripting.get_client_scripts?doctype=${encodeURIComponent(doctype)}`
     )
     const scripts = data?.data ?? []
     scriptCache.set(doctype, scripts)
@@ -377,10 +377,10 @@ export function createListViewProxy(
   return {
     doctype,
     add_button(label, action, options): ScriptButtonHandle {
-      return callbacks.addButton?.(label, action, options) ?? { update: () => {} }
+      return callbacks.addButton?.(label, action, options) ?? { update: () => { } }
     },
     add_menu_item(label, action, options): ScriptMenuItemHandle {
-      return callbacks.addMenuItem?.(label, action, options) ?? { update: () => {}, remove: () => {} }
+      return callbacks.addMenuItem?.(label, action, options) ?? { update: () => { }, remove: () => { } }
     },
     refresh() {
       callbacks.refresh?.()

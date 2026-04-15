@@ -48,6 +48,7 @@ from grunt.api.context import (
     set_session,
     set_site,
     set_user,
+    whitelist,
 )
 from grunt.app import GruntDB
 
@@ -105,4 +106,5 @@ __all__ = [
     "set_site",
     "get_site",
     "clear_context",
+    "whitelist",
 ]

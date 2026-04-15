@@ -1,92 +1,54 @@
-"""Pages API — register and list custom app pages."""
+"""Pages whitelisted methods."""
 
 from __future__ import annotations
-
 from typing import Any
+import grunt
 
-from fastapi import HTTPException
+_PAGE_FIELDS = ["id", "route", "title", "icon", "component", "app", "sidebar_section", "sidebar_order", "is_default_home"]
+_PAGE_UPDATABLE = {"title", "icon", "component", "app", "sidebar_section", "sidebar_order", "is_default_home"}
 
-from grunt.api.router import GruntRouter
-from grunt.api.v1.schemas.response import ok
-from grunt.app import grunt
-
-router = GruntRouter(prefix="/pages", tags=["pages"])
-
-
-_PAGE_FIELDS = [
-    "id",
-    "route",
-    "title",
-    "icon",
-    "component",
-    "app",
-    "sidebar_section",
-    "sidebar_order",
-    "is_default_home",
-]
-
-_PAGE_UPDATABLE = {
-    "title",
-    "icon",
-    "component",
-    "app",
-    "sidebar_section",
-    "sidebar_order",
-    "is_default_home",
-}
-
-
-@router.get("/")
-async def list_pages() -> dict[str, Any]:
+@grunt.whitelist()
+async def list_pages() -> list[dict[str, Any]]:
     """List all registered custom pages."""
-    data = await grunt.get_list(
-        "Page",
-        limit=10000,
-        order_by="sidebar_order",
-        order="asc",
-        fields=_PAGE_FIELDS,
+    return await grunt.get_list(
+        "Page", limit=1000, order_by="sidebar_order", order="asc", fields=_PAGE_FIELDS
     )
-    return ok(data)
 
+@grunt.whitelist()
+async def register_page(page_data: dict[str, Any]) -> dict[str, Any]:
+    """Register or update a custom page from an app. Admin only."""
+    from grunt.app import grunt as grunt_app
+    user = grunt_app._require_user()
+    if not user.is_superadmin:
+        grunt.throw("Not authorized", "PERMISSION_DENIED")
 
-@router.post("/")
-async def register_page(
-    body: dict[str, Any],
-) -> dict[str, Any]:
-    """Register or update a custom page from an app."""
-    if not grunt.session.is_superadmin:
-        raise HTTPException(status_code=403, detail="Not authorized")
-
-    route = (body.get("route") or "").strip()
+    route = (page_data.get("route") or "").strip()
     if not route:
-        raise HTTPException(status_code=422, detail="route є обов'язковим")
+        grunt.throw("route є обов'язковим", "VALIDATION_ERROR")
 
     existing = await grunt.get_list("Page", filters={"route": route}, limit=1)
     page_id = existing[0]["id"] if existing else None
-    update_data = {k: v for k, v in body.items() if k in _PAGE_UPDATABLE}
+    update_data = {k: v for k, v in page_data.items() if k in _PAGE_UPDATABLE}
 
     if page_id:
         doc = await grunt.save_doc("Page", page_id, update_data)
     else:
         doc = await grunt.new_doc("Page", {"route": route, **update_data})
 
-    return ok({"route": route, "title": doc.get("title", route)})
+    return {"route": route, "title": doc.get("title", route)}
 
+@grunt.whitelist()
+async def delete_page(route: str) -> bool:
+    """Remove a custom page registration. Admin only."""
+    from grunt.app import grunt as grunt_app
+    user = grunt_app._require_user()
+    if not user.is_superadmin:
+        grunt.throw("Not authorized", "PERMISSION_DENIED")
 
-@router.delete("/{route:path}")
-async def delete_page(
-    route: str,
-) -> dict[str, Any]:
-    """Remove a custom page registration."""
-    if not grunt.session.is_superadmin:
-        raise HTTPException(status_code=403, detail="Not authorized")
+    if not route.startswith("/"): route = f"/{route}"
+    existing = await grunt.get_list("Page", filters={"route": route}, limit=1)
+    if not existing:
+        grunt.throw("Сторінку не знайдено", "NOT_FOUND")
 
-    full_route = f"/{route}"
-    existing = await grunt.get_list("Page", filters={"route": full_route}, limit=1)
-    page_id = existing[0]["id"] if existing else None
-
-    if not page_id:
-        raise HTTPException(status_code=404, detail="Сторінку не знайдено")
-
-    await grunt.delete_doc("Page", page_id)
-    return ok(message="Сторінку видалено")
+    await grunt.delete_doc("Page", existing[0]["id"])
+    return True

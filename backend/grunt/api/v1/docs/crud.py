@@ -137,7 +137,7 @@ async def bulk_delete_documents(
     else:
         ids = body.get("ids", [])
         if not ids:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="ids or delete_all is required")
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="ids or delete_all is required")
 
     total = len(ids)
     user_email = user.email
@@ -178,9 +178,9 @@ async def bulk_update_documents(
     value: Any = body.get("value")
 
     if not ids:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="ids is required")
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="ids is required")
     if not field:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="field is required")
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="field is required")
 
     updated = 0
     errors: list[str] = []

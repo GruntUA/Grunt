@@ -46,36 +46,37 @@ export interface SearchResult {
 
 export const workspaceApi = {
   list: async (): Promise<Workspace[]> => {
-    const r = await client.get('/api/v1/workspaces/')
+    const r = await client.get('/api/v1/method/grunt.api.v1.workspace.list_workspaces')
     return r.data.data
   },
 
   get: async (name: string): Promise<Workspace> => {
-    const r = await client.get(`/api/v1/workspaces/${name}`)
+    const r = await client.get('/api/v1/method/grunt.api.v1.workspace.get_workspace', { params: { name } })
     return r.data.data
   },
 
   create: async (data: Partial<Workspace>): Promise<Workspace> => {
-    const r = await client.post('/api/v1/workspaces/', data)
+    const r = await client.post('/api/v1/method/grunt.api.v1.workspace.save_workspace', data)
     return r.data.data
   },
 
   update: async (name: string, data: Partial<Workspace>): Promise<Workspace> => {
-    const r = await client.put(`/api/v1/workspaces/${name}`, data)
+    const payload = { ...data, name }
+    const r = await client.post('/api/v1/method/grunt.api.v1.workspace.save_workspace', payload)
     return r.data.data
   },
 
   delete: async (name: string): Promise<void> => {
-    await client.delete(`/api/v1/workspaces/${name}`)
+    await client.post('/api/v1/method/grunt.api.v1.workspace.delete_workspace', { name })
   },
 
   getCounts: async (name: string): Promise<Record<string, number>> => {
-    const r = await client.get(`/api/v1/workspaces/${name}/counts`)
+    const r = await client.get('/api/v1/method/grunt.api.v1.workspace.get_counts', { params: { name } })
     return r.data.data
   },
 
   search: async (q: string, limit = 20): Promise<SearchResult[]> => {
-    const r = await client.get('/api/v1/meta/search', { params: { q, limit } })
+    const r = await client.get('/api/v1/method/grunt.api.v1.search.search', { params: { q, limit } })
     return r.data.data
   },
 
@@ -83,8 +84,8 @@ export const workspaceApi = {
     name: string,
     opts?: { dateFrom?: string; dateTo?: string },
   ): Promise<Record<string, unknown>> => {
-    const r = await client.get(`/api/v1/workspaces/${name}/widget-data`, {
-      params: { date_from: opts?.dateFrom, date_to: opts?.dateTo },
+    const r = await client.get('/api/v1/method/grunt.api.v1.workspace.get_widget_data', {
+      params: { name, date_from: opts?.dateFrom, date_to: opts?.dateTo },
     })
     return r.data.data
   },

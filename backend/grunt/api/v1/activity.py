@@ -1,28 +1,27 @@
+"""Activity Log API whitelisted methods."""
+
+from __future__ import annotations
 from typing import Any
+import grunt
 
-from fastapi import Query
-
-from grunt.api.router import GruntRouter
-from grunt.app import grunt
-
-router = GruntRouter(prefix="", tags=["activity"])
-
-
-@router.get("")
+@grunt.whitelist()
 async def list_activity(
-    page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=1, le=100),
-    sort_by: str = Query("created_at"),
-    sort_order: str = Query("desc"),
-    doctype: str | None = Query(None),
-    doc_id: str | None = Query(None),
-    user: str | None = Query(None),
-    action: str | None = Query(None),
-    date_from: str | None = Query(None),
-    date_to: str | None = Query(None),
+    page: int = 1,
+    per_page: int = 20,
+    sort_by: str = "created_at",
+    sort_order: str = "desc",
+    doctype: str | None = None,
+    doc_id: str | None = None,
+    user: str | None = None,
+    action: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
 ) -> dict[str, Any]:
-    """Return a filtered, paginated activity feed."""
-    filters: dict[str, str] = {}
+    """Return a filtered, paginated activity feed.
+    
+    Call via: /api/v1/method/grunt.api.v1.activity.list_activity
+    """
+    filters: dict[str, Any] = {}
     if doctype:
         filters["doctype"] = doctype
     if doc_id:
@@ -36,6 +35,8 @@ async def list_activity(
     if date_to:
         filters["created_at__lte"] = date_to
 
+    page = int(page)
+    per_page = int(per_page)
     total = await grunt.count("ActivityLog", filters=filters)
     entries = await grunt.get_list(
         "ActivityLog",
@@ -43,14 +44,14 @@ async def list_activity(
         fields=["id", "doctype", "doc_id", "action", "user", "details", "created_at"],
         limit=per_page,
         page=page,
-        order_by="created_at",
-        order="desc",
+        order_by=sort_by,
+        order=sort_order,
     )
 
     return {
-        "success": True,
-        "data": entries,
-        "meta": {
-            "total": total, "page": page, "per_page": per_page, "pages": -(-total // per_page)
-        },
+        "items": entries,
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "pages": -(-total // per_page)
     }

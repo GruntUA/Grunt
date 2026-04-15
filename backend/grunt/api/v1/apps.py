@@ -1,23 +1,15 @@
-"""Apps API — list and manage installed Grunt apps."""
+"""Apps management whitelisted methods."""
 
 from __future__ import annotations
-
 from typing import Any
+import grunt
+from grunt.app import grunt as grunt_app
 
-from fastapi import HTTPException
-
-from grunt.api.router import GruntRouter
-from grunt.api.v1.schemas.response import ok
-from grunt.app import grunt
-
-router = GruntRouter(prefix="", tags=["apps"])
-
-
-@router.get("/")
-async def list_apps() -> dict[str, Any]:
+@grunt.whitelist()
+async def list_apps() -> list[dict[str, Any]]:
     """List all installed apps."""
-    apps = await grunt.get_list("GruntInstalledApp")
-    return ok([
+    apps = await grunt_app.get_list("GruntInstalledApp")
+    return [
         {
             "id": str(a.get("id")),
             "name": a.get("name"),
@@ -27,75 +19,71 @@ async def list_apps() -> dict[str, Any]:
             "installed_at": str(a.get("installed_at")) if a.get("installed_at") else None,
         }
         for a in apps
-    ])
+    ]
 
-
-@router.post("/")
+@grunt.whitelist()
 async def register_app(
-    body: dict[str, Any],
+    name: str,
+    title: str | None = None,
+    version: str = "0.1.0",
+    modules: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Register a new installed app."""
-    if not grunt.session.is_superadmin:
-        raise HTTPException(status_code=403, detail="Not authorized")
+    """Register a new installed app. Superadmin only."""
+    user = grunt_app._require_user()
+    if not user.is_superadmin:
+        grunt_app.throw("Not authorized", "PERMISSION_DENIED")
 
-    name = body.get("name", "")
     if not name:
-        raise HTTPException(status_code=422, detail="name є обов'язковим")
+        grunt_app.throw("name є обов'язковим", "VALIDATION_ERROR")
 
-    existing = await grunt.get_list("GruntInstalledApp", filters={"name": name})
+    existing = await grunt_app.get_list("GruntInstalledApp", filters={"name": name})
     if existing:
-        raise HTTPException(status_code=409, detail=f"Додаток '{name}' вже встановлено")
+        grunt_app.throw(f"Додаток '{name}' вже встановлено", "CONFLICT")
 
-    app = await grunt.new_doc(
+    app = await grunt_app.new_doc(
         "GruntInstalledApp",
         {
             "name": name,
-            "title": body.get("title", name),
-            "version": body.get("version", "0.1.0"),
-            "modules": body.get("modules", []),
+            "title": title or name,
+            "version": version,
+            "modules": modules or [],
         },
     )
-    return ok({"name": app.get("name"), "title": app.get("title")})
+    return {"name": app.get("name"), "title": app.get("title")}
 
-
-@router.post("/{name}/modules")
-async def add_module(
-    name: str,
-    body: dict[str, Any],
-) -> dict[str, Any]:
+@grunt.whitelist()
+async def add_module(name: str, module: str) -> dict[str, Any]:
     """Add a module to an installed app."""
-    apps = await grunt.get_list("GruntInstalledApp", filters={"name": name})
+    apps = await grunt_app.get_list("GruntInstalledApp", filters={"name": name})
     if not apps:
-        raise HTTPException(status_code=404, detail=f"Додаток '{name}' не знайдено")
+        grunt_app.throw(f"Додаток '{name}' не знайдено", "NOT_FOUND")
 
     app_id = apps[0]["id"]
-    app = await grunt.get_doc("GruntInstalledApp", app_id)
+    app = await grunt_app.get_doc("GruntInstalledApp", app_id)
 
-    module_name = (body.get("module") or "").strip()
+    module_name = (module or "").strip()
     if not module_name:
-        raise HTTPException(status_code=422, detail="module є обов'язковим")
+        grunt_app.throw("module є обов'язковим", "VALIDATION_ERROR")
 
     current_modules = app.get("modules", [])
     if module_name in current_modules:
-        raise HTTPException(status_code=409, detail=f"Модуль '{module_name}' вже існує")
+        grunt_app.throw(f"Модуль '{module_name}' вже існує", "CONFLICT")
 
     current_modules.append(module_name)
-    await grunt.save_doc("GruntInstalledApp", app_id, {"modules": current_modules})
+    await grunt_app.save_doc("GruntInstalledApp", app_id, {"modules": current_modules})
 
-    return ok({"name": app.get("name"), "title": app.get("title"), "modules": current_modules})
+    return {"name": app.get("name"), "title": app.get("title"), "modules": current_modules}
 
+@grunt.whitelist()
+async def delete_app(name: str) -> bool:
+    """Uninstall an app. Superadmin only."""
+    user = grunt_app._require_user()
+    if not user.is_superadmin:
+        grunt_app.throw("Not authorized", "PERMISSION_DENIED")
 
-@router.delete("/{name}")
-async def delete_app(
-    name: str,
-) -> dict[str, Any]:
-    """Uninstall an app."""
-    if not grunt.session.is_superadmin:
-        raise HTTPException(status_code=403, detail="Not authorized")
-
-    apps = await grunt.get_list("GruntInstalledApp", filters={"name": name})
+    apps = await grunt_app.get_list("GruntInstalledApp", filters={"name": name})
     if not apps:
-        raise HTTPException(status_code=404, detail=f"Додаток '{name}' не знайдено")
+        grunt_app.throw(f"Додаток '{name}' не знайдено", "NOT_FOUND")
 
-    await grunt.delete_doc("GruntInstalledApp", apps[0]["id"])
-    return ok(message=f"Додаток '{name}' видалено")
+    await grunt_app.delete_doc("GruntInstalledApp", apps[0]["id"])
+    return True

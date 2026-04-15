@@ -104,7 +104,7 @@ class DocumentWriteMixin:
         errors = _validate_data(dt, data)
         if errors:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=errors,
             )
 
@@ -161,7 +161,7 @@ class DocumentWriteMixin:
                 await doc.before_save()
             except GruntError as e:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
                 ) from e
 
             # Compute formula fields after validation, before DB write
@@ -205,7 +205,7 @@ class DocumentWriteMixin:
                 await doc.after_save()
             except GruntError as e:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
                 ) from e
 
             await fire(
@@ -264,7 +264,7 @@ class DocumentWriteMixin:
         errors = _validate_data(dt, data, partial=True)
         if errors:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=errors,
             )
 
@@ -297,7 +297,7 @@ class DocumentWriteMixin:
                 await doc.before_save()
             except GruntError as e:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
                 ) from e
 
             # Compute formula fields on the merged document, then propagate
@@ -411,7 +411,7 @@ class DocumentWriteMixin:
                 await doc.after_save()
             except GruntError as e:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
                 ) from e
 
             await fire(
@@ -474,7 +474,7 @@ class DocumentWriteMixin:
                 await doc.before_delete()
             except GruntError as e:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
                 ) from e
 
             await fire(
@@ -499,7 +499,7 @@ class DocumentWriteMixin:
                 await doc.after_delete()
             except GruntError as e:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
                 ) from e
 
             await fire(

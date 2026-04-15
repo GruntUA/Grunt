@@ -43,7 +43,7 @@ export const i18n = createI18n({
 export async function loadRemoteTranslations(locale?: SupportedLocale): Promise<void> {
   const lang = locale || getSavedLocale()
   try {
-    const response = await fetch(`/api/v1/translations/${lang}`)
+    const response = await fetch(`/api/v1/method/grunt.api.v1.translations.get_translations?locale=${lang}`)
     if (response.ok) {
       const data = await response.json()
       if (data.success && data.data) {

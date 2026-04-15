@@ -1,9 +1,7 @@
-"""Tests for RBAC permission checker."""
+"""Tests for RBAC permission checker (migrated integration parts)."""
 
 from __future__ import annotations
-
 from typing import TYPE_CHECKING
-
 import pytest
 
 from grunt.core.metadata.doctype import DocType, DocTypePermission
@@ -13,7 +11,6 @@ if TYPE_CHECKING:
     from httpx import AsyncClient
 
 # ── Unit tests for PermissionChecker ─────────────────────────────────────
-
 
 class MockUser:
     email = "user@example.com"
@@ -89,8 +86,7 @@ async def test_match_owner_eq_user():
 @pytest.mark.asyncio
 async def test_require_raises_on_deny():
     """require() raises HTTPException when denied."""
-    from fastapi import HTTPException  # noqa: PLC0415
-
+    from fastapi import HTTPException
     user = MockUser(roles=[])
     dt = _make_doctype_with_perms([{"role": "Admin", "read": True}])
     with pytest.raises(HTTPException) as exc_info:
@@ -98,15 +94,15 @@ async def test_require_raises_on_deny():
     assert exc_info.value.status_code == 403
 
 
-# ── Integration: role management API ─────────────────────────────────────
+# ── Integration: role management API (Migrated) ──────────────────────────
 
 
 @pytest.mark.asyncio
 async def test_list_users_requires_superadmin(client: AsyncClient, auth_headers: dict):
-    """GET /auth/users requires superadmin."""
+    """list_users requires superadmin."""
     # Register a regular user
     await client.post(
-        "/api/v1/auth/register",
+        "/api/v1/method/grunt.api.v1.user.register",
         json={"email": "regular@grunt.example.com", "password": "pass", "full_name": "Regular"},
     )
     resp_login = await client.post(
@@ -116,7 +112,7 @@ async def test_list_users_requires_superadmin(client: AsyncClient, auth_headers:
     regular_token = resp_login.json()["access_token"]
 
     resp = await client.get(
-        "/api/v1/auth/users",
+        "/api/v1/method/grunt.api.v1.user.list_users",
         headers={"Authorization": f"Bearer {regular_token}"},
     )
     assert resp.status_code == 403
@@ -124,10 +120,10 @@ async def test_list_users_requires_superadmin(client: AsyncClient, auth_headers:
 
 @pytest.mark.asyncio
 async def test_list_users_as_superadmin(client: AsyncClient, auth_headers: dict):
-    """GET /auth/users works for superadmin."""
-    resp = await client.get("/api/v1/auth/users", headers=auth_headers)
+    """list_users works for superadmin."""
+    resp = await client.get("/api/v1/method/grunt.api.v1.user.list_users", headers=auth_headers)
     assert resp.status_code == 200
-    users = resp.json()
+    users = resp.json()["data"]
     assert isinstance(users, list)
     assert len(users) >= 1
 
@@ -137,32 +133,33 @@ async def test_add_remove_role(client: AsyncClient, auth_headers: dict):
     """Superadmin can add and remove roles from users."""
     # Register a regular user
     resp = await client.post(
-        "/api/v1/auth/register",
+        "/api/v1/method/grunt.api.v1.user.register",
         json={"email": "target@grunt.example.com", "password": "pass", "full_name": "Target"},
     )
-    target_id = resp.json()["id"]
+    target_id = resp.json()["data"]["id"]
 
     # Add role
     resp = await client.post(
-        f"/api/v1/auth/users/{target_id}/roles",
-        json={"role_name": "Manager"},
+        "/api/v1/method/grunt.api.v1.user.add_role",
+        json={"user_id": target_id, "role_name": "Manager"},
         headers=auth_headers,
     )
     assert resp.status_code == 200
 
     # Verify role is in user list
-    users_resp = await client.get("/api/v1/auth/users", headers=auth_headers)
-    user_data = next(u for u in users_resp.json() if u["id"] == target_id)
+    users_resp = await client.get("/api/v1/method/grunt.api.v1.user.list_users", headers=auth_headers)
+    user_data = next(u for u in users_resp.json()["data"] if u["id"] == target_id)
     assert "Manager" in user_data["roles"]
 
     # Remove role
-    resp = await client.delete(
-        f"/api/v1/auth/users/{target_id}/roles/Manager",
+    resp = await client.post(
+        "/api/v1/method/grunt.api.v1.user.remove_role",
+        json={"user_id": target_id, "role_name": "Manager"},
         headers=auth_headers,
     )
     assert resp.status_code == 200
 
     # Verify role removed
-    users_resp = await client.get("/api/v1/auth/users", headers=auth_headers)
-    user_data = next(u for u in users_resp.json() if u["id"] == target_id)
+    users_resp = await client.get("/api/v1/method/grunt.api.v1.user.list_users", headers=auth_headers)
+    user_data = next(u for u in users_resp.json()["data"] if u["id"] == target_id)
     assert "Manager" not in user_data["roles"]

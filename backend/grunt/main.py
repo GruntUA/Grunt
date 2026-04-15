@@ -23,6 +23,8 @@ from grunt.core.site.middleware import SiteContextMiddleware
 from grunt.core.tasks.broker import broker
 from grunt.core.tasks.registry import discover_tasks
 from grunt.core.tasks.scheduler import register_scheduler_events, start_scheduler, stop_scheduler
+from grunt.errors import GruntError
+from grunt.api.messages import ApplicationError
 
 document_registry.discover_core_controllers()
 
@@ -294,6 +296,50 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
                 "code": f"HTTP_{exc.status_code}",
                 "message": detail,
                 "details": exc.detail if isinstance(exc.detail, list) else [],
+            },
+        },
+    )
+
+
+@app.exception_handler(GruntError)
+async def grunt_error_handler(request: Request, exc: GruntError) -> JSONResponse:
+    """Map GruntError to appropriate HTTP status codes based on title."""
+    status_map = {
+        "PERMISSION_DENIED": 403,
+        "NOT_FOUND": 404,
+        "CONFLICT": 409,
+        "VALIDATION_ERROR": 422,
+    }
+    status_code = status_map.get(exc.title, 422)
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "success": False,
+            "error": {
+                "code": exc.title or "APPLICATION_ERROR",
+                "message": str(exc),
+            },
+        },
+    )
+
+
+@app.exception_handler(ApplicationError)
+async def application_error_handler(request: Request, exc: ApplicationError) -> JSONResponse:
+    """Map ApplicationError to appropriate HTTP status codes based on code."""
+    status_map = {
+        "PERMISSION_DENIED": 403,
+        "NOT_FOUND": 404,
+        "CONFLICT": 409,
+        "VALIDATION_ERROR": 422,
+    }
+    status_code = status_map.get(exc.code, 422)
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "success": False,
+            "error": {
+                "code": exc.code,
+                "message": exc.message,
             },
         },
     )

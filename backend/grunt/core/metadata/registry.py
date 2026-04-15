@@ -407,7 +407,7 @@ class DocTypeRegistry:
         for f in doctype.fields:
             if f.fieldname in seen:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     detail=f"Duplicate fieldname '{f.fieldname}' in DocType '{doctype.name}'",
                 )
             seen.add(f.fieldname)

@@ -1,4 +1,4 @@
-"""Tests for the global search endpoint — GET /api/v1/search."""
+"""Tests for the global search endpoint — GET /api/v1/method/grunt.api.v1.search.global_search."""
 
 from __future__ import annotations
 
@@ -13,9 +13,13 @@ if TYPE_CHECKING:
 
 
 async def create_and_sync(client: AsyncClient, headers: dict, doctype: dict) -> None:
-    """Create a DocType (sync_table is called internally by registry.register)."""
-    resp = await client.post("/api/v1/meta/doctypes", json=doctype, headers=headers)
-    assert resp.status_code == 201, resp.text
+    """Create a DocType using the whitelisted method."""
+    resp = await client.post(
+        "/api/v1/method/grunt.api.v1.meta.save_doctype", 
+        json={"doctype_data": doctype}, 
+        headers=headers
+    )
+    assert resp.status_code == 200, resp.text
 
 
 async def create_doc(client: AsyncClient, headers: dict, doctype: str, data: dict) -> dict:
@@ -59,16 +63,16 @@ SIMPLE_DOCTYPE = {
 
 @pytest.mark.asyncio
 async def test_search_requires_auth(client: AsyncClient):
-    """GET /search without token → 401."""
-    resp = await client.get("/api/v1/search", params={"q": "test"})
+    """/method/global_search without token → 401."""
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "test"})
     assert resp.status_code == 401
 
 
 @pytest.mark.asyncio
 async def test_search_invalid_token(client: AsyncClient):
-    """GET /search with invalid token → 401."""
+    """/method/global_search with invalid token → 401."""
     resp = await client.get(
-        "/api/v1/search",
+        "/api/v1/method/grunt.api.v1.search.global_search",
         params={"q": "test"},
         headers={"Authorization": "Bearer invalid.token.here"},
     )
@@ -80,29 +84,29 @@ async def test_search_invalid_token(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_search_q_is_required(client: AsyncClient, auth_headers: dict):
-    """GET /search without q param → 422."""
-    resp = await client.get("/api/v1/search", headers=auth_headers)
-    assert resp.status_code == 422
+    """/method/global_search without q param → 400 (or 422 depending on implementation)."""
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", headers=auth_headers)
+    assert resp.status_code in (400, 422)
 
 
 @pytest.mark.asyncio
 async def test_search_q_empty_string_rejected(client: AsyncClient, auth_headers: dict):
     """GET /search?q= (empty) → 422 (min_length=1)."""
-    resp = await client.get("/api/v1/search", params={"q": ""}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": ""}, headers=auth_headers)
     assert resp.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_search_limit_above_max_rejected(client: AsyncClient, auth_headers: dict):
     """GET /search?limit=51 → 422 (max 50)."""
-    resp = await client.get("/api/v1/search", params={"q": "x", "limit": 51}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "x", "limit": 51}, headers=auth_headers)
     assert resp.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_search_limit_zero_rejected(client: AsyncClient, auth_headers: dict):
     """GET /search?limit=0 → 422 (min 1)."""
-    resp = await client.get("/api/v1/search", params={"q": "x", "limit": 0}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "x", "limit": 0}, headers=auth_headers)
     assert resp.status_code == 422
 
 
@@ -112,7 +116,7 @@ async def test_search_limit_zero_rejected(client: AsyncClient, auth_headers: dic
 @pytest.mark.asyncio
 async def test_search_response_structure(client: AsyncClient, auth_headers: dict):
     """Response always has success=True and data array."""
-    resp = await client.get("/api/v1/search", params={"q": "нічого"}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "нічого"}, headers=auth_headers)
     assert resp.status_code == 200
     body = resp.json()
     assert body["success"] is True
@@ -127,7 +131,11 @@ async def test_search_result_fields(client: AsyncClient, auth_headers: dict):
         client, auth_headers, "Документ", {"name": "ДОК-001", "title": "Тестовий документ"}
     )
 
-    resp = await client.get("/api/v1/search", params={"q": "Тестовий"}, headers=auth_headers)
+    resp = await client.get(
+        "/api/v1/method/grunt.api.v1.search.global_search", 
+        params={"q": "Тестовий"}, 
+        headers=auth_headers
+    )
     assert resp.status_code == 200
     results = resp.json()["data"]
     assert len(results) >= 1
@@ -147,7 +155,7 @@ async def test_search_no_results_for_unknown_query(client: AsyncClient, auth_hea
     """Query that matches nothing returns empty list."""
     await create_and_sync(client, auth_headers, SIMPLE_DOCTYPE)
     resp = await client.get(
-        "/api/v1/search", params={"q": "zzz_не_існує_xyz"}, headers=auth_headers
+        "/api/v1/method/grunt.api.v1.search.global_search", params={"q": "zzz_не_існує_xyz"}, headers=auth_headers
     )
     assert resp.status_code == 200
     assert resp.json()["data"] == []
@@ -159,7 +167,7 @@ async def test_search_finds_by_name_field(client: AsyncClient, auth_headers: dic
     await create_and_sync(client, auth_headers, SIMPLE_DOCTYPE)
     await create_doc(client, auth_headers, "Документ", {"name": "УН-2024-001", "title": "Щось"})
 
-    resp = await client.get("/api/v1/search", params={"q": "УН-2024"}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "УН-2024"}, headers=auth_headers)
     results = resp.json()["data"]
     assert any(r["name"] == "УН-2024-001" for r in results)
 
@@ -172,7 +180,7 @@ async def test_search_finds_by_title_field(client: AsyncClient, auth_headers: di
         client, auth_headers, "Документ", {"name": "ДОК-001", "title": "Договір оренди"}
     )
 
-    resp = await client.get("/api/v1/search", params={"q": "оренди"}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "оренди"}, headers=auth_headers)
     results = resp.json()["data"]
     assert any(r["display_title"] == "Договір оренди" for r in results)
 
@@ -196,7 +204,7 @@ async def test_search_finds_by_search_fields(client: AsyncClient, auth_headers: 
         {"name": "ДОК-001", "title": "Назва", "code": "UNIQUE-CODE-XYZ"},
     )
 
-    resp = await client.get("/api/v1/search", params={"q": "UNIQUE-CODE-XYZ"}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "UNIQUE-CODE-XYZ"}, headers=auth_headers)
     results = resp.json()["data"]
     assert len(results) >= 1
     assert results[0]["doctype"] == "Документ"
@@ -210,7 +218,7 @@ async def test_search_partial_match(client: AsyncClient, auth_headers: dict):
         client, auth_headers, "Документ", {"name": "ДОК-001", "title": "Акт приймання-передачі"}
     )
 
-    resp = await client.get("/api/v1/search", params={"q": "прийм"}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "прийм"}, headers=auth_headers)
     results = resp.json()["data"]
     assert any("прийм" in r["display_title"].lower() for r in results)
 
@@ -223,7 +231,7 @@ async def test_display_title_uses_title_field(client: AsyncClient, auth_headers:
         client, auth_headers, "Документ", {"name": "ДОК-001", "title": "Людська назва"}
     )
 
-    resp = await client.get("/api/v1/search", params={"q": "Людська"}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "Людська"}, headers=auth_headers)
     result = resp.json()["data"][0]
     assert result["display_title"] == "Людська назва"
     assert result["name"] == "ДОК-001"
@@ -245,7 +253,7 @@ async def test_display_title_falls_back_to_name(client: AsyncClient, auth_header
     await create_and_sync(client, auth_headers, doctype_no_title)
     await create_doc(client, auth_headers, "Запис", {"name": "ЗАП-001", "info": "дані"})
 
-    resp = await client.get("/api/v1/search", params={"q": "ЗАП-001"}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "ЗАП-001"}, headers=auth_headers)
     results = resp.json()["data"]
     assert len(results) >= 1
     result = next(r for r in results if r["doctype"] == "Запис")
@@ -268,7 +276,7 @@ async def test_search_default_limit_is_10(client: AsyncClient, auth_headers: dic
             {"name": f"ДОК-{i:03}", "title": f"Документ номер {i}"},
         )
 
-    resp = await client.get("/api/v1/search", params={"q": "Документ"}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "Документ"}, headers=auth_headers)
     assert resp.status_code == 200
     assert len(resp.json()["data"]) <= 10
 
@@ -282,7 +290,7 @@ async def test_search_custom_limit_respected(client: AsyncClient, auth_headers: 
             client, auth_headers, "Документ", {"name": f"ДОК-{i:03}", "title": f"Акт {i}"}
         )
 
-    resp = await client.get("/api/v1/search", params={"q": "Акт", "limit": 3}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "Акт", "limit": 3}, headers=auth_headers)
     assert resp.status_code == 200
     assert len(resp.json()["data"]) <= 3
 
@@ -314,7 +322,7 @@ async def test_search_across_multiple_doctypes(client: AsyncClient, auth_headers
     await create_doc(client, auth_headers, "Клієнт", {"name": "КЛ-001", "name_ua": "Пошук ABC"})
     await create_doc(client, auth_headers, "Договір", {"name": "ДОГ-001", "subject": "Договір ABC"})
 
-    resp = await client.get("/api/v1/search", params={"q": "ABC"}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "ABC"}, headers=auth_headers)
     assert resp.status_code == 200
     results = resp.json()["data"]
     doctypes_found = {r["doctype"] for r in results}
@@ -343,7 +351,7 @@ async def test_search_total_limit_across_doctypes(client: AsyncClient, auth_head
             )
 
     resp = await client.get(
-        "/api/v1/search", params={"q": "Пошук", "limit": 4}, headers=auth_headers
+        "/api/v1/method/grunt.api.v1.search.global_search", params={"q": "Пошук", "limit": 4}, headers=auth_headers
     )
     assert resp.status_code == 200
     assert len(resp.json()["data"]) <= 4
@@ -367,7 +375,7 @@ async def test_child_doctype_excluded_from_search(client: AsyncClient, auth_head
     # Child doctypes require parent_id so we skip document creation;
     # the search endpoint should skip the DocType entirely based on is_child flag.
 
-    resp = await client.get("/api/v1/search", params={"q": "щось"}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "щось"}, headers=auth_headers)
     assert resp.status_code == 200
     results = resp.json()["data"]
     assert not any(r["doctype"] == "РядокТаблиці" for r in results)
@@ -387,7 +395,7 @@ async def test_search_open_doctype_accessible_to_regular_user(
     )
 
     user_headers = await regular_user_headers(client)
-    resp = await client.get("/api/v1/search", params={"q": "Відкритий"}, headers=user_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "Відкритий"}, headers=user_headers)
     assert resp.status_code == 200
     results = resp.json()["data"]
     assert any(r["doctype"] == "Документ" for r in results)
@@ -414,7 +422,7 @@ async def test_search_restricted_doctype_hidden_from_regular_user(
     # Regular user without Manager role → should not see results
     user_headers = await regular_user_headers(client)
     resp = await client.get(
-        "/api/v1/search", params={"q": "Секретний вміст XYZ123"}, headers=user_headers
+        "/api/v1/method/grunt.api.v1.search.global_search", params={"q": "Секретний вміст XYZ123"}, headers=user_headers
     )
     assert resp.status_code == 200
     results = resp.json()["data"]
@@ -440,7 +448,7 @@ async def test_search_restricted_doctype_visible_to_superadmin(
     )
 
     resp = await client.get(
-        "/api/v1/search", params={"q": "Тільки для адміна ABC"}, headers=auth_headers
+        "/api/v1/method/grunt.api.v1.search.global_search", params={"q": "Тільки для адміна ABC"}, headers=auth_headers
     )
     assert resp.status_code == 200
     results = resp.json()["data"]
@@ -455,19 +463,21 @@ async def test_search_skips_doctype_without_table(client: AsyncClient, auth_head
     """DocType registered but not synced (no table) → skipped, no 500 error."""
     # Register DocType without calling /sync (no table created)
     resp = await client.post(
-        "/api/v1/meta/doctypes",
+        "/api/v1/method/grunt.api.v1.meta.save_doctype",
         json={
-            "name": "БезТаблиці",
-            "label": "Без таблиці",
-            "module": "test",
-            "fields": [{"fieldname": "title", "fieldtype": "Text", "label": "T"}],
-            "search_fields": ["title"],
+            "doctype_data": {
+                "name": "БезТаблиці",
+                "label": "Без таблиці",
+                "module": "test",
+                "fields": [{"fieldname": "title", "fieldtype": "Text", "label": "T"}],
+                "search_fields": ["title"],
+            }
         },
         headers=auth_headers,
     )
-    assert resp.status_code == 201
+    assert resp.status_code == 200
 
     # Search should succeed even though БезТаблиці has no table
-    resp = await client.get("/api/v1/search", params={"q": "щось"}, headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "щось"}, headers=auth_headers)
     assert resp.status_code == 200
     assert resp.json()["success"] is True

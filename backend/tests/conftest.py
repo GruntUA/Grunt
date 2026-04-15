@@ -17,6 +17,10 @@ from grunt.core.metadata.compiler import MULTI_LINK_TABLE, SA_METADATA, compile_
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.search.service import search_index_service
 from grunt.main import app
+from grunt.config import settings
+
+# Disable rate limiting for tests
+settings.rate_limit_enabled = False
 
 # ── Single shared test engine ─────────────────────────────────────────────
 # Override via env to test against PostgreSQL or MySQL:
@@ -61,6 +65,7 @@ app.dependency_overrides[_get_engine_dep] = override_get_engine
 async def setup_db():
     """Create tables before each test, drop after. Clear registry."""
     async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     doctype_registry._doctypes.clear()
 
@@ -140,13 +145,16 @@ async def client():
 @pytest.fixture
 async def auth_headers(client: AsyncClient) -> dict[str, str]:
     """Register a superadmin user and return auth headers."""
-    await client.post(
+    r_reg = await client.post(
         "/api/v1/auth/register",
         json={"email": "admin@grunt.example.com", "password": "secret", "full_name": "Admin"},
     )
+    assert r_reg.status_code in (201, 200, 409)  # 409 if user somehow persisted
+    
     resp = await client.post(
         "/api/v1/auth/token",
         data={"username": "admin@grunt.example.com", "password": "secret"},
     )
+    assert resp.status_code == 200, f"Auth failed: {resp.text}"
     token = resp.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}

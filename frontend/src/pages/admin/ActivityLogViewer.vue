@@ -65,14 +65,19 @@ async function fetchData() {
   try {
     const params: Record<string, string | number> = { limit: PER_PAGE, page: page.value }
     if (filters.doctype) params.doctype = filters.doctype
-    if (filters.user)    params.user    = filters.user
-    if (filters.action)  params.action  = filters.action
+    if (filters.user) params.user = filters.user
+    if (filters.action) params.action = filters.action
     if (filters.date_from) params.date_from = filters.date_from
-    if (filters.date_to)   params.date_to   = filters.date_to
+    if (filters.date_to) params.date_to = filters.date_to
 
-    const res = await api.get('/api/v1/activity/', { params })
-    entries.value = res.data.data
-    meta.value    = res.data.meta
+    const res = await api.get('/api/v1/method/grunt.api.v1.activity.list_activity', { params })
+    entries.value = res.data.data.items
+    meta.value = {
+      total: res.data.data.total,
+      page: res.data.data.page,
+      per_page: res.data.data.per_page,
+      pages: res.data.data.pages
+    }
   } catch (e: unknown) {
     error.value = (e as Error).message ?? 'Помилка завантаження'
   } finally {
@@ -131,27 +136,27 @@ function formatVal(v: unknown): string {
 // ── Formatting ────────────────────────────────────────────────────────────────
 function getActionIcon(action: string) {
   switch (action?.toLowerCase()) {
-    case 'create':   return Plus
-    case 'update':   return RefreshCcw
-    case 'delete':   return Trash2
-    case 'submit':   return Send
-    case 'share':    return Share2
-    case 'comment':  return MessageSquare
+    case 'create': return Plus
+    case 'update': return RefreshCcw
+    case 'delete': return Trash2
+    case 'submit': return Send
+    case 'share': return Share2
+    case 'comment': return MessageSquare
     case 'workflow':
     case 'workflow_transition': return GitBranch
-    default:         return FileText
+    default: return FileText
   }
 }
 
 function getActionColor(action: string): string {
   switch (action?.toLowerCase()) {
-    case 'create':   return 'text-emerald-600 bg-emerald-500/10 border-emerald-200'
-    case 'update':   return 'text-amber-600 bg-amber-500/10 border-amber-200'
-    case 'delete':   return 'text-rose-600 bg-rose-500/10 border-rose-200'
-    case 'submit':   return 'text-blue-600 bg-blue-500/10 border-blue-200'
+    case 'create': return 'text-emerald-600 bg-emerald-500/10 border-emerald-200'
+    case 'update': return 'text-amber-600 bg-amber-500/10 border-amber-200'
+    case 'delete': return 'text-rose-600 bg-rose-500/10 border-rose-200'
+    case 'submit': return 'text-blue-600 bg-blue-500/10 border-blue-200'
     case 'workflow':
     case 'workflow_transition': return 'text-violet-600 bg-violet-500/10 border-violet-200'
-    default:         return 'text-muted-foreground bg-muted border-border'
+    default: return 'text-muted-foreground bg-muted border-border'
   }
 }
 
@@ -188,11 +193,8 @@ function formatTime(val: string | null): string {
           <span v-if="!loading" class="ml-1 text-xs">({{ meta.total }} записів)</span>
         </p>
       </div>
-      <button
-        class="flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg hover:bg-muted transition-colors"
-        :class="loading ? 'opacity-50 pointer-events-none' : ''"
-        @click="fetchData"
-      >
+      <button class="flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg hover:bg-muted transition-colors"
+        :class="loading ? 'opacity-50 pointer-events-none' : ''" @click="fetchData">
         <RefreshCcw class="size-3.5" :class="loading ? 'animate-spin' : ''" />
         Оновити
       </button>
@@ -203,10 +205,8 @@ function formatTime(val: string | null): string {
       <Filter class="size-4 text-muted-foreground shrink-0" />
 
       <!-- DocType -->
-      <select
-        v-model="filters.doctype"
-        class="h-8 px-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 min-w-[140px]"
-      >
+      <select v-model="filters.doctype"
+        class="h-8 px-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 min-w-[140px]">
         <option value="">Всі DocType</option>
         <option v-for="dt in dtStore.doctypes.filter(d => !d.is_child)" :key="dt.name" :value="dt.name">
           {{ dt.label }}
@@ -214,10 +214,8 @@ function formatTime(val: string | null): string {
       </select>
 
       <!-- Action -->
-      <select
-        v-model="filters.action"
-        class="h-8 px-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-      >
+      <select v-model="filters.action"
+        class="h-8 px-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
         <option value="">Всі дії</option>
         <option v-for="a in ACTIONS" :key="a" :value="a">{{ getActionLabel(a) }}</option>
       </select>
@@ -225,32 +223,21 @@ function formatTime(val: string | null): string {
       <!-- User -->
       <div class="relative">
         <Search class="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-        <input
-          v-model="filters.user"
-          placeholder="Користувач..."
-          class="h-8 pl-7 pr-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 w-44"
-        />
+        <input v-model="filters.user" placeholder="Користувач..."
+          class="h-8 pl-7 pr-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 w-44" />
       </div>
 
       <!-- Date range -->
-      <input
-        v-model="filters.date_from"
-        type="date"
-        class="h-8 px-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
+      <input v-model="filters.date_from" type="date"
+        class="h-8 px-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
       <span class="text-xs text-muted-foreground">—</span>
-      <input
-        v-model="filters.date_to"
-        type="date"
-        class="h-8 px-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
+      <input v-model="filters.date_to" type="date"
+        class="h-8 px-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
 
       <!-- Clear -->
-      <button
-        v-if="hasFilters"
+      <button v-if="hasFilters"
         class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors ml-auto"
-        @click="clearFilters"
-      >
+        @click="clearFilters">
         <X class="size-3.5" />
         Скинути
       </button>
@@ -290,22 +277,14 @@ function formatTime(val: string | null): string {
         <tbody class="divide-y divide-border/50">
           <template v-for="entry in entries" :key="entry.id">
             <!-- Main row -->
-            <tr
-              class="hover:bg-muted/30 transition-colors cursor-pointer group"
-              @click="goToDoc(entry, $event)"
-            >
+            <tr class="hover:bg-muted/30 transition-colors cursor-pointer group" @click="goToDoc(entry, $event)">
               <!-- Expand toggle -->
               <td class="px-4 py-3 w-8">
-                <button
-                  v-if="hasDetails(entry)"
+                <button v-if="hasDetails(entry)"
                   class="expand-btn size-6 flex items-center justify-center rounded hover:bg-muted text-muted-foreground transition-all"
-                  :class="expanded.has(entry.id) ? 'bg-muted text-foreground' : ''"
-                  @click.stop="toggleRow(entry.id)"
-                >
-                  <ChevronDown
-                    class="size-3.5 transition-transform duration-150"
-                    :class="expanded.has(entry.id) ? 'rotate-180' : ''"
-                  />
+                  :class="expanded.has(entry.id) ? 'bg-muted text-foreground' : ''" @click.stop="toggleRow(entry.id)">
+                  <ChevronDown class="size-3.5 transition-transform duration-150"
+                    :class="expanded.has(entry.id) ? 'rotate-180' : ''" />
                 </button>
                 <div v-else class="size-6" />
               </td>
@@ -313,10 +292,12 @@ function formatTime(val: string | null): string {
               <!-- Action label -->
               <td class="px-3 py-3">
                 <div class="flex items-center gap-2">
-                  <div :class="['size-7 rounded-md border flex items-center justify-center shrink-0', getActionColor(entry.action)]">
+                  <div
+                    :class="['size-7 rounded-md border flex items-center justify-center shrink-0', getActionColor(entry.action)]">
                     <component :is="getActionIcon(entry.action)" class="size-3.5" />
                   </div>
-                  <span :class="['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', getActionColor(entry.action)]">
+                  <span
+                    :class="['inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border', getActionColor(entry.action)]">
                     {{ getActionLabel(entry.action) }}
                   </span>
                 </div>
@@ -327,7 +308,8 @@ function formatTime(val: string | null): string {
 
               <!-- Doc ID -->
               <td class="px-3 py-3">
-                <span class="font-medium text-foreground group-hover:text-primary transition-colors truncate max-w-[200px] block">
+                <span
+                  class="font-medium text-foreground group-hover:text-primary transition-colors truncate max-w-[200px] block">
                   {{ entry.doc_id }}
                 </span>
               </td>
@@ -349,7 +331,8 @@ function formatTime(val: string | null): string {
                   <!-- Field-level diff (Update action) -->
                   <template v-if="getDiffChanges(entry)">
                     <div class="px-3 py-2 bg-muted/50 border-b border-border/60 flex items-center gap-2">
-                      <span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Змінені поля</span>
+                      <span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Змінені
+                        поля</span>
                       <span class="text-xs text-muted-foreground">({{ getDiffChanges(entry)!.length }})</span>
                     </div>
                     <table class="w-full text-xs">
@@ -361,25 +344,20 @@ function formatTime(val: string | null): string {
                         </tr>
                       </thead>
                       <tbody class="divide-y divide-border/30">
-                        <tr
-                          v-for="change in getDiffChanges(entry)"
-                          :key="change.field"
-                          class="group/row hover:bg-muted/30"
-                        >
+                        <tr v-for="change in getDiffChanges(entry)" :key="change.field"
+                          class="group/row hover:bg-muted/30">
                           <td class="px-3 py-2 font-mono text-foreground/70">{{ change.field }}</td>
                           <td class="px-3 py-2">
                             <span
                               class="inline-block max-w-[280px] truncate align-bottom px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-700 dark:text-rose-400 font-mono"
-                              :title="formatVal(change.old)"
-                            >
+                              :title="formatVal(change.old)">
                               {{ formatVal(change.old) }}
                             </span>
                           </td>
                           <td class="px-3 py-2">
                             <span
                               class="inline-block max-w-[280px] truncate align-bottom px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-mono"
-                              :title="formatVal(change.new)"
-                            >
+                              :title="formatVal(change.new)">
                               {{ formatVal(change.new) }}
                             </span>
                           </td>
@@ -394,11 +372,8 @@ function formatTime(val: string | null): string {
                       <span class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Деталі</span>
                     </div>
                     <div class="divide-y divide-border/30">
-                      <div
-                        v-for="item in getSimpleDetails(entry)"
-                        :key="item.label"
-                        class="flex items-baseline gap-3 px-3 py-2 text-xs"
-                      >
+                      <div v-for="item in getSimpleDetails(entry)" :key="item.label"
+                        class="flex items-baseline gap-3 px-3 py-2 text-xs">
                         <span class="font-mono text-muted-foreground w-32 shrink-0">{{ item.label }}</span>
                         <span class="font-mono text-foreground">{{ formatVal(item.value) }}</span>
                       </div>
@@ -420,19 +395,15 @@ function formatTime(val: string | null): string {
         з {{ meta.total }}
       </span>
       <div class="flex items-center gap-1">
-        <button
-          :disabled="page <= 1"
+        <button :disabled="page <= 1"
           class="p-1.5 rounded-md border hover:bg-muted transition-colors disabled:opacity-40 disabled:pointer-events-none"
-          @click="page--"
-        >
+          @click="page--">
           <ChevronLeft class="size-4" />
         </button>
         <span class="px-3 text-sm font-medium">{{ page }} / {{ meta.pages }}</span>
-        <button
-          :disabled="page >= meta.pages"
+        <button :disabled="page >= meta.pages"
           class="p-1.5 rounded-md border hover:bg-muted transition-colors disabled:opacity-40 disabled:pointer-events-none"
-          @click="page++"
-        >
+          @click="page++">
           <ChevronRight class="size-4" />
         </button>
       </div>

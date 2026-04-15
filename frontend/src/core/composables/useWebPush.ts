@@ -18,8 +18,8 @@ const permissionState = ref<NotificationPermission>(
 
 async function getVapidPublicKey(): Promise<string | null> {
   try {
-    const res = await client.get('/api/v1/notifications/vapid-public-key')
-    return res.data?.public_key ?? null
+    const res = await client.get('/api/v1/method/grunt.api.v1.notifications.get_vapid_public_key')
+    return res.data?.data ?? null
   } catch {
     return null
   }
@@ -71,7 +71,7 @@ async function subscribe(): Promise<boolean> {
     const json = sub.toJSON()
     const keys = json.keys as { p256dh: string; auth: string }
 
-    await client.post('/api/v1/notifications/push-subscribe', {
+    await client.post('/api/v1/method/grunt.api.v1.notifications.subscribe_push', {
       endpoint: sub.endpoint,
       p256dh: keys.p256dh,
       auth: keys.auth,
@@ -95,10 +95,9 @@ async function unsubscribe(): Promise<void> {
     const sub = await reg.pushManager.getSubscription()
     if (!sub) return
 
-    const json = sub.toJSON()
-    const keys = json.keys as { p256dh: string; auth: string }
-    await client.delete('/api/v1/notifications/push-subscribe', {
-      data: { endpoint: sub.endpoint, p256dh: keys.p256dh, auth: keys.auth },
+    // const json = sub.toJSON()
+    await client.post('/api/v1/method/grunt.api.v1.notifications.unsubscribe_push', {
+      endpoint: sub.endpoint
     })
     await sub.unsubscribe()
     isSubscribed.value = false

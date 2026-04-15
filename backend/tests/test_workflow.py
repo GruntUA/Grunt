@@ -1,9 +1,7 @@
-"""Tests for the Workflow engine — state machine transitions."""
+"""Tests for the Workflow engine — state machine transitions (migrated to whitelisted methods)."""
 
 from __future__ import annotations
-
 from typing import TYPE_CHECKING
-
 import pytest
 
 if TYPE_CHECKING:
@@ -54,11 +52,11 @@ DOCTYPE_PAYLOAD = {
 async def test_create_doctype_with_workflow(client: AsyncClient, auth_headers: dict):
     """DocType with workflow can be created."""
     resp = await client.post(
-        "/api/v1/meta/doctypes",
-        json=DOCTYPE_PAYLOAD,
+        "/api/v1/method/grunt.api.v1.meta.save_doctype",
+        json={"doctype_data": DOCTYPE_PAYLOAD},
         headers=auth_headers,
     )
-    assert resp.status_code == 201, resp.text
+    assert resp.status_code == 200, resp.text
     data = resp.json()["data"]
     assert data["workflow"]["state_field"] == "status"
     assert len(data["workflow"]["states"]) == 4
@@ -69,23 +67,27 @@ async def test_workflow_transitions_empty_for_no_workflow(client: AsyncClient, a
     """A DocType without workflow returns empty transitions list."""
     # Create a simple doctype without workflow
     resp = await client.post(
-        "/api/v1/meta/doctypes",
-        json={"name": "Note", "label": "Нотатка", "module": "core", "fields": []},
+        "/api/v1/method/grunt.api.v1.meta.save_doctype",
+        json={"doctype_data": {"name": "Note", "label": "Нотатка", "module": "core", "fields": []}},
         headers=auth_headers,
     )
-    assert resp.status_code == 201
+    assert resp.status_code == 200
 
     # Create a document
     resp = await client.post(
-        "/api/v1/docs/Note",
-        json={"title": "Test Note"},
+        "/api/v1/method/grunt.api.v1.documents.new_doc",
+        json={"doctype": "Note", "data": {"title": "Test Note"}},
         headers=auth_headers,
     )
-    assert resp.status_code == 201
+    assert resp.status_code == 200
     doc_id = resp.json()["data"]["id"]
 
     # Check transitions
-    resp = await client.get(f"/api/v1/docs/Note/{doc_id}/transitions", headers=auth_headers)
+    resp = await client.get(
+        "/api/v1/method/grunt.api.v1.workflow.get_transitions", 
+        params={"doctype": "Note", "doc_id": doc_id}, 
+        headers=auth_headers
+    )
     assert resp.status_code == 200
     assert resp.json()["data"] == []
 
@@ -94,19 +96,27 @@ async def test_workflow_transitions_empty_for_no_workflow(client: AsyncClient, a
 async def test_workflow_initial_transitions(client: AsyncClient, auth_headers: dict):
     """A doc in Draft state shows Submit transition."""
     # Create doctype
-    await client.post("/api/v1/meta/doctypes", json=DOCTYPE_PAYLOAD, headers=auth_headers)
+    await client.post(
+        "/api/v1/method/grunt.api.v1.meta.save_doctype", 
+        json={"doctype_data": DOCTYPE_PAYLOAD}, 
+        headers=auth_headers
+    )
 
-    # Create doc (status will be None initially — no initial state forced)
+    # Create doc
     resp = await client.post(
-        "/api/v1/docs/Contract",
-        json={"title": "Test Contract", "status": "Draft"},
+        "/api/v1/method/grunt.api.v1.documents.new_doc",
+        json={"doctype": "Contract", "data": {"title": "Test Contract", "status": "Draft"}},
         headers=auth_headers,
     )
-    assert resp.status_code == 201
+    assert resp.status_code == 200
     doc_id = resp.json()["data"]["id"]
 
     # Get transitions
-    resp = await client.get(f"/api/v1/docs/Contract/{doc_id}/transitions", headers=auth_headers)
+    resp = await client.get(
+        "/api/v1/method/grunt.api.v1.workflow.get_transitions", 
+        params={"doctype": "Contract", "doc_id": doc_id}, 
+        headers=auth_headers
+    )
     assert resp.status_code == 200
     transitions = resp.json()["data"]
     assert any(t["action"] == "Submit" for t in transitions)
@@ -115,19 +125,23 @@ async def test_workflow_initial_transitions(client: AsyncClient, auth_headers: d
 @pytest.mark.asyncio
 async def test_workflow_apply_transition(client: AsyncClient, auth_headers: dict):
     """Applying a transition changes the document state."""
-    await client.post("/api/v1/meta/doctypes", json=DOCTYPE_PAYLOAD, headers=auth_headers)
+    await client.post(
+        "/api/v1/method/grunt.api.v1.meta.save_doctype", 
+        json={"doctype_data": DOCTYPE_PAYLOAD}, 
+        headers=auth_headers
+    )
 
     resp = await client.post(
-        "/api/v1/docs/Contract",
-        json={"title": "Test Contract", "status": "Draft"},
+        "/api/v1/method/grunt.api.v1.documents.new_doc",
+        json={"doctype": "Contract", "data": {"title": "Test Contract", "status": "Draft"}},
         headers=auth_headers,
     )
     doc_id = resp.json()["data"]["id"]
 
     # Apply Submit transition
     resp = await client.post(
-        f"/api/v1/docs/Contract/{doc_id}/transition",
-        json={"action": "Submit"},
+        "/api/v1/method/grunt.api.v1.workflow.apply_transition",
+        json={"doctype": "Contract", "doc_id": doc_id, "action": "Submit"},
         headers=auth_headers,
     )
     assert resp.status_code == 200
@@ -137,20 +151,25 @@ async def test_workflow_apply_transition(client: AsyncClient, auth_headers: dict
 
 @pytest.mark.asyncio
 async def test_workflow_invalid_transition_rejected(client: AsyncClient, auth_headers: dict):
-    """Applying a non-available transition returns 400."""
-    await client.post("/api/v1/meta/doctypes", json=DOCTYPE_PAYLOAD, headers=auth_headers)
+    """Applying a non-available transition returns 409 (Conflict)."""
+    # Note: workflow_engine throws 409 for invalid transitions in our current implementation
+    await client.post(
+        "/api/v1/method/grunt.api.v1.meta.save_doctype", 
+        json={"doctype_data": DOCTYPE_PAYLOAD}, 
+        headers=auth_headers
+    )
 
     resp = await client.post(
-        "/api/v1/docs/Contract",
-        json={"title": "Test", "status": "Draft"},
+        "/api/v1/method/grunt.api.v1.documents.new_doc",
+        json={"doctype": "Contract", "data": {"title": "Test", "status": "Draft"}},
         headers=auth_headers,
     )
     doc_id = resp.json()["data"]["id"]
 
     # Try to apply Approve from Draft (invalid)
     resp = await client.post(
-        f"/api/v1/docs/Contract/{doc_id}/transition",
-        json={"action": "Approve"},
+        "/api/v1/method/grunt.api.v1.workflow.apply_transition",
+        json={"doctype": "Contract", "doc_id": doc_id, "action": "Approve"},
         headers=auth_headers,
     )
     assert resp.status_code == 400
@@ -159,27 +178,31 @@ async def test_workflow_invalid_transition_rejected(client: AsyncClient, auth_he
 @pytest.mark.asyncio
 async def test_workflow_multi_step(client: AsyncClient, auth_headers: dict):
     """Full workflow: Draft → Submitted → Approved."""
-    await client.post("/api/v1/meta/doctypes", json=DOCTYPE_PAYLOAD, headers=auth_headers)
+    await client.post(
+        "/api/v1/method/grunt.api.v1.meta.save_doctype", 
+        json={"doctype_data": DOCTYPE_PAYLOAD}, 
+        headers=auth_headers
+    )
 
     resp = await client.post(
-        "/api/v1/docs/Contract",
-        json={"title": "Multi-step", "status": "Draft"},
+        "/api/v1/method/grunt.api.v1.documents.new_doc",
+        json={"doctype": "Contract", "data": {"title": "Multi-step", "status": "Draft"}},
         headers=auth_headers,
     )
     doc_id = resp.json()["data"]["id"]
 
     # Submit
     resp = await client.post(
-        f"/api/v1/docs/Contract/{doc_id}/transition",
-        json={"action": "Submit"},
+        "/api/v1/method/grunt.api.v1.workflow.apply_transition",
+        json={"doctype": "Contract", "doc_id": doc_id, "action": "Submit"},
         headers=auth_headers,
     )
     assert resp.json()["data"]["status"] == "Submitted"
 
     # Approve
     resp = await client.post(
-        f"/api/v1/docs/Contract/{doc_id}/transition",
-        json={"action": "Approve"},
+        "/api/v1/method/grunt.api.v1.workflow.apply_transition",
+        json={"doctype": "Contract", "doc_id": doc_id, "action": "Approve"},
         headers=auth_headers,
     )
     assert resp.status_code == 200

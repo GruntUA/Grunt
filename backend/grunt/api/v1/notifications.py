@@ -1,150 +1,91 @@
-"""Notification API endpoints."""
+"""Notification API whitelisted methods."""
 
 from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
-
+from typing import Any
 import structlog
-from fastapi import Depends, Query, Request
-from pydantic import BaseModel
-
-from grunt.api.router import GruntRouter
-from grunt.api.v1.schemas.response import ok, ok_list
-from grunt.app import grunt
-from grunt.core.auth.dependencies import current_user
-
-if TYPE_CHECKING:
-
-    from grunt.core.auth.models import GruntUser
+import grunt
 
 logger = structlog.get_logger()
-router = GruntRouter(prefix="/notifications", tags=["notifications"])
 
-
-# ── Schemas ───────────────────────────────────────────────────────────────────
-
-
-class SendNotificationRequest(BaseModel):
-    """Request body for sending a notification to users."""
-
-    users: list[str]
-    subject: str
-    message: str
-    doctype: str | None = None
-    doc_id: str | None = None
-
-
-class PushSubscribeRequest(BaseModel):
-    endpoint: str
-    p256dh: str
-    auth: str
-
-
-# ── Endpoints ─────────────────────────────────────────────────────────────────
-
-
-@router.get("")
-async def list_notifications(
-    unread_only: bool = Query(False),
-    page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=1, le=100),
-    user: GruntUser = Depends(current_user),
-) -> dict[str, Any]:
+@grunt.whitelist()
+async def list_notifications(unread_only: bool = False, page: int = 1, per_page: int = 20) -> dict[str, Any]:
     """Get notifications for the current user."""
+    user = await grunt.get_current_user()
+    if not user:
+        grunt.throw("Authentication required", "AUTH_REQUIRED")
+        
     filters: dict[str, Any] = {"user": user.email}
-    if unread_only:
+    if str(unread_only).lower() == "true":
         filters["is_read"] = False
+        
     total = await grunt.count("Notification", filters=filters)
     data = await grunt.get_list(
         "Notification",
         filters=filters,
-        page=page,
-        limit=per_page,
+        page=int(page),
+        limit=int(per_page),
         order_by="created_at",
         order="desc",
     )
-    return ok_list(data, total=total, page=page, per_page=per_page)
+    return {"items": data, "total": total, "page": int(page), "per_page": int(per_page)}
 
-
-@router.patch("/{notification_id}/read")
-async def mark_notification_read(
-    notification_id: str,
-) -> dict[str, Any]:
+@grunt.whitelist()
+async def mark_as_read(notification_id: str) -> bool:
     """Mark a notification as read."""
     await grunt.db.set_value("Notification", notification_id, "is_read", True)
-    return ok()
+    return True
 
-
-@router.post("/read-all")
-async def mark_all_notifications_read(
-    user: GruntUser = Depends(current_user),
-) -> dict[str, Any]:
+@grunt.whitelist()
+async def mark_all_as_read() -> dict[str, Any]:
     """Mark all notifications as read for the current user."""
+    user = await grunt.get_current_user()
+    if not user:
+        grunt.throw("Authentication required", "AUTH_REQUIRED")
+        
     count = await grunt.bulk_update(
         "Notification",
         filters={"user": user.email, "is_read": False},
         values={"is_read": True},
     )
-    return ok(count=count)
+    return {"count": count}
 
-
-@router.get("/unread-count")
-async def unread_count(
-    user: GruntUser = Depends(current_user),
-) -> dict[str, Any]:
+@grunt.whitelist()
+async def get_unread_count() -> int:
     """Get the count of unread notifications for the current user."""
-    count = await grunt.count("Notification", filters={"user": user.email, "is_read": False})
-    return ok(count=count)
+    user = await grunt.get_current_user()
+    if not user:
+        return 0
+    return await grunt.count("Notification", filters={"user": user.email, "is_read": False})
 
-
-@router.get("/vapid-public-key")
-async def get_vapid_public_key() -> dict[str, Any]:
+@grunt.whitelist()
+async def get_vapid_public_key() -> str | None:
     """Return the VAPID public key needed to subscribe to Web Push."""
-    from grunt.core.webpush.service import webpush_service  # noqa: PLC0415
-
-    key = await webpush_service.get_vapid_public_key(grunt._require_session())
+    from grunt.core.webpush.service import webpush_service
+    key = await webpush_service.get_vapid_public_key(grunt.get_engine())
     if not key:
-        key = await webpush_service.ensure_vapid_keys(grunt._require_session())
-    return ok(public_key=key)
+        key = await webpush_service.ensure_vapid_keys(grunt.get_engine())
+    return key
 
-
-@router.post("/push-subscribe")
-async def push_subscribe(
-    body: PushSubscribeRequest,
-    request: Request,
-    user: GruntUser = Depends(current_user),
-) -> dict[str, Any]:
+@grunt.whitelist()
+async def subscribe_push(endpoint: str, p256dh: str, auth: str, user_agent: str = "") -> bool:
     """Save a browser push subscription for the current user."""
-    from grunt.core.webpush.service import webpush_service  # noqa: PLC0415
-
-    user_agent = request.headers.get("user-agent", "")
+    user = await grunt.get_current_user()
+    if not user:
+        grunt.throw("Authentication required", "AUTH_REQUIRED")
+        
+    from grunt.core.webpush.service import webpush_service
     await webpush_service.save_subscription(
-        grunt._require_session(), user.email, body.endpoint, body.p256dh, body.auth, user_agent
+        grunt.get_engine(), user.email, endpoint, p256dh, auth, user_agent
     )
-    return ok()
+    return True
 
-
-@router.delete("/push-subscribe")
-async def push_unsubscribe(
-    body: PushSubscribeRequest,
-) -> dict[str, Any]:
-    """Remove a browser push subscription."""
-    from grunt.core.webpush.service import webpush_service  # noqa: PLC0415
-
-    await webpush_service.remove_subscription(grunt._require_session(), body.endpoint)
-    return ok()
-
-
-@router.post("/send")
-async def send_notification(
-    body: SendNotificationRequest,
-) -> dict[str, Any]:
-    """Send a notification to one or more users programmatically."""
-    ids = await grunt.notify(
-        users=body.users,
-        subject=body.subject,
-        message=body.message,
-        doctype=body.doctype,
-        doc_id=body.doc_id,
-    )
-    return ok({"ids": ids, "count": len(ids)})
+@grunt.whitelist()
+async def unsubscribe_push(endpoint: str) -> bool:
+    """Remove a browser push subscription for the current user."""
+    user = await grunt.get_current_user()
+    if not user:
+        grunt.throw("Authentication required", "AUTH_REQUIRED")
+        
+    from grunt.core.webpush.service import webpush_service
+    await webpush_service.remove_subscription(grunt.get_engine(), user.email, endpoint)
+    return True

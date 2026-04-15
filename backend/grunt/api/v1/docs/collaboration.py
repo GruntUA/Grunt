@@ -52,7 +52,7 @@ async def add_document_comment(
     """Add a comment to a document. Parses @email mentions."""
     content: str = (body.get("content") or "").strip()
     if not content:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="content is required")
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="content is required")
 
     await grunt.get_doc(doctype, doc_id)  # permission check
 

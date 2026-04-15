@@ -65,6 +65,7 @@ async def current_user(
     if not token:
         token = request.query_params.get("token")
     if not token:
+        # print("DEBUG: No token found in headers or query params")
         raise credentials_exception
 
     try:

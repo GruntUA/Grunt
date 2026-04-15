@@ -61,8 +61,25 @@ def __getattr__(name: str):
         "set_site",
         "get_site",
         "clear_context",
+        "whitelist",
+        "get_doc",
+        "get_list",
+        "new_doc",
+        "save_doc",
+        "delete_doc",
+        "get_meta",
+        "get_values",
+        "get_value",
+        "set_value",
+        "get_all",
+        "count",
     ):
         from grunt import api  # noqa: PLC0415
+        
+        # Some methods are on grunt.app.grunt instance, some in grunt.api
+        if name in ("get_doc", "get_list", "new_doc", "save_doc", "delete_doc", "get_meta", "get_values", "get_value", "set_value", "get_all", "count"):
+            from grunt.app import grunt  # noqa: PLC0415
+            return getattr(grunt, name)
 
         return getattr(api, name)
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
@@ -100,4 +117,16 @@ __all__ = [
     "set_site",
     "get_site",
     "clear_context",
+    "whitelist",
+    "get_doc",
+    "get_list",
+    "new_doc",
+    "save_doc",
+    "delete_doc",
+    "get_meta",
+    "get_values",
+    "get_value",
+    "set_value",
+    "get_all",
+    "count",
 ]

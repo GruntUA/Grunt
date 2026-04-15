@@ -39,8 +39,8 @@ ws.onEvent('activity', (data: any) => {
 async function fetchActivity() {
     loading.value = true
     try {
-        const res = await api.get('/api/v1/activity')
-        activities.value = res.data.data
+        const res = await api.get('/api/v1/method/grunt.api.v1.activity.list_activity')
+        activities.value = res.data.data.items
     } catch {
         // silently ignore — empty state shown
     } finally {

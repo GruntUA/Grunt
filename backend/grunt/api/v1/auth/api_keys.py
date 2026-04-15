@@ -61,7 +61,7 @@ async def create_api_key(
         }
     """
     if not body.label.strip():
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="label є обов'язковим")
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="label є обов'язковим")
 
     full_key, key_prefix, key_hash = generate_api_key()
 
@@ -122,7 +122,7 @@ async def update_api_key(
     updates: dict[str, Any] = {}
     if body.label is not None:
         if not body.label.strip():
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="label не може бути порожнім")
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="label не може бути порожнім")
         updates["label"] = body.label.strip()
     if body.is_active is not None:
         updates["is_active"] = body.is_active
@@ -132,7 +132,7 @@ async def update_api_key(
         updates["allowed_ips"] = body.allowed_ips
 
     if not updates:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Немає полів для оновлення")
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="Немає полів для оновлення")
 
     doc = await grunt.save_doc("ApiKey", key_id, updates)
     return ok({

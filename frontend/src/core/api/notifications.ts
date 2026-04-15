@@ -13,21 +13,31 @@ export interface NotificationItem {
 
 export const notificationsApi = {
   list: async (params?: { unread_only?: boolean; limit?: number; offset?: number }): Promise<NotificationItem[]> => {
-    const res = await client.get('/api/v1/notifications', { params })
-    return res.data.data
+    // Map offset/limit to page/per_page
+    const limit = params?.limit || 20
+    const offset = params?.offset || 0
+    const page = Math.floor(offset / limit) + 1
+
+    const queryParams: Record<string, any> = { page, per_page: limit }
+    if (params?.unread_only !== undefined) {
+      queryParams.unread_only = params.unread_only
+    }
+
+    const res = await client.get('/api/v1/method/grunt.api.v1.notifications.list_notifications', { params: queryParams })
+    return res.data.data.items
   },
 
   unreadCount: async (): Promise<number> => {
-    const res = await client.get('/api/v1/notifications/unread-count')
-    return res.data.count
+    const res = await client.get('/api/v1/method/grunt.api.v1.notifications.get_unread_count')
+    return res.data.data
   },
 
   markRead: async (id: string): Promise<void> => {
-    await client.patch(`/api/v1/notifications/${id}/read`)
+    await client.post('/api/v1/method/grunt.api.v1.notifications.mark_as_read', { notification_id: id })
   },
 
   markAllRead: async (): Promise<number> => {
-    const res = await client.post('/api/v1/notifications/read-all')
-    return res.data.count
+    const res = await client.post('/api/v1/method/grunt.api.v1.notifications.mark_all_as_read')
+    return res.data.data.count
   }
 }
