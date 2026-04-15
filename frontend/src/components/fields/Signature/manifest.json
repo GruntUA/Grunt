@@ -3,6 +3,7 @@
   "label": "Signature",
   "icon": "pen",
   "category": "Спеціальні",
+  "non_groupable": true,
   "propertySections": [
     "core",
     "flags",

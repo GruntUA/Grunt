@@ -3,6 +3,7 @@
   "label": "Attach",
   "icon": "paperclip",
   "category": "Медіа",
+  "non_groupable": true,
   "propertySections": [
     "core",
     "flags",

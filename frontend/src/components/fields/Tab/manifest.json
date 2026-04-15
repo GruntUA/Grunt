@@ -4,6 +4,7 @@
   "icon": "layout-template",
   "category": "",
   "is_layout": true,
+  "non_groupable": true,
   "propertySections": [
     "core"
   ]

@@ -70,6 +70,8 @@ export interface FieldDefinition {
   designerPreview?: () => Promise<Component>
   /** Property sections shown in PropertiesPanel, in order */
   propertySections: PropSection[]
+  /** If true, this field cannot be used as a 'Group By' criterion in lists. Default: false */
+  non_groupable?: boolean
 }
 
 // ── Internal registry ────────────────────────────────────────────────────────

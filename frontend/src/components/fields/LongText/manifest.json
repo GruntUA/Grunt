@@ -3,6 +3,7 @@
   "label": "Long Text",
   "icon": "align-left",
   "category": "Базові",
+  "non_groupable": true,
   "propertySections": [
     "core",
     "flags",

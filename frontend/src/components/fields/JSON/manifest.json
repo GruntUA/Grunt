@@ -3,6 +3,7 @@
   "label": "JSON",
   "icon": "braces",
   "category": "Текст",
+  "non_groupable": true,
   "propertySections": [
     "core",
     "flags",

@@ -4,6 +4,7 @@
   "icon": "separator-horizontal",
   "category": "",
   "is_layout": true,
+  "non_groupable": true,
   "propertySections": [
     "core",
     "collapsible",

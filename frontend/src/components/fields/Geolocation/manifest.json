@@ -3,6 +3,7 @@
   "label": "Geolocation",
   "icon": "map-pin",
   "category": "Спеціальні",
+  "non_groupable": true,
   "propertySections": [
     "core",
     "flags",

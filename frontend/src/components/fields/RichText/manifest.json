@@ -3,6 +3,7 @@
   "label": "Rich Text",
   "icon": "file-pen",
   "category": "Текст",
+  "non_groupable": true,
   "propertySections": [
     "core",
     "flags",

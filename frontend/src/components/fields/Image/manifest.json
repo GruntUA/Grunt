@@ -3,6 +3,7 @@
   "label": "Image",
   "icon": "image",
   "category": "Медіа",
+  "non_groupable": true,
   "propertySections": [
     "core",
     "flags",

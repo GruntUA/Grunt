@@ -17,6 +17,7 @@ import {
   executeListSetup,
 } from '@/core/scripting/executor'
 import type { ExportContext } from '@/core/io'
+import { getFieldDef } from '@/core/fieldRegistry'
 
 // Shared UI components
 import { Dialog, DialogContent } from '@/components/ui/dialog'
@@ -78,10 +79,15 @@ const listMenuItems = ref<ScriptMenuItem[]>([])
 const showQuickEntry = ref(false)
 
 // ── Grouping Logic ───────────────────────────────────────────────────────────
-const NON_GROUPABLE = new Set(['Section', 'Column', 'Tab', 'Table', 'MultiLink', 'RichText', 'JSON', 'Code', 'LongText', 'Attach', 'Image', 'Signature', 'Geolocation'])
 const groupableFields = computed(() => {
   if (!dt.value) return []
-  return dt.value.fields.filter((f: DocField) => !NON_GROUPABLE.has(f.fieldtype) && !f.hidden && (f.in_list_view || f.in_filter))
+  return dt.value.fields.filter((f: DocField) => {
+    if (f.hidden) return false
+    const def = getFieldDef(f.fieldtype)
+    if (!def) return false
+    if (def.is_layout || def.non_groupable) return false
+    return f.in_list_view || f.in_filter
+  })
 })
 
 const groupedRows = computed(() => {
@@ -407,7 +413,7 @@ function navigateToDoc(row: Record<string, unknown>) {
             <div class="flex justify-between text-xs text-muted-foreground tabular-nums">
               <span>{{ deleteProgress.done }} / {{ deleteProgress.total }}</span>
               <span>{{ deleteProgress.total ? Math.round(deleteProgress.done / deleteProgress.total * 100) : 0
-                }}%</span>
+              }}%</span>
             </div>
           </div>
 

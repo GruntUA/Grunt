@@ -3,6 +3,7 @@
   "label": "Code",
   "icon": "code",
   "category": "Текст",
+  "non_groupable": true,
   "propertySections": [
     "core",
     "flags",

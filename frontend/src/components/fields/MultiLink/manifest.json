@@ -3,6 +3,7 @@
   "label": "Multi Link",
   "icon": "link-2",
   "category": "Вибір і зв'язки",
+  "non_groupable": true,
   "propertySections": [
     "core",
     "flags",

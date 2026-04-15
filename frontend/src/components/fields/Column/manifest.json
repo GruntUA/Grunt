@@ -4,6 +4,7 @@
   "icon": "columns-2",
   "category": "",
   "is_layout": true,
+  "non_groupable": true,
   "propertySections": [
     "core"
   ]
