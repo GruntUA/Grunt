@@ -1,6 +1,6 @@
 import type { Exporter, ExportContext } from './registry'
 
-// Maps indicator color names → inline CSS values (mirrors DataTable's colorToBadge)
+// Maps indicator color names → inline CSS values (mirrors global Badge variant colors)
 const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   gray:   { bg: '#f9fafb', text: '#6b7280', border: '#d1d5db' },
   blue:   { bg: '#eff6ff', text: '#1d4ed8', border: '#93c5fd' },

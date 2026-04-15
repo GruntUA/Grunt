@@ -10,15 +10,11 @@ const props = defineProps<{
   statusConfig?: DocTypeStatusConfig | null
 }>()
 
-const colorToBadge: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; class?: string }> = {
-  gray: { variant: 'outline' },
-  blue: { variant: 'outline', class: 'border-blue-400 text-blue-700 bg-blue-50' },
-  green: { variant: 'outline', class: 'border-green-500 text-green-700 bg-green-50' },
-  yellow: { variant: 'outline', class: 'border-yellow-400 text-yellow-700 bg-yellow-50' },
-  orange: { variant: 'outline', class: 'border-orange-400 text-orange-700 bg-orange-50' },
-  red: { variant: 'destructive' },
-  purple: { variant: 'outline', class: 'border-purple-400 text-purple-700 bg-purple-50' },
-  pink: { variant: 'outline', class: 'border-pink-400 text-pink-700 bg-pink-50' },
+type GenericBadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'gray' | 'blue' | 'green' | 'yellow' | 'orange' | 'red' | 'purple' | 'pink'
+
+function getColorVariant(color: string): GenericBadgeVariant {
+  const allowed = ['gray', 'blue', 'green', 'yellow', 'orange', 'red', 'purple', 'pink']
+  return allowed.includes(color) ? (color as GenericBadgeVariant) : 'outline'
 }
 
 const badge = computed(() => {
@@ -28,8 +24,7 @@ const badge = computed(() => {
   if (isStatusField && props.statusConfig?.indicators) {
     const ind = props.statusConfig.indicators.find((i) => i.value === val)
     if (ind) {
-      const b = colorToBadge[ind.color] ?? { variant: 'outline' as const }
-      return { ...b, label: ind.label ?? val }
+      return { variant: getColorVariant(ind.color), label: ind.label ?? val }
     }
   }
   return { variant: 'outline' as const, label: val }
@@ -37,7 +32,7 @@ const badge = computed(() => {
 </script>
 
 <template>
-  <Badge v-if="badge" :variant="badge.variant" class="font-normal whitespace-nowrap" :class="badge.class">
+  <Badge v-if="badge" :variant="badge.variant" class="font-normal whitespace-nowrap">
     {{ badge.label }}
   </Badge>
   <span v-else class="text-muted-foreground/30">—</span>

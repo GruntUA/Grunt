@@ -15,10 +15,14 @@ export const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
         outline: "text-foreground",
-        success: "border-success/30 bg-success/10 text-success",
-        warning: "border-warning/30 bg-warning/10 text-warning",
-        info: "border-info/30 bg-info/10 text-info",
-        danger: "border-destructive/30 bg-destructive/10 text-destructive",
+        gray: "border-muted-foreground/20 bg-muted/40 text-muted-foreground dark:bg-muted/20 dark:text-muted-foreground",
+        blue: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400",
+        green: "border-green-500/30 bg-green-500/10 text-green-700 dark:text-emerald-400",
+        yellow: "border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-amber-400",
+        orange: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400",
+        red: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400",
+        purple: "border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-400",
+        pink: "border-pink-500/30 bg-pink-500/10 text-pink-700 dark:text-pink-400",
       },
     },
     defaultVariants: {
