@@ -18,7 +18,7 @@ from grunt.core.document.multi_link import MultiLinkService
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.auth.models import User
 
 logger = structlog.get_logger()
 
@@ -31,7 +31,7 @@ class DocumentService(DocumentReadMixin, DocumentWriteMixin):
         self.engine = engine
         self._ml = MultiLinkService(session)
 
-    def _set_grunt_context(self, user: GruntUser) -> tuple:
+    def _set_grunt_context(self, user: User) -> tuple:
         """Activate the grunt ContextVar context for the current lifecycle scope."""
         return _grunt.set_context(session=self.session, engine=self.engine, user=user)
 

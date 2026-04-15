@@ -23,14 +23,14 @@ from grunt.api.context import get_user
 from grunt.app import grunt
 
 if TYPE_CHECKING:
-    from grunt.core.doctypes.user.user import GruntUser
+    from grunt.core.doctypes.user.user import User
 
 
-async def get_current_user() -> GruntUser:
+async def get_current_user() -> User:
     """Get the current user from context.
 
     Returns:
-        GruntUser with email, full_name, roles, is_superadmin
+        User with email, full_name, roles, is_superadmin
     """
     return get_user()
 

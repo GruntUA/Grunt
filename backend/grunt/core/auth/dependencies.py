@@ -11,8 +11,7 @@ from fastapi.security import OAuth2PasswordBearer
 from grunt.config import settings
 from grunt.core.db.session import get_engine, get_session
 from grunt.core.doctypes.user.user import (
-    _SESSION_FIELDS,
-    GruntUser,
+    User,
     get_user_by_email,
 )
 
@@ -29,7 +28,7 @@ async def current_user(
     request: Request,
     token: str | None = Depends(_oauth2_scheme_optional),
     session: AsyncSession = Depends(get_session),
-) -> GruntUser:
+) -> User:
     """Decode JWT or validate an API key and return the authenticated user.
 
     Auth priority:
@@ -76,26 +75,23 @@ async def current_user(
     except jwt.PyJWTError:
         raise credentials_exception from None
 
-    # Fast path: all identity fields are embedded in the token.
     uid: str | None = payload.get("uid")
-    user: GruntUser | None
-    if uid:
-        user = GruntUser(
-            id=uid,
-            email=email,
-            full_name=payload.get("full_name") or "",
-            is_superadmin=bool(payload.get("is_superadmin", False)),
-            is_active=bool(payload.get("is_active", True)),
-            theme=payload.get("theme") or "system",
-            roles=payload.get("roles") or [],
-        )
-    else:
-        # Legacy token — fall back to DB lookup (session fields only, no password/mfa secrets).
-        user = await get_user_by_email(email, session, fields=_SESSION_FIELDS)
-        if user is None:
-            raise credentials_exception
+    if not uid:
+        raise credentials_exception
 
-    assert user is not None
+    user = User(
+        doctype="User",
+        data={
+            "id": uid,
+            "email": email,
+            "full_name": payload.get("full_name") or "",
+            "is_superadmin": bool(payload.get("is_superadmin", False)),
+            "is_active": bool(payload.get("is_active", True)),
+            "theme": payload.get("theme") or "system",
+            "roles": payload.get("roles") or [],
+        }
+    )
+
     if not user.is_active:
         raise credentials_exception
 
@@ -108,7 +104,7 @@ async def current_user(
 async def optional_user(
     token: str | None = Depends(_oauth2_scheme_optional),
     session: AsyncSession = Depends(get_session),
-) -> GruntUser | None:
+) -> User | None:
     """Return the authenticated user if a valid token is present, else None."""
     if not token:
         return None
@@ -126,8 +122,8 @@ async def optional_user(
 
 
 async def superadmin_user(
-    user: GruntUser = Depends(current_user),
-) -> GruntUser:
+    user: User = Depends(current_user),
+) -> User:
     """Ensure the current user is a superadmin."""
     if not user.is_superadmin:
         raise HTTPException(
@@ -140,7 +136,7 @@ async def superadmin_user(
 async def grunt_context(
     session: AsyncSession = Depends(get_session),
     engine: AsyncEngine = Depends(get_engine),
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
 ) -> AsyncGenerator[None, Any]:
     """FastAPI dependency that sets up the grunt SDK context for the duration of a request.
 
@@ -180,7 +176,7 @@ async def grunt_context(
 async def grunt_context_optional(
     session: AsyncSession = Depends(get_session),
     engine: AsyncEngine = Depends(get_engine),
-    user: GruntUser | None = Depends(optional_user),
+    user: User | None = Depends(optional_user),
 ) -> AsyncGenerator[None, Any]:
     """FastAPI dependency: sets up grunt SDK context for the request, with an optional user."""
     from grunt.app import grunt

@@ -9,14 +9,14 @@ from sqlalchemy import Table, or_
 if TYPE_CHECKING:
     from sqlalchemy.sql import Select
 
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.auth.models import User
     from grunt.core.metadata.doctype import DocType
 
 
 def apply_permission_filter(
     query: Select,
     table: Table,
-    user: GruntUser,
+    user: User,
     doctype: DocType,
 ) -> Select:
     if getattr(user, "is_superadmin", False):
@@ -52,7 +52,7 @@ def apply_permission_filter(
     return query.where(or_(*conditions))
 
 
-def _parse_match_to_sqlalchemy(match_expr: str, table: Table, user: GruntUser):
+def _parse_match_to_sqlalchemy(match_expr: str, table: Table, user: User):
     """Parse simple match expressions to SQLAlchemy conditions."""
     expr = match_expr.strip()
 

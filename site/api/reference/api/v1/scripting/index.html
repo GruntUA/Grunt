@@ -5399,12 +5399,12 @@
   </span>
 
 <a href="#grunt.api.v1.scripting.get_client_scripts" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_client_scripts</span><span class="p">(</span><span class="n">doctype</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_client_scripts</span><span class="p">(</span><span class="n">doctype</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
 
 
   
@@ -5437,7 +5437,7 @@
 <span class="normal"><a href="#__codelineno-0-30">30</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-20" name="__codelineno-0-20"></a><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/client-script/</span><span class="si">{doctype}</span><span class="s2">&quot;</span><span class="p">)</span>
 <a id="__codelineno-0-21" name="__codelineno-0-21"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_client_scripts</span><span class="p">(</span>
 <a id="__codelineno-0-22" name="__codelineno-0-22"></a>    <span class="n">doctype</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
 <a id="__codelineno-0-24" name="__codelineno-0-24"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
 <a id="__codelineno-0-25" name="__codelineno-0-25"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <a id="__codelineno-0-26" name="__codelineno-0-26"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return all enabled client scripts for a DocType.&quot;&quot;&quot;</span>
@@ -5463,12 +5463,12 @@
   </span>
 
 <a href="#grunt.api.v1.scripting.run_server_script_api" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">run_server_script_api</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n"><span title="fastapi.Request">Request</span></span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">run_server_script_api</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n"><span title="fastapi.Request">Request</span></span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
 
 
   
@@ -5554,7 +5554,7 @@
 <a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run_server_script_api</span><span class="p">(</span>
 <a id="__codelineno-0-69" name="__codelineno-0-69"></a>    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <a id="__codelineno-0-70" name="__codelineno-0-70"></a>    <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span>
-<a id="__codelineno-0-71" name="__codelineno-0-71"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
+<a id="__codelineno-0-71" name="__codelineno-0-71"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
 <a id="__codelineno-0-72" name="__codelineno-0-72"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
 <a id="__codelineno-0-73" name="__codelineno-0-73"></a>    <span class="n">engine</span><span class="p">:</span> <span class="n">AsyncEngine</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_engine</span><span class="p">),</span>
 <a id="__codelineno-0-74" name="__codelineno-0-74"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>

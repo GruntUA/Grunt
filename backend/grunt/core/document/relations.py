@@ -17,7 +17,7 @@ from grunt.core.metadata.registry import doctype_registry
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.auth.models import User
     from grunt.core.metadata.doctype import DocType
 
 logger = structlog.get_logger()
@@ -57,7 +57,7 @@ async def _save_child_tables(
     dt: DocType,
     parent_id: str,
     data: dict[str, Any],
-    user: GruntUser,
+    user: User,
     now: datetime,
 ) -> None:
     """Replace child table rows for all TABLE fields present in *data*."""

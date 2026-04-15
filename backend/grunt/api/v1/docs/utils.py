@@ -17,7 +17,7 @@ from grunt.core.document.service import DocumentService
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.auth.models import User
 
 logger = structlog.get_logger()
 
@@ -35,7 +35,7 @@ async def _audit_log(
     doctype: str,
     doc_id: str,
     action: str,
-    user: GruntUser,
+    user: User,
     changes: dict[str, Any] | None = None,
 ) -> None:
     """Write an ActivityLog entry via grunt.new_doc and broadcast via WebSocket."""

@@ -12,7 +12,7 @@ from sqlalchemy import func, select, text
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.auth.models import User
 
 logger = structlog.get_logger()
 
@@ -22,7 +22,7 @@ class ReportEngine:
         self,
         report_name: str,
         filters: dict,
-        user: GruntUser,
+        user: User,
         session: AsyncSession,
     ) -> dict[str, Any]:
         from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
@@ -109,7 +109,7 @@ class ReportEngine:
         self,
         report: dict,
         filters: dict,
-        user: GruntUser,
+        user: User,
         session: AsyncSession,
     ) -> dict[str, Any]:
         """Execute a Python script in the sandbox and return {columns, data}.
@@ -192,7 +192,7 @@ class ReportEngine:
         doctype: str,
         report: dict,
         filters: dict,
-        user: GruntUser,
+        user: User,
         session: AsyncSession,
     ) -> dict[str, Any]:
         """Run a dynamic aggregate report against a DocType table.

@@ -5385,12 +5385,12 @@ aggregation queries for each widget.</p>
 
   
       async
-   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
 
 
   
@@ -5471,7 +5471,7 @@ aggregation queries for each widget.</p>
 <a id="__codelineno-0-299" name="__codelineno-0-299"></a>    <span class="n">date_from</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Global date filter from (ISO date)&quot;</span><span class="p">),</span>
 <a id="__codelineno-0-300" name="__codelineno-0-300"></a>    <span class="n">date_to</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Global date filter to (ISO date)&quot;</span><span class="p">),</span>
 <a id="__codelineno-0-301" name="__codelineno-0-301"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
-<a id="__codelineno-0-302" name="__codelineno-0-302"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
+<a id="__codelineno-0-302" name="__codelineno-0-302"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
 <a id="__codelineno-0-303" name="__codelineno-0-303"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <a id="__codelineno-0-304" name="__codelineno-0-304"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return computed data for all widgets of a Dashboard document.&quot;&quot;&quot;</span>
 <a id="__codelineno-0-305" name="__codelineno-0-305"></a>    <span class="k">try</span><span class="p">:</span>

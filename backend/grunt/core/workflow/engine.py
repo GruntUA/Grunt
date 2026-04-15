@@ -12,7 +12,7 @@ from fastapi import HTTPException, status
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.auth.models import User
     from grunt.core.metadata.doctype import DocType, WorkflowState, WorkflowTransition
 
 logger = structlog.get_logger()
@@ -32,7 +32,7 @@ class WorkflowEngine:
         self,
         doctype: DocType,
         doc: dict,
-        user: GruntUser,
+        user: User,
     ) -> list[WorkflowTransition]:
         if not doctype.workflow:
             return []
@@ -61,7 +61,7 @@ class WorkflowEngine:
         doctype: DocType,
         doc_id: str,
         action: str,
-        user: GruntUser,
+        user: User,
         session: AsyncSession,
         engine: AsyncEngine,
     ) -> dict:

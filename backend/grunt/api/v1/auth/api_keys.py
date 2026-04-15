@@ -19,7 +19,7 @@ from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.core.auth.api_key_service import generate_api_key
 from grunt.core.auth.dependencies import current_user
-from grunt.core.auth.models import GruntUser
+from grunt.core.auth.models import User
 
 router = GruntRouter(prefix="/api-keys", tags=["auth", "api-keys"])
 
@@ -40,7 +40,7 @@ class UpdateApiKeyRequest(BaseModel):
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_api_key(
     body: CreateApiKeyRequest,
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
 ) -> dict[str, Any]:
     """Create a new API key for the current user.
 
@@ -90,7 +90,7 @@ async def create_api_key(
 
 @router.get("")
 async def list_api_keys(
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
 ) -> dict[str, Any]:
     """List all API keys for the current user (secrets are never returned)."""
     filters: dict[str, Any] = {"user_id": user.id}
@@ -113,7 +113,7 @@ async def list_api_keys(
 async def update_api_key(
     key_id: str,
     body: UpdateApiKeyRequest,
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
 ) -> dict[str, Any]:
     """Update label, active state, or expiry of a key."""
     key_doc = await grunt.get_doc("ApiKey", key_id)
@@ -148,7 +148,7 @@ async def update_api_key(
 @router.delete("/{key_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def revoke_api_key(
     key_id: str,
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
 ) -> None:
     """Permanently revoke (delete) an API key."""
     key_doc = await grunt.get_doc("ApiKey", key_id)
@@ -156,7 +156,7 @@ async def revoke_api_key(
     await grunt.delete_doc("ApiKey", key_id)
 
 
-def _require_key_owner(key_doc: dict[str, Any], user: GruntUser) -> None:
+def _require_key_owner(key_doc: dict[str, Any], user: User) -> None:
     """Raise 403 if user doesn't own the key and isn't a superadmin."""
     if not user.is_superadmin and key_doc.get("user_id") != user.id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Немає доступу до цього ключа")

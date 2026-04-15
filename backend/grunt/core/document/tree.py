@@ -35,7 +35,7 @@ from grunt.core.metadata.registry import doctype_registry
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.auth.models import User
 
 logger = structlog.get_logger()
 
@@ -215,7 +215,7 @@ class TreeService:
         doctype: str,
         node_id: str,
         new_parent_id: str | None,
-        user: GruntUser,
+        user: User,
     ) -> dict[str, Any]:
         """Re-parent *node_id* to *new_parent_id* (or make it a root node).
 

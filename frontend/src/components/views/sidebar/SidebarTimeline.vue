@@ -11,7 +11,7 @@ import {
 import { docsApi, type TimelineItem } from '@/core/api/docs'
 import { authAdminApi } from '@/core/api/auth-admin'
 import { useAuthStore } from '@/stores/auth'
-import type { DocType, GruntDocument, GruntUserPublic } from '@/types'
+import type { DocType, GruntDocument, UserPublic } from '@/types'
 
 const props = defineProps<{
   doctype: DocType
@@ -74,8 +74,8 @@ async function deleteComment(item: TimelineItem) {
 
 // ── @mention autocomplete ─────────────────────────────────────────────────────
 
-const allUsers = ref<GruntUserPublic[]>([])
-const mentionDropdown = ref<GruntUserPublic[]>([])
+const allUsers = ref<UserPublic[]>([])
+const mentionDropdown = ref<UserPublic[]>([])
 const mentionIndex = ref(0)
 const mentionQuery = ref('')
 
@@ -106,7 +106,7 @@ function onCommentInput(e: Event) {
   }
 }
 
-function insertMention(user: GruntUserPublic) {
+function insertMention(user: UserPublic) {
   const before = commentInput.value
   const pos = before.lastIndexOf('@' + mentionQuery.value)
   commentInput.value = before.slice(0, pos) + `@${user.email} ` + before.slice(pos + 1 + mentionQuery.value.length)

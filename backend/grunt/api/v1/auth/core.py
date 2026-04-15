@@ -16,7 +16,7 @@ from grunt.api.v1.auth.schemas import (
 )
 from grunt.api.v1.schemas.response import ok
 from grunt.core.auth.dependencies import current_user
-from grunt.core.auth.models import SYSTEM_USER, GruntUser
+from grunt.core.auth.models import SYSTEM_USER, User
 from grunt.core.auth.service import (
     create_access_token,
     create_refresh_token,
@@ -124,7 +124,7 @@ async def login(
 
 
 @router.get("/me", response_model=UserResponse)
-async def me(user: GruntUser = Depends(current_user)) -> UserResponse:
+async def me(user: User = Depends(current_user)) -> UserResponse:
     """Return the currently authenticated user."""
     return UserResponse(
         id=user.id,
@@ -139,7 +139,7 @@ async def me(user: GruntUser = Depends(current_user)) -> UserResponse:
 @router.patch("/me", response_model=UserResponse)
 async def update_me(
     body: UpdateMeRequest,
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
     session: AsyncSession = Depends(get_session),
 ) -> UserResponse:
     """Update current user preferences."""
@@ -200,7 +200,7 @@ async def refresh(
 
 @router.post("/logout")
 async def logout(
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Revoke all refresh tokens and terminate all sessions."""
@@ -218,7 +218,7 @@ async def logout(
 
 @router.get("/sessions")
 async def list_sessions(
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Return all active sessions for the current user."""
@@ -242,7 +242,7 @@ async def list_sessions(
 @router.delete("/sessions/{session_id}")
 async def revoke_session(
     session_id: str,
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Terminate a specific session. Only the owner can revoke their own sessions."""

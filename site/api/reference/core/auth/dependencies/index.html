@@ -5426,12 +5426,12 @@
 
   
       async
-   (grunt.core.db.session.get_session)" href="../../db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.db.session.get_session)" href="../../db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../models/#grunt.core.auth.models.GruntUser">GruntUser</a></span>
+   (grunt.core.auth.models.User)" href="../models/#grunt.core.auth.models.User">User</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -5472,7 +5472,7 @@
 <a id="__codelineno-0-20" name="__codelineno-0-20"></a>    <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span>
 <a id="__codelineno-0-21" name="__codelineno-0-21"></a>    <span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">_oauth2_scheme_optional</span><span class="p">),</span>
 <a id="__codelineno-0-22" name="__codelineno-0-22"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GruntUser</span><span class="p">:</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">User</span><span class="p">:</span>
 <a id="__codelineno-0-24" name="__codelineno-0-24"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Decode JWT and return the authenticated user, or raise 401.&quot;&quot;&quot;</span>
 <a id="__codelineno-0-25" name="__codelineno-0-25"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="p">:</span>
 <a id="__codelineno-0-26" name="__codelineno-0-26"></a>        <span class="c1"># Fallback to query param &#39;token&#39; for file downloads (a href)</span>
@@ -5519,12 +5519,12 @@
 
   
       async
-   (grunt.core.db.session.get_session)" href="../../db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.db.session.get_session)" href="../../db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">|</span> <span class="kc">None</span>
+   (grunt.core.auth.models.User)" href="../models/#grunt.core.auth.models.User">User</a></span> <span class="o">|</span> <span class="kc">None</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -5554,7 +5554,7 @@
 <span class="normal"><a href="#__codelineno-0-68">68</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-51" name="__codelineno-0-51"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">optional_user</span><span class="p">(</span>
 <a id="__codelineno-0-52" name="__codelineno-0-52"></a>    <span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">_oauth2_scheme_optional</span><span class="p">),</span>
 <a id="__codelineno-0-53" name="__codelineno-0-53"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
-<a id="__codelineno-0-54" name="__codelineno-0-54"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GruntUser</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-54" name="__codelineno-0-54"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">User</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <a id="__codelineno-0-55" name="__codelineno-0-55"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the authenticated user if a valid token is present, else None.&quot;&quot;&quot;</span>
 <a id="__codelineno-0-56" name="__codelineno-0-56"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="p">:</span>
 <a id="__codelineno-0-57" name="__codelineno-0-57"></a>        <span class="k">return</span> <span class="kc">None</span>
@@ -5587,22 +5587,22 @@
   </span>
 
 <a href="#grunt.core.auth.dependencies.superadmin_user" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">superadmin_user</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">superadmin_user</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
+   (grunt.core.auth.models.User)" href="../models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
 
 
   
       async
-   (grunt.core.auth.dependencies.current_user)" href="#grunt.core.auth.dependencies.current_user">current_user</a></span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.auth.dependencies.current_user)" href="#grunt.core.auth.dependencies.current_user">current_user</a></span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../models/#grunt.core.auth.models.GruntUser">GruntUser</a></span>
+   (grunt.core.auth.models.User)" href="../models/#grunt.core.auth.models.User">User</a></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -5622,8 +5622,8 @@
 <span class="normal"><a href="#__codelineno-0-78">78</a></span>
 <span class="normal"><a href="#__codelineno-0-79">79</a></span>
 <span class="normal"><a href="#__codelineno-0-80">80</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">superadmin_user</span><span class="p">(</span>
-<a id="__codelineno-0-72" name="__codelineno-0-72"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
-<a id="__codelineno-0-73" name="__codelineno-0-73"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GruntUser</span><span class="p">:</span>
+<a id="__codelineno-0-72" name="__codelineno-0-72"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
+<a id="__codelineno-0-73" name="__codelineno-0-73"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">User</span><span class="p">:</span>
 <a id="__codelineno-0-74" name="__codelineno-0-74"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensure the current user is a superadmin.&quot;&quot;&quot;</span>
 <a id="__codelineno-0-75" name="__codelineno-0-75"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superadmin</span><span class="p">:</span>
 <a id="__codelineno-0-76" name="__codelineno-0-76"></a>        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>

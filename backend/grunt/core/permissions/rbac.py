@@ -8,7 +8,7 @@ import structlog
 from fastapi import HTTPException, status
 
 if TYPE_CHECKING:
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.auth.models import User
     from grunt.core.metadata.doctype import DocType
 
 logger = structlog.get_logger()
@@ -33,7 +33,7 @@ def invalidate_permission_cache(doctype_name: str) -> None:
 class PermissionChecker:
     async def check(
         self,
-        user: GruntUser,
+        user: User,
         doctype: DocType,
         action: Literal["read", "write", "create", "delete", "submit"],
         doc: dict | None = None,
@@ -77,7 +77,7 @@ class PermissionChecker:
 
     async def require(
         self,
-        user: GruntUser,
+        user: User,
         doctype: DocType,
         action: Literal["read", "write", "create", "delete", "submit"],
         doc: dict | None = None,
@@ -98,7 +98,7 @@ class PermissionChecker:
 
     def hidden_fields(
         self,
-        user: GruntUser,
+        user: User,
         doctype: DocType,
     ) -> frozenset[str]:
         """Return the set of field names the user is NOT allowed to see.
@@ -144,7 +144,7 @@ class PermissionChecker:
         _HIDDEN_CACHE[cache_key] = result
         return result
 
-    def _eval_match(self, match_expr: str, user: GruntUser, doc: dict) -> bool:
+    def _eval_match(self, match_expr: str, user: User, doc: dict) -> bool:
         safe_globals: dict = {"__builtins__": {}}
         safe_locals: dict = {
             "user": user.email,

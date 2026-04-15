@@ -1,5 +1,5 @@
 import client from './client'
-import type { GruntUserPublic } from '@/types'
+import type { UserPublic } from '@/types'
 
 export const authApi = {
   forgotPassword: (email: string): Promise<{ success: boolean }> =>
@@ -10,7 +10,7 @@ export const authApi = {
 }
 
 export const authAdminApi = {
-  listUsers: (): Promise<GruntUserPublic[]> =>
+  listUsers: (): Promise<UserPublic[]> =>
     client.get('/api/v1/auth/users').then(r => r.data),
 
   listRoles: (): Promise<{ success: boolean; data: { name: string; description?: string }[] }> =>

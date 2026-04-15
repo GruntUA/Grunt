@@ -14,7 +14,7 @@ from sqlalchemy import func, select
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.auth.models import User
     from grunt.core.document.multi_link import MultiLinkService
 
 from grunt.app import GruntError
@@ -56,7 +56,7 @@ class DocumentWriteMixin:
     engine: AsyncEngine
     _ml: MultiLinkService
 
-    def _set_grunt_context(self, user: GruntUser) -> tuple:  # type: ignore[empty-body]
+    def _set_grunt_context(self, user: User) -> tuple:  # type: ignore[empty-body]
         ...
 
     @staticmethod
@@ -67,7 +67,7 @@ class DocumentWriteMixin:
         self,
         doctype_name: str,
         doc_id: str,
-        user: GruntUser,
+        user: User,
     ) -> dict[str, Any]:
         raise NotImplementedError
 
@@ -77,7 +77,7 @@ class DocumentWriteMixin:
         self,
         doctype_name: str,
         data: dict[str, Any],
-        user: GruntUser,
+        user: User,
     ) -> dict[str, Any]:
         dt = await doctype_registry.get(doctype_name)
         if dt.is_virtual:
@@ -244,7 +244,7 @@ class DocumentWriteMixin:
         doctype_name: str,
         doc_id: str,
         data: dict[str, Any],
-        user: GruntUser,
+        user: User,
     ) -> dict[str, Any]:
         dt = await doctype_registry.get(doctype_name)
         if dt.is_virtual:
@@ -441,7 +441,7 @@ class DocumentWriteMixin:
         self,
         doctype_name: str,
         doc_id: str,
-        user: GruntUser,
+        user: User,
     ) -> None:
         dt = await doctype_registry.get(doctype_name)
         if dt.is_virtual:
@@ -516,7 +516,7 @@ class DocumentWriteMixin:
         self,
         doctype_name: str,
         ids: list[str],
-        user: "GruntUser",
+        user: "User",
         progress_cb: "Any | None" = None,
     ) -> tuple[int, list[str]]:
         """Delete multiple documents efficiently in a single transaction.

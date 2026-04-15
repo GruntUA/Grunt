@@ -16,16 +16,12 @@ import json
 import os
 from typing import TYPE_CHECKING
 
+import grunt
 import structlog
 from fastapi import HTTPException
-from sqlalchemy import select, update
-
-from grunt.core.doctypes.user.user import _user_table
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.auth.models import User
 
 logger = structlog.get_logger()
 
@@ -117,7 +113,7 @@ def verify_backup_code(stored_hashes: list[str], code: str) -> tuple[bool, list[
 # ── DB operations ─────────────────────────────────────────────────────────────
 
 
-async def begin_mfa_setup(user: GruntUser, session: AsyncSession) -> dict:
+async def begin_mfa_setup(user: User) -> dict:
     """Generate a new TOTP secret, store it (unconfirmed), and return setup info.
 
     The secret is saved immediately but ``mfa_enabled`` stays ``False`` until
@@ -131,11 +127,7 @@ async def begin_mfa_setup(user: GruntUser, session: AsyncSession) -> dict:
         }
     """
     secret = generate_mfa_secret()
-    table = _user_table()
-    await session.execute(
-        update(table).where(table.c.id == user.id).values(mfa_secret=secret, mfa_enabled=False)
-    )
-    await session.flush()
+    await grunt.db.set_value("User", user.id, {"mfa_secret": secret, "mfa_enabled": False})
     logger.info("mfa.setup_started", user=user.email)
     return {
         "secret": secret,
@@ -143,75 +135,58 @@ async def begin_mfa_setup(user: GruntUser, session: AsyncSession) -> dict:
     }
 
 
-async def confirm_mfa_setup(
-    user: GruntUser,
-    code: str,
-    session: AsyncSession,
-) -> list[str]:
+async def confirm_mfa_setup(user: User, code: str) -> list[str]:
     """Verify the TOTP code and activate MFA for the user.
 
     Returns a list of plain-text backup codes that the user should save.
     Raises HTTP 422 if the code is wrong or no secret is pending.
     """
-    # Load current secret
-    table = _user_table()
-    row = (await session.execute(select(table.c.mfa_secret).where(table.c.id == user.id))).first()
-    if not row or not row[0]:
+    rows = await grunt.db.get_all("User", filters={"id": user.id}, fields=["mfa_secret"], limit=1)
+    if not rows or not rows[0].get("mfa_secret"):
         raise HTTPException(422, detail="MFA не налаштовано. Спочатку запустіть setup.")
 
-    secret = row[0]
+    secret = rows[0]["mfa_secret"]
     if not verify_totp(secret, code):
         raise HTTPException(422, detail="Невірний TOTP код")
 
     backup_codes = _generate_backup_codes()
     backup_hashes = [_hash_backup_code(c) for c in backup_codes]
-
-    await session.execute(
-        update(table)
-        .where(table.c.id == user.id)
-        .values(
-            mfa_enabled=True,
-            mfa_secret=secret,
-            mfa_backup_codes=json.dumps(backup_hashes),
-        )
-    )
-    await session.flush()
+    await grunt.db.set_value("User", user.id, {
+        "mfa_enabled": True,
+        "mfa_secret": secret,
+        "mfa_backup_codes": json.dumps(backup_hashes),
+    })
     logger.info("mfa.enabled", user=user.email)
     return backup_codes
 
 
-async def disable_mfa(user: GruntUser, session: AsyncSession) -> None:
+async def disable_mfa(user: User) -> None:
     """Disable MFA and clear stored secrets for the user."""
-    table = _user_table()
-    await session.execute(
-        update(table)
-        .where(table.c.id == user.id)
-        .values(mfa_enabled=False, mfa_secret="", mfa_backup_codes=None)
-    )
-    await session.flush()
+    await grunt.db.set_value("User", user.id, {
+        "mfa_enabled": False,
+        "mfa_secret": "",
+        "mfa_backup_codes": None,
+    })
     logger.info("mfa.disabled", user=user.email)
 
 
-async def check_mfa_code(
-    user: GruntUser,
-    code: str,
-    session: AsyncSession,
-) -> None:
+async def check_mfa_code(user: User, code: str) -> None:
     """Verify TOTP or backup code for the user.
 
     Raises HTTP 401 on failure. Consumes a backup code if used (updates DB).
     """
-    table = _user_table()
-    row = (
-        await session.execute(
-            select(table.c.mfa_secret, table.c.mfa_backup_codes).where(table.c.id == user.id)
-        )
-    ).first()
-
-    if not row or not row[0]:
+    rows = await grunt.db.get_all(
+        "User",
+        filters={"id": user.id},
+        fields=["mfa_secret", "mfa_backup_codes"],
+        limit=1,
+    )
+    if not rows or not rows[0].get("mfa_secret"):
         raise HTTPException(401, detail="MFA не налаштовано")
 
-    secret, backup_json = row[0], row[1]
+    row = rows[0]
+    secret = row["mfa_secret"]
+    backup_json = row.get("mfa_backup_codes")
 
     # Try TOTP first
     if verify_totp(secret, code):
@@ -221,12 +196,7 @@ async def check_mfa_code(
     backup_hashes: list[str] = json.loads(backup_json) if backup_json else []
     matched, remaining = verify_backup_code(backup_hashes, code)
     if matched:
-        await session.execute(
-            update(table)
-            .where(table.c.id == user.id)
-            .values(mfa_backup_codes=json.dumps(remaining))
-        )
-        await session.flush()
+        await grunt.db.set_value("User", user.id, {"mfa_backup_codes": json.dumps(remaining)})
         logger.info("mfa.backup_code_used", user=user.email, remaining=len(remaining))
         return
 

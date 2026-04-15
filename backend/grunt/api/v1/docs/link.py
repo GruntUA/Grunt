@@ -19,7 +19,7 @@ from grunt.api.router import GruntRouter
 from grunt.api.v1.docs.utils import get_doc_service
 from grunt.api.v1.schemas.response import ok
 from grunt.core.auth.dependencies import current_user
-from grunt.core.auth.models import GruntUser
+from grunt.core.auth.models import User
 from grunt.core.document.query import _apply_filters
 from grunt.core.document.service import DocumentService
 from grunt.core.metadata.compiler import compile_doctype_to_table
@@ -34,7 +34,7 @@ async def link_search(
     q: str = Query(default="", description="Search string"),
     filters: str = Query(default="{}", description="JSON-encoded extra filters"),
     page_length: int = Query(default=10, ge=1, le=100),
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Search documents for a Link field dropdown.

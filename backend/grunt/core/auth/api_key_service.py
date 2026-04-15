@@ -23,7 +23,7 @@ import structlog
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from grunt.core.doctypes.user.user import GruntUser
+    from grunt.core.doctypes.user.user import User
 
 logger = structlog.get_logger()
 
@@ -60,10 +60,10 @@ async def authenticate_api_key(
     full_key: str,
     session: AsyncSession,
     client_ip: str | None = None,
-) -> GruntUser | None:
+) -> User | None:
     """Authenticate a request using an API key string.
 
-    Returns the associated GruntUser on success, None on failure.
+    Returns the associated User on success, None on failure.
     Updates ``last_used_at`` in the background (best-effort).
     """
     if not full_key.startswith(_KEY_PREFIX):

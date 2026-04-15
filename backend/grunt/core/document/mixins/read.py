@@ -13,7 +13,7 @@ from sqlalchemy import func, select
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.auth.models import User
     from grunt.core.document.multi_link import MultiLinkService
 
 
@@ -43,7 +43,7 @@ class DocumentReadMixin:
     async def list_documents(
         self,
         doctype_name: str,
-        user: GruntUser,
+        user: User,
         page: int = 1,
         per_page: int = 20,
         sort_by: str = "modified_at",
@@ -167,7 +167,7 @@ class DocumentReadMixin:
         self,
         doctype_name: str,
         doc_id: str,
-        user: GruntUser,
+        user: User,
     ) -> dict[str, Any]:
         dt = await doctype_registry.get(doctype_name)
         if dt.is_virtual:

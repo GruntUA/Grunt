@@ -62,7 +62,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from grunt.app import GruntApp
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.auth.models import User
 
 # Fields that are stored as real instance attributes (not routed into self.data)
 _RESERVED = frozenset({"doctype", "data", "user", "session"})
@@ -103,7 +103,7 @@ class Document:
         self,
         doctype: str,
         data: dict[str, Any],
-        user: GruntUser | None = None,
+        user: User | None = None,
         session: AsyncSession | None = None,
     ) -> None:
         # Use object.__setattr__ to bypass our custom __setattr__ for reserved attrs
@@ -189,6 +189,14 @@ class Document:
         await _grunt.delete_doc(self.doctype, self.id)
 
     # ── Lifecycle hooks ───────────────────────────────────────────────────
+
+    async def on_load(self) -> None:
+        """Called after a document is loaded from the database.
+
+        Override to apply defaults, coerce field types, or load related data
+        (e.g. roles, computed fields).  At call time ``self.data`` contains
+        the raw row dict from the DB.
+        """
 
     async def before_insert(self) -> None:
         """Called before a new document is inserted into the database."""

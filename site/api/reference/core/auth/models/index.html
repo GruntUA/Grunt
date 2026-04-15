@@ -1440,10 +1440,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#grunt.core.auth.models.GruntUser" class="md-nav__link">
+  <a href="#grunt.core.auth.models.User" class="md-nav__link">
     <span class="md-ellipsis">
       
-        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;GruntUser
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;User
       
     </span>
   </a>
@@ -1451,10 +1451,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#grunt.core.auth.models.GruntUserRole" class="md-nav__link">
+  <a href="#grunt.core.auth.models.UserRole" class="md-nav__link">
     <span class="md-ellipsis">
       
-        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;GruntUserRole
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;UserRole
       
     </span>
   </a>
@@ -5304,10 +5304,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#grunt.core.auth.models.GruntUser" class="md-nav__link">
+  <a href="#grunt.core.auth.models.User" class="md-nav__link">
     <span class="md-ellipsis">
       
-        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;GruntUser
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;User
       
     </span>
   </a>
@@ -5315,10 +5315,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#grunt.core.auth.models.GruntUserRole" class="md-nav__link">
+  <a href="#grunt.core.auth.models.UserRole" class="md-nav__link">
     <span class="md-ellipsis">
       
-        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;GruntUserRole
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;UserRole
       
     </span>
   </a>
@@ -5365,7 +5365,7 @@
 
     <div class="doc doc-contents first">
 
-        <p>Auth models — GruntUser dataclass (backed by User DocType), GruntRole/GruntUserRole system tables.</p>
+        <p>Auth models — User dataclass (backed by User DocType), GruntRole/UserRole system tables.</p>
 
 
 
@@ -5390,16 +5390,16 @@
 
 
 
-<h3 id="grunt.core.auth.models.GruntUser" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">GruntUser</span>
+<h3 id="grunt.core.auth.models.User" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">User</span>
 
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
   </span>
 
-<a href="#grunt.core.auth.models.GruntUser" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">GruntUser</span><span class="p">(</span><span class="nb">id</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">(</span><span class="n"><span title="uuid.uuid4">uuid4</span></span><span class="p">()))(),</span> <span class="n">email</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">full_name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">hashed_password</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">is_active</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">is_superadmin</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">theme</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="n">login_attempts</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">locked_until</span><span class="p">:</span> <span class="n"><span title="datetime.datetime">datetime</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mfa_enabled</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">mfa_secret</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">created_at</span><span class="p">:</span> <span class="n"><span title="datetime.datetime">datetime</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">modified_at</span><span class="p">:</span> <span class="n"><span title="datetime.datetime">datetime</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user_roles</span><span class="p">:</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            GruntUserRole (grunt.core.auth.models.GruntUserRole)" href="#grunt.core.auth.models.GruntUserRole">GruntUserRole</a></span><span class="p">]</span> <span class="o">=</span> <span class="n"><span title="list">list</span></span><span class="p">())</span>
+<a href="#grunt.core.auth.models.User" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">User</span><span class="p">(</span><span class="nb">id</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">(</span><span class="n"><span title="uuid.uuid4">uuid4</span></span><span class="p">()))(),</span> <span class="n">email</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">full_name</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">hashed_password</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">is_active</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">is_superadmin</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">theme</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="n">login_attempts</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">locked_until</span><span class="p">:</span> <span class="n"><span title="datetime.datetime">datetime</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mfa_enabled</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">mfa_secret</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">created_at</span><span class="p">:</span> <span class="n"><span title="datetime.datetime">datetime</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">modified_at</span><span class="p">:</span> <span class="n"><span title="datetime.datetime">datetime</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user_roles</span><span class="p">:</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            UserRole (grunt.core.auth.models.UserRole)" href="#grunt.core.auth.models.UserRole">UserRole</a></span><span class="p">]</span> <span class="o">=</span> <span class="n"><span title="list">list</span></span><span class="p">())</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -5442,11 +5442,11 @@
 
 
 
-<h3 id="grunt.core.auth.models.GruntUserRole" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">GruntUserRole</span>
+<h3 id="grunt.core.auth.models.UserRole" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">UserRole</span>
 
 
-<a href="#grunt.core.auth.models.GruntUserRole" class="headerlink" title="Permanent link">&para;</a></h3>
+<a href="#grunt.core.auth.models.UserRole" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
     <div class="doc doc-contents ">

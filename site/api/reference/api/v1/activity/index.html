@@ -5380,12 +5380,12 @@
 
   
       async
-   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">_user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">_user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
 
 
   
@@ -5480,7 +5480,7 @@
 <a id="__codelineno-0-24" name="__codelineno-0-24"></a>    <span class="n">date_from</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
 <a id="__codelineno-0-25" name="__codelineno-0-25"></a>    <span class="n">date_to</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
 <a id="__codelineno-0-26" name="__codelineno-0-26"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27"></a>    <span class="n">_user</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27"></a>    <span class="n">_user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
 <a id="__codelineno-0-28" name="__codelineno-0-28"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <a id="__codelineno-0-29" name="__codelineno-0-29"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a filtered, paginated activity feed.&quot;&quot;&quot;</span>
 <a id="__codelineno-0-30" name="__codelineno-0-30"></a>    <span class="n">table</span> <span class="o">=</span> <span class="n">compile_doctype_to_table</span><span class="p">(</span><span class="n">doctype_registry</span><span class="o">.</span><span class="n">_doctypes</span><span class="p">[</span><span class="s2">&quot;ActivityLog&quot;</span><span class="p">])</span>

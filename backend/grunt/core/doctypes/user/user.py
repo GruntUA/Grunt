@@ -13,8 +13,6 @@ from typing import TYPE_CHECKING
 import bcrypt
 import structlog
 from pydantic import BaseModel, Field
-from sqlalchemy import func, select
-
 from grunt.core.document.base import Document
 
 if TYPE_CHECKING:
@@ -26,37 +24,66 @@ logger = structlog.get_logger()
 _MAX_ATTEMPTS = 10
 _LOCKOUT_MINUTES = 30
 
+# ── Document Controller ───────────────────────────────────────────────────
 
-class GruntUser(BaseModel):
-    """Runtime user object populated from the ``User`` DocType.
 
-    Not a SQLAlchemy ORM model — use ``grunt.core.doctypes.User.User``
-    helpers to load/create users.
+class User(Document):
+    """DocType controller for User.
+
+    Handles lifecycle hooks when User documents are created or updated
+    through the generic document API (form, import, etc.).
     """
 
-    model_config = {"frozen": True}
+    # Field annotations for IDE support — values live in self.data at runtime.
+    email: str
+    full_name: str
+    avatar: str | None
+    phone: str | None
+    bio: str | None
+    is_active: bool
+    is_superadmin: bool
+    password: str | None
+    hashed_password: str | None
+    theme: str
+    language: str | None
+    login_attempts: int
+    locked_until: datetime | None
+    mfa_enabled: bool
+    mfa_secret: str | None
 
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    email: str = ""
-    full_name: str = ""
-    hashed_password: str = ""
-    is_active: bool = True
-    is_superadmin: bool = False
-    theme: str = "system"
-    login_attempts: int = 0
-    locked_until: datetime | None = None
-    mfa_enabled: bool = False
-    mfa_secret: str = ""
-    created_at: datetime | None = None
-    modified_at: datetime | None = None
-    roles: list[str] = Field(default_factory=list)
+    async def validate(self) -> None:
+        if not self.email:
+            raise ValueError("Email є обов'язковим")
+        if not self.full_name:
+            raise ValueError("Повне ім'я є обов'язковим")
+
+    async def before_insert(self) -> None:
+        # If a plain-text password was passed through the generic API, hash it.
+        raw = self.data.get("password")
+        if raw:
+            self.hashed_password = hash_password(str(raw))
+            self.data.pop("password", None)
+
+    def set_password(self, plain: str) -> None:
+        """Hash and store a new password on this document."""
+        self.hashed_password = hash_password(plain)
+
+    def check_password(self, plain: str) -> bool:
+        """Return True if plain matches the stored hashed password."""
+        return verify_password(plain, self.hashed_password or "")
 
 
 # Convenience system-user singleton for internal tasks.
-SYSTEM_USER = GruntUser(
-    email="system@grunt.local",
-    full_name="System",
-    is_superadmin=True,
+SYSTEM_USER = User(
+    doctype="User",
+    data={
+        "email": "system@grunt.local",
+        "full_name": "System",
+        "is_superadmin": True,
+        "is_active": True,
+        "theme": "system",
+        "language": "uk",
+    }
 )
 
 
@@ -71,74 +98,42 @@ def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
-# ── Internal helpers ──────────────────────────────────────────────────────
-
-
-def _user_table():
-    """Return the SQLAlchemy Core Table for the User DocType (grunt_core_user).
-
-    Used only in bootstrap/low-level paths (create_user, password reset).
-    """
-    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
-    dt = doctype_registry._doctypes.get("User")
-    if dt is None:
-        raise RuntimeError(
-            "DocType 'User' not found in registry. "
-            "Ensure load_core_doctypes() ran before auth operations."
-        )
-    return compile_doctype_to_table(dt)
-
-
-def _row_to_user(row: dict, roles: list[str]) -> GruntUser:
-    return GruntUser(
-        id=row["id"],
-        email=row.get("email") or "",
-        full_name=row.get("full_name") or "",
-        hashed_password=row.get("hashed_password") or "",
-        is_active=bool(row["is_active"]) if row.get("is_active") is not None else True,
-        is_superadmin=bool(row["is_superadmin"]) if row.get("is_superadmin") is not None else False,
-        theme=row.get("theme") or "system",
-        login_attempts=int(row["login_attempts"]) if row.get("login_attempts") is not None else 0,
-        locked_until=row.get("locked_until"),
-        mfa_enabled=bool(row["mfa_enabled"]) if row.get("mfa_enabled") is not None else False,
-        mfa_secret=row.get("mfa_secret") or "",
-        created_at=row.get("created_at"),
-        modified_at=row.get("modified_at"),
-        roles=roles,
-    )
+def _row_to_user(row: dict, roles: list[str]) -> User:
+    data = dict(row)
+    # Ensure defaults for boolean fields logic
+    if data.get("is_active") is None:
+        data["is_active"] = True
+    else:
+        data["is_active"] = bool(data["is_active"])
+        
+    if data.get("is_superadmin") is None:
+        data["is_superadmin"] = False
+    else:
+        data["is_superadmin"] = bool(data["is_superadmin"])
+        
+    data["theme"] = data.get("theme") or "system"
+    data["language"] = data.get("language") or "uk"
+    data["login_attempts"] = int(data.get("login_attempts") or 0)
+    data["mfa_enabled"] = bool(data.get("mfa_enabled"))
+    data["roles"] = roles
+    
+    return User(doctype="User", data=data)
 
 
 # ── User CRUD ─────────────────────────────────────────────────────────────
 
 
-# Fields needed for session auth — excludes hashed_password, mfa_secret, mfa_backup_codes
-_SESSION_FIELDS = [
-    "id",
-    "email",
-    "full_name",
-    "is_active",
-    "is_superadmin",
-    "theme",
-    "mfa_enabled",
-    "login_attempts",
-    "locked_until",
-]
-
-
 async def get_user_by_email(
     email: str,
     session: AsyncSession,
-    fields: list[str] | None = None,
-) -> GruntUser | None:
+) -> User | None:
     from grunt.app import grunt  # noqa: PLC0415
 
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:
         from grunt.core.doctypes.user_role.user_role import get_user_roles  # noqa: PLC0415
 
-        rows = await grunt.db.get_all("User", filters={"email": email}, fields=fields, limit=1)
+        rows = await grunt.db.get_all("User", filters={"email": email}, limit=1)
         if not rows:
             return None
         row = rows[0]
@@ -148,7 +143,7 @@ async def get_user_by_email(
         grunt.reset_context(_tokens)
 
 
-async def get_user_by_id(user_id: str, session: AsyncSession) -> GruntUser | None:
+async def get_user_by_id(user_id: str, session: AsyncSession) -> User | None:
     from grunt.app import grunt  # noqa: PLC0415
 
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
@@ -165,7 +160,7 @@ async def get_user_by_id(user_id: str, session: AsyncSession) -> GruntUser | Non
         grunt.reset_context(_tokens)
 
 
-async def list_users(session: AsyncSession) -> list[GruntUser]:
+async def list_users(session: AsyncSession) -> list[User]:
     from grunt.app import grunt  # noqa: PLC0415
     from grunt.core.site.manager import site_manager  # noqa: PLC0415
 
@@ -189,45 +184,37 @@ async def create_user(
     password: str,
     full_name: str,
     session: AsyncSession,
-) -> GruntUser:
-    """Create a new user. The first user automatically becomes superadmin.
+) -> User:
+    """Create a new user. The first user automatically becomes superadmin."""
+    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.core.site.manager import site_manager  # noqa: PLC0415
 
-    Uses a raw insert to bypass the permission layer during bootstrap.
-    """
-    table = _user_table()
+    _engine = site_manager.get_engine(site_manager.get_active_site())
+    _tokens = grunt.set_context(session, _engine, SYSTEM_USER)
+    
+    try:
+        user_count = await grunt.db.count("User")
+        is_superadmin = user_count == 0
 
-    count_result = await session.execute(select(func.count()).select_from(table))
-    user_count = count_result.scalar() or 0
+        doc = await grunt.new_doc("User", {
+            "email": email,
+            "full_name": full_name,
+            "password": password,
+            "is_superadmin": is_superadmin,
+            "is_active": True
+        })
+        await doc.insert()
+        
+        logger.info("user.created", email=email, superadmin=is_superadmin)
 
-    user_id = str(uuid.uuid4())
-    now = datetime.now(UTC)
-    is_superadmin = user_count == 0
-
-    await session.execute(
-        table.insert().values(
-            id=user_id,
-            name=email,
-            owner="system",
-            email=email,
-            full_name=full_name,
-            hashed_password=hash_password(password),
-            is_active=True,
-            is_superadmin=is_superadmin,
-            created_at=now,
-            modified_at=now,
-            modified_by="system",
-            docstatus=0,
-        )
-    )
-    await session.flush()
-    logger.info("user.created", email=email, superadmin=is_superadmin)
-
-    user = await get_user_by_email(email, session)
-    assert user is not None
-    return user
+        user = await get_user_by_email(email, session)
+        assert user is not None
+        return user
+    finally:
+        grunt.reset_context(_tokens)
 
 
-async def authenticate(email: str, password: str, session: AsyncSession) -> GruntUser | None:
+async def authenticate(email: str, password: str, session: AsyncSession) -> User | None:
     """Return user if credentials are valid, else None.
 
     Tracks failed attempts and locks the account after _MAX_ATTEMPTS failures.
@@ -267,45 +254,3 @@ async def authenticate(email: str, password: str, session: AsyncSession) -> Grun
     return user
 
 
-# ── Document Controller ───────────────────────────────────────────────────
-
-
-class User(Document):
-    """DocType controller for User.
-
-    Handles lifecycle hooks when User documents are created or updated
-    through the generic document API (form, import, etc.).
-    """
-
-    # Field annotations for IDE support — values live in self.data at runtime.
-    email: str
-    full_name: str
-    is_active: bool
-    is_superadmin: bool
-    hashed_password: str
-    theme: str
-    login_attempts: int
-    locked_until: datetime | None
-    mfa_enabled: bool
-    mfa_secret: str
-
-    async def validate(self) -> None:
-        if not self.email:
-            raise ValueError("Email є обов'язковим")
-        if not self.full_name:
-            raise ValueError("Повне ім'я є обов'язковим")
-
-    async def before_insert(self) -> None:
-        # If a plain-text password was passed through the generic API, hash it.
-        raw = self.data.get("password")
-        if raw:
-            self.hashed_password = hash_password(str(raw))
-            self.data.pop("password", None)
-
-    def set_password(self, plain: str) -> None:
-        """Hash and store a new password on this document."""
-        self.hashed_password = hash_password(plain)
-
-    def check_password(self, plain: str) -> bool:
-        """Return True if plain matches the stored hashed password."""
-        return verify_password(plain, self.hashed_password or "")

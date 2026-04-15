@@ -272,7 +272,7 @@ export interface ReportResult {
 
 // ── User types ────────────────────────────────────────────────────────────
 
-export interface GruntUserPublic {
+export interface UserPublic {
   id: string
   email: string
   full_name: string

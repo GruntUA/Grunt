@@ -41,7 +41,7 @@ def mock_session():
 
 @pytest.fixture
 def mock_user():
-    """Mock GruntUser."""
+    """Mock User."""
     user = Mock()
     user.id = "test-user-id"
     user.email = "test@example.com"

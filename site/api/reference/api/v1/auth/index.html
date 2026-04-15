@@ -5933,12 +5933,12 @@
   </span>
 
 <a href="#grunt.api.v1.auth.me" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">me</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">me</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
 
 
   
@@ -5964,7 +5964,7 @@
 <span class="normal"><a href="#__codelineno-0-153">153</a></span>
 <span class="normal"><a href="#__codelineno-0-154">154</a></span>
 <span class="normal"><a href="#__codelineno-0-155">155</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-145" name="__codelineno-0-145"></a><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/me&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">UserResponse</span><span class="p">)</span>
-<a id="__codelineno-0-146" name="__codelineno-0-146"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">me</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n">UserResponse</span><span class="p">:</span>
+<a id="__codelineno-0-146" name="__codelineno-0-146"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">me</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n">UserResponse</span><span class="p">:</span>
 <a id="__codelineno-0-147" name="__codelineno-0-147"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the currently authenticated user.&quot;&quot;&quot;</span>
 <a id="__codelineno-0-148" name="__codelineno-0-148"></a>    <span class="k">return</span> <span class="n">UserResponse</span><span class="p">(</span>
 <a id="__codelineno-0-149" name="__codelineno-0-149"></a>        <span class="nb">id</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
@@ -5992,12 +5992,12 @@
   </span>
 
 <a href="#grunt.api.v1.auth.update_me" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">update_me</span><span class="p">(</span><span class="n">body</span><span class="p">:</span> <span class="n"><span title="grunt.api.v1.auth.UpdateMeRequest">UpdateMeRequest</span></span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">update_me</span><span class="p">(</span><span class="n">body</span><span class="p">:</span> <span class="n"><span title="grunt.api.v1.auth.UpdateMeRequest">UpdateMeRequest</span></span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
 
 
   
@@ -6050,7 +6050,7 @@
 <span class="normal"><a href="#__codelineno-0-188">188</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-158" name="__codelineno-0-158"></a><span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/me&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">UserResponse</span><span class="p">)</span>
 <a id="__codelineno-0-159" name="__codelineno-0-159"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">update_me</span><span class="p">(</span>
 <a id="__codelineno-0-160" name="__codelineno-0-160"></a>    <span class="n">body</span><span class="p">:</span> <span class="n">UpdateMeRequest</span><span class="p">,</span>
-<a id="__codelineno-0-161" name="__codelineno-0-161"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
+<a id="__codelineno-0-161" name="__codelineno-0-161"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
 <a id="__codelineno-0-162" name="__codelineno-0-162"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
 <a id="__codelineno-0-163" name="__codelineno-0-163"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UserResponse</span><span class="p">:</span>
 <a id="__codelineno-0-164" name="__codelineno-0-164"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Update current user preferences (theme, etc.).&quot;&quot;&quot;</span>
@@ -6178,12 +6178,12 @@
   </span>
 
 <a href="#grunt.api.v1.auth.logout" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">logout</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">logout</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
 
 
   
@@ -6212,7 +6212,7 @@
 <span class="normal"><a href="#__codelineno-0-231">231</a></span>
 <span class="normal"><a href="#__codelineno-0-232">232</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-225" name="__codelineno-0-225"></a><span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/logout&quot;</span><span class="p">)</span>
 <a id="__codelineno-0-226" name="__codelineno-0-226"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">logout</span><span class="p">(</span>
-<a id="__codelineno-0-227" name="__codelineno-0-227"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
+<a id="__codelineno-0-227" name="__codelineno-0-227"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
 <a id="__codelineno-0-228" name="__codelineno-0-228"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
 <a id="__codelineno-0-229" name="__codelineno-0-229"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <a id="__codelineno-0-230" name="__codelineno-0-230"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Revoke all refresh tokens for the current user.&quot;&quot;&quot;</span>
@@ -6453,12 +6453,12 @@
 
   
       async
-   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">_</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">_</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            superadmin_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            superadmin_user
 
 
   
@@ -6493,7 +6493,7 @@
 <span class="normal"><a href="#__codelineno-0-345">345</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-328" name="__codelineno-0-328"></a><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/users&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="nb">list</span><span class="p">[</span><span class="n">UserResponse</span><span class="p">])</span>
 <a id="__codelineno-0-329" name="__codelineno-0-329"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">list_users</span><span class="p">(</span>
 <a id="__codelineno-0-330" name="__codelineno-0-330"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
-<a id="__codelineno-0-331" name="__codelineno-0-331"></a>    <span class="n">_</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">superadmin_user</span><span class="p">),</span>
+<a id="__codelineno-0-331" name="__codelineno-0-331"></a>    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">superadmin_user</span><span class="p">),</span>
 <a id="__codelineno-0-332" name="__codelineno-0-332"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">UserResponse</span><span class="p">]:</span>
 <a id="__codelineno-0-333" name="__codelineno-0-333"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;List all users.&quot;&quot;&quot;</span>
 <a id="__codelineno-0-334" name="__codelineno-0-334"></a>    <span class="n">users</span> <span class="o">=</span> <span class="k">await</span> <span class="n">service_list_users</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
@@ -6531,12 +6531,12 @@
 
   
       async
-   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">_</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">_</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            superadmin_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            superadmin_user
 
 
   
@@ -6565,7 +6565,7 @@
 <span class="normal"><a href="#__codelineno-0-359">359</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-348" name="__codelineno-0-348"></a><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/roles&quot;</span><span class="p">)</span>
 <a id="__codelineno-0-349" name="__codelineno-0-349"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">list_roles</span><span class="p">(</span>
 <a id="__codelineno-0-350" name="__codelineno-0-350"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
-<a id="__codelineno-0-351" name="__codelineno-0-351"></a>    <span class="n">_</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">superadmin_user</span><span class="p">),</span>
+<a id="__codelineno-0-351" name="__codelineno-0-351"></a>    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">superadmin_user</span><span class="p">),</span>
 <a id="__codelineno-0-352" name="__codelineno-0-352"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <a id="__codelineno-0-353" name="__codelineno-0-353"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return all defined roles.&quot;&quot;&quot;</span>
 <a id="__codelineno-0-354" name="__codelineno-0-354"></a>    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">select</span><span class="p">(</span><span class="n">GruntRole</span><span class="p">))</span>
@@ -6597,12 +6597,12 @@
 
   
       async
-   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">_</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">_</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            superadmin_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            superadmin_user
 
 
   
@@ -6636,7 +6636,7 @@
 <a id="__codelineno-0-367" name="__codelineno-0-367"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">create_role</span><span class="p">(</span>
 <a id="__codelineno-0-368" name="__codelineno-0-368"></a>    <span class="n">body</span><span class="p">:</span> <span class="n">AddRoleRequest</span><span class="p">,</span>
 <a id="__codelineno-0-369" name="__codelineno-0-369"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
-<a id="__codelineno-0-370" name="__codelineno-0-370"></a>    <span class="n">_</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">superadmin_user</span><span class="p">),</span>
+<a id="__codelineno-0-370" name="__codelineno-0-370"></a>    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">superadmin_user</span><span class="p">),</span>
 <a id="__codelineno-0-371" name="__codelineno-0-371"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <a id="__codelineno-0-372" name="__codelineno-0-372"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a new role.&quot;&quot;&quot;</span>
 <a id="__codelineno-0-373" name="__codelineno-0-373"></a>    <span class="n">existing</span> <span class="o">=</span> <span class="k">await</span> <span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
@@ -6671,12 +6671,12 @@
 
   
       async
-   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">_</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">_</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            superadmin_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            superadmin_user
 
 
   
@@ -6730,7 +6730,7 @@
 <a id="__codelineno-0-386" name="__codelineno-0-386"></a>    <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <a id="__codelineno-0-387" name="__codelineno-0-387"></a>    <span class="n">body</span><span class="p">:</span> <span class="n">AddRoleRequest</span><span class="p">,</span>
 <a id="__codelineno-0-388" name="__codelineno-0-388"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
-<a id="__codelineno-0-389" name="__codelineno-0-389"></a>    <span class="n">_</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">superadmin_user</span><span class="p">),</span>
+<a id="__codelineno-0-389" name="__codelineno-0-389"></a>    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">superadmin_user</span><span class="p">),</span>
 <a id="__codelineno-0-390" name="__codelineno-0-390"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <a id="__codelineno-0-391" name="__codelineno-0-391"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Assign a role to a user.&quot;&quot;&quot;</span>
 <a id="__codelineno-0-392" name="__codelineno-0-392"></a>    <span class="n">target_user</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_user_by_id</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
@@ -6748,15 +6748,15 @@
 <a id="__codelineno-0-404" name="__codelineno-0-404"></a>
 <a id="__codelineno-0-405" name="__codelineno-0-405"></a>    <span class="c1"># Check if already assigned</span>
 <a id="__codelineno-0-406" name="__codelineno-0-406"></a>    <span class="n">existing_result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-<a id="__codelineno-0-407" name="__codelineno-0-407"></a>        <span class="n">select</span><span class="p">(</span><span class="n">GruntUserRole</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-<a id="__codelineno-0-408" name="__codelineno-0-408"></a>            <span class="n">GruntUserRole</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">,</span>
-<a id="__codelineno-0-409" name="__codelineno-0-409"></a>            <span class="n">GruntUserRole</span><span class="o">.</span><span class="n">role_name</span> <span class="o">==</span> <span class="n">body</span><span class="o">.</span><span class="n">role_name</span><span class="p">,</span>
+<a id="__codelineno-0-407" name="__codelineno-0-407"></a>        <span class="n">select</span><span class="p">(</span><span class="n">UserRole</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+<a id="__codelineno-0-408" name="__codelineno-0-408"></a>            <span class="n">UserRole</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">,</span>
+<a id="__codelineno-0-409" name="__codelineno-0-409"></a>            <span class="n">UserRole</span><span class="o">.</span><span class="n">role_name</span> <span class="o">==</span> <span class="n">body</span><span class="o">.</span><span class="n">role_name</span><span class="p">,</span>
 <a id="__codelineno-0-410" name="__codelineno-0-410"></a>        <span class="p">)</span>
 <a id="__codelineno-0-411" name="__codelineno-0-411"></a>    <span class="p">)</span>
 <a id="__codelineno-0-412" name="__codelineno-0-412"></a>    <span class="k">if</span> <span class="n">existing_result</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">():</span>
 <a id="__codelineno-0-413" name="__codelineno-0-413"></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Роль вже призначено&quot;</span><span class="p">}</span>
 <a id="__codelineno-0-414" name="__codelineno-0-414"></a>
-<a id="__codelineno-0-415" name="__codelineno-0-415"></a>    <span class="n">user_role</span> <span class="o">=</span> <span class="n">GruntUserRole</span><span class="p">(</span><span class="n">user_id</span><span class="o">=</span><span class="n">user_id</span><span class="p">,</span> <span class="n">role_name</span><span class="o">=</span><span class="n">body</span><span class="o">.</span><span class="n">role_name</span><span class="p">)</span>
+<a id="__codelineno-0-415" name="__codelineno-0-415"></a>    <span class="n">user_role</span> <span class="o">=</span> <span class="n">UserRole</span><span class="p">(</span><span class="n">user_id</span><span class="o">=</span><span class="n">user_id</span><span class="p">,</span> <span class="n">role_name</span><span class="o">=</span><span class="n">body</span><span class="o">.</span><span class="n">role_name</span><span class="p">)</span>
 <a id="__codelineno-0-416" name="__codelineno-0-416"></a>    <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">user_role</span><span class="p">)</span>
 <a id="__codelineno-0-417" name="__codelineno-0-417"></a>    <span class="k">await</span> <span class="n">session</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 <a id="__codelineno-0-418" name="__codelineno-0-418"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">,</span> <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="n">body</span><span class="o">.</span><span class="n">role_name</span><span class="p">}}</span>
@@ -6783,12 +6783,12 @@
 
   
       async
-   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">_</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">_</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            superadmin_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            superadmin_user
 
 
   
@@ -6827,7 +6827,7 @@
 <a id="__codelineno-0-427" name="__codelineno-0-427"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">set_user_password</span><span class="p">(</span>
 <a id="__codelineno-0-428" name="__codelineno-0-428"></a>    <span class="n">body</span><span class="p">:</span> <span class="n">SetPasswordRequest</span><span class="p">,</span>
 <a id="__codelineno-0-429" name="__codelineno-0-429"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
-<a id="__codelineno-0-430" name="__codelineno-0-430"></a>    <span class="n">_</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">superadmin_user</span><span class="p">),</span>
+<a id="__codelineno-0-430" name="__codelineno-0-430"></a>    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">superadmin_user</span><span class="p">),</span>
 <a id="__codelineno-0-431" name="__codelineno-0-431"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <a id="__codelineno-0-432" name="__codelineno-0-432"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Change a user&#39;s password (superadmin only).&quot;&quot;&quot;</span>
 <a id="__codelineno-0-433" name="__codelineno-0-433"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">update</span> <span class="k">as</span> <span class="n">sa_update</span>  <span class="c1"># noqa: PLC0415</span>
@@ -6867,12 +6867,12 @@
 
   
       async
-   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">_</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">_</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            superadmin_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            superadmin_user
 
 
   
@@ -6911,13 +6911,13 @@
 <a id="__codelineno-0-451" name="__codelineno-0-451"></a>    <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <a id="__codelineno-0-452" name="__codelineno-0-452"></a>    <span class="n">role</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <a id="__codelineno-0-453" name="__codelineno-0-453"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
-<a id="__codelineno-0-454" name="__codelineno-0-454"></a>    <span class="n">_</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">superadmin_user</span><span class="p">),</span>
+<a id="__codelineno-0-454" name="__codelineno-0-454"></a>    <span class="n">_</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">superadmin_user</span><span class="p">),</span>
 <a id="__codelineno-0-455" name="__codelineno-0-455"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <a id="__codelineno-0-456" name="__codelineno-0-456"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove a role from a user.&quot;&quot;&quot;</span>
 <a id="__codelineno-0-457" name="__codelineno-0-457"></a>    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-<a id="__codelineno-0-458" name="__codelineno-0-458"></a>        <span class="n">select</span><span class="p">(</span><span class="n">GruntUserRole</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-<a id="__codelineno-0-459" name="__codelineno-0-459"></a>            <span class="n">GruntUserRole</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">,</span>
-<a id="__codelineno-0-460" name="__codelineno-0-460"></a>            <span class="n">GruntUserRole</span><span class="o">.</span><span class="n">role_name</span> <span class="o">==</span> <span class="n">role</span><span class="p">,</span>
+<a id="__codelineno-0-458" name="__codelineno-0-458"></a>        <span class="n">select</span><span class="p">(</span><span class="n">UserRole</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+<a id="__codelineno-0-459" name="__codelineno-0-459"></a>            <span class="n">UserRole</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">,</span>
+<a id="__codelineno-0-460" name="__codelineno-0-460"></a>            <span class="n">UserRole</span><span class="o">.</span><span class="n">role_name</span> <span class="o">==</span> <span class="n">role</span><span class="p">,</span>
 <a id="__codelineno-0-461" name="__codelineno-0-461"></a>        <span class="p">)</span>
 <a id="__codelineno-0-462" name="__codelineno-0-462"></a>    <span class="p">)</span>
 <a id="__codelineno-0-463" name="__codelineno-0-463"></a>    <span class="n">user_role</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
@@ -6949,12 +6949,12 @@
 
   
       async
-   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
 
 
   
@@ -6988,7 +6988,7 @@ Call <code>POST /mfa/confirm</code> with a valid TOTP code to activate.</p>
 <span class="normal"><a href="#__codelineno-0-492">492</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-478" name="__codelineno-0-478"></a><span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/mfa/setup&quot;</span><span class="p">)</span>
 <a id="__codelineno-0-479" name="__codelineno-0-479"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mfa_setup</span><span class="p">(</span>
 <a id="__codelineno-0-480" name="__codelineno-0-480"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
-<a id="__codelineno-0-481" name="__codelineno-0-481"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
+<a id="__codelineno-0-481" name="__codelineno-0-481"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
 <a id="__codelineno-0-482" name="__codelineno-0-482"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <a id="__codelineno-0-483" name="__codelineno-0-483"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Start MFA setup — returns a TOTP secret and QR code SVG.</span>
 <a id="__codelineno-0-484" name="__codelineno-0-484"></a>
@@ -7023,12 +7023,12 @@ Call <code>POST /mfa/confirm</code> with a valid TOTP code to activate.</p>
 
   
       async
-   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
 
 
   
@@ -7062,7 +7062,7 @@ Call <code>POST /mfa/confirm</code> with a valid TOTP code to activate.</p>
 <a id="__codelineno-0-496" name="__codelineno-0-496"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mfa_confirm</span><span class="p">(</span>
 <a id="__codelineno-0-497" name="__codelineno-0-497"></a>    <span class="n">body</span><span class="p">:</span> <span class="n">MfaVerifyRequest</span><span class="p">,</span>
 <a id="__codelineno-0-498" name="__codelineno-0-498"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
-<a id="__codelineno-0-499" name="__codelineno-0-499"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
+<a id="__codelineno-0-499" name="__codelineno-0-499"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
 <a id="__codelineno-0-500" name="__codelineno-0-500"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <a id="__codelineno-0-501" name="__codelineno-0-501"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Confirm MFA setup by verifying the first TOTP code.</span>
 <a id="__codelineno-0-502" name="__codelineno-0-502"></a>
@@ -7096,12 +7096,12 @@ Call <code>POST /mfa/confirm</code> with a valid TOTP code to activate.</p>
 
   
       async
-   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
 
 
   
@@ -7139,7 +7139,7 @@ because the user is already authenticated (token was issued at login).</p>
 <a id="__codelineno-0-513" name="__codelineno-0-513"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mfa_verify</span><span class="p">(</span>
 <a id="__codelineno-0-514" name="__codelineno-0-514"></a>    <span class="n">body</span><span class="p">:</span> <span class="n">MfaVerifyRequest</span><span class="p">,</span>
 <a id="__codelineno-0-515" name="__codelineno-0-515"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
-<a id="__codelineno-0-516" name="__codelineno-0-516"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
+<a id="__codelineno-0-516" name="__codelineno-0-516"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
 <a id="__codelineno-0-517" name="__codelineno-0-517"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <a id="__codelineno-0-518" name="__codelineno-0-518"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Verify a TOTP or backup code for the authenticated user.</span>
 <a id="__codelineno-0-519" name="__codelineno-0-519"></a>
@@ -7175,12 +7175,12 @@ because the user is already authenticated (token was issued at login).</p>
 
   
       async
-   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            GruntUser
+   (grunt.core.db.session.get_session)" href="../../../core/db/session/#grunt.core.db.session.get_session">get_session</a></span><span class="p">),</span> <span class="n">user</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            User
 
 
   
       dataclass
-   (grunt.core.auth.models.GruntUser)" href="../../../core/auth/models/#grunt.core.auth.models.GruntUser">GruntUser</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
+   (grunt.core.auth.models.User)" href="../../../core/auth/models/#grunt.core.auth.models.User">User</a></span> <span class="o">=</span> <span class="n"><span title="fastapi.Depends">Depends</span></span><span class="p">(</span><span class="n"><a class="autorefs autorefs-internal" title="            current_user
 
 
   
@@ -7208,7 +7208,7 @@ because the user is already authenticated (token was issued at login).</p>
 <span class="normal"><a href="#__codelineno-0-541">541</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-531" name="__codelineno-0-531"></a><span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;/mfa/disable&quot;</span><span class="p">)</span>
 <a id="__codelineno-0-532" name="__codelineno-0-532"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mfa_disable</span><span class="p">(</span>
 <a id="__codelineno-0-533" name="__codelineno-0-533"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">),</span>
-<a id="__codelineno-0-534" name="__codelineno-0-534"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">GruntUser</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
+<a id="__codelineno-0-534" name="__codelineno-0-534"></a>    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">current_user</span><span class="p">),</span>
 <a id="__codelineno-0-535" name="__codelineno-0-535"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <a id="__codelineno-0-536" name="__codelineno-0-536"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Disable MFA for the current user.&quot;&quot;&quot;</span>
 <a id="__codelineno-0-537" name="__codelineno-0-537"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">grunt.core.auth.mfa</span><span class="w"> </span><span class="kn">import</span> <span class="n">disable_mfa</span>  <span class="c1"># noqa: PLC0415</span>

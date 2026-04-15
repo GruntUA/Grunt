@@ -5442,7 +5442,7 @@
 
 
 <a href="#grunt.core.permissions.rbac.PermissionChecker.hidden_fields" class="headerlink" title="Permanent link">&para;</a></h4>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">hidden_fields</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="s1">&#39;GruntUser&#39;</span><span class="p">,</span> <span class="n">doctype</span><span class="p">:</span> <span class="s1">&#39;DocType&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="frozenset">frozenset</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">hidden_fields</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="s1">&#39;User&#39;</span><span class="p">,</span> <span class="n">doctype</span><span class="p">:</span> <span class="s1">&#39;DocType&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="frozenset">frozenset</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -5502,7 +5502,7 @@ rule exposes a field, it is visible.</p>
 <span class="normal"><a href="#__codelineno-0-118">118</a></span>
 <span class="normal"><a href="#__codelineno-0-119">119</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-75" name="__codelineno-0-75"></a><span class="k">def</span><span class="w"> </span><span class="nf">hidden_fields</span><span class="p">(</span>
 <a id="__codelineno-0-76" name="__codelineno-0-76"></a>    <span class="bp">self</span><span class="p">,</span>
-<a id="__codelineno-0-77" name="__codelineno-0-77"></a>    <span class="n">user</span><span class="p">:</span> <span class="s2">&quot;GruntUser&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-77" name="__codelineno-0-77"></a>    <span class="n">user</span><span class="p">:</span> <span class="s2">&quot;User&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-78" name="__codelineno-0-78"></a>    <span class="n">doctype</span><span class="p">:</span> <span class="s2">&quot;DocType&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-79" name="__codelineno-0-79"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <a id="__codelineno-0-80" name="__codelineno-0-80"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the set of field names the user is NOT allowed to see.</span>

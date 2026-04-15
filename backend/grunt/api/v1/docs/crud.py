@@ -12,7 +12,7 @@ from grunt.api.router import GruntRouter
 from grunt.api.v1.docs.utils import get_doc_service
 from grunt.api.v1.schemas.response import ok
 from grunt.core.auth.dependencies import current_user
-from grunt.core.auth.models import GruntUser
+from grunt.core.auth.models import User
 from grunt.core.document.service import DocumentService
 
 router = GruntRouter()
@@ -28,7 +28,7 @@ async def list_documents(
     sort_order: str = "desc",
     search: str | None = None,
     fields: str | None = None,
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
     service: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """List documents for a DocType."""
@@ -58,7 +58,7 @@ async def list_documents(
 async def create_document(
     doctype: str,
     body: dict[str, Any] = Body(...),
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Create a new document."""
@@ -70,7 +70,7 @@ async def create_document(
 async def get_document(
     doctype: str,
     doc_id: str,
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Get document data."""
@@ -83,7 +83,7 @@ async def update_document(
     doctype: str,
     doc_id: str,
     body: dict[str, Any] = Body(...),
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Update an existing document."""
@@ -95,7 +95,7 @@ async def update_document(
 async def delete_document(
     doctype: str,
     doc_id: str,
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Delete a document."""
@@ -107,7 +107,7 @@ async def delete_document(
 async def bulk_delete_documents(
     doctype: str,
     body: dict[str, Any] = Body(...),
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Delete multiple documents by IDs, or all documents matching filters.
@@ -169,7 +169,7 @@ async def bulk_delete_documents(
 async def bulk_update_documents(
     doctype: str,
     body: dict[str, Any] = Body(...),
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Update a single field on multiple documents."""

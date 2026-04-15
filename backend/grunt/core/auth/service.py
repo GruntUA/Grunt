@@ -18,7 +18,7 @@ from grunt.config import settings
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from grunt.core.doctypes.user.user import GruntUser
+    from grunt.core.doctypes.user.user import User
 
 logger = structlog.get_logger()
 
@@ -26,7 +26,7 @@ logger = structlog.get_logger()
 # ── JWT ───────────────────────────────────────────────────────────────────
 
 
-def create_access_token(user: GruntUser) -> str:
+def create_access_token(user: User) -> str:
     """Create a JWT with user identity claims to avoid DB lookups on every request."""
     expire = datetime.now(UTC) + timedelta(minutes=settings.access_token_expire_minutes)
     payload = {
@@ -66,7 +66,7 @@ async def create_refresh_token(user_id: str, session: AsyncSession) -> str:
 async def rotate_refresh_token(
     token: str,
     session: AsyncSession,
-) -> tuple[str, GruntUser] | None:
+) -> tuple[str, User] | None:
     """Validate a refresh token, revoke it, and issue a new one.
 
     Returns (new_refresh_token, user) on success, None if invalid/expired.

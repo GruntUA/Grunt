@@ -16,7 +16,7 @@ from grunt.api.router import GruntRouter
 from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.core.auth.dependencies import current_user
-from grunt.core.auth.models import GruntUser
+from grunt.core.auth.models import User
 from grunt.core.document.tree import tree_service
 
 router = GruntRouter(prefix="", tags=["docs", "tree"])
@@ -28,7 +28,7 @@ async def get_tree(
     root_id: str | None = Query(None, description="Start from this node; omit for full forest"),
     max_depth: int = Query(10, ge=1, le=50),
     fields: str | None = Query(None, description="Comma-separated extra fields to include"),
-    _user: GruntUser = Depends(current_user),
+    _user: User = Depends(current_user),
 ) -> dict[str, Any]:
     """Return the full tree (or subtree) as nested dicts with ``children`` arrays.
 
@@ -66,7 +66,7 @@ async def get_children(
     parent_id: str | None = Query(None, description="Parent node id; omit for root nodes"),
     fields: str | None = Query(None, description="Comma-separated extra fields to include"),
     limit: int = Query(500, ge=1, le=2000),
-    _user: GruntUser = Depends(current_user),
+    _user: User = Depends(current_user),
 ) -> dict[str, Any]:
     """Return direct children of *parent_id* (lazy-load one level at a time).
 
@@ -89,7 +89,7 @@ async def get_ancestors(
     doctype: str,
     node_id: str,
     fields: str | None = Query(None, description="Comma-separated extra fields to include"),
-    _user: GruntUser = Depends(current_user),
+    _user: User = Depends(current_user),
 ) -> dict[str, Any]:
     """Return the breadcrumb path from the root down to *node_id*'s parent.
 
@@ -122,7 +122,7 @@ async def move_node(
     doctype: str,
     node_id: str,
     body: MoveNodeBody,
-    user: GruntUser = Depends(current_user),
+    user: User = Depends(current_user),
 ) -> dict[str, Any]:
     """Re-parent *node_id* to *new_parent_id* (or make it a root node if ``null``).
 

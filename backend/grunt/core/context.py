@@ -12,10 +12,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.auth.models import User
 
 _session_ctx: ContextVar[AsyncSession | None] = ContextVar("grunt_session", default=None)
 _engine_ctx: ContextVar[AsyncEngine | None] = ContextVar("grunt_engine", default=None)
-_user_ctx: ContextVar[GruntUser | None] = ContextVar("grunt_user", default=None)
+_user_ctx: ContextVar[User | None] = ContextVar("grunt_user", default=None)
 _site_ctx: ContextVar[str | None] = ContextVar("grunt_site", default=None)
 _messages_ctx: ContextVar[list[dict] | None] = ContextVar("grunt_messages", default=None)

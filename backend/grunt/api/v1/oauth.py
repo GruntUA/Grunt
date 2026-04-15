@@ -19,7 +19,7 @@ Flow:
    which returns the provider's authorization URL.
 2. Provider redirects back to ``GET /api/v1/oauth/{provider}/callback?code=...``
 3. Backend exchanges code for tokens, fetches the user's profile, finds or
-   creates a local GruntUser, and returns a Grunt access + refresh token pair.
+   creates a local User, and returns a Grunt access + refresh token pair.
 """
 
 from __future__ import annotations

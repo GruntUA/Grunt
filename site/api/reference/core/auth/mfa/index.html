@@ -5764,7 +5764,7 @@ backed by the <code>mfa_secret</code> and <code>mfa_backup_codes</code> fields o
   </span>
 
 <a href="#grunt.core.auth.mfa.begin_mfa_setup" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">begin_mfa_setup</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="s1">&#39;GruntUser&#39;</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n"><span title="sqlalchemy.ext.asyncio.AsyncSession">AsyncSession</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="dict">dict</span></span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">begin_mfa_setup</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="s1">&#39;User&#39;</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n"><span title="sqlalchemy.ext.asyncio.AsyncSession">AsyncSession</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="dict">dict</span></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -5807,7 +5807,7 @@ backed by the <code>mfa_secret</code> and <code>mfa_backup_codes</code> fields o
 <span class="normal"><a href="#__codelineno-0-139">139</a></span>
 <span class="normal"><a href="#__codelineno-0-140">140</a></span>
 <span class="normal"><a href="#__codelineno-0-141">141</a></span>
-<span class="normal"><a href="#__codelineno-0-142">142</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-117" name="__codelineno-0-117"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">begin_mfa_setup</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="s2">&quot;GruntUser&quot;</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="normal"><a href="#__codelineno-0-142">142</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-117" name="__codelineno-0-117"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">begin_mfa_setup</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="s2">&quot;User&quot;</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <a id="__codelineno-0-118" name="__codelineno-0-118"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a new TOTP secret, store it (unconfirmed), and return setup info.</span>
 <a id="__codelineno-0-119" name="__codelineno-0-119"></a>
 <a id="__codelineno-0-120" name="__codelineno-0-120"></a><span class="sd">    The secret is saved immediately but ``mfa_enabled`` stays ``False`` until</span>
@@ -5851,7 +5851,7 @@ backed by the <code>mfa_secret</code> and <code>mfa_backup_codes</code> fields o
   </span>
 
 <a href="#grunt.core.auth.mfa.confirm_mfa_setup" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">confirm_mfa_setup</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="s1">&#39;GruntUser&#39;</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n"><span title="sqlalchemy.ext.asyncio.AsyncSession">AsyncSession</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">confirm_mfa_setup</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="s1">&#39;User&#39;</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n"><span title="sqlalchemy.ext.asyncio.AsyncSession">AsyncSession</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -5902,7 +5902,7 @@ Raises HTTP 422 if the code is wrong or no secret is pending.</p>
 <span class="normal"><a href="#__codelineno-0-181">181</a></span>
 <span class="normal"><a href="#__codelineno-0-182">182</a></span>
 <span class="normal"><a href="#__codelineno-0-183">183</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-145" name="__codelineno-0-145"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">confirm_mfa_setup</span><span class="p">(</span>
-<a id="__codelineno-0-146" name="__codelineno-0-146"></a>    <span class="n">user</span><span class="p">:</span> <span class="s2">&quot;GruntUser&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-146" name="__codelineno-0-146"></a>    <span class="n">user</span><span class="p">:</span> <span class="s2">&quot;User&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-147" name="__codelineno-0-147"></a>    <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <a id="__codelineno-0-148" name="__codelineno-0-148"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span><span class="p">,</span>
 <a id="__codelineno-0-149" name="__codelineno-0-149"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -5958,7 +5958,7 @@ Raises HTTP 422 if the code is wrong or no secret is pending.</p>
   </span>
 
 <a href="#grunt.core.auth.mfa.disable_mfa" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">disable_mfa</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="s1">&#39;GruntUser&#39;</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n"><span title="sqlalchemy.ext.asyncio.AsyncSession">AsyncSession</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">disable_mfa</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="s1">&#39;User&#39;</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n"><span title="sqlalchemy.ext.asyncio.AsyncSession">AsyncSession</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -5977,7 +5977,7 @@ Raises HTTP 422 if the code is wrong or no secret is pending.</p>
 <span class="normal"><a href="#__codelineno-0-192">192</a></span>
 <span class="normal"><a href="#__codelineno-0-193">193</a></span>
 <span class="normal"><a href="#__codelineno-0-194">194</a></span>
-<span class="normal"><a href="#__codelineno-0-195">195</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-186" name="__codelineno-0-186"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">disable_mfa</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="s2">&quot;GruntUser&quot;</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal"><a href="#__codelineno-0-195">195</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-186" name="__codelineno-0-186"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">disable_mfa</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="s2">&quot;User&quot;</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <a id="__codelineno-0-187" name="__codelineno-0-187"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Disable MFA and clear stored secrets for the user.&quot;&quot;&quot;</span>
 <a id="__codelineno-0-188" name="__codelineno-0-188"></a>    <span class="n">table</span> <span class="o">=</span> <span class="n">_user_table</span><span class="p">()</span>
 <a id="__codelineno-0-189" name="__codelineno-0-189"></a>    <span class="k">await</span> <span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
@@ -6005,7 +6005,7 @@ Raises HTTP 422 if the code is wrong or no secret is pending.</p>
   </span>
 
 <a href="#grunt.core.auth.mfa.check_mfa_code" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">check_mfa_code</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="s1">&#39;GruntUser&#39;</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n"><span title="sqlalchemy.ext.asyncio.AsyncSession">AsyncSession</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">check_mfa_code</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="s1">&#39;User&#39;</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n"><span title="sqlalchemy.ext.asyncio.AsyncSession">AsyncSession</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -6056,7 +6056,7 @@ Raises HTTP 422 if the code is wrong or no secret is pending.</p>
 <span class="normal"><a href="#__codelineno-0-235">235</a></span>
 <span class="normal"><a href="#__codelineno-0-236">236</a></span>
 <span class="normal"><a href="#__codelineno-0-237">237</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-198" name="__codelineno-0-198"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">check_mfa_code</span><span class="p">(</span>
-<a id="__codelineno-0-199" name="__codelineno-0-199"></a>    <span class="n">user</span><span class="p">:</span> <span class="s2">&quot;GruntUser&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-199" name="__codelineno-0-199"></a>    <span class="n">user</span><span class="p">:</span> <span class="s2">&quot;User&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-200" name="__codelineno-0-200"></a>    <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <a id="__codelineno-0-201" name="__codelineno-0-201"></a>    <span class="n">session</span><span class="p">:</span> <span class="n">AsyncSession</span><span class="p">,</span>
 <a id="__codelineno-0-202" name="__codelineno-0-202"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

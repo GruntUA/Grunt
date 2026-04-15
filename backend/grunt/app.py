@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.core.auth.models import GruntUser
+    from grunt.core.auth.models import User
     from grunt.core.metadata.doctype import DocType
 
 logger = structlog.get_logger()
@@ -83,7 +83,7 @@ class GruntApp:
         self,
         session: AsyncSession,
         engine: AsyncEngine | None = None,
-        user: GruntUser | None = None,
+        user: User | None = None,
     ) -> tuple:
         """Set the request context (session / engine / user).
 
@@ -110,7 +110,7 @@ class GruntApp:
         self,
         session: AsyncSession,
         engine: AsyncEngine | None = None,
-        user: GruntUser | None = None,
+        user: User | None = None,
     ) -> AsyncGenerator[None, None]:
         """Async context manager that activates a grunt context for background tasks.
 
@@ -149,7 +149,7 @@ class GruntApp:
                 raise RuntimeError("grunt: no active engine.") from None
         return e
 
-    def _require_user(self) -> GruntUser:
+    def _require_user(self) -> User:
         u = _user_ctx.get()
         if u is None:
             raise RuntimeError("grunt: no active user.")

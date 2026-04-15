@@ -101,7 +101,7 @@ Access fields:
   self.field_name = value  — set field value
   self.data                — full document dict
   self.doctype             — DocType name ("{name}")
-  self.user                — current GruntUser (or None)
+  self.user                — current User (or None)
   self.session             — async SQLAlchemy session (for advanced queries)
 """
 
