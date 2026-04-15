@@ -115,7 +115,7 @@ function handleUndo() {
     <div class="flex items-center justify-between gap-4 px-4 py-2.5">
       <div class="min-w-0 flex items-center gap-3">
         <h1 class="text-xl font-bold text-foreground truncate selection:bg-primary/20">{{ docTitle }}</h1>
-        <Badge v-if="isDirty" variant="outline" class="border-amber-400 bg-amber-50/50 text-amber-600 animate-in fade-in slide-in-from-left-2 duration-300 text-[10px] h-5 px-1.5">
+        <Badge v-if="isDirty" variant="outline" class="border-amber-400 bg-amber-50/50 text-amber-600 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-400 animate-in fade-in slide-in-from-left-2 duration-300 text-[10px] h-5 px-1.5">
           {{ t('Unsaved') }}
         </Badge>
       </div>

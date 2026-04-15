@@ -45,6 +45,7 @@ import {
 import { useColorMode } from '@/core/composables/useColorMode'
 import type { Theme } from '@/core/composables/useColorMode'
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import SidebarItem from './SidebarItem.vue'
 import SidebarEditor from './SidebarEditor.vue'
 
@@ -399,10 +400,12 @@ defineExpose({ mobileOpen })
         <DropdownMenu v-if="!collapsed">
           <DropdownMenuTrigger as-child>
             <button class="w-full flex items-center gap-2 p-1.5 rounded-md hover:bg-accent transition-colors">
-              <span
-                class="size-7 rounded-md bg-primary text-primary-foreground text-xs font-medium flex items-center justify-center shrink-0">
-                {{ auth.user ? initials(auth.user.full_name) : '?' }}
-              </span>
+              <Avatar class="size-7 rounded-md bg-primary">
+                <AvatarImage :src="(auth.user as any)?.user_image || undefined" />
+                <AvatarFallback class="text-primary-foreground text-xs font-medium bg-transparent">
+                  {{ auth.user ? initials(auth.user.full_name) : '?' }}
+                </AvatarFallback>
+              </Avatar>
               <div class="flex-1 text-left min-w-0">
                 <p class="text-sm font-medium text-foreground truncate leading-tight">{{ auth.user?.full_name }}</p>
                 <p class="text-[11px] text-muted-foreground truncate leading-tight">{{ auth.user?.email }}</p>
@@ -439,10 +442,12 @@ defineExpose({ mobileOpen })
         <Tooltip v-else>
           <TooltipTrigger as-child>
             <button class="w-full flex items-center justify-center p-1.5 rounded-md hover:bg-accent transition-colors">
-              <span
-                class="size-7 rounded-md bg-primary text-primary-foreground text-xs font-medium flex items-center justify-center">
-                {{ auth.user ? initials(auth.user.full_name) : '?' }}
-              </span>
+              <Avatar class="size-7 rounded-md bg-primary">
+                <AvatarImage :src="(auth.user as any)?.user_image || undefined" />
+                <AvatarFallback class="text-primary-foreground text-xs font-medium bg-transparent">
+                  {{ auth.user ? initials(auth.user.full_name) : '?' }}
+                </AvatarFallback>
+              </Avatar>
             </button>
           </TooltipTrigger>
           <TooltipContent side="right">{{ auth.user?.full_name }}</TooltipContent>

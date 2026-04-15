@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 const props = withDefaults(
   defineProps<{
@@ -28,11 +29,14 @@ const hidden = computed(() => Math.max(0, props.users.length - props.max))
         class="relative transition-transform duration-200 hover:scale-110 hover:z-20 cursor-default">
         <Tooltip>
           <TooltipTrigger as-child>
-            <div
-              class="size-7 rounded-full border-2 border-background ring-2 ring-transparent group-hover:ring-white/10 flex items-center justify-center text-[10px] font-bold text-white shadow-sm transition-all"
-              :style="{ backgroundColor: user.color }">
-              {{ initials(user.full_name) }}
-            </div>
+            <Avatar class="size-7 border-2 border-background ring-2 ring-transparent group-hover:ring-white/10 shadow-sm transition-all">
+              <AvatarFallback
+                class="text-[10px] font-bold text-white text-center flex items-center justify-center p-0 m-0"
+                :style="{ backgroundColor: user.color }"
+              >
+                {{ initials(user.full_name) }}
+              </AvatarFallback>
+            </Avatar>
           </TooltipTrigger>
           <TooltipContent side="bottom" class="text-xs">
             <p class="font-bold">{{ user.full_name }}</p>
@@ -42,10 +46,11 @@ const hidden = computed(() => Math.max(0, props.users.length - props.max))
       </div>
 
       <!-- Overflow indicator -->
-      <div v-if="hidden > 0"
-        class="size-7 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground z-0">
-        +{{ hidden }}
-      </div>
+      <Avatar v-if="hidden > 0" class="size-7 border-2 border-background z-0">
+        <AvatarFallback class="bg-muted text-[10px] font-bold text-muted-foreground flex items-center justify-center p-0">
+          +{{ hidden }}
+        </AvatarFallback>
+      </Avatar>
     </div>
   </TooltipProvider>
 </template>
