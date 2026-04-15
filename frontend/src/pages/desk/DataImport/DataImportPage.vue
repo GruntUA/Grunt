@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/core/api/client'
+import { filesApi } from '@/core/api/files'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
@@ -67,11 +68,8 @@ async function startImport() {
     formData.append('file', file.value)
 
     try {
-        // 1. Upload file using system API
-        const uploadRes = await api.post('/api/v1/files/', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        })
-        const fileData = uploadRes.data.data
+        // 1. Upload file using whitelisted method
+        const fileData = await filesApi.upload(file.value)
 
         // 2. Create DataImport doc
         const diRes = await api.post('/api/v1/docs/DataImport', {

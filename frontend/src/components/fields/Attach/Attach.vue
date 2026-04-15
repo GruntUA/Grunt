@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { DocField } from '@/types'
-import client from '@/core/api/client'
+import { filesApi } from '@/core/api/files'
 import { Paperclip, ExternalLink, X, Upload } from '@lucide/vue'
 
 const props = defineProps<{
@@ -23,16 +23,9 @@ const currentUrl = () => typeof props.modelValue === 'string' ? props.modelValue
 async function uploadFile(file: File) {
   isUploading.value = true
   uploadProgress.value = 0
-  const fd = new FormData()
-  fd.append('file', file)
   try {
-    const resp = await client.post('/api/v1/files/', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      onUploadProgress: (e) => {
-        uploadProgress.value = Math.round((e.loaded / (e.total ?? 1)) * 100)
-      },
-    })
-    emit('update:modelValue', resp.data.data?.url ?? resp.data.url)
+    const fileItem = await filesApi.upload(file)
+    emit('update:modelValue', fileItem.url)
   } catch {
     // upload failed
   } finally {
@@ -67,25 +60,22 @@ function fileName(url: string) {
     <div v-if="currentUrl()" class="flex items-center gap-2 p-2.5 bg-muted rounded-lg border border-border">
       <Paperclip class="size-4 text-muted-foreground shrink-0" />
       <span class="text-sm flex-1 truncate">{{ fileName(currentUrl()!) }}</span>
-      <a :href="currentUrl()!" target="_blank" class="text-xs text-primary hover:underline inline-flex items-center gap-1">
+      <a :href="currentUrl()!" target="_blank"
+        class="text-xs text-primary hover:underline inline-flex items-center gap-1">
         <ExternalLink class="size-3" />
         Відкрити
       </a>
-      <button v-if="!disabled" type="button" class="text-muted-foreground hover:text-destructive transition-colors" @click="removeFile">
+      <button v-if="!disabled" type="button" class="text-muted-foreground hover:text-destructive transition-colors"
+        @click="removeFile">
         <X class="size-4" />
       </button>
     </div>
 
     <!-- Upload zone -->
-    <div
-      v-else
-      class="border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer"
+    <div v-else class="border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer"
       :class="isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'"
-      @dragover.prevent="isDragging = true"
-      @dragleave="isDragging = false"
-      @drop.prevent="onDrop"
-      @click="fileInput?.click()"
-    >
+      @dragover.prevent="isDragging = true" @dragleave="isDragging = false" @drop.prevent="onDrop"
+      @click="fileInput?.click()">
       <div v-if="isUploading" class="flex flex-col items-center gap-2">
         <div class="w-full bg-muted rounded-full h-1.5">
           <div class="bg-primary h-1.5 rounded-full transition-all" :style="{ width: uploadProgress + '%' }" />
@@ -94,7 +84,8 @@ function fileName(url: string) {
       </div>
       <div v-else class="flex flex-col items-center gap-1">
         <Upload class="size-5 text-muted-foreground" />
-        <p class="text-sm text-muted-foreground">Перетягни файл або <span class="text-primary font-medium">клікни для вибору</span></p>
+        <p class="text-sm text-muted-foreground">Перетягни файл або <span class="text-primary font-medium">клікни для
+            вибору</span></p>
       </div>
       <input ref="fileInput" type="file" class="sr-only" :disabled="disabled" @change="onFileChange" />
     </div>

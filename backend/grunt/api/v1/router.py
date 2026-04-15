@@ -4,7 +4,6 @@ from fastapi import APIRouter
 
 from grunt.api.v1.auth import router as auth_router
 from grunt.api.v1.docs import router as docs_router
-from grunt.api.v1.files import router as files_router
 from grunt.api.v1.health import router as health_router
 from grunt.api.v1.method import router as method_router
 from grunt.api.v1.metrics import router as metrics_router
@@ -27,6 +26,5 @@ v1_router.include_router(method_router, prefix="/method", tags=["method"])
 v1_router.include_router(docs_router, prefix="/docs", tags=["docs"])
 
 # External / Binary endpoints
-v1_router.include_router(files_router, prefix="/files", tags=["files"])
 v1_router.include_router(oauth_router, prefix="/oauth", tags=["oauth"])
 v1_router.include_router(webhooks_router, prefix="/webhooks", tags=["webhooks"])

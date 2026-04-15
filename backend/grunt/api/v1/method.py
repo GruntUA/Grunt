@@ -2,7 +2,7 @@ import importlib
 from typing import Any, Dict, Optional
 from inspect import iscoroutinefunction
 
-from fastapi import APIRouter, Depends, Request, HTTPException, status
+from fastapi import APIRouter, Depends, Request, HTTPException, Response, status
 from grunt import get_engine, throw
 from grunt.app import grunt as grunt_app
 from grunt.core.auth.dependencies import current_user, optional_user, _oauth2_scheme_optional
@@ -33,20 +33,41 @@ def _process_params(params: dict[str, str]) -> dict[str, Any]:
     return args
 
 def get_whitelisted_method(method_path: str) -> Any:
-    """Dynamically import a method and check if it is whitelisted."""
-    try:
-        module_path, method_name = method_path.rsplit(".", 1)
-        module = importlib.import_module(module_path)
-        method = getattr(module, method_name)
-    except (ValueError, ImportError, AttributeError) as e:
-        print(f"DEBUG: whitelisted_method_failed {method_path}: {e}")
+    """Dynamically import a method and check if it is whitelisted.
+    
+    Supports:
+    - module.function
+    - module.Class.static_method
+    """
+    parts = method_path.split(".")
+    method = None
+    
+    # Try different module/attribute splits
+    # e.g. grunt.core.doctypes.file.file.File.upload
+    # -> try importing grunt.core.doctypes.file.file
+    # -> then getattr(File), then getattr(upload)
+    for i in range(len(parts) - 1, 0, -1):
+        mod_path = ".".join(parts[:i])
+        attr_path = parts[i:]
+        try:
+            module = importlib.import_module(mod_path)
+            method = module
+            for attr in attr_path:
+                method = getattr(method, attr)
+            break
+        except (ImportError, AttributeError):
+            continue
+
+    if not method:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Method {method_path} not found: {str(e)}"
+            detail=f"Method {method_path} not found"
         )
 
     # Check if method is whitelisted
-    if not getattr(method, "_whitelisted", False):
+    is_whitelisted = getattr(method, "_whitelisted", False)
+    if not is_whitelisted:
+        print(f"DEBUG: Method {method_path} not whitelisted. Obj: {method}, Attrs: {dir(method)}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Method {method_path} is not whitelisted"
@@ -111,9 +132,13 @@ async def run_method_get(
     # Process query params: parse JSON strings and convert numeric types
     args = _process_params(dict(request.query_params))
 
+    result = await _invoke_with_context(method, args, request, session, engine, token)
+    if isinstance(result, Response):
+        return result
+        
     return {
         "success": True,
-        "data": await _invoke_with_context(method, args, request, session, engine, token)
+        "data": result
     }
 
 @router.post("/{path:path}")
@@ -141,7 +166,11 @@ async def run_method_post(
         except:
             pass
             
+    result = await _invoke_with_context(method, args, request, session, engine, token)
+    if isinstance(result, Response):
+        return result
+
     return {
         "success": True,
-        "data": await _invoke_with_context(method, args, request, session, engine, token)
+        "data": result
     }

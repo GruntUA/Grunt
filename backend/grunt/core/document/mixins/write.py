@@ -94,7 +94,11 @@ class DocumentWriteMixin:
                     detail=f"'{doctype_name}' is a singleton.",
                 )
 
-        if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
+        # System DocTypes that are intentionally writable through dedicated APIs
+        # (e.g. "File" is written exclusively via the /api/v1/files/ endpoint,
+        #  not the general /docs/ CRUD surface, so any authenticated user may create).
+        _SYSTEM_WRITABLE = {"File", "ActivityLog"}
+        if doctype_registry.is_system(doctype_name) and not user.is_superadmin and doctype_name not in _SYSTEM_WRITABLE:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"'{doctype_name}' is managed by the system.",
@@ -109,7 +113,7 @@ class DocumentWriteMixin:
             )
 
         now = datetime.now(UTC)
-        doc_id = str(uuid.uuid4())
+        doc_id = str(data.get("id") or uuid.uuid4())
 
         # Generate document name
         from grunt.core.naming import naming_service  # noqa: PLC0415
