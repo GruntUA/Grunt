@@ -237,14 +237,13 @@ async function handleDelete() {
   showDeleteModal.value = false
 }
 
-onBeforeRouteLeave((to, _from, next) => {
+onBeforeRouteLeave((to) => {
   if (allowLeave || !isDirty.value) {
-    next()
-  } else {
-    showLeaveModal.value = true
-    pendingRoute = to.fullPath
-    next(false)
+    return true
   }
+  showLeaveModal.value = true
+  pendingRoute = to.fullPath
+  return false
 })
 
 function confirmLeave() {
