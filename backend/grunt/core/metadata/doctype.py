@@ -149,7 +149,8 @@ class DocType(BaseModel):
     is_submittable: bool = False  # adds Submit button
     is_singleton: bool = False  # only one document per DocType
     is_virtual: bool = False  # True → no DB table, data from controller
-    is_tree: bool = False  # True → hierarchical; requires tree_view.parent_field to name the self-referential Link
+    is_tree: bool = False  # True → hierarchical; requires tree_view.parent_field
+                           # to name the self-referential Link
     track_changes: bool = True  # audit log
     quick_entry: bool = False  # True → "Create" opens a dialog instead of full form
 

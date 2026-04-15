@@ -54,9 +54,6 @@
     {"fieldname": "is_virtual",    "label": "Віртуальний", "fieldtype": "Check",
       "description": "Без фізичної таблиці — дані з контролера"},
     {"fieldname": "track_changes", "label": "Журналювати зміни", "fieldtype": "Check",
-      "description": "Зберігати версії документа при кожному збереженні"},
-    {"fieldname": "is_system",     "label": "Системний (не редагувати)", "fieldtype": "Check",
-      "read_only": true, "in_filter": true,
-      "description": "Вбудований DocType фреймворку — зміна через Studio заблокована"}
+      "description": "Зберігати версії документа при кожному збереженні"}
   ]
 }
