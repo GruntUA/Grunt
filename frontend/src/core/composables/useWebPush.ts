@@ -7,6 +7,7 @@
 
 import { ref } from 'vue'
 import client from '@/core/api/client'
+import { useToast } from '@/core/composables/useToast'
 
 const isSupported = 'serviceWorker' in navigator && 'PushManager' in window
 
@@ -20,7 +21,8 @@ async function getVapidPublicKey(): Promise<string | null> {
   try {
     const res = await client.get('/api/v1/method/grunt.api.v1.notifications.get_vapid_public_key')
     return res.data?.data ?? null
-  } catch {
+  } catch (error) {
+    console.error('Failed to get VAPID key', error)
     return null
   }
 }
@@ -49,19 +51,34 @@ async function checkSubscription(): Promise<void> {
 }
 
 async function subscribe(): Promise<boolean> {
-  if (!isSupported) return false
+  const toast = useToast()
+  
+  if (!isSupported) {
+    toast.error('Ваш браузер не підтримує Push-сповіщення')
+    return false
+  }
+  
   isLoading.value = true
   try {
     // Request permission
     const permission = await Notification.requestPermission()
     permissionState.value = permission
-    if (permission !== 'granted') return false
+    if (permission !== 'granted') {
+      toast.error('Ви не надали дозвіл на сповіщення')
+      return false
+    }
 
     const vapidKey = await getVapidPublicKey()
-    if (!vapidKey) return false
+    if (!vapidKey) {
+      toast.error('Сервер не налаштовано для Push-сповіщень (відсутній VAPID ключ)')
+      return false
+    }
 
     const reg = await getRegistration()
-    if (!reg) return false
+    if (!reg) {
+      toast.error('Service Worker не готовий. Перезавантажте сторінку.')
+      return false
+    }
 
     const sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
@@ -78,9 +95,11 @@ async function subscribe(): Promise<boolean> {
     })
 
     isSubscribed.value = true
+    toast.success('Push-сповіщення успішно ввімкнено!')
     return true
   } catch (e) {
     console.error('Push subscribe failed', e)
+    toast.error('Помилка підписки: ' + String(e))
     return false
   } finally {
     isLoading.value = false
