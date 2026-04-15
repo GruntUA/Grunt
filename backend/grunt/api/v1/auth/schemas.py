@@ -18,14 +18,16 @@ class UserResponse(BaseModel):
     roles: list[str] = []
     is_superadmin: bool = False
     theme: str = "system"
+    mfa_enabled: bool = False
     created_at: str | None = None
 
     model_config = {"from_attributes": True}
 
 
 class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
+    access_token: str | None = None
+    refresh_token: str | None = None
+    mfa_token: str | None = None
     token_type: str = "bearer"
     user: UserResponse
     mfa_required: bool = False
@@ -59,3 +61,9 @@ class SetPasswordRequest(BaseModel):
 
 class MfaVerifyRequest(BaseModel):
     code: str
+
+
+class MfaLoginRequest(BaseModel):
+    mfa_token: str
+    code: str
+

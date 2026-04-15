@@ -46,6 +46,11 @@ const {
   getFields: () => (dt.value?.fields ?? []) as Record<string, unknown>[],
   isNew: () => !props.id,
   setValue: (field, value) => { form.value[field] = value },
+  reload: async () => {
+    if (props.id) {
+      await queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })
+    }
+  },
   save: () => handleSave(),
 })
 
@@ -182,7 +187,7 @@ async function handleSave() {
     dtStore.invalidate(props.doctype)
     queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
     if (props.doctype === 'ClientScript') clearScriptCache()
-    
+
     if (!props.id) {
       allowLeave = true
       const savedDoc = saved as { id: string; name: string }
@@ -277,22 +282,10 @@ function onFormUpdate(updated: Record<string, unknown>) {
 <template>
   <div class="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
     <!-- Header -->
-    <FormHeader
-      :dt="dt"
-      :doctype="doctype"
-      :id="id"
-      :workspace="workspace"
-      :doc-title="docTitle"
-      :document="document"
-      :is-dirty="isDirty"
-      :is-loading="isLoading"
-      :is-saving="isSaving"
-      :script-buttons="scriptButtons"
-      @save="handleSave"
-      @delete="showDeleteModal = true"
-      @duplicate="handleDuplicate"
-      @invalidate="queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })"
-    />
+    <FormHeader :dt="dt" :doctype="doctype" :id="id" :workspace="workspace" :doc-title="docTitle" :document="document"
+      :is-dirty="isDirty" :is-loading="isLoading" :is-saving="isSaving" :script-buttons="scriptButtons"
+      @save="handleSave" @delete="showDeleteModal = true" @duplicate="handleDuplicate"
+      @invalidate="queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })" />
 
     <!-- Loading -->
     <div v-if="isLoading || !dt" class="flex justify-center py-24">
@@ -305,31 +298,25 @@ function onFormUpdate(updated: Record<string, unknown>) {
         <div class="min-w-0 flex flex-col gap-4">
           <!-- Main Form Card -->
           <div class="bg-card border border-border rounded-md shadow-sm p-5">
-            <FormRenderer
-              :doctype="dt"
-              :model-value="form"
-              :disabled="isSaving"
-              :errors="validationErrors"
-              :overrides="displayOverrides"
-              :reqd-overrides="reqdOverrides"
-              :field-locks="fieldLocks"
-              @update:model-value="onFormUpdate($event)"
-              @field-focus="focusField($event)"
-              @field-blur="blurField($event)"
-              @create-new="handleCreateNew"
-            />
+            <FormRenderer :doctype="dt" :model-value="form" :disabled="isSaving" :errors="validationErrors"
+              :overrides="displayOverrides" :reqd-overrides="reqdOverrides" :field-locks="fieldLocks"
+              @update:model-value="onFormUpdate($event)" @field-focus="focusField($event)"
+              @field-blur="blurField($event)" @create-new="handleCreateNew" />
           </div>
 
 
           <!-- Version history -->
           <div v-if="id && dt?.track_changes" class="form-section">
-            <button type="button"
-              class="form-section-header w-full hover:bg-muted/70 transition-colors"
+            <button type="button" class="form-section-header w-full hover:bg-muted/70 transition-colors"
               @click="showVersions = !showVersions">
               <History class="size-3.5 text-muted-foreground" />
               <span class="flex-1 text-left">Версії документа</span>
-              <div class="size-4 flex items-center justify-center transition-transform duration-300" :class="{ 'rotate-180': showVersions }">
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1L5 5L9 1"/></svg>
+              <div class="size-4 flex items-center justify-center transition-transform duration-300"
+                :class="{ 'rotate-180': showVersions }">
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 1L5 5L9 1" />
+                </svg>
               </div>
             </button>
             <div v-if="showVersions">
@@ -339,44 +326,41 @@ function onFormUpdate(updated: Record<string, unknown>) {
         </div>
 
         <!-- Right Column: Sidebar -->
-        <DocSidebar
-          v-if="id && document"
-          :doctype="dt"
-          :document="document as GruntDocument"
-          :workspace="workspace"
-          :users="presenceUsers"
-          class="lg:sticky lg:top-8 lg:self-start hidden lg:block"
-        />
+        <DocSidebar v-if="id && document" :doctype="dt" :document="document as GruntDocument" :workspace="workspace"
+          :users="presenceUsers" class="lg:sticky lg:top-8 lg:self-start hidden lg:block" />
       </div>
     </template>
 
     <!-- Quick Entry Dialog (from Link field) -->
-    <QuickEntryDialog
-      v-if="quickEntryDt"
-      :dt="quickEntryDt"
-      :preset="quickEntryPreset"
-      :workspace="workspace"
-      mode="link"
-      @close="quickEntryDt = null"
-      @saved="onQuickEntrySaved"
-    />
+    <QuickEntryDialog v-if="quickEntryDt" :dt="quickEntryDt" :preset="quickEntryPreset" :workspace="workspace"
+      mode="link" @close="quickEntryDt = null" @saved="onQuickEntrySaved" />
 
     <!-- Modals -->
-    <FormModals
-      v-model:show-delete="showDeleteModal"
-      v-model:show-leave="showLeaveModal"
-      @confirm-delete="handleDelete"
-      @confirm-leave="confirmLeave"
-      @cancel-leave="showLeaveModal = false"
-    />
+    <FormModals v-model:show-delete="showDeleteModal" v-model:show-leave="showLeaveModal" @confirm-delete="handleDelete"
+      @confirm-leave="confirmLeave" @cancel-leave="showLeaveModal = false" />
   </div>
 </template>
 
 <style>
 @keyframes field-shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-4px); }
-  40%, 80% { transform: translateX(4px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
 }
-.field-shake { animation: field-shake 0.4s ease; }
+
+.field-shake {
+  animation: field-shake 0.4s ease;
+}
 </style>

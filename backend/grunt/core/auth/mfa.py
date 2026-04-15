@@ -17,6 +17,7 @@ import os
 from typing import TYPE_CHECKING
 
 import grunt
+from grunt.app import grunt as grunt_app
 import structlog
 from fastapi import HTTPException
 
@@ -66,11 +67,18 @@ def get_qr_code_svg(secret: str, email: str) -> str:
         import qrcode  # noqa: PLC0415
         import qrcode.image.svg  # noqa: PLC0415
 
-        factory = qrcode.image.svg.SvgImage
+        factory = qrcode.image.svg.SvgPathImage
         qr = qrcode.make(uri, image_factory=factory)
         buf = io.BytesIO()
         qr.save(buf)
-        return buf.getvalue().decode("utf-8")
+        svg = buf.getvalue().decode("utf-8").strip()
+        if svg.startswith("<?xml"):
+            svg = svg[svg.find("?>") + 2 :].strip()
+        # Remove fixed width/height so CSS can scale it
+        import re
+        svg = re.sub(r'width="[^"]+"', 'width="100%"', svg, count=1)
+        svg = re.sub(r'height="[^"]+"', 'height="100%"', svg, count=1)
+        return svg
     except ImportError:
         # qrcode not installed — return the raw URI so the frontend can render it
         return uri
@@ -94,8 +102,8 @@ def verify_totp(secret: str, code: str) -> bool:
     Allows a 1-step window (30s before/after) to handle clock drift.
     """
     pyotp = _require_pyotp()
-    totp = pyotp.TOTP(secret)
-    return totp.verify(code, valid_window=1)
+    totp = pyotp.TOTP(secret.strip())
+    return totp.verify(code.strip(), valid_window=1)
 
 
 def verify_backup_code(stored_hashes: list[str], code: str) -> tuple[bool, list[str]]:
@@ -114,20 +122,13 @@ def verify_backup_code(stored_hashes: list[str], code: str) -> tuple[bool, list[
 
 
 async def begin_mfa_setup(user: User) -> dict:
-    """Generate a new TOTP secret, store it (unconfirmed), and return setup info.
+    """Generate a new TOTP secret, store it (unconfirmed), and return setup info."""
+    # Prevent overwriting if already enabled
+    if user.mfa_enabled:
+        raise HTTPException(400, detail="MFA вже увімкнено. Спочатку вимкніть його, щоб переналаштувати.")
 
-    The secret is saved immediately but ``mfa_enabled`` stays ``False`` until
-    :func:`confirm_mfa_setup` is called with a valid TOTP code.
-
-    Returns::
-
-        {
-            "secret": "BASE32SECRET",
-            "qr_svg": "<svg>...</svg>",   # or otpauth:// URI if qrcode not installed
-        }
-    """
     secret = generate_mfa_secret()
-    await grunt.db.set_value("User", user.id, {"mfa_secret": secret, "mfa_enabled": False})
+    await grunt_app.db.set_value("User", user.id, {"mfa_secret": secret, "mfa_enabled": False})
     logger.info("mfa.setup_started", user=user.email)
     return {
         "secret": secret,
@@ -141,7 +142,7 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
     Returns a list of plain-text backup codes that the user should save.
     Raises HTTP 422 if the code is wrong or no secret is pending.
     """
-    rows = await grunt.db.get_all("User", filters={"id": user.id}, fields=["mfa_secret"], limit=1)
+    rows = await grunt_app.db.get_all("User", filters={"id": user.id}, fields=["mfa_secret"], limit=1)
     if not rows or not rows[0].get("mfa_secret"):
         raise HTTPException(422, detail="MFA не налаштовано. Спочатку запустіть setup.")
 
@@ -151,7 +152,7 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
 
     backup_codes = _generate_backup_codes()
     backup_hashes = [_hash_backup_code(c) for c in backup_codes]
-    await grunt.db.set_value("User", user.id, {
+    await grunt_app.db.set_value("User", user.id, {
         "mfa_enabled": True,
         "mfa_secret": secret,
         "mfa_backup_codes": json.dumps(backup_hashes),
@@ -162,7 +163,7 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
 
 async def disable_mfa(user: User) -> None:
     """Disable MFA and clear stored secrets for the user."""
-    await grunt.db.set_value("User", user.id, {
+    await grunt_app.db.set_value("User", user.id, {
         "mfa_enabled": False,
         "mfa_secret": "",
         "mfa_backup_codes": None,
@@ -170,34 +171,52 @@ async def disable_mfa(user: User) -> None:
     logger.info("mfa.disabled", user=user.email)
 
 
-async def check_mfa_code(user: User, code: str) -> None:
+async def check_mfa_code(user: User, code: str, session: object | None = None) -> None:
     """Verify TOTP or backup code for the user.
 
     Raises HTTP 401 on failure. Consumes a backup code if used (updates DB).
+
+    *session* — pass the SQLAlchemy session only when called from a pre-auth
+    context (e.g. ``/auth/mfa-login``) where the grunt request context is not
+    yet active.  Omit when called from a GruntRouter endpoint where the context
+    is already set by middleware.
     """
-    rows = await grunt.db.get_all(
-        "User",
-        filters={"id": user.id},
-        fields=["mfa_secret", "mfa_backup_codes"],
-        limit=1,
-    )
-    if not rows or not rows[0].get("mfa_secret"):
-        raise HTTPException(401, detail="MFA не налаштовано")
+    from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
-    row = rows[0]
-    secret = row["mfa_secret"]
-    backup_json = row.get("mfa_backup_codes")
+    if session is not None:
+        from grunt.core.site.manager import site_manager  # noqa: PLC0415
+        eng = site_manager.get_engine(site_manager.get_active_site())
+        _tokens = grunt_app.set_context(session, eng, SYSTEM_USER)
+    else:
+        _tokens = None
 
-    # Try TOTP first
-    if verify_totp(secret, code):
-        return
+    try:
+        rows = await grunt_app.db.get_all(
+            "User",
+            filters={"id": user.id},
+            fields=["mfa_secret", "mfa_backup_codes"],
+            limit=1,
+        )
+        if not rows or not rows[0].get("mfa_secret"):
+            raise HTTPException(401, detail="MFA не налаштовано")
 
-    # Try backup code
-    backup_hashes: list[str] = json.loads(backup_json) if backup_json else []
-    matched, remaining = verify_backup_code(backup_hashes, code)
-    if matched:
-        await grunt.db.set_value("User", user.id, {"mfa_backup_codes": json.dumps(remaining)})
-        logger.info("mfa.backup_code_used", user=user.email, remaining=len(remaining))
-        return
+        row = rows[0]
+        secret = row["mfa_secret"]
+        backup_json = row.get("mfa_backup_codes")
 
-    raise HTTPException(401, detail="Невірний код MFA")
+        # Try TOTP first
+        if verify_totp(secret, code):
+            return
+
+        # Try backup code
+        backup_hashes: list[str] = json.loads(backup_json) if backup_json else []
+        matched, remaining = verify_backup_code(backup_hashes, code)
+        if matched:
+            await grunt_app.db.set_value("User", user.id, {"mfa_backup_codes": json.dumps(remaining)})
+            logger.info("mfa.backup_code_used", user=user.email, remaining=len(remaining))
+            return
+
+        raise HTTPException(401, detail="Невірний код MFA")
+    finally:
+        if _tokens is not None:
+            grunt_app.reset_context(_tokens)

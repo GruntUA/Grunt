@@ -175,17 +175,25 @@ def get_file_doctype_scripts(doctype: str, event: str) -> list[dict[str, Any]]:
 
 def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
     """Get file-based client scripts for a DocType (lazy — read from disk on first request)."""
-    if doctype in FILE_CLIENT_SCRIPT_REGISTRY:
-        return FILE_CLIENT_SCRIPT_REGISTRY[doctype]
+    from grunt.config import settings  # noqa: PLC0415
 
-    if doctype in _client_script_scanned:
-        return []
+    if not settings.debug:
+        if doctype in FILE_CLIENT_SCRIPT_REGISTRY:
+            return FILE_CLIENT_SCRIPT_REGISTRY[doctype]
+
+        if doctype in _client_script_scanned:
+            return []
 
     _client_script_scanned.add(doctype)
     results: list[dict[str, str]] = []
 
     for app_name, doctypes_dir in _client_script_dirs:
+        # Try exact match first (e.g. Applicant/Applicant.js)
         js_file = doctypes_dir / doctype / f"{doctype}.js"
+        if not js_file.exists():
+            # Try lowercase fallback (e.g. user/user.js)
+            js_file = doctypes_dir / doctype.lower() / f"{doctype.lower()}.js"
+
         if js_file.exists():
             source = js_file.read_text(encoding="utf-8")
             results.append({"name": f"{app_name}:{doctype}.js", "script": source})
@@ -193,6 +201,7 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
                 "file_scripts.client_loaded", app=app_name, doctype=doctype, file=str(js_file)
             )
 
-    # Cache result (including empty — to avoid repeated disk reads)
-    FILE_CLIENT_SCRIPT_REGISTRY[doctype] = results
+    if not settings.debug:
+        # Cache result (including empty — to avoid repeated disk reads)
+        FILE_CLIENT_SCRIPT_REGISTRY[doctype] = results
     return results

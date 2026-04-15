@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from grunt.api.v1.auth.schemas import (
+    MfaLoginRequest,
     RefreshRequest,
     RegisterRequest,
     TokenResponse,
@@ -19,9 +20,11 @@ from grunt.core.auth.dependencies import current_user
 from grunt.core.auth.models import SYSTEM_USER, User
 from grunt.core.auth.service import (
     create_access_token,
+    create_mfa_token,
     create_refresh_token,
     revoke_refresh_tokens_for_user,
     rotate_refresh_token,
+    verify_mfa_token,
 )
 from grunt.core.db.session import get_session
 from grunt.core.doctypes.user.user import (
@@ -68,6 +71,7 @@ async def register(
         full_name=user.full_name,
         roles=user.roles,
         is_superadmin=user.is_superadmin,
+        mfa_enabled=bool(user.mfa_enabled),
         created_at=user.created_at.isoformat() if user.created_at else None,
     )
 
@@ -95,23 +99,32 @@ async def login(
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    # If MFA is enabled, issue an MFA token instead of full access/refresh tokens.
+    if user.mfa_enabled:
+        mfa_token = create_mfa_token(user)
+        return TokenResponse(
+            mfa_token=mfa_token,
+            mfa_required=True,
+            user=UserResponse(
+                id=user.id,
+                email=user.email,
+                full_name=user.full_name,
+                roles=user.roles,
+                is_superadmin=user.is_superadmin,
+                theme=user.theme,
+                mfa_enabled=bool(user.mfa_enabled),
+            ),
+        )
+
     access_token = create_access_token(user)
     refresh_token = await create_refresh_token(user.id, session)
 
-    # Track login session (best-effort)
-    try:
-        from grunt.core.doctypes.user_session.user_session import create_session  # noqa: PLC0415
-
-        ip = request.client.host if request.client else None
-        ua = request.headers.get("user-agent")
-        await create_session(user.id, ip, ua, session)
-    except Exception:  # noqa: BLE001
-        pass
+    # Track login session
+    await _track_session(request, user.id, session)
 
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
-        mfa_required=user.mfa_enabled,
         user=UserResponse(
             id=user.id,
             email=user.email,
@@ -121,6 +134,62 @@ async def login(
             theme=user.theme,
         ),
     )
+
+
+@router.post("/mfa-login", response_model=TokenResponse)
+async def mfa_login_verify(
+    request: Request,
+    body: MfaLoginRequest,
+    session: AsyncSession = Depends(get_session),
+) -> TokenResponse:
+    """Verify MFA code using a temporary MFA token and complete login."""
+    payload = verify_mfa_token(body.mfa_token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Невалідний або прострочений MFA токен")
+
+    user = await get_user_by_id(payload["uid"], session)
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="Користувача не знайдено")
+
+    from grunt.core.auth.mfa import check_mfa_code  # noqa: PLC0415
+
+    try:
+        await check_mfa_code(user, body.code, session)
+    except HTTPException as error:
+        raise error
+    except Exception as exc:
+        logger.error("auth.mfa_verify_error", error=str(exc))
+        raise HTTPException(status_code=401, detail=f"Помилка перевірки: {str(exc)}") from exc
+
+    access_token = create_access_token(user)
+    refresh_token = await create_refresh_token(user.id, session)
+
+    await _track_session(request, user.id, session)
+
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        user=UserResponse(
+            id=user.id,
+            email=user.email,
+            full_name=user.full_name,
+            roles=user.roles,
+            is_superadmin=user.is_superadmin,
+            theme=user.theme,
+        ),
+    )
+
+
+async def _track_session(request: Request, user_id: str, session: AsyncSession):
+    """Best-effort session tracking."""
+    try:
+        from grunt.core.doctypes.user_session.user_session import create_session  # noqa: PLC0415
+
+        ip = request.client.host if request.client else None
+        ua = request.headers.get("user-agent")
+        await create_session(user_id, ip, ua, session)
+    except Exception:  # noqa: BLE001
+        pass
 
 
 @router.get("/me", response_model=UserResponse)
@@ -133,6 +202,7 @@ async def me(user: User = Depends(current_user)) -> UserResponse:
         roles=user.roles,
         is_superadmin=user.is_superadmin,
         theme=user.theme,
+        mfa_enabled=bool(user.mfa_enabled),
     )
 
 
@@ -168,6 +238,7 @@ async def update_me(
         roles=updated.roles,
         is_superadmin=updated.is_superadmin,
         theme=updated.theme,
+        mfa_enabled=bool(updated.mfa_enabled),
     )
 
 

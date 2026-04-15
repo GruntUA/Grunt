@@ -72,6 +72,21 @@ class User(Document):
         """Return True if plain matches the stored hashed password."""
         return verify_password(plain, self.hashed_password or "")
 
+    async def setup_mfa(self) -> dict:
+        """Whitelisted method: Start MFA setup for the user."""
+        from grunt.core.auth.mfa import begin_mfa_setup  # noqa: PLC0415
+        return await begin_mfa_setup(self)
+
+    async def confirm_mfa(self, code: str) -> list[str]:
+        """Whitelisted method: Confirm MFA setup with TOTP code."""
+        from grunt.core.auth.mfa import confirm_mfa_setup  # noqa: PLC0415
+        return await confirm_mfa_setup(self, code)
+
+    async def disable_mfa(self) -> None:
+        """Whitelisted method: Disable MFA for the user."""
+        from grunt.core.auth.mfa import disable_mfa  # noqa: PLC0415
+        await disable_mfa(self)
+
 
 # Convenience system-user singleton for internal tasks.
 SYSTEM_USER = User(

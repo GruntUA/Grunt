@@ -41,6 +41,7 @@ export interface UseClientScriptsOptions {
   isNew: () => boolean
   setValue: (field: string, value: unknown) => void
   refreshField?: (field: string) => void
+  reload: () => Promise<void>
   save: () => Promise<void>
 }
 
@@ -82,6 +83,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
           buttons.value.push({ label, action, variant: opts?.variant })
         }
       },
+      reload: options.reload,
       save: options.save,
     },
     options.isNew(),
@@ -95,10 +97,10 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
             typeof msgOrOpts === 'string'
               ? msgOrOpts
               : {
-                  message: msgOrOpts.message,
-                  title: msgOrOpts.title,
-                  indicator: msgOrOpts.indicator,
-                }
+                message: msgOrOpts.message,
+                title: msgOrOpts.title,
+                indicator: msgOrOpts.indicator,
+              }
           )
         },
         confirm: (msg) => dialog.confirm(msg),
@@ -108,6 +110,8 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
           else if (type === 'warning') toast.warning(msg)
           else toast.info(msg)
         },
+        prompt: (labelOrOpts, title) => dialog.prompt(labelOrOpts as any, title),
+        form: (opts) => dialog.form(opts as any),
       })
     }
     return gruntProxy

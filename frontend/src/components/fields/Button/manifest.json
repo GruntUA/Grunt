@@ -1,0 +1,10 @@
+{
+    "type": "Button",
+    "label": "Button",
+    "icon": "mouse-pointer-click",
+    "category": "Controls",
+    "propertySections": [
+        "core",
+        "display"
+    ]
+}

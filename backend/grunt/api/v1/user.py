@@ -34,6 +34,7 @@ async def whoami() -> dict[str, Any]:
         "full_name": user.full_name,
         "roles": user.roles,
         "is_superadmin": user.is_superadmin,
+        "mfa_enabled": bool(user.mfa_enabled),
     }
 
 @grunt.whitelist()
@@ -101,4 +102,39 @@ async def remove_role(user_id: str, role_name: str) -> bool:
         grunt_app.throw("Роль не знайдено у користувача", "NOT_FOUND")
         
     await grunt_app.delete_doc("UserRole", rows[0]["id"])
+    return True
+
+@grunt.whitelist()
+async def setup_mfa() -> dict[str, Any]:
+    """Whitelisted method: Start MFA setup for the current user."""
+    from grunt.core.doctypes.user.user import get_user_by_id
+    current = grunt_app._require_user()
+    session = grunt_app._require_session()
+    user = await get_user_by_id(current.id, session)
+    if not user:
+        grunt_app.throw("User not found")
+    return await user.setup_mfa()
+
+@grunt.whitelist()
+async def confirm_mfa(code: str) -> dict[str, Any]:
+    """Whitelisted method: Confirm MFA setup for the current user."""
+    from grunt.core.doctypes.user.user import get_user_by_id
+    current = grunt_app._require_user()
+    session = grunt_app._require_session()
+    user = await get_user_by_id(current.id, session)
+    if not user:
+        grunt_app.throw("User not found")
+    backup_codes = await user.confirm_mfa(code)
+    return {"backup_codes": backup_codes}
+
+@grunt.whitelist()
+async def disable_mfa() -> bool:
+    """Whitelisted method: Disable MFA for the current user."""
+    from grunt.core.doctypes.user.user import get_user_by_id
+    current = grunt_app._require_user()
+    session = grunt_app._require_session()
+    user = await get_user_by_id(current.id, session)
+    if not user:
+        grunt_app.throw("User not found")
+    await user.disable_mfa()
     return True

@@ -15,16 +15,26 @@ import { Label } from '@/components/ui/label'
 
 const { state, close } = useDialog()
 const promptValue = ref('')
+const formValues = ref<Record<string, any>>({})
 
 watch(() => state.open, (v) => {
-  if (v && state.type === 'prompt' && state.fields.length > 0) {
-    promptValue.value = String(state.fields[0].default ?? '')
+  if (v) {
+    if (state.type === 'prompt' && state.fields.length > 0) {
+      promptValue.value = String(state.fields[0].default ?? '')
+    } else if (state.type === 'dialog') {
+      const vals: Record<string, any> = {}
+      state.fields.forEach(f => {
+        vals[f.fieldname] = f.default ?? (f.fieldtype === 'Check' ? false : '')
+      })
+      formValues.value = vals
+    }
   }
 })
 
 function onConfirm() {
   if (state.type === 'confirm') close(true)
   else if (state.type === 'prompt') close(promptValue.value || null)
+  else if (state.type === 'dialog') close({ ...formValues.value })
   else close()
 }
 
@@ -46,7 +56,8 @@ function onOpenChange(v: boolean) {
       <template v-if="state.type === 'msgprint'">
         <DialogHeader>
           <DialogTitle v-if="state.title">
-            <span v-if="state.indicator" class="inline-block w-2.5 h-2.5 rounded-full mr-2" :style="{ backgroundColor: state.indicator }" />
+            <span v-if="state.indicator" class="inline-block w-2.5 h-2.5 rounded-full mr-2"
+              :style="{ backgroundColor: state.indicator }" />
             {{ state.title }}
           </DialogTitle>
         </DialogHeader>
@@ -77,17 +88,47 @@ function onOpenChange(v: boolean) {
         </DialogHeader>
         <div v-for="field in state.fields" :key="field.fieldname" class="space-y-2">
           <Label :for="field.fieldname">{{ field.label }}</Label>
-          <Input
-            :id="field.fieldname"
-            v-model="promptValue"
-            :placeholder="field.placeholder"
+          <div v-if="field.fieldtype === 'HTML'" v-html="field.default" class="rounded border p-2 bg-muted/30" />
+          <Input v-else :id="field.fieldname" v-model="promptValue" :placeholder="field.placeholder"
             :type="field.fieldtype === 'Int' || field.fieldtype === 'Float' ? 'number' : 'text'"
-            @keydown.enter="onConfirm"
-          />
+            @keydown.enter="onConfirm" />
         </div>
         <DialogFooter class="gap-2">
           <Button variant="outline" @click="onCancel">Скасувати</Button>
           <Button @click="onConfirm">OK</Button>
+        </DialogFooter>
+      </template>
+
+      <!-- Custom Dialog (grunt.form) -->
+      <template v-if="state.type === 'dialog'">
+        <DialogHeader>
+          <DialogTitle v-if="state.title">{{ state.title }}</DialogTitle>
+        </DialogHeader>
+        <div class="space-y-4 py-2">
+          <div v-for="field in state.fields" :key="field.fieldname" class="space-y-2">
+            <template v-if="field.fieldtype === 'HTML'">
+              <Label v-if="field.label" class="mb-1 block text-sm font-medium">{{ field.label }}</Label>
+              <div v-html="String(field.default || '').replace(/<\?xml.*\?>/g, '')"
+                class="rounded-lg border-2 border-dashed p-6 flex justify-center bg-white shadow-inner min-h-[240px] items-center [&>svg]:block [&>svg]:max-w-full [&>svg]:h-auto" />
+            </template>
+            <template v-else-if="field.fieldtype === 'Check'">
+              <div class="flex items-center space-x-2 py-1">
+                <input type="checkbox" :id="field.fieldname" v-model="formValues[field.fieldname]"
+                  class="size-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                <Label :for="field.fieldname" class="cursor-pointer">{{ field.label }}</Label>
+              </div>
+            </template>
+            <template v-else>
+              <Label :for="field.fieldname">{{ field.label }}</Label>
+              <Input :id="field.fieldname" v-model="formValues[field.fieldname]" :placeholder="field.placeholder"
+                :type="field.fieldtype === 'Int' || field.fieldtype === 'Float' ? 'number' : 'text'"
+                @keydown.enter="onConfirm" />
+            </template>
+          </div>
+        </div>
+        <DialogFooter class="gap-2">
+          <Button variant="outline" @click="onCancel">Скасувати</Button>
+          <Button @click="onConfirm">{{ state.primaryLabel }}</Button>
         </DialogFooter>
       </template>
 
@@ -98,10 +139,8 @@ function onOpenChange(v: boolean) {
         </DialogHeader>
         <div class="space-y-2">
           <div class="w-full h-2.5 bg-muted rounded-full overflow-hidden">
-            <div
-              class="h-full bg-primary rounded-full transition-all duration-300"
-              :style="{ width: `${state.progress.percent}%` }"
-            />
+            <div class="h-full bg-primary rounded-full transition-all duration-300"
+              :style="{ width: `${state.progress.percent}%` }" />
           </div>
           <div class="flex items-center justify-between text-xs text-muted-foreground">
             <span v-if="state.progress.description">{{ state.progress.description }}</span>

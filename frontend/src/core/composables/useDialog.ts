@@ -25,7 +25,7 @@ import { reactive } from 'vue'
 
 // ── Types ────────────────────────────────────────────────────────────────
 
-export type DialogFieldType = 'Text' | 'LongText' | 'Int' | 'Float' | 'Date' | 'Datetime' | 'Select' | 'Check'
+export type DialogFieldType = 'Text' | 'LongText' | 'Int' | 'Float' | 'Date' | 'Datetime' | 'Select' | 'Check' | 'HTML'
 
 export interface DialogField {
   fieldname: string

@@ -52,6 +52,7 @@ export interface FormProxy {
   set_query: (fieldname: string, fn: LinkQueryFn) => void
   refresh_field: (fieldname: string) => void
   add_button: (label: string, action: () => void | Promise<void>, options?: { variant?: string }) => void
+  reload: () => Promise<void>
   save: () => Promise<void>
   /** Internal state modified by scripts */
   _display: Record<string, boolean>
@@ -153,6 +154,7 @@ export function createFormProxy(
     setValue?: (field: string, value: unknown) => void
     refreshField?: (field: string) => void
     addButton?: (label: string, action: () => void | Promise<void>, options?: { variant?: string }) => void
+    reload?: () => Promise<void>
     save?: () => Promise<void>
   } = {},
   isNew: boolean = false,
@@ -201,6 +203,10 @@ export function createFormProxy(
 
     add_button(label: string, action: () => void | Promise<void>, options?: { variant?: string }) {
       callbacks.addButton?.(label, action, options)
+    },
+
+    async reload() {
+      await callbacks.reload?.()
     },
 
     async save() {

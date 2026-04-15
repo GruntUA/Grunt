@@ -32,7 +32,8 @@ client.interceptors.response.use(
       url.includes('/auth/token') ||
       url.includes('/auth/register') ||
       url.includes('/auth/refresh') ||
-      url.includes('/auth/logout')
+      url.includes('/auth/logout') ||
+      url.includes('/auth/mfa')
 
     if (error.response?.status === 401 && !isAuthEndpoint && !originalConfig._retried) {
       originalConfig._retried = true

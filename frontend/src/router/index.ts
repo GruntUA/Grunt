@@ -29,11 +29,7 @@ const router = createRouter({
       component: () => import('@/pages/auth/MfaVerify.vue'),
       meta: { public: true },
     },
-    {
-      path: '/mfa-setup',
-      name: 'mfa-setup',
-      component: () => import('@/pages/auth/MfaSetup.vue'),
-    },
+
 
     // Public app pages (no auth required)
     {
@@ -69,12 +65,7 @@ const router = createRouter({
       component: () => import('@/pages/DeskPage.vue'),
     },
 
-    // User profile & session management
-    {
-      path: '/profile',
-      name: 'profile',
-      component: () => import('@/pages/account/ProfilePage.vue'),
-    },
+
 
     // App Workspace (dynamic /:workspaceName)
     {

@@ -42,6 +42,30 @@ def create_access_token(user: User) -> str:
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
 
+def create_mfa_token(user: User) -> str:
+    """Create a short-lived token meant ONLY for MFA verification during login."""
+    expire = datetime.now(UTC) + timedelta(minutes=5)
+    payload = {
+        "sub": user.email,
+        "uid": user.id,
+        "mfa_pending": True,
+        "exp": expire,
+    }
+    return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
+
+
+def verify_mfa_token(token: str) -> dict | None:
+    """Validate MFA token and return payload if valid."""
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        if not payload.get("mfa_pending"):
+            return None
+        return payload
+    except jwt.PyJWTError:
+        return None
+
+
+
 # ── Refresh tokens ────────────────────────────────────────────────────────
 
 

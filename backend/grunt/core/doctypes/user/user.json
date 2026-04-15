@@ -113,7 +113,12 @@
       "label": "MFA увімкнено",
       "fieldtype": "Check",
       "default": false,
-      "hidden": true
+      "read_only": true
+    },
+    {
+      "fieldname": "mfa_setup_button",
+      "label": "Керування MFA",
+      "fieldtype": "Button"
     },
     {
       "fieldname": "mfa_secret",
@@ -123,9 +128,16 @@
     },
     {
       "fieldname": "mfa_backup_codes",
-      "label": "Резервні коди MFA",
+      "label": "Хеші резервних кодів",
       "fieldtype": "JSON",
       "hidden": true
+    },
+    {
+      "fieldname": "mfa_backup_display",
+      "label": "Резервні коди",
+      "fieldtype": "SmallText",
+      "read_only": true,
+      "description": "Ці коди відображаються лише один раз при активації. Ви бачите це поле, тому що MFA увімкнено."
     },
     {
       "fieldname": "col_mfa",
@@ -136,13 +148,13 @@
       "label": "Невдалі спроби входу",
       "fieldtype": "Int",
       "default": 0,
-      "hidden": true
+      "read_only": true
     },
     {
       "fieldname": "locked_until",
       "label": "Акаунт заблоковано до",
       "fieldtype": "Datetime",
-      "hidden": true
+      "read_only": true
     },
     {
       "fieldname": "tab_preferences",
