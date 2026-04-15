@@ -29,20 +29,43 @@ _SA_TYPE_MAP: dict[str, Any] = {}
 # Keys: field type name. Values: dict with "searchable" flag.
 _FIELD_META: dict[str, dict[str, Any]] = {}
 
+# Python type hint string per field type (used by code scaffold).
+_PYTHON_TYPE_MAP: dict[str, str] = {}
 
-def register_field_type(name: str, factory: Any, *, searchable: bool = True) -> None:
+
+def register_field_type(
+    name: str,
+    factory: Any | None,
+    *,
+    searchable: bool = True,
+    python_type: str = "Any | None",
+) -> None:
     """Register a new field type and its SQLAlchemy column factory.
 
     Args:
-        name:       Field type identifier (e.g. ``"Text"``, ``"Image"``).
-        factory:    Callable ``(DocField) -> (sa_type_name, *args)`` that
-                    returns the SQLAlchemy type spec for the field.
-        searchable: Whether the field's value should be included in
-                    full-text search indexing.  Set to ``False`` for
-                    binary data, structured blobs, or layout-only types.
+        name:        Field type identifier (e.g. ``"Text"``, ``"Image"``).
+        factory:     Callable ``(DocField) -> (sa_type_name, *args)`` that
+                     returns the SQLAlchemy type spec for the field.
+                     Pass ``None`` for non-physical types (e.g. MultiLink)
+                     that have no database column.
+        searchable:  Whether the field's value should be included in
+                     full-text search indexing.  Set to ``False`` for
+                     binary data, structured blobs, or layout-only types.
+        python_type: Python type hint string used when scaffolding
+                     controller code (e.g. ``"str | None"``).
     """
-    _SA_TYPE_MAP[name] = factory
+    if factory is not None:
+        _SA_TYPE_MAP[name] = factory
     _FIELD_META[name] = {"searchable": searchable}
+    _PYTHON_TYPE_MAP[name] = python_type
+
+
+def get_python_type(fieldtype: str) -> str:
+    """Return the Python type hint string for *fieldtype*.
+
+    Falls back to ``"Any | None"`` for unknown / plugin field types.
+    """
+    return _PYTHON_TYPE_MAP.get(fieldtype, "Any | None")
 
 
 def _find_bench_dir_for_fields(start: Path) -> Path | None:

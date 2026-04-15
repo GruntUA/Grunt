@@ -17,44 +17,13 @@ from typing import TYPE_CHECKING
 
 import structlog
 
+from grunt.core.metadata.field import get_python_type
 from grunt.core.site.manager import site_manager
 
 if TYPE_CHECKING:
     from grunt.core.metadata.doctype import DocType
 
 logger = structlog.get_logger()
-
-
-# ── Type mapping ────────────────────────────────────────────────────────────
-
-
-FIELDTYPE_TO_PYTHON = {
-    "Data": "str | None",
-    "Text": "str | None",
-    "LongText": "str | None",
-    "Int": "int | None",
-    "Float": "float | None",
-    "Check": "bool | None",
-    "Date": "str | None",
-    "Datetime": "str | None",
-    "Time": "str | None",
-    "Link": "str | None",
-    "MultiLink": "list[str] | None",
-    "Attach": "str | None",
-    "Image": "str | None",
-    "Select": "str | None",
-    "RichText": "str | None",
-    "JSON": "dict | None",
-    "Code": "str | None",
-    "Color": "str | None",
-    "Signature": "str | None",
-    "Geolocation": "str | None",
-    "HTMLEditor": "str | None",
-    "BarCode": "str | None",
-    "Rating": "int | None",
-    "Percent": "float | None",
-    "Duration": "float | None",
-}
 
 
 def _generate_type_block(doctype_name: str, fields: list) -> str:
@@ -90,7 +59,7 @@ def _generate_type_block(doctype_name: str, fields: list) -> str:
         ):
             continue
 
-        py_type = FIELDTYPE_TO_PYTHON.get(fieldtype, "Any | None")
+        py_type = get_python_type(fieldtype)
         field_lines.append(f"\t\t{fieldname}: {py_type}")
 
     # Build the type hints block

@@ -2,4 +2,4 @@ from grunt.core.metadata.field import register_field_type
 
 
 def register():
-    register_field_type("JSON", lambda f: ("JSON",), searchable=False)
+    register_field_type("JSON", lambda f: ("JSON",), searchable=False, python_type="dict | None")
