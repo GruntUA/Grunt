@@ -74,7 +74,10 @@ onMounted(() => {
   loadRecentDocs()
   loadPinnedItems()
   window.addEventListener('grunt_sidebar_pinned_changed', loadPinnedItems)
-  window.addEventListener('grunt_recent_docs_changed', loadRecentDocs)
+  window.addEventListener('grunt_recent_docs_changed', () => {
+    loadRecentDocs()
+    wsStore.refreshCounts()
+  })
   window.addEventListener('open-quick-create', _onOpenQuickCreate)
 })
 
@@ -87,6 +90,12 @@ onUnmounted(() => {
 watch(() => wsStore.active?.name, () => {
   loadRecentDocs()
   loadPinnedItems()
+})
+
+watch(() => router.currentRoute.value.path, () => {
+  if (wsStore.active) {
+    wsStore.refreshCounts()
+  }
 })
 
 function toggleCollapse() {
