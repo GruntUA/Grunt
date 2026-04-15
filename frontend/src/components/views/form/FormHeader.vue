@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {
   Loader2,
-  ChevronRight,
   Printer,
   FileSpreadsheet,
   FileText,
@@ -111,23 +110,14 @@ function handleUndo() {
 </script>
 
 <template>
-  <div class="bg-card rounded-xl shadow-md ring-1 ring-border/60 mb-6 font-primary transition-all duration-300">
-    <!-- Top bar: breadcrumb + actions -->
-    <div class="flex items-center justify-between gap-4 px-6 pt-5 pb-4">
-      <div class="min-w-0">
-        <nav class="flex items-center gap-1.5 text-sm mb-1">
-          <button class="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded px-1"
-            @click="router.push(workspace ? `/${workspace}/list/${doctype}` : `/${doctype}`)">
-            {{ dt?.label ?? doctype }}
-          </button>
-          <ChevronRight class="size-3.5 text-muted-foreground/40" />
-        </nav>
-        <div class="flex items-center gap-3">
-          <h1 class="text-2xl font-bold text-foreground truncate selection:bg-primary/20">{{ docTitle }}</h1>
-          <Badge v-if="isDirty" variant="outline" class="border-amber-400 bg-amber-50/50 text-amber-600 animate-in fade-in slide-in-from-left-2 duration-300">
-            {{ t('Unsaved') }}
-          </Badge>
-        </div>
+  <div class="bg-card border-b border-border/60 mb-4 transition-all duration-300">
+    <!-- Top bar: actions -->
+    <div class="flex items-center justify-between gap-4 px-4 py-2.5">
+      <div class="min-w-0 flex items-center gap-3">
+        <h1 class="text-xl font-bold text-foreground truncate selection:bg-primary/20">{{ docTitle }}</h1>
+        <Badge v-if="isDirty" variant="outline" class="border-amber-400 bg-amber-50/50 text-amber-600 animate-in fade-in slide-in-from-left-2 duration-300 text-[10px] h-5 px-1.5">
+          {{ t('Unsaved') }}
+        </Badge>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <!-- Client script buttons -->
@@ -136,7 +126,7 @@ function handleUndo() {
           {{ btn.label }}
         </Button>
 
-        <Button v-if="id" variant="outline" size="sm" class="w-9 p-0 text-foreground" :title="t('Refresh')"
+        <Button v-if="id" variant="outline" size="icon-sm" class="text-foreground" :title="t('Refresh')"
           :disabled="isDirty || isLoading"
           @click="handleRefresh">
           <RefreshCw class="size-4" :class="{ 'animate-spin': isLoading }" />

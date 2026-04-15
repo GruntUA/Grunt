@@ -9,8 +9,8 @@ defineProps<{
 </script>
 
 <template>
-  <div class="p-8">
+  <div class="px-4 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-4">
     <WorkspaceBreadcrumb :workspace-name="workspaceName" :doctype="doctype" />
-    <DocTypeList :doctype="doctype" :workspace="workspaceName" />
+    <DocTypeList :doctype="doctype" :workspace="workspaceName" class="p-0! mt-2!" />
   </div>
 </template>

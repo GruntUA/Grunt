@@ -231,6 +231,28 @@
     transition: background-color 0.3s, color 0.3s;
   }
 
+  /* Ensure native form elements always inherit the theme foreground color */
+  input,
+  textarea,
+  select {
+    color: hsl(var(--foreground));
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Fix autofill background in dark mode (Chrome sets its own yellow bg) */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill {
+    -webkit-text-fill-color: hsl(var(--foreground));
+    box-shadow: 0 0 0 9999px hsl(var(--card)) inset;
+    transition: background-color 9999s ease;
+  }
+
   ::selection {
     background-color: hsl(var(--primary) / 0.2);
     color: hsl(var(--primary));

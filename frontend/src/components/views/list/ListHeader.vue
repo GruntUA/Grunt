@@ -59,21 +59,21 @@ function handleNew() {
 </script>
 
 <template>
-  <div class="flex flex-wrap items-end justify-between gap-4 mb-2 animate-in fade-in slide-in-from-top-2 duration-500">
-    <div class="space-y-1">
-      <h2 class="text-3xl font-extrabold tracking-tight text-foreground selection:bg-primary/20">
+  <div class="flex flex-row items-center justify-between gap-4 mb-1 animate-in fade-in slide-in-from-top-2 duration-500 min-h-[40px]">
+    <div class="flex items-center gap-3 overflow-hidden">
+      <h2 class="text-xl font-bold tracking-tight text-foreground selection:bg-primary/20 truncate">
         {{ dt?.label ?? doctype }}
       </h2>
-      <p class="text-muted-foreground font-medium text-sm flex items-center gap-2">
-        <span v-if="meta" class="px-2 py-0.5 rounded-full bg-muted text-[11px] uppercase tracking-wider tabular-nums">
-          {{ meta.total }} {{ meta.total === 1 ? 'запис' : 'записів' }}
+      <div class="hidden sm:flex items-center">
+        <span v-if="meta" class="px-2 py-0.5 rounded-md bg-muted/50 text-[10px] font-bold tracking-wider tabular-nums text-muted-foreground/80 border border-border/40">
+          {{ meta.total }}
         </span>
-        <span v-else class="w-16 h-4 bg-muted animate-pulse rounded"></span>
-      </p>
+        <span v-else class="w-8 h-4 bg-muted/50 animate-pulse rounded-md"></span>
+      </div>
     </div>
     <div class="flex items-center gap-2.5">
       <!-- Refresh button -->
-      <Button variant="outline" size="sm" class="h-9 w-9 p-0 text-foreground transition-all active:scale-95" :title="t('Refresh')"
+      <Button variant="outline" size="icon-sm" class="text-foreground transition-all active:scale-95" :title="t('Refresh')"
         @click="emit('refresh')">
         <RefreshCw class="size-4" :class="{ 'animate-spin': isFetching }" />
       </Button>
@@ -81,7 +81,7 @@ function handleNew() {
       <!-- Actions menu -->
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
-          <Button variant="outline" size="sm" class="text-foreground h-9 w-9 p-0 hover:bg-muted/80">
+          <Button variant="outline" size="icon-sm" class="text-foreground hover:bg-muted/80">
             <MoreHorizontal class="size-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -134,14 +134,14 @@ function handleNew() {
         :key="btn.label"
         :variant="(btn.variant as any) || 'outline'"
         size="sm"
-        class="hidden sm:inline-flex h-9 shadow-sm"
+        class="hidden sm:inline-flex shadow-sm"
         @click="btn.action()"
       >
         {{ btn.label }}
       </Button>
 
       <!-- New button -->
-      <Button size="sm" class="h-9 px-4 shadow-md hover:shadow-lg transition-all active:scale-95 gap-1.5" @click="handleNew">
+      <Button size="sm" class="px-4 shadow-md hover:shadow-lg transition-all active:scale-95 gap-1.5" @click="handleNew">
         <Plus class="size-4" />
         <span>{{ isSystemDocType ? 'New DocType' : t('Add') }}</span>
       </Button>
