@@ -229,7 +229,7 @@ class GruntApp:
         user = self._require_user()
         session = self._require_session()
 
-        now = datetime.now(UTC).isoformat()
+        now = datetime.now(UTC)
         rows: list[dict[str, Any]] = []
         ids: list[str] = []
 
