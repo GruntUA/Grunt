@@ -2,7 +2,6 @@
   "name": "Bookmark",
   "label": "Закладка",
   "module": "core",
-  "is_system": true,
   "fields": [
     {"fieldname": "reference_doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true},
     {"fieldname": "reference_id",      "label": "ID документа",   "fieldtype": "Text", "required": true},

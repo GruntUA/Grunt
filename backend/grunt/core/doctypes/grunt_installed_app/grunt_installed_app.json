@@ -2,7 +2,6 @@
     "name": "GruntInstalledApp",
     "label": "Магазин додатків",
     "module": "core",
-    "is_system": false,
     "table_name": "grunt_meta_installed_app",
     "fields": [
         {

@@ -98,12 +98,6 @@ class DocumentWriteMixin:
         # (e.g. "File" is written exclusively via the /api/v1/files/ endpoint,
         #  not the general /docs/ CRUD surface, so any authenticated user may create).
         _SYSTEM_WRITABLE = {"File", "ActivityLog"}
-        if doctype_registry.is_system(doctype_name) and not user.is_superadmin and doctype_name not in _SYSTEM_WRITABLE:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"'{doctype_name}' is managed by the system.",
-            )
-
         # Validate
         errors = _validate_data(dt, data)
         if errors:
@@ -254,11 +248,6 @@ class DocumentWriteMixin:
         if dt.is_virtual:
             return await _virtual_update(doctype_name, user, doc_id, data)
 
-        if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"'{doctype_name}' is managed by the system.",
-            )
         table = compile_doctype_to_table(dt)
 
         # Ensure document exists
@@ -452,11 +441,6 @@ class DocumentWriteMixin:
             await _virtual_delete(doctype_name, user, doc_id)
             return
 
-        if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"'{doctype_name}' is managed by the system.",
-            )
         table = compile_doctype_to_table(dt)
 
         existing = await self.get_document(doctype_name, doc_id, user)
@@ -552,12 +536,6 @@ class DocumentWriteMixin:
                 except Exception as e:  # noqa: BLE001
                     errors.append(f"{doc_id}: {e}")
             return deleted, errors
-
-        if doctype_registry.is_system(doctype_name) and not user.is_superadmin:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"'{doctype_name}' is managed by the system.",
-            )
 
         table = compile_doctype_to_table(dt)
 

@@ -4,7 +4,6 @@
   "module": "core",
   "is_child": false,
   "track_changes": false,
-  "is_system": true,
   "autoname": "prompt",
   "title_field": "label",
   "search_fields": ["name", "label", "module"],

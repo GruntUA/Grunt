@@ -2,7 +2,6 @@
   "name": "OutgoingWebhook",
   "label": "Вихідний вебхук",
   "module": "core",
-  "is_system": true,
   "table_name": "grunt_outgoing_webhook",
   "fields": [
     {"fieldname": "doctype_name", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true, "in_list_view": true, "in_filter": true},

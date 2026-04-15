@@ -3,7 +3,6 @@
   "label": "Зв'язок документа",
   "module": "core",
   "track_changes": false,
-  "is_system": true,
   "table_name": "grunt_doc_link",
   "fields": [
     {"fieldname": "source_doctype", "label": "Тип джерела", "fieldtype": "Text", "required": true, "in_list_view": true, "in_filter": true},

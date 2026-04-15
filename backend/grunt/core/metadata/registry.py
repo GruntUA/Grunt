@@ -201,11 +201,6 @@ class DocTypeRegistry:
 
         return list(self._doctypes.values())
 
-    def is_system(self, name: str) -> bool:
-        """Return True if the named DocType is a built-in system DocType."""
-        dt = self._doctypes.get(name)
-        return dt is not None and dt.is_system
-
     # ── Write ────────────────────────────────────────────────────────────
 
     async def _inject_core(
@@ -214,7 +209,7 @@ class DocTypeRegistry:
         session: AsyncSession,
         async_engine: AsyncEngine | None = None,
     ) -> None:
-        """Register a core (is_system=True) DocType from JSON.
+        """Register a core DocType from JSON.
 
         Loads the definition into the registry and keeps ``grunt_meta_doctype``
         up to date (seeding on first run, merging new fields on upgrades).
@@ -364,11 +359,6 @@ class DocTypeRegistry:
 
     async def delete(self, name: str, session: AsyncSession) -> None:
         """Remove DocType from registry and DB. Physical table is NOT dropped."""
-        if self.is_system(name):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"System DocType '{name}' cannot be deleted",
-            )
         if name not in self._doctypes:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -387,12 +377,7 @@ class DocTypeRegistry:
     # ── Validation helpers ───────────────────────────────────────────────
 
     def _validate_new(self, doctype: DocType) -> None:
-        """Ensure name is unique, not a system DocType, and fields are valid."""
-        if doctype.is_system:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"'{doctype.name}' is a reserved system DocType name",
-            )
+        """Ensure name is unique and fields are valid."""
         if doctype.name in self._doctypes:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,

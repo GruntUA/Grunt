@@ -2,7 +2,6 @@
   "name": "UserRole",
   "label": "Роль користувача",
   "module": "core",
-  "is_system": true,
   "autoname": "hash",
   "fields": [
     {

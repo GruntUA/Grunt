@@ -2,7 +2,6 @@
   "name": "NumberCard",
   "label": "Числова картка",
   "module": "core",
-  "is_system": true,
   "fields": [
     {"fieldname": "label", "label": "Назва", "fieldtype": "Text", "required": true, "in_list_view": true},
     {"fieldname": "doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true, "in_list_view": true},

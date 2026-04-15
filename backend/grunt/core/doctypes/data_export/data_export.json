@@ -2,7 +2,6 @@
   "name": "DataExport",
   "label": "Експорт даних",
   "module": "core",
-  "is_system": true,
   "title_field": "doctype_name",
   "fields": [
     {"fieldname": "doctype_name", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true, "in_list_view": true, "in_filter": true},

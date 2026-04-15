@@ -2,7 +2,6 @@
   "name": "DashboardChart",
   "label": "Графік дашборду",
   "module": "core",
-  "is_system": true,
   "fields": [
     {"fieldname": "chart_type", "label": "Тип графіка", "fieldtype": "Select", "options": "bar\nline\npie\ndonut", "default": "bar", "in_list_view": true, "in_filter": true},
     {"fieldname": "doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true, "in_list_view": true},

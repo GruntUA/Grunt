@@ -2,7 +2,6 @@
   "name": "ToDo",
   "label": "Завдання",
   "module": "core",
-  "is_system": true,
   "fields": [
     {"fieldname": "description", "label": "Опис", "fieldtype": "Text", "required": true, "in_list_view": true},
     {"fieldname": "reference_doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType"},

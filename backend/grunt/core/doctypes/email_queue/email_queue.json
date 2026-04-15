@@ -2,7 +2,6 @@
   "name": "EmailQueue",
   "label": "Черга листів",
   "module": "core",
-  "is_system": true,
   "fields": [
     {"fieldname": "sender", "label": "Відправник", "fieldtype": "Text", "in_list_view": true},
     {"fieldname": "recipient", "label": "Отримувач", "fieldtype": "Text", "in_list_view": true},

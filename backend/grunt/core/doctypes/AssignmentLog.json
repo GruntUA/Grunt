@@ -3,7 +3,6 @@
   "label": "Assignment Log",
   "doctype": "DocType",
   "module": "core",
-  "is_system": true,
   "log_changes": false,
   "fields": [
     {

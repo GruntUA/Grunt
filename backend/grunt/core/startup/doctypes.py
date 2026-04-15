@@ -181,3 +181,23 @@ async def populate_system_doctypes(
     if stale:
         logger.info("startup.doctype_table_cleaned", removed=sorted(stale))
     logger.info("startup.doctype_table_synced", count=len(all_doctypes))
+
+
+async def sync_all_doctypes(session: AsyncSession, engine: AsyncEngine) -> None:
+    """Synchronize physical tables for ALL DocTypes in the registry.
+
+    Iterates through all DocTypes and calls ``sync_table()`` for each.
+    This ensures that new fields in JSON files are added to the DB.
+    """
+    from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
+    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+
+    # Ensure all doctypes (even user-created ones) are in the registry memory
+    await doctype_registry.load_all(session)
+    doctypes = await doctype_registry.list_all()
+
+    for dt in doctypes:
+        try:
+            await sync_table(dt, engine, session=session)
+        except Exception as e:  # noqa: BLE001
+            logger.warning("startup.sync_doctype_failed", name=dt.name, error=str(e))

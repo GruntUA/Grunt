@@ -3,7 +3,6 @@
   "label": "Воркспейс Sidebar",
   "module": "core",
   "is_child": false,
-  "is_system": true,
   "autoname": "prompt",
   "title_field": "label",
   "table_name": "grunt_workspace",

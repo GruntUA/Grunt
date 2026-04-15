@@ -3,7 +3,6 @@
   "label": "Версія документа",
   "module": "core",
   "track_changes": false,
-  "is_system": true,
   "table_name": "grunt_doc_version",
   "fields": [
     {"fieldname": "doctype", "label": "Тип документа", "fieldtype": "Link", "options": "DocType", "required": true, "in_list_view": true, "in_filter": true},

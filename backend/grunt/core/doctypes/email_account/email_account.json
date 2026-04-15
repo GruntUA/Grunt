@@ -2,7 +2,6 @@
   "name": "EmailAccount",
   "label": "Обліковий запис пошти",
   "module": "core",
-  "is_system": true,
   "fields": [
     {"fieldname": "email_address", "label": "Email адреса", "fieldtype": "Text", "required": true, "in_list_view": true},
     {"fieldname": "enable_outgoing", "label": "Дозволити вихідну пошту", "fieldtype": "Check", "default": false},

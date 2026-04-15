@@ -3,7 +3,6 @@
     "label": "Налаштування системи",
     "module": "Core",
     "is_singleton": true,
-    "is_system": true,
     "icon": "Settings2",
     "fields": [
         {

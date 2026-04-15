@@ -2,7 +2,6 @@
   "name": "ApiKey",
   "label": "API Key",
   "module": "core",
-  "is_system": true,
   "track_changes": false,
   "fields": [
     {"fieldname": "label", "label": "Назва", "fieldtype": "Data", "required": true, "in_list_view": true},

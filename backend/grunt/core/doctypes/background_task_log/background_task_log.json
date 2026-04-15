@@ -3,7 +3,6 @@
   "label": "Лог фонових завдань",
   "module": "core",
   "track_changes": false,
-  "is_system": true,
   "fields": [
     {"fieldname": "task_name", "label": "Завдання", "fieldtype": "Text", "in_list_view": true, "in_filter": true},
     {"fieldname": "status", "label": "Статус", "fieldtype": "Select", "options": "Started\nSuccess\nError\nRetrying", "in_list_view": true, "in_filter": true},

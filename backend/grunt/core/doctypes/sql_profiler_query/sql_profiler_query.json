@@ -2,7 +2,6 @@
   "name": "SqlProfilerQuery",
   "label": "SQL Профайлер — Запит",
   "module": "core",
-  "is_system": true,
   "is_virtual": true,
   "is_child": true,
   "track_changes": false,

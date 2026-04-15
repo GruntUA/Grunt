@@ -3,7 +3,6 @@
   "label": "Сторінка",
   "module": "core",
   "track_changes": false,
-  "is_system": true,
   "table_name": "grunt_page",
   "fields": [
     {"fieldname": "route", "label": "Маршрут", "fieldtype": "Text", "required": true, "unique": true, "in_list_view": true},

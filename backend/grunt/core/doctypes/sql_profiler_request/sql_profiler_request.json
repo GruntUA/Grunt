@@ -2,7 +2,6 @@
   "name": "SqlProfilerRequest",
   "label": "SQL Profiler — Запити",
   "module": "core",
-  "is_system": true,
   "is_virtual": true,
   "track_changes": false,
   "title_field": "path",

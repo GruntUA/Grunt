@@ -2,7 +2,6 @@
   "name": "UserSession",
   "label": "Сесія користувача",
   "module": "core",
-  "is_system": true,
   "track_changes": false,
   "fields": [
     {"fieldname": "user", "label": "Користувач", "fieldtype": "Link", "options": "User", "required": true, "in_list_view": true, "in_filter": true},

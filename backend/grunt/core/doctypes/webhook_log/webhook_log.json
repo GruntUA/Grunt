@@ -2,7 +2,6 @@
   "name": "WebhookLog",
   "label": "Лог вебхуку",
   "module": "core",
-  "is_system": true,
   "table_name": "grunt_webhook_log",
   "track_changes": false,
   "fields": [

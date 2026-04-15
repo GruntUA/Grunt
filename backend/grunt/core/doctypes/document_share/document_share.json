@@ -2,7 +2,6 @@
   "name": "DocumentShare",
   "label": "Спільний доступ",
   "module": "core",
-  "is_system": true,
   "table_name": "grunt_document_share",
   "track_changes": false,
   "fields": [
