@@ -52,6 +52,12 @@ function onOpenChange(v: boolean) {
 <template>
   <Dialog :open="state.open" @update:open="onOpenChange">
     <DialogContent class="sm:max-w-md">
+      <!-- Hidden titles for accessibility if not provided -->
+      <DialogHeader v-if="!state.title" class="sr-only">
+        <DialogTitle>Dialog</DialogTitle>
+        <DialogDescription>Action dialog</DialogDescription>
+      </DialogHeader>
+
       <!-- Msgprint -->
       <template v-if="state.type === 'msgprint'">
         <DialogHeader>
@@ -60,6 +66,7 @@ function onOpenChange(v: boolean) {
               :style="{ backgroundColor: state.indicator }" />
             {{ state.title }}
           </DialogTitle>
+          <DialogDescription class="sr-only">Message from system</DialogDescription>
         </DialogHeader>
         <div class="text-sm text-foreground leading-relaxed whitespace-pre-wrap" v-html="state.message" />
         <DialogFooter>
@@ -85,6 +92,7 @@ function onOpenChange(v: boolean) {
       <template v-if="state.type === 'prompt'">
         <DialogHeader>
           <DialogTitle v-if="state.title">{{ state.title }}</DialogTitle>
+          <DialogDescription class="sr-only">Введіть дані</DialogDescription>
         </DialogHeader>
         <div v-for="field in state.fields" :key="field.fieldname" class="space-y-2">
           <Label :for="field.fieldname">{{ field.label }}</Label>
@@ -103,6 +111,7 @@ function onOpenChange(v: boolean) {
       <template v-if="state.type === 'dialog'">
         <DialogHeader>
           <DialogTitle v-if="state.title">{{ state.title }}</DialogTitle>
+          <DialogDescription class="sr-only">Заповніть форму</DialogDescription>
         </DialogHeader>
         <div class="space-y-4 py-2">
           <div v-for="field in state.fields" :key="field.fieldname" class="space-y-2">
@@ -136,6 +145,7 @@ function onOpenChange(v: boolean) {
       <template v-if="state.type === 'progress'">
         <DialogHeader>
           <DialogTitle>{{ state.title }}</DialogTitle>
+          <DialogDescription class="sr-only">Завантаження...</DialogDescription>
         </DialogHeader>
         <div class="space-y-2">
           <div class="w-full h-2.5 bg-muted rounded-full overflow-hidden">
