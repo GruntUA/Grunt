@@ -81,7 +81,8 @@ def _run_npm_install() -> None:
     if mise:
         # Ensure the pinned Node version from .mise.toml is installed
         subprocess.run([mise, "install"], cwd=app_dir, check=False)
-        cmd = [mise, "exec", "--", npm, "install"]
+        # Use bare "npm" so mise exec resolves it from the managed Node installation
+        cmd = [mise, "exec", "--", "npm", "install"]
     else:
         click.echo("  [info] mise не знайдено, використовую системний npm", err=True)
         cmd = [npm, "install"]
