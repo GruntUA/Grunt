@@ -75,21 +75,12 @@ class SiteManager:
     """
 
     def __init__(self) -> None:
-        # Знаходимо bench_dir: шукаємо вгору директорію з apps/ та sites/
-        cwd = Path.cwd()
-        bench_dir = None
-        check = cwd
-        for _ in range(5):
-            if (check / "apps").is_dir() and (check / "sites").is_dir():
-                bench_dir = check
-                break
-            if check == check.parent:
-                break
-            check = check.parent
-
+        # Шукаємо bench_dir: спочатку вгору від cwd, потім від розташування пакету
+        bench_dir = self._find_bench_dir(Path.cwd()) or self._find_bench_dir(
+            Path(__file__).resolve()
+        )
         if bench_dir is None:
-            # Fallback: cwd.parent.parent (legacy)
-            bench_dir = cwd.parent.parent.resolve()
+            bench_dir = Path.cwd().parent.parent.resolve()
 
         self.bench_dir = bench_dir.resolve()
         self.sites_dir = self.bench_dir / "sites"
@@ -97,6 +88,18 @@ class SiteManager:
         # Caches
         self.engines: dict[str, AsyncEngine] = {}
         self.session_makers: dict[str, async_sessionmaker[AsyncSession]] = {}
+
+    @staticmethod
+    def _find_bench_dir(start: Path) -> Path | None:
+        """Walk up from *start* looking for a directory that has both apps/ and sites/."""
+        check = start if start.is_dir() else start.parent
+        for _ in range(8):
+            if (check / "apps").is_dir() and (check / "sites").is_dir():
+                return check.resolve()
+            if check == check.parent:
+                break
+            check = check.parent
+        return None
 
     def get_sites(self) -> list[str]:
         """List all valid site directories in the bench."""

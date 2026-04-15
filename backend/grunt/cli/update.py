@@ -53,26 +53,34 @@ def update(skip_migrate: bool, skip_packages: bool, skip_npm: bool, site: str | 
     click.echo("\nОновлення завершено.")
 
 
-def _run_npm_install() -> None:
-    """Run npm install in the bench root (where package.json lives)."""
-    from grunt.core.site.manager import site_manager  # noqa: PLC0415
+def _grunt_app_dir() -> "Path":
+    """Return the grunt app root (where pyproject.toml and package.json live)."""
+    from pathlib import Path  # noqa: PLC0415
 
-    bench_dir = site_manager.bench_dir
+    # update.py lives at apps/grunt/backend/grunt/cli/update.py
+    # → 4 levels up = apps/grunt/
+    return Path(__file__).resolve().parent.parent.parent.parent
+
+
+def _run_npm_install() -> None:
+    """Run npm install in the grunt app root (where package.json lives)."""
     npm = shutil.which("npm")
     if not npm:
         click.echo("  [warn] npm не знайдено, пропускаю встановлення npm пакетів", err=True)
         return
 
-    result = subprocess.run([npm, "install"], cwd=bench_dir, check=False)
+    result = subprocess.run([npm, "install"], cwd=_grunt_app_dir(), check=False)
     if result.returncode != 0:
         click.echo("  [warn] npm install завершився з помилкою", err=True)
 
 
 def _run_package_update() -> None:
     """Run the best available package manager to upgrade dependencies."""
+    app_dir = _grunt_app_dir()
+
     # uv (preferred)
     if shutil.which("uv"):
-        result = subprocess.run(["uv", "sync", "--upgrade"], check=False)
+        result = subprocess.run(["uv", "sync", "--upgrade"], cwd=app_dir, check=False)
         if result.returncode != 0:
             click.echo("  [warn] uv sync --upgrade завершився з помилкою", err=True)
         return
@@ -81,6 +89,7 @@ def _run_package_update() -> None:
     click.echo("  uv не знайдено, використовую pip...")
     result = subprocess.run(
         [sys.executable, "-m", "pip", "install", "--upgrade", "grunt"],
+        cwd=app_dir,
         check=False,
     )
     if result.returncode != 0:
