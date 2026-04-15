@@ -220,11 +220,8 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
     the module directory may not yet exist on disk (e.g. freshly created).
 
     Returns the absolute path to the written JSON file, or ``None`` if export
-    was skipped (system DocType or module directory not found).
+    was skipped (module directory not found).
     """
-    if dt.is_system:
-        return None
-
     app_dir = _find_app_dir(dt.module, app_name=app_name)
     if not app_dir:
         logger.warning(

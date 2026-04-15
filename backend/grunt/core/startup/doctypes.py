@@ -144,7 +144,6 @@ async def populate_system_doctypes(
             **_col("is_singleton", dt.is_singleton),
             **_col("is_virtual", dt.is_virtual),
             **_col("track_changes", dt.track_changes),
-            **_col("is_system", dt.is_system),
             **_col("autoname", dt.autoname),
             **_col("title_field", dt.title_field),
             **_col("image_field", dt.image_field),

@@ -39,7 +39,7 @@ def doctype_sync(name: str, site: str | None, force: bool):
         async with _site_session(site) as (session, eng):
             dt = await doctype_registry.get(name)
 
-            if force and dt.is_system:
+            if force:
                 # Find JSON file on disk and reload definition
                 from grunt.core.startup.doctypes import _CORE_DOCTYPES_DIR  # noqa: PLC0415
 
@@ -86,11 +86,10 @@ def doctype_list(site: str | None):
             if not all_dts:
                 click.echo("DocTypes не знайдено.")
                 return
-            click.echo(f"{'Назва':<35} {'Модуль':<20} {'Система'}")
-            click.echo("-" * 65)
+            click.echo(f"{'Назва':<35} {'Модуль':<20}")
+            click.echo("-" * 55)
             for dt in sorted(all_dts, key=lambda d: d.name):
-                is_sys = "так" if getattr(dt, "is_system", False) else ""
-                click.echo(f"{dt.name:<35} {dt.module:<20} {is_sys}")
+                click.echo(f"{dt.name:<35} {dt.module:<20}")
 
     asyncio.run(_run())
 
@@ -148,7 +147,6 @@ def doctype_scaffold(name: str, app: str, module: str | None, force: bool):
         "label": name,
         "module": module_name,
         "doctype": "DocType",
-        "is_system": False,
         "fields": initial_fields,
     }
     json_file = doctype_dir / f"{to_snake_case(name)}.json"
