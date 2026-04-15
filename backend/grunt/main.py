@@ -117,7 +117,7 @@ async def lifespan(app: FastAPI):
                 # Populate the DocType document table
                 await populate_system_doctypes(session, eng)
                 await seed_system_settings(session, eng)
-                await seed_grunt_workspace(session)
+                await seed_grunt_workspace(session, eng)
                 # Permissions: migrate DocType meta → DocTypePermission, then load into memory
                 from grunt.core.permissions.sync import (
                     load_all_permissions_from_db,

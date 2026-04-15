@@ -102,7 +102,7 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
                 click.echo("  [4/4] Seed fixtures...")
                 async with maker() as session:
                     await seed_system_settings(session, eng)
-                    await seed_grunt_workspace(session)
+                    await seed_grunt_workspace(session, eng)
                     await session.commit()
 
                 async with maker() as session:

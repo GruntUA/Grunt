@@ -279,7 +279,7 @@ def _run_migrate_for_site(site_name: str) -> None:
 
         async with maker() as session:
             await seed_system_settings(session, eng)
-            await seed_grunt_workspace(session)
+            await seed_grunt_workspace(session, eng)
             await session.commit()
 
         async with maker() as session:
