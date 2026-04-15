@@ -10,8 +10,6 @@ all other notification channels (in-app, email) continue to work.
 from __future__ import annotations
 
 import json
-import uuid
-from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import structlog
@@ -28,42 +26,39 @@ _VAPID_CLAIMS_SUB = "mailto:system@grunt.local"
 
 def _generate_vapid_keys() -> tuple[str, str]:
     """Generate a new VAPID key pair. Returns (private_pem, public_b64url)."""
+    import base64
+
+    from cryptography.hazmat.primitives import serialization
     from py_vapid import Vapid
 
     v = Vapid()
     v.generate_keys()
+    
+    # Export private key to PEM
     private_pem = v.private_key.private_bytes(
-        encoding=__import__(
-            "cryptography.hazmat.primitives.serialization", fromlist=["Encoding"]
-        ).Encoding.PEM,
-        format=__import__(
-            "cryptography.hazmat.primitives.serialization", fromlist=["PrivateFormat"]
-        ).PrivateFormat.TraditionalOpenSSL,
-        encryption_algorithm=__import__(
-            "cryptography.hazmat.primitives.serialization", fromlist=["NoEncryption"]
-        ).NoEncryption(),
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
     ).decode()
-    public_b64 = v.public_key_urlsafe_base64
+    
+    # Export public key as raw Uncompressed Point (required by Web Push)
+    raw_pub = v.public_key.public_bytes(
+        encoding=serialization.Encoding.X962,
+        format=serialization.PublicFormat.UncompressedPoint
+    )
+    
+    # Base64URL encode without padding
+    public_b64 = base64.urlsafe_b64encode(raw_pub).decode().strip("=")
+    
     return private_pem, public_b64
 
 
 class WebPushService:
     async def get_vapid_public_key(self, session: AsyncSession) -> str | None:
         """Return the VAPID public key stored in SystemSettings, or None."""
+        from grunt.app import grunt  # noqa: PLC0415
         try:
-            from sqlalchemy import select  # noqa: PLC0415
-
-            from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-            from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
-            ss_dt = doctype_registry._doctypes.get("SystemSettings")
-            if not ss_dt:
-                return None
-            table = compile_doctype_to_table(ss_dt)
-            if _VAPID_PUBLIC_KEY_FIELD not in table.c:
-                return None
-            row = (await session.execute(select(table).limit(1))).first()
-            return str(row._mapping[_VAPID_PUBLIC_KEY_FIELD]) if row else None
+            return await grunt.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
         except Exception:  # noqa: BLE001
             return None
 
@@ -75,55 +70,28 @@ class WebPushService:
             logger.warning("webpush.pywebpush_not_installed")
             return None
 
+        from grunt.app import grunt  # noqa: PLC0415
+
         try:
-            from sqlalchemy import select  # noqa: PLC0415
-
-            from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-            from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
-            ss_dt = doctype_registry._doctypes.get("SystemSettings")
-            if not ss_dt:
-                return None
-            table = compile_doctype_to_table(ss_dt)
-            if _VAPID_PUBLIC_KEY_FIELD not in table.c:
-                return None
-
-            row = (await session.execute(select(table).limit(1))).first()
-            if row and row._mapping.get(_VAPID_PUBLIC_KEY_FIELD):
-                return str(row._mapping[_VAPID_PUBLIC_KEY_FIELD])
+            public_key = await grunt.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
+            if public_key:
+                return public_key
 
             # Generate new keys
             private_pem, public_b64 = _generate_vapid_keys()
-            if row:
-                await session.execute(
-                    table.update().values(
-                        **{
-                            _VAPID_PRIVATE_KEY_FIELD: private_pem,
-                            _VAPID_PUBLIC_KEY_FIELD: public_b64,
-                        }
-                    )
-                )
-            else:
-                now = datetime.now(UTC)
-                await session.execute(
-                    table.insert().values(
-                        id=str(uuid.uuid4()),
-                        name="SystemSettings",
-                        owner="system",
-                        created_at=now,
-                        modified_at=now,
-                        modified_by="system",
-                        docstatus=0,
-                        **{
-                            _VAPID_PRIVATE_KEY_FIELD: private_pem,
-                            _VAPID_PUBLIC_KEY_FIELD: public_b64,
-                        },
-                    )
-                )
-            await session.flush()
+            
+            # Since SystemSettings is a Singleton, it's stored as KV in Singles table
+            # We can use grunt.db.set_value which works beautifully for Singletons
+            await grunt.db.set_value(
+                "SystemSettings", "SystemSettings", _VAPID_PRIVATE_KEY_FIELD, private_pem
+            )
+            await grunt.db.set_value(
+                "SystemSettings", "SystemSettings", _VAPID_PUBLIC_KEY_FIELD, public_b64
+            )
+            
             logger.info("webpush.vapid_keys_generated")
             return public_b64
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("webpush.ensure_keys_failed", error=str(exc))
             return None
 
@@ -137,52 +105,26 @@ class WebPushService:
         user_agent: str = "",
     ) -> None:
         """Upsert a push subscription for a user (one per endpoint)."""
-        from sqlalchemy import delete  # noqa: PLC0415
+        from grunt.app import grunt # noqa: PLC0415
 
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        # Remove old subscription at this endpoint if any using db.delete for performance
+        await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint})
 
-        dt = doctype_registry._doctypes.get("PushSubscription")
-        if not dt:
-            return
-        table = compile_doctype_to_table(dt)
+        # Create new subscription document
+        await grunt.new_doc("PushSubscription", {
+            "user": user,
+            "endpoint": endpoint,
+            "p256dh": p256dh,
+            "auth": auth,
+            "user_agent": user_agent,
+        })
 
-        # Remove old subscription at this endpoint if any
-        await session.execute(delete(table).where(table.c.endpoint == endpoint))
-
-        now = datetime.now(UTC)
-        sub_id = str(uuid.uuid4())
-        await session.execute(
-            table.insert().values(
-                id=sub_id,
-                name=sub_id,
-                owner=user,
-                created_at=now,
-                modified_at=now,
-                modified_by=user,
-                docstatus=0,
-                user=user,
-                endpoint=endpoint,
-                p256dh=p256dh,
-                auth=auth,
-                user_agent=user_agent,
-            )
-        )
-        await session.flush()
 
     async def remove_subscription(self, session: AsyncSession, endpoint: str) -> None:
         """Delete a push subscription by endpoint URL."""
-        from sqlalchemy import delete  # noqa: PLC0415
+        from grunt.app import grunt  # noqa: PLC0415
+        await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint})
 
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
-        dt = doctype_registry._doctypes.get("PushSubscription")
-        if not dt:
-            return
-        table = compile_doctype_to_table(dt)
-        await session.execute(delete(table).where(table.c.endpoint == endpoint))
-        await session.flush()
 
     async def send_push(
         self,
@@ -198,37 +140,21 @@ class WebPushService:
         except ImportError:
             return  # Silently skip if not installed
 
-        from sqlalchemy import select  # noqa: PLC0415
-
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import grunt  # noqa: PLC0415
 
         # Get VAPID private key
         try:
-            ss_dt = doctype_registry._doctypes.get("SystemSettings")
-            if not ss_dt:
+            vapid_private = await grunt.get_single("SystemSettings", _VAPID_PRIVATE_KEY_FIELD)
+            if not vapid_private:
                 return
-            ss_table = compile_doctype_to_table(ss_dt)
-            ss_row = (await session.execute(select(ss_table).limit(1))).first()
-            if not ss_row or not ss_row._mapping.get(_VAPID_PRIVATE_KEY_FIELD):
-                return
-            vapid_private = str(ss_row._mapping[_VAPID_PRIVATE_KEY_FIELD])
-            str(ss_row._mapping[_VAPID_PUBLIC_KEY_FIELD])
         except Exception:  # noqa: BLE001
             return
 
         # Get subscriptions for this user
-        sub_dt = doctype_registry._doctypes.get("PushSubscription")
-        if not sub_dt:
-            return
-        sub_table = compile_doctype_to_table(sub_dt)
-        subs = (
-            (await session.execute(select(sub_table).where(sub_table.c.user == user)))
-            .mappings()
-            .all()
-        )
+        subs = await grunt.get_list("PushSubscription", filters={"user": user})
 
         payload = json.dumps({"title": subject, "body": body, "url": url})
+
 
         for sub in subs:
             try:

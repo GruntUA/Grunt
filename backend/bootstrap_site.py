@@ -35,7 +35,7 @@ async def bootstrap():
         await seed_system_settings(session, engine)
         
         logger.info("bootstrap.seeding_grunt_workspace")
-        await seed_grunt_workspace(session)
+        await seed_grunt_workspace(session, engine)
         
         await session.commit()
     

@@ -218,7 +218,6 @@ async def create_user(
             "is_superadmin": is_superadmin,
             "is_active": True
         })
-        await doc.insert()
         
         logger.info("user.created", email=email, superadmin=is_superadmin)
 
