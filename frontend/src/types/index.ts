@@ -221,7 +221,6 @@ export interface DocType {
   is_submittable?: boolean
   is_singleton?: boolean
   is_tree?: boolean
-  is_system?: boolean
   track_changes?: boolean
   quick_entry?: boolean
   fields: DocField[]

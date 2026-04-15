@@ -37,9 +37,6 @@ const jsonBadge = computed(() => {
     return { label: short, tooltip: builder.exportedTo, variant: 'ok' as const }
   }
 
-  if (dt.is_system) {
-    return { label: t('System DocType'), tooltip: t('File is not updated — built-in doctype'), variant: 'system' as const }
-  }
 
   const short = `${dt.module}/doctypes/${dt.name}/${dt.name}.json`
   return { label: short, tooltip: t('Expected path (save to confirm)'), variant: 'pending' as const }
@@ -86,7 +83,6 @@ async function handleSave() {
                 :class="{
                   'border-border bg-muted text-foreground': jsonBadge.variant === 'ok',
                   'border-border bg-muted text-muted-foreground': jsonBadge.variant === 'pending',
-                  'border-border bg-muted text-muted-foreground italic': jsonBadge.variant === 'system',
                 }"
               >
                 <FileJson
