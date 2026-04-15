@@ -29,7 +29,7 @@ def app_group():
     pass
 
 
-async def _do_install(name: str, site: str | None) -> None:
+async def _do_install(name: str, site: str | None = None) -> None:
     """Встановлює додаток: реєструє в grunt.site, завантажує DocTypes, fixtures, after_install."""
     import json  # noqa: PLC0415
 
