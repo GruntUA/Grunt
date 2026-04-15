@@ -9,7 +9,7 @@ export interface ListColumn {
 
 const STRUCTURAL = new Set(['Section', 'Column', 'Tab', 'Table', 'MultiLink'])
 
-export function useListColumns(doctype: string, fields: () => DocField[]) {
+export function useListColumns(doctype: string, fields: () => DocField[], titleField?: () => string | undefined) {
   const storageKey = `grunt_columns_v2_${doctype}`
   const saved = localStorage.getItem(storageKey)
   const _savedKeys = ref<string[] | null>(saved ? (JSON.parse(saved) as string[]) : null)
@@ -23,8 +23,16 @@ export function useListColumns(doctype: string, fields: () => DocField[]) {
 
   // Default visible = in_list_view fields
   const defaultKeys = computed<string[]>(() => {
-    const cols = fields().filter(f => f.in_list_view && !f.hidden).map(f => f.fieldname)
-    return cols.length ? cols : ['name']
+    let cols = fields().filter(f => f.in_list_view && !f.hidden).map(f => f.fieldname)
+    if (!cols.length) cols = ['id']
+
+    const tf = titleField?.()
+    if (tf && cols.includes(tf)) {
+      // Move title field to front
+      cols = [tf, ...cols.filter(c => c !== tf)]
+    }
+
+    return cols
   })
 
   // Currently visible keys (saved or default)

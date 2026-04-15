@@ -18,6 +18,14 @@
       "fieldtype": "Section"
     },
     {
+      "fieldname": "full_name",
+      "label": "Повне ім'я",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
       "fieldname": "avatar",
       "label": "Фото профілю",
       "fieldtype": "Image",
@@ -29,18 +37,6 @@
       "fieldtype": "Text",
       "required": true,
       "unique": true,
-      "in_list_view": true,
-      "in_filter": true
-    },
-    {
-      "fieldname": "col_general",
-      "fieldtype": "Column"
-    },
-    {
-      "fieldname": "full_name",
-      "label": "Повне ім'я",
-      "fieldtype": "Text",
-      "required": true,
       "in_list_view": true,
       "in_filter": true
     },

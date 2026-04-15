@@ -24,23 +24,23 @@ import DatetimeFilterInput from '@/components/fields/Datetime/FilterInput.vue'
 import LinkFilterInput from '@/components/fields/Link/FilterInput.vue'
 
 const TEXT_OPS = ['=', '!=', 'like']
-const NUM_OPS  = ['=', '!=', '>', '<', '>=', '<=']
+const NUM_OPS = ['=', '!=', '>', '<', '>=', '<=']
 const DATE_OPS = ['=', '!=', '>', '<', '>=', '<=']
 
-registerFilterConfig('_default',  { operators: TEXT_OPS,  filterInput: DefaultFilterInput })
-registerFilterConfig('Data',      { operators: TEXT_OPS,  filterInput: DefaultFilterInput })
-registerFilterConfig('Text',      { operators: TEXT_OPS,  filterInput: DefaultFilterInput })
-registerFilterConfig('LongText',  { operators: TEXT_OPS,  filterInput: DefaultFilterInput })
-registerFilterConfig('Int',       { operators: NUM_OPS,   filterInput: DefaultFilterInput })
-registerFilterConfig('Float',     { operators: NUM_OPS,   filterInput: DefaultFilterInput })
-registerFilterConfig('Currency',  { operators: NUM_OPS,   filterInput: DefaultFilterInput })
-registerFilterConfig('Rating',    { operators: NUM_OPS,   filterInput: DefaultFilterInput })
-registerFilterConfig('Date',      { operators: DATE_OPS,  filterInput: DateFilterInput })
-registerFilterConfig('Datetime',  { operators: DATE_OPS,  filterInput: DatetimeFilterInput })
-registerFilterConfig('Time',      { operators: DATE_OPS,  filterInput: DefaultFilterInput })
-registerFilterConfig('Check',     { operators: ['='],     filterInput: CheckFilterInput })
-registerFilterConfig('Select',    { operators: ['=', '!='], filterInput: SelectFilterInput })
-registerFilterConfig('Link',      { operators: ['=', '!='], filterInput: LinkFilterInput })
+registerFilterConfig('_default', { operators: TEXT_OPS, filterInput: DefaultFilterInput })
+registerFilterConfig('Data', { operators: TEXT_OPS, filterInput: DefaultFilterInput })
+registerFilterConfig('Text', { operators: TEXT_OPS, filterInput: DefaultFilterInput })
+registerFilterConfig('LongText', { operators: TEXT_OPS, filterInput: DefaultFilterInput })
+registerFilterConfig('Int', { operators: NUM_OPS, filterInput: DefaultFilterInput })
+registerFilterConfig('Float', { operators: NUM_OPS, filterInput: DefaultFilterInput })
+registerFilterConfig('Currency', { operators: NUM_OPS, filterInput: DefaultFilterInput })
+registerFilterConfig('Rating', { operators: NUM_OPS, filterInput: DefaultFilterInput })
+registerFilterConfig('Date', { operators: DATE_OPS, filterInput: DateFilterInput })
+registerFilterConfig('Datetime', { operators: DATE_OPS, filterInput: DatetimeFilterInput })
+registerFilterConfig('Time', { operators: DATE_OPS, filterInput: DefaultFilterInput })
+registerFilterConfig('Check', { operators: ['='], filterInput: CheckFilterInput })
+registerFilterConfig('Select', { operators: ['=', '!='], filterInput: SelectFilterInput })
+registerFilterConfig('Link', { operators: ['=', '!='], filterInput: LinkFilterInput })
 
 // ── List Cell Renderers ────────────────────────────────────────────────────
 import { registerListCell } from '@/core/listCellRegistry'
@@ -52,6 +52,7 @@ import GeolocationListCell from '@/components/fields/Geolocation/ListCell.vue'
 import RatingListCell from '@/components/fields/Rating/ListCell.vue'
 import IconListCell from '@/components/fields/Icon/ListCell.vue'
 import LinkListCell from '@/components/fields/Link/ListCell.vue'
+import ImageListCell from '@/components/fields/Image/ListCell.vue'
 
 registerListCell('Check', CheckListCell)
 registerListCell('Select', SelectListCell)
@@ -61,6 +62,7 @@ registerListCell('Geolocation', GeolocationListCell)
 registerListCell('Rating', RatingListCell)
 registerListCell('Icon', IconListCell)
 registerListCell('Link', LinkListCell)
+registerListCell('Image', ImageListCell)
 
 // ── Exporters ──────────────────────────────────────────────────────────────
 import { registerExporter } from '@/core/io'

@@ -10,13 +10,14 @@ defineProps<{
 
 function formatDate(val: unknown): string {
   if (!val) return '—'
-  try {
-    const d = new Date(String(val))
-    if (isNaN(d.getTime())) return String(val)
-    return d.toLocaleDateString('uk-UA')
-  } catch {
-    return String(val)
-  }
+  const str = String(val).replace(' ', 'T')
+  const d = new Date(str)
+  if (isNaN(d.getTime())) return String(val)
+  return d.toLocaleDateString('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  })
 }
 </script>
 

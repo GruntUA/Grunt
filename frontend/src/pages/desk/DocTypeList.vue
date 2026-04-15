@@ -72,7 +72,7 @@ watch(inlineSearch, (v) => {
 })
 
 const selection = useListSelection()
-const columns = useListColumns(props.doctype, () => dt.value?.fields ?? [])
+const columns = useListColumns(props.doctype, () => dt.value?.fields ?? [], () => dt.value?.title_field)
 const listButtons = ref<ScriptButton[]>([])
 const listMenuItems = ref<ScriptMenuItem[]>([])
 const showQuickEntry = ref(false)
@@ -314,39 +314,19 @@ function navigateToDoc(row: Record<string, unknown>) {
 <template>
   <div class="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
     <!-- Header -->
-    <ListHeader
-      :doctype="doctype"
-      :dt="dt"
-      :workspace="workspace"
-      :meta="meta"
-      :is-fetching="isFetching"
-      :is-system-doc-type="doctype === 'DocType'"
-      :show-dev-actions="!!(isDev && auth.user?.is_superadmin)"
-      :list-buttons="listButtons"
-      :list-menu-items="listMenuItems"
-      :export-ctx="exportCtx"
+    <ListHeader :doctype="doctype" :dt="dt" :workspace="workspace" :meta="meta" :is-fetching="isFetching"
+      :is-system-doc-type="doctype === 'DocType'" :show-dev-actions="!!(isDev && auth.user?.is_superadmin)"
+      :list-buttons="listButtons" :list-menu-items="listMenuItems" :export-ctx="exportCtx"
       @refresh="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })"
-      @create-quick="showQuickEntry = true"
-    />
+      @create-quick="showQuickEntry = true" />
 
     <!-- Toolbar -->
-    <ListToolbar
-      v-model:view-mode="viewMode"
-      v-model:inline-search="inlineSearch"
-      v-model:active-filters="activeFilters"
-      :group-by="groupBy"
-      @update:group-by="setGroupBy"
-      :dt="dt"
-      :doctype="doctype"
-      :columns="columns"
-      :groupable-fields="groupableFields"
-      :group-by-field="groupByField"
-      :kanban-column-field="kanbanColumnField"
-      :tree-parent-field="treeParentField"
-      :calendar-date-field="calendarDateField"
-      :geo-field="geoField"
-      @reset="inlineSearch = ''; debouncedSearch = ''; activeFilters = []; page = 1"
-    />
+    <ListToolbar v-model:view-mode="viewMode" v-model:inline-search="inlineSearch"
+      v-model:active-filters="activeFilters" :group-by="groupBy" @update:group-by="setGroupBy" :dt="dt"
+      :doctype="doctype" :columns="columns" :groupable-fields="groupableFields" :group-by-field="groupByField"
+      :kanban-column-field="kanbanColumnField" :tree-parent-field="treeParentField"
+      :calendar-date-field="calendarDateField" :geo-field="geoField"
+      @reset="inlineSearch = ''; debouncedSearch = ''; activeFilters = []; page = 1" />
 
     <!-- Main Content Area -->
     <div class="flex-1 min-h-0">
@@ -360,93 +340,59 @@ function navigateToDoc(row: Record<string, unknown>) {
         <TreeView :doctype="dt" :parent-field="treeParentField.fieldname" :workspace="workspace" />
       </div>
       <div v-else-if="viewMode === 'map' && geoField && dt">
-        <MapView
-          :doctype="dt"
-          :geo-field="geoField.fieldname"
-          :workspace="workspace"
-          :search="debouncedSearch || undefined"
-          :filters="activeFilters"
+        <MapView :doctype="dt" :geo-field="geoField.fieldname" :workspace="workspace"
+          :search="debouncedSearch || undefined" :filters="activeFilters"
           @register-menu-items="(items) => listMenuItems.push(...items)"
-          @unregister-menu-items="(items) => { for (const item of items) { const i = listMenuItems.indexOf(item); if (i !== -1) listMenuItems.splice(i, 1) } }"
-        />
+          @unregister-menu-items="(items) => { for (const item of items) { const i = listMenuItems.indexOf(item); if (i !== -1) listMenuItems.splice(i, 1) } }" />
       </div>
       <div v-else-if="viewMode === 'gallery'">
-        <GalleryView :rows="rows" :columns="columns.visibleColumns.value" :fields="dt?.fields ?? []" :doctype="doctype" :workspace="workspace" :is-loading="isLoading && !data" />
-        <ListPagination v-if="meta" :page="meta.page" :pages="meta.pages" :total="meta.total" :per-page="20" @update:page="page = $event" />
+        <GalleryView :rows="rows" :columns="columns.visibleColumns.value" :fields="dt?.fields ?? []" :doctype="doctype"
+          :workspace="workspace" :is-loading="isLoading && !data" />
+        <ListPagination v-if="meta" :page="meta.page" :pages="meta.pages" :total="meta.total" :per-page="20"
+          @update:page="page = $event" />
       </div>
 
       <template v-else>
-        <BulkActionBar
-          :count="selection.allSelected.value ? (meta?.total ?? 0) : selection.selectedIds.value.length"
-          :total="meta?.total"
-          :all-selected="selection.allSelected.value"
-          :page-count="rows.length"
-          :editable-fields="dt?.fields"
-          @delete="bulkDelete"
-          @clear="selection.clear"
-          @select-all="selection.selectAllDocuments"
-          @update="bulkUpdate"
-        />
+        <BulkActionBar :count="selection.allSelected.value ? (meta?.total ?? 0) : selection.selectedIds.value.length"
+          :total="meta?.total" :all-selected="selection.allSelected.value" :page-count="rows.length"
+          :editable-fields="dt?.fields" @delete="bulkDelete" @clear="selection.clear"
+          @select-all="selection.selectAllDocuments" @update="bulkUpdate" />
 
         <!-- List Content -->
         <div class="mt-2">
-          <ListGroupedView
-            v-if="groupBy && groupedRows"
-            :dt="dt"
-            :grouped-rows="groupedRows"
-            :columns="columns.visibleColumns.value"
-            :collapsed-groups="collapsedGroups"
-            :sort-key="sortKey"
-            :sort-order="sortOrder"
-            :selection="selection"
-            :group-by-field="groupByField"
+          <ListGroupedView v-if="groupBy && groupedRows" :dt="dt" :grouped-rows="groupedRows"
+            :columns="columns.visibleColumns.value" :collapsed-groups="collapsedGroups" :sort-key="sortKey"
+            :sort-order="sortOrder" :selection="selection" :group-by-field="groupByField"
             @toggle-group="(k) => collapsedGroups.has(k) ? collapsedGroups.delete(k) : collapsedGroups.add(k)"
-            @sort="onSort"
-            @select-all="selection.toggleAll(rows.map(r => String(r.id)))"
-            @row-click="navigateToDoc"
-            @inline-update="onInlineUpdate"
-          />
+            @sort="onSort" @select-all="selection.toggleAll(rows.map(r => String(r.id)))" @row-click="navigateToDoc"
+            @inline-update="onInlineUpdate" />
 
           <template v-else>
             <div class="bg-card rounded-xl shadow-md ring-1 ring-border/60 overflow-hidden">
-              <DataTable
-                :columns="columns.visibleColumns.value"
-                :rows="rows"
-                :fields="dt?.fields ?? []"
-                :is-loading="isLoading && !data"
-                :sort-key="sortKey"
-                :sort-order="sortOrder"
-                :selected-ids="selection.selectedIds.value"
-                :all-selected="selection.allSelected.value"
-                :status-config="dt?.status_config"
-                @sort="onSort"
-                @select="selection.toggle"
-                @select-all="selection.toggleAll(rows.map(r => String(r.id)))"
-                @row-click="navigateToDoc"
-                @inline-update="onInlineUpdate"
-              />
+              <DataTable :columns="columns.visibleColumns.value" :rows="rows" :fields="dt?.fields ?? []"
+                :is-loading="isLoading && !data" :sort-key="sortKey" :sort-order="sortOrder"
+                :selected-ids="selection.selectedIds.value" :all-selected="selection.allSelected.value"
+                :status-config="dt?.status_config" @sort="onSort" @select="selection.toggle"
+                @select-all="selection.toggleAll(rows.map(r => String(r.id)))" @row-click="navigateToDoc"
+                @inline-update="onInlineUpdate" />
             </div>
-            <ListPagination v-if="meta" :page="meta.page" :pages="meta.pages" :total="meta.total" :per-page="20" @update:page="page = $event" class="mt-4" />
+            <ListPagination v-if="meta" :page="meta.page" :pages="meta.pages" :total="meta.total" :per-page="20"
+              @update:page="page = $event" class="mt-4" />
           </template>
         </div>
       </template>
     </div>
     <!-- Quick Entry Dialog -->
-    <QuickEntryDialog
-      v-if="showQuickEntry && dt"
-      :dt="dt"
-      :workspace="workspace"
-      mode="list"
-      @close="showQuickEntry = false"
-      @saved="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })"
-    />
+    <QuickEntryDialog v-if="showQuickEntry && dt" :dt="dt" :workspace="workspace" mode="list"
+      @close="showQuickEntry = false" @saved="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })" />
 
     <!-- Bulk delete progress dialog -->
     <Dialog :open="deleteProgress.active" :modal="true">
       <DialogContent class="max-w-sm" hide-close>
         <div class="flex flex-col gap-4 py-2">
           <div class="flex items-center gap-3">
-            <div class="size-5 shrink-0 rounded-full border-2 border-destructive/20 border-t-destructive animate-spin" />
+            <div
+              class="size-5 shrink-0 rounded-full border-2 border-destructive/20 border-t-destructive animate-spin" />
             <p class="text-sm font-medium text-foreground">
               Видалення записів…
             </p>
@@ -455,14 +401,13 @@ function navigateToDoc(row: Record<string, unknown>) {
           <!-- Progress bar -->
           <div class="flex flex-col gap-1.5">
             <div class="h-2 w-full rounded-full bg-muted overflow-hidden">
-              <div
-                class="h-full rounded-full bg-destructive transition-all duration-300"
-                :style="{ width: `${deleteProgress.total ? Math.round(deleteProgress.done / deleteProgress.total * 100) : 0}%` }"
-              />
+              <div class="h-full rounded-full bg-destructive transition-all duration-300"
+                :style="{ width: `${deleteProgress.total ? Math.round(deleteProgress.done / deleteProgress.total * 100) : 0}%` }" />
             </div>
             <div class="flex justify-between text-xs text-muted-foreground tabular-nums">
               <span>{{ deleteProgress.done }} / {{ deleteProgress.total }}</span>
-              <span>{{ deleteProgress.total ? Math.round(deleteProgress.done / deleteProgress.total * 100) : 0 }}%</span>
+              <span>{{ deleteProgress.total ? Math.round(deleteProgress.done / deleteProgress.total * 100) : 0
+                }}%</span>
             </div>
           </div>
 

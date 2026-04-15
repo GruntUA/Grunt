@@ -79,11 +79,6 @@ function getFieldType(key: string): string {
 }
 
 
-function formatCell(val: unknown): string {
-  if (val === null || val === undefined || val === '') return '—'
-  return String(val)
-}
-
 function isSelected(id: string) {
   return props.allSelected || props.selectedIds.includes(id)
 }
@@ -133,7 +128,8 @@ function isSelected(id: string) {
               {{ col.label }}
               <ArrowUp v-if="sortKey === col.key && sortOrder === 'asc'" class="size-3.5 text-primary" />
               <ArrowDown v-else-if="sortKey === col.key && sortOrder === 'desc'" class="size-3.5 text-primary" />
-              <ArrowUpDown v-else-if="col.sortable" class="size-3.5 opacity-0 group-hover/th:opacity-40 transition-opacity" />
+              <ArrowUpDown v-else-if="col.sortable"
+                class="size-3.5 opacity-0 group-hover/th:opacity-40 transition-opacity" />
             </span>
           </th>
         </tr>
@@ -142,9 +138,10 @@ function isSelected(id: string) {
         <tr v-for="row in rows" :key="String(row.id)"
           class="border-b border-border/30 last:border-0 hover:bg-muted/40 cursor-pointer transition-all duration-200 group relative"
           :class="{ 'bg-primary/[0.03] hover:bg-primary/[0.05]': isSelected(String(row.id)) }">
-          
+
           <td class="relative px-4 py-3" @click.stop>
-            <div v-if="isSelected(String(row.id))" class="absolute left-0 top-0 bottom-0 w-0.5 bg-primary rounded-r-full pointer-events-none" />
+            <div v-if="isSelected(String(row.id))"
+              class="absolute left-0 top-0 bottom-0 w-0.5 bg-primary rounded-r-full pointer-events-none" />
             <Checkbox :model-value="isSelected(String(row.id))" @update:model-value="emit('select', String(row.id))"
               class="transition-transform duration-200" :class="{ 'scale-110': isSelected(String(row.id)) }" />
           </td>
@@ -153,33 +150,19 @@ function isSelected(id: string) {
             @dblclick.stop="ci > 0 && startEdit(row, col.key, getFieldType(col.key))">
             <!-- Inline edit input -->
             <template v-if="isEditing(String(row.id), col.key)">
-              <input
-                ref="inlineInput"
-                v-model="inlineEdit!.value"
+              <input ref="inlineInput" v-model="inlineEdit!.value"
                 class="w-full rounded-md border border-primary px-2 py-1 text-sm bg-background shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow"
-                @blur="commitEdit"
-                @keydown.enter.prevent="commitEdit"
-                @keydown.escape.prevent="cancelEdit"
-                @click.stop
-              />
-            </template>
-
-            <!-- First column: bold primary link -->
-            <template v-else-if="ci === 0">
-              <span class="font-semibold text-primary hover:underline">
-                {{ formatCell(row[col.key]) }}
-              </span>
+                @blur="commitEdit" @keydown.enter.prevent="commitEdit" @keydown.escape.prevent="cancelEdit"
+                @click.stop />
             </template>
 
             <!-- Field-type cell renderer (registry) -->
-            <component
-              v-else
-              :is="getListCell(getFieldType(col.key)) ?? DefaultListCell"
-              :value="row[col.key]"
-              :row="row"
-              :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
-              :status-config="statusConfig"
-            />
+            <div v-else
+              :class="{ 'font-semibold text-primary hover:underline': ci === 0 && !['Image', 'Attach', 'Check'].includes(getFieldType(col.key)) }">
+              <component :is="getListCell(getFieldType(col.key)) ?? DefaultListCell" :value="row[col.key]" :row="row"
+                :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
+                :status-config="statusConfig" />
+            </div>
           </td>
         </tr>
         <!-- Empty state -->

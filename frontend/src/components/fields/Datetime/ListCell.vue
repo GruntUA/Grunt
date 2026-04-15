@@ -10,13 +10,16 @@ defineProps<{
 
 function formatDatetime(val: unknown): string {
   if (!val) return '—'
-  try {
-    const d = new Date(String(val))
-    if (isNaN(d.getTime())) return String(val)
-    return d.toLocaleString('uk-UA', { dateStyle: 'short', timeStyle: 'short' })
-  } catch {
-    return String(val)
-  }
+  const str = String(val).replace(' ', 'T')
+  const d = new Date(str)
+  if (isNaN(d.getTime())) return String(val)
+  return d.toLocaleString('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 </script>
 
