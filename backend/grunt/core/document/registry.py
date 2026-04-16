@@ -57,7 +57,17 @@ class DocumentRegistry:
         Supports two formats:
         - ``grunt.core.doctypes.user.user``          → scan module for Document subclass
         - ``myapp.module.MyController``              → explicit class path (overrides)
+
+        Accepts both Document and VirtualDocType subclasses.
         """
+        from grunt.core.metadata.virtual import VirtualDocType  # noqa: PLC0415
+
+        def _is_controller(obj) -> bool:
+            return inspect.isclass(obj) and (
+                (issubclass(obj, Document) and obj is not Document)
+                or (issubclass(obj, VirtualDocType) and obj is not VirtualDocType)
+            )
+
         # Check if it's an explicit class path (override format: "module.ClassName")
         # Heuristic: last segment starts with uppercase → explicit class reference
         parts = module_path.rsplit(".", 1)
@@ -66,11 +76,7 @@ class DocumentRegistry:
             try:
                 module = importlib.import_module(mod_path)
                 controller_cls = getattr(module, class_name, None)
-                if (
-                    controller_cls
-                    and inspect.isclass(controller_cls)
-                    and issubclass(controller_cls, Document)
-                ):
+                if controller_cls and _is_controller(controller_cls):
                     self.register(doctype, controller_cls)
                     logger.info("document.lazy_loaded", doctype=doctype, controller=module_path)
                     return
@@ -80,16 +86,11 @@ class DocumentRegistry:
                 )
                 return
 
-        # Scan module for Document subclass
+        # Scan module for Document or VirtualDocType subclass
         try:
             module = importlib.import_module(module_path)
             for _name, obj in inspect.getmembers(module):
-                if (
-                    inspect.isclass(obj)
-                    and issubclass(obj, Document)
-                    and obj is not Document
-                    and obj.__module__ == module.__name__
-                ):
+                if _is_controller(obj) and obj.__module__ == module.__name__:
                     self.register(doctype, obj)
                     logger.debug("document.lazy_loaded", doctype=doctype, controller=_name)
                     return

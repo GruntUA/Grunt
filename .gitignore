@@ -56,3 +56,5 @@ uploads/
 Thumbs.db
 .agents/
 .claude/
+package-lock.json
+uv.lock
