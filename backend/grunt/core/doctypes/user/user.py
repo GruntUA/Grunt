@@ -6,13 +6,11 @@ The auth layer (JWT tokens, refresh tokens) remains in ``grunt.core.auth.service
 
 from __future__ import annotations
 
-import uuid
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
 import bcrypt
 import structlog
-from pydantic import BaseModel, Field
 from grunt.core.document.base import Document
 
 if TYPE_CHECKING:
@@ -113,27 +111,6 @@ def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
-def _row_to_user(row: dict, roles: list[str]) -> User:
-    data = dict(row)
-    # Ensure defaults for boolean fields logic
-    if data.get("is_active") is None:
-        data["is_active"] = True
-    else:
-        data["is_active"] = bool(data["is_active"])
-        
-    if data.get("is_superadmin") is None:
-        data["is_superadmin"] = False
-    else:
-        data["is_superadmin"] = bool(data["is_superadmin"])
-        
-    data["theme"] = data.get("theme") or "system"
-    data["language"] = data.get("language") or "uk"
-    data["login_attempts"] = int(data.get("login_attempts") or 0)
-    data["mfa_enabled"] = bool(data.get("mfa_enabled"))
-    data["roles"] = roles
-    
-    return User(doctype="User", data=data)
-
 
 # ── User CRUD ─────────────────────────────────────────────────────────────
 
@@ -153,7 +130,7 @@ async def get_user_by_email(
             return None
         row = rows[0]
         roles = await get_user_roles(row["id"], session)
-        return _row_to_user(row, roles)
+        return User(doctype="User", data={**row, "roles": roles})
     finally:
         grunt.reset_context(_tokens)
 
@@ -170,7 +147,7 @@ async def get_user_by_id(user_id: str, session: AsyncSession) -> User | None:
             return None
         row = rows[0]
         roles = await get_user_roles(row["id"], session)
-        return _row_to_user(row, roles)
+        return User(doctype="User", data={**row, "roles": roles})
     finally:
         grunt.reset_context(_tokens)
 
@@ -188,7 +165,7 @@ async def list_users(session: AsyncSession) -> list[User]:
         users = []
         for row in rows:
             roles = await get_user_roles(row["id"], session)
-            users.append(_row_to_user(row, roles))
+            users.append(User(doctype="User", data={**row, "roles": roles}))
         return users
     finally:
         grunt.reset_context(_tokens)
@@ -211,7 +188,7 @@ async def create_user(
         user_count = await grunt.db.count("User")
         is_superadmin = user_count == 0
 
-        doc = await grunt.new_doc("User", {
+        await grunt.new_doc("User", {
             "email": email,
             "full_name": full_name,
             "password": password,

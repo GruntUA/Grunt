@@ -50,11 +50,14 @@ def get_user() -> User:
         from grunt.core.doctypes.user.user import User as _User  # noqa: PLC0415
 
         return _User(
-            id="system",
-            email="system",
-            full_name="System",
-            roles=[],
-            is_superadmin=True,
+            doctype="User",
+            data={
+                "id": "system",
+                "email": "system",
+                "full_name": "System",
+                "roles": [],
+                "is_superadmin": True,
+            },
         )
     return user
 
