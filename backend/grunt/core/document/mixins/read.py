@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from grunt.core.doctypes.user.user import User
+    from grunt.core.document.base import DocumentList
     from grunt.core.document.multi_link import MultiLinkService
 
 
@@ -51,7 +52,7 @@ class DocumentReadMixin:
         filters: dict[str, str] | None = None,
         search: str | None = None,
         fields: list[str] | None = None,
-    ) -> dict[str, Any]:
+    ) -> DocumentList:
         dt = await doctype_registry.get(doctype_name)
 
         # Virtual DocType — delegate to sub-module

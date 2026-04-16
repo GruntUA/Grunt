@@ -79,6 +79,20 @@ class DocumentList(list):
         """Convert to the standard API response format."""
         return {"data": list(self), "meta": self.meta}
 
+    def __getitem__(self, key: Any) -> Any:
+        if key == "data":
+            return list(self)
+        if key == "meta":
+            return self.meta
+        return super().__getitem__(key)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        if key == "data":
+            return list(self)
+        if key == "meta":
+            return self.meta
+        return default
+
 
 class Document:
     """Base class for all DocType controllers.

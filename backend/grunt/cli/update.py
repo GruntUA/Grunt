@@ -20,7 +20,7 @@ def update(skip_migrate: bool, skip_packages: bool, skip_npm: bool, site: str | 
     Послідовність:
 
     \b
-    1. uv sync --upgrade  (або pip install -U grunt)
+    1. uv sync --upgrade
     2. npm install
     3. grunt migrate
 
@@ -65,8 +65,7 @@ def _grunt_app_dir() -> "Path":
 def _run_npm_install() -> None:
     """Run npm install in the grunt app root (where package.json lives).
 
-    Uses ``mise exec`` to ensure the correct Node.js version (from .mise.toml)
-    is active. On ENOTEMPTY failures (corrupted node_modules) cleans and retries once.
+    On ENOTEMPTY failures (corrupted node_modules) cleans and retries once.
     """
     import shutil as _shutil  # noqa: PLC0415
     from pathlib import Path  # noqa: PLC0415
@@ -77,16 +76,7 @@ def _run_npm_install() -> None:
         click.echo("  [warn] npm не знайдено, пропускаю встановлення npm пакетів", err=True)
         return
 
-    mise = shutil.which("mise")
-    if mise:
-        # Ensure the pinned Node version from .mise.toml is installed
-        subprocess.run([mise, "install"], cwd=app_dir, check=False)
-        # Use bare "npm" so mise exec resolves it from the managed Node installation
-        cmd = [mise, "exec", "--", "npm", "install"]
-    else:
-        click.echo("  [info] mise не знайдено, використовую системний npm", err=True)
-        cmd = [npm, "install"]
-
+    cmd = [npm, "install"]
     result = subprocess.run(cmd, cwd=app_dir, check=False)
 
     if result.returncode != 0:

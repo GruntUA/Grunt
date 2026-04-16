@@ -133,7 +133,7 @@ async def bulk_delete_documents(
             filters=raw_filters if raw_filters else None,
             search=search,
         )
-        ids: list[str] = [str(row["id"]) for row in result.get("data", [])]
+        ids: list[str] = [str(row["id"]) for row in result]
     else:
         ids = body.get("ids", [])
         if not ids:

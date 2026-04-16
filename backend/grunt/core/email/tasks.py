@@ -24,10 +24,9 @@ async def process_email_queue():
 
         # 1. Fetch Pending emails
         try:
-            result = await service.list_documents(
+            queue_items = await service.list_documents(
                 "EmailQueue", SYSTEM_USER, filters={"status": "Pending"}, per_page=100
             )
-            queue_items = result["data"]
 
             if not queue_items:
                 return
@@ -77,10 +76,9 @@ async def pull_from_accounts():
         service = DocumentService(session, eng)
 
         try:
-            result = await service.list_documents(
+            accounts = await service.list_documents(
                 "EmailAccount", SYSTEM_USER, filters={"enable_incoming": "True"}
             )
-            accounts = result["data"]
 
             for account in accounts:
                 emails = await EmailService.pull_emails(account)
