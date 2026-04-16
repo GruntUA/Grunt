@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import re
 from datetime import date, datetime
+from typing import Any
 
 
 def date_format(value: str | date | datetime | None, fmt: str = "%d.%m.%Y") -> str:
@@ -42,8 +44,20 @@ def striptags(value: str | None) -> str:
     return re.sub(r"<[^>]+>", "", value)
 
 
+import json
+
+def from_json(value: str | None) -> Any:
+    if not value:
+        return {}
+    try:
+        return json.loads(value)
+    except (json.JSONDecodeError, TypeError):
+        return {}
+
+
 JINJA_FILTERS = {
     "date_format": date_format,
     "datetime_format": datetime_format,
     "striptags": striptags,
+    "from_json": from_json,
 }

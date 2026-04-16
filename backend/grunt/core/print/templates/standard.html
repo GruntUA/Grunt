@@ -1,35 +1,103 @@
 <!DOCTYPE html>
 <html lang="uk">
+
 <head>
-<meta charset="UTF-8">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Arial', 'Helvetica', sans-serif; font-size: 11pt; color: #333; margin: 2cm; }
+  <meta charset="UTF-8">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  .header { border-bottom: 3px solid #2D6A4F; padding-bottom: 12px; margin-bottom: 24px; }
-  .header h1 { color: #2D6A4F; font-size: 20pt; margin-bottom: 4px; }
-  .header .doc-name { color: #666; font-size: 12pt; }
+    body {
+      font-family: 'Arial', 'Helvetica', sans-serif;
+      font-size: 11pt;
+      color: #333;
+      margin: 2cm;
+    }
 
-  table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-  table th { text-align: left; padding: 8px 12px; background: #f5f7f5; font-weight: 600;
-             width: 35%; border-bottom: 1px solid #ddd; color: #555; font-size: 10pt; }
-  table td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+    .header {
+      border-bottom: 3px solid #2D6A4F;
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+    }
 
-  .section-heading { background: #2D6A4F; color: white; padding: 6px 12px;
-                     font-size: 11pt; font-weight: 600; margin-top: 16px; }
+    .header h1 {
+      color: #2D6A4F;
+      font-size: 20pt;
+      margin-bottom: 4px;
+    }
 
-  .footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #ddd;
-            color: #999; font-size: 9pt; display: flex; justify-content: space-between; }
+    .header .doc-name {
+      color: #666;
+      font-size: 12pt;
+    }
 
-  .check-true::before { content: "✓"; color: #2D6A4F; font-weight: bold; }
-  .check-false::before { content: "✗"; color: #999; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
 
-  @media print {
-    body { margin: 1.5cm; }
-    .no-print { display: none; }
-  }
-</style>
+    table th {
+      text-align: left;
+      padding: 8px 12px;
+      background: #f5f7f5;
+      font-weight: 600;
+      width: 35%;
+      border-bottom: 1px solid #ddd;
+      color: #555;
+      font-size: 10pt;
+    }
+
+    table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .section-heading {
+      background: #2D6A4F;
+      color: white;
+      padding: 6px 12px;
+      font-size: 11pt;
+      font-weight: 600;
+      margin-top: 16px;
+    }
+
+    .footer {
+      margin-top: 32px;
+      padding-top: 12px;
+      border-top: 1px solid #ddd;
+      color: #999;
+      font-size: 9pt;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .check-true::before {
+      content: "✓";
+      color: #2D6A4F;
+      font-weight: bold;
+    }
+
+    .check-false::before {
+      content: "✗";
+      color: #999;
+    }
+
+    @media print {
+      body {
+        margin: 1.5cm;
+      }
+
+      .no-print {
+        display: none;
+      }
+    }
+  </style>
 </head>
+
 <body>
   <div class="header">
     <h1>{{ doctype_label }}</h1>
@@ -37,29 +105,41 @@
   </div>
 
   <table>
-  {% for field in fields %}
+    {% for field in fields %}
     {% if field.fieldtype == 'Section' %}
-    <tr><td colspan="2" class="section-heading">{{ field.label }}</td></tr>
+    <tr>
+      <td colspan="2" class="section-heading">{{ field.label }}</td>
+    </tr>
     {% elif field.fieldtype not in ('Column', 'Tab', 'Table') and not field.hidden %}
     <tr>
       <th>{{ field.label }}</th>
       <td>
         {% set val = doc.get(field.fieldname) %}
         {% if field.fieldtype == 'Check' %}
-          <span class="{{ 'check-true' if val else 'check-false' }}"></span>
+        <span class="{{ 'check-true' if val else 'check-false' }}"></span>
         {% elif field.fieldtype == 'Date' %}
-          {{ val | date_format }}
+        {{ val | date_format }}
         {% elif field.fieldtype == 'Datetime' %}
-          {{ val | datetime_format }}
+        {{ val | datetime_format }}
         {% elif field.fieldtype == 'RichText' %}
-          {{ val | striptags }}
+        {{ val | striptags }}
+        {% elif field.fieldtype == 'Geolocation' and val %}
+        {% set loc = (val if val is mapping else (val | from_json if val is string else {})) %}
+        {% if loc.lat and loc.lng %}
+        <a href="https://www.google.com/maps?q={{ loc.lat }},{{ loc.lng }}" target="_blank"
+          style="color: #2D6A4F; text-decoration: none;">
+          📍 {{ loc.lat | round(6) }}, {{ loc.lng | round(6) }}
+        </a>
+        {% else %}
+        {{ val }}
+        {% endif %}
         {% elif val is not none %}
-          {{ val }}
+        {{ val }}
         {% endif %}
       </td>
     </tr>
     {% endif %}
-  {% endfor %}
+    {% endfor %}
   </table>
 
   <div class="footer">
@@ -67,4 +147,5 @@
     <span>{{ now | datetime_format }}</span>
   </div>
 </body>
+
 </html>
