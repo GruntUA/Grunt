@@ -105,7 +105,7 @@ async def test_list_search(ctx, setup_doctype):
 async def test_list_pagination(ctx, setup_doctype):
     """get_list?page=2&limit=2 (direct call)."""
     from grunt.api.v1.documents import new_doc, get_list
-    from grunt.core.auth.models import SYSTEM_USER
+    from grunt.core.doctypes.user.user import SYSTEM_USER
     
     async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
         for i in range(5):
@@ -174,7 +174,7 @@ async def test_delete_document(ctx, setup_doctype):
 async def test_list_partial_fields(ctx, setup_doctype):
     """get_list?fields=["title"] (direct call)."""
     from grunt.api.v1.documents import new_doc, get_list
-    from grunt.core.auth.models import SYSTEM_USER
+    from grunt.core.doctypes.user.user import SYSTEM_USER
     
     async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
         await new_doc("TestItem", {"title": "Partial", "status": "Active", "count": 42})

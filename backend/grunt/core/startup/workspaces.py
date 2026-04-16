@@ -22,7 +22,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
     import json  # noqa: PLC0415
 
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+    from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
     from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
@@ -111,7 +111,7 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
     import json  # noqa: PLC0415
 
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+    from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
     from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
     from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415

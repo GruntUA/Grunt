@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 
 import structlog
 
-from grunt.core.auth.models import SYSTEM_USER
+from grunt.core.doctypes.user.user import SYSTEM_USER
 from grunt.core.document.service import DocumentService
 from grunt.core.email.service import EmailService, email_service
 from grunt.core.site.manager import site_manager

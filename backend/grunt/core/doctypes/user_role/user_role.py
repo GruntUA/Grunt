@@ -20,7 +20,7 @@ class UserRole(Document):
 async def get_user_roles(user_id: str, session: AsyncSession) -> list[str]:
     """Load role names for a user."""
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+    from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
     _tokens = grunt.set_context(session, None, SYSTEM_USER)
     try:

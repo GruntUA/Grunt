@@ -101,7 +101,7 @@ async def test_list_users_requires_superadmin(ctx):
     """list_users requires superadmin (contextual check)."""
     from grunt.core.doctypes.user.user import list_users_api
     from grunt.app import grunt
-    from grunt.core.auth.models import User
+    from grunt.core.doctypes.user.user import User
     from fastapi import HTTPException
 
     # 1. Create a regular user

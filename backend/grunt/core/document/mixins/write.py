@@ -14,7 +14,7 @@ from sqlalchemy import func, select
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.core.auth.models import User
+    from grunt.core.doctypes.user.user import User
     from grunt.core.document.multi_link import MultiLinkService
 
 from grunt.app import GruntError

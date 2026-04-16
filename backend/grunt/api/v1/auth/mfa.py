@@ -13,7 +13,7 @@ from grunt.core.auth.dependencies import current_user
 if TYPE_CHECKING:
 
     from grunt.api.v1.auth.schemas import MfaVerifyRequest
-    from grunt.core.auth.models import User
+    from grunt.core.doctypes.user.user import User
 
 router = GruntRouter()
 

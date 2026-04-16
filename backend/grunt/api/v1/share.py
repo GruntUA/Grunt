@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 import grunt
-from grunt.core.auth.models import SYSTEM_USER
+from grunt.core.doctypes.user.user import SYSTEM_USER
 
 @grunt.whitelist(allow_guest=True)
 async def get_shared_document(token: str) -> dict[str, Any]:

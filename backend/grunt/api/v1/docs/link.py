@@ -19,7 +19,7 @@ from grunt.api.router import GruntRouter
 from grunt.api.v1.docs.utils import get_doc_service
 from grunt.api.v1.schemas.response import ok
 from grunt.core.auth.dependencies import current_user
-from grunt.core.auth.models import User
+from grunt.core.doctypes.user.user import User
 from grunt.core.document.query import _apply_filters
 from grunt.core.document.service import DocumentService
 from grunt.core.metadata.compiler import compile_doctype_to_table

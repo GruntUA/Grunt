@@ -34,7 +34,7 @@ async def _do_install(name: str, site: str | None = None) -> None:
     import json  # noqa: PLC0415
 
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+    from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
     from grunt.core.db.base import Base  # noqa: PLC0415
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.site.manager import current_site, site_manager  # noqa: PLC0415

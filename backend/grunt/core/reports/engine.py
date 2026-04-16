@@ -12,7 +12,7 @@ from sqlalchemy import func, select, text
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from grunt.core.auth.models import User
+    from grunt.core.doctypes.user.user import User
 
 logger = structlog.get_logger()
 

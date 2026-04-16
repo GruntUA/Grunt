@@ -38,7 +38,7 @@ async def test_register_login_me(ctx, client: AsyncClient):
 async def test_first_user_is_superadmin(ctx):
     """The first registered user gets is_superadmin=True."""
     from grunt.core.doctypes.user.user import register, get_user_by_email
-    from grunt.core.auth.models import SYSTEM_USER
+    from grunt.core.doctypes.user.user import SYSTEM_USER
     
     async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
         # First user
@@ -60,7 +60,7 @@ async def test_first_user_is_superadmin(ctx):
 async def test_wrong_password_returns_401(ctx):
     """Incorrect password → authenticate() returns None."""
     from grunt.core.doctypes.user.user import create_user, authenticate
-    from grunt.core.auth.models import SYSTEM_USER
+    from grunt.core.doctypes.user.user import SYSTEM_USER
     
     async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
         await create_user("user@grunt.example.com", "correct", "User", ctx.db._session())

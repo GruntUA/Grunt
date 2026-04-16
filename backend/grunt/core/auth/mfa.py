@@ -22,7 +22,7 @@ import structlog
 from fastapi import HTTPException
 
 if TYPE_CHECKING:
-    from grunt.core.auth.models import User
+    from grunt.core.doctypes.user.user import User
 
 logger = structlog.get_logger()
 

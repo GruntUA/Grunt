@@ -19,7 +19,7 @@ from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.core.auth.api_key_service import generate_api_key
 from grunt.core.auth.dependencies import current_user
-from grunt.core.auth.models import User
+from grunt.core.doctypes.user.user import User
 
 router = GruntRouter(prefix="/api-keys", tags=["auth", "api-keys"])
 

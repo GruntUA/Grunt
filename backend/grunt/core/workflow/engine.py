@@ -12,7 +12,7 @@ from fastapi import HTTPException, status
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.core.auth.models import User
+    from grunt.core.doctypes.user.user import User
     from grunt.core.metadata.doctype import DocType, WorkflowState, WorkflowTransition
 
 logger = structlog.get_logger()

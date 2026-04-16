@@ -95,7 +95,7 @@ class WebhookService:
     ) -> dict[str, Any]:
         """Send a test payload for the given webhook and return the log entry."""
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
         _tokens = grunt.set_context(session, None, SYSTEM_USER)
         try:
@@ -144,7 +144,7 @@ class WebhookService:
     ) -> dict[str, Any]:
         """Send a webhook POST and write a WebhookLog record. Returns log data."""
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         headers: dict[str, str] = {"Content-Type": "application/json"}

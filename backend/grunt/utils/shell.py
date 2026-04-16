@@ -62,7 +62,7 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
         return loop.run_until_complete(coro)
 
     async def _get_doc(doctype: str, name: str) -> dict:
-        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.document.service import DocumentService  # noqa: PLC0415
 
         return await DocumentService(session, engine).get_document(doctype, name, SYSTEM_USER)
@@ -73,7 +73,7 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
         fields: list[str] | None = None,
         limit: int = 20,
     ) -> list:
-        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.document.service import DocumentService  # noqa: PLC0415
 
         result = await DocumentService(session, engine).list_documents(
@@ -82,7 +82,7 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
         return result.get("data", [])
 
     async def _save_doc(doctype: str, data: dict) -> dict:
-        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.document.service import DocumentService  # noqa: PLC0415
 
         svc = DocumentService(session, engine)
@@ -92,7 +92,7 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
         return await svc.create_document(doctype, data, SYSTEM_USER)
 
     async def _delete_doc(doctype: str, name: str) -> None:
-        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.document.service import DocumentService  # noqa: PLC0415
 
         await DocumentService(session, engine).delete_document(doctype, name, SYSTEM_USER)

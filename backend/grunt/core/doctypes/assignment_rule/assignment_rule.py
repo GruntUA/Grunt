@@ -121,7 +121,7 @@ class AssignmentRule(Document):
         rule_id: str | None = None,
     ) -> None:
         """Призначити документ конкретному користувачеві (create ToDo)."""
-        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.doctypes.assignment_log.assignment_log import (  # noqa: PLC0415
             AssignmentLog,
         )
@@ -175,7 +175,7 @@ class AssignmentRule(Document):
         rule_id: str | None = None,
     ) -> None:
         """Призначити документ всім активним користувачам ролі."""
-        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.doctypes.assignment_log.assignment_log import (  # noqa: PLC0415
             AssignmentLog,
         )

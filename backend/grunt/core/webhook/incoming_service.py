@@ -198,7 +198,7 @@ class IncomingWebhookService:
     ) -> tuple[str, str]:
         """Execute the linked ServerScript.  Returns (action_taken, error)."""
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.scripting.server_script import server_script_engine  # noqa: PLC0415
 
         script_id = webhook.get("server_script")
@@ -236,7 +236,7 @@ class IncomingWebhookService:
     ) -> tuple[str, str]:
         """Create a DocType document from the payload using field_mapping."""
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
         target_doctype = webhook.get("target_doctype")
         if not target_doctype:
@@ -278,7 +278,7 @@ class IncomingWebhookService:
         slug: str,
     ) -> dict[str, Any] | None:
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         if not doctype_registry._doctypes.get("IncomingWebhook"):
@@ -310,7 +310,7 @@ class IncomingWebhookService:
         duration_ms: int,
     ) -> None:
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.core.auth.models import SYSTEM_USER  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         if not doctype_registry._doctypes.get("IncomingWebhookLog"):

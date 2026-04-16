@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.core.auth.models import User
+    from grunt.core.doctypes.user.user import User
 
 _session_ctx: ContextVar[AsyncSession | None] = ContextVar("grunt_session", default=None)
 _engine_ctx: ContextVar[AsyncEngine | None] = ContextVar("grunt_engine", default=None)

@@ -7,7 +7,7 @@ from typing import Any
 import structlog
 from taskiq import TaskiqMessage, TaskiqMiddleware, TaskiqResult
 
-from grunt.core.auth.models import SYSTEM_USER
+from grunt.core.doctypes.user.user import SYSTEM_USER
 from grunt.core.document.service import DocumentService
 from grunt.core.site.manager import site_manager
 

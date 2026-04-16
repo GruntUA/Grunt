@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 from grunt.core.document.registry import document_registry
 
 if TYPE_CHECKING:
-    from grunt.core.auth.models import User
+    from grunt.core.doctypes.user.user import User
 
 
 def _get_virtual_controller(doctype_name: str, user: User):
