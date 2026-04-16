@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib
+import inspect
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, TypedDict
 
@@ -221,7 +222,7 @@ async def fire(event: str, **kwargs: Any) -> None:
 
 async def _call_hook(fn: Callable, event_name: str, **kwargs: Any) -> None:
     try:
-        if asyncio.iscoroutinefunction(fn):
+        if inspect.iscoroutinefunction(fn):
             await fn(**kwargs)
         else:
             fn(**kwargs)

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import functools
+import inspect
 import threading
 import time
 from collections import deque
@@ -376,7 +377,7 @@ def profile(name: str) -> Callable[[F], F]:
     """
 
     def decorator(fn: F) -> F:
-        if not asyncio.iscoroutinefunction(fn):
+        if not inspect.iscoroutinefunction(fn):
             raise TypeError(f"@profile can only wrap async functions, got {fn!r}")
 
         @functools.wraps(fn)

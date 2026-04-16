@@ -85,7 +85,7 @@ async def setup_db():
 
     from grunt.core.metadata.doctype import DocType as _DocType
 
-    _core_dir = Path(__file__).parent.parent / "grunt" / "core" / "doctypes"
+    _core_dir = Path(__file__).parent / "grunt" / "core" / "doctypes"
     for _dt_file in sorted(_core_dir.glob("**/*.json")):
         try:
             _dt_data = json.loads(_dt_file.read_text(encoding="utf-8"))
@@ -140,6 +140,16 @@ async def client():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:
         yield c
+
+
+@pytest.fixture
+async def ctx(db_session: AsyncSession, engine: AsyncEngine):
+    """Provide an active grunt context with SYSTEM_USER for tests."""
+    from grunt.app import grunt as grunt_app
+    from grunt.core.auth.models import SYSTEM_USER
+    
+    async with grunt_app.context(db_session, engine, SYSTEM_USER):
+        yield grunt_app
 
 
 @pytest.fixture

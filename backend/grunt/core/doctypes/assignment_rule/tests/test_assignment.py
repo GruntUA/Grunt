@@ -40,21 +40,15 @@ class TestAssignmentIntegration:
     """Integration tests with async operations."""
 
     @pytest.mark.asyncio
-    async def test_evaluate_and_assign_no_rules(self, db_session, engine):
+    async def test_evaluate_and_assign_no_rules(self, ctx, db_session):
         """When no rules exist, nothing happens."""
-        from grunt.app import grunt as grunt_app
         from grunt.core.assignment import assignment_service
-        from grunt.core.auth.models import SYSTEM_USER
 
-        _tokens = grunt_app.set_context(db_session, engine, SYSTEM_USER)
-        try:
-            await assignment_service.evaluate_and_assign(
-                doctype="Invoice",
-                doc={"id": "1", "status": "Draft"},
-                session=db_session,
-            )
-        finally:
-            grunt_app.reset_context(_tokens)
+        await assignment_service.evaluate_and_assign(
+            doctype="Invoice",
+            doc={"id": "1", "status": "Draft"},
+            session=db_session,
+        )
 
 
 class TestAssignmentAPI:
@@ -91,12 +85,9 @@ class TestAssignmentAPI:
         assert data["matched"] is True
         assert data["will_assign_to"] == ["admin@grunt.local"]
 
-    @pytest.mark.asyncio
-    async def test_list_assignment_logs_api(self, client, auth_headers, db_session, engine):
+    async def test_list_assignment_logs_api(self, client, auth_headers, ctx, db_session):
         """Test the grunt.core.doctypes.assignment_log.assignment_log.list_logs method."""
         import datetime
-        from grunt.app import grunt as grunt_app
-        from grunt.core.auth.models import SYSTEM_USER
 
         log_doc = {
             "doctype_affected": "Invoice",
@@ -107,12 +98,8 @@ class TestAssignmentAPI:
             "timestamp": datetime.datetime.now(datetime.UTC).isoformat(),
         }
 
-        _tokens = grunt_app.set_context(db_session, engine, SYSTEM_USER)
-        try:
-            await grunt_app.new_doc("AssignmentLog", log_doc)
-            await db_session.commit()
-        finally:
-            grunt_app.reset_context(_tokens)
+        await ctx.new_doc("AssignmentLog", log_doc)
+        await db_session.commit()
 
         resp = await client.get(
             "/api/v1/method/grunt.core.doctypes.assignment_log.assignment_log.list_logs", 
