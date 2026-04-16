@@ -197,7 +197,7 @@ class GruntApp:
         order: str = "desc",
         search: str | None = None,
     ) -> list[dict[str, Any]]:
-        """Fetch a list of documents."""
+        """Fetch a list of documents as dictionaries."""
         result = await self._svc().list_documents(
             doctype,
             self._require_user(),
@@ -209,7 +209,51 @@ class GruntApp:
             search=search,
             fields=fields,
         )
-        return result["data"]
+        return result
+
+    @profile("grunt.get_all")
+    async def get_all[T](
+        self,
+        model_class: type[T],
+        *,
+        filters: dict[str, Any] | None = None,
+        fields: list[str] | None = None,
+        limit: int = 20,
+        page: int = 1,
+        order_by: str = "modified_at",
+        order: str = "desc",
+        search: str | None = None,
+    ) -> list[T]:
+        """Fetch a list of documents and return them as instantiated controllers.
+
+        This method supports typed results using Python generics::
+
+            users = await grunt.get_all(User, filters={"active": True})
+        """
+        # Resolve doctype name from the controller class (e.g. User.doctype)
+        # or fallback to class name if not available.
+        doctype: str = getattr(model_class, "doctype", model_class.__name__)
+
+        rows = await self.get_list(
+            doctype,
+            filters=filters,
+            fields=fields,
+            limit=limit,
+            page=page,
+            order_by=order_by,
+            order=order,
+            search=search,
+        )
+        user = self._require_user()
+        session = self._require_session()
+
+        from grunt.core.document.base import DocumentList  # noqa: PLC0415
+
+        controllers = [
+            model_class(doctype=doctype, data=row, user=user, session=session)  # type: ignore[return-value, call-arg]
+            for row in rows
+        ]
+        return DocumentList(controllers, meta=getattr(rows, "meta", {}))
 
     async def bulk_insert(
         self,

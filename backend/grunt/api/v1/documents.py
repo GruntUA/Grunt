@@ -28,7 +28,7 @@ async def get_list(
     svc = DocumentService(session, engine)
     user = grunt_app._require_user()
     
-    return await svc.list_documents(
+    res = await svc.list_documents(
         doctype,
         user,
         page=page,
@@ -39,6 +39,7 @@ async def get_list(
         search=search,
         fields=fields,
     )
+    return res.to_dict()
 
 @grunt.whitelist()
 async def save_doc(doctype: str, name: str, data: dict[str, Any]) -> dict[str, Any]:

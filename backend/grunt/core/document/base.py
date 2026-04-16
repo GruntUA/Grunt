@@ -68,6 +68,18 @@ if TYPE_CHECKING:
 _RESERVED = frozenset({"doctype", "data", "user", "session"})
 
 
+class DocumentList(list):
+    """A list of documents/rows with associated metadata (pagination, etc.)."""
+
+    def __init__(self, data: list, meta: dict[str, Any] | None = None) -> None:
+        super().__init__(data)
+        self.meta = meta or {}
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to the standard API response format."""
+        return {"data": list(self), "meta": self.meta}
+
+
 class Document:
     """Base class for all DocType controllers.
 

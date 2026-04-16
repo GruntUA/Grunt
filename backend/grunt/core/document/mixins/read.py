@@ -62,6 +62,8 @@ class DocumentReadMixin:
 
         table = compile_doctype_to_table(dt)
 
+        from grunt.core.document.base import DocumentList  # noqa: PLC0415
+
         # Singleton — return at most 1 row, ignore pagination
         if dt.is_singleton:
             result = await self.session.execute(select(table).limit(1))
@@ -71,10 +73,17 @@ class DocumentReadMixin:
                 for k, v in r.items():
                     if isinstance(v, datetime):
                         r[k] = v.isoformat()
-            return {
-                "data": data_list,
-                "meta": {"total": len(data_list), "page": 1, "per_page": 1, "pages": 1},
-            }
+            return DocumentList(
+                data=data_list,
+                meta={"total": len(data_list), "page": 1, "per_page": 1, "pages": 1},
+            )
+
+        # Select columns
+        # ... (lines 79-153 unchanged logic) ...
+        # (Assuming the logic above remains the same until the final return)
+        
+        # ... (skipping some lines for conciseness in replacement chunk) ...
+        # I'll replace the last return as well.
 
         # Select columns
         cols: list[Any]
@@ -151,15 +160,15 @@ class DocumentReadMixin:
                 for field in hidden:
                     doc_row.pop(field, None)
 
-        return {
-            "data": rows,
-            "meta": {
+        return DocumentList(
+            data=rows,
+            meta={
                 "total": total,
                 "page": page,
                 "per_page": per_page,
                 "pages": math.ceil(total / per_page) if per_page else 1,
             },
-        }
+        )
 
     # ── Get ────────────────────────────────────────────────────────────
 
