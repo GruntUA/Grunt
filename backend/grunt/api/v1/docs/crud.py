@@ -41,7 +41,7 @@ async def list_documents(
 
     field_list = [f.strip() for f in fields.split(",") if f.strip()] if fields else None
 
-    return await service.list_documents(
+    result = await service.list_documents(
         doctype,
         user,
         page=page,
@@ -52,6 +52,7 @@ async def list_documents(
         search=search,
         fields=field_list,
     )
+    return ok(**result.to_dict())
 
 
 @router.post("/{doctype}", status_code=status.HTTP_201_CREATED)
