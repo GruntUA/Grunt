@@ -118,6 +118,11 @@ async function onThemeChange(theme: string) {
   await auth.setTheme(theme as Theme)
 }
 
+async function handleLogout() {
+  await auth.logout()
+  router.push('/login')
+}
+
 function triggerSearch() {
   window.dispatchEvent(new CustomEvent('toggle-search'))
 }
@@ -217,7 +222,8 @@ defineExpose({ mobileOpen })
   </Transition>
 
   <TooltipProvider :delay-duration="0">
-    <aside v-bind="attrs" class="flex flex-col bg-sidebar border-r border-sidebar-border h-screen transition-all duration-200 shrink-0"
+    <aside v-bind="attrs"
+      class="flex flex-col bg-sidebar border-r border-sidebar-border h-screen transition-all duration-200 shrink-0"
       :class="[
         collapsed ? 'w-[52px]' : 'w-[240px]',
         mobileOpen ? 'fixed inset-y-0 left-0 z-50' : 'hidden md:flex'
@@ -230,8 +236,9 @@ defineExpose({ mobileOpen })
             <button
               class="group w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-sidebar-border bg-gradient-to-br from-sidebar-background via-sidebar-background to-primary/5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 relative overflow-hidden">
               <!-- Glossy overlay -->
-              <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-              
+              <div
+                class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
               <div class="flex items-center gap-3 min-w-0 relative z-10">
                 <div
                   class="size-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-inner">
@@ -241,7 +248,9 @@ defineExpose({ mobileOpen })
                   <span class="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em] leading-none mb-1.5">
                     {{ wsStore.active?.name === 'grunt' ? 'СИСТЕМА' : 'РОБОЧИЙ ПРОСТІР' }}
                   </span>
-                  <span class="text-sm font-bold text-foreground truncate w-full group-hover:text-primary transition-colors">{{ wsStore.active?.label }}</span>
+                  <span
+                    class="text-sm font-bold text-foreground truncate w-full group-hover:text-primary transition-colors">{{
+                      wsStore.active?.label }}</span>
                 </div>
               </div>
               <ChevronsUpDown
@@ -287,7 +296,8 @@ defineExpose({ mobileOpen })
           @click="triggerSearch">
           <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
           <div class="flex items-center gap-2.5 min-w-0 relative z-10">
-            <Search class="size-4 text-muted-foreground group-hover:text-primary group-hover:scale-110 transition-all shrink-0" />
+            <Search
+              class="size-4 text-muted-foreground group-hover:text-primary group-hover:scale-110 transition-all shrink-0" />
             <span v-if="!collapsed"
               class="text-xs font-semibold text-muted-foreground/80 group-hover:text-foreground transition-colors">Пошук...</span>
           </div>
@@ -440,7 +450,7 @@ defineExpose({ mobileOpen })
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem @click="auth.logout?.()">
+            <DropdownMenuItem @click="handleLogout">
               <LogOut class="size-4 mr-2" />
               Вийти
             </DropdownMenuItem>

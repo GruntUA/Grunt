@@ -95,6 +95,12 @@ onMounted(() => {
     })
 })
 
+async function handleLogout() {
+    uiStore.closeCommandPalette()
+    await auth.logout()
+    router.push('/login')
+}
+
 // Static actions
 const staticActions = computed(() => [
     { id: 'quick-create', title: t('Quick create (Ctrl+N)'), icon: FilePlus, action: () => { quickCreateOpen.value = true; uiStore.openCommandPalette() }, category: t('Actions') },
@@ -102,7 +108,7 @@ const staticActions = computed(() => [
     { id: 'view-hooks', title: t('View hooks'), icon: Zap, action: () => navigateTo('/grunt/hooks'), category: t('Settings') },
     { id: 'activity-log', title: t('Activity log'), icon: Activity, action: () => navigateTo('/grunt/activity-log'), category: t('Settings') },
     { id: 'settings', title: t('System settings'), icon: Settings, action: () => navigateTo('/grunt/list/SystemSettings/SystemSettings'), category: t('Actions') },
-    { id: 'logout', title: t('Log out'), icon: LogOut, action: () => auth.logout(), category: t('Actions') },
+    { id: 'logout', title: t('Log out'), icon: LogOut, action: handleLogout, category: t('Actions') },
 ])
 
 // Search logic
@@ -249,16 +255,20 @@ const flatResults = computed(() => results.value)
                     <div class="flex items-center justify-between mb-2">
                         <div>
                             <p class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quick Create</p>
-                            <p class="text-xs text-muted-foreground">{{ t('Select DocType to create a new record') }}</p>
+                            <p class="text-xs text-muted-foreground">{{ t('Select DocType to create a new record') }}
+                            </p>
                         </div>
-                        <button class="text-muted-foreground hover:text-foreground" @click="quickCreateOpen = false">Esc</button>
+                        <button class="text-muted-foreground hover:text-foreground"
+                            @click="quickCreateOpen = false">Esc</button>
                     </div>
                     <div class="flex gap-2">
                         <select v-model="quickCreateDoctype" class="flex-1 p-2 border rounded bg-background">
                             <option value="" disabled>Оберіть DocType...</option>
-                            <option v-for="dt in dtStore.doctypes" :key="dt.name" :value="dt.name">{{ dt.label || dt.name }}</option>
+                            <option v-for="dt in dtStore.doctypes" :key="dt.name" :value="dt.name">{{ dt.label ||
+                                dt.name }}</option>
                         </select>
-                        <button class="px-3 py-2 rounded bg-primary text-primary-foreground" :disabled="!quickCreateDoctype"
+                        <button class="px-3 py-2 rounded bg-primary text-primary-foreground"
+                            :disabled="!quickCreateDoctype"
                             @click="{ const ws = wsStore.active?.name || 'grunt'; uiStore.closeCommandPalette(); quickCreateOpen = false; router.push(`/${ws}/list/${quickCreateDoctype}/new`) }">
                             {{ t('Create') }}
                         </button>
@@ -335,10 +345,8 @@ const flatResults = computed(() => results.value)
                         Вибрати</span>
                 </div>
                 <template v-if="search.length >= 2">
-                    <button
-                        class="text-[10px] text-primary hover:underline font-semibold"
-                        @click="navigateTo(`/grunt/search?q=${encodeURIComponent(search)}`)"
-                    >
+                    <button class="text-[10px] text-primary hover:underline font-semibold"
+                        @click="navigateTo(`/grunt/search?q=${encodeURIComponent(search)}`)">
                         Всі результати →
                     </button>
                 </template>
