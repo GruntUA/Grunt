@@ -1,9 +1,12 @@
-"""Apps management whitelisted methods."""
-
 from __future__ import annotations
 from typing import Any
 import grunt
 from grunt.app import grunt as grunt_app
+from grunt.core.document.base import Document
+
+class GruntInstalledApp(Document):
+    """GruntInstalledApp DocType controller."""
+    pass
 
 @grunt.whitelist()
 async def list_apps() -> list[dict[str, Any]]:

@@ -162,7 +162,7 @@ async def test_apps_crud(client: AsyncClient, auth_headers: dict):
     """Apps CRUD: create, list, delete."""
     # Create (register_app)
     resp = await client.post(
-        "/api/v1/method/grunt.api.v1.apps.register_app",
+        "/api/v1/method/grunt.core.doctypes.grunt_installed_app.grunt_installed_app.register_app",
         json={"name": "crm", "title": "CRM App", "version": "1.0.0"},
         headers=auth_headers,
     )
@@ -171,7 +171,7 @@ async def test_apps_crud(client: AsyncClient, auth_headers: dict):
     assert resp.status_code == 200
 
     # List (list_apps)
-    resp = await client.get("/api/v1/method/grunt.api.v1.apps.list_apps", headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.core.doctypes.grunt_installed_app.grunt_installed_app.list_apps", headers=auth_headers)
     if resp.status_code != 200:
         print(f"DEBUG: Save report failed: {resp.status_code} - {resp.text}")
     assert resp.status_code == 200
@@ -180,7 +180,7 @@ async def test_apps_crud(client: AsyncClient, auth_headers: dict):
 
     # Delete (delete_app)
     resp = await client.post(
-        "/api/v1/method/grunt.api.v1.apps.delete_app", 
+        "/api/v1/method/grunt.core.doctypes.grunt_installed_app.grunt_installed_app.delete_app", 
         json={"name": "crm"}, 
         headers=auth_headers
     )
@@ -189,6 +189,6 @@ async def test_apps_crud(client: AsyncClient, auth_headers: dict):
     assert resp.status_code == 200
 
     # Verify deleted
-    resp = await client.get("/api/v1/method/grunt.api.v1.apps.list_apps", headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.core.doctypes.grunt_installed_app.grunt_installed_app.list_apps", headers=auth_headers)
     apps = resp.json()["data"]
     assert not any(a["name"] == "crm" for a in apps)
