@@ -70,7 +70,7 @@ async function fetchData() {
     if (filters.date_from) params.date_from = filters.date_from
     if (filters.date_to) params.date_to = filters.date_to
 
-    const res = await api.get('/api/v1/resource/ActivityLog/list_activity', { params })
+    const res = await api.get('/api/v1/method/grunt.core.doctypes.activity_log.activity_log.list_activity', { params })
     entries.value = res.data.data.items
     meta.value = {
       total: res.data.data.total,

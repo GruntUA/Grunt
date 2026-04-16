@@ -39,7 +39,7 @@ ws.onEvent('activity', (data: any) => {
 async function fetchActivity() {
     loading.value = true
     try {
-        const res = await api.get('/api/v1/resource/ActivityLog/list_activity')
+        const res = await api.get('/api/v1/method/grunt.core.doctypes.activity_log.activity_log.list_activity')
         activities.value = res.data.data.items
     } catch {
         // silently ignore — empty state shown
