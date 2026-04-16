@@ -85,7 +85,10 @@ function formatCellHtml(
   if (fieldtype === 'Geolocation') {
     if (typeof value === 'object' && value !== null && 'lat' in value && 'lng' in value) {
       const geo = value as { lat: number; lng: number }
-      return `<span style="font-family:monospace;font-size:11px;color:#6b7280">${Number(geo.lat).toFixed(5)}, ${Number(geo.lng).toFixed(5)}</span>`
+      const lat = Number(geo.lat).toFixed(5)
+      const lng = Number(geo.lng).toFixed(5)
+      const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`
+      return `<a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:4px;font-family:monospace;font-size:11px;color:#1d4ed8;text-decoration:none" title="Відкрити в Google Maps"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>${lat}, ${lng}</a>`
     }
     return escapeHtml(str)
   }
@@ -226,13 +229,9 @@ export function generateHtml(ctx: ExportContext): string {
 
     .chip.warning { background: #fef9c3; color: #854d0e; }
 
-    .filters {
-      margin-top: 8px;
-      font-size: 11px;
-      color: #9ca3af;
-    }
+    .sep { color: #d1d5db; }
 
-    .filters strong { color: #6b7280; font-weight: 600; }
+    .meta strong { color: #6b7280; font-weight: 600; }
 
     .table-wrap {
       background: #ffffff;
@@ -314,10 +313,11 @@ export function generateHtml(ctx: ExportContext): string {
     <div class="meta">
       <span class="chip">${rows.length}${isPartial ? ` з ${total}` : ''} записів</span>
       ${isPartial ? `<span class="chip warning">⚠ Показано перші 10 000 записів</span>` : ''}
+      <span class="sep">·</span>
       <span>${escapeHtml(dateStr)}</span>
+      ${filterSummary ? `<span class="sep">·</span><span><strong>Фільтри:</strong> ${escapeHtml(filterSummary)}</span>` : ''}
+      ${groupBy ? `<span class="sep">·</span><span><strong>Групування:</strong> ${escapeHtml(fields.find(f => f.fieldname === groupBy)?.label ?? groupBy)}</span>` : ''}
     </div>
-    ${filterSummary ? `<div class="filters"><strong>Фільтри:</strong> ${escapeHtml(filterSummary)}</div>` : ''}
-    ${groupBy ? `<div class="filters"><strong>Групування:</strong> ${escapeHtml(fields.find(f => f.fieldname === groupBy)?.label ?? groupBy)}</div>` : ''}
   </header>
 
   <div class="table-wrap">
