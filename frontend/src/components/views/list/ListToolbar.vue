@@ -83,7 +83,7 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
           class="flex h-9 w-full rounded-lg border-transparent bg-background/60 px-3 py-1 pl-9 text-sm text-foreground transition-all placeholder:text-muted-foreground/60 focus-visible:outline-none focus:bg-background focus:ring-1 focus:ring-primary/30"
           :placeholder="t('Search...')" />
       </div>
-      <FilterBar v-if="dt" :fields="dt.fields" :doctype="doctype" @change="onFiltersChange" class="!mb-0" />
+      <FilterBar v-if="dt" :fields="dt.fields" :doctype="doctype" :initial-filters="activeFilters" @change="onFiltersChange" class="!mb-0" />
       <Button v-if="inlineSearch || activeFilters.length" variant="ghost" size="sm"
         class="h-8 px-2 text-muted-foreground hover:text-foreground" @click="emit('reset')">
         <X class="size-4 mr-1" />

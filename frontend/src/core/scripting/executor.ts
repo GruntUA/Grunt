@@ -76,6 +76,14 @@ export interface ListViewProxy {
   add_menu_item: (label: string, action: () => void | Promise<void>, options?: { separator_before?: boolean }) => ScriptMenuItemHandle
   /** Reload the list data. */
   refresh: () => void
+  /**
+   * Replace the active filter set.
+   *
+   * ```js
+   * listview.set_filters([{ fieldname: 'language', op: '=', value: 'uk', label: 'Мова' }])
+   * ```
+   */
+  set_filters: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string }>) => void
 }
 
 /** Framework helpers exposed as `grunt`. */
@@ -378,6 +386,7 @@ export function createListViewProxy(
     addButton?: (label: string, action: () => void | Promise<void>, options?: { variant?: string }) => ScriptButtonHandle
     addMenuItem?: (label: string, action: () => void | Promise<void>, options?: { separator_before?: boolean }) => ScriptMenuItemHandle
     refresh?: () => void
+    setFilters?: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string }>) => void
   } = {},
 ): ListViewProxy {
   return {
@@ -390,6 +399,9 @@ export function createListViewProxy(
     },
     refresh() {
       callbacks.refresh?.()
+    },
+    set_filters(filters) {
+      callbacks.setFilters?.(filters)
     },
   }
 }

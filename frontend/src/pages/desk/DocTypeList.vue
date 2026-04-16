@@ -8,6 +8,7 @@ import { useWebSocket } from '@/core/composables/useWebSocket'
 import { useNotifications } from '@/core/composables/useNotifications'
 import { useListSelection } from '@/core/composables/useListSelection'
 import { useListColumns } from '@/core/composables/useListColumns'
+import { useListViewState } from '@/core/composables/useListViewState'
 import { useDevMode } from '@/core/composables/useDevMode'
 import { docsApi, OP_MAP } from '@/core/api/docs'
 import type { ActiveFilter, DocType, DocField, ScriptButton, ScriptMenuItem } from '@/types'
@@ -16,6 +17,8 @@ import {
   createGruntProxy,
   executeListSetup,
 } from '@/core/scripting/executor'
+import { useDialog } from '@/core/composables/useDialog'
+import { toast } from 'vue-sonner'
 import type { ExportContext } from '@/core/io'
 import { getFieldDef } from '@/core/fieldRegistry'
 
@@ -55,15 +58,11 @@ const { onUserEvent, offUserEvent } = useNotifications()
 const dt = ref<DocType | null>(null)
 const page = ref(1)
 const debouncedSearch = ref('')
-const sortKey = ref('')
-const sortOrder = ref<'asc' | 'desc'>('asc')
-const activeFilters = ref<ActiveFilter[]>([])
 type ViewMode = 'list' | 'kanban' | 'calendar' | 'tree' | 'gallery' | 'map'
 const VALID_VIEWS: ViewMode[] = ['list', 'kanban', 'calendar', 'tree', 'gallery', 'map']
 
-const viewMode = ref<ViewMode>('list')
+const { viewMode, sortKey, sortOrder, groupBy, activeFilters } = useListViewState(props.doctype)
 const inlineSearch = ref('')
-const groupBy = ref<string | null>(null)
 const collapsedGroups = ref<Set<string>>(new Set())
 
 let searchDebounce: ReturnType<typeof setTimeout>
@@ -77,6 +76,7 @@ const columns = useListColumns(props.doctype, () => dt.value?.fields ?? [], () =
 const listButtons = ref<ScriptButton[]>([])
 const listMenuItems = ref<ScriptMenuItem[]>([])
 const showQuickEntry = ref(false)
+const dialog = useDialog()
 
 // ── Grouping Logic ───────────────────────────────────────────────────────────
 const groupableFields = computed(() => {
@@ -120,16 +120,35 @@ onMounted(async () => {
     return
   }
 
+  // URL params override localStorage; fall back to localStorage, then doctype default
   const urlView = route.query.view as string | undefined
-  const initial = (VALID_VIEWS.includes(urlView as ViewMode) ? urlView : (dt.value?.default_view ?? 'list')) as ViewMode
-  viewMode.value = initial
+  if (VALID_VIEWS.includes(urlView as ViewMode)) {
+    viewMode.value = urlView as ViewMode
+  } else if (!VALID_VIEWS.includes(viewMode.value)) {
+    viewMode.value = (dt.value?.default_view ?? 'list') as ViewMode
+  }
 
   if (route.query.groupBy) groupBy.value = route.query.groupBy as string
   if (route.query.sort) sortKey.value = route.query.sort as string
   if (['asc', 'desc'].includes(route.query.order as string)) sortOrder.value = route.query.order as any
 
   // Client scripts
-  const gruntProxy = createGruntProxy()
+  const gruntProxy = createGruntProxy({
+    msgprint: (msgOrOpts) => dialog.msgprint(
+      typeof msgOrOpts === 'string' ? msgOrOpts : { message: msgOrOpts.message, title: msgOrOpts.title, indicator: msgOrOpts.indicator }
+    ),
+    confirm: (msg, title) => dialog.confirm(msg, title),
+    showAlert: (msg, type) => {
+      if (type === 'error') toast.error(msg)
+      else if (type === 'success') toast.success(msg)
+      else if (type === 'warning') toast.warning(msg)
+      else toast.info(msg)
+    },
+    prompt: (labelOrOpts, title) => dialog.prompt(labelOrOpts as any, title),
+    warn: (title, message, primaryLabel) => dialog.confirm(`${title}\n${message}`, primaryLabel),
+    form: (opts) => dialog.form(opts as any),
+    showProgress: (title, count, total, description) => dialog.progress(title, count, total, description),
+  })
   const listview = createListViewProxy(props.doctype, {
     addButton(label, action, options) {
       const btn: ScriptButton = { label, action, variant: options?.variant }
@@ -144,7 +163,17 @@ onMounted(async () => {
         remove() { listMenuItems.value.splice(idx, 1) },
       }
     },
-    refresh() { queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] }) }
+    refresh() { queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] }) },
+    setFilters(filters) {
+      activeFilters.value = filters.map(f => ({
+        fieldname: f.fieldname,
+        label: f.label ?? f.fieldname,
+        fieldtype: f.fieldtype,
+        op: f.op,
+        value: f.value,
+      }))
+      page.value = 1
+    },
   })
   await executeListSetup(props.doctype, listview, gruntProxy)
 })

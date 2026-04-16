@@ -24,6 +24,7 @@ import { getFilterConfig } from '@/core/filterRegistry'
 const props = defineProps<{
   fields: DocField[]
   doctype?: string
+  initialFilters?: ActiveFilter[]
 }>()
 
 const emit = defineEmits<{ change: [filters: ActiveFilter[]] }>()
@@ -31,7 +32,7 @@ const emit = defineEmits<{ change: [filters: ActiveFilter[]] }>()
 interface FilterPreset { name: string; filters: ActiveFilter[] }
 
 const { t } = useI18n()
-const activeFilters = ref<ActiveFilter[]>([])
+const activeFilters = ref<ActiveFilter[]>(props.initialFilters ?? [])
 const showDropdown = ref(false)
 const pickedField = ref<DocField | null>(null)
 const pickedOp = ref('=')
