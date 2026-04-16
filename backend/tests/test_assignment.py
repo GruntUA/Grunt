@@ -82,7 +82,7 @@ class TestAssignmentAPI:
         # 2. Test the rule
         test_doc = {"status": "Draft", "amount": 100}
         resp = await client.post(
-            "/api/v1/method/grunt.api.v1.assignment.test_rule",
+            "/api/v1/method/grunt.core.doctypes.assignment_rule.assignment_rule.test_rule",
             headers=auth_headers,
             json={"rule_id": rule_id, "test_doc": test_doc},
         )
@@ -93,7 +93,7 @@ class TestAssignmentAPI:
 
     @pytest.mark.asyncio
     async def test_list_assignment_logs_api(self, client, auth_headers, db_session, engine):
-        """Test the grunt.api.v1.assignment.list_logs method."""
+        """Test the grunt.core.doctypes.assignment_log.assignment_log.list_logs method."""
         import datetime
         from grunt.app import grunt as grunt_app
         from grunt.core.auth.models import SYSTEM_USER
@@ -115,7 +115,7 @@ class TestAssignmentAPI:
             grunt_app.reset_context(_tokens)
 
         resp = await client.get(
-            "/api/v1/method/grunt.api.v1.assignment.list_logs", 
+            "/api/v1/method/grunt.core.doctypes.assignment_log.assignment_log.list_logs", 
             params={"doctype": "Invoice"},
             headers=auth_headers
         )

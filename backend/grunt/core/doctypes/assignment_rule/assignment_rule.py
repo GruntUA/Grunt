@@ -1,11 +1,14 @@
-"""Assignment Rules API whitelisted methods."""
-
 from __future__ import annotations
 import contextlib
 import json
 from typing import Any
 import grunt
 from grunt.app import grunt as grunt_app
+from grunt.core.document.base import Document
+
+class AssignmentRule(Document):
+    """AssignmentRule DocType controller."""
+    pass
 
 @grunt.whitelist()
 async def test_rule(rule_id: str, test_doc: dict[str, Any]) -> dict[str, Any]:
@@ -61,29 +64,3 @@ async def test_rule(rule_id: str, test_doc: dict[str, Any]) -> dict[str, Any]:
         }
     except Exception as exc:
         grunt_app.throw(str(exc))
-
-@grunt.whitelist()
-async def list_logs(
-    doctype: str | None = None,
-    document_id: str | None = None,
-    assigned_to: str | None = None,
-    status: str | None = None,
-    limit: int = 100,
-) -> dict[str, Any]:
-    """List assignment logs with filters."""
-    filters = {}
-    if doctype:
-        filters["doctype_affected"] = doctype
-    if document_id:
-        filters["document_id"] = document_id
-    if assigned_to:
-        filters["assigned_to"] = assigned_to
-    if status:
-        filters["status"] = status
-
-    logs = await grunt_app.get_list(
-        "AssignmentLog", filters=filters, limit=int(limit), order_by="timestamp", order="desc"
-    )
-    total = await grunt_app.count("AssignmentLog", filters=filters)
-
-    return {"data": logs, "count": total}
