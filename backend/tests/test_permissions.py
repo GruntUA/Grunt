@@ -102,7 +102,7 @@ async def test_list_users_requires_superadmin(client: AsyncClient, auth_headers:
     """list_users requires superadmin."""
     # Register a regular user
     await client.post(
-        "/api/v1/method/grunt.api.v1.user.register",
+        "/api/v1/method/grunt.core.doctypes.user.user.register",
         json={"email": "regular@grunt.example.com", "password": "pass", "full_name": "Regular"},
     )
     resp_login = await client.post(
@@ -112,7 +112,7 @@ async def test_list_users_requires_superadmin(client: AsyncClient, auth_headers:
     regular_token = resp_login.json()["access_token"]
 
     resp = await client.get(
-        "/api/v1/method/grunt.api.v1.user.list_users",
+        "/api/v1/method/grunt.core.doctypes.user.user.list_users_api",
         headers={"Authorization": f"Bearer {regular_token}"},
     )
     assert resp.status_code == 403
@@ -121,7 +121,7 @@ async def test_list_users_requires_superadmin(client: AsyncClient, auth_headers:
 @pytest.mark.asyncio
 async def test_list_users_as_superadmin(client: AsyncClient, auth_headers: dict):
     """list_users works for superadmin."""
-    resp = await client.get("/api/v1/method/grunt.api.v1.user.list_users", headers=auth_headers)
+    resp = await client.get("/api/v1/method/grunt.core.doctypes.user.user.list_users_api", headers=auth_headers)
     assert resp.status_code == 200
     users = resp.json()["data"]
     assert isinstance(users, list)
@@ -133,33 +133,33 @@ async def test_add_remove_role(client: AsyncClient, auth_headers: dict):
     """Superadmin can add and remove roles from users."""
     # Register a regular user
     resp = await client.post(
-        "/api/v1/method/grunt.api.v1.user.register",
+        "/api/v1/method/grunt.core.doctypes.user.user.register",
         json={"email": "target@grunt.example.com", "password": "pass", "full_name": "Target"},
     )
     target_id = resp.json()["data"]["id"]
 
     # Add role
     resp = await client.post(
-        "/api/v1/method/grunt.api.v1.user.add_role",
+        "/api/v1/method/grunt.core.doctypes.user.user.add_role",
         json={"user_id": target_id, "role_name": "Manager"},
         headers=auth_headers,
     )
     assert resp.status_code == 200
 
     # Verify role is in user list
-    users_resp = await client.get("/api/v1/method/grunt.api.v1.user.list_users", headers=auth_headers)
+    users_resp = await client.get("/api/v1/method/grunt.core.doctypes.user.user.list_users_api", headers=auth_headers)
     user_data = next(u for u in users_resp.json()["data"] if u["id"] == target_id)
     assert "Manager" in user_data["roles"]
 
     # Remove role
     resp = await client.post(
-        "/api/v1/method/grunt.api.v1.user.remove_role",
+        "/api/v1/method/grunt.core.doctypes.user.user.remove_role",
         json={"user_id": target_id, "role_name": "Manager"},
         headers=auth_headers,
     )
     assert resp.status_code == 200
 
     # Verify role removed
-    users_resp = await client.get("/api/v1/method/grunt.api.v1.user.list_users", headers=auth_headers)
+    users_resp = await client.get("/api/v1/method/grunt.core.doctypes.user.user.list_users_api", headers=auth_headers)
     user_data = next(u for u in users_resp.json()["data"] if u["id"] == target_id)
     assert "Manager" not in user_data["roles"]

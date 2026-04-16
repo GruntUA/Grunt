@@ -69,7 +69,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchMe() {
     if (!token.value) return
     try {
-      const { data } = await client.get('/api/v1/method/grunt.api.v1.user.whoami')
+      const { data } = await client.get('/api/v1/method/grunt.core.doctypes.user.user.whoami')
       const u = data.data ?? data
       user.value = u
       applyUserTheme(u)

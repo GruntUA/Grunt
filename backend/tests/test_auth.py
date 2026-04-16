@@ -12,7 +12,7 @@ async def test_register_login_me(client: AsyncClient):
     """Full flow: register → login → GET whoami returns correct user."""
     # Register
     resp = await client.post(
-        "/api/v1/method/grunt.api.v1.user.register",
+        "/api/v1/method/grunt.core.doctypes.user.user.register",
         json={"email": "admin@grunt.example.com", "password": "secret", "full_name": "Admin"},
     )
     assert resp.status_code == 200
@@ -31,7 +31,7 @@ async def test_register_login_me(client: AsyncClient):
 
     # whoami (Whitelisted)
     resp = await client.get(
-        "/api/v1/method/grunt.api.v1.user.whoami",
+        "/api/v1/method/grunt.core.doctypes.user.user.whoami",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert resp.status_code == 200
@@ -44,7 +44,7 @@ async def test_register_login_me(client: AsyncClient):
 async def test_first_user_is_superadmin(client: AsyncClient):
     """The first registered user gets is_superadmin=True."""
     resp = await client.post(
-        "/api/v1/method/grunt.api.v1.user.register",
+        "/api/v1/method/grunt.core.doctypes.user.user.register",
         json={"email": "first@grunt.example.com", "password": "pass1", "full_name": "First"},
     )
     assert resp.status_code == 200
@@ -52,7 +52,7 @@ async def test_first_user_is_superadmin(client: AsyncClient):
 
     # Second user is NOT superadmin
     resp = await client.post(
-        "/api/v1/method/grunt.api.v1.user.register",
+        "/api/v1/method/grunt.core.doctypes.user.user.register",
         json={"email": "second@grunt.example.com", "password": "pass2", "full_name": "Second"},
     )
     assert resp.status_code == 200
@@ -63,7 +63,7 @@ async def test_first_user_is_superadmin(client: AsyncClient):
 async def test_wrong_password_returns_401(client: AsyncClient):
     """Incorrect password → 401 (via CORE REST /token)."""
     await client.post(
-        "/api/v1/method/grunt.api.v1.user.register",
+        "/api/v1/method/grunt.core.doctypes.user.user.register",
         json={"email": "user@grunt.example.com", "password": "correct", "full_name": "User"},
     )
     resp = await client.post(
@@ -77,7 +77,7 @@ async def test_wrong_password_returns_401(client: AsyncClient):
 async def test_invalid_token_returns_401(client: AsyncClient):
     """An invalid JWT → 401 on whoami."""
     resp = await client.get(
-        "/api/v1/method/grunt.api.v1.user.whoami",
+        "/api/v1/method/grunt.core.doctypes.user.user.whoami",
         headers={"Authorization": "Bearer invalid.token.here"},
     )
     assert resp.status_code == 401
