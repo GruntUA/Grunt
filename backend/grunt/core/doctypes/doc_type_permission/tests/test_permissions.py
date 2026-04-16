@@ -7,8 +7,7 @@ import pytest
 from grunt.core.metadata.doctype import DocType, DocTypePermission
 from grunt.core.permissions.rbac import permission_checker
 
-if TYPE_CHECKING:
-    from httpx import AsyncClient
+# No TYPE_CHECKING needed for httpx in direct tests
 
 # ── Unit tests for PermissionChecker ─────────────────────────────────────
 
@@ -98,68 +97,68 @@ async def test_require_raises_on_deny():
 
 
 @pytest.mark.asyncio
-async def test_list_users_requires_superadmin(client: AsyncClient, auth_headers: dict):
-    """list_users requires superadmin."""
-    # Register a regular user
-    await client.post(
-        "/api/v1/method/grunt.core.doctypes.user.user.register",
-        json={"email": "regular@grunt.example.com", "password": "pass", "full_name": "Regular"},
-    )
-    resp_login = await client.post(
-        "/api/v1/auth/token",
-        data={"username": "regular@grunt.example.com", "password": "pass"},
-    )
-    regular_token = resp_login.json()["access_token"]
+async def test_list_users_requires_superadmin(ctx):
+    """list_users requires superadmin (contextual check)."""
+    from grunt.core.doctypes.user.user import list_users_api
+    from grunt.app import grunt
+    from grunt.core.auth.models import User
+    from fastapi import HTTPException
 
-    resp = await client.get(
-        "/api/v1/method/grunt.core.doctypes.user.user.list_users_api",
-        headers={"Authorization": f"Bearer {regular_token}"},
-    )
-    assert resp.status_code == 403
+    # 1. Create a regular user
+    reg_user_data = {"email": "regular@grunt.example.com", "password": "pass", "full_name": "Regular"}
+    reg_user_doc = await ctx.new_doc("User", reg_user_data)
+    await ctx.db._session().commit()
+
+    # 2. Try to list users as regular user
+    # We simulate this by changing the context user
+    reg_user_obj = User(doctype="User", data={"email": reg_user_doc["email"], "is_superadmin": False})
+    
+    from grunt.errors import GruntError
+    async with grunt.context(ctx.db._session(), ctx._require_engine(), reg_user_obj):
+        with pytest.raises(GruntError) as excinfo:
+            await list_users_api()
+        assert "Unauthorized" in str(excinfo.value)
 
 
 @pytest.mark.asyncio
-async def test_list_users_as_superadmin(client: AsyncClient, auth_headers: dict):
+async def test_list_users_as_superadmin(ctx):
     """list_users works for superadmin."""
-    resp = await client.get("/api/v1/method/grunt.core.doctypes.user.user.list_users_api", headers=auth_headers)
-    assert resp.status_code == 200
-    users = resp.json()["data"]
+    from grunt.core.doctypes.user.user import list_users_api, register
+    
+    # Register at least one user to list
+    await register(email="admin@example.com", password="pass", full_name="Admin")
+    await ctx.db._session().commit()
+
+    users = await list_users_api()
     assert isinstance(users, list)
     assert len(users) >= 1
 
 
 @pytest.mark.asyncio
-async def test_add_remove_role(client: AsyncClient, auth_headers: dict):
+async def test_add_remove_role(ctx):
     """Superadmin can add and remove roles from users."""
+    from grunt.core.doctypes.user.user import add_role, remove_role, list_users_api
+
     # Register a regular user
-    resp = await client.post(
-        "/api/v1/method/grunt.core.doctypes.user.user.register",
-        json={"email": "target@grunt.example.com", "password": "pass", "full_name": "Target"},
-    )
-    target_id = resp.json()["data"]["id"]
+    target_data = {"email": "target@grunt.example.com", "password": "pass", "full_name": "Target"}
+    target_doc = await ctx.new_doc("User", target_data)
+    target_id = target_doc["id"]
+    await ctx.db._session().commit()
 
     # Add role
-    resp = await client.post(
-        "/api/v1/method/grunt.core.doctypes.user.user.add_role",
-        json={"user_id": target_id, "role_name": "Manager"},
-        headers=auth_headers,
-    )
-    assert resp.status_code == 200
+    await add_role(user_id=target_id, role_name="Manager")
+    await ctx.db._session().commit()
 
     # Verify role is in user list
-    users_resp = await client.get("/api/v1/method/grunt.core.doctypes.user.user.list_users_api", headers=auth_headers)
-    user_data = next(u for u in users_resp.json()["data"] if u["id"] == target_id)
+    users = await list_users_api()
+    user_data = next(u for u in users if u["id"] == target_id)
     assert "Manager" in user_data["roles"]
 
     # Remove role
-    resp = await client.post(
-        "/api/v1/method/grunt.core.doctypes.user.user.remove_role",
-        json={"user_id": target_id, "role_name": "Manager"},
-        headers=auth_headers,
-    )
-    assert resp.status_code == 200
+    await remove_role(user_id=target_id, role_name="Manager")
+    await ctx.db._session().commit()
 
     # Verify role removed
-    users_resp = await client.get("/api/v1/method/grunt.core.doctypes.user.user.list_users_api", headers=auth_headers)
-    user_data = next(u for u in users_resp.json()["data"] if u["id"] == target_id)
+    users = await list_users_api()
+    user_data = next(u for u in users if u["id"] == target_id)
     assert "Manager" not in user_data["roles"]

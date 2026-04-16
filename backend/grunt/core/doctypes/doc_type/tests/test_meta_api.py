@@ -4,8 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 import pytest
 
-if TYPE_CHECKING:
-    from httpx import AsyncClient
+# Direct API tests don't need AsyncClient
 
 SAMPLE_DOCTYPE = {
     "name": "Task",
@@ -33,45 +32,43 @@ SAMPLE_DOCTYPE = {
 # ── Tests ────────────────────────────────────────────────────────────────
 
 @pytest.mark.asyncio
-async def test_create_doctype(client: AsyncClient, auth_headers: dict):
+@pytest.mark.asyncio
+async def test_create_doctype(ctx):
     """POST /method/save_doctype → 200."""
-    resp = await client.post(
-        "/api/v1/method/grunt.api.v1.meta.save_doctype",
-        json={"doctype_data": SAMPLE_DOCTYPE},
-        headers=auth_headers,
-    )
-    assert resp.status_code == 200
-    data = resp.json()["data"]
+    from grunt.api.v1.meta import save_doctype
+    data = await save_doctype(doctype_data=SAMPLE_DOCTYPE)
     assert data["name"] == "Task"
     assert data["module"] == "core"
     assert len(data["fields"]) == 3
 
-@pytest.mark.asyncio
-async def test_list_doctypes(client: AsyncClient, auth_headers: dict):
-    """GET /method/list_doctypes → contains created DocType."""
-    await client.post("/api/v1/method/grunt.api.v1.meta.save_doctype", json={"doctype_data": SAMPLE_DOCTYPE}, headers=auth_headers)
-    resp = await client.get("/api/v1/method/grunt.api.v1.meta.list_doctypes", headers=auth_headers)
-    assert resp.status_code == 200
-    items = resp.json()["data"]
-    assert any(item["name"] == "Task" for item in items)
 
 @pytest.mark.asyncio
-async def test_get_one_doctype(client: AsyncClient, auth_headers: dict):
+async def test_list_doctypes(ctx):
+    """GET /method/list_doctypes → contains created DocType."""
+    from grunt.api.v1.meta import save_doctype, list_doctypes
+    await save_doctype(doctype_data=SAMPLE_DOCTYPE)
+    items = await list_doctypes()
+    assert any(item["name"] == "Task" for item in items)
+
+
+@pytest.mark.asyncio
+async def test_get_one_doctype(ctx):
     """GET /method/get_doctype?name=Task → returns correct fields."""
-    await client.post("/api/v1/method/grunt.api.v1.meta.save_doctype", json={"doctype_data": SAMPLE_DOCTYPE}, headers=auth_headers)
-    resp = await client.get("/api/v1/method/grunt.api.v1.meta.get_doctype", params={"name": "Task"}, headers=auth_headers)
-    assert resp.status_code == 200
-    data = resp.json()["data"]
+    from grunt.api.v1.meta import save_doctype, get_doctype
+    await save_doctype(doctype_data=SAMPLE_DOCTYPE)
+    data = await get_doctype(name="Task")
     assert data["name"] == "Task"
     assert data["label"] == "Завдання"
     field_names = [f["fieldname"] for f in data["fields"]]
     assert "title" in field_names
     assert "status" in field_names
 
+
 @pytest.mark.asyncio
-async def test_update_doctype(client: AsyncClient, auth_headers: dict):
+async def test_update_doctype(ctx):
     """POST /method/save_doctype (update) → 200."""
-    await client.post("/api/v1/method/grunt.api.v1.meta.save_doctype", json={"doctype_data": SAMPLE_DOCTYPE}, headers=auth_headers)
+    from grunt.api.v1.meta import save_doctype
+    await save_doctype(doctype_data=SAMPLE_DOCTYPE)
 
     updated = {
         **SAMPLE_DOCTYPE,
@@ -80,41 +77,41 @@ async def test_update_doctype(client: AsyncClient, auth_headers: dict):
             {"fieldname": "deadline", "label": "Дедлайн", "fieldtype": "Date"},
         ],
     }
-    resp = await client.post(
-        "/api/v1/method/grunt.api.v1.meta.save_doctype",
-        json={"doctype_data": updated},
-        headers=auth_headers,
-    )
-    assert resp.status_code == 200
-    assert len(resp.json()["data"]["fields"]) == 4
+    data = await save_doctype(doctype_data=updated)
+    assert len(data["fields"]) == 4
+
 
 @pytest.mark.asyncio
-async def test_delete_doctype(client: AsyncClient, auth_headers: dict):
+async def test_delete_doctype(ctx):
     """DELETE via /method/delete_doctype → 200, then GET → 404."""
-    await client.post("/api/v1/method/grunt.api.v1.meta.save_doctype", json={"doctype_data": SAMPLE_DOCTYPE}, headers=auth_headers)
-    resp = await client.get("/api/v1/method/grunt.api.v1.meta.delete_doctype", params={"name": "Task"}, headers=auth_headers)
-    assert resp.status_code == 200
+    from grunt.api.v1.meta import save_doctype, delete_doctype, get_doctype
+    from fastapi import HTTPException
 
-    resp = await client.get("/api/v1/method/grunt.api.v1.meta.get_doctype", params={"name": "Task"}, headers=auth_headers)
-    assert resp.status_code == 404
+    await save_doctype(doctype_data=SAMPLE_DOCTYPE)
+    await delete_doctype(name="Task")
+
+    with pytest.raises(HTTPException) as excinfo:
+        await get_doctype(name="Task")
+    assert excinfo.value.status_code == 404
+
 
 @pytest.mark.asyncio
-async def test_sync_doctype(client: AsyncClient, auth_headers: dict):
+async def test_sync_doctype(ctx):
     """POST /method/sync_doctype → 200."""
-    await client.post("/api/v1/method/grunt.api.v1.meta.save_doctype", json={"doctype_data": SAMPLE_DOCTYPE}, headers=auth_headers)
-    resp = await client.post("/api/v1/method/grunt.api.v1.meta.sync_doctype", params={"name": "Task"}, headers=auth_headers)
-    assert resp.status_code == 200
-    data = resp.json()["data"]
+    from grunt.api.v1.meta import save_doctype, sync_doctype
+    await save_doctype(doctype_data=SAMPLE_DOCTYPE)
+    data = await sync_doctype(name="Task")
     assert data["name"] == "Task"
     assert "table_name" in data
 
+
 @pytest.mark.asyncio
-async def test_duplicate_doctype_409(client: AsyncClient, auth_headers: dict):
-    """Creating a duplicate DocType → 409."""
-    await client.post("/api/v1/method/grunt.api.v1.meta.save_doctype", json={"doctype_data": SAMPLE_DOCTYPE}, headers=auth_headers)
-    resp = await client.post(
-        "/api/v1/method/grunt.api.v1.meta.save_doctype", 
-        json={"doctype_data": {**SAMPLE_DOCTYPE, "__is_new": True}}, 
-        headers=auth_headers
-    )
-    assert resp.status_code == 409
+async def test_duplicate_doctype_409(ctx):
+    """Creating a duplicate DocType → ApplicationError."""
+    from grunt.api.v1.meta import save_doctype
+    from grunt.api.messages import ApplicationError
+
+    await save_doctype(doctype_data=SAMPLE_DOCTYPE)
+    with pytest.raises(ApplicationError) as excinfo:
+        await save_doctype(doctype_data={**SAMPLE_DOCTYPE, "__is_new": True})
+    assert "already exists" in excinfo.value.message

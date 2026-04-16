@@ -315,7 +315,8 @@ class TestPermissions:
     async def test_can_delete_only_superadmin(self, setup_context, mock_user):
         """Test that only superadmin can delete."""
         set_user(mock_user)
-        result = await can_delete("Invoice", "INV-001")
+        with patch.object(GruntDB, "get_all", new_callable=AsyncMock, return_value=[]):
+            result = await can_delete("Invoice", "INV-001")
         assert result is False
 
         set_user(Mock(is_superadmin=True))
@@ -340,7 +341,8 @@ class TestPermissions:
         user.is_superadmin = False
         set_user(user)
 
-        result = await can_delete("Invoice", "INV-001")
+        with patch.object(GruntDB, "get_all", new_callable=AsyncMock, return_value=[]):
+            result = await can_delete("Invoice", "INV-001")
         assert result is False
 
         # Superadmin should be able to delete
