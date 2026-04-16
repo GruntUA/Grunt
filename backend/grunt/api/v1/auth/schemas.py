@@ -18,6 +18,7 @@ class UserResponse(BaseModel):
     roles: list[str] = []
     is_superadmin: bool = False
     theme: str = "system"
+    avatar: str | None = None
     mfa_enabled: bool = False
     created_at: str | None = None
 

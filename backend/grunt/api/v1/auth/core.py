@@ -72,6 +72,7 @@ async def register(
         roles=user.roles,
         is_superadmin=user.is_superadmin,
         mfa_enabled=bool(user.mfa_enabled),
+        avatar=user.avatar,
         created_at=user.created_at.isoformat() if user.created_at else None,
     )
 
@@ -112,6 +113,7 @@ async def login(
                 roles=user.roles,
                 is_superadmin=user.is_superadmin,
                 theme=user.theme,
+                avatar=user.avatar,
                 mfa_enabled=bool(user.mfa_enabled),
             ),
         )
@@ -132,6 +134,7 @@ async def login(
             roles=user.roles,
             is_superadmin=user.is_superadmin,
             theme=user.theme,
+            avatar=user.avatar,
         ),
     )
 
@@ -176,6 +179,7 @@ async def mfa_login_verify(
             roles=user.roles,
             is_superadmin=user.is_superadmin,
             theme=user.theme,
+            avatar=user.avatar,
         ),
     )
 
@@ -202,6 +206,7 @@ async def me(user: User = Depends(current_user)) -> UserResponse:
         roles=user.roles,
         is_superadmin=user.is_superadmin,
         theme=user.theme,
+        avatar=user.avatar,
         mfa_enabled=bool(user.mfa_enabled),
     )
 
@@ -238,6 +243,7 @@ async def update_me(
         roles=updated.roles,
         is_superadmin=updated.is_superadmin,
         theme=updated.theme,
+        avatar=updated.avatar,
         mfa_enabled=bool(updated.mfa_enabled),
     )
 
@@ -265,6 +271,7 @@ async def refresh(
             roles=user.roles,
             is_superadmin=user.is_superadmin,
             theme=user.theme,
+            avatar=user.avatar,
         ),
     )
 
