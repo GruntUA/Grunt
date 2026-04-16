@@ -65,26 +65,11 @@ class WorkflowEngine:
         session: AsyncSession,
         engine: AsyncEngine,
     ) -> dict:
-        from sqlalchemy import MetaData, Table, select, update
-
-        from grunt.core.metadata.compiler import get_table_name
-
-        table_name = get_table_name(doctype.module, doctype.name)
-        meta = MetaData()
-        async with engine.connect() as conn:
-            table = await conn.run_sync(
-                lambda sync_conn: Table(table_name, meta, autoload_with=sync_conn)
-            )
+        from grunt.app import grunt
 
         # Get document
-        async with engine.connect() as conn:
-            result = await conn.execute(select(table).where(table.c.id == doc_id))
-            row = result.mappings().first()
+        doc = await grunt.get_doc(doctype.name, doc_id)
 
-        if not row:
-            raise HTTPException(status_code=404, detail="Документ не знайдено")
-
-        doc = dict(row)
         available = await self.get_available_transitions(doctype, doc, user)
         transition = next((t for t in available if t.action == action), None)
 
@@ -96,18 +81,10 @@ class WorkflowEngine:
 
         # Apply
         state_field = doctype.workflow.state_field  # type: ignore[union-attr]
-        now = datetime.now(UTC)
-        async with engine.begin() as conn:
-            await conn.execute(
-                update(table)
-                .where(table.c.id == doc_id)
-                .values({state_field: transition.to_state, "modified_at": now})
-            )
+        await grunt.db.set_value(doctype.name, doc_id, state_field, transition.to_state)
 
-        # Re-read updated document
-        async with engine.connect() as conn:
-            result = await conn.execute(select(table).where(table.c.id == doc_id))
-            updated_doc = dict(result.mappings().first())  # type: ignore[arg-type]
+        # Re-read updated document (set_value already flushed)
+        updated_doc = await grunt.get_doc(doctype.name, doc_id)
 
         # Run controller after_save (so apps can react to state changes)
         from grunt.core.document.registry import document_registry  # noqa: PLC0415
@@ -186,31 +163,18 @@ class WorkflowEngine:
         details: dict,
         session: AsyncSession,
     ) -> None:
-        import uuid  # noqa: PLC0415
+        from grunt.app import grunt
 
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
-        table = compile_doctype_to_table(doctype_registry._doctypes["ActivityLog"])
-        entry_id = str(uuid.uuid4())
-        now = datetime.now(UTC)
-        await session.execute(
-            table.insert().values(
-                id=entry_id,
-                name=entry_id,
-                owner=user,
-                created_at=now,
-                modified_at=now,
-                modified_by=user,
-                docstatus=0,
-                doctype=doctype,
-                doc_id=doc_id,
-                action=action,
-                user=user,
-                details=details,
-            )
+        await grunt.new_doc(
+            "ActivityLog",
+            {
+                "doctype": doctype,
+                "doc_id": doc_id,
+                "action": action,
+                "user": user,
+                "details": details,
+            },
         )
-        await session.commit()
 
     def _eval_condition(self, condition: str, doc: dict, user: str) -> bool:
         safe_globals: dict = {"__builtins__": {}, "now": datetime.now}

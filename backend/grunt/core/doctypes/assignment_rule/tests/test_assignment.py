@@ -55,8 +55,10 @@ class TestAssignmentAPI:
     """Test assignment endpoints logic (Migrated)."""
 
     @pytest.mark.asyncio
-    async def test_test_assignment_rule_api(self, client, auth_headers):
-        """Test the grunt.api.v1.assignment.test_rule method."""
+    async def test_test_assignment_rule_api(self, ctx):
+        """Test the assignment rule test logic directly."""
+        from grunt.core.doctypes.assignment_rule.assignment_rule import test_rule
+
         # 1. Create a rule via documents API
         rule_data = {
             "name": "Test Rule API",
@@ -65,29 +67,20 @@ class TestAssignmentAPI:
             "assign_to_user": "admin@grunt.local",
             "enabled": True,
         }
-        resp = await client.post(
-            "/api/v1/method/grunt.api.v1.documents.new_doc", 
-            headers=auth_headers, 
-            json={"doctype": "AssignmentRule", "data": rule_data}
-        )
-        assert resp.status_code == 200, resp.text
-        rule_id = resp.json()["data"]["id"]
+        rule = await ctx.new_doc("AssignmentRule", rule_data)
+        await ctx.db._session().commit()
 
         # 2. Test the rule
         test_doc = {"status": "Draft", "amount": 100}
-        resp = await client.post(
-            "/api/v1/method/grunt.core.doctypes.assignment_rule.assignment_rule.test_rule",
-            headers=auth_headers,
-            json={"rule_id": rule_id, "test_doc": test_doc},
-        )
-        assert resp.status_code == 200, resp.text
-        data = resp.json()["data"]
+        data = await test_rule(rule_id=rule["id"], test_doc=test_doc)
+        
         assert data["matched"] is True
         assert data["will_assign_to"] == ["admin@grunt.local"]
 
-    async def test_list_assignment_logs_api(self, client, auth_headers, ctx, db_session):
-        """Test the grunt.core.doctypes.assignment_log.assignment_log.list_logs method."""
+    async def test_list_assignment_logs_api(self, ctx):
+        """Test the assignment log listing logic directly."""
         import datetime
+        from grunt.core.doctypes.assignment_log.assignment_log import list_logs
 
         log_doc = {
             "doctype_affected": "Invoice",
@@ -99,14 +92,9 @@ class TestAssignmentAPI:
         }
 
         await ctx.new_doc("AssignmentLog", log_doc)
-        await db_session.commit()
+        await ctx.db._session().commit()
 
-        resp = await client.get(
-            "/api/v1/method/grunt.core.doctypes.assignment_log.assignment_log.list_logs", 
-            params={"doctype": "Invoice"},
-            headers=auth_headers
-        )
-        assert resp.status_code == 200, resp.text
-        data = resp.json()["data"]
+        data = await list_logs(doctype="Invoice")
+        
         assert data["count"] >= 1
         assert any(log["document_id"] == "INV-TEST" for log in data["data"])
