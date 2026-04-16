@@ -31,13 +31,7 @@ Usage in your app:
             await notify("Update", f"{self.doc.name} was processed")
 """
 
-from grunt.api.activity import (
-    add_comment,
-    delete_comment,
-    get_activity_log,
-    get_comments,
-    log_activity,
-)
+
 from grunt.api.context import (
     clear_context,
     get_engine,
@@ -83,12 +77,7 @@ __all__ = [
     "notify_all",
     "queue_email",
     "ApplicationError",
-    # Comments & Activity
-    "add_comment",
-    "get_comments",
-    "delete_comment",
-    "log_activity",
-    "get_activity_log",
+
     # Permissions
     "can_read",
     "can_write",

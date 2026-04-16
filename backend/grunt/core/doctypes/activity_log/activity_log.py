@@ -15,6 +15,45 @@ class ActivityLog(Document):
         if not self.data.get("user") and self.user:
             self.data["user"] = self.user.email
 
+    # ------------------------------------------------------------------
+    # Helper Classmethods
+    # ------------------------------------------------------------------
+
+    @classmethod
+    async def log(
+        cls,
+        doctype: str,
+        doc_id: str,
+        action: str,
+        details: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Log an activity entry. Controller auto-fills user from context."""
+        return await grunt.new_doc(
+            "ActivityLog",
+            {
+                "doctype": doctype,
+                "doc_id": doc_id,
+                "action": action,
+                "details": details,
+            },
+        )
+
+    @classmethod
+    async def get_log(
+        cls,
+        doctype: str,
+        doc_id: str,
+        limit: int = 100,
+    ) -> list[dict[str, Any]]:
+        """Get activity log for a document (newest first)."""
+        return await grunt.get_list(
+            "ActivityLog",
+            filters={"doctype": doctype, "doc_id": doc_id},
+            order_by="created_at",
+            order="desc",
+            limit=limit,
+        )
+
 
 @grunt.whitelist()
 async def list_activity(
