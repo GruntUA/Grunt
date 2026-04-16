@@ -115,6 +115,55 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
     click.echo("\nМіграцію завершено.")
 
 
+@db_group.command("trim-tables")
+@click.option("--doctype", "-d", default=None, help="Окремий DocType для обробки")
+@click.option("--dry-run", is_flag=True, help="Тільки показати, що буде видалено")
+@click.option("--quiet", "-q", is_flag=True, help="Не виводити інформацію")
+@click.option("--site", default=None, help="Назва сайту")
+def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | None) -> None:
+    """Видалити колонки з таблиць, яких немає в метаданих (DocType)."""
+    import asyncio  # noqa: PLC0415
+    from grunt.core.site.manager import site_manager  # noqa: PLC0415
+
+    async def _run() -> None:
+        from grunt.app import grunt
+        from grunt.core.startup import load_core_doctypes
+        from grunt.core.metadata.registry import doctype_registry
+
+        sites = [site] if site else site_manager.get_sites()
+        if not sites:
+            click.echo("Жодного сайту не знайдено.", err=True)
+            raise SystemExit(1)
+
+        for site_name in sites:
+            if not quiet:
+                click.echo(f"\n── Сайт: {site_name} ──")
+            eng = site_manager.get_engine(site_name)
+            maker = site_manager.get_session_maker(site_name)
+            
+            async with maker() as session:
+                # Eagerly load doctypes so we can iterate them
+                await load_core_doctypes(session)
+                
+                # Fetch target Meta(s)
+                grunt.session.set_context(session, eng)
+                if doctype:
+                    metas = [await grunt.get_meta(doctype)]
+                else:
+                    from grunt.core.document.meta import Meta
+                    all_dts = await doctype_registry.list_all()
+                    metas = [Meta(dt) for dt in all_dts]
+                    
+                # Trim them
+                for m in metas:
+                    await m.trim_table(engine=eng, dry_run=dry_run, quiet=quiet)
+
+        if not quiet:
+            click.echo("\nОчистку колонок завершено.")
+
+    asyncio.run(_run())
+
+
 @db_group.command("backup")
 @click.option(
     "--output",

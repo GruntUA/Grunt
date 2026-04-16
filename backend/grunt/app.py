@@ -478,9 +478,13 @@ class GruntApp:
 
     # ── Meta ──────────────────────────────────────────────────────────────
 
-    async def get_meta(self, doctype: str) -> DocType:
-        """Return the :class:`~grunt.core.metadata.doctype.DocType` definition."""
-        return await doctype_registry.get(doctype)
+    async def get_meta(self, doctype: str) -> "Meta":
+        """Return the :class:`~grunt.core.document.meta.Meta` wrapper."""
+        from grunt.core.document.meta import Meta
+        from grunt.core.metadata.registry import doctype_registry
+
+        dt = await doctype_registry.get(doctype)
+        return Meta(dt)
 
     # ── Notifications / realtime ──────────────────────────────────────────
 
