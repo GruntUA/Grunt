@@ -127,6 +127,8 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
     eng = site_manager.get_engine(site_name)
 
     async with grunt.context(session, eng, SYSTEM_USER):
+        await doctype_registry.load_all(session)
+
         for app_name in installed_apps:
             if app_name == "grunt":
                 continue  # already handled by seed_grunt_workspace

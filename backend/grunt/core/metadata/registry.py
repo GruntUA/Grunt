@@ -207,15 +207,13 @@ class DocTypeRegistry:
         self,
         doctype: DocType,
         session: AsyncSession,
-        async_engine: AsyncEngine | None = None,
+        sync_db: bool = False,
     ) -> None:
         """Register a core DocType from JSON.
 
-        Loads the definition into the registry and keeps ``grunt_meta_doctype``
-        up to date (seeding on first run, merging new fields on upgrades).
-
-        Physical table creation/migration is intentionally NOT done here —
-        run ``grunt migrate`` to synchronise DB schema with DocType definitions.
+        Loads the definition into the registry. If sync_db is True, keeps
+        ``grunt_meta_doctype`` up to date (seeding on first run, merging new fields
+        on upgrades). If False, only merges new fields in memory.
         """
         existing_row = await session.execute(
             select(GruntMetaDoctype).where(GruntMetaDoctype.name == doctype.name)
@@ -224,15 +222,15 @@ class DocTypeRegistry:
 
         if existing:
             # Virtual DocTypes have no physical DB tables, so there is nothing
-            # to migrate and no risk of data loss.  Always keep them in sync
-            # with the bundled JSON so that field changes take effect on restart.
+            # to migrate and no risk of data loss. Always use memory version.
             if doctype.is_virtual:
                 active_dt = doctype
-                await session.execute(
-                    update(GruntMetaDoctype)
-                    .where(GruntMetaDoctype.name == doctype.name)
-                    .values(module=doctype.module, data=doctype.model_dump())
-                )
+                if sync_db:
+                    await session.execute(
+                        update(GruntMetaDoctype)
+                        .where(GruntMetaDoctype.name == doctype.name)
+                        .values(module=doctype.module, data=doctype.model_dump())
+                    )
             else:
                 # Load the stored definition (preserves Studio customisations).
                 try:
@@ -245,59 +243,63 @@ class DocTypeRegistry:
                         action="falling_back_to_json",
                     )
                     active_dt = doctype
-                    await session.execute(
-                        update(GruntMetaDoctype)
-                        .where(GruntMetaDoctype.name == doctype.name)
-                        .values(module=doctype.module, data=doctype.model_dump())
-                    )
+                    if sync_db:
+                        await session.execute(
+                            update(GruntMetaDoctype)
+                            .where(GruntMetaDoctype.name == doctype.name)
+                            .values(module=doctype.module, data=doctype.model_dump())
+                        )
                 else:
-                    # Merge: add fields from JSON that are missing in the stored
-                    # definition (framework upgrades).  Never remove existing fields.
+                    # Merge logic
                     stored_fieldnames = {f.fieldname: f for f in active_dt.fields}
                     new_fields = [f for f in doctype.fields if f.fieldname not in stored_fieldnames]
                     if new_fields:
                         active_dt.fields.extend(new_fields)
-                        logger.info(
-                            "registry.core_fields_merged",
-                            name=doctype.name,
-                            added=[f.fieldname for f in new_fields],
-                        )
-                    # Sync default values for existing fields from JSON
+                        if sync_db:
+                            logger.info(
+                                "registry.core_fields_merged",
+                                name=doctype.name,
+                                added=[f.fieldname for f in new_fields],
+                            )
+                    # Sync default values
                     for json_field in doctype.fields:
                         stored_field = stored_fieldnames.get(json_field.fieldname)
                         if stored_field is not None and stored_field.default != json_field.default:
                             stored_field.default = json_field.default
-                    # Persist the merged definition and keep module in sync.
-                    # Wrapped separately so a transient DB lock does not prevent
-                    # the physical table sync or in-memory registration below.
-                    try:
-                        await session.execute(
-                            update(GruntMetaDoctype)
-                            .where(GruntMetaDoctype.name == doctype.name)
-                            .values(module=doctype.module, data=active_dt.model_dump())
-                        )
-                        await session.flush()
-                    except Exception as _upd_err:  # noqa: BLE001
-                        logger.warning(
-                            "registry.core_metadata_update_failed",
-                            name=doctype.name,
-                            error=str(_upd_err),
-                        )
+                            
+                    if sync_db:
+                        try:
+                            await session.execute(
+                                update(GruntMetaDoctype)
+                                .where(GruntMetaDoctype.name == doctype.name)
+                                .values(module=doctype.module, data=active_dt.model_dump())
+                            )
+                            await session.flush()
+                        except Exception as _upd_err:  # noqa: BLE001
+                            logger.warning(
+                                "registry.core_metadata_update_failed",
+                                name=doctype.name,
+                                error=str(_upd_err),
+                            )
         else:
             # First run: seed from the bundled JSON file.
-            session.add(
-                GruntMetaDoctype(
-                    name=doctype.name,
-                    module=doctype.module,
-                    data=doctype.model_dump(),
-                )
-            )
             active_dt = doctype
-            await session.flush()
+            if sync_db:
+                session.add(
+                    GruntMetaDoctype(
+                        name=doctype.name,
+                        module=doctype.module,
+                        data=doctype.model_dump(),
+                    )
+                )
+                await session.flush()
 
         self._doctypes[active_dt.name] = active_dt
         self._index_add(active_dt.name)
-        logger.info("registry.core_injected", name=active_dt.name)
+        if sync_db:
+            logger.info("registry.core_injected", name=active_dt.name)
+        else:
+            logger.info("registry.core_loaded", name=active_dt.name)
 
     async def register(
         self,

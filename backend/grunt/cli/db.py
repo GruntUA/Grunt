@@ -67,7 +67,7 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
             # 3. DocType tables
             click.echo("  [3/4] DocType tables (sync_table)...")
             async with maker() as session:
-                await load_core_doctypes(session)
+                await load_core_doctypes(session, sync_db=True)
                 await apply_doctype_overrides(session, eng)
                 await populate_system_doctypes(session, eng)
 

@@ -116,10 +116,6 @@ async def lifespan(app: FastAPI):
                 await doctype_registry.prefetch_names(session)
                 # Merge in-memory field extensions from app hooks (no table sync)
                 await apply_doctype_overrides(session, eng)
-                # Populate the DocType document table
-                await populate_system_doctypes(session, eng)
-                await seed_system_settings(session, eng)
-                await seed_grunt_workspace(session, eng)
                 # Permissions: migrate DocType meta → DocTypePermission, then load into memory
                 from grunt.core.permissions.sync import (
                     load_all_permissions_from_db,
@@ -129,11 +125,6 @@ async def lifespan(app: FastAPI):
                 await migrate_doctype_meta_permissions(session)
                 await session.flush()
                 await load_all_permissions_from_db(session)
-                await session.commit()
-
-            # Seed app workspaces (needs registry populated)
-            async with maker() as session:
-                await seed_app_workspaces(session, site)
                 await session.commit()
 
         except Exception as e:
