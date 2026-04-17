@@ -338,8 +338,49 @@ async def application_error_handler(request: Request, exc: ApplicationError) -> 
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    import traceback as _tb  # noqa: PLC0415
+
     logger.exception("unhandled_error", error=str(exc))
-    details = [str(exc)] if settings.debug else []
+
+    if not settings.debug:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Внутрішня помилка сервера",
+                },
+            },
+        )
+
+    # Debug mode: return rich error info
+    exc_type = type(exc).__name__
+    exc_tb = _tb.format_exc()
+
+    debug_info: dict = {
+        "exc_type": exc_type,
+        "message": str(exc),
+        "traceback": exc_tb,
+    }
+
+    # Extract SQL details from SQLAlchemy errors
+    try:
+        from sqlalchemy.exc import SQLAlchemyError  # noqa: PLC0415
+
+        if isinstance(exc, SQLAlchemyError):
+            stmt = getattr(exc, "statement", None)
+            params = getattr(exc, "params", None)
+            orig = getattr(exc, "orig", None)
+            if stmt:
+                debug_info["sql"] = str(stmt)
+            if params:
+                debug_info["sql_params"] = str(params)
+            if orig:
+                debug_info["db_error"] = str(orig)
+    except Exception:
+        pass
+
     return JSONResponse(
         status_code=500,
         content={
@@ -347,7 +388,7 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
             "error": {
                 "code": "INTERNAL_ERROR",
                 "message": "Внутрішня помилка сервера",
-                "details": details,
+                "debug": debug_info,
             },
         },
     )

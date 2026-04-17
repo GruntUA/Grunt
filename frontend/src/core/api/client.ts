@@ -64,10 +64,18 @@ client.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    // Show toast for 5xx server errors
+    // Show error modal for 5xx server errors
     if (error.response?.status >= 500) {
-      const { useToast } = await import('@/core/composables/useToast')
-      useToast().error('Server error. Please try again later.')
+      const body = error.response?.data
+      const debug = body?.error?.debug ?? null
+      const plainMessage = body?.error?.message ?? 'Server error. Please try again later.'
+      if (debug) {
+        const { useServerError } = await import('@/core/composables/useServerError')
+        useServerError().show(error.response.status, debug, plainMessage)
+      } else {
+        const { useToast } = await import('@/core/composables/useToast')
+        useToast().error(plainMessage)
+      }
     }
 
     // Network error (no response): connection lost
