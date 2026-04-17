@@ -97,7 +97,10 @@ def _run_package_update() -> None:
 
     # uv (preferred)
     if shutil.which("uv"):
-        result = subprocess.run(["uv", "sync", "--upgrade"], cwd=app_dir, check=False)
+        import os  # noqa: PLC0415
+
+        env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
+        result = subprocess.run(["uv", "sync", "--upgrade"], cwd=app_dir, check=False, env=env)
         if result.returncode != 0:
             click.echo("  [warn] uv sync --upgrade завершився з помилкою", err=True)
         return
