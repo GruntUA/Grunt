@@ -3,7 +3,7 @@ from importlib.metadata import entry_points
 import click
 
 from grunt.cli.app import app_group, create_app
-from grunt.cli.db import db_group
+from grunt.cli.db import db_group, db_migrate
 from grunt.cli.doctype import doctype_group
 from grunt.cli.server import init, serve, worker
 from grunt.cli.site import site_group
@@ -49,6 +49,7 @@ cli.add_command(create_app)
 cli.add_command(app_group)
 cli.add_command(doctype_group)
 cli.add_command(site_group)
+cli.add_command(db_migrate, name="migrate")
 
 # Load dynamic plugins
 _load_plugins()
