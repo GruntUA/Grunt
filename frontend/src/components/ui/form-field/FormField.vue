@@ -21,7 +21,9 @@ defineExpose({ id })
     <Label v-if="label" :for="id" class="text-sm font-medium">
       {{ label }}<span v-if="required" class="text-destructive ml-0.5">*</span>
     </Label>
-    <slot :id="id" />
+    <div :class="error ? 'ring-1 ring-destructive rounded-md' : ''">
+      <slot :id="id" />
+    </div>
     <p v-if="error" class="text-xs text-destructive">{{ error }}</p>
     <p v-else-if="hint" class="text-xs text-muted-foreground">{{ hint }}</p>
   </div>

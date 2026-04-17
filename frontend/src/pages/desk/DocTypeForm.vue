@@ -175,6 +175,31 @@ function focusFirstError() {
 
 async function handleSave() {
   validationErrors.value = {}
+
+  // Client-side required field validation
+  if (dt.value) {
+    const NON_PHYSICAL = new Set(['Section', 'Column', 'Tab', 'Table', 'MultiLink'])
+    for (const field of dt.value.fields) {
+      if (NON_PHYSICAL.has(field.fieldtype)) continue
+      if (displayOverrides[field.fieldname] === false) continue
+
+      const isReqd = reqdOverrides[field.fieldname] !== undefined
+        ? reqdOverrides[field.fieldname]
+        : field.required
+      if (!isReqd) continue
+
+      const value = form.value[field.fieldname]
+      if (value === null || value === undefined || value === '') {
+        validationErrors.value[field.fieldname] = `Поле "${field.label}" є обов'язковим`
+      }
+    }
+    if (Object.keys(validationErrors.value).length > 0) {
+      toast.error("Заповніть обов'язкові поля")
+      focusFirstError()
+      return
+    }
+  }
+
   const valid = await runScriptEvent('validate')
   if (valid === false) return
 

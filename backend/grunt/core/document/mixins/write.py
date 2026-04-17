@@ -254,7 +254,7 @@ class DocumentWriteMixin:
         existing = await self.get_document(doctype_name, doc_id, user)
 
         # Validate partial
-        errors = _validate_data(dt, data, partial=True)
+        errors = _validate_data(dt, data)
         if errors:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
