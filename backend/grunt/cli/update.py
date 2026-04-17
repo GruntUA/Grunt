@@ -65,18 +65,24 @@ def _grunt_app_dir() -> "Path":
 def _run_npm_install() -> None:
     """Run npm install in the grunt app root (where package.json lives).
 
+    Uses mise-managed Node when available (respects the version in mise.toml),
+    otherwise falls back to the system npm.
     On ENOTEMPTY failures (corrupted node_modules) cleans and retries once.
     """
     import shutil as _shutil  # noqa: PLC0415
     from pathlib import Path  # noqa: PLC0415
 
     app_dir = _grunt_app_dir()
-    npm = shutil.which("npm")
-    if not npm:
-        click.echo("  [warn] npm не знайдено, пропускаю встановлення npm пакетів", err=True)
-        return
 
-    cmd = [npm, "install"]
+    mise = shutil.which("mise")
+    if mise:
+        cmd = [mise, "exec", "--", "npm", "install"]
+    else:
+        npm = shutil.which("npm")
+        if not npm:
+            click.echo("  [warn] npm не знайдено, пропускаю встановлення npm пакетів", err=True)
+            return
+        cmd = [npm, "install"]
     result = subprocess.run(cmd, cwd=app_dir, check=False)
 
     if result.returncode != 0:
