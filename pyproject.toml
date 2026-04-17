@@ -101,7 +101,7 @@ asyncio_default_fixture_loop_scope = "function"
 testpaths = ["backend/tests"]
 
 [tool.ruff]
-target-version = "py315"
+target-version = "py314"
 line-length = 100
 src = ["backend"]
 
@@ -110,7 +110,7 @@ select = ["E", "F", "I", "N", "UP", "B", "SIM", "TC"]
 ignore = ["B008", "TC001"]  # FastAPI Depends() requires runtime imports for type resolution
 
 [tool.mypy]
-python_version = "3.15"
+python_version = "3.14"
 plugins = ["pydantic.mypy"]
 mypy_path = "backend"
 explicit_package_bases = true
