@@ -76,13 +76,15 @@ def _run_npm_install() -> None:
 
     mise = shutil.which("mise")
     if mise:
-        cmd = [mise, "exec", "--", "npm", "install"]
+        npm_run = [mise, "exec", "--", "npm"]
     else:
         npm = shutil.which("npm")
         if not npm:
             click.echo("  [warn] npm не знайдено, пропускаю встановлення npm пакетів", err=True)
             return
-        cmd = [npm, "install"]
+        npm_run = [npm]
+
+    cmd = [*npm_run, "install"]
     result = subprocess.run(cmd, cwd=app_dir, check=False)
 
     if result.returncode != 0:
@@ -95,6 +97,9 @@ def _run_npm_install() -> None:
 
     if result.returncode != 0:
         click.echo("  [warn] npm install завершився з помилкою", err=True)
+        return
+
+    subprocess.run([*npm_run, "audit", "fix"], cwd=app_dir, check=False)
 
 
 def _run_package_update() -> None:
