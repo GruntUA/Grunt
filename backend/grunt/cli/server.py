@@ -1,7 +1,16 @@
+import shutil
 import subprocess
 from pathlib import Path
 
 import click
+
+
+def _npm_cmd() -> list[str]:
+    """Return an npm invocation that uses the mise-managed Node when available."""
+    mise = shutil.which("mise")
+    if mise:
+        return [mise, "exec", "--"]
+    return []
 
 
 @click.command()
@@ -28,7 +37,7 @@ def serve(port, reload, no_frontend):
         )
         click.echo("Запуск фронтенда (Vite) на порту 5173...")
         frontend_process = subprocess.Popen(
-            ["npm", "run", "dev"],
+            [*_npm_cmd(), "npm", "run", "dev"],
             cwd=root_dir,
             # Inherit terminal so Vite URL and errors are visible
             stdout=None,
