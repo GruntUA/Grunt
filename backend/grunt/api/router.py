@@ -11,7 +11,7 @@ from grunt.core.auth.dependencies import grunt_context
 
 class GruntRouter(APIRouter):
     """APIRouter that automatically injects the Grunt context dependency.
-    
+
     This removes the need for developers to manually add `Depends(grunt_context)`
     to every endpoint.
     """

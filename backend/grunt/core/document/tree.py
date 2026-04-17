@@ -263,7 +263,9 @@ class TreeService:
     # ──────────────────────────────────────────────────────────────────
 
     @staticmethod
-    def _build_select_cols(table: Any, fields: list[str] | None, title_col: str, parent_field: str) -> list:
+    def _build_select_cols(
+        table: Any, fields: list[str] | None, title_col: str, parent_field: str
+    ) -> list:
         """Build SA column list: always include id + parent_field + title, then requested extras."""
         always = {"id", parent_field, title_col}
         wanted = set(fields) if fields else {c.key for c in table.c}

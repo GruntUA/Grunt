@@ -100,20 +100,23 @@ def add_message(message: str, title: str = "", msg_type: str = "info") -> None:
     msgs = _messages_ctx.get()
     if msgs is not None:
         msgs.append({"message": message, "title": title, "type": msg_type})
+
+
 def whitelist(allow_guest: bool = False):
     """Decorator to mark a function as whitelisted for API access."""
+
     def decorator(fn):
         fn._whitelisted = True
         fn._allow_guest = allow_guest
         return fn
-    
+
     # Support both @whitelist and @whitelist()
     if callable(allow_guest):
         fn = allow_guest
         fn._whitelisted = True
         fn._allow_guest = False
         return fn
-        
+
     return decorator
 
 

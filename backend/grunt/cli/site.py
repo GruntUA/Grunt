@@ -45,6 +45,7 @@ def _write_currentsite(sites_dir: Path, name: str) -> None:
 
 # ── Group ────────────────────────────────────────────────────────────────────
 
+
 @click.group("site")
 def site_group():
     """Управління сайтами Ґрунт."""
@@ -52,6 +53,7 @@ def site_group():
 
 
 # ── list ─────────────────────────────────────────────────────────────────────
+
 
 @site_group.command("list")
 def site_list():
@@ -83,6 +85,7 @@ def site_list():
         db_url = ""
         if env_path.exists():
             import dotenv  # noqa: PLC0415
+
             env = dotenv.dotenv_values(env_path)
             db_url = env.get("DATABASE_URL", "sqlite (default)")
 
@@ -91,6 +94,7 @@ def site_list():
 
 
 # ── info ─────────────────────────────────────────────────────────────────────
+
 
 @site_group.command("info")
 @click.argument("name")
@@ -115,6 +119,7 @@ def site_info(name: str):
     env_path = site_path / ".env"
     if env_path.exists():
         import dotenv  # noqa: PLC0415
+
         env = dotenv.dotenv_values(env_path)
         click.echo(f"\n  .env ({env_path}):")
         for key, val in sorted(env.items()):
@@ -134,6 +139,7 @@ def site_info(name: str):
 
 
 # ── create ───────────────────────────────────────────────────────────────────
+
 
 @site_group.command("create")
 @click.argument("name")
@@ -204,13 +210,14 @@ def site_create(
 
     # Set as current site if it's the first one
     existing = [
-        d.name for d in sites_dir.iterdir()
+        d.name
+        for d in sites_dir.iterdir()
         if d.is_dir() and d.name != name and (d / "grunt.site").exists()
     ]
     currentsite_file = sites_dir / "currentsite.txt"
     if not existing or not currentsite_file.exists():
         _write_currentsite(sites_dir, name)
-        click.echo(f"  ◀ Встановлено як активний сайт")
+        click.echo("  ◀ Встановлено як активний сайт")
 
     if no_migrate:
         click.echo("\nПідказка: запустіть 'grunt db migrate' для ініціалізації схеми.")
@@ -227,7 +234,7 @@ def site_create(
 
     click.echo(f"\n{'─' * 50}")
     click.echo(f"  Сайт '{name}' готовий!")
-    click.echo(f"  URL:      http://localhost:8000")
+    click.echo("  URL:      http://localhost:8000")
     click.echo(f"  Admin:    {admin_email}")
     click.echo(f"  Password: {password}")
     click.echo(f"{'─' * 50}")
@@ -235,6 +242,7 @@ def site_create(
 
 def _run_migrate_for_site(site_name: str) -> None:
     """Run DB migration for a single site (reuses db migrate logic inline)."""
+
     async def _migrate() -> None:
         from sqlalchemy import select  # noqa: PLC0415
 
@@ -313,6 +321,7 @@ async def _create_admin(site_name: str, email: str, password: str) -> None:
 
 # ── delete ───────────────────────────────────────────────────────────────────
 
+
 @site_group.command("delete")
 @click.argument("name")
 @click.option("--yes", "-y", is_flag=True, help="Не запитувати підтвердження")
@@ -337,7 +346,8 @@ def site_delete(name: str, yes: bool) -> None:
     currentsite_file = sites_dir / "currentsite.txt"
     if currentsite_file.exists() and currentsite_file.read_text().strip() == name:
         remaining = [
-            d.name for d in sites_dir.iterdir()
+            d.name
+            for d in sites_dir.iterdir()
             if d.is_dir() and not d.name.startswith(".") and (d / "grunt.site").exists()
         ]
         if remaining:
@@ -348,6 +358,7 @@ def site_delete(name: str, yes: bool) -> None:
 
 
 # ── use ──────────────────────────────────────────────────────────────────────
+
 
 @site_group.command("use")
 @click.argument("name")

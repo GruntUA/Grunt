@@ -79,10 +79,7 @@ def upgrade() -> None:
         elif _d == "mysql":
             _insert_sql = "INSERT IGNORE INTO grunt_workspace_sidebar_item"
         else:  # postgresql and others
-            _insert_sql = (
-                "INSERT INTO grunt_workspace_sidebar_item"
-                " ON CONFLICT (id) DO NOTHING --"
-            )
+            _insert_sql = "INSERT INTO grunt_workspace_sidebar_item ON CONFLICT (id) DO NOTHING --"
 
         for row in rows:
             new_id = str(_uuid.uuid4())

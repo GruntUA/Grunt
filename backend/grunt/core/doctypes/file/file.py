@@ -3,14 +3,14 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from fastapi import UploadFile, HTTPException, Response
+from fastapi import HTTPException, Response, UploadFile
 
 from grunt.api.context import whitelist
 from grunt.app import grunt
 from grunt.config import settings
+from grunt.core.context import _user_ctx
 from grunt.core.document.base import Document
 from grunt.core.storage import get_storage_backend
-from grunt.core.context import _user_ctx
 
 _IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"}
 
@@ -89,9 +89,7 @@ async def get_content(file_id: str) -> Response:
     """Whitelisted method: Fetch file content from storage."""
     # Use grunt.db directly to avoid permission checks that require an active user.
     doc = await grunt.db.get_values(
-        "File",
-        file_id,
-        ["path", "content_type", "file_name", "is_public"]
+        "File", file_id, ["path", "content_type", "file_name", "is_public"]
     )
     if not doc:
         raise HTTPException(404, "File not found")

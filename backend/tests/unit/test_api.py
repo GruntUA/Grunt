@@ -449,12 +449,12 @@ class TestIntegration:
             patch.object(grunt, "save_doc", new_callable=AsyncMock, return_value=updated_data),
         ):
             # Get document
-                doc = await grunt.get_doc("Invoice", "INV-001")
-                assert doc["amount"] == 100
+            doc = await grunt.get_doc("Invoice", "INV-001")
+            assert doc["amount"] == 100
 
-                # Save with updated status
-                saved = await grunt.save_doc("Invoice", "INV-001", {"status": "Active"})
-                assert saved["status"] == "Active"
+            # Save with updated status
+            saved = await grunt.save_doc("Invoice", "INV-001", {"status": "Active"})
+            assert saved["status"] == "Active"
 
     @pytest.mark.asyncio
     async def test_permission_check_before_operation(self, setup_context, mock_user):

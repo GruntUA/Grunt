@@ -204,9 +204,8 @@ def doctype_sync_types(name: str, app: str, all_doctypes: bool):
     """
     import json
 
-    from grunt.utils.codegen import sync_controller_types
-
     from grunt.core.site.manager import site_manager  # noqa: PLC0415
+    from grunt.utils.codegen import sync_controller_types
 
     app_path = site_manager.bench_dir / "apps" / app
 

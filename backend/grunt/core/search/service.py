@@ -65,7 +65,6 @@ _PG_DOCTYPE_INDEX_SQL = text(
 )
 
 
-
 def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
     """Return a whitespace-joined string of all searchable field values."""
     parts: list[str] = []
@@ -213,6 +212,7 @@ class SearchIndexService:
             return
         try:
             from itertools import islice  # noqa: PLC0415
+
             it = iter(doc_ids)
             while chunk := list(islice(it, chunk_size)):
                 idx_ids = [f"{doctype}:{doc_id}" for doc_id in chunk]
@@ -260,9 +260,9 @@ class SearchIndexService:
                 )
             elif dialect == "mysql":
                 # MySQL FULLTEXT MATCH ... AGAINST
-                match_expr = func.match(
-                    t.c.content_raw, t.c.title, t.c.doc_name
-                ).op("AGAINST")(text(f"('{q}' IN BOOLEAN MODE)"))
+                match_expr = func.match(t.c.content_raw, t.c.title, t.c.doc_name).op("AGAINST")(
+                    text(f"('{q}' IN BOOLEAN MODE)")
+                )
                 stmt = base.where(match_expr).limit(limit)
             else:
                 # SQLite fallback: simple ILIKE on raw content + name

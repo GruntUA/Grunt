@@ -1,11 +1,14 @@
 """Dashboard whitelisted methods for widget computation."""
 
 from __future__ import annotations
+
 import asyncio
 import contextlib
 from datetime import UTC, datetime, timedelta
 from typing import Any
+
 import structlog
+
 import grunt
 
 logger = structlog.get_logger()
@@ -23,6 +26,7 @@ _TIMESPAN_DAYS = {
     "365d": 365,
 }
 
+
 async def _compute_widget_data(
     widget: Any,
     global_since: datetime | None = None,
@@ -30,7 +34,7 @@ async def _compute_widget_data(
 ) -> Any:
     """Compute data for a single widget row."""
     from grunt.core.metadata.registry import doctype_registry
-    
+
     doctype_name: str = widget.get("doctype") or ""
     if not doctype_name:
         return None
@@ -79,72 +83,110 @@ async def _compute_widget_data(
 
     if widget_type in ("chart_area", "chart_bar"):
         date_field = widget.get("date_field")
-        if not date_field: return {"labels": [], "values": []}
+        if not date_field:
+            return {"labels": [], "values": []}
         try:
-            filters = {f"{date_field}__gte": since.isoformat(), f"{date_field}__lte": until.isoformat()}
+            filters = {
+                f"{date_field}__gte": since.isoformat(),
+                f"{date_field}__lte": until.isoformat(),
+            }
             group_by_expr = f"date({date_field})"
             rows = await grunt.db.aggregate(
-                doctype_name, filters=filters, group_by=group_by_expr,
-                aggregations={"cnt": "count"}, order_by=group_by_expr, order="asc",
+                doctype_name,
+                filters=filters,
+                group_by=group_by_expr,
+                aggregations={"cnt": "count"},
+                order_by=group_by_expr,
+                order="asc",
             )
-            return {"labels": [str(r.get(group_by_expr)) for r in rows], "values": [r.get("cnt") for r in rows]}
+            return {
+                "labels": [str(r.get(group_by_expr)) for r in rows],
+                "values": [r.get("cnt") for r in rows],
+            }
         except Exception:
             return {"labels": [], "values": []}
 
     if widget_type == "donut":
         group_by = widget.get("group_by")
-        if not group_by: return {"labels": [], "values": []}
+        if not group_by:
+            return {"labels": [], "values": []}
         try:
             rows = await grunt.db.aggregate(
-                doctype_name, group_by=group_by, aggregations={"cnt": "count"},
-                order_by="cnt", order="desc", limit=8
+                doctype_name,
+                group_by=group_by,
+                aggregations={"cnt": "count"},
+                order_by="cnt",
+                order="desc",
+                limit=8,
             )
-            return {"labels": [str(r.get(group_by)) for r in rows], "values": [r.get("cnt") for r in rows]}
+            return {
+                "labels": [str(r.get(group_by)) for r in rows],
+                "values": [r.get("cnt") for r in rows],
+            }
         except Exception:
             return {"labels": [], "values": []}
 
     if widget_type == "list":
         try:
-            items = await grunt.get_list(doctype_name, order_by="modified_at", order="desc", limit=8)
+            items = await grunt.get_list(
+                doctype_name, order_by="modified_at", order="desc", limit=8
+            )
             return {"items": items, "title_field": dt.title_field}
         except Exception:
             return {"items": [], "title_field": None}
 
     if widget_type == "shortcut":
         try:
-            if dt.is_singleton: return {"count": 1}
+            if dt.is_singleton:
+                return {"count": 1}
             return {"count": await grunt.count(doctype_name)}
         except Exception:
             return None
 
     if widget_type == "calendar":
         date_field = widget.get("date_field")
-        if not date_field: return {"days": {}}
+        if not date_field:
+            return {"days": {}}
         try:
             group_by_expr = f"date({date_field})"
-            filters = {f"{date_field}__gte": since.isoformat(), f"{date_field}__lte": until.isoformat()}
-            rows = await grunt.db.aggregate(doctype_name, filters=filters, group_by=group_by_expr, aggregations={"cnt": "count"})
+            filters = {
+                f"{date_field}__gte": since.isoformat(),
+                f"{date_field}__lte": until.isoformat(),
+            }
+            rows = await grunt.db.aggregate(
+                doctype_name, filters=filters, group_by=group_by_expr, aggregations={"cnt": "count"}
+            )
             return {"days": {str(r.get(group_by_expr)): r.get("cnt") for r in rows}}
         except Exception:
             return {"days": {}}
 
     if widget_type == "heatmap":
         date_field = widget.get("date_field")
-        if not date_field: return {"entries": []}
+        if not date_field:
+            return {"entries": []}
         try:
             group_by_expr = f"date({date_field})"
             filters = {f"{date_field}__gte": since.isoformat()}
             rows = await grunt.db.aggregate(
-                doctype_name, filters=filters, group_by=group_by_expr,
-                aggregations={"cnt": "count"}, order_by=group_by_expr, order="asc"
+                doctype_name,
+                filters=filters,
+                group_by=group_by_expr,
+                aggregations={"cnt": "count"},
+                order_by=group_by_expr,
+                order="asc",
             )
-            return {"entries": [{"date": str(r.get(group_by_expr)), "count": r.get("cnt")} for r in rows]}
+            return {
+                "entries": [
+                    {"date": str(r.get(group_by_expr)), "count": r.get("cnt")} for r in rows
+                ]
+            }
         except Exception:
             return {"entries": []}
 
     if widget_type == "funnel":
         group_by = widget.get("group_by")
-        if not group_by: return {"stages": []}
+        if not group_by:
+            return {"stages": []}
         try:
             field_def = next((f for f in dt.fields if f.fieldname == group_by), None)
             ordered_options = []
@@ -152,20 +194,30 @@ async def _compute_widget_data(
                 ordered_options = [o for o in field_def.options.split("\n") if o.strip()]
             filters = {}
             date_field = widget.get("date_field")
-            if date_field: filters[f"{date_field}__gte"] = since.isoformat()
-            rows = await grunt.db.aggregate(doctype_name, filters=filters if filters else None, group_by=group_by, aggregations={"cnt": "count"})
+            if date_field:
+                filters[f"{date_field}__gte"] = since.isoformat()
+            rows = await grunt.db.aggregate(
+                doctype_name,
+                filters=filters if filters else None,
+                group_by=group_by,
+                aggregations={"cnt": "count"},
+            )
             counts = {str(r.get(group_by)): r.get("cnt") for r in rows}
             if ordered_options:
                 stages = [{"label": o, "count": counts.get(o, 0)} for o in ordered_options]
             else:
-                stages = [{"label": k, "count": v} for k, v in sorted(counts.items(), key=lambda x: -(x[1] or 0))]
+                stages = [
+                    {"label": k, "count": v}
+                    for k, v in sorted(counts.items(), key=lambda x: -(x[1] or 0))
+                ]
             return {"stages": stages}
         except Exception:
             return {"stages": []}
 
     if widget_type == "table":
         group_by = widget.get("group_by")
-        if not group_by: return {"rows": []}
+        if not group_by:
+            return {"rows": []}
         try:
             agg = widget.get("aggregation") or "count"
             value_field = widget.get("field")
@@ -176,12 +228,24 @@ async def _compute_widget_data(
                 filters[f"{date_field}__gte"] = since.isoformat()
                 filters[f"{date_field}__lte"] = until.isoformat()
             rows = await grunt.db.aggregate(
-                doctype_name, filters=filters if filters else None, group_by=group_by,
-                aggregations={"value": agg_expr}, order_by="value", order="desc", limit=20
+                doctype_name,
+                filters=filters if filters else None,
+                group_by=group_by,
+                aggregations={"value": agg_expr},
+                order_by="value",
+                order="desc",
+                limit=20,
             )
             return {
-                "rows": [{"label": str(r.get(group_by)) if r.get(group_by) is not None else "—", "value": round(float(r.get("value") or 0), 2)} for r in rows],
-                "aggregation": agg, "field": value_field
+                "rows": [
+                    {
+                        "label": str(r.get(group_by)) if r.get(group_by) is not None else "—",
+                        "value": round(float(r.get("value") or 0), 2),
+                    }
+                    for r in rows
+                ],
+                "aggregation": agg,
+                "field": value_field,
             }
         except Exception:
             return {"rows": []}
@@ -189,12 +253,15 @@ async def _compute_widget_data(
     if widget_type == "activity":
         try:
             filters = {"doctype": doctype_name} if doctype_name else {}
-            items = await grunt.get_list("ActivityLog", filters=filters, order_by="created_at", order="desc", limit=20)
+            items = await grunt.get_list(
+                "ActivityLog", filters=filters, order_by="created_at", order="desc", limit=20
+            )
             return {"items": items}
         except Exception:
             return {"items": []}
 
     return None
+
 
 @grunt.whitelist()
 async def get_dashboard_data(
@@ -230,7 +297,9 @@ async def get_dashboard_data(
 
     async def _safe_compute(w_dict: dict[str, Any]) -> tuple[str, Any]:
         try:
-            result = await _compute_widget_data(w_dict, global_since=global_since, global_until=global_until)
+            result = await _compute_widget_data(
+                w_dict, global_since=global_since, global_until=global_until
+            )
         except Exception:
             result = None
         return w_dict["id"], result

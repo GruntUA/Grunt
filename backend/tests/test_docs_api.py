@@ -1,11 +1,8 @@
 """Tests for the Document API — dynamic CRUD for DocType instances (migrated to whitelisted methods)."""
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
-import pytest
 
-if TYPE_CHECKING:
-    from httpx import AsyncClient
+import pytest
 
 TEST_DOCTYPE = {
     "name": "TestItem",
@@ -37,6 +34,7 @@ TEST_DOCTYPE = {
 async def setup_doctype(ctx):
     """Create the TestItem DocType before document tests."""
     from grunt.api.v1.meta import save_doctype
+
     await save_doctype(doctype_data={**TEST_DOCTYPE, "__is_new": True})
     await ctx.db._session().commit()
 
@@ -61,6 +59,7 @@ async def test_create_document(ctx, setup_doctype):
 async def test_create_without_required_field(ctx, setup_doctype):
     """new_doc without required field → HTTPException."""
     from fastapi import HTTPException
+
     with pytest.raises(HTTPException) as exc:
         await ctx.new_doc("TestItem", {"status": "Draft"})
     assert exc.value.status_code == 422
@@ -72,7 +71,7 @@ async def test_list_documents(ctx, setup_doctype):
     await ctx.new_doc("TestItem", {"title": "Item A"})
     await ctx.new_doc("TestItem", {"title": "Item B"})
     await ctx.db._session().commit()
-    
+
     body = await ctx.get_list("TestItem")
     assert len(body) == 2
 
@@ -104,9 +103,9 @@ async def test_list_search(ctx, setup_doctype):
 @pytest.mark.asyncio
 async def test_list_pagination(ctx, setup_doctype):
     """get_list?page=2&limit=2 (direct call)."""
-    from grunt.api.v1.documents import new_doc, get_list
+    from grunt.api.v1.documents import get_list, new_doc
     from grunt.core.doctypes.user.user import SYSTEM_USER
-    
+
     async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
         for i in range(5):
             await new_doc("TestItem", {"title": f"Item {i}"})
@@ -135,6 +134,7 @@ async def test_get_document(ctx, setup_doctype):
 async def test_get_nonexistent_404(ctx, setup_doctype):
     """get_doc nonexistent → HTTPException 404."""
     from fastapi import HTTPException
+
     with pytest.raises(HTTPException) as exc:
         await ctx.get_doc("TestItem", "nonexistent")
     assert exc.value.status_code == 404
@@ -165,6 +165,7 @@ async def test_delete_document(ctx, setup_doctype):
     await ctx.db._session().commit()
 
     from fastapi import HTTPException
+
     with pytest.raises(HTTPException) as exc:
         await ctx.get_doc("TestItem", doc_id)
     assert exc.value.status_code == 404
@@ -173,9 +174,9 @@ async def test_delete_document(ctx, setup_doctype):
 @pytest.mark.asyncio
 async def test_list_partial_fields(ctx, setup_doctype):
     """get_list?fields=["title"] (direct call)."""
-    from grunt.api.v1.documents import new_doc, get_list
+    from grunt.api.v1.documents import get_list, new_doc
     from grunt.core.doctypes.user.user import SYSTEM_USER
-    
+
     async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
         await new_doc("TestItem", {"title": "Partial", "status": "Active", "count": 42})
         await ctx.db._session().commit()

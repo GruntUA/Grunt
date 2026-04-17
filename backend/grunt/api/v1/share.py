@@ -1,16 +1,17 @@
 """Document share whitelisted methods."""
 
 from __future__ import annotations
+
 from datetime import UTC, datetime
 from typing import Any
+
 import grunt
-from grunt.core.doctypes.user.user import SYSTEM_USER
+
 
 @grunt.whitelist(allow_guest=True)
 async def get_shared_document(token: str) -> dict[str, Any]:
     """Return a publicly shared document by token. No authentication required."""
     from grunt.core.metadata.registry import doctype_registry
-    from grunt.app import grunt as grunt_app
 
     # Use SYSTEM_USER for db queries since we are in guest mode
     shares = await grunt.db.get_all(
@@ -69,6 +70,7 @@ async def get_shared_document(token: str) -> dict[str, Any]:
         "doc": {k: (str(v) if v is not None else None) for k, v in doc.items()},
         "fields": visible_fields,
     }
+
 
 @grunt.whitelist()
 async def create_share(

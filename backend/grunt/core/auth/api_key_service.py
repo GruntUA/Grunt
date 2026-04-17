@@ -69,7 +69,7 @@ async def authenticate_api_key(
     if not full_key.startswith(_KEY_PREFIX):
         return None
 
-    raw = full_key[len(_KEY_PREFIX):]
+    raw = full_key[len(_KEY_PREFIX) :]
     if len(raw) != _KEY_BYTES * 2:
         return None
 
@@ -107,7 +107,11 @@ async def authenticate_api_key(
     # Check expiry
     expires_at = matched_row.get("expires_at")
     if expires_at:
-        exp = expires_at if isinstance(expires_at, datetime) else datetime.fromisoformat(str(expires_at))
+        exp = (
+            expires_at
+            if isinstance(expires_at, datetime)
+            else datetime.fromisoformat(str(expires_at))
+        )
         if exp.tzinfo is None:
             exp = exp.replace(tzinfo=UTC)
         if exp < datetime.now(UTC):

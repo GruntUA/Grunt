@@ -56,9 +56,7 @@ class AssignmentService:
     # Приватні допоміжні методи оркестратора
     # ------------------------------------------------------------------
 
-    async def _get_enabled_rules(
-        self, doctype: str, session: AsyncSession
-    ) -> list[dict]:
+    async def _get_enabled_rules(self, doctype: str, session: AsyncSession) -> list[dict]:
         """Завантажити всі enabled правила для DocType з БД."""
         try:
             _tokens = grunt.set_context(session, None, None)
@@ -97,9 +95,7 @@ class AssignmentService:
 
             return rules
         except Exception as exc:
-            logger.exception(
-                "assignment.load_rules_error", doctype=doctype, exc_info=exc
-            )
+            logger.exception("assignment.load_rules_error", doctype=doctype, exc_info=exc)
             return []
 
     # ------------------------------------------------------------------

@@ -5,12 +5,12 @@ from __future__ import annotations
 from fastapi import Depends, HTTPException
 
 from grunt.api.router import GruntRouter
-from grunt.api.v1.schemas.response import ok
 from grunt.api.v1.auth.schemas import (
     AddRoleRequest,
     SetPasswordRequest,
     UserResponse,
 )
+from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.core.auth.dependencies import superadmin_user
 from grunt.core.doctypes.user.user import (

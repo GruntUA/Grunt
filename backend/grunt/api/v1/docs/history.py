@@ -65,7 +65,7 @@ async def restore_document_version(
             update_fields[field.fieldname] = restore_data[field.fieldname]
 
     result = await grunt.save_doc(doctype, doc_id, update_fields)
-    
+
     # Add audit log
     await grunt.new_doc(
         "ActivityLog",
@@ -75,7 +75,7 @@ async def restore_document_version(
             "action": "restore",
             "user": grunt.session.user,
             "details": f'{{"to_version": "{target["version"]}"}}',
-        }
+        },
     )
 
     return ok(result, restored_to_version=target["version"])
@@ -97,7 +97,7 @@ async def get_document_log(
         order="desc",
         limit=limit,
     )
-    
+
     data = [
         {
             "id": str(e["id"]),
@@ -120,15 +120,11 @@ async def get_document_timeline(
     await grunt.get_doc(doctype, doc_id)  # permission check
 
     act_rows = await grunt.get_list(
-        "ActivityLog",
-        filters={"doctype": doctype, "doc_id": doc_id},
-        limit=1000
+        "ActivityLog", filters={"doctype": doctype, "doc_id": doc_id}, limit=1000
     )
 
     comment_rows = await grunt.get_list(
-        "Comment",
-        filters={"reference_doctype": doctype, "reference_id": doc_id},
-        limit=1000
+        "Comment", filters={"reference_doctype": doctype, "reference_id": doc_id}, limit=1000
     )
 
     items: list[dict[str, Any]] = []

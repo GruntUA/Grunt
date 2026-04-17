@@ -13,8 +13,8 @@ router = GruntRouter()
 # Include sub-routers.  Order matters: more specific paths FIRST so they are
 # not shadowed by the generic /{doctype}/{doc_id} patterns in crud_router.
 
-router.include_router(tree_router)   # /{doctype}/tree/...
-router.include_router(link_router)   # /{doctype}/link_search
+router.include_router(tree_router)  # /{doctype}/tree/...
+router.include_router(link_router)  # /{doctype}/link_search
 router.include_router(workflow_router)
 router.include_router(export_router)
 router.include_router(history_router)

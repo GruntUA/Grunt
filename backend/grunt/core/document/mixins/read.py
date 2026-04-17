@@ -82,7 +82,7 @@ class DocumentReadMixin:
         # Select columns
         # ... (lines 79-153 unchanged logic) ...
         # (Assuming the logic above remains the same until the final return)
-        
+
         # ... (skipping some lines for conciseness in replacement chunk) ...
         # I'll replace the last return as well.
 
@@ -260,9 +260,7 @@ async def _resolve_link_labels(
 
         # Collect unique non-null raw values from rows
         raw_ids: set[str] = {
-            str(row[lf.fieldname])
-            for row in rows
-            if row.get(lf.fieldname) not in (None, "")
+            str(row[lf.fieldname]) for row in rows if row.get(lf.fieldname) not in (None, "")
         }
         if not raw_ids:
             continue
@@ -275,15 +273,15 @@ async def _resolve_link_labels(
         # Include extra display fields if the linked DocType has them
         linked_field_names = {f.fieldname for f in target_dt.fields}
         extra_to_fetch = [
-            fname for fname in _EXTRA_INJECT
+            fname
+            for fname in _EXTRA_INJECT
             if fname in linked_field_names and fname in target_table.c
         ]
         for fname in extra_to_fetch:
             cols_to_fetch.append(target_table.c[fname])
 
-        q = (
-            select(*cols_to_fetch)
-            .where(or_(target_table.c.id.in_(raw_ids), target_table.c.name.in_(raw_ids)))
+        q = select(*cols_to_fetch).where(
+            or_(target_table.c.id.in_(raw_ids), target_table.c.name.in_(raw_ids))
         )
 
         # Use a savepoint so a failed query (e.g. table doesn't exist) doesn't

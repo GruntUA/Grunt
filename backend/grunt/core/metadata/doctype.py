@@ -55,8 +55,6 @@ class DocTypeWorkflow(BaseModel):
 # ── Permission sub-model ─────────────────────────────────────────────────
 
 
-
-
 # ── View configuration sub-models ────────────────────────────────────────
 
 
@@ -108,11 +106,11 @@ class DocTypeTreeView(BaseModel):
 class DocTypeMapView(BaseModel):
     """Configuration for the map view — requires a Geolocation field."""
 
-    geo_field: str | None = None          # override auto-detected Geolocation field
-    label_field: str | None = None        # field shown in marker popup (defaults to title_field)
-    color_field: str | None = None        # field whose value drives marker color
+    geo_field: str | None = None  # override auto-detected Geolocation field
+    label_field: str | None = None  # field shown in marker popup (defaults to title_field)
+    color_field: str | None = None  # field whose value drives marker color
     color_map: dict[str, str] | None = None  # { value: '#hex' } mapping for color_field
-    default_color: str | None = None      # fallback marker color
+    default_color: str | None = None  # fallback marker color
 
 
 # ── Status indicators ───────────────────────────────────────────────────
@@ -150,7 +148,7 @@ class DocType(BaseModel):
     is_singleton: bool = False  # only one document per DocType
     is_virtual: bool = False  # True → no DB table, data from controller
     is_tree: bool = False  # True → hierarchical; requires tree_view.parent_field
-                           # to name the self-referential Link
+    # to name the self-referential Link
     track_changes: bool = True  # audit log
     quick_entry: bool = False  # True → "Create" opens a dialog instead of full form
 

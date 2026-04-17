@@ -26,14 +26,14 @@ def test(
 
     # 1. Base test paths
     test_paths = []
-    
+
     # If no filters, include base tests
     if not app and not doctype:
         test_paths.append(str(site_manager.bench_dir / "apps" / "grunt" / "backend" / "tests"))
 
     # 2. Discover DocType tests
     apps_dir = site_manager.bench_dir / "apps"
-    
+
     search_dirs = []
     if app:
         app_path = apps_dir / app
@@ -51,7 +51,7 @@ def test(
         for dt_dir in s_dir.rglob("doctypes"):
             if not dt_dir.is_dir():
                 continue
-            
+
             if doctype:
                 # Try both original name and snake_case/lowercase
                 candidates = [doctype, doctype.lower(), doctype.replace(" ", "_").lower()]
@@ -81,6 +81,7 @@ def test(
     # (Optional: set environment variable for site)
     if site:
         import os
+
         os.environ["GRUNT_SITE"] = site
 
     # 4. Run pytest
@@ -99,7 +100,7 @@ def _add_tests_from_dir(dt_dir: Path, test_paths: list[str]):
     tests_subdir = dt_dir / "tests"
     if tests_subdir.is_dir():
         test_paths.append(str(tests_subdir))
-    
+
     # Look for test_*.py files in the DocType dir itself
     for test_file in dt_dir.glob("test_*.py"):
         test_paths.append(str(test_file))

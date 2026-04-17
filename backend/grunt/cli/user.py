@@ -69,10 +69,9 @@ def users_set_password(email, password, site):
 
     async def _run():
         import grunt  # noqa: PLC0415
-
         from grunt.app import grunt as grunt_app  # noqa: PLC0415
-        from grunt.core.doctypes.user.user import SYSTEM_USER, hash_password  # noqa: PLC0415
         from grunt.core.auth.service import get_user_by_email  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import SYSTEM_USER, hash_password  # noqa: PLC0415
 
         async with _site_session(site) as (session, eng):
             user = await get_user_by_email(email, session)
@@ -82,7 +81,9 @@ def users_set_password(email, password, site):
 
             _tokens = grunt_app.set_context(session, eng, SYSTEM_USER)
             try:
-                await grunt.db.set_value("User", user.id, {"hashed_password": hash_password(password)})
+                await grunt.db.set_value(
+                    "User", user.id, {"hashed_password": hash_password(password)}
+                )
                 await session.commit()
             finally:
                 grunt_app.reset_context(_tokens)

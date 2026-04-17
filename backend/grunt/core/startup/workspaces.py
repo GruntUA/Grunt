@@ -44,30 +44,37 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
 
         if existing:
             ws_id = existing[0]["id"]
-            await grunt.save_doc("WorkspaceSidebar", ws_id, {
-                k: v
-                for k, v in {
-                    "label": data.get("label"),
-                    "icon": data.get("icon"),
-                    "color": data.get("color"),
-                    "description": data.get("description"),
-                    "sequence": data.get("sequence"),
-                }.items()
-                if v is not None
-            })
+            await grunt.save_doc(
+                "WorkspaceSidebar",
+                ws_id,
+                {
+                    k: v
+                    for k, v in {
+                        "label": data.get("label"),
+                        "icon": data.get("icon"),
+                        "color": data.get("color"),
+                        "description": data.get("description"),
+                        "sequence": data.get("sequence"),
+                    }.items()
+                    if v is not None
+                },
+            )
             logger.info("startup.grunt_workspace_updating")
         else:
-            ws = await grunt.new_doc("WorkspaceSidebar", {
-                "name": ws_name,
-                "label": data["label"],
-                "app": data.get("app", "grunt"),
-                "icon": data.get("icon", ""),
-                "color": data.get("color", ""),
-                "description": data.get("description", ""),
-                "sequence": data.get("sequence", 0),
-                "is_hidden": data.get("is_hidden", False),
-                "roles": data.get("roles", ""),
-            })
+            ws = await grunt.new_doc(
+                "WorkspaceSidebar",
+                {
+                    "name": ws_name,
+                    "label": data["label"],
+                    "app": data.get("app", "grunt"),
+                    "icon": data.get("icon", ""),
+                    "color": data.get("color", ""),
+                    "description": data.get("description", ""),
+                    "sequence": data.get("sequence", 0),
+                    "is_hidden": data.get("is_hidden", False),
+                    "roles": data.get("roles", ""),
+                },
+            )
             ws_id = ws["id"]
 
         # Replace sidebar items: bulk-delete old, bulk-insert new
@@ -78,24 +85,27 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
 
         items = data.get("sidebar_items", [])
         if items:
-            await grunt.bulk_insert("WorkspaceSidebarItem", [
-                {
-                    "parent_id": ws_id,
-                    "parent_doctype": "WorkspaceSidebar",
-                    "parent_field": "sidebar_items",
-                    "idx": item_data.get("sequence", i),
-                    "section": item_data.get("section", ""),
-                    "type": item_data.get("type", "DocType"),
-                    "label": item_data.get("label", ""),
-                    "icon": item_data.get("icon", ""),
-                    "link_to": item_data.get("link_to", ""),
-                    "show_count": item_data.get("show_count", False),
-                    "count_filters": item_data.get("count_filters", ""),
-                    "show_new_btn": item_data.get("show_new_btn", False),
-                    "roles": item_data.get("roles", ""),
-                }
-                for i, item_data in enumerate(items)
-            ])
+            await grunt.bulk_insert(
+                "WorkspaceSidebarItem",
+                [
+                    {
+                        "parent_id": ws_id,
+                        "parent_doctype": "WorkspaceSidebar",
+                        "parent_field": "sidebar_items",
+                        "idx": item_data.get("sequence", i),
+                        "section": item_data.get("section", ""),
+                        "type": item_data.get("type", "DocType"),
+                        "label": item_data.get("label", ""),
+                        "icon": item_data.get("icon", ""),
+                        "link_to": item_data.get("link_to", ""),
+                        "show_count": item_data.get("show_count", False),
+                        "count_filters": item_data.get("count_filters", ""),
+                        "show_new_btn": item_data.get("show_new_btn", False),
+                        "roles": item_data.get("roles", ""),
+                    }
+                    for i, item_data in enumerate(items)
+                ],
+            )
 
     logger.info("startup.grunt_workspace_seeded")
 
@@ -140,16 +150,17 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                 continue
 
             # Ensure app is registered in GruntInstalledApp table
-            is_first_install = (
-                await grunt.exists("GruntInstalledApp", {"name": app_name}) is None
-            )
+            is_first_install = await grunt.exists("GruntInstalledApp", {"name": app_name}) is None
             if is_first_install:
-                await grunt.new_doc("GruntInstalledApp", {
-                    "name": app_name,
-                    "title": app_meta.get("title", app_name),
-                    "version": app_meta.get("version", "0.1.0"),
-                    "modules": app_meta.get("modules", []),
-                })
+                await grunt.new_doc(
+                    "GruntInstalledApp",
+                    {
+                        "name": app_name,
+                        "title": app_meta.get("title", app_name),
+                        "version": app_meta.get("version", "0.1.0"),
+                        "modules": app_meta.get("modules", []),
+                    },
+                )
                 logger.info("startup.app_registered", app=app_name)
 
             app_modules = set(app_meta.get("modules", []))
@@ -179,7 +190,9 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                             )
                         else:
                             existing_dt = doctype_registry._doctypes[dt_name]
-                            if existing_dt.model_dump(mode="json") != dt_obj.model_dump(mode="json"):
+                            if existing_dt.model_dump(mode="json") != dt_obj.model_dump(
+                                mode="json"
+                            ):
                                 async with session.begin_nested():
                                     await session.execute(
                                         sa_update(GruntMetaDoctype)
@@ -304,31 +317,38 @@ async def _apply_workspace_fixture(
 
         if existing:
             ws_id = existing[0]["id"]
-            await grunt.save_doc("WorkspaceSidebar", ws_id, {
-                k: v
-                for k, v in {
-                    "label": rec.get("label"),
-                    "icon": rec.get("icon"),
-                    "color": rec.get("color"),
-                    "description": rec.get("description"),
-                    "sequence": rec.get("sequence"),
-                    "roles": rec.get("roles"),
-                    "is_hidden": rec.get("is_hidden"),
-                }.items()
-                if v is not None
-            })
+            await grunt.save_doc(
+                "WorkspaceSidebar",
+                ws_id,
+                {
+                    k: v
+                    for k, v in {
+                        "label": rec.get("label"),
+                        "icon": rec.get("icon"),
+                        "color": rec.get("color"),
+                        "description": rec.get("description"),
+                        "sequence": rec.get("sequence"),
+                        "roles": rec.get("roles"),
+                        "is_hidden": rec.get("is_hidden"),
+                    }.items()
+                    if v is not None
+                },
+            )
         else:
-            ws = await grunt.new_doc("WorkspaceSidebar", {
-                "name": ws_name,
-                "label": rec.get("label", ws_name),
-                "app": rec.get("app", app_name),
-                "icon": rec.get("icon", app_meta.get("icon", "📦")),
-                "color": rec.get("color", app_meta.get("color", "#2D6A4F")),
-                "description": rec.get("description", ""),
-                "sequence": rec.get("sequence", 10),
-                "is_hidden": rec.get("is_hidden", False),
-                "roles": rec.get("roles", ""),
-            })
+            ws = await grunt.new_doc(
+                "WorkspaceSidebar",
+                {
+                    "name": ws_name,
+                    "label": rec.get("label", ws_name),
+                    "app": rec.get("app", app_name),
+                    "icon": rec.get("icon", app_meta.get("icon", "📦")),
+                    "color": rec.get("color", app_meta.get("color", "#2D6A4F")),
+                    "description": rec.get("description", ""),
+                    "sequence": rec.get("sequence", 10),
+                    "is_hidden": rec.get("is_hidden", False),
+                    "roles": rec.get("roles", ""),
+                },
+            )
             ws_id = ws["id"]
 
         # Replace sidebar items: bulk-delete old, bulk-insert new
@@ -340,24 +360,27 @@ async def _apply_workspace_fixture(
 
         items = rec.get("sidebar_items", rec.get("items", []))
         if items:
-            await grunt.bulk_insert("WorkspaceSidebarItem", [
-                {
-                    "parent_id": ws_id,
-                    "parent_doctype": "WorkspaceSidebar",
-                    "parent_field": "sidebar_items",
-                    "idx": item.get("sequence", i),
-                    "section": item.get("section", ""),
-                    "type": item.get("type", "DocType"),
-                    "label": item.get("label", ""),
-                    "icon": item.get("icon", ""),
-                    "link_to": item.get("link_to", ""),
-                    "show_count": item.get("show_count", False),
-                    "count_filters": item.get("count_filters", ""),
-                    "show_new_btn": item.get("show_new_btn", False),
-                    "roles": item.get("roles", ""),
-                }
-                for i, item in enumerate(items)
-            ])
+            await grunt.bulk_insert(
+                "WorkspaceSidebarItem",
+                [
+                    {
+                        "parent_id": ws_id,
+                        "parent_doctype": "WorkspaceSidebar",
+                        "parent_field": "sidebar_items",
+                        "idx": item.get("sequence", i),
+                        "section": item.get("section", ""),
+                        "type": item.get("type", "DocType"),
+                        "label": item.get("label", ""),
+                        "icon": item.get("icon", ""),
+                        "link_to": item.get("link_to", ""),
+                        "show_count": item.get("show_count", False),
+                        "count_filters": item.get("count_filters", ""),
+                        "show_new_btn": item.get("show_new_btn", False),
+                        "roles": item.get("roles", ""),
+                    }
+                    for i, item in enumerate(items)
+                ],
+            )
 
         applied = True
 
@@ -383,24 +406,31 @@ async def _auto_seed_workspace(
 
     if existing:
         ws_id = existing[0]["id"]
-        await grunt.save_doc("WorkspaceSidebar", ws_id, {
-            "label": app_meta.get("title", app_name),
-            "icon": app_meta.get("icon", "📦"),
-            "color": app_meta.get("color", "#2D6A4F"),
-            "description": app_meta.get("description", ""),
-        })
+        await grunt.save_doc(
+            "WorkspaceSidebar",
+            ws_id,
+            {
+                "label": app_meta.get("title", app_name),
+                "icon": app_meta.get("icon", "📦"),
+                "color": app_meta.get("color", "#2D6A4F"),
+                "description": app_meta.get("description", ""),
+            },
+        )
     else:
-        ws = await grunt.new_doc("WorkspaceSidebar", {
-            "name": app_name,
-            "label": app_meta.get("title", app_name),
-            "app": app_name,
-            "icon": app_meta.get("icon", "📦"),
-            "color": app_meta.get("color", "#2D6A4F"),
-            "description": app_meta.get("description", ""),
-            "sequence": app_meta.get("sequence", 10),
-            "is_hidden": False,
-            "roles": "",
-        })
+        ws = await grunt.new_doc(
+            "WorkspaceSidebar",
+            {
+                "name": app_name,
+                "label": app_meta.get("title", app_name),
+                "app": app_name,
+                "icon": app_meta.get("icon", "📦"),
+                "color": app_meta.get("color", "#2D6A4F"),
+                "description": app_meta.get("description", ""),
+                "sequence": app_meta.get("sequence", 10),
+                "is_hidden": False,
+                "roles": "",
+            },
+        )
         ws_id = ws["id"]
 
     # Replace sidebar items: bulk-delete old, bulk-insert new
@@ -411,21 +441,24 @@ async def _auto_seed_workspace(
     await session.flush()
 
     if app_doctypes:
-        await grunt.bulk_insert("WorkspaceSidebarItem", [
-            {
-                "parent_id": ws_id,
-                "parent_doctype": "WorkspaceSidebar",
-                "parent_field": "sidebar_items",
-                "idx": seq,
-                "section": app_meta.get("title", app_name),
-                "type": "DocType",
-                "label": dt.label,
-                "icon": "📄",
-                "link_to": dt.name,
-                "show_count": True,
-                "count_filters": "",
-                "show_new_btn": True,
-                "roles": "",
-            }
-            for seq, dt in enumerate(app_doctypes, start=1)
-        ])
+        await grunt.bulk_insert(
+            "WorkspaceSidebarItem",
+            [
+                {
+                    "parent_id": ws_id,
+                    "parent_doctype": "WorkspaceSidebar",
+                    "parent_field": "sidebar_items",
+                    "idx": seq,
+                    "section": app_meta.get("title", app_name),
+                    "type": "DocType",
+                    "label": dt.label,
+                    "icon": "📄",
+                    "link_to": dt.name,
+                    "show_count": True,
+                    "count_filters": "",
+                    "show_new_btn": True,
+                    "roles": "",
+                }
+                for seq, dt in enumerate(app_doctypes, start=1)
+            ],
+        )

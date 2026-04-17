@@ -1,18 +1,19 @@
 """Tests for the Reports module (migrated to whitelisted methods)."""
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+
 import pytest
 
 # Direct API tests don't need AsyncClient
 
 # ── Tests ────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 @pytest.mark.asyncio
 async def test_create_and_list_report(ctx):
     """Create a report and list it."""
-    from grunt.api.v1.reports import save_report, list_reports
+    from grunt.api.v1.reports import list_reports, save_report
 
     # Create
     await save_report(
@@ -32,13 +33,13 @@ async def test_create_and_list_report(ctx):
 @pytest.mark.asyncio
 async def test_get_report(ctx):
     """Get a single report by name."""
-    from grunt.api.v1.reports import save_report, get_report
+    from grunt.api.v1.reports import get_report, save_report
 
     await save_report(
         report_data={
-            "report_name": "My Report", 
-            "report_type": "Query", 
-            "query": "SELECT 42 as answer"
+            "report_name": "My Report",
+            "report_type": "Query",
+            "query": "SELECT 42 as answer",
         }
     )
     await ctx.db._session().commit()
@@ -50,7 +51,7 @@ async def test_get_report(ctx):
 @pytest.mark.asyncio
 async def test_run_query_report(ctx):
     """Run a SELECT query report."""
-    from grunt.api.v1.reports import save_report, run_report
+    from grunt.api.v1.reports import run_report, save_report
 
     await save_report(
         report_data={
@@ -68,8 +69,9 @@ async def test_run_query_report(ctx):
 @pytest.mark.asyncio
 async def test_run_report_forbids_delete(ctx):
     """DELETE SQL is blocked in query reports."""
-    from grunt.api.v1.reports import save_report, run_report
     from fastapi import HTTPException
+
+    from grunt.api.v1.reports import run_report, save_report
 
     await save_report(
         report_data={
@@ -82,6 +84,7 @@ async def test_run_report_forbids_delete(ctx):
 
     from grunt.api.messages import ApplicationError
     from grunt.errors import GruntError
+
     with pytest.raises((HTTPException, ApplicationError, GruntError)) as excinfo:
         await run_report(name="Bad Report", filters={})
     # Business logic error should be caught
@@ -90,16 +93,19 @@ async def test_run_report_forbids_delete(ctx):
 @pytest.mark.asyncio
 async def test_delete_report(ctx):
     """Delete a report."""
-    from grunt.api.v1.reports import save_report, delete_report, get_report
-    from fastapi import HTTPException
 
-    await save_report(report_data={"report_name": "Delete Me", "report_type": "Query", "query": "SELECT 1"})
+    from grunt.api.v1.reports import delete_report, get_report, save_report
+
+    await save_report(
+        report_data={"report_name": "Delete Me", "report_type": "Query", "query": "SELECT 1"}
+    )
     await ctx.db._session().commit()
 
     await delete_report(name="Delete Me")
     await ctx.db._session().commit()
 
     from grunt.errors import GruntError
+
     with pytest.raises(GruntError) as excinfo:
         await get_report(name="Delete Me")
     assert "не знайдено" in str(excinfo.value)
@@ -108,15 +114,16 @@ async def test_delete_report(ctx):
 @pytest.mark.asyncio
 async def test_duplicate_report_rejected(ctx):
     """Creating a report with duplicate name returns 409."""
+
     from grunt.api.v1.reports import save_report
-    from fastapi import HTTPException
 
     payload = {"report_name": "Dup", "report_type": "Query", "query": "SELECT 1"}
     await save_report(report_data=payload)
     await ctx.db._session().commit()
-    
+
     # Second call with __is_new: True
     from grunt.errors import GruntError
+
     with pytest.raises(GruntError) as excinfo:
         await save_report(report_data={**payload, "__is_new": True})
     assert "вже існує" in str(excinfo.value)
@@ -126,7 +133,9 @@ async def test_duplicate_report_rejected(ctx):
 async def test_apps_crud(ctx):
     """Apps CRUD directly."""
     from grunt.core.doctypes.grunt_installed_app.grunt_installed_app import (
-        register_app, list_apps, delete_app
+        delete_app,
+        list_apps,
+        register_app,
     )
 
     # Create (register_app)

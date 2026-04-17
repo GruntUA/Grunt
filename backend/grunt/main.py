@@ -8,23 +8,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
-import grunt.core.doctypes.user.user  # noqa: F401
-
 # Ensure all ORM models are imported so metadata is complete
 import grunt.core.db.system_tables  # noqa: F401
+import grunt.core.doctypes.user.user  # noqa: F401
 import grunt.core.print.hooks  # noqa: F401
+from grunt.api.messages import ApplicationError
 from grunt.api.v1.router import v1_router
 from grunt.config import settings
 from grunt.core.document.registry import document_registry
-from grunt.core.hooks import register_doc_events, register_doctype_overrides
+from grunt.core.hooks import register_doc_events
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.site.manager import current_site, site_manager
 from grunt.core.site.middleware import SiteContextMiddleware
 from grunt.core.tasks.broker import broker
-from grunt.core.tasks.registry import discover_tasks
 from grunt.core.tasks.scheduler import register_scheduler_events, start_scheduler, stop_scheduler
 from grunt.errors import GruntError
-from grunt.api.messages import ApplicationError
 
 document_registry.discover_core_controllers()
 
@@ -91,10 +89,6 @@ async def lifespan(app: FastAPI):
     from grunt.core.startup import (
         apply_doctype_overrides,
         load_core_doctypes,
-        populate_system_doctypes,
-        seed_app_workspaces,
-        seed_grunt_workspace,
-        seed_system_settings,
     )  # noqa: PLC0415
 
     sites = site_manager.get_sites()
@@ -133,11 +127,11 @@ async def lifespan(app: FastAPI):
             current_site.reset(token)
 
     # ── Post-startup: discover resources from installed external apps (bench_dir/apps/*) ──
+    import sys  # noqa: PLC0415
+
     from grunt.core.scripting.file_scripts import (
         discover_file_scripts as _discover_scripts,  # noqa: PLC0415
     )
-
-    import sys  # noqa: PLC0415
 
     ext_apps_dir = site_manager.bench_dir / "apps"
     if ext_apps_dir.is_dir():
@@ -171,11 +165,13 @@ async def lifespan(app: FastAPI):
                             register_scheduler_events(hooks_mod.scheduler_events)
                         if hasattr(hooks_mod, "io_exporters"):
                             from grunt.core.io import register_exporter as _reg_exp  # noqa: PLC0415
+
                             for _exp in hooks_mod.io_exporters:
                                 _reg_exp(_exp)
                                 logger.info("io.exporter.registered", id=_exp.id, app=ext_app.name)
                         if hasattr(hooks_mod, "io_importers"):
                             from grunt.core.io import register_importer as _reg_imp  # noqa: PLC0415
+
                             for _imp in hooks_mod.io_importers:
                                 _reg_imp(_imp)
                                 logger.info("io.importer.registered", id=_imp.id, app=ext_app.name)

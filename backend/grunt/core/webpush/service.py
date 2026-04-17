@@ -33,23 +33,22 @@ def _generate_vapid_keys() -> tuple[str, str]:
 
     v = Vapid()
     v.generate_keys()
-    
+
     # Export private key to PEM
     private_pem = v.private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=serialization.NoEncryption(),
     ).decode()
-    
+
     # Export public key as raw Uncompressed Point (required by Web Push)
     raw_pub = v.public_key.public_bytes(
-        encoding=serialization.Encoding.X962,
-        format=serialization.PublicFormat.UncompressedPoint
+        encoding=serialization.Encoding.X962, format=serialization.PublicFormat.UncompressedPoint
     )
-    
+
     # Base64URL encode without padding
     public_b64 = base64.urlsafe_b64encode(raw_pub).decode().strip("=")
-    
+
     return private_pem, public_b64
 
 
@@ -57,6 +56,7 @@ class WebPushService:
     async def get_vapid_public_key(self, session: AsyncSession) -> str | None:
         """Return the VAPID public key stored in SystemSettings, or None."""
         from grunt.app import grunt  # noqa: PLC0415
+
         try:
             return await grunt.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
         except Exception:  # noqa: BLE001
@@ -79,7 +79,7 @@ class WebPushService:
 
             # Generate new keys
             private_pem, public_b64 = _generate_vapid_keys()
-            
+
             # Since SystemSettings is a Singleton, it's stored as KV in Singles table
             # We can use grunt.db.set_value which works beautifully for Singletons
             await grunt.db.set_value(
@@ -88,7 +88,7 @@ class WebPushService:
             await grunt.db.set_value(
                 "SystemSettings", "SystemSettings", _VAPID_PUBLIC_KEY_FIELD, public_b64
             )
-            
+
             logger.info("webpush.vapid_keys_generated")
             return public_b64
         except Exception as exc:
@@ -105,26 +105,28 @@ class WebPushService:
         user_agent: str = "",
     ) -> None:
         """Upsert a push subscription for a user (one per endpoint)."""
-        from grunt.app import grunt # noqa: PLC0415
+        from grunt.app import grunt  # noqa: PLC0415
 
         # Remove old subscription at this endpoint if any using db.delete for performance
         await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint})
 
         # Create new subscription document
-        await grunt.new_doc("PushSubscription", {
-            "user": user,
-            "endpoint": endpoint,
-            "p256dh": p256dh,
-            "auth": auth,
-            "user_agent": user_agent,
-        })
-
+        await grunt.new_doc(
+            "PushSubscription",
+            {
+                "user": user,
+                "endpoint": endpoint,
+                "p256dh": p256dh,
+                "auth": auth,
+                "user_agent": user_agent,
+            },
+        )
 
     async def remove_subscription(self, session: AsyncSession, endpoint: str) -> None:
         """Delete a push subscription by endpoint URL."""
         from grunt.app import grunt  # noqa: PLC0415
-        await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint})
 
+        await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint})
 
     async def send_push(
         self,
@@ -154,7 +156,6 @@ class WebPushService:
         subs = await grunt.get_list("PushSubscription", filters={"user": user})
 
         payload = json.dumps({"title": subject, "body": body, "url": url})
-
 
         for sub in subs:
             try:

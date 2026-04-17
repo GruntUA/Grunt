@@ -1,4 +1,5 @@
 from typing import Any
+
 import grunt
 from grunt.core.document.base import Document
 
@@ -101,5 +102,5 @@ async def list_activity(
         "total": total,
         "page": page,
         "per_page": per_page,
-        "pages": -(-total // per_page)
+        "pages": -(-total // per_page),
     }

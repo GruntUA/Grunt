@@ -16,10 +16,10 @@ import json
 import os
 from typing import TYPE_CHECKING
 
-import grunt
-from grunt.app import grunt as grunt_app
 import structlog
 from fastapi import HTTPException
+
+from grunt.app import grunt as grunt_app
 
 if TYPE_CHECKING:
     from grunt.core.doctypes.user.user import User
@@ -76,6 +76,7 @@ def get_qr_code_svg(secret: str, email: str) -> str:
             svg = svg[svg.find("?>") + 2 :].strip()
         # Remove fixed width/height so CSS can scale it
         import re
+
         svg = re.sub(r'width="[^"]+"', 'width="100%"', svg, count=1)
         svg = re.sub(r'height="[^"]+"', 'height="100%"', svg, count=1)
         return svg
@@ -125,7 +126,9 @@ async def begin_mfa_setup(user: User) -> dict:
     """Generate a new TOTP secret, store it (unconfirmed), and return setup info."""
     # Prevent overwriting if already enabled
     if user.mfa_enabled:
-        raise HTTPException(400, detail="MFA вже увімкнено. Спочатку вимкніть його, щоб переналаштувати.")
+        raise HTTPException(
+            400, detail="MFA вже увімкнено. Спочатку вимкніть його, щоб переналаштувати."
+        )
 
     secret = generate_mfa_secret()
     await grunt_app.db.set_value("User", user.id, {"mfa_secret": secret, "mfa_enabled": False})
@@ -142,7 +145,9 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
     Returns a list of plain-text backup codes that the user should save.
     Raises HTTP 422 if the code is wrong or no secret is pending.
     """
-    rows = await grunt_app.db.get_all("User", filters={"id": user.id}, fields=["mfa_secret"], limit=1)
+    rows = await grunt_app.db.get_all(
+        "User", filters={"id": user.id}, fields=["mfa_secret"], limit=1
+    )
     if not rows or not rows[0].get("mfa_secret"):
         raise HTTPException(422, detail="MFA не налаштовано. Спочатку запустіть setup.")
 
@@ -152,22 +157,30 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
 
     backup_codes = _generate_backup_codes()
     backup_hashes = [_hash_backup_code(c) for c in backup_codes]
-    await grunt_app.db.set_value("User", user.id, {
-        "mfa_enabled": True,
-        "mfa_secret": secret,
-        "mfa_backup_codes": json.dumps(backup_hashes),
-    })
+    await grunt_app.db.set_value(
+        "User",
+        user.id,
+        {
+            "mfa_enabled": True,
+            "mfa_secret": secret,
+            "mfa_backup_codes": json.dumps(backup_hashes),
+        },
+    )
     logger.info("mfa.enabled", user=user.email)
     return backup_codes
 
 
 async def disable_mfa(user: User) -> None:
     """Disable MFA and clear stored secrets for the user."""
-    await grunt_app.db.set_value("User", user.id, {
-        "mfa_enabled": False,
-        "mfa_secret": "",
-        "mfa_backup_codes": None,
-    })
+    await grunt_app.db.set_value(
+        "User",
+        user.id,
+        {
+            "mfa_enabled": False,
+            "mfa_secret": "",
+            "mfa_backup_codes": None,
+        },
+    )
     logger.info("mfa.disabled", user=user.email)
 
 
@@ -185,6 +198,7 @@ async def check_mfa_code(user: User, code: str, session: object | None = None) -
 
     if session is not None:
         from grunt.core.site.manager import site_manager  # noqa: PLC0415
+
         eng = site_manager.get_engine(site_manager.get_active_site())
         _tokens = grunt_app.set_context(session, eng, SYSTEM_USER)
     else:
@@ -212,7 +226,9 @@ async def check_mfa_code(user: User, code: str, session: object | None = None) -
         backup_hashes: list[str] = json.loads(backup_json) if backup_json else []
         matched, remaining = verify_backup_code(backup_hashes, code)
         if matched:
-            await grunt_app.db.set_value("User", user.id, {"mfa_backup_codes": json.dumps(remaining)})
+            await grunt_app.db.set_value(
+                "User", user.id, {"mfa_backup_codes": json.dumps(remaining)}
+            )
             logger.info("mfa.backup_code_used", user=user.email, remaining=len(remaining))
             return
 

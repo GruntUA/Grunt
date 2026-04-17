@@ -1,7 +1,7 @@
 """Tests for RBAC permission checker (migrated integration parts)."""
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+
 import pytest
 
 from grunt.core.metadata.doctype import DocType, DocTypePermission
@@ -10,6 +10,7 @@ from grunt.core.permissions.rbac import permission_checker
 # No TYPE_CHECKING needed for httpx in direct tests
 
 # ── Unit tests for PermissionChecker ─────────────────────────────────────
+
 
 class MockUser:
     email = "user@example.com"
@@ -86,6 +87,7 @@ async def test_match_owner_eq_user():
 async def test_require_raises_on_deny():
     """require() raises HTTPException when denied."""
     from fastapi import HTTPException
+
     user = MockUser(roles=[])
     dt = _make_doctype_with_perms([{"role": "Admin", "read": True}])
     with pytest.raises(HTTPException) as exc_info:
@@ -99,21 +101,27 @@ async def test_require_raises_on_deny():
 @pytest.mark.asyncio
 async def test_list_users_requires_superadmin(ctx):
     """list_users requires superadmin (contextual check)."""
-    from grunt.core.doctypes.user.user import list_users_api
+
     from grunt.app import grunt
-    from grunt.core.doctypes.user.user import User
-    from fastapi import HTTPException
+    from grunt.core.doctypes.user.user import User, list_users_api
 
     # 1. Create a regular user
-    reg_user_data = {"email": "regular@grunt.example.com", "password": "pass", "full_name": "Regular"}
+    reg_user_data = {
+        "email": "regular@grunt.example.com",
+        "password": "pass",
+        "full_name": "Regular",
+    }
     reg_user_doc = await ctx.new_doc("User", reg_user_data)
     await ctx.db._session().commit()
 
     # 2. Try to list users as regular user
     # We simulate this by changing the context user
-    reg_user_obj = User(doctype="User", data={"email": reg_user_doc["email"], "is_superadmin": False})
-    
+    reg_user_obj = User(
+        doctype="User", data={"email": reg_user_doc["email"], "is_superadmin": False}
+    )
+
     from grunt.errors import GruntError
+
     async with grunt.context(ctx.db._session(), ctx._require_engine(), reg_user_obj):
         with pytest.raises(GruntError) as excinfo:
             await list_users_api()
@@ -124,7 +132,7 @@ async def test_list_users_requires_superadmin(ctx):
 async def test_list_users_as_superadmin(ctx):
     """list_users works for superadmin."""
     from grunt.core.doctypes.user.user import list_users_api, register
-    
+
     # Register at least one user to list
     await register(email="admin@example.com", password="pass", full_name="Admin")
     await ctx.db._session().commit()
@@ -137,7 +145,7 @@ async def test_list_users_as_superadmin(ctx):
 @pytest.mark.asyncio
 async def test_add_remove_role(ctx):
     """Superadmin can add and remove roles from users."""
-    from grunt.core.doctypes.user.user import add_role, remove_role, list_users_api
+    from grunt.core.doctypes.user.user import add_role, list_users_api, remove_role
 
     # Register a regular user
     target_data = {"email": "target@grunt.example.com", "password": "pass", "full_name": "Target"}

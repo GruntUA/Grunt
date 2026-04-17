@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pytest
 
 # Direct API
@@ -14,6 +12,7 @@ import pytest
 async def create_and_sync(ctx, doctype: dict) -> None:
     """Create a DocType and sync it directly."""
     from grunt.api.v1.meta import save_doctype, sync_doctype
+
     await save_doctype(doctype_data=doctype)
     await sync_doctype(name=doctype["name"])
     await ctx.db._session().commit()
@@ -29,7 +28,12 @@ async def create_doc(ctx, doctype: str, data: dict) -> dict:
 async def regular_user_ctx(ctx):
     """Register a regular user and return the User object."""
     from grunt.core.doctypes.user.user import User
-    reg_user_data = {"email": "regular@example.com", "password": "pass123", "full_name": "Regular User"}
+
+    reg_user_data = {
+        "email": "regular@example.com",
+        "password": "pass123",
+        "full_name": "Regular User",
+    }
     await ctx.new_doc("User", reg_user_data)
     await ctx.db._session().commit()
     return User(doctype="User", data={"email": "regular@example.com", "is_superadmin": False})
@@ -57,7 +61,9 @@ SIMPLE_DOCTYPE = {
 @pytest.mark.asyncio
 async def test_search_requires_auth(client: AsyncClient):
     """/method/global_search without token → 401."""
-    resp = await client.get("/api/v1/method/grunt.api.v1.search.global_search", params={"q": "test"})
+    resp = await client.get(
+        "/api/v1/method/grunt.api.v1.search.global_search", params={"q": "test"}
+    )
     assert resp.status_code == 401
 
 
@@ -78,8 +84,9 @@ async def test_search_invalid_token(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_search_q_is_required(ctx):
     """global_search without q → ApplicationError."""
-    from grunt.api.v1.search import global_search
     from grunt.api.messages import ApplicationError
+    from grunt.api.v1.search import global_search
+
     with pytest.raises(ApplicationError):
         await global_search(q="")
 
@@ -87,8 +94,9 @@ async def test_search_q_is_required(ctx):
 @pytest.mark.asyncio
 async def test_search_q_empty_string_rejected(ctx):
     """global_search with empty q → ApplicationError."""
-    from grunt.api.v1.search import global_search
     from grunt.api.messages import ApplicationError
+    from grunt.api.v1.search import global_search
+
     with pytest.raises(ApplicationError):
         await global_search(q="")
 
@@ -96,8 +104,9 @@ async def test_search_q_empty_string_rejected(ctx):
 @pytest.mark.asyncio
 async def test_search_limit_above_max_rejected(ctx):
     """global_search limit > 50 → ApplicationError."""
-    from grunt.api.v1.search import global_search
     from grunt.api.messages import ApplicationError
+    from grunt.api.v1.search import global_search
+
     with pytest.raises(ApplicationError):
         await global_search(q="x", limit=51)
 
@@ -105,8 +114,9 @@ async def test_search_limit_above_max_rejected(ctx):
 @pytest.mark.asyncio
 async def test_search_limit_zero_rejected(ctx):
     """global_search limit=0 → ApplicationError."""
-    from grunt.api.v1.search import global_search
     from grunt.api.messages import ApplicationError
+    from grunt.api.v1.search import global_search
+
     with pytest.raises(ApplicationError):
         await global_search(q="x", limit=0)
 
@@ -118,6 +128,7 @@ async def test_search_limit_zero_rejected(ctx):
 async def test_search_response_structure(ctx):
     """Response always has success=True (direct API returns data directly)."""
     from grunt.api.v1.search import global_search
+
     data = await global_search(q="нічого")
     assert isinstance(data, list)
 
@@ -126,6 +137,7 @@ async def test_search_response_structure(ctx):
 async def test_search_result_fields(ctx):
     """Each result contains doctype, id, name, display_title."""
     from grunt.api.v1.search import global_search
+
     await create_and_sync(ctx, SIMPLE_DOCTYPE)
     await create_doc(ctx, "Документ", {"name": "ДОК-001", "title": "Тестовий документ"})
 
@@ -146,6 +158,7 @@ async def test_search_result_fields(ctx):
 async def test_search_no_results_for_unknown_query(ctx):
     """Query that matches nothing returns empty list."""
     from grunt.api.v1.search import global_search
+
     await create_and_sync(ctx, SIMPLE_DOCTYPE)
     data = await global_search(q="zzz_не_існує_xyz")
     assert data == []
@@ -155,6 +168,7 @@ async def test_search_no_results_for_unknown_query(ctx):
 async def test_search_finds_by_name_field(ctx):
     """Search matches the built-in `name` field."""
     from grunt.api.v1.search import global_search
+
     await create_and_sync(ctx, SIMPLE_DOCTYPE)
     await create_doc(ctx, "Документ", {"name": "УН-2024-001", "title": "Щось"})
 
@@ -166,10 +180,9 @@ async def test_search_finds_by_name_field(ctx):
 async def test_search_finds_by_title_field(ctx):
     """Search matches the title_field value."""
     from grunt.api.v1.search import global_search
+
     await create_and_sync(ctx, SIMPLE_DOCTYPE)
-    await create_doc(
-        ctx, "Документ", {"name": "ДОК-001", "title": "Договір оренди"}
-    )
+    await create_doc(ctx, "Документ", {"name": "ДОК-001", "title": "Договір оренди"})
 
     data = await global_search(q="оренди")
     assert any(r["display_title"] == "Договір оренди" for r in data)
@@ -179,6 +192,7 @@ async def test_search_finds_by_title_field(ctx):
 async def test_search_finds_by_search_fields(ctx):
     """Search uses search_fields defined in DocType."""
     from grunt.api.v1.search import global_search
+
     doctype = {
         **SIMPLE_DOCTYPE,
         "fields": [
@@ -203,10 +217,9 @@ async def test_search_finds_by_search_fields(ctx):
 async def test_search_partial_match(ctx):
     """Search works with partial substring (LIKE %q%)."""
     from grunt.api.v1.search import global_search
+
     await create_and_sync(ctx, SIMPLE_DOCTYPE)
-    await create_doc(
-        ctx, "Документ", {"name": "ДОК-001", "title": "Акт приймання-передачі"}
-    )
+    await create_doc(ctx, "Документ", {"name": "ДОК-001", "title": "Акт приймання-передачі"})
 
     data = await global_search(q="прийм")
     assert any("прийм" in r["display_title"].lower() for r in data)
@@ -216,10 +229,9 @@ async def test_search_partial_match(ctx):
 async def test_display_title_uses_title_field(ctx):
     """display_title equals title_field value when it is set."""
     from grunt.api.v1.search import global_search
+
     await create_and_sync(ctx, SIMPLE_DOCTYPE)
-    await create_doc(
-        ctx, "Документ", {"name": "ДОК-001", "title": "Людська назва"}
-    )
+    await create_doc(ctx, "Документ", {"name": "ДОК-001", "title": "Людська назва"})
 
     data = await global_search(q="Людська")
     result = data[0]
@@ -231,6 +243,7 @@ async def test_display_title_uses_title_field(ctx):
 async def test_display_title_falls_back_to_name(ctx):
     """display_title equals name when DocType has no title_field."""
     from grunt.api.v1.search import global_search
+
     doctype_no_title = {
         "name": "Запис",
         "label": "Запис",
@@ -258,6 +271,7 @@ async def test_display_title_falls_back_to_name(ctx):
 async def test_search_default_limit_is_10(ctx):
     """Without limit param, at most 10 results returned."""
     from grunt.api.v1.search import global_search
+
     await create_and_sync(ctx, SIMPLE_DOCTYPE)
     for i in range(15):
         await ctx.new_doc(
@@ -274,6 +288,7 @@ async def test_search_default_limit_is_10(ctx):
 async def test_search_custom_limit_respected(ctx):
     """limit param caps total results."""
     from grunt.api.v1.search import global_search
+
     await create_and_sync(ctx, SIMPLE_DOCTYPE)
     for i in range(10):
         await ctx.new_doc("Документ", {"name": f"ДОК-{i:03}", "title": f"Акт {i}"})
@@ -290,6 +305,7 @@ async def test_search_custom_limit_respected(ctx):
 async def test_search_across_multiple_doctypes(ctx):
     """Matching results from different DocTypes are returned together."""
     from grunt.api.v1.search import global_search
+
     doctype_a = {
         "name": "Клієнт",
         "label": "Клієнт",
@@ -321,6 +337,7 @@ async def test_search_across_multiple_doctypes(ctx):
 async def test_search_total_limit_across_doctypes(ctx):
     """Total results across all DocTypes respects limit."""
     from grunt.api.v1.search import global_search
+
     for dt_name, module in [("ТипА", "mod_a"), ("ТипБ", "mod_b")]:
         dt = {
             "name": dt_name,
@@ -348,6 +365,7 @@ async def test_search_total_limit_across_doctypes(ctx):
 async def test_child_doctype_excluded_from_search(ctx):
     """DocTypes with is_child=True are never included in search results."""
     from grunt.api.v1.search import global_search
+
     child_dt = {
         "name": "РядокТаблиці",
         "label": "Рядок таблиці",
@@ -370,6 +388,7 @@ async def test_search_open_doctype_accessible_to_regular_user(ctx):
     """DocType without permissions config is open — regular user can find docs."""
     from grunt.api.v1.search import global_search
     from grunt.app import grunt
+
     await create_and_sync(ctx, SIMPLE_DOCTYPE)
     await create_doc(ctx, "Документ", {"name": "ДОК-001", "title": "Відкритий документ"})
 
@@ -384,6 +403,7 @@ async def test_search_restricted_doctype_hidden_from_regular_user(ctx):
     """DocType restricted by role is excluded from results for users without that role."""
     from grunt.api.v1.search import global_search
     from grunt.app import grunt
+
     restricted_dt = {
         "name": "СекретнийДок",
         "label": "Секретний",
@@ -406,6 +426,7 @@ async def test_search_restricted_doctype_hidden_from_regular_user(ctx):
 async def test_search_restricted_doctype_visible_to_superadmin(ctx):
     """Superadmin sees results from all DocTypes regardless of permissions."""
     from grunt.api.v1.search import global_search
+
     restricted_dt = {
         "name": "АдмінДок",
         "label": "Адмін",
@@ -430,7 +451,7 @@ async def test_search_skips_doctype_without_table(ctx):
     """DocType registered but not synced (no table) → skipped, no 500 error."""
     from grunt.api.v1.meta import save_doctype
     from grunt.api.v1.search import global_search
-    
+
     # Register DocType without calling sync_doctype
     await save_doctype(
         doctype_data={

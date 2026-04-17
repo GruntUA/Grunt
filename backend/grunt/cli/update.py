@@ -53,7 +53,7 @@ def update(skip_migrate: bool, skip_packages: bool, skip_npm: bool, site: str | 
     click.echo("\nОновлення завершено.")
 
 
-def _grunt_app_dir() -> "Path":
+def _grunt_app_dir() -> Path:
     """Return the grunt app root (where pyproject.toml and package.json live)."""
     from pathlib import Path  # noqa: PLC0415
 

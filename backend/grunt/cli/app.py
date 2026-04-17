@@ -8,7 +8,9 @@ import click
 @click.argument("name")
 @click.option("--no-git", is_flag=True, default=False, help="Не ініціалізувати git репозиторій")
 @click.option(
-    "--dest", default=None, help="Директорія для створення додатку (за замовчуванням: bench_dir/apps/)"
+    "--dest",
+    default=None,
+    help="Директорія для створення додатку (за замовчуванням: bench_dir/apps/)",
 )
 def create_app(name: str, no_git: bool, dest: str | None):
     """Інтерактивно створити новий Grunt додаток.
@@ -34,8 +36,8 @@ async def _do_install(name: str, site: str | None = None) -> None:
     import json  # noqa: PLC0415
 
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
     from grunt.core.db.base import Base  # noqa: PLC0415
+    from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.site.manager import current_site, site_manager  # noqa: PLC0415
     from grunt.core.startup import load_core_doctypes, seed_app_workspaces  # noqa: PLC0415

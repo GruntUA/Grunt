@@ -26,7 +26,7 @@ def init():
 @click.option("--no-frontend", is_flag=True, help="Не запускати фронтенд")
 def serve(port, reload, no_frontend):
     root_dir = Path(__file__).parents[3]
-    
+
     frontend_process = None
     if not no_frontend:
         # Kill any stale process on port 5173 so Vite always starts on the expected port
@@ -49,11 +49,14 @@ def serve(port, reload, no_frontend):
     if reload:
         cmd += [
             "--reload",
-            "--reload-include", "*.js",
-            "--reload-include", "*.json",
-            "--reload-dir", str(root_dir / "backend"),
+            "--reload-include",
+            "*.js",
+            "--reload-include",
+            "*.json",
+            "--reload-dir",
+            str(root_dir / "backend"),
         ]
-    
+
     try:
         subprocess.run(cmd, cwd=root_dir)
     except KeyboardInterrupt:

@@ -32,7 +32,7 @@ class AssignmentRule(Document):
         if self.filters:
             try:
                 json.loads(self.filters)
-            except (json.JSONDecodeError, TypeError):
+            except json.JSONDecodeError, TypeError:
                 grunt.throw(
                     "Поле 'Filters (JSON)' має містити валідний JSON. "
                     'Приклад: {"status": "Draft"}',
@@ -52,7 +52,7 @@ class AssignmentRule(Document):
             return raw
         try:
             return json.loads(raw)
-        except (json.JSONDecodeError, TypeError):
+        except json.JSONDecodeError, TypeError:
             return {}
 
     def match(self, doc: dict[str, Any]) -> bool:
@@ -121,10 +121,10 @@ class AssignmentRule(Document):
         rule_id: str | None = None,
     ) -> None:
         """Призначити документ конкретному користувачеві (create ToDo)."""
-        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.doctypes.assignment_log.assignment_log import (  # noqa: PLC0415
             AssignmentLog,
         )
+        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
         try:
             todo_doc = {
@@ -175,11 +175,13 @@ class AssignmentRule(Document):
         rule_id: str | None = None,
     ) -> None:
         """Призначити документ всім активним користувачам ролі."""
-        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.doctypes.assignment_log.assignment_log import (  # noqa: PLC0415
             AssignmentLog,
         )
-        from grunt.core.doctypes.user.user import get_user_by_id  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import (
+            SYSTEM_USER,  # noqa: PLC0415
+            get_user_by_id,  # noqa: PLC0415
+        )
 
         try:
             _tokens = grunt_app.set_context(session, None, SYSTEM_USER)

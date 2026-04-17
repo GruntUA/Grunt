@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from grunt.core.site.manager import site_manager
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
+async def get_session() -> AsyncGenerator[AsyncSession]:
     """FastAPI dependency that yields a transactional async session for the active site.
 
     Also sets the session in the Grunt API context so developers can use:
@@ -60,7 +60,7 @@ async def get_engine() -> AsyncEngine:
 
 
 @asynccontextmanager
-async def async_session_factory() -> AsyncGenerator[AsyncSession, None]:
+async def async_session_factory() -> AsyncGenerator[AsyncSession]:
     """Context manager for acquiring a session outside of a FastAPI request.
 
     Use in background tasks, scheduler jobs, and CLI commands where there is

@@ -232,6 +232,7 @@ class ReportEngine:
             ]
 
         from collections.abc import Callable  # noqa: PLC0415, TC003
+
         agg_map: dict[str, Callable[..., Any]] = {
             "count": func.count,
             "sum": func.sum,

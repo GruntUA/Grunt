@@ -39,7 +39,7 @@ class Comment(Document):
     ) -> dict[str, Any]:
         """Add a comment to a document."""
         from grunt.app import grunt  # noqa: PLC0415
-        
+
         return await grunt.new_doc(
             "Comment",
             {
@@ -55,7 +55,7 @@ class Comment(Document):
     async def get_all(cls, doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Get all comments on a document."""
         from grunt.app import grunt  # noqa: PLC0415
-        
+
         return await grunt.get_list(
             "Comment",
             filters={"reference_doctype": doctype, "reference_id": doc_id},
@@ -68,5 +68,5 @@ class Comment(Document):
     async def delete(cls, comment_id: str) -> None:
         """Delete a comment. Controller enforces ownership check."""
         from grunt.app import grunt  # noqa: PLC0415
-        
+
         await grunt.delete_doc("Comment", comment_id)

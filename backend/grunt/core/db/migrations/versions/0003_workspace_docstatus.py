@@ -23,7 +23,7 @@ def upgrade():
     if "docstatus" not in existing_cols:
         op.add_column(
             "grunt_workspace",
-            sa.Column("docstatus", sa.Integer(), nullable=False, server_default="0")
+            sa.Column("docstatus", sa.Integer(), nullable=False, server_default="0"),
         )
     if "owner" not in existing_cols:
         op.add_column(

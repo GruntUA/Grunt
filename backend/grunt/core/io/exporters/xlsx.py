@@ -44,9 +44,7 @@ def _fmt(value: Any) -> Any:
 class XlsxExporter(Exporter):
     id = "xlsx"
     label = "Excel (XLSX)"
-    content_type = (
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     file_extension = "xlsx"
 
     async def export(

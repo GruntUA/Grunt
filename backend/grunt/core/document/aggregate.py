@@ -43,10 +43,7 @@ async def compute_aggregations(
 
     Returns an empty dict if no aggregate fields are defined.
     """
-    agg_fields = [
-        f for f in dt.fields
-        if f.aggregate_function
-    ]
+    agg_fields = [f for f in dt.fields if f.aggregate_function]
     if not agg_fields:
         return {}
 
@@ -94,8 +91,10 @@ async def compute_aggregations(
 
         # "count" does not need a child column
         if func_name == "count":
-            stmt = select(func.count()).select_from(child_table).where(
-                child_table.c.parent_id == parent_id
+            stmt = (
+                select(func.count())
+                .select_from(child_table)
+                .where(child_table.c.parent_id == parent_id)
             )
         else:
             if not child_col or child_col not in child_table.c:

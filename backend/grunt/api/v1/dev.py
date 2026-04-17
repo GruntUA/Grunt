@@ -1,49 +1,63 @@
 """Dev-mode profiler whitelisted methods."""
 
 from __future__ import annotations
+
 from typing import Any
+
 import grunt
 from grunt.config import settings
+
 
 def _require_debug() -> None:
     if not settings.debug:
         grunt.throw("Not found", "NOT_FOUND")
+
 
 @grunt.whitelist()
 async def get_profiler_requests(limit: int = 50) -> list[dict[str, Any]]:
     """Recent requests with per-request query breakdown."""
     _require_debug()
     from grunt.core.db.profiler import get_recent_requests
+
     return get_recent_requests(limit=int(limit))
+
 
 @grunt.whitelist()
 async def get_slow_queries(limit: int = 100) -> list[dict[str, Any]]:
     """All slow queries from the global ring buffer."""
     _require_debug()
     from grunt.core.db.profiler import get_slow_queries
+
     return get_slow_queries(limit=int(limit))
+
 
 @grunt.whitelist()
 async def get_profiler_stats() -> dict[str, Any]:
     """Aggregate stats: request count, slow query count, avg/p95 duration."""
     _require_debug()
     from grunt.core.db.profiler import get_stats
+
     return get_stats()
+
 
 @grunt.whitelist()
 async def clear_profiler() -> bool:
     """Clear both ring buffers."""
     _require_debug()
     from grunt.core.db.profiler import clear_buffers
+
     clear_buffers()
     return True
+
 
 @grunt.whitelist()
 async def get_profiler_settings() -> dict[str, Any]:
     """Return current profiler runtime settings."""
     _require_debug()
     from grunt.core.db.profiler import get_settings
+
     return get_settings()
+
 
 @grunt.whitelist()
 async def update_profiler_settings(
@@ -74,5 +88,5 @@ async def update_profiler_settings(
         set_request_threshold(max(1.0, float(slow_request_ms)))
     if n1_threshold is not None:
         set_n1_threshold(int(n1_threshold))
-        
+
     return get_settings()

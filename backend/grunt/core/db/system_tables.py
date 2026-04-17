@@ -46,9 +46,7 @@ class GruntInstalledApp(Base):
     modules: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
     owner: Mapped[str] = mapped_column(String(255), nullable=False, default="system")
     docstatus: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     modified_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

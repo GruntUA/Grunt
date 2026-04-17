@@ -123,12 +123,13 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
 def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | None) -> None:
     """Видалити колонки з таблиць, яких немає в метаданих (DocType)."""
     import asyncio  # noqa: PLC0415
+
     from grunt.core.site.manager import site_manager  # noqa: PLC0415
 
     async def _run() -> None:
         from grunt.app import grunt
-        from grunt.core.startup import load_core_doctypes
         from grunt.core.metadata.registry import doctype_registry
+        from grunt.core.startup import load_core_doctypes
 
         sites = [site] if site else site_manager.get_sites()
         if not sites:
@@ -140,20 +141,21 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
                 click.echo(f"\n── Сайт: {site_name} ──")
             eng = site_manager.get_engine(site_name)
             maker = site_manager.get_session_maker(site_name)
-            
+
             async with maker() as session:
                 # Eagerly load doctypes so we can iterate them
                 await load_core_doctypes(session)
-                
+
                 # Fetch target Meta(s)
                 grunt.session.set_context(session, eng)
                 if doctype:
                     metas = [await grunt.get_meta(doctype)]
                 else:
                     from grunt.core.document.meta import Meta
+
                     all_dts = await doctype_registry.list_all()
                     metas = [Meta(dt) for dt in all_dts]
-                    
+
                 # Trim them
                 for m in metas:
                     await m.trim_table(engine=eng, dry_run=dry_run, quiet=quiet)

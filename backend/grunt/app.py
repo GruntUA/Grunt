@@ -28,7 +28,6 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
     from grunt.core.doctypes.user.user import User
-    from grunt.core.metadata.doctype import DocType
 
 logger = structlog.get_logger()
 
@@ -111,7 +110,7 @@ class GruntApp:
         session: AsyncSession,
         engine: AsyncEngine | None = None,
         user: User | None = None,
-    ) -> AsyncGenerator[None, None]:
+    ) -> AsyncGenerator[None]:
         """Async context manager that activates a grunt context for background tasks.
 
         Use this in background tasks and CLI commands instead of calling
@@ -490,7 +489,10 @@ class GruntApp:
         if doc_id:
             doc = await self.db.get_value(doctype, doc_id, "*")
         return await permission_checker.check(
-            user, dt, action, doc  # type: ignore[arg-type]
+            user,
+            dt,
+            action,
+            doc,  # type: ignore[arg-type]
         )
 
     async def enqueue_doc(
@@ -522,7 +524,7 @@ class GruntApp:
 
     # ── Meta ──────────────────────────────────────────────────────────────
 
-    async def get_meta(self, doctype: str) -> "Meta":
+    async def get_meta(self, doctype: str) -> Meta:
         """Return the :class:`~grunt.core.document.meta.Meta` wrapper."""
         from grunt.core.document.meta import Meta
         from grunt.core.metadata.registry import doctype_registry

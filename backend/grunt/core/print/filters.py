@@ -44,14 +44,12 @@ def striptags(value: str | None) -> str:
     return re.sub(r"<[^>]+>", "", value)
 
 
-import json
-
 def from_json(value: str | None) -> Any:
     if not value:
         return {}
     try:
         return json.loads(value)
-    except (json.JSONDecodeError, TypeError):
+    except json.JSONDecodeError, TypeError:
         return {}
 
 

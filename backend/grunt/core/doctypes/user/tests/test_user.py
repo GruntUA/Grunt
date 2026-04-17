@@ -1,5 +1,5 @@
 import pytest
-from grunt.app import grunt
+
 
 @pytest.mark.asyncio
 async def test_user_dummy():

@@ -89,7 +89,7 @@ async def current_user(
             "is_active": bool(payload.get("is_active", True)),
             "theme": payload.get("theme") or "system",
             "roles": payload.get("roles") or [],
-        }
+        },
     )
 
     if not user.is_active:

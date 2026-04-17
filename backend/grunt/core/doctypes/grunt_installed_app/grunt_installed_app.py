@@ -1,12 +1,17 @@
 from __future__ import annotations
+
 from typing import Any
+
 import grunt
 from grunt.app import grunt as grunt_app
 from grunt.core.document.base import Document
 
+
 class GruntInstalledApp(Document):
     """GruntInstalledApp DocType controller."""
+
     pass
+
 
 @grunt.whitelist()
 async def list_apps() -> list[dict[str, Any]]:
@@ -23,6 +28,7 @@ async def list_apps() -> list[dict[str, Any]]:
         }
         for a in apps
     ]
+
 
 @grunt.whitelist()
 async def register_app(
@@ -54,6 +60,7 @@ async def register_app(
     )
     return {"name": app.get("name"), "title": app.get("title")}
 
+
 @grunt.whitelist()
 async def add_module(name: str, module: str) -> dict[str, Any]:
     """Add a module to an installed app."""
@@ -76,6 +83,7 @@ async def add_module(name: str, module: str) -> dict[str, Any]:
     await grunt_app.save_doc("GruntInstalledApp", app_id, {"modules": current_modules})
 
     return {"name": app.get("name"), "title": app.get("title"), "modules": current_modules}
+
 
 @grunt.whitelist()
 async def delete_app(name: str) -> bool:

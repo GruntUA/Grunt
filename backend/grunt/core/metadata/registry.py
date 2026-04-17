@@ -41,8 +41,8 @@ class DocTypeRegistry:
 
         # O(1) case-insensitive lookup indices.
         # Maps name.lower() → canonical name.  Updated by every write method.
-        self._lower_index: dict[str, str] = {}   # for loaded _doctypes
-        self._known_lower: dict[str, str] = {}   # for lazy _known_names
+        self._lower_index: dict[str, str] = {}  # for loaded _doctypes
+        self._known_lower: dict[str, str] = {}  # for lazy _known_names
 
     # ── Index helpers ─────────────────────────────────────────────────────
 
@@ -266,7 +266,7 @@ class DocTypeRegistry:
                         stored_field = stored_fieldnames.get(json_field.fieldname)
                         if stored_field is not None and stored_field.default != json_field.default:
                             stored_field.default = json_field.default
-                            
+
                     if sync_db:
                         try:
                             await session.execute(

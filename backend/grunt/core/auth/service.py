@@ -65,7 +65,6 @@ def verify_mfa_token(token: str) -> dict | None:
         return None
 
 
-
 # ── Refresh tokens ────────────────────────────────────────────────────────
 
 

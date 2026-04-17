@@ -9,15 +9,15 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-import grunt.core.doctypes.user.user  # noqa: F401
 import grunt.core.db.system_tables  # noqa: F401
+import grunt.core.doctypes.user.user  # noqa: F401
+from grunt.config import settings
 from grunt.core.db.base import Base
 from grunt.core.db.session import get_session
 from grunt.core.metadata.compiler import MULTI_LINK_TABLE, SA_METADATA, compile_doctype_to_table
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.search.service import search_index_service
 from grunt.main import app
-from grunt.config import settings
 
 # Disable rate limiting for tests
 settings.rate_limit_enabled = False
@@ -147,7 +147,7 @@ async def ctx(db_session: AsyncSession, engine: AsyncEngine):
     """Provide an active grunt context with SYSTEM_USER for tests."""
     from grunt.app import grunt as grunt_app
     from grunt.core.doctypes.user.user import SYSTEM_USER
-    
+
     async with grunt_app.context(db_session, engine, SYSTEM_USER):
         yield grunt_app
 
@@ -160,7 +160,7 @@ async def auth_headers(client: AsyncClient) -> dict[str, str]:
         json={"email": "admin@grunt.example.com", "password": "secret", "full_name": "Admin"},
     )
     assert r_reg.status_code in (201, 200, 409)  # 409 if user somehow persisted
-    
+
     resp = await client.post(
         "/api/v1/auth/token",
         data={"username": "admin@grunt.example.com", "password": "secret"},

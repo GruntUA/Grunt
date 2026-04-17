@@ -51,8 +51,8 @@ def _load_translations(lang: str) -> _gettext.GNUTranslations | _gettext.NullTra
     mo_path = _LOCALE_DIR / lang / "LC_MESSAGES" / "grunt.mo"
     if mo_path.exists():
         with open(mo_path, "rb") as f:
-            trans: _gettext.GNUTranslations | _gettext.NullTranslations = (
-                _gettext.GNUTranslations(f)
+            trans: _gettext.GNUTranslations | _gettext.NullTranslations = _gettext.GNUTranslations(
+                f
             )
             _translations[lang] = trans
             logger.debug("i18n.loaded_mo", lang=lang)

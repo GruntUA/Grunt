@@ -5,11 +5,12 @@ import click
 from grunt.cli.app import app_group, create_app
 from grunt.cli.db import db_group, db_migrate
 from grunt.cli.doctype import doctype_group
+from grunt.cli.lint import lint
 from grunt.cli.server import init, serve, worker
 from grunt.cli.site import site_group
+from grunt.cli.test import test
 from grunt.cli.update import update
 from grunt.cli.user import users_group
-from grunt.cli.test import test
 
 
 @click.group()
@@ -50,6 +51,7 @@ cli.add_command(app_group)
 cli.add_command(doctype_group)
 cli.add_command(site_group)
 cli.add_command(db_migrate, name="migrate")
+cli.add_command(lint)
 
 # Load dynamic plugins
 _load_plugins()

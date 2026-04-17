@@ -78,14 +78,16 @@ async def create_api_key(
         },
     )
 
-    return ok({
-        "id": doc["id"],
-        "key": full_key,
-        "key_prefix": key_prefix,
-        "label": doc["label"],
-        "expires_at": doc.get("expires_at"),
-        "allowed_ips": doc.get("allowed_ips") or "",
-    })
+    return ok(
+        {
+            "id": doc["id"],
+            "key": full_key,
+            "key_prefix": key_prefix,
+            "label": doc["label"],
+            "expires_at": doc.get("expires_at"),
+            "allowed_ips": doc.get("allowed_ips") or "",
+        }
+    )
 
 
 @router.get("")
@@ -101,7 +103,15 @@ async def list_api_keys(
     keys = await grunt.get_list(
         "ApiKey",
         filters=filters,
-        fields=["id", "label", "key_prefix", "is_active", "last_used_at", "expires_at", "allowed_ips"],
+        fields=[
+            "id",
+            "label",
+            "key_prefix",
+            "is_active",
+            "last_used_at",
+            "expires_at",
+            "allowed_ips",
+        ],
         order_by="created_at",
         order="desc",
         limit=200,
@@ -122,7 +132,9 @@ async def update_api_key(
     updates: dict[str, Any] = {}
     if body.label is not None:
         if not body.label.strip():
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="label не може бути порожнім")
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_CONTENT, detail="label не може бути порожнім"
+            )
         updates["label"] = body.label.strip()
     if body.is_active is not None:
         updates["is_active"] = body.is_active
@@ -132,17 +144,21 @@ async def update_api_key(
         updates["allowed_ips"] = body.allowed_ips
 
     if not updates:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="Немає полів для оновлення")
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, detail="Немає полів для оновлення"
+        )
 
     doc = await grunt.save_doc("ApiKey", key_id, updates)
-    return ok({
-        "id": doc["id"],
-        "label": doc["label"],
-        "key_prefix": doc["key_prefix"],
-        "is_active": doc["is_active"],
-        "expires_at": doc.get("expires_at"),
-        "allowed_ips": doc.get("allowed_ips") or "",
-    })
+    return ok(
+        {
+            "id": doc["id"],
+            "label": doc["label"],
+            "key_prefix": doc["key_prefix"],
+            "is_active": doc["is_active"],
+            "expires_at": doc.get("expires_at"),
+            "allowed_ips": doc.get("allowed_ips") or "",
+        }
+    )
 
 
 @router.delete("/{key_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import structlog
 
-from grunt.core.doctypes.user.user import SYSTEM_USER
 from grunt.core.data_import.service import DataImportService
+from grunt.core.doctypes.user.user import SYSTEM_USER
 from grunt.core.site.manager import site_manager
 from grunt.core.tasks.broker import retryable_task
 

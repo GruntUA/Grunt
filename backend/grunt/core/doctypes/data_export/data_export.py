@@ -11,8 +11,8 @@ from typing import Any
 
 import structlog
 
-from grunt.core.document.base import Document
 from grunt.core.doctypes.data_import.data_import import DataImport
+from grunt.core.document.base import Document
 
 logger = structlog.get_logger()
 
@@ -33,7 +33,11 @@ class DataExport(Document):
 
             fields: list[str] | None = None
             if self.fields_to_export:
-                raw = self.fields_to_export if isinstance(self.fields_to_export, str) else json.dumps(self.fields_to_export)
+                raw = (
+                    self.fields_to_export
+                    if isinstance(self.fields_to_export, str)
+                    else json.dumps(self.fields_to_export)
+                )
                 fields = json.loads(raw)
 
             fmt = (self.export_format or "csv").lower()
@@ -51,7 +55,11 @@ class DataExport(Document):
             # Save as File document and attach to this record
             file_doc = await self._save_file(filename, file_bytes, fmt)
 
-            exported_rows = len(file_bytes.splitlines()) - 1 if fmt == "csv" else self._count_xlsx_rows(file_bytes)
+            exported_rows = (
+                len(file_bytes.splitlines()) - 1
+                if fmt == "csv"
+                else self._count_xlsx_rows(file_bytes)
+            )
 
             self.status = "Success"
             self.exported_rows = max(0, exported_rows)
@@ -98,6 +106,7 @@ class DataExport(Document):
     @staticmethod
     def _count_xlsx_rows(file_bytes: bytes) -> int:
         import io  # noqa: PLC0415
+
         import openpyxl  # noqa: PLC0415
 
         try:

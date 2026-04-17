@@ -1,8 +1,11 @@
 """Tests for the Assignment Rules system (migrated to whitelisted methods)."""
 
 from __future__ import annotations
+
 import pytest
+
 from grunt.core.assignment import AssignmentService
+
 
 class TestAssignmentFilters:
     """Test filter matching logic (Unit tests, no change needed)."""
@@ -73,13 +76,14 @@ class TestAssignmentAPI:
         # 2. Test the rule
         test_doc = {"status": "Draft", "amount": 100}
         data = await test_rule(rule_id=rule["id"], test_doc=test_doc)
-        
+
         assert data["matched"] is True
         assert data["will_assign_to"] == ["admin@grunt.local"]
 
     async def test_list_assignment_logs_api(self, ctx):
         """Test the assignment log listing logic directly."""
         import datetime
+
         from grunt.core.doctypes.assignment_log.assignment_log import list_logs
 
         log_doc = {
@@ -95,6 +99,6 @@ class TestAssignmentAPI:
         await ctx.db._session().commit()
 
         data = await list_logs(doctype="Invoice")
-        
+
         assert data["count"] >= 1
         assert any(log["document_id"] == "INV-TEST" for log in data["data"])

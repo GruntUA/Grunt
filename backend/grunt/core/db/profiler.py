@@ -14,7 +14,6 @@ Results are exposed via /api/v1/dev/profiler.
 
 from __future__ import annotations
 
-import asyncio
 import functools
 import inspect
 import threading
@@ -147,7 +146,7 @@ _threshold_var: ContextVar[float] = ContextVar("_threshold_var", default=200.0)
 def collect_for_request(
     request_id: str,
     threshold_ms: float = 200.0,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """Context manager: accumulates queries and spans for *request_id*.
 
     When profiling is disabled the context manager is a no-op.
@@ -344,7 +343,7 @@ def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> N
 
 
 @asynccontextmanager
-async def profile_span(name: str) -> AsyncGenerator[None, None]:
+async def profile_span(name: str) -> AsyncGenerator[None]:
     """Async context manager that records a named span in the current request profile.
 
     Usage::

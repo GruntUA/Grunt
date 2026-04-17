@@ -67,4 +67,3 @@ class MfaVerifyRequest(BaseModel):
 class MfaLoginRequest(BaseModel):
     mfa_token: str
     code: str
-

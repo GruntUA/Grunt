@@ -177,17 +177,19 @@ async def oauth_callback(
     refresh_token = await create_refresh_token(user.id, session)
     await session.commit()
 
-    return ok({
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-        "mfa_required": user.mfa_enabled,
-        "user": {
-            "id": user.id,
-            "email": user.email,
-            "full_name": user.full_name,
-            "roles": user.roles,
-            "is_superadmin": user.is_superadmin,
-            "theme": user.theme,
-        },
-    })
+    return ok(
+        {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "mfa_required": user.mfa_enabled,
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "full_name": user.full_name,
+                "roles": user.roles,
+                "is_superadmin": user.is_superadmin,
+                "theme": user.theme,
+            },
+        }
+    )

@@ -14,6 +14,7 @@ logger = structlog.get_logger()
 
 def _require_admin() -> None:
     from grunt.app import grunt as grunt_app
+
     user = grunt_app._require_user()
     if not user.is_superadmin:
         grunt.throw("Admin only", "PERMISSION_DENIED")
@@ -88,7 +89,5 @@ async def list_queue(
 @grunt.whitelist()
 async def retry_item(queue_id: str) -> bool:
     _require_admin()
-    await grunt.db.set_value(
-        "EmailQueue", queue_id, {"status": "Pending", "error_message": None}
-    )
+    await grunt.db.set_value("EmailQueue", queue_id, {"status": "Pending", "error_message": None})
     return True

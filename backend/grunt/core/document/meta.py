@@ -50,13 +50,17 @@ class Meta:
     def get_link_fields(self) -> list[DocField]:
         """Return all Link and Dynamic Link fields."""
         if self._link_fields is None:
-            self._link_fields = [f for f in self.doc.fields if f.fieldtype in ("Link", "Dynamic Link")]
+            self._link_fields = [
+                f for f in self.doc.fields if f.fieldtype in ("Link", "Dynamic Link")
+            ]
         return self._link_fields
 
     def get_table_fields(self) -> list[DocField]:
         """Return all child table fields (Table, Table MultiSelect)."""
         if self._table_fields is None:
-            self._table_fields = [f for f in self.doc.fields if f.fieldtype in ("Table", "Table MultiSelect")]
+            self._table_fields = [
+                f for f in self.doc.fields if f.fieldtype in ("Table", "Table MultiSelect")
+            ]
         return self._table_fields
 
     def get_data_fields(self) -> list[DocField]:
@@ -81,13 +85,33 @@ class Meta:
     def get_valid_columns(self) -> list[str]:
         """Return all valid physical database columns."""
         if self._valid_columns is None:
-            cols = ["id", "name", "owner", "created_at", "modified_at", "docstatus", "idx", "parent", "parentfield", "parenttype"]
+            cols = [
+                "id",
+                "name",
+                "owner",
+                "created_at",
+                "modified_at",
+                "docstatus",
+                "idx",
+                "parent",
+                "parentfield",
+                "parenttype",
+            ]
             sys_cols = set(cols)
 
             for df in self.doc.fields:
                 if getattr(df, "is_virtual", False):
                     continue
-                if df.fieldtype not in ("Section", "Column", "HTML", "Tab", "Tab Break", "Button", "Table", "Table MultiSelect"):
+                if df.fieldtype not in (
+                    "Section",
+                    "Column",
+                    "HTML",
+                    "Tab",
+                    "Tab Break",
+                    "Button",
+                    "Table",
+                    "Table MultiSelect",
+                ):
                     if df.fieldname not in sys_cols:
                         cols.append(df.fieldname)
             self._valid_columns = cols
@@ -101,35 +125,34 @@ class Meta:
             return
 
         from sqlalchemy import inspect, text
+
         from grunt.core.metadata.compiler import get_table_name
 
         table_name = self.doc.table_name or get_table_name(self.doc.module, self.doc.name)
 
         def _trim(connection):
             insp = inspect(connection)
-            
+
             if not insp.has_table(table_name):
                 return
-                
+
             db_cols = {c["name"] for c in insp.get_columns(table_name)}
             valid_cols = set(self.get_valid_columns())
-            
+
             to_drop = db_cols - valid_cols
-            
+
             for col in to_drop:
                 if dry_run:
                     if not quiet:
                         print(f"[dry-run] would DROP COLUMN '{col}' from TABLE '{table_name}'")
                 else:
                     try:
-                        connection.execute(
-                            text(f'ALTER TABLE "{table_name}" DROP COLUMN "{col}"')
-                        )
+                        connection.execute(text(f'ALTER TABLE "{table_name}" DROP COLUMN "{col}"'))
                         if not quiet:
                             print(f"Dropped column '{col}' from table '{table_name}'")
                     except Exception as e:
                         if not quiet:
                             print(f"Failed to drop column '{col}' from table '{table_name}': {e}")
-                            
+
         async with engine.begin() as conn:
             await conn.run_sync(_trim)

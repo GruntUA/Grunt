@@ -128,8 +128,10 @@ async def bulk_delete_documents(
         raw_filters: dict[str, str] = body.get("filters", {}) or {}
         search: str | None = body.get("search") or None
         result = await svc.list_documents(
-            doctype, user,
-            page=1, per_page=100_000,
+            doctype,
+            user,
+            page=1,
+            per_page=100_000,
             fields=["id"],
             filters=raw_filters if raw_filters else None,
             search=search,
@@ -138,7 +140,9 @@ async def bulk_delete_documents(
     else:
         ids = body.get("ids", [])
         if not ids:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="ids or delete_all is required")
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_CONTENT, detail="ids or delete_all is required"
+            )
 
     total = len(ids)
     user_email = user.email
@@ -148,19 +152,25 @@ async def bulk_delete_documents(
         from grunt.core.db.session import async_session_factory  # noqa: PLC0415
 
         async def _progress(done: int, _total: int, error_count: int) -> None:
-            await manager.send_to_user(user_email, {
-                "event": "bulk_delete_progress",
-                "data": {"done": done, "total": _total, "errors": error_count},
-            })
+            await manager.send_to_user(
+                user_email,
+                {
+                    "event": "bulk_delete_progress",
+                    "data": {"done": done, "total": _total, "errors": error_count},
+                },
+            )
 
         async with async_session_factory() as session:
             bg_svc = DocumentService(session, engine)
             deleted, errors = await bg_svc.bulk_delete(doctype, ids, user, progress_cb=_progress)
 
-        await manager.send_to_user(user_email, {
-            "event": "bulk_delete_done",
-            "data": {"deleted": deleted, "total": total, "errors": errors},
-        })
+        await manager.send_to_user(
+            user_email,
+            {
+                "event": "bulk_delete_done",
+                "data": {"deleted": deleted, "total": total, "errors": errors},
+            },
+        )
 
     asyncio.create_task(_run(), context=contextvars.Context())
     return ok({"started": True, "total": total})

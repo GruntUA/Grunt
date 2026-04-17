@@ -28,9 +28,7 @@ def _make_test_doctype(name: str = "TestDoc", **kwargs) -> DocType:
         DocField(fieldname="price", label="Price", fieldtype="Float"),
         DocField(fieldname="is_active", label="Active", fieldtype="Check"),
         DocField(fieldname="due_date", label="Due Date", fieldtype="Date"),
-        DocField(
-            fieldname="status", label="Status", fieldtype="Select", options="Draft\nActive"
-        ),
+        DocField(fieldname="status", label="Status", fieldtype="Select", options="Draft\nActive"),
         DocField(fieldname="metadata", label="Meta", fieldtype="JSON"),
         # Non-physical fields — should NOT produce columns
         DocField(fieldname="section_main", label="Main", fieldtype="Section"),

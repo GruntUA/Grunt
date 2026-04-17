@@ -31,7 +31,6 @@ Usage in your app:
             await notify("Update", f"{self.doc.name} was processed")
 """
 
-
 from grunt.api.context import (
     clear_context,
     get_engine,
@@ -77,7 +76,6 @@ __all__ = [
     "notify_all",
     "queue_email",
     "ApplicationError",
-
     # Permissions
     "can_read",
     "can_write",

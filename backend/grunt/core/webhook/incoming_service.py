@@ -113,13 +113,9 @@ class IncomingWebhookService:
         # ── 4. Dispatch action ─────────────────────────────────────────
         try:
             if action == "run_server_script":
-                action_taken, error_msg = await self._run_server_script(
-                    session, webhook, payload
-                )
+                action_taken, error_msg = await self._run_server_script(session, webhook, payload)
             elif action == "create_document":
-                action_taken, error_msg = await self._create_document(
-                    session, webhook, payload
-                )
+                action_taken, error_msg = await self._create_document(session, webhook, payload)
             # log_only: nothing extra to do
 
             if error_msg:
@@ -176,7 +172,7 @@ class IncomingWebhookService:
         # Strip algorithm prefix if present
         candidate = provided
         if candidate.startswith(expected_prefix):
-            candidate = candidate[len(expected_prefix):]
+            candidate = candidate[len(expected_prefix) :]
         elif candidate.startswith("sha256=") or candidate.startswith("sha1="):
             # Wrong algorithm prefix — reject
             return False

@@ -46,7 +46,12 @@ class DataImport(Document):
             "preview_rows": data[1:] if len(data) > 1 else [],
             "suggested_mapping": suggestions,
             "doctype_fields": [
-                {"fieldname": f.fieldname, "label": f.label, "fieldtype": f.fieldtype, "required": f.required}
+                {
+                    "fieldname": f.fieldname,
+                    "label": f.label,
+                    "fieldtype": f.fieldtype,
+                    "required": f.required,
+                }
                 for f in dt.fields
                 if f.fieldtype not in _SKIP_FIELDTYPES
             ],
@@ -81,7 +86,9 @@ class DataImport(Document):
 
         # Load required fields for dry-run validation
         dt = await doctype_registry.get(self.doctype_name)
-        required_fields = {f.fieldname for f in dt.fields if f.required and f.fieldtype not in _SKIP_FIELDTYPES}
+        required_fields = {
+            f.fieldname for f in dt.fields if f.required and f.fieldtype not in _SKIP_FIELDTYPES
+        }
         mapped_dt_fields = set(mapping.values())
 
         total = len(rows)
@@ -91,7 +98,9 @@ class DataImport(Document):
         for idx, row_data in enumerate(rows):
             row_num = idx + 2  # 1-based, accounting for header row
             try:
-                row_dict = dict(zip(headers, [str(v) if v is not None else "" for v in row_data], strict=False))
+                row_dict = dict(
+                    zip(headers, [str(v) if v is not None else "" for v in row_data], strict=False)
+                )
                 doc_data: dict[str, Any] = {}
                 for file_col, dt_field in mapping.items():
                     if dt_field and file_col in row_dict:
@@ -99,9 +108,13 @@ class DataImport(Document):
 
                 if self.dry_run:
                     # Validate required fields are present and non-empty
-                    missing = [f for f in required_fields if f in mapped_dt_fields and not doc_data.get(f)]
+                    missing = [
+                        f for f in required_fields if f in mapped_dt_fields and not doc_data.get(f)
+                    ]
                     if missing:
-                        raise ValueError(f"Обов'язкові поля відсутні або порожні: {', '.join(missing)}")
+                        raise ValueError(
+                            f"Обов'язкові поля відсутні або порожні: {', '.join(missing)}"
+                        )
                     # Validate update key exists when updating
                     if self.import_type == "Update Existing":
                         key = self.update_key
@@ -121,7 +134,9 @@ class DataImport(Document):
                             self.doctype_name, filters={key: key_value}, limit=1
                         )
                         if existing:
-                            await self.grunt.save_doc(self.doctype_name, existing[0]["id"], doc_data)
+                            await self.grunt.save_doc(
+                                self.doctype_name, existing[0]["id"], doc_data
+                            )
                         else:
                             raise ValueError(f"Документ з {key}={key_value} не знайдено")
                     else:
@@ -143,7 +158,9 @@ class DataImport(Document):
         self.error_log = json.dumps(errors)
         await self.session.commit()
 
-    async def _update_db_progress(self, processed: int, error_count: int, error_log: list[Any]) -> None:
+    async def _update_db_progress(
+        self, processed: int, error_count: int, error_log: list[Any]
+    ) -> None:
         self.processed_rows = processed
         self.error_count = error_count
         self.error_log = json.dumps(error_log)

@@ -17,7 +17,6 @@ from grunt.api.v1.auth.schemas import (
 )
 from grunt.api.v1.schemas.response import ok
 from grunt.core.auth.dependencies import current_user
-from grunt.core.doctypes.user.user import SYSTEM_USER, User
 from grunt.core.auth.service import (
     create_access_token,
     create_mfa_token,
@@ -28,6 +27,8 @@ from grunt.core.auth.service import (
 )
 from grunt.core.db.session import get_session
 from grunt.core.doctypes.user.user import (
+    SYSTEM_USER,
+    User,
     authenticate,
     create_user,
     get_user_by_email,

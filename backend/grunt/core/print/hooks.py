@@ -81,8 +81,8 @@ async def save_print_format_to_app(doc: dict[str, Any], **kwargs: Any) -> None:
             "is_default": doc.get("is_default"),
             "is_app_format": True,
             "app": app_name,
-        # We don't store the template in JSON if it's external,
-        # but here it's easier to keep together
+            # We don't store the template in JSON if it's external,
+            # but here it's easier to keep together
             "template": content,
         }
         meta_path.write_text(json.dumps(meta_data, indent=2, ensure_ascii=False), encoding="utf-8")

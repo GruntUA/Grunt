@@ -331,7 +331,7 @@ class NotificationService:
 
         try:
             return template.format(**context)
-        except (KeyError, IndexError):
+        except KeyError, IndexError:
             return template
 
     def _eval_condition(self, condition: str, doc: dict[str, Any], user: str) -> bool:

@@ -122,6 +122,7 @@ async def print_document(
         html = None
 
         import contextlib
+
         # 1. Try custom PrintFormat from DB
         pf = await get_print_format_template(session, doctype, print_format)
         if pf and pf[1] == "html":

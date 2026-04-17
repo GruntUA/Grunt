@@ -11,7 +11,6 @@ from grunt.api.v1.schemas.response import ok
 from grunt.core.auth.dependencies import current_user
 
 if TYPE_CHECKING:
-
     from grunt.api.v1.auth.schemas import MfaVerifyRequest
     from grunt.core.doctypes.user.user import User
 

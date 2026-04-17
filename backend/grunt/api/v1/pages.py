@@ -1,11 +1,32 @@
 """Pages whitelisted methods."""
 
 from __future__ import annotations
+
 from typing import Any
+
 import grunt
 
-_PAGE_FIELDS = ["id", "route", "title", "icon", "component", "app", "sidebar_section", "sidebar_order", "is_default_home"]
-_PAGE_UPDATABLE = {"title", "icon", "component", "app", "sidebar_section", "sidebar_order", "is_default_home"}
+_PAGE_FIELDS = [
+    "id",
+    "route",
+    "title",
+    "icon",
+    "component",
+    "app",
+    "sidebar_section",
+    "sidebar_order",
+    "is_default_home",
+]
+_PAGE_UPDATABLE = {
+    "title",
+    "icon",
+    "component",
+    "app",
+    "sidebar_section",
+    "sidebar_order",
+    "is_default_home",
+}
+
 
 @grunt.whitelist()
 async def list_pages() -> list[dict[str, Any]]:
@@ -14,10 +35,12 @@ async def list_pages() -> list[dict[str, Any]]:
         "Page", limit=1000, order_by="sidebar_order", order="asc", fields=_PAGE_FIELDS
     )
 
+
 @grunt.whitelist()
 async def register_page(page_data: dict[str, Any]) -> dict[str, Any]:
     """Register or update a custom page from an app. Admin only."""
     from grunt.app import grunt as grunt_app
+
     user = grunt_app._require_user()
     if not user.is_superadmin:
         grunt.throw("Not authorized", "PERMISSION_DENIED")
@@ -37,15 +60,18 @@ async def register_page(page_data: dict[str, Any]) -> dict[str, Any]:
 
     return {"route": route, "title": doc.get("title", route)}
 
+
 @grunt.whitelist()
 async def delete_page(route: str) -> bool:
     """Remove a custom page registration. Admin only."""
     from grunt.app import grunt as grunt_app
+
     user = grunt_app._require_user()
     if not user.is_superadmin:
         grunt.throw("Not authorized", "PERMISSION_DENIED")
 
-    if not route.startswith("/"): route = f"/{route}"
+    if not route.startswith("/"):
+        route = f"/{route}"
     existing = await grunt.get_list("Page", filters={"route": route}, limit=1)
     if not existing:
         grunt.throw("Сторінку не знайдено", "NOT_FOUND")

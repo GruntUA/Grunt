@@ -60,8 +60,7 @@ class DocumentWriteMixin:
         ...
 
     @staticmethod
-    def _reset_grunt_context(tokens: tuple) -> None:
-        ...
+    def _reset_grunt_context(tokens: tuple) -> None: ...
 
     async def get_document(
         self,
@@ -297,7 +296,11 @@ class DocumentWriteMixin:
             # changed formula values back into update_data for the DB write
             compute_formulas(dt, merged)
             for field in dt.fields:
-                if field.formula and field.fieldname in merged and field.fieldname not in PROTECTED_FIELDS:
+                if (
+                    field.formula
+                    and field.fieldname in merged
+                    and field.fieldname not in PROTECTED_FIELDS
+                ):
                     update_data[field.fieldname] = merged[field.fieldname]
 
             await fire(
@@ -504,8 +507,8 @@ class DocumentWriteMixin:
         self,
         doctype_name: str,
         ids: list[str],
-        user: "User",
-        progress_cb: "Any | None" = None,
+        user: User,
+        progress_cb: Any | None = None,
     ) -> tuple[int, list[str]]:
         """Delete multiple documents efficiently in a single transaction.
 
@@ -544,9 +547,7 @@ class DocumentWriteMixin:
 
         existing_rows: dict[str, dict] = {}
         for chunk in _chunks(ids, _IN_CHUNK):
-            result = await self.session.execute(
-                sa_select(table).where(table.c.id.in_(chunk))
-            )
+            result = await self.session.execute(sa_select(table).where(table.c.id.in_(chunk)))
             for row in result.fetchall():
                 existing_rows[str(row._mapping["id"])] = dict(row._mapping)
 
@@ -584,7 +585,9 @@ class DocumentWriteMixin:
                 except GruntError as e:
                     errors.append(f"{doc['id']}: {e}")
                     continue
-                await fire("before_delete", doctype=doctype_name, doc=doc, user=user, session=self.session)
+                await fire(
+                    "before_delete", doctype=doctype_name, doc=doc, user=user, session=self.session
+                )
                 controllers.append((doc, ctrl))
                 await _report(i + 1)
         finally:
@@ -612,7 +615,13 @@ class DocumentWriteMixin:
                 except GruntError as e:
                     errors.append(f"{real_id}: {e}")
                 await webhook_service.fire(self.session, "after_delete", doctype_name, doc)
-                await fire("after_delete", doctype=doctype_name, doc_id=real_id, user=user, session=self.session)
+                await fire(
+                    "after_delete",
+                    doctype=doctype_name,
+                    doc_id=real_id,
+                    user=user,
+                    session=self.session,
+                )
         finally:
             self._reset_grunt_context(_tokens)
 

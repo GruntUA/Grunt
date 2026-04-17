@@ -1,7 +1,7 @@
 """Tests for the Workflow engine — state machine transitions (migrated to whitelisted methods)."""
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+
 import pytest
 
 # No TYPE_CHECKING needed for httpx as we are moving to direct API
@@ -51,6 +51,7 @@ DOCTYPE_PAYLOAD = {
 async def test_create_doctype_with_workflow(ctx):
     """DocType with workflow can be created."""
     from grunt.api.v1.meta import save_doctype
+
     data = await save_doctype(DOCTYPE_PAYLOAD)
     await ctx.db._session().commit()
     assert data["workflow"]["state_field"] == "status"
@@ -114,8 +115,9 @@ async def test_workflow_apply_transition(ctx):
 @pytest.mark.asyncio
 async def test_workflow_invalid_transition_rejected(ctx):
     """Applying a non-available transition returns 409 (Conflict)."""
-    from grunt.api.v1.meta import save_doctype
     from fastapi import HTTPException
+
+    from grunt.api.v1.meta import save_doctype
 
     await save_doctype(DOCTYPE_PAYLOAD)
     await ctx.db._session().commit()
