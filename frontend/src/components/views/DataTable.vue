@@ -25,6 +25,7 @@ const props = defineProps<{
   statusConfig?: DocTypeStatusConfig | null
   hideHeader?: boolean
   hideBody?: boolean
+  activeIndex?: number
 }>()
 
 const emit = defineEmits<{
@@ -135,9 +136,12 @@ function isSelected(id: string) {
         </tr>
       </thead>
       <tbody v-if="!hideBody">
-        <tr v-for="row in rows" :key="String(row.id)"
+        <tr v-for="(row, index) in rows" :key="String(row.id)"
           class="border-b border-border/30 last:border-0 hover:bg-muted/40 cursor-pointer transition-all duration-200 group relative"
-          :class="{ 'bg-primary/[0.03] hover:bg-primary/[0.05]': isSelected(String(row.id)) }">
+          :class="[
+            isSelected(String(row.id)) ? 'bg-primary/[0.03] hover:bg-primary/[0.05]' : '',
+            activeIndex === index ? 'bg-muted/80 ring-inset ring-1 ring-primary/30 z-10' : ''
+          ]">
 
           <td class="relative px-4 py-3" @click.stop>
             <div v-if="isSelected(String(row.id))"

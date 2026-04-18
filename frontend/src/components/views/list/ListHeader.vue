@@ -141,7 +141,7 @@ function handleNew() {
       </Button>
 
       <!-- New button -->
-      <Button size="sm" class="px-4 shadow-md hover:shadow-lg transition-all active:scale-95 gap-1.5" @click="handleNew">
+      <Button size="sm" class="px-4 shadow-md hover:shadow-lg transition-all active:scale-95 gap-1.5" @click="handleNew" :title="`${t('Add')} (Ctrl+N)`">
         <Plus class="size-4" />
         <span>{{ isSystemDocType ? 'New DocType' : t('Add') }}</span>
       </Button>

@@ -132,7 +132,7 @@ function handleUndo() {
           <RefreshCw class="size-4" :class="{ 'animate-spin': isLoading }" />
         </Button>
 
-        <Button :disabled="isSaving" size="sm" @click="emit('save')" class="shadow-sm hover:shadow-md transition-shadow">
+        <Button :disabled="isSaving" size="sm" @click="emit('save')" class="shadow-sm hover:shadow-md transition-shadow" :title="`${t('Save')} (Ctrl+S)`">
           <Loader2 v-if="isSaving" class="size-4 animate-spin mr-1.5" />
           {{ t('Save') }}
         </Button>
@@ -147,7 +147,7 @@ function handleUndo() {
           <DropdownMenuContent align="end" class="w-52 p-1.5 selection:bg-primary/10">
             <!-- Print submenu -->
             <DropdownMenuSub v-if="id">
-              <DropdownMenuSubTrigger class="gap-2">
+              <DropdownMenuSubTrigger class="gap-2" :title="`${t('Print')} (Ctrl+P)`">
                 <Printer class="size-4 text-muted-foreground" />
                 <span>{{ t('Print') }}</span>
               </DropdownMenuSubTrigger>

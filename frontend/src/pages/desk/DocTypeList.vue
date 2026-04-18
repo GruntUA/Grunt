@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useShortcut } from '@/core/composables/useShortcuts'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useAuthStore } from '@/stores/auth'
 import { useWebSocket } from '@/core/composables/useWebSocket'
@@ -341,6 +342,39 @@ async function onInlineUpdate(rowId: string, field: string, value: string) {
   queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
 }
 
+const activeIndex = ref(0)
+watch(rows, () => { activeIndex.value = 0 })
+
+useShortcut(['ArrowDown', 'j'], () => {
+  if (!rows.value.length) return
+  activeIndex.value = Math.min(activeIndex.value + 1, rows.value.length - 1)
+}, { preventDefault: true })
+
+useShortcut(['ArrowUp', 'k'], () => {
+  if (!rows.value.length) return
+  activeIndex.value = Math.max(activeIndex.value - 1, 0)
+}, { preventDefault: true })
+
+useShortcut(['Enter', 'o'], () => {
+  if (rows.value[activeIndex.value]) {
+    navigateToDoc(rows.value[activeIndex.value])
+  }
+}, { preventDefault: true })
+
+useShortcut(['x'], () => {
+  if (rows.value[activeIndex.value]) {
+    selection.toggle(String(rows.value[activeIndex.value].id))
+  }
+}, { preventDefault: true })
+
+useShortcut(['Delete', 'Backspace'], () => {
+  if (selection.selectedIds.value.length > 0 || selection.allSelected.value) {
+    dialog.confirm('Видалити виділені документи?', 'Обережно').then(ok => {
+      if (ok) bulkDelete()
+    })
+  }
+}, { preventDefault: true })
+
 function navigateToDoc(row: Record<string, unknown>) {
   const ws = props.workspace ?? 'grunt'
   props.doctype === 'DocType' ? router.push(`/${ws}/list/DocType/${row.name}`) : router.push(`/${ws}/list/${props.doctype}/${row.id}`)
@@ -413,7 +447,7 @@ function navigateToDoc(row: Record<string, unknown>) {
               <DataTable :columns="columns.visibleColumns.value" :rows="rows" :fields="dt?.fields ?? []"
                 :is-loading="isLoading && !data" :sort-key="sortKey" :sort-order="sortOrder"
                 :selected-ids="selection.selectedIds.value" :all-selected="selection.allSelected.value"
-                :status-config="dt?.status_config" @sort="onSort" @select="selection.toggle"
+                :status-config="dt?.status_config" :active-index="activeIndex" @sort="onSort" @select="selection.toggle"
                 @select-all="selection.toggleAll(rows.map(r => String(r.id)))" @row-click="navigateToDoc"
                 @inline-update="onInlineUpdate" />
             </div>

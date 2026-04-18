@@ -11,6 +11,7 @@ import { useLinkCreate } from '@/core/composables/useLinkCreate'
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 import { useQueryClient } from '@tanstack/vue-query'
 import { clearScriptCache } from '@/core/scripting/executor'
+import { useShortcut } from '@/core/composables/useShortcuts'
 import type { DocType, GruntDocument } from '@/types'
 import { Spinner } from '@/components/ui/spinner'
 import { History } from '@lucide/vue'
@@ -106,6 +107,26 @@ onMounted(async () => {
 
   await runScriptEvent('on_load')
 })
+
+// ── Shortcuts ────────────────────────────────────────────────────────────────
+useShortcut(['ctrl+s', 'cmd+s'], (e) => {
+  handleSave()
+}, { preventDefault: true, allowInInput: true })
+
+useShortcut(['ctrl+p', 'cmd+p'], (e) => {
+  window.print()
+}, { preventDefault: true, allowInInput: true })
+
+useShortcut(['escape'], (e) => {
+  if (showDeleteModal.value || showLeaveModal.value || quickEntryDt.value) return
+  if (showVersions.value) {
+    showVersions.value = false
+    return
+  }
+  allowLeave = true // to prevent annoying popup if not needed, actually we shouldn't bypass 'isDirty' check if we don't want to lose data.
+  // Better: just trigger router push and let guard handle it.
+  router.push(props.workspace ? `/${props.workspace}/list/${props.doctype}` : `/${props.doctype}`)
+}, { preventDefault: true, allowInInput: false })
 
 /**
  * Handle "create-new" event from a Link field inside the form.
