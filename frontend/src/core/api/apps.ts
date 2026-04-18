@@ -11,7 +11,7 @@ export interface GruntApp {
 
 export const appsApi = {
     list: async (): Promise<GruntApp[]> => {
-        const response = await client.get('/api/v1/resource/GruntInstalledApp')
+        const response = await client.get('/api/v1/docs/GruntInstalledApp')
         return response.data.data || []
     },
 

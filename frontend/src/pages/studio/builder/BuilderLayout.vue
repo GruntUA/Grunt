@@ -145,7 +145,7 @@ async function handleSave() {
       </TabsContent>
 
       <!-- Settings tab -->
-      <TabsContent value="settings" class="flex-1 overflow-hidden m-0 p-0">
+      <TabsContent value="settings" class="flex-1 overflow-y-auto m-0 p-0">
         <SettingsTab />
       </TabsContent>
 
