@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, inject, type Ref } from 'vue'
 import draggable from 'vuedraggable'
 import type { DocField } from '@/types'
 import { useBuilderStore } from '@/stores/builder'
@@ -14,11 +14,20 @@ const emit = defineEmits<{
 }>()
 
 const builder = useBuilderStore()
+const isDraggingField = inject<Ref<boolean>>('fieldDragging')
 
 const localFields = computed({
   get: () => props.fields,
   set: (val: DocField[]) => emit('update:fields', val),
 })
+
+function onDragStart() {
+  if (isDraggingField) isDraggingField.value = true
+}
+
+function onDragEnd() {
+  if (isDraggingField) isDraggingField.value = false
+}
 </script>
 
 <template>
@@ -31,6 +40,8 @@ const localFields = computed({
       ghost-class="opacity-30"
       class="flex flex-col gap-1.5 min-h-[60px] p-1.5 rounded-sm border border-dashed border-transparent transition-colors"
       :class="{ 'border-border bg-background/50': !fields.length }"
+      @start="onDragStart"
+      @end="onDragEnd"
     >
       <template #item="{ element: f }">
         <CanvasFieldCard

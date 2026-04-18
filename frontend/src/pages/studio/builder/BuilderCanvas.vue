@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, provide } from 'vue'
 import draggable from 'vuedraggable'
 import { useBuilderStore } from '@/stores/builder'
 import type { LayoutTab, LayoutSection } from '@/core/composables/useFormLayout'
@@ -8,6 +8,9 @@ import CanvasSection from './CanvasSection.vue'
 
 const builder = useBuilderStore()
 const activeTabIndex = ref(0)
+
+const isDraggingField = ref(false)
+provide('fieldDragging', isDraggingField)
 
 // Reset active tab when doctype changes
 watch(() => builder.doctype?.name, () => {
@@ -97,29 +100,33 @@ function deselect() {
       @delete-tab="onDeleteTab"
     />
 
-    <!-- Active tab content -->
-    <div class="flex-1 overflow-y-auto p-4" @click.self="deselect">
-      <template v-if="builder.layout[activeTabIndex]">
+    <!-- All tab contents rendered simultaneously (v-show) so Sortable.js
+         keeps its group connections alive during cross-tab drag. -->
+    <template v-for="(tab, ti) in builder.layout" :key="tab._fieldname">
+      <div
+        v-show="ti === activeTabIndex"
+        class="flex-1 overflow-y-auto p-4"
+        @click.self="deselect"
+      >
         <div class="flex flex-col gap-3 max-w-4xl mx-auto">
           <draggable
-            :model-value="builder.layout[activeTabIndex].sections"
+            :model-value="tab.sections"
             item-key="_fieldname"
             handle=".section-drag-handle"
             ghost-class="opacity-30"
             :animation="200"
             class="flex flex-col gap-3"
-            @update:model-value="onReorderSections(activeTabIndex, $event)"
+            @update:model-value="onReorderSections(ti, $event)"
           >
             <template #item="{ element: section, index: si }">
               <CanvasSection
                 :section="section"
-                @update:section="onUpdateSection(activeTabIndex, si, $event)"
+                @update:section="onUpdateSection(ti, si, $event)"
                 @delete="onDeleteSection(section._fieldname)"
               />
             </template>
           </draggable>
 
-          <!-- Add section button -->
           <button
             type="button"
             class="flex items-center justify-center gap-1.5 w-full py-2.5 border-2 border-dashed border-border rounded-md text-sm text-muted-foreground/70 hover:text-primary hover:border-primary/40 transition-colors"
@@ -128,14 +135,7 @@ function deselect() {
             + Add Section
           </button>
         </div>
-      </template>
-
-      <div
-        v-else
-        class="flex items-center justify-center h-full text-muted-foreground/70 text-sm"
-      >
-        No fields yet. Add fields from the palette.
       </div>
-    </div>
+    </template>
   </div>
 </template>

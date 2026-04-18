@@ -6,7 +6,7 @@ import { useBuilderStore } from '@/stores/builder'
 
 const builder = useBuilderStore()
 
-defineProps<{
+const props = defineProps<{
   tabs: LayoutTab[]
   activeIndex: number
 }>()
@@ -21,6 +21,23 @@ const emit = defineEmits<{
 
 const editingTab = ref<string | null>(null)
 const editLabel = ref('')
+let hoverTimer: ReturnType<typeof setTimeout> | null = null
+
+function onTabDragOver(event: DragEvent, index: number) {
+  event.preventDefault()
+  if (hoverTimer !== null) return
+  hoverTimer = setTimeout(() => {
+    emit('update:activeIndex', index)
+    hoverTimer = null
+  }, 600)
+}
+
+function onTabDragLeave() {
+  if (hoverTimer !== null) {
+    clearTimeout(hoverTimer)
+    hoverTimer = null
+  }
+}
 
 function startRename(tab: LayoutTab) {
   if (!tab._field) return
@@ -59,6 +76,8 @@ function cancelRename() {
             : 'text-muted-foreground hover:text-foreground'"
           @click="emit('update:activeIndex', i); if (tab._field) builder.selectField(tab._fieldname)"
           @dblclick.stop="startRename(tab)"
+          @dragover="onTabDragOver($event, i)"
+          @dragleave="onTabDragLeave"
         >
           <!-- Editing mode -->
           <template v-if="editingTab === tab._fieldname">
