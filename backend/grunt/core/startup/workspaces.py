@@ -122,7 +122,7 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
 
     from grunt.app import grunt  # noqa: PLC0415
     from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
-    from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
+    from grunt.core.metadata.compiler import invalidate_table_cache, sync_table  # noqa: PLC0415
     from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.site.manager import site_manager  # noqa: PLC0415
@@ -202,6 +202,7 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                                             data=dt_obj.model_dump(mode="json"),
                                         )
                                     )
+                                    invalidate_table_cache(dt_name)
                                     await sync_table(dt_obj, eng, session=session)
                                     doctype_registry._doctypes[dt_name] = dt_obj
                                 logger.info(
