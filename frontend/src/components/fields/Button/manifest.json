@@ -5,6 +5,7 @@
     "category": "Controls",
     "propertySections": [
         "core",
+        "button",
         "display"
     ]
 }
