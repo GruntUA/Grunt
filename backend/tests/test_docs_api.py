@@ -1,4 +1,4 @@
-"""Tests for the Document API — dynamic CRUD for DocType instances (migrated to whitelisted methods)."""
+"""Tests for the Document API — dynamic CRUD for DocType instances."""
 
 from __future__ import annotations
 

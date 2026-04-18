@@ -49,7 +49,7 @@ def from_json(value: str | None) -> Any:
         return {}
     try:
         return json.loads(value)
-    except json.JSONDecodeError, TypeError:
+    except (json.JSONDecodeError, TypeError):
         return {}
 
 

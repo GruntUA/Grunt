@@ -1,7 +1,13 @@
-from fastapi import Request
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from grunt.core.site.manager import current_site, site_manager
+
+if TYPE_CHECKING:
+    from fastapi import Request
 
 
 class SiteContextMiddleware(BaseHTTPMiddleware):

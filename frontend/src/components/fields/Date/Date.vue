@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { DocField } from '@/types'
-import { CalendarDate, DateFormatter, getLocalTimeZone, parseDate, today } from '@internationalized/date'
+import { DateFormatter, getLocalTimeZone, parseDate, today } from '@internationalized/date'
 import type { DateValue } from '@internationalized/date'
 import { CalendarIcon, X } from '@lucide/vue'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
   Popover,
@@ -36,11 +35,13 @@ const dateValue = computed<DateValue | undefined>(() => {
   }
 })
 
+const open = ref(false)
+
 // Convert DateValue → ISO string
-function onSelect(val: DateValue | undefined, close: () => void) {
+function onSelect(val: DateValue | undefined) {
   if (!val) return
   emit('update:modelValue', val.toString())
-  close()
+  open.value = false
 }
 
 function clearValue(e: Event) {
@@ -57,7 +58,7 @@ const defaultPlaceholder = today(getLocalTimeZone())
 </script>
 
 <template>
-  <Popover v-slot="{ close }">
+  <Popover v-model:open="open">
     <PopoverTrigger as-child>
       <button
         type="button"
@@ -90,7 +91,7 @@ const defaultPlaceholder = today(getLocalTimeZone())
         :model-value="dateValue"
         :default-placeholder="defaultPlaceholder"
         :disabled="disabled || field.read_only"
-        @update:model-value="onSelect($event, close)"
+        @update:model-value="onSelect($event)"
       />
     </PopoverContent>
   </Popover>

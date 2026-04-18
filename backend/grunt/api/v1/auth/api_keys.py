@@ -8,8 +8,7 @@ PATCH  /api/v1/auth/api-keys/{key_id} — update label / is_active / expires_at
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import Depends, HTTPException, status
 from pydantic import BaseModel
@@ -20,6 +19,9 @@ from grunt.app import grunt
 from grunt.core.auth.api_key_service import generate_api_key
 from grunt.core.auth.dependencies import current_user
 from grunt.core.doctypes.user.user import User
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 router = GruntRouter(prefix="/api-keys", tags=["auth", "api-keys"])
 

@@ -68,7 +68,7 @@ class WorkspaceSidebar(Document):
                             filters = f_data
                             conditions = [f'"{col}" = :{col}' for col in filters]
                             count_sql += " WHERE " + " AND ".join(conditions)
-                    except json.JSONDecodeError, ValueError:
+                    except (json.JSONDecodeError, ValueError):
                         pass
 
                 result_count = await grunt.db._session().execute(text(count_sql), filters)

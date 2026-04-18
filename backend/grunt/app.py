@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
     from grunt.core.doctypes.user.user import User
+    from grunt.core.document.meta import Meta
 
 logger = structlog.get_logger()
 

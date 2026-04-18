@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import sys
-from pathlib import Path
+from pathlib import Path  # noqa: TC003
 
 import click
 import pytest
@@ -55,12 +57,10 @@ def test(
             if doctype:
                 # Try both original name and snake_case/lowercase
                 candidates = [doctype, doctype.lower(), doctype.replace(" ", "_").lower()]
-                found = False
                 for cand in candidates:
                     target_dt = dt_dir / cand
                     if target_dt.is_dir():
                         _add_tests_from_dir(target_dt, test_paths)
-                        found = True
                         break
             else:
                 # Add tests for all doctypes in this directory

@@ -128,7 +128,7 @@ async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
 
     await _sync_doctype_doc(dt, session)
     app_name = await _get_app_name_for_module(dt.module or "", session)
-    exported_to = export_doctype_files(dt, app_name=app_name)
+    export_doctype_files(dt, app_name=app_name)
 
     return dt.model_dump()
 

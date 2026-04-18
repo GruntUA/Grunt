@@ -161,7 +161,7 @@ class TreeService:
         """)
 
         result = await session.execute(sql, {**anchor_param, "max_depth": max_depth})
-        all_rows = [dict(zip([*col_names, "_depth"], r)) for r in result.fetchall()]
+        all_rows = [dict(zip([*col_names, "_depth"], r, strict=False)) for r in result.fetchall()]
 
         # Build nested structure
         return self._nest(all_rows, parent_field, root_id)
@@ -203,7 +203,7 @@ class TreeService:
         """)
 
         result = await session.execute(sql, {"node_id": node_id})
-        return [dict(zip(col_names, r)) for r in result.fetchall()]
+        return [dict(zip(col_names, r, strict=False)) for r in result.fetchall()]
 
     # ──────────────────────────────────────────────────────────────────
     # Write

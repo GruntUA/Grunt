@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import csv
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from grunt.core.io.importers.registry import Importer
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class CsvImporter(Importer):

@@ -32,6 +32,8 @@ from grunt.core.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()
 
+_EXTRA_INJECT = ("color", "icon")
+
 PROTECTED_FIELDS = frozenset({"id", "owner", "created_at", "docstatus"})
 
 
@@ -235,9 +237,6 @@ async def _resolve_link_labels(
         return
 
     from sqlalchemy import or_  # noqa: PLC0415
-
-    # Extra field names to inject in addition to __label when available
-    _EXTRA_INJECT = ("color", "icon")
 
     link_fields = [f for f in dt.fields if f.fieldtype == "Link" and f.options]
 

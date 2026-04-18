@@ -85,7 +85,7 @@ async def test_run_report_forbids_delete(ctx):
     from grunt.api.messages import ApplicationError
     from grunt.errors import GruntError
 
-    with pytest.raises((HTTPException, ApplicationError, GruntError)) as excinfo:
+    with pytest.raises((HTTPException, ApplicationError, GruntError)):
         await run_report(name="Bad Report", filters={})
     # Business logic error should be caught
 

@@ -420,7 +420,7 @@ defineExpose({ mobileOpen })
           <DropdownMenuTrigger as-child>
             <button class="w-full flex items-center gap-2 p-1.5 rounded-md hover:bg-accent transition-colors">
               <Avatar class="size-7 rounded-md bg-primary">
-                <AvatarImage :src="auth.user?.avatar || undefined" />
+                <AvatarImage :src="auth.user?.avatar || ''" />
                 <AvatarFallback class="text-primary-foreground text-xs font-medium bg-transparent">
                   {{ auth.user ? initials(auth.user.full_name) : '?' }}
                 </AvatarFallback>
@@ -462,7 +462,7 @@ defineExpose({ mobileOpen })
           <TooltipTrigger as-child>
             <button class="w-full flex items-center justify-center p-1.5 rounded-md hover:bg-accent transition-colors">
               <Avatar class="size-7 rounded-md bg-primary">
-                <AvatarImage :src="auth.user?.avatar || undefined" />
+                <AvatarImage :src="auth.user?.avatar || ''" />
                 <AvatarFallback class="text-primary-foreground text-xs font-medium bg-transparent">
                   {{ auth.user ? initials(auth.user.full_name) : '?' }}
                 </AvatarFallback>

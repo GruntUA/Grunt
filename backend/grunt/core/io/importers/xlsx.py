@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import openpyxl
 
 from grunt.core.io.importers.registry import Importer
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class XlsxImporter(Importer):

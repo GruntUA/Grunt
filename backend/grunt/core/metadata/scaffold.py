@@ -12,7 +12,6 @@ the colocated file structure to disk::
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import structlog
@@ -21,6 +20,8 @@ from grunt.core.metadata.field import get_python_type
 from grunt.core.site.manager import site_manager
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from grunt.core.metadata.doctype import DocType
 
 logger = structlog.get_logger()

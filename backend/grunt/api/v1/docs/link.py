@@ -70,7 +70,7 @@ async def link_search(
     # ── Parse extra filters ───────────────────────────────────────────────────
     try:
         extra_filters: dict[str, str] = json.loads(filters) if filters and filters != "{}" else {}
-    except json.JSONDecodeError, ValueError:
+    except (json.JSONDecodeError, ValueError):
         extra_filters = {}
 
     if extra_filters:

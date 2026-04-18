@@ -1,11 +1,16 @@
 """Async SQLAlchemy engine and session factory (multi-DB)."""
 
-from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
+from __future__ import annotations
 
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 from grunt.core.site.manager import site_manager
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 
 async def get_session() -> AsyncGenerator[AsyncSession]:

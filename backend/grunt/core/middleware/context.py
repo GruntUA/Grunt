@@ -1,10 +1,16 @@
 """Middleware to set Grunt API context (session, user, engine) for each request."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
-from starlette.responses import Response
 
 from grunt.api import clear_context
+
+if TYPE_CHECKING:
+    from starlette.requests import Request
+    from starlette.responses import Response
 
 
 class GruntContextMiddleware(BaseHTTPMiddleware):

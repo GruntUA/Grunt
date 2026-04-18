@@ -136,7 +136,7 @@ class VirtualDocType:
                         )
                     else:
                         match = str(raw) == str(val)
-                except TypeError, ValueError:
+                except (TypeError, ValueError):
                     match = False
                 if match:
                     result.append(r)

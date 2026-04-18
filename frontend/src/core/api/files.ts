@@ -11,7 +11,7 @@ export interface FileItem {
 }
 
 export const filesApi = {
-    list: async (params?: { limit?: number; page?: number; filters?: any }): Promise<{ items: FileItem[], total: number }> => {
+    list: async (params?: { limit?: number; page?: number; filters?: any; search?: string }): Promise<{ items: FileItem[], total: number }> => {
         const res = await client.get('/api/v1/method/grunt.core.doctypes.file.file.get_list', { params })
         return res.data.data
     },

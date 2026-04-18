@@ -1,14 +1,18 @@
+from __future__ import annotations
+
 import importlib
 from inspect import iscoroutinefunction
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.app import grunt as grunt_app
 from grunt.core.auth.dependencies import _oauth2_scheme_optional, optional_user
 from grunt.core.db.session import get_engine as get_engine_dep
 from grunt.core.db.session import get_session
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 router = APIRouter()
 
@@ -23,7 +27,7 @@ def _process_params(params: dict[str, str]) -> dict[str, Any]:
             try:
                 args[key] = json.loads(val)
                 continue
-            except:
+            except Exception:
                 pass
 
         if val.isdigit():
@@ -60,7 +64,7 @@ def get_whitelisted_method(method_path: str) -> Any:
             for attr in attr_path:
                 method = getattr(method, attr)
             break
-        except ImportError, AttributeError:
+        except (ImportError, AttributeError):
             continue
 
     if not method:
@@ -164,11 +168,11 @@ async def run_method_post(
         body = await request.json()
         if isinstance(body, dict):
             args.update(body)
-    except:
+    except Exception:
         try:
             form_data = await request.form()
             args.update(dict(form_data))
-        except:
+        except Exception:
             pass
 
     result = await _invoke_with_context(method, args, request, session, engine, token)

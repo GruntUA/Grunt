@@ -11,6 +11,7 @@ interface User {
   is_superadmin: boolean
   mfa_enabled?: boolean
   theme?: Theme
+  avatar?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {

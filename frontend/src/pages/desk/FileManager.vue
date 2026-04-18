@@ -17,7 +17,7 @@ async function loadFiles() {
     loading.value = true
     try {
         const res = await filesApi.list({ search: searchQuery.value })
-        files.value = res.data
+        files.value = res.items
     } finally {
         loading.value = false
     }

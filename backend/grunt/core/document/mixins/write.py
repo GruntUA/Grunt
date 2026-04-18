@@ -41,6 +41,7 @@ logger = structlog.get_logger()
 
 PROTECTED_FIELDS = frozenset({"id", "owner", "created_at", "docstatus"})
 
+
 # SQLite degrades with large IN (...) lists; 500 is safe for all backends.
 _IN_CHUNK = 500
 
@@ -93,10 +94,6 @@ class DocumentWriteMixin:
                     detail=f"'{doctype_name}' is a singleton.",
                 )
 
-        # System DocTypes that are intentionally writable through dedicated APIs
-        # (e.g. "File" is written exclusively via the /api/v1/files/ endpoint,
-        #  not the general /docs/ CRUD surface, so any authenticated user may create).
-        _SYSTEM_WRITABLE = {"File", "ActivityLog"}
         # Validate
         errors = _validate_data(dt, data)
         if errors:

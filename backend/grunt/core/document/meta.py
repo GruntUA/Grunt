@@ -102,18 +102,21 @@ class Meta:
             for df in self.doc.fields:
                 if getattr(df, "is_virtual", False):
                     continue
-                if df.fieldtype not in (
-                    "Section",
-                    "Column",
-                    "HTML",
-                    "Tab",
-                    "Tab Break",
-                    "Button",
-                    "Table",
-                    "Table MultiSelect",
+                if (
+                    df.fieldtype
+                    not in (
+                        "Section",
+                        "Column",
+                        "HTML",
+                        "Tab",
+                        "Tab Break",
+                        "Button",
+                        "Table",
+                        "Table MultiSelect",
+                    )
+                    and df.fieldname not in sys_cols
                 ):
-                    if df.fieldname not in sys_cols:
-                        cols.append(df.fieldname)
+                    cols.append(df.fieldname)
             self._valid_columns = cols
         return self._valid_columns
 

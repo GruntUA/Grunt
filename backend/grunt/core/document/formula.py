@@ -121,12 +121,12 @@ def _coerce_result(value: Any, fieldtype: str) -> Any:
     if fieldtype in ("Int",):
         try:
             return int(round(float(value)))
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             return value
     if fieldtype in ("Float", "Currency", "Percent"):
         try:
             return float(value)
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             return value
     if fieldtype == "Check":
         return bool(value)

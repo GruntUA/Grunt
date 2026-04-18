@@ -103,7 +103,7 @@ async def get_content(file_id: str) -> Response:
         file_path = doc.get("path") or ""
         content = await storage.get(file_path)
     except Exception:
-        raise HTTPException(404, "File not found on storage")
+        raise HTTPException(404, "File not found on storage") from None
 
     return Response(
         content=content,
