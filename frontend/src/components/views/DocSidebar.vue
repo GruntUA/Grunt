@@ -14,6 +14,7 @@ import {
   Activity,
   Bookmark,
 } from '@lucide/vue'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import type { PresenceUser } from '@/core/composables/usePresence'
 
 // Sub-components
@@ -68,60 +69,63 @@ loadBookmark()
 <template>
   <aside v-bind="attrs" class="flex flex-col gap-0 w-full">
     <div class="form-section">
-      <!-- Tab nav as section header -->
-      <div class="flex border-b border-border bg-muted/50">
-        <button
-          class="flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider border-b-2 transition-colors"
-          :class="activeTab === 'details' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'"
-          @click="activeTab = 'details'"
-        >
-          <User class="size-3.5" />
-          Деталі
-        </button>
-        <button
-          class="flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider border-b-2 transition-colors"
-          :class="activeTab === 'timeline' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'"
-          @click="activeTab = 'timeline'"
-        >
-          <Activity class="size-3.5" />
-          Активність
-        </button>
-      </div>
+      <Tabs v-model="activeTab" class="w-full">
+        <!-- Tab nav as section header -->
+        <TabsList variant="underline" class="w-full justify-start h-auto overflow-x-auto scrollbar-none">
+          <TabsTrigger value="details" variant="underline" class="gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider">
+            <User class="size-3.5" />
+            Деталі
+          </TabsTrigger>
+          <TabsTrigger value="timeline" variant="underline" class="gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider">
+            <Activity class="size-3.5" />
+            Активність
+          </TabsTrigger>
+        </TabsList>
 
-      <!-- Content -->
-      <div class="form-section-body">
-        <!-- ── DETAILS TAB ── -->
-        <div v-if="activeTab === 'details'" class="flex flex-col gap-4">
-          <SidebarFileInfo :doctype="doctype" :document="document" :users="users" />
+        <!-- Content -->
+        <div class="form-section-body">
+          <TabsContent value="details" class="mt-0 flex flex-col gap-4 focus-visible:ring-0">
+            <SidebarFileInfo :doctype="doctype" :document="document" :users="users" />
 
-          <!-- Actions -->
-          <div class="flex gap-2">
-            <SidebarAssignments :doctype="doctype" :document="document" class="flex-1 mb-0" />
-            <SidebarShare :doctype="doctype" :document="document" class="flex-1 mb-0" />
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger as-child>
-                  <Button variant="outline" size="icon" class="size-9 shrink-0"
-                    :class="bookmark ? 'text-amber-500 border-amber-300 bg-amber-50 dark:bg-amber-950/30' : 'text-foreground'"
-                    :disabled="bookmarkLoading"
-                    @click="toggleBookmark">
-                    <Bookmark class="size-4" :fill="bookmark ? 'currentColor' : 'none'" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{{ bookmark ? 'Прибрати із закладок' : 'Додати до закладок' }}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+            <!-- Actions -->
+            <div class="flex gap-2">
+              <SidebarAssignments :doctype="doctype" :document="document" class="flex-1 mb-0" />
+              <SidebarShare :doctype="doctype" :document="document" class="flex-1 mb-0" />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <Button variant="outline" size="icon" class="size-9 shrink-0"
+                      :class="bookmark ? 'text-amber-500 border-amber-300 bg-amber-50 dark:bg-amber-950/30' : 'text-foreground'"
+                      :disabled="bookmarkLoading"
+                      @click="toggleBookmark">
+                      <Bookmark class="size-4" :fill="bookmark ? 'currentColor' : 'none'" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{{ bookmark ? 'Прибрати із закладок' : 'Додати до закладок' }}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
 
-          <SidebarTags :doctype="doctype" :document="document" />
-          <SidebarBacklinks :doctype="doctype" :document="document" :workspace="workspace" />
+            <SidebarTags :doctype="doctype" :document="document" />
+            <SidebarBacklinks :doctype="doctype" :document="document" :workspace="workspace" />
+          </TabsContent>
+
+          <TabsContent value="timeline" class="mt-0 focus-visible:ring-0">
+            <SidebarTimeline :doctype="doctype" :document="document" />
+          </TabsContent>
         </div>
-
-        <!-- ── TIMELINE TAB ── -->
-        <div v-else>
-          <SidebarTimeline :doctype="doctype" :document="document" />
-        </div>
-      </div>
+      </Tabs>
     </div>
   </aside>
 </template>
+
+<style scoped>
+/* Hide scrollbar but keep functionality */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+</style>

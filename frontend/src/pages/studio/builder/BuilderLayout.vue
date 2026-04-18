@@ -109,21 +109,21 @@ async function handleSave() {
 
     <!-- Tabs -->
     <Tabs v-model="builder.activeTab" class="flex-1 flex flex-col overflow-hidden">
-      <div class="border-b border-border bg-muted/30 px-4 shrink-0">
-        <TabsList class="bg-transparent h-auto gap-0 p-0">
-          <TabsTrigger value="form" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
+      <div class="bg-muted/30 px-4 shrink-0 border-b">
+        <TabsList variant="underline" class="border-none h-auto">
+          <TabsTrigger value="form" variant="underline">
             {{ t('Form') }}
           </TabsTrigger>
-          <TabsTrigger value="settings" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
+          <TabsTrigger value="settings" variant="underline">
             {{ t('Settings') }}
           </TabsTrigger>
-          <TabsTrigger value="permissions" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
+          <TabsTrigger value="permissions" variant="underline">
             {{ t('Permissions') }}
           </TabsTrigger>
-          <TabsTrigger value="workflow" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
+          <TabsTrigger value="workflow" variant="underline">
             Workflow
           </TabsTrigger>
-          <TabsTrigger value="views" class="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2 text-sm">
+          <TabsTrigger value="views" variant="underline">
             {{ t('Views') }}
           </TabsTrigger>
         </TabsList>

@@ -12,6 +12,7 @@ import {
     Layout, Table as TableIcon, FileBarChart
 } from '@lucide/vue'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
 const props = defineProps<{
     workspaceName: string
@@ -167,14 +168,13 @@ const displayFields = computed(() => {
             </div>
 
             <!-- Fields & Columns Tabs -->
-            <div class="flex-1 flex flex-col overflow-hidden">
-                <div class="flex border-b">
-                    <button
-                        class="flex-1 px-4 py-3 text-xs font-bold uppercase tracking-wider border-b-2 border-primary">Колонки</button>
-                    <!-- <button class="flex-1 px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">Фільтри</button> -->
-                </div>
+            <Tabs default-value="columns" class="flex-1 flex flex-col overflow-hidden">
+                <TabsList variant="underline" class="w-full justify-start h-auto overflow-x-auto scrollbar-none">
+                    <TabsTrigger value="columns" variant="underline" class="flex-1">Колонки</TabsTrigger>
+                    <!-- <TabsTrigger value="filters" variant="underline" class="flex-1 opacity-50">Фільтри</TabsTrigger> -->
+                </TabsList>
 
-                <div class="flex-1 overflow-y-auto p-4 space-y-6">
+                <TabsContent value="columns" class="flex-1 overflow-y-auto p-4 space-y-6 focus-visible:ring-0 m-0">
                     <!-- Selected Columns -->
                     <div class="space-y-3">
                         <div class="flex items-center justify-between">
@@ -243,8 +243,8 @@ const displayFields = computed(() => {
                             </button>
                         </div>
                     </div>
-                </div>
-            </div>
+                </TabsContent>
+            </Tabs>
 
             <!-- Sidebar Footer -->
             <div class="p-4 border-t flex flex-col gap-2 bg-muted/10">
@@ -345,5 +345,14 @@ const displayFields = computed(() => {
 /* Glassy effect for selected rows */
 tr.bg-primary\/5 {
     background: linear-gradient(to right, rgba(var(--primary), 0.08), rgba(var(--primary), 0.03));
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 </style>
