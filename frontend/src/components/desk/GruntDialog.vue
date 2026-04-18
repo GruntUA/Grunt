@@ -118,12 +118,12 @@ function onOpenChange(v: boolean) {
             <template v-if="field.fieldtype === 'HTML'">
               <Label v-if="field.label" class="mb-1 block text-sm font-medium">{{ field.label }}</Label>
               <div v-html="String(field.default || '').replace(/<\?xml.*\?>/g, '')"
-                class="rounded-lg border-2 border-dashed p-6 flex justify-center bg-white shadow-inner min-h-[240px] items-center [&>svg]:block [&>svg]:max-w-full [&>svg]:h-auto" />
+                class="rounded-lg border-2 border-dashed p-6 flex justify-center bg-muted shadow-inner min-h-[240px] items-center [&>svg]:block [&>svg]:max-w-full [&>svg]:h-auto" />
             </template>
             <template v-else-if="field.fieldtype === 'Check'">
               <div class="flex items-center space-x-2 py-1">
                 <input type="checkbox" :id="field.fieldname" v-model="formValues[field.fieldname]"
-                  class="size-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                  class="size-4 rounded border-border text-primary focus:ring-primary" />
                 <Label :for="field.fieldname" class="cursor-pointer">{{ field.label }}</Label>
               </div>
             </template>

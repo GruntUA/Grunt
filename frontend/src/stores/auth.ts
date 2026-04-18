@@ -21,6 +21,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isLoggedIn = computed(() => !!token.value)
 
+  // Singleton promise so router guard and early init share one request
+  let _fetchMePromise: Promise<void> | null = null
+
   function applyUserTheme(u: User) {
     if (u.theme) useColorMode().setTheme(u.theme)
   }
@@ -69,14 +72,23 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchMe() {
     if (!token.value) return
-    try {
-      const { data } = await client.get('/api/v1/method/grunt.core.doctypes.user.user.whoami')
-      const u = data.data ?? data
-      user.value = u
-      applyUserTheme(u)
-    } catch {
-      _logout()
+    if (!_fetchMePromise) {
+      _fetchMePromise = client.get('/api/v1/method/grunt.core.doctypes.user.user.whoami')
+        .then(({ data }) => {
+          const u = data.data ?? data
+          user.value = u
+          applyUserTheme(u)
+        })
+        .catch(() => {
+          _logout()
+        })
+        .finally(() => { _fetchMePromise = null })
     }
+    return _fetchMePromise
+  }
+
+  function prefetchMe() {
+    if (token.value && !user.value) fetchMe()
   }
 
   async function setTheme(theme: Theme) {
@@ -104,5 +116,5 @@ export const useAuthStore = defineStore('auth', () => {
     _logout()
   }
 
-  return { token, refreshToken, user, isLoggedIn, login, logout, refresh, fetchMe, setTheme }
+  return { token, refreshToken, user, isLoggedIn, login, logout, refresh, fetchMe, prefetchMe, setTheme }
 })

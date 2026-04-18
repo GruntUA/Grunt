@@ -281,7 +281,7 @@ onMounted(async () => {
       </div>
 
       <!-- Right: preview -->
-      <div v-if="showPreview" class="flex-1 flex flex-col min-h-0 bg-white">
+      <div v-if="showPreview" class="flex-1 flex flex-col min-h-0 bg-background">
         <div class="flex items-center gap-2 px-3 py-1.5 border-b bg-muted/20 shrink-0">
           <span class="text-xs font-medium text-muted-foreground">Live Preview</span>
           <Loader2 v-if="isPreviewLoading" class="size-3.5 animate-spin text-muted-foreground" />

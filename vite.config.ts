@@ -34,6 +34,19 @@ export default defineConfig({
             ...appAliases,
         },
     },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    'vendor-vue': ['vue', 'vue-router', 'pinia'],
+                    'vendor-query': ['@tanstack/vue-query'],
+                    'vendor-ui': ['reka-ui', 'class-variance-authority', 'clsx', 'tailwind-merge'],
+                    'vendor-icons': ['@lucide/vue'],
+                    'vendor-i18n': ['vue-i18n'],
+                },
+            },
+        },
+    },
     server: {
         port: 5173,
         proxy: {

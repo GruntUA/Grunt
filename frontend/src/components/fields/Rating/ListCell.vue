@@ -20,12 +20,12 @@ defineProps<{
           <defs>
             <linearGradient :id="`hstar-${String(row.id)}-${i}`">
               <stop offset="50%" stop-color="#fbbf24"/>
-              <stop offset="50%" stop-color="#d1d5db"/>
+              <stop offset="50%" style="stop-color: var(--border)"/>
             </linearGradient>
           </defs>
           <path :fill="`url(#hstar-${String(row.id)}-${i})`" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
         </svg>
-        <svg v-else xmlns="http://www.w3.org/2000/svg" class="size-3.5 text-gray-200" viewBox="0 0 24 24" fill="currentColor">
+        <svg v-else xmlns="http://www.w3.org/2000/svg" class="size-3.5 text-border" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
         </svg>
       </template>

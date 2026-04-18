@@ -153,10 +153,10 @@ async function pollStatus() {
         </div>
 
         <!-- Step 1 -->
-        <div v-if="currentStep === 1" class="space-y-6 bg-white p-8 border rounded-xl shadow-sm">
+        <div v-if="currentStep === 1" class="space-y-6 bg-card p-8 border rounded-xl shadow-sm">
             <div class="space-y-2">
                 <label class="font-medium">Оберіть тип документа для імпорту</label>
-                <select v-model="selectedDoctype" class="w-full p-2 border rounded-md">
+                <select v-model="selectedDoctype" class="w-full p-2 border rounded-md bg-background text-foreground">
                     <option value="">Оберіть DocType...</option>
                     <option v-for="dt in doctypes" :key="dt.name" :value="dt.name">{{ dt.label || dt.name }}</option>
                 </select>
@@ -164,7 +164,7 @@ async function pollStatus() {
 
             <div class="space-y-2">
                 <label class="font-medium">Завантажте файл (CSV або XLSX)</label>
-                <div class="border-2 border-dashed rounded-xl p-12 text-center hover:bg-slate-50 transition-colors cursor-pointer"
+                <div class="border-2 border-dashed rounded-xl p-12 text-center hover:bg-muted transition-colors cursor-pointer"
                     @click="fileInput?.click()">
                     <input type="file" ref="fileInput" class="hidden" @change="handleFileUpload" accept=".csv,.xlsx">
                     <div v-if="!file" class="text-muted-foreground">Натисніть або перетягніть файл сюди</div>
@@ -181,9 +181,9 @@ async function pollStatus() {
 
         <!-- Step 2 -->
         <div v-if="currentStep === 2 && previewData" class="space-y-6">
-            <div class="bg-white border rounded-xl overflow-hidden">
+            <div class="bg-card border rounded-xl overflow-hidden">
                 <table class="w-full text-sm">
-                    <thead class="bg-slate-50 border-b">
+                    <thead class="bg-muted border-b">
                         <tr>
                             <th class="p-3 text-left">Колонка файлу</th>
                             <th class="p-3 text-left">Поле системи</th>
@@ -211,7 +211,7 @@ async function pollStatus() {
         </div>
 
         <!-- Step 3 -->
-        <div v-if="currentStep === 3" class="space-y-6 bg-white p-8 border rounded-xl">
+        <div v-if="currentStep === 3" class="space-y-6 bg-card p-8 border rounded-xl">
             <div v-if="importStatus" class="space-y-6">
                 <div class="text-center">
                     <div class="text-lg font-bold mb-2">{{ importStatus.status }}</div>
@@ -219,12 +219,12 @@ async function pollStatus() {
                         importStatus.total_rows }} рядків</div>
                 </div>
 
-                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div class="w-full bg-muted rounded-full h-2 overflow-hidden">
                     <div class="bg-primary h-full transition-all duration-500"
                         :style="{ width: `${(importStatus.processed_rows / importStatus.total_rows) * 100}%` }"></div>
                 </div>
 
-                <div v-if="importStatus.error_count > 0" class="p-4 bg-red-50 text-red-700 rounded-lg text-sm">
+                <div v-if="importStatus.error_count > 0" class="p-4 bg-destructive/10 text-destructive rounded-lg text-sm">
                     <div class="font-bold mb-2 text-base">Знайдено {{ importStatus.error_count }} помилок:</div>
                     <ul class="list-disc pl-5">
                         <li v-for="err in JSON.parse(importStatus.error_log)" :key="err.row">
