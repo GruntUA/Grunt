@@ -1,74 +1,100 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { ref, computed, watch } from 'vue'
 import type { DocField } from '@/types'
-import { filesApi } from '@/core/api/files'
+import type { AttachmentResult } from '@/core/attachmentChannels/types'
 import { ImageIcon, X } from '@lucide/vue'
+import { cn } from '@/lib/utils'
+import AttachPicker from '@/components/fields/Attach/AttachPicker.vue'
+import { filesApi } from '@/core/api/files'
 
 const props = defineProps<{
   field: DocField
   modelValue: unknown
   disabled?: boolean
-  error?: string
+  error?: boolean
 }>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
-const { t } = useI18n()
-const isDragging = ref(false)
-const isUploading = ref(false)
-const fileInput = ref<HTMLInputElement>()
+const pickerOpen = ref(false)
+const isDisabled = computed(() => !!(props.disabled || props.field.read_only))
 
-const currentUrl = () => typeof props.modelValue === 'string' ? props.modelValue : null
+const currentUrl = computed(() =>
+  typeof props.modelValue === 'string' && props.modelValue ? props.modelValue : null
+)
 
-async function uploadFile(file: File) {
-  isUploading.value = true
+const filename = ref<string | null>(null)
+
+function extractFileId(url: string): string | null {
   try {
-    const fileItem = await filesApi.upload(file)
-    emit('update:modelValue', fileItem.url)
+    return new URL(url, window.location.origin).searchParams.get('file_id')
   } catch {
-    // upload failed
-  } finally {
-    isUploading.value = false
+    const match = url.match(/[?&]file_id=([^&]+)/)
+    return match ? match[1] : null
   }
 }
 
-function onDrop(e: DragEvent) {
-  isDragging.value = false
-  const file = e.dataTransfer?.files[0]
-  if (file) uploadFile(file)
+watch(currentUrl, async (url) => {
+  if (!url) { filename.value = null; return }
+  const fileId = extractFileId(url)
+  if (!fileId) { filename.value = url.split('/').pop() ?? url; return }
+  try {
+    const item = await filesApi.getById(fileId)
+    filename.value = item?.filename ?? null
+  } catch {
+    filename.value = null
+  }
+}, { immediate: true })
+
+function onSelect(result: AttachmentResult) {
+  filename.value = result.filename
+  emit('update:modelValue', result.url)
 }
 
-function onFileChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (file) uploadFile(file)
+function remove(e: Event) {
+  e.stopPropagation()
+  emit('update:modelValue', null)
 }
 </script>
 
 <template>
   <div>
-    <!-- Current image -->
-    <div v-if="currentUrl()" class="relative inline-block">
-      <img :src="currentUrl()!" class="max-h-48 rounded-lg border border-border object-contain" />
-      <button v-if="!disabled" type="button"
-        class="absolute top-1 right-1 bg-background rounded-full w-6 h-6 flex items-center justify-center text-destructive shadow-sm border border-border hover:bg-destructive hover:text-destructive-foreground transition-colors"
-        @click="emit('update:modelValue', null)">
+    <div
+      :class="cn(
+        'flex h-9 w-full items-center gap-2 rounded-md border border-input bg-transparent px-3 text-sm shadow-sm transition-colors',
+        'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+        isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-ring/40',
+        error ? 'border-destructive' : '',
+      )"
+      @click="!isDisabled && (pickerOpen = true)"
+    >
+      <!-- Мініатюра 24px для зображень, інакше іконка -->
+      <img
+        v-if="currentUrl"
+        :src="currentUrl"
+        class="size-6 rounded object-cover shrink-0"
+        alt=""
+      />
+      <ImageIcon v-else class="size-4 text-muted-foreground shrink-0" />
+
+      <span class="flex-1 truncate" :class="currentUrl ? 'text-foreground' : 'text-muted-foreground'">
+        {{ filename ?? (field.placeholder || 'Прикріпити зображення...') }}
+      </span>
+      <button
+        v-if="currentUrl && !isDisabled"
+        type="button"
+        class="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+        tabindex="-1"
+        @click="remove"
+      >
         <X class="size-3.5" />
       </button>
     </div>
 
-    <!-- Upload zone -->
-    <div v-else class="border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer"
-      :class="isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'"
-      @dragover.prevent="isDragging = true" @dragleave="isDragging = false" @drop.prevent="onDrop"
-      @click="fileInput?.click()">
-      <div v-if="isUploading" class="text-sm text-muted-foreground">{{ t('Loading...') }}</div>
-      <div v-else class="flex flex-col items-center gap-1">
-        <ImageIcon class="size-8 text-muted-foreground/50" />
-        <p class="text-sm text-muted-foreground">Перетягни зображення або <span
-            class="text-primary font-medium">клікни</span></p>
-      </div>
-      <input ref="fileInput" type="file" accept="image/*" class="sr-only" :disabled="disabled" @change="onFileChange" />
-    </div>
+    <AttachPicker
+      v-model:open="pickerOpen"
+      :image-only="true"
+      @select="onSelect"
+    />
   </div>
 </template>

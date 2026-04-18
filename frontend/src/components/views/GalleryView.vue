@@ -3,15 +3,18 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
-import { FileX } from '@lucide/vue'
+import type { useListSelection } from '@/core/composables/useListSelection'
+import { FileX, Check } from '@lucide/vue'
 
 const props = defineProps<{
   rows: Record<string, unknown>[]
   columns: ListColumn[]
   fields: DocField[]
   doctype: string
+  imageField?: string
   workspace?: string
   isLoading?: boolean
+  selection?: ReturnType<typeof useListSelection>
 }>()
 
 const router = useRouter()
@@ -22,8 +25,9 @@ const fieldMap = computed(() => {
   return m
 })
 
-// Image field to use as card thumbnail
+// Image field to use as card thumbnail (prefer explicit prop, fallback to field scan)
 const imageField = computed<string | null>(() => {
+  if (props.imageField) return props.imageField
   const f = props.fields.find(f => f.fieldtype === 'Image' || f.fieldtype === 'Attach')
   return f?.fieldname ?? null
 })
@@ -35,6 +39,21 @@ const titleCol = computed(() => props.columns[0] ?? null)
 const bodyColumns = computed(() =>
   props.columns.slice(1).filter(c => c.key !== imageField.value).slice(0, 4)
 )
+
+const hasSelection = computed(() => !!props.selection?.selectedIds.value.length || !!props.selection?.allSelected.value)
+
+function onCardClick(e: MouseEvent, row: Record<string, unknown>) {
+  if (props.selection && (hasSelection.value || e.ctrlKey || e.metaKey)) {
+    props.selection.toggle(String(row.id))
+    return
+  }
+  navigateToDoc(row)
+}
+
+function onCheckboxClick(e: MouseEvent, row: Record<string, unknown>) {
+  e.stopPropagation()
+  props.selection?.toggle(String(row.id))
+}
 
 function navigateToDoc(row: Record<string, unknown>) {
   const ws = props.workspace ?? 'grunt'
@@ -85,9 +104,29 @@ function formatDate(val: unknown, type: string): string {
     <div
       v-for="row in rows"
       :key="String(row.id)"
-      class="rounded-lg border border-border bg-card hover:shadow-md hover:border-primary/30 cursor-pointer transition-all duration-150 overflow-hidden group"
-      @click="navigateToDoc(row)"
+      class="relative rounded-lg border bg-card hover:shadow-md cursor-pointer transition-all duration-150 overflow-hidden group"
+      :class="selection?.isSelected(String(row.id))
+        ? 'border-primary ring-2 ring-primary/30'
+        : 'border-border hover:border-primary/30'"
+      @click="onCardClick($event, row)"
     >
+      <!-- Checkbox -->
+      <div
+        v-if="selection"
+        class="absolute top-2 left-2 z-10 transition-opacity"
+        :class="selection.isSelected(String(row.id)) || hasSelection ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
+        @click="onCheckboxClick($event, row)"
+      >
+        <div
+          class="size-5 rounded border-2 flex items-center justify-center transition-colors"
+          :class="selection.isSelected(String(row.id))
+            ? 'bg-primary border-primary text-primary-foreground'
+            : 'bg-card border-muted-foreground/40 hover:border-primary'"
+        >
+          <Check v-if="selection.isSelected(String(row.id))" class="size-3" />
+        </div>
+      </div>
+
       <!-- Thumbnail -->
       <div class="h-32 bg-muted/50 flex items-center justify-center overflow-hidden">
         <img

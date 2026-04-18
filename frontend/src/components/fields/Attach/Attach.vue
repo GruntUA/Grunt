@@ -1,93 +1,93 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { DocField } from '@/types'
+import type { AttachmentResult } from '@/core/attachmentChannels/types'
+import { Paperclip, X } from '@lucide/vue'
+import { cn } from '@/lib/utils'
+import AttachPicker from './AttachPicker.vue'
 import { filesApi } from '@/core/api/files'
-import { Paperclip, ExternalLink, X, Upload } from '@lucide/vue'
 
 const props = defineProps<{
   field: DocField
   modelValue: unknown
   disabled?: boolean
-  error?: string
+  error?: boolean
 }>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
-const isDragging = ref(false)
-const isUploading = ref(false)
-const uploadProgress = ref(0)
-const fileInput = ref<HTMLInputElement>()
+const pickerOpen = ref(false)
+const isDisabled = computed(() => !!(props.disabled || props.field.read_only))
 
-const currentUrl = () => typeof props.modelValue === 'string' ? props.modelValue : null
+const currentUrl = computed(() =>
+  typeof props.modelValue === 'string' && props.modelValue ? props.modelValue : null
+)
 
-async function uploadFile(file: File) {
-  isUploading.value = true
-  uploadProgress.value = 0
+const filename = ref<string | null>(null)
+
+function extractFileId(url: string): string | null {
   try {
-    const fileItem = await filesApi.upload(file)
-    emit('update:modelValue', fileItem.url)
+    const params = new URL(url, window.location.origin).searchParams
+    return params.get('file_id')
   } catch {
-    // upload failed
-  } finally {
-    isUploading.value = false
+    const match = url.match(/[?&]file_id=([^&]+)/)
+    return match ? match[1] : null
   }
 }
 
-function onDrop(e: DragEvent) {
-  isDragging.value = false
-  const file = e.dataTransfer?.files[0]
-  if (file) uploadFile(file)
+watch(currentUrl, async (url) => {
+  if (!url) { filename.value = null; return }
+  const fileId = extractFileId(url)
+  if (!fileId) { filename.value = url.split('/').pop() ?? url; return }
+  try {
+    const item = await filesApi.getById(fileId)
+    filename.value = item?.filename ?? null
+  } catch {
+    filename.value = null
+  }
+}, { immediate: true })
+
+function onSelect(result: AttachmentResult) {
+  filename.value = result.filename
+  emit('update:modelValue', result.url)
 }
 
-function onFileChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (file) uploadFile(file)
-}
-
-function removeFile() {
+function remove(e: Event) {
+  e.stopPropagation()
   emit('update:modelValue', null)
-  if (fileInput.value) fileInput.value.value = ''
-}
-
-function fileName(url: string) {
-  return url.split('/').pop() ?? url
 }
 </script>
 
 <template>
   <div>
-    <!-- Current file -->
-    <div v-if="currentUrl()" class="flex items-center gap-2 p-2.5 bg-muted rounded-lg border border-border">
+    <div
+      :class="cn(
+        'flex h-9 w-full items-center gap-2 rounded-md border border-input bg-transparent px-3 text-sm shadow-sm transition-colors',
+        'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+        isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-ring/40',
+        error ? 'border-destructive' : '',
+      )"
+      @click="!isDisabled && (pickerOpen = true)"
+    >
       <Paperclip class="size-4 text-muted-foreground shrink-0" />
-      <span class="text-sm flex-1 truncate">{{ fileName(currentUrl()!) }}</span>
-      <a :href="currentUrl()!" target="_blank"
-        class="text-xs text-primary hover:underline inline-flex items-center gap-1">
-        <ExternalLink class="size-3" />
-        Відкрити
-      </a>
-      <button v-if="!disabled" type="button" class="text-muted-foreground hover:text-destructive transition-colors"
-        @click="removeFile">
-        <X class="size-4" />
+      <span class="flex-1 truncate" :class="currentUrl ? 'text-foreground' : 'text-muted-foreground'">
+        {{ filename ?? (field.placeholder || 'Прикріпити файл...') }}
+      </span>
+      <button
+        v-if="currentUrl && !isDisabled"
+        type="button"
+        class="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+        tabindex="-1"
+        @click="remove"
+      >
+        <X class="size-3.5" />
       </button>
     </div>
 
-    <!-- Upload zone -->
-    <div v-else class="border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer"
-      :class="isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'"
-      @dragover.prevent="isDragging = true" @dragleave="isDragging = false" @drop.prevent="onDrop"
-      @click="fileInput?.click()">
-      <div v-if="isUploading" class="flex flex-col items-center gap-2">
-        <div class="w-full bg-muted rounded-full h-1.5">
-          <div class="bg-primary h-1.5 rounded-full transition-all" :style="{ width: uploadProgress + '%' }" />
-        </div>
-        <p class="text-xs text-muted-foreground">{{ uploadProgress }}%</p>
-      </div>
-      <div v-else class="flex flex-col items-center gap-1">
-        <Upload class="size-5 text-muted-foreground" />
-        <p class="text-sm text-muted-foreground">Перетягни файл або <span class="text-primary font-medium">клікни для
-            вибору</span></p>
-      </div>
-      <input ref="fileInput" type="file" class="sr-only" :disabled="disabled" @change="onFileChange" />
-    </div>
+    <AttachPicker
+      v-model:open="pickerOpen"
+      :image-only="false"
+      @select="onSelect"
+    />
   </div>
 </template>

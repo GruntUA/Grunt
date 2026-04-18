@@ -174,28 +174,46 @@ class S3StorageBackend(StorageBackend):
         return f"https://{self._bucket}.s3.{self._region}.amazonaws.com/{path}"
 
 
-_backend: StorageBackend | None = None
+_backends: dict[str, StorageBackend] = {}
+_s3_backend: StorageBackend | None = None
+
+
+def _resolve_local_upload_dir(site: str) -> str:
+    """Return the uploads directory for the given site."""
+    from grunt.core.site.manager import site_manager  # noqa: PLC0415
+
+    return str(site_manager.sites_dir / site / "uploads")
 
 
 def get_storage_backend() -> StorageBackend:
-    """Return the singleton storage backend configured via settings."""
-    global _backend
-    if _backend is not None:
-        return _backend
+    """Return the storage backend for the current site."""
+    global _s3_backend
 
     from grunt.config import settings  # noqa: PLC0415
 
     if settings.storage_backend == "s3":
-        _backend = S3StorageBackend(
-            bucket=settings.s3_bucket or "grunt-uploads",
-            region=settings.s3_region or "us-east-1",
-            endpoint_url=settings.s3_endpoint_url or None,
-            access_key_id=settings.aws_access_key_id or None,
-            secret_access_key=settings.aws_secret_access_key or None,
-        )
-        logger.info("storage.backend", type="s3", bucket=settings.s3_bucket)
-    else:
-        _backend = LocalStorageBackend(settings.upload_dir)
-        logger.info("storage.backend", type="local", dir=settings.upload_dir)
+        if _s3_backend is None:
+            _s3_backend = S3StorageBackend(
+                bucket=settings.s3_bucket or "grunt-uploads",
+                region=settings.s3_region or "us-east-1",
+                endpoint_url=settings.s3_endpoint_url or None,
+                access_key_id=settings.aws_access_key_id or None,
+                secret_access_key=settings.aws_secret_access_key or None,
+            )
+            logger.info("storage.backend", type="s3", bucket=settings.s3_bucket)
+        return _s3_backend
 
-    return _backend
+    from grunt.core.site.manager import current_site  # noqa: PLC0415
+
+    site = current_site.get("")
+    if not site:
+        # fallback outside of a site context (e.g. tests)
+        upload_dir = settings.upload_dir
+    else:
+        upload_dir = _resolve_local_upload_dir(site)
+
+    if upload_dir not in _backends:
+        _backends[upload_dir] = LocalStorageBackend(upload_dir)
+        logger.info("storage.backend", type="local", site=site, dir=upload_dir)
+
+    return _backends[upload_dir]

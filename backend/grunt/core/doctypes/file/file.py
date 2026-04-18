@@ -27,6 +27,14 @@ class File(Document):
     is_public: bool
     thumbnail_url: str | None
 
+    async def before_delete(self) -> None:
+        if self.path:
+            storage = get_storage_backend()
+            try:
+                await storage.delete(self.path)
+            except Exception:
+                pass
+
 
 @whitelist()
 async def upload(file: UploadFile) -> dict[str, Any]:
@@ -105,10 +113,17 @@ async def get_content(file_id: str) -> Response:
     except Exception:
         raise HTTPException(404, "File not found on storage") from None
 
+    from urllib.parse import quote  # noqa: PLC0415
+
+    file_name = doc.get("file_name") or "file"
+    # RFC 5987: UTF-8 encoded filename for non-ASCII characters
+    encoded_name = quote(file_name, safe="")
+    disposition = f"attachment; filename*=UTF-8''{encoded_name}"
+
     return Response(
         content=content,
         media_type=doc.get("content_type"),
-        headers={"Content-Disposition": f'attachment; filename="{doc.get("file_name")}"'},
+        headers={"Content-Disposition": disposition},
     )
 
 

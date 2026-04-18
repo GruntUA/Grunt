@@ -211,6 +211,7 @@ const listFields = computed(() => {
   if (groupBy.value) fields.add(groupBy.value)
   if (sortKey.value) fields.add(sortKey.value)
   if (dt.value?.status_config?.field) fields.add(dt.value.status_config.field)
+  if (dt.value?.image_field) fields.add(dt.value.image_field)
   return [...fields].join(',')
 })
 
@@ -381,8 +382,13 @@ function navigateToDoc(row: Record<string, unknown>) {
           @unregister-menu-items="(items) => { for (const item of items) { const i = listMenuItems.indexOf(item); if (i !== -1) listMenuItems.splice(i, 1) } }" />
       </div>
       <div v-else-if="viewMode === 'gallery'">
+        <BulkActionBar :count="selection.allSelected.value ? (meta?.total ?? 0) : selection.selectedIds.value.length"
+          :total="meta?.total" :all-selected="selection.allSelected.value" :page-count="rows.length"
+          :editable-fields="dt?.fields" @delete="bulkDelete" @clear="selection.clear"
+          @select-all="selection.selectAllDocuments" @update="bulkUpdate" />
         <GalleryView :rows="rows" :columns="columns.visibleColumns.value" :fields="dt?.fields ?? []" :doctype="doctype"
-          :workspace="workspace" :is-loading="isLoading && !data" />
+          :image-field="dt?.image_field ?? undefined" :workspace="workspace" :is-loading="isLoading && !data"
+          :selection="selection" />
         <ListPagination v-if="meta" :page="meta.page" :pages="meta.pages" :total="meta.total" :per-page="20"
           @update:page="page = $event" />
       </div>
