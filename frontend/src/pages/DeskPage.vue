@@ -5,10 +5,11 @@ import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { useUIStore } from '@/stores/ui'
 import { workspaceApi } from '@/core/api/workspace'
-import DeskTopBar from '@/components/desk/DeskTopBar.vue'
+import AppSidebar from '@/components/AppSidebar.vue'
 import AppCard from '@/components/desk/AppCard.vue'
 import ActivityStream from '@/components/dashboard/ActivityStream.vue'
 import { Spinner } from '@/components/ui/spinner'
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { Clock, LayoutGrid, Search } from '@lucide/vue'
 
 const auth = useAuthStore()
@@ -72,8 +73,12 @@ function findWorkspaceForDoc(doc: RecentDoc) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-background">
-    <DeskTopBar />
+  <SidebarProvider>
+    <AppSidebar />
+    <SidebarInset class="overflow-y-auto">
+
+    <!-- Mobile trigger -->
+    <SidebarTrigger class="fixed top-3 left-3 z-30 md:hidden !h-10 !w-10 rounded-xl bg-card border border-border shadow-lg" />
 
     <main class="max-w-5xl mx-auto px-6 py-10">
 
@@ -151,5 +156,6 @@ function findWorkspaceForDoc(doc: RecentDoc) {
         </section>
       </div>
     </main>
-  </div>
+    </SidebarInset>
+  </SidebarProvider>
 </template>
