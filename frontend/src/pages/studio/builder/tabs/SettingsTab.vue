@@ -3,7 +3,7 @@ import { computed, ref, watch, onMounted } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { appsApi, type GruntApp } from '@/core/api'
 import { Input } from '@/components/ui/input'
-import { FormField } from '@/components/ui/form-field'
+import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import {
@@ -206,19 +206,19 @@ function removeSearchField(fieldname: string) {
     <section>
       <h3 class="mb-4 text-lg font-semibold text-foreground">Загальне</h3>
 
-      <FormField class="mb-4">
-        <Label class="text-muted-foreground">Назва</Label>
+      <Field class="mb-4">
+        <FieldLabel class="text-muted-foreground">Назва</FieldLabel>
         <Input :model-value="builder.doctype?.label ?? ''" @update:model-value="onLabelChange(String($event))" />
-      </FormField>
+      </Field>
 
-      <FormField class="mb-4">
-        <Label class="text-muted-foreground">Системна назва</Label>
+      <Field class="mb-4">
+        <FieldLabel class="text-muted-foreground">Системна назва</FieldLabel>
         <Input :model-value="builder.doctype?.name ?? ''" :disabled="!builder.isNew" placeholder="PascalCase"
           @update:model-value="builder.isNew && builder.updateDocType({ name: String($event) })" />
-      </FormField>
+      </Field>
 
-      <FormField class="mb-4">
-        <Label class="text-muted-foreground">Додаток</Label>
+      <Field class="mb-4">
+        <FieldLabel class="text-muted-foreground">Додаток</FieldLabel>
         <Select :model-value="pendingAppName ?? '__none__'"
           @update:model-value="setApp(String($event) === '__none__' ? null : (String($event) || null))"
           :disabled="isLoadingApps">
@@ -232,11 +232,11 @@ function removeSearchField(fieldname: string) {
             </SelectItem>
           </SelectContent>
         </Select>
-      </FormField>
+      </Field>
 
       <!-- Module selector — shown only when an app is selected -->
-      <FormField v-if="pendingAppName" class="mb-4">
-        <Label class="text-muted-foreground">Модуль</Label>
+      <Field v-if="pendingAppName" class="mb-4">
+        <FieldLabel class="text-muted-foreground">Модуль</FieldLabel>
 
         <!-- App has modules → show select -->
         <Select v-if="selectedApp && selectedApp.modules.length > 0" :model-value="builder.doctype?.module || ''"
@@ -261,7 +261,7 @@ function removeSearchField(fieldname: string) {
             </Button>
           </div>
         </div>
-      </FormField>
+      </Field>
 
       <div class="grid grid-cols-2 gap-4">
         <div class="flex items-center justify-between rounded-md border border-border p-3">
@@ -311,8 +311,8 @@ function removeSearchField(fieldname: string) {
     <section>
       <h3 class="mb-4 text-lg font-semibold text-foreground">Нумерація</h3>
 
-      <FormField class="mb-4">
-        <Label class="text-muted-foreground">Стратегія автоіменування</Label>
+      <Field class="mb-4">
+        <FieldLabel class="text-muted-foreground">Стратегія автоіменування</FieldLabel>
         <Select :model-value="autonameStrategy" @update:model-value="setAutonameStrategy">
           <SelectTrigger>
             <SelectValue placeholder="Оберіть стратегію" />
@@ -326,10 +326,10 @@ function removeSearchField(fieldname: string) {
             <SelectItem value="prompt">Запит у користувача</SelectItem>
           </SelectContent>
         </Select>
-      </FormField>
+      </Field>
 
-      <FormField v-if="autonameStrategy === 'field:'" class="mb-4">
-        <Label class="text-muted-foreground">Поле для імені</Label>
+      <Field v-if="autonameStrategy === 'field:'" class="mb-4">
+        <FieldLabel class="text-muted-foreground">Поле для імені</FieldLabel>
         <Select :model-value="autonameValue" @update:model-value="setAutonameValue">
           <SelectTrigger>
             <SelectValue placeholder="Оберіть поле" />
@@ -340,16 +340,16 @@ function removeSearchField(fieldname: string) {
             </SelectItem>
           </SelectContent>
         </Select>
-      </FormField>
+      </Field>
 
-      <FormField v-if="autonameStrategy === 'format:'" class="mb-4">
-        <Label class="text-muted-foreground">Шаблон</Label>
+      <Field v-if="autonameStrategy === 'format:'" class="mb-4">
+        <FieldLabel class="text-muted-foreground">Шаблон</FieldLabel>
         <Input :model-value="autonameValue" placeholder="CONTR-.YYYY.-.####"
           @update:model-value="setAutonameValue($event as any)" />
-      </FormField>
+      </Field>
 
-      <FormField class="mb-4">
-        <Label class="text-muted-foreground">Поле заголовка</Label>
+      <Field class="mb-4">
+        <FieldLabel class="text-muted-foreground">Поле заголовка</FieldLabel>
         <Select :model-value="builder.doctype?.title_field || '__name__'"
           @update:model-value="builder.updateDocType({ title_field: String($event) === '__name__' ? undefined : String($event) })">
           <SelectTrigger>
@@ -362,10 +362,10 @@ function removeSearchField(fieldname: string) {
             </SelectItem>
           </SelectContent>
         </Select>
-      </FormField>
+      </Field>
 
-      <FormField class="mb-4">
-        <Label class="text-muted-foreground">Поле фото</Label>
+      <Field class="mb-4">
+        <FieldLabel class="text-muted-foreground">Поле фото</FieldLabel>
         <Select :model-value="builder.doctype?.image_field || '__none__'"
           @update:model-value="builder.updateDocType({ image_field: String($event) === '__none__' ? null : String($event) })">
           <SelectTrigger>
@@ -378,10 +378,10 @@ function removeSearchField(fieldname: string) {
             </SelectItem>
           </SelectContent>
         </Select>
-        <p v-if="imageFields.length === 0" class="text-xs text-muted-foreground mt-1">
+        <FieldDescription v-if="imageFields.length === 0">
           Додайте поле типу «Image» або «Attach Image» у форму, щоб обрати його тут.
-        </p>
-      </FormField>
+        </FieldDescription>
+      </Field>
     </section>
 
     <Separator class="my-6" />
@@ -390,8 +390,8 @@ function removeSearchField(fieldname: string) {
     <section>
       <h3 class="mb-4 text-lg font-semibold text-foreground">Вигляд</h3>
 
-      <FormField class="mb-4">
-        <Label class="text-muted-foreground">Вигляд за замовчуванням</Label>
+      <Field class="mb-4">
+        <FieldLabel class="text-muted-foreground">Вигляд за замовчуванням</FieldLabel>
         <Select :model-value="builder.doctype?.default_view ?? 'list'"
           @update:model-value="builder.updateDocType({ default_view: String($event) === 'list' ? null : String($event) as 'kanban' | 'calendar' | 'tree' })">
           <SelectTrigger>
@@ -404,7 +404,7 @@ function removeSearchField(fieldname: string) {
             <SelectItem value="tree">Дерево</SelectItem>
           </SelectContent>
         </Select>
-      </FormField>
+      </Field>
     </section>
 
     <Separator class="my-6" />
@@ -413,8 +413,8 @@ function removeSearchField(fieldname: string) {
     <section>
       <h3 class="mb-4 text-lg font-semibold text-foreground">Пошук</h3>
 
-      <FormField class="mb-4">
-        <Label class="text-muted-foreground">Поля пошуку</Label>
+      <Field class="mb-4">
+        <FieldLabel class="text-muted-foreground">Поля пошуку</FieldLabel>
 
         <div v-if="searchFields.length" class="mb-2 flex flex-wrap gap-2">
           <Badge v-for="sf in searchFields" :key="sf" variant="secondary" class="flex items-center gap-1">
@@ -435,7 +435,7 @@ function removeSearchField(fieldname: string) {
             </SelectItem>
           </SelectContent>
         </Select>
-      </FormField>
+      </Field>
     </section>
   </div>
 </template>

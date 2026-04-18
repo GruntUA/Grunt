@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { FormField } from '@/components/ui/form-field'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { Loader2, ShieldCheck, ArrowRight, ArrowLeft } from '@lucide/vue'
 import { authApi } from '@/core/api'
 import { useAuthStore } from '@/stores/auth'
@@ -73,13 +73,12 @@ async function handleVerify() {
 
       <div class="bg-card border border-border/60 shadow-2xl shadow-black/[0.03] rounded-3xl p-8 backdrop-blur-sm">
         <form class="flex flex-col gap-6" @submit.prevent="handleVerify">
-          <FormField label="Код доступу">
-            <template #default="{ id }">
-              <Input :id="id" v-model="code" type="text" inputmode="numeric" autocomplete="one-time-code"
-                placeholder="000 000" maxlength="8" required autofocus
-                class="h-16 text-center text-3xl font-mono tracking-[0.3em] border-2 focus-visible:ring-primary/20 bg-background/50" />
-            </template>
-          </FormField>
+          <Field>
+            <FieldLabel>Код доступу</FieldLabel>
+            <Input v-model="code" type="text" inputmode="numeric" autocomplete="one-time-code"
+              placeholder="000 000" maxlength="8" required autofocus
+              class="h-16 text-center text-3xl font-mono tracking-[0.3em] border-2 focus-visible:ring-primary/20 bg-background/50" />
+          </Field>
 
           <div v-if="error"
             class="text-xs text-destructive bg-destructive/5 border border-destructive/10 rounded-xl px-4 py-3 text-center font-medium animate-in fade-in zoom-in duration-200">

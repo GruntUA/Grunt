@@ -5,7 +5,7 @@ import { metaApi } from '@/core/api'
 import type { DocTypeSummary } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { FormField } from '@/components/ui/form-field'
+import { Field, FieldLabel, FieldError } from '@/components/ui/field'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { Loader2 } from '@lucide/vue'
@@ -92,21 +92,19 @@ async function createDocType() {
           <DialogTitle>Новий DocType</DialogTitle>
         </DialogHeader>
         <div class="flex flex-col gap-4">
-          <FormField label="Назва (PascalCase)" required :error="nameError">
-            <template #default="{ id }">
-              <Input :id="id" v-model="newForm.name" placeholder="MyModel" />
-            </template>
-          </FormField>
-          <FormField label="Label (для відображення)">
-            <template #default="{ id }">
-              <Input :id="id" v-model="newForm.label" :placeholder="newForm.name || 'My Model'" />
-            </template>
-          </FormField>
-          <FormField label="Модуль">
-            <template #default="{ id }">
-              <Input :id="id" v-model="newForm.module" placeholder="core" />
-            </template>
-          </FormField>
+          <Field>
+            <FieldLabel>Назва (PascalCase) <span class="text-destructive">*</span></FieldLabel>
+            <Input v-model="newForm.name" placeholder="MyModel" />
+            <FieldError v-if="nameError">{{ nameError }}</FieldError>
+          </Field>
+          <Field>
+            <FieldLabel>Label (для відображення)</FieldLabel>
+            <Input v-model="newForm.label" :placeholder="newForm.name || 'My Model'" />
+          </Field>
+          <Field>
+            <FieldLabel>Модуль</FieldLabel>
+            <Input v-model="newForm.module" placeholder="core" />
+          </Field>
           <label class="flex items-center gap-2 cursor-pointer">
             <input v-model="newForm.is_child" type="checkbox" class="rounded" />
             <span class="text-sm text-foreground">Child DocType (для Table поля)</span>

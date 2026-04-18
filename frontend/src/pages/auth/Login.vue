@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { FormField } from '@/components/ui/form-field'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { Loader2, Sprout } from '@lucide/vue'
 
 const router = useRouter()
@@ -69,12 +69,11 @@ async function handleLogin() {
       <!-- Login card -->
       <div class="bg-card rounded-xl shadow-xl shadow-black/[0.04] border border-border/60 p-8">
         <form class="flex flex-col gap-5" @submit.prevent="handleLogin">
-          <FormField label="Email" required>
-            <template #default="{ id }">
-              <Input :id="id" v-model="email" type="email" autocomplete="username" placeholder="admin@grunt.local"
-                required class="h-11" />
-            </template>
-          </FormField>
+          <Field>
+            <FieldLabel>Email <span class="text-destructive">*</span></FieldLabel>
+            <Input v-model="email" type="email" autocomplete="username" placeholder="admin@grunt.local"
+              required class="h-11" />
+          </Field>
 
           <div class="flex flex-col gap-1.5">
             <div class="flex items-center justify-between">

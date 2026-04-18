@@ -9,6 +9,7 @@ from grunt.cli.lint import lint
 from grunt.cli.server import init, serve, worker
 from grunt.cli.site import site_group
 from grunt.cli.test import test
+from grunt.cli.ui import ui_group
 from grunt.cli.update import update
 from grunt.cli.user import users_group
 
@@ -52,6 +53,7 @@ cli.add_command(doctype_group)
 cli.add_command(site_group)
 cli.add_command(db_migrate, name="migrate")
 cli.add_command(lint)
+cli.add_command(ui_group)
 
 # Load dynamic plugins
 _load_plugins()

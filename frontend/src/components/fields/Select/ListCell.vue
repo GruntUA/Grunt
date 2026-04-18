@@ -10,11 +10,15 @@ const props = defineProps<{
   statusConfig?: DocTypeStatusConfig | null
 }>()
 
-type GenericBadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'gray' | 'blue' | 'green' | 'yellow' | 'orange' | 'red' | 'purple' | 'pink'
-
-function getColorVariant(color: string): GenericBadgeVariant {
-  const allowed = ['gray', 'blue', 'green', 'yellow', 'orange', 'red', 'purple', 'pink']
-  return allowed.includes(color) ? (color as GenericBadgeVariant) : 'outline'
+const COLOR_CLASSES: Record<string, string> = {
+  gray:   'border-muted-foreground/20 bg-muted/40 text-muted-foreground',
+  blue:   'border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400',
+  green:  'border-green-500/30 bg-green-500/10 text-green-700 dark:text-emerald-400',
+  yellow: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-amber-400',
+  orange: 'border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400',
+  red:    'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400',
+  purple: 'border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-400',
+  pink:   'border-pink-500/30 bg-pink-500/10 text-pink-700 dark:text-pink-400',
 }
 
 const badge = computed(() => {
@@ -24,15 +28,15 @@ const badge = computed(() => {
   if (isStatusField && props.statusConfig?.indicators) {
     const ind = props.statusConfig.indicators.find((i) => i.value === val)
     if (ind) {
-      return { variant: getColorVariant(ind.color), label: ind.label ?? val }
+      return { colorClass: COLOR_CLASSES[ind.color] ?? '', label: ind.label ?? val }
     }
   }
-  return { variant: 'outline' as const, label: val }
+  return { colorClass: '', label: val }
 })
 </script>
 
 <template>
-  <Badge v-if="badge" :variant="badge.variant" class="font-normal whitespace-nowrap">
+  <Badge v-if="badge" variant="outline" :class="['font-normal whitespace-nowrap', badge.colorClass]">
     {{ badge.label }}
   </Badge>
   <span v-else class="text-muted-foreground/30">—</span>

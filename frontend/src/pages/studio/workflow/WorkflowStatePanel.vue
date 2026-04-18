@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { WorkflowState } from '@/types'
 import { Input } from '@/components/ui/input'
-import { FormField } from '@/components/ui/form-field'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { Button } from '@/components/ui/button'
 
 const props = defineProps<{ state: WorkflowState }>()
@@ -19,16 +19,14 @@ function update(key: keyof WorkflowState, val: unknown) {
   <div class="p-4 border-l border-border bg-background w-64 flex-shrink-0">
     <p class="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wide mb-4">Стан</p>
     <div class="flex flex-col gap-3">
-      <FormField label="Ім'я *">
-        <template #default="{ id }">
-          <Input :id="id" :model-value="state.name" @update:model-value="update('name', $event)" />
-        </template>
-      </FormField>
-      <FormField label="Позначка">
-        <template #default="{ id }">
-          <Input :id="id" :model-value="state.label" @update:model-value="update('label', $event)" />
-        </template>
-      </FormField>
+      <Field>
+        <FieldLabel>Ім'я *</FieldLabel>
+        <Input :model-value="state.name" @update:model-value="update('name', $event)" />
+      </Field>
+      <Field>
+        <FieldLabel>Позначка</FieldLabel>
+        <Input :model-value="state.label" @update:model-value="update('label', $event)" />
+      </Field>
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium text-foreground">Колір</label>
         <input

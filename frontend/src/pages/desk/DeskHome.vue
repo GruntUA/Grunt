@@ -178,7 +178,7 @@ function actionConfig(action: string) {
           </div>
 
           <div class="p-4 bg-muted/20 border-t border-sidebar-border">
-            <Button variant="ghost" size="xs" class="w-full text-xs font-bold text-muted-foreground hover:text-primary">
+            <Button variant="ghost" size="sm" class="w-full text-xs font-bold text-muted-foreground hover:text-primary">
               Переглянути весь лог
             </Button>
           </div>

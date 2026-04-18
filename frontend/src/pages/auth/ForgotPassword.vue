@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { authApi } from '@/core/api/auth-admin'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { FormField } from '@/components/ui/form-field'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { Loader2, Sprout, ArrowLeft } from '@lucide/vue'
 
 const router = useRouter()
@@ -56,18 +56,10 @@ async function handleSubmit() {
         </div>
 
         <form v-else class="flex flex-col gap-5" @submit.prevent="handleSubmit">
-          <FormField label="Email" required>
-            <template #default="{ id }">
-              <Input
-                :id="id"
-                v-model="email"
-                type="email"
-                placeholder="you@example.com"
-                required
-                class="h-11"
-              />
-            </template>
-          </FormField>
+          <Field>
+            <FieldLabel>Email <span class="text-destructive">*</span></FieldLabel>
+            <Input v-model="email" type="email" placeholder="you@example.com" required class="h-11" />
+          </Field>
 
           <div v-if="error" class="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center">
             {{ error }}
