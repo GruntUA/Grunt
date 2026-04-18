@@ -6,6 +6,7 @@
   "is_layout": true,
   "non_groupable": true,
   "propertySections": [
-    "core"
+    "core",
+    "icon"
   ]
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, shallowRef, type Component } from 'vue'
 import type { DocType } from '@/types'
 import { parseLayout } from '@/core/composables/useFormLayout'
 import type { LayoutSection } from '@/core/composables/useFormLayout'
@@ -29,6 +29,18 @@ const layout = computed(() => parseLayout(props.doctype.fields))
 const hasTabs = computed(() => layout.value.length > 1 || layout.value[0]?.label !== '')
 const activeTab = ref(0)
 
+const lucideIcons = shallowRef<Record<string, Component>>({})
+let _iconsLoaded = false
+function getTabIcon(name: string | undefined): Component | null {
+  if (!name) return null
+  if (!_iconsLoaded) {
+    _iconsLoaded = true
+    import('@lucide/vue').then((lib) => { lucideIcons.value = lib as unknown as Record<string, Component> })
+  }
+  const pascal = name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('')
+  return (lucideIcons.value[pascal] ?? null) as Component | null
+}
+
 
 function update(fieldname: string, val: unknown) {
   emit('update:modelValue', { ...props.modelValue, [fieldname]: val })
@@ -43,10 +55,12 @@ function toggleSection(section: LayoutSection) {
   <!-- Tab navigation -->
   <div v-if="hasTabs" class="flex gap-0 border-b border-border mb-6 -mx-6 px-6 overflow-x-auto">
     <button v-for="(tab, ti) in layout" :key="ti" type="button"
-      class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap" :class="activeTab === ti
+      class="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap" :class="activeTab === ti
         ? 'border-primary text-primary'
         : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'"
-      @click="activeTab = ti">{{ tab.label || 'Main' }}</button>
+      @click="activeTab = ti">
+      <component :is="getTabIcon(tab._field?.icon)" v-if="tab._field?.icon" class="size-3.5 shrink-0" />
+      {{ tab.label || 'Main' }}</button>
   </div>
 
   <!-- Sections -->

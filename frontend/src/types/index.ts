@@ -56,6 +56,7 @@ export interface DocField {
   // Layout
   columns?: number
   collapsible?: boolean
+  icon?: string
 }
 
 export interface DocTypeSummary {

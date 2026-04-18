@@ -2,6 +2,9 @@
 import { ref } from 'vue'
 import draggable from 'vuedraggable'
 import type { LayoutTab } from '@/core/composables/useFormLayout'
+import { useBuilderStore } from '@/stores/builder'
+
+const builder = useBuilderStore()
 
 defineProps<{
   tabs: LayoutTab[]
@@ -54,7 +57,7 @@ function cancelRename() {
           :class="activeIndex === i
             ? 'text-primary'
             : 'text-muted-foreground hover:text-foreground'"
-          @click="emit('update:activeIndex', i)"
+          @click="emit('update:activeIndex', i); if (tab._field) builder.selectField(tab._fieldname)"
           @dblclick.stop="startRename(tab)"
         >
           <!-- Editing mode -->

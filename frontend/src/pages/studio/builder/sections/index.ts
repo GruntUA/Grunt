@@ -1,0 +1,16 @@
+import { registerPropertySection } from '@/core/propertySectionRegistry'
+
+registerPropertySection('core',       () => import('./CoreSection.vue').then(m => m.default))
+registerPropertySection('collapsible',() => import('./CollapsibleSection.vue').then(m => m.default))
+registerPropertySection('flags',      () => import('./FlagsSection.vue').then(m => m.default))
+registerPropertySection('display',    () => import('./DisplaySection.vue').then(m => m.default))
+registerPropertySection('text',       () => import('./TextSection.vue').then(m => m.default))
+registerPropertySection('default',    () => import('./DefaultSection.vue').then(m => m.default))
+registerPropertySection('number',     () => import('./NumberSection.vue').then(m => m.default))
+registerPropertySection('validation', () => import('./ValidationSection.vue').then(m => m.default))
+registerPropertySection('formula',    () => import('./FormulaSection.vue').then(m => m.default))
+registerPropertySection('aggregate',  () => import('./AggregateSection.vue').then(m => m.default))
+registerPropertySection('options',    () => import('./OptionsSection.vue').then(m => m.default))
+registerPropertySection('link',       () => import('./LinkSection.vue').then(m => m.default))
+registerPropertySection('table',      () => import('./TableSection.vue').then(m => m.default))
+registerPropertySection('icon',       () => import('./IconSection.vue').then(m => m.default))

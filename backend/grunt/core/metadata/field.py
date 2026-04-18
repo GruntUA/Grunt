@@ -181,6 +181,7 @@ class DocField(BaseModel):
     # Layout
     collapsible: bool = False
     columns: int = 12
+    icon: str | None = None
 
     # Validation rules
     min_value: float | None = None

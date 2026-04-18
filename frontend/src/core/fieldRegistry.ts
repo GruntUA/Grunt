@@ -39,6 +39,7 @@ export type PropSection =
   | 'number'
   | 'collapsible'
   | 'aggregate'
+  | 'icon'
 
 export interface FieldDefinition {
   /** Unique identifier — matches DocField.fieldtype */
