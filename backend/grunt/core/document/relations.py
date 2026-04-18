@@ -22,6 +22,87 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
+_EXTRA_INJECT = ("color", "icon")
+
+
+async def _resolve_link_labels(
+    session: AsyncSession,
+    dt: Any,
+    rows: list[dict[str, Any]],
+) -> None:
+    """Inject ``fieldname__label`` (and extra display fields) for Link fields."""
+    if not rows:
+        return
+
+    from sqlalchemy import or_  # noqa: PLC0415
+
+    link_fields = [f for f in dt.fields if f.fieldtype == "Link" and f.options]
+    present_keys = set(rows[0].keys())
+    link_fields = [f for f in link_fields if f.fieldname in present_keys]
+
+    if not link_fields:
+        return
+
+    for lf in link_fields:
+        try:
+            target_dt = await doctype_registry.get(lf.options)
+        except Exception:  # noqa: BLE001
+            continue
+
+        title_field = getattr(target_dt, "title_field", "name") or "name"
+        target_table = compile_doctype_to_table(target_dt)
+
+        raw_ids: set[str] = {
+            str(row[lf.fieldname]) for row in rows if row.get(lf.fieldname) not in (None, "")
+        }
+        if not raw_ids:
+            continue
+
+        cols_to_fetch = [target_table.c.id, target_table.c.name]
+        if title_field != "name" and title_field in target_table.c:
+            cols_to_fetch.append(target_table.c[title_field])
+
+        linked_field_names = {f.fieldname for f in target_dt.fields}
+        extra_to_fetch = [
+            fname for fname in _EXTRA_INJECT
+            if fname in linked_field_names and fname in target_table.c
+        ]
+        for fname in extra_to_fetch:
+            cols_to_fetch.append(target_table.c[fname])
+
+        q = select(*cols_to_fetch).where(
+            or_(target_table.c.id.in_(raw_ids), target_table.c.name.in_(raw_ids))
+        )
+
+        try:
+            async with session.begin_nested():
+                result = await session.execute(q)
+                linked_rows = result.mappings().all()
+        except Exception:  # noqa: BLE001
+            continue
+
+        label_map: dict[str, str] = {}
+        extra_maps: dict[str, dict[str, Any]] = {fname: {} for fname in extra_to_fetch}
+        for lr in linked_rows:
+            label = str(lr.get(title_field) or lr.get("name") or "")
+            for key in (str(lr["id"]), str(lr["name"])):
+                label_map[key] = label
+                for fname in extra_to_fetch:
+                    val = lr.get(fname)
+                    if val is not None:
+                        extra_maps[fname][key] = val
+
+        label_key = f"{lf.fieldname}__label"
+        for row in rows:
+            raw = row.get(lf.fieldname)
+            if raw not in (None, ""):
+                raw_str = str(raw)
+                row[label_key] = label_map.get(raw_str, raw_str)
+                for fname in extra_to_fetch:
+                    val = extra_maps[fname].get(raw_str)
+                    if val is not None:
+                        row[f"{lf.fieldname}__{fname}"] = val
+
 
 def _get_multi_link_fields(dt: DocType) -> list:
     """Return MultiLink fields from a DocType."""
@@ -46,6 +127,7 @@ async def _load_child_tables(session: AsyncSession, dt: DocType, doc: dict[str, 
                 for k, v in row.items():
                     if isinstance(v, datetime):
                         row[k] = v.isoformat()
+            await _resolve_link_labels(session, child_dt, rows)
             doc[field.fieldname] = rows
         except Exception:
             logger.exception("child_table.load_error", doctype=dt.name, field=field.fieldname)

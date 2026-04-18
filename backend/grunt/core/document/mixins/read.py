@@ -20,8 +20,10 @@ if TYPE_CHECKING:
 
 from grunt.core.document.query import _apply_filters, _apply_search
 from grunt.core.document.relations import (
+    _EXTRA_INJECT,
     _get_multi_link_fields,
     _load_child_tables,
+    _resolve_link_labels,
 )
 from grunt.core.document.virtual import (
     _virtual_get,
@@ -31,8 +33,6 @@ from grunt.core.metadata.compiler import compile_doctype_to_table
 from grunt.core.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()
-
-_EXTRA_INJECT = ("color", "icon")
 
 PROTECTED_FIELDS = frozenset({"id", "owner", "created_at", "docstatus"})
 
@@ -219,100 +219,3 @@ class DocumentReadMixin:
             doc.pop(field, None)
 
         return doc
-
-
-async def _resolve_link_labels(
-    session: AsyncSession,
-    dt: Any,
-    rows: list[dict[str, Any]],
-) -> None:
-    """Inject ``fieldname__label`` (and extra display fields) for Link fields.
-
-    For each Link field present in the rows:
-    - Injects ``{fieldname}__label`` — the title_field of the linked record.
-    - Injects ``{fieldname}__color`` / ``{fieldname}__icon`` if the linked
-      DocType has ``color`` / ``icon`` fields (used by MapView, etc.).
-    """
-    if not rows:
-        return
-
-    from sqlalchemy import or_  # noqa: PLC0415
-
-    link_fields = [f for f in dt.fields if f.fieldtype == "Link" and f.options]
-
-    # Only process fields that are actually in the result rows
-    present_keys = set(rows[0].keys())
-    link_fields = [f for f in link_fields if f.fieldname in present_keys]
-
-    if not link_fields:
-        return
-
-    for lf in link_fields:
-        target_name = lf.options
-        try:
-            target_dt = await doctype_registry.get(target_name)
-        except Exception:  # noqa: BLE001
-            continue
-
-        title_field = getattr(target_dt, "title_field", "name") or "name"
-        target_table = compile_doctype_to_table(target_dt)
-
-        # Collect unique non-null raw values from rows
-        raw_ids: set[str] = {
-            str(row[lf.fieldname]) for row in rows if row.get(lf.fieldname) not in (None, "")
-        }
-        if not raw_ids:
-            continue
-
-        # Batch-fetch id + name + title_field from linked table
-        cols_to_fetch = [target_table.c.id, target_table.c.name]
-        if title_field != "name" and title_field in target_table.c:
-            cols_to_fetch.append(target_table.c[title_field])
-
-        # Include extra display fields if the linked DocType has them
-        linked_field_names = {f.fieldname for f in target_dt.fields}
-        extra_to_fetch = [
-            fname
-            for fname in _EXTRA_INJECT
-            if fname in linked_field_names and fname in target_table.c
-        ]
-        for fname in extra_to_fetch:
-            cols_to_fetch.append(target_table.c[fname])
-
-        q = select(*cols_to_fetch).where(
-            or_(target_table.c.id.in_(raw_ids), target_table.c.name.in_(raw_ids))
-        )
-
-        # Use a savepoint so a failed query (e.g. table doesn't exist) doesn't
-        # corrupt the outer session state.
-        try:
-            async with session.begin_nested():
-                result = await session.execute(q)
-                linked_rows = result.mappings().all()
-        except Exception:  # noqa: BLE001
-            continue
-
-        # Build lookup: raw_id/name → label + extra fields
-        label_map: dict[str, str] = {}
-        extra_maps: dict[str, dict[str, Any]] = {fname: {} for fname in extra_to_fetch}
-
-        for lr in linked_rows:
-            label = str(lr.get(title_field) or lr.get("name") or "")
-            for key in (str(lr["id"]), str(lr["name"])):
-                label_map[key] = label
-                for fname in extra_to_fetch:
-                    val = lr.get(fname)
-                    if val is not None:
-                        extra_maps[fname][key] = val
-
-        # Inject into each row
-        label_key = f"{lf.fieldname}__label"
-        for row in rows:
-            raw = row.get(lf.fieldname)
-            if raw not in (None, ""):
-                raw_str = str(raw)
-                row[label_key] = label_map.get(raw_str, raw_str)
-                for fname in extra_to_fetch:
-                    val = extra_maps[fname].get(raw_str)
-                    if val is not None:
-                        row[f"{lf.fieldname}__{fname}"] = val

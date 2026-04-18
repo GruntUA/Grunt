@@ -8,6 +8,7 @@ import { useWebSocket } from '@/core/composables/useWebSocket'
 import { usePresence } from '@/core/composables/usePresence'
 import { useClientScripts } from '@/core/composables/useClientScripts'
 import { useLinkCreate } from '@/core/composables/useLinkCreate'
+import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 import { useQueryClient } from '@tanstack/vue-query'
 import { clearScriptCache } from '@/core/scripting/executor'
 import type { DocType, GruntDocument } from '@/types'
@@ -180,7 +181,7 @@ async function handleSave() {
 
   // Client-side required field validation
   if (dt.value) {
-    const NON_PHYSICAL = new Set(['Section', 'Column', 'Tab', 'Table', 'MultiLink'])
+    const NON_PHYSICAL = getNonPhysicalTypeSet()
     for (const field of dt.value.fields) {
       if (NON_PHYSICAL.has(field.fieldtype)) continue
       if (displayOverrides[field.fieldname] === false) continue

@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import type { DocField } from '@/types'
+import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 
 export interface ListColumn {
   key: string
@@ -7,7 +8,7 @@ export interface ListColumn {
   sortable: boolean
 }
 
-const STRUCTURAL = new Set(['Section', 'Column', 'Tab', 'Table', 'MultiLink'])
+const STRUCTURAL = getNonPhysicalTypeSet()
 
 export function useListColumns(doctype: string, fields: () => DocField[], titleField?: () => string | undefined) {
   const storageKey = `grunt_columns_v2_${doctype}`

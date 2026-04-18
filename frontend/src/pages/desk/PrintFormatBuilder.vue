@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useDocTypeStore } from '@/stores/doctype'
 import { docsApi } from '@/core/api/docs'
 import { useToast } from '@/core/composables/useToast'
+import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 import client from '@/core/api/client'
 import { Button } from '@/components/ui/button'
 import {
@@ -175,7 +176,7 @@ async function loadDtFields() {
   }
   try {
     const fullDt = await dtStore.get(doctype.value)
-    const SKIP = new Set(['Section', 'Column', 'Tab', 'Table'])
+    const SKIP = getNonPhysicalTypeSet()
     selectedDtFields.value = (fullDt?.fields ?? []).filter((f: any) => !SKIP.has(f.fieldtype))
   } catch {
     selectedDtFields.value = []

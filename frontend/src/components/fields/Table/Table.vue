@@ -14,6 +14,8 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import FieldRenderer from '@/core/renderer/FieldRenderer.vue'
+import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
+import { getLayoutTypeSet } from '@/core/fieldRegistry'
 
 const props = defineProps<{
   field: DocField
@@ -22,7 +24,10 @@ const props = defineProps<{
   error?: string
 }>()
 
-const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
+const emit = defineEmits<{
+  'update:modelValue': [value: unknown]
+  'create-new': [doctype: string, preset: string, fieldname: string]
+}>()
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -36,7 +41,7 @@ const editDraft = ref<Record<string, unknown>>({})
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const LAYOUT_TYPES = new Set(['Section', 'Column', 'Tab'])
+const LAYOUT_TYPES = getLayoutTypeSet()
 const INLINE_TYPES = new Set(['Text', 'Int', 'Float', 'Check', 'Select', 'Date', 'Datetime', 'Time'])
 
 // ── Watchers ──────────────────────────────────────────────────────────────────
@@ -154,12 +159,35 @@ function onCellKeydown(e: KeyboardEvent, rowIdx: number, colIdx: number) {
   }
 }
 
+// ── Quick Entry for Link fields in row dialog ─────────────────────────────────
+
+const quickEntryDt = ref<DocType | null>(null)
+const quickEntryPreset = ref<Record<string, unknown>>({})
+const quickEntryLinkFieldname = ref<string | null>(null)
+
+async function handleCreateNew(linkedDoctype: string, preset: string, linkFieldname: string) {
+  const dt = await metaApi.get(linkedDoctype)
+  if (!dt) return
+  quickEntryDt.value = dt
+  quickEntryPreset.value = preset ? { name: preset } : {}
+  quickEntryLinkFieldname.value = linkFieldname
+}
+
+function onQuickEntrySaved(docname: string) {
+  if (quickEntryLinkFieldname.value) {
+    updateDraft(quickEntryLinkFieldname.value, docname)
+  }
+  quickEntryDt.value = null
+}
+
 // Display value for non-editable cells (complex types or disabled mode)
 function cellDisplay(row: Record<string, unknown>, f: DocField): string {
   const val = row[f.fieldname]
   if (val === null || val === undefined || val === '') return ''
   if (f.fieldtype === 'Check') return val ? t('Yes') : t('No')
-  const str = String(val)
+  const str = f.fieldtype === 'Link'
+    ? String(row[`${f.fieldname}__label`] ?? val)
+    : String(val)
   return str.length > 40 ? str.slice(0, 40) + '…' : str
 }
 </script>
@@ -346,6 +374,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
             :disabled="disabled"
             :docValues="editDraft"
             @update:modelValue="updateDraft(f.fieldname, $event)"
+            @create-new="handleCreateNew"
           />
         </div>
 
@@ -356,4 +385,14 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
       </DialogContent>
     </Dialog>
   </div>
+
+  <!-- Quick Entry dialog for Link fields inside row editor -->
+  <QuickEntryDialog
+    v-if="quickEntryDt"
+    :dt="quickEntryDt"
+    :preset="quickEntryPreset"
+    mode="link"
+    @saved="onQuickEntrySaved"
+    @close="quickEntryDt = null"
+  />
 </template>

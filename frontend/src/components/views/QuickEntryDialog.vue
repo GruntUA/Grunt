@@ -8,6 +8,7 @@ import { useDocument } from '@/core/composables/useDocument'
 import { useToast } from '@/core/composables/useToast'
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import { Button } from '@/components/ui/button'
+import { getLayoutTypeSet } from '@/core/fieldRegistry'
 import { X, ExternalLink } from '@lucide/vue'
 
 const props = defineProps<{
@@ -42,7 +43,7 @@ onMounted(() => {
 
 // ── Field filtering ───────────────────────────────────────────────────────────
 
-const LAYOUT_TYPES = new Set(['Section', 'Column', 'Tab'])
+const LAYOUT_TYPES = getLayoutTypeSet()
 
 /**
  * Return a filtered field list suitable for the Quick Entry dialog.

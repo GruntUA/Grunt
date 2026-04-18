@@ -115,6 +115,16 @@ export function getLayoutFields(): FieldDefinition[] {
   return [..._registry.values()].filter((d) => !!d.is_layout)
 }
 
+/** Set of layout field type strings (Section, Column, Tab) — use instead of hardcoded Sets. */
+export function getLayoutTypeSet(): Set<string> {
+  return new Set([..._registry.values()].filter((d) => !!d.is_layout).map((d) => d.type))
+}
+
+/** Layout types + non-physical container types (Table, MultiLink) that have no DB column. */
+export function getNonPhysicalTypeSet(): Set<string> {
+  return new Set([...getLayoutTypeSet(), 'Table', 'MultiLink'])
+}
+
 /**
  * Backward-compatible shim for PropertiesPanel.
  * @deprecated Use getFieldDef() directly.

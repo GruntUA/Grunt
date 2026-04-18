@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/select'
 import { Trash2, X, Pencil, Loader2 } from '@lucide/vue'
 import type { DocField } from '@/types'
+import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 
 const props = defineProps<{
   count: number
@@ -60,7 +61,7 @@ const displayCount = computed(() =>
   props.allSelected && props.total ? props.total : props.count
 )
 
-const NON_PHYSICAL = new Set(['Section', 'Column', 'Tab', 'Table'])
+const NON_PHYSICAL = getNonPhysicalTypeSet()
 const updatableFields = computed(() =>
   (props.editableFields ?? []).filter(f => !NON_PHYSICAL.has(f.fieldtype) && !f.read_only)
 )

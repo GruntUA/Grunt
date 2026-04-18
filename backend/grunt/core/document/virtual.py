@@ -8,6 +8,7 @@ from grunt.core.document.registry import document_registry
 
 if TYPE_CHECKING:
     from grunt.core.doctypes.user.user import User
+    from grunt.core.document.base import DocumentList
 
 
 def _get_virtual_controller(doctype_name: str, user: User):
@@ -31,9 +32,11 @@ async def _virtual_list(
     sort_order: str,
     filters: Any,
     search: str | None,
-):
+) -> "DocumentList":
+    from grunt.core.document.base import DocumentList  # noqa: PLC0415
+
     ctrl = _get_virtual_controller(doctype_name, user)
-    return await ctrl.get_list(
+    result = await ctrl.get_list(
         filters=filters,
         page=page,
         per_page=per_page,
@@ -41,6 +44,9 @@ async def _virtual_list(
         sort_order=sort_order,
         search=search,
     )
+    if isinstance(result, DocumentList):
+        return result
+    return DocumentList(data=result.get("data", []), meta=result.get("meta", {}))
 
 
 async def _virtual_get(doctype_name: str, user: User, doc_id: str):
