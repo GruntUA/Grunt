@@ -123,6 +123,12 @@ const dataFields = computed(() =>
   ),
 )
 
+const imageFields = computed(() =>
+  (builder.doctype?.fields ?? []).filter(
+    (f) => ['Image', 'Attach Image'].includes(f.fieldtype) && !!f.fieldname,
+  ),
+)
+
 const autonameStrategy = computed(() => {
   const v = builder.doctype?.autoname ?? ''
   if (v.startsWith('field:')) return 'field:'
@@ -356,6 +362,25 @@ function removeSearchField(fieldname: string) {
             </SelectItem>
           </SelectContent>
         </Select>
+      </FormField>
+
+      <FormField class="mb-4">
+        <Label class="text-muted-foreground">Поле фото</Label>
+        <Select :model-value="builder.doctype?.image_field || '__none__'"
+          @update:model-value="builder.updateDocType({ image_field: String($event) === '__none__' ? null : String($event) })">
+          <SelectTrigger>
+            <SelectValue placeholder="Оберіть поле" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">Немає</SelectItem>
+            <SelectItem v-for="field in imageFields" :key="field.fieldname" :value="field.fieldname">
+              {{ field.label || field.fieldname }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <p v-if="imageFields.length === 0" class="text-xs text-muted-foreground mt-1">
+          Додайте поле типу «Image» або «Attach Image» у форму, щоб обрати його тут.
+        </p>
       </FormField>
     </section>
 
