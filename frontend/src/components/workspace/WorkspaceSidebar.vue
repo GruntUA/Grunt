@@ -1,20 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, useAttrs } from 'vue'
-
-defineOptions({ inheritAttrs: false })
-const attrs = useAttrs()
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceStore } from '@/stores/workspace'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import NotificationsPopover from '@/components/layout/NotificationsPopover.vue'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,9 +17,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {
   ArrowLeft,
-  PanelLeftClose,
-  PanelLeft,
-  LogOut,
   ChevronsUpDown,
   Sun,
   Moon,
@@ -41,11 +28,27 @@ import {
   Activity,
   Mail,
   X,
+  LogOut,
 } from '@lucide/vue'
 import { useColorMode } from '@/core/composables/useColorMode'
 import type { Theme } from '@/core/composables/useColorMode'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+  SidebarSeparator,
+  useSidebar,
+} from '@/components/ui/sidebar'
 import SidebarItem from './SidebarItem.vue'
 import SidebarEditor from './SidebarEditor.vue'
 
@@ -54,8 +57,9 @@ defineProps<{ workspaceName: string }>()
 const wsStore = useWorkspaceStore()
 const auth = useAuthStore()
 const router = useRouter()
+const colorMode = useColorMode()
+const { state } = useSidebar()
 
-const collapsed = ref(false)
 const showEditor = ref(false)
 const recentDocs = ref<Array<{ workspace: string; doctype: string; id: string; title: string; ts: number }>>([])
 const pinnedItems = ref<{ workspace: string; type: string; link_to: string; label: string; icon: string }[]>([])
@@ -66,11 +70,6 @@ const _onOpenQuickCreate = () => {
 }
 
 onMounted(() => {
-  const saved = localStorage.getItem('grunt_sidebar_collapsed')
-  if (saved === 'true') collapsed.value = true
-  if (window.innerWidth >= 768 && window.innerWidth <= 1024) {
-    collapsed.value = true
-  }
   loadRecentDocs()
   loadPinnedItems()
   window.addEventListener('grunt_sidebar_pinned_changed', loadPinnedItems)
@@ -93,26 +92,18 @@ watch(() => wsStore.active?.name, () => {
 })
 
 watch(() => router.currentRoute.value.path, () => {
-  if (wsStore.active) {
-    wsStore.refreshCounts()
-  }
+  if (wsStore.active) wsStore.refreshCounts()
 })
 
-function toggleCollapse() {
-  collapsed.value = !collapsed.value
-  localStorage.setItem('grunt_sidebar_collapsed', String(collapsed.value))
-}
-
-function goToDesk() {
-  router.push('/')
-}
+function goToDesk() { router.push('/') }
 
 function initials(name: string): string {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
-const mobileOpen = ref(false)
-const colorMode = useColorMode()
+function triggerSearch() {
+  window.dispatchEvent(new CustomEvent('toggle-search'))
+}
 
 async function onThemeChange(theme: string) {
   await auth.setTheme(theme as Theme)
@@ -123,25 +114,12 @@ async function handleLogout() {
   router.push('/login')
 }
 
-function triggerSearch() {
-  window.dispatchEvent(new CustomEvent('toggle-search'))
-}
-
 function loadRecentDocs() {
   try {
-    const key = 'grunt_recent_docs'
-    const saved = localStorage.getItem(key)
-    if (!saved) {
-      recentDocs.value = []
-      return
-    }
-    const parsed = JSON.parse(saved) as Array<{ workspace: string; doctype: string; id: string; title: string; ts: number }>
-    recentDocs.value = parsed
-      .slice(0, 10)
-      .map(r => ({ ...r }))
-  } catch {
-    recentDocs.value = []
-  }
+    const saved = localStorage.getItem('grunt_recent_docs')
+    if (!saved) { recentDocs.value = []; return }
+    recentDocs.value = (JSON.parse(saved) as typeof recentDocs.value).slice(0, 10)
+  } catch { recentDocs.value = [] }
 }
 
 function getPinKey(workspace: string, type: string, link_to: string) {
@@ -150,340 +128,256 @@ function getPinKey(workspace: string, type: string, link_to: string) {
 
 function unpinItem(item: { workspace: string; type: string; link_to: string }) {
   try {
-    const key = 'grunt_sidebar_pinned'
-    const saved = localStorage.getItem(key)
+    const saved = localStorage.getItem('grunt_sidebar_pinned')
     if (!saved) return
     const list = JSON.parse(saved) as string[]
     const idx = list.indexOf(getPinKey(item.workspace, item.type, item.link_to))
     if (idx >= 0) {
       list.splice(idx, 1)
-      localStorage.setItem(key, JSON.stringify(list.slice(0, 20)))
+      localStorage.setItem('grunt_sidebar_pinned', JSON.stringify(list.slice(0, 20)))
       window.dispatchEvent(new Event('grunt_sidebar_pinned_changed'))
       loadPinnedItems()
     }
-  } catch {
-    // ignore
-  }
+  } catch { /* ignore */ }
 }
 
 function navigatePinnedItem(item: { workspace: string; type: string; link_to: string }) {
   switch (item.type) {
-    case 'DocType':
-      router.push(`/${item.workspace}/list/${item.link_to}`)
-      break
-    case 'Report':
-      router.push(`/${item.workspace}/report/${item.link_to}`)
-      break
-    case 'Dashboard':
-      router.push(`/${item.workspace}/dashboard/${item.link_to}`)
-      break
-    case 'URL':
-      window.open(item.link_to, '_blank')
-      break
-    default:
-      router.push(`/${item.workspace}/list/${item.link_to}`)
+    case 'DocType': router.push(`/${item.workspace}/list/${item.link_to}`); break
+    case 'Report': router.push(`/${item.workspace}/report/${item.link_to}`); break
+    case 'Dashboard': router.push(`/${item.workspace}/dashboard/${item.link_to}`); break
+    case 'URL': window.open(item.link_to, '_blank'); break
+    default: router.push(`/${item.workspace}/list/${item.link_to}`)
   }
 }
 
 function loadPinnedItems() {
   try {
-    const key = 'grunt_sidebar_pinned'
-    const saved = localStorage.getItem(key)
-    if (!saved) {
-      pinnedItems.value = []
-      return
-    }
+    const saved = localStorage.getItem('grunt_sidebar_pinned')
+    if (!saved) { pinnedItems.value = []; return }
     const ids = JSON.parse(saved) as string[]
     pinnedItems.value = ids
       .map((id) => {
         const [workspace, type, link_to] = id.split(':')
         if (!workspace || !type || !link_to) return null
         const found = wsStore.active?.items.find(i => i.type === type && i.link_to === link_to)
-        const label = found?.label || link_to
-        const icon = found?.icon || '📌'
-        return { workspace, type, link_to, label, icon }
+        return { workspace, type, link_to, label: found?.label || link_to, icon: found?.icon || '📌' }
       })
-      .filter((item): item is { workspace: string; type: string; link_to: string; label: string; icon: string } => !!item)
+      .filter((item): item is NonNullable<typeof item> => !!item)
       .slice(0, 10)
-  } catch {
-    pinnedItems.value = []
-  }
+  } catch { pinnedItems.value = [] }
 }
-
-
-defineExpose({ mobileOpen })
 </script>
 
 <template>
-  <!-- Mobile overlay -->
-  <Transition name="overlay">
-    <div v-if="mobileOpen" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
-      @click="mobileOpen = false" />
-  </Transition>
-
-  <TooltipProvider :delay-duration="0">
-    <aside v-bind="attrs"
-      class="flex flex-col bg-sidebar border-r border-sidebar-border h-screen transition-all duration-200 shrink-0"
-      :class="[
-        collapsed ? 'w-[52px]' : 'w-[240px]',
-        mobileOpen ? 'fixed inset-y-0 left-0 z-50' : 'hidden md:flex'
-      ]">
-      <!-- Header -->
-      <!-- Header / Workspace Switcher -->
-      <div class="px-2 py-4 border-b border-sidebar-border bg-sidebar-background/50 backdrop-blur-md sticky top-0 z-10">
-        <DropdownMenu v-if="!collapsed">
-          <DropdownMenuTrigger as-child>
-            <button
-              class="group w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-sidebar-border bg-gradient-to-br from-sidebar-background via-sidebar-background to-primary/5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 relative overflow-hidden">
-              <!-- Glossy overlay -->
+  <Sidebar collapsible="icon">
+    <!-- ── Header: Workspace Switcher ── -->
+    <SidebarHeader class="p-2">
+      <DropdownMenu v-if="state !== 'collapsed'">
+        <DropdownMenuTrigger as-child>
+          <button
+            class="group w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-sidebar-border bg-gradient-to-br from-sidebar via-sidebar to-primary/5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 relative overflow-hidden">
+            <div
+              class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+            <div class="flex items-center gap-3 min-w-0 relative z-10">
               <div
-                class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-
-              <div class="flex items-center gap-3 min-w-0 relative z-10">
-                <div
-                  class="size-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-inner">
-                  <span class="text-xl leading-none filter drop-shadow-sm">{{ wsStore.active?.icon || '📁' }}</span>
-                </div>
-                <div class="flex flex-col items-start min-w-0">
-                  <span class="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em] leading-none mb-1.5">
-                    {{ wsStore.active?.name === 'grunt' ? 'СИСТЕМА' : 'РОБОЧИЙ ПРОСТІР' }}
-                  </span>
-                  <span
-                    class="text-sm font-bold text-foreground truncate w-full group-hover:text-primary transition-colors">{{
-                      wsStore.active?.label }}</span>
-                </div>
+                class="size-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-inner">
+                <span class="text-xl leading-none filter drop-shadow-sm">{{ wsStore.active?.icon || '📁' }}</span>
               </div>
-              <ChevronsUpDown
-                class="size-4 text-muted-foreground/40 group-hover:text-primary transition-all shrink-0 ml-2 group-hover:translate-y-0.5" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" class="w-[200px] rounded-xl shadow-xl p-1.5 z-[100]">
-            <DropdownMenuItem v-for="ws in wsStore.workspaces" :key="ws.name"
-              class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-colors"
-              :class="ws.name === wsStore.active?.name ? 'bg-primary/5 text-primary font-medium' : ''"
-              @click="router.push(`/${ws.name}`)">
-              <span class="text-lg shrink-0">{{ ws.icon }}</span>
-              <span class="text-sm truncate">{{ ws.label }}</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator class="mx-1 my-1" />
-            <DropdownMenuItem
-              class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-destructive/5 hover:text-destructive transition-colors group"
-              @click="goToDesk">
-              <ArrowLeft class="size-4 text-muted-foreground/60 group-hover:text-destructive transition-colors" />
-              <span class="text-sm">На головну</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <div class="flex flex-col items-start min-w-0">
+                <span class="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em] leading-none mb-1.5">
+                  {{ wsStore.active?.name === 'grunt' ? 'СИСТЕМА' : 'РОБОЧИЙ ПРОСТІР' }}
+                </span>
+                <span class="text-sm font-bold text-sidebar-foreground truncate w-full group-hover:text-primary transition-colors">
+                  {{ wsStore.active?.label }}
+                </span>
+              </div>
+            </div>
+            <ChevronsUpDown
+              class="size-4 text-sidebar-foreground/40 group-hover:text-primary transition-all shrink-0 ml-2 group-hover:translate-y-0.5" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" class="w-[200px] rounded-xl shadow-xl p-1.5 z-[100]">
+          <DropdownMenuItem v-for="ws in wsStore.workspaces" :key="ws.name"
+            class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-colors"
+            :class="ws.name === wsStore.active?.name ? 'bg-primary/5 text-primary font-medium' : ''"
+            @click="router.push(`/${ws.name}`)">
+            <span class="text-lg shrink-0">{{ ws.icon }}</span>
+            <span class="text-sm truncate">{{ ws.label }}</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator class="mx-1 my-1" />
+          <DropdownMenuItem
+            class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-destructive/5 hover:text-destructive transition-colors group"
+            @click="goToDesk">
+            <ArrowLeft class="size-4 text-muted-foreground/60 group-hover:text-destructive transition-colors" />
+            <span class="text-sm">На головну</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-        <Tooltip v-else :delay-duration="0">
-          <TooltipTrigger as-child>
-            <button
-              class="mx-auto size-9 rounded-lg bg-primary/5 border border-sidebar-border/50 flex items-center justify-center hover:bg-primary/10 transition-colors"
-              @click="goToDesk">
-              <span class="text-lg">{{ wsStore.active?.icon || '📁' }}</span>
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            {{ wsStore.active?.label }}
-          </TooltipContent>
-        </Tooltip>
-      </div>
+      <!-- Collapsed: icon only -->
+      <SidebarMenuButton v-else :tooltip="wsStore.active?.label || 'Workspace'" @click="goToDesk"
+        class="h-10 justify-center">
+        <span class="text-xl">{{ wsStore.active?.icon || '📁' }}</span>
+      </SidebarMenuButton>
+    </SidebarHeader>
 
-      <!-- Search Trigger -->
-      <div class="px-3 py-2">
+    <!-- ── Content ── -->
+    <SidebarContent>
+      <!-- Search + Notifications + Pinned (hidden when collapsed) -->
+      <SidebarGroup v-if="state !== 'collapsed'" class="py-2 gap-2">
+        <!-- Search -->
         <button
           class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-sidebar-border/50 bg-muted/20 hover:bg-muted/40 hover:border-primary/30 hover:shadow-sm transition-all group overflow-hidden relative"
           @click="triggerSearch">
           <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
           <div class="flex items-center gap-2.5 min-w-0 relative z-10">
-            <Search
-              class="size-4 text-muted-foreground group-hover:text-primary group-hover:scale-110 transition-all shrink-0" />
-            <span v-if="!collapsed"
-              class="text-xs font-semibold text-muted-foreground/80 group-hover:text-foreground transition-colors">Пошук...</span>
+            <Search class="size-4 text-muted-foreground group-hover:text-primary transition-all shrink-0" />
+            <span class="text-xs font-semibold text-muted-foreground/80 group-hover:text-foreground transition-colors">
+              Пошук...
+            </span>
           </div>
-          <div v-if="!collapsed"
-            class="flex items-center gap-0.5 px-2 py-0.5 rounded-md border border-sidebar-border/50 bg-background/50 backdrop-blur-sm text-[9px] font-bold text-muted-foreground shadow-sm group-hover:border-primary/30 transition-all relative z-10">
+          <div
+            class="flex items-center gap-0.5 px-2 py-0.5 rounded-md border border-sidebar-border/50 bg-background/50 text-[9px] font-bold text-muted-foreground shadow-sm group-hover:border-primary/30 transition-all relative z-10">
             <span class="opacity-70 text-[10px]">⌘</span>
             <span>K</span>
           </div>
         </button>
-      </div>
 
-      <!-- Notifications -->
-      <div v-if="!collapsed" class="px-3 mb-2">
+        <!-- Notifications -->
         <NotificationsPopover :workspace="wsStore.active?.name" />
-      </div>
 
-
-      <!-- Pinned items -->
-      <div v-if="!collapsed && pinnedItems.length" class="px-3 mb-2">
-        <div class="text-[11px] tracking-widest font-bold uppercase text-muted-foreground mb-1">Закріплені</div>
-        <div class="space-y-1">
+        <!-- Pinned items -->
+        <div v-if="pinnedItems.length" class="space-y-1">
+          <p class="px-1 text-[11px] tracking-widest font-bold uppercase text-muted-foreground">Закріплені</p>
           <div v-for="item in pinnedItems" :key="`${item.workspace}-${item.type}-${item.link_to}`"
-            class="w-full flex items-center justify-between text-sm px-2 py-1 rounded hover:bg-accent/70 transition">
+            class="w-full flex items-center justify-between text-sm px-2 py-1 rounded hover:bg-sidebar-accent/70 transition">
             <button class="text-left flex-1 truncate" @click="navigatePinnedItem(item)">
               {{ item.icon }} {{ item.label }}
               <span class="text-[10px] text-muted-foreground lowercase ml-1">({{ item.type }})</span>
             </button>
-            <button class="ml-2 rounded-md p-1 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10"
-              title="Відкріпити" @click.stop="unpinItem(item)">
+            <button
+              class="ml-2 rounded-md p-1 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10"
+              @click.stop="unpinItem(item)">
               <X class="size-3" />
             </button>
           </div>
         </div>
-      </div>
+      </SidebarGroup>
 
       <!-- Navigation -->
-      <ScrollArea class="flex-1">
-        <nav class="p-2 flex flex-col gap-0.5">
-          <!-- Workspace Dashboard — always shown at top of navigation -->
-          <RouterLink :to="`/${workspaceName}/dashboard/${workspaceName}`" custom v-slot="{ isActive, href, navigate }">
-            <a :href="href" @click="navigate"
-              class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 relative group overflow-hidden"
-              :class="isActive ? 'bg-primary/10 text-primary shadow-sm' : 'text-muted-foreground/80 hover:bg-muted/50 hover:text-foreground'">
-              <div v-if="isActive" class="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent" />
-              <LayoutDashboard class="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:scale-110"
-                :class="isActive ? 'text-primary' : 'text-muted-foreground/60'" />
-              <span v-if="!collapsed" class="truncate font-bold tracking-tight relative z-10">Огляд</span>
-            </a>
-          </RouterLink>
-          <Separator class="my-2" />
+      <SidebarGroup class="py-0 px-0">
+        <SidebarMenu>
+          <!-- Workspace Dashboard -->
+          <SidebarMenuItem>
+            <RouterLink :to="`/${workspaceName}/dashboard/${workspaceName}`" custom v-slot="{ isActive, href, navigate }">
+              <SidebarMenuButton :is-active="isActive" tooltip="Огляд" as="a" :href="href" @click="navigate">
+                <LayoutDashboard class="shrink-0" />
+                <span>Огляд</span>
+              </SidebarMenuButton>
+            </RouterLink>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroup>
 
-          <template v-for="(group, gi) in wsStore.groupedItems" :key="gi">
-            <!-- Divider -->
-            <Separator v-if="group.section === '__divider__'" class="my-2" />
+      <SidebarSeparator />
 
-            <template v-else>
-              <!-- Section label -->
-              <p v-if="group.section && !collapsed"
-                class="px-2.5 pt-4 pb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground select-none">
-                {{ group.section }}</p>
-
+      <!-- Grouped workspace items -->
+      <template v-for="(group, gi) in wsStore.groupedItems" :key="gi">
+        <SidebarSeparator v-if="group.section === '__divider__'" />
+        <SidebarGroup v-else class="py-0 px-0">
+          <SidebarGroupLabel v-if="group.section">{{ group.section }}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
               <SidebarItem v-for="item in group.items" :key="item.link_to + item.sequence" :item="item"
                 :workspace-name="workspaceName"
-                :count="wsStore.counts[item.link_to] ?? wsStore.counts[item.link_to + '_' + (item.count_filters ? Object.values(JSON.parse(item.count_filters || '{}')).join('_').toLowerCase() : '')] ?? 0"
-                :collapsed="collapsed" :color="wsStore.active?.color" />
-            </template>
-          </template>
+                :count="wsStore.counts[item.link_to] ?? 0"
+                :color="wsStore.active?.color" />
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </template>
 
-          <div v-if="!collapsed && auth.user?.is_superadmin" class="px-2 pt-6 space-y-1">
-            <!-- Quick admin shortcuts → all point to standard DocType ListViews -->
+      <!-- Admin shortcuts -->
+      <SidebarGroup v-if="state !== 'collapsed' && auth.user?.is_superadmin" class="mt-auto">
+        <SidebarMenu>
+          <SidebarMenuItem>
             <RouterLink :to="`/grunt/list/DocTypePermission`" custom v-slot="{ isActive, href, navigate }">
-              <a :href="href" @click="navigate"
-                class="flex items-center gap-2 px-3 h-8 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border"
-                :class="isActive ? 'bg-primary/10 text-primary border-primary/20' : 'text-muted-foreground/70 border-dashed border-border/70 hover:text-primary hover:bg-primary/5 hover:border-primary/20'">
-                <Shield class="size-3.5" />
-                Права доступу
-              </a>
+              <SidebarMenuButton :is-active="isActive" as="a" :href="href" variant="outline" size="sm" @click="navigate">
+                <Shield class="shrink-0" />
+                <span>Права доступу</span>
+              </SidebarMenuButton>
             </RouterLink>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <RouterLink :to="`/grunt/list/ActivityLog`" custom v-slot="{ isActive, href, navigate }">
-              <a :href="href" @click="navigate"
-                class="flex items-center gap-2 px-3 h-8 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border"
-                :class="isActive ? 'bg-primary/10 text-primary border-primary/20' : 'text-muted-foreground/70 border-dashed border-border/70 hover:text-primary hover:bg-primary/5 hover:border-primary/20'">
-                <Activity class="size-3.5" />
-                Журнал активності
-              </a>
+              <SidebarMenuButton :is-active="isActive" as="a" :href="href" variant="outline" size="sm" @click="navigate">
+                <Activity class="shrink-0" />
+                <span>Журнал активності</span>
+              </SidebarMenuButton>
             </RouterLink>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <RouterLink :to="`/grunt/list/EmailAccount`" custom v-slot="{ isActive, href, navigate }">
-              <a :href="href" @click="navigate"
-                class="flex items-center gap-2 px-3 h-8 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border"
-                :class="isActive ? 'bg-primary/10 text-primary border-primary/20' : 'text-muted-foreground/70 border-dashed border-border/70 hover:text-primary hover:bg-primary/5 hover:border-primary/20'">
-                <Mail class="size-3.5" />
-                Пошта
-              </a>
+              <SidebarMenuButton :is-active="isActive" as="a" :href="href" variant="outline" size="sm" @click="navigate">
+                <Mail class="shrink-0" />
+                <span>Пошта</span>
+              </SidebarMenuButton>
             </RouterLink>
-            <Button variant="ghost" size="sm"
-              class="w-full justify-start text-[11px] font-bold text-muted-foreground/70 hover:text-primary hover:bg-primary/5 hover:border-primary/20 border border-dashed border-border/70 h-8 uppercase tracking-wider"
-              @click="showEditor = true">
-              <Settings2 class="size-3.5 mr-2" />
-              Налаштувати
-            </Button>
-          </div>
-        </nav>
-      </ScrollArea>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton variant="outline" size="sm" @click="showEditor = true">
+              <Settings2 class="shrink-0" />
+              <span>Налаштувати</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroup>
+    </SidebarContent>
 
-      <SidebarEditor v-if="wsStore.active" v-model:open="showEditor" :workspace="wsStore.active"
-        @saved="wsStore.setActive(workspaceName, true)" />
+    <!-- ── Footer: User menu ── -->
+    <SidebarFooter class="p-2">
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <SidebarMenuButton size="lg" :tooltip="auth.user?.full_name" class="h-auto py-1.5">
+                <Avatar class="size-7 rounded-md bg-primary shrink-0">
+                  <AvatarImage :src="auth.user?.avatar || ''" />
+                  <AvatarFallback class="text-primary-foreground text-xs font-medium bg-transparent">
+                    {{ auth.user ? initials(auth.user.full_name) : '?' }}
+                  </AvatarFallback>
+                </Avatar>
+                <div class="flex-1 text-left min-w-0 group-data-[collapsible=icon]:hidden">
+                  <p class="text-sm font-medium text-sidebar-foreground truncate leading-tight">
+                    {{ auth.user?.full_name }}
+                  </p>
+                  <p class="text-[11px] text-muted-foreground truncate leading-tight">{{ auth.user?.email }}</p>
+                </div>
+                <ChevronsUpDown class="size-4 text-muted-foreground shrink-0 group-data-[collapsible=icon]:hidden" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="start" class="w-56">
+              <DropdownMenuLabel class="text-xs text-muted-foreground font-normal">Тема</DropdownMenuLabel>
+              <DropdownMenuRadioGroup :model-value="colorMode.currentTheme.value"
+                @update:model-value="(v) => typeof v === 'string' && onThemeChange(v)">
+                <DropdownMenuRadioItem value="light"><Sun class="size-3.5 mr-2" />Світла</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="dark"><Moon class="size-3.5 mr-2" />Темна</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="system"><Monitor class="size-3.5 mr-2" />Системна</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem @click="handleLogout">
+                <LogOut class="size-4 mr-2" />Вийти
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarFooter>
 
-      <!-- Footer -->
-      <div class="border-t border-sidebar-border shrink-0 p-2">
-        <!-- Collapse toggle (desktop only) -->
-        <button
-          class="w-full hidden md:flex items-center justify-center p-1.5 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors mb-1"
-          :title="collapsed ? 'Розгорнути' : 'Згорнути'" @click="toggleCollapse">
-          <PanelLeft v-if="collapsed" class="size-4" />
-          <PanelLeftClose v-else class="size-4" />
-        </button>
+    <SidebarRail />
 
-        <!-- User menu -->
-        <DropdownMenu v-if="!collapsed">
-          <DropdownMenuTrigger as-child>
-            <button class="w-full flex items-center gap-2 p-1.5 rounded-md hover:bg-accent transition-colors">
-              <Avatar class="size-7 rounded-md bg-primary">
-                <AvatarImage :src="auth.user?.avatar || ''" />
-                <AvatarFallback class="text-primary-foreground text-xs font-medium bg-transparent">
-                  {{ auth.user ? initials(auth.user.full_name) : '?' }}
-                </AvatarFallback>
-              </Avatar>
-              <div class="flex-1 text-left min-w-0">
-                <p class="text-sm font-medium text-foreground truncate leading-tight">{{ auth.user?.full_name }}</p>
-                <p class="text-[11px] text-muted-foreground truncate leading-tight">{{ auth.user?.email }}</p>
-              </div>
-              <ChevronsUpDown class="size-4 text-muted-foreground shrink-0" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" align="start" class="w-56">
-            <DropdownMenuLabel class="text-xs text-muted-foreground font-normal">Тема</DropdownMenuLabel>
-            <DropdownMenuRadioGroup :model-value="colorMode.currentTheme.value"
-              @update:model-value="(v) => typeof v === 'string' && onThemeChange(v)">
-              <DropdownMenuRadioItem value="light">
-                <Sun class="size-3.5 mr-2" />
-                Світла
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="dark">
-                <Moon class="size-3.5 mr-2" />
-                Темна
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="system">
-                <Monitor class="size-3.5 mr-2" />
-                Системна
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem @click="handleLogout">
-              <LogOut class="size-4 mr-2" />
-              Вийти
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <!-- Collapsed: avatar only -->
-        <Tooltip v-else>
-          <TooltipTrigger as-child>
-            <button class="w-full flex items-center justify-center p-1.5 rounded-md hover:bg-accent transition-colors">
-              <Avatar class="size-7 rounded-md bg-primary">
-                <AvatarImage :src="auth.user?.avatar || ''" />
-                <AvatarFallback class="text-primary-foreground text-xs font-medium bg-transparent">
-                  {{ auth.user ? initials(auth.user.full_name) : '?' }}
-                </AvatarFallback>
-              </Avatar>
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="right">{{ auth.user?.full_name }}</TooltipContent>
-        </Tooltip>
-      </div>
-    </aside>
-  </TooltipProvider>
+    <SidebarEditor v-if="wsStore.active" v-model:open="showEditor" :workspace="wsStore.active"
+      @saved="wsStore.setActive(workspaceName, true)" />
+  </Sidebar>
 </template>
-
-<style scoped>
-.overlay-enter-active,
-.overlay-leave-active {
-  transition: opacity 200ms ease;
-}
-
-.overlay-enter-from,
-.overlay-leave-to {
-  opacity: 0;
-}
-</style>

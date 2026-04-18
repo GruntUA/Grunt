@@ -43,7 +43,7 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
 
 <template>
   <Field v-if="isVisible" :data-fieldname="field.fieldname" class="relative">
-    <FieldLabel v-if="!hasOwnLabel">
+    <FieldLabel v-if="!hasOwnLabel" class="text-foreground">
       {{ field.label }}
       <span v-if="field.required" class="text-destructive ml-0.5">*</span>
     </FieldLabel>

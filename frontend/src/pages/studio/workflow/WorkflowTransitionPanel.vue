@@ -27,11 +27,11 @@ function update(key: keyof WorkflowTransition, val: unknown) {
     <p class="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wide mb-4">Перехід</p>
     <div class="flex flex-col gap-3">
       <Field>
-        <FieldLabel>Дія (назва кнопки) *</FieldLabel>
+        <FieldLabel class="text-foreground">Дія (назва кнопки) *</FieldLabel>
         <Input :model-value="transition.action" @update:model-value="update('action', $event)" />
       </Field>
       <Field>
-        <FieldLabel>Зі стану *</FieldLabel>
+        <FieldLabel class="text-foreground">Зі стану *</FieldLabel>
         <Select :model-value="transition.from_state" @update:model-value="update('from_state', $event)">
           <SelectTrigger>
             <SelectValue placeholder="— оберіть —" />
@@ -42,7 +42,7 @@ function update(key: keyof WorkflowTransition, val: unknown) {
         </Select>
       </Field>
       <Field>
-        <FieldLabel>До стану *</FieldLabel>
+        <FieldLabel class="text-foreground">До стану *</FieldLabel>
         <Select :model-value="transition.to_state" @update:model-value="update('to_state', $event)">
           <SelectTrigger>
             <SelectValue placeholder="— оберіть —" />
@@ -63,7 +63,7 @@ function update(key: keyof WorkflowTransition, val: unknown) {
         />
       </div>
       <Field>
-        <FieldLabel>Умова (Python)</FieldLabel>
+        <FieldLabel class="text-foreground">Умова (Python)</FieldLabel>
         <Input :model-value="transition.condition ?? ''" placeholder="doc.amount > 0" @update:model-value="update('condition', $event || null)" />
       </Field>
       <Button variant="destructive" size="sm" @click="emit('remove')">Видалити перехід</Button>

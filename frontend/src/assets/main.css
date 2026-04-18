@@ -1,7 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@theme {
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
   /* ── Colors ── */
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -40,7 +42,7 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
-  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar: hsl(var(--sidebar));
   --color-sidebar-foreground: hsl(var(--sidebar-foreground));
   --color-sidebar-primary: hsl(var(--sidebar-primary));
   --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
@@ -56,10 +58,13 @@
   --color-chart-5: hsl(var(--chart-5));
 
   /* ── Border radius ── */
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 
   /* ── Font families ── */
   --font-sans: 'Geist Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -154,7 +159,7 @@
     --radius: 0.5rem;
 
     /* Sidebar — light emerald tint */
-    --sidebar-background: 158 30% 97%;
+    --sidebar: 158 30% 97%;
     --sidebar-foreground: 155 30% 10%;
     --sidebar-primary: 160 84% 39%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -204,7 +209,7 @@
     --input: 160 15% 18%;
     --ring: 160 72% 50%;
 
-    --sidebar-background: 160 20% 7%;
+    --sidebar: 160 20% 7%;
     --sidebar-foreground: 150 15% 90%;
     --sidebar-primary: 160 72% 50%;
     --sidebar-primary-foreground: 160 30% 5%;

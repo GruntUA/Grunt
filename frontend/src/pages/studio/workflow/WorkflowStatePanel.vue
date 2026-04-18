@@ -20,11 +20,11 @@ function update(key: keyof WorkflowState, val: unknown) {
     <p class="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wide mb-4">Стан</p>
     <div class="flex flex-col gap-3">
       <Field>
-        <FieldLabel>Ім'я *</FieldLabel>
+        <FieldLabel class="text-foreground">Ім'я *</FieldLabel>
         <Input :model-value="state.name" @update:model-value="update('name', $event)" />
       </Field>
       <Field>
-        <FieldLabel>Позначка</FieldLabel>
+        <FieldLabel class="text-foreground">Позначка</FieldLabel>
         <Input :model-value="state.label" @update:model-value="update('label', $event)" />
       </Field>
       <div class="flex flex-col gap-1">
