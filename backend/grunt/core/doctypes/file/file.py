@@ -37,7 +37,11 @@ class File(Document):
 
 
 @whitelist()
-async def upload(file: UploadFile) -> dict[str, Any]:
+async def upload(
+    file: UploadFile,
+    attached_to_doctype: str | None = None,
+    attached_to_id: str | None = None,
+) -> dict[str, Any]:
     """Whitelisted method: Upload a file and create a File document."""
     if not file.filename:
         raise HTTPException(400, "No filename provided")
@@ -77,6 +81,8 @@ async def upload(file: UploadFile) -> dict[str, Any]:
         "file_size": len(content),
         "uploaded_by": grunt.session.user,
         "is_public": True,
+        "attached_to_doctype": attached_to_doctype or None,
+        "attached_to_id": attached_to_id or None,
     }
     if is_image:
         doc_data["thumbnail_url"] = file_url

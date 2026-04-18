@@ -80,7 +80,8 @@
     {
       "fieldname": "attached_to_id",
       "label": "ID документа",
-      "fieldtype": "Text"
+      "fieldtype": "DynamicLink",
+      "options": "attached_to_doctype"
     }
   ]
 }

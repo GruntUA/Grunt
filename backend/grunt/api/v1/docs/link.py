@@ -15,6 +15,8 @@ from typing import Any
 from fastapi import Depends, Query
 from sqlalchemy import or_, select
 
+from sqlalchemy import text
+
 from grunt.api.router import GruntRouter
 from grunt.api.v1.docs.utils import get_doc_service
 from grunt.api.v1.schemas.response import ok
@@ -26,6 +28,21 @@ from grunt.core.metadata.compiler import compile_doctype_to_table
 from grunt.core.metadata.registry import doctype_registry
 
 router = GruntRouter()
+
+
+async def _link_search_doctype(
+    q: str, page_length: int, svc: DocumentService
+) -> list[dict[str, Any]]:
+    """Search all registered doctypes via grunt_meta_doctype."""
+    session = svc.session
+    sql = text(
+        "SELECT name FROM grunt_meta_doctype "
+        "WHERE (:q = '' OR name LIKE :pattern) "
+        "ORDER BY name LIMIT :lim"
+    )
+    result = await session.execute(sql, {"q": q, "pattern": f"%{q}%", "lim": page_length})
+    return [{"id": row.name, "name": row.name, "title": row.name, "subtitle": None}
+            for row in result.all()]
 
 
 @router.get("/{doctype}/link_search")
@@ -48,6 +65,9 @@ async def link_search(
       - ``title``    is the ``title_field`` value (or ``name`` if not set)
       - ``subtitle`` is ``name`` when it differs from ``title``
     """
+    if doctype == "DocType":
+        return ok(await _link_search_doctype(q, page_length, svc))
+
     dt = await doctype_registry.get(doctype)
     table = compile_doctype_to_table(dt)
 
