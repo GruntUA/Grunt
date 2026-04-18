@@ -17,7 +17,6 @@ import {
   Plus,
   MoreHorizontal,
   Pencil,
-  FileBarChart,
   RefreshCw,
 } from '@lucide/vue'
 

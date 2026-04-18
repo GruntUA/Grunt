@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useWorkspaceStore } from '@/stores/workspace'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 
 const props = defineProps<{
   workspaceName: string
@@ -21,23 +29,40 @@ const doctypeLabel = computed(() => {
 </script>
 
 <template>
-  <nav class="flex items-center gap-1.5 text-[13px] text-muted-foreground/70 mb-2 transition-opacity hover:opacity-100">
-    <router-link :to="`/${workspaceName}`"
-      class="flex items-center gap-1 hover:text-primary transition-colors">
-      <span v-if="workspaceIcon" class="text-xs">{{ workspaceIcon }}</span>
-      <span class="font-medium">{{ workspaceLabel }}</span>
-    </router-link>
+  <Breadcrumb class="mb-2">
+    <BreadcrumbList>
+      <BreadcrumbItem>
+        <BreadcrumbLink as-child>
+          <router-link :to="`/${workspaceName}`" class="flex items-center gap-1.5 capitalize">
+            <span v-if="workspaceIcon" class="text-sm">{{ workspaceIcon }}</span>
+            <span class="font-medium">{{ workspaceLabel }}</span>
+          </router-link>
+        </BreadcrumbLink>
+      </BreadcrumbItem>
 
-    <template v-if="doctype">
-      <span class="text-muted-foreground/30 font-light px-0.5">/</span>
-      <router-link v-if="docId" :to="`/${workspaceName}/list/${doctype}`"
-        class="hover:text-primary transition-colors truncate max-w-[150px]">{{ doctypeLabel }}</router-link>
-      <span v-else class="text-foreground/90 font-semibold truncate">{{ doctypeLabel }}</span>
-    </template>
+      <template v-if="doctype">
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <template v-if="docId">
+            <BreadcrumbLink as-child>
+              <router-link :to="`/${workspaceName}/list/${doctype}`">
+                {{ doctypeLabel }}
+              </router-link>
+            </BreadcrumbLink>
+          </template>
+          <template v-else>
+            <BreadcrumbPage class="font-semibold text-foreground/90">{{ doctypeLabel }}</BreadcrumbPage>
+          </template>
+        </BreadcrumbItem>
+      </template>
 
-    <template v-if="docId">
-      <span class="text-muted-foreground/30 font-light px-0.5">/</span>
-      <span class="text-foreground/90 font-semibold truncate max-w-[200px]">{{ docId }}</span>
-    </template>
-  </nav>
+      <template v-if="docId">
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbPage class="font-semibold text-foreground/90 truncate max-w-[300px]">{{ docId }}
+          </BreadcrumbPage>
+        </BreadcrumbItem>
+      </template>
+    </BreadcrumbList>
+  </Breadcrumb>
 </template>

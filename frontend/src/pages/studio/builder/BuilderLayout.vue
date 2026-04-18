@@ -6,7 +6,15 @@ import { useBuilderStore } from '@/stores/builder'
 import { grunt } from '@/core/grunt'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Loader2, ArrowLeft, FileJson } from '@lucide/vue'
+import { Loader2, FileJson } from '@lucide/vue'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import FieldPalette from './FieldPalette.vue'
 import BuilderCanvas from './BuilderCanvas.vue'
@@ -61,19 +69,32 @@ async function handleSave() {
   <div class="flex flex-col h-screen overflow-hidden">
     <!-- Header -->
     <div class="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-card shrink-0">
-      <button
-        type="button"
-        class="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-        @click="router.push(`/${backWorkspace}/list/DocType`)"
-      >
-        <ArrowLeft class="size-4" />
-        DocTypes
-      </button>
-      <div class="w-px h-4 bg-border" />
-      <span class="text-sm font-semibold text-foreground">
-        {{ builder.doctype?.label ?? props.doctype }}
-        <span v-if="builder.isDirty" class="text-muted-foreground font-normal ml-1">&bull;</span>
-      </span>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink as-child>
+              <router-link :to="`/${backWorkspace}`" class="capitalize">
+                {{ backWorkspace }}
+              </router-link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink as-child>
+              <router-link :to="`/${backWorkspace}/list/DocType`">
+                DocTypes
+              </router-link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage class="font-bold flex items-center">
+              {{ builder.doctype?.label ?? props.doctype }}
+              <span v-if="builder.isDirty" class="text-muted-foreground font-normal ml-1">&bull;</span>
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       <div class="ml-auto flex items-center gap-2">
         <TooltipProvider v-if="jsonBadge">
           <Tooltip>

@@ -80,7 +80,7 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
         <Search
           class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
         <input v-model="localSearch"
-          class="flex h-9 w-full rounded-lg border-transparent bg-background/60 px-3 py-1 pl-9 text-sm text-foreground transition-all placeholder:text-muted-foreground/60 focus-visible:outline-none focus:bg-background focus:ring-1 focus:ring-primary/30"
+          class="flex h-9 w-full rounded-lg border border-border/60 bg-background px-3 py-1 pl-9 text-sm text-foreground shadow-sm transition-all placeholder:text-muted-foreground/70 focus-visible:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30"
           :placeholder="t('Search...')" />
       </div>
       <FilterBar v-if="dt" :fields="dt.fields" :doctype="doctype" :initial-filters="activeFilters" @change="onFiltersChange" class="!mb-0" />

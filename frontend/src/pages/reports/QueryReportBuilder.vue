@@ -266,12 +266,12 @@ const displayFields = computed(() => {
 
         <!-- Main: Preview -->
         <main class="flex-1 flex flex-col bg-muted/10 overflow-hidden">
-            <!-- Breadcrumbs / Tools -->
+            <!-- Tools -->
             <header class="p-8 pb-4 flex justify-between items-center">
-                <div class="flex items-center gap-2 text-sm text-muted-foreground">
+                <div class="flex items-center gap-2 text-sm text-muted-foreground/80 font-medium">
                     <span>Звіти</span>
-                    <ChevronRight class="size-3" />
-                    <span class="font-bold text-foreground">{{ reportTitle }}</span>
+                    <ChevronRight class="size-3 opacity-50" />
+                    <span class="text-foreground font-bold">{{ reportTitle }}</span>
                 </div>
             </header>
 
