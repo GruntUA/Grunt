@@ -266,32 +266,32 @@ function removeSearchField(fieldname: string) {
       <div class="grid grid-cols-2 gap-4">
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Сінглтон</Label>
-          <Switch :checked="!!builder.doctype?.is_singleton"
-            @update:checked="builder.updateDocType({ is_singleton: $event })" />
+          <Switch :model-value="!!builder.doctype?.is_singleton"
+            @update:model-value="builder.updateDocType({ is_singleton: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Подання</Label>
-          <Switch :checked="!!builder.doctype?.is_submittable"
-            @update:checked="builder.updateDocType({ is_submittable: $event })" />
+          <Switch :model-value="!!builder.doctype?.is_submittable"
+            @update:model-value="builder.updateDocType({ is_submittable: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Дочірній</Label>
-          <Switch :checked="!!builder.doctype?.is_child"
-            @update:checked="builder.updateDocType({ is_child: $event })" />
+          <Switch :model-value="!!builder.doctype?.is_child"
+            @update:model-value="builder.updateDocType({ is_child: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Ієрархія (дерево)</Label>
-          <Switch :checked="!!builder.doctype?.is_tree"
-            @update:checked="builder.updateDocType({ is_tree: $event })" />
+          <Switch :model-value="!!builder.doctype?.is_tree"
+            @update:model-value="builder.updateDocType({ is_tree: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Відстеження змін</Label>
-          <Switch :checked="!!builder.doctype?.track_changes"
-            @update:checked="builder.updateDocType({ track_changes: $event })" />
+          <Switch :model-value="!!builder.doctype?.track_changes"
+            @update:model-value="builder.updateDocType({ track_changes: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
@@ -299,8 +299,8 @@ function removeSearchField(fieldname: string) {
             <Label class="text-sm text-foreground">Швидке створення</Label>
             <p class="text-xs text-muted-foreground mt-0.5">Відкривати діалог замість повної форми</p>
           </div>
-          <Switch :checked="!!builder.doctype?.quick_entry"
-            @update:checked="builder.updateDocType({ quick_entry: $event })" />
+          <Switch :model-value="!!builder.doctype?.quick_entry"
+            @update:model-value="builder.updateDocType({ quick_entry: $event })" />
         </div>
       </div>
     </section>
