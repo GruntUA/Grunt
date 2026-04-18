@@ -12,6 +12,8 @@ import {
 const props = defineProps<{
   open: boolean
   imageOnly?: boolean
+  attachedToDoctype?: string
+  attachedToId?: string
 }>()
 
 const emit = defineEmits<{
@@ -68,6 +70,8 @@ function onSelect(result: AttachmentResult) {
             :is="activeChannel?.component"
             v-if="activeChannel"
             :image-only="imageOnly ?? false"
+            :attached-to-doctype="attachedToDoctype"
+            :attached-to-id="attachedToId"
             @select="onSelect"
           />
           <div v-else class="flex items-center justify-center h-full text-sm text-muted-foreground">

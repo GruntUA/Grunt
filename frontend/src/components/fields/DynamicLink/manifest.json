@@ -1,0 +1,13 @@
+{
+  "type": "DynamicLink",
+  "label": "Dynamic Link",
+  "icon": "link-2",
+  "category": "Вибір і зв'язки",
+  "propertySections": [
+    "core",
+    "flags",
+    "display",
+    "default",
+    "link"
+  ]
+}

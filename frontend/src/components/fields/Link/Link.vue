@@ -264,7 +264,7 @@ function openLinkedDoc() {
 
       <input
         :value="query"
-        :placeholder="field.placeholder ?? t('Search {doctype}...', { doctype: field.options ?? '' })"
+        :placeholder="field.placeholder ?? `Пошук ${field.options ?? ''}...`"
         :disabled="disabled || field.read_only"
         :class="[
           'w-full rounded-md border border-input bg-transparent pl-8 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:bg-muted disabled:cursor-not-allowed transition-colors',
@@ -333,7 +333,7 @@ function openLinkedDoc() {
       <!-- Empty state -->
       <div v-else class="px-3 py-3 text-sm text-muted-foreground text-center">
         <span v-if="isLoading">{{ t('Searching...') }}</span>
-        <span v-else-if="query">{{ t('Nothing found for «{query}»', { query }) }}</span>
+        <span v-else-if="query">Нічого не знайдено для «{{ query }}»</span>
         <span v-else>{{ t('No records') }}</span>
       </div>
 

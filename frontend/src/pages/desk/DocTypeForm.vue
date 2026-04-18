@@ -56,6 +56,8 @@ const {
 
 // Provide link filter resolver to all descendant Link fields via inject
 provide('getLinkFilters', getLinkFilters)
+// Provide document context so Attach/Image fields can set attached_to_* on upload
+provide('docContext', { doctype: props.doctype, getId: () => props.id })
 
 // ── Modals & Navigation ──────────────────────────────────────────────────────
 const showDeleteModal = ref(false)

@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, inject } from 'vue'
 import type { DocField } from '@/types'
 import type { AttachmentResult } from '@/core/attachmentChannels/types'
 import { Paperclip, X } from '@lucide/vue'
 import { cn } from '@/lib/utils'
 import AttachPicker from './AttachPicker.vue'
 import { filesApi } from '@/core/api/files'
+
+const docContext = inject<{ doctype: string; getId: () => string | null } | null>('docContext', null)
 
 const props = defineProps<{
   field: DocField
@@ -87,6 +89,8 @@ function remove(e: Event) {
     <AttachPicker
       v-model:open="pickerOpen"
       :image-only="false"
+      :attached-to-doctype="docContext?.doctype"
+      :attached-to-id="docContext?.getId() ?? undefined"
       @select="onSelect"
     />
   </div>

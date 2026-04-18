@@ -16,9 +16,11 @@ export const filesApi = {
         return res.data.data
     },
 
-    upload: async (file: File): Promise<FileItem> => {
+    upload: async (file: File, opts?: { attachedToDoctype?: string; attachedToId?: string }): Promise<FileItem> => {
         const formData = new FormData()
         formData.append('file', file)
+        if (opts?.attachedToDoctype) formData.append('attached_to_doctype', opts.attachedToDoctype)
+        if (opts?.attachedToId) formData.append('attached_to_id', opts.attachedToId)
         const res = await client.post('/api/v1/method/grunt.core.doctypes.file.file.upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         })

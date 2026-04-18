@@ -4,7 +4,7 @@ import type { AttachmentResult } from '@/core/attachmentChannels/types'
 import { filesApi } from '@/core/api/files'
 import { Upload, AlertCircle } from '@lucide/vue'
 
-const props = defineProps<{ imageOnly: boolean }>()
+const props = defineProps<{ imageOnly: boolean; attachedToDoctype?: string; attachedToId?: string }>()
 const emit = defineEmits<{ select: [result: AttachmentResult] }>()
 
 const isDragging = ref(false)
@@ -18,7 +18,10 @@ async function uploadFile(file: File) {
   isUploading.value = true
   uploadProgress.value = 0
   try {
-    const item = await filesApi.upload(file)
+    const item = await filesApi.upload(file, {
+      attachedToDoctype: props.attachedToDoctype,
+      attachedToId: props.attachedToId,
+    })
     emit('select', {
       url: item.url,
       filename: item.filename,
