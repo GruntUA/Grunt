@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
 import structlog
 
 import grunt
-from grunt.core.metadata.compiler import compile_doctype_to_table, get_table_name, sync_table
+from grunt.core.metadata.compiler import get_table_name, sync_table
 from grunt.core.metadata.doctype import DocType
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.metadata.scaffold import export_doctype_files
@@ -31,48 +30,6 @@ async def _get_app_name_for_module(module: str, session: AsyncSession) -> str | 
             return app.name
     return None
 
-
-async def _sync_doctype_doc(dt: DocType, session: AsyncSession, *, delete: bool = False) -> None:
-    """Keep the DocType document table in sync after meta operations."""
-    import uuid as _uuid
-    from datetime import datetime
-
-    dt_def = doctype_registry._doctypes.get("DocType")
-    if not dt_def:
-        return
-    table = compile_doctype_to_table(dt_def)
-    conn = await session.connection()
-    now = datetime.now(UTC)
-    if delete:
-        await conn.execute(table.delete().where(table.c.name == dt.name))
-        return
-    result = await conn.execute(table.select().where(table.c.name == dt.name))
-    if result.first():
-        await conn.execute(
-            table.update()
-            .where(table.c.name == dt.name)
-            .values(
-                label=dt.label,
-                module=dt.module,
-                is_child=dt.is_child,
-                modified_at=now,
-            )
-        )
-    else:
-        await conn.execute(
-            table.insert().values(
-                id=str(_uuid.uuid4()),
-                name=dt.name,
-                label=dt.label,
-                module=dt.module,
-                is_child=dt.is_child,
-                owner="system",
-                created_at=now,
-                modified_at=now,
-                modified_by="system",
-                docstatus=0,
-            )
-        )
 
 
 @grunt.whitelist()
@@ -126,7 +83,6 @@ async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     else:
         await doctype_registry.register(dt, session, engine)
 
-    await _sync_doctype_doc(dt, session)
     app_name = await _get_app_name_for_module(dt.module or "", session)
     export_doctype_files(dt, app_name=app_name)
 
@@ -144,7 +100,6 @@ async def delete_doctype(name: str) -> bool:
 
     dt = await doctype_registry.get(name)
     await doctype_registry.delete(name, grunt_app._require_session())
-    await _sync_doctype_doc(dt, grunt_app._require_session(), delete=True)
     return True
 
 

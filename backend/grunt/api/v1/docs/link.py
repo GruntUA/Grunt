@@ -15,8 +15,6 @@ from typing import Any
 from fastapi import Depends, Query
 from sqlalchemy import or_, select
 
-from sqlalchemy import text
-
 from grunt.api.router import GruntRouter
 from grunt.api.v1.docs.utils import get_doc_service
 from grunt.api.v1.schemas.response import ok
@@ -30,21 +28,6 @@ from grunt.core.metadata.registry import doctype_registry
 router = GruntRouter()
 
 
-async def _link_search_doctype(
-    q: str, page_length: int, svc: DocumentService
-) -> list[dict[str, Any]]:
-    """Search all registered doctypes via grunt_meta_doctype."""
-    session = svc.session
-    sql = text(
-        "SELECT name FROM grunt_meta_doctype "
-        "WHERE (:q = '' OR name LIKE :pattern) "
-        "ORDER BY name LIMIT :lim"
-    )
-    result = await session.execute(sql, {"q": q, "pattern": f"%{q}%", "lim": page_length})
-    return [{"id": row.name, "name": row.name, "title": row.name, "subtitle": None}
-            for row in result.all()]
-
-
 @router.get("/{doctype}/link_search")
 async def link_search(
     doctype: str,
@@ -54,21 +37,28 @@ async def link_search(
     user: User = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
-    """Search documents for a Link field dropdown.
-
-    Searches across ``name``, ``title_field``, and any ``search_fields``
-    declared on the DocType.  Additional filters (e.g. from ``link_filters``
-    on a DocField or from a client script) can be passed as a JSON object
-    via the ``filters`` query parameter.
-
-    Returns a list of ``{id, name, title, subtitle}`` objects where:
-      - ``title``    is the ``title_field`` value (or ``name`` if not set)
-      - ``subtitle`` is ``name`` when it differs from ``title``
-    """
-    if doctype == "DocType":
-        return ok(await _link_search_doctype(q, page_length, svc))
-
+    """Search documents for a Link field dropdown."""
     dt = await doctype_registry.get(doctype)
+
+    # Virtual DocType — delegate to its controller's get_list
+    if dt.is_virtual:
+        from grunt.core.document.virtual import _get_virtual_controller  # noqa: PLC0415
+
+        ctrl = _get_virtual_controller(doctype, user)
+        result = await ctrl.get_list(search=q, page=1, per_page=page_length)
+        title_field = dt.title_field or "name"
+        items = []
+        for row in result.get("data", []):
+            name_val = str(row.get("name") or row.get("id") or "")
+            title_val = str(row.get(title_field) or name_val)
+            items.append({
+                "id": str(row.get("id") or name_val),
+                "name": name_val,
+                "title": title_val,
+                "subtitle": name_val if title_val != name_val else None,
+            })
+        return ok(items)
+
     table = compile_doctype_to_table(dt)
 
     title_field: str = (dt.title_field or "name") if hasattr(dt, "title_field") else "name"

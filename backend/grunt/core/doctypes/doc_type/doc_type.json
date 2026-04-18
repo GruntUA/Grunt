@@ -2,6 +2,7 @@
   "name": "DocType",
   "label": "Тип документа",
   "module": "core",
+  "is_virtual": true,
   "is_child": false,
   "track_changes": false,
   "autoname": "prompt",

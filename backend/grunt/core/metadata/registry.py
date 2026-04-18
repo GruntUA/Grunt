@@ -261,11 +261,15 @@ class DocTypeRegistry:
                                 name=doctype.name,
                                 added=[f.fieldname for f in new_fields],
                             )
-                    # Sync default values
+                    # Sync structural properties from JSON (fieldtype, options, label, default)
+                    _STRUCTURAL = {"fieldtype", "options", "label", "default"}
                     for json_field in doctype.fields:
                         stored_field = stored_fieldnames.get(json_field.fieldname)
-                        if stored_field is not None and stored_field.default != json_field.default:
-                            stored_field.default = json_field.default
+                        if stored_field is None:
+                            continue
+                        for attr in _STRUCTURAL:
+                            if getattr(stored_field, attr, None) != getattr(json_field, attr, None):
+                                setattr(stored_field, attr, getattr(json_field, attr, None))
 
                     if sync_db:
                         try:
