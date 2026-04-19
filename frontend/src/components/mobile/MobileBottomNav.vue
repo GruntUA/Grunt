@@ -10,7 +10,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { MoreHorizontal, Home, X } from '@lucide/vue'
-import { ScrollArea } from '@/components/ui/scroll-area'
+
 
 const props = defineProps<{ workspaceName: string }>()
 
@@ -118,7 +118,7 @@ function goHome() {
           <X class="w-4 h-4 text-muted-foreground" />
         </button>
       </div>
-      <ScrollArea class="max-h-72">
+      <ScrollPanel class="max-h-72">
         <div class="px-3 pb-4 space-y-0.5">
           <button
             v-for="item in overflowItems"
@@ -133,7 +133,7 @@ function goHome() {
             <span class="flex-1 text-left truncate">{{ item.label }}</span>
           </button>
         </div>
-      </ScrollArea>
+      </ScrollPanel>
     </div>
   </Transition>
 

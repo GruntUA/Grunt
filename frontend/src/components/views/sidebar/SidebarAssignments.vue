@@ -2,12 +2,6 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { UserPlus, X, Loader2 } from '@lucide/vue'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, GruntDocument } from '@/types'
 
@@ -57,17 +51,10 @@ onMounted(loadAssignees)
 
 <template>
   <div class="flex flex-col gap-3 mb-4">
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <Button outlined size="small" class="w-full text-foreground" @click="showAssignDialog = true">
-            <UserPlus class="size-4 mr-1.5" />
-            {{ t('Assign') }}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>{{ t('Assign responsible person') }}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Button v-tooltip="t('Assign responsible person')" outlined size="small" class="w-full text-foreground" @click="showAssignDialog = true">
+      <UserPlus class="size-4 mr-1.5" />
+      {{ t('Assign') }}
+    </Button>
 
     <div v-if="assignees.length > 0" class="flex flex-col gap-1.5">
       <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">{{ t('Assignees') }}</span>

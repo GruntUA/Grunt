@@ -3,16 +3,12 @@ import { ref, watch, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/core/api/client'
 import { metaApi } from '@/core/api/meta'
-import Button from 'primevue/button'
 import { Input } from '@/components/ui/input'
-import Select from 'primevue/select'
-import Badge from 'primevue/badge'
 import {
     Plus, Search, Save, Play, Trash2, ChevronRight,
     Layout, Table as TableIcon, FileBarChart
 } from '@lucide/vue'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Tabs, TabsList, TabsTrigger, TabsContent, TabPanels } from '@/components/ui/tabs'
+
 
 const props = defineProps<{
     workspaceName: string
@@ -166,14 +162,14 @@ const displayFields = computed(() => {
             </div>
 
             <!-- Fields & Columns Tabs -->
-            <Tabs default-value="columns" class="flex-1 flex flex-col overflow-hidden">
-                <TabsList variant="underline" class="w-full justify-start h-auto overflow-x-auto scrollbar-none">
-                    <TabsTrigger value="columns" variant="underline" class="flex-1">Колонки</TabsTrigger>
-                    <!-- <TabsTrigger value="filters" variant="underline" class="flex-1 opacity-50">Фільтри</TabsTrigger> -->
-                </TabsList>
+            <Tabs value="columns" class="flex-1 flex flex-col overflow-hidden">
+                <TabList variant="underline" class="w-full justify-start h-auto overflow-x-auto scrollbar-none">
+                    <Tab value="columns" variant="underline" class="flex-1">Колонки</Tab>
+                    <!-- <Tab value="filters" variant="underline" class="flex-1 opacity-50">Фільтри</Tab> -->
+                </TabList>
 
                 <TabPanels>
-                <TabsContent value="columns" class="flex-1 overflow-y-auto p-4 space-y-6 focus-visible:ring-0 m-0">
+                <TabPanel value="columns" class="flex-1 overflow-y-auto p-4 space-y-6 focus-visible:ring-0 m-0">
                     <!-- Selected Columns -->
                     <div class="space-y-3">
                         <div class="flex items-center justify-between">
@@ -240,7 +236,7 @@ const displayFields = computed(() => {
                             </button>
                         </div>
                     </div>
-                </TabsContent>
+                </TabPanel>
                 </TabPanels>
             </Tabs>
 

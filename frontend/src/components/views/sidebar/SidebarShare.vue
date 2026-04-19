@@ -6,12 +6,6 @@ const PERMISSION_OPTIONS = [
   { value: 'Read', label: 'Читання' },
   { value: 'Write', label: 'Редагування' },
 ]
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { Share2, X, Loader2 } from '@lucide/vue'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, GruntDocument } from '@/types'
@@ -64,17 +58,10 @@ onMounted(loadShared)
 
 <template>
   <div class="flex flex-col gap-3 mb-4">
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <Button outlined size="small" class="w-full text-foreground" @click="showShareDialog = true">
-            <Share2 class="size-4 mr-1.5" />
-            {{ t('Share') }}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>{{ t('Share document') }}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Button v-tooltip="t('Share document')" outlined size="small" class="w-full text-foreground" @click="showShareDialog = true">
+      <Share2 class="size-4 mr-1.5" />
+      {{ t('Share') }}
+    </Button>
 
     <div v-if="sharedWith.length > 0" class="flex flex-col gap-1.5">
       <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">{{ t('Access') }}</span>

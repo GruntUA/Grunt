@@ -2,10 +2,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { UploadCloud, File as FileIcon, Trash2, Search, Download, Folder } from '@lucide/vue'
 import { filesApi, type FileItem } from '@/core/api/files'
-import Button from 'primevue/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import Badge from 'primevue/badge'
 
 const files = ref<FileItem[]>([])
 const loading = ref(false)

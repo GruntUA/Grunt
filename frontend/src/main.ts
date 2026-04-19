@@ -5,6 +5,7 @@ import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
+import Tooltip from 'primevue/tooltip'
 import 'primeicons/primeicons.css'
 import App from './App.vue'
 import router from './router'
@@ -13,8 +14,6 @@ import { grunt } from '@/core/grunt'
 import { useAuthStore } from '@/stores/auth'
 import '@/app-hooks'
 import './assets/main.css'
-import 'vue-sonner/style.css'
-
 // Expose globally for client scripts (JS controllers)
 window.grunt = grunt
 window.frappe = grunt // Frappe-compatible alias
@@ -32,6 +31,7 @@ app.use(PrimeVue, {
 })
 app.use(ToastService)
 app.use(ConfirmationService)
+app.directive('tooltip', Tooltip)
 // Start auth request immediately — router guard will await the same promise
 useAuthStore().prefetchMe()
 app.use(router)

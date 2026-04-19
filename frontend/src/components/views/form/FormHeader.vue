@@ -5,8 +5,6 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { DocType } from '@/types'
-import Button from 'primevue/button'
-import Badge from 'primevue/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,

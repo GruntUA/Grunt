@@ -2,7 +2,6 @@
 import type { WorkflowState } from '@/types'
 import { Input } from '@/components/ui/input'
 import { Field, FieldLabel } from '@/components/ui/field'
-import Button from 'primevue/button'
 
 const props = defineProps<{ state: WorkflowState }>()
 const emit = defineEmits<{

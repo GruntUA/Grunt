@@ -4,12 +4,9 @@ import { useBuilderStore } from '@/stores/builder'
 import { appsApi, type GruntApp } from '@/core/api'
 import { Input } from '@/components/ui/input'
 import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
-import { Switch } from '@/components/ui/switch'
+
 import { Label } from '@/components/ui/label'
-import Select from 'primevue/select'
 import { Separator } from '@/components/ui/separator'
-import Badge from 'primevue/badge'
-import Button from 'primevue/button'
 import { X } from '@lucide/vue'
 
 const builder = useBuilderStore()
@@ -254,31 +251,31 @@ function removeSearchField(fieldname: string) {
       <div class="grid grid-cols-2 gap-4">
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Сінглтон</Label>
-          <Switch :model-value="!!builder.doctype?.is_singleton"
+          <ToggleSwitch :model-value="!!builder.doctype?.is_singleton"
             @update:model-value="builder.updateDocType({ is_singleton: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Подання</Label>
-          <Switch :model-value="!!builder.doctype?.is_submittable"
+          <ToggleSwitch :model-value="!!builder.doctype?.is_submittable"
             @update:model-value="builder.updateDocType({ is_submittable: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Дочірній</Label>
-          <Switch :model-value="!!builder.doctype?.is_child"
+          <ToggleSwitch :model-value="!!builder.doctype?.is_child"
             @update:model-value="builder.updateDocType({ is_child: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Ієрархія (дерево)</Label>
-          <Switch :model-value="!!builder.doctype?.is_tree"
+          <ToggleSwitch :model-value="!!builder.doctype?.is_tree"
             @update:model-value="builder.updateDocType({ is_tree: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <Label class="text-sm text-foreground">Відстеження змін</Label>
-          <Switch :model-value="!!builder.doctype?.track_changes"
+          <ToggleSwitch :model-value="!!builder.doctype?.track_changes"
             @update:model-value="builder.updateDocType({ track_changes: $event })" />
         </div>
 
@@ -287,7 +284,7 @@ function removeSearchField(fieldname: string) {
             <Label class="text-sm text-foreground">Швидке створення</Label>
             <p class="text-xs text-muted-foreground mt-0.5">Відкривати діалог замість повної форми</p>
           </div>
-          <Switch :model-value="!!builder.doctype?.quick_entry"
+          <ToggleSwitch :model-value="!!builder.doctype?.quick_entry"
             @update:model-value="builder.updateDocType({ quick_entry: $event })" />
         </div>
       </div>

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { DocField } from '@/types'
-import Button from 'primevue/button'
 import { MapPin } from '@lucide/vue'
 
 const props = defineProps<{

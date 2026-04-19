@@ -24,7 +24,7 @@
 
 import { ref, reactive } from 'vue'
 import { useDialog } from '@/core/composables/useDialog'
-import { toast } from 'vue-sonner'
+import { useToast } from '@/core/composables/useToast'
 import {
   createFormProxy,
   createGruntProxy,
@@ -46,12 +46,12 @@ export interface UseClientScriptsOptions {
 }
 
 export function useClientScripts(doctype: string, options: UseClientScriptsOptions) {
+  const dialog = useDialog()
+  const toast = useToast()
   const buttons = ref<ScriptButton[]>([])
   const displayOverrides = reactive<Record<string, boolean>>({})
   const reqdOverrides = reactive<Record<string, boolean>>({})
   const dfPropOverrides = reactive<Record<string, Record<string, unknown>>>({})
-
-  const dialog = useDialog()
 
   let gruntProxy: GruntProxy | null = null
 
@@ -104,9 +104,9 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
           )
         },
         confirm: (msg) => dialog.confirm(msg),
-        showAlert: (msg, type) => {
-          if (type === 'error') toast.error(msg)
-          else if (type === 'success') toast.success(msg)
+        showAlert: (msg: string, type: 'info' | 'success' | 'error' | 'warning' = 'info') => {
+          if (type === 'success') toast.success(msg)
+          else if (type === 'error') toast.error(msg)
           else if (type === 'warning') toast.warning(msg)
           else toast.info(msg)
         },

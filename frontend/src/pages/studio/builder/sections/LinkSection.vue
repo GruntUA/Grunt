@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import Select from 'primevue/select'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { metaApi } from '@/core/api'
 import type { DocTypeSummary } from '@/types'

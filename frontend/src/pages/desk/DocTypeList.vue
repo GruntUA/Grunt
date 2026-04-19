@@ -19,14 +19,14 @@ import {
   executeListSetup,
 } from '@/core/scripting/executor'
 import { useDialog } from '@/core/composables/useDialog'
-import { toast } from 'vue-sonner'
+import { useToast } from '@/core/composables/useToast'
 import type { ExportContext } from '@/core/io'
 import { getFieldDef } from '@/core/fieldRegistry'
 
 // Shared UI components
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import BulkActionBar from '@/components/views/BulkActionBar.vue'
-import DataTable from '@/components/views/DataTable.vue'
+import GruntDataTable from '@/components/views/GruntDataTable.vue'
 import ListPagination from '@/components/views/ListPagination.vue'
 import KanbanView from '@/components/views/KanbanView.vue'
 import CalendarView from '@/components/views/CalendarView.vue'
@@ -40,6 +40,7 @@ import ListToolbar from '@/components/views/list/ListToolbar.vue'
 import ListGroupedView from '@/components/views/list/ListGroupedView.vue'
 
 const props = defineProps<{ doctype: string; workspace?: string }>()
+const toast = useToast()
 const router = useRouter()
 const route = useRoute()
 const dtStore = useDocTypeStore()
@@ -443,7 +444,7 @@ function navigateToDoc(row: Record<string, unknown>) {
 
           <template v-else>
             <div class="bg-card rounded-xl shadow-md ring-1 ring-border/60 overflow-hidden">
-              <DataTable :columns="columns.visibleColumns.value" :rows="rows" :fields="dt?.fields ?? []"
+              <GruntDataTable :columns="columns.visibleColumns.value" :rows="rows" :fields="dt?.fields ?? []"
                 :is-loading="isLoading && !data" :sort-key="sortKey" :sort-order="sortOrder"
                 :selected-ids="selection.selectedIds.value" :all-selected="selection.allSelected.value"
                 :status-config="dt?.status_config" :active-index="activeIndex" @sort="onSort" @select="selection.toggle"

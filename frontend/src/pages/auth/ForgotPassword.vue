@@ -3,7 +3,6 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '@/core/api/auth-admin'
 import { Input } from '@/components/ui/input'
-import Button from 'primevue/button'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Loader2, Sprout, ArrowLeft } from '@lucide/vue'
 

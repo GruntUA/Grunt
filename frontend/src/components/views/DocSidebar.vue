@@ -2,19 +2,11 @@
 import { ref, useAttrs } from 'vue'
 import type { DocType, GruntDocument } from '@/types'
 import { docsApi } from '@/core/api/docs'
-import Button from 'primevue/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import {
   User,
   Activity,
   Bookmark,
 } from '@lucide/vue'
-import { Tabs, TabsList, TabsTrigger, TabsContent, TabPanels } from '@/components/ui/tabs'
 import type { PresenceUser } from '@/core/composables/usePresence'
 
 // Sub-components
@@ -69,52 +61,47 @@ loadBookmark()
 <template>
   <aside v-bind="attrs" class="flex flex-col gap-0 w-full">
     <div class="form-section">
-      <Tabs v-model="activeTab" class="w-full">
+      <Tabs v-model:value="activeTab" class="w-full">
         <!-- Tab nav as section header -->
-        <TabsList variant="underline" class="w-full justify-start h-auto overflow-x-auto scrollbar-none">
-          <TabsTrigger value="details" variant="underline" class="gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider">
+        <TabList class="w-full h-auto overflow-x-auto scrollbar-none">
+          <Tab value="details" class="flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider">
             <User class="size-3.5" />
             Деталі
-          </TabsTrigger>
-          <TabsTrigger value="timeline" variant="underline" class="gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider">
+          </Tab>
+          <Tab value="timeline" class="flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider">
             <Activity class="size-3.5" />
             Активність
-          </TabsTrigger>
-        </TabsList>
+          </Tab>
+        </TabList>
 
         <!-- Content -->
-        <TabPanels>
-        <div class="form-section-body">
-          <TabsContent value="details" class="mt-0 flex flex-col gap-4 focus-visible:ring-0">
-            <SidebarFileInfo :doctype="doctype" :document="document" :users="users" />
+        <TabPanels class="p-0">
+          <div class="form-section-body">
+            <TabPanel value="details" class="flex flex-col gap-4">
+              <SidebarFileInfo :doctype="doctype" :document="document" :users="users" />
 
-            <!-- Actions -->
-            <div class="flex gap-2">
-              <SidebarAssignments :doctype="doctype" :document="document" class="flex-1 mb-0" />
-              <SidebarShare :doctype="doctype" :document="document" class="flex-1 mb-0" />
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger as-child>
-                    <Button outlined class="size-9 shrink-0"
-                      :class="bookmark ? 'text-amber-500 border-amber-300 bg-amber-50 dark:bg-amber-950/30' : 'text-foreground'"
-                      :disabled="bookmarkLoading"
-                      @click="toggleBookmark">
-                      <Bookmark class="size-4" :fill="bookmark ? 'currentColor' : 'none'" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>{{ bookmark ? 'Прибрати із закладок' : 'Додати до закладок' }}</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
+              <!-- Actions -->
+              <div class="flex gap-2">
+                <SidebarAssignments :doctype="doctype" :document="document" class="flex-1 mb-0" />
+                <SidebarShare :doctype="doctype" :document="document" class="flex-1 mb-0" />
+                <Button v-tooltip="bookmark ? 'Прибрати із закладок' : 'Додати до закладок'"
+                  outlined class="size-9 shrink-0"
+                  :class="bookmark ? 'text-amber-500 border-amber-300 bg-amber-50 dark:bg-amber-950/30' : 'text-foreground'"
+                  :disabled="bookmarkLoading"
+                  @click="toggleBookmark"
+                >
+                  <Bookmark class="size-4" :fill="bookmark ? 'currentColor' : 'none'" />
+                </Button>
+              </div>
 
-            <SidebarTags :doctype="doctype" :document="document" />
-            <SidebarBacklinks :doctype="doctype" :document="document" :workspace="workspace" />
-          </TabsContent>
+              <SidebarTags :doctype="doctype" :document="document" />
+              <SidebarBacklinks :doctype="doctype" :document="document" :workspace="workspace" />
+            </TabPanel>
 
-          <TabsContent value="timeline" class="mt-0 focus-visible:ring-0">
-            <SidebarTimeline :doctype="doctype" :document="document" />
-          </TabsContent>
-        </div>
+            <TabPanel value="timeline">
+              <SidebarTimeline :doctype="doctype" :document="document" />
+            </TabPanel>
+          </div>
         </TabPanels>
       </Tabs>
     </div>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import Select from 'primevue/select'
 import type { DocField } from '@/types'
+import Select from 'primevue/select'
 
 const props = defineProps<{
   field: DocField

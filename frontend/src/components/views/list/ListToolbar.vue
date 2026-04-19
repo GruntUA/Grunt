@@ -15,8 +15,6 @@ import {
   Map as MapIcon,
 } from '@lucide/vue'
 import draggable from 'vuedraggable'
-import Button from 'primevue/button'
-import Badge from 'primevue/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,

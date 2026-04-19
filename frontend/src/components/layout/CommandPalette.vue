@@ -7,7 +7,6 @@ import { useDocTypeStore } from '@/stores/doctype'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { useUIStore } from '@/stores/ui'
 import api from '@/core/api/client'
-import Dialog from 'primevue/dialog'
 import {
     Search,
     Command,

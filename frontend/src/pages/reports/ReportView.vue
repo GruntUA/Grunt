@@ -3,10 +3,8 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/core/api/client'
 import { useAuthStore } from '@/stores/auth'
-import Button from 'primevue/button'
 import { Download, RefreshCw, Settings2, FileBarChart2, FileX } from '@lucide/vue'
-import Badge from 'primevue/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+
 
 const props = defineProps<{
     workspaceName: string

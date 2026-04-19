@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import Select from 'primevue/select'
 import { useBuilderStore } from '@/stores/builder'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { Input } from '@/components/ui/input'

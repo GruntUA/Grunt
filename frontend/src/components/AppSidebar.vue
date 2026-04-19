@@ -21,7 +21,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import PvAvatar from 'primevue/avatar'
 import {
   Home,
   Search,

@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import Badge from 'primevue/badge'
-import Button from 'primevue/button'
 import { Tag, X, Plus, Loader2 } from '@lucide/vue'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, GruntDocument } from '@/types'

@@ -2,8 +2,6 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField, ActiveFilter } from '@/types'
-import Button from 'primevue/button'
-import Badge from 'primevue/badge'
 import { Input } from '@/components/ui/input'
 import {
   Popover,

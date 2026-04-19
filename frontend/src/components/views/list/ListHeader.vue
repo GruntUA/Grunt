@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n'
 import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
 import { getExporters } from '@/core/io'
 import type { ExportContext } from '@/core/io'
-import Button from 'primevue/button'
 import {
   DropdownMenu,
   DropdownMenuContent,

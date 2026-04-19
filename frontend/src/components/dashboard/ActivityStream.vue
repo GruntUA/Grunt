@@ -12,7 +12,7 @@ import {
     Clock,
     ExternalLink
 } from '@lucide/vue'
-import { ScrollArea } from '@/components/ui/scroll-area'
+
 
 interface ActivityEntry {
     id: string
@@ -96,7 +96,7 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
             <button @click="fetchActivity" class="text-xs text-primary hover:underline font-medium">Оновити</button>
         </div>
 
-        <ScrollArea class="flex-1">
+        <ScrollPanel class="flex-1">
             <div v-if="loading" class="flex flex-col items-center justify-center py-12 gap-3">
                 <div class="size-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
                 <span class="text-xs text-muted-foreground">Завантаження...</span>
@@ -145,6 +145,6 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
                     </div>
                 </div>
             </div>
-        </ScrollArea>
+        </ScrollPanel>
     </div>
 </template>

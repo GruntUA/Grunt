@@ -4,11 +4,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useBuilderStore } from '@/stores/builder'
 import { grunt } from '@/core/grunt'
-import Button from 'primevue/button'
-import { Tabs, TabsList, TabsTrigger, TabsContent, TabPanels } from '@/components/ui/tabs'
 import { Loader2, FileJson } from '@lucide/vue'
-import Breadcrumb from 'primevue/breadcrumb'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 import FieldPalette from './FieldPalette.vue'
 import BuilderCanvas from './BuilderCanvas.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
@@ -25,9 +22,9 @@ const builder = useBuilderStore()
 
 const backWorkspace = props.workspaceName ?? (route.params.workspaceName as string | undefined) ?? 'grunt'
 
-const bcItems = computed(() => [
-  { label: backWorkspace, route: `/${backWorkspace}` },
-  { label: 'DocTypes', route: `/${backWorkspace}/list/DocType` },
+const breadcrumb = computed(() => [
+  { label: backWorkspace, url: `/${backWorkspace}` },
+  { label: 'DocTypes', url: `/${backWorkspace}/list/DocType` },
   { label: builder.doctype?.label ?? props.doctype },
 ])
 
@@ -66,108 +63,100 @@ async function handleSave() {
 
 <template>
   <div class="flex flex-col h-screen overflow-hidden">
-    <!-- Header -->
-    <div class="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-card shrink-0">
-      <Breadcrumb :model="bcItems" class="!bg-transparent !border-none !p-0">
-        <template #item="{ item, props: ip }">
-          <router-link v-if="item.route" v-slot="rp" :to="item.route" custom>
-            <a v-bind="ip.action" :href="rp.href" class="capitalize" @click="rp.navigate">{{ item.label }}</a>
-          </router-link>
-          <span v-else v-bind="ip.action" class="font-bold flex items-center">
-            {{ item.label }}<span v-if="builder.isDirty" class="text-muted-foreground font-normal ml-1">&bull;</span>
-          </span>
-        </template>
-      </Breadcrumb>
-      <div class="ml-auto flex items-center gap-2">
-        <TooltipProvider v-if="jsonBadge">
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <div
-                class="flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-mono cursor-default"
-                :class="{
-                  'border-border bg-muted text-foreground': jsonBadge.variant === 'ok',
-                  'border-border bg-muted text-muted-foreground': jsonBadge.variant === 'pending',
-                }"
-              >
-                <FileJson
-                  class="size-3.5 shrink-0"
-                  :class="{
-                    'text-blue-500': jsonBadge.variant === 'ok',
-                    'text-muted-foreground': jsonBadge.variant !== 'ok',
-                  }"
-                />
-                {{ jsonBadge.label }}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p class="font-mono text-xs">{{ jsonBadge.tooltip }}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <Button size="sm" :disabled="builder.isSaving || !builder.isDirty" @click="handleSave()">
-          <Loader2 v-if="builder.isSaving" class="size-4 animate-spin" />
-          {{ t('Save') }}
-        </Button>
-      </div>
-    </div>
-
-    <!-- Tabs -->
-    <Tabs v-model="builder.activeTab" class="flex-1 flex flex-col overflow-hidden">
-      <div class="bg-muted/30 px-4 shrink-0 border-b">
-        <TabsList variant="underline" class="border-none h-auto">
-          <TabsTrigger value="form" variant="underline">
-            {{ t('Form') }}
-          </TabsTrigger>
-          <TabsTrigger value="settings" variant="underline">
-            {{ t('Settings') }}
-          </TabsTrigger>
-          <TabsTrigger value="permissions" variant="underline">
-            {{ t('Permissions') }}
-          </TabsTrigger>
-          <TabsTrigger value="workflow" variant="underline">
-            Workflow
-          </TabsTrigger>
-          <TabsTrigger value="views" variant="underline">
-            {{ t('Views') }}
-          </TabsTrigger>
-        </TabsList>
-      </div>
-
-      <TabPanels class="flex-1 overflow-hidden flex flex-col">
-      <!-- Form tab: 3-column layout -->
-      <TabsContent value="form" class="flex-1 overflow-hidden m-0 p-0">
-        <div class="flex h-full overflow-hidden">
-          <div class="w-60 shrink-0">
-            <FieldPalette />
+    <Tabs v-model:value="builder.activeTab" class="flex-1 flex flex-col overflow-hidden">
+      <div class="flex items-center gap-2 px-4 py-1 border-b bg-card">
+        <SidebarTrigger class="md:hidden shrink-0 -ml-2" />
+        <Breadcrumb :model="breadcrumb" class="bg-transparent p-0">
+          <template #item="{ item }">
+            <template v-if="item.url">
+              <router-link :to="item.url" class="text-xs font-medium text-muted-foreground/80 hover:text-foreground no-underline transition-colors">
+                {{ item.label }}
+              </router-link>
+            </template>
+            <template v-else>
+              <span class="text-xs font-bold text-foreground opacity-90 truncate max-w-[300px]">{{ item.label }}</span>
+            </template>
+          </template>
+          <template #separator>
+            <span class="text-muted-foreground/40 mx-1 text-xs">/</span>
+          </template>
+        </Breadcrumb>
+        <div class="ml-auto flex items-center gap-2">
+          <div v-if="jsonBadge"
+            v-tooltip.bottom="jsonBadge.tooltip"
+            class="flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-mono cursor-default"
+            :class="{
+              'border-border bg-muted text-foreground': jsonBadge.variant === 'ok',
+              'border-border bg-muted text-muted-foreground': jsonBadge.variant === 'pending',
+            }"
+          >
+            <FileJson
+              class="size-3.5 shrink-0"
+              :class="{
+                'text-blue-500': jsonBadge.variant === 'ok',
+                'text-muted-foreground': jsonBadge.variant !== 'ok',
+              }"
+            />
+            {{ jsonBadge.label }}
           </div>
-          <div class="flex-1 overflow-hidden bg-muted/20">
-            <BuilderCanvas />
-          </div>
-          <div class="w-72 shrink-0">
-            <PropertiesPanel />
-          </div>
+          <Button size="small" :disabled="builder.isSaving || !builder.isDirty" @click="handleSave()">
+            <Loader2 v-if="builder.isSaving" class="size-4 animate-spin" />
+            {{ t('Save') }}
+          </Button>
         </div>
-      </TabsContent>
+      </div>
 
-      <!-- Settings tab -->
-      <TabsContent value="settings" class="flex-1 overflow-y-auto m-0 p-0">
-        <SettingsTab />
-      </TabsContent>
+      <div class="bg-card border-b px-2">
+        <TabList class="h-auto">
+          <Tab value="form" class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider">
+            {{ t('Form') }}
+          </Tab>
+          <Tab value="settings" class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider">
+            {{ t('Settings') }}
+          </Tab>
+          <Tab value="permissions" class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider">
+            {{ t('Permissions') }}
+          </Tab>
+          <Tab value="workflow" class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider">
+            Workflow
+          </Tab>
+          <Tab value="views" class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider">
+            {{ t('Views') }}
+          </Tab>
+        </TabList>
+      </div>
 
-      <!-- Permissions tab -->
-      <TabsContent value="permissions" class="flex-1 overflow-hidden m-0 p-0">
-        <PermissionsTab />
-      </TabsContent>
+      <TabPanels class="flex-1 overflow-hidden flex flex-col p-0">
+        <!-- Form tab: 3-column layout -->
+        <TabPanel value="form" class="flex-1 overflow-hidden">
+          <div class="flex h-full overflow-hidden">
+            <div class="w-60 shrink-0 border-r bg-card/50">
+              <FieldPalette />
+            </div>
+            <div class="flex-1 overflow-hidden bg-muted/20">
+              <BuilderCanvas />
+            </div>
+            <div class="w-72 shrink-0 border-l bg-card/50">
+              <PropertiesPanel />
+            </div>
+          </div>
+        </TabPanel>
 
-      <!-- Workflow tab -->
-      <TabsContent value="workflow" class="flex-1 overflow-hidden m-0 p-0">
-        <WorkflowTab />
-      </TabsContent>
+        <TabPanel value="settings">
+          <SettingsTab />
+        </TabPanel>
 
-      <!-- Views tab -->
-      <TabsContent value="views" class="flex-1 overflow-hidden m-0 p-0">
-        <ViewsTab />
-      </TabsContent>
+        <TabPanel value="permissions">
+          <PermissionsTab />
+        </TabPanel>
+
+        <TabPanel value="workflow">
+          <WorkflowTab />
+        </TabPanel>
+
+        <TabPanel value="views">
+          <ViewsTab />
+        </TabPanel>
       </TabPanels>
     </Tabs>
   </div>

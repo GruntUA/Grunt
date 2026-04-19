@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import { useWorkspaceStore } from '@/stores/workspace'
 import WorkspaceSidebar from '@/components/workspace/WorkspaceSidebar.vue'
 import MobileBottomNav from '@/components/mobile/MobileBottomNav.vue'
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 
 const props = defineProps<{ workspaceName: string }>()
 const wsStore = useWorkspaceStore()
@@ -39,10 +39,6 @@ watch(() => props.workspaceName, (name) => { loadWorkspace(name) })
     <WorkspaceSidebar :workspace-name="workspaceName" />
 
     <SidebarInset class="overflow-y-auto pb-14 md:pb-0 relative z-10 bg-background/40 backdrop-blur-[2px]">
-      <!-- Mobile sidebar trigger -->
-      <SidebarTrigger
-        class="fixed top-3 left-3 z-30 md:hidden !h-10 !w-10 rounded-xl bg-card border border-border shadow-lg" />
-
       <RouterView v-slot="{ Component }" :key="route.fullPath">
         <Transition name="fade" mode="out-in">
           <component :is="Component" />

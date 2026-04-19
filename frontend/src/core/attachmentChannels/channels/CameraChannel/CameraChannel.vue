@@ -3,7 +3,6 @@ import { ref, onUnmounted } from 'vue'
 import type { AttachmentResult } from '@/core/attachmentChannels/types'
 import { filesApi } from '@/core/api/files'
 import { Camera, X, AlertCircle, Loader2 } from '@lucide/vue'
-import Button from 'primevue/button'
 
 defineProps<{ imageOnly: boolean }>()
 const emit = defineEmits<{ select: [result: AttachmentResult] }>()

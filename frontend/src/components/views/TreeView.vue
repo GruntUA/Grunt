@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { docsApi } from '@/core/api/docs'
 import { Spinner } from '@/components/ui/spinner'
-import Button from 'primevue/button'
 import {
   ChevronRight, ChevronDown, Plus, FolderOpen,
   AlertCircle, RefreshCw

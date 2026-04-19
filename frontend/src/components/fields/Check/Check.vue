@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { DocField } from '@/types'
-import Checkbox from 'primevue/checkbox'
 import { Label } from '@/components/ui/label'
 import { useId } from 'vue'
 

@@ -3,7 +3,6 @@ import { computed, ref } from 'vue'
 import type { DocField } from '@/types'
 import { CalendarIcon, X } from '@lucide/vue'
 import { cn } from '@/lib/utils'
-import DatePicker from 'primevue/datepicker'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 const props = defineProps<{

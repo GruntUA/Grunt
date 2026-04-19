@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useDialog } from '@/core/composables/useDialog'
-import Dialog from 'primevue/dialog'
-import Button from 'primevue/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 const { state, close } = useDialog()
 const promptValue = ref('')
@@ -65,10 +61,11 @@ function onOpenChange(v: boolean) {
         <!-- Prompt -->
         <div v-else-if="state.type === 'prompt'" class="space-y-2 py-2">
             <div v-for="field in state.fields" :key="field.fieldname" class="space-y-2">
-                <Label :for="field.fieldname">{{ field.label }}</Label>
+                <label :for="field.fieldname" class="text-sm font-medium">{{ field.label }}</label>
                 <div v-if="field.fieldtype === 'HTML'" v-html="field.default" class="rounded border p-2 bg-muted/30" />
-                <Input v-else :id="field.fieldname" v-model="promptValue" :placeholder="field.placeholder"
+                <InputText v-else :id="field.fieldname" v-model="promptValue" :placeholder="field.placeholder"
                     :type="field.fieldtype === 'Int' || field.fieldtype === 'Float' ? 'number' : 'text'"
+                    class="w-full"
                     @keydown.enter="onConfirm" />
             </div>
         </div>
@@ -77,21 +74,21 @@ function onOpenChange(v: boolean) {
         <div v-else-if="state.type === 'dialog'" class="space-y-4 py-2">
             <div v-for="field in state.fields" :key="field.fieldname" class="space-y-2">
                 <template v-if="field.fieldtype === 'HTML'">
-                    <Label v-if="field.label" class="mb-1 block text-sm font-medium">{{ field.label }}</Label>
+                    <label v-if="field.label" class="mb-1 block text-sm font-medium">{{ field.label }}</label>
                     <div v-html="String(field.default || '').replace(/<\?xml.*\?>/g, '')"
                         class="rounded-lg border-2 border-dashed p-6 flex justify-center bg-muted shadow-inner min-h-[240px] items-center [&>svg]:block [&>svg]:max-w-full [&>svg]:h-auto" />
                 </template>
                 <template v-else-if="field.fieldtype === 'Check'">
                     <div class="flex items-center space-x-2 py-1">
-                        <input type="checkbox" :id="field.fieldname" v-model="formValues[field.fieldname]"
-                            class="size-4 rounded border-border text-primary focus:ring-primary" />
-                        <Label :for="field.fieldname" class="cursor-pointer">{{ field.label }}</Label>
+                        <Checkbox binary :input-id="field.fieldname" v-model="formValues[field.fieldname]" />
+                        <label :for="field.fieldname" class="cursor-pointer text-sm">{{ field.label }}</label>
                     </div>
                 </template>
                 <template v-else>
-                    <Label :for="field.fieldname">{{ field.label }}</Label>
-                    <Input :id="field.fieldname" v-model="formValues[field.fieldname]" :placeholder="field.placeholder"
+                    <label :for="field.fieldname" class="text-sm font-medium">{{ field.label }}</label>
+                    <InputText :id="field.fieldname" v-model="formValues[field.fieldname]" :placeholder="field.placeholder"
                         :type="field.fieldtype === 'Int' || field.fieldtype === 'Float' ? 'number' : 'text'"
+                        class="w-full"
                         @keydown.enter="onConfirm" />
                 </template>
             </div>

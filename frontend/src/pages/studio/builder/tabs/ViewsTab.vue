@@ -3,10 +3,7 @@ import { computed } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import Select from 'primevue/select'
-import { Switch } from '@/components/ui/switch'
-import Badge from 'primevue/badge'
-import Button from 'primevue/button'
+
 import { X, List, FileText, Columns3, Calendar, Plus, CircleDot, Network } from '@lucide/vue'
 import type { StatusIndicator } from '@/types'
 
@@ -310,7 +307,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
           <CircleDot class="size-4 text-muted-foreground" />
           <h3 class="text-sm font-semibold text-foreground">Статуси</h3>
         </div>
-        <Switch :model-value="hasStatus" @update:model-value="toggleStatus" />
+        <ToggleSwitch :model-value="hasStatus" @update:model-value="toggleStatus" />
       </div>
       <div v-if="builder.doctype.status_config" class="p-4 space-y-4">
         <!-- Status field selector -->
@@ -412,7 +409,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
           <Columns3 class="size-4 text-muted-foreground" />
           <h3 class="text-sm font-semibold text-foreground">Канбан</h3>
         </div>
-        <Switch :model-value="hasKanban" @update:model-value="toggleKanban" />
+        <ToggleSwitch :model-value="hasKanban" @update:model-value="toggleKanban" />
       </div>
       <div v-if="builder.doctype.kanban_view" class="p-4 space-y-3">
         <div class="grid grid-cols-2 gap-3">
@@ -461,7 +458,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
           <Network class="size-4 text-muted-foreground" />
           <h3 class="text-sm font-semibold text-foreground">Дерево</h3>
         </div>
-        <Switch :model-value="hasTree" @update:model-value="toggleTree" />
+        <ToggleSwitch :model-value="hasTree" @update:model-value="toggleTree" />
       </div>
       <div v-if="builder.doctype.tree_view" class="p-4 space-y-3">
         <div class="grid grid-cols-2 gap-3">
@@ -500,7 +497,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
           <Calendar class="size-4 text-muted-foreground" />
           <h3 class="text-sm font-semibold text-foreground">Календар</h3>
         </div>
-        <Switch :model-value="hasCalendar" @update:model-value="toggleCalendar" />
+        <ToggleSwitch :model-value="hasCalendar" @update:model-value="toggleCalendar" />
       </div>
       <div v-if="builder.doctype.calendar_view" class="p-4 space-y-4">
         <div class="grid grid-cols-2 gap-3">

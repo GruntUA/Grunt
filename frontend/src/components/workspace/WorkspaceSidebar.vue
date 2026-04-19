@@ -3,9 +3,8 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceStore } from '@/stores/workspace'
-import Menu from 'primevue/menu'
-import Avatar from 'primevue/avatar'
 import NotificationsPopover from '@/components/layout/NotificationsPopover.vue'
+import PalettePicker from '@/components/layout/PalettePicker.vue'
 import { Sidebar, SidebarRail, SidebarMenuButton, useSidebar } from '@/components/ui/sidebar'
 import SidebarItem from './SidebarItem.vue'
 import SidebarEditor from './SidebarEditor.vue'
@@ -51,6 +50,9 @@ const userMenuItems = computed(() => [
   { key: 'light',  label: 'Світла',   command: () => onThemeChange('light') },
   { key: 'dark',   label: 'Темна',    command: () => onThemeChange('dark') },
   { key: 'system', label: 'Системна', command: () => onThemeChange('system') },
+  { separator: true },
+  { key: '__palette_label', label: 'Акцент', disabled: true },
+  { key: 'palette' },
   { separator: true },
   { key: 'logout', label: 'Вийти', command: handleLogout },
 ])
@@ -287,6 +289,9 @@ watch(() => router.currentRoute.value.path, () => { if (wsStore.active) wsStore.
           <span v-else-if="item.disabled" class="block px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             {{ item.label }}
           </span>
+          <!-- Palette Picker special item -->
+          <PalettePicker v-else-if="item.key === 'palette'" />
+
           <a v-else v-bind="mp.action" class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-muted">
             <component :is="THEME_ICONS[item.key!]" v-if="item.key && THEME_ICONS[item.key]" class="size-3.5 text-muted-foreground shrink-0" />
             <LogOut v-else-if="item.key === 'logout'" class="size-4 text-muted-foreground shrink-0" />

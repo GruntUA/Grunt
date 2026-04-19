@@ -9,10 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import Checkbox from 'primevue/checkbox'
 import { Input } from '@/components/ui/input'
-import Button from 'primevue/button'
-import Select from 'primevue/select'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,

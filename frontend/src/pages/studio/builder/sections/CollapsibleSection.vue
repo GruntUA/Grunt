@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
-import Checkbox from 'primevue/checkbox'
 import { Label } from '@/components/ui/label'
 
 const { field, updateField } = usePropertyEditor()

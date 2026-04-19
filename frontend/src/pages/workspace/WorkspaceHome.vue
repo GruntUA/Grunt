@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { workspaceApi } from '@/core/api/workspace'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 
 const props = defineProps<{ workspaceName: string }>()
 const wsStore = useWorkspaceStore()
@@ -56,6 +57,7 @@ watch(() => props.workspaceName, init)
   <div class="p-6">
     <!-- Header -->
     <div v-if="wsStore.active" class="flex items-center gap-3 mb-6">
+      <SidebarTrigger class="md:hidden shrink-0 -ml-3" />
       <span class="text-3xl">{{ wsStore.active.icon }}</span>
       <div>
         <h1 class="text-xl font-semibold text-foreground">{{ wsStore.active.label }}</h1>

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import { ViewVerticalIcon } from '@radix-icons/vue'
+import { Menu } from '@lucide/vue'
 import { cn } from "@/lib/utils"
-import Button from 'primevue/button'
 import { useSidebar } from "./utils"
 
 const props = defineProps<{
@@ -15,11 +14,13 @@ const { toggleSidebar } = useSidebar()
 <template>
   <Button
     data-sidebar="trigger"
-    data-slot="sidebar-trigger" text
-    :class="cn('h-7 w-7', props.class)"
+    data-slot="sidebar-trigger"
+    outlined severity="secondary" size="small"
+    :class="cn('h-8! w-8! p-0! flex items-center justify-center rounded-lg shadow-sm border-border bg-card', props.class)"
     @click="toggleSidebar"
+    title="Меню"
   >
-    <ViewVerticalIcon />
+    <Menu class="size-4 text-foreground/80" />
     <span class="sr-only">Toggle Sidebar</span>
   </Button>
 </template>

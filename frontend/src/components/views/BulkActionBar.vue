@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
-import Select from 'primevue/select'
 import { Trash2, X, Pencil, Loader2 } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'

@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { inject } from 'vue'
+import type { DialogTriggerProps } from "reka-ui"
+import { DialogTrigger } from "reka-ui"
 
-const ctx = inject<any>('$sheet')
+const props = defineProps<DialogTriggerProps>()
 </script>
 
 <template>
-  <span data-slot="sheet-trigger" @click="ctx?.open()">
+  <DialogTrigger
+    data-slot="sheet-trigger"
+    v-bind="props"
+  >
     <slot />
-  </span>
+  </DialogTrigger>
 </template>

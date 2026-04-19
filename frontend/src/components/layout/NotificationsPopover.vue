@@ -11,9 +11,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover'
-import Button from 'primevue/button'
-import Badge from 'primevue/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
+
 import { type NotificationItem, notificationsApi } from '@/core/api/notifications'
 import { useWebSocket } from '@/core/composables/useWebSocket'
 import { useToast } from '@/core/composables/useToast'
@@ -122,7 +120,7 @@ onUnmounted(() => {
             </div>
 
             <!-- List -->
-            <ScrollArea class="h-[300px] overflow-y-auto">
+            <ScrollPanel class="h-[300px] overflow-y-auto">
                 <div v-if="notifications.length === 0"
                     class="flex flex-col items-center justify-center h-40 text-center px-4">
                     <Bell class="size-10 text-muted-foreground/20 mb-3" />
@@ -165,7 +163,7 @@ onUnmounted(() => {
                         </button>
                     </div>
                 </div>
-            </ScrollArea>
+            </ScrollPanel>
 
             <!-- Push subscribe footer -->
             <div v-if="pushSupported" class="px-4 py-2.5 border-t bg-muted/20 flex items-center justify-between">

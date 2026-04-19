@@ -7,7 +7,7 @@
  * application code share the same API surface.
  */
 
-import { toast } from 'vue-sonner'
+import { toast } from '@/core/composables/useToast'
 import client from '@/core/api/client'
 import { useDialog } from '@/core/composables/useDialog'
 import type { MsgprintOptions, PromptOptions, DialogOptions } from '@/core/composables/useDialog'
@@ -27,13 +27,10 @@ export const grunt = {
     type: AlertType = 'info',
   ): void {
     const text = typeof msgOrOpts === 'string' ? msgOrOpts : msgOrOpts.message
-    const title = typeof msgOrOpts === 'object' ? msgOrOpts.title : undefined
-    const msg = title ?? text
-    const desc = title ? text : undefined
-    if (type === 'success') toast.success(msg, { description: desc })
-    else if (type === 'error') toast.error(msg, { description: desc })
-    else if (type === 'warning') toast.warning(msg, { description: desc })
-    else toast.info(msg, { description: desc })
+    if (type === 'success') toast.success(text)
+    else if (type === 'error') toast.error(text)
+    else if (type === 'warning') toast.warning(text)
+    else toast.info(text)
   },
 
   msgprint(msgOrOpts: string | MsgprintOptions): Promise<void> {

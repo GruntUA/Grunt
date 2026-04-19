@@ -6,8 +6,6 @@ import { docsApi } from '@/core/api/docs'
 import { useToast } from '@/core/composables/useToast'
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 import client from '@/core/api/client'
-import Button from 'primevue/button'
-import Select from 'primevue/select'
 import { Loader2, Save, Eye, EyeOff, RefreshCw, ChevronLeft, FileText } from '@lucide/vue'
 import type { GruntDocument } from '@/types'
 

@@ -6,7 +6,7 @@ import { docsApi } from '@/core/api/docs'
 import type { GruntDocument } from '@/types'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ScrollArea } from '@/components/ui/scroll-area'
+
 import {
   GripVertical,
   Plus,
@@ -262,7 +262,7 @@ async function save() {
     <template #header>
       <span class="font-semibold">Налаштування бічного меню: {{ workspace.label }}</span>
     </template>
-    <ScrollArea class="flex-1 px-6 py-4">
+    <ScrollPanel class="flex-1 px-6 py-4">
         <div class="space-y-4">
           <!-- Toolbar -->
           <div class="flex items-center justify-between mb-2">
@@ -477,7 +477,7 @@ async function save() {
             Меню порожнє. Додайте перший пункт.
           </div>
         </div>
-      </ScrollArea>
+      </ScrollPanel>
 
     <template #footer>
       <Button text @click="$emit('update:open', false)">Скасувати</Button>

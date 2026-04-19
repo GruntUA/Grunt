@@ -2,13 +2,10 @@
 import { ref, computed } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import type { WorkflowState, WorkflowTransition, WorkflowStep, WorkflowStepType } from '@/types'
-import Button from 'primevue/button'
 import { Separator } from '@/components/ui/separator'
-import { Switch } from '@/components/ui/switch'
+
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import Select from 'primevue/select'
-import Checkbox from 'primevue/checkbox'
 import { Trash2, Plus, GitBranch, List, ChevronDown, GripVertical, X } from '@lucide/vue'
 import WorkflowGraph from '@/components/views/WorkflowGraph.vue'
 
@@ -207,7 +204,7 @@ function toggleNextStepMenu(id: string) {
     <!-- Toolbar -->
     <div class="flex items-center gap-3 px-4 py-2 border-b border-border bg-muted/30 shrink-0 flex-wrap">
       <div class="flex items-center gap-2">
-        <Switch :model-value="hasWorkflow" @update:model-value="toggleWorkflow" />
+        <ToggleSwitch :model-value="hasWorkflow" @update:model-value="toggleWorkflow" />
         <Label class="text-sm">Workflow</Label>
       </div>
 
@@ -265,7 +262,7 @@ function toggleNextStepMenu(id: string) {
 
             <!-- Show inactive toggle -->
             <label class="flex items-center gap-2 text-sm cursor-pointer select-none ml-2">
-              <Switch v-model="showInactive" />
+              <ToggleSwitch v-model="showInactive" />
               Показувати неактивні
             </label>
 
@@ -450,7 +447,7 @@ function toggleNextStepMenu(id: string) {
 
             <!-- Active -->
             <div class="flex items-center gap-2">
-              <Switch :model-value="selectedStep.is_active" @update:model-value="updateSelectedStep({ is_active: $event })" />
+              <ToggleSwitch :model-value="selectedStep.is_active" @update:model-value="updateSelectedStep({ is_active: $event })" />
               <Label class="text-sm">Активний</Label>
             </div>
 

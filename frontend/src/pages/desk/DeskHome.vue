@@ -12,7 +12,6 @@ import {
   Sparkles,
   Command
 } from '@lucide/vue'
-import Button from 'primevue/button'
 
 interface ActivityEntry {
   id: string

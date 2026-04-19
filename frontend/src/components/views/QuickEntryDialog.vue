@@ -7,7 +7,6 @@ import type { DocType, DocField } from '@/types'
 import { useDocument } from '@/core/composables/useDocument'
 import { useToast } from '@/core/composables/useToast'
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
-import Button from 'primevue/button'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
 import { X, ExternalLink } from '@lucide/vue'
 

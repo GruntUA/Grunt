@@ -77,16 +77,16 @@ function findWorkspaceForDoc(doc: RecentDoc) {
     <AppSidebar />
     <SidebarInset class="overflow-y-auto">
 
-    <!-- Mobile trigger -->
-    <SidebarTrigger class="fixed top-3 left-3 z-30 md:hidden !h-10 !w-10 rounded-xl bg-card border border-border shadow-lg" />
-
-    <main class="max-w-5xl mx-auto px-6 py-10">
+    <main class="max-w-5xl mx-auto px-6 py-6 md:py-10">
 
       <!-- Greeting + search -->
       <div class="mb-10">
-        <h1 class="text-[28px] font-semibold text-foreground tracking-tight mb-1">
-          {{ greeting }}
-        </h1>
+        <div class="flex items-center gap-3 mb-4 md:mb-1">
+          <SidebarTrigger class="md:hidden shrink-0 -ml-3" />
+          <h1 class="text-[28px] font-semibold text-foreground tracking-tight leading-none">
+            {{ greeting }}
+          </h1>
+        </div>
         <p class="text-sm text-muted-foreground mb-6">Що плануєте зробити сьогодні?</p>
         <div class="relative max-w-xl group cursor-pointer" @click="uiStore.openCommandPalette">
           <Search
@@ -137,14 +137,14 @@ function findWorkspaceForDoc(doc: RecentDoc) {
               class="flex items-center gap-3 px-4 py-3.5 border-b border-border/40 last:border-0 hover:bg-muted/40 cursor-pointer transition-colors group"
               @click="router.push(`/${doc.workspace}/list/${doc.doctype}/${doc.id}`)">
               <span v-if="findWorkspaceForDoc(doc)"
-                class="text-[10px] px-2 py-0.5 rounded-full font-bold flex-shrink-0 shadow-sm" :style="{
+                class="text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 shadow-sm" :style="{
                   backgroundColor: (findWorkspaceForDoc(doc)?.color ?? '#666') + '20',
                   color: findWorkspaceForDoc(doc)?.color ?? '#666'
                 }">{{ findWorkspaceForDoc(doc)?.label }}</span>
               <span
                 class="text-sm text-foreground flex-1 truncate group-hover:text-primary transition-colors font-medium">{{
                 doc.title }}</span>
-              <span class="text-[10px] text-muted-foreground/60 flex-shrink-0 tabular-nums font-mono">{{ timeAgo(doc.ts)
+              <span class="text-[10px] text-muted-foreground/60 shrink-0 tabular-nums font-mono">{{ timeAgo(doc.ts)
                 }}</span>
             </div>
           </div>

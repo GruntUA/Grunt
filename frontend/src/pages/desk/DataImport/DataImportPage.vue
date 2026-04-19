@@ -3,8 +3,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/core/api/client'
 import { filesApi } from '@/core/api/files'
-import Button from 'primevue/button'
-import Badge from 'primevue/badge'
 
 const props = defineProps<{
     workspaceName: string

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ChevronRight } from '@lucide/vue'
-import DataTable from '@/components/views/DataTable.vue'
+import GruntDataTable from '@/components/views/GruntDataTable.vue'
 
 const props = defineProps<{
   dt: any
@@ -35,7 +35,7 @@ function handleSelectGroup(items: any[]) {
 <template>
   <div class="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
     <!-- Shared column header -->
-    <DataTable
+    <GruntDataTable
       :columns="columns"
       :rows="[]"
       :fields="dt?.fields ?? []"
@@ -45,7 +45,7 @@ function handleSelectGroup(items: any[]) {
       :selected-ids="[]"
       :status-config="dt?.status_config"
       :hide-body="true"
-      @sort="emit('sort', $event)"
+      @sort="emit('sort', $event as any)"
       @select-all="emit('selectAll')"
     />
 
@@ -69,7 +69,7 @@ function handleSelectGroup(items: any[]) {
       <!-- Group rows -->
       <Transition name="group">
         <div v-if="!collapsedGroups.has(group.key)" class="border-t border-border/40">
-          <DataTable
+          <GruntDataTable
             :columns="columns"
             :rows="group.items"
             :fields="dt?.fields ?? []"
@@ -82,8 +82,8 @@ function handleSelectGroup(items: any[]) {
             :hide-header="true"
             @select="selection.toggle"
             @select-all="handleSelectGroup(group.items)"
-            @row-click="emit('rowClick', $event)"
-            @inline-update="(rowId, field, value) => emit('inlineUpdate', rowId, field, value)"
+            @row-click="emit('rowClick', $event as any)"
+            @inline-update="(rowId: any, field: any, value: any) => emit('inlineUpdate', rowId, field, value)"
           />
         </div>
       </Transition>

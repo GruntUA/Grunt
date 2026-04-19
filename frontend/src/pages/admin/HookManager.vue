@@ -10,9 +10,8 @@ import {
     AlertCircle,
     ExternalLink
 } from '@lucide/vue'
-import Badge from 'primevue/badge'
 import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
+
 
 interface HookEntry {
     source: string
@@ -105,7 +104,7 @@ onMounted(fetchHooks)
                     <div class="col-span-1 text-right">Пріор.</div>
                 </div>
 
-                <ScrollArea class="flex-1">
+                <ScrollPanel class="flex-1">
                     <div v-if="loading" class="flex flex-col items-center justify-center h-[400px] gap-4">
                         <div class="size-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
                         <span class="text-sm font-medium text-muted-foreground">Завантаження конфігурації...</span>
@@ -149,7 +148,7 @@ onMounted(fetchHooks)
                             </div>
                         </div>
                     </div>
-                </ScrollArea>
+                </ScrollPanel>
 
                 <div
                     class="px-6 py-3 border-t bg-muted/10 flex items-center justify-between text-[11px] text-muted-foreground font-medium">

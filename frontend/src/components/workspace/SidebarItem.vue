@@ -85,31 +85,32 @@ const displayCount = computed(() => {
 
 <template>
   <SidebarMenuItem>
-    <SidebarMenuButton :is-active="isActive" :tooltip="item.label" @click="navigate">
+    <SidebarMenuButton :is-active="isActive" @click="navigate">
       <AppIcon :icon="item.icon || 'file'" class="size-4 shrink-0" />
       <span class="flex-1 truncate">{{ item.label }}</span>
-      <!-- Count badge - fades on hover to make room for actions -->
-      <span v-if="displayCount"
-        class="ml-auto text-[10px] font-black tabular-nums shrink-0 transition-opacity group-hover/menu-item:opacity-0">
-        {{ displayCount }}
-      </span>
-    </SidebarMenuButton>
+      <!-- Hover actions: pin + new (hidden when collapsed) -->
+      <div
+        class="ml-auto flex items-center gap-0.5 opacity-0 group-hover/menu-item:opacity-100 group-data-[collapsible=icon]:hidden transition-opacity pointer-events-none group-hover/menu-item:pointer-events-auto">
+        <button
+          class="flex size-6 items-center justify-center rounded-md hover:bg-sidebar-accent text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors"
+          :title="pinned ? 'Відкріпити' : 'Закріпити'"
+          @click.stop="togglePin">
+          <component :is="pinned ? Star : StarOff" class="size-3.5" :class="pinned ? 'fill-current text-primary' : ''" />
+        </button>
+        <button v-if="item.show_new_btn"
+          class="flex size-6 items-center justify-center rounded-md hover:bg-sidebar-accent text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors"
+          title="Створити новий"
+          @click.stop="createNew">
+          <Plus class="size-3.5" />
+        </button>
+      </div>
 
-    <!-- Hover actions: pin + new (hidden when collapsed) -->
-    <div
-      class="absolute right-1 top-1/2 -translate-y-1/2 flex gap-0.5 opacity-0 group-hover/menu-item:opacity-100 group-data-[collapsible=icon]:hidden transition-opacity pointer-events-none group-hover/menu-item:pointer-events-auto">
-      <button
-        class="flex size-5 items-center justify-center rounded hover:bg-sidebar-accent text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors"
-        :title="pinned ? 'Відкріпити' : 'Закріпити'"
-        @click.stop="togglePin">
-        <component :is="pinned ? Star : StarOff" class="size-3" :class="pinned ? 'fill-current text-primary' : ''" />
-      </button>
-      <button v-if="item.show_new_btn"
-        class="flex size-5 items-center justify-center rounded hover:bg-sidebar-accent text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors"
-        title="Створити новий"
-        @click.stop="createNew">
-        <Plus class="size-3" />
-      </button>
-    </div>
+      <Badge v-if="displayCount"
+        :value="displayCount"
+        severity="secondary"
+        style="font-size: 10px; padding: 0 6px; height: 18px; min-width: 18px;"
+        class="ml-2 rounded-full tabular-nums"
+      />
+    </SidebarMenuButton>
   </SidebarMenuItem>
 </template>

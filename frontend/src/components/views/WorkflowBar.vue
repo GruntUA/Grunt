@@ -3,8 +3,6 @@ import { ref, onMounted, computed } from 'vue'
 import type { DocType } from '@/types'
 import { docsApi } from '@/core/api/docs'
 import type { WorkflowTransitionItem } from '@/core/api/docs'
-import Badge from 'primevue/badge'
-import Button from 'primevue/button'
 import { Loader2 } from '@lucide/vue'
 
 const props = defineProps<{

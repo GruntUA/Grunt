@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Input } from '@/components/ui/input'
-import Button from 'primevue/button'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Loader2, ShieldCheck, ArrowRight, ArrowLeft } from '@lucide/vue'
 import { authApi } from '@/core/api'

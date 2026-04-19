@@ -28,5 +28,5 @@ export const useDocTypeStore = defineStore('doctype', () => {
     cache.value.delete(name)
   }
 
-  return { doctypes, loading, loadAll, get, invalidate }
+  return { doctypes, loading, cache, loadAll, get, invalidate }
 })

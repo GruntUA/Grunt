@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue'
 import { authAdminApi } from '@/core/api/auth-admin'
 import type { UserPublic } from '@/types'
-import Button from 'primevue/button'
 import { Spinner } from '@/components/ui/spinner'
 import { Loader2 } from '@lucide/vue'
 

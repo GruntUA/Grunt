@@ -6,7 +6,6 @@ import type { LayoutSection } from '@/core/composables/useFormLayout'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { initials } from '@/core/composables/usePresence'
 import { ChevronDown } from '@lucide/vue'
-import { Tabs, TabsList, TabsTrigger, TabsContent, TabPanels } from '@/components/ui/tabs'
 import FieldRenderer from './FieldRenderer.vue'
 
 const props = defineProps<{
@@ -55,18 +54,18 @@ function toggleSection(section: LayoutSection) {
 </script>
 
 <template>
-  <Tabs v-if="hasTabs" v-model="activeTabIndex" class="w-full overflow-hidden">
+  <Tabs v-if="hasTabs" v-model:value="activeTabIndex" class="w-full overflow-hidden">
     <!-- Tab navigation -->
-    <TabsList variant="underline" class="mb-6 -mx-5 px-5 overflow-x-auto justify-start h-auto scrollbar-none border-b border-border">
-      <TabsTrigger v-for="(tab, ti) in layout" :key="ti" :value="String(ti)" variant="underline" class="gap-1.5">
+    <TabList variant="underline" class="mb-6 -mx-5 px-5 overflow-x-auto justify-start h-auto scrollbar-none border-b border-border">
+      <Tab v-for="(tab, ti) in layout" :key="ti" :value="String(ti)" variant="underline" class="gap-1.5">
         <component :is="getTabIcon(tab._field?.icon)" v-if="tab._field?.icon" class="size-3.5 shrink-0" />
         {{ tab.label || 'Main' }}
-      </TabsTrigger>
-    </TabsList>
+      </Tab>
+    </TabList>
 
     <!-- Sections -->
     <TabPanels>
-    <TabsContent v-for="(tab, ti) in layout" :key="ti" :value="String(ti)" class="mt-0 flex flex-col gap-3 focus-visible:ring-0">
+    <TabPanel v-for="(tab, ti) in layout" :key="ti" :value="String(ti)" class="mt-0 flex flex-col gap-3 focus-visible:ring-0">
       <div v-for="(section, si) in tab.sections" :key="si"
         :class="section.label ? 'form-section' : ''">
 
@@ -112,7 +111,7 @@ function toggleSection(section: LayoutSection) {
           </div>
         </Transition>
       </div>
-    </TabsContent>
+    </TabPanel>
     </TabPanels>
   </Tabs>
 
@@ -121,7 +120,7 @@ function toggleSection(section: LayoutSection) {
     <div class="flex flex-col gap-3">
       <div v-for="(section, si) in tab.sections" :key="si"
         :class="section.label ? 'form-section' : ''">
-        <!-- ... same content as inside TabsContent above ... -->
+        <!-- ... same content as inside TabPanel above ... -->
         <div v-if="section.label" class="form-section-header"
           :class="{ 'cursor-pointer select-none': section.collapsible }"
           @click="toggleSection(section)">

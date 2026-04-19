@@ -9,7 +9,7 @@
  */
 
 import { ref, onMounted, onUnmounted } from 'vue'
-import { toast } from 'vue-sonner'
+import { toast } from '@/core/composables/useToast'
 
 export const isOnline = ref(typeof navigator !== 'undefined' ? navigator.onLine : true)
 
@@ -20,30 +20,27 @@ const wentOffline = ref(false)
 function onOffline() {
   isOnline.value = false
   wentOffline.value = true
-  toast.warning('Немає з\'єднання', {
-    description: 'Зміни зберігаються локально та будуть синхронізовані при відновленні зв\'язку.',
-    duration: Infinity,
-    id: 'network-offline',
+  toast.warning('Немає з\'єднання', "З'єднання", {
+    detail: 'Зміни зберігаються локально та будуть синхронізовані при відновленні зв\'язку.',
+    sticky: true,
+    group: 'network',
   })
 }
 
 async function onOnline() {
   isOnline.value = true
   // Dismiss the persistent offline toast
-  toast.dismiss('network-offline')
+  toast.removeGroup('network')
 
   if (wentOffline.value) {
-    toast.success('Зв\'язок відновлено', {
-      description: 'Синхронізуємо збережені зміни...',
-      duration: 3000,
-    })
+    toast.success("Зв'язок відновлено", "З'єднання")
 
     // Flush pending offline mutations
     const { offlineQueue } = await import('./useOfflineQueue')
     const synced = await offlineQueue.flush()
     if (synced > 0) {
-      toast.success(`Синхронізовано ${synced} збережених ${synced === 1 ? 'зміну' : 'змін'}`, {
-        duration: 4000,
+      toast.success(`Синхронізовано ${synced} збережених ${synced === 1 ? 'зміну' : 'змін'}`, "Синхронізація", {
+        life: 4000,
       })
     }
   }

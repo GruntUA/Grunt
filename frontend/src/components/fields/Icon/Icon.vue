@@ -2,7 +2,6 @@
 import { ref, computed, shallowRef, onMounted } from 'vue'
 import type { Component } from 'vue'
 import type { DocField } from '@/types'
-import Button from 'primevue/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Search, X } from '@lucide/vue'
 

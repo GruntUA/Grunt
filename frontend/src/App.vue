@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
 import { RouterView } from 'vue-router'
-import { Toaster as Sonner } from '@/components/ui/sonner'
 import GruntDialog from '@/components/desk/GruntDialog.vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import CommandPalette from '@/components/layout/CommandPalette.vue'
@@ -13,6 +12,9 @@ import { pendingCount } from '@/core/composables/useOfflineQueue'
 import { useServerError } from '@/core/composables/useServerError'
 import { WifiOff } from '@lucide/vue'
 
+import { useToast } from '@/core/composables/useToast'
+
+useToast() // Initialize global toast ref
 useNetworkStatus()
 
 const { state: serverErrorState, close: closeServerError } = useServerError()
@@ -38,7 +40,7 @@ onUnmounted(() => {
       enter-to-class="translate-y-0 opacity-100" leave-active-class="transition-all duration-200 ease-in"
       leave-from-class="translate-y-0 opacity-100" leave-to-class="-translate-y-full opacity-0">
       <div v-if="!isOnline"
-        class="fixed top-0 inset-x-0 z-[200] flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 text-amber-950 text-sm font-medium shadow-md">
+        class="fixed top-0 inset-x-0 z-200 flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 text-amber-950 text-sm font-medium shadow-md">
         <WifiOff class="size-4 shrink-0" />
         <span>Немає з'єднання — зміни зберігаються локально</span>
         <span v-if="pendingCount > 0"
@@ -49,9 +51,7 @@ onUnmounted(() => {
     </Transition>
 
     <RouterView />
-    <Teleport to="body">
-      <Sonner position="bottom-right" :style="{ zIndex: 99999 }" />
-    </Teleport>
+    <Toast position="bottom-right" />
 
     <CommandPalette />
     <PWAInstallPrompt />

@@ -4,8 +4,6 @@ import type { Component } from 'vue'
 import type { DocField } from '@/types'
 import Button from 'primevue/button'
 
-type ButtonVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost'
-
 const props = defineProps<{
   field: DocField
   modelValue: unknown
@@ -24,10 +22,18 @@ watchEffect(async () => {
   iconComponent.value = lib[pascal] ?? null
 })
 
-const variant = (): ButtonVariant => {
+const severity = (): string | undefined => {
   const v = props.field.options
-  if (v === 'secondary' || v === 'destructive' || v === 'outline' || v === 'ghost') return v
-  return 'default'
+  if (v === 'secondary') return 'secondary'
+  if (v === 'destructive') return 'danger'
+  return undefined
+}
+
+const variant = (): "outlined" | "text" | "link" | undefined => {
+  const v = props.field.options
+  if (v === 'outline') return 'outlined'
+  if (v === 'ghost') return 'text'
+  return undefined
 }
 
 function onClick() {
@@ -39,6 +45,7 @@ function onClick() {
   <div class="py-1">
     <Button
       type="button"
+      :severity="severity()"
       :variant="variant()"
       :disabled="disabled || field.read_only"
       class="w-full sm:w-auto gap-2"

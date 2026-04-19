@@ -11,6 +11,7 @@ interface User {
   is_superadmin: boolean
   mfa_enabled?: boolean
   theme?: Theme
+  primary_color?: string
   avatar?: string
 }
 
@@ -48,6 +49,9 @@ export const useAuthStore = defineStore('auth', () => {
       _setTokens(data.access_token, data.refresh_token)
       user.value = data.user
       applyUserTheme(data.user)
+      if (data.user.primary_color) {
+        localStorage.setItem('grunt_primary_color', data.user.primary_color)
+      }
     }
     return {
       mfa_required: !!data.mfa_required,
@@ -78,6 +82,9 @@ export const useAuthStore = defineStore('auth', () => {
           const u = data.data ?? data
           user.value = u
           applyUserTheme(u)
+          if (u.primary_color) {
+            localStorage.setItem('grunt_primary_color', u.primary_color)
+          }
         })
         .catch(() => {
           _logout()
@@ -94,9 +101,13 @@ export const useAuthStore = defineStore('auth', () => {
   async function setTheme(theme: Theme) {
     useColorMode().setTheme(theme)
     if (user.value) user.value.theme = theme
-    // We should patch this using grunt api if the user wants; for now we leave it or replace it.
-    // Assuming there's an update method for user preferences, but since I didn't make a whitelisted method for setting theme, I'll keep the core endpoint or let it be.
     await client.patch('/api/v1/auth/me', { theme })
+  }
+
+  async function setPrimaryColor(color: string) {
+    if (user.value) user.value.primary_color = color
+    localStorage.setItem('grunt_primary_color', color)
+    await client.patch('/api/v1/auth/me', { primary_color: color })
   }
 
   function _logout() {
@@ -116,5 +127,5 @@ export const useAuthStore = defineStore('auth', () => {
     _logout()
   }
 
-  return { token, refreshToken, user, isLoggedIn, login, logout, refresh, fetchMe, prefetchMe, setTheme }
+  return { token, refreshToken, user, isLoggedIn, login, logout, refresh, fetchMe, prefetchMe, setTheme, setPrimaryColor }
 })
