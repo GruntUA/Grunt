@@ -60,24 +60,24 @@ loadBookmark()
 
 <template>
   <aside v-bind="attrs" class="flex flex-col gap-0 w-full">
-    <div class="form-section">
+    <div class="form-section mb-0! border-0 bg-transparent shadow-none">
       <Tabs v-model:value="activeTab" class="w-full">
         <!-- Tab nav as section header -->
-        <TabList class="w-full h-auto overflow-x-auto scrollbar-none">
-          <Tab value="details" class="flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider">
+        <TabList scrollable variant="underline" class="w-full h-auto border-b border-border/60 bg-card rounded-t-xl px-2">
+          <Tab value="details" variant="underline" class="flex items-center gap-1.5 px-4 py-3 h-11">
             <User class="size-3.5" />
-            Деталі
+            <span class="text-[11px] font-bold uppercase tracking-wider">Деталі</span>
           </Tab>
-          <Tab value="timeline" class="flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider">
+          <Tab value="timeline" variant="underline" class="flex items-center gap-1.5 px-4 py-3 h-11">
             <Activity class="size-3.5" />
-            Активність
+            <span class="text-[11px] font-bold uppercase tracking-wider">Активність</span>
           </Tab>
         </TabList>
 
         <!-- Content -->
-        <TabPanels class="p-0">
-          <div class="form-section-body">
-            <TabPanel value="details" class="flex flex-col gap-4">
+        <TabPanels class="p-0 bg-card border border-t-0 border-border/60 rounded-b-xl shadow-sm overflow-hidden">
+          <div class="form-section-body p-4!">
+            <TabPanel value="details" class="flex flex-col gap-5 focus:outline-none focus:ring-0">
               <SidebarFileInfo :doctype="doctype" :document="document" :users="users" />
 
               <!-- Actions -->
@@ -85,8 +85,8 @@ loadBookmark()
                 <SidebarAssignments :doctype="doctype" :document="document" class="flex-1 mb-0" />
                 <SidebarShare :doctype="doctype" :document="document" class="flex-1 mb-0" />
                 <Button v-tooltip="bookmark ? 'Прибрати із закладок' : 'Додати до закладок'"
-                  outlined class="size-9 shrink-0"
-                  :class="bookmark ? 'text-amber-500 border-amber-300 bg-amber-50 dark:bg-amber-950/30' : 'text-foreground'"
+                  outlined class="size-9 shrink-0 shadow-sm transition-all active:scale-95"
+                  :severity="bookmark ? 'warn' : 'secondary'"
                   :disabled="bookmarkLoading"
                   @click="toggleBookmark"
                 >
@@ -98,7 +98,7 @@ loadBookmark()
               <SidebarBacklinks :doctype="doctype" :document="document" :workspace="workspace" />
             </TabPanel>
 
-            <TabPanel value="timeline">
+            <TabPanel value="timeline" class="px-4! focus:outline-none focus:ring-0">
               <SidebarTimeline :doctype="doctype" :document="document" />
             </TabPanel>
           </div>
@@ -107,14 +107,3 @@ loadBookmark()
     </div>
   </aside>
 </template>
-
-<style scoped>
-/* Hide scrollbar but keep functionality */
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-</style>

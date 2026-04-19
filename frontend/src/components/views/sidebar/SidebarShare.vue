@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Share2, X, Loader2, ShieldCheck } from '@lucide/vue'
+import { docsApi } from '@/core/api/docs'
+import { authAdminApi } from '@/core/api/auth-admin'
+import type { DocType, GruntDocument, UserPublic } from '@/types'
 
 const PERMISSION_OPTIONS = [
   { value: 'Read', label: 'Читання' },
   { value: 'Write', label: 'Редагування' },
 ]
-import { Share2, X, Loader2 } from '@lucide/vue'
-import { docsApi } from '@/core/api/docs'
-import type { DocType, GruntDocument } from '@/types'
 
 const props = defineProps<{
   doctype: DocType
@@ -31,6 +32,21 @@ const showShareDialog = ref(false)
 const shareUser = ref('')
 const sharePermission = ref<'Read' | 'Write'>('Read')
 const shareSaving = ref(false)
+
+// User search
+const users = ref<UserPublic[]>([])
+const filteredUsers = ref<UserPublic[]>([])
+
+async function searchUsers(event: any) {
+    if (users.value.length === 0) {
+        try { users.value = await authAdminApi.listUsers() } catch { return }
+    }
+    const query = event.query.toLowerCase()
+    filteredUsers.value = users.value.filter(u => 
+        u.email.toLowerCase().includes(query) || 
+        (u.full_name && u.full_name.toLowerCase().includes(query))
+    )
+}
 
 async function submitShare() {
   const user = shareUser.value.trim()
@@ -57,58 +73,92 @@ onMounted(loadShared)
 </script>
 
 <template>
-  <div class="flex flex-col gap-3 mb-4">
-    <Button v-tooltip="t('Share document')" outlined size="small" class="w-full text-foreground" @click="showShareDialog = true">
-      <Share2 class="size-4 mr-1.5" />
-      {{ t('Share') }}
+  <div class="flex flex-col gap-3 mb-0">
+    <Button v-tooltip="t('Share document')" outlined size="small" class="w-full text-foreground shadow-sm transition-all active:scale-[0.98]" @click="showShareDialog = true">
+      <Share2 class="size-3.5 mr-2" />
+      <span class="text-xs font-semibold">{{ t('Share') }}</span>
     </Button>
 
-    <div v-if="sharedWith.length > 0" class="flex flex-col gap-1.5">
-      <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">{{ t('Access') }}</span>
-      <div class="flex flex-wrap gap-1.5">
-        <Badge v-for="s in sharedWith" :key="s.id" severity="contrast" class="text-xs gap-1 pr-1">
-          {{ s.user }} · {{ s.permission }}
-          <button type="button" class="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors p-0.5"
-            @click="removeShare(s)">
-            <X class="size-2.5" />
-          </button>
-        </Badge>
+    <div v-if="sharedWith.length > 0" class="flex flex-col gap-2 p-3 bg-muted/30 rounded-xl border border-border/40">
+      <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">{{ t('Access') }}</span>
+      <div class="flex flex-wrap gap-2">
+        <Chip v-for="s in sharedWith" :key="s.id" 
+          class="pl-1 pr-2 py-0.5 text-[11px] font-medium bg-background border border-border/60 shadow-sm"
+        >
+            <Avatar icon="pi pi-shield" shape="circle" class="mr-2 !size-5 !text-[10px]" :class="s.permission === 'Write' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'" />
+            <span class="mr-2 truncate max-w-[120px]">{{ s.user }}</span>
+            <span class="text-[9px] font-bold uppercase tracking-tighter text-muted-foreground/60 mr-2">{{ s.permission }}</span>
+            <X class="size-3 cursor-pointer hover:text-destructive transition-colors" @click="removeShare(s)" />
+        </Chip>
       </div>
     </div>
 
     <!-- Share dialog -->
     <Dialog v-model:visible="showShareDialog" modal
-      :pt="{ root: { class: 'max-w-sm' }, content: { class: 'p-0 px-6 pb-4 pt-1' } }">
+      header="Поділитися документом"
+      class="max-w-sm w-full mx-4"
+      :pt="{ content: { class: 'p-0 px-6 pb-6 pt-1' } }">
       <template #header>
-        <span class="flex items-center gap-2 font-semibold">
-          <Share2 class="size-4" />
+        <span class="flex items-center gap-2 font-bold text-lg">
+          <Share2 class="size-5 text-primary" />
           {{ t('Share document') }}
         </span>
       </template>
-      <div class="flex flex-col gap-3 py-1">
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-foreground">Email або логін</label>
-          <input v-model="shareUser" placeholder="user@example.com"
-            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
-            @keydown.enter="submitShare" />
+
+      <div class="flex flex-col gap-5 py-2">
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email або логін</label>
+          <AutoComplete 
+            v-model="shareUser" 
+            :suggestions="filteredUsers" 
+            optionLabel="email"
+            optionValue="email"
+            @complete="searchUsers"
+            placeholder="Пошук користувача..." 
+            class="w-full"
+            fluid
+          >
+            <template #option="slotProps">
+                <div class="flex items-center gap-2">
+                    <Avatar icon="pi pi-user" shape="circle" class="!size-6" />
+                    <div class="flex flex-col">
+                        <span class="text-sm font-medium">{{ slotProps.option.full_name || slotProps.option.email }}</span>
+                        <span class="text-[10px] text-muted-foreground">{{ slotProps.option.email }}</span>
+                    </div>
+                </div>
+            </template>
+          </AutoComplete>
         </div>
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-foreground">Рівень доступу</label>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Рівень доступу</label>
           <Select
             v-model="sharePermission"
             :options="PERMISSION_OPTIONS"
             option-label="label"
             option-value="value"
             class="w-full"
-          />
+            fluid
+          >
+            <template #option="slotProps">
+                <div class="flex items-center gap-2">
+                    <ShieldCheck v-if="slotProps.option.value === 'Write'" class="size-4 text-primary" />
+                    <Share2 v-else class="size-4 text-muted-foreground" />
+                    <span>{{ slotProps.option.label }}</span>
+                </div>
+            </template>
+          </Select>
         </div>
       </div>
+
       <template #footer>
-        <Button outlined class="text-foreground" @click="showShareDialog = false">{{ t('Cancel') }}</Button>
-        <Button :disabled="!shareUser.trim() || shareSaving" @click="submitShare">
-          <Loader2 v-if="shareSaving" class="size-4 animate-spin mr-1.5" />
-          {{ t('Grant access') }}
-        </Button>
+        <div class="flex gap-2 w-full pt-2">
+            <Button outlined severity="secondary" class="flex-1" @click="showShareDialog = false">{{ t('Cancel') }}</Button>
+            <Button class="flex-1" :disabled="!shareUser.trim() || shareSaving" @click="submitShare">
+                <Loader2 v-if="shareSaving" class="size-4 animate-spin mr-2" />
+                <span v-else>{{ t('Grant access') }}</span>
+            </Button>
+        </div>
       </template>
     </Dialog>
   </div>

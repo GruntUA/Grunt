@@ -56,29 +56,39 @@ onMounted(loadTags)
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 mb-4">
-    <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-      <Tag class="size-3.5" />
+  <div class="flex flex-col gap-3 mb-0 p-3 bg-muted/30 rounded-xl border border-border/40">
+    <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5 px-0.5">
+      <Tag class="size-3" />
       Теги
     </span>
-    <div class="flex flex-wrap gap-1.5">
-      <Badge v-for="t in tags" :key="t.id" severity="contrast" class="text-xs gap-1 pr-1 text-foreground">
-        {{ t.tag }}
-        <button type="button" class="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors p-0.5"
-          @click="removeTag(t)">
-          <X class="size-2.5" />
-        </button>
-      </Badge>
+    
+    <div v-if="tags.length > 0" class="flex flex-wrap gap-2">
+      <Chip v-for="t in tags" :key="t.id" 
+        class="pl-2 pr-2 py-0.5 text-[11px] font-semibold bg-background border border-border/60 shadow-sm"
+      >
+        <span class="mr-2">{{ t.tag }}</span>
+        <X class="size-3 cursor-pointer hover:text-destructive transition-colors shrink-0" @click="removeTag(t)" />
+      </Chip>
     </div>
-    <div class="flex gap-1.5">
-      <input v-model="tagInput" placeholder="Додати тег..."
-        class="flex-1 h-7 rounded-md border border-input bg-transparent px-2.5 text-xs text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
-        @keydown="onTagKeydown" />
-      <Button outlined class="size-7 text-foreground shrink-0"
-        :disabled="!tagInput.trim() || tagAdding" @click="addTag">
-        <Loader2 v-if="tagAdding" class="size-3.5 animate-spin" />
-        <Plus v-else class="size-3.5" />
-      </Button>
+
+    <!-- Add tag input -->
+    <div class="flex gap-1.5 mt-1">
+      <InputGroup class="h-8 shadow-sm">
+        <InputText 
+            v-model="tagInput" 
+            placeholder="Додати тег..."
+            class="!text-xs h-full"
+            @keydown="onTagKeydown" 
+        />
+        <Button 
+            class="h-full px-2"
+            :disabled="!tagInput.trim() || tagAdding" 
+            @click="addTag"
+        >
+          <Loader2 v-if="tagAdding" class="size-3.5 animate-spin" />
+          <Plus v-else class="size-3.5" />
+        </Button>
+      </InputGroup>
     </div>
   </div>
 </template>

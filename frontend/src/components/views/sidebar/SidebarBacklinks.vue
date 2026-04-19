@@ -34,17 +34,21 @@ onMounted(loadLinks)
 </script>
 
 <template>
-  <div v-if="links.length > 0" class="flex flex-col gap-2">
-    <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-      <LinkIcon class="size-3.5 inline-block mr-1 -mt-0.5" />
+  <div v-if="links.length > 0" class="flex flex-col gap-3 p-3 bg-muted/30 rounded-xl border border-border/40">
+    <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5 px-0.5">
+      <LinkIcon class="size-3" />
       Зв'язки ({{ links.length }})
     </span>
-    <button v-for="link in links" :key="`${link.source_doctype}-${link.source_id}`"
-      class="flex items-center gap-2 text-sm text-foreground/80 hover:text-primary transition-colors group text-left"
-      @click="navigateToLink(link)">
-      <ChevronRight class="size-3.5 text-muted-foreground/50 group-hover:text-primary transition-colors" />
-      <span class="truncate">{{ link.source_doctype }}</span>
-      <span class="text-xs text-muted-foreground truncate">{{ link.source_id.slice(0, 8) }}…</span>
-    </button>
+    <div class="flex flex-col gap-1.5">
+        <button v-for="link in links" :key="`${link.source_doctype}-${link.source_id}`"
+            class="flex items-center gap-2 p-2 rounded-lg bg-background border border-border/40 hover:border-primary/50 hover:bg-primary/5 transition-all group text-left shadow-sm active:scale-[0.98]"
+            @click="navigateToLink(link)">
+            <ChevronRight class="size-3 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+            <div class="flex flex-col min-w-0">
+                <span class="text-xs font-bold text-foreground truncate">{{ link.source_doctype }}</span>
+                <span class="text-[10px] text-muted-foreground truncate">{{ link.source_id }}</span>
+            </div>
+        </button>
+    </div>
   </div>
 </template>

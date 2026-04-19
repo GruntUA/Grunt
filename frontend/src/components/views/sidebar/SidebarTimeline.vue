@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import {
   MessageSquare,
-  Activity,
+  Activity as ActivityIcon,
   Trash2,
   Loader2,
   Send,
@@ -46,7 +46,14 @@ function timelineLabel(item: TimelineItem): string {
 }
 
 function fmtDate(d: string | null) {
-  return d ? new Date(d).toLocaleString('uk-UA') : ''
+  if (!d) return ''
+  const date = new Date(d)
+  return new Intl.DateTimeFormat('uk-UA', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+  }).format(date)
 }
 
 const commentInput = ref('')
@@ -71,8 +78,7 @@ async function deleteComment(item: TimelineItem) {
   } catch { /* silent */ }
 }
 
-// ── @mention autocomplete ─────────────────────────────────────────────────────
-
+// ── @mention autocomplete logic (retained for functionality) ─────────────────
 const allUsers = ref<UserPublic[]>([])
 const mentionDropdown = ref<UserPublic[]>([])
 const mentionIndex = ref(0)
@@ -95,7 +101,7 @@ function onCommentInput(e: Event) {
       mentionDropdown.value = allUsers.value
         .filter(u =>
           u.email.toLowerCase().includes(mentionQuery.value) ||
-          u.full_name.toLowerCase().includes(mentionQuery.value)
+          u.full_name?.toLowerCase().includes(mentionQuery.value)
         )
         .slice(0, 6)
       mentionIndex.value = 0
@@ -139,78 +145,100 @@ function onCommentKeydown(e: KeyboardEvent) {
 }
 
 defineExpose({ loadTimeline })
-
 onMounted(loadTimeline)
 </script>
 
 <template>
-  <div v-if="timelineLoading" class="flex justify-center py-8">
-    <Loader2 class="size-5 animate-spin text-muted-foreground" />
+  <div v-if="timelineLoading" class="flex justify-center py-10">
+    <Loader2 class="size-6 animate-spin text-primary/60" />
   </div>
 
-  <div v-else class="flex flex-col gap-0">
-    <div v-if="timeline.length === 0" class="py-8 text-center text-sm text-muted-foreground italic">
+  <div v-else class="flex flex-col gap-6">
+    <div v-if="timeline.length === 0" class="py-12 text-center text-sm text-muted-foreground/60 italic bg-muted/20 rounded-xl border border-dashed border-border/40">
       Поки що немає активності
     </div>
 
-    <div v-for="item in timeline" :key="item.id" class="relative pl-6 pb-4 group">
-      <div class="absolute left-2 top-2 bottom-0 w-px bg-border group-last:hidden" />
-      <div class="absolute left-0 top-1.5 size-4 rounded-full border-2 flex items-center justify-center"
-        :class="item.type === 'comment' ? 'bg-primary/10 border-primary/30' : 'bg-muted border-border'">
-        <MessageSquare v-if="item.type === 'comment'" class="size-2 text-primary" />
-        <Activity v-else class="size-2 text-muted-foreground" />
-      </div>
-
-      <div class="flex flex-col gap-0.5">
-        <div class="flex items-start justify-between gap-2">
-          <div class="flex-1">
-            <span class="text-xs font-semibold text-foreground">{{ item.user }}</span>
-            <span v-if="item.type === 'activity'" class="text-xs text-muted-foreground ml-1">
-              · {{ timelineLabel(item) }}
-            </span>
+    <!-- PrimeVue Timeline -->
+    <Timeline :value="timeline" class="w-full custom-timeline">
+      <template #marker="slotProps">
+        <span class="flex size-7 items-center justify-center rounded-full shadow-sm ring-1 ring-border/40"
+          :class="slotProps.item.type === 'comment' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'">
+          <MessageSquare v-if="slotProps.item.type === 'comment'" class="size-3" />
+          <ActivityIcon v-else class="size-3" />
+        </span>
+      </template>
+      <template #content="slotProps">
+        <div class="flex flex-col gap-1 mb-6">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-xs font-bold text-foreground truncate">{{ slotProps.item.user }}</span>
+                <span v-if="slotProps.item.type === 'activity'" class="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
+                   {{ timelineLabel(slotProps.item) }}
+                </span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <span class="text-[10px] font-medium text-muted-foreground/60 uppercase">{{ fmtDate(slotProps.item.created_at) }}</span>
+                <button v-if="slotProps.item.type === 'comment' && (slotProps.item.user === auth.user?.email || auth.user?.is_superadmin)"
+                    class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 hover:text-destructive rounded"
+                    @click="deleteComment(slotProps.item)">
+                    <Trash2 class="size-3" />
+                </button>
+            </div>
           </div>
-          <div class="flex items-center gap-1 shrink-0">
-            <span class="text-[10px] text-muted-foreground whitespace-nowrap">{{ fmtDate(item.created_at) }}</span>
-            <button v-if="item.type === 'comment' && (item.user === auth.user?.email || auth.user?.is_superadmin)"
-              class="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-              @click="deleteComment(item)">
-              <Trash2 class="size-3" />
-            </button>
-          </div>
+          <p v-if="slotProps.item.type === 'comment'"
+            class="text-sm text-foreground bg-muted/40 border border-border/20 rounded-xl px-4 py-2.5 mt-1 whitespace-pre-wrap leading-relaxed shadow-sm">
+            {{ slotProps.item.content }}
+          </p>
         </div>
-        <p v-if="item.type === 'comment'"
-          class="text-sm text-foreground bg-muted/50 rounded-lg px-3 py-2 mt-1 whitespace-pre-wrap">
-          {{ item.content }}
-        </p>
-      </div>
-    </div>
+      </template>
+    </Timeline>
 
-    <div class="mt-2 flex flex-col gap-2 border-t pt-4">
-      <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-        <MessageSquare class="size-3.5" />
-        Коментар
-      </span>
+    <!-- Comment input -->
+    <div class="mt-4 flex flex-col gap-3 group/comment bg-muted/20 p-4 rounded-xl border border-border/40">
+      <div class="flex items-center gap-2 px-1">
+        <MessageSquare class="size-4 text-primary/60" />
+        <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Додати коментар</span>
+      </div>
       <div class="relative">
-        <textarea v-model="commentInput" rows="3"
-          placeholder="Напишіть коментар... @email для згадки (Ctrl+Enter щоб надіслати)"
-          class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors resize-none"
+        <Textarea v-model="commentInput" rows="3"
+          placeholder="Напишіть коментар... @ для згадки"
+          class="w-full !text-sm !shadow-inner !bg-background !border-border/60 focus:!border-primary/50 transition-all resize-none"
+          autoResize
           @keydown="onCommentKeydown" @input="onCommentInput" />
+        
+        <!-- Mentions -->
         <div v-if="mentionDropdown.length"
-          class="absolute left-0 right-0 bottom-full mb-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden z-50">
+          class="absolute left-0 right-0 bottom-full mb-2 bg-popover border border-border rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div class="px-3 py-2 bg-muted/50 border-b border-border text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Згадати користувача</div>
           <button v-for="(u, i) in mentionDropdown" :key="u.id"
-            class="w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors"
-            :class="i === mentionIndex ? 'bg-primary text-primary-foreground' : 'hover:bg-accent text-foreground'"
+            class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-left transition-all border-b border-border/40 last:border-0"
+            :class="i === mentionIndex ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-foreground'"
             @mousedown.prevent="insertMention(u)">
-            <span class="font-medium truncate">{{ u.full_name || u.email }}</span>
-            <span class="text-xs opacity-70 truncate">{{ u.email }}</span>
+            <Avatar icon="pi pi-user" shape="circle" class="!size-7 shrink-0" :class="i === mentionIndex ? 'bg-primary-foreground/20 text-white' : ''" />
+            <div class="flex flex-col min-w-0">
+                <span class="font-bold truncate text-xs">{{ u.full_name || u.email }}</span>
+                <span class="text-[10px] opacity-70 truncate">{{ u.email }}</span>
+            </div>
           </button>
         </div>
       </div>
-      <Button size="small" :disabled="!commentInput.trim() || commentSending" @click="sendComment" class="self-end">
-        <Loader2 v-if="commentSending" class="size-3.5 animate-spin mr-1.5" />
-        <Send v-else class="size-3.5 mr-1.5" />
-        Надіслати
-      </Button>
+      <div class="flex items-center justify-between px-1">
+          <span class="text-[10px] text-muted-foreground/60 italic">Ctrl+Enter щоб надіслати</span>
+          <Button size="small" :disabled="!commentInput.trim() || commentSending" @click="sendComment" class="px-5 shadow-lg shadow-primary/10">
+            <Loader2 v-if="commentSending" class="size-3.5 animate-spin mr-2" />
+            <Send v-else class="size-3.5 mr-2" />
+            <span class="font-bold">Надіслати</span>
+          </Button>
+      </div>
     </div>
   </div>
 </template>
+
+<style>
+.custom-timeline .p-timeline-event-opposite {
+    display: none !important;
+}
+.custom-timeline .p-timeline-event-content {
+    padding-left: 1rem !important;
+}
+</style>
