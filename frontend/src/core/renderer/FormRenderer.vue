@@ -57,7 +57,7 @@ function toggleSection(section: LayoutSection) {
   <Tabs v-if="hasTabs" v-model:value="activeTabIndex" class="w-full overflow-hidden">
     <!-- Tab navigation -->
     <TabList variant="underline" class="mb-6 -mx-5 px-5 overflow-x-auto justify-start h-auto scrollbar-none border-b border-border">
-      <Tab v-for="(tab, ti) in layout" :key="ti" :value="String(ti)" variant="underline" class="gap-1.5">
+      <Tab v-for="(tab, ti) in layout" :key="ti" :value="String(ti)" variant="underline" class="flex items-center gap-1.5">
         <component :is="getTabIcon(tab._field?.icon)" v-if="tab._field?.icon" class="size-3.5 shrink-0" />
         {{ tab.label || 'Main' }}
       </Tab>

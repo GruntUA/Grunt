@@ -4,7 +4,6 @@ import type { DocField, DocTypeStatusConfig } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
 import DefaultListCell from '@/components/fields/Default/ListCell.vue'
-// PrimeVue imports handled by auto-import (DataTable, Column, Skeleton)
 
 const props = defineProps<{
   columns: ListColumn[]
@@ -58,16 +57,15 @@ const inlineInput = ref<HTMLInputElement | null>(null)
 
 const INLINE_SKIP = new Set(['Check', 'Select', 'Date', 'Datetime', 'Image', 'Attach', 'RichText', 'JSON', 'Code', 'Signature', 'Link', 'Rating', 'Icon'])
 
-function canInlineEdit(fieldtype: string): boolean {
-  return !INLINE_SKIP.has(fieldtype)
+function isEditing(rowId: string, field: string) {
+  return inlineEdit.value?.rowId === rowId && inlineEdit.value?.field === field
 }
 
-async function startEdit(row: Record<string, unknown>, field: string, fieldtype: string) {
-  if (!canInlineEdit(fieldtype)) return
+async function startEdit(row: any, field: string, fieldtype: string) {
+  if (INLINE_SKIP.has(fieldtype) || props.fields.find(f => f.fieldname === field)?.read_only) return
   inlineEdit.value = { rowId: String(row.id), field, value: String(row[field] ?? '') }
   await nextTick()
   inlineInput.value?.focus()
-  inlineInput.value?.select()
 }
 
 function commitEdit() {
@@ -80,13 +78,11 @@ function cancelEdit() {
   inlineEdit.value = null
 }
 
-function isEditing(rowId: string, field: string): boolean {
-  return inlineEdit.value?.rowId === rowId && inlineEdit.value?.field === field
-}
+// ── Helpers ────────────────────────────────────────────────────────────────
 
 const fieldMap = computed(() => {
   const m: Record<string, DocField> = {}
-  for (const f of props.fields) m[f.fieldname] = f
+  props.fields.forEach(f => { m[f.fieldname] = f })
   return m
 })
 
@@ -117,7 +113,7 @@ const pt = {
 </script>
 
 <template>
-  <PvDataTable
+  <DataTable
     :value="rows"
     :loading="isLoading && !rows.length"
     data-key="id"
@@ -186,5 +182,5 @@ const pt = {
         </div>
       </div>
     </template>
-  </PvDataTable>
+  </DataTable>
 </template>
