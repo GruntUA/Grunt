@@ -16,8 +16,7 @@ import {
 import { uk } from 'date-fns/locale'
 import type { DocType } from '@/types'
 import { docsApi } from '@/core/api/docs'
-import { Spinner } from '@/components/ui/spinner'
-import { ChevronLeft, ChevronRight, Plus } from '@lucide/vue'
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{
@@ -57,6 +56,10 @@ const events = ref<CalendarEvent[]>([])
 const draggedEvent = ref<CalendarEvent | null>(null)
 const dragOverDay = ref<string | null>(null)
 
+// Popover for event details
+const op = ref()
+const selectedEvent = ref<CalendarEvent | null>(null)
+
 async function loadDocuments() {
   isLoading.value = true
   try {
@@ -64,16 +67,12 @@ async function loadDocuments() {
     const endM = endOfMonth(currentMonth.value)
     const endStr = format(endM, 'yyyy-MM-dd')
 
-    // 1. Primary source
     const endField = props.doctype.calendar_view?.end_field
     const primaryFetch = docsApi.list(props.doctype.name, {
-      rawFilters: {
-        [`${props.dateField}__lte`]: endStr,
-      },
+      rawFilters: { [`${props.dateField}__lte`]: endStr },
       per_page: 200,
     })
 
-    // 2. Secondary sources
     const sources = props.doctype.calendar_view?.sources || []
     const secondaryFetches = sources.map(source =>
       docsApi.list(source.doctype, {
@@ -86,23 +85,20 @@ async function loadDocuments() {
     )
 
     const [primaryResp, ...secondaryResps] = await Promise.all([primaryFetch, ...secondaryFetches])
-
     const allEvents: CalendarEvent[] = []
 
     const overlaps = (start: string, end?: string, recurring?: boolean) => {
       if (!start) return false
-      if (recurring) return true // Show recurring events like birthdays every year
+      if (recurring) return true
       const s = parseISO(start.slice(0, 10))
       const e = end ? parseISO(end.slice(0, 10)) : s
-      // Simple range check for month view (+/- week for edges)
       const mS = startOfWeek(startM, { weekStartsOn: 1 })
       const mE = endOfWeek(endM, { weekStartsOn: 1 })
       return s <= mE && e >= mS
     }
 
-    // Add primary events
-    const primaryTitleField = props.doctype.title_field || 'name'
     if (primaryResp.data) {
+      const primaryTitleField = props.doctype.title_field || 'name'
       primaryResp.data.forEach((doc: any) => {
         const d_start = doc[props.dateField]
         const d_end = endField ? doc[endField] : undefined
@@ -119,7 +115,6 @@ async function loadDocuments() {
       })
     }
 
-    // Add secondary events
     secondaryResps.forEach((resp, idx) => {
       const source = sources[idx]
       if (resp.data) {
@@ -155,9 +150,7 @@ function getEventsForDay(day: Date) {
   const mDStr = format(day, 'MM-dd')
   return events.value.filter(event => {
     if (!event.date) return false
-    if (event.recurring) {
-      return event.date.includes(mDStr)
-    }
+    if (event.recurring) return event.date.includes(mDStr)
     const start = event.date.slice(0, 10)
     const end = event.end_date ? event.end_date.slice(0, 10) : start
     return dStr >= start && dStr <= end
@@ -168,12 +161,22 @@ function nextMonth() { currentMonth.value = addMonths(currentMonth.value, 1) }
 function prevMonth() { currentMonth.value = subMonths(currentMonth.value, 1) }
 function setToday() { currentMonth.value = new Date() }
 
+function fmtDate(d: string | null) {
+  if (!d) return ''
+  return format(parseISO(d.slice(0, 19)), 'dd MMMM yyyy, HH:mm', { locale: uk })
+}
+
 onMounted(loadDocuments)
 watch(currentMonth, loadDocuments)
 
 function navigateToDoc(event: CalendarEvent) {
   const id = String(event.id)
   router.push(props.workspace ? `/${props.workspace}/list/${event.doctype}/${id}` : `/${event.doctype}/${id}`)
+}
+
+function showEventDetails(event: CalendarEvent, target: any) {
+    selectedEvent.value = event
+    op.value.toggle(target)
 }
 
 // DRAG AND DROP
@@ -207,10 +210,8 @@ async function onDrop(e: DragEvent, day: Date) {
   if (!dateField) return
 
   const newDate = format(day, 'yyyy-MM-dd') + (event.date.includes('T') ? 'T' + event.date.split('T')[1] : ' 00:00:00')
-
-  // Optimistic UI
   const oldDate = event.date
-  event.date = newDate
+  event.date = newDate // Optimistic
 
   try {
     isRescheduling.value = true
@@ -232,9 +233,7 @@ function onDayClick(day: Date) {
   router.push({
     path,
     state: {
-      initial_data: JSON.stringify({
-        [props.dateField]: format(day, 'yyyy-MM-dd')
-      })
+      initial_data: JSON.stringify({ [props.dateField]: format(day, 'yyyy-MM-dd') })
     }
   })
 }
@@ -243,124 +242,141 @@ const weekDays = ['Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
 </script>
 
 <template>
-  <div
-    class="flex flex-col h-full bg-card border border-border rounded-xl overflow-hidden shadow-sm transition-all duration-300">
+  <div class="flex flex-col h-full bg-card border border-border/60 rounded-xl overflow-hidden shadow-lg transition-all duration-500">
     <!-- Toolbar -->
-    <div class="flex items-center justify-between p-4 border-b border-border bg-muted/30">
+    <div class="flex items-center justify-between p-4 border-b border-border/40 bg-muted/20">
       <div class="flex items-center gap-4">
-        <h2 class="text-lg font-bold text-foreground min-w-48 tracking-tight">{{ monthLabel }}</h2>
-        <div class="flex items-center rounded-lg border border-border bg-background shadow-sm overflow-hidden">
-          <button class="p-2 hover:bg-muted transition-colors border-r border-border" @click="prevMonth">
-            <ChevronLeft class="size-4" />
-          </button>
-          <button class="px-4 py-1.5 text-xs font-semibold hover:bg-muted transition-colors" @click="setToday">
-            Сьогодні
-          </button>
-          <button class="p-2 hover:bg-muted transition-colors border-l border-border" @click="nextMonth">
-            <ChevronRight class="size-4" />
-          </button>
+        <div class="flex items-center gap-2">
+            <div class="size-9 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                <CalendarIcon class="size-5 text-primary" />
+            </div>
+            <h2 class="text-xl font-bold text-foreground tracking-tight">{{ monthLabel }}</h2>
+        </div>
+        
+        <div class="flex items-center p-1 bg-background rounded-xl border border-border/40 shadow-sm">
+            <Button text size="small" class="!px-3 !h-8" @click="prevMonth">
+                <ChevronLeft class="size-4" />
+            </Button>
+            <Button text size="small" class="!px-4 !h-8 !text-xs font-bold uppercase tracking-wider !text-muted-foreground hover:!text-primary" @click="setToday">
+                Сьогодні
+            </Button>
+            <Button text size="small" class="!px-3 !h-8" @click="nextMonth">
+                <ChevronRight class="size-4" />
+            </Button>
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <div v-if="isRescheduling" class="flex items-center gap-2 text-xs text-muted-foreground animate-pulse">
-          Оновлення...
-        </div>
-        <div v-if="isLoading" class="flex items-center">
-          <Spinner size="sm" />
+      <div class="flex items-center gap-4">
+        <!-- Month Picker -->
+        <DatePicker v-model="currentMonth" view="month" dateFormat="mm/yy" :showIcon="true" iconDisplay="input" class="!w-48 !h-10" />
+        
+        <div class="flex items-center gap-2">
+            <div v-if="isRescheduling" class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary animate-pulse bg-primary/10 px-2 py-1 rounded-full">
+                Оновлення...
+            </div>
+            <ProgressSpinner v-if="isLoading" class="!size-6" strokeWidth="6" />
         </div>
       </div>
     </div>
 
     <!-- Calendar Grid -->
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="flex-1 flex flex-col overflow-hidden relative">
       <!-- Weekday headers -->
-      <div class="grid grid-cols-7 border-b border-border bg-muted/10">
+      <div class="grid grid-cols-7 border-b border-border/40 bg-muted/5">
         <div v-for="day in weekDays" :key="day"
-          class="py-2.5 text-center text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
+          class="py-3 text-center text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">
           {{ day }}
         </div>
       </div>
 
       <!-- Days grid -->
-      <div class="flex-1 grid grid-cols-7 auto-rows-fr overflow-y-auto custom-scrollbar">
+      <div class="flex-1 grid grid-cols-7 auto-rows-fr overflow-y-auto custom-scrollbar bg-border/10 gap-px">
         <div v-for="day in calendarDays" :key="day.toISOString()"
-          class="min-h-32 border-r border-b border-border p-1.5 transition-all flex flex-col gap-1 relative group"
+          class="min-h-36 bg-card p-2 transition-all flex flex-col gap-1.5 relative group cursor-default"
           :class="{
-            'bg-muted/5 opacity-60': !isSameMonth(day, currentMonth),
-            'bg-card': isSameMonth(day, currentMonth),
-            'ring-2 ring-inset ring-primary/40 bg-primary/5 z-10': dragOverDay === day.toISOString()
+            'bg-muted/10 opacity-60': !isSameMonth(day, currentMonth),
+            'ring-2 ring-inset ring-primary/60 bg-primary/5 z-10': dragOverDay === day.toISOString()
           }" @dragover.prevent="onDragOver(day)" @drop="onDrop($event, day)" @click.self="onDayClick(day)">
-          <!-- Day number -->
-          <div class="flex justify-between items-start mb-0.5 px-0.5">
-            <span class="text-xs font-bold size-7 flex items-center justify-center rounded-lg transition-all" :class="[
+          
+          <!-- Day header -->
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs font-black size-8 flex items-center justify-center rounded-xl transition-all" :class="[
               isToday(day)
-                ? 'bg-primary text-primary-foreground shadow-sm scale-110'
-                : isSameMonth(day, currentMonth) ? 'text-foreground/80' : 'text-muted-foreground/30'
+                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-110'
+                : isSameMonth(day, currentMonth) ? 'text-foreground/80 hover:bg-muted/50' : 'text-muted-foreground/20'
             ]">
               {{ format(day, 'd') }}
             </span>
 
-            <!-- Quick add hidden button -->
-            <button
-              class="opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-muted text-muted-foreground/60 hover:text-primary transition-all"
-              @click.stop="onDayClick(day)">
-              <Plus class="size-3.5" />
-            </button>
+            <Button icon="pi pi-plus" text rounded size="small" 
+                class="!size-7 opacity-0 group-hover:opacity-100 transition-all !text-muted-foreground/40 hover:!text-primary hover:!bg-primary/5" 
+                @click.stop="onDayClick(day)" 
+            />
           </div>
 
           <!-- Event cards -->
-          <div class="flex flex-col gap-1 overflow-y-auto max-h-40 scrollbar-hide py-0.5">
+          <div class="flex flex-col gap-1.5 overflow-y-auto max-h-48 scrollbar-hide py-0.5">
             <div v-for="event in getEventsForDay(day)" :key="event.doctype + event.id" draggable="true"
-              class="text-[11px] leading-snug px-2 py-1.5 rounded-lg border shadow-sm truncate cursor-pointer transition-all hover:scale-[1.02] active:scale-95 active:opacity-70"
+              class="group/event relative text-[11px] font-bold leading-tight pl-2.5 pr-2 py-2 rounded-xl border shadow-sm truncate cursor-pointer transition-all hover:translate-y-[-1px] hover:shadow-md active:scale-95 active:opacity-70"
               :class="[
                 event.doctype === doctype.name
-                  ? 'bg-primary/5 border-primary/20 text-primary font-medium hover:bg-primary/10'
-                  : 'bg-muted/50 border-border/50 text-muted-foreground hover:bg-muted'
+                  ? 'bg-background border-border hover:border-primary/40 text-foreground'
+                  : 'bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted/50'
               ]"
-              :style="event.color ? { backgroundColor: `${event.color}15`, borderColor: `${event.color}30`, color: event.color } : {}"
-              @click="navigateToDoc(event)" @dragstart="onDragStart($event, event)" @dragend="onDragEnd">
-              <span v-if="event.doctype !== doctype.name" class="opacity-60 font-bold mr-1">[{{ event.doctype }}]</span>
-              {{ event.title }}
+              :style="event.color ? { borderLeft: `3px solid ${event.color}` } : { borderLeft: `3px solid var(--p-primary-500)` }"
+              @click="navigateToDoc(event)" 
+              @dragstart="onDragStart($event, event)" 
+              @dragend="onDragEnd"
+              @contextmenu.prevent="showEventDetails(event, $event.target)"
+            >
+              <div class="flex items-center gap-1.5">
+                  <div v-if="event.doctype !== doctype.name" class="size-1.5 rounded-full bg-primary/40 shrink-0" />
+                  <span class="truncate">{{ event.title }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Event Detail Popover -->
+    <Popover ref="op">
+        <div v-if="selectedEvent" class="w-64 p-3 flex flex-col gap-3">
+            <div class="flex items-start justify-between">
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{{ selectedEvent.doctype }}</span>
+                    <h3 class="text-sm font-black text-foreground leading-tight">{{ selectedEvent.title }}</h3>
+                </div>
+                <Button icon="pi pi-external-link" text rounded size="small" @click="navigateToDoc(selectedEvent)" />
+            </div>
+            
+            <div class="flex flex-col gap-1.5 py-2 border-t border-border/40">
+                <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                    <CalendarIcon class="size-3.5" />
+                    <span>{{ fmtDate(selectedEvent.date) }}</span>
+                </div>
+            </div>
+
+            <Button label="Відкрити" fluid size="small" @click="navigateToDoc(selectedEvent)" />
+        </div>
+    </Popover>
   </div>
 </template>
 
 <style scoped>
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--p-content-border-color);
   border-radius: 10px;
-}
-</style>
-
-<style scoped>
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+  border: 1px solid transparent;
+  background-clip: padding-box;
 }
 
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--p-primary-500);
 }
 </style>

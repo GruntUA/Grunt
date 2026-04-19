@@ -95,19 +95,27 @@ const sortOrderValue = computed(() => props.sortOrder === 'desc' ? -1 : 1)
 
 // Mapping for PT (Pass Through) to match our design system
 const pt = {
-    root: { class: 'border border-border/60 rounded-xl overflow-hidden shadow-sm' },
-    header: { class: 'bg-muted/40 backdrop-blur-sm border-b border-border/40' },
+    root: { class: 'border-0' },
+    header: { class: 'hidden' }, // We use custom header usually or none
     thead: { class: props.hideHeader ? 'hidden' : '' },
-    headerRow: { class: 'bg-muted/40 backdrop-blur-sm' },
-    headerCell: { class: 'px-4 py-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/80 border-b border-border/40' },
-    bodyRow: (slotProps: any) => ({
+    headerRow: { class: 'bg-muted/30 backdrop-blur-sm' },
+    headerCell: (slotProps: any) => ({ 
         class: [
-            'transition-all duration-200 cursor-pointer border-b border-border/30 last:border-0 hover:bg-muted/40',
-            { 'bg-primary/[0.03] hover:bg-primary/[0.05]': slotProps.selected },
-            { 'bg-muted/80 ring-inset ring-1 ring-primary/30 z-10': props.activeIndex === slotProps.index }
+            'px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] border-b border-border/40 text-left transition-all duration-200',
+            slotProps.context.sorted ? 'text-primary' : 'text-muted-foreground/50 hover:text-foreground/80'
         ]
     }),
-    bodyCell: { class: 'px-4 py-3 text-[13px] border-b border-border/30' },
+    bodyRow: (slotProps: any) => {
+        const isActive = props.activeIndex === slotProps.index;
+        return {
+            class: [
+                'transition-all duration-300 cursor-pointer border-b border-border/20 last:border-0 hover:bg-primary/[0.04]',
+                { 'bg-primary/[0.05] hover:bg-primary/[0.08]': slotProps.selected },
+                { 'ring-inset ring-2 ring-primary/60 scale-[1.002] z-20 relative shadow-lg bg-background': isActive }
+            ]
+        }
+    },
+    bodyCell: { class: 'px-6 py-4 text-sm border-b border-border/10' },
     loadingOverlay: { class: 'bg-card/50 backdrop-blur-sm' }
 }
 </script>
@@ -137,11 +145,20 @@ const pt = {
     </template>
 
     <!-- Selection Column -->
-    <Column selection-mode="multiple" header-style="width: 3rem" class="relative">
+    <Column header-style="width: 3rem" class="relative">
+        <template #header>
+            <div class="flex items-center justify-center w-full">
+                <Checkbox binary 
+                  :model-value="props.allSelected || (props.rows.length > 0 && props.selectedIds.length === props.rows.length)" 
+                  @change="emit('selectAll')" />
+            </div>
+        </template>
         <template #body="slotProps">
             <div v-if="props.selectedIds.includes(String(slotProps.data.id))"
-              class="absolute left-0 top-0 bottom-0 w-0.5 bg-primary rounded-r-full pointer-events-none" />
-            <Checkbox binary :model-value="props.selectedIds.includes(String(slotProps.data.id))" />
+              class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full pointer-events-none" />
+            <Checkbox binary 
+              :model-value="props.selectedIds.includes(String(slotProps.data.id))" 
+              @change="emit('select', String(slotProps.data.id))" />
         </template>
     </Column>
 
@@ -184,3 +201,15 @@ const pt = {
     </template>
   </DataTable>
 </template>
+
+<style scoped>
+:deep(.p-datatable-header-cell),
+:deep(.p-datatable-column-sortable),
+:deep(.p-datatable-column-sorted),
+:deep(.p-datatable-header-cell.p-datatable-column-sorted),
+:deep(.p-datatable-header-cell.p-datatable-column-sorted:hover) {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+</style>

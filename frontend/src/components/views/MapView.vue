@@ -582,84 +582,81 @@ watch(() => props.filters, loadMarkers, { deep: true })
 </script>
 
 <template>
-  <div class="flex flex-col h-[calc(100vh-14rem)] rounded-xl overflow-hidden shadow-md ring-1 ring-border/60">
+  <div class="flex flex-col h-[calc(100vh-14rem)] rounded-3xl overflow-hidden shadow-2xl ring-1 ring-border/40 bg-card/30 backdrop-blur-md">
     <!-- Toolbar -->
-    <div class="flex items-center justify-between px-4 py-2 bg-card border-b border-border/60 shrink-0 gap-3">
-      <div class="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
-        <MapPin class="size-4 text-primary" />
-        <span v-if="isLoading" class="flex items-center gap-1.5">
-          <Loader2 class="size-3.5 animate-spin" /> Завантаження...
-        </span>
-        <span v-else>
-          <span class="font-medium text-foreground">{{ markerCount }}</span> мітк{{ markerCount === 1 ? 'а' : markerCount < 5 ? 'и' : '' }}
-          <span v-if="skippedCount" class="ml-2 text-xs text-muted-foreground/60">
-            ({{ skippedCount }} без координат)
+    <div class="flex items-center justify-between px-5 py-3 bg-card/50 border-b border-border/40 shrink-0 gap-4">
+      <div class="flex items-center gap-3 text-sm text-muted-foreground shrink-0">
+        <div class="size-8 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+          <MapPin class="size-4 text-primary" />
+        </div>
+        <div class="flex flex-col">
+          <span v-if="isLoading" class="flex items-center gap-2 font-bold text-foreground/80">
+            <Loader2 class="size-3.5 animate-spin text-primary" /> Завантаження...
           </span>
-        </span>
+          <span v-else class="font-bold text-foreground/80 lowercase">
+            {{ markerCount }} мітк{{ markerCount === 1 ? 'а' : markerCount < 5 ? 'и' : '' }}
+          </span>
+          <span v-if="skippedCount && !isLoading" class="text-[10px] text-muted-foreground/60 font-medium">
+            {{ skippedCount }} без координат
+          </span>
+        </div>
       </div>
 
       <!-- Coordinate jump input -->
-      <div class="flex items-center gap-1.5 flex-1 max-w-xs relative">
-        <input
-          v-model="coordInput"
-          placeholder="46.844167, 35.402538"
-          class="h-8 w-full rounded-md border px-2.5 py-1 text-xs bg-background placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 transition-colors"
-          :class="coordError
-            ? 'border-destructive focus:ring-destructive/40 text-destructive'
-            : 'border-input focus:ring-primary/30'"
-          @keydown.enter="gotoCoord"
-          @input="coordError = false"
-        />
-        <button
-          v-if="coordInput"
-          type="button"
-          class="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-foreground transition-colors p-0.5"
-          @click="clearCoordMarker"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
+      <div class="flex items-center gap-2 flex-1 max-w-sm relative">
+        <div class="relative w-full group">
+          <InputText
+            v-model="coordInput"
+            placeholder="46.8441, 35.4025"
+            class="!h-10 !w-full !rounded-xl !pl-3 !pr-10 !text-xs !bg-background/40 hover:!bg-background !border-border/40 focus:!ring-1 focus:!ring-primary/20 transition-all shadow-inner-sm"
+            :class="{ '!border-destructive/50': coordError }"
+            @keydown.enter="gotoCoord"
+            @input="coordError = false"
+          />
+          <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <Button v-if="coordInput" icon="pi pi-times" text rounded size="small" class="!size-6 !text-muted-foreground/40" @click="clearCoordMarker" />
+            <Button icon="pi pi-search" text rounded size="small" class="!size-7 !text-primary/60 group-hover:!text-primary" @click="gotoCoord" />
+          </div>
+        </div>
       </div>
 
-      <Button text size="small" class="h-8 w-8 p-0 shrink-0" :disabled="isLoading" @click="loadMarkers">
-        <RefreshCw class="size-3.5" :class="{ 'animate-spin': isLoading }" />
-      </Button>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <Button icon="pi pi-refresh" :loading="isLoading" @click="loadMarkers" rounded text class="!size-9 !text-muted-foreground/60 hover:!text-primary" />
+        <Button icon="pi pi-print" @click="exportPrint" rounded text class="!size-9 !text-muted-foreground/60 hover:!text-primary" />
+      </div>
     </div>
 
     <!-- Map container + print overlay wrapper -->
     <div ref="mapWrapEl" class="flex-1 w-full relative">
-      <div ref="mapEl" class="absolute inset-0" />
+      <div ref="mapEl" class="absolute inset-0 z-0" />
 
       <!-- ── Print area selector ── -->
       <template v-if="isPrintMode">
         <!-- Dark overlay with "hole" via box-shadow on the rect -->
-        <div class="absolute inset-0 z-[2000] select-none" @mousedown.self.prevent>
+        <div class="absolute inset-0 z-[2000] select-none backdrop-blur-[2px]" @mousedown.self.prevent>
 
           <!-- Format selector bar -->
-          <div class="absolute top-3 left-1/2 -translate-x-1/2 z-10
-                      flex items-center gap-2 px-3 py-1.5
-                      bg-black/80 text-white text-xs rounded-full shadow-xl backdrop-blur-sm">
-            <span class="text-white/60 mr-1">Формат:</span>
-            <button v-for="(fmt, key) in PRINT_FORMATS" :key="key"
-                    class="px-2 py-0.5 rounded transition-colors"
-                    :class="printFormat === key
-                      ? 'bg-white text-black font-semibold'
-                      : 'hover:bg-white/20'"
-                    @click="printFormat = key">
-              {{ fmt.label }}
-            </button>
-            <span class="mx-1 text-white/30">|</span>
-            <button class="px-2 py-0.5 rounded bg-primary text-primary-foreground font-semibold hover:bg-primary/80 transition-colors"
-                    @click="confirmPrint">
-              Надрукувати
-            </button>
-            <button class="px-2 py-0.5 rounded hover:bg-white/20 transition-colors"
-                    @click="cancelPrint">
-              Скасувати
-            </button>
+          <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10
+                      flex items-center gap-3 px-4 py-2
+                      bg-foreground/90 text-background text-xs rounded-2xl shadow-2xl backdrop-blur-xl border border-white/10">
+            <span class="opacity-60 font-bold uppercase tracking-wider text-[10px]">Формат:</span>
+            <div class="flex bg-background/10 p-1 rounded-xl gap-1">
+              <button v-for="(fmt, key) in PRINT_FORMATS" :key="key"
+                      class="px-3 py-1 rounded-lg transition-all text-[10px] font-bold uppercase tracking-wide"
+                      :class="printFormat === key
+                        ? 'bg-background text-foreground shadow-sm'
+                        : 'opacity-50 hover:opacity-100 hover:bg-background/5'"
+                      @click="printFormat = key">
+                {{ fmt.label.split(' ')[0] }}
+              </button>
+            </div>
+            <div class="w-px h-6 bg-background/20 mx-1" />
+            <Button label="Надрукувати" size="small" severity="primary" @click="confirmPrint" class="!rounded-xl !px-4 !h-8 !text-[11px] !font-bold" />
+            <Button label="Скасувати" size="small" text @click="cancelPrint" class="!text-background !rounded-xl !h-8 !text-[11px]" />
           </div>
 
           <!-- Selection rectangle -->
-          <div class="print-rect-box absolute cursor-move border-2 border-white"
+          <div class="print-rect-box absolute cursor-move border-2 border-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]"
                :style="{
                  left:   printRect.x + 'px',
                  top:    printRect.y + 'px',
@@ -668,15 +665,16 @@ watch(() => props.filters, loadMarkers, { deep: true })
                }"
                @mousedown.stop="startMove">
 
-            <!-- Size label -->
-            <div class="absolute -bottom-6 left-1/2 -translate-x-1/2
-                        text-white text-[11px] whitespace-nowrap bg-black/60 px-1.5 py-0.5 rounded">
+            <!-- Size label bar -->
+            <div class="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-2
+                        bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg">
+              <i class="pi pi-expand text-[10px]" />
               {{ Math.round(printRect.w) }} × {{ Math.round(printRect.h) }} px
             </div>
 
             <!-- 8 resize handles -->
             <div v-for="h in (['nw','n','ne','e','se','s','sw','w'] as const)" :key="h"
-                 class="print-handle"
+                 class="print-handle !bg-primary !border-2 !border-white shadow-md !rounded-full !size-3"
                  :class="`handle-${h}`"
                  @mousedown.stop="startResize(h, $event)" />
           </div>

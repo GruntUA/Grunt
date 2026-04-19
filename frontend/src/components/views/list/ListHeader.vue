@@ -6,12 +6,9 @@ import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
 import { getExporters } from '@/core/io'
 import type { ExportContext } from '@/core/io'
 import {
-  Download,
   Plus,
   MoreHorizontal,
-  Pencil,
   RefreshCw,
-  FileBarChart,
 } from '@lucide/vue'
 
 const props = defineProps<{

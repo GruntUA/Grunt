@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronRight } from '@lucide/vue'
+import { ChevronRight, Layers } from '@lucide/vue'
 import GruntDataTable from '@/components/views/GruntDataTable.vue'
 
 const props = defineProps<{
@@ -9,7 +9,13 @@ const props = defineProps<{
   collapsedGroups: Set<string>
   sortKey: string
   sortOrder: 'asc' | 'desc'
-  selection: any
+  selection?: {
+    selectedIds: string[]
+    allSelected: boolean
+    isSelected: (id: string) => boolean
+    toggle: (id: string) => void
+    toggleAll: (ids: string[]) => void
+  }
   groupByField: any
 }>()
 
@@ -22,7 +28,7 @@ const emit = defineEmits<{
 }>()
 
 function groupLabel(key: string): string {
-  if (!key || key === 'null' || key === 'undefined') return '—'
+  if (!key || key === 'null' || key === 'undefined') return 'Без значення'
   if (props.groupByField?.fieldtype === 'Check') return key === '1' || key === 'true' ? 'Так' : 'Ні'
   return key
 }
@@ -33,80 +39,94 @@ function handleSelectGroup(items: any[]) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+  <div class="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
     <!-- Shared column header -->
-    <GruntDataTable
-      :columns="columns"
-      :rows="[]"
-      :fields="dt?.fields ?? []"
-      :is-loading="false"
-      :sort-key="sortKey"
-      :sort-order="sortOrder"
-      :selected-ids="[]"
-      :status-config="dt?.status_config"
-      :hide-body="true"
-      @sort="emit('sort', $event as any)"
-      @select-all="emit('selectAll')"
-    />
+    <div class="bg-card rounded-2xl shadow-sm border border-border/60 overflow-hidden">
+        <GruntDataTable
+          :columns="columns"
+          :rows="[]"
+          :fields="dt?.fields ?? []"
+          :is-loading="false"
+          :sort-key="sortKey"
+          :sort-order="sortOrder"
+          :selected-ids="[]"
+          :status-config="dt?.status_config"
+          :hide-body="true"
+          @sort="emit('sort', $event as any)"
+          @select-all="emit('selectAll')"
+        />
+    </div>
 
     <!-- Groups -->
-    <div v-for="group in groupedRows" :key="group.key"
-      class="rounded-xl border border-border/60 overflow-hidden shadow-sm bg-card hover:shadow-md transition-shadow">
-      <!-- Group header -->
-      <button type="button"
-        class="w-full flex items-center gap-3 px-5 py-3 bg-muted/30 hover:bg-muted/50 transition-colors text-left group"
-        @click="emit('toggleGroup', group.key)">
-        <div class="size-6 flex items-center justify-center rounded-md bg-background/80 shadow-sm transition-transform duration-300"
-          :class="!collapsedGroups.has(group.key) && 'rotate-90'">
-          <ChevronRight class="size-4 text-primary" />
-        </div>
-        <span class="text-sm font-bold text-foreground">{{ groupLabel(group.key) }}</span>
-        <div class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full bg-muted text-[10px] font-bold uppercase tracking-wider text-muted-foreground tabular-nums">
-          {{ group.items.length }} {{ group.items.length === 1 ? 'запис' : 'записів' }}
-        </div>
-      </button>
+    <div class="flex flex-col gap-4">
+        <div v-for="group in groupedRows" :key="group.key"
+          class="rounded-2xl border border-border/40 overflow-hidden shadow-sm bg-card hover:shadow-lg transition-all duration-300">
+          <!-- Group header -->
+          <div
+            class="w-full flex items-center gap-4 px-6 py-4 bg-muted/20 border-b border-border/5 group cursor-pointer select-none"
+            @click="emit('toggleGroup', group.key)">
+            
+            <div class="size-9 flex items-center justify-center rounded-xl bg-background shadow-md border border-border/40 transition-transform duration-500"
+              :class="!collapsedGroups.has(group.key) && 'rotate-90'">
+              <ChevronRight class="size-5 text-primary" />
+            </div>
 
-      <!-- Group rows -->
-      <Transition name="group">
-        <div v-if="!collapsedGroups.has(group.key)" class="border-t border-border/40">
-          <GruntDataTable
-            :columns="columns"
-            :rows="group.items"
-            :fields="dt?.fields ?? []"
-            :is-loading="false"
-            :sort-key="sortKey"
-            :sort-order="sortOrder"
-            :selected-ids="selection.selectedIds.value"
-            :all-selected="selection.allSelected.value"
-            :status-config="dt?.status_config"
-            :hide-header="true"
-            @select="selection.toggle"
-            @select-all="handleSelectGroup(group.items)"
-            @row-click="emit('rowClick', $event as any)"
-            @inline-update="(rowId: any, field: any, value: any) => emit('inlineUpdate', rowId, field, value)"
-          />
+            <div class="flex flex-col gap-0.5 min-w-0">
+                <div class="flex items-center gap-2">
+                    <Layers class="size-3.5 text-muted-foreground/40" />
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{{ groupByField?.label || 'Група' }}</span>
+                </div>
+                <h3 class="text-sm font-black text-foreground truncate">{{ groupLabel(group.key) }}</h3>
+            </div>
+
+            <div class="ml-auto flex items-center gap-4">
+                <div class="flex -space-x-2">
+                    <!-- Placeholder for avatars or summary chips if needed -->
+                </div>
+                <Badge severity="secondary" class="!text-[10px] !font-black !px-3 !py-1 !rounded-full opacity-80">
+                  {{ group.items.length }} 
+                </Badge>
+            </div>
+          </div>
+    
+          <!-- Group rows -->
+          <Transition name="group-expand">
+            <div v-if="!collapsedGroups.has(group.key)" class="bg-card">
+              <GruntDataTable
+                :columns="columns"
+                :rows="group.items"
+                :fields="dt?.fields ?? []"
+                :is-loading="false"
+                :sort-key="sortKey"
+                :sort-order="sortOrder"
+                :selected-ids="selection.selectedIds"
+                :all-selected="selection.allSelected"
+                :status-config="dt?.status_config"
+                :hide-header="true"
+                @select="selection.toggle"
+                @select-all="handleSelectGroup(group.items)"
+                @row-click="emit('rowClick', $event as any)"
+                @inline-update="(rowId: any, field: any, value: any) => emit('inlineUpdate', rowId, field, value)"
+              />
+            </div>
+          </Transition>
         </div>
-      </Transition>
     </div>
   </div>
 </template>
 
 <style scoped>
-.group-enter-active,
-.group-leave-active {
-  transition: opacity 300ms ease, max-height 300ms ease;
-  overflow: hidden;
-}
-
-.group-enter-from,
-.group-leave-to {
-  opacity: 0;
-  max-height: 0;
-}
-
-.group-enter-to,
-.group-leave-from {
-  opacity: 1;
+.group-expand-enter-active,
+.group-expand-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   max-height: 2000px;
+  opacity: 1;
+}
+
+.group-expand-enter-from,
+.group-expand-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-10px);
 }
 </style>

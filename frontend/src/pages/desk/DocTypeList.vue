@@ -72,7 +72,16 @@ watch(inlineSearch, (v) => {
   searchDebounce = setTimeout(() => { debouncedSearch.value = v; page.value = 1 }, 400)
 })
 
-const selection = useListSelection()
+const { 
+  selectedIds, 
+  allSelected, 
+  isSelected,
+  toggle: toggleSelection, 
+  toggleAll, 
+  selectAllDocuments, 
+  clear: clearSelection, 
+  count: selectionCount 
+} = useListSelection()
 const columns = useListColumns(props.doctype, () => dt.value?.fields ?? [], () => dt.value?.title_field)
 const listButtons = ref<ScriptButton[]>([])
 const listMenuItems = ref<ScriptMenuItem[]>([])
@@ -286,10 +295,10 @@ function buildRawFilters(filters: ActiveFilter[]): Record<string, string> {
 }
 
 async function bulkDelete() {
-  const ids = selection.allSelected.value ? [] : selection.selectedIds.value
-  if (!selection.allSelected.value && !ids.length) return
+  const ids = allSelected.value ? [] : selectedIds.value
+  if (!allSelected.value && !ids.length) return
 
-  const total = selection.allSelected.value ? (meta.value?.total ?? 0) : ids.length
+  const total = allSelected.value ? (meta.value?.total ?? 0) : ids.length
   deleteProgress.value = { active: true, total, done: 0, errors: 0 }
 
   function onProgress(data: Record<string, unknown>) {
@@ -303,7 +312,7 @@ async function bulkDelete() {
     _deleteProgressHandler = null
     _deleteDoneHandler = null
     deleteProgress.value.active = false
-    selection.clear()
+    clearSelection()
     queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
   }
 
@@ -313,7 +322,7 @@ async function bulkDelete() {
   onUserEvent('bulk_delete_done', onDone)
 
   try {
-    if (selection.allSelected.value) {
+    if (allSelected.value) {
       await docsApi.bulkDelete(props.doctype, [], {
         deleteAll: true,
         rawFilters: buildRawFilters(activeFilters.value),
@@ -332,9 +341,9 @@ async function bulkDelete() {
 }
 
 async function bulkUpdate(field: string, value: string) {
-  const ids = selection.allSelected.value ? (await docsApi.list(props.doctype, { page: 1, per_page: 10000, fields: 'id', search: debouncedSearch.value || undefined, filters: activeFilters.value })).data.map((r: any) => String(r.id)) : selection.selectedIds.value
+  const ids = allSelected.value ? (await docsApi.list(props.doctype, { page: 1, per_page: 10000, fields: 'id', search: debouncedSearch.value || undefined, filters: activeFilters.value })).data.map((r: any) => String(r.id)) : selectedIds.value
   if (ids.length) await docsApi.bulkUpdate(props.doctype, ids, field, value)
-  selection.clear(); queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
+  clearSelection(); queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
 }
 
 async function onInlineUpdate(rowId: string, field: string, value: string) {
@@ -363,12 +372,12 @@ useShortcut(['Enter', 'o'], () => {
 
 useShortcut(['x'], () => {
   if (rows.value[activeIndex.value]) {
-    selection.toggle(String(rows.value[activeIndex.value].id))
+    toggleSelection(String(rows.value[activeIndex.value].id))
   }
 }, { preventDefault: true })
 
 useShortcut(['Delete', 'Backspace'], () => {
-  if (selection.selectedIds.value.length > 0 || selection.allSelected.value) {
+  if (selectedIds.value.length > 0 || allSelected.value) {
     dialog.confirm('Видалити виділені документи?', 'Обережно').then(ok => {
       if (ok) bulkDelete()
     })
@@ -416,39 +425,39 @@ function navigateToDoc(row: Record<string, unknown>) {
           @unregister-menu-items="(items) => { for (const item of items) { const i = listMenuItems.indexOf(item); if (i !== -1) listMenuItems.splice(i, 1) } }" />
       </div>
       <div v-else-if="viewMode === 'gallery'">
-        <BulkActionBar :count="selection.allSelected.value ? (meta?.total ?? 0) : selection.selectedIds.value.length"
-          :total="meta?.total" :all-selected="selection.allSelected.value" :page-count="rows.length"
-          :editable-fields="dt?.fields" @delete="bulkDelete" @clear="selection.clear"
-          @select-all="selection.selectAllDocuments" @update="bulkUpdate" />
+        <BulkActionBar :count="selectionCount"
+          :total="meta?.total" :all-selected="allSelected" :page-count="rows?.length || 0"
+          :editable-fields="dt?.fields" @delete="bulkDelete" @clear="clearSelection"
+          @select-all="selectAllDocuments" @update="bulkUpdate" />
         <GalleryView :rows="rows" :columns="columns.visibleColumns.value" :fields="dt?.fields ?? []" :doctype="doctype"
           :image-field="dt?.image_field ?? undefined" :workspace="workspace" :is-loading="isLoading && !data"
-          :selection="selection" />
+          :selection="{ selectedIds, allSelected, isSelected, toggle: toggleSelection }" />
         <ListPagination v-if="meta" :page="meta.page" :pages="meta.pages" :total="meta.total" :per-page="20"
           @update:page="page = $event" />
       </div>
 
       <template v-else>
-        <BulkActionBar :count="selection.allSelected.value ? (meta?.total ?? 0) : selection.selectedIds.value.length"
-          :total="meta?.total" :all-selected="selection.allSelected.value" :page-count="rows.length"
-          :editable-fields="dt?.fields" @delete="bulkDelete" @clear="selection.clear"
-          @select-all="selection.selectAllDocuments" @update="bulkUpdate" />
+        <BulkActionBar :count="selectionCount"
+          :total="meta?.total" :all-selected="allSelected" :page-count="rows?.length || 0"
+          :editable-fields="dt?.fields" @delete="bulkDelete" @clear="clearSelection"
+          @select-all="selectAllDocuments" @update="bulkUpdate" />
 
         <!-- List Content -->
         <div class="mt-2">
           <ListGroupedView v-if="groupBy && groupedRows" :dt="dt" :grouped-rows="groupedRows"
             :columns="columns.visibleColumns.value" :collapsed-groups="collapsedGroups" :sort-key="sortKey"
-            :sort-order="sortOrder" :selection="selection" :group-by-field="groupByField"
+            :sort-order="sortOrder" :selection="{ selectedIds, allSelected, isSelected, toggle: toggleSelection }" :group-by-field="groupByField"
             @toggle-group="(k) => collapsedGroups.has(k) ? collapsedGroups.delete(k) : collapsedGroups.add(k)"
-            @sort="onSort" @select-all="selection.toggleAll(rows.map(r => String(r.id)))" @row-click="navigateToDoc"
+            @sort="onSort" @select-all="toggleAll(rows?.map(r => String(r.id)) || [])" @row-click="navigateToDoc"
             @inline-update="onInlineUpdate" />
 
           <template v-else>
             <div class="bg-card rounded-xl shadow-md ring-1 ring-border/60 overflow-hidden">
               <GruntDataTable :columns="columns.visibleColumns.value" :rows="rows" :fields="dt?.fields ?? []"
                 :is-loading="isLoading && !data" :sort-key="sortKey" :sort-order="sortOrder"
-                :selected-ids="selection.selectedIds.value" :all-selected="selection.allSelected.value"
-                :status-config="dt?.status_config" :active-index="activeIndex" @sort="onSort" @select="selection.toggle"
-                @select-all="selection.toggleAll(rows.map(r => String(r.id)))" @row-click="navigateToDoc"
+                :selected-ids="selectedIds" :all-selected="allSelected"
+                :status-config="dt?.status_config" :active-index="activeIndex" @sort="onSort" @select="toggleSelection"
+                @select-all="toggleAll(rows.map(r => String(r.id)))" @row-click="navigateToDoc"
                 @inline-update="onInlineUpdate" />
             </div>
             <ListPagination v-if="meta" :page="meta.page" :pages="meta.pages" :total="meta.total" :per-page="20"
