@@ -1,39 +1,67 @@
 <script setup lang="ts">
-import type { DropdownMenuContentEmits, DropdownMenuContentProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import {
-  DropdownMenuContent,
-  DropdownMenuPortal,
-  useForwardPropsEmits,
-} from "reka-ui"
-import { cn } from "@/lib/utils"
+import { inject, ref, computed } from 'vue'
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue'
+import { onClickOutside } from '@vueuse/core'
+import { cn } from '@/lib/utils'
 
-defineOptions({
-  inheritAttrs: false,
+const props = withDefaults(defineProps<{
+  class?: string
+  align?: 'start' | 'center' | 'end'
+  side?: 'top' | 'bottom' | 'left' | 'right'
+  sideOffset?: number
+}>(), {
+  align: 'start',
+  side: 'bottom',
+  sideOffset: 4,
 })
 
-const props = withDefaults(
-  defineProps<DropdownMenuContentProps & { class?: HTMLAttributes["class"] }>(),
+const ctx = inject<any>('$dropdown')
+const contentRef = ref<HTMLElement>()
+
+const placement = computed(() => {
+  const side = props.side
+  const align = props.align
+  if (align === 'center') return side
+  return `${side}-${align}` as any
+})
+
+const reference = computed(() => ctx?.triggerEl.value ?? null)
+
+const { floatingStyles } = useFloating(
+  reference,
+  contentRef,
   {
-    sideOffset: 4,
+    placement,
+    middleware: [offset(props.sideOffset), flip(), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
   },
 )
-const emits = defineEmits<DropdownMenuContentEmits>()
 
-const delegatedProps = reactiveOmit(props, "class")
+onClickOutside(contentRef, (e) => {
+  const trigger = ctx?.triggerEl.value
+  if (trigger && trigger.contains(e.target as Node)) return
+  ctx?.close()
+}, { capture: true })
 
-const forwarded = useForwardPropsEmits(delegatedProps, emits)
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') ctx?.close()
+}
 </script>
 
 <template>
-  <DropdownMenuPortal>
-    <DropdownMenuContent
+  <Teleport to="body">
+    <div
+      v-if="ctx?.isOpen.value"
+      ref="contentRef"
       data-slot="dropdown-menu-content"
-      v-bind="{ ...$attrs, ...forwarded }"
-      :class="cn('bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 max-h-(--reka-dropdown-menu-content-available-height) min-w-[8rem] origin-(--reka-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-md', props.class)"
+      :style="floatingStyles"
+      :class="cn(
+        'bg-popover text-popover-foreground z-50 min-w-[8rem] overflow-hidden rounded-md border p-1 shadow-md',
+        props.class,
+      )"
+      @keydown="onKeydown"
     >
       <slot />
-    </DropdownMenuContent>
-  </DropdownMenuPortal>
+    </div>
+  </Teleport>
 </template>

@@ -11,13 +11,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import Select from 'primevue/select'
+
+const PERMISSION_OPTIONS = [
+  { value: 'Read', label: 'Читання' },
+  { value: 'Write', label: 'Редагування' },
+]
 import {
   Tooltip,
   TooltipContent,
@@ -91,7 +90,7 @@ onMounted(loadShared)
     <div v-if="sharedWith.length > 0" class="flex flex-col gap-1.5">
       <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">{{ t('Access') }}</span>
       <div class="flex flex-wrap gap-1.5">
-        <Badge v-for="s in sharedWith" :key="s.id" variant="outline" class="text-xs gap-1 pr-1">
+        <Badge v-for="s in sharedWith" :key="s.id" severity="contrast" class="text-xs gap-1 pr-1">
           {{ s.user }} · {{ s.permission }}
           <button type="button" class="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors p-0.5"
             @click="removeShare(s)">
@@ -120,15 +119,13 @@ onMounted(loadShared)
           </div>
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium text-foreground">Рівень доступу</label>
-            <Select :model-value="sharePermission" @update:model-value="sharePermission = $event as 'Read' | 'Write'">
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Read">Читання</SelectItem>
-                <SelectItem value="Write">Редагування</SelectItem>
-              </SelectContent>
-            </Select>
+            <Select
+              v-model="sharePermission"
+              :options="PERMISSION_OPTIONS"
+              option-label="label"
+              option-value="value"
+              class="w-full"
+            />
           </div>
         </div>
         <DialogFooter>

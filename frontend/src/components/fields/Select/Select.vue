@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import Select from 'primevue/select'
 import type { DocField } from '@/types'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const props = defineProps<{
   field: DocField
@@ -20,12 +20,12 @@ const parsedOptions = computed(() =>
 </script>
 
 <template>
-  <Select :model-value="String(modelValue ?? '')" @update:model-value="emit('update:modelValue', $event)">
-    <SelectTrigger :disabled="disabled || field.read_only">
-      <SelectValue placeholder="— оберіть —" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem v-for="opt in parsedOptions" :key="opt" :value="opt">{{ opt }}</SelectItem>
-    </SelectContent>
-  </Select>
+  <Select
+    :model-value="String(modelValue ?? '')"
+    :options="parsedOptions"
+    :disabled="disabled || field.read_only"
+    placeholder="— оберіть —"
+    class="w-full"
+    @update:model-value="emit('update:modelValue', $event)"
+  />
 </template>

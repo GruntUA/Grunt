@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import Select from 'primevue/select'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -229,7 +229,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
         <div class="space-y-2">
           <Label class="text-xs text-muted-foreground">Видимі колонки</Label>
           <div class="flex flex-wrap gap-1.5">
-            <Badge v-for="fname in listViewFields" :key="fname" variant="secondary" class="gap-1 text-xs">
+            <Badge v-for="fname in listViewFields" :key="fname" severity="secondary" class="gap-1 text-xs">
               {{ dataFields.find(f => f.fieldname === fname)?.label ?? fname }}
               <button type="button" class="ml-0.5 hover:text-destructive" @click="removeListField(fname)">
                 <X class="size-3" />
@@ -237,41 +237,40 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
             </Badge>
             <span v-if="listViewFields.length === 0" class="text-xs text-muted-foreground italic">Не обрано — покаже name</span>
           </div>
-          <Select v-if="availableListFields.length > 0" @update:model-value="addListField">
-            <SelectTrigger class="w-48 h-8 text-xs">
-              <SelectValue placeholder="Додати колонку..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="f in availableListFields" :key="f.fieldname" :value="f.fieldname">
-                {{ f.label }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <Select
+            v-if="availableListFields.length > 0"
+            :options="availableListFields.map(f => ({ value: f.fieldname, label: f.label }))"
+            option-label="label"
+            option-value="value"
+            placeholder="Додати колонку..."
+            class="w-48 h-8 text-xs"
+            @update:model-value="addListField"
+          />
         </div>
 
         <!-- Sort -->
         <div class="grid grid-cols-2 gap-3">
           <div class="space-y-1.5">
             <Label class="text-xs text-muted-foreground">Сортування за</Label>
-            <Select :model-value="listView.sort_by" @update:model-value="updateListView({ sort_by: $event })">
-              <SelectTrigger class="h-8 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">name</SelectItem>
-                <SelectItem value="created_at">created_at</SelectItem>
-                <SelectItem value="modified_at">modified_at</SelectItem>
-                <SelectItem v-for="f in dataFields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
-              </SelectContent>
-            </Select>
+            <Select
+              :model-value="listView.sort_by"
+              :options="[{ value: 'name', label: 'name' }, { value: 'created_at', label: 'created_at' }, { value: 'modified_at', label: 'modified_at' }, ...dataFields.map(f => ({ value: f.fieldname, label: f.label }))]"
+              option-label="label"
+              option-value="value"
+              class="h-8 text-xs"
+              @update:model-value="updateListView({ sort_by: $event })"
+            />
           </div>
           <div class="space-y-1.5">
             <Label class="text-xs text-muted-foreground">Порядок</Label>
-            <Select :model-value="listView.sort_order" @update:model-value="updateListView({ sort_order: $event })">
-              <SelectTrigger class="h-8 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="asc">За зростанням</SelectItem>
-                <SelectItem value="desc">За спаданням</SelectItem>
-              </SelectContent>
-            </Select>
+            <Select
+              :model-value="listView.sort_order"
+              :options="[{ value: 'asc', label: 'За зростанням' }, { value: 'desc', label: 'За спаданням' }]"
+              option-label="label"
+              option-value="value"
+              class="h-8 text-xs"
+              @update:model-value="updateListView({ sort_order: $event })"
+            />
           </div>
         </div>
       </div>
@@ -287,14 +286,14 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
         <div class="grid grid-cols-2 gap-3">
           <div class="space-y-1.5">
             <Label class="text-xs text-muted-foreground">Розкладка</Label>
-            <Select :model-value="formView.layout" @update:model-value="updateFormView({ layout: $event })">
-              <SelectTrigger class="h-8 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="standard">Стандартна</SelectItem>
-                <SelectItem value="compact">Компактна</SelectItem>
-                <SelectItem value="wide">Широка</SelectItem>
-              </SelectContent>
-            </Select>
+            <Select
+              :model-value="formView.layout"
+              :options="[{ value: 'standard', label: 'Стандартна' }, { value: 'compact', label: 'Компактна' }, { value: 'wide', label: 'Широка' }]"
+              option-label="label"
+              option-value="value"
+              class="h-8 text-xs"
+              @update:model-value="updateFormView({ layout: $event })"
+            />
           </div>
           <div class="space-y-1.5">
             <Label class="text-xs text-muted-foreground">Формат друку</Label>
@@ -317,15 +316,15 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
         <!-- Status field selector -->
         <div class="space-y-1.5">
           <Label class="text-xs text-muted-foreground">Поле статусу *</Label>
-          <Select :model-value="statusField" @update:model-value="updateStatusField">
-            <SelectTrigger class="h-8 text-xs"><SelectValue placeholder="Оберіть поле" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="f in statusCandidateFields" :key="f.fieldname" :value="f.fieldname">
-                {{ f.label }}
-                <span class="text-muted-foreground ml-1">({{ f.fieldtype }})</span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <Select
+            :model-value="statusField"
+            :options="statusCandidateFields.map(f => ({ value: f.fieldname, label: `${f.label} (${f.fieldtype})` }))"
+            option-label="label"
+            option-value="value"
+            placeholder="Оберіть поле"
+            class="h-8 text-xs"
+            @update:model-value="updateStatusField"
+          />
         </div>
 
         <!-- Indicators list -->
@@ -368,29 +367,12 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
             />
 
             <!-- Color -->
-            <Select :model-value="ind.color" @update:model-value="updateIndicator(idx, { color: String($event) })">
-              <SelectTrigger class="h-7 text-xs w-28 shrink-0"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="c in statusColors" :key="c" :value="c">
-                  <span class="flex items-center gap-1.5">
-                    <span
-                      class="size-2.5 rounded-full inline-block"
-                      :class="{
-                        'bg-gray-400': c === 'gray',
-                        'bg-blue-500': c === 'blue',
-                        'bg-green-500': c === 'green',
-                        'bg-yellow-500': c === 'yellow',
-                        'bg-orange-500': c === 'orange',
-                        'bg-red-500': c === 'red',
-                        'bg-purple-500': c === 'purple',
-                        'bg-pink-500': c === 'pink',
-                      }"
-                    />
-                    {{ c }}
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <Select
+              :model-value="ind.color"
+              :options="[...statusColors]"
+              class="h-7 text-xs w-28 shrink-0"
+              @update:model-value="updateIndicator(idx, { color: String($event) })"
+            />
 
             <!-- Icon (optional) -->
             <Input
@@ -436,33 +418,38 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
         <div class="grid grid-cols-2 gap-3">
           <div class="space-y-1.5">
             <Label class="text-xs text-muted-foreground">Поле колонок *</Label>
-            <Select :model-value="builder.doctype.kanban_view.column_field" @update:model-value="updateKanban({ column_field: $event })">
-              <SelectTrigger class="h-8 text-xs"><SelectValue placeholder="Оберіть Select поле" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="f in selectFields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
-              </SelectContent>
-            </Select>
+            <Select
+              :model-value="builder.doctype.kanban_view.column_field"
+              :options="selectFields.map(f => ({ value: f.fieldname, label: f.label }))"
+              option-label="label"
+              option-value="value"
+              placeholder="Оберіть Select поле"
+              class="h-8 text-xs"
+              @update:model-value="updateKanban({ column_field: $event })"
+            />
           </div>
           <div class="space-y-1.5">
             <Label class="text-xs text-muted-foreground">Поле заголовка</Label>
-            <Select :model-value="builder.doctype.kanban_view.title_field" @update:model-value="updateKanban({ title_field: $event })">
-              <SelectTrigger class="h-8 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">name</SelectItem>
-                <SelectItem v-for="f in dataFields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
-              </SelectContent>
-            </Select>
+            <Select
+              :model-value="builder.doctype.kanban_view.title_field"
+              :options="[{ value: 'name', label: 'name' }, ...dataFields.map(f => ({ value: f.fieldname, label: f.label }))]"
+              option-label="label"
+              option-value="value"
+              class="h-8 text-xs"
+              @update:model-value="updateKanban({ title_field: $event })"
+            />
           </div>
         </div>
         <div class="space-y-1.5">
           <Label class="text-xs text-muted-foreground">Поле кольору (опціонально)</Label>
-          <Select :model-value="builder.doctype.kanban_view.color_field ?? '__none__'" @update:model-value="updateKanban({ color_field: $event === '__none__' ? null : $event })">
-            <SelectTrigger class="h-8 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none__">— немає —</SelectItem>
-              <SelectItem v-for="f in dataFields.filter(ff => ff.fieldtype === 'Color' || ff.fieldtype === 'Select')" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
-            </SelectContent>
-          </Select>
+          <Select
+            :model-value="builder.doctype.kanban_view.color_field ?? '__none__'"
+            :options="[{ value: '__none__', label: '— немає —' }, ...dataFields.filter(ff => ff.fieldtype === 'Color' || ff.fieldtype === 'Select').map(f => ({ value: f.fieldname, label: f.label }))]"
+            option-label="label"
+            option-value="value"
+            class="h-8 text-xs"
+            @update:model-value="updateKanban({ color_field: $event === '__none__' ? null : $event })"
+          />
         </div>
       </div>
     </div>
@@ -480,23 +467,27 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
         <div class="grid grid-cols-2 gap-3">
           <div class="space-y-1.5">
             <Label class="text-xs text-muted-foreground">Батьківське поле *</Label>
-            <Select :model-value="builder.doctype.tree_view.parent_field" @update:model-value="updateTree({ parent_field: $event })">
-              <SelectTrigger class="h-8 text-xs"><SelectValue placeholder="Оберіть Link поле" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="f in linkFields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
-              </SelectContent>
-            </Select>
+            <Select
+              :model-value="builder.doctype.tree_view.parent_field"
+              :options="linkFields.map(f => ({ value: f.fieldname, label: f.label }))"
+              option-label="label"
+              option-value="value"
+              placeholder="Оберіть Link поле"
+              class="h-8 text-xs"
+              @update:model-value="updateTree({ parent_field: $event })"
+            />
             <p class="text-[11px] text-muted-foreground">Link поле що вказує на цей самий DocType (ієрархія вузлів)</p>
           </div>
           <div class="space-y-1.5">
             <Label class="text-xs text-muted-foreground">Поле назви вузла</Label>
-            <Select :model-value="builder.doctype.tree_view.title_field" @update:model-value="updateTree({ title_field: $event })">
-              <SelectTrigger class="h-8 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">name</SelectItem>
-                <SelectItem v-for="f in dataFields.filter(ff => ['Data', 'Text', 'LongText'].includes(ff.fieldtype))" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
-              </SelectContent>
-            </Select>
+            <Select
+              :model-value="builder.doctype.tree_view.title_field"
+              :options="[{ value: 'name', label: 'name' }, ...dataFields.filter(ff => ['Data', 'Text', 'LongText'].includes(ff.fieldtype)).map(f => ({ value: f.fieldname, label: f.label }))]"
+              option-label="label"
+              option-value="value"
+              class="h-8 text-xs"
+              @update:model-value="updateTree({ title_field: $event })"
+            />
           </div>
         </div>
       </div>
@@ -515,34 +506,39 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
         <div class="grid grid-cols-2 gap-3">
           <div class="space-y-1.5">
             <Label class="text-xs text-muted-foreground">Поле дати (Початок) *</Label>
-            <Select :model-value="builder.doctype.calendar_view.field" @update:model-value="updateCalendar({ field: $event })">
-              <SelectTrigger class="h-8 text-xs"><SelectValue placeholder="Оберіть поле дати" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="f in allDateFields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
-              </SelectContent>
-            </Select>
+            <Select
+              :model-value="builder.doctype.calendar_view.field"
+              :options="allDateFields.map(f => ({ value: f.fieldname, label: f.label }))"
+              option-label="label"
+              option-value="value"
+              placeholder="Оберіть поле дати"
+              class="h-8 text-xs"
+              @update:model-value="updateCalendar({ field: $event })"
+            />
           </div>
           <div class="space-y-1.5">
             <Label class="text-xs text-muted-foreground">Поле дати (Завершення)</Label>
-            <Select :model-value="builder.doctype.calendar_view.end_field ?? '__none__'" @update:model-value="updateCalendar({ end_field: $event === '__none__' ? undefined : $event })">
-              <SelectTrigger class="h-8 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">— немає (один день) —</SelectItem>
-                <SelectItem v-for="f in allDateFields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
-              </SelectContent>
-            </Select>
+            <Select
+              :model-value="builder.doctype.calendar_view.end_field ?? '__none__'"
+              :options="[{ value: '__none__', label: '— немає (один день) —' }, ...allDateFields.map(f => ({ value: f.fieldname, label: f.label }))]"
+              option-label="label"
+              option-value="value"
+              class="h-8 text-xs"
+              @update:model-value="updateCalendar({ end_field: $event === '__none__' ? undefined : $event })"
+            />
           </div>
         </div>
 
         <div class="space-y-1.5">
           <Label class="text-xs text-muted-foreground">Поле заголовка</Label>
-          <Select :model-value="builder.doctype.calendar_view.title_field" @update:model-value="updateCalendar({ title_field: $event })">
-            <SelectTrigger class="h-8 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">name</SelectItem>
-              <SelectItem v-for="f in dataFields" :key="f.fieldname" :value="f.fieldname">{{ f.label }}</SelectItem>
-            </SelectContent>
-          </Select>
+          <Select
+            :model-value="builder.doctype.calendar_view.title_field"
+            :options="[{ value: 'name', label: 'name' }, ...dataFields.map(f => ({ value: f.fieldname, label: f.label }))]"
+            option-label="label"
+            option-value="value"
+            class="h-8 text-xs"
+            @update:model-value="updateCalendar({ title_field: $event })"
+          />
         </div>
 
         <!-- Sources -->

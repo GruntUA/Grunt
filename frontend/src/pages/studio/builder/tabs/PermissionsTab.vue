@@ -12,13 +12,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import Select from 'primevue/select'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -209,16 +203,12 @@ function addRole() {
     </div>
 
     <div class="flex items-center gap-2 mt-4">
-      <Select v-model="newRole">
-        <SelectTrigger class="w-60">
-          <SelectValue placeholder="Оберіть роль" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem v-for="role in unusedRoles" :key="role" :value="role">
-            {{ role }}
-          </SelectItem>
-        </SelectContent>
-      </Select>
+      <Select
+        v-model="newRole"
+        :options="unusedRoles"
+        placeholder="Оберіть роль"
+        class="w-60"
+      />
       <Button :disabled="!newRole" @click="addRole">Додати</Button>
     </div>
   </div>

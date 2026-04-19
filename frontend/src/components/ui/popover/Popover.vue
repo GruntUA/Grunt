@@ -1,19 +1,27 @@
 <script setup lang="ts">
-import type { PopoverRootEmits, PopoverRootProps } from "reka-ui"
-import { PopoverRoot, useForwardPropsEmits } from "reka-ui"
+import { ref, computed, provide } from 'vue'
 
-const props = defineProps<PopoverRootProps>()
-const emits = defineEmits<PopoverRootEmits>()
+const props = defineProps<{
+  open?: boolean
+  defaultOpen?: boolean
+}>()
+const emit = defineEmits<{ 'update:open': [v: boolean] }>()
 
-const forwarded = useForwardPropsEmits(props, emits)
+const internalOpen = ref(props.defaultOpen ?? false)
+const isOpen = computed({
+  get: () => props.open !== undefined ? props.open : internalOpen.value,
+  set: (v: boolean) => { internalOpen.value = v; emit('update:open', v) },
+})
+
+const triggerEl = ref<HTMLElement | null>(null)
+
+provide('$popover', {
+  isOpen,
+  triggerEl,
+  toggle: () => { isOpen.value = !isOpen.value },
+  close: () => { isOpen.value = false },
+  setTrigger: (el: HTMLElement) => { triggerEl.value = el },
+})
 </script>
 
-<template>
-  <PopoverRoot
-    v-slot="slotProps"
-    data-slot="popover"
-    v-bind="forwarded"
-  >
-    <slot v-bind="slotProps" />
-  </PopoverRoot>
-</template>
+<template><slot /></template>

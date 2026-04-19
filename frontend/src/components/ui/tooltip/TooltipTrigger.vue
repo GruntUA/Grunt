@@ -1,15 +1,38 @@
 <script setup lang="ts">
-import type { TooltipTriggerProps } from "reka-ui"
-import { TooltipTrigger } from "reka-ui"
+import { inject, ref, type Ref } from 'vue'
 
-const props = defineProps<TooltipTriggerProps>()
+defineProps<{ asChild?: boolean }>()
+
+interface TooltipCtx {
+  referenceEl: Ref<Element | null>
+  isOpen: Ref<boolean>
+}
+
+const ctx = inject<TooltipCtx>('$tooltip')
+const el = ref<HTMLElement | null>(null)
+
+function show() {
+  if (ctx) {
+    ctx.referenceEl.value = el.value
+    ctx.isOpen.value = true
+  }
+}
+
+function hide() {
+  if (ctx) ctx.isOpen.value = false
+}
 </script>
 
 <template>
-  <TooltipTrigger
+  <span
+    ref="el"
     data-slot="tooltip-trigger"
-    v-bind="props"
+    class="inline-flex"
+    @mouseenter="show"
+    @mouseleave="hide"
+    @focusin="show"
+    @focusout="hide"
   >
     <slot />
-  </TooltipTrigger>
+  </span>
 </template>

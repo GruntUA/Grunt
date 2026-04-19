@@ -1,82 +1,85 @@
 <script setup lang="ts">
-import type { Component } from 'vue'
-import { ChevronRightIcon, DotsHorizontalIcon, PlusIcon } from '@radix-icons/vue'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { ref } from 'vue'
+import { ChevronRight, MoreHorizontal } from '@lucide/vue'
+import AppIcon from '@/components/AppIcon.vue'
 import {
   SidebarGroup,
-  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuAction,
-  SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
+  SidebarMenuButton,
 } from '@/components/ui/sidebar'
-import AppIcon from '@/components/AppIcon.vue'
 
 interface WorkspacePage {
   name: string
-  icon: string | Component
+  icon: string
   url?: string
 }
 
 interface WorkspaceGroup {
   name: string
-  icon: string | Component
+  icon: string
   pages: WorkspacePage[]
 }
 
 defineProps<{ workspaces: WorkspaceGroup[] }>()
+
+const expanded = ref<Record<string, boolean>>({})
+
+function toggle(key: string) {
+  expanded.value[key] = !expanded.value[key]
+}
 </script>
 
 <template>
   <SidebarGroup>
     <SidebarGroupLabel>Простори</SidebarGroupLabel>
-    <SidebarGroupContent>
-      <SidebarMenu>
-        <Collapsible v-for="ws in workspaces" :key="ws.name">
-          <SidebarMenuItem>
-            <SidebarMenuButton as-child>
-              <RouterLink :to="ws.pages[0]?.url ?? '#'">
-                <AppIcon :icon="ws.icon" class="size-4 shrink-0" />
-                <span>{{ ws.name }}</span>
-              </RouterLink>
-            </SidebarMenuButton>
-            <CollapsibleTrigger as-child>
-              <SidebarMenuAction
-                class="left-2 bg-sidebar-accent text-sidebar-accent-foreground data-[state=open]:rotate-90"
-                show-on-hover
-              >
-                <ChevronRightIcon />
-              </SidebarMenuAction>
-            </CollapsibleTrigger>
-            <SidebarMenuAction show-on-hover>
-              <PlusIcon />
-            </SidebarMenuAction>
-            <CollapsibleContent>
-              <SidebarMenuSub>
-                <SidebarMenuSubItem v-for="page in ws.pages" :key="page.name">
-                  <RouterLink :to="page.url ?? '#'" custom v-slot="{ isActive, href, navigate }">
-                    <SidebarMenuSubButton as="a" :href="href" :is-active="isActive" @click="navigate">
-                      <AppIcon :icon="page.icon" class="size-4 shrink-0" />
-                      <span>{{ page.name }}</span>
-                    </SidebarMenuSubButton>
-                  </RouterLink>
-                </SidebarMenuSubItem>
-              </SidebarMenuSub>
-            </CollapsibleContent>
-          </SidebarMenuItem>
-        </Collapsible>
 
-        <SidebarMenuItem>
-          <SidebarMenuButton class="text-sidebar-foreground/70">
-            <DotsHorizontalIcon />
-            <span>Більше</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    </SidebarGroupContent>
+    <div v-for="ws in workspaces" :key="ws.name" class="flex flex-col">
+      <!-- Workspace header -->
+      <button
+        type="button"
+        class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        @click="toggle(ws.name)"
+      >
+        <AppIcon :icon="ws.icon" class="size-4 shrink-0" />
+        <span class="flex-1 text-left truncate">{{ ws.name }}</span>
+        <ChevronRight
+          v-if="ws.pages.length"
+          class="size-3.5 text-muted-foreground transition-transform duration-200"
+          :style="{ transform: expanded[ws.name] ? 'rotate(90deg)' : 'none' }"
+        />
+      </button>
+
+      <!-- Sub-pages -->
+      <div v-show="expanded[ws.name]" class="flex flex-col">
+        <router-link
+          v-for="page in ws.pages"
+          :key="page.url ?? page.name"
+          v-slot="rp"
+          :to="page.url ?? '/'"
+          custom
+        >
+          <a
+            :href="rp.href"
+            class="flex h-7 items-center gap-2 rounded-md pl-6 pr-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            :class="rp.isActive ? 'bg-sidebar-accent font-medium' : ''"
+            @click="rp.navigate"
+          >
+            <AppIcon :icon="page.icon" class="size-3.5 shrink-0" />
+            <span class="truncate">{{ page.name }}</span>
+          </a>
+        </router-link>
+      </div>
+    </div>
+
+    <SidebarMenu class="mt-0.5">
+      <SidebarMenuItem>
+        <SidebarMenuButton class="text-sidebar-foreground/70">
+          <MoreHorizontal class="size-4" />
+          <span>Більше</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </SidebarMenu>
   </SidebarGroup>
 </template>

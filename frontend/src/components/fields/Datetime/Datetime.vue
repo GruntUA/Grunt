@@ -1,16 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { DocField } from '@/types'
-import { DateFormatter, getLocalTimeZone, parseDate, today } from '@internationalized/date'
-import type { DateValue } from '@internationalized/date'
 import { CalendarIcon, X } from '@lucide/vue'
 import { cn } from '@/lib/utils'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+import DatePicker from 'primevue/datepicker'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 const props = defineProps<{
   field: DocField
@@ -21,51 +15,47 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
-const df = new DateFormatter('uk-UA', { dateStyle: 'long' })
+const open = ref(false)
+const isDisabled = computed(() => !!(props.disabled || props.field.read_only))
 
-// Parse stored value (ISO "YYYY-MM-DD HH:mm:ss" or "YYYY-MM-DDTHH:mm")
-const parsed = computed(() => {
+const dateObj = computed<Date | null>(() => {
   const v = props.modelValue as string | null | undefined
-  if (!v) return { date: undefined, time: '00:00' }
-  const norm = v.replace(' ', 'T')
-  const [datePart, timePart] = norm.split('T')
-  let date: DateValue | undefined
-  try { date = parseDate(datePart) } catch { /* noop */ }
-  const time = timePart?.slice(0, 5) ?? '00:00'
-  return { date, time }
+  if (!v) return null
+  try {
+    const d = new Date(v.replace(' ', 'T'))
+    return isNaN(d.getTime()) ? null : d
+  } catch { return null }
 })
 
-const dateValue = computed(() => parsed.value.date)
-const timeValue = computed(() => parsed.value.time)
+const displayLabel = computed(() => {
+  const d = dateObj.value
+  if (!d) return null
+  const day = String(d.getDate()).padStart(2, '0')
+  const mon = String(d.getMonth() + 1).padStart(2, '0')
+  const h = String(d.getHours()).padStart(2, '0')
+  const mi = String(d.getMinutes()).padStart(2, '0')
+  return `${day}.${mon}.${d.getFullYear()} ${h}:${mi}`
+})
 
-// When calendar picks a date, keep the existing time
-const open = ref(false)
-
-function onDateSelect(val: DateValue | undefined) {
-  if (!val) return
-  emit('update:modelValue', `${val.toString()} ${timeValue.value}:00`)
-  open.value = false
+function toISO(d: Date): string {
+  const y = d.getFullYear()
+  const mo = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const h = String(d.getHours()).padStart(2, '0')
+  const mi = String(d.getMinutes()).padStart(2, '0')
+  return `${y}-${mo}-${day} ${h}:${mi}:00`
 }
 
-// When time input changes, keep current date
-function onTimeChange(e: Event) {
-  const t = (e.target as HTMLInputElement).value
-  if (!dateValue.value) return
-  emit('update:modelValue', `${dateValue.value.toString()} ${t}:00`)
+function onSelect(val: unknown) {
+  const d = val as Date | null
+  if (!d) return
+  emit('update:modelValue', toISO(d))
 }
 
 function clearValue(e: Event) {
   e.stopPropagation()
   emit('update:modelValue', null)
 }
-
-const displayLabel = computed(() => {
-  if (!dateValue.value) return null
-  const datePart = df.format(dateValue.value.toDate(getLocalTimeZone()))
-  return `${datePart} ${timeValue.value}`
-})
-
-const defaultPlaceholder = today(getLocalTimeZone())
 </script>
 
 <template>
@@ -73,13 +63,13 @@ const defaultPlaceholder = today(getLocalTimeZone())
     <PopoverTrigger as-child>
       <button
         type="button"
-        :disabled="disabled || field.read_only"
+        :disabled="isDisabled"
         :class="cn(
           'flex h-9 w-full items-center justify-start gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors',
           'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
           'disabled:cursor-not-allowed disabled:opacity-50',
           error ? 'border-destructive focus-visible:ring-destructive' : 'hover:border-ring/40',
-          !dateValue && 'text-muted-foreground',
+          !dateObj && 'text-muted-foreground',
         )"
       >
         <CalendarIcon class="size-4 text-muted-foreground shrink-0" />
@@ -87,7 +77,7 @@ const defaultPlaceholder = today(getLocalTimeZone())
           {{ displayLabel ?? (field.placeholder || 'Оберіть дату та час...') }}
         </span>
         <button
-          v-if="dateValue && !disabled && !field.read_only"
+          v-if="dateObj && !isDisabled"
           type="button"
           class="ml-auto shrink-0 text-muted-foreground hover:text-foreground transition-colors"
           @click="clearValue"
@@ -98,23 +88,14 @@ const defaultPlaceholder = today(getLocalTimeZone())
     </PopoverTrigger>
 
     <PopoverContent class="w-auto p-0" align="start">
-      <Calendar
-        :model-value="dateValue"
-        :default-placeholder="defaultPlaceholder"
-        :disabled="disabled || field.read_only"
-        @update:model-value="onDateSelect($event)"
+      <DatePicker
+        :model-value="dateObj"
+        inline
+        show-time
+        hour-format="24"
+        :disabled="isDisabled"
+        @update:model-value="onSelect"
       />
-      <!-- Time input at the bottom of the calendar popover -->
-      <div class="border-t border-border px-3 py-2 flex items-center gap-2">
-        <span class="text-xs text-muted-foreground font-medium min-w-[40px]">Час:</span>
-        <input
-          type="time"
-          :value="timeValue"
-          :disabled="disabled || field.read_only || !dateValue"
-          class="flex-1 h-8 rounded-md border border-input bg-transparent px-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
-          @change="onTimeChange"
-        />
-      </div>
     </PopoverContent>
   </Popover>
 </template>

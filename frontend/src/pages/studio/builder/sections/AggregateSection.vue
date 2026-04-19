@@ -1,17 +1,29 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import Select from 'primevue/select'
 import { useBuilderStore } from '@/stores/builder'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const { field, updateField } = usePropertyEditor()
 const builder = useBuilderStore()
 
+const AGGREGATE_FUNCTIONS = [
+  { value: '__none__', label: '— без агрегації —' },
+  { value: 'sum', label: 'sum — сума' },
+  { value: 'count', label: 'count — кількість рядків' },
+  { value: 'avg', label: 'avg — середнє' },
+  { value: 'min', label: 'min — мінімум' },
+  { value: 'max', label: 'max — максимум' },
+]
+
 const tableFields = computed(() =>
-  (builder.doctype?.fields ?? []).filter((f) => f.fieldtype === 'Table')
+  (builder.doctype?.fields ?? []).filter((f) => f.fieldtype === 'Table').map(f => ({
+    value: f.fieldname,
+    label: `${f.label || f.fieldname} (${f.fieldname})`,
+  }))
 )
 </script>
 
@@ -29,36 +41,26 @@ const tableFields = computed(() =>
       <Label class="text-sm">Функція</Label>
       <Select
         :model-value="field.aggregate_function ?? '__none__'"
+        :options="AGGREGATE_FUNCTIONS"
+        option-label="label"
+        option-value="value"
+        class="w-full"
         @update:model-value="updateField('aggregate_function', $event === '__none__' ? null : $event)"
-      >
-        <SelectTrigger><SelectValue placeholder="— без агрегації —" /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="__none__">— без агрегації —</SelectItem>
-          <SelectItem value="sum">sum — сума</SelectItem>
-          <SelectItem value="count">count — кількість рядків</SelectItem>
-          <SelectItem value="avg">avg — середнє</SelectItem>
-          <SelectItem value="min">min — мінімум</SelectItem>
-          <SelectItem value="max">max — максимум</SelectItem>
-        </SelectContent>
-      </Select>
+      />
     </div>
     <template v-if="field.aggregate_function">
       <div class="space-y-1.5">
         <Label class="text-sm">Таблиця (TABLE поле)</Label>
         <Select
           :model-value="field.aggregate_table ?? ''"
+          :options="tableFields"
+          option-label="label"
+          option-value="value"
+          placeholder="— оберіть TABLE поле —"
+          empty-message="Немає TABLE полів у цьому DocType"
+          class="w-full"
           @update:model-value="updateField('aggregate_table', $event || null)"
-        >
-          <SelectTrigger><SelectValue placeholder="— оберіть TABLE поле —" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="tf in tableFields" :key="tf.fieldname" :value="tf.fieldname">
-              {{ tf.label || tf.fieldname }} ({{ tf.fieldname }})
-            </SelectItem>
-            <div v-if="!tableFields.length" class="px-2 py-1.5 text-xs text-muted-foreground">
-              Немає TABLE полів у цьому DocType
-            </div>
-          </SelectContent>
-        </Select>
+        />
       </div>
       <div v-if="field.aggregate_function !== 'count'" class="space-y-1.5">
         <Label class="text-sm">Поле дочірнього DocType</Label>

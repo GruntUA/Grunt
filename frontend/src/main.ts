@@ -1,6 +1,11 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { VueQueryPlugin } from '@tanstack/vue-query'
+import PrimeVue from 'primevue/config'
+import Aura from '@primevue/themes/aura'
+import ToastService from 'primevue/toastservice'
+import ConfirmationService from 'primevue/confirmationservice'
+import 'primeicons/primeicons.css'
 import App from './App.vue'
 import router from './router'
 import i18n from './plugins/i18n'
@@ -17,6 +22,16 @@ window.frappe = grunt // Frappe-compatible alias
 const pinia = createPinia()
 const app = createApp(App)
 app.use(pinia)
+app.use(PrimeVue, {
+  theme: {
+    preset: Aura,
+    options: {
+      darkModeSelector: '.dark',
+    },
+  },
+})
+app.use(ToastService)
+app.use(ConfirmationService)
 // Start auth request immediately — router guard will await the same promise
 useAuthStore().prefetchMe()
 app.use(router)

@@ -1,17 +1,23 @@
 <script setup lang="ts">
-import type { DropdownMenuTriggerProps } from "reka-ui"
-import { DropdownMenuTrigger, useForwardProps } from "reka-ui"
+import { inject, ref, onMounted } from 'vue'
 
-const props = defineProps<DropdownMenuTriggerProps>()
+defineProps<{ asChild?: boolean }>()
 
-const forwardedProps = useForwardProps(props)
+const ctx = inject<any>('$dropdown')
+const triggerRef = ref<HTMLElement>()
+
+onMounted(() => {
+  if (ctx && triggerRef.value) ctx.triggerEl.value = triggerRef.value
+})
 </script>
 
 <template>
-  <DropdownMenuTrigger
+  <span
+    ref="triggerRef"
     data-slot="dropdown-menu-trigger"
-    v-bind="forwardedProps"
+    style="display: contents"
+    @click="ctx?.toggle()"
   >
     <slot />
-  </DropdownMenuTrigger>
+  </span>
 </template>

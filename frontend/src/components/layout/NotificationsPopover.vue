@@ -99,7 +99,7 @@ onUnmounted(() => {
                     </div>
                     <span class="text-sm font-medium truncate">{{ t('Notifications') }}</span>
                 </div>
-                <Badge v-if="unreadCount > 0" variant="default" class="h-5 px-1.5 text-[10px] font-bold tabular-nums">
+                <Badge v-if="unreadCount > 0" class="h-5 px-1.5 text-[10px] font-bold tabular-nums">
                     {{ unreadCount }}
                 </Badge>
             </button>
@@ -111,7 +111,7 @@ onUnmounted(() => {
             <div class="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
                 <div class="flex items-center gap-2">
                     <h3 class="font-bold text-sm">{{ t('Notifications') }}</h3>
-                    <Badge v-if="unreadCount > 0" variant="secondary" class="h-5 text-[10px]">{{ unreadCount }} нових
+                    <Badge v-if="unreadCount > 0" severity="secondary" class="h-5 text-[10px]">{{ unreadCount }} нових
                     </Badge>
                 </div>
                 <Button v-if="unreadCount > 0" variant="ghost" size="icon"
@@ -152,7 +152,7 @@ onUnmounted(() => {
                             <div class="flex items-center justify-between">
                                 <span class="text-[10px] font-medium text-muted-foreground/70">{{
                                     formatDate(n.created_at) }}</span>
-                                <Badge v-if="n.doctype" variant="outline"
+                                <Badge v-if="n.doctype" severity="contrast"
                                     class="h-4 px-1 text-[9px] uppercase tracking-wider bg-background">{{ n.doctype }}
                                 </Badge>
                             </div>

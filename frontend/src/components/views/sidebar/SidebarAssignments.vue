@@ -82,7 +82,7 @@ onMounted(loadAssignees)
     <div v-if="assignees.length > 0" class="flex flex-col gap-1.5">
       <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">{{ t('Assignees') }}</span>
       <div class="flex flex-wrap gap-1.5">
-        <Badge v-for="a in assignees" :key="a.id" variant="secondary" class="text-xs gap-1 pr-1">
+        <Badge v-for="a in assignees" :key="a.id" severity="secondary" class="text-xs gap-1 pr-1">
           {{ a.assigned_to }}
           <button type="button" class="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors p-0.5"
             @click="removeAssignee(a)">

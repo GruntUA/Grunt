@@ -64,7 +64,7 @@ onMounted(loadTags)
       Теги
     </span>
     <div class="flex flex-wrap gap-1.5">
-      <Badge v-for="t in tags" :key="t.id" variant="outline" class="text-xs gap-1 pr-1 text-foreground">
+      <Badge v-for="t in tags" :key="t.id" severity="contrast" class="text-xs gap-1 pr-1 text-foreground">
         {{ t.tag }}
         <button type="button" class="ml-0.5 rounded-full hover:bg-foreground/10 transition-colors p-0.5"
           @click="removeTag(t)">

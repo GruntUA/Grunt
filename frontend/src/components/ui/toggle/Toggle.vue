@@ -1,35 +1,35 @@
 <script setup lang="ts">
-import type { ToggleEmits, ToggleProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import type { ToggleVariants } from "."
-import { reactiveOmit } from "@vueuse/core"
-import { Toggle, useForwardPropsEmits } from "reka-ui"
 import { cn } from "@/lib/utils"
 import { toggleVariants } from "."
 
-const props = withDefaults(defineProps<ToggleProps & {
-  class?: HTMLAttributes["class"]
+const props = withDefaults(defineProps<{
+  pressed?: boolean
+  disabled?: boolean
   variant?: ToggleVariants["variant"]
   size?: ToggleVariants["size"]
+  class?: HTMLAttributes["class"]
 }>(), {
-  variant: "default",
-  size: "default",
-  disabled: false,
+  variant: 'default',
+  size: 'default',
 })
 
-const emits = defineEmits<ToggleEmits>()
-
-const delegatedProps = reactiveOmit(props, "class", "size", "variant")
-const forwarded = useForwardPropsEmits(delegatedProps, emits)
+const emit = defineEmits<{
+  'update:pressed': [value: boolean]
+}>()
 </script>
 
 <template>
-  <Toggle
-    v-slot="slotProps"
+  <button
+    type="button"
     data-slot="toggle"
-    v-bind="forwarded"
+    :disabled="disabled"
+    :data-state="pressed ? 'on' : 'off'"
+    :aria-pressed="pressed"
     :class="cn(toggleVariants({ variant, size }), props.class)"
+    @click="emit('update:pressed', !pressed)"
   >
-    <slot v-bind="slotProps" />
-  </Toggle>
+    <slot />
+  </button>
 </template>

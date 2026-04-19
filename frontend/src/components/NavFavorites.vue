@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
-import { ArrowUpRight, Link, DotsHorizontalIcon, StarOff, Trash2 } from '@radix-icons/vue'
+import { DotsHorizontalIcon } from '@radix-icons/vue'
+import { ArrowUpRight, Link, StarOff, Trash2 } from '@lucide/vue'
 import {
   DropdownMenu,
   DropdownMenuContent,

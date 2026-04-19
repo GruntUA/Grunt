@@ -1,16 +1,23 @@
 <script setup lang="ts">
-import type { AvatarImageProps } from "reka-ui"
-import { AvatarImage } from "reka-ui"
+import { inject, onMounted } from 'vue'
 
-const props = defineProps<AvatarImageProps>()
+const props = defineProps<{ src?: string; alt?: string }>()
+
+const ctx = inject<{
+  setStatus: (s: 'idle' | 'loading' | 'loaded' | 'error') => void
+}>('$avatar')
+
+onMounted(() => { if (props.src) ctx?.setStatus('loading') })
 </script>
 
 <template>
-  <AvatarImage
+  <img
+    v-if="src"
     data-slot="avatar-image"
-    v-bind="props"
-    class="aspect-square size-full"
-  >
-    <slot />
-  </AvatarImage>
+    :src="src"
+    :alt="alt ?? ''"
+    class="aspect-square size-full object-cover"
+    @load="ctx?.setStatus('loaded')"
+    @error="ctx?.setStatus('error')"
+  />
 </template>

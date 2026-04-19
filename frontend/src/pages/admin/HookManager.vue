@@ -127,7 +127,7 @@ onMounted(fetchHooks)
                                 <span class="text-xs font-semibold">{{ h.displaySource }}</span>
                             </div>
                             <div class="col-span-2">
-                                <Badge variant="outline" class="font-mono text-[10px] py-0 px-2 tracking-tighter"
+                                <Badge severity="contrast" class="font-mono text-[10px] py-0 px-2 tracking-tighter"
                                     :class="h.doctype === '*' ? 'bg-muted text-muted-foreground' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'">
                                     {{ h.doctype }}</Badge>
                             </div>

@@ -7,13 +7,7 @@ import { useToast } from '@/core/composables/useToast'
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 import client from '@/core/api/client'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import Select from 'primevue/select'
 import { Loader2, Save, Eye, EyeOff, RefreshCw, ChevronLeft, FileText } from '@lucide/vue'
 import type { GruntDocument } from '@/types'
 
@@ -215,28 +209,25 @@ onMounted(async () => {
 
       <div class="flex items-center gap-2">
         <!-- DocType selector -->
-        <Select v-model="doctype" class="w-52">
-          <SelectTrigger class="h-8 text-sm">
-            <SelectValue placeholder="Тип документа..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="dt in allDoctypes" :key="dt.name" :value="dt.name">
-              {{ dt.label }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
+        <Select
+          v-model="doctype"
+          :options="allDoctypes"
+          option-label="label"
+          option-value="name"
+          placeholder="Тип документа..."
+          class="w-52"
+        />
 
         <!-- Sample doc selector -->
-        <Select v-if="sampleDocs.length" v-model="sampleDocId" class="w-40">
-          <SelectTrigger class="h-8 text-sm">
-            <SelectValue placeholder="Зразок..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="d in sampleDocs" :key="String(d.id)" :value="String(d.id)">
-              {{ d.name ?? d.id }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
+        <Select
+          v-if="sampleDocs.length"
+          v-model="sampleDocId"
+          :options="sampleDocs.map(d => ({ value: String(d.id), label: String(d.name ?? d.id) }))"
+          option-label="label"
+          option-value="value"
+          placeholder="Зразок..."
+          class="w-40"
+        />
 
         <Button variant="outline" size="sm" class="h-8 text-foreground" @click="resetToDefault">
           <RefreshCw class="size-3.5 mr-1.5" />

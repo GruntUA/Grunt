@@ -5,14 +5,14 @@ import api from '@/core/api/client'
 import { metaApi } from '@/core/api/meta'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import Select from 'primevue/select'
 import { Badge } from '@/components/ui/badge'
 import {
     Plus, Search, Save, Play, Trash2, ChevronRight,
     Layout, Table as TableIcon, FileBarChart
 } from '@lucide/vue'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent, TabPanels } from '@/components/ui/tabs'
 
 const props = defineProps<{
     workspaceName: string
@@ -154,16 +154,14 @@ const displayFields = computed(() => {
                 <div class="space-y-2">
                     <label class="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Тип
                         документа</label>
-                    <Select v-model="selectedDoctype">
-                        <SelectTrigger class="w-full">
-                            <SelectValue placeholder="Оберіть DocType" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem v-for="dt in doctypes" :key="dt.name" :value="dt.name">
-                                {{ dt.label }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <Select
+                        v-model="selectedDoctype"
+                        :options="doctypes"
+                        option-label="label"
+                        option-value="name"
+                        placeholder="Оберіть DocType"
+                        class="w-full"
+                    />
                 </div>
             </div>
 
@@ -174,6 +172,7 @@ const displayFields = computed(() => {
                     <!-- <TabsTrigger value="filters" variant="underline" class="flex-1 opacity-50">Фільтри</TabsTrigger> -->
                 </TabsList>
 
+                <TabPanels>
                 <TabsContent value="columns" class="flex-1 overflow-y-auto p-4 space-y-6 focus-visible:ring-0 m-0">
                     <!-- Selected Columns -->
                     <div class="space-y-3">
@@ -205,16 +204,14 @@ const displayFields = computed(() => {
                             </div>
 
                             <div class="flex items-center gap-2">
-                                <Select v-model="col.aggregation">
-                                    <SelectTrigger class="h-7 text-[11px] bg-muted/30">
-                                        <SelectValue placeholder="Агрегація" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem v-for="agg in AGGREGATIONS" :key="agg.value" :value="agg.value">
-                                            {{ agg.label }}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <Select
+                                    v-model="col.aggregation"
+                                    :options="AGGREGATIONS"
+                                    option-label="label"
+                                    option-value="value"
+                                    placeholder="Агрегація"
+                                    class="h-7 text-[11px]"
+                                />
                             </div>
                         </div>
                     </div>
@@ -244,6 +241,7 @@ const displayFields = computed(() => {
                         </div>
                     </div>
                 </TabsContent>
+                </TabPanels>
             </Tabs>
 
             <!-- Sidebar Footer -->

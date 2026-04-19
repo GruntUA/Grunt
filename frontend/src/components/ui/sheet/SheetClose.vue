@@ -1,15 +1,11 @@
 <script setup lang="ts">
-import type { DialogCloseProps } from "reka-ui"
-import { DialogClose } from "reka-ui"
+import { inject } from 'vue'
 
-const props = defineProps<DialogCloseProps>()
+const ctx = inject<any>('$sheet')
 </script>
 
 <template>
-  <DialogClose
-    data-slot="sheet-close"
-    v-bind="props"
-  >
+  <span data-slot="sheet-close" @click="ctx?.close()">
     <slot />
-  </DialogClose>
+  </span>
 </template>

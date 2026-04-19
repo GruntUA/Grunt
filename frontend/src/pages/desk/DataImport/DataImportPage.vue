@@ -136,17 +136,17 @@ async function pollStatus() {
             <div class="flex gap-4">
                 <div class="flex items-center gap-2"
                     :class="currentStep >= 1 ? 'text-primary' : 'text-muted-foreground'">
-                    <Badge variant="outline" :class="currentStep === 1 ? 'bg-primary text-white' : ''">1</Badge> Вибір
+                    <Badge severity="contrast" :class="currentStep === 1 ? 'bg-primary text-white' : ''">1</Badge> Вибір
                     файлу
                 </div>
                 <div class="flex items-center gap-2"
                     :class="currentStep >= 2 ? 'text-primary' : 'text-muted-foreground'">
-                    <Badge variant="outline" :class="currentStep === 2 ? 'bg-primary text-white' : ''">2</Badge> Мапінг
+                    <Badge severity="contrast" :class="currentStep === 2 ? 'bg-primary text-white' : ''">2</Badge> Мапінг
                     полів
                 </div>
                 <div class="flex items-center gap-2"
                     :class="currentStep >= 3 ? 'text-primary' : 'text-muted-foreground'">
-                    <Badge variant="outline" :class="currentStep === 3 ? 'bg-primary text-white' : ''">3</Badge>
+                    <Badge severity="contrast" :class="currentStep === 3 ? 'bg-primary text-white' : ''">3</Badge>
                     Виконання
                 </div>
             </div>

@@ -5,16 +5,9 @@ import { useI18n } from 'vue-i18n'
 import { useBuilderStore } from '@/stores/builder'
 import { grunt } from '@/core/grunt'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent, TabPanels } from '@/components/ui/tabs'
 import { Loader2, FileJson } from '@lucide/vue'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
+import Breadcrumb from 'primevue/breadcrumb'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import FieldPalette from './FieldPalette.vue'
 import BuilderCanvas from './BuilderCanvas.vue'
@@ -31,6 +24,12 @@ const route = useRoute()
 const builder = useBuilderStore()
 
 const backWorkspace = props.workspaceName ?? (route.params.workspaceName as string | undefined) ?? 'grunt'
+
+const bcItems = computed(() => [
+  { label: backWorkspace, route: `/${backWorkspace}` },
+  { label: 'DocTypes', route: `/${backWorkspace}/list/DocType` },
+  { label: builder.doctype?.label ?? props.doctype },
+])
 
 onMounted(() => builder.loadDocType(props.doctype))
 
@@ -69,31 +68,15 @@ async function handleSave() {
   <div class="flex flex-col h-screen overflow-hidden">
     <!-- Header -->
     <div class="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-card shrink-0">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink as-child>
-              <router-link :to="`/${backWorkspace}`" class="capitalize">
-                {{ backWorkspace }}
-              </router-link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink as-child>
-              <router-link :to="`/${backWorkspace}/list/DocType`">
-                DocTypes
-              </router-link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage class="font-bold flex items-center">
-              {{ builder.doctype?.label ?? props.doctype }}
-              <span v-if="builder.isDirty" class="text-muted-foreground font-normal ml-1">&bull;</span>
-            </BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
+      <Breadcrumb :model="bcItems" class="!bg-transparent !border-none !p-0">
+        <template #item="{ item, props: ip }">
+          <router-link v-if="item.route" v-slot="rp" :to="item.route" custom>
+            <a v-bind="ip.action" :href="rp.href" class="capitalize" @click="rp.navigate">{{ item.label }}</a>
+          </router-link>
+          <span v-else v-bind="ip.action" class="font-bold flex items-center">
+            {{ item.label }}<span v-if="builder.isDirty" class="text-muted-foreground font-normal ml-1">&bull;</span>
+          </span>
+        </template>
       </Breadcrumb>
       <div class="ml-auto flex items-center gap-2">
         <TooltipProvider v-if="jsonBadge">
@@ -150,6 +133,7 @@ async function handleSave() {
         </TabsList>
       </div>
 
+      <TabPanels class="flex-1 overflow-hidden flex flex-col">
       <!-- Form tab: 3-column layout -->
       <TabsContent value="form" class="flex-1 overflow-hidden m-0 p-0">
         <div class="flex h-full overflow-hidden">
@@ -184,6 +168,7 @@ async function handleSave() {
       <TabsContent value="views" class="flex-1 overflow-hidden m-0 p-0">
         <ViewsTab />
       </TabsContent>
+      </TabPanels>
     </Tabs>
   </div>
 </template>

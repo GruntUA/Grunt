@@ -102,7 +102,7 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
               : 'text-muted-foreground hover:text-foreground'">
               <Columns3 class="size-4" />
               <span class="hidden lg:inline">Стовпці</span>
-              <Badge v-if="columns.isCustomized.value" variant="secondary" class="bg-primary/20 text-primary hover:bg-primary/20 size-5 p-0 flex items-center justify-center text-[10px]">
+              <Badge v-if="columns.isCustomized.value" severity="secondary" class="bg-primary/20 text-primary hover:bg-primary/20 size-5 p-0 flex items-center justify-center text-[10px]">
                 {{ columns.visibleColumns.value.length }}
               </Badge>
             </Button>

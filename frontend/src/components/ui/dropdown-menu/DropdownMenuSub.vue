@@ -1,18 +1,17 @@
 <script setup lang="ts">
-import type { DropdownMenuSubEmits, DropdownMenuSubProps } from "reka-ui"
-import {
-  DropdownMenuSub,
-  useForwardPropsEmits,
-} from "reka-ui"
+import { ref, provide } from 'vue'
 
-const props = defineProps<DropdownMenuSubProps>()
-const emits = defineEmits<DropdownMenuSubEmits>()
+const isOpen = ref(false)
+const triggerEl = ref<HTMLElement | null>(null)
 
-const forwarded = useForwardPropsEmits(props, emits)
+provide('$dropdownSub', {
+  isOpen,
+  open: () => { isOpen.value = true },
+  close: () => { isOpen.value = false },
+  triggerEl,
+})
 </script>
 
 <template>
-  <DropdownMenuSub v-slot="slotProps" data-slot="dropdown-menu-sub" v-bind="forwarded">
-    <slot v-bind="slotProps" />
-  </DropdownMenuSub>
+  <slot />
 </template>

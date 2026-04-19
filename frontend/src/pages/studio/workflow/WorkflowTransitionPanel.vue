@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import type { WorkflowTransition, WorkflowState } from '@/types'
 import { Input } from '@/components/ui/input'
 import { Field, FieldLabel } from '@/components/ui/field'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import Select from 'primevue/select'
 import { Button } from '@/components/ui/button'
 
 const props = defineProps<{
@@ -32,25 +32,23 @@ function update(key: keyof WorkflowTransition, val: unknown) {
       </Field>
       <Field>
         <FieldLabel class="text-foreground">Зі стану *</FieldLabel>
-        <Select :model-value="transition.from_state" @update:model-value="update('from_state', $event)">
-          <SelectTrigger>
-            <SelectValue placeholder="— оберіть —" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="opt in stateOptionsList" :key="opt" :value="opt">{{ opt }}</SelectItem>
-          </SelectContent>
-        </Select>
+        <Select
+          :model-value="transition.from_state"
+          :options="stateOptionsList"
+          placeholder="— оберіть —"
+          class="w-full"
+          @update:model-value="update('from_state', $event)"
+        />
       </Field>
       <Field>
         <FieldLabel class="text-foreground">До стану *</FieldLabel>
-        <Select :model-value="transition.to_state" @update:model-value="update('to_state', $event)">
-          <SelectTrigger>
-            <SelectValue placeholder="— оберіть —" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="opt in stateOptionsList" :key="opt" :value="opt">{{ opt }}</SelectItem>
-          </SelectContent>
-        </Select>
+        <Select
+          :model-value="transition.to_state"
+          :options="stateOptionsList"
+          placeholder="— оберіть —"
+          class="w-full"
+          @update:model-value="update('to_state', $event)"
+        />
       </Field>
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium text-foreground">Дозволені ролі</label>

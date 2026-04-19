@@ -136,7 +136,7 @@ watch(() => props.columnField, loadCards)
             <h3 class="font-bold text-sm text-foreground/90 truncate uppercase tracking-wider">
               {{ columnLabel(col) }}
             </h3>
-            <Badge variant="secondary"
+            <Badge severity="secondary"
               class="h-5 px-1.5 text-[10px] bg-muted/40 text-muted-foreground font-bold tabular-nums">
               {{ cardsByColumn[col]?.length || 0 }}
             </Badge>

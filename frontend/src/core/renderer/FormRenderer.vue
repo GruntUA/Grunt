@@ -6,7 +6,7 @@ import type { LayoutSection } from '@/core/composables/useFormLayout'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { initials } from '@/core/composables/usePresence'
 import { ChevronDown } from '@lucide/vue'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent, TabPanels } from '@/components/ui/tabs'
 import FieldRenderer from './FieldRenderer.vue'
 
 const props = defineProps<{
@@ -65,6 +65,7 @@ function toggleSection(section: LayoutSection) {
     </TabsList>
 
     <!-- Sections -->
+    <TabPanels>
     <TabsContent v-for="(tab, ti) in layout" :key="ti" :value="String(ti)" class="mt-0 flex flex-col gap-3 focus-visible:ring-0">
       <div v-for="(section, si) in tab.sections" :key="si"
         :class="section.label ? 'form-section' : ''">
@@ -112,6 +113,7 @@ function toggleSection(section: LayoutSection) {
         </Transition>
       </div>
     </TabsContent>
+    </TabPanels>
   </Tabs>
 
   <!-- Non-tabbed layout fallback (or single tab with no label) -->

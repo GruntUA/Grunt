@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import Select from 'primevue/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Trash2, Plus, GitBranch, List, ChevronDown, GripVertical, X } from '@lucide/vue'
 import WorkflowGraph from '@/components/views/WorkflowGraph.vue'
@@ -557,21 +557,23 @@ function toggleNextStepMenu(id: string) {
             </div>
             <div class="flex flex-col gap-1.5">
               <Label class="text-sm">Зі стану *</Label>
-              <Select :model-value="selectedTransition.from_state" @update:model-value="updateTransition(selectedTransitionIndex, 'from_state', $event)">
-                <SelectTrigger><SelectValue placeholder="— оберіть —" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem v-for="s in stateNames" :key="s" :value="s">{{ s }}</SelectItem>
-                </SelectContent>
-              </Select>
+              <Select
+                :model-value="selectedTransition.from_state"
+                :options="stateNames"
+                placeholder="— оберіть —"
+                class="w-full"
+                @update:model-value="updateTransition(selectedTransitionIndex, 'from_state', $event)"
+              />
             </div>
             <div class="flex flex-col gap-1.5">
               <Label class="text-sm">До стану *</Label>
-              <Select :model-value="selectedTransition.to_state" @update:model-value="updateTransition(selectedTransitionIndex, 'to_state', $event)">
-                <SelectTrigger><SelectValue placeholder="— оберіть —" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem v-for="s in stateNames" :key="s" :value="s">{{ s }}</SelectItem>
-                </SelectContent>
-              </Select>
+              <Select
+                :model-value="selectedTransition.to_state"
+                :options="stateNames"
+                placeholder="— оберіть —"
+                class="w-full"
+                @update:model-value="updateTransition(selectedTransitionIndex, 'to_state', $event)"
+              />
             </div>
             <div class="flex flex-col gap-1.5">
               <Label class="text-sm">Дозволені ролі</Label>

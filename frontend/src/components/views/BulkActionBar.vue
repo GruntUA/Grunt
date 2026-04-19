@@ -2,16 +2,8 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Button } from '@/components/ui/button'
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from '@/components/ui/alert-dialog'
+import PvDialog from 'primevue/dialog'
+import PvButton from 'primevue/button'
 import {
   Dialog,
   DialogContent,
@@ -20,13 +12,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import Select from 'primevue/select'
 import { Trash2, X, Pencil, Loader2 } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
@@ -117,25 +103,22 @@ async function submitUpdate() {
     </button>
 
     <!-- Delete confirmation -->
-    <AlertDialog :open="showDeleteModal" @update:open="showDeleteModal = $event">
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{{ t('Delete selected records?') }}</AlertDialogTitle>
-          <AlertDialogDescription>
-            Буде видалено {{ displayCount }} записів. Цю дію не можна скасувати.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>{{ t('Cancel') }}</AlertDialogCancel>
-          <AlertDialogAction
-            class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            @click="showDeleteModal = false; emit('delete')"
-          >
-            {{ t('Delete') }}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <PvDialog
+      :visible="showDeleteModal"
+      :modal="true"
+      :closable="false"
+      :style="{ width: '400px' }"
+      @update:visible="showDeleteModal = $event"
+    >
+      <template #header>
+        <span class="font-semibold text-base">{{ t('Delete selected records?') }}</span>
+      </template>
+      <p class="text-sm text-muted-foreground">Буде видалено {{ displayCount }} записів. Цю дію не можна скасувати.</p>
+      <template #footer>
+        <PvButton severity="secondary" text @click="showDeleteModal = false">{{ t('Cancel') }}</PvButton>
+        <PvButton severity="danger" @click="showDeleteModal = false; emit('delete')">{{ t('Delete') }}</PvButton>
+      </template>
+    </PvDialog>
 
     <!-- Bulk update dialog -->
     <Dialog :open="showUpdateModal" @update:open="showUpdateModal = $event">
@@ -150,16 +133,14 @@ async function submitUpdate() {
         <div class="flex flex-col gap-3 py-1">
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium text-foreground">Поле</label>
-            <Select v-model="updateField">
-              <SelectTrigger>
-                <SelectValue :placeholder="t('Select field...')" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="f in updatableFields" :key="f.fieldname" :value="f.fieldname">
-                  {{ f.label }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <Select
+              v-model="updateField"
+              :options="updatableFields"
+              option-label="label"
+              option-value="fieldname"
+              :placeholder="t('Select field...')"
+              class="w-full"
+            />
           </div>
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium text-foreground">{{ t('New value') }}</label>

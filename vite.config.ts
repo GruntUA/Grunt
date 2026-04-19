@@ -37,12 +37,13 @@ export default defineConfig({
     build: {
         rollupOptions: {
             output: {
-                manualChunks: {
-                    'vendor-vue': ['vue', 'vue-router', 'pinia'],
-                    'vendor-query': ['@tanstack/vue-query'],
-                    'vendor-ui': ['reka-ui', 'class-variance-authority', 'clsx', 'tailwind-merge'],
-                    'vendor-icons': ['@lucide/vue'],
-                    'vendor-i18n': ['vue-i18n'],
+                manualChunks(id) {
+                    if (id.includes('primevue') || id.includes('@primevue')) return 'vendor-primevue'
+                    if (id.includes('vue-router') || id.includes('/pinia/') || (id.includes('/vue/') && !id.includes('vue-'))) return 'vendor-vue'
+                    if (id.includes('@tanstack/vue-query')) return 'vendor-query'
+                    if (id.includes('reka-ui') || id.includes('class-variance-authority') || id.includes('/clsx/') || id.includes('tailwind-merge')) return 'vendor-ui'
+                    if (id.includes('@lucide/vue')) return 'vendor-icons'
+                    if (id.includes('vue-i18n') || id.includes('@intlify')) return 'vendor-i18n'
                 },
             },
         },

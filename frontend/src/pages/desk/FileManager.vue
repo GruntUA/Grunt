@@ -180,7 +180,7 @@ function onSearchInput() {
                             file.filename }}</p>
                         <div
                             class="flex items-center justify-between text-[10px] uppercase font-bold text-muted-foreground">
-                            <Badge variant="outline"
+                            <Badge severity="contrast"
                                 class="text-[9px] px-1 bg-muted/30 border-transparent truncate max-w-[60px]">
                                 {{ file.content_type.split('/')[1] || 'FILE' }}
                             </Badge>

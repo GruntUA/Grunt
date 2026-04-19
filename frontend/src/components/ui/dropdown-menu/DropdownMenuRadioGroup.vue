@@ -1,21 +1,17 @@
 <script setup lang="ts">
-import type { DropdownMenuRadioGroupEmits, DropdownMenuRadioGroupProps } from "reka-ui"
-import {
-  DropdownMenuRadioGroup,
-  useForwardPropsEmits,
-} from "reka-ui"
+import { provide, computed } from 'vue'
 
-const props = defineProps<DropdownMenuRadioGroupProps>()
-const emits = defineEmits<DropdownMenuRadioGroupEmits>()
+const props = defineProps<{ modelValue?: string }>()
+const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
-const forwarded = useForwardPropsEmits(props, emits)
+provide('$dropdownRadio', {
+  modelValue: computed(() => props.modelValue),
+  setValue: (v: string) => emit('update:modelValue', v),
+})
 </script>
 
 <template>
-  <DropdownMenuRadioGroup
-    data-slot="dropdown-menu-radio-group"
-    v-bind="forwarded"
-  >
+  <div role="group" data-slot="dropdown-menu-radio-group">
     <slot />
-  </DropdownMenuRadioGroup>
+  </div>
 </template>

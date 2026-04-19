@@ -14,7 +14,7 @@ import {
   Activity,
   Bookmark,
 } from '@lucide/vue'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent, TabPanels } from '@/components/ui/tabs'
 import type { PresenceUser } from '@/core/composables/usePresence'
 
 // Sub-components
@@ -83,6 +83,7 @@ loadBookmark()
         </TabsList>
 
         <!-- Content -->
+        <TabPanels>
         <div class="form-section-body">
           <TabsContent value="details" class="mt-0 flex flex-col gap-4 focus-visible:ring-0">
             <SidebarFileInfo :doctype="doctype" :document="document" :users="users" />
@@ -114,6 +115,7 @@ loadBookmark()
             <SidebarTimeline :doctype="doctype" :document="document" />
           </TabsContent>
         </div>
+        </TabPanels>
       </Tabs>
     </div>
   </aside>

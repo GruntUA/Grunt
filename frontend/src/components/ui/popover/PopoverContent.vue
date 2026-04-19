@@ -1,45 +1,66 @@
 <script setup lang="ts">
-import type { PopoverContentEmits, PopoverContentProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import {
-  PopoverContent,
-  PopoverPortal,
-  useForwardPropsEmits,
-} from "reka-ui"
-import { cn } from "@/lib/utils"
+import type { HTMLAttributes } from 'vue'
+import { inject, ref, computed } from 'vue'
+import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/vue'
+import { onClickOutside } from '@vueuse/core'
+import { cn } from '@/lib/utils'
 
-defineOptions({
-  inheritAttrs: false,
+const props = withDefaults(defineProps<{
+  class?: HTMLAttributes['class']
+  align?: 'start' | 'center' | 'end'
+  side?: 'top' | 'right' | 'bottom' | 'left'
+  sideOffset?: number
+  alignOffset?: number
+}>(), {
+  align: 'center',
+  side: 'bottom',
+  sideOffset: 4,
+  alignOffset: 0,
 })
 
-const props = withDefaults(
-  defineProps<PopoverContentProps & { class?: HTMLAttributes["class"] }>(),
-  {
-    align: "center",
-    sideOffset: 4,
-  },
-)
-const emits = defineEmits<PopoverContentEmits>()
+const ctx = inject<{
+  isOpen: { value: boolean }
+  triggerEl: { value: HTMLElement | null }
+  close: () => void
+}>('$popover')
 
-const delegatedProps = reactiveOmit(props, "class")
+const placement = computed(() => {
+  const s = props.side
+  const a = props.align
+  return (a === 'center' ? s : `${s}-${a}`) as any
+})
 
-const forwarded = useForwardPropsEmits(delegatedProps, emits)
+const middleware = computed(() => [
+  offset({ mainAxis: props.sideOffset, alignmentAxis: props.alignOffset }),
+  flip(),
+  shift({ padding: 8 }),
+])
+
+const reference = computed(() => ctx?.triggerEl.value ?? null)
+const contentRef = ref<HTMLElement | null>(null)
+
+const { floatingStyles } = useFloating(reference, contentRef, {
+  placement,
+  middleware,
+  whileElementsMounted: autoUpdate,
+})
+
+onClickOutside(contentRef, () => ctx?.close(), { ignore: [reference] })
 </script>
 
 <template>
-  <PopoverPortal>
-    <PopoverContent
+  <Teleport to="body">
+    <div
+      v-if="ctx?.isOpen.value"
+      ref="contentRef"
       data-slot="popover-content"
-      v-bind="{ ...$attrs, ...forwarded }"
-      :class="
-        cn(
-          'bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 rounded-md border p-4 shadow-md origin-(--reka-popover-content-transform-origin) outline-hidden',
-          props.class,
-        )
-      "
+      :style="floatingStyles"
+      :class="cn(
+        'bg-popover text-popover-foreground z-50 w-72 rounded-md border p-4 shadow-md outline-none',
+        props.class
+      )"
     >
       <slot />
-    </PopoverContent>
-  </PopoverPortal>
+    </div>
+  </Teleport>
 </template>

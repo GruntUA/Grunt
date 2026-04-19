@@ -1,31 +1,35 @@
 <script setup lang="ts">
-import type { DropdownMenuSubTriggerProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { ChevronRightIcon } from '@radix-icons/vue'
-import {
-  DropdownMenuSubTrigger,
-  useForwardProps,
-} from "reka-ui"
-import { cn } from "@/lib/utils"
+import { inject, ref, onMounted } from 'vue'
+import { ChevronRight } from '@lucide/vue'
+import { cn } from '@/lib/utils'
 
-const props = defineProps<DropdownMenuSubTriggerProps & { class?: HTMLAttributes["class"], inset?: boolean }>()
+const props = defineProps<{
+  class?: string
+  inset?: boolean
+}>()
 
-const delegatedProps = reactiveOmit(props, "class", "inset")
-const forwardedProps = useForwardProps(delegatedProps)
+const subCtx = inject<any>('$dropdownSub')
+const triggerRef = ref<HTMLElement>()
+
+onMounted(() => {
+  if (subCtx && triggerRef.value) subCtx.triggerEl.value = triggerRef.value
+})
 </script>
 
 <template>
-  <DropdownMenuSubTrigger
+  <div
+    ref="triggerRef"
     data-slot="dropdown-menu-sub-trigger"
-    v-bind="forwardedProps"
-    :data-inset="inset ? '' : undefined"
+    :data-inset="inset || undefined"
     :class="cn(
-      'focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=\'size-\'])]:size-4 data-[variant=destructive]:*:[svg]:!text-destructive [&_svg:not([class*=\'text-\'])]:text-muted-foreground',
+      'flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground data-[inset]:pl-8',
       props.class,
     )"
+    @mouseenter="subCtx?.open()"
+    @mouseleave="subCtx?.close()"
+    @click="subCtx?.open()"
   >
     <slot />
-    <ChevronRightIcon class="ml-auto size-4" />
-  </DropdownMenuSubTrigger>
+    <ChevronRight class="ml-auto size-4" />
+  </div>
 </template>

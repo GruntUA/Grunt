@@ -1,15 +1,23 @@
 <script setup lang="ts">
-import type { PopoverTriggerProps } from "reka-ui"
-import { PopoverTrigger } from "reka-ui"
+import { inject, onMounted, ref } from 'vue'
 
-const props = defineProps<PopoverTriggerProps>()
+defineProps<{ asChild?: boolean }>()
+
+const ctx = inject<{
+  toggle: () => void
+  setTrigger: (el: HTMLElement) => void
+}>('$popover')
+
+const wrapperEl = ref<HTMLElement | null>(null)
+
+onMounted(() => {
+  const child = wrapperEl.value?.firstElementChild as HTMLElement | null
+  if (child) ctx?.setTrigger(child)
+})
 </script>
 
 <template>
-  <PopoverTrigger
-    data-slot="popover-trigger"
-    v-bind="props"
-  >
+  <span ref="wrapperEl" style="display: contents" @click="ctx?.toggle()">
     <slot />
-  </PopoverTrigger>
+  </span>
 </template>

@@ -1,16 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { DocField } from '@/types'
-import { DateFormatter, getLocalTimeZone, parseDate, today } from '@internationalized/date'
-import type { DateValue } from '@internationalized/date'
 import { CalendarIcon, X } from '@lucide/vue'
 import { cn } from '@/lib/utils'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+import DatePicker from 'primevue/datepicker'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 const props = defineProps<{
   field: DocField
@@ -21,95 +15,80 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
-const df = new DateFormatter('uk-UA', { dateStyle: 'long' })
-
-const dateValue = computed<DateValue | undefined>(() => {
-  const v = props.modelValue as string | null | undefined
-  if (!v) return undefined
-  try {
-    return parseDate(v.substring(0, 10))
-  } catch {
-    return undefined
-  }
-})
-
-// Text shown in the input (DD.MM.YYYY)
+const open = ref(false)
 const inputText = ref('')
 const isEditing = ref(false)
-const open = ref(false)
+const isDisabled = computed(() => !!(props.disabled || props.field.read_only))
 
-function formatForInput(val: DateValue | undefined): string {
-  if (!val) return ''
-  const d = String(val.day).padStart(2, '0')
-  const m = String(val.month).padStart(2, '0')
-  const y = val.year
-  return `${d}.${m}.${y}`
+const dateObj = computed<Date | null>(() => {
+  const v = props.modelValue as string | null | undefined
+  if (!v) return null
+  try {
+    const [y, m, d] = v.substring(0, 10).split('-').map(Number)
+    return new Date(y, m - 1, d)
+  } catch { return null }
+})
+
+function formatForInput(d: Date | null): string {
+  if (!d) return ''
+  return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`
 }
 
-watch(
-  dateValue,
-  (val) => {
-    if (!isEditing.value) {
-      inputText.value = formatForInput(val)
-    }
-  },
-  { immediate: true },
-)
+function toISO(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
 
-// Parse DD.MM.YYYY, DD/MM/YYYY, or YYYY-MM-DD → ISO string
-function parseInputText(text: string): string | null {
-  const dmy = text.match(/^(\d{1,2})[.,/](\d{1,2})[.,/](\d{4})$/)
+watch(dateObj, (val) => {
+  if (!isEditing.value) inputText.value = formatForInput(val)
+}, { immediate: true })
+
+function parseInputText(text: string): Date | null {
+  const dmy = text.match(/^(\d{1,2})[.,\/](\d{1,2})[.,\/](\d{4})$/)
   if (dmy) {
-    const [, d, m, y] = dmy
-    const iso = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
-    try { parseDate(iso); return iso } catch { return null }
+    const d = new Date(Number(dmy[3]), Number(dmy[2]) - 1, Number(dmy[1]))
+    return isNaN(d.getTime()) ? null : d
   }
-
   const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})$/)
   if (iso) {
-    try { parseDate(text); return text } catch { return null }
+    const d = new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]))
+    return isNaN(d.getTime()) ? null : d
   }
-
   return null
 }
 
-function onFocus() {
-  isEditing.value = true
-}
+function onFocus() { isEditing.value = true }
 
 function onBlur() {
   isEditing.value = false
   const text = inputText.value.trim()
-  if (!text) {
-    emit('update:modelValue', null)
-    inputText.value = ''
-    return
-  }
-  const iso = parseInputText(text)
-  if (iso) {
-    emit('update:modelValue', iso)
-    inputText.value = formatForInput(parseDate(iso))
+  if (!text) { emit('update:modelValue', null); inputText.value = ''; return }
+  const d = parseInputText(text)
+  if (d) {
+    emit('update:modelValue', toISO(d))
+    inputText.value = formatForInput(d)
   } else {
-    // Revert to last valid value
-    inputText.value = formatForInput(dateValue.value)
+    inputText.value = formatForInput(dateObj.value)
   }
 }
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter') {
-    (e.target as HTMLInputElement).blur()
-  }
+  const el = e.target as HTMLInputElement
+  if (e.key === 'Enter') el.blur()
   if (e.key === 'Escape') {
     isEditing.value = false
-    inputText.value = formatForInput(dateValue.value)
-    ;(e.target as HTMLInputElement).blur()
+    inputText.value = formatForInput(dateObj.value)
+    el.blur()
   }
 }
 
-function onSelect(val: DateValue | undefined) {
-  if (!val) return
-  emit('update:modelValue', val.toString())
-  inputText.value = formatForInput(val)
+function onSelect(val: unknown) {
+  const d = val as Date | null
+  if (!d) return
+  emit('update:modelValue', toISO(d))
+  inputText.value = formatForInput(d)
   open.value = false
 }
 
@@ -118,9 +97,6 @@ function clearValue(e: Event) {
   emit('update:modelValue', null)
   inputText.value = ''
 }
-
-const defaultPlaceholder = today(getLocalTimeZone())
-const isDisabled = computed(() => !!(props.disabled || props.field.read_only))
 </script>
 
 <template>
@@ -132,7 +108,6 @@ const isDisabled = computed(() => !!(props.disabled || props.field.read_only))
       error ? 'border-destructive focus-within:ring-destructive' : 'hover:border-ring/40',
     )"
   >
-    <!-- Calendar icon opens the popover -->
     <Popover v-model:open="open">
       <PopoverTrigger as-child>
         <button
@@ -145,16 +120,15 @@ const isDisabled = computed(() => !!(props.disabled || props.field.read_only))
         </button>
       </PopoverTrigger>
       <PopoverContent class="w-auto p-0" align="start">
-        <Calendar
-          :model-value="dateValue"
-          :default-placeholder="defaultPlaceholder"
+        <DatePicker
+          :model-value="dateObj"
+          inline
           :disabled="isDisabled"
-          @update:model-value="onSelect($event)"
+          @update:model-value="onSelect($event as Date | null)"
         />
       </PopoverContent>
     </Popover>
 
-    <!-- Text input -->
     <input
       v-model="inputText"
       type="text"
@@ -166,9 +140,8 @@ const isDisabled = computed(() => !!(props.disabled || props.field.read_only))
       @keydown="onKeydown"
     />
 
-    <!-- Clear button -->
     <button
-      v-if="dateValue && !isDisabled"
+      v-if="dateObj && !isDisabled"
       type="button"
       class="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
       tabindex="-1"

@@ -36,7 +36,7 @@ const badge = computed(() => {
 </script>
 
 <template>
-  <Badge v-if="badge" variant="outline" :class="['font-normal whitespace-nowrap', badge.colorClass]">
+  <Badge v-if="badge" severity="contrast" :class="['font-normal whitespace-nowrap', badge.colorClass]">
     {{ badge.label }}
   </Badge>
   <span v-else class="text-muted-foreground/30">—</span>
