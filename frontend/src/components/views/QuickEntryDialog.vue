@@ -7,7 +7,7 @@ import type { DocType, DocField } from '@/types'
 import { useDocument } from '@/core/composables/useDocument'
 import { useToast } from '@/core/composables/useToast'
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
 import { X, ExternalLink } from '@lucide/vue'
 
@@ -179,13 +179,13 @@ function onFormUpdate(updated: Record<string, unknown>) {
 
         <!-- Footer -->
         <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border flex-shrink-0 bg-muted/30 rounded-b-xl">
-          <Button variant="ghost" :disabled="isSaving" @click="emit('close')">
+          <Button text :disabled="isSaving" @click="emit('close')">
             {{ t('Cancel') }}
           </Button>
 
           <!-- List mode: two action buttons -->
           <template v-if="mode === 'list'">
-            <Button variant="outline" :disabled="isSaving" @click="handleSave(false)">
+            <Button outlined :disabled="isSaving" @click="handleSave(false)">
               {{ t('Save and close') }}
             </Button>
             <Button :disabled="isSaving" @click="handleSave(true)">

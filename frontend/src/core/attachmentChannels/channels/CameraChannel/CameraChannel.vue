@@ -3,7 +3,7 @@ import { ref, onUnmounted } from 'vue'
 import type { AttachmentResult } from '@/core/attachmentChannels/types'
 import { filesApi } from '@/core/api/files'
 import { Camera, X, AlertCircle, Loader2 } from '@lucide/vue'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 
 defineProps<{ imageOnly: boolean }>()
 const emit = defineEmits<{ select: [result: AttachmentResult] }>()
@@ -110,7 +110,7 @@ onUnmounted(stopStream)
           <Camera class="size-4 mr-2" />
           Зробити фото
         </Button>
-        <Button type="button" variant="outline" @click="stopStream">
+        <Button type="button" outlined @click="stopStream">
           <X class="size-4 mr-2" />
           Скасувати
         </Button>

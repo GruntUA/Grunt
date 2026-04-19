@@ -3,8 +3,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/core/api/client'
 import { filesApi } from '@/core/api/files'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import Button from 'primevue/button'
+import Badge from 'primevue/badge'
 
 const props = defineProps<{
     workspaceName: string
@@ -205,7 +205,7 @@ async function pollStatus() {
             </div>
 
             <div class="flex justify-between">
-                <Button variant="outline" @click="currentStep = 1">Назад</Button>
+                <Button outlined @click="currentStep = 1">Назад</Button>
                 <Button @click="runImport" :disabled="loading">Почати імпорт</Button>
             </div>
         </div>

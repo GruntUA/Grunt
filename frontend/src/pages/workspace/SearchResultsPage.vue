@@ -5,7 +5,7 @@ import { useWorkspaceStore } from '@/stores/workspace'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/core/composables/useToast'
 import client from '@/core/api/client'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { Search, FileText, Loader2, RefreshCw, X } from '@lucide/vue'
 
 const props = defineProps<{ workspaceName?: string }>()
@@ -122,9 +122,7 @@ async function reindex() {
       <div class="flex items-center justify-between">
         <h2 class="text-2xl font-bold text-foreground">Пошук</h2>
         <Button
-          v-if="auth.user?.is_superadmin"
-          variant="outline"
-          size="sm"
+          v-if="auth.user?.is_superadmin" outlined size="small"
           class="h-8 text-xs text-foreground"
           :disabled="isReindexing"
           @click="reindex"

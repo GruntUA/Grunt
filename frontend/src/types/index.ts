@@ -187,7 +187,7 @@ export interface DocTypeMapView {
 export interface ScriptButton {
   label: string
   action: () => void | Promise<void>
-  variant?: string
+  severity?: string
 }
 
 /** Item registered via `listview.add_menu_item()` — appears in the "⋯" header dropdown. */

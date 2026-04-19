@@ -4,17 +4,8 @@ import draggable from 'vuedraggable'
 import { workspaceApi, type Workspace, type WorkspaceLink, type SearchResult } from '@/core/api/workspace'
 import { docsApi } from '@/core/api/docs'
 import type { GruntDocument } from '@/types'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   GripVertical,
@@ -265,35 +256,33 @@ async function save() {
 </script>
 
 <template>
-  <Dialog :open="open" @update:open="$emit('update:open', $event)">
-    <DialogContent class="max-w-2xl h-[80vh] flex flex-col p-0">
-      <DialogHeader class="px-6 py-4 border-b">
-        <DialogTitle>Налаштування бічного меню: {{ workspace.label }}</DialogTitle>
-      </DialogHeader>
-
-      <ScrollArea class="flex-1 px-6 py-4">
+  <Dialog :visible="open" modal
+    :pt="{ root: { class: 'max-w-2xl h-[80vh] flex flex-col' }, content: { class: 'p-0 flex-1 flex flex-col overflow-hidden' } }"
+    @update:visible="$emit('update:open', $event)">
+    <template #header>
+      <span class="font-semibold">Налаштування бічного меню: {{ workspace.label }}</span>
+    </template>
+    <ScrollArea class="flex-1 px-6 py-4">
         <div class="space-y-4">
           <!-- Toolbar -->
           <div class="flex items-center justify-between mb-2">
             <h3 class="text-sm font-medium">Пункти меню</h3>
             <div class="flex gap-2">
-              <Button
-                variant="outline" size="sm"
+              <Button outlined size="small"
                 :class="activePanel === 'doctype' ? 'border-primary text-primary bg-primary/5' : ''"
                 @click="activePanel = activePanel === 'doctype' ? null : 'doctype'"
               >
                 <Plus class="size-4 mr-1.5" />
                 Додати пункт
               </Button>
-              <Button
-                variant="outline" size="sm"
+              <Button outlined size="small"
                 :class="activePanel === 'dashboard' ? 'border-primary text-primary bg-primary/5' : ''"
                 @click="openDashboardPanel"
               >
                 <LayoutDashboard class="size-4 mr-1.5" />
                 Дашборд
               </Button>
-              <Button variant="outline" size="sm" @click="addDivider">
+              <Button outlined size="small" @click="addDivider">
                 Розділювач
               </Button>
             </div>
@@ -331,15 +320,13 @@ async function save() {
           <div v-if="activePanel === 'dashboard'" class="bg-accent/50 p-3 rounded-lg border border-border space-y-3">
             <!-- Mode toggle -->
             <div class="flex gap-2">
-              <Button
-                size="sm"
+              <Button size="small"
                 :variant="!showCreateForm ? 'default' : 'outline'"
                 @click="showCreateForm = false"
               >
                 Вибрати існуючий
               </Button>
-              <Button
-                size="sm"
+              <Button size="small"
                 :variant="showCreateForm ? 'default' : 'outline'"
                 @click="showCreateForm = true"
               >
@@ -436,10 +423,10 @@ async function save() {
                     <span v-if="element.type === 'Dashboard'" class="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded shrink-0">Dashboard</span>
                   </div>
                   <div class="flex items-center gap-1">
-                    <Button variant="ghost" size="icon-sm" class="opacity-0 group-hover:opacity-100" @click="toggleExpand(index)">
+                    <Button text class="opacity-0 group-hover:opacity-100" @click="toggleExpand(index)">
                       <Settings2 class="size-4" />
                     </Button>
-                    <Button variant="ghost" size="icon-sm" class="text-destructive opacity-0 group-hover:opacity-100" @click="removeItem(index)">
+                    <Button text class="text-destructive opacity-0 group-hover:opacity-100" @click="removeItem(index)">
                       <Trash2 class="size-4" />
                     </Button>
                   </div>
@@ -468,11 +455,11 @@ async function save() {
 
                   <div v-if="element.type === 'DocType'" class="flex flex-wrap gap-6 pt-2">
                     <div class="flex items-center space-x-2">
-                      <Checkbox :id="'sc-' + index" :checked="element.show_count" @update:checked="element.show_count = $event" />
+                      <Checkbox binary :id="'sc-' + index" :model-value="element.show_count" @update:model-value="element.show_count = $event" />
                       <Label :for="'sc-' + index" class="text-xs font-normal">Показувати лічильник</Label>
                     </div>
                     <div class="flex items-center space-x-2">
-                      <Checkbox :id="'sn-' + index" :checked="element.show_new_btn" @update:checked="element.show_new_btn = $event" />
+                      <Checkbox binary :id="'sn-' + index" :model-value="element.show_new_btn" @update:model-value="element.show_new_btn = $event" />
                       <Label :for="'sn-' + index" class="text-xs font-normal">Кнопка "Створити"</Label>
                     </div>
                   </div>
@@ -492,14 +479,13 @@ async function save() {
         </div>
       </ScrollArea>
 
-      <DialogFooter class="px-6 py-4 border-t bg-muted/20">
-        <Button variant="ghost" @click="$emit('update:open', false)">Скасувати</Button>
-        <Button :disabled="isSaving" @click="save">
-          <Plus v-if="!isSaving" class="size-4 mr-1.5" />
-          Зберегти зміни
-        </Button>
-      </DialogFooter>
-    </DialogContent>
+    <template #footer>
+      <Button text @click="$emit('update:open', false)">Скасувати</Button>
+      <Button :disabled="isSaving" @click="save">
+        <Plus v-if="!isSaving" class="size-4 mr-1.5" />
+        Зберегти зміни
+      </Button>
+    </template>
   </Dialog>
 </template>
 

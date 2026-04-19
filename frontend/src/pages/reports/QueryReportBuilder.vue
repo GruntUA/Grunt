@@ -3,10 +3,10 @@ import { ref, watch, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/core/api/client'
 import { metaApi } from '@/core/api/meta'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { Input } from '@/components/ui/input'
 import Select from 'primevue/select'
-import { Badge } from '@/components/ui/badge'
+import Badge from 'primevue/badge'
 import {
     Plus, Search, Save, Play, Trash2, ChevronRight,
     Layout, Table as TableIcon, FileBarChart
@@ -192,7 +192,7 @@ const displayFields = computed(() => {
                             class="group flex flex-col gap-2 p-3 rounded-lg border bg-background hover:border-primary/30 transition-all shadow-sm">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2 min-w-0">
-                                    <Badge variant="outline"
+                                    <Badge
                                         class="h-5 px-1.5 text-[9px] font-bold uppercase opacity-50 shrink-0">{{
                                             col.fieldtype }}</Badge>
                                     <span class="text-sm font-semibold truncate">{{ col.label }}</span>
@@ -246,8 +246,7 @@ const displayFields = computed(() => {
 
             <!-- Sidebar Footer -->
             <div class="p-4 border-t flex flex-col gap-2 bg-muted/10">
-                <Button :disabled="previewLoading || !selectedDoctype || columns.length === 0" @click="runPreview"
-                    variant="secondary" class="w-full h-10 font-bold">
+                <Button :disabled="previewLoading || !selectedDoctype || columns.length === 0" @click="runPreview" severity="secondary" class="w-full h-10 font-bold">
                     <Play class="size-4 mr-2" :class="{ 'animate-pulse': previewLoading }" />
                     Переглянути
                 </Button>
@@ -257,7 +256,7 @@ const displayFields = computed(() => {
                         <Save class="size-4 mr-2" />
                         Зберегти
                     </Button>
-                    <Button variant="outline" class="h-10 px-3" @click="router.back()">Скасувати</Button>
+                    <Button outlined class="h-10 px-3" @click="router.back()">Скасувати</Button>
                 </div>
             </div>
         </aside>
@@ -282,7 +281,7 @@ const displayFields = computed(() => {
                     <h3 class="text-xl font-bold mb-2">Налаштуйте звіт</h3>
                     <p class="text-muted-foreground max-w-sm mb-6">Оберіть DocType та додайте стовпці у боковій панелі,
                         щоб побачити результат.</p>
-                    <Button variant="outline" @click="selectedDoctype = doctypes[0]?.name"
+                    <Button outlined @click="selectedDoctype = doctypes[0]?.name"
                         v-if="!selectedDoctype">Обрати перший доступний DocType</Button>
                 </div>
 

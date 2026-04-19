@@ -5,7 +5,7 @@ import { useDocTypeStore } from '@/stores/doctype'
 import { metaApi } from '@/core/api'
 import { useToast } from '@/core/composables/useToast'
 import type { DocType, WorkflowDef, WorkflowState, WorkflowTransition } from '@/types'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { Spinner } from '@/components/ui/spinner'
 import { Loader2 } from '@lucide/vue'
 import WorkflowStatePanel from './WorkflowStatePanel.vue'
@@ -233,9 +233,9 @@ function getTransitionMid(t: WorkflowTransition) {
         </div>
       </div>
       <div class="flex gap-2">
-        <Button variant="secondary" size="sm" @click="addState">+ Стан</Button>
-        <Button variant="secondary" size="sm" @click="addTransition">+ Перехід</Button>
-        <Button size="sm" :disabled="isSaving" @click="save"><Loader2 v-if="isSaving" class="size-4 animate-spin" />Зберегти</Button>
+        <Button severity="secondary" size="small" @click="addState">+ Стан</Button>
+        <Button severity="secondary" size="small" @click="addTransition">+ Перехід</Button>
+        <Button size="small" :disabled="isSaving" @click="save"><Loader2 v-if="isSaving" class="size-4 animate-spin" />Зберегти</Button>
       </div>
     </div>
 
@@ -254,7 +254,7 @@ function getTransitionMid(t: WorkflowTransition) {
         <p v-if="jsonError" class="text-sm text-destructive">{{ jsonError }}</p>
         <div class="flex gap-2">
           <Button @click="applyJson">Застосувати</Button>
-          <Button variant="secondary" @click="syncJsonText">Скинути</Button>
+          <Button severity="secondary" @click="syncJsonText">Скинути</Button>
         </div>
       </div>
 

@@ -7,10 +7,7 @@ import { useDocTypeStore } from '@/stores/doctype'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { useUIStore } from '@/stores/ui'
 import api from '@/core/api/client'
-import {
-    Dialog,
-    DialogContent,
-} from '@/components/ui/dialog'
+import Dialog from 'primevue/dialog'
 import {
     Search,
     Command,
@@ -226,8 +223,9 @@ const flatResults = computed(() => results.value)
 </script>
 
 <template>
-    <Dialog :open="uiStore.isCommandPaletteOpen" @update:open="uiStore.closeCommandPalette">
-        <DialogContent class="p-0 overflow-hidden max-w-2xl border-none shadow-2xl bg-card">
+    <Dialog :visible="uiStore.isCommandPaletteOpen" modal :show-header="false"
+        :pt="{ root: { class: 'max-w-2xl shadow-2xl bg-card border-0' }, content: { class: 'p-0 overflow-hidden rounded-xl' } }"
+        @update:visible="uiStore.closeCommandPalette">
             <div class="relative flex items-center border-b px-4 py-4">
                 <Search class="mr-3 h-5 w-5 shrink-0 opacity-50 text-primary" />
                 <input v-model="search" :placeholder="t('Search documents, apps or actions...')"
@@ -355,7 +353,6 @@ const flatResults = computed(() => results.value)
                     <span class="font-bold">K</span>
                 </div>
             </div>
-        </DialogContent>
     </Dialog>
 </template>
 

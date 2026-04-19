@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, nextTick } from 'vue'
-import { Checkbox } from '@/components/ui/checkbox'
+import Checkbox from 'primevue/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   ArrowUpDown,
@@ -118,7 +118,7 @@ function isSelected(id: string) {
       <thead v-if="!hideHeader">
         <tr class="border-b border-border/40 bg-muted/40 backdrop-blur-sm">
           <th class="w-10 px-4 py-3.5">
-            <Checkbox :model-value="allSelected || (rows.length > 0 && selectedIds.length === rows.length)"
+            <Checkbox binary :model-value="allSelected || (rows.length > 0 && selectedIds.length === rows.length)"
               @update:model-value="emit('selectAll')" class="bg-background" />
           </th>
           <th v-for="col in columns" :key="col.key"
@@ -146,7 +146,7 @@ function isSelected(id: string) {
           <td class="relative px-4 py-3" @click.stop>
             <div v-if="isSelected(String(row.id))"
               class="absolute left-0 top-0 bottom-0 w-0.5 bg-primary rounded-r-full pointer-events-none" />
-            <Checkbox :model-value="isSelected(String(row.id))" @update:model-value="emit('select', String(row.id))"
+            <Checkbox binary :model-value="isSelected(String(row.id))" @update:model-value="emit('select', String(row.id))"
               class="transition-transform duration-200" :class="{ 'scale-110': isSelected(String(row.id)) }" />
           </td>
           <td v-for="(col, ci) in columns" :key="col.key" class="px-4 py-3 text-[13px] max-w-xs break-words"

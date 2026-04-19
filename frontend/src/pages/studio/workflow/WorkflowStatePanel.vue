@@ -2,7 +2,7 @@
 import type { WorkflowState } from '@/types'
 import { Input } from '@/components/ui/input'
 import { Field, FieldLabel } from '@/components/ui/field'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 
 const props = defineProps<{ state: WorkflowState }>()
 const emit = defineEmits<{
@@ -54,7 +54,7 @@ function update(key: keyof WorkflowState, val: unknown) {
         />
         <span class="text-sm">Фінальний</span>
       </label>
-      <Button variant="destructive" size="sm" @click="emit('remove')">Видалити стан</Button>
+      <Button severity="danger" size="small" @click="emit('remove')">Видалити стан</Button>
     </div>
   </div>
 </template>

@@ -3,8 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import Button from 'primevue/button'
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSeparator } from '@/components/ui/field'
 import { Loader2, Sprout } from '@lucide/vue'
 
@@ -59,12 +58,12 @@ async function handleLogin() {
       </a>
 
       <!-- Card -->
-      <Card>
-        <CardHeader class="text-center">
-          <CardTitle class="text-xl">З поверненням</CardTitle>
-          <CardDescription>Увійдіть у свій акаунт</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm">
+        <div class="grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 text-center">
+          <h3 class="leading-none font-semibold text-xl">З поверненням</h3>
+          <p class="text-muted-foreground text-sm">Увійдіть у свій акаунт</p>
+        </div>
+        <div class="px-6">
           <form @submit.prevent="handleLogin">
             <FieldGroup>
               <!-- OAuth Google (shown only when configured) -->
@@ -123,8 +122,8 @@ async function handleLogin() {
               </Field>
             </FieldGroup>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <FieldDescription class="px-6 text-center">
         Натискаючи «Увійти», ви погоджуєтесь з нашими

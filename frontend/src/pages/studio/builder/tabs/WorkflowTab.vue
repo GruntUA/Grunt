@@ -2,13 +2,13 @@
 import { ref, computed } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import type { WorkflowState, WorkflowTransition, WorkflowStep, WorkflowStepType } from '@/types'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Select from 'primevue/select'
-import { Checkbox } from '@/components/ui/checkbox'
+import Checkbox from 'primevue/checkbox'
 import { Trash2, Plus, GitBranch, List, ChevronDown, GripVertical, X } from '@lucide/vue'
 import WorkflowGraph from '@/components/views/WorkflowGraph.vue'
 
@@ -229,8 +229,8 @@ function toggleNextStepMenu(id: string) {
         </div>
 
         <template v-if="view === 'graph'">
-          <Button variant="outline" size="sm" @click="addState">+ Стан</Button>
-          <Button variant="outline" size="sm" :disabled="workflow.states.length < 2" @click="addTransition">+ Перехід</Button>
+          <Button outlined size="small" @click="addState">+ Стан</Button>
+          <Button outlined size="small" :disabled="workflow.states.length < 2" @click="addTransition">+ Перехід</Button>
         </template>
       </template>
     </div>
@@ -247,7 +247,7 @@ function toggleNextStepMenu(id: string) {
           <div class="flex items-center gap-3 px-4 py-2.5 border-b bg-background shrink-0">
             <!-- Add step button with dropdown -->
             <div class="relative">
-              <Button size="sm" class="gap-1.5" @click="showAddMenu = !showAddMenu">
+              <Button size="small" class="gap-1.5" @click="showAddMenu = !showAddMenu">
                 <Plus class="w-3.5 h-3.5" /> Додати крок
                 <ChevronDown class="w-3 h-3" />
               </Button>
@@ -313,7 +313,7 @@ function toggleNextStepMenu(id: string) {
 
               <!-- Active checkbox -->
               <div class="flex justify-center" @click.stop>
-                <Checkbox :checked="step.is_active" @update:checked="toggleStepActive(step.id, $event)" />
+                <Checkbox binary :model-value="step.is_active" @update:model-value="toggleStepActive(step.id, $event)" />
               </div>
 
               <!-- Next steps -->
@@ -377,7 +377,7 @@ function toggleNextStepMenu(id: string) {
                 </div>
                 <div class="text-sm truncate pr-2 text-muted-foreground italic">{{ step.title || '—' }}</div>
                 <div class="flex justify-center" @click.stop>
-                  <Checkbox :checked="step.is_active" @update:checked="toggleStepActive(step.id, $event)" />
+                  <Checkbox binary :model-value="step.is_active" @update:model-value="toggleStepActive(step.id, $event)" />
                 </div>
                 <div class="flex items-center gap-1 text-amber-600 text-xs">
                   <span v-for="ns in stepNextStepObjects(step)" :key="ns.id"
@@ -480,7 +480,7 @@ function toggleNextStepMenu(id: string) {
             </div>
 
             <Separator />
-            <Button variant="destructive" size="sm" class="w-full" @click="removeStep(selectedStep.id)">
+            <Button severity="danger" size="small" class="w-full" @click="removeStep(selectedStep.id)">
               <Trash2 class="size-4 mr-1" /> Видалити крок
             </Button>
           </div>
@@ -533,15 +533,15 @@ function toggleNextStepMenu(id: string) {
                 @input="updateState(selectedStateIndex, 'color', ($event.target as HTMLInputElement).value)" />
             </div>
             <div class="flex items-center gap-2">
-              <Checkbox :checked="!!selectedState.is_initial" @update:checked="updateState(selectedStateIndex, 'is_initial', $event)" />
+              <Checkbox binary :model-value="!!selectedState.is_initial" @update:model-value="updateState(selectedStateIndex, 'is_initial', $event)" />
               <Label class="text-sm">Початковий</Label>
             </div>
             <div class="flex items-center gap-2">
-              <Checkbox :checked="!!selectedState.is_final" @update:checked="updateState(selectedStateIndex, 'is_final', $event)" />
+              <Checkbox binary :model-value="!!selectedState.is_final" @update:model-value="updateState(selectedStateIndex, 'is_final', $event)" />
               <Label class="text-sm">Фінальний</Label>
             </div>
             <Separator />
-            <Button variant="destructive" size="sm" @click="removeState(selectedStateIndex)">
+            <Button severity="danger" size="small" @click="removeState(selectedStateIndex)">
               <Trash2 class="size-4 mr-1" /> Видалити стан
             </Button>
           </div>
@@ -590,7 +590,7 @@ function toggleNextStepMenu(id: string) {
                 @update:model-value="updateTransition(selectedTransitionIndex, 'condition', $event || null)" />
             </div>
             <Separator />
-            <Button variant="destructive" size="sm" @click="removeTransition(selectedTransitionIndex)">
+            <Button severity="danger" size="small" @click="removeTransition(selectedTransitionIndex)">
               <Trash2 class="size-4 mr-1" /> Видалити перехід
             </Button>
           </div>

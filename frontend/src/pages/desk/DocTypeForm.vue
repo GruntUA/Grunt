@@ -109,15 +109,15 @@ onMounted(async () => {
 })
 
 // ── Shortcuts ────────────────────────────────────────────────────────────────
-useShortcut(['ctrl+s', 'cmd+s'], (e) => {
+useShortcut(['ctrl+s', 'cmd+s'], () => {
   handleSave()
 }, { preventDefault: true, allowInInput: true })
 
-useShortcut(['ctrl+p', 'cmd+p'], (e) => {
+useShortcut(['ctrl+p', 'cmd+p'], () => {
   window.print()
 }, { preventDefault: true, allowInInput: true })
 
-useShortcut(['escape'], (e) => {
+useShortcut(['escape'], () => {
   if (showDeleteModal.value || showLeaveModal.value || quickEntryDt.value) return
   if (showVersions.value) {
     showVersions.value = false

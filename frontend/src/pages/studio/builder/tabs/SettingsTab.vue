@@ -8,8 +8,8 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import Select from 'primevue/select'
 import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import Badge from 'primevue/badge'
+import Button from 'primevue/button'
 import { X } from '@lucide/vue'
 
 const builder = useBuilderStore()
@@ -405,7 +405,7 @@ function removeSearchField(fieldname: string) {
         <div v-if="searchFields.length" class="mb-2 flex flex-wrap gap-2">
           <Badge v-for="sf in searchFields" :key="sf" severity="secondary" class="flex items-center gap-1">
             {{ sf }}
-            <Button variant="ghost" size="icon" class="h-4 w-4 p-0 hover:bg-transparent" @click="removeSearchField(sf)">
+            <Button text class="h-4 w-4 p-0 hover:bg-transparent" @click="removeSearchField(sf)">
               <X class="h-3 w-3" />
             </Button>
           </Badge>

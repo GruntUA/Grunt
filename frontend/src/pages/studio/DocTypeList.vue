@@ -3,10 +3,10 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { metaApi } from '@/core/api'
 import type { DocTypeSummary } from '@/types'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { Input } from '@/components/ui/input'
 import { Field, FieldLabel, FieldError } from '@/components/ui/field'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import Dialog from 'primevue/dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { Loader2 } from '@lucide/vue'
 
@@ -82,39 +82,35 @@ async function createDocType() {
           <span class="text-xs px-2 py-0.5 bg-background rounded text-muted-foreground">{{ dt.module }}</span>
         </div>
         <p class="text-sm text-muted-foreground mb-4">{{ dt.module }}</p>
-        <Button size="sm" variant="secondary" @click="router.push(`/studio/${dt.name}/builder`)">Редагувати форму</Button>
+        <Button size="small" severity="secondary" @click="router.push(`/studio/${dt.name}/builder`)">Редагувати форму</Button>
       </div>
     </div>
 
-    <Dialog :open="showNewModal" @update:open="showNewModal = $event">
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Новий DocType</DialogTitle>
-        </DialogHeader>
-        <div class="flex flex-col gap-4">
-          <Field>
-            <FieldLabel>Назва (PascalCase) <span class="text-destructive">*</span></FieldLabel>
-            <Input v-model="newForm.name" placeholder="MyModel" />
-            <FieldError v-if="nameError">{{ nameError }}</FieldError>
-          </Field>
-          <Field>
-            <FieldLabel>Label (для відображення)</FieldLabel>
-            <Input v-model="newForm.label" :placeholder="newForm.name || 'My Model'" />
-          </Field>
-          <Field>
-            <FieldLabel>Модуль</FieldLabel>
-            <Input v-model="newForm.module" placeholder="core" />
-          </Field>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input v-model="newForm.is_child" type="checkbox" class="rounded" />
-            <span class="text-sm text-foreground">Child DocType (для Table поля)</span>
-          </label>
-        </div>
-        <DialogFooter>
-          <Button variant="secondary" @click="showNewModal = false">Скасувати</Button>
-          <Button :disabled="isSaving" @click="createDocType"><Loader2 v-if="isSaving" class="size-4 animate-spin" />Створити</Button>
-        </DialogFooter>
-      </DialogContent>
+    <Dialog v-model:visible="showNewModal" header="Новий DocType" modal
+      :pt="{ content: { class: 'p-0 px-6 pb-4 pt-4' } }">
+      <div class="flex flex-col gap-4">
+        <Field>
+          <FieldLabel>Назва (PascalCase) <span class="text-destructive">*</span></FieldLabel>
+          <Input v-model="newForm.name" placeholder="MyModel" />
+          <FieldError v-if="nameError">{{ nameError }}</FieldError>
+        </Field>
+        <Field>
+          <FieldLabel>Label (для відображення)</FieldLabel>
+          <Input v-model="newForm.label" :placeholder="newForm.name || 'My Model'" />
+        </Field>
+        <Field>
+          <FieldLabel>Модуль</FieldLabel>
+          <Input v-model="newForm.module" placeholder="core" />
+        </Field>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input v-model="newForm.is_child" type="checkbox" class="rounded" />
+          <span class="text-sm text-foreground">Child DocType (для Table поля)</span>
+        </label>
+      </div>
+      <template #footer>
+        <Button severity="secondary" @click="showNewModal = false">Скасувати</Button>
+        <Button :disabled="isSaving" @click="createDocType"><Loader2 v-if="isSaving" class="size-4 animate-spin" />Створити</Button>
+      </template>
     </Dialog>
   </div>
 </template>

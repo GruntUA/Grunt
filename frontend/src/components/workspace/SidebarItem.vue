@@ -6,7 +6,6 @@ import { Plus, Star, StarOff } from '@lucide/vue'
 import {
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuBadge,
 } from '@/components/ui/sidebar'
 import AppIcon from '@/components/AppIcon.vue'
 

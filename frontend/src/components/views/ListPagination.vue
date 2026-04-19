@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from '@lucide/vue'
 
 defineProps<{
@@ -21,19 +21,19 @@ const emit = defineEmits<{
         Сторінка {{ page }} з {{ pages }}
       </p>
       <div class="flex items-center gap-1">
-        <Button variant="outline" size="icon-sm" class="text-foreground" :disabled="page <= 1" title="Перша сторінка"
+        <Button outlined class="text-foreground" :disabled="page <= 1" title="Перша сторінка"
           @click="emit('update:page', 1)">
           <ChevronsLeft class="size-4" />
         </Button>
-        <Button variant="outline" size="icon-sm" class="text-foreground" :disabled="page <= 1" title="Попередня"
+        <Button outlined class="text-foreground" :disabled="page <= 1" title="Попередня"
           @click="emit('update:page', page - 1)">
           <ChevronLeft class="size-4" />
         </Button>
-        <Button variant="outline" size="icon-sm" class="text-foreground" :disabled="page >= pages" title="Наступна"
+        <Button outlined class="text-foreground" :disabled="page >= pages" title="Наступна"
           @click="emit('update:page', page + 1)">
           <ChevronRight class="size-4" />
         </Button>
-        <Button variant="outline" size="icon-sm" class="text-foreground" :disabled="page >= pages"
+        <Button outlined class="text-foreground" :disabled="page >= pages"
           title="Остання сторінка" @click="emit('update:page', pages)">
           <ChevronsRight class="size-4" />
         </Button>

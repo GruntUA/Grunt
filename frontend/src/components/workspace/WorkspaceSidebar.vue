@@ -150,9 +150,9 @@ watch(() => router.currentRoute.value.path, () => { if (wsStore.active) wsStore.
         </Menu>
 
         <button
-          class="group w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-sidebar-border bg-gradient-to-br from-sidebar via-sidebar to-primary/5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 relative overflow-hidden"
+          class="group w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-sidebar-border bg-linear-to-br from-sidebar via-sidebar to-primary/5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 relative overflow-hidden"
           @click="(e) => wsMenuRef?.toggle(e)">
-          <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+          <div class="absolute inset-0 bg-linear-to-tr from-transparent via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
           <div class="flex items-center gap-3 min-w-0 relative z-10">
             <div class="size-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-inner">
               <span class="text-xl leading-none filter drop-shadow-sm">{{ wsStore.active?.icon || '📁' }}</span>
@@ -288,10 +288,10 @@ watch(() => router.currentRoute.value.path, () => { if (wsStore.active) wsStore.
             {{ item.label }}
           </span>
           <a v-else v-bind="mp.action" class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-muted">
-            <component :is="THEME_ICONS[item.key]" v-if="THEME_ICONS[item.key]" class="size-3.5 text-muted-foreground shrink-0" />
+            <component :is="THEME_ICONS[item.key!]" v-if="item.key && THEME_ICONS[item.key]" class="size-3.5 text-muted-foreground shrink-0" />
             <LogOut v-else-if="item.key === 'logout'" class="size-4 text-muted-foreground shrink-0" />
             <span class="text-sm flex-1">{{ item.label }}</span>
-            <Check v-if="THEME_ICONS[item.key] && colorMode.currentTheme.value === item.key"
+            <Check v-if="item.key && THEME_ICONS[item.key] && colorMode.currentTheme.value === item.key"
               class="size-3 text-primary shrink-0" />
           </a>
         </template>

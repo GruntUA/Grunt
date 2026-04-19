@@ -16,12 +16,12 @@ import client from '@/core/api/client'
 export interface ScriptButton {
   label: string
   action: () => void | Promise<void>
-  variant?: string
+  severity?: string
 }
 
 /** Handle returned by listview.add_button — allows in-place updates. */
 export interface ScriptButtonHandle {
-  update: (updates: { label?: string; variant?: string }) => void
+  update: (updates: { label?: string; severity?: string }) => void
 }
 
 /** Callback registered via frm.set_query — returns filters for a link field. */

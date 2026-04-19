@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
 import { getExporters } from '@/core/io'
 import type { ExportContext } from '@/core/io'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,7 +72,7 @@ function handleNew() {
     </div>
     <div class="flex items-center gap-2.5">
       <!-- Refresh button -->
-      <Button variant="outline" size="icon-sm" class="text-foreground transition-all active:scale-95" :title="t('Refresh')"
+      <Button outlined class="text-foreground transition-all active:scale-95" :title="t('Refresh')"
         @click="emit('refresh')">
         <RefreshCw class="size-4" :class="{ 'animate-spin': isFetching }" />
       </Button>
@@ -80,7 +80,7 @@ function handleNew() {
       <!-- Actions menu -->
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
-          <Button variant="outline" size="icon-sm" class="text-foreground hover:bg-muted/80">
+          <Button outlined class="text-foreground hover:bg-muted/80">
             <MoreHorizontal class="size-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -130,9 +130,8 @@ function handleNew() {
       <!-- Custom buttons -->
       <Button
         v-for="btn in listButtons"
-        :key="btn.label"
-        :variant="(btn.variant as any) || 'outline'"
-        size="sm"
+        :key="btn.label" outlined size="small"
+        :severity="btn.severity"
         class="hidden sm:inline-flex shadow-sm"
         @click="btn.action()"
       >
@@ -140,7 +139,7 @@ function handleNew() {
       </Button>
 
       <!-- New button -->
-      <Button size="sm" class="px-4 shadow-md hover:shadow-lg transition-all active:scale-95 gap-1.5" @click="handleNew" :title="`${t('Add')} (Ctrl+N)`">
+      <Button size="small" class="px-4 shadow-md hover:shadow-lg transition-all active:scale-95 gap-1.5" @click="handleNew" :title="`${t('Add')} (Ctrl+N)`">
         <Plus class="size-4" />
         <span>{{ isSystemDocType ? 'New DocType' : t('Add') }}</span>
       </Button>

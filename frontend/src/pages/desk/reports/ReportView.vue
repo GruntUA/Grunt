@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { reportsApi } from '@/core/api/reports'
 import type { ReportDetail, ReportResult, ReportColumn } from '@/types'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { Spinner } from '@/components/ui/spinner'
 import { Loader2 } from '@lucide/vue'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -86,8 +86,8 @@ onMounted(load)
         </p>
       </div>
       <div class="flex gap-2">
-        <Button variant="secondary" :disabled="isRunning" @click="runReport"><Loader2 v-if="isRunning" class="size-4 animate-spin" />Оновити</Button>
-        <Button variant="secondary" @click="downloadXlsx">Excel ↓</Button>
+        <Button severity="secondary" :disabled="isRunning" @click="runReport"><Loader2 v-if="isRunning" class="size-4 animate-spin" />Оновити</Button>
+        <Button severity="secondary" @click="downloadXlsx">Excel ↓</Button>
       </div>
     </div>
 

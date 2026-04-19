@@ -9,9 +9,6 @@ import { docsApi } from '@/core/api/docs'
 import { getDashboardData } from '@/core/api/dashboards'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
 import WidgetConfigPanel from '@/components/dashboard/WidgetConfigPanel.vue'
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog'
 import type { DashboardWidget, WidgetType } from '@/types'
 import { useToast } from '@/core/composables/useToast'
 
@@ -361,7 +358,7 @@ const printPage = () => window.print()
       <div class="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-card shrink-0">
         <LayoutDashboard class="size-4 text-muted-foreground" />
         <span class="text-sm font-semibold">{{ dashboard?.label ?? dashboardName }}</span>
-        <span class="text-xs text-muted-foreground bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded">
+        <span class="text-xs font-medium bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded">
           Режим редагування
         </span>
         <div class="ml-auto flex items-center gap-2">
@@ -471,12 +468,9 @@ const printPage = () => window.print()
   </Teleport>
 
   <!-- ── Embed dialog ───────────────────────────────────────────────────────── -->
-  <Dialog v-model:open="showEmbedModal">
-    <DialogContent class="sm:max-w-[500px]">
-      <DialogHeader>
-        <DialogTitle>Вбудувати дашборд</DialogTitle>
-      </DialogHeader>
-      <div class="space-y-4 pt-2">
+  <Dialog v-model:visible="showEmbedModal" header="Вбудувати дашборд" modal
+    :pt="{ root: { class: 'sm:max-w-[500px]' }, content: { class: 'p-0 px-6 pb-6 pt-2' } }">
+    <div class="space-y-4">
         <div class="space-y-1.5">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Пряме посилання</label>
           <div class="flex gap-2">
@@ -498,7 +492,6 @@ const printPage = () => window.print()
           />
         </div>
       </div>
-    </DialogContent>
   </Dialog>
 </div>
 </template>

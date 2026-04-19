@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Badge } from '@/components/ui/badge'
+import Badge from 'primevue/badge'
 import type { DocField, DocTypeStatusConfig } from '@/types'
 
 const props = defineProps<{

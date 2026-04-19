@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DocField } from '@/types'
-import { Checkbox } from '@/components/ui/checkbox'
+import Checkbox from 'primevue/checkbox'
 import { Label } from '@/components/ui/label'
 import { useId } from 'vue'
 
@@ -18,6 +18,7 @@ const id = useId()
 <template>
   <div class="flex items-center gap-2">
     <Checkbox
+      binary
       :id="id"
       :model-value="!!modelValue"
       :disabled="disabled || field.read_only"

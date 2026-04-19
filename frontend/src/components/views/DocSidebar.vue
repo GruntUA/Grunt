@@ -2,7 +2,7 @@
 import { ref, useAttrs } from 'vue'
 import type { DocType, GruntDocument } from '@/types'
 import { docsApi } from '@/core/api/docs'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import {
   Tooltip,
   TooltipContent,
@@ -95,7 +95,7 @@ loadBookmark()
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger as-child>
-                    <Button variant="outline" size="icon" class="size-9 shrink-0"
+                    <Button outlined class="size-9 shrink-0"
                       :class="bookmark ? 'text-amber-500 border-amber-300 bg-amber-50 dark:bg-amber-950/30' : 'text-foreground'"
                       :disabled="bookmarkLoading"
                       @click="toggleBookmark">

@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { docsApi } from '@/core/api/docs'
 import { Spinner } from '@/components/ui/spinner'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import {
   ChevronRight, ChevronDown, Plus, FolderOpen,
   AlertCircle, RefreshCw
@@ -169,20 +169,20 @@ function countDescendants(node: TreeNode): number {
     <!-- Toolbar -->
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-2">
-        <Button variant="ghost" size="sm" @click="expandAll()">
+        <Button text size="small" @click="expandAll()">
           <ChevronDown class="size-3.5 mr-1" />
           Розгорнути все
         </Button>
-        <Button variant="ghost" size="sm" @click="collapseAll">
+        <Button text size="small" @click="collapseAll">
           <ChevronRight class="size-3.5 mr-1" />
           Згорнути все
         </Button>
       </div>
       <div class="flex items-center gap-2">
-        <Button variant="ghost" size="icon-sm" :title="t('Refresh')" @click="loadAll">
+        <Button text :title="t('Refresh')" @click="loadAll">
           <RefreshCw class="size-4" :class="{ 'animate-spin': loading }" />
         </Button>
-        <Button size="sm" @click="createRoot">
+        <Button size="small" @click="createRoot">
           <Plus class="size-4 mr-1.5" />
           Новий кореневий
         </Button>
@@ -198,14 +198,14 @@ function countDescendants(node: TreeNode): number {
     <div v-else-if="error" class="flex items-center gap-3 p-4 rounded-lg bg-destructive/10 text-destructive text-sm">
       <AlertCircle class="size-4 flex-shrink-0" />
       {{ error }}
-      <Button variant="ghost" size="sm" class="ml-auto" @click="loadAll">{{ t('Retry') }}</Button>
+      <Button text size="small" class="ml-auto" @click="loadAll">{{ t('Retry') }}</Button>
     </div>
 
     <!-- Empty -->
     <div v-else-if="!loading && !allDocs.length" class="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
       <FolderOpen class="size-12 opacity-30" />
       <p class="text-sm">Записів поки немає</p>
-      <Button size="sm" @click="createRoot">
+      <Button size="small" @click="createRoot">
         <Plus class="size-4 mr-1.5" />
         Створити перший
       </Button>

@@ -10,7 +10,7 @@ import {
     AlertCircle,
     ExternalLink
 } from '@lucide/vue'
-import { Badge } from '@/components/ui/badge'
+import Badge from 'primevue/badge'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 

@@ -5,8 +5,8 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { DocType } from '@/types'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import Button from 'primevue/button'
+import Badge from 'primevue/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -121,18 +121,18 @@ function handleUndo() {
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <!-- Client script buttons -->
-        <Button v-for="btn in scriptButtons" :key="btn.label" :variant="(btn.variant as any) ?? 'outline'" size="sm"
-          @click="btn.action" class="hidden sm:inline-flex">
+        <Button v-for="btn in scriptButtons" :key="btn.label" outlined size="small"
+          :severity="btn.severity" @click="btn.action" class="hidden sm:inline-flex">
           {{ btn.label }}
         </Button>
 
-        <Button v-if="id" variant="outline" size="icon-sm" class="text-foreground" :title="t('Refresh')"
+        <Button v-if="id" outlined class="text-foreground" :title="t('Refresh')"
           :disabled="isDirty || isLoading"
           @click="handleRefresh">
           <RefreshCw class="size-4" :class="{ 'animate-spin': isLoading }" />
         </Button>
 
-        <Button :disabled="isSaving" size="sm" @click="emit('save')" class="shadow-sm hover:shadow-md transition-shadow" :title="`${t('Save')} (Ctrl+S)`">
+        <Button :disabled="isSaving" size="small" @click="emit('save')" class="shadow-sm hover:shadow-md transition-shadow" :title="`${t('Save')} (Ctrl+S)`">
           <Loader2 v-if="isSaving" class="size-4 animate-spin mr-1.5" />
           {{ t('Save') }}
         </Button>
@@ -140,7 +140,7 @@ function handleUndo() {
         <!-- Context menu -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="icon-sm" class="text-foreground hover:bg-muted/80">
+            <Button text class="text-foreground hover:bg-muted/80">
               <EllipsisVertical class="size-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -250,8 +250,8 @@ function handleUndo() {
             />
           </div>
           <div class="flex justify-end gap-2">
-            <Button variant="outline" size="sm" @click="showShareDialog = false">{{ t('Cancel') }}</Button>
-            <Button size="sm" :disabled="shareLoading" @click="createShare">
+            <Button outlined size="small" @click="showShareDialog = false">{{ t('Cancel') }}</Button>
+            <Button size="small" :disabled="shareLoading" @click="createShare">
               <Loader2 v-if="shareLoading" class="size-3.5 mr-1.5 animate-spin" />
               {{ t('Generate link') }}
             </Button>
@@ -265,7 +265,7 @@ function handleUndo() {
               readonly
               class="flex-1 h-9 px-3 text-xs rounded-md border border-border bg-muted font-mono focus:outline-none"
             />
-            <Button variant="outline" size="sm" @click="copyShareLink" class="shrink-0">
+            <Button outlined size="small" @click="copyShareLink" class="shrink-0">
               <Copy class="size-3.5" />
             </Button>
           </div>
@@ -274,8 +274,8 @@ function handleUndo() {
             <a :href="`/${props.workspace ?? 'grunt'}/list/DocumentShare`" target="_blank" class="text-primary hover:underline ml-1">{{ t('Manage shares') }} →</a>
           </p>
           <div class="flex justify-end gap-2">
-            <Button variant="outline" size="sm" @click="shareLink = null; shareExpires = ''">{{ t('New link') }}</Button>
-            <Button size="sm" @click="showShareDialog = false">{{ t('Done') }}</Button>
+            <Button outlined size="small" @click="shareLink = null; shareExpires = ''">{{ t('New link') }}</Button>
+            <Button size="small" @click="showShareDialog = false">{{ t('Done') }}</Button>
           </div>
         </template>
       </div>

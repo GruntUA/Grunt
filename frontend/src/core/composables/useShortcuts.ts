@@ -1,5 +1,4 @@
 import { onKeyStroke } from '@vueuse/core'
-import { unref } from 'vue'
 
 type Key = string | string[]
 

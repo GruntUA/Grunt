@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { DocField } from '@/types'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { MapPin } from '@lucide/vue'
 
 const props = defineProps<{
@@ -78,9 +78,7 @@ function locate() {
     </div>
     <Button
       v-if="!disabled && !field.read_only"
-      type="button"
-      variant="outline"
-      size="sm"
+      type="button" outlined size="small"
       :disabled="isLocating"
       @click="locate"
     >

@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { authAdminApi } from '@/core/api/auth-admin'
 import { useDocTypeStore } from '@/stores/doctype'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { Spinner } from '@/components/ui/spinner'
 import { Loader2 } from '@lucide/vue'
 
@@ -80,7 +80,7 @@ onMounted(async () => {
             class="w-full text-sm border border-border rounded-sm px-2 py-1.5 focus:outline-none focus:border-primary"
             @keydown.enter="createRole"
           />
-          <Button size="sm" :disabled="isCreating" @click="createRole"><Loader2 v-if="isCreating" class="size-4 animate-spin" />Додати роль</Button>
+          <Button size="small" :disabled="isCreating" @click="createRole"><Loader2 v-if="isCreating" class="size-4 animate-spin" />Додати роль</Button>
         </div>
       </div>
 

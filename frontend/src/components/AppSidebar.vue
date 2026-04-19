@@ -21,7 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import PvAvatar from 'primevue/avatar'
 import {
   Home,
   Search,
@@ -81,7 +81,9 @@ function loadPinned() {
   } catch { pinnedItems.value = [] }
 }
 
-function handleUnpin(item: { name: string; url: string; icon: string }) {
+import type { Component } from 'vue'
+
+function handleUnpin(item: { name: string; url: string; icon: string | Component }) {
   const parts = item.url.split('/')
   const workspace = parts[1] ?? ''
   const link_to = parts[parts.length - 1] ?? ''
@@ -176,12 +178,12 @@ async function handleLogout() {
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <SidebarMenuButton size="lg" :tooltip="auth.user?.full_name" class="h-auto py-1.5">
-                <Avatar class="size-7 rounded-md bg-primary shrink-0">
-                  <AvatarImage :src="auth.user?.avatar || ''" />
-                  <AvatarFallback class="text-primary-foreground text-xs font-medium bg-transparent">
-                    {{ auth.user ? initials(auth.user.full_name) : '?' }}
-                  </AvatarFallback>
-                </Avatar>
+                <PvAvatar
+                  :image="auth.user?.avatar || undefined"
+                  :label="auth.user ? initials(auth.user.full_name) : '?'"
+                  shape="square"
+                  :pt="{ root: { class: 'size-7 !rounded-md bg-primary shrink-0 text-primary-foreground text-xs font-medium' } }"
+                />
                 <div class="flex-1 text-left min-w-0 group-data-[collapsible=icon]:hidden">
                   <p class="text-sm font-medium truncate leading-tight">{{ auth.user?.full_name }}</p>
                   <p class="text-[11px] text-muted-foreground truncate leading-tight">{{ auth.user?.email }}</p>

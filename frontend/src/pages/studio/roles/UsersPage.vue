@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { authAdminApi } from '@/core/api/auth-admin'
 import type { UserPublic } from '@/types'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { Spinner } from '@/components/ui/spinner'
 import { Loader2 } from '@lucide/vue'
 
@@ -81,12 +81,12 @@ onMounted(loadUsers)
               <input v-model="newRole" type="text" placeholder="Назва ролі"
                 class="text-sm border border-border rounded-sm px-2 py-1 focus:outline-none focus:border-primary"
                 @keydown.enter="addRole(user.id)" />
-              <Button size="sm" :disabled="isSubmitting" @click="addRole(user.id)">
+              <Button size="small" :disabled="isSubmitting" @click="addRole(user.id)">
                 <Loader2 v-if="isSubmitting" class="size-4 animate-spin" />Додати
               </Button>
-              <Button size="sm" variant="ghost" @click="selectedUserId = ''">Скасувати</Button>
+              <Button size="small" text @click="selectedUserId = ''">Скасувати</Button>
             </div>
-            <Button v-else size="sm" variant="ghost" @click="selectedUserId = user.id; newRole = ''">+ Роль</Button>
+            <Button v-else size="small" text @click="selectedUserId = user.id; newRole = ''">+ Роль</Button>
           </div>
         </div>
       </div>

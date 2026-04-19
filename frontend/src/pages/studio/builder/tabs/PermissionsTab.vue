@@ -9,9 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Checkbox } from '@/components/ui/checkbox'
+import Checkbox from 'primevue/checkbox'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import Select from 'primevue/select'
 import {
   DropdownMenu,
@@ -107,42 +107,42 @@ function addRole() {
           <TableRow v-for="(perm, i) in permissions" :key="i">
             <TableCell class="font-medium">{{ perm.role }}</TableCell>
             <TableCell class="text-center">
-              <Checkbox
-                :checked="!!perm.read"
-                @update:checked="builder.updatePermission(i, { read: $event })"
+              <Checkbox binary
+                :model-value="!!perm.read"
+                @update:model-value="builder.updatePermission(i, { read: $event })"
               />
             </TableCell>
             <TableCell class="text-center">
-              <Checkbox
-                :checked="!!perm.write"
-                @update:checked="builder.updatePermission(i, { write: $event })"
+              <Checkbox binary
+                :model-value="!!perm.write"
+                @update:model-value="builder.updatePermission(i, { write: $event })"
               />
             </TableCell>
             <TableCell class="text-center">
-              <Checkbox
-                :checked="!!perm.create"
-                @update:checked="builder.updatePermission(i, { create: $event })"
+              <Checkbox binary
+                :model-value="!!perm.create"
+                @update:model-value="builder.updatePermission(i, { create: $event })"
               />
             </TableCell>
             <TableCell class="text-center">
-              <Checkbox
-                :checked="!!perm.delete"
-                @update:checked="builder.updatePermission(i, { delete: $event })"
+              <Checkbox binary
+                :model-value="!!perm.delete"
+                @update:model-value="builder.updatePermission(i, { delete: $event })"
               />
             </TableCell>
             <TableCell
               v-if="builder.doctype?.is_submittable"
               class="text-center"
             >
-              <Checkbox
-                :checked="!!perm.submit"
-                @update:checked="builder.updatePermission(i, { submit: $event })"
+              <Checkbox binary
+                :model-value="!!perm.submit"
+                @update:model-value="builder.updatePermission(i, { submit: $event })"
               />
             </TableCell>
             <TableCell class="text-center">
-              <Checkbox
-                :checked="!!perm.report"
-                @update:checked="builder.updatePermission(i, { report: $event })"
+              <Checkbox binary
+                :model-value="!!perm.report"
+                @update:model-value="builder.updatePermission(i, { report: $event })"
               />
             </TableCell>
             <TableCell>
@@ -158,7 +158,7 @@ function addRole() {
                 <template v-if="availableFields.length">
                   <DropdownMenu>
                     <DropdownMenuTrigger as-child>
-                      <Button variant="outline" size="sm" class="h-7 text-xs">
+                      <Button outlined size="small" class="h-7 text-xs">
                         {{ (perm.hidden_fields ?? []).length
                             ? `${(perm.hidden_fields ?? []).length} приховано`
                             : 'Всі видимі' }}
@@ -170,8 +170,8 @@ function addRole() {
                       <DropdownMenuCheckboxItem
                         v-for="field in availableFields"
                         :key="field.value"
-                        :checked="(perm.hidden_fields ?? []).includes(field.value)"
-                        @update:checked="toggleHiddenField(i, field.value)"
+                        :model-value="(perm.hidden_fields ?? []).includes(field.value)"
+                        @update:model-value="toggleHiddenField(i, field.value)"
                       >
                         {{ field.label }}
                       </DropdownMenuCheckboxItem>
@@ -182,9 +182,7 @@ function addRole() {
               </div>
             </TableCell>
             <TableCell>
-              <Button
-                variant="ghost"
-                size="icon-sm"
+              <Button text
                 @click="builder.removePermission(i)"
               >
                 <Trash2 class="size-4" />

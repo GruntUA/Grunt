@@ -3,8 +3,8 @@ import { ref, onMounted, computed } from 'vue'
 import type { DocType } from '@/types'
 import { docsApi } from '@/core/api/docs'
 import type { WorkflowTransitionItem } from '@/core/api/docs'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import Badge from 'primevue/badge'
+import Button from 'primevue/button'
 import { Loader2 } from '@lucide/vue'
 
 const props = defineProps<{
@@ -72,13 +72,11 @@ onMounted(loadTransitions)
     class="flex items-center gap-3 px-6 py-3 border-t border-border/50 bg-muted/30"
   >
     <span class="text-sm text-muted-foreground">Стан:</span>
-    <Badge variant="outline" :class="stateBadge.colorClass">{{ stateBadge.label }}</Badge>
+    <Badge :class="stateBadge.colorClass">{{ stateBadge.label }}</Badge>
     <div class="flex gap-2 ml-2">
       <Button
         v-for="t in transitions"
-        :key="t.action"
-        variant="secondary"
-        size="sm"
+        :key="t.action" severity="secondary" size="small"
         :disabled="isLoading"
         @click="apply(t.action)"
       >

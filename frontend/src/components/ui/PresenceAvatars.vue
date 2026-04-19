@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import PvAvatar from 'primevue/avatar'
 
 const props = withDefaults(
   defineProps<{
@@ -29,14 +29,11 @@ const hidden = computed(() => Math.max(0, props.users.length - props.max))
         class="relative transition-transform duration-200 hover:scale-110 hover:z-20 cursor-default">
         <Tooltip>
           <TooltipTrigger as-child>
-            <Avatar class="size-7 border-2 border-background ring-2 ring-transparent group-hover:ring-white/10 shadow-sm transition-all">
-              <AvatarFallback
-                class="text-[10px] font-bold text-white text-center flex items-center justify-center p-0 m-0"
-                :style="{ backgroundColor: user.color }"
-              >
-                {{ initials(user.full_name) }}
-              </AvatarFallback>
-            </Avatar>
+            <PvAvatar
+              :label="initials(user.full_name)"
+              shape="circle"
+              :pt="{ root: { class: 'size-7 border-2 border-background ring-2 ring-transparent group-hover:ring-white/10 shadow-sm transition-all text-[10px] font-bold text-white', style: { backgroundColor: user.color } } }"
+            />
           </TooltipTrigger>
           <TooltipContent side="bottom" class="text-xs">
             <p class="font-bold">{{ user.full_name }}</p>
@@ -46,11 +43,12 @@ const hidden = computed(() => Math.max(0, props.users.length - props.max))
       </div>
 
       <!-- Overflow indicator -->
-      <Avatar v-if="hidden > 0" class="size-7 border-2 border-background z-0">
-        <AvatarFallback class="bg-muted text-[10px] font-bold text-muted-foreground flex items-center justify-center p-0">
-          +{{ hidden }}
-        </AvatarFallback>
-      </Avatar>
+      <PvAvatar
+        v-if="hidden > 0"
+        :label="`+${hidden}`"
+        shape="circle"
+        :pt="{ root: { class: 'size-7 border-2 border-background z-0 bg-muted text-[10px] font-bold text-muted-foreground' } }"
+      />
     </div>
   </TooltipProvider>
 </template>

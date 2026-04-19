@@ -2,8 +2,8 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField, ActiveFilter } from '@/types'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import Button from 'primevue/button'
+import Badge from 'primevue/badge'
 import { Input } from '@/components/ui/input'
 import {
   Popover,
@@ -193,9 +193,7 @@ function chipLabel(f: ActiveFilter): string {
     <!-- Add filter / edit popover -->
     <Popover v-model:open="showDropdown">
       <PopoverTrigger as-child>
-        <Button
-          variant="ghost"
-          size="sm"
+        <Button text size="small"
           class="h-7 text-xs border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
         >
           <Filter class="size-3 mr-1" />
@@ -262,7 +260,7 @@ function chipLabel(f: ActiveFilter): string {
             @submit="applyFilter"
           />
 
-          <Button size="sm" class="w-full" :disabled="!pickedValue" @click="applyFilter">
+          <Button size="small" class="w-full" :disabled="!pickedValue" @click="applyFilter">
             {{ editingIndex !== null ? 'Зберегти зміни' : t('Apply') }}
           </Button>
         </template>
@@ -282,13 +280,13 @@ function chipLabel(f: ActiveFilter): string {
               @keydown.enter="savePreset"
               @keydown.escape="showSaveName = false"
             />
-            <Button size="sm" class="h-7 px-2 text-xs" @click="savePreset">OK</Button>
+            <Button size="small" class="h-7 px-2 text-xs" @click="savePreset">OK</Button>
             <button type="button" class="text-muted-foreground hover:text-foreground" @click="showSaveName = false">
               <X class="size-3.5" />
             </button>
           </div>
         </template>
-        <Button v-else variant="ghost" size="sm" class="h-7 text-xs text-muted-foreground hover:text-foreground" @click="showSaveName = true">
+        <Button v-else text size="small" class="h-7 text-xs text-muted-foreground hover:text-foreground" @click="showSaveName = true">
           <Bookmark class="size-3 mr-1" />
           {{ t('Save') }}
         </Button>
@@ -296,7 +294,7 @@ function chipLabel(f: ActiveFilter): string {
 
       <DropdownMenu v-if="savedPresets.length">
         <DropdownMenuTrigger as-child>
-          <Button variant="ghost" size="sm" class="h-7 text-xs text-muted-foreground hover:text-foreground">
+          <Button text size="small" class="h-7 text-xs text-muted-foreground hover:text-foreground">
             Пресети
             <ChevronDown class="size-3 ml-1" />
           </Button>

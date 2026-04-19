@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Select from 'primevue/select'
 import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import Badge from 'primevue/badge'
+import Button from 'primevue/button'
 import { X, List, FileText, Columns3, Calendar, Plus, CircleDot, Network } from '@lucide/vue'
 import type { StatusIndicator } from '@/types'
 
@@ -331,7 +331,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
         <div class="space-y-2">
           <div class="flex items-center justify-between">
             <Label class="text-xs text-muted-foreground">Індикатори</Label>
-            <Button variant="outline" size="sm" class="h-7 px-2.5 text-xs gap-1" @click="addIndicator">
+            <Button outlined size="small" class="h-7 px-2.5 text-xs gap-1" @click="addIndicator">
               <Plus class="size-3" />
               Додати
             </Button>
@@ -545,7 +545,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
         <div class="space-y-3 pt-1">
           <div class="flex items-center justify-between">
             <Label class="text-xs font-medium text-muted-foreground">Додаткові джерела</Label>
-            <Button variant="outline" size="sm" class="h-7 px-2.5 text-xs gap-1" @click="addCalendarSource">
+            <Button outlined size="small" class="h-7 px-2.5 text-xs gap-1" @click="addCalendarSource">
               <Plus class="size-3" />
               Додати
             </Button>

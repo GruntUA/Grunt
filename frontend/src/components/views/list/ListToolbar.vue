@@ -15,8 +15,8 @@ import {
   Map as MapIcon,
 } from '@lucide/vue'
 import draggable from 'vuedraggable'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import Button from 'primevue/button'
+import Badge from 'primevue/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,7 +84,7 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
           :placeholder="t('Search...')" />
       </div>
       <FilterBar v-if="dt" :fields="dt.fields" :doctype="doctype" :initial-filters="activeFilters" @change="onFiltersChange" class="!mb-0" />
-      <Button v-if="inlineSearch || activeFilters.length" variant="ghost" size="sm"
+      <Button v-if="inlineSearch || activeFilters.length" text size="small"
         class="h-8 px-2 text-muted-foreground hover:text-foreground" @click="emit('reset')">
         <X class="size-4 mr-1" />
         {{ t('Reset') }}
@@ -97,7 +97,7 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
         <!-- Columns dropdown -->
         <DropdownMenu v-model:open="showColMenu">
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="sm" class="h-9 px-2.5 gap-2 font-medium" :class="columns.isCustomized.value
+            <Button text size="small" class="h-9 px-2.5 gap-2 font-medium" :class="columns.isCustomized.value
               ? 'text-primary bg-primary/5'
               : 'text-muted-foreground hover:text-foreground'">
               <Columns3 class="size-4" />
@@ -148,7 +148,7 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
         <!-- Group by dropdown -->
         <DropdownMenu v-if="groupableFields.length">
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="sm" class="h-9 px-2.5 gap-2 font-medium"
+            <Button text size="small" class="h-9 px-2.5 gap-2 font-medium"
               :class="groupBy ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground'">
               <Rows3 class="size-4" />
               <span class="hidden lg:inline">{{ groupBy ? groupByField?.label : 'Групування' }}</span>

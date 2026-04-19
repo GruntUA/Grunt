@@ -2,7 +2,7 @@
 import type { HTMLAttributes } from "vue"
 import { ViewVerticalIcon } from '@radix-icons/vue'
 import { cn } from "@/lib/utils"
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { useSidebar } from "./utils"
 
 const props = defineProps<{
@@ -15,9 +15,7 @@ const { toggleSidebar } = useSidebar()
 <template>
   <Button
     data-sidebar="trigger"
-    data-slot="sidebar-trigger"
-    variant="ghost"
-    size="icon"
+    data-slot="sidebar-trigger" text
     :class="cn('h-7 w-7', props.class)"
     @click="toggleSidebar"
   >

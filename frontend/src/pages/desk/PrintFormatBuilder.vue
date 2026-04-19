@@ -6,7 +6,7 @@ import { docsApi } from '@/core/api/docs'
 import { useToast } from '@/core/composables/useToast'
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 import client from '@/core/api/client'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import Select from 'primevue/select'
 import { Loader2, Save, Eye, EyeOff, RefreshCw, ChevronLeft, FileText } from '@lucide/vue'
 import type { GruntDocument } from '@/types'
@@ -229,18 +229,18 @@ onMounted(async () => {
           class="w-40"
         />
 
-        <Button variant="outline" size="sm" class="h-8 text-foreground" @click="resetToDefault">
+        <Button outlined size="small" class="h-8 text-foreground" @click="resetToDefault">
           <RefreshCw class="size-3.5 mr-1.5" />
           Скинути
         </Button>
 
-        <Button variant="outline" size="sm" class="h-8 text-foreground" @click="showPreview = !showPreview">
+        <Button outlined size="small" class="h-8 text-foreground" @click="showPreview = !showPreview">
           <EyeOff v-if="showPreview" class="size-3.5 mr-1.5" />
           <Eye v-else class="size-3.5 mr-1.5" />
           {{ showPreview ? 'Сховати' : 'Показати' }} preview
         </Button>
 
-        <Button size="sm" class="h-8" :disabled="isSaving" @click="save">
+        <Button size="small" class="h-8" :disabled="isSaving" @click="save">
           <Loader2 v-if="isSaving" class="size-3.5 animate-spin mr-1.5" />
           <Save v-else class="size-3.5 mr-1.5" />
           Зберегти

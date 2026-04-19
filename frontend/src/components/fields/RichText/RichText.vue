@@ -10,7 +10,7 @@ import { TableKit } from '@tiptap/extension-table'
 
 import { Toggle } from '@/components/ui/toggle'
 import { Separator } from '@/components/ui/separator'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
@@ -217,8 +217,8 @@ const wordCount = () => editor.value?.storage.characterCount.words() ?? 0
           <div class="flex gap-2">
             <Input v-model="linkUrl" placeholder="https://…" class="h-8 text-sm"
               @keydown.enter.prevent="applyLink" @keydown.escape="linkOpen = false" />
-            <Button size="sm" class="h-8 px-3" @click="applyLink">OK</Button>
-            <Button v-if="editor.isActive('link')" size="sm" variant="ghost" class="h-8 px-2" @click="removeLink">
+            <Button size="small" class="h-8 px-3" @click="applyLink">OK</Button>
+            <Button v-if="editor.isActive('link')" size="small" text class="h-8 px-2" @click="removeLink">
               <Link2Off class="size-4" />
             </Button>
           </div>
@@ -237,7 +237,7 @@ const wordCount = () => editor.value?.storage.characterCount.words() ?? 0
           <div class="flex gap-2 mb-2">
             <Input v-model="imageUrl" placeholder="https://…" class="h-8 text-sm"
               @keydown.enter.prevent="insertImageUrl" @keydown.escape="imageOpen = false" />
-            <Button size="sm" class="h-8 px-3" @click="insertImageUrl">OK</Button>
+            <Button size="small" class="h-8 px-3" @click="insertImageUrl">OK</Button>
           </div>
           <label class="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors">
             <Upload class="size-3.5" />

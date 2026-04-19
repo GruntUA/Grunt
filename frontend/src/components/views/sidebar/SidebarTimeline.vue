@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import {
   MessageSquare,
   Activity,
@@ -207,7 +207,7 @@ onMounted(loadTimeline)
           </button>
         </div>
       </div>
-      <Button size="sm" :disabled="!commentInput.trim() || commentSending" @click="sendComment" class="self-end">
+      <Button size="small" :disabled="!commentInput.trim() || commentSending" @click="sendComment" class="self-end">
         <Loader2 v-if="commentSending" class="size-3.5 animate-spin mr-1.5" />
         <Send v-else class="size-3.5 mr-1.5" />
         Надіслати

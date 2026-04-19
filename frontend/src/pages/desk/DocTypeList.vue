@@ -24,7 +24,6 @@ import type { ExportContext } from '@/core/io'
 import { getFieldDef } from '@/core/fieldRegistry'
 
 // Shared UI components
-import { Dialog, DialogContent } from '@/components/ui/dialog'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import BulkActionBar from '@/components/views/BulkActionBar.vue'
 import DataTable from '@/components/views/DataTable.vue'
@@ -152,7 +151,7 @@ onMounted(async () => {
   })
   const listview = createListViewProxy(props.doctype, {
     addButton(label, action, options) {
-      const btn: ScriptButton = { label, action, variant: options?.variant }
+      const btn: ScriptButton = { label, action, severity: options?.variant }
       const idx = listButtons.value.push(btn) - 1
       return { update(updates) { listButtons.value[idx] = { ...listButtons.value[idx], ...updates } } }
     },
@@ -462,8 +461,8 @@ function navigateToDoc(row: Record<string, unknown>) {
       @close="showQuickEntry = false" @saved="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })" />
 
     <!-- Bulk delete progress dialog -->
-    <Dialog :open="deleteProgress.active" :modal="true">
-      <DialogContent class="max-w-sm" hide-close>
+    <Dialog :visible="deleteProgress.active" modal :closable="false" :show-header="false"
+      :pt="{ root: { class: 'max-w-sm' }, content: { class: 'p-6' } }">
         <div class="flex flex-col gap-4 py-2">
           <div class="flex items-center gap-3">
             <div
@@ -490,7 +489,6 @@ function navigateToDoc(row: Record<string, unknown>) {
             Помилок: {{ deleteProgress.errors }}
           </p>
         </div>
-      </DialogContent>
     </Dialog>
   </div>
 </template>

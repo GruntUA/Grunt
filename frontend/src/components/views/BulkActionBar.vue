@@ -1,17 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Button } from '@/components/ui/button'
-import PvDialog from 'primevue/dialog'
-import PvButton from 'primevue/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
 import Select from 'primevue/select'
 import { Trash2, X, Pencil, Loader2 } from '@lucide/vue'
 import type { DocField } from '@/types'
@@ -86,13 +77,13 @@ async function submitUpdate() {
       Вибрати всі {{ total }} записів
     </button>
 
-    <Button variant="outline" size="sm" class="text-foreground" @click="openUpdateModal"
+    <Button outlined size="small" class="text-foreground" @click="openUpdateModal"
       :disabled="!updatableFields.length">
       <Pencil class="size-3.5 mr-1" />
       {{ t('Edit field') }}
     </Button>
 
-    <Button variant="destructive" size="sm" @click="showDeleteModal = true">
+    <Button severity="danger" size="small" @click="showDeleteModal = true">
       <Trash2 class="size-3.5 mr-1" />
       {{ t('Delete') }}{{ allSelected ? ' всі' : '' }}
     </Button>
@@ -103,60 +94,53 @@ async function submitUpdate() {
     </button>
 
     <!-- Delete confirmation -->
-    <PvDialog
-      :visible="showDeleteModal"
-      :modal="true"
-      :closable="false"
-      :style="{ width: '400px' }"
-      @update:visible="showDeleteModal = $event"
-    >
+    <Dialog v-model:visible="showDeleteModal" modal :closable="false"
+      :pt="{ root: { class: 'max-w-sm' }, content: { class: 'p-0 px-6 pb-4 pt-2' } }">
       <template #header>
         <span class="font-semibold text-base">{{ t('Delete selected records?') }}</span>
       </template>
       <p class="text-sm text-muted-foreground">Буде видалено {{ displayCount }} записів. Цю дію не можна скасувати.</p>
       <template #footer>
-        <PvButton severity="secondary" text @click="showDeleteModal = false">{{ t('Cancel') }}</PvButton>
-        <PvButton severity="danger" @click="showDeleteModal = false; emit('delete')">{{ t('Delete') }}</PvButton>
+        <Button severity="secondary" text @click="showDeleteModal = false">{{ t('Cancel') }}</Button>
+        <Button severity="danger" @click="showDeleteModal = false; emit('delete')">{{ t('Delete') }}</Button>
       </template>
-    </PvDialog>
+    </Dialog>
 
     <!-- Bulk update dialog -->
-    <Dialog :open="showUpdateModal" @update:open="showUpdateModal = $event">
-      <DialogContent class="max-w-sm">
-        <DialogHeader>
-          <DialogTitle class="flex items-center gap-2">
-            <Pencil class="size-4" />
-            {{ t('Edit field for {count} records', { count: displayCount }) }}
-          </DialogTitle>
-          <DialogDescription class="sr-only">Оберіть поле і введіть нове значення</DialogDescription>
-        </DialogHeader>
-        <div class="flex flex-col gap-3 py-1">
-          <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium text-foreground">Поле</label>
-            <Select
-              v-model="updateField"
-              :options="updatableFields"
-              option-label="label"
-              option-value="fieldname"
-              :placeholder="t('Select field...')"
-              class="w-full"
-            />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium text-foreground">{{ t('New value') }}</label>
-            <input v-model="updateValue" :placeholder="t('Enter value...')"
-              class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
-              @keydown.enter="submitUpdate" />
-          </div>
+    <Dialog v-model:visible="showUpdateModal" modal
+      :pt="{ root: { class: 'max-w-sm' }, content: { class: 'p-0 px-6 pb-4 pt-1' } }">
+      <template #header>
+        <span class="flex items-center gap-2 font-semibold">
+          <Pencil class="size-4" />
+          {{ t('Edit field for {count} records', { count: displayCount }) }}
+        </span>
+      </template>
+      <div class="flex flex-col gap-3 py-1">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-foreground">Поле</label>
+          <Select
+            v-model="updateField"
+            :options="updatableFields"
+            option-label="label"
+            option-value="fieldname"
+            :placeholder="t('Select field...')"
+            class="w-full"
+          />
         </div>
-        <DialogFooter>
-          <Button variant="outline" class="text-foreground" @click="showUpdateModal = false">{{ t('Cancel') }}</Button>
-          <Button :disabled="!updateField || updateSaving" @click="submitUpdate">
-            <Loader2 v-if="updateSaving" class="size-4 animate-spin mr-1.5" />
-            {{ t('Apply') }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-foreground">{{ t('New value') }}</label>
+          <input v-model="updateValue" :placeholder="t('Enter value...')"
+            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
+            @keydown.enter="submitUpdate" />
+        </div>
+      </div>
+      <template #footer>
+        <Button outlined class="text-foreground" @click="showUpdateModal = false">{{ t('Cancel') }}</Button>
+        <Button :disabled="!updateField || updateSaving" @click="submitUpdate">
+          <Loader2 v-if="updateSaving" class="size-4 animate-spin mr-1.5" />
+          {{ t('Apply') }}
+        </Button>
+      </template>
     </Dialog>
   </div>
 </template>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
-import { useRoute } from 'vue-router'
 import { SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
 import AppIcon from '@/components/AppIcon.vue'
 
@@ -14,7 +13,7 @@ interface NavItem {
 
 defineProps<{ items: NavItem[] }>()
 
-const route = useRoute()
+
 </script>
 
 <template>

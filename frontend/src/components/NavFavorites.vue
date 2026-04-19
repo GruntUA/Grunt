@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
 import { DotsHorizontalIcon } from '@radix-icons/vue'
-import { ArrowUpRight, Link, StarOff, Trash2 } from '@lucide/vue'
+import { ArrowUpRight, Link, StarOff } from '@lucide/vue'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +33,14 @@ const emit = defineEmits<{
 defineProps<{ favorites: FavoriteItem[] }>()
 
 const { isMobile } = useSidebar()
+
+function copyLink(url: string) {
+  window.navigator.clipboard.writeText(url)
+}
+
+function openInNewTab(url: string) {
+  window.open(url, '_blank')
+}
 </script>
 
 <template>
@@ -63,11 +71,11 @@ const { isMobile } = useSidebar()
               <span>Відкріпити</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem @click="navigator.clipboard.writeText(item.url)">
+            <DropdownMenuItem @click="copyLink(item.url)">
               <Link class="text-muted-foreground" />
               <span>Копіювати посилання</span>
             </DropdownMenuItem>
-            <DropdownMenuItem @click="window.open(item.url, '_blank')">
+            <DropdownMenuItem @click="openInNewTab(item.url)">
               <ArrowUpRight class="text-muted-foreground" />
               <span>Відкрити в новій вкладці</span>
             </DropdownMenuItem>

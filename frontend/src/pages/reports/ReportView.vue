@@ -3,9 +3,9 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/core/api/client'
 import { useAuthStore } from '@/stores/auth'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { Download, RefreshCw, Settings2, FileBarChart2, FileX } from '@lucide/vue'
-import { Badge } from '@/components/ui/badge'
+import Badge from 'primevue/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 
 const props = defineProps<{
@@ -76,15 +76,15 @@ function openBuilder() {
             </div>
             
             <div class="flex items-center gap-2">
-                <Button variant="outline" size="sm" @click="fetchReport" :disabled="loading">
+                <Button outlined size="small" @click="fetchReport" :disabled="loading">
                     <RefreshCw class="size-4 mr-2" :class="{ 'animate-spin': loading }" />
                     Оновити
                 </Button>
-                <Button variant="outline" size="sm" as="a" :href="`/api/v1/reports/${reportName}/export/xlsx?token=${auth.token}`" download>
+                <Button outlined size="small" as="a" :href="`/api/v1/reports/${reportName}/export/xlsx?token=${auth.token}`" download>
                     <Download class="size-4 mr-2" />
                     XLSX
                 </Button>
-                <Button size="sm" @click="openBuilder" v-if="auth.user?.is_superadmin">
+                <Button size="small" @click="openBuilder" v-if="auth.user?.is_superadmin">
                     <Settings2 class="size-4 mr-2" />
                     Конструктор
                 </Button>

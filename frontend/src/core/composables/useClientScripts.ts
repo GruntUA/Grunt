@@ -80,7 +80,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
       refreshField: options.refreshField,
       addButton: (label, action, opts) => {
         if (!buttons.value.some(b => b.label === label)) {
-          buttons.value.push({ label, action, variant: opts?.variant })
+          buttons.value.push({ label, action, severity: opts?.variant })
         }
       },
       reload: options.reload,

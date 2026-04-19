@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '@/core/api/auth-admin'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Loader2, Sprout, ArrowLeft } from '@lucide/vue'
 
@@ -50,7 +50,7 @@ async function handleSubmit() {
           <p class="text-sm text-muted-foreground">
             If an account with <strong>{{ email }}</strong> exists, we've sent a password reset link.
           </p>
-          <Button variant="link" class="mt-4" @click="router.push('/login')">
+          <Button link class="mt-4" @click="router.push('/login')">
             Back to login
           </Button>
         </div>

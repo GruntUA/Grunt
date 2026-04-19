@@ -14,7 +14,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { ScanLine, Upload, X, CheckCircle2, AlertCircle } from '@lucide/vue'
 
 type BarcodeDetectorInstance = {
@@ -210,9 +210,7 @@ onUnmounted(stopScan)
       <!-- Camera scan button -->
       <Button
         v-if="!scanning"
-        type="button"
-        variant="outline"
-        size="icon"
+        type="button" outlined
         :disabled="disabled || field.read_only"
         :title="t('Scan with camera')"
         @click="startScan"
@@ -223,9 +221,7 @@ onUnmounted(stopScan)
       <!-- Stop scan -->
       <Button
         v-if="scanning"
-        type="button"
-        variant="outline"
-        size="icon"
+        type="button" outlined
         :title="t('Stop')"
         @click="stopScan"
       >
@@ -235,9 +231,7 @@ onUnmounted(stopScan)
       <!-- File upload -->
       <Button
         v-if="!scanning"
-        type="button"
-        variant="outline"
-        size="icon"
+        type="button" outlined
         :disabled="disabled || field.read_only"
         :title="t('Upload image with barcode')"
         @click="fileInputRef?.click()"

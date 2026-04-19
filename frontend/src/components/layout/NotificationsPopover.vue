@@ -11,8 +11,8 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import Button from 'primevue/button'
+import Badge from 'primevue/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { type NotificationItem, notificationsApi } from '@/core/api/notifications'
 import { useWebSocket } from '@/core/composables/useWebSocket'
@@ -172,9 +172,7 @@ onUnmounted(() => {
                 <span class="text-[11px] text-muted-foreground">
                     {{ pushSubscribed ? t('Push notifications enabled') : t('Push notifications disabled') }}
                 </span>
-                <Button
-                    variant="ghost"
-                    size="sm"
+                <Button text size="small"
                     class="h-6 px-2 text-[11px]"
                     :disabled="pushLoading"
                     @click="pushSubscribed ? pushUnsubscribe() : pushSubscribe()"

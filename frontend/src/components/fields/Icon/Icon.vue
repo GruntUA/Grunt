@@ -2,7 +2,7 @@
 import { ref, computed, shallowRef, onMounted } from 'vue'
 import type { Component } from 'vue'
 import type { DocField } from '@/types'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Search, X } from '@lucide/vue'
 
@@ -93,8 +93,7 @@ onMounted(() => {
     <Popover v-model:open="open">
       <PopoverTrigger as-child>
         <Button
-          type="button"
-          variant="outline"
+          type="button" outlined
           class="h-9 gap-2 min-w-[140px] justify-start font-normal"
           :disabled="disabled || field.read_only"
           @click="openPicker"

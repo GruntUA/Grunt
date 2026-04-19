@@ -5,7 +5,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.browser.print/dist/leaflet.browser.print.js'
 import { MapPin, RefreshCw, Loader2 } from '@lucide/vue'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, DocTypeMapView, ScriptMenuItem, ActiveFilter } from '@/types'
 import type { Component } from 'vue'
@@ -621,7 +621,7 @@ watch(() => props.filters, loadMarkers, { deep: true })
         </button>
       </div>
 
-      <Button variant="ghost" size="sm" class="h-8 w-8 p-0 shrink-0" :disabled="isLoading" @click="loadMarkers">
+      <Button text size="small" class="h-8 w-8 p-0 shrink-0" :disabled="isLoading" @click="loadMarkers">
         <RefreshCw class="size-3.5" :class="{ 'animate-spin': isLoading }" />
       </Button>
     </div>

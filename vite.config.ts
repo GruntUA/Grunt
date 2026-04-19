@@ -3,6 +3,8 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import fs from 'fs'
+import Components from 'unplugin-vue-components/vite'
+import { PrimeVueResolver } from '@primevue/auto-import-resolver'
 
 // Discover external app frontend directories (bench/apps/*/www/)
 function discoverAppAliases() {
@@ -27,6 +29,11 @@ export default defineConfig({
     plugins: [
         vue(),
         tailwindcss(),
+        Components({
+            resolvers: [
+                PrimeVueResolver()
+            ]
+        })
     ],
     resolve: {
         alias: {

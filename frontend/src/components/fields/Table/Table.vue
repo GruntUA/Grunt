@@ -5,14 +5,6 @@ import draggable from 'vuedraggable'
 import type { DocField, DocType } from '@/types'
 import { metaApi } from '@/core/api'
 import { Plus, X, Pencil, GripVertical } from '@lucide/vue'
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
 import FieldRenderer from '@/core/renderer/FieldRenderer.vue'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
@@ -346,9 +338,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
     <!-- Add row -->
     <Button
       v-if="!disabled"
-      type="button"
-      variant="ghost"
-      size="sm"
+      type="button" text size="small"
       class="self-start text-primary"
       @click="addRow"
     >
@@ -357,32 +347,28 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
     </Button>
 
     <!-- Row edit dialog -->
-    <Dialog :open="editIdx !== null" @update:open="(v) => { if (!v) editIdx = null }">
-      <DialogContent class="max-w-xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {{ field.label }} — рядок {{ editIdx !== null ? editIdx + 1 : '' }}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div class="flex flex-col gap-4 py-2">
-          <FieldRenderer
-            v-for="f in allFields"
-            :key="f.fieldname"
-            :field="f"
-            :modelValue="editDraft[f.fieldname]"
-            :disabled="disabled"
-            :docValues="editDraft"
-            @update:modelValue="updateDraft(f.fieldname, $event)"
-            @create-new="handleCreateNew"
-          />
-        </div>
-
-        <DialogFooter>
-          <Button variant="ghost" type="button" @click="editIdx = null">{{ t('Cancel') }}</Button>
-          <Button v-if="!disabled" type="button" @click="saveEditor">{{ t('Save') }}</Button>
-        </DialogFooter>
-      </DialogContent>
+    <Dialog :visible="editIdx !== null" modal
+      :pt="{ root: { class: 'max-w-xl' }, content: { class: 'p-0 px-6 pb-4 pt-2 max-h-[60vh] overflow-y-auto' } }"
+      @update:visible="(v: boolean) => { if (!v) editIdx = null }">
+      <template #header>
+        <span class="font-semibold">{{ field.label }} — рядок {{ editIdx !== null ? editIdx + 1 : '' }}</span>
+      </template>
+      <div class="flex flex-col gap-4 py-2">
+        <FieldRenderer
+          v-for="f in allFields"
+          :key="f.fieldname"
+          :field="f"
+          :modelValue="editDraft[f.fieldname]"
+          :disabled="disabled"
+          :docValues="editDraft"
+          @update:modelValue="updateDraft(f.fieldname, $event)"
+          @create-new="handleCreateNew"
+        />
+      </div>
+      <template #footer>
+        <Button text type="button" @click="editIdx = null">{{ t('Cancel') }}</Button>
+        <Button v-if="!disabled" type="button" @click="saveEditor">{{ t('Save') }}</Button>
+      </template>
     </Dialog>
   </div>
 

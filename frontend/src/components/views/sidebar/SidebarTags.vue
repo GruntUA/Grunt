@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import Badge from 'primevue/badge'
+import Button from 'primevue/button'
 import { Tag, X, Plus, Loader2 } from '@lucide/vue'
 import { docsApi } from '@/core/api/docs'
 import type { DocType, GruntDocument } from '@/types'
@@ -76,7 +76,7 @@ onMounted(loadTags)
       <input v-model="tagInput" placeholder="Додати тег..."
         class="flex-1 h-7 rounded-md border border-input bg-transparent px-2.5 text-xs text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
         @keydown="onTagKeydown" />
-      <Button variant="outline" size="icon-sm" class="size-7 text-foreground shrink-0"
+      <Button outlined class="size-7 text-foreground shrink-0"
         :disabled="!tagInput.trim() || tagAdding" @click="addTag">
         <Loader2 v-if="tagAdding" class="size-3.5 animate-spin" />
         <Plus v-else class="size-3.5" />

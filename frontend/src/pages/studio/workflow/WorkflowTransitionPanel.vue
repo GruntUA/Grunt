@@ -4,7 +4,7 @@ import type { WorkflowTransition, WorkflowState } from '@/types'
 import { Input } from '@/components/ui/input'
 import { Field, FieldLabel } from '@/components/ui/field'
 import Select from 'primevue/select'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 
 const props = defineProps<{
   transition: WorkflowTransition
@@ -64,7 +64,7 @@ function update(key: keyof WorkflowTransition, val: unknown) {
         <FieldLabel class="text-foreground">Умова (Python)</FieldLabel>
         <Input :model-value="transition.condition ?? ''" placeholder="doc.amount > 0" @update:model-value="update('condition', $event || null)" />
       </Field>
-      <Button variant="destructive" size="sm" @click="emit('remove')">Видалити перехід</Button>
+      <Button severity="danger" size="small" @click="emit('remove')">Видалити перехід</Button>
     </div>
   </div>
 </template>

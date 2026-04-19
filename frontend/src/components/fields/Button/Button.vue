@@ -2,7 +2,7 @@
 import { shallowRef, watchEffect } from 'vue'
 import type { Component } from 'vue'
 import type { DocField } from '@/types'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 
 type ButtonVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost'
 

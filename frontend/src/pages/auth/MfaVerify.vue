@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Loader2, ShieldCheck, ArrowRight, ArrowLeft } from '@lucide/vue'
 import { authApi } from '@/core/api'
@@ -92,7 +92,7 @@ async function handleVerify() {
             <ArrowRight v-if="!loading" class="ml-2 h-5 w-5" />
           </Button>
 
-          <Button variant="ghost" type="button" class="h-10 text-muted-foreground hover:text-foreground text-xs"
+          <Button text type="button" class="h-10 text-muted-foreground hover:text-foreground text-xs"
             @click="router.push('/login')">
             <ArrowLeft class="mr-2 h-3 w-3" />
             Повернутися до входу

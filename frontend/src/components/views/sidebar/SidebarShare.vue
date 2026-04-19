@@ -1,17 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import Select from 'primevue/select'
 
 const PERMISSION_OPTIONS = [
   { value: 'Read', label: 'Читання' },
@@ -78,7 +67,7 @@ onMounted(loadShared)
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger as-child>
-          <Button variant="outline" size="sm" class="w-full text-foreground" @click="showShareDialog = true">
+          <Button outlined size="small" class="w-full text-foreground" @click="showShareDialog = true">
             <Share2 class="size-4 mr-1.5" />
             {{ t('Share') }}
           </Button>
@@ -101,41 +90,39 @@ onMounted(loadShared)
     </div>
 
     <!-- Share dialog -->
-    <Dialog :open="showShareDialog" @update:open="showShareDialog = $event">
-      <DialogContent class="max-w-sm">
-        <DialogHeader>
-          <DialogTitle class="flex items-center gap-2">
-            <Share2 class="size-4" />
-            {{ t('Share document') }}
-          </DialogTitle>
-          <DialogDescription class="sr-only">Введіть email або логін користувача та оберіть рівень доступу</DialogDescription>
-        </DialogHeader>
-        <div class="flex flex-col gap-3 py-1">
-          <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium text-foreground">Email або логін</label>
-            <input v-model="shareUser" placeholder="user@example.com"
-              class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
-              @keydown.enter="submitShare" />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium text-foreground">Рівень доступу</label>
-            <Select
-              v-model="sharePermission"
-              :options="PERMISSION_OPTIONS"
-              option-label="label"
-              option-value="value"
-              class="w-full"
-            />
-          </div>
+    <Dialog v-model:visible="showShareDialog" modal
+      :pt="{ root: { class: 'max-w-sm' }, content: { class: 'p-0 px-6 pb-4 pt-1' } }">
+      <template #header>
+        <span class="flex items-center gap-2 font-semibold">
+          <Share2 class="size-4" />
+          {{ t('Share document') }}
+        </span>
+      </template>
+      <div class="flex flex-col gap-3 py-1">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-foreground">Email або логін</label>
+          <input v-model="shareUser" placeholder="user@example.com"
+            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
+            @keydown.enter="submitShare" />
         </div>
-        <DialogFooter>
-          <Button variant="outline" class="text-foreground" @click="showShareDialog = false">{{ t('Cancel') }}</Button>
-          <Button :disabled="!shareUser.trim() || shareSaving" @click="submitShare">
-            <Loader2 v-if="shareSaving" class="size-4 animate-spin mr-1.5" />
-            {{ t('Grant access') }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-foreground">Рівень доступу</label>
+          <Select
+            v-model="sharePermission"
+            :options="PERMISSION_OPTIONS"
+            option-label="label"
+            option-value="value"
+            class="w-full"
+          />
+        </div>
+      </div>
+      <template #footer>
+        <Button outlined class="text-foreground" @click="showShareDialog = false">{{ t('Cancel') }}</Button>
+        <Button :disabled="!shareUser.trim() || shareSaving" @click="submitShare">
+          <Loader2 v-if="shareSaving" class="size-4 animate-spin mr-1.5" />
+          {{ t('Grant access') }}
+        </Button>
+      </template>
     </Dialog>
   </div>
 </template>

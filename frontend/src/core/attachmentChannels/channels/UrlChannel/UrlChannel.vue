@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import type { AttachmentResult } from '@/core/attachmentChannels/types'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 import { AlertCircle } from '@lucide/vue'
 
 const props = defineProps<{ imageOnly: boolean }>()

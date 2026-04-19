@@ -5,7 +5,10 @@ const props = defineProps<{ class?: string }>()
 </script>
 
 <template>
-  <h2 data-slot="dialog-title" :class="cn('text-lg leading-none font-semibold', props.class)">
+  <h2
+    data-slot="dialog-title"
+    :class="cn('text-xl font-bold tracking-tight text-foreground', props.class)"
+  >
     <slot />
   </h2>
 </template>

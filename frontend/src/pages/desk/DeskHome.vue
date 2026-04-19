@@ -12,7 +12,7 @@ import {
   Sparkles,
   Command
 } from '@lucide/vue'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 
 interface ActivityEntry {
   id: string
@@ -82,7 +82,7 @@ function actionConfig(action: string) {
       </div>
 
       <div class="flex items-center gap-3">
-        <Button variant="outline" class="rounded-xl shadow-sm border-sidebar-border h-11 px-5"
+        <Button outlined class="rounded-xl shadow-sm border-sidebar-border h-11 px-5"
           @click="router.push('/settings')">
           <Command class="size-4 mr-2 opacity-50" />
           ПанельStudio
@@ -101,7 +101,7 @@ function actionConfig(action: string) {
               </div>
               <h2 class="text-xl font-bold tracking-tight">Робочі простори</h2>
             </div>
-            <Button variant="ghost" size="sm"
+            <Button text size="small"
               class="text-xs font-semibold text-primary/70 hover:text-primary transition-colors">
               Всі простори
               <ArrowRight class="size-3 ml-1.5" />
@@ -178,7 +178,7 @@ function actionConfig(action: string) {
           </div>
 
           <div class="p-4 bg-muted/20 border-t border-sidebar-border">
-            <Button variant="ghost" size="sm" class="w-full text-xs font-bold text-muted-foreground hover:text-primary">
+            <Button text size="small" class="w-full text-xs font-bold text-muted-foreground hover:text-primary">
               Переглянути весь лог
             </Button>
           </div>

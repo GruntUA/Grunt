@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { Button } from '@/components/ui/button'
+import Button from 'primevue/button'
 
 const props = withDefaults(defineProps<{
   code?: string | number
@@ -26,7 +26,7 @@ const router = useRouter()
       </p>
       <div class="flex gap-3 justify-center flex-wrap">
         <slot name="actions">
-          <Button v-if="showBackButton" variant="outline" @click="router.back()">Go back</Button>
+          <Button v-if="showBackButton" outlined @click="router.back()">Go back</Button>
           <Button v-if="showHomeButton" @click="router.push('/')">Go home</Button>
         </slot>
       </div>

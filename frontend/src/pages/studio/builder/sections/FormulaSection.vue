@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
-import { Checkbox } from '@/components/ui/checkbox'
+import Checkbox from 'primevue/checkbox'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 
@@ -34,7 +34,7 @@ const { field, updateField } = usePropertyEditor()
       </p>
     </div>
     <div v-if="field.formula" class="flex items-center gap-2 pt-1 pl-0.5">
-      <Checkbox :model-value="!!field.read_only" @update:model-value="updateField('read_only', $event)" />
+      <Checkbox binary :model-value="!!field.read_only" @update:model-value="updateField('read_only', $event)" />
       <Label class="text-sm text-muted-foreground cursor-pointer">Read Only (рекомендовано)</Label>
     </div>
   </div>
