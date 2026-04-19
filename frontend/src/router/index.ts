@@ -66,8 +66,13 @@ const router = createRouter({
     },
 
 
-
-    // App Workspace (dynamic /:workspaceName)
+    // Setup Wizard
+    {
+      path: '/setup',
+      name: 'setup-wizard',
+      component: () => import('@/pages/setup/SetupWizard.vue'),
+      meta: { public: true },
+    },
     {
       path: '/:workspaceName',
       component: () => import('@/pages/workspace/WorkspaceLayout.vue'),
