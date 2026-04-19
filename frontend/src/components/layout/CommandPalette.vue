@@ -164,8 +164,8 @@ watch(search, async (val) => {
 
         // 4. Remote search for documents
         if (q.length >= 2) {
-            const res = await api.get(`/api/v1/search?q=${encodeURIComponent(q)}`)
-            const docs = (res.data || []).map((d: any) => ({
+            const res = await api.get(`/api/v1/method/grunt.api.v1.search.global_search?q=${encodeURIComponent(q)}`)
+            const docs = (res.data?.data || []).map((d: any) => ({
                 ...d,
                 id: `doc-${d.doctype}-${d.id || d.name}`,
                 type: 'document',

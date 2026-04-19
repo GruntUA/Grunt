@@ -5,7 +5,7 @@ import { useWorkspaceStore } from '@/stores/workspace'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/core/composables/useToast'
 import client from '@/core/api/client'
-import { Search, FileText, Loader2, RefreshCw, X } from '@lucide/vue'
+import { FileText } from '@lucide/vue'
 
 const props = defineProps<{ workspaceName?: string }>()
 
@@ -20,9 +20,9 @@ const toast = useToast()
 interface SearchResult {
   idx_id: string
   doctype: string
-  doc_id: string
-  doc_name: string
-  title: string
+  id: string
+  name: string
+  display_title: string
   module: string
 }
 
@@ -41,8 +41,8 @@ async function runSearch() {
 
   isLoading.value = true
   try {
-    const res = await client.get('/api/v1/search', { params: { q: query, limit: 100 } })
-    results.value = (res.data ?? []) as SearchResult[]
+    const res = await client.get('/api/v1/method/grunt.api.v1.search.global_search', { params: { q: query, limit: 50 } })
+    results.value = (res.data?.data ?? []) as SearchResult[]
     activeDoctype.value = null
   } catch {
     toast.error('Помилка пошуку')
@@ -95,7 +95,7 @@ const doctypeChips = computed(() => {
 function navigateToDoc(r: SearchResult) {
   const ws = wsStore.workspaces.find(w => w.items?.some(i => i.link_to === r.doctype))
   const workspace = ws?.name ?? props.workspaceName ?? 'grunt'
-  router.push(`/${workspace}/list/${r.doctype}/${r.doc_id}`)
+  router.push(`/${workspace}/list/${r.doctype}/${r.id}`)
 }
 
 // ── Reindex ───────────────────────────────────────────────────────────────
@@ -103,8 +103,8 @@ function navigateToDoc(r: SearchResult) {
 async function reindex() {
   isReindexing.value = true
   try {
-    const res = await client.post('/api/v1/search/reindex')
-    toast.success(`Індекс перебудовано: ${res.data.indexed} документів`)
+    const res = await client.post('/api/v1/method/grunt.api.v1.search.rebuild_index')
+    toast.success(`Індекс перебудовано: ${res.data?.data?.indexed || 0} документів`)
     await runSearch()
   } catch {
     toast.error('Помилка перебудови індексу')
@@ -115,117 +115,133 @@ async function reindex() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-6 p-6 max-w-4xl mx-auto w-full">
-    <!-- Header + search input -->
-    <div class="flex flex-col gap-3">
-      <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-bold text-foreground">Пошук</h2>
-        <Button
-          v-if="auth.user?.is_superadmin" outlined size="small"
-          class="h-8 text-xs text-foreground"
-          :disabled="isReindexing"
-          @click="reindex"
-        >
-          <Loader2 v-if="isReindexing" class="size-3.5 mr-1.5 animate-spin" />
-          <RefreshCw v-else class="size-3.5 mr-1.5" />
-          Перебудувати індекс
-        </Button>
+  <div class="flex flex-col gap-6 p-6 max-w-5xl mx-auto w-full">
+
+    <!-- ── Header ── -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-foreground">Глобальний пошук</h1>
+        <p class="text-sm text-muted-foreground mt-0.5">Пошук по всіх документах системи</p>
       </div>
-
-      <!-- Search box -->
-      <div class="relative">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-        <input
-          v-model="inputQ"
-          placeholder="Пошук по всіх документах..."
-          class="w-full h-11 pl-10 pr-4 rounded-lg border border-input bg-background text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          autofocus
-        />
-        <button v-if="inputQ" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" @click="inputQ = ''">
-          <X class="size-4" />
-        </button>
-      </div>
+      <Button
+        v-if="auth.user?.is_superadmin"
+        outlined
+        size="small"
+        :loading="isReindexing"
+        icon="pi pi-refresh"
+        label="Перебудувати індекс"
+        @click="reindex"
+      />
     </div>
 
-    <!-- Loading -->
-    <div v-if="isLoading" class="flex items-center justify-center py-16 gap-3 text-muted-foreground">
-      <Loader2 class="size-5 animate-spin" />
-      <span class="text-sm">Шукаємо...</span>
+    <!-- ── Search InputText ── -->
+    <IconField>
+      <InputIcon class="pi pi-search" />
+      <InputText
+        v-model="inputQ"
+        placeholder="Введіть мінімум 2 символи для пошуку..."
+        class="w-full"
+        size="large"
+        autofocus
+      />
+      <InputIcon v-if="inputQ" class="pi pi-times cursor-pointer" @click="inputQ = ''" />
+    </IconField>
+
+    <!-- ── Loading ── -->
+    <div v-if="isLoading" class="flex flex-col gap-2">
+      <ProgressBar mode="indeterminate" style="height: 3px" />
+      <p class="text-sm text-muted-foreground text-center">Шукаємо...</p>
     </div>
 
-    <!-- Empty state -->
-    <div v-else-if="q.length >= 2 && !results.length" class="flex flex-col items-center gap-2 py-16 text-center">
-      <Search class="size-10 text-muted-foreground/30" />
-      <p class="text-sm text-muted-foreground">Нічого не знайдено для <b>"{{ q }}"</b></p>
-      <p class="text-xs text-muted-foreground/60">Спробуйте інші ключові слова або <button class="underline hover:text-foreground" @click="reindex">перебудуйте індекс</button></p>
-    </div>
-
-    <div v-else-if="q.length < 2 && !isLoading" class="flex flex-col items-center gap-2 py-16 text-center text-muted-foreground">
-      <Search class="size-10 opacity-20" />
+    <!-- ── Too short ── -->
+    <div v-else-if="q.length < 2 && !isLoading" class="py-16 flex flex-col items-center gap-3 text-muted-foreground">
+      <i class="pi pi-search text-5xl opacity-20" />
       <p class="text-sm">Введіть мінімум 2 символи для пошуку</p>
     </div>
 
+    <!-- ── Empty ── -->
+    <div v-else-if="q.length >= 2 && !results.length && !isLoading" class="py-16 flex flex-col items-center gap-3">
+      <i class="pi pi-inbox text-5xl text-muted-foreground/30" />
+      <p class="text-sm text-muted-foreground">
+        Нічого не знайдено для <b>"{{ q }}"</b>
+      </p>
+      <Button
+        v-if="auth.user?.is_superadmin"
+        text size="small"
+        label="Спробувати перебудувати індекс"
+        icon="pi pi-refresh"
+        @click="reindex"
+      />
+    </div>
+
+    <!-- ── Results ── -->
     <template v-else-if="results.length">
-      <!-- Summary + DocType filter chips -->
+
+      <!-- DocType filter chips -->
       <div class="flex flex-wrap items-center gap-2">
-        <span class="text-sm text-muted-foreground">
+        <span class="text-sm text-muted-foreground mr-1">
           {{ results.length }} {{ results.length === 1 ? 'результат' : 'результатів' }}
         </span>
-        <button
-          class="text-xs px-2.5 py-1 rounded-full border transition-colors"
-          :class="activeDoctype === null
-            ? 'border-primary bg-primary/10 text-primary'
-            : 'border-border text-muted-foreground hover:border-primary/50'"
+
+        <Chip
+          label="Всі"
+          :class="activeDoctype === null ? 'bg-primary text-white font-semibold' : 'cursor-pointer'"
           @click="activeDoctype = null"
-        >
-          Всі
-        </button>
-        <button
+        />
+        <Chip
           v-for="chip in doctypeChips"
           :key="chip.doctype"
-          class="text-xs px-2.5 py-1 rounded-full border transition-colors"
-          :class="activeDoctype === chip.doctype
-            ? 'border-primary bg-primary/10 text-primary'
-            : 'border-border text-muted-foreground hover:border-primary/50'"
+          :label="`${chip.doctype} (${chip.count})`"
+          :class="activeDoctype === chip.doctype ? 'bg-primary text-white font-semibold' : 'cursor-pointer'"
           @click="activeDoctype = activeDoctype === chip.doctype ? null : chip.doctype"
-        >
-          {{ chip.doctype }}
-          <span class="ml-1 opacity-60">{{ chip.count }}</span>
-        </button>
+        />
       </div>
 
       <!-- Results grouped by DocType -->
-      <div class="space-y-6">
-        <div v-for="group in groups" :key="group.doctype">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-2">
-            <FileText class="size-3.5" />
+      <div v-for="group in groups" :key="group.doctype" class="flex flex-col gap-2">
+        <div class="flex items-center gap-2 mt-2">
+          <FileText class="size-4 text-muted-foreground" />
+          <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">
             {{ group.doctype }}
-            <span class="font-normal opacity-60">({{ group.items.length }})</span>
-          </h3>
-
-          <div class="rounded-lg border border-border divide-y divide-border overflow-hidden">
-            <button
-              v-for="item in group.items"
-              :key="item.idx_id"
-              class="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/40 transition-colors group"
-              @click="navigateToDoc(item)"
-            >
-              <div class="size-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
-                <FileText class="size-4 text-primary" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                  {{ item.title || item.doc_name }}
-                </p>
-                <p v-if="item.title && item.title !== item.doc_name" class="text-xs text-muted-foreground truncate">
-                  {{ item.doc_name }}
-                </p>
-              </div>
-              <span class="text-xs text-muted-foreground/60 shrink-0 hidden sm:block">{{ item.module }}</span>
-            </button>
-          </div>
+          </span>
+          <Tag :value="String(group.items.length)" severity="secondary" />
         </div>
+
+        <DataTable
+          :value="group.items"
+          :row-hover="true"
+          size="small"
+          @row-click="(e: any) => navigateToDoc(e.data)"
+          class="cursor-pointer rounded-lg overflow-hidden border border-border"
+          :pt="{
+            table: { class: 'w-full' },
+            bodyRow: { class: 'hover:bg-muted/40 transition-colors cursor-pointer' },
+          }"
+        >
+          <Column header="Назва" class="font-medium">
+            <template #body="{ data }">
+              <div class="flex items-center gap-2 py-0.5">
+                <div class="size-7 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+                  <FileText class="size-3.5 text-primary" />
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-foreground">{{ data.display_title || data.name }}</p>
+                  <p v-if="data.display_title && data.display_title !== data.name" class="text-xs text-muted-foreground">
+                    {{ data.name }}
+                  </p>
+                </div>
+              </div>
+            </template>
+          </Column>
+
+          <Column header="Модуль" class="hidden sm:table-cell">
+            <template #body="{ data }">
+              <Tag v-if="data.module" :value="data.module" severity="secondary" />
+            </template>
+          </Column>
+        </DataTable>
       </div>
+
     </template>
   </div>
 </template>
