@@ -156,6 +156,13 @@
             "fieldtype": "Int",
             "default": 30,
             "columns": 6
+        },
+        {
+            "fieldname": "is_setup_complete",
+            "label": "Систему налаштовано",
+            "fieldtype": "Check",
+            "default": false,
+            "hidden": true
         }
     ]
 }
