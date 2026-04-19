@@ -1,22 +1,17 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
 import { getExporters } from '@/core/io'
 import type { ExportContext } from '@/core/io'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
   Download,
   Plus,
   MoreHorizontal,
   Pencil,
   RefreshCw,
+  FileBarChart,
 } from '@lucide/vue'
 
 const props = defineProps<{
@@ -54,6 +49,62 @@ function handleNew() {
     router.push(props.workspace ? `/${props.workspace}/list/${props.doctype}/new` : `/${props.doctype}/new`)
   }
 }
+
+// PrimeVue Menu
+const menu = ref()
+const toggleMenu = (event: Event) => {
+    menu.value.toggle(event)
+}
+
+const menuItems = computed(() => {
+    const items: any[] = []
+
+    // Exporters
+    if (!props.isSystemDocType && props.exportCtx) {
+        exporters.forEach(exp => {
+            items.push({
+                label: exp.label,
+                icon: 'pi pi-download',
+                command: () => exp.export(props.exportCtx!)
+            })
+        })
+        items.push({ separator: true })
+    }
+
+    // Dev actions
+    if (props.showDevActions) {
+        items.push({
+            label: t('Edit DocType'),
+            icon: 'pi pi-pencil',
+            command: () => router.push(`/${props.workspace ?? 'grunt'}/list/DocType/${props.doctype}`)
+        })
+        items.push({ separator: true })
+    }
+
+    // Report builder
+    items.push({
+        label: t('Create report'),
+        icon: 'pi pi-chart-bar',
+        command: () => router.push({ 
+            name: 'report-builder', 
+            params: { workspaceName: props.workspace ?? 'grunt' }, 
+            query: { doctype: props.doctype } 
+        })
+    })
+
+    // Script menu items
+    if (props.listMenuItems.length) {
+        props.listMenuItems.forEach(item => {
+            if (item.separator_before) items.push({ separator: true })
+            items.push({
+                label: item.label,
+                command: () => item.action()
+            })
+        })
+    }
+
+    return items
+})
 </script>
 
 <template>
@@ -71,67 +122,23 @@ function handleNew() {
     </div>
     <div class="flex items-center gap-2.5">
       <!-- Refresh button -->
-      <Button outlined class="text-foreground transition-all active:scale-95" :title="t('Refresh')"
+      <Button outlined class="text-foreground transition-all active:scale-95 shadow-sm" :title="t('Refresh')"
         @click="emit('refresh')">
         <RefreshCw class="size-4" :class="{ 'animate-spin': isFetching }" />
       </Button>
 
       <!-- Actions menu -->
-      <DropdownMenu>
-        <DropdownMenuTrigger as-child>
-          <Button outlined class="text-foreground hover:bg-muted/80">
-            <MoreHorizontal class="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" class="w-56 p-1.5">
-          <!-- Dynamic exporters -->
-          <template v-if="!isSystemDocType && exportCtx">
-            <DropdownMenuItem
-              v-for="exp in exporters"
-              :key="exp.id"
-              class="gap-2"
-              @click="exp.export(exportCtx!)"
-            >
-              <Download class="size-4 text-muted-foreground" />
-              <span>{{ exp.label }}</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </template>
-
-          <!-- Dev actions -->
-          <template v-if="showDevActions">
-            <DropdownMenuItem class="gap-2" @click="router.push(`/${workspace ?? 'grunt'}/list/DocType/${doctype}`)">
-              <Pencil class="size-4 text-muted-foreground" />
-              <span>{{ t('Edit DocType') }}</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </template>
-
-          <!-- Report builder -->
-          <DropdownMenuItem class="gap-2"
-            @click="router.push({ name: 'report-builder', params: { workspaceName: workspace ?? 'grunt' }, query: { doctype: doctype } })">
-            <FileBarChart class="size-4 text-muted-foreground" />
-            <span>{{ t('Create report') }}</span>
-          </DropdownMenuItem>
-
-          <!-- Script menu items -->
-          <template v-if="listMenuItems.length">
-            <template v-for="item in listMenuItems" :key="item.label">
-              <DropdownMenuSeparator v-if="item.separator_before" />
-              <DropdownMenuItem class="gap-2" @click="item.action()">
-                <span>{{ item.label }}</span>
-              </DropdownMenuItem>
-            </template>
-          </template>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Button outlined class="text-foreground hover:bg-muted/80 shadow-sm" @click="toggleMenu">
+        <MoreHorizontal class="size-4" />
+      </Button>
+      <Menu ref="menu" :model="menuItems" :popup="true" class="w-56" />
 
       <!-- Custom buttons -->
       <Button
         v-for="btn in listButtons"
         :key="btn.label" outlined size="small"
         :severity="btn.severity"
-        class="hidden sm:inline-flex shadow-sm"
+        class="hidden sm:inline-flex shadow-sm hover:shadow-md transition-all active:scale-95"
         @click="btn.action()"
       >
         {{ btn.label }}

@@ -1,20 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { DocType } from '@/types'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import {
   Loader2,
   Printer,
@@ -105,6 +95,112 @@ function handleRefresh() {
 function handleUndo() {
   router.go(0)
 }
+
+// PrimeVue Context Menu
+const menu = ref()
+const toggleMenu = (event: Event) => {
+    menu.value.toggle(event)
+}
+
+const menuItems = computed(() => {
+    const items: any[] = []
+
+    if (props.id) {
+        items.push({
+            label: t('Print'),
+            icon: 'pi pi-print',
+            items: [
+                {
+                    label: 'Excel (.xlsx)',
+                    icon: 'pi pi-file-excel',
+                    url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=xlsx&token=${auth.token}`,
+                    target: '_self'
+                },
+                {
+                    label: 'PDF',
+                    icon: 'pi pi-file-pdf',
+                    url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=pdf&token=${auth.token}`,
+                    target: '_self'
+                },
+                {
+                    label: 'HTML',
+                    icon: 'pi pi-globe',
+                    url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=html&token=${auth.token}`,
+                    target: '_blank'
+                }
+            ]
+        })
+
+        items.push({
+            label: t('Open in new tab'),
+            icon: 'pi pi-external-link',
+            url: `/${props.workspace ?? ''}/list/${props.doctype}/${props.id}`,
+            target: '_blank'
+        })
+    }
+
+    items.push({
+        label: t('Edit DocType'),
+        icon: 'pi pi-cog',
+        url: `/${props.workspace ?? ''}/list/DocType/${props.doctype}`,
+        target: '_blank'
+    })
+
+    if (props.dt) {
+        items.push({
+            label: t('Configure print'),
+            icon: 'pi pi-sliders-h',
+            url: `/${props.workspace ?? 'grunt'}/list/PrintFormat?filter[doctype]=${props.doctype}`,
+            target: '_blank'
+        })
+    }
+
+    items.push({ separator: true })
+
+    if (props.id) {
+        items.push({
+            label: t('Duplicate'),
+            icon: 'pi pi-copy',
+            command: () => emit('duplicate')
+        })
+
+        if (props.isDirty) {
+            items.push({
+                label: t('Discard changes'),
+                icon: 'pi pi-undo',
+                command: handleUndo
+            })
+        }
+
+        items.push({
+            label: t('Activity log'),
+            icon: 'pi pi-history',
+            command: () => emit('toggleLog')
+        })
+
+        items.push({
+            label: t('Share link'),
+            icon: 'pi pi-share-alt',
+            command: () => {
+                showShareDialog.value = true
+                shareLink.value = null
+                shareExpires.value = ''
+            }
+        })
+    }
+
+    if (props.id) {
+        items.push({ separator: true })
+        items.push({
+            label: t('Delete'),
+            icon: 'pi pi-trash',
+            class: 'text-destructive',
+            command: () => emit('delete')
+        })
+    }
+
+    return items
+})
 </script>
 
 <template>
@@ -136,84 +232,10 @@ function handleUndo() {
         </Button>
 
         <!-- Context menu -->
-        <DropdownMenu>
-          <DropdownMenuTrigger as-child>
-            <Button text class="text-foreground hover:bg-muted/80">
-              <EllipsisVertical class="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" class="w-52 p-1.5 selection:bg-primary/10">
-            <!-- Print submenu -->
-            <DropdownMenuSub v-if="id">
-              <DropdownMenuSubTrigger class="gap-2" :title="`${t('Print')} (Ctrl+P)`">
-                <Printer class="size-4 text-muted-foreground" />
-                <span>{{ t('Print') }}</span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent class="p-1.5">
-                <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=xlsx&token=${auth.token}`" class="gap-2">
-                  <FileSpreadsheet class="size-4 text-emerald-500" />
-                  <span>Excel (.xlsx)</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=pdf&token=${auth.token}`" class="gap-2">
-                  <FileText class="size-4 text-rose-500" />
-                  <span>PDF</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem as="a" :href="`/api/v1/docs/${doctype}/${id}/print?fmt=html&token=${auth.token}`"
-                  target="_blank" class="gap-2">
-                  <Globe class="size-4 text-sky-500" />
-                  <span>HTML</span>
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-
-            <DropdownMenuItem v-if="id" as="a" :href="`/${props.workspace ?? ''}/list/${doctype}/${id}`"
-              target="_blank" class="gap-2">
-              <ExternalLink class="size-4 text-muted-foreground" />
-              <span>{{ t('Open in new tab') }}</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem as="a" :href="`/${props.workspace ?? ''}/list/DocType/${doctype}`" target="_blank" class="gap-2">
-              <Settings2 class="size-4 text-muted-foreground" />
-              <span>{{ t('Edit DocType') }}</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem v-if="dt" as="a"
-              :href="`/${props.workspace ?? 'grunt'}/list/PrintFormat?filter[doctype]=${doctype}`" target="_blank" class="gap-2">
-              <Printer class="size-4 text-muted-foreground" />
-              <span>{{ t('Configure print') }}</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-
-            <DropdownMenuItem v-if="id" @click="emit('duplicate')" class="gap-2">
-              <Copy class="size-4 text-muted-foreground" />
-              <span>{{ t('Duplicate') }}</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem v-if="id && isDirty" @click="handleUndo" class="gap-2">
-              <Undo2 class="size-4 text-muted-foreground" />
-              <span>{{ t('Discard changes') }}</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem v-if="id" @click="emit('toggleLog')" class="gap-2">
-              <History class="size-4 text-muted-foreground" />
-              <span>{{ t('Activity log') }}</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem v-if="id" @click="showShareDialog = true; shareLink = null; shareExpires = ''" class="gap-2">
-              <Share2 class="size-4 text-muted-foreground" />
-              <span>{{ t('Share link') }}</span>
-            </DropdownMenuItem>
-
-            <template v-if="id">
-              <DropdownMenuSeparator />
-              <DropdownMenuItem class="text-destructive focus:text-destructive focus:bg-destructive/10 gap-2" @click="emit('delete')">
-                <Trash2 class="size-4" />
-                <span>{{ t('Delete') }}</span>
-              </DropdownMenuItem>
-            </template>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button text class="text-foreground hover:bg-muted/80 h-9 w-9 p-0" @click="toggleMenu">
+            <EllipsisVertical class="size-4" />
+        </Button>
+        <Menu ref="menu" :model="menuItems" :popup="true" class="w-56" />
       </div>
     </div>
 
@@ -227,7 +249,7 @@ function handleUndo() {
   <Teleport to="body">
     <div v-if="showShareDialog" class="fixed inset-0 z-50 flex items-center justify-center">
       <div class="fixed inset-0 bg-black/40" @click="showShareDialog = false" />
-      <div class="relative bg-card border border-border rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+      <div class="relative bg-card border border-border rounded-xl shadow-2xl w-full max-w-md mx-4 p-6 overflow-hidden">
         <div class="flex items-center gap-2 mb-5">
           <div class="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
             <Share2 class="size-4.5 text-primary" />

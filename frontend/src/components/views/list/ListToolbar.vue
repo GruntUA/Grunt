@@ -15,14 +15,6 @@ import {
   Map as MapIcon,
 } from '@lucide/vue'
 import draggable from 'vuedraggable'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import type { ActiveFilter } from '@/types'
 import FilterBar from '@/components/views/FilterBar.vue'
 
@@ -51,7 +43,6 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const showColMenu = ref(false)
 
 const localSearch = ref(props.inlineSearch)
 watch(() => props.inlineSearch, (v) => { localSearch.value = v })
@@ -68,6 +59,18 @@ function setGroupBy(field: string | null) {
 function onColReorder(e: { oldIndex: number; newIndex: number }) {
   props.columns.reorderCols(e.oldIndex, e.newIndex)
 }
+
+// PrimeVue Popover refs
+const opColumns = ref()
+const opGrouping = ref()
+
+const toggleColumns = (event: Event) => {
+    opColumns.value.toggle(event)
+}
+
+const toggleGrouping = (event: Event) => {
+    opGrouping.value.toggle(event)
+}
 </script>
 
 <template>
@@ -83,7 +86,7 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
       </div>
       <FilterBar v-if="dt" :fields="dt.fields" :doctype="doctype" :initial-filters="activeFilters" @change="onFiltersChange" class="!mb-0" />
       <Button v-if="inlineSearch || activeFilters.length" text size="small"
-        class="h-8 px-2 text-muted-foreground hover:text-foreground" @click="emit('reset')">
+        class="h-8 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50" @click="emit('reset')">
         <X class="size-4 mr-1" />
         {{ t('Reset') }}
       </Button>
@@ -92,85 +95,95 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
     <!-- Right: columns + grouping + view switcher -->
     <div class="flex items-center gap-2 px-1">
       <div v-if="viewMode === 'list'" class="flex items-center gap-2 pr-1 border-r border-border/60 mr-1">
-        <!-- Columns dropdown -->
-        <DropdownMenu v-model:open="showColMenu">
-          <DropdownMenuTrigger as-child>
-            <Button text size="small" class="h-9 px-2.5 gap-2 font-medium" :class="columns.isCustomized.value
-              ? 'text-primary bg-primary/5'
-              : 'text-muted-foreground hover:text-foreground'">
-              <Columns3 class="size-4" />
-              <span class="hidden lg:inline">Стовпці</span>
-              <Badge v-if="columns.isCustomized.value" severity="secondary" class="bg-primary/20 text-primary hover:bg-primary/20 size-5 p-0 flex items-center justify-center text-[10px]">
-                {{ columns.visibleColumns.value.length }}
-              </Badge>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" class="w-56 p-1.5">
-            <DropdownMenuLabel class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
+        <!-- Columns Popover -->
+        <Button text size="small" class="h-9 px-2.5 gap-2 font-medium transition-all"
+          :class="columns.isCustomized.value ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'"
+          @click="toggleColumns">
+          <Columns3 class="size-4" />
+          <span class="hidden lg:inline">Стовпці</span>
+          <Badge v-if="columns.isCustomized.value" severity="secondary" class="bg-primary/20 text-primary hover:bg-primary/20 size-5 p-0 flex items-center justify-center text-[10px]">
+            {{ columns.visibleColumns.value.length }}
+          </Badge>
+        </Button>
+
+        <Popover ref="opColumns">
+          <div class="w-64 p-1">
+            <div class="px-2 py-1.5 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
               <span>Стовпці</span>
               <span class="tabular-nums opacity-60">
                 {{ columns.visibleColumns.value.length }}/{{ columns.allAvailableColumns.value.length }}
               </span>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <draggable
-              :model-value="columns.visibleColumns.value"
-              item-key="key"
-              handle=".drag-handle"
-              @end="onColReorder"
-            >
-              <template #item="{ element: col }">
-                <DropdownMenuItem class="gap-2 focus:bg-primary/5" @select.prevent="columns.toggleCol(col.key)">
-                  <span class="drag-handle cursor-grab text-muted-foreground/30 hover:text-muted-foreground select-none">⠿</span>
-                  <div class="size-4 flex items-center justify-center">
-                     <Check class="size-3.5 text-primary" />
+            </div>
+            
+            <div class="h-px bg-border/40 my-1" />
+            
+            <div class="max-h-[320px] overflow-y-auto overflow-x-hidden scrollbar-none py-1">
+              <draggable
+                :model-value="columns.visibleColumns.value"
+                item-key="key"
+                handle=".drag-handle"
+                @end="onColReorder"
+                class="space-y-0.5"
+              >
+                <template #item="{ element: col }">
+                  <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group transition-colors"
+                    @click="columns.toggleCol(col.key)">
+                    <span class="drag-handle cursor-grab text-muted-foreground/30 hover:text-muted-foreground select-none">⠿</span>
+                    <div class="size-4 flex items-center justify-center">
+                       <Check class="size-3.5 text-primary" />
+                    </div>
+                    <span class="flex-1 truncate text-sm font-medium">{{ col.label }}</span>
                   </div>
-                  <span class="flex-1 truncate">{{ col.label }}</span>
-                </DropdownMenuItem>
-              </template>
-            </draggable>
-            <DropdownMenuItem
-              v-for="col in columns.allAvailableColumns.value.filter((c: any) => !columns.isVisible(c.key))"
-              :key="col.key"
-              class="gap-2 group"
-              @select.prevent="columns.toggleCol(col.key)">
-              <span class="size-4" />
-              <div class="size-4 flex items-center justify-center opacity-0 group-hover:opacity-30">
-                 <Check class="size-3.5" />
+                </template>
+              </draggable>
+              
+              <div v-for="col in columns.allAvailableColumns.value.filter((c: any) => !columns.isVisible(c.key))"
+                :key="col.key"
+                class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group transition-colors"
+                @click="columns.toggleCol(col.key)">
+                <span class="size-4" />
+                <div class="size-4 flex items-center justify-center opacity-0 group-hover:opacity-30">
+                   <Check class="size-3.5" />
+                </div>
+                <span class="flex-1 truncate text-sm text-muted-foreground">{{ col.label }}</span>
               </div>
-              <span class="flex-1 truncate text-muted-foreground">{{ col.label }}</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </div>
+          </div>
+        </Popover>
 
-        <!-- Group by dropdown -->
-        <DropdownMenu v-if="groupableFields.length">
-          <DropdownMenuTrigger as-child>
-            <Button text size="small" class="h-9 px-2.5 gap-2 font-medium"
-              :class="groupBy ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground'">
-              <Rows3 class="size-4" />
-              <span class="hidden lg:inline">{{ groupBy ? groupByField?.label : 'Групування' }}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" class="w-56 p-1.5">
-            <DropdownMenuLabel class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Групувати за</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem class="gap-2" @click="setGroupBy(null)">
+        <!-- Group by Popover -->
+        <Button v-if="groupableFields.length" text size="small" class="h-9 px-2.5 gap-2 font-medium transition-all"
+          :class="groupBy ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'"
+          @click="toggleGrouping">
+          <Rows3 class="size-4" />
+          <span class="hidden lg:inline">{{ groupBy ? groupByField?.label : 'Групування' }}</span>
+        </Button>
+
+        <Popover ref="opGrouping">
+          <div class="w-56 p-1">
+            <div class="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">Групувати за</div>
+            <div class="h-px bg-border/40 my-1" />
+            
+            <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group transition-colors"
+              @click="setGroupBy(null); opGrouping.hide()">
               <div class="size-4 flex items-center justify-center">
-                <Check class="size-3.5" :class="groupBy === null ? 'opacity-100' : 'opacity-0'" />
+                <Check class="size-3.5 text-primary" :class="groupBy === null ? 'opacity-100' : 'opacity-0'" />
               </div>
-              <span>Без групування</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem v-for="f in groupableFields" :key="f.fieldname" class="gap-2"
-              @click="setGroupBy(f.fieldname)">
+              <span class="text-sm font-medium">Без групування</span>
+            </div>
+            
+            <div class="h-px bg-border/40 my-1" />
+            
+            <div v-for="f in groupableFields" :key="f.fieldname" 
+              class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group transition-colors"
+              @click="setGroupBy(f.fieldname); opGrouping.hide()">
               <div class="size-4 flex items-center justify-center">
                 <Check class="size-3.5 text-primary" :class="groupBy === f.fieldname ? 'opacity-100' : 'opacity-0'" />
               </div>
-              <span>{{ f.label }}</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <span class="text-sm font-medium">{{ f.label }}</span>
+            </div>
+          </div>
+        </Popover>
       </div>
 
       <!-- View mode switcher -->

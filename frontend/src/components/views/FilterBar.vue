@@ -2,20 +2,6 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField, ActiveFilter } from '@/types'
-import { Input } from '@/components/ui/input'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Filter, X, Bookmark, ChevronDown, Trash2, Pencil } from '@lucide/vue'
 import { getFilterConfig } from '@/core/filterRegistry'
 
@@ -31,6 +17,11 @@ interface FilterPreset { name: string; filters: ActiveFilter[] }
 
 const { t } = useI18n()
 const activeFilters = ref<ActiveFilter[]>(props.initialFilters ?? [])
+
+// PrimeVue Overlay refs
+const opFilter = ref()
+const opPresets = ref()
+
 const showDropdown = ref(false)
 const pickedField = ref<DocField | null>(null)
 const pickedOp = ref('=')
@@ -71,6 +62,7 @@ function savePreset() {
 function applyPreset(preset: FilterPreset) {
   activeFilters.value = [...preset.filters]
   emitChange()
+  opPresets.value?.hide()
 }
 
 function deletePreset(name: string) {
@@ -91,8 +83,8 @@ function pickField(f: DocField) {
   pickedDisplayValue.value = ''
 }
 
-// ── Edit existing filter ────────────────────────────────────────────────────
-function startEdit(i: number) {
+// ── Edit existing filter ───────────────────────────────────────────────────
+function startEdit(i: number, event: Event) {
   const f = activeFilters.value[i]
   const field = props.fields.find(ff => ff.fieldname === f.fieldname) ?? null
   if (!field) return
@@ -102,21 +94,15 @@ function startEdit(i: number) {
   pickedOp.value = f.op
   pickedValue.value = f.value
   pickedDisplayValue.value = f.displayValue ?? ''
-  showDropdown.value = true
+  opFilter.value?.show(event)
 }
 
-// ── Reset popover state ─────────────────────────────────────────────────────
 function resetPopover() {
   pickedField.value = null
   pickedValue.value = ''
   pickedDisplayValue.value = ''
   editingIndex.value = null
 }
-
-// Clear state when popover closes
-watch(showDropdown, (open) => {
-  if (!open) resetPopover()
-})
 
 // ── Add / save filter ────────────────────────────────────────────────────────
 function applyFilter() {
@@ -136,7 +122,7 @@ function applyFilter() {
     activeFilters.value.push(entry)
   }
 
-  showDropdown.value = false
+  opFilter.value?.hide()
   emitChange()
 }
 
@@ -149,7 +135,6 @@ function emitChange() {
   emit('change', activeFilters.value)
 }
 
-// ── Chip label ──────────────────────────────────────────────────────────────
 function chipLabel(f: ActiveFilter): string {
   let val: string
   if (f.fieldtype === 'Check') {
@@ -159,6 +144,14 @@ function chipLabel(f: ActiveFilter): string {
   }
   return `${f.label} ${f.op} ${val}`
 }
+
+function toggleFilter(event: Event) {
+    opFilter.value?.toggle(event)
+}
+
+function togglePresets(event: Event) {
+    opPresets.value?.toggle(event)
+}
 </script>
 
 <template>
@@ -167,17 +160,17 @@ function chipLabel(f: ActiveFilter): string {
     <Badge
       v-for="(f, i) in activeFilters"
       :key="i"
-      variant="secondary"
-      class="gap-0 pr-1 max-w-[240px] group/chip pl-0 overflow-hidden"
+      severity="secondary"
+      class="gap-0 pr-1 max-w-[240px] group/chip pl-0 overflow-hidden shadow-sm border-border/40"
     >
       <button
         type="button"
         class="flex items-center gap-1.5 pl-2 pr-1.5 py-0.5 hover:bg-primary/10 rounded-l-full transition-colors min-w-0"
         :title="'Редагувати фільтр'"
-        @click="startEdit(i)"
+        @click="startEdit(i, $event)"
       >
         <Pencil class="size-2.5 shrink-0 opacity-0 group-hover/chip:opacity-60 transition-opacity text-primary" />
-        <span class="truncate text-xs">{{ chipLabel(f) }}</span>
+        <span class="truncate text-[11px] font-medium">{{ chipLabel(f) }}</span>
       </button>
       <button
         type="button"
@@ -188,135 +181,137 @@ function chipLabel(f: ActiveFilter): string {
       </button>
     </Badge>
 
-    <!-- Add filter / edit popover -->
-    <Popover v-model:open="showDropdown">
-      <PopoverTrigger as-child>
-        <Button text size="small"
-          class="h-7 text-xs border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
-        >
-          <Filter class="size-3 mr-1" />
-          {{ t('Filter') }}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent class="w-80 p-3" align="start">
+    <!-- Filter Popover -->
+    <Button text size="small"
+      class="h-7 text-[11px] border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all font-medium"
+      @click="toggleFilter"
+    >
+      <Filter class="size-3 mr-1" />
+      {{ t('Filter') }}
+    </Button>
 
+    <Popover ref="opFilter" @hide="resetPopover">
+      <div class="w-80 p-1">
         <!-- Step 1: pick field -->
         <template v-if="!pickedField">
-          <p class="text-xs font-semibold text-muted-foreground mb-2">
+          <p class="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 mb-1">
             {{ editingIndex !== null ? 'Змінити поле фільтру' : 'Поле для фільтрації' }}
           </p>
-          <div class="flex flex-wrap gap-1 max-h-36 overflow-y-auto">
+          <div class="flex flex-wrap gap-1 max-h-48 overflow-y-auto p-1 scrollbar-none">
             <button
               v-for="f in filterableFields"
               :key="f.fieldname"
               type="button"
-              class="px-2 py-1 text-xs rounded-md border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors"
+              class="px-2.5 py-1.5 text-xs rounded-lg border border-border/60 bg-muted/20 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all font-medium"
               @click="pickField(f)"
             >{{ f.label }}</button>
           </div>
-          <p v-if="!filterableFields.length" class="text-xs text-muted-foreground mt-2 italic">Немає полів з in_filter</p>
+          <p v-if="!filterableFields.length" class="text-xs text-muted-foreground mt-2 italic px-2">Немає полів з in_filter</p>
         </template>
 
         <!-- Step 2: set op + value -->
         <template v-else>
           <!-- Header -->
-          <div class="flex items-center gap-2 mb-3">
+          <div class="flex items-center gap-2 mb-3 bg-muted/30 p-2 rounded-lg border border-border/40">
             <button
               type="button"
-              class="text-muted-foreground hover:text-foreground transition-colors"
+              class="size-6 p-0 border-none bg-transparent flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
               @click="pickedField = null; pickedValue = ''; pickedDisplayValue = ''"
             >
               <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <span class="text-sm font-semibold text-foreground">{{ pickedField.label }}</span>
-            <span class="text-xs text-muted-foreground ml-auto">{{ pickedField.fieldtype }}</span>
+            <span class="text-sm font-bold text-foreground truncate">{{ pickedField.label }}</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 ml-auto">{{ pickedField.fieldtype }}</span>
           </div>
 
-          <!-- Operator row -->
-          <div class="flex gap-1 mb-3 flex-wrap">
-            <button
-              v-for="op in getFilterConfig(pickedField.fieldtype).operators"
-              :key="op"
-              type="button"
-              class="px-2 py-0.5 text-xs rounded border transition-colors font-mono"
-              :class="pickedOp === op
-                ? 'border-primary bg-primary/10 text-primary font-semibold'
-                : 'border-border hover:border-primary/40 text-muted-foreground'"
-              @click="pickedOp = op"
-            >{{ op }}</button>
+          <div class="space-y-4 p-1">
+            <!-- Operator row -->
+            <div class="flex gap-1.5 flex-wrap">
+              <button
+                v-for="op in getFilterConfig(pickedField.fieldtype).operators"
+                :key="op"
+                type="button"
+                class="px-2.5 py-1.5 text-[11px] rounded-lg border transition-all font-bold font-mono shadow-sm"
+                :class="pickedOp === op
+                  ? 'border-primary bg-primary/10 text-primary shadow-inner'
+                  : 'border-border/60 bg-card hover:border-primary/40 text-muted-foreground'"
+                @click="pickedOp = op"
+              >{{ op }}</button>
+            </div>
+
+            <!-- Value input -->
+            <div class="bg-muted/10 p-2 rounded-xl border border-border/40 shadow-inner">
+                <component
+                    :is="getFilterConfig(pickedField.fieldtype).filterInput"
+                    :field="pickedField"
+                    :model-value="pickedValue"
+                    :display-value="pickedDisplayValue"
+                    :op="pickedOp"
+                    @update:model-value="pickedValue = $event"
+                    @update:display-value="pickedDisplayValue = $event"
+                    @submit="applyFilter"
+                />
+            </div>
+
+            <Button size="small" class="w-full h-10 shadow-lg shadow-primary/10" :disabled="!pickedValue" @click="applyFilter">
+                {{ editingIndex !== null ? 'Зберегти зміни' : t('Apply') }}
+            </Button>
           </div>
-
-          <!-- Value input — dispatched via filter registry -->
-          <component
-            :is="getFilterConfig(pickedField.fieldtype).filterInput"
-            :field="pickedField"
-            :model-value="pickedValue"
-            :display-value="pickedDisplayValue"
-            :op="pickedOp"
-            @update:model-value="pickedValue = $event"
-            @update:display-value="pickedDisplayValue = $event"
-            @submit="applyFilter"
-          />
-
-          <Button size="small" class="w-full" :disabled="!pickedValue" @click="applyFilter">
-            {{ editingIndex !== null ? 'Зберегти зміни' : t('Apply') }}
-          </Button>
         </template>
-      </PopoverContent>
+      </div>
     </Popover>
 
-    <!-- Save/Load presets -->
+    <!-- Presets -->
     <template v-if="doctype">
       <template v-if="activeFilters.length">
         <template v-if="showSaveName">
-          <div class="flex items-center gap-1">
-            <Input
+          <div class="flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-300">
+            <InputText
               v-model="presetNameInput"
-              class="h-7 text-xs w-28"
+              class="h-7 text-[11px] w-32 rounded-lg"
               placeholder="Назва пресету"
               autofocus
               @keydown.enter="savePreset"
               @keydown.escape="showSaveName = false"
             />
-            <Button size="small" class="h-7 px-2 text-xs" @click="savePreset">OK</Button>
-            <button type="button" class="text-muted-foreground hover:text-foreground" @click="showSaveName = false">
+            <Button size="small" class="h-7 px-2.5 text-[11px] shadow-sm" @click="savePreset">OK</Button>
+            <button type="button" class="text-muted-foreground hover:text-foreground p-1 transition-colors" @click="showSaveName = false">
               <X class="size-3.5" />
             </button>
           </div>
         </template>
-        <Button v-else text size="small" class="h-7 text-xs text-muted-foreground hover:text-foreground" @click="showSaveName = true">
+        <Button v-else text size="small" class="h-7 text-[11px] text-muted-foreground hover:text-foreground font-medium transition-all" @click="showSaveName = true">
           <Bookmark class="size-3 mr-1" />
           {{ t('Save') }}
         </Button>
       </template>
 
-      <DropdownMenu v-if="savedPresets.length">
-        <DropdownMenuTrigger as-child>
-          <Button text size="small" class="h-7 text-xs text-muted-foreground hover:text-foreground">
-            Пресети
-            <ChevronDown class="size-3 ml-1" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" class="w-52">
-          <DropdownMenuLabel class="text-xs">Збережені фільтри</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            v-for="preset in savedPresets"
-            :key="preset.name"
-            class="flex items-center justify-between gap-2 group/item"
-            @select.prevent="applyPreset(preset)"
-          >
-            <span class="text-sm truncate flex-1">{{ preset.name }}</span>
+      <Button v-if="savedPresets.length" text size="small" 
+        class="h-7 text-[11px] text-muted-foreground hover:text-foreground font-medium transition-all"
+        @click="togglePresets">
+        Пресети
+        <ChevronDown class="size-3 ml-1" />
+      </Button>
+
+      <Popover ref="opPresets">
+        <div class="w-60 p-1">
+          <div class="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">Збережені фільтри</div>
+          <div class="h-px bg-border/40 my-1" />
+          
+          <div v-for="preset in savedPresets" :key="preset.name"
+            class="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group/item transition-all"
+            @click="applyPreset(preset)">
+            <span class="text-xs font-semibold truncate flex-1">{{ preset.name }}</span>
             <button
               type="button"
-              class="opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive transition-all"
+              class="size-6 flex items-center justify-center rounded-md opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all shadow-sm"
               @click.stop="deletePreset(preset.name)"
             >
               <Trash2 class="size-3.5" />
             </button>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </div>
+        </div>
+      </Popover>
     </template>
   </div>
 </template>
