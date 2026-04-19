@@ -8,7 +8,7 @@ import { useDocument } from '@/core/composables/useDocument'
 import { useToast } from '@/core/composables/useToast'
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
-import { X, ExternalLink, Plus } from '@lucide/vue'
+import { ExternalLink, Plus } from '@lucide/vue'
 
 const props = defineProps<{
   dt: DocType
@@ -125,10 +125,6 @@ function onFormUpdate(updated: Record<string, unknown>) {
 }
 
 const isVisible = ref(true)
-function onClose() {
-    isVisible.value = false
-    emit('close')
-}
 </script>
 
 <template>

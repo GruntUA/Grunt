@@ -45,7 +45,7 @@ const first = computed(() => (props.page - 1) * props.perPage)
                 previousPageButton: { class: '!size-9 !rounded-xl transition-all' },
                 nextPageButton: { class: '!size-9 !rounded-xl transition-all' },
                 lastPageButton: { class: '!size-9 !rounded-xl transition-all' },
-                pageButton: ({ context }) => ({
+                pageButton: ({ context }: { context: any }) => ({
                     class: [
                         '!size-9 !rounded-xl !text-xs !font-bold transition-all',
                         context.active ? '!bg-primary !text-primary-foreground !shadow-lg !shadow-primary/20' : '!bg-muted/30 !text-muted-foreground hover:!bg-muted/50'

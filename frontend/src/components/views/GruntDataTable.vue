@@ -190,9 +190,9 @@ const pt = {
       </template>
     </Column>
 
-    <!-- Empty state -->
+    <!-- Empty state (hidden when used as header-only table) -->
     <template #empty>
-      <div v-if="!isLoading" class="px-3 py-16 text-center">
+      <div v-if="!isLoading && !hideBody" class="px-3 py-16 text-center">
         <div class="flex flex-col items-center gap-2">
           <i class="pi pi-file-excel text-muted-foreground/40 text-4xl" />
           <p class="text-sm text-muted-foreground">Записів не знайдено</p>

@@ -4,7 +4,7 @@ import draggable from 'vuedraggable'
 import type { DocType, DocField } from '@/types'
 import { docsApi } from '@/core/api/docs'
 
-import { Plus, User, Calendar, FileText } from '@lucide/vue'
+import { Plus, Calendar, FileText } from '@lucide/vue'
 
 const props = defineProps<{
   doctype: DocType

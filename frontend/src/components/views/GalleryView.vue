@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
-import type { useListSelection } from '@/core/composables/useListSelection'
+
 import { FileX, Check, ImageIcon } from '@lucide/vue'
 
 const props = defineProps<{

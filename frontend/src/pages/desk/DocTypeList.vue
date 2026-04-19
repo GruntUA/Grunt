@@ -446,7 +446,7 @@ function navigateToDoc(row: Record<string, unknown>) {
         <div class="mt-2">
           <ListGroupedView v-if="groupBy && groupedRows" :dt="dt" :grouped-rows="groupedRows"
             :columns="columns.visibleColumns.value" :collapsed-groups="collapsedGroups" :sort-key="sortKey"
-            :sort-order="sortOrder" :selection="{ selectedIds, allSelected, isSelected, toggle: toggleSelection }" :group-by-field="groupByField"
+            :sort-order="sortOrder" :selection="{ selectedIds, allSelected, isSelected, toggle: toggleSelection, toggleAll }" :group-by-field="groupByField"
             @toggle-group="(k) => collapsedGroups.has(k) ? collapsedGroups.delete(k) : collapsedGroups.add(k)"
             @sort="onSort" @select-all="toggleAll(rows?.map(r => String(r.id)) || [])" @row-click="navigateToDoc"
             @inline-update="onInlineUpdate" />

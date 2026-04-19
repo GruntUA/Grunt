@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Trash2, X, Pencil, Loader2, CheckCircle, AlertCircle } from '@lucide/vue'
+import { Trash2, Pencil, Loader2, CheckCircle, AlertCircle } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 

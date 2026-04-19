@@ -34,7 +34,7 @@ function groupLabel(key: string): string {
 }
 
 function handleSelectGroup(items: any[]) {
-  props.selection.toggleAll(items.map(r => String(r.id)))
+  props.selection?.toggleAll(items.map(r => String(r.id)))
 }
 </script>
 
@@ -99,11 +99,11 @@ function handleSelectGroup(items: any[]) {
                 :is-loading="false"
                 :sort-key="sortKey"
                 :sort-order="sortOrder"
-                :selected-ids="selection.selectedIds"
-                :all-selected="selection.allSelected"
+                :selected-ids="selection?.selectedIds || []"
+                :all-selected="selection?.allSelected || false"
                 :status-config="dt?.status_config"
                 :hide-header="true"
-                @select="selection.toggle"
+                @select="selection?.toggle"
                 @select-all="handleSelectGroup(group.items)"
                 @row-click="emit('rowClick', $event as any)"
                 @inline-update="(rowId: any, field: any, value: any) => emit('inlineUpdate', rowId, field, value)"
