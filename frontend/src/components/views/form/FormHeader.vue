@@ -7,17 +7,7 @@ import { useQueryClient } from '@tanstack/vue-query'
 import type { DocType } from '@/types'
 import {
   Loader2,
-  Printer,
-  FileSpreadsheet,
-  FileText,
-  Globe,
-  Trash2,
-  History,
-  Copy,
-  Undo2,
   EllipsisVertical,
-  ExternalLink,
-  Settings2,
   RefreshCw,
   Share2,
 } from '@lucide/vue'

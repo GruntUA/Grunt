@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField, ActiveFilter } from '@/types'
 import { Filter, X, Bookmark, ChevronDown, Trash2, Pencil } from '@lucide/vue'
@@ -22,7 +22,6 @@ const activeFilters = ref<ActiveFilter[]>(props.initialFilters ?? [])
 const opFilter = ref()
 const opPresets = ref()
 
-const showDropdown = ref(false)
 const pickedField = ref<DocField | null>(null)
 const pickedOp = ref('=')
 const pickedValue = ref('')

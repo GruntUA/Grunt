@@ -56,10 +56,18 @@ function toggleSection(section: LayoutSection) {
 <template>
   <Tabs v-if="hasTabs" v-model:value="activeTabIndex" class="w-full overflow-hidden">
     <!-- Tab navigation -->
-    <TabList variant="underline" class="mb-6 -mx-5 px-5 overflow-x-auto justify-start h-auto scrollbar-none border-b border-border">
-      <Tab v-for="(tab, ti) in layout" :key="ti" :value="String(ti)" variant="underline" class="flex items-center gap-1.5">
+    <TabList 
+      scrollable 
+      variant="underline" 
+      class="mb-6 h-auto border-b border-border px-2"
+      :pt="{
+        prevButton: { class: 'bg-background hover:bg-muted text-primary shadow-sm border-r border-border/40 w-10 flex items-center justify-center' },
+        nextButton: { class: 'bg-background hover:bg-muted text-primary shadow-sm border-l border-border/40 w-10 flex items-center justify-center' }
+      }"
+    >
+      <Tab v-for="(tab, ti) in layout" :key="ti" :value="String(ti)" variant="underline" class="flex items-center gap-1.5 px-4 h-10">
         <component :is="getTabIcon(tab._field?.icon)" v-if="tab._field?.icon" class="size-3.5 shrink-0" />
-        {{ tab.label || 'Main' }}
+        <span class="text-sm font-medium tracking-wide">{{ tab.label || 'Main' }}</span>
       </Tab>
     </TabList>
 

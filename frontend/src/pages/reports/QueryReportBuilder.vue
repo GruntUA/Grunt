@@ -163,9 +163,8 @@ const displayFields = computed(() => {
 
             <!-- Fields & Columns Tabs -->
             <Tabs value="columns" class="flex-1 flex flex-col overflow-hidden">
-                <TabList variant="underline" class="w-full justify-start h-auto overflow-x-auto scrollbar-none">
+                <TabList scrollable variant="underline" class="w-full h-auto border-b border-border">
                     <Tab value="columns" variant="underline" class="flex-1">Колонки</Tab>
-                    <!-- <Tab value="filters" variant="underline" class="flex-1 opacity-50">Фільтри</Tab> -->
                 </TabList>
 
                 <TabPanels>
