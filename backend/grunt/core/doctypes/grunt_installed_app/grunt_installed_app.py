@@ -6,11 +6,41 @@ import grunt
 from grunt.app import grunt as grunt_app
 from grunt.core.document.base import Document
 
+from pathlib import Path
+import shutil
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 class GruntInstalledApp(Document):
     """GruntInstalledApp DocType controller."""
 
-    pass
+    async def after_delete(self) -> None:
+        """Called automatically after the App document is deleted from the DB."""
+        name = self.get("name")
+        if not name:
+            return
+
+        # Refuse to physically delete core framework
+        if name == "grunt":
+            logger.warning("Attempted to delete core 'grunt' app files from disk, blocked by safety check.")
+            return
+
+        apps_dir = Path(grunt.__file__).resolve().parents[3]
+        app_path = apps_dir / name
+        
+        if app_path.exists() and app_path.is_dir():
+            shutil.rmtree(app_path)
+            logger.info(f"Physically deleted app files for '{name}' at {app_path}")
+
+        # Clean up associated Workspaces
+        workspaces = await grunt_app.get_list("WorkspaceSidebar", filters={"app": name})
+        for ws in workspaces:
+            try:
+                await grunt_app.delete_doc("WorkspaceSidebar", ws["name"])
+                logger.info(f"Deleted workspace {ws['name']} associated with app {name}")
+            except Exception as e:
+                logger.error(f"Failed to delete workspace {ws['name']}: {e}")
 
 
 @grunt.whitelist()
