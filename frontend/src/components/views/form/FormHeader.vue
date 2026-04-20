@@ -10,6 +10,7 @@ import {
   EllipsisVertical,
   RefreshCw,
   Share2,
+  Copy,
 } from '@lucide/vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 

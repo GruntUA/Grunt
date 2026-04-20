@@ -20,7 +20,7 @@ const hidden = computed(() => Math.max(0, props.users.length - props.max))
       <div v-for="user in visible" :key="user.email"
         v-tooltip.bottom="user.full_name"
         class="relative transition-transform duration-200 hover:scale-110 hover:z-20 cursor-default">
-          <PvAvatar
+          <Avatar
             :label="initials(user.full_name)"
             shape="circle"
             :pt="{ root: { class: 'size-7 border-2 border-background ring-2 ring-transparent group-hover:ring-white/10 shadow-sm transition-all text-[10px] font-bold text-white', style: { backgroundColor: user.color } } }"
@@ -28,7 +28,7 @@ const hidden = computed(() => Math.max(0, props.users.length - props.max))
       </div>
 
       <!-- Overflow indicator -->
-      <PvAvatar
+      <Avatar
         v-if="hidden > 0"
         :label="`+${hidden}`"
         shape="circle"
