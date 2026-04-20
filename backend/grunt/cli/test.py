@@ -4,7 +4,6 @@ import sys
 from pathlib import Path  # noqa: TC003
 
 import click
-import pytest
 
 
 @click.command("test", context_settings={"ignore_unknown_options": True})
@@ -85,6 +84,8 @@ def test(
         os.environ["GRUNT_SITE"] = site
 
     # 4. Run pytest
+    import pytest  # noqa: PLC0415
+
     click.echo(f"Running tests for: {', '.join(test_paths)}")
     args = test_paths + list(pytest_args)
     if "-v" not in args and "-q" not in args:
