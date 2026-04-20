@@ -245,6 +245,67 @@ class Document:
     async def validate(self) -> None:
         """Custom validation — raise :class:`~grunt.app.GruntError` to abort the save."""
 
+    # ── Real-time helpers ─────────────────────────────────────────────────
+
+    async def publish_progress(
+        self,
+        processed: int,
+        total: int,
+        *,
+        message: str | None = None,
+        commit: bool = True,
+    ) -> None:
+        """Broadcast import/processing progress via WebSocket.
+
+        Updates ``processed_rows`` / ``total_rows`` on the document (if those
+        fields exist), persists to DB, then sends an ``import_progress`` event
+        on the document's WebSocket channel so connected clients update their
+        progress UI without polling.
+
+        Usage inside a controller::
+
+            for idx, row in enumerate(rows):
+                await self.process_row(row)
+                if idx % 10 == 0:
+                    await self.publish_progress(idx + 1, len(rows))
+
+        Arguments:
+            processed: Number of items processed so far.
+            total:     Total number of items to process.
+            message:   Optional status string shown alongside the progress bar.
+            commit:    Whether to flush the session to DB (default ``True``).
+                       Pass ``False`` if you handle the commit yourself.
+        """
+        data = object.__getattribute__(self, "data")
+        if "processed_rows" in data or hasattr(self, "processed_rows"):
+            data["processed_rows"] = processed
+        if "total_rows" in data or hasattr(self, "total_rows"):
+            data["total_rows"] = total
+
+        session = object.__getattribute__(self, "session")
+        if commit and session is not None:
+            await session.commit()
+
+        try:
+            from grunt.api.v1.ws import manager  # noqa: PLC0415
+
+            doc_id = data.get("id")
+            if doc_id:
+                payload: dict[str, object] = {
+                    "processed": processed,
+                    "total": total,
+                }
+                if message is not None:
+                    payload["message"] = message
+                await manager.broadcast_doc(
+                    object.__getattribute__(self, "doctype"),
+                    str(doc_id),
+                    "import_progress",
+                    payload,
+                )
+        except Exception:  # noqa: BLE001
+            pass
+
     # ── Repr ──────────────────────────────────────────────────────────────
 
     def __repr__(self) -> str:

@@ -78,6 +78,8 @@ class DocumentWriteMixin:
         doctype_name: str,
         data: dict[str, Any],
         user: User,
+        *,
+        ignore_required: bool = False,
     ) -> dict[str, Any]:
         dt = await doctype_registry.get(doctype_name)
         if dt.is_virtual:
@@ -95,7 +97,7 @@ class DocumentWriteMixin:
                 )
 
         # Validate
-        errors = _validate_data(dt, data)
+        errors = _validate_data(dt, data, ignore_required=ignore_required)
         if errors:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -239,6 +241,8 @@ class DocumentWriteMixin:
         doc_id: str,
         data: dict[str, Any],
         user: User,
+        *,
+        ignore_required: bool = False,
     ) -> dict[str, Any]:
         dt = await doctype_registry.get(doctype_name)
         if dt.is_virtual:
@@ -250,7 +254,7 @@ class DocumentWriteMixin:
         existing = await self.get_document(doctype_name, doc_id, user)
 
         # Validate partial
-        errors = _validate_data(dt, data)
+        errors = _validate_data(dt, data, ignore_required=ignore_required)
         if errors:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,

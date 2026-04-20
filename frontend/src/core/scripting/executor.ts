@@ -104,6 +104,29 @@ export interface GruntProxy {
   warn: (title: string, message: string, primaryLabel?: string) => Promise<boolean>
   form: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: string }) => Promise<Record<string, unknown> | null>
   show_progress: (title: string, count: number, total: number, description?: string) => void
+  /**
+   * Subscribe to a WebSocket event on the current document channel.
+   * Returns an unsubscribe function.
+   *
+   * ```js
+   * const off = grunt.onMessage('import_progress', (data) => {
+   *   console.log(data.processed, data.total)
+   * })
+   * // later: off()
+   * ```
+   */
+  onMessage: (event: string, cb: (data: unknown) => void) => () => void
+  /**
+   * Subscribe to progress updates published via `self.publish_progress()` in Python.
+   * Returns an unsubscribe function.
+   *
+   * ```js
+   * const off = grunt.on_progress(({ processed, total, message }) => {
+   *   console.log(`${processed} / ${total}`)
+   * })
+   * ```
+   */
+  on_progress: (cb: (data: { processed: number; total: number; message?: string }) => void) => () => void
 }
 
 export type ClientScriptEvent = 'on_load' | 'on_change' | 'validate' | 'before_save' | 'after_save'
@@ -237,7 +260,9 @@ export function createGruntProxy(
     warn?: (title: string, message: string, primaryLabel?: string) => Promise<boolean>
     form?: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: string }) => Promise<Record<string, unknown> | null>
     showProgress?: (title: string, count: number, total: number, description?: string) => void
-  } = {}
+  } = {},
+  // Internal registry populated by useClientScripts when a WS message arrives
+  _messageListeners: Map<string, Set<(data: unknown) => void>> = new Map(),
 ): GruntProxy {
   return {
     async call(opts) {
@@ -320,7 +345,30 @@ export function createGruntProxy(
     show_progress(title: string, count: number, total: number, description?: string) {
       callbacks.showProgress?.(title, count, total, description)
     },
+
+    onMessage(event: string, cb: (data: unknown) => void): () => void {
+      if (!_messageListeners.has(event)) {
+        _messageListeners.set(event, new Set())
+      }
+      _messageListeners.get(event)!.add(cb)
+      return () => _messageListeners.get(event)?.delete(cb)
+    },
+
+    on_progress(cb: (data: { processed: number; total: number; message?: string }) => void): () => void {
+      return this.onMessage('import_progress', cb as (data: unknown) => void)
+    },
   }
+}
+
+/** Dispatch a WS message to all listeners registered via grunt.onMessage. */
+export function dispatchMessageToProxy(
+  listeners: Map<string, Set<(data: unknown) => void>>,
+  event: string,
+  data: unknown,
+): void {
+  listeners.get(event)?.forEach(cb => {
+    try { cb(data) } catch { /* ignore script errors */ }
+  })
 }
 
 // ── Execution ────────────────────────────────────────────────────────────

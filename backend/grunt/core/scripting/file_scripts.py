@@ -191,7 +191,12 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
         # Try exact match first (e.g. Applicant/Applicant.js)
         js_file = doctypes_dir / doctype / f"{doctype}.js"
         if not js_file.exists():
-            # Try lowercase fallback (e.g. user/user.js)
+            # Try snake_case fallback (e.g. data_import/data_import.js)
+            import re  # noqa: PLC0415
+            snake = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", doctype).lower()
+            js_file = doctypes_dir / snake / f"{snake}.js"
+        if not js_file.exists():
+            # Try all-lowercase fallback (e.g. user/user.js)
             js_file = doctypes_dir / doctype.lower() / f"{doctype.lower()}.js"
 
         if js_file.exists():

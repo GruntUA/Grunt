@@ -137,12 +137,6 @@ const router = createRouter({
           props: true,
         },
         {
-          path: 'data-import/:id?',
-          name: 'data-import',
-          component: () => import('@/pages/desk/DataImport/DataImportPage.vue'),
-          props: true,
-        },
-        {
           path: 'search',
           name: 'workspace-search',
           component: () => import('@/pages/workspace/SearchResultsPage.vue'),

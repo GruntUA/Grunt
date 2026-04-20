@@ -16,14 +16,6 @@ _SKIP_FIELDTYPES = frozenset({"Section", "Column", "Tab", "Table", "MultiLink", 
 class DataImport(Document):
     """DocType controller for DataImport."""
 
-    async def after_insert(self) -> None:
-        """Trigger the import task after the document is created."""
-        if self.data.get("status") == "Pending":
-            from grunt.core.data_import.tasks import run_data_import  # noqa: PLC0415
-
-            logger.info("data_import.triggering_task", id=self.data["id"])
-            await run_data_import.kiq(self.data["id"])
-
     async def get_preview(self) -> dict[str, Any]:
         """Extract headers and first 5 data rows for column mapping."""
         file_path = await self._resolve_file_path()
@@ -80,9 +72,9 @@ class DataImport(Document):
         headers = [str(h) if h is not None else "" for h in all_rows[0]]
         rows = all_rows[1:]
 
-        mapping: dict[str, str] = self.mapping
+        mapping: dict[str, str] = self.mapping or {}
         if isinstance(mapping, str):
-            mapping = json.loads(mapping)
+            mapping = json.loads(mapping) if mapping else {}
 
         # Load required fields for dry-run validation
         dt = await doctype_registry.get(self.doctype_name)
@@ -94,6 +86,9 @@ class DataImport(Document):
         total = len(rows)
         processed = 0
         errors: list[dict[str, Any]] = []
+
+        self.total_rows = total
+        await self.session.commit()
 
         for idx, row_data in enumerate(rows):
             row_num = idx + 2  # 1-based, accounting for header row
@@ -108,13 +103,14 @@ class DataImport(Document):
 
                 if self.dry_run:
                     # Validate required fields are present and non-empty
-                    missing = [
-                        f for f in required_fields if f in mapped_dt_fields and not doc_data.get(f)
-                    ]
-                    if missing:
-                        raise ValueError(
-                            f"Обов'язкові поля відсутні або порожні: {', '.join(missing)}"
-                        )
+                    if not self.skip_required_validation:
+                        missing = [
+                            f for f in required_fields if f in mapped_dt_fields and not doc_data.get(f)
+                        ]
+                        if missing:
+                            raise ValueError(
+                                f"Обов'язкові поля відсутні або порожні: {', '.join(missing)}"
+                            )
                     # Validate update key exists when updating
                     if self.import_type == "Update Existing":
                         key = self.update_key
@@ -133,21 +129,28 @@ class DataImport(Document):
                         existing = await self.grunt.get_list(
                             self.doctype_name, filters={key: key_value}, limit=1
                         )
+                        skip_req = bool(self.skip_required_validation)
                         if existing:
                             await self.grunt.save_doc(
-                                self.doctype_name, existing[0]["id"], doc_data
+                                self.doctype_name, existing[0]["id"], doc_data,
+                                ignore_required=skip_req,
                             )
                         else:
                             raise ValueError(f"Документ з {key}={key_value} не знайдено")
                     else:
-                        await self.grunt.new_doc(self.doctype_name, doc_data)
+                        await self.grunt.new_doc(
+                            self.doctype_name, doc_data,
+                            ignore_required=bool(self.skip_required_validation),
+                        )
 
                 processed += 1
             except Exception as exc:
                 errors.append({"row": row_num, "error": str(exc)})
 
             if idx % 10 == 0:
-                await self._update_db_progress(processed, len(errors), errors)
+                self.error_count = len(errors)
+                self.error_log = json.dumps(errors)
+                await self.publish_progress(processed, total)
 
         self.status = (
             "Success" if not errors else ("Partial Success" if processed > 0 else "Failed")
@@ -158,24 +161,54 @@ class DataImport(Document):
         self.error_log = json.dumps(errors)
         await self.session.commit()
 
-    async def _update_db_progress(
-        self, processed: int, error_count: int, error_log: list[Any]
-    ) -> None:
-        self.processed_rows = processed
-        self.error_count = error_count
-        self.error_log = json.dumps(error_log)
-        await self.session.commit()
+        try:
+            from grunt.api.v1.ws import manager  # noqa: PLC0415
+
+            await manager.broadcast_doc(
+                "DataImport",
+                str(self.id),
+                "doc_change",
+                {
+                    "source": "import",
+                    "status": self.status,
+                    "processed_rows": self.processed_rows,
+                    "total_rows": self.total_rows,
+                    "error_count": self.error_count,
+                    "error_log": self.error_log,
+                },
+            )
+        except Exception:  # noqa: BLE001
+            pass
 
     async def _resolve_file_path(self) -> Path:
         """Resolve the attached file reference to an absolute Path."""
         path = Path(self.file)
         if path.exists():
             return path
+
+        file_id: str | None = None
+
         if self.file.startswith("/api/v1/files/"):
             file_id = self.file.rstrip("/").split("/")[-1]
+        elif "file_id=" in self.file:
+            from urllib.parse import parse_qs, urlparse  # noqa: PLC0415
+            qs = parse_qs(urlparse(self.file).query)
+            ids = qs.get("file_id", [])
+            file_id = ids[0] if ids else None
+
+        if file_id:
             doc = await self.grunt.get_doc("File", file_id)
             if doc:
-                return Path(doc["path"])
+                from grunt.core.storage.backends import get_storage_backend  # noqa: PLC0415
+
+                storage = get_storage_backend()
+                rel = doc["path"]
+                # LocalStorageBackend exposes _root; resolve absolute path
+                root = getattr(storage, "_root", None)
+                abs_path = Path(root) / rel if root else Path(rel)
+                if abs_path.exists():
+                    return abs_path
+
         raise FileNotFoundError(f"Import file not found: {self.file}")
 
     @staticmethod

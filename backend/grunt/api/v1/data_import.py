@@ -13,7 +13,9 @@ if TYPE_CHECKING:
 @grunt.whitelist()
 async def get_import_preview(data_import_id: str) -> dict[str, Any]:
     """Return column headers, preview rows, and auto-suggested field mapping."""
-    di_doc = cast("DataImport", await grunt.get_doc("DataImport", data_import_id))
+    from grunt.app import grunt as _grunt  # noqa: PLC0415
+
+    di_doc = cast("DataImport", await _grunt.get_doc_instance("DataImport", data_import_id))
     return await di_doc.get_preview()
 
 
@@ -35,13 +37,20 @@ async def get_import_status(data_import_id: str) -> dict[str, Any]:
 
 @grunt.whitelist()
 async def run_import_job(data_import_id: str) -> dict[str, Any]:
-    """Start an import job (currently triggered synchronously or via task queue)."""
-    di_doc = cast("DataImport", await grunt.get_doc("DataImport", data_import_id))
-    # Note: In a real production setup, this would be queued.
-    # For now, we call .run() which should ideally be non-blocking or handled by the app.
-    import asyncio
+    """Start an import job via the background task queue."""
+    import asyncio  # noqa: PLC0415
 
-    asyncio.create_task(di_doc.run())
+    from taskiq import InMemoryBroker  # noqa: PLC0415
+
+    from grunt.core.data_import.tasks import run_data_import  # noqa: PLC0415
+    from grunt.core.tasks.broker import broker  # noqa: PLC0415
+
+    if isinstance(broker, InMemoryBroker):
+        # No Redis worker running — execute directly in a background asyncio task
+        asyncio.create_task(run_data_import(data_import_id))
+    else:
+        await run_data_import.kiq(data_import_id)
+
     return {"id": data_import_id, "message": "Import started in background"}
 
 

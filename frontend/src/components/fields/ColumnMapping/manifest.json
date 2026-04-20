@@ -1,0 +1,7 @@
+{
+  "type": "ColumnMapping",
+  "label": "Маппінг колонок",
+  "icon": "table-2",
+  "category": "Спеціальні",
+  "propertySections": ["core", "display"]
+}

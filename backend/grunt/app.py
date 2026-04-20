@@ -167,18 +167,38 @@ class GruntApp:
         """Fetch a single document by id or name."""
         return await self._svc().get_document(doctype, id_or_name, self._require_user())
 
-    async def new_doc(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
+    async def get_doc_instance(self, doctype: str, id_or_name: str) -> "Document":
+        """Fetch a document and return it as an instantiated controller."""
+        from grunt.core.document.registry import document_registry  # noqa: PLC0415
+
+        data = await self._svc().get_document(doctype, id_or_name, self._require_user())
+        controller_cls = document_registry.get(doctype)
+        return controller_cls(doctype, data, self._require_user(), self._require_session())
+
+    async def new_doc(
+        self,
+        doctype: str,
+        data: dict[str, Any],
+        *,
+        ignore_required: bool = False,
+    ) -> dict[str, Any]:
         """Create a new document and return it."""
-        return await self._svc().create_document(doctype, data, self._require_user())
+        return await self._svc().create_document(
+            doctype, data, self._require_user(), ignore_required=ignore_required
+        )
 
     async def save_doc(
         self,
         doctype: str,
         id_or_name: str,
         data: dict[str, Any],
+        *,
+        ignore_required: bool = False,
     ) -> dict[str, Any]:
         """Update an existing document and return the updated version."""
-        return await self._svc().update_document(doctype, id_or_name, data, self._require_user())
+        return await self._svc().update_document(
+            doctype, id_or_name, data, self._require_user(), ignore_required=ignore_required
+        )
 
     async def delete_doc(self, doctype: str, id_or_name: str) -> None:
         """Delete a document."""

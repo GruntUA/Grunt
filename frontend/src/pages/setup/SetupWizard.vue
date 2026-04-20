@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from '@/core/composables/useToast'
 import client from '@/core/api/client'
-import { Sparkles, CheckCircle2, ShieldCheck, Mail, Globe, ArrowRight } from '@lucide/vue'
+import { Sparkles, CheckCircle2, ShieldCheck, Mail, Globe } from '@lucide/vue'
 
 const router = useRouter()
 const toast = useToast()
@@ -202,7 +202,7 @@ async function submitSetup() {
               </StepPanel>
 
               <!-- STEP 3 (Completion & Loader) -->
-              <StepPanel v-slot="{ activateCallback }" value="3">
+              <StepPanel value="3">
                 <div class="animate-in zoom-in-95 duration-700 fade-in text-center py-10">
                   <div class="relative w-32 h-32 mx-auto mb-8">
                     <!-- Glassy ring backdrops -->

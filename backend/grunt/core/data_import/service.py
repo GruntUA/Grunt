@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 import structlog
 
@@ -19,8 +19,6 @@ class DataImportService:
 
     async def run_import(self, data_import_id: str, user: object) -> None:
         """Load the DataImport document and execute the import."""
-        from grunt.core.doctypes.data_import.data_import import DataImport  # noqa: PLC0415
-
         async with grunt.context(self._session, self._engine, user):  # type: ignore[arg-type]
-            doc = cast("DataImport", await grunt.get_doc("DataImport", data_import_id))
+            doc = await grunt.get_doc_instance("DataImport", data_import_id)
             await doc.run()

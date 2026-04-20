@@ -36,6 +36,12 @@ const dt = ref<DocType | null>(null)
 const { document, form, isLoading, isDirty, isSaving, save, remove } = useDocument(props.doctype, props.id)
 const validationErrors = ref<Record<string, string>>({})
 
+// ── WebSocket real-time + presence ───────────────────────────────────────────
+const wsUrl = computed(() => props.id ? `/api/v1/ws/${props.doctype}/${props.id}` : null)
+const docWs = useWebSocket(wsUrl)
+const { lastMessage } = docWs
+const { users: presenceUsers, fieldLocks, focusField, blurField } = usePresence(docWs)
+
 // ── Client scripts ──────────────────────────────────────────────────────────
 const {
   buttons: scriptButtons,
@@ -54,6 +60,7 @@ const {
     }
   },
   save: () => handleSave(),
+  lastMessage,
 })
 
 // Provide link filter resolver to all descendant Link fields via inject
@@ -161,17 +168,14 @@ function onQuickEntrySaved(docname: string) {
   quickEntryDt.value = null
 }
 
-// ── WebSocket real-time + presence ───────────────────────────────────────────
-const wsUrl = computed(() => props.id ? `/api/v1/ws/${props.doctype}/${props.id}` : null)
-const docWs = useWebSocket(wsUrl)
-const { lastMessage } = docWs
-const { users: presenceUsers, fieldLocks, focusField, blurField } = usePresence(docWs)
-
 watch(lastMessage, (msg) => {
   if (!msg || typeof msg !== 'object') return
   const m = msg as Record<string, unknown>
   if (m.event === 'doc_change' && !isDirty.value) {
-    toast.info('Документ оновлено іншим користувачем')
+    const data = m.data as Record<string, unknown> | undefined
+    if (data?.source !== 'import') {
+      toast.info('Документ оновлено іншим користувачем')
+    }
     queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })
   }
 })

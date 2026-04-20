@@ -10,7 +10,7 @@ import {
   EllipsisVertical,
   RefreshCw,
   Share2,
-  Copy,
+  Copy as CopyIcon,
 } from '@lucide/vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 
@@ -277,7 +277,7 @@ const menuItems = computed(() => {
               class="flex-1 h-9 px-3 text-xs rounded-md border border-border bg-muted font-mono focus:outline-none"
             />
             <Button outlined size="small" @click="copyShareLink" class="shrink-0">
-              <Copy class="size-3.5" />
+              <CopyIcon class="size-3.5" />
             </Button>
           </div>
           <p class="text-xs text-muted-foreground mb-4">

@@ -3,6 +3,8 @@ import { inject, ref, computed, type Ref } from 'vue'
 import { useFloating, autoUpdate, offset, flip, shift } from '@floating-ui/vue'
 import { cn } from '@/lib/utils'
 
+defineOptions({ inheritAttrs: false })
+
 const props = withDefaults(defineProps<{
   side?: 'top' | 'bottom' | 'left' | 'right'
   sideOffset?: number

@@ -22,12 +22,14 @@
  *   // Render scripts.buttons in template
  */
 
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
+import type { Ref } from 'vue'
 import { useDialog } from '@/core/composables/useDialog'
 import { useToast } from '@/core/composables/useToast'
 import {
   createFormProxy,
   createGruntProxy,
+  dispatchMessageToProxy,
   executeClientScripts,
   type FormProxy,
   type GruntProxy,
@@ -43,6 +45,8 @@ export interface UseClientScriptsOptions {
   refreshField?: (field: string) => void
   reload: () => Promise<void>
   save: () => Promise<void>
+  /** Reactive ref to the latest WebSocket message on the document channel */
+  lastMessage?: Ref<unknown>
 }
 
 export function useClientScripts(doctype: string, options: UseClientScriptsOptions) {
@@ -53,7 +57,20 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
   const reqdOverrides = reactive<Record<string, boolean>>({})
   const dfPropOverrides = reactive<Record<string, Record<string, unknown>>>({})
 
+  const messageListeners = new Map<string, Set<(data: unknown) => void>>()
+
   let gruntProxy: GruntProxy | null = null
+
+  // Forward WS messages to grunt.onMessage subscribers
+  if (options.lastMessage) {
+    watch(options.lastMessage, (msg) => {
+      if (!msg || typeof msg !== 'object') return
+      const m = msg as Record<string, unknown>
+      if (typeof m.event === 'string') {
+        dispatchMessageToProxy(messageListeners, m.event, m.data ?? m)
+      }
+    })
+  }
 
   // Live proxy for doc — always reads current form values
   const liveDoc = new Proxy({} as Record<string, unknown>, {
@@ -112,7 +129,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
         },
         prompt: (labelOrOpts, title) => dialog.prompt(labelOrOpts as any, title),
         form: (opts) => dialog.form(opts as any),
-      })
+      }, messageListeners)
     }
     return gruntProxy
   }

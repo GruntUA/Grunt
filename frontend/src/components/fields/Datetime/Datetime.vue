@@ -5,6 +5,8 @@ import { CalendarIcon, X } from '@lucide/vue'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
+defineOptions({ inheritAttrs: false })
+
 const props = defineProps<{
   field: DocField
   modelValue: unknown
