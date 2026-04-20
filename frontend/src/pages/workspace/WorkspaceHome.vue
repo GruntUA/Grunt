@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { workspaceApi } from '@/core/api/workspace'
+import AppIcon from '@/components/AppIcon.vue'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 
@@ -58,7 +59,7 @@ watch(() => props.workspaceName, init)
     <!-- Header -->
     <div v-if="wsStore.active" class="flex items-center gap-3 mb-6">
       <SidebarTrigger class="md:hidden shrink-0 -ml-3" />
-      <span class="text-3xl">{{ wsStore.active.icon }}</span>
+      <AppIcon :icon="wsStore.active.icon || 'folder'" class="size-8 shrink-0" />
       <div>
         <h1 class="text-xl font-semibold text-foreground">{{ wsStore.active.label }}</h1>
         <p v-if="wsStore.active.description" class="text-sm text-muted-foreground">
@@ -75,7 +76,7 @@ watch(() => props.workspaceName, init)
 
     <!-- Empty state (no widgets, no redirect target) -->
     <div v-else-if="wsStore.active" class="flex flex-col items-center justify-center py-20 text-center">
-      <span class="text-5xl mb-4">{{ wsStore.active.icon }}</span>
+      <AppIcon :icon="wsStore.active.icon || 'folder'" class="size-12 mb-4 text-muted-foreground/40" />
       <p class="text-muted-foreground text-sm">Цей воркспейс ще не має модулів.</p>
       <p class="text-muted-foreground/60 text-xs mt-1">
         Додайте віджети у

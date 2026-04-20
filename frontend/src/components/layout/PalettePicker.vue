@@ -3,11 +3,10 @@ import { useTheme } from '@/core/composables/useTheme'
 import { useAuthStore } from '@/stores/auth'
 import { Check } from '@lucide/vue'
 
-const { currentPrimary, availableColors } = useTheme()
+const { currentPrimary, availableColors, setPrimaryColor } = useTheme()
 const auth = useAuthStore()
 
 async function selectColor(colorName: string) {
-  const { setPrimaryColor } = useTheme()
   setPrimaryColor(colorName)
   await auth.setPrimaryColor(colorName)
 }

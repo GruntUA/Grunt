@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import AppIcon from '@/components/AppIcon.vue'
 import draggable from 'vuedraggable'
 import { workspaceApi, type Workspace, type WorkspaceLink, type SearchResult } from '@/core/api/workspace'
 import { docsApi } from '@/core/api/docs'
@@ -416,7 +417,7 @@ async function save() {
                     <GripVertical class="size-4" />
                   </div>
                   <div class="flex-1 flex items-center gap-2 min-w-0">
-                    <span v-if="element.type !== 'Divider'" class="text-base shrink-0">{{ element.icon || '📄' }}</span>
+                    <AppIcon v-if="element.type !== 'Divider'" :icon="element.icon || 'file'" class="size-4 shrink-0 text-muted-foreground" />
                     <span v-if="element.type === 'Divider'" class="h-px bg-border flex-1 mx-2"></span>
                     <span v-else class="text-sm font-medium truncate">{{ element.label || element.link_to }}</span>
                     <span v-if="element.section" class="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground uppercase shrink-0">{{ element.section }}</span>

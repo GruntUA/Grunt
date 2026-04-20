@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import type { Workspace } from '@/core/api/workspace'
 import { ArrowUpRight, Layers } from '@lucide/vue'
+import AppIcon from '@/components/AppIcon.vue'
 
 const props = defineProps<{
   workspace: Workspace
@@ -62,10 +63,10 @@ function glowStyle() {
     <!-- Icon -->
     <div class="relative mb-4">
       <div
-        class="size-14 rounded-2xl flex items-center justify-center text-[28px] transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3"
-        :style="{ backgroundColor: workspace.color + '20', border: `1px solid ${workspace.color}30` }"
+        class="size-14 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3"
+        :style="{ backgroundColor: workspace.color + '20', border: `1px solid ${workspace.color}30`, color: workspace.color }"
       >
-        {{ workspace.icon || '📦' }}
+        <AppIcon :icon="workspace.icon || 'package'" class="size-7" />
       </div>
     </div>
 

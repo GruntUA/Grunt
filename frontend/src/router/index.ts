@@ -29,6 +29,12 @@ const router = createRouter({
       component: () => import('@/pages/auth/MfaVerify.vue'),
       meta: { public: true },
     },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('@/pages/auth/Register.vue'),
+      meta: { public: true },
+    },
 
 
     // Public app pages (no auth required)

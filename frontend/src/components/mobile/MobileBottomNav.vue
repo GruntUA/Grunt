@@ -9,6 +9,7 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useWorkspaceStore } from '@/stores/workspace'
+import AppIcon from '@/components/AppIcon.vue'
 import { MoreHorizontal, Home, X } from '@lucide/vue'
 
 
@@ -81,7 +82,7 @@ function goHome() {
         :class="isActive(item.link_to) ? 'text-primary' : 'text-muted-foreground hover:text-foreground'"
         @click="navigate(item)"
       >
-        <span class="text-lg leading-none">{{ item.icon || '📄' }}</span>
+        <AppIcon :icon="item.icon || 'file'" class="size-5" />
         <span class="text-[10px] font-medium leading-none truncate max-w-[52px]">{{ item.label }}</span>
       </button>
 

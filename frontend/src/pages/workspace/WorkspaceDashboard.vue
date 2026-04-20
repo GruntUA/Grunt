@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import AppIcon from '@/components/AppIcon.vue'
 import {
   RefreshCw, LayoutDashboard, Pencil, Plus, Save, X,
   Calendar, Timer, Link2, Printer, GripVertical,
@@ -393,7 +394,7 @@ const printPage = () => window.print()
                 class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-left hover:bg-background hover:shadow-sm transition-all border border-transparent hover:border-border"
                 @click="addWidget(t.value)"
               >
-                <span class="text-base leading-none shrink-0">{{ t.icon }}</span>
+                <AppIcon :icon="t.icon" class="size-4 shrink-0 text-muted-foreground" />
                 <span class="text-sm">{{ t.label }}</span>
                 <Plus class="size-3 ml-auto text-muted-foreground opacity-0 group-hover:opacity-100" />
               </button>

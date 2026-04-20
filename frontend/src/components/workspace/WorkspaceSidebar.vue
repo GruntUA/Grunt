@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceStore } from '@/stores/workspace'
+import AppIcon from '@/components/AppIcon.vue'
 import NotificationsPopover from '@/components/layout/NotificationsPopover.vue'
 import PalettePicker from '@/components/layout/PalettePicker.vue'
 import { Sidebar, SidebarRail, SidebarMenuButton, useSidebar } from '@/components/ui/sidebar'
@@ -36,7 +37,7 @@ const wsMenuItems = computed(() => [
   ...wsStore.workspaces.map(ws => ({
     key: ws.name,
     label: ws.label,
-    emoji: ws.icon,
+    icon: ws.icon,
     isActive: ws.name === wsStore.active?.name,
     command: () => router.push(`/${ws.name}`),
   })),
@@ -144,7 +145,7 @@ watch(() => router.currentRoute.value.path, () => { if (wsStore.active) wsStore.
             <hr v-if="item.separator" class="border-border my-1 mx-1" />
             <a v-else v-bind="mp.action" class="flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-muted"
               :class="item.isActive ? 'text-primary font-medium bg-primary/5' : ''">
-              <span v-if="item.emoji" class="text-lg shrink-0">{{ item.emoji }}</span>
+              <AppIcon v-if="item.icon" :icon="item.icon" class="size-4 shrink-0 text-muted-foreground" />
               <ArrowLeft v-else-if="item.key === 'back'" class="size-4 text-muted-foreground shrink-0" />
               <span class="text-sm truncate">{{ item.label }}</span>
             </a>
@@ -157,7 +158,7 @@ watch(() => router.currentRoute.value.path, () => { if (wsStore.active) wsStore.
           <div class="absolute inset-0 bg-linear-to-tr from-transparent via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
           <div class="flex items-center gap-3 min-w-0 relative z-10">
             <div class="size-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-inner">
-              <span class="text-xl leading-none filter drop-shadow-sm">{{ wsStore.active?.icon || '📁' }}</span>
+              <AppIcon :icon="wsStore.active?.icon || 'folder'" class="size-5 text-primary" />
             </div>
             <div class="flex flex-col items-start min-w-0">
               <span class="text-[10px] font-black text-primary/60 uppercase tracking-[0.2em] leading-none mb-1.5">
@@ -174,7 +175,7 @@ watch(() => router.currentRoute.value.path, () => { if (wsStore.active) wsStore.
 
       <!-- Collapsed: icon only -->
       <SidebarMenuButton v-else :tooltip="wsStore.active?.label || 'Workspace'" class="h-10 justify-center" @click="goToDesk">
-        <span class="text-xl">{{ wsStore.active?.icon || '📁' }}</span>
+        <AppIcon :icon="wsStore.active?.icon || 'folder'" class="size-5" />
       </SidebarMenuButton>
     </header>
 
@@ -205,8 +206,9 @@ watch(() => router.currentRoute.value.path, () => { if (wsStore.active) wsStore.
           <p class="px-1 text-[11px] tracking-widest font-bold uppercase text-muted-foreground">Закріплені</p>
           <div v-for="item in pinnedItems" :key="`${item.workspace}-${item.type}-${item.link_to}`"
             class="flex items-center justify-between text-sm px-2 py-1 rounded hover:bg-sidebar-accent/70 transition">
-            <button class="text-left flex-1 truncate" @click="navigatePinnedItem(item)">
-              {{ item.icon }} {{ item.label }}
+            <button class="text-left flex-1 flex items-center gap-1.5 truncate" @click="navigatePinnedItem(item)">
+              <AppIcon :icon="item.icon || 'file'" class="size-3.5 shrink-0 text-muted-foreground" />
+              {{ item.label }}
               <span class="text-[10px] text-muted-foreground lowercase ml-1">({{ item.type }})</span>
             </button>
             <button class="ml-2 rounded-md p-1 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10" @click.stop="unpinItem(item)">

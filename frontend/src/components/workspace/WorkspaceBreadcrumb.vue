@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { useDocTypeStore } from '@/stores/doctype'
+import AppIcon from '@/components/AppIcon.vue'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { ChevronRight } from '@lucide/vue'
 
@@ -69,7 +70,7 @@ const items = computed(() => {
         custom
       >
         <a v-bind="ip.action" :href="rp.href" class="flex items-center gap-1.5 font-medium" @click="rp.navigate">
-          <span v-if="item.icon" class="text-sm shrink-0">{{ item.icon }}</span>
+          <AppIcon v-if="item.icon" :icon="item.icon" class="size-3.5 shrink-0 text-muted-foreground" />
           <span class="truncate max-w-[200px]">{{ item.label }}</span>
         </a>
       </router-link>

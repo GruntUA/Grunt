@@ -21,26 +21,24 @@ export const PRIMARY_COLORS = [
     { name: 'Rose', value: 'rose', color: '#f43f5e' },
 ]
 
-// Singleton state
+// Singleton state — one ref, one watcher for the entire app lifetime
 const stored = localStorage.getItem('grunt_primary_color')
 const _current = ref(stored || 'indigo')
+
+watchEffect(() => {
+    try {
+        const themePalette = (Aura as any).primitive?.[_current.value] || (Aura as any).primitive?.indigo
+        if (themePalette) updatePrimaryPalette(themePalette)
+    } catch (e) {
+        console.warn('Failed to update primary color:', e)
+    }
+})
 
 export function useTheme() {
     function setPrimaryColor(name: string) {
         _current.value = name
         localStorage.setItem('grunt_primary_color', name)
     }
-
-    watchEffect(() => {
-        try {
-           const themePalette = (Aura as any).primitive?.[_current.value] || (Aura as any).primitive?.indigo;
-           if (themePalette) {
-              updatePrimaryPalette(themePalette);
-           }
-        } catch (e) {
-           console.warn('Failed to update primary color:', e);
-        }
-    })
 
     return {
         currentPrimary: _current,

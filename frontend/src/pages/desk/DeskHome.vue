@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import AppIcon from '@/components/AppIcon.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceStore } from '@/stores/workspace'
 import client from '@/core/api/client'
@@ -113,9 +114,9 @@ function actionConfig(action: string) {
               @click="router.push(`/${ws.name}/desk`)">
               <div class="flex items-start justify-between mb-6">
                 <div
-                  class="size-14 rounded-2xl flex items-center justify-center text-3xl shadow-inner transition-transform group-hover:scale-110 duration-300"
+                  class="size-14 rounded-2xl flex items-center justify-center shadow-inner transition-transform group-hover:scale-110 duration-300"
                   :style="{ backgroundColor: ws.color + '15', color: ws.color }">
-                  {{ ws.icon || '📁' }}
+                  <AppIcon :icon="ws.icon || 'folder'" class="size-7" />
                 </div>
                 <div class="opacity-0 group-hover:opacity-100 transition-opacity bg-primary/5 p-2 rounded-full">
                   <ArrowRight class="size-4 text-primary" />
