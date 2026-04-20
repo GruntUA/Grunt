@@ -149,33 +149,49 @@ export const FallbackFieldLoader = (): Promise<Component> =>
  *  - manifest.json: Definition (label, icon, category, propertySections)
  *  - [FieldName].vue: The UI component
  */
+function isValidManifest(v: unknown): v is Omit<FieldDefinition, 'component' | 'designerPreview'> {
+  return typeof v === 'object' && v !== null
+    && typeof (v as any).type === 'string'
+    && typeof (v as any).label === 'string'
+    && Array.isArray((v as any).propertySections)
+}
+
 async function discoverFields() {
   const manifests = import.meta.glob('@/components/fields/*/manifest.json', { eager: true })
   const allVues = import.meta.glob('@/components/fields/*/*.vue')
 
   for (const path in manifests) {
-    const config = (manifests[path] as any).default
-    const dirName = path.split('/').at(-2)!  // e.g. "Check", "Rating"
-    const searchDir = path.replace('/manifest.json', '/')
+    try {
+      const config = (manifests[path] as any).default
+      if (!isValidManifest(config)) {
+        console.warn(`[FieldRegistry] Invalid manifest at ${path}`)
+        continue
+      }
 
-    // Main runtime component: {DirName}/{DirName}.vue (exact match by convention)
-    const componentPath = `${searchDir}${dirName}.vue`
-    // Designer preview: {DirName}/DesignerPreview.vue
-    const previewPath = `${searchDir}DesignerPreview.vue`
+      const dirName = path.split('/').at(-2)!  // e.g. "Check", "Rating"
+      const searchDir = path.replace('/manifest.json', '/')
 
-    const entry: FieldDefinition = { ...config }
+      // Main runtime component: {DirName}/{DirName}.vue (exact match by convention)
+      const componentPath = `${searchDir}${dirName}.vue`
+      // Designer preview: {DirName}/DesignerPreview.vue
+      const previewPath = `${searchDir}DesignerPreview.vue`
 
-    if (componentPath in allVues) {
-      entry.component = () => allVues[componentPath]().then((m: any) => m.default as Component)
-    } else if (!config.is_layout) {
-      console.warn(`[FieldRegistry] No Vue component found for field type "${config.type}" at ${searchDir}`)
+      const entry: FieldDefinition = { ...(config as any) }
+
+      if (componentPath in allVues) {
+        entry.component = () => allVues[componentPath]().then((m: any) => m.default as Component)
+      } else if (!config.is_layout) {
+        console.warn(`[FieldRegistry] No Vue component found for field type "${config.type}" at ${searchDir}`)
+      }
+
+      if (previewPath in allVues) {
+        entry.designerPreview = () => allVues[previewPath]().then((m: any) => m.default as Component)
+      }
+
+      registerField(entry)
+    } catch (e) {
+      console.error(`[FieldRegistry] Failed to register field from ${path}:`, e)
     }
-
-    if (previewPath in allVues) {
-      entry.designerPreview = () => allVues[previewPath]().then((m: any) => m.default as Component)
-    }
-
-    registerField(entry)
   }
 }
 

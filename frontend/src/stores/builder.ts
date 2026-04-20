@@ -91,7 +91,11 @@ export const useBuilderStore = defineStore('builder', () => {
     if (!doctype.value) return
     const idx = doctype.value.fields.findIndex((f) => f.fieldname === fieldname)
     if (idx === -1) return
-    doctype.value.fields[idx] = { ...doctype.value.fields[idx], ...patch }
+
+    doctype.value = {
+      ...doctype.value,
+      fields: doctype.value.fields.map((f, i) => i === idx ? { ...f, ...patch } : f)
+    }
     // Index stays the same even if fieldname changed
     isDirty.value = true
   }
@@ -100,7 +104,12 @@ export const useBuilderStore = defineStore('builder', () => {
     if (!doctype.value) return
     const idx = doctype.value.fields.findIndex((f) => f.fieldname === fieldname)
     if (idx === -1) return
-    doctype.value.fields.splice(idx, 1)
+
+    doctype.value = {
+      ...doctype.value,
+      fields: doctype.value.fields.filter((_, i) => i !== idx),
+    }
+
     if (_selectedFieldIdx.value === idx) {
       _selectedFieldIdx.value = null
     } else if (_selectedFieldIdx.value !== null && _selectedFieldIdx.value > idx) {
@@ -335,7 +344,10 @@ export const useBuilderStore = defineStore('builder', () => {
       label: fieldtype,
       fieldtype,
     }
-    doctype.value.fields.push(newField)
+    doctype.value = {
+      ...doctype.value,
+      fields: [...doctype.value.fields, newField]
+    }
     _selectedFieldIdx.value = doctype.value.fields.length - 1
     isDirty.value = true
   }

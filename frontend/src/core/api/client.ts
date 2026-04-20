@@ -9,10 +9,11 @@ const client: AxiosInstance = axios.create({
 const MUTABLE_METHODS = new Set(['post', 'put', 'patch', 'delete'])
 
 // Request interceptor: attach Authorization header
-client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('grunt_token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+client.interceptors.request.use(async (config) => {
+  const { useAuthStore } = await import('@/stores/auth')
+  const auth = useAuthStore()
+  if (auth.token) {
+    config.headers.Authorization = `Bearer ${auth.token}`
   }
   return config
 })

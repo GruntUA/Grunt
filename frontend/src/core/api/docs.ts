@@ -90,17 +90,27 @@ export const docsApi = {
     return r.data
   },
 
-  get: (doctype: string, id: string): Promise<GruntDocument> =>
+  get: <T extends GruntDocument = GruntDocument>(
+    doctype: string,
+    id: string,
+  ): Promise<T> =>
     client.get(`/api/v1/docs/${doctype}/${id}`)
-      .then(r => r.data.data),
+      .then(r => r.data.data as T),
 
-  create: (doctype: string, data: Record<string, unknown>): Promise<GruntDocument> =>
+  create: <T extends GruntDocument = GruntDocument>(
+    doctype: string,
+    data: Record<string, unknown>,
+  ): Promise<T> =>
     client.post(`/api/v1/docs/${doctype}`, data)
-      .then(r => r.data.data),
+      .then(r => r.data.data as T),
 
-  update: (doctype: string, id: string, data: Record<string, unknown>): Promise<GruntDocument> =>
+  update: <T extends GruntDocument = GruntDocument>(
+    doctype: string,
+    id: string,
+    data: Record<string, unknown>,
+  ): Promise<T> =>
     client.put(`/api/v1/docs/${doctype}/${id}`, data)
-      .then(r => r.data.data),
+      .then(r => r.data.data as T),
 
   delete: (doctype: string, id: string) =>
     client.delete(`/api/v1/docs/${doctype}/${id}`),

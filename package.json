@@ -28,7 +28,6 @@
     "@internationalized/date": "^3.12.1",
     "@lucide/vue": "^1.8.0",
     "@primevue/themes": "^4.5.4",
-    "@radix-icons/vue": "^1.0.0",
     "@tanstack/vue-query": "^5.99.0",
     "@tanstack/vue-table": "^8.21.3",
     "@tiptap/extension-bubble-menu": "^3.22.3",

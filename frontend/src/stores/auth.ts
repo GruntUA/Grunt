@@ -20,6 +20,15 @@ export const useAuthStore = defineStore('auth', () => {
   const refreshToken = ref<string | null>(localStorage.getItem('grunt_refresh_token'))
   const user = ref<User | null>(null)
 
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'grunt_token') {
+        token.value = e.newValue
+        if (!e.newValue) user.value = null
+      }
+    })
+  }
+
   const isLoggedIn = computed(() => !!token.value)
 
   // Singleton promise so router guard and early init share one request

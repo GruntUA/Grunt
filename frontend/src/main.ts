@@ -28,6 +28,19 @@ app.use(PrimeVue, {
       darkModeSelector: '.dark',
     },
   },
+  pt: {
+    // Global overrides for all Buttons
+    button: {
+      root: ({ props }: any) => ({
+        class: props?.size === 'small' ? 'h-8 text-sm' : undefined
+      })
+    },
+    // Unified table style
+    datatable: {
+      root: { class: 'rounded-lg border border-surface-200 dark:border-surface-700' },
+    },
+  },
+  ptOptions: { mergeSections: true, mergeProps: true },
 })
 app.use(ToastService)
 app.use(ConfirmationService)

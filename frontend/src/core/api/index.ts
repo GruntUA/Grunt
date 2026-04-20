@@ -1,5 +1,5 @@
 export { metaApi } from './meta'
-export { docsApi } from './docs'
+export { docsApi, type ListParams } from './docs'
 export { reportsApi } from './reports'
 export { authAdminApi } from './auth-admin'
 export { getDashboardData } from './dashboards'

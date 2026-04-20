@@ -81,7 +81,7 @@ export interface DialogState {
 
 // ── Singleton state ──────────────────────────────────────────────────────
 
-const state = reactive<DialogState>({
+const DEFAULT_STATE: Omit<DialogState, 'resolve' | 'proceedAction'> = {
   open: false,
   type: 'msgprint',
   title: '',
@@ -90,23 +90,17 @@ const state = reactive<DialogState>({
   fields: [],
   primaryLabel: 'OK',
   size: 'small',
-  proceedAction: null,
   progress: { count: 0, total: 0, percent: 0, description: null },
+}
+
+const state = reactive<DialogState>({
+  ...DEFAULT_STATE,
+  proceedAction: null,
   resolve: null,
 })
 
 function reset() {
-  state.open = false
-  state.type = 'msgprint'
-  state.title = ''
-  state.message = ''
-  state.indicator = null
-  state.fields = []
-  state.primaryLabel = 'OK'
-  state.size = 'small'
-  state.proceedAction = null
-  state.progress = { count: 0, total: 0, percent: 0, description: null }
-  state.resolve = null
+  Object.assign(state, DEFAULT_STATE, { resolve: null, proceedAction: null })
 }
 
 // ── Public API ───────────────────────────────────────────────────────────
