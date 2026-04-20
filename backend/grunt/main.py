@@ -195,6 +195,30 @@ async def lifespan(app: FastAPI):
                     except Exception as e:
                         logger.warning("app_router.load_error", path=import_path, error=str(e))
 
+                # Mount app/public/ as static files at /assets/{app}/
+                public_dir = ext_app / "public"
+                if public_dir.is_dir():
+                    from fastapi.staticfiles import StaticFiles  # noqa: PLC0415
+
+                    app.mount(
+                        f"/assets/{ext_app.name}",
+                        StaticFiles(directory=str(public_dir)),
+                        name=f"assets_{ext_app.name}",
+                    )
+                    logger.info("www.assets.mounted", app=ext_app.name)
+
+                # Discover www/ pages and register FastAPI routes
+                from grunt.www import make_www_handler, www_registry  # noqa: PLC0415
+
+                for page in www_registry.discover_app(ext_app, ext_app.name):
+                    app.add_api_route(
+                        page.url_pattern,
+                        make_www_handler(page),
+                        methods=["GET"],
+                        include_in_schema=False,
+                        tags=["www"],
+                    )
+
     # Initialize Sentry (optional)
     if settings.sentry_dsn:
         try:

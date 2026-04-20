@@ -73,6 +73,22 @@ export default defineConfig({
                 target: 'http://localhost:8000',
                 changeOrigin: true,
             },
+            // Static assets from app public/ directories
+            '/assets': {
+                target: 'http://localhost:8000',
+                changeOrigin: true,
+            },
+            // Public www pages: proxy clean URLs (no file extension) to backend
+            '^(?!(/app($|/)|/api($|/)|/ws($|/)|/assets($|/)|/@|/node_modules))': {
+                target: 'http://localhost:8000',
+                changeOrigin: true,
+                bypass(req) {
+                    const url = (req.url ?? '').split('?')[0]
+                    // Let Vite serve anything with a file extension (source files, manifests, etc.)
+                    if (/\.\w+$/.test(url)) return url
+                    return undefined
+                },
+            },
         },
     },
 })
