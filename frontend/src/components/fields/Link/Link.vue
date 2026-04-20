@@ -6,6 +6,8 @@ import type { DocField } from '@/types'
 import { docsApi, metaApi } from '@/core/api'
 import type { LinkSearchItem } from '@/core/api/docs'
 import { Search, X, Loader2, Plus, ArrowUpRight } from '@lucide/vue'
+import TreeSelect from 'primevue/treeselect'
+import type { TreeNode } from 'primevue/treenode'
 
 const props = defineProps<{
   field: DocField
@@ -33,6 +35,11 @@ const isLoading = ref(false)
 const activeIdx = ref(-1)
 const titleField = ref<string>('name')
 
+// Tree mode
+const isTree = ref(false)
+const treeNodes = ref<TreeNode[]>([])
+const treeLoading = ref(false)
+
 // Cache: name → display label
 const displayCache = new Map<string, string>()
 
@@ -46,19 +53,9 @@ const getScriptFilters = inject<LinkFiltersFn>('getLinkFilters', () => ({}))
 
 // ── Resolve link_filters ──────────────────────────────────────────────────────
 
-/**
- * Evaluate the field's link_filters against the current document.
- *
- *  '{"status": "Active"}'         → parsed as JSON
- *  'eval: {"company": doc.company}' → evaluated as JS with doc in scope
- */
 function resolveFilters(): Record<string, string> {
   const doc = props.doc ?? {}
-
-  // 1. Script-registered filters via frm.set_query (highest priority)
   const scriptFilters = getScriptFilters(props.field.fieldname, doc)
-
-  // 2. Static/eval filters from field.link_filters metadata
   let metaFilters: Record<string, string> = {}
   const raw = props.field.link_filters
   if (raw) {
@@ -73,10 +70,49 @@ function resolveFilters(): Record<string, string> {
       }
     } catch { /* ignore */ }
   }
-
-  // Script filters override meta filters for the same key
   return { ...metaFilters, ...scriptFilters }
 }
+
+// ── Tree helpers ──────────────────────────────────────────────────────────────
+
+function transformNodes(nodes: any[]): TreeNode[] {
+  return nodes.map(node => ({
+    key: node.id,
+    label: node[titleField.value] || node.name || node.id,
+    data: node,
+    children: node.children?.length ? transformNodes(node.children) : undefined,
+    leaf: !node.children?.length,
+  }))
+}
+
+async function loadTree() {
+  if (!props.field.options) return
+  treeLoading.value = true
+  try {
+    const raw = await docsApi.getTree(props.field.options)
+    treeNodes.value = transformNodes(raw)
+  } catch {
+    treeNodes.value = []
+  } finally {
+    treeLoading.value = false
+  }
+}
+
+// TreeSelect v-model is { [key]: true } for single selection mode
+const treeSelection = computed<Record<string, boolean> | null>({
+  get() {
+    const v = props.modelValue
+    if (!v || v === '') return null
+    return { [String(v)]: true }
+  },
+  set(val) {
+    if (!val || Object.keys(val).length === 0) {
+      emit('update:modelValue', null)
+    } else {
+      emit('update:modelValue', Object.keys(val)[0])
+    }
+  },
+})
 
 // ── Resolve display label for a stored value ─────────────────────────────────
 
@@ -89,10 +125,11 @@ async function resolveDisplay(value: string): Promise<string> {
     return value
   }
 
+  // Use link_search to resolve display — avoids 404s for missing records
   try {
-    const doc = await docsApi.get(props.field.options, value)
-    const label = (doc as Record<string, unknown>)[titleField.value]
-    const display = typeof label === 'string' && label ? label : value
+    const results = await docsApi.linkSearch(props.field.options, value, {}, 5)
+    const match = results.find(r => r.name === value || r.id === value)
+    const display = match?.title ?? value
     displayCache.set(value, display)
     return display
   } catch {
@@ -110,17 +147,24 @@ async function syncQueryFromValue(v: unknown) {
 
 // ── Sync value → display ──────────────────────────────────────────────────────
 
-watch(() => props.modelValue, (v) => { syncQueryFromValue(v) })
+watch(() => props.modelValue, (v) => {
+  if (!isTree.value) syncQueryFromValue(v)
+})
 
 watch(() => props.field.options, async (doctype) => {
   if (!doctype) return
   try {
     const meta = await metaApi.get(doctype)
     titleField.value = meta.title_field || 'name'
+    isTree.value = !!meta.is_tree
+    if (isTree.value) {
+      await loadTree()
+    }
   } catch {
     titleField.value = 'name'
+    isTree.value = false
   }
-  if (props.modelValue) syncQueryFromValue(props.modelValue)
+  if (!isTree.value && props.modelValue) syncQueryFromValue(props.modelValue)
 }, { immediate: true })
 
 // ── Search via dedicated link_search endpoint ─────────────────────────────────
@@ -163,7 +207,6 @@ function onBlur() {
 
 // ── Keyboard navigation ───────────────────────────────────────────────────────
 
-// Total navigable items = results + optional "create" button
 const totalItems = computed(() => results.value.length + (canCreate.value ? 1 : 0))
 
 function onKeydown(e: KeyboardEvent) {
@@ -178,7 +221,6 @@ function onKeydown(e: KeyboardEvent) {
   } else if (e.key === 'Enter') {
     e.preventDefault()
     if (activeIdx.value === results.value.length && canCreate.value) {
-      // Last item — "Create" button
       createNew()
     } else if (activeIdx.value >= 0 && results.value[activeIdx.value]) {
       select(results.value[activeIdx.value])
@@ -207,25 +249,14 @@ function clear() {
 
 // ── Create new ────────────────────────────────────────────────────────────────
 
-/**
- * Show the "Create" button when the user has typed something and no exact
- * match exists, or when there are no results at all.
- */
 const canCreate = computed(() =>
   !!(props.field.options && !props.disabled && !props.field.read_only)
 )
 
-/**
- * Navigate to the new-document form for the linked DocType.
- * Emits "create-new" for parent forms to intercept (e.g. open a dialog).
- * Falls back to router navigation so it works standalone.
- */
 function createNew() {
   if (!props.field.options) return
   isOpen.value = false
   emit('create-new', props.field.options, query.value)
-  // Default fallback: open new-doc page (workspace route)
-  // Parent components can prevent this by catching the event.
 }
 
 // ── Highlight ─────────────────────────────────────────────────────────────────
@@ -243,7 +274,6 @@ const isSelected = computed(
   () => props.modelValue !== null && props.modelValue !== undefined && props.modelValue !== '',
 )
 
-// URL to the linked document's form page
 const linkedDocUrl = computed(() => {
   if (!isSelected.value || !props.field.options || !props.modelValue) return null
   const workspace = route.params.workspaceName as string | undefined
@@ -257,8 +287,36 @@ function openLinkedDoc() {
 </script>
 
 <template>
-  <div class="relative">
-    <!-- Input -->
+  <!-- Tree mode: use PrimeVue TreeSelect -->
+  <div v-if="isTree" class="relative flex items-center gap-1">
+    <TreeSelect
+      v-model="treeSelection"
+      :options="treeNodes"
+      :loading="treeLoading"
+      :disabled="disabled || field.read_only"
+      selection-mode="single"
+      filter
+      show-clear
+      :placeholder="field.placeholder ?? `Оберіть ${field.options ?? ''}...`"
+      :class="[
+        'w-full',
+        error ? 'p-invalid' : '',
+      ]"
+      @clear="emit('update:modelValue', null)"
+    />
+    <button
+      v-if="isSelected && linkedDocUrl"
+      type="button"
+      class="shrink-0 text-muted-foreground hover:text-primary transition-colors"
+      :title="t('Open {doctype}', { doctype: field.options ?? '' })"
+      @click="openLinkedDoc"
+    >
+      <ArrowUpRight class="size-4" />
+    </button>
+  </div>
+
+  <!-- Regular mode: custom input + dropdown -->
+  <div v-else class="relative">
     <div class="relative">
       <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
 
@@ -278,7 +336,6 @@ function openLinkedDoc() {
         @keydown="onKeydown"
       />
 
-      <!-- Right icons: loading / open link / clear -->
       <div class="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
         <Loader2 v-if="isLoading" class="size-4 text-muted-foreground animate-spin" />
         <template v-else-if="isSelected">
@@ -303,12 +360,10 @@ function openLinkedDoc() {
       </div>
     </div>
 
-    <!-- Dropdown -->
     <div
       v-if="isOpen"
       class="absolute top-full mt-1 left-0 right-0 bg-popover border border-border rounded-lg shadow-lg z-50 overflow-hidden"
     >
-      <!-- Results -->
       <div v-if="results.length" class="max-h-52 overflow-y-auto py-1">
         <button
           v-for="(item, i) in results"
@@ -330,14 +385,12 @@ function openLinkedDoc() {
         </button>
       </div>
 
-      <!-- Empty state -->
       <div v-else class="px-3 py-3 text-sm text-muted-foreground text-center">
         <span v-if="isLoading">{{ t('Searching...') }}</span>
         <span v-else-if="query">Нічого не знайдено для «{{ query }}»</span>
         <span v-else>{{ t('No records') }}</span>
       </div>
 
-      <!-- Create new button (always at the bottom when field.options is set) -->
       <template v-if="canCreate">
         <div class="border-t border-border" />
         <button

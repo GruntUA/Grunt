@@ -261,7 +261,14 @@ class DocTypeRegistry:
                                 name=doctype.name,
                                 added=[f.fieldname for f in new_fields],
                             )
-                    # Sync structural properties from JSON (fieldtype, options, label, default)
+                    # Sync top-level structural properties from JSON
+                    _TOP_STRUCTURAL = {"is_tree", "is_submittable", "title_field", "tree_view", "search_fields", "label", "module"}
+                    for attr in _TOP_STRUCTURAL:
+                        json_val = getattr(doctype, attr, None)
+                        if json_val is not None and getattr(active_dt, attr, None) != json_val:
+                            setattr(active_dt, attr, json_val)
+
+                    # Sync field-level structural properties from JSON (fieldtype, options, label, default)
                     _STRUCTURAL = {"fieldtype", "options", "label", "default"}
                     for json_field in doctype.fields:
                         stored_field = stored_fieldnames.get(json_field.fieldname)

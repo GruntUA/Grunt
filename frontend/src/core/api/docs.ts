@@ -135,6 +135,11 @@ export const docsApi = {
   getLinks: (doctype: string, id: string): Promise<BacklinkItem[]> =>
     client.get(`/api/v1/docs/${doctype}/${id}/links`).then(r => r.data.data ?? []),
 
+  getTree: async (doctype: string): Promise<any[]> => {
+    const r = await client.get(`/api/v1/docs/${doctype}/tree`)
+    return r.data.data ?? []
+  },
+
   getAssignees: (doctype: string, id: string): Promise<GruntDocument[]> =>
     client.get(`/api/v1/docs/ToDo`, {
       params: { 'filter[reference_doctype]': doctype, 'filter[reference_id]': id, 'filter[status]': 'Open' }

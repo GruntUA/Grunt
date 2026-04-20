@@ -278,19 +278,29 @@ class TreeService:
         parent_field: str,
         root_parent_id: str | None,
     ) -> list[dict[str, Any]]:
-        """Convert a flat list into nested dicts via ``children`` key."""
+        """Convert a flat list into nested dicts via ``children`` key.
+
+        Supports both UUID-based and name-based parent_field values, since
+        Link fields may store either the document's id or its name field.
+        """
         by_id: dict[str, dict[str, Any]] = {}
+        by_name: dict[str, dict[str, Any]] = {}
         for row in flat:
             row["children"] = []
             by_id[row["id"]] = row
+            name_val = row.get("name")
+            if name_val and name_val != row["id"]:
+                by_name[name_val] = row
 
         roots: list[dict[str, Any]] = []
         for row in flat:
             pid = row.get(parent_field)
-            if pid and pid in by_id:
-                by_id[pid]["children"].append(row)
-            else:
-                roots.append(row)
+            if pid:
+                parent = by_id.get(pid) or by_name.get(pid)
+                if parent and parent["id"] != row["id"]:
+                    parent["children"].append(row)
+                    continue
+            roots.append(row)
         return roots
 
     @staticmethod

@@ -14,6 +14,7 @@ const props = defineProps<{
   modelValue: unknown
   disabled?: boolean
   error?: string
+  doc?: Record<string, unknown>
 }>()
 
 const emit = defineEmits<{
@@ -185,6 +186,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
 </script>
 
 <template>
+  <div>
   <div class="flex flex-col gap-2">
     <div class="border border-border rounded-lg overflow-hidden">
       <table class="w-full text-sm">
@@ -381,4 +383,5 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
     @saved="onQuickEntrySaved"
     @close="quickEntryDt = null"
   />
+  </div>
 </template>
