@@ -30,7 +30,7 @@ import asyncio
 import contextlib
 import io
 from datetime import UTC
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, TypeVar
 
 import structlog
 
@@ -40,6 +40,8 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
+
+_T = TypeVar("_T")
 
 # Maximum execution output capture (bytes)
 _MAX_OUTPUT = 10_000
@@ -66,6 +68,15 @@ class _DBProxy:
         self._bridge = bridge
         self._session = session
 
+    async def _run_with_session(self, action: Callable[[], Awaitable[_T]]) -> _T:
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
+
+        token = _session_ctx.set(self._session)
+        try:
+            return await action()
+        finally:
+            _session_ctx.reset(token)
+
     def get_value(self, doctype: str, filters: str | dict[str, Any], fieldname: str) -> Any:
         """Get a single field value from a document."""
         return self._bridge.run(self._async_get_value(doctype, filters, fieldname))
@@ -74,13 +85,10 @@ class _DBProxy:
         self, doctype: str, filters: str | dict[str, Any], fieldname: str
     ) -> Any:
         from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        token = _session_ctx.set(self._session)
-        try:
-            return await GruntDB().get_value(doctype, filters, fieldname)
-        finally:
-            _session_ctx.reset(token)
+        return await self._run_with_session(
+            lambda: GruntDB().get_value(doctype, filters, fieldname)
+        )
 
     def set_value(self, doctype: str, doc_id: str, fieldname: str, value: Any) -> None:
         """Update a single field value on a document."""
@@ -88,13 +96,8 @@ class _DBProxy:
 
     async def _async_set_value(self, doctype: str, doc_id: str, fieldname: str, value: Any) -> None:
         from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        token = _session_ctx.set(self._session)
-        try:
-            await GruntDB().set_value(doctype, doc_id, fieldname, value)
-        finally:
-            _session_ctx.reset(token)
+        await self._run_with_session(lambda: GruntDB().set_value(doctype, doc_id, fieldname, value))
 
     def exists(self, doctype: str, filters: str | dict[str, Any]) -> str | None:
         """Return document name if it exists, else None."""
@@ -102,13 +105,8 @@ class _DBProxy:
 
     async def _async_exists(self, doctype: str, filters: str | dict[str, Any]) -> str | None:
         from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        token = _session_ctx.set(self._session)
-        try:
-            return await GruntDB().exists(doctype, filters)
-        finally:
-            _session_ctx.reset(token)
+        return await self._run_with_session(lambda: GruntDB().exists(doctype, filters))
 
     def get_all(
         self,
@@ -135,15 +133,17 @@ class _DBProxy:
         order: str,
     ) -> list[dict[str, Any]]:
         from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        token = _session_ctx.set(self._session)
-        try:
-            return await GruntDB().get_all(
-                doctype, filters=filters, fields=fields, limit=limit, order_by=order_by, order=order
+        return await self._run_with_session(
+            lambda: GruntDB().get_all(
+                doctype,
+                filters=filters,
+                fields=fields,
+                limit=limit,
+                order_by=order_by,
+                order=order,
             )
-        finally:
-            _session_ctx.reset(token)
+        )
 
 
 class _SessionProxy:
@@ -187,6 +187,15 @@ class ScriptContext:
         assert self._session is not None, "No session available in ScriptContext"
         return self._session
 
+    async def _run_with_session(self, action: Callable[[], Awaitable[_T]]) -> _T:
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
+
+        token = _session_ctx.set(self._get_session())
+        try:
+            return await action()
+        finally:
+            _session_ctx.reset(token)
+
     @property
     def response(self) -> dict[str, Any]:
         return self._response
@@ -223,10 +232,8 @@ class ScriptContext:
         self, doctype: str, filters_or_id: str | dict[str, Any]
     ) -> dict[str, Any] | None:
         from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        token = _session_ctx.set(self._get_session())
-        try:
+        async def _action() -> dict[str, Any] | None:
             db = GruntDB()
             rows: list[dict[str, Any]]
             if isinstance(filters_or_id, str):
@@ -236,8 +243,8 @@ class ScriptContext:
             else:
                 rows = await db.get_all(doctype, filters=filters_or_id, limit=1)
             return rows[0] if rows else None
-        finally:
-            _session_ctx.reset(token)
+
+        return await self._run_with_session(_action)
 
     def get_list(
         self,
@@ -266,18 +273,15 @@ class ScriptContext:
         limit: int,
     ) -> list[dict[str, Any]]:
         from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        token = _session_ctx.set(self._get_session())
-        try:
-            return await GruntDB().get_all(
+        return await self._run_with_session(
+            lambda: GruntDB().get_all(
                 doctype,
                 filters=filters,
                 fields=fields,
                 limit=limit,
             )
-        finally:
-            _session_ctx.reset(token)
+        )
 
     def new_doc(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
         """Create a new document and return it.
@@ -292,13 +296,8 @@ class ScriptContext:
 
     async def _async_new_doc(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
         from grunt.app import grunt as _grunt  # noqa: PLC0415
-        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        token = _session_ctx.set(self._session)
-        try:
-            return await _grunt.new_doc(doctype, data)
-        finally:
-            _session_ctx.reset(token)
+        return await self._run_with_session(lambda: _grunt.new_doc(doctype, data))
 
     def save_doc(self, doctype: str, id_or_name: str, data: dict[str, Any]) -> dict[str, Any]:
         """Update an existing document.
@@ -317,10 +316,8 @@ class ScriptContext:
         from datetime import datetime  # noqa: PLC0415
 
         from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        token = _session_ctx.set(self._get_session())
-        try:
+        async def _action() -> dict[str, Any]:
             update_data = dict(data)
             update_data["modified_at"] = datetime.now(UTC)
             await GruntDB().set_value(doctype, id_or_name, update_data)
@@ -329,8 +326,8 @@ class ScriptContext:
             if not rows:
                 rows = await GruntDB().get_all(doctype, filters={"name": id_or_name}, limit=1)
             return rows[0] if rows else {}
-        finally:
-            _session_ctx.reset(token)
+
+        return await self._run_with_session(_action)
 
     def delete_doc(self, doctype: str, id_or_name: str) -> None:
         """Delete a document.
@@ -345,15 +342,13 @@ class ScriptContext:
 
     async def _async_delete_doc(self, doctype: str, id_or_name: str) -> None:
         from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        token = _session_ctx.set(self._get_session())
-        try:
+        async def _action() -> None:
             deleted = await GruntDB().delete(doctype, {"id": id_or_name})
             if deleted == 0:
                 await GruntDB().delete(doctype, {"name": id_or_name})
-        finally:
-            _session_ctx.reset(token)
+
+        await self._run_with_session(_action)
 
     def count(self, doctype: str, filters: dict[str, Any] | None = None) -> int:
         """Count documents matching optional filters.
@@ -368,13 +363,8 @@ class ScriptContext:
 
     async def _async_count(self, doctype: str, filters: dict[str, Any] | None) -> int:
         from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        token = _session_ctx.set(self._get_session())
-        try:
-            return await GruntDB().count(doctype, filters=filters)
-        finally:
-            _session_ctx.reset(token)
+        return await self._run_with_session(lambda: GruntDB().count(doctype, filters=filters))
 
     def notify(
         self,
