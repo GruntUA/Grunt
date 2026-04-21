@@ -11,8 +11,8 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import func, select
 
+from grunt.app import grunt
 from grunt.core.metadata.compiler import compile_doctype_to_table
 from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.core.metadata.registry import doctype_registry
@@ -31,34 +31,22 @@ class WebFormService:
 
     async def get_form(self, session: AsyncSession, route: str) -> dict[str, Any] | None:
         """Load a published web form by its route slug."""
-        from grunt.core.metadata.compiler import (
-            compile_doctype_to_table as _ctable,  # noqa: PLC0415
-        )
+        _tokens = grunt.set_context(session, None, None)
+        try:
+            rows = await grunt.db.get_all(
+                "WebForm",
+                filters={"route": route, "is_published": True},
+                fields=[
+                    "name", "title", "route", "doctype", "fields", "introduction",
+                    "success_message", "success_url", "allow_edit", "login_required",
+                    "submit_label",
+                ],
+                limit=1,
+            )
+        finally:
+            grunt.reset_context(_tokens)
 
-        wf_table = _ctable(doctype_registry._doctypes["WebForm"])
-        stmt = (
-            select(wf_table)
-            .where(wf_table.c.route == route)
-            .where(wf_table.c.is_published.is_(True))
-        )
-        result = await session.execute(stmt)
-        row = result.mappings().first()
-        if not row:
-            return None
-
-        return {
-            "name": row["name"],
-            "title": row["title"],
-            "route": row["route"],
-            "doctype": row["doctype"],
-            "fields": row["fields"],
-            "introduction": row["introduction"],
-            "success_message": row["success_message"],
-            "success_url": row["success_url"],
-            "allow_edit": row["allow_edit"],
-            "login_required": row["login_required"],
-            "submit_label": row["submit_label"],
-        }
+        return rows[0] if rows else None
 
     async def get_form_fields(self, session: AsyncSession, route: str) -> list[dict[str, Any]]:
         """Return the full field definitions for a web form (with DocType metadata).
@@ -124,7 +112,7 @@ class WebFormService:
 
         # Check max submissions
         if form.get("max_submissions", 0) > 0:
-            count = await self._count_submissions(session, table)
+            count = await self._count_submissions(session, form["doctype"])
             if count >= form["max_submissions"]:
                 raise WebFormError("Досягнуто максимальну кількість відповідей")
 
@@ -196,11 +184,13 @@ class WebFormService:
 
         return validated
 
-    async def _count_submissions(self, session: AsyncSession, table: Any) -> int:
+    async def _count_submissions(self, session: AsyncSession, doctype: str) -> int:
         """Count existing documents in the target table."""
-        stmt = select(func.count()).select_from(table)
-        result = await session.execute(stmt)
-        return result.scalar() or 0
+        _tokens = grunt.set_context(session, None, None)
+        try:
+            return await grunt.db.count(doctype)
+        finally:
+            grunt.reset_context(_tokens)
 
 
 class WebFormError(Exception):

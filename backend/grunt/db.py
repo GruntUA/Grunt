@@ -97,6 +97,7 @@ class GruntDB:
         fields: list[str] | None = None,
         pluck: str | None = None,
         limit: int = 20,
+        offset: int = 0,
         order_by: str | None = None,
         order: str = "desc",
     ) -> list[dict[str, Any]] | list[Any]:
@@ -126,6 +127,8 @@ class GruntDB:
             stmt = stmt.order_by(sort_col.asc() if order == "asc" else sort_col.desc())
 
         stmt = stmt.limit(limit)
+        if offset:
+            stmt = stmt.offset(offset)
         result = await self._session().execute(stmt)
         rows = result.fetchall()
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import structlog
 
@@ -12,22 +12,15 @@ from grunt.core.metadata.doctype import DocType
 from grunt.core.metadata.registry import doctype_registry
 from grunt.core.metadata.scaffold import export_doctype_files
 
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
 logger = structlog.get_logger()
 
 
-async def _get_app_name_for_module(module: str, session: AsyncSession) -> str | None:
+async def _get_app_name_for_module(module: str) -> str | None:
     """Return the installed app name that owns *module*, or None."""
-    from sqlalchemy import select
-
-    from grunt.core.db.system_tables import GruntInstalledApp
-
-    result = await session.execute(select(GruntInstalledApp))
-    for app in result.scalars().all():
-        if module in (app.modules or []):
-            return app.name
+    rows = await grunt.db.get_all("GruntInstalledApp", fields=["name", "modules"])
+    for row in rows:
+        if module in (row.get("modules") or []):
+            return row["name"]
     return None
 
 
@@ -83,7 +76,7 @@ async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     else:
         await doctype_registry.register(dt, session, engine)
 
-    app_name = await _get_app_name_for_module(dt.module or "", session)
+    app_name = await _get_app_name_for_module(dt.module or "")
     export_doctype_files(dt, app_name=app_name)
 
     return dt.model_dump()

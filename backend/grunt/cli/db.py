@@ -28,12 +28,9 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
     import asyncio  # noqa: PLC0415
 
     async def _run() -> None:
-        from sqlalchemy import select  # noqa: PLC0415
-
         from grunt.core.db.base import Base  # noqa: PLC0415
-        from grunt.core.db.system_tables import GruntMetaDoctype  # noqa: PLC0415
         from grunt.core.metadata.compiler import SA_METADATA, sync_table  # noqa: PLC0415
-        from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.site.manager import site_manager  # noqa: PLC0415
         from grunt.core.startup import (  # noqa: PLC0415
             apply_doctype_overrides,
@@ -71,14 +68,12 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
                 await apply_doctype_overrides(session, eng)
                 await populate_system_doctypes(session, eng)
 
-                result = await session.execute(select(GruntMetaDoctype))
-                rows = result.scalars().all()
+                all_dts = await doctype_registry.list_all()
 
                 synced = 0
                 skipped = 0
-                for row in rows:
+                for dt in all_dts:
                     try:
-                        dt = DocType.model_validate(row.data)
                         if dt.is_virtual:
                             skipped += 1
                             continue
@@ -89,7 +84,7 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
                             click.echo(f"    synced: {dt.name}")
                         synced += 1
                     except Exception as e:  # noqa: BLE001
-                        click.echo(f"    [error] {row.name}: {e}", err=True)
+                        click.echo(f"    [error] {dt.name}: {e}", err=True)
 
                 await session.commit()
 

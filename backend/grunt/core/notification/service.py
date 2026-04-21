@@ -12,7 +12,6 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import select, update
 
 from grunt.app import grunt
 
@@ -118,32 +117,28 @@ class NotificationService:
         offset: int = 0,
     ) -> list[dict[str, Any]]:
         """Get notifications for a user."""
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
-        table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
-        stmt = (
-            select(table)
-            .where(table.c.user == user)
-            .order_by(table.c.created_at.desc())
-            .limit(limit)
-            .offset(offset)
-        )
+        filters: dict[str, Any] = {"user": user}
         if unread_only:
-            stmt = stmt.where(table.c.is_read.is_(False))
+            filters["is_read"] = False
 
-        result = await session.execute(stmt)
-        rows = result.mappings().all()
+        _tokens = grunt.set_context(session, None, None)
+        try:
+            rows = await grunt.db.get_all(
+                "Notification",
+                filters=filters,
+                fields=["id", "subject", "message", "doctype", "doc_id", "is_read", "created_at"],
+                limit=limit,
+                offset=offset,
+                order_by="created_at",
+                order="desc",
+            )
+        finally:
+            grunt.reset_context(_tokens)
 
         return [
             {
-                "id": row["id"],
-                "subject": row["subject"],
-                "message": row["message"],
-                "doctype": row["doctype"],
-                "doc_id": row["doc_id"],
-                "is_read": row["is_read"],
-                "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+                **row,
+                "created_at": row["created_at"].isoformat() if row.get("created_at") else None,
             }
             for row in rows
         ]
@@ -158,18 +153,15 @@ class NotificationService:
 
     async def mark_all_read(self, session: AsyncSession, user: str) -> int:
         """Mark all notifications as read for a user. Returns count of affected."""
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
-        table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
-        result = await session.execute(
-            update(table)
-            .where(table.c.user == user)
-            .where(table.c.is_read.is_(False))
-            .values(is_read=True)
-        )
-        await session.flush()
-        return result.rowcount  # type: ignore[attr-defined]
+        _tokens = grunt.set_context(session, None, None)
+        try:
+            return await grunt.bulk_update(
+                "Notification",
+                {"user": user, "is_read": False},
+                {"is_read": True},
+            )
+        finally:
+            grunt.reset_context(_tokens)
 
     # ── Internal helpers ──────────────────────────────────────────────────
 

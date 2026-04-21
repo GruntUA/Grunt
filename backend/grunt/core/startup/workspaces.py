@@ -5,9 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import update as sa_update
-
-from grunt.core.db.system_tables import GruntMetaDoctype
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,8 +20,6 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
 
     from grunt.app import grunt  # noqa: PLC0415
     from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
-    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
     fixture_file = _FIXTURES_DIR / "grunt_workspace.json"
     if not fixture_file.exists():
@@ -78,10 +73,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
             ws_id = ws["id"]
 
         # Replace sidebar items: bulk-delete old, bulk-insert new
-        ws_item_dt = await doctype_registry.get("WorkspaceSidebarItem")
-        ws_item_table = compile_doctype_to_table(ws_item_dt)
-        await session.execute(ws_item_table.delete().where(ws_item_table.c.parent_id == ws_id))
-        await session.flush()
+        await grunt.db.delete("WorkspaceSidebarItem", {"parent_id": ws_id})
 
         items = data.get("sidebar_items", [])
         if items:
@@ -122,7 +114,6 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
 
     from grunt.app import grunt  # noqa: PLC0415
     from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
-    from grunt.core.metadata.compiler import invalidate_table_cache, sync_table  # noqa: PLC0415
     from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.site.manager import site_manager  # noqa: PLC0415
@@ -194,17 +185,7 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                                 mode="json"
                             ):
                                 async with session.begin_nested():
-                                    await session.execute(
-                                        sa_update(GruntMetaDoctype)
-                                        .where(GruntMetaDoctype.name == dt_name)
-                                        .values(
-                                            module=dt_obj.module,
-                                            data=dt_obj.model_dump(mode="json"),
-                                        )
-                                    )
-                                    invalidate_table_cache(dt_name)
-                                    await sync_table(dt_obj, eng, session=session)
-                                    doctype_registry._doctypes[dt_name] = dt_obj
+                                    await doctype_registry.update(dt_obj, session, eng)
                                 logger.info(
                                     "startup.app_doctype_updated", app=app_name, doctype=dt_name
                                 )
@@ -302,8 +283,6 @@ async def _apply_workspace_fixture(
 ) -> bool:
     """Upsert WorkspaceSidebar + WorkspaceSidebarItem rows from fixture data."""
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
     applied = False
 
@@ -353,11 +332,7 @@ async def _apply_workspace_fixture(
             ws_id = ws["id"]
 
         # Replace sidebar items: bulk-delete old, bulk-insert new
-        ws_item_dt = await doctype_registry.get("WorkspaceSidebarItem")
-        ws_item_table = compile_doctype_to_table(ws_item_dt)
-        session = grunt._require_session()
-        await session.execute(ws_item_table.delete().where(ws_item_table.c.parent_id == ws_id))
-        await session.flush()
+        await grunt.db.delete("WorkspaceSidebarItem", {"parent_id": ws_id})
 
         items = rec.get("sidebar_items", rec.get("items", []))
         if items:
@@ -395,8 +370,6 @@ async def _auto_seed_workspace(
 ) -> None:
     """Create/update workspace from registry DocTypes (fallback when no fixture)."""
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
     existing = await grunt.get_list(
         "WorkspaceSidebar",
@@ -435,11 +408,7 @@ async def _auto_seed_workspace(
         ws_id = ws["id"]
 
     # Replace sidebar items: bulk-delete old, bulk-insert new
-    ws_item_dt = await doctype_registry.get("WorkspaceSidebarItem")
-    ws_item_table = compile_doctype_to_table(ws_item_dt)
-    session = grunt._require_session()
-    await session.execute(ws_item_table.delete().where(ws_item_table.c.parent_id == ws_id))
-    await session.flush()
+    await grunt.db.delete("WorkspaceSidebarItem", {"parent_id": ws_id})
 
     if app_doctypes:
         await grunt.bulk_insert(

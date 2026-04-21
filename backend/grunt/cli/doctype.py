@@ -29,9 +29,6 @@ def doctype_sync(name: str, site: str | None, force: bool):
     async def _run():
         import json  # noqa: PLC0415
 
-        from sqlalchemy import update as sa_update  # noqa: PLC0415
-
-        from grunt.core.db.system_tables import GruntMetaDoctype  # noqa: PLC0415
         from grunt.core.metadata.compiler import sync_table  # noqa: PLC0415
         from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
@@ -58,13 +55,12 @@ def doctype_sync(name: str, site: str | None, force: bool):
                     raise SystemExit(1)
                 dt_data = json.loads(json_file.read_text(encoding="utf-8"))
                 dt = DocType.model_validate(dt_data)
-                await session.execute(
-                    sa_update(GruntMetaDoctype)
-                    .where(GruntMetaDoctype.name == name)
-                    .values(data=dt.model_dump())
-                )
-                doctype_registry._doctypes[name] = dt
+                await doctype_registry.update(dt, session, eng)
                 click.echo(f"Метадані '{name}' оновлено з {json_file.name}.")
+                # sync_table already called by doctype_registry.update; skip below
+                await session.commit()
+                click.echo(f"DocType '{name}' синхронізовано.")
+                return
 
             await sync_table(dt, eng, session=session)
             await session.commit()
