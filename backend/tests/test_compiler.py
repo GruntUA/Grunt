@@ -7,6 +7,7 @@ from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from grunt.core.metadata.compiler import (
+    MULTI_LINK_TABLE,
     SA_METADATA,
     compile_doctype_to_table,
     get_table_name,
@@ -148,3 +149,16 @@ async def test_sync_table_adds_new_column(async_engine):
             lambda c: {col["name"] for col in inspect(c).get_columns("grunt_test_sync_alter")}
         )
     assert "extra_col" in cols
+
+
+def test_multi_link_table_has_query_supporting_index_and_unique_order_constraint():
+    """MultiLink table should enforce deterministic order and support read/delete queries."""
+    index_names = {index.name for index in MULTI_LINK_TABLE.indexes}
+    assert "ix_grunt_core_multi_link_parent_parentfield_idx" in index_names
+
+    unique_names = {
+        c.name
+        for c in MULTI_LINK_TABLE.constraints
+        if getattr(c, "name", None) and c.__class__.__name__ == "UniqueConstraint"
+    }
+    assert "uq_grunt_core_multi_link_parent_field_idx" in unique_names

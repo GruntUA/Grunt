@@ -1,7 +1,7 @@
 """Add docstatus, owner, modified_by to grunt_workspace.
 
 Revision ID: 0003_workspace_docstatus
-Revises: 0002_workspace_sidebar_item_table
+Revises: 0002
 Create Date: 2026-04-08
 """
 
@@ -16,25 +16,18 @@ depends_on = None
 
 
 def upgrade():
-    conn = op.get_bind()
-    insp = sa.inspect(conn)
-    existing_cols = {c["name"] for c in insp.get_columns("grunt_workspace")}
-
-    if "docstatus" not in existing_cols:
-        op.add_column(
-            "grunt_workspace",
-            sa.Column("docstatus", sa.Integer(), nullable=False, server_default="0"),
-        )
-    if "owner" not in existing_cols:
-        op.add_column(
-            "grunt_workspace",
-            sa.Column("owner", sa.String(length=255), nullable=False, server_default=""),
-        )
-    if "modified_by" not in existing_cols:
-        op.add_column(
-            "grunt_workspace",
-            sa.Column("modified_by", sa.String(length=255), nullable=False, server_default=""),
-        )
+    op.add_column(
+        "grunt_workspace",
+        sa.Column("docstatus", sa.Integer(), nullable=False, server_default="0"),
+    )
+    op.add_column(
+        "grunt_workspace",
+        sa.Column("owner", sa.String(length=255), nullable=False, server_default=""),
+    )
+    op.add_column(
+        "grunt_workspace",
+        sa.Column("modified_by", sa.String(length=255), nullable=False, server_default=""),
+    )
 
 
 def downgrade():

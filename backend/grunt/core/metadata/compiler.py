@@ -54,6 +54,20 @@ MULTI_LINK_TABLE = Table(
     Column("link_doctype", String(255), nullable=False),
     Column("link_name", String(255), nullable=False),
     Column("idx", Integer, default=0),
+    UniqueConstraint(
+        "parent_doctype",
+        "parent_id",
+        "parent_field",
+        "idx",
+        name="uq_grunt_core_multi_link_parent_field_idx",
+    ),
+    Index(
+        "ix_grunt_core_multi_link_parent_parentfield_idx",
+        "parent_doctype",
+        "parent_id",
+        "parent_field",
+        "idx",
+    ),
     extend_existing=True,
 )
 

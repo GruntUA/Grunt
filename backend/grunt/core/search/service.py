@@ -54,14 +54,14 @@ _search_index_table = Table(
     Column("updated_at", DateTime(timezone=True), server_default=func.now()),
 )
 
-# Add GIN index for PG tsvector — created separately to handle non-PG engines
-_PG_TSVECTOR_INDEX_SQL = text(
-    "CREATE INDEX IF NOT EXISTS grunt_search_idx_ts "
+_PG_TSVECTOR_INDEX_SQL = (
+    "CREATE INDEX CONCURRENTLY IF NOT EXISTS grunt_search_idx_ts "
     "ON grunt_search_index "
     "USING GIN (to_tsvector('simple', coalesce(content_raw, '')))"
 )
-_PG_DOCTYPE_INDEX_SQL = text(
-    "CREATE INDEX IF NOT EXISTS grunt_search_idx_doctype ON grunt_search_index (doctype)"
+_PG_DOCTYPE_INDEX_SQL = (
+    "CREATE INDEX CONCURRENTLY IF NOT EXISTS grunt_search_idx_doctype "
+    "ON grunt_search_index (doctype)"
 )
 
 
@@ -107,21 +107,21 @@ class SearchIndexService:
     async def ensure_table(self, engine: AsyncEngine) -> None:
         """Create grunt_search_index table + indexes if they don't exist."""
         async with engine.begin() as conn:
-            await conn.run_sync(
-                _INDEX_META.create_all,
-                checkfirst=True,
-            )
-            if _dialect(engine) == "postgresql":
-                await conn.execute(_PG_TSVECTOR_INDEX_SQL)
-                await conn.execute(_PG_DOCTYPE_INDEX_SQL)
-            elif _dialect(engine) == "mysql":
-                # FULLTEXT index on content_raw for MySQL native full-text search
+            await conn.run_sync(_INDEX_META.create_all, checkfirst=True)
+            if _dialect(engine) == "mysql":
                 await conn.execute(
                     text(
                         "ALTER TABLE grunt_search_index "
                         "ADD FULLTEXT IF NOT EXISTS idx_ft_content (content_raw, title, doc_name)"
                     )
                 )
+
+        if _dialect(engine) == "postgresql":
+            # CONCURRENTLY cannot run inside a transaction block
+            async with engine.connect() as conn:
+                await conn.execution_options(isolation_level="AUTOCOMMIT")
+                await conn.execute(text(_PG_TSVECTOR_INDEX_SQL))
+                await conn.execute(text(_PG_DOCTYPE_INDEX_SQL))
 
     async def index_document(
         self,
