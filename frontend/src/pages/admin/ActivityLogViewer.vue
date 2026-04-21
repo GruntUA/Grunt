@@ -106,7 +106,7 @@ const hasFilters = computed(() =>
 function goToDoc(entry: ActivityEntry, e: MouseEvent) {
   // Don't navigate if clicking the expand toggle
   if ((e.target as HTMLElement).closest('.expand-btn')) return
-  router.push(`/grunt/list/${entry.doctype}/${entry.doc_id}`)
+  router.push(`/grunt/${entry.doctype}/${entry.doc_id}`)
 }
 
 // ── Details parsing ───────────────────────────────────────────────────────────

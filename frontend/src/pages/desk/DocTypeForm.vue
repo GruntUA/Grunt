@@ -132,7 +132,7 @@ useShortcut(['escape'], () => {
   }
   allowLeave = true // to prevent annoying popup if not needed, actually we shouldn't bypass 'isDirty' check if we don't want to lose data.
   // Better: just trigger router push and let guard handle it.
-  router.push(props.workspace ? `/${props.workspace}/list/${props.doctype}` : `/${props.doctype}`)
+  router.push(props.workspace ? `/${props.workspace}/${props.doctype}` : `/${props.doctype}`)
 }, { preventDefault: true, allowInInput: false })
 
 /**
@@ -247,7 +247,7 @@ async function handleSave() {
       // If this save is part of a link-create flow — navigate back to origin
       if (finishLinkCreate(props.doctype, savedDoc.name)) return
       const path = props.workspace
-        ? `/${props.workspace}/list/${props.doctype}/${savedDoc.id}`
+        ? `/${props.workspace}/${props.doctype}/${savedDoc.id}`
         : `/${props.doctype}/${savedDoc.id}`
       router.replace(path)
     }
@@ -283,7 +283,7 @@ async function handleDelete() {
     await remove()
     toast.success('Видалено')
     queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
-    router.push(props.workspace ? `/${props.workspace}/list/${props.doctype}` : `/${props.doctype}`)
+    router.push(props.workspace ? `/${props.workspace}/${props.doctype}` : `/${props.doctype}`)
   } catch {
     toast.error('Помилка видалення')
   }
@@ -314,7 +314,7 @@ function handleDuplicate() {
   protectedFields.forEach(f => delete clone[f])
 
   const path = props.workspace
-    ? `/${props.workspace}/list/${props.doctype}/new`
+    ? `/${props.workspace}/${props.doctype}/new`
     : `/${props.doctype}/new`
 
   allowLeave = true

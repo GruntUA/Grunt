@@ -126,7 +126,7 @@ function setGroupBy(field: string | null) {
 onMounted(async () => {
   dt.value = await dtStore.get(props.doctype)
   if (dt.value?.is_singleton) {
-    router.replace(`/${props.workspace ?? 'grunt'}/list/${props.doctype}/${props.doctype}`)
+    router.replace(`/${props.workspace ?? 'grunt'}/${props.doctype}/${props.doctype}`)
     return
   }
 
@@ -386,7 +386,7 @@ useShortcut(['Delete', 'Backspace'], () => {
 
 function navigateToDoc(row: Record<string, unknown>) {
   const ws = props.workspace ?? 'grunt'
-  props.doctype === 'DocType' ? router.push(`/${ws}/list/DocType/${row.name}`) : router.push(`/${ws}/list/${props.doctype}/${row.id}`)
+  props.doctype === 'DocType' ? router.push(`/${ws}/DocType/${row.name}`) : router.push(`/${ws}/${props.doctype}/${row.id}`)
 }
 </script>
 

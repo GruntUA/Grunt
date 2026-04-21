@@ -92,14 +92,14 @@ export function useLinkCreate() {
     workspace?: string,
   ): void {
     const returnPath = workspace
-      ? `/${workspace}/list/${currentDoctype}/${currentId ?? 'new'}`
+      ? `/${workspace}/${currentDoctype}/${currentId ?? 'new'}`
       : `/${currentDoctype}/${currentId ?? 'new'}`
 
     saveDraft(currentDoctype, currentId, formData)
     saveReturnContext({ returnPath, fieldname, linkedDoctype })
 
     const newPath = workspace
-      ? `/${workspace}/list/${linkedDoctype}/new`
+      ? `/${workspace}/${linkedDoctype}/new`
       : `/${linkedDoctype}/new`
 
     router.push({

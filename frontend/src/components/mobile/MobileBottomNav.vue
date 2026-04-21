@@ -46,7 +46,7 @@ function isActive(link_to: string) {
 function navigate(item: { type: string; link_to: string }) {
   showOverflow.value = false
   if (item.type === 'DocType') {
-    router.push(`/${props.workspaceName}/list/${item.link_to}`)
+    router.push(`/${props.workspaceName}/${item.link_to}`)
   } else if (item.type === 'Report') {
     router.push(`/${props.workspaceName}/report/${item.link_to}`)
   }

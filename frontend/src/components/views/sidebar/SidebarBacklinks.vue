@@ -25,7 +25,7 @@ async function loadLinks() {
 
 function navigateToLink(link: BacklinkItem) {
   const path = props.workspace
-    ? `/${props.workspace}/list/${link.source_doctype}/${link.source_id}`
+    ? `/${props.workspace}/${link.source_doctype}/${link.source_id}`
     : `/${link.source_doctype}/${link.source_id}`
   router.push(path)
 }

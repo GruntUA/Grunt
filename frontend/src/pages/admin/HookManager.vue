@@ -136,7 +136,7 @@ onMounted(fetchHooks)
                             <div class="col-span-4 flex items-center justify-between pr-4">
                                 <span class="text-sm text-muted-foreground font-mono truncate max-w-[280px]"
                                     :title="h.handler">{{ h.handler }}</span>
-                                <a v-if="h.source.includes('Database')" :href="`/list/ServerScript/${h.handler}`"
+                                <a v-if="h.source.includes('Database')" :href="`/ServerScript/${h.handler}`"
                                     class="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-muted rounded text-primary">
                                     <ExternalLink class="size-4" />
                                 </a>

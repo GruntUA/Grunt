@@ -1,6 +1,6 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { notificationsApi } from '@/core/api/notifications'
-import { useToast } from '@/core/composables/useToast'
+import { toast } from '@/core/composables/useToast'
 import { useDialog } from '@/core/composables/useDialog'
 import type { GruntNotification, RealtimeEvent } from '@/types'
 
@@ -92,7 +92,6 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
     return
   }
 
-  const toast = useToast()
   const dialog = useDialog()
 
   switch (msg.event) {

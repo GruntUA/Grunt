@@ -171,7 +171,7 @@ watch(currentMonth, loadDocuments)
 
 function navigateToDoc(event: CalendarEvent) {
   const id = String(event.id)
-  router.push(props.workspace ? `/${props.workspace}/list/${event.doctype}/${id}` : `/${event.doctype}/${id}`)
+  router.push(props.workspace ? `/${props.workspace}/${event.doctype}/${id}` : `/${event.doctype}/${id}`)
 }
 
 function showEventDetails(event: CalendarEvent, target: any) {
@@ -227,7 +227,7 @@ async function onDrop(e: DragEvent, day: Date) {
 
 function onDayClick(day: Date) {
   const path = props.workspace
-    ? `/${props.workspace}/list/${props.doctype.name}/new`
+    ? `/${props.workspace}/${props.doctype.name}/new`
     : `/${props.doctype.name}/new`
 
   router.push({

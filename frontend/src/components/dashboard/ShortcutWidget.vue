@@ -41,7 +41,7 @@ function navigate() {
   } else if (linkType === 'Dashboard') {
     router.push({ name: 'workspace-dashboard', params: { workspaceName: ws, dashboardName: target } })
   } else {
-    router.push(`/${ws}/list/${target}`)
+    router.push(`/${ws}/${target}`)
   }
 }
 </script>

@@ -69,7 +69,7 @@ function formatTime(val: string): string {
 
 function goToDoc(item: ActivityItem) {
   const ws = props.workspaceName ?? 'grunt'
-  router.push(`/${ws}/list/${item.doctype}/${item.doc_id}`)
+  router.push(`/${ws}/${item.doctype}/${item.doc_id}`)
 }
 </script>
 

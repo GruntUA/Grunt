@@ -24,7 +24,7 @@ const backWorkspace = props.workspaceName ?? (route.params.workspaceName as stri
 
 const breadcrumb = computed(() => [
   { label: backWorkspace, url: `/${backWorkspace}` },
-  { label: 'DocTypes', url: `/${backWorkspace}/list/DocType` },
+  { label: 'DocTypes', url: `/${backWorkspace}/DocType` },
   { label: builder.doctype?.label ?? props.doctype },
 ])
 
@@ -52,7 +52,7 @@ async function handleSave() {
     if (!saved) return
     grunt.show_alert(t('DocType {label} saved', { label: saved.label || saved.name }), 'success')
     if (props.doctype === 'new') {
-      router.replace(`/${backWorkspace}/list/DocType/${saved.name}`)
+      router.replace(`/${backWorkspace}/DocType/${saved.name}`)
     }
   } catch (err: unknown) {
     const msg = (err as { message?: string })?.message ?? t('Save error')

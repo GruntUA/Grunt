@@ -95,7 +95,7 @@ const doctypeChips = computed(() => {
 function navigateToDoc(r: SearchResult) {
   const ws = wsStore.workspaces.find(w => w.items?.some(i => i.link_to === r.doctype))
   const workspace = ws?.name ?? props.workspaceName ?? 'grunt'
-  router.push(`/${workspace}/list/${r.doctype}/${r.id}`)
+  router.push(`/${workspace}/${r.doctype}/${r.id}`)
 }
 
 // ── Reindex ───────────────────────────────────────────────────────────────

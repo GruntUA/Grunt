@@ -101,7 +101,7 @@ function unpinItem(item: { workspace: string; type: string; link_to: string }) {
 
 function navigatePinnedItem(item: { workspace: string; type: string; link_to: string }) {
   const map: Record<string, () => void> = {
-    DocType:   () => router.push(`/${item.workspace}/list/${item.link_to}`),
+    DocType:   () => router.push(`/${item.workspace}/${item.link_to}`),
     Report:    () => router.push(`/${item.workspace}/report/${item.link_to}`),
     Dashboard: () => router.push(`/${item.workspace}/dashboard/${item.link_to}`),
     URL:       () => window.open(item.link_to, '_blank'),
@@ -260,9 +260,9 @@ watch(() => router.currentRoute.value.path, () => { if (wsStore.active) wsStore.
           <hr class="bg-sidebar-border border-none h-px mx-0 mt-auto mb-1" />
           <ul class="flex w-full min-w-0 flex-col gap-1">
             <li v-for="link in [
-              { to: '/grunt/list/DocTypePermission', icon: Shield, label: 'Права доступу' },
-              { to: '/grunt/list/ActivityLog',       icon: Activity, label: 'Журнал активності' },
-              { to: '/grunt/list/EmailAccount',      icon: Mail,    label: 'Пошта' },
+              { to: '/grunt/DocTypePermission', icon: Shield, label: 'Права доступу' },
+              { to: '/grunt/ActivityLog',       icon: Activity, label: 'Журнал активності' },
+              { to: '/grunt/EmailAccount',      icon: Mail,    label: 'Пошта' },
             ]" :key="link.to" class="group/menu-item relative">
               <RouterLink :to="link.to" custom v-slot="{ isActive, href, navigate }">
                 <SidebarMenuButton :is-active="isActive" as="a" :href="href" variant="outline" size="sm" @click="navigate">

@@ -30,8 +30,8 @@ function navigate() {
   switch (props.item.type) {
     case 'DocType':
       router.push(props.item.is_singleton
-        ? `/${props.workspaceName}/list/${props.item.link_to}/${props.item.link_to}`
-        : `/${props.workspaceName}/list/${props.item.link_to}`)
+        ? `/${props.workspaceName}/${props.item.link_to}/${props.item.link_to}`
+        : `/${props.workspaceName}/${props.item.link_to}`)
       break
     case 'Report': router.push(`/${props.workspaceName}/report/${props.item.link_to}`); break
     case 'URL': window.open(props.item.link_to, '_blank'); break
@@ -41,7 +41,7 @@ function navigate() {
 
 function createNew(e: Event) {
   e.stopPropagation()
-  router.push(`/${props.workspaceName}/list/${props.item.link_to}/new`)
+  router.push(`/${props.workspaceName}/${props.item.link_to}/new`)
 }
 
 function getPinKey(): string {

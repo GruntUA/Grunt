@@ -41,7 +41,7 @@ function navigate(tile: ShortcutItem) {
   } else if (tile.link_type === 'Dashboard') {
     router.push({ name: 'workspace-dashboard', params: { workspaceName: ws, dashboardName: tile.link_to } })
   } else {
-    router.push(`/${ws}/list/${tile.link_to}`)
+    router.push(`/${ws}/${tile.link_to}`)
   }
 }
 </script>

@@ -277,7 +277,7 @@ async function loadMarkers() {
 
 function navigateToDoc(id: string) {
   const ws = props.workspace ?? 'grunt'
-  router.push(`/${ws}/list/${props.doctype.name}/${id}`)
+  router.push(`/${ws}/${props.doctype.name}/${id}`)
 }
 
 // ── Coordinate jump ───────────────────────────────────────────────────────────

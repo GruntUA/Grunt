@@ -125,7 +125,7 @@ const menuItems = computed(() => {
         items.push({
             label: t('Open in new tab'),
             icon: 'pi pi-external-link',
-            url: `/${props.workspace ?? ''}/list/${props.doctype}/${props.id}`,
+            url: `/${props.workspace ?? ''}/${props.doctype}/${props.id}`,
             target: '_blank'
         })
     }
@@ -133,7 +133,7 @@ const menuItems = computed(() => {
     items.push({
         label: t('Edit DocType'),
         icon: 'pi pi-cog',
-        url: `/${props.workspace ?? ''}/list/DocType/${props.doctype}`,
+        url: `/${props.workspace ?? ''}/DocType/${props.doctype}`,
         target: '_blank'
     })
 
@@ -141,7 +141,7 @@ const menuItems = computed(() => {
         items.push({
             label: t('Configure print'),
             icon: 'pi pi-sliders-h',
-            url: `/${props.workspace ?? 'grunt'}/list/PrintFormat?filter[doctype]=${props.doctype}`,
+            url: `/${props.workspace ?? 'grunt'}/PrintFormat?filter[doctype]=${props.doctype}`,
             target: '_blank'
         })
     }
@@ -282,7 +282,7 @@ const menuItems = computed(() => {
           </div>
           <p class="text-xs text-muted-foreground mb-4">
             {{ t('Link copied to clipboard when you click the copy button.') }}
-            <a :href="`/${props.workspace ?? 'grunt'}/list/DocumentShare`" target="_blank" class="text-primary hover:underline ml-1">{{ t('Manage shares') }} →</a>
+            <a :href="`/${props.workspace ?? 'grunt'}/DocumentShare`" target="_blank" class="text-primary hover:underline ml-1">{{ t('Manage shares') }} →</a>
           </p>
           <div class="flex justify-end gap-2">
             <Button outlined size="small" @click="shareLink = null; shareExpires = ''">{{ t('New link') }}</Button>

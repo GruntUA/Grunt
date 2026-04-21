@@ -5,14 +5,21 @@ import { useWorkspaceStore } from '@/stores/workspace'
 import WorkspaceSidebar from '@/components/workspace/WorkspaceSidebar.vue'
 import MobileBottomNav from '@/components/mobile/MobileBottomNav.vue'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import NotFound from '@/pages/errors/NotFound.vue'
 
 const props = defineProps<{ workspaceName: string }>()
 const wsStore = useWorkspaceStore()
 const route = useRoute()
 const contentKey = ref(0)
+const notFound = ref(false)
 
 async function loadWorkspace(name: string) {
+  notFound.value = false
   await wsStore.setActive(name)
+  if (!wsStore.active) {
+    notFound.value = true
+    return
+  }
   contentKey.value++
 }
 
@@ -21,7 +28,8 @@ watch(() => props.workspaceName, (name) => { loadWorkspace(name) })
 </script>
 
 <template>
-  <SidebarProvider class="h-screen overflow-hidden bg-background">
+  <NotFound v-if="notFound" />
+  <SidebarProvider v-else class="h-screen overflow-hidden bg-background">
     <!-- Background pattern -->
     <div class="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05] z-0">
       <svg class="h-full w-full" xmlns="http://www.w3.org/2000/svg">

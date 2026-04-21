@@ -78,7 +78,7 @@ function formatDate(val: string) {
 
 function goToDoc(item: ActivityEntry) {
     // Need to find workspace. For now default to grunt or try to infer.
-    router.push(`/grunt/list/${item.doctype}/${item.doc_id}`)
+    router.push(`/grunt/${item.doctype}/${item.doc_id}`)
 }
 
 watch(() => auth.isLoggedIn, (loggedIn) => {

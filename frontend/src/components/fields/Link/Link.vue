@@ -277,7 +277,7 @@ const isSelected = computed(
 const linkedDocUrl = computed(() => {
   if (!isSelected.value || !props.field.options || !props.modelValue) return null
   const workspace = route.params.workspaceName as string | undefined
-  if (workspace) return `/${workspace}/list/${props.field.options}/${props.modelValue}`
+  if (workspace) return `/${workspace}/${props.field.options}/${props.modelValue}`
   return null
 })
 

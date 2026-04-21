@@ -24,7 +24,7 @@ const links = computed<WorkspaceLinkItem[]>(() => {
 function navigate(link: WorkspaceLinkItem) {
   const ws = props.workspaceName
   if (link.type === 'DocType' && ws) {
-    router.push(`/${ws}/list/${link.link_to}`)
+    router.push(`/${ws}/${link.link_to}`)
   } else if (link.type === 'Report' && ws) {
     router.push(`/${ws}/report/${link.link_to}`)
   } else if (link.type === 'Dashboard' && ws) {

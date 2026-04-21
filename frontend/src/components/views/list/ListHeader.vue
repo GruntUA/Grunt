@@ -41,9 +41,9 @@ function handleNew() {
   }
   const ws = props.workspace ?? 'grunt'
   if (props.isSystemDocType) {
-    router.push(`/${ws}/list/DocType/new`)
+    router.push(`/${ws}/DocType/new`)
   } else {
-    router.push(props.workspace ? `/${props.workspace}/list/${props.doctype}/new` : `/${props.doctype}/new`)
+    router.push(props.workspace ? `/${props.workspace}/${props.doctype}/new` : `/${props.doctype}/new`)
   }
 }
 
@@ -73,7 +73,7 @@ const menuItems = computed(() => {
         items.push({
             label: t('Edit DocType'),
             icon: 'pi pi-pencil',
-            command: () => router.push(`/${props.workspace ?? 'grunt'}/list/DocType/${props.doctype}`)
+            command: () => router.push(`/${props.workspace ?? 'grunt'}/DocType/${props.doctype}`)
         })
         items.push({ separator: true })
     }

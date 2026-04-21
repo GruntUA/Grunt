@@ -7,7 +7,7 @@
 
 import { ref } from 'vue'
 import client from '@/core/api/client'
-import { useToast } from '@/core/composables/useToast'
+import { toast } from '@/core/composables/useToast'
 
 const isSupported = 'serviceWorker' in navigator && 'PushManager' in window
 
@@ -51,8 +51,7 @@ async function checkSubscription(): Promise<void> {
 }
 
 async function subscribe(): Promise<boolean> {
-  const toast = useToast()
-  
+
   if (!isSupported) {
     toast.error('Ваш браузер не підтримує Push-сповіщення')
     return false

@@ -45,7 +45,7 @@ const items = computed(() => {
   if (props.doctype) {
     result.push({
       label: doctypeLabel.value,
-      route: props.docId ? `/${props.workspaceName}/list/${props.doctype}` : undefined,
+      route: props.docId ? `/${props.workspaceName}/${props.doctype}` : undefined,
     })
   }
   if (props.docId) {

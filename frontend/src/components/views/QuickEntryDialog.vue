@@ -99,7 +99,7 @@ async function handleSave(openAfter: boolean) {
     emit('close')
     if (openAfter) {
       const ws = props.workspace ?? 'grunt'
-      router.push(`/${ws}/list/${props.dt.name}/${savedDoc.id}`)
+      router.push(`/${ws}/${props.dt.name}/${savedDoc.id}`)
     }
   } catch (err: unknown) {
     const e = err as { response?: { status?: number; data?: { detail?: string | string[] } } }

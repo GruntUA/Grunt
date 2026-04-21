@@ -204,7 +204,7 @@ function docInitials(title: string): string {
             <div class="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm overflow-hidden shadow-sm">
               <div v-for="doc in recentDocs.slice(0, 8)" :key="doc.id"
                 class="group flex items-center gap-3 px-4 py-3 border-b border-border/20 last:border-0 hover:bg-primary/[0.03] cursor-pointer transition-all duration-200"
-                @click="router.push(`/${doc.workspace}/list/${doc.doctype}/${doc.id}`)">
+                @click="router.push(`/${doc.workspace}/${doc.doctype}/${doc.id}`)">
                 <!-- Avatar -->
                 <div
                   class="size-8 rounded-xl flex items-center justify-center text-[11px] font-black shrink-0 transition-transform duration-200 group-hover:scale-110"

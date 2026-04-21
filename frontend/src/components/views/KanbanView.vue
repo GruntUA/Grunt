@@ -162,7 +162,7 @@ watch(() => props.columnField, loadCards)
             <template #item="{ element: card }">
               <div
                 class="bg-card hover:bg-card/80 border border-border/50 hover:border-primary/30 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-[1.25rem] p-5 cursor-grab active:cursor-grabbing group shadow-sm relative overflow-hidden"
-                @click="$router.push(`/grunt/list/${doctype.name}/${card.id || card.name}`)">
+                @click="$router.push(`/grunt/${doctype.name}/${card.id || card.name}`)">
                 
                 <!-- Card Glow Backdrop -->
                 <div class="absolute -right-4 -top-4 size-16 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />

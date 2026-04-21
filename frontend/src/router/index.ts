@@ -90,14 +90,15 @@ const router = createRouter({
           component: () => import('@/pages/workspace/WorkspaceHome.vue'),
           props: true,
         },
+        // DocType builder — must come before generic :doctype/:id
         {
-          path: 'list/:doctype',
-          name: 'workspace-list',
-          component: () => import('@/pages/workspace/WorkspaceListView.vue'),
-          props: true,
+          path: 'DocType/:id',
+          name: 'doctype-builder',
+          component: () => import('@/pages/studio/builder/BuilderLayout.vue'),
+          props: (route) => ({ doctype: route.params.id, workspaceName: route.params.workspaceName }),
         },
         {
-          path: 'list/:doctype/new',
+          path: ':doctype/new',
           name: 'workspace-new',
           component: () => import('@/pages/workspace/WorkspaceFormView.vue'),
           props: (route) => ({
@@ -106,23 +107,31 @@ const router = createRouter({
             id: null,
           }),
         },
-        // DocType builder — must come before the generic list/:doctype/:id route
         {
-          path: 'list/DocType/:id',
-          name: 'doctype-builder',
-          component: () => import('@/pages/studio/builder/BuilderLayout.vue'),
-          props: (route) => ({ doctype: route.params.id, workspaceName: route.params.workspaceName }),
+          path: ':doctype/:id',
+          name: 'workspace-form',
+          component: () => import('@/pages/workspace/WorkspaceFormView.vue'),
+          props: true,
+        },
+        {
+          path: ':doctype',
+          name: 'workspace-list',
+          component: () => import('@/pages/workspace/WorkspaceListView.vue'),
+          props: true,
         },
         // Workspace Sidebar list (Studio → Воркспейси)
         {
           path: 'studio/workspaces',
-          redirect: (route) => `/${route.params.workspaceName}/list/WorkspaceSidebar`,
+          redirect: (route) => `/${route.params.workspaceName}/WorkspaceSidebar`,
+        },
+        // Backward compat: old /list/… URLs
+        {
+          path: 'list/:doctype',
+          redirect: (route) => `/${route.params.workspaceName}/${route.params.doctype}`,
         },
         {
           path: 'list/:doctype/:id',
-          name: 'workspace-form',
-          component: () => import('@/pages/workspace/WorkspaceFormView.vue'),
-          props: true,
+          redirect: (route) => `/${route.params.workspaceName}/${route.params.doctype}/${route.params.id}`,
         },
         {
           path: 'report/:reportName',
@@ -157,7 +166,7 @@ const router = createRouter({
         // Legacy admin routes — redirect to standard DocType ListViews
         {
           path: 'rbac',
-          redirect: (route) => `/${route.params.workspaceName}/list/DocTypePermission`,
+          redirect: (route) => `/${route.params.workspaceName}/DocTypePermission`,
         },
         {
           path: 'hooks',
@@ -167,15 +176,15 @@ const router = createRouter({
         },
         {
           path: 'activity-log',
-          redirect: (route) => `/${route.params.workspaceName}/list/ActivityLog`,
+          redirect: (route) => `/${route.params.workspaceName}/ActivityLog`,
         },
         {
           path: 'email-settings',
-          redirect: (route) => `/${route.params.workspaceName}/list/EmailAccount`,
+          redirect: (route) => `/${route.params.workspaceName}/EmailAccount`,
         },
         {
           path: 'settings',
-          redirect: (route) => `/${route.params.workspaceName}/list/SystemSettings/SystemSettings`,
+          redirect: (route) => `/${route.params.workspaceName}/SystemSettings/SystemSettings`,
         },
       ],
     },

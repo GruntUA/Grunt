@@ -62,7 +62,7 @@ function handleNotificationClick(n: NotificationItem) {
     if (n.doctype && n.doc_id) {
         isOpen.value = false
         const ws = props.workspace || 'grunt'
-        router.push(`/${ws}/list/${n.doctype}/${n.doc_id}`)
+        router.push(`/${ws}/${n.doctype}/${n.doc_id}`)
     }
 }
 

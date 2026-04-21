@@ -139,7 +139,7 @@ async function save() {
     if (props.id === 'new') {
       const created = await docsApi.create('PrintFormat', data)
       toast.success('Формат друку створено')
-      router.replace(`/${props.workspaceName ?? 'grunt'}/list/PrintFormat/${created.id}`)
+      router.replace(`/${props.workspaceName ?? 'grunt'}/PrintFormat/${created.id}`)
     } else {
       await docsApi.update('PrintFormat', props.id, data)
       toast.success('Збережено')

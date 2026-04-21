@@ -100,10 +100,10 @@ async function handleLogout() {
 // Static actions
 const staticActions = computed(() => [
     { id: 'quick-create', title: t('Quick create (Ctrl+N)'), icon: FilePlus, action: () => { quickCreateOpen.value = true; uiStore.openCommandPalette() }, category: t('Actions') },
-    { id: 'new-doctype', title: t('Create new DocType'), icon: Plus, action: () => navigateTo('/grunt/list/DocType/new'), category: t('Actions') },
+    { id: 'new-doctype', title: t('Create new DocType'), icon: Plus, action: () => navigateTo('/grunt/DocType/new'), category: t('Actions') },
     { id: 'view-hooks', title: t('View hooks'), icon: Zap, action: () => navigateTo('/grunt/hooks'), category: t('Settings') },
     { id: 'activity-log', title: t('Activity log'), icon: Activity, action: () => navigateTo('/grunt/activity-log'), category: t('Settings') },
-    { id: 'settings', title: t('System settings'), icon: Settings, action: () => navigateTo('/grunt/list/SystemSettings/SystemSettings'), category: t('Actions') },
+    { id: 'settings', title: t('System settings'), icon: Settings, action: () => navigateTo('/grunt/SystemSettings/SystemSettings'), category: t('Actions') },
     { id: 'logout', title: t('Log out'), icon: LogOut, action: handleLogout, category: t('Actions') },
 ])
 
@@ -152,9 +152,9 @@ watch(search, async (val) => {
                     action: () => {
                         const ws = wsStore.workspaces.find(w => w.items.some(i => i.link_to === dt.name))
                         if (dt.is_singleton) {
-                            navigateTo(`/${ws?.name || 'grunt'}/list/${dt.name}/${dt.name}`)
+                            navigateTo(`/${ws?.name || 'grunt'}/${dt.name}/${dt.name}`)
                         } else {
-                            navigateTo(`/${ws?.name || 'grunt'}/list/${dt.name}`)
+                            navigateTo(`/${ws?.name || 'grunt'}/${dt.name}`)
                         }
                     },
                     category: t('DocTypes')
@@ -172,7 +172,7 @@ watch(search, async (val) => {
                 icon: FileText,
                 action: () => {
                     const ws = wsStore.workspaces.find(w => w.items.some(i => i.link_to === d.doctype))
-                    navigateTo(`/${ws?.name || 'grunt'}/list/${d.doctype}/${d.id || d.name}`)
+                    navigateTo(`/${ws?.name || 'grunt'}/${d.doctype}/${d.id || d.name}`)
                 },
                 category: t('Documents')
             }))
@@ -266,7 +266,7 @@ const flatResults = computed(() => results.value)
                         </select>
                         <button class="px-3 py-2 rounded bg-primary text-primary-foreground"
                             :disabled="!quickCreateDoctype"
-                            @click="{ const ws = wsStore.active?.name || 'grunt'; uiStore.closeCommandPalette(); quickCreateOpen = false; router.push(`/${ws}/list/${quickCreateDoctype}/new`) }">
+                            @click="{ const ws = wsStore.active?.name || 'grunt'; uiStore.closeCommandPalette(); quickCreateOpen = false; router.push(`/${ws}/${quickCreateDoctype}/new`) }">
                             {{ t('Create') }}
                         </button>
                     </div>

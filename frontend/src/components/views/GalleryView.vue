@@ -62,7 +62,7 @@ function onCheckboxClick(e: MouseEvent, row: Record<string, unknown>) {
 
 function navigateToDoc(row: Record<string, unknown>) {
   const ws = props.workspace ?? 'grunt'
-  router.push(`/${ws}/list/${props.doctype}/${row.id}`)
+  router.push(`/${ws}/${props.doctype}/${row.id}`)
 }
 
 function formatCell(val: unknown): string {

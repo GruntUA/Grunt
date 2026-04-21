@@ -130,7 +130,7 @@ function collapseAll() {
 function navigateTo(node: TreeNode) {
   const id = node.id
   if (props.workspace) {
-    router.push(`/${props.workspace}/list/${props.doctype.name}/${id}`)
+    router.push(`/${props.workspace}/${props.doctype.name}/${id}`)
   } else {
     router.push(`/${props.doctype.name}/${id}`)
   }
@@ -140,7 +140,7 @@ function createChild(parentNode: TreeNode) {
   const parentId = parentNode.id
   const query = `?${props.parentField}=${parentId}`
   if (props.workspace) {
-    router.push(`/${props.workspace}/list/${props.doctype.name}/new${query}`)
+    router.push(`/${props.workspace}/${props.doctype.name}/new${query}`)
   } else {
     router.push(`/${props.doctype.name}/new${query}`)
   }
@@ -148,7 +148,7 @@ function createChild(parentNode: TreeNode) {
 
 function createRoot() {
   if (props.workspace) {
-    router.push(`/${props.workspace}/list/${props.doctype.name}/new`)
+    router.push(`/${props.workspace}/${props.doctype.name}/new`)
   } else {
     router.push(`/${props.doctype.name}/new`)
   }
