@@ -37,62 +37,68 @@ class WorkspaceSidebar(Document):
 
     async def get_counts(self) -> dict[str, int]:
         """Get document counts for sidebar items that have show_count=true."""
-        counts: dict[str, int] = {}
+        from grunt.core.metadata.compiler import get_table_name  # noqa: PLC0415
 
-        async def _get_item_count(item_data: dict[str, Any]) -> tuple[str, int] | None:
-            if not item_data.get("show_count") or item_data.get("type") != "DocType":
-                return None
+        items = [
+            item for item in self.get("sidebar_items", [])
+            if item.get("show_count") and item.get("type") == "DocType" and item.get("link_to")
+        ]
+        if not items:
+            return {}
 
-            link_to = item_data.get("link_to")
-            if not link_to:
-                return None
-
+        # Resolve table names via in-memory meta cache (no extra queries)
+        resolved: list[tuple[str, str, dict[str, Any]]] = []
+        for item in items:
+            link_to = item["link_to"]
             try:
                 dt = await grunt.get_meta(link_to)
             except Exception:
-                return None
-
-            # Get table name from registry/compiler
-            from grunt.core.metadata.compiler import get_table_name  # noqa: PLC0415
-
+                continue
             table_name = dt.table_name or get_table_name(dt.module, dt.name)
 
-            try:
-                count_sql = f'SELECT COUNT(*) FROM "{table_name}"'  # noqa: S608
-                filters = {}
-                count_filters_raw = item_data.get("count_filters")
-                if count_filters_raw:
-                    try:
-                        f_data = json.loads(count_filters_raw)
-                        if isinstance(f_data, dict) and f_data:
-                            filters = f_data
-                            conditions = [f'"{col}" = :{col}' for col in filters]
-                            count_sql += " WHERE " + " AND ".join(conditions)
-                    except (json.JSONDecodeError, ValueError):
-                        pass
+            filters: dict[str, Any] = {}
+            count_filters_raw = item.get("count_filters")
+            if count_filters_raw:
+                try:
+                    f_data = json.loads(count_filters_raw)
+                    if isinstance(f_data, dict) and f_data:
+                        filters = f_data
+                except (json.JSONDecodeError, ValueError):
+                    pass
 
-                result_count = await grunt.db._session().execute(text(count_sql), filters)
-                count_val = result_count.scalar() or 0
+            key = link_to
+            if filters:
+                suffix = "_".join(str(v).lower() for v in filters.values())
+                key = f"{link_to}_{suffix}"
 
-                # Build key: use link_to + suffix if filters exist
-                key = link_to
-                if filters:
-                    suffix = "_".join(str(v).lower() for v in filters.values())
-                    key = f"{link_to}_{suffix}"
+            resolved.append((key, table_name, filters))
 
-                return key, count_val
-            except Exception:
-                logger.warning("workspace.count_error", link_to=link_to)
-                return None
+        if not resolved:
+            return {}
 
-        tasks = [_get_item_count(item) for item in self.get("sidebar_items", [])]
-        results = await asyncio.gather(*tasks)
-        for res in results:
-            if res:
-                key, val = res
-                counts[key] = val
+        # Single UNION ALL instead of N separate COUNT queries
+        parts: list[str] = []
+        params: dict[str, Any] = {}
+        for i, (key, table_name, filters) in enumerate(resolved):
+            key_param = f"k{i}"
+            params[key_param] = key
+            if filters:
+                conditions = []
+                for col, val in filters.items():
+                    p = f"{col}_{i}"
+                    params[p] = val
+                    conditions.append(f'"{col}" = :{p}')
+                where = " WHERE " + " AND ".join(conditions)
+            else:
+                where = ""
+            parts.append(f'SELECT :{key_param} AS k, COUNT(*) AS c FROM "{table_name}"{where}')  # noqa: S608
 
-        return counts
+        try:
+            result = await grunt.db._session().execute(text(" UNION ALL ".join(parts)), params)
+            return {row.k: row.c for row in result}
+        except Exception:
+            logger.warning("workspace.counts_error")
+            return {}
 
     async def get_widget_data(
         self,
