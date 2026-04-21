@@ -187,9 +187,11 @@ class DocumentReadMixin:
 
         table = compile_doctype_to_table(dt)
 
-        query = select(table).where((table.c.id == doc_id) | (table.c.name == doc_id))
-        result = await self.session.execute(query)
+        result = await self.session.execute(select(table).where(table.c.id == doc_id))
         row = result.first()
+        if row is None:
+            result = await self.session.execute(select(table).where(table.c.name == doc_id))
+            row = result.first()
         if row is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

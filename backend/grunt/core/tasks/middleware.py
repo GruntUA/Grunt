@@ -7,6 +7,7 @@ from typing import Any
 import structlog
 from taskiq import TaskiqMessage, TaskiqMiddleware, TaskiqResult
 
+from grunt.app import grunt
 from grunt.core.doctypes.user.user import SYSTEM_USER
 from grunt.core.document.service import DocumentService
 from grunt.core.site.manager import site_manager
@@ -30,19 +31,20 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             async with maker() as session:
                 service = DocumentService(session, eng)
 
-                # Create a log entry with "Started" status
                 args_str = json.dumps({"args": message.args, "kwargs": message.kwargs})
                 if len(args_str) > 5000:
                     args_str = args_str[:5000] + "... [TRUNCATED]"
 
-                log_data = {
-                    "task_name": message.task_name,
-                    "status": "Started",
-                    "started_at": datetime.now().isoformat(),
-                    "arguments": args_str,
-                }
-
-                result = await service.create_document("BackgroundTaskLog", log_data, SYSTEM_USER)
+                result = await service.create_document(
+                    "BackgroundTaskLog",
+                    {
+                        "task_name": message.task_name,
+                        "status": "Started",
+                        "started_at": datetime.now(UTC).isoformat(),
+                        "arguments": args_str,
+                    },
+                    SYSTEM_USER,
+                )
                 await session.commit()
                 self.log_ids[message.task_id] = result["id"]
 
@@ -64,18 +66,15 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             maker = site_manager.get_session_maker(site)
             eng = site_manager.get_engine(site)
             async with maker() as session:
-                service = DocumentService(session, eng)
-
-                update_data = {
-                    "status": "Error" if result.is_err else "Success",
-                    "finished_at": datetime.now().isoformat(),
-                }
-
-                if result.is_err:
-                    update_data["error_message"] = str(result.error)
-
-                await service.update_document("BackgroundTaskLog", log_id, update_data, SYSTEM_USER)
-                await session.commit()
+                async with grunt.context(session, eng, SYSTEM_USER):
+                    update_data: dict[str, Any] = {
+                        "status": "Error" if result.is_err else "Success",
+                        "finished_at": datetime.now(UTC).isoformat(),
+                    }
+                    if result.is_err:
+                        update_data["error_message"] = str(result.error)
+                    await grunt.db.set_value("BackgroundTaskLog", log_id, update_data)
+                    await session.commit()
 
         except Exception as e:
             logger.error("tasks.middleware.post_execute_failed", error=str(e), log_id=log_id)
@@ -88,15 +87,15 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
         if isinstance(retry_on_error, str):
             retry_on_error = retry_on_error.lower() == "true"
 
-        attempt = int(message.labels.get("_retries", 0)) + 1  # attempts after this failure
+        attempt = int(message.labels.get("_retries", 0)) + 1
         max_retries = int(message.labels.get("max_retries", 3))
         delay = float(message.labels.get("delay", 60))
 
         will_retry = bool(retry_on_error) and attempt < max_retries
         return will_retry, attempt, max_retries, delay
 
-    async def on_error(
-        self, message: TaskiqMessage, result: TaskiqResult[Any], exception: BaseException
+    async def on_error(  # noqa: ARG002
+        self, message: TaskiqMessage, _result: TaskiqResult[Any], exception: BaseException
     ) -> None:
         """Called if an unhandled error occurs."""
         log_id = self.log_ids.get(message.task_id)
@@ -104,7 +103,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             return
 
         try:
-            will_retry, attempt, _max, delay = self._retry_info(message)
+            will_retry, attempt, _, delay = self._retry_info(message)
 
             update_data: dict[str, Any] = {
                 "finished_at": datetime.now(UTC).isoformat(),
@@ -129,9 +128,10 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             maker = site_manager.get_session_maker(site)
             eng = site_manager.get_engine(site)
             async with maker() as session:
-                service = DocumentService(session, eng)
-                await service.update_document("BackgroundTaskLog", log_id, update_data, SYSTEM_USER)
-                await session.commit()
+                async with grunt.context(session, eng, SYSTEM_USER):
+                    await grunt.db.set_value("BackgroundTaskLog", log_id, update_data)
+                    await session.commit()
+
         except Exception:
             logger.error(
                 "tasks.error_logging_failed",

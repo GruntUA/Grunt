@@ -24,6 +24,13 @@ logger = structlog.get_logger()
 
 _EXTRA_INJECT = ("color", "icon")
 
+# Columns present in every child table row that carry no value for callers:
+# parent linkage is implicit, audit fields are not rendered in child rows.
+_CHILD_SKIP_COLS: frozenset[str] = frozenset({
+    "parent_id", "parent_doctype", "parent_field",
+    "owner", "created_at", "modified_at", "modified_by", "docstatus",
+})
+
 
 async def _resolve_link_labels(
     session: AsyncSession,
@@ -117,8 +124,14 @@ async def _load_child_tables(session: AsyncSession, dt: DocType, doc: dict[str, 
         try:
             child_dt = await doctype_registry.get(field.options)
             child_table = compile_doctype_to_table(child_dt)
+            data_fields = {
+                f.fieldname for f in child_dt.fields
+                if f.fieldtype not in NON_PHYSICAL_FIELDS
+            }
+            keep = {"id", "name", "idx"} | data_fields
+            cols = [c for c in child_table.c if c.key not in _CHILD_SKIP_COLS and c.key in keep]
             result = await session.execute(
-                select(child_table)
+                select(*cols)
                 .where(child_table.c.parent_id == doc["id"])
                 .order_by(child_table.c.idx)
             )

@@ -64,9 +64,13 @@ class GruntDB:
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
         values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
-        await self._session().execute(
-            table.update().where((table.c.id == doc_id) | (table.c.name == doc_id)).values(values)
+        result = await self._session().execute(
+            table.update().where(table.c.id == doc_id).values(values)
         )
+        if result.rowcount == 0:
+            await self._session().execute(
+                table.update().where(table.c.name == doc_id).values(values)
+            )
         await self._session().flush()
 
     async def exists(
