@@ -33,8 +33,6 @@ from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import select
-from sqlalchemy import update as sa_update
 
 from grunt.core.scripting.safe_globals import build_safe_globals, validate_script
 
@@ -224,25 +222,22 @@ class ScriptContext:
     async def _async_get_doc(
         self, doctype: str, filters_or_id: str | dict[str, Any]
     ) -> dict[str, Any] | None:
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
-        stmt = select(table)
-        if isinstance(filters_or_id, str):
-            stmt = stmt.where((table.c.id == filters_or_id) | (table.c.name == filters_or_id))
-        elif isinstance(filters_or_id, dict):
-            for k, v in filters_or_id.items():
-                col = getattr(table.c, k, None)
-                if col is not None:
-                    stmt = stmt.where(col == v)
-        stmt = stmt.limit(1)
-        result = await self._get_session().execute(stmt)
-        row = result.first()
-        if not row:
-            return None
-        return dict(row._mapping)
+        token = _session_ctx.set(self._get_session())
+        try:
+            db = GruntDB()
+            rows: list[dict[str, Any]]
+            if isinstance(filters_or_id, str):
+                rows = await db.get_all(doctype, filters={"id": filters_or_id}, limit=1)
+                if not rows:
+                    rows = await db.get_all(doctype, filters={"name": filters_or_id}, limit=1)
+            else:
+                rows = await db.get_all(doctype, filters=filters_or_id, limit=1)
+            return rows[0] if rows else None
+        finally:
+            _session_ctx.reset(token)
 
     def get_list(
         self,
@@ -270,27 +265,19 @@ class ScriptContext:
         fields: list[str] | None,
         limit: int,
     ) -> list[dict[str, Any]]:
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
-
-        if fields:
-            cols = [getattr(table.c, f) for f in fields if hasattr(table.c, f)]
-            stmt = select(*cols) if cols else select(table)
-        else:
-            stmt = select(table)
-
-        if filters:
-            for k, v in filters.items():
-                col = getattr(table.c, k, None)
-                if col is not None:
-                    stmt = stmt.where(col == v)
-
-        stmt = stmt.limit(limit)
-        result = await self._get_session().execute(stmt)
-        return [dict(row._mapping) for row in result.fetchall()]
+        token = _session_ctx.set(self._get_session())
+        try:
+            return await GruntDB().get_all(
+                doctype,
+                filters=filters,
+                fields=fields,
+                limit=limit,
+            )
+        finally:
+            _session_ctx.reset(token)
 
     def new_doc(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
         """Create a new document and return it.
@@ -329,24 +316,21 @@ class ScriptContext:
     ) -> dict[str, Any]:
         from datetime import datetime  # noqa: PLC0415
 
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
-        update_data = {k: v for k, v in data.items() if k in table.c}
-        update_data["modified_at"] = datetime.now(UTC)
-        await self._get_session().execute(
-            sa_update(table)
-            .where((table.c.id == id_or_name) | (table.c.name == id_or_name))
-            .values(**update_data)
-        )
-        await self._get_session().flush()
-        result = await self._get_session().execute(
-            select(table).where((table.c.id == id_or_name) | (table.c.name == id_or_name)).limit(1)
-        )
-        row = result.first()
-        return dict(row._mapping) if row else {}
+        token = _session_ctx.set(self._get_session())
+        try:
+            update_data = dict(data)
+            update_data["modified_at"] = datetime.now(UTC)
+            await GruntDB().set_value(doctype, id_or_name, update_data)
+
+            rows = await GruntDB().get_all(doctype, filters={"id": id_or_name}, limit=1)
+            if not rows:
+                rows = await GruntDB().get_all(doctype, filters={"name": id_or_name}, limit=1)
+            return rows[0] if rows else {}
+        finally:
+            _session_ctx.reset(token)
 
     def delete_doc(self, doctype: str, id_or_name: str) -> None:
         """Delete a document.
@@ -360,15 +344,16 @@ class ScriptContext:
         self._bridge.run(self._async_delete_doc(doctype, id_or_name))
 
     async def _async_delete_doc(self, doctype: str, id_or_name: str) -> None:
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
-        await self._get_session().execute(
-            table.delete().where((table.c.id == id_or_name) | (table.c.name == id_or_name))
-        )
-        await self._get_session().flush()
+        token = _session_ctx.set(self._get_session())
+        try:
+            deleted = await GruntDB().delete(doctype, {"id": id_or_name})
+            if deleted == 0:
+                await GruntDB().delete(doctype, {"name": id_or_name})
+        finally:
+            _session_ctx.reset(token)
 
     def count(self, doctype: str, filters: dict[str, Any] | None = None) -> int:
         """Count documents matching optional filters.
@@ -382,21 +367,14 @@ class ScriptContext:
         return self._bridge.run(self._async_count(doctype, filters))
 
     async def _async_count(self, doctype: str, filters: dict[str, Any] | None) -> int:
-        from sqlalchemy import func  # noqa: PLC0415
+        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
-        dt = await doctype_registry.get(doctype)
-        table = compile_doctype_to_table(dt)
-        stmt = select(func.count()).select_from(table)
-        if filters:
-            for k, v in filters.items():
-                col = table.c.get(k)
-                if col is not None:
-                    stmt = stmt.where(col == v)
-        result = await self._get_session().execute(stmt)
-        return result.scalar() or 0
+        token = _session_ctx.set(self._get_session())
+        try:
+            return await GruntDB().count(doctype, filters=filters)
+        finally:
+            _session_ctx.reset(token)
 
     def notify(
         self,
@@ -462,20 +440,31 @@ class ServerScriptRunner:
         self, session: AsyncSession, doctype: str, event: str
     ) -> list[dict[str, Any]]:
         """Load enabled server scripts for a specific DocType event."""
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        table = compile_doctype_to_table(doctype_registry._doctypes["ServerScript"])
-        stmt = (
-            select(table)
-            .where(table.c.script_type == "DocType Event")
-            .where(table.c.doctype == doctype)
-            .where(table.c.event == event)
-            .where(table.c.is_enabled.is_(True))
-        )
-        result = await session.execute(stmt)
-        rows = result.mappings().all()
-        scripts: list[dict[str, Any]] = [{"name": r["name"], "script": r["script"]} for r in rows]
+        token = _session_ctx.set(session)
+        try:
+            rows = await GruntDB().get_all(
+                "ServerScript",
+                filters={
+                    "script_type": "DocType Event",
+                    "doctype": doctype,
+                    "event": event,
+                    "is_enabled": True,
+                },
+                fields=["name", "script"],
+                limit=10_000,
+                order_by="name",
+                order="asc",
+            )
+        finally:
+            _session_ctx.reset(token)
+
+        scripts: list[dict[str, Any]] = [
+            {"name": str(r.get("name") or ""), "script": str(r.get("script") or "")}
+            for r in rows
+        ]
 
         # Append file-based scripts
         try:
@@ -494,23 +483,26 @@ class ServerScriptRunner:
 
     async def load_api_script(self, session: AsyncSession, method: str) -> dict[str, Any] | None:
         """Load an API-type server script by method name."""
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        table = compile_doctype_to_table(doctype_registry._doctypes["ServerScript"])
-        stmt = (
-            select(table)
-            .where(table.c.script_type == "API")
-            .where(table.c.api_method == method)
-            .where(table.c.is_enabled.is_(True))
-        )
-        result = await session.execute(stmt)
-        row = result.mappings().first()
+        token = _session_ctx.set(session)
+        try:
+            rows = await GruntDB().get_all(
+                "ServerScript",
+                filters={"script_type": "API", "api_method": method, "is_enabled": True},
+                fields=["name", "script", "allow_guest"],
+                limit=1,
+            )
+        finally:
+            _session_ctx.reset(token)
+
+        row = rows[0] if rows else None
         if row:
             return {
-                "name": row["name"],
-                "script": row["script"],
-                "allow_guest": row["allow_guest"],
+                "name": row.get("name"),
+                "script": row.get("script"),
+                "allow_guest": row.get("allow_guest"),
             }
 
         # Check file-based scripts
@@ -523,18 +515,26 @@ class ServerScriptRunner:
 
     async def load_scheduler_scripts(self, session: AsyncSession) -> list[dict[str, Any]]:
         """Load all enabled scheduler-type server scripts."""
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-        table = compile_doctype_to_table(doctype_registry._doctypes["ServerScript"])
-        stmt = (
-            select(table)
-            .where(table.c.script_type == "Scheduler Event")
-            .where(table.c.is_enabled.is_(True))
-        )
-        result = await session.execute(stmt)
-        rows = result.mappings().all()
-        return [{"name": r["name"], "script": r["script"], "cron": r["cron"]} for r in rows]
+        token = _session_ctx.set(session)
+        try:
+            rows = await GruntDB().get_all(
+                "ServerScript",
+                filters={"script_type": "Scheduler Event", "is_enabled": True},
+                fields=["name", "script", "cron"],
+                limit=10_000,
+                order_by="name",
+                order="asc",
+            )
+        finally:
+            _session_ctx.reset(token)
+
+        return [
+            {"name": r.get("name"), "script": r.get("script"), "cron": r.get("cron")}
+            for r in rows
+        ]
 
     async def execute(
         self,

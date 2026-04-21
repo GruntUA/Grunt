@@ -13,19 +13,28 @@ import json
 from typing import Any
 
 from fastapi import Depends, Query
-from sqlalchemy import or_, select
 
 from grunt.api.router import GruntRouter
-from grunt.api.v1.docs.utils import get_doc_service
 from grunt.api.v1.schemas.response import ok
+from grunt.app import grunt as grunt_app
 from grunt.core.auth.dependencies import current_user
 from grunt.core.doctypes.user.user import User
-from grunt.core.document.query import _apply_filters
-from grunt.core.document.service import DocumentService
-from grunt.core.metadata.compiler import compile_doctype_to_table
 from grunt.core.metadata.registry import doctype_registry
 
 router = GruntRouter()
+
+
+def _doctype_fieldnames(dt: Any) -> set[str]:
+    """Collect DocType fieldnames from metadata objects or dicts."""
+    names: set[str] = {"id", "name"}
+    for field in list(getattr(dt, "fields", None) or []):
+        if isinstance(field, dict):
+            fieldname = field.get("fieldname")
+        else:
+            fieldname = getattr(field, "fieldname", None)
+        if isinstance(fieldname, str) and fieldname:
+            names.add(fieldname)
+    return names
 
 
 @router.get("/{doctype}/link_search")
@@ -35,7 +44,6 @@ async def link_search(
     filters: str = Query(default="{}", description="JSON-encoded extra filters"),
     page_length: int = Query(default=10, ge=1, le=100),
     user: User = Depends(current_user),
-    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Search documents for a Link field dropdown."""
     dt = await doctype_registry.get(doctype)
@@ -59,56 +67,64 @@ async def link_search(
             })
         return ok(items)
 
-    table = compile_doctype_to_table(dt)
-
     title_field: str = (dt.title_field or "name") if hasattr(dt, "title_field") else "name"
+    doctype_fields = _doctype_fieldnames(dt)
 
     # ── Columns to fetch ─────────────────────────────────────────────────────
-    cols_needed = {"id", "name"}
-    if title_field and title_field != "name" and title_field in table.c:
-        cols_needed.add(title_field)
+    cols_needed: list[str] = ["id", "name"]
+    if title_field and title_field != "name" and title_field in doctype_fields:
+        cols_needed.append(title_field)
     # Include search_fields for display as subtitle
     search_fields: list[str] = list(getattr(dt, "search_fields", None) or [])
     for sf in search_fields:
-        if sf in table.c:
-            cols_needed.add(sf)
-
-    cols = [table.c[c] for c in cols_needed if c in table.c]
-
-    stmt = select(*cols)
+        if sf in doctype_fields and sf not in cols_needed:
+            cols_needed.append(sf)
 
     # ── Parse extra filters ───────────────────────────────────────────────────
     try:
-        extra_filters: dict[str, str] = json.loads(filters) if filters and filters != "{}" else {}
+        parsed = json.loads(filters) if filters and filters != "{}" else {}
+        extra_filters: dict[str, Any] = parsed if isinstance(parsed, dict) else {}
     except (json.JSONDecodeError, ValueError):
         extra_filters = {}
 
-    if extra_filters:
-        stmt = _apply_filters(stmt, table, extra_filters)
-
-    # ── Search conditions ─────────────────────────────────────────────────────
-    if q:
-        search_term = f"%{q}%"
-        conditions = [table.c.name.ilike(search_term)]
-        if title_field and title_field != "name" and title_field in table.c:
-            conditions.append(table.c[title_field].ilike(search_term))
-        for sf in search_fields:
-            if sf != "name" and sf != title_field and sf in table.c:
-                conditions.append(table.c[sf].ilike(search_term))
-        stmt = stmt.where(or_(*conditions))
-
-    stmt = stmt.limit(page_length)
-
-    session = svc.session
-    result = await session.execute(stmt)
-    rows = [dict(r._mapping) for r in result.all()]
+    query = q.strip()
+    rows = await grunt_app.get_list(
+        doctype,
+        filters=extra_filters if extra_filters else None,
+        fields=cols_needed,
+        limit=page_length,
+        search=query or None,
+    )
 
     # ── Shape response ────────────────────────────────────────────────────────
     items = []
     for row in rows:
         name_val = str(row.get("name") or row.get("id") or "")
         title_val = str(row.get(title_field) or name_val) if title_field else name_val
-        subtitle_val = name_val if title_val != name_val else None
+
+        # If title_field is effectively "name", use the first search_field value
+        # as a more human-readable title when available.
+        if title_val == name_val:
+            for sf in search_fields:
+                candidate = row.get(sf)
+                if candidate is not None:
+                    candidate_str = str(candidate)
+                    if candidate_str:
+                        title_val = candidate_str
+                        break
+
+        subtitle_val: str | None = None
+        for sf in search_fields:
+            candidate = row.get(sf)
+            if candidate is None:
+                continue
+            candidate_str = str(candidate)
+            if candidate_str and candidate_str != title_val:
+                subtitle_val = candidate_str
+                break
+        if subtitle_val is None and title_val != name_val:
+            subtitle_val = name_val
+
         items.append(
             {
                 "id": str(row.get("id") or name_val),

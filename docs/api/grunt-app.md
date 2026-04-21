@@ -18,6 +18,8 @@ from grunt.app import grunt
 
 Fetch a single document by id or name.
 
+Enforces `read` permission and triggers read hooks (`before_read`, `after_read`).
+
 ```python
 invoice = await grunt.get_doc("Invoice", "INV-0001")
 print(invoice["amount"])
@@ -50,6 +52,8 @@ Delete a document (runs `before_delete` / `after_delete` hooks).
 ### `grunt.get_list(doctype, *, filters, fields, limit, page, order_by, order, search)`
 
 Fetch a list of documents.
+
+Enforces `read` permission and triggers read hooks (`before_read`, `after_read`).
 
 ```python
 open_orders = await grunt.get_list(
@@ -101,6 +105,8 @@ count = await grunt.bulk_update(
 
 Return a single field value from the first matching document.
 
+Low-level direct DB access: no permission checks and no lifecycle/read hooks.
+
 ```python
 name = await grunt.db.get_value("Customer", {"email": "a@b.com"}, "full_name")
 ```
@@ -108,6 +114,8 @@ name = await grunt.db.get_value("Customer", {"email": "a@b.com"}, "full_name")
 ### `grunt.db.set_value(doctype, doc_id, fieldname, value)`
 
 Update a single field on a document.
+
+Low-level direct DB access: no permission checks and no lifecycle/read hooks.
 
 ```python
 await grunt.db.set_value("Invoice", invoice_id, "status", "Paid")
@@ -117,6 +125,8 @@ await grunt.db.set_value("Invoice", invoice_id, "status", "Paid")
 
 Return the document `name` if a match exists, else `None`.
 
+Low-level direct DB access: no permission checks and no lifecycle/read hooks.
+
 ```python
 if await grunt.db.exists("Customer", {"email": "a@b.com"}):
     grunt.throw("Customer already registered")
@@ -125,6 +135,8 @@ if await grunt.db.exists("Customer", {"email": "a@b.com"}):
 ### `grunt.db.get_all(doctype, *, filters, fields, limit, order_by, order)`
 
 Fetch a list of documents as plain dicts (lower-level than `get_list`).
+
+Low-level direct DB access: no permission checks and no lifecycle/read hooks.
 
 ---
 

@@ -32,7 +32,6 @@ from grunt.core.document.virtual import (
     _virtual_delete,
     _virtual_update,
 )
-from grunt.core.hooks import fire
 from grunt.core.metadata.compiler import compile_doctype_to_table
 from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.core.metadata.registry import doctype_registry
@@ -73,47 +72,38 @@ class DocumentWriteMixin:
 
     # ── Create ────────────────────────────────────────────────────────────
 
-    async def create_document(
-        self,
-        doctype_name: str,
-        data: dict[str, Any],
-        user: User,
-        *,
-        ignore_required: bool = False,
-    ) -> dict[str, Any]:
-        dt = await doctype_registry.get(doctype_name)
-        if dt.is_virtual:
-            return await _virtual_create(doctype_name, user, data)
+    # ── create helpers ────────────────────────────────────────────────────
 
-        table = compile_doctype_to_table(dt)
-
-        # Singleton — allow only one document
-        if dt.is_singleton:
-            existing = await self.session.execute(select(func.count()).select_from(table))
-            if (existing.scalar() or 0) > 0:
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail=f"'{doctype_name}' is a singleton.",
-                )
-
-        # Validate
-        errors = _validate_data(dt, data, ignore_required=ignore_required)
-        if errors:
+    async def _check_singleton(self, dt: Any, table: Any) -> None:
+        """Raise 409 if the DocType is a singleton and a document already exists."""
+        if not dt.is_singleton:
+            return
+        existing = await self.session.execute(select(func.count()).select_from(table))
+        if (existing.scalar() or 0) > 0:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail=errors,
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"'{dt.name}' is a singleton.",
             )
 
-        now = datetime.now(UTC)
-        doc_id = str(data.get("id") or uuid.uuid4())
+    async def _build_initial_row(
+        self,
+        dt: Any,
+        table: Any,
+        data: dict[str, Any],
+        user: User,
+        now: datetime,
+    ) -> tuple[str, dict[str, Any]]:
+        """Assemble the initial DB row dict (standard fields + DocType fields + workflow).
 
-        # Generate document name
+        Returns ``(doc_id, row)``.
+        """
         from grunt.core.naming import naming_service  # noqa: PLC0415
 
+        doc_id = str(data.get("id") or uuid.uuid4())
         generated_name = await naming_service.generate(dt.autoname or "", data, self.session)
 
         row: dict[str, Any] = {}
-        standard = {
+        standard: dict[str, Any] = {
             "id": doc_id,
             "name": generated_name or doc_id[:8],
             "owner": user.email,
@@ -136,7 +126,6 @@ class DocumentWriteMixin:
             elif field.fieldtype == "Check":
                 row[field.fieldname] = False
 
-        # Copy workflow state field
         if dt.workflow:
             sf = dt.workflow.state_field
             if sf in data:
@@ -146,92 +135,237 @@ class DocumentWriteMixin:
                 if initial:
                     row[sf] = initial.name
 
-        # Custom Controller Hooks
-        _tokens = self._set_grunt_context(user)
+        return doc_id, row
+
+    async def _persist_new_doc(
+        self,
+        dt: Any,
+        table: Any,
+        doctype_name: str,
+        doc_id: str,
+        data: dict[str, Any],
+        row: dict[str, Any],
+        user: User,
+        now: datetime,
+    ) -> None:
+        """Run controller hooks, INSERT, save child tables, aggregations, MultiLink."""
+        controller_cls = document_registry.get(doctype_name)
+        doc = controller_cls(doctype_name, row, user, self.session)
         try:
-            controller_cls = document_registry.get(doctype_name)
-            doc = controller_cls(doctype_name, row, user, self.session)
-            try:
-                await doc.validate()
-                await doc.before_insert()
-                await doc.before_save()
-            except GruntError as e:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
-                ) from e
+            await doc.validate()
+            await doc.before_insert()
+            await doc.before_save()
+        except GruntError as e:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
+            ) from e
 
-            # Compute formula fields after validation, before DB write
-            compute_formulas(dt, row)
+        compute_formulas(dt, row)
 
-            await fire(
-                "before_save", doctype=doctype_name, doc=row, user=user, session=self.session
+        await self.session.execute(table.insert().values(**row))
+        await self.session.flush()
+
+        await _save_child_tables(self.session, dt, doc_id, data, user, now)
+
+        agg_values = await compute_aggregations(self.session, dt, doc_id)
+        if agg_values:
+            await self.session.execute(
+                table.update().where(table.c.id == doc_id).values(**agg_values)
             )
-
-            await self.session.execute(table.insert().values(**row))
+            row.update(agg_values)
             await self.session.flush()
 
-            # Save child table fields
-            await _save_child_tables(self.session, dt, doc_id, data, user, now)
-
-            # Compute aggregation fields from child table rows
-            agg_values = await compute_aggregations(self.session, dt, doc_id)
-            if agg_values:
-                await self.session.execute(
-                    table.update().where(table.c.id == doc_id).values(**agg_values)
+        for mlf in _get_multi_link_fields(dt):
+            values = data.get(mlf.fieldname)
+            if isinstance(values, list):
+                await self._ml.set_values(
+                    doctype_name, doc_id, mlf.fieldname, mlf.options or "", values
                 )
-                row.update(agg_values)
-                await self.session.flush()
 
-            # Save MultiLink fields
-            for mlf in _get_multi_link_fields(dt):
-                values = data.get(mlf.fieldname)
-                if isinstance(values, list):
-                    await self._ml.set_values(
-                        doctype_name,
-                        doc_id,
-                        mlf.fieldname,
-                        mlf.options or "",
-                        values,
-                    )
+        logger.info("document.created", doctype=doctype_name, id=doc_id)
 
-            logger.info("document.created", doctype=doctype_name, id=doc_id)
+        try:
+            await doc.after_insert()
+            await doc.after_save()
+        except GruntError as e:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
+            ) from e
 
-            try:
-                await doc.after_insert()
-                await doc.after_save()
-            except GruntError as e:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
-                ) from e
+    async def _fire_create_services(
+        self, doctype_name: str, dt: Any, row: dict[str, Any]
+    ) -> None:
+        """Update the search index and fire outgoing webhooks after a successful insert."""
+        from grunt.core.search.service import search_index_service  # noqa: PLC0415
+        from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
 
-            await fire(
-                "after_insert", doctype=doctype_name, doc=row, user=user, session=self.session
-            )
-            await fire("after_save", doctype=doctype_name, doc=row, user=user, session=self.session)
+        await search_index_service.index_document(self.session, doctype_name, dt, row)
+        await webhook_service.fire(self.session, "after_insert", doctype_name, row)
 
-            # Update search index
-            from grunt.core.search.service import search_index_service  # noqa: PLC0415
-
-            await search_index_service.index_document(self.session, doctype_name, dt, row)
-
-            # Fire outgoing webhooks
-            from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
-
-            await webhook_service.fire(self.session, "after_insert", doctype_name, row)
-
-        finally:
-            self._reset_grunt_context(_tokens)
-
-        # Serialise datetimes
+    async def _serialize_doc_out(
+        self, doctype_name: str, doc_id: str, row: dict[str, Any], dt: Any
+    ) -> dict[str, Any]:
+        """Serialise datetime values and attach MultiLink field values for the response."""
         for k, v in row.items():
             if isinstance(v, datetime):
                 row[k] = v.isoformat()
-
-        # Attach MultiLink values
         for mlf in _get_multi_link_fields(dt):
             row[mlf.fieldname] = await self._ml.get_values(doctype_name, doc_id, mlf.fieldname)
-
         return row
+
+    # ── Create ────────────────────────────────────────────────────────────
+
+    async def create_document(
+        self,
+        doctype_name: str,
+        data: dict[str, Any],
+        user: User,
+        *,
+        ignore_required: bool = False,
+    ) -> dict[str, Any]:
+        dt = await doctype_registry.get(doctype_name)
+        if dt.is_virtual:
+            return await _virtual_create(doctype_name, user, data)
+
+        table = compile_doctype_to_table(dt)
+        await self._check_singleton(dt, table)
+
+        errors = _validate_data(dt, data, ignore_required=ignore_required)
+        if errors:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors
+            )
+
+        now = datetime.now(UTC)
+        doc_id, row = await self._build_initial_row(dt, table, data, user, now)
+
+        _tokens = self._set_grunt_context(user)
+        try:
+            await self._persist_new_doc(dt, table, doctype_name, doc_id, data, row, user, now)
+            await self._fire_create_services(doctype_name, dt, row)
+        finally:
+            self._reset_grunt_context(_tokens)
+
+        return await self._serialize_doc_out(doctype_name, doc_id, row, dt)
+
+    # ── update helpers ────────────────────────────────────────────────────
+
+    def _build_update_payload(
+        self,
+        dt: Any,
+        table: Any,
+        data: dict[str, Any],
+        user: User,
+    ) -> dict[str, Any]:
+        """Return the dict of fields to write into the DB (stripped + coerced)."""
+        table_columns = {c.name for c in table.columns}
+        update_data: dict[str, Any] = {}
+        for field in dt.fields:
+            if field.fieldtype in NON_PHYSICAL_FIELDS:
+                continue
+            if field.fieldname not in table_columns:
+                continue
+            if field.fieldname in data and field.fieldname not in PROTECTED_FIELDS:
+                update_data[field.fieldname] = _coerce_value(data[field.fieldname], field.fieldtype)
+        if "modified_at" in table.c:
+            update_data["modified_at"] = datetime.now(UTC)
+        if "modified_by" in table.c:
+            update_data["modified_by"] = user.email
+        return update_data
+
+    @staticmethod
+    def _propagate_formulas(
+        dt: Any, merged: dict[str, Any], update_data: dict[str, Any]
+    ) -> None:
+        """Compute formula fields on *merged* then copy changed values back into *update_data*."""
+        compute_formulas(dt, merged)
+        for field in dt.fields:
+            if (
+                field.formula
+                and field.fieldname in merged
+                and field.fieldname not in PROTECTED_FIELDS
+            ):
+                update_data[field.fieldname] = merged[field.fieldname]
+
+    async def _build_update_result(
+        self,
+        doctype_name: str,
+        real_id: str,
+        dt: Any,
+        merged: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Serialise, load child tables, and attach MultiLink fields for the response."""
+        result = dict(merged)
+        for k, v in result.items():
+            if isinstance(v, datetime):
+                result[k] = v.isoformat()
+        await _load_child_tables(self.session, dt, result)
+        ml_fields = _get_multi_link_fields(dt)
+        if ml_fields:
+            ml_data = await self._ml.get_all_for_doc(doctype_name, real_id)
+            for mlf in ml_fields:
+                result[mlf.fieldname] = ml_data.get(mlf.fieldname, [])
+        return result
+
+    async def _record_changes(
+        self,
+        doctype_name: str,
+        real_id: str,
+        dt: Any,
+        existing: dict[str, Any],
+        result: dict[str, Any],
+        user: User,
+    ) -> None:
+        """Create a version record and write an ActivityLog diff (both best-effort)."""
+        from grunt.core.document.versioning import version_service  # noqa: PLC0415
+
+        diff_changes = version_service._compute_diff(existing, result)
+
+        if dt.track_changes and diff_changes:
+            try:
+                await version_service.create_version(
+                    session=self.session,
+                    doctype=doctype_name,
+                    doc_id=real_id,
+                    old_doc=existing,
+                    new_doc=result,
+                    user=user.email,
+                )
+            except Exception:
+                logger.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
+
+        if diff_changes:
+            try:
+                from grunt.app import grunt as _g  # noqa: PLC0415
+
+                _log_tokens = _g.set_context(session=self.session, engine=self.engine, user=user)
+                try:
+                    await _g.new_doc(
+                        "ActivityLog",
+                        {
+                            "doctype": doctype_name,
+                            "doc_id": real_id,
+                            "action": "Update",
+                            "user": user.email,
+                            "details": {"changes": diff_changes},
+                        },
+                    )
+                finally:
+                    _g.reset_context(_log_tokens)
+            except Exception:  # noqa: BLE001
+                logger.warning(
+                    "activity_log.update_failed", doctype=doctype_name, doc_id=real_id
+                )
+
+    async def _fire_update_services(
+        self, doctype_name: str, dt: Any, result: dict[str, Any]
+    ) -> None:
+        """Update the search index and fire outgoing webhooks after a successful update."""
+        from grunt.core.search.service import search_index_service  # noqa: PLC0415
+        from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
+
+        await search_index_service.index_document(self.session, doctype_name, dt, result)
+        await webhook_service.fire(self.session, "after_update", doctype_name, result)
 
     # ── Update ────────────────────────────────────────────────────────────
 
@@ -249,38 +383,18 @@ class DocumentWriteMixin:
             return await _virtual_update(doctype_name, user, doc_id, data)
 
         table = compile_doctype_to_table(dt)
-
-        # Ensure document exists
         existing = await self.get_document(doctype_name, doc_id, user)
 
-        # Validate partial
         errors = _validate_data(dt, data, ignore_required=ignore_required)
         if errors:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail=errors,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors
             )
 
-        # Strip protected fields; only include fields that have a physical column
-        table_columns = {c.name for c in table.columns}
-        update_data: dict[str, Any] = {}
-        for field in dt.fields:
-            if field.fieldtype in NON_PHYSICAL_FIELDS:
-                continue
-            if field.fieldname not in table_columns:
-                continue
-            if field.fieldname in data and field.fieldname not in PROTECTED_FIELDS:
-                update_data[field.fieldname] = _coerce_value(data[field.fieldname], field.fieldtype)
-
-        if "modified_at" in table.c:
-            update_data["modified_at"] = datetime.now(UTC)
-        if "modified_by" in table.c:
-            update_data["modified_by"] = user.email
-
+        update_data = self._build_update_payload(dt, table, data, user)
         real_id = existing["id"]
         merged = {**existing, **update_data}
 
-        # Custom Controller Hooks
         _tokens = self._set_grunt_context(user)
         try:
             controller_cls = document_registry.get(doctype_name)
@@ -293,29 +407,14 @@ class DocumentWriteMixin:
                     status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
                 ) from e
 
-            # Compute formula fields on the merged document, then propagate
-            # changed formula values back into update_data for the DB write
-            compute_formulas(dt, merged)
-            for field in dt.fields:
-                if (
-                    field.formula
-                    and field.fieldname in merged
-                    and field.fieldname not in PROTECTED_FIELDS
-                ):
-                    update_data[field.fieldname] = merged[field.fieldname]
-
-            await fire(
-                "before_save", doctype=doctype_name, doc=merged, user=user, session=self.session
-            )
+            self._propagate_formulas(dt, merged, update_data)
 
             await self.session.execute(
                 table.update().where(table.c.id == real_id).values(**update_data)
             )
 
-            # Update child table fields
             await _save_child_tables(self.session, dt, real_id, data, user, datetime.now(UTC))
 
-            # Recompute aggregation fields after child rows are saved
             agg_values = await compute_aggregations(self.session, dt, real_id)
             if agg_values:
                 await self.session.execute(
@@ -324,84 +423,19 @@ class DocumentWriteMixin:
                 update_data.update(agg_values)
                 merged.update(agg_values)
 
-            # Update MultiLink fields
             for mlf in _get_multi_link_fields(dt):
                 if mlf.fieldname in data:
                     values = data[mlf.fieldname]
                     if isinstance(values, list):
                         await self._ml.set_values(
-                            doctype_name,
-                            real_id,
-                            mlf.fieldname,
-                            mlf.options or "",
-                            values,
+                            doctype_name, real_id, mlf.fieldname, mlf.options or "", values
                         )
 
             await self.session.flush()
-
             logger.info("document.updated", doctype=doctype_name, id=real_id)
 
-            # Build result
-            result = dict(merged)
-            for k, v in result.items():
-                if isinstance(v, datetime):
-                    result[k] = v.isoformat()
-            await _load_child_tables(self.session, dt, result)
-            ml_fields = _get_multi_link_fields(dt)
-            if ml_fields:
-                ml_data = await self._ml.get_all_for_doc(doctype_name, real_id)
-                for mlf in ml_fields:
-                    result[mlf.fieldname] = ml_data.get(mlf.fieldname, [])
-            from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
-
-            for hidden_field in permission_checker.hidden_fields(user, dt):
-                result.pop(hidden_field, None)
-
-            # Create version record and ActivityLog diff
-            from grunt.core.document.versioning import version_service  # noqa: PLC0415
-
-            diff_changes = version_service._compute_diff(existing, result)
-
-            if dt.track_changes and diff_changes:
-                try:
-                    await version_service.create_version(
-                        session=self.session,
-                        doctype=doctype_name,
-                        doc_id=real_id,
-                        old_doc=existing,
-                        new_doc=result,
-                        user=user.email,
-                    )
-                except Exception:
-                    logger.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
-
-            # Write ActivityLog entry with field-level diff (best-effort)
-            if diff_changes:
-                try:
-                    from grunt.app import grunt as _g  # noqa: PLC0415
-
-                    _log_tokens = _g.set_context(
-                        session=self.session, engine=self.engine, user=user
-                    )
-                    try:
-                        await _g.new_doc(
-                            "ActivityLog",
-                            {
-                                "doctype": doctype_name,
-                                "doc_id": real_id,
-                                "action": "Update",
-                                "user": user.email,
-                                "details": {"changes": diff_changes},
-                            },
-                        )
-                    finally:
-                        _g.reset_context(_log_tokens)
-                except Exception:  # noqa: BLE001
-                    logger.warning(
-                        "activity_log.update_failed",
-                        doctype=doctype_name,
-                        doc_id=real_id,
-                    )
+            result = await self._build_update_result(doctype_name, real_id, dt, merged)
+            await self._record_changes(doctype_name, real_id, dt, existing, result, user)
 
             doc.data = result
             try:
@@ -411,23 +445,7 @@ class DocumentWriteMixin:
                     status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
                 ) from e
 
-            await fire(
-                "after_update", doctype=doctype_name, doc=result, user=user, session=self.session
-            )
-            await fire(
-                "after_save", doctype=doctype_name, doc=result, user=user, session=self.session
-            )
-
-            # Update search index
-            from grunt.core.search.service import search_index_service  # noqa: PLC0415
-
-            await search_index_service.index_document(self.session, doctype_name, dt, result)
-
-            # Fire webhooks
-            from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
-
-            await webhook_service.fire(self.session, "after_update", doctype_name, result)
-
+            await self._fire_update_services(doctype_name, dt, result)
             return result
         finally:
             self._reset_grunt_context(_tokens)
@@ -469,10 +487,6 @@ class DocumentWriteMixin:
                     status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
                 ) from e
 
-            await fire(
-                "before_delete", doctype=doctype_name, doc=existing, user=user, session=self.session
-            )
-
             await self.session.execute(table.delete().where(table.c.id == real_id))
             await self._ml.delete_all_for_doc(doctype_name, real_id)
             await self.session.flush()
@@ -494,13 +508,6 @@ class DocumentWriteMixin:
                     status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
                 ) from e
 
-            await fire(
-                "after_delete",
-                doctype=doctype_name,
-                doc_id=real_id,
-                user=user,
-                session=self.session,
-            )
         finally:
             self._reset_grunt_context(_tokens)
 
@@ -543,14 +550,13 @@ class DocumentWriteMixin:
 
         table = compile_doctype_to_table(dt)
 
-        # ── 1. Fetch all documents — chunked to avoid large IN lists ─────
+        # ── 1. Fetch all candidate documents in one query ────────────────
         from sqlalchemy import select as sa_select  # noqa: PLC0415
 
         existing_rows: dict[str, dict] = {}
-        for chunk in _chunks(ids, _IN_CHUNK):
-            result = await self.session.execute(sa_select(table).where(table.c.id.in_(chunk)))
-            for row in result.fetchall():
-                existing_rows[str(row._mapping["id"])] = dict(row._mapping)
+        result = await self.session.execute(sa_select(table).where(table.c.id.in_(ids)))
+        for row in result.fetchall():
+            existing_rows[str(row._mapping["id"])] = dict(row._mapping)
 
         errors = []
         to_delete: list[dict] = []
@@ -586,9 +592,6 @@ class DocumentWriteMixin:
                 except GruntError as e:
                     errors.append(f"{doc['id']}: {e}")
                     continue
-                await fire(
-                    "before_delete", doctype=doctype_name, doc=doc, user=user, session=self.session
-                )
                 controllers.append((doc, ctrl))
                 await _report(i + 1)
         finally:
@@ -599,11 +602,10 @@ class DocumentWriteMixin:
 
         final_ids = [str(d["id"]) for d, _ in controllers]
 
-        # ── 3. Batch DELETE — chunked to avoid large IN lists ────────────
+        # ── 3. Batch DELETE — one SQL query for all selected ids ─────────
         _tokens = self._set_grunt_context(user)
         try:
-            for chunk in _chunks(final_ids, _IN_CHUNK):
-                await self.session.execute(table.delete().where(table.c.id.in_(chunk)))
+            await self.session.execute(table.delete().where(table.c.id.in_(final_ids)))
             await self._ml.delete_all_for_docs(doctype_name, final_ids)
             await self.session.flush()
             await search_index_service.remove_documents(self.session, doctype_name, final_ids)
@@ -616,13 +618,6 @@ class DocumentWriteMixin:
                 except GruntError as e:
                     errors.append(f"{real_id}: {e}")
                 await webhook_service.fire(self.session, "after_delete", doctype_name, doc)
-                await fire(
-                    "after_delete",
-                    doctype=doctype_name,
-                    doc_id=real_id,
-                    user=user,
-                    session=self.session,
-                )
         finally:
             self._reset_grunt_context(_tokens)
 

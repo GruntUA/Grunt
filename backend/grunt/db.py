@@ -342,3 +342,17 @@ def _apply_db_filters(stmt: Any, table: Any, filters: dict[str, Any]) -> Any:
     for clause in _build_clauses(table, filters):
         stmt = stmt.where(clause)
     return stmt
+
+
+# Backward-compatible module proxy:
+# Some code paths use `import grunt` and call `grunt.db.get_all(...)`.
+# In that case, `grunt.db` may resolve to this module object instead of the
+# API singleton from `grunt.api`. Forward unknown attributes to a shared
+# GruntDB instance so both styles remain valid.
+_db_proxy = GruntDB()
+
+
+def __getattr__(name: str):
+    if hasattr(_db_proxy, name):
+        return getattr(_db_proxy, name)
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

@@ -9,7 +9,6 @@ from taskiq import TaskiqMessage, TaskiqMiddleware, TaskiqResult
 
 from grunt.app import grunt
 from grunt.core.doctypes.user.user import SYSTEM_USER
-from grunt.core.document.service import DocumentService
 from grunt.core.site.manager import site_manager
 
 logger = structlog.get_logger()
@@ -29,22 +28,20 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             maker = site_manager.get_session_maker(site)
             eng = site_manager.get_engine(site)
             async with maker() as session:
-                service = DocumentService(session, eng)
+                async with grunt.context(session, eng, SYSTEM_USER):
+                    args_str = json.dumps({"args": message.args, "kwargs": message.kwargs})
+                    if len(args_str) > 5000:
+                        args_str = args_str[:5000] + "... [TRUNCATED]"
 
-                args_str = json.dumps({"args": message.args, "kwargs": message.kwargs})
-                if len(args_str) > 5000:
-                    args_str = args_str[:5000] + "... [TRUNCATED]"
-
-                result = await service.create_document(
-                    "BackgroundTaskLog",
-                    {
-                        "task_name": message.task_name,
-                        "status": "Started",
-                        "started_at": datetime.now(UTC).isoformat(),
-                        "arguments": args_str,
-                    },
-                    SYSTEM_USER,
-                )
+                    result = await grunt.new_doc(
+                        "BackgroundTaskLog",
+                        {
+                            "task_name": message.task_name,
+                            "status": "Started",
+                            "started_at": datetime.now(UTC).isoformat(),
+                            "arguments": args_str,
+                        },
+                    )
                 await session.commit()
                 self.log_ids[message.task_id] = result["id"]
 

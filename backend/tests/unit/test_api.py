@@ -6,6 +6,7 @@ Run with: pytest tests/unit/test_api.py -v
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from fastapi import HTTPException
 
 # Import API modules
 from grunt.api.context import (
@@ -247,6 +248,104 @@ class TestDatabase:
         with patch.object(GruntDB, "exists", new_callable=AsyncMock, return_value=None):
             exists = await db.exists("User", "NONEXISTENT")
             assert exists is None
+
+
+class TestGruntAppLayerPermissions:
+    """Test that permission checks are enforced at grunt.* layer."""
+
+    @pytest.mark.asyncio
+    async def test_get_value_denied_raises_403(self, setup_context):
+        """grunt.get_value must raise 403 when read permission is denied."""
+        dt = Mock()
+        dt.name = "Invoice"
+
+        with (
+            patch("grunt.app.doctype_registry.get", new_callable=AsyncMock, return_value=dt),
+            patch(
+                "grunt.core.permissions.rbac.permission_checker.require",
+                new_callable=AsyncMock,
+                side_effect=HTTPException(status_code=403, detail="forbidden"),
+            ),
+            patch.object(grunt.db, "get_value", new_callable=AsyncMock) as mock_db_get_value,
+        ):
+            with pytest.raises(HTTPException) as exc:
+                await grunt.get_value("Invoice", "INV-001", "status")
+
+            assert exc.value.status_code == 403
+            mock_db_get_value.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_exists_requires_permission_and_calls_db(self, setup_context):
+        """grunt.exists must enforce read permission and use low-level db method."""
+        dt = Mock()
+        dt.name = "Invoice"
+        dt.permissions = []
+
+        with (
+            patch("grunt.app.doctype_registry.get", new_callable=AsyncMock, return_value=dt),
+            patch(
+                "grunt.core.permissions.rbac.permission_checker.require",
+                new_callable=AsyncMock,
+            ) as mock_require,
+            patch.object(grunt.db, "exists", new_callable=AsyncMock, return_value="INV-001") as mock_db_exists,
+            patch("grunt.core.hooks.fire", new_callable=AsyncMock),
+        ):
+            result = await grunt.exists("Invoice", {"name": "INV-001"})
+
+            assert result == "INV-001"
+            assert mock_require.await_count == 1
+            mock_db_exists.assert_awaited_once_with("Invoice", {"name": "INV-001"})
+
+    @pytest.mark.asyncio
+    async def test_get_all_uses_db_get_all_with_hooks(self, setup_context):
+        """grunt.get_all should run hooks and fetch rows directly via grunt.db.get_all."""
+
+        class InvoiceModel:
+            doctype = "Invoice"
+
+            def __init__(self, doctype, data, user, session):
+                self.doctype = doctype
+                self.data = data
+                self.user = user
+                self.session = session
+
+        dt = Mock()
+        dt.name = "Invoice"
+        dt.permissions = []
+        rows = [{"id": "1", "name": "INV-001", "status": "Draft"}]
+
+        with (
+            patch("grunt.app.doctype_registry.get", new_callable=AsyncMock, return_value=dt),
+            patch(
+                "grunt.core.permissions.rbac.permission_checker.require",
+                new_callable=AsyncMock,
+            ) as mock_require,
+            patch.object(grunt.db, "get_all", new_callable=AsyncMock, return_value=rows) as mock_db_get_all,
+            patch("grunt.core.hooks.fire", new_callable=AsyncMock) as mock_fire,
+        ):
+            result = await grunt.get_all(
+                InvoiceModel,
+                filters={"status": "Draft"},
+                fields=["id", "name", "status"],
+                limit=10,
+                page=2,
+                order_by="modified_at",
+                order="desc",
+            )
+
+            assert len(result) == 1
+            assert result[0].doctype == "Invoice"
+            assert mock_require.await_count == 1
+            mock_db_get_all.assert_awaited_once_with(
+                "Invoice",
+                filters={"status": "Draft"},
+                fields=["id", "name", "status"],
+                limit=10,
+                offset=10,
+                order_by="modified_at",
+                order="desc",
+            )
+            assert mock_fire.await_count == 2
 
 
 # ─────────────────────────────────────────────────────────────────────────────

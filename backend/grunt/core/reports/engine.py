@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 from fastapi import HTTPException
-from sqlalchemy import func, select, text
+from sqlalchemy import func, text
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,12 +25,16 @@ class ReportEngine:
         user: User,
         session: AsyncSession,
     ) -> dict[str, Any]:
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import grunt  # noqa: PLC0415
 
-        table = compile_doctype_to_table(doctype_registry._doctypes["Report"])
-        result = await session.execute(select(table).where(table.c.report_name == report_name))
-        report = result.mappings().first()
+        async with grunt.context(session, None, user):
+            rows = await grunt.get_list(
+                "Report",
+                filters={"report_name": report_name},
+                fields=["report_name", "report_type", "query", "script", "columns", "doctype"],
+                limit=1,
+            )
+        report = rows[0] if rows else None
         if not report:
             raise HTTPException(status_code=404, detail=f"Звіт '{report_name}' не знайдено")
 

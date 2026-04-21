@@ -63,9 +63,10 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
 
     async def _get_doc(doctype: str, name: str) -> dict:
         from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
-        from grunt.core.document.service import DocumentService  # noqa: PLC0415
+        from grunt.app import grunt  # noqa: PLC0415
 
-        return await DocumentService(session, engine).get_document(doctype, name, SYSTEM_USER)
+        async with grunt.context(session, engine, SYSTEM_USER):
+            return await grunt.get_doc(doctype, name)
 
     async def _get_list(
         doctype: str,
@@ -74,28 +75,32 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
         limit: int = 20,
     ) -> list:
         from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
-        from grunt.core.document.service import DocumentService  # noqa: PLC0415
+        from grunt.app import grunt  # noqa: PLC0415
 
-        result = await DocumentService(session, engine).list_documents(
-            doctype, SYSTEM_USER, filters=filters or {}, fields=fields, per_page=limit
-        )
-        return result.get("data", [])
+        async with grunt.context(session, engine, SYSTEM_USER):
+            return await grunt.get_list(
+                doctype,
+                filters=filters or {},
+                fields=fields,
+                limit=limit,
+            )
 
     async def _save_doc(doctype: str, data: dict) -> dict:
         from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
-        from grunt.core.document.service import DocumentService  # noqa: PLC0415
+        from grunt.app import grunt  # noqa: PLC0415
 
-        svc = DocumentService(session, engine)
-        doc_id = data.get("id") or data.get("name")
-        if doc_id:
-            return await svc.update_document(doctype, doc_id, data, SYSTEM_USER)
-        return await svc.create_document(doctype, data, SYSTEM_USER)
+        async with grunt.context(session, engine, SYSTEM_USER):
+            doc_id = data.get("id") or data.get("name")
+            if doc_id:
+                return await grunt.save_doc(doctype, doc_id, data)
+            return await grunt.new_doc(doctype, data)
 
     async def _delete_doc(doctype: str, name: str) -> None:
         from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
-        from grunt.core.document.service import DocumentService  # noqa: PLC0415
+        from grunt.app import grunt  # noqa: PLC0415
 
-        await DocumentService(session, engine).delete_document(doctype, name, SYSTEM_USER)
+        async with grunt.context(session, engine, SYSTEM_USER):
+            await grunt.delete_doc(doctype, name)
 
     def get_doc(doctype: str, name: str) -> dict:
         """Get a document by DocType and name/id."""

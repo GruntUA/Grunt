@@ -1,7 +1,6 @@
 """Grunt developer API — the primary interface for building apps on the Grunt framework.
 
-This module provides a high-level, async-first API for app developers, similar to
-how `frappe` works in the Frappe framework. It is context-aware: the current
+This module provides a high-level, async-first API for app developers. It is context-aware: the current
 database session, engine, and user are automatically injected via ContextVars that
 are set by the framework at the start of each request / lifecycle hook call.
 """
@@ -155,7 +154,57 @@ class GruntApp:
             raise RuntimeError("grunt: no active user.")
         return u
 
+    @staticmethod
+    def _apply_hidden_fields_to_doc(
+        doc: dict[str, Any],
+        hidden_fields: frozenset[str],
+    ) -> dict[str, Any]:
+        if not hidden_fields:
+            return doc
+        for field in hidden_fields:
+            doc.pop(field, None)
+        return doc
+
+    @staticmethod
+    def _apply_hidden_fields_to_rows(
+        rows: list[dict[str, Any]],
+        hidden_fields: frozenset[str],
+    ) -> list[dict[str, Any]]:
+        if not hidden_fields:
+            return rows
+        for row in rows:
+            for field in hidden_fields:
+                row.pop(field, None)
+        return rows
+
     # ── Document CRUD ─────────────────────────────────────────────────────
+
+    async def _read_guard(self, doctype: str) -> tuple[Any, "User", frozenset[str]]:
+        """Shared pre-flight for every read operation at the high-level layer.
+
+        Returns ``(dt, user, hidden_fields)``.  Raises ``403`` when the user
+        has no *read* permission on the DocType.
+        """
+        from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+
+        dt = await doctype_registry.get(doctype)
+        user = self._require_user()
+        await permission_checker.require(user, dt, "read")
+        hidden_fields = permission_checker.hidden_fields(user, dt)
+        return dt, user, hidden_fields
+
+    async def _write_guard(self, doctype: str, action: str) -> tuple[Any, "User", "AsyncSession"]:
+        """Shared pre-flight for every write operation at the high-level layer.
+
+        Returns ``(dt, user, session)``.  Raises ``403`` when the user has no
+        permission for *action* (``"create"``, ``"write"``, or ``"delete"``).
+        """
+        from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+
+        dt = await doctype_registry.get(doctype)
+        user = self._require_user()
+        await permission_checker.require(user, dt, action)
+        return dt, user, self._require_session()
 
     def _svc(self):
         from grunt.core.document.service import DocumentService  # noqa: PLC0415
@@ -165,15 +214,24 @@ class GruntApp:
     @profile("grunt.get_doc")
     async def get_doc(self, doctype: str, id_or_name: str) -> dict[str, Any]:
         """Fetch a single document by id or name."""
-        return await self._svc().get_document(doctype, id_or_name, self._require_user())
+        from grunt.core.hooks import fire  # noqa: PLC0415
+
+        dt, user, hidden_fields = await self._read_guard(doctype)
+        await fire("before_read", doctype=doctype, user=user, doc_id=id_or_name)
+        doc = await self._svc().get_document(doctype, id_or_name, user)
+        doc = self._apply_hidden_fields_to_doc(doc, hidden_fields)
+        await fire("after_read", doctype=doctype, user=user, doc=doc)
+        return doc
 
     async def get_doc_instance(self, doctype: str, id_or_name: str) -> "Document":
         """Fetch a document and return it as an instantiated controller."""
         from grunt.core.document.registry import document_registry  # noqa: PLC0415
 
-        data = await self._svc().get_document(doctype, id_or_name, self._require_user())
+        dt, user, hidden_fields = await self._read_guard(doctype)
+        data = await self._svc().get_document(doctype, id_or_name, user)
+        data = self._apply_hidden_fields_to_doc(data, hidden_fields)
         controller_cls = document_registry.get(doctype)
-        return controller_cls(doctype, data, self._require_user(), self._require_session())
+        return controller_cls(doctype, data, user, self._require_session())
 
     async def new_doc(
         self,
@@ -183,9 +241,17 @@ class GruntApp:
         ignore_required: bool = False,
     ) -> dict[str, Any]:
         """Create a new document and return it."""
-        return await self._svc().create_document(
-            doctype, data, self._require_user(), ignore_required=ignore_required
+        from grunt.core.hooks import fire  # noqa: PLC0415
+
+        dt, user, session = await self._write_guard(doctype, "create")
+        await fire("before_save", doctype=doctype, doc=dict(data), user=user, session=session)
+        created = await self._svc().create_document(
+            doctype, data, user, ignore_required=ignore_required
         )
+        await fire("after_insert", doctype=doctype, doc=created, user=user, session=session)
+        await fire("after_save", doctype=doctype, doc=created, user=user, session=session)
+        _, _, hidden_fields = await self._read_guard(doctype)
+        return self._apply_hidden_fields_to_doc(created, hidden_fields)
 
     async def save_doc(
         self,
@@ -196,13 +262,80 @@ class GruntApp:
         ignore_required: bool = False,
     ) -> dict[str, Any]:
         """Update an existing document and return the updated version."""
-        return await self._svc().update_document(
-            doctype, id_or_name, data, self._require_user(), ignore_required=ignore_required
+        from grunt.core.hooks import fire  # noqa: PLC0415
+
+        dt, user, session = await self._write_guard(doctype, "write")
+        await fire(
+            "before_save",
+            doctype=doctype,
+            doc={"id": id_or_name, **data},
+            user=user,
+            session=session,
         )
+        updated = await self._svc().update_document(
+            doctype, id_or_name, data, user, ignore_required=ignore_required
+        )
+        await fire("after_update", doctype=doctype, doc=updated, user=user, session=session)
+        await fire("after_save", doctype=doctype, doc=updated, user=user, session=session)
+        _, _, hidden_fields = await self._read_guard(doctype)
+        return self._apply_hidden_fields_to_doc(updated, hidden_fields)
 
     async def delete_doc(self, doctype: str, id_or_name: str) -> None:
         """Delete a document."""
-        await self._svc().delete_document(doctype, id_or_name, self._require_user())
+        from grunt.core.hooks import fire  # noqa: PLC0415
+
+        dt, user, session = await self._write_guard(doctype, "delete")
+
+        snapshot: dict[str, Any] | None = None
+        try:
+            snapshot = await self._svc().get_document(doctype, id_or_name, user)
+        except Exception:  # noqa: BLE001
+            snapshot = {"id": id_or_name}
+
+        await fire("before_delete", doctype=doctype, doc=snapshot, user=user, session=session)
+        await self._svc().delete_document(doctype, id_or_name, user)
+        await fire(
+            "after_delete",
+            doctype=doctype,
+            doc_id=snapshot.get("id", id_or_name),
+            doc=snapshot,
+            user=user,
+            session=session,
+        )
+
+    async def bulk_delete_docs(
+        self,
+        doctype: str,
+        ids: list[str],
+        *,
+        progress_cb: Any | None = None,
+    ) -> tuple[int, list[str]]:
+        """Delete multiple documents through high-level API with hooks/permissions.
+
+        Returns ``(deleted_count, errors)`` where ``errors`` items are
+        formatted as ``"<doc_id>: <message>"``.
+        """
+        if not ids:
+            return 0, []
+
+        deleted = 0
+        errors: list[str] = []
+        total = len(ids)
+
+        async def _report(done: int) -> None:
+            if progress_cb is not None:
+                await progress_cb(done, total, len(errors))
+
+        for idx, doc_id in enumerate(ids, start=1):
+            try:
+                await self.delete_doc(doctype, doc_id)
+                deleted += 1
+            except Exception as e:  # noqa: BLE001
+                detail = getattr(e, "detail", str(e))
+                errors.append(f"{doc_id}: {detail}")
+            await _report(idx)
+
+        return deleted, errors
 
     @profile("grunt.get_list")
     async def get_list(
@@ -218,9 +351,24 @@ class GruntApp:
         search: str | None = None,
     ) -> list[dict[str, Any]]:
         """Fetch a list of documents as dictionaries."""
+        from grunt.core.hooks import fire  # noqa: PLC0415
+
+        dt, user, hidden_fields = await self._read_guard(doctype)
+        await fire(
+            "before_read",
+            doctype=doctype,
+            user=user,
+            filters=filters,
+            fields=fields,
+            limit=limit,
+            page=page,
+            order_by=order_by,
+            order=order,
+            search=search,
+        )
         result = await self._svc().list_documents(
             doctype,
-            self._require_user(),
+            user,
             page=page,
             per_page=limit,
             sort_by=order_by,
@@ -229,6 +377,8 @@ class GruntApp:
             search=search,
             fields=fields,
         )
+        self._apply_hidden_fields_to_rows(result, hidden_fields)
+        await fire("after_read", doctype=doctype, user=user, data=result)
         return result
 
     @profile("grunt.get_all")
@@ -250,24 +400,42 @@ class GruntApp:
 
             users = await grunt.get_all(User, filters={"active": True})
         """
+        from grunt.core.document.base import DocumentList  # noqa: PLC0415
+        from grunt.core.hooks import fire  # noqa: PLC0415
+
         # Resolve doctype name from the controller class (e.g. User.doctype)
         # or fallback to class name if not available.
         doctype: str = getattr(model_class, "doctype", model_class.__name__)
+        _, user, hidden_fields = await self._read_guard(doctype)
 
-        rows = await self.get_list(
+        offset = max(page - 1, 0) * limit
+        await fire(
+            "before_read",
+            doctype=doctype,
+            user=user,
+            filters=filters,
+            fields=fields,
+            limit=limit,
+            offset=offset,
+            order_by=order_by,
+            order=order,
+            search=search,
+            method="get_all",
+        )
+
+        rows = await self.db.get_all(
             doctype,
             filters=filters,
             fields=fields,
             limit=limit,
-            page=page,
+            offset=offset,
             order_by=order_by,
             order=order,
-            search=search,
         )
-        user = self._require_user()
-        session = self._require_session()
+        self._apply_hidden_fields_to_rows(rows, hidden_fields)
+        await fire("after_read", doctype=doctype, user=user, data=rows, method="get_all")
 
-        from grunt.core.document.base import DocumentList  # noqa: PLC0415
+        session = self._require_session()
 
         controllers = [
             model_class(doctype=doctype, data=row, user=user, session=session)  # type: ignore[return-value, call-arg]
@@ -378,13 +546,19 @@ class GruntApp:
             if await grunt.exists("Invoice", {"number": "INV-001", "status": "Unpaid"}):
                 ...
         """
-        from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+        from grunt.core.hooks import fire  # noqa: PLC0415
 
-        dt = await doctype_registry.get(doctype)
-        user = self._require_user()
-        if not await permission_checker.check(user, dt, "read"):
-            return None
-        return await self.db.exists(doctype, filters)
+        _, user, _ = await self._read_guard(doctype)
+        await fire("before_read", doctype=doctype, user=user, filters=filters, method="exists")
+        exists = await self.db.exists(doctype, filters)
+        await fire(
+            "after_read",
+            doctype=doctype,
+            user=user,
+            data={"exists": exists},
+            method="exists",
+        )
+        return exists
 
     async def get_value(
         self,
@@ -394,18 +568,30 @@ class GruntApp:
     ) -> Any:
         """Fetch a single field value from a document.
 
-        Checks read permission and returns ``None`` if the document does not
-        exist or the user has no access::
+        Checks read permission and raises ``403`` if the user has no access::
 
             status = await grunt.get_value("Invoice", invoice_id, "status")
         """
-        from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
+        from grunt.core.hooks import fire  # noqa: PLC0415
 
-        dt = await doctype_registry.get(doctype)
-        user = self._require_user()
-        if not await permission_checker.check(user, dt, "read"):
-            return None
-        return await self.db.get_value(doctype, id_or_name, fieldname)
+        _, user, _ = await self._read_guard(doctype)
+        await fire(
+            "before_read",
+            doctype=doctype,
+            user=user,
+            doc_id=id_or_name,
+            fieldname=fieldname,
+            method="get_value",
+        )
+        value = await self.db.get_value(doctype, id_or_name, fieldname)
+        await fire(
+            "after_read",
+            doctype=doctype,
+            user=user,
+            data={"fieldname": fieldname, "value": value},
+            method="get_value",
+        )
+        return value
 
     async def set_value(
         self,
@@ -426,10 +612,7 @@ class GruntApp:
             # multiple fields at once
             await grunt.set_value("Invoice", invoice_id, {"status": "Paid", "paid_at": now})
         """
-        from grunt.core.permissions.rbac import permission_checker  # noqa: PLC0415
-
-        dt = await doctype_registry.get(doctype)
-        await permission_checker.require(self._require_user(), dt, "write")
+        _, _, _ = await self._write_guard(doctype, "write")
         await self.db.set_value(doctype, id_or_name, fieldname, value)
 
     async def get_single(self, doctype: str, fieldname: str) -> Any:

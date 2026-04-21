@@ -9,7 +9,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,19 +24,25 @@ async def get_client_scripts(
 
     Returns a list of dicts with `name` and `script` keys.
     """
-    from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-    from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.app import GruntDB  # noqa: PLC0415
+    from grunt.core.context import _session_ctx  # noqa: PLC0415
 
-    table = compile_doctype_to_table(doctype_registry._doctypes["ClientScript"])
-    stmt = (
-        select(table)
-        .where(table.c.doctype == doctype)
-        .where(table.c.is_enabled.is_(True))
-        .order_by(table.c.name)
-    )
-    result = await session.execute(stmt)
-    rows = result.mappings().all()
-    scripts: list[dict[str, Any]] = [{"name": r["name"], "script": r["script"]} for r in rows]
+    token = _session_ctx.set(session)
+    try:
+        rows = await GruntDB().get_all(
+            "ClientScript",
+            filters={"doctype": doctype, "is_enabled": True},
+            fields=["name", "script"],
+            limit=10_000,
+            order_by="name",
+            order="asc",
+        )
+    finally:
+        _session_ctx.reset(token)
+
+    scripts: list[dict[str, Any]] = [
+        {"name": str(r.get("name") or ""), "script": str(r.get("script") or "")} for r in rows
+    ]
 
     # Append file-based client scripts (from app directories)
     try:

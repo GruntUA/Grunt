@@ -11,6 +11,7 @@ from fastapi import Body, Depends, HTTPException, Query, Request, status
 from grunt.api.router import GruntRouter
 from grunt.api.v1.docs.utils import get_doc_service
 from grunt.api.v1.schemas.response import ok
+from grunt.app import grunt as grunt_app
 from grunt.core.auth.dependencies import current_user
 from grunt.core.doctypes.user.user import User
 from grunt.core.document.service import DocumentService
@@ -60,10 +61,9 @@ async def create_document(
     doctype: str,
     body: dict[str, Any] = Body(...),
     user: User = Depends(current_user),
-    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Create a new document."""
-    doc = await svc.create_document(doctype, body, user)
+    doc = await grunt_app.new_doc(doctype, body)
     return ok(doc)
 
 
@@ -85,10 +85,9 @@ async def update_document(
     doc_id: str,
     body: dict[str, Any] = Body(...),
     user: User = Depends(current_user),
-    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Update an existing document."""
-    doc = await svc.update_document(doctype, doc_id, body, user)
+    doc = await grunt_app.save_doc(doctype, doc_id, body)
     return ok(doc)
 
 
@@ -97,10 +96,9 @@ async def delete_document(
     doctype: str,
     doc_id: str,
     user: User = Depends(current_user),
-    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Delete a document."""
-    await svc.delete_document(doctype, doc_id, user)
+    await grunt_app.delete_doc(doctype, doc_id)
     return ok(message="Документ видалено")
 
 
@@ -109,7 +107,6 @@ async def bulk_delete_documents(
     doctype: str,
     body: dict[str, Any] = Body(...),
     user: User = Depends(current_user),
-    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Delete multiple documents by IDs, or all documents matching filters.
 
@@ -127,13 +124,12 @@ async def bulk_delete_documents(
     if delete_all:
         raw_filters: dict[str, str] = body.get("filters", {}) or {}
         search: str | None = body.get("search") or None
-        result = await svc.list_documents(
+        result = await grunt_app.get_list(
             doctype,
-            user,
-            page=1,
-            per_page=100_000,
-            fields=["id"],
             filters=raw_filters if raw_filters else None,
+            fields=["id"],
+            limit=100_000,
+            page=1,
             search=search,
         )
         ids: list[str] = [str(row["id"]) for row in result]
@@ -146,7 +142,7 @@ async def bulk_delete_documents(
 
     total = len(ids)
     user_email = user.email
-    engine = svc.engine
+    engine = grunt_app._require_engine()
 
     async def _run() -> None:
         from grunt.core.db.session import async_session_factory  # noqa: PLC0415
@@ -161,8 +157,12 @@ async def bulk_delete_documents(
             )
 
         async with async_session_factory() as session:
-            bg_svc = DocumentService(session, engine)
-            deleted, errors = await bg_svc.bulk_delete(doctype, ids, user, progress_cb=_progress)
+            async with grunt_app.context(session, engine, user):
+                deleted, errors = await grunt_app.bulk_delete_docs(
+                    doctype,
+                    ids,
+                    progress_cb=_progress,
+                )
 
         await manager.send_to_user(
             user_email,
@@ -181,7 +181,6 @@ async def bulk_update_documents(
     doctype: str,
     body: dict[str, Any] = Body(...),
     user: User = Depends(current_user),
-    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Update a single field on multiple documents."""
     ids: list[str] = body.get("ids", [])
@@ -197,7 +196,7 @@ async def bulk_update_documents(
     errors: list[str] = []
     for doc_id in ids:
         try:
-            await svc.update_document(doctype, doc_id, {field: value}, user)
+            await grunt_app.save_doc(doctype, doc_id, {field: value})
             updated += 1
         except Exception as e:
             errors.append(f"{doc_id}: {e}")
