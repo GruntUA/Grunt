@@ -128,7 +128,7 @@ class DocTypeMapViewSchema(BaseModel):
 
 class StatusIndicatorSchema(BaseModel):
     value: str
-    color: str = "gray"
+    color: str = "secondary"
     icon: str | None = None
     label: str | None = None
 

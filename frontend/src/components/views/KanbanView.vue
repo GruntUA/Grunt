@@ -30,20 +30,28 @@ const statusIndicatorMap = computed(() => {
 })
 
 const colorToClass: Record<string, { border: string; bg: string; dot: string; text: string }> = {
+  default: { border: 'border-slate-200', bg: 'bg-slate-50/50', dot: 'bg-slate-400', text: 'text-slate-700' },
+  secondary: { border: 'border-slate-200', bg: 'bg-slate-50/50', dot: 'bg-slate-500', text: 'text-slate-700' },
+  success: { border: 'border-green-200', bg: 'bg-green-50/50', dot: 'bg-green-500', text: 'text-green-700' },
+  info: { border: 'border-blue-200', bg: 'bg-blue-50/50', dot: 'bg-blue-400', text: 'text-blue-700' },
+  warn: { border: 'border-amber-200', bg: 'bg-amber-50/50', dot: 'bg-amber-400', text: 'text-amber-700' },
+  danger: { border: 'border-red-200', bg: 'bg-red-50/50', dot: 'bg-red-500', text: 'text-red-700' },
+  contrast: { border: 'border-zinc-300 dark:border-zinc-600', bg: 'bg-zinc-100/70 dark:bg-zinc-800/60', dot: 'bg-zinc-900 dark:bg-zinc-100', text: 'text-zinc-800 dark:text-zinc-100' },
+  // Legacy colors for backward compatibility.
   gray: { border: 'border-slate-200', bg: 'bg-slate-50/50', dot: 'bg-slate-400', text: 'text-slate-700' },
   blue: { border: 'border-blue-200', bg: 'bg-blue-50/50', dot: 'bg-blue-400', text: 'text-blue-700' },
   green: { border: 'border-green-200', bg: 'bg-green-50/50', dot: 'bg-green-500', text: 'text-green-700' },
-  yellow: { border: 'border-yellow-200', bg: 'bg-yellow-50/50', dot: 'bg-yellow-400', text: 'text-yellow-700' },
-  orange: { border: 'border-orange-200', bg: 'bg-orange-50/50', dot: 'bg-orange-400', text: 'text-orange-700' },
+  yellow: { border: 'border-amber-200', bg: 'bg-amber-50/50', dot: 'bg-amber-400', text: 'text-amber-700' },
+  orange: { border: 'border-amber-200', bg: 'bg-amber-50/50', dot: 'bg-amber-400', text: 'text-amber-700' },
   red: { border: 'border-red-200', bg: 'bg-red-50/50', dot: 'bg-red-500', text: 'text-red-700' },
-  purple: { border: 'border-purple-200', bg: 'bg-purple-50/50', dot: 'bg-purple-400', text: 'text-purple-700' },
+  purple: { border: 'border-violet-200', bg: 'bg-violet-50/50', dot: 'bg-violet-400', text: 'text-violet-700' },
   pink: { border: 'border-pink-200', bg: 'bg-pink-50/50', dot: 'bg-pink-400', text: 'text-pink-700' },
 }
 
 function getColumnStyles(col: string) {
   const ind = statusIndicatorMap.value?.get(col)
-  if (!ind) return colorToClass.gray
-  return colorToClass[ind.color] || colorToClass.gray
+  if (!ind) return colorToClass.secondary
+  return colorToClass[ind.color] || colorToClass.secondary
 }
 
 function columnLabel(col: string) {

@@ -120,7 +120,7 @@ class StatusIndicator(BaseModel):
     """Maps a field value to a color and optional icon for status display."""
 
     value: str  # field value to match
-    color: str = "gray"  # gray, blue, green, yellow, orange, red, purple, pink
+    color: str = "secondary"  # default|secondary|success|info|warn|danger|contrast
     icon: str | None = None  # Lucide icon name, e.g. "circle-check"
     label: str | None = None  # override display label (defaults to value)
 

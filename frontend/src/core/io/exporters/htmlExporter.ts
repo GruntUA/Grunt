@@ -2,14 +2,22 @@ import type { Exporter, ExportContext } from './registry'
 
 // Maps indicator color names → inline CSS values (mirrors global Badge variant colors)
 const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  gray:   { bg: '#f9fafb', text: '#6b7280', border: '#d1d5db' },
-  blue:   { bg: '#eff6ff', text: '#1d4ed8', border: '#93c5fd' },
-  green:  { bg: '#f0fdf4', text: '#15803d', border: '#86efac' },
-  yellow: { bg: '#fefce8', text: '#a16207', border: '#fde047' },
-  orange: { bg: '#fff7ed', text: '#c2410c', border: '#fdba74' },
-  red:    { bg: '#fef2f2', text: '#b91c1c', border: '#fca5a5' },
-  purple: { bg: '#faf5ff', text: '#7c3aed', border: '#c4b5fd' },
-  pink:   { bg: '#fdf2f8', text: '#be185d', border: '#f9a8d4' },
+  default: { bg: '#f9fafb', text: '#6b7280', border: '#d1d5db' },
+  secondary: { bg: '#f9fafb', text: '#6b7280', border: '#d1d5db' },
+  success: { bg: '#f0fdf4', text: '#15803d', border: '#86efac' },
+  info: { bg: '#eff6ff', text: '#1d4ed8', border: '#93c5fd' },
+  warn: { bg: '#fffbeb', text: '#a16207', border: '#fcd34d' },
+  danger: { bg: '#fef2f2', text: '#b91c1c', border: '#fca5a5' },
+  contrast: { bg: '#111827', text: '#f9fafb', border: '#374151' },
+  // Legacy colors for backward compatibility.
+  gray: { bg: '#f9fafb', text: '#6b7280', border: '#d1d5db' },
+  blue: { bg: '#eff6ff', text: '#1d4ed8', border: '#93c5fd' },
+  green: { bg: '#f0fdf4', text: '#15803d', border: '#86efac' },
+  yellow: { bg: '#fffbeb', text: '#a16207', border: '#fcd34d' },
+  orange: { bg: '#fffbeb', text: '#a16207', border: '#fcd34d' },
+  red: { bg: '#fef2f2', text: '#b91c1c', border: '#fca5a5' },
+  purple: { bg: '#f5f3ff', text: '#6d28d9', border: '#c4b5fd' },
+  pink: { bg: '#fdf2f8', text: '#be185d', border: '#f9a8d4' },
 }
 
 function escapeHtml(s: string): string {
@@ -21,7 +29,7 @@ function escapeHtml(s: string): string {
 }
 
 function buildBadge(label: string, colorName: string): string {
-  const c = STATUS_COLORS[colorName] ?? STATUS_COLORS.gray
+  const c = STATUS_COLORS[colorName] ?? STATUS_COLORS.secondary
   return `<span style="display:inline-block;padding:2px 10px;border-radius:9999px;font-size:11px;font-weight:500;border:1px solid ${c.border};background:${c.bg};color:${c.text}">${escapeHtml(label)}</span>`
 }
 

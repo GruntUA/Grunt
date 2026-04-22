@@ -81,7 +81,17 @@ function getSelectOptions(fieldname: string): string[] {
   return f.options.split('\n').map(o => o.trim()).filter(Boolean)
 }
 
-const statusColors = ['gray', 'blue', 'green', 'yellow', 'orange', 'red', 'purple', 'pink'] as const
+const statusColors = ['default', 'secondary', 'success', 'info', 'warn', 'danger', 'contrast'] as const
+
+const statusColorDotClass: Record<string, string> = {
+  default: 'bg-slate-400',
+  secondary: 'bg-slate-500',
+  success: 'bg-green-500',
+  info: 'bg-blue-500',
+  warn: 'bg-amber-500',
+  danger: 'bg-red-500',
+  contrast: 'bg-zinc-900 dark:bg-zinc-100',
+}
 
 function toggleStatus(enabled: boolean) {
   if (enabled) {
@@ -123,7 +133,7 @@ function updateIndicator(index: number, patch: Partial<StatusIndicator>) {
 
 function addIndicator() {
   if (!builder.doctype?.status_config) return
-  const indicators = [...builder.doctype.status_config.indicators, { value: '', color: 'gray', icon: null, label: null }]
+  const indicators = [...builder.doctype.status_config.indicators, { value: '', color: 'secondary', icon: null, label: null }]
   builder.updateDocType({ status_config: { ...builder.doctype.status_config, indicators } })
 }
 
@@ -342,17 +352,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
             <!-- Color dot preview -->
             <div
               class="size-3.5 rounded-full shrink-0 ring-1 ring-black/10"
-              :style="{ backgroundColor: `var(--status-${ind.color}, ${ind.color})` }"
-              :class="{
-                'bg-gray-400': ind.color === 'gray',
-                'bg-blue-500': ind.color === 'blue',
-                'bg-green-500': ind.color === 'green',
-                'bg-yellow-500': ind.color === 'yellow',
-                'bg-orange-500': ind.color === 'orange',
-                'bg-red-500': ind.color === 'red',
-                'bg-purple-500': ind.color === 'purple',
-                'bg-pink-500': ind.color === 'pink',
-              }"
+              :class="statusColorDotClass[ind.color] || statusColorDotClass.secondary"
             />
 
             <!-- Value -->

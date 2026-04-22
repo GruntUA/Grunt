@@ -63,7 +63,8 @@ async function createShare() {
     })
     const json = await resp.json()
     if (json?.data?.token) {
-      shareLink.value = `${window.location.origin}/share/${json.data.token}`
+      const shareHref = router.resolve({ name: 'document-share', params: { token: json.data.token } }).href
+      shareLink.value = `${window.location.origin}${shareHref}`
     }
   } finally {
     shareLoading.value = false
@@ -95,6 +96,7 @@ const toggleMenu = (event: Event) => {
 
 const menuItems = computed(() => {
     const items: any[] = []
+  const workspaceName = props.workspace ?? 'grunt'
 
     if (props.id) {
         items.push({
@@ -125,7 +127,10 @@ const menuItems = computed(() => {
         items.push({
             label: t('Open in new tab'),
             icon: 'pi pi-external-link',
-            url: `/${props.workspace ?? ''}/${props.doctype}/${props.id}`,
+          url: router.resolve({
+            name: 'workspace-form',
+            params: { workspaceName, doctype: props.doctype, id: props.id }
+          }).href,
             target: '_blank'
         })
     }
@@ -133,7 +138,10 @@ const menuItems = computed(() => {
     items.push({
         label: t('Edit DocType'),
         icon: 'pi pi-cog',
-        url: `/${props.workspace ?? ''}/DocType/${props.doctype}`,
+        url: router.resolve({
+          name: 'doctype-builder',
+          params: { workspaceName, id: props.doctype }
+        }).href,
         target: '_blank'
     })
 
@@ -141,7 +149,11 @@ const menuItems = computed(() => {
         items.push({
             label: t('Configure print'),
             icon: 'pi pi-sliders-h',
-            url: `/${props.workspace ?? 'grunt'}/PrintFormat?filter[doctype]=${props.doctype}`,
+          url: router.resolve({
+            name: 'workspace-list',
+            params: { workspaceName, doctype: 'PrintFormat' },
+            query: { 'filter[doctype]': props.doctype }
+          }).href,
             target: '_blank'
         })
     }
@@ -282,7 +294,7 @@ const menuItems = computed(() => {
           </div>
           <p class="text-xs text-muted-foreground mb-4">
             {{ t('Link copied to clipboard when you click the copy button.') }}
-            <a :href="`/${props.workspace ?? 'grunt'}/DocumentShare`" target="_blank" class="text-primary hover:underline ml-1">{{ t('Manage shares') }} →</a>
+            <a :href="router.resolve({ name: 'workspace-list', params: { workspaceName: props.workspace ?? 'grunt', doctype: 'DocumentShare' } }).href" target="_blank" class="text-primary hover:underline ml-1">{{ t('Manage shares') }} →</a>
           </p>
           <div class="flex justify-end gap-2">
             <Button outlined size="small" @click="shareLink = null; shareExpires = ''">{{ t('New link') }}</Button>
