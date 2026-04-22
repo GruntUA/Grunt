@@ -172,7 +172,7 @@ def _run_package_update() -> None:
     if uv:
         console.print("  [dim]uv sync --upgrade...[/dim]")
         env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
-        result = subprocess.run([uv, "sync", "--upgrade"], cwd=str(app_dir), check=False, env=env)
+        result = subprocess.run([uv, "sync", "--upgrade", "--all-extras"], cwd=str(app_dir), check=False, env=env)
         if result.returncode != 0:
             console.print("  [yellow]⚠[/yellow]  uv sync --upgrade завершився з помилкою")
         else:

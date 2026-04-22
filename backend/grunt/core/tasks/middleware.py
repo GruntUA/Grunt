@@ -66,7 +66,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
                 async with grunt.context(session, eng, SYSTEM_USER):
                     update_data: dict[str, Any] = {
                         "status": "Error" if result.is_err else "Success",
-                        "finished_at": datetime.now(UTC).isoformat(),
+                        "finished_at": datetime.now(UTC),
                     }
                     if result.is_err:
                         update_data["error_message"] = str(result.error)
@@ -103,7 +103,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             will_retry, attempt, _, delay = self._retry_info(message)
 
             update_data: dict[str, Any] = {
-                "finished_at": datetime.now(UTC).isoformat(),
+                "finished_at": datetime.now(UTC),
                 "error_message": str(exception),
                 "retry_count": attempt,
             }
@@ -111,7 +111,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             if will_retry:
                 next_attempt = datetime.now(UTC) + timedelta(seconds=delay)
                 update_data["status"] = "Retrying"
-                update_data["next_attempt_at"] = next_attempt.isoformat()
+                update_data["next_attempt_at"] = next_attempt
                 logger.info(
                     "tasks.retry_scheduled",
                     task=message.task_name,
