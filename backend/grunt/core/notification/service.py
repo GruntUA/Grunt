@@ -47,15 +47,12 @@ class NotificationService:
         Returns:
             Number of notifications created.
         """
-        _tokens = grunt.set_context(session, None, None)
-        try:
+        async with grunt.context(session):
             rules = await grunt.db.get_all(
                 "NotificationRule",
                 filters={"doctype": doctype, "event": event, "is_enabled": True},
                 limit=100,
             )
-        finally:
-            grunt.reset_context(_tokens)
 
         count = 0
         for rule in rules:
@@ -121,8 +118,7 @@ class NotificationService:
         if unread_only:
             filters["is_read"] = False
 
-        _tokens = grunt.set_context(session, None, None)
-        try:
+        async with grunt.context(session):
             rows = await grunt.db.get_all(
                 "Notification",
                 filters=filters,
@@ -132,8 +128,6 @@ class NotificationService:
                 order_by="created_at",
                 order="desc",
             )
-        finally:
-            grunt.reset_context(_tokens)
 
         return [
             {
@@ -145,23 +139,17 @@ class NotificationService:
 
     async def mark_read(self, session: AsyncSession, notification_id: str) -> None:
         """Mark a single notification as read."""
-        _tokens = grunt.set_context(session, None, None)
-        try:
+        async with grunt.context(session):
             await grunt.db.set_value("Notification", notification_id, "is_read", True)
-        finally:
-            grunt.reset_context(_tokens)
 
     async def mark_all_read(self, session: AsyncSession, user: str) -> int:
         """Mark all notifications as read for a user. Returns count of affected."""
-        _tokens = grunt.set_context(session, None, None)
-        try:
+        async with grunt.context(session):
             return await grunt.bulk_update(
                 "Notification",
                 {"user": user, "is_read": False},
                 {"is_read": True},
             )
-        finally:
-            grunt.reset_context(_tokens)
 
     # ── Internal helpers ──────────────────────────────────────────────────
 
@@ -174,29 +162,27 @@ class NotificationService:
         subject: str,
         message: str,
     ) -> str:
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
-        table = compile_doctype_to_table(doctype_registry._doctypes["Notification"])
         notif_id = str(uuid.uuid4())
         now = datetime.now(UTC)
-        await session.execute(
-            table.insert().values(
-                id=notif_id,
-                name=notif_id,
-                owner=user,
-                created_at=now,
-                modified_at=now,
-                modified_by=user,
-                docstatus=0,
-                user=user,
-                doctype=doctype,
-                doc_id=doc_id,
-                subject=subject,
-                message=message,
-                is_read=False,
+        async with grunt.context(session):
+            await grunt.db.insert_one(
+                "Notification",
+                {
+                    "id": notif_id,
+                    "name": notif_id,
+                    "owner": user,
+                    "created_at": now,
+                    "modified_at": now,
+                    "modified_by": user,
+                    "docstatus": 0,
+                    "user": user,
+                    "doctype": doctype,
+                    "doc_id": doc_id,
+                    "subject": subject,
+                    "message": message,
+                    "is_read": False,
+                },
             )
-        )
         # Send Web Push (best-effort)
         try:
             from grunt.core.webpush.service import webpush_service  # noqa: PLC0415
@@ -267,8 +253,7 @@ class NotificationService:
             from grunt.app import grunt  # noqa: PLC0415
             from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
-            _tokens = grunt.set_context(session, None, SYSTEM_USER)
-            try:
+            async with grunt.system_context(session):
                 # Collect user_ids for all requested roles
                 user_ids: set[str] = set()
                 for role in role_names:
@@ -295,8 +280,6 @@ class NotificationService:
                     if user_rows and user_rows[0].get("email"):
                         emails.append(user_rows[0]["email"])
                 return emails
-            finally:
-                grunt.reset_context(_tokens)
         except Exception:  # noqa: BLE001
             logger.warning("notification.role_resolution_failed", roles=role_names)
             return []

@@ -26,23 +26,21 @@ async def create_session(
 
     session_key = uuid.uuid4().hex
 
-    _tokens = grunt.set_context(db_session, None, SYSTEM_USER)
     try:
-        await grunt.new_doc(
-            "UserSession",
-            {
-                "user": user_id,
-                "session_key": session_key,
-                "ip_address": ip_address or "",
-                "user_agent": (user_agent or "")[:512],
-                "last_active_at": datetime.now(UTC).isoformat(),
-                "is_active": True,
-            },
-        )
+        async with grunt.system_context(db_session):
+            await grunt.new_doc(
+                "UserSession",
+                {
+                    "user": user_id,
+                    "session_key": session_key,
+                    "ip_address": ip_address or "",
+                    "user_agent": (user_agent or "")[:512],
+                    "last_active_at": datetime.now(UTC).isoformat(),
+                    "is_active": True,
+                },
+            )
     except Exception:  # noqa: BLE001
         logger.debug("user_session.create_failed", user=user_id)
-    finally:
-        grunt.reset_context(_tokens)
 
     return session_key
 
@@ -56,21 +54,20 @@ async def touch_session(
     from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
     try:
-        _tokens = grunt.set_context(db_session, None, SYSTEM_USER)
-        sessions = await grunt.get_list(
-            "UserSession",
-            filters={"session_key": session_key, "is_active": True},
-            fields=["id"],
-            limit=1,
-        )
-        if sessions:
-            await grunt.db.set_value(
+        async with grunt.system_context(db_session):
+            sessions = await grunt.get_list(
                 "UserSession",
-                sessions[0]["id"],
-                "last_active_at",
-                datetime.now(UTC).isoformat(),
+                filters={"session_key": session_key, "is_active": True},
+                fields=["id"],
+                limit=1,
             )
-        grunt.reset_context(_tokens)
+            if sessions:
+                await grunt.db.set_value(
+                    "UserSession",
+                    sessions[0]["id"],
+                    "last_active_at",
+                    datetime.now(UTC).isoformat(),
+                )
     except Exception:  # noqa: BLE001
         pass
 
@@ -87,8 +84,7 @@ async def terminate_session(
     from grunt.app import grunt  # noqa: PLC0415
     from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
-    _tokens = grunt.set_context(db_session, None, SYSTEM_USER)
-    try:
+    async with grunt.system_context(db_session):
         sessions = await grunt.get_list(
             "UserSession",
             filters={"id": session_id},
@@ -103,8 +99,6 @@ async def terminate_session(
 
         await grunt.db.set_value("UserSession", session_id, "is_active", False)
         return True
-    finally:
-        grunt.reset_context(_tokens)
 
 
 async def terminate_all_user_sessions(
@@ -116,8 +110,7 @@ async def terminate_all_user_sessions(
     from grunt.app import grunt  # noqa: PLC0415
     from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
-    _tokens = grunt.set_context(db_session, None, SYSTEM_USER)
-    try:
+    async with grunt.system_context(db_session):
         sessions = await grunt.get_list(
             "UserSession",
             filters={"user": user_id, "is_active": True},
@@ -130,5 +123,3 @@ async def terminate_all_user_sessions(
             await grunt.db.set_value("UserSession", s["id"], "is_active", False)
             count += 1
         return count
-    finally:
-        grunt.reset_context(_tokens)

@@ -133,52 +133,48 @@ class EmailService:
         outgoing EmailAccount (the first account with enable_outgoing=True).
         """
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         # Find the default outgoing account id (best-effort — None if unconfigured)
         email_account_id: str | None = None
         try:
-            _tokens = grunt.set_context(session, None, None)
-            try:
+            async with grunt.context(session):
                 accounts = await grunt.db.get_all(
                     "EmailAccount",
                     filters={"enable_outgoing": True},
                     fields=["id"],
                     limit=1,
                 )
-            finally:
-                grunt.reset_context(_tokens)
             if accounts:
                 email_account_id = str(accounts[0]["id"])
         except Exception:  # noqa: BLE001
             pass
 
-        queue_dt = doctype_registry._doctypes.get("EmailQueue")
-        if not queue_dt:
-            logger.warning("email.queue_doctype_missing")
-            return ""
-
-        queue_table = compile_doctype_to_table(queue_dt)
         record_id = str(uuid.uuid4())
         now = datetime.now(UTC)
 
-        await session.execute(
-            queue_table.insert().values(
-                id=record_id,
-                name=record_id,
-                owner="system",
-                created_at=now,
-                modified_at=now,
-                modified_by="system",
-                docstatus=0,
-                recipient=to,
-                subject=subject,
-                content=html_body or body,
-                status="Pending",
-                email_account=email_account_id,
-            )
-        )
+        try:
+            async with grunt.context(session):
+                await grunt.db.insert_one(
+                    "EmailQueue",
+                    {
+                        "id": record_id,
+                        "name": record_id,
+                        "owner": "system",
+                        "created_at": now,
+                        "modified_at": now,
+                        "modified_by": "system",
+                        "docstatus": 0,
+                        "recipient": to,
+                        "subject": subject,
+                        "content": html_body or body,
+                        "status": "Pending",
+                        "email_account": email_account_id,
+                    },
+                )
+        except Exception:  # noqa: BLE001
+            logger.warning("email.queue_doctype_missing")
+            return ""
+
         return record_id
 
 

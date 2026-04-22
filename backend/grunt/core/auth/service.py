@@ -76,12 +76,9 @@ async def create_refresh_token(user_id: str, session: AsyncSession) -> str:
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
     expires_at = datetime.now(UTC) + timedelta(days=7)
 
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
-    try:
+    async with grunt.system_context(session):
         await grunt.db.set_value("User", user_id, "refresh_token", token)
         await grunt.db.set_value("User", user_id, "refresh_token_expires_at", expires_at)
-    finally:
-        grunt.reset_context(_tokens)
 
     return token
 
@@ -99,8 +96,7 @@ async def rotate_refresh_token(
 
     now = datetime.now(UTC)
 
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
-    try:
+    async with grunt.system_context(session):
         users = await grunt.get_list(
             "User",
             filters={"refresh_token": token},
@@ -123,8 +119,6 @@ async def rotate_refresh_token(
         await grunt.db.set_value("User", user_data["id"], "refresh_token_expires_at", None)
 
         user_id = user_data["id"]
-    finally:
-        grunt.reset_context(_tokens)
 
     user = await get_user_by_id(user_id, session)
     if user is None:
@@ -139,12 +133,9 @@ async def revoke_refresh_tokens_for_user(user_id: str, session: AsyncSession) ->
     from grunt.app import grunt
     from grunt.core.doctypes.user.user import SYSTEM_USER
 
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
-    try:
+    async with grunt.system_context(session):
         await grunt.db.set_value("User", user_id, "refresh_token", None)
         await grunt.db.set_value("User", user_id, "refresh_token_expires_at", None)
-    finally:
-        grunt.reset_context(_tokens)
 
 
 # ── Password reset tokens ─────────────────────────────────────────────────
@@ -161,12 +152,9 @@ async def create_password_reset_token(
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
     expires_at = datetime.now(UTC) + timedelta(hours=1)
 
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
-    try:
+    async with grunt.system_context(session):
         await grunt.db.set_value("User", user_id, "reset_token", token)
         await grunt.db.set_value("User", user_id, "reset_token_expires_at", expires_at)
-    finally:
-        grunt.reset_context(_tokens)
 
     return token
 
@@ -184,8 +172,7 @@ async def consume_password_reset_token(
     now = datetime.now(UTC)
 
     _engine = site_manager.get_engine(site_manager.get_active_site())
-    _tokens = grunt.set_context(session, _engine, SYSTEM_USER)
-    try:
+    async with grunt.system_context(session, _engine):
         users = await grunt.get_list(
             "User",
             filters={"reset_token": token},
@@ -214,7 +201,5 @@ async def consume_password_reset_token(
             "hashed_password",
             hash_password(new_password),
         )
-    finally:
-        grunt.reset_context(_tokens)
 
     return True

@@ -118,8 +118,7 @@ async def send_notification_digest(period: str = "daily") -> None:
         from grunt.app import grunt  # noqa: PLC0415
 
         sent = 0
-        _tokens = grunt.set_context(session, None, None)
-        try:
+        async with grunt.context(session):
             user_rows = await grunt.db.get_all(
                 "User",
                 filters={"is_active": True},
@@ -173,8 +172,6 @@ async def send_notification_digest(period: str = "daily") -> None:
                     sent += 1
                 except Exception:  # noqa: BLE001
                     logger.warning("digest.email_queue_failed", user=user_email)
-        finally:
-            grunt.reset_context(_tokens)
 
         await session.commit()
         logger.info("digest.sent", period=period, users=sent)

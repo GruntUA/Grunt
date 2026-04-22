@@ -37,6 +37,15 @@ export const OP_MAP: Record<string, string> = {
   '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte',
 }
 
+/** Convert ActiveFilter[] to raw backend filter object: { "fieldname__op": "value" } */
+export function filtersToRaw(filters: ActiveFilter[]): Record<string, string> {
+  const raw: Record<string, string> = {}
+  for (const f of filters) {
+    raw[`${f.fieldname}__${OP_MAP[f.op] ?? 'eq'}`] = f.value
+  }
+  return raw
+}
+
 export interface ListParams {
   page?: number
   per_page?: number

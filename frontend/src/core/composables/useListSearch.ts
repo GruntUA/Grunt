@@ -1,0 +1,23 @@
+import { ref, watch } from 'vue'
+import type { Ref } from 'vue'
+import { useDebounce } from '@/core/composables/useDebounce'
+
+export function useListSearch(page: Ref<number>, delayMs = 400) {
+  const inlineSearch = ref('')
+  const debouncedSearch = useDebounce(inlineSearch, delayMs)
+
+  watch(debouncedSearch, () => {
+    page.value = 1
+  })
+
+  function resetSearch() {
+    inlineSearch.value = ''
+    page.value = 1
+  }
+
+  return {
+    inlineSearch,
+    debouncedSearch,
+    resetSearch,
+  }
+}

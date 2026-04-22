@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import type { AttachmentResult } from '@/core/attachmentChannels/types'
 import { filesApi, type FileItem } from '@/core/api/files'
+import { useDebounce } from '@/core/composables/useDebounce'
 import { Input } from '@/components/ui/input'
 import { File as FileIcon, Loader2 } from '@lucide/vue'
 
@@ -9,13 +10,13 @@ const props = defineProps<{ imageOnly: boolean }>()
 const emit = defineEmits<{ select: [result: AttachmentResult] }>()
 
 const search = ref('')
+const debouncedSearch = useDebounce(search, 300)
 const items = ref<FileItem[]>([])
 const page = ref(1)
 const hasMore = ref(true)
 const isLoading = ref(false)
 const sentinel = ref<HTMLDivElement>()
 let observer: IntersectionObserver | null = null
-let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/avif']
 
@@ -41,10 +42,7 @@ function reset() {
   hasMore.value = true
 }
 
-watch(search, () => {
-  if (debounceTimer) clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => { reset(); loadMore() }, 300)
-})
+watch(debouncedSearch, () => { reset(); loadMore() })
 
 onMounted(() => {
   loadMore()
@@ -56,7 +54,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   observer?.disconnect()
-  if (debounceTimer) clearTimeout(debounceTimer)
 })
 
 function isImage(item: FileItem) {

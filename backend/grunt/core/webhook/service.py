@@ -40,15 +40,12 @@ class WebhookService:
             return
 
         try:
-            _tokens = grunt.set_context(session, None, None)
-            try:
+            async with grunt.context(session):
                 webhooks = await grunt.db.get_all(
                     "OutgoingWebhook",
                     filters={"doctype_name": doctype, "event": event, "is_enabled": True},
                     limit=100,
                 )
-            finally:
-                grunt.reset_context(_tokens)
         except Exception:  # noqa: BLE001
             return
 
@@ -97,11 +94,8 @@ class WebhookService:
         from grunt.app import grunt  # noqa: PLC0415
         from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
-        _tokens = grunt.set_context(session, None, SYSTEM_USER)
-        try:
+        async with grunt.system_context(session):
             wh_data = await grunt.get_doc("OutgoingWebhook", webhook_id)
-        finally:
-            grunt.reset_context(_tokens)
 
         if not wh_data:
             return {"success": False, "error": "Вебхук не знайдено"}
@@ -199,11 +193,8 @@ class WebhookService:
         # Write WebhookLog best-effort
         if doctype_registry._doctypes.get("WebhookLog"):
             try:
-                _tokens = grunt.set_context(session, None, SYSTEM_USER)
-                try:
+                async with grunt.system_context(session):
                     await grunt.new_doc("WebhookLog", log_entry)
-                finally:
-                    grunt.reset_context(_tokens)
             except Exception:  # noqa: BLE001
                 logger.warning("webhook_log.write_failed", webhook_id=webhook_id)
 

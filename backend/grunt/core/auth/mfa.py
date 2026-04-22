@@ -194,17 +194,17 @@ async def check_mfa_code(user: User, code: str, session: object | None = None) -
     yet active.  Omit when called from a GruntRouter endpoint where the context
     is already set by middleware.
     """
-    from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
+    import contextlib  # noqa: PLC0415
 
     if session is not None:
         from grunt.core.site.manager import site_manager  # noqa: PLC0415
 
         eng = site_manager.get_engine(site_manager.get_active_site())
-        _tokens = grunt_app.set_context(session, eng, SYSTEM_USER)
+        ctx = grunt_app.system_context(session, eng)
     else:
-        _tokens = None
+        ctx = contextlib.nullcontext()
 
-    try:
+    async with ctx:
         rows = await grunt_app.db.get_all(
             "User",
             filters={"id": user.id},
@@ -233,6 +233,3 @@ async def check_mfa_code(user: User, code: str, session: object | None = None) -
             return
 
         raise HTTPException(401, detail="Невірний код MFA")
-    finally:
-        if _tokens is not None:
-            grunt_app.reset_context(_tokens)

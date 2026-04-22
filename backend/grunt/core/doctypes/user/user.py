@@ -125,8 +125,7 @@ async def get_user_by_email(
 ) -> User | None:
     from grunt.app import grunt  # noqa: PLC0415
 
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
-    try:
+    async with grunt.system_context(session):
         from grunt.core.doctypes.user_role.user_role import get_user_roles  # noqa: PLC0415
 
         rows = await grunt.db.get_all("User", filters={"email": email}, limit=1)
@@ -135,15 +134,12 @@ async def get_user_by_email(
         row = rows[0]
         roles = await get_user_roles(row["id"], session)
         return User(doctype="User", data={**row, "roles": roles})
-    finally:
-        grunt.reset_context(_tokens)
 
 
 async def get_user_by_id(user_id: str, session: AsyncSession) -> User | None:
     from grunt.app import grunt  # noqa: PLC0415
 
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
-    try:
+    async with grunt.system_context(session):
         from grunt.core.doctypes.user_role.user_role import get_user_roles  # noqa: PLC0415
 
         rows = await grunt.db.get_all("User", filters={"id": user_id}, limit=1)
@@ -152,8 +148,6 @@ async def get_user_by_id(user_id: str, session: AsyncSession) -> User | None:
         row = rows[0]
         roles = await get_user_roles(row["id"], session)
         return User(doctype="User", data={**row, "roles": roles})
-    finally:
-        grunt.reset_context(_tokens)
 
 
 async def list_users(session: AsyncSession) -> list[User]:
@@ -161,8 +155,7 @@ async def list_users(session: AsyncSession) -> list[User]:
     from grunt.core.site.manager import site_manager  # noqa: PLC0415
 
     _engine = site_manager.get_engine(site_manager.get_active_site())
-    _tokens = grunt.set_context(session, _engine, SYSTEM_USER)
-    try:
+    async with grunt.system_context(session, _engine):
         from grunt.core.doctypes.user_role.user_role import get_user_roles  # noqa: PLC0415
 
         rows = await grunt.db.get_all("User", limit=10_000)
@@ -171,8 +164,6 @@ async def list_users(session: AsyncSession) -> list[User]:
             roles = await get_user_roles(row["id"], session)
             users.append(User(doctype="User", data={**row, "roles": roles}))
         return users
-    finally:
-        grunt.reset_context(_tokens)
 
 
 async def create_user(
@@ -186,9 +177,7 @@ async def create_user(
     from grunt.core.site.manager import site_manager  # noqa: PLC0415
 
     _engine = site_manager.get_engine(site_manager.get_active_site())
-    _tokens = grunt.set_context(session, _engine, SYSTEM_USER)
-
-    try:
+    async with grunt.system_context(session, _engine):
         user_count = await grunt.db.count("User")
         is_superadmin = user_count == 0
 
@@ -208,8 +197,6 @@ async def create_user(
         user = await get_user_by_email(email, session)
         assert user is not None
         return user
-    finally:
-        grunt.reset_context(_tokens)
 
 
 async def authenticate(email: str, password: str, session: AsyncSession) -> User | None:
@@ -234,8 +221,7 @@ async def authenticate(email: str, password: str, session: AsyncSession) -> User
         if locked_until_utc > now:
             raise ValueError("locked")
 
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
-    try:
+    async with grunt.system_context(session):
         if not verify_password(password, user.hashed_password):
             new_attempts = (user.login_attempts or 0) + 1
             updates: dict = {"login_attempts": new_attempts}
@@ -246,8 +232,6 @@ async def authenticate(email: str, password: str, session: AsyncSession) -> User
             return None
 
         await grunt.db.set_value("User", user.id, {"login_attempts": 0, "locked_until": None})
-    finally:
-        grunt.reset_context(_tokens)
 
     return user
 

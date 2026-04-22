@@ -63,11 +63,8 @@ class AssignmentLog(Document):
         }
 
         try:
-            _tokens = grunt_app.set_context(session, None, SYSTEM_USER)
-            try:
+            async with grunt_app.system_context(session):
                 await grunt_app.bulk_insert("AssignmentLog", [log_doc])
-            finally:
-                grunt_app.reset_context(_tokens)
         except Exception as exc:
             logger.exception("assignment.log_error", exc_info=exc)
 

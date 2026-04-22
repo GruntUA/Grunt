@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, update
 
 from grunt.core.context import _session_ctx
 from grunt.core.metadata.compiler import compile_doctype_to_table
@@ -67,7 +67,8 @@ class GruntDB:
         result = await self._session().execute(
             table.update().where(table.c.id == doc_id).values(values)
         )
-        if result.rowcount == 0:
+        row_count = result.rowcount  # type: ignore[attr-defined]
+        if row_count == 0:
             await self._session().execute(
                 table.update().where(table.c.name == doc_id).values(values)
             )
@@ -96,7 +97,7 @@ class GruntDB:
         or_filters: dict[str, Any] | None = None,
         fields: list[str] | None = None,
         pluck: str | None = None,
-        limit: int = 20,
+        limit: int | None = 20,
         offset: int = 0,
         order_by: str | None = None,
         order: str = "desc",
@@ -126,7 +127,8 @@ class GruntDB:
         if sort_col is not None:
             stmt = stmt.order_by(sort_col.asc() if order == "asc" else sort_col.desc())
 
-        stmt = stmt.limit(limit)
+        if limit is not None:
+            stmt = stmt.limit(limit)
         if offset:
             stmt = stmt.offset(offset)
         result = await self._session().execute(stmt)
@@ -202,6 +204,50 @@ class GruntDB:
         result = await self._session().execute(stmt)
         await self._session().flush()
         return result.rowcount  # type: ignore[attr-defined]
+
+    async def insert_one(self, doctype: str, values: dict[str, Any]) -> None:
+        """Insert a single row into a DocType table and flush the session.
+
+        This helper performs a direct table insert without lifecycle hooks.
+        Caller is responsible for providing required standard fields
+        (`id`, `name`, timestamps, owner, etc.) when needed.
+        """
+        dt = await doctype_registry.get(doctype)
+        table = compile_doctype_to_table(dt)
+        await self._session().execute(table.insert().values(**values))
+        await self._session().flush()
+
+    async def insert_many(self, doctype: str, rows: list[dict[str, Any]]) -> int:
+        """Insert multiple rows into a DocType table and flush the session."""
+        if not rows:
+            return 0
+
+        dt = await doctype_registry.get(doctype)
+        table = compile_doctype_to_table(dt)
+        result = await self._session().execute(table.insert(), rows)
+        await self._session().flush()
+        return result.rowcount or len(rows)  # type: ignore[attr-defined]
+
+    async def bulk_update(
+        self,
+        doctype: str,
+        filters: dict[str, Any],
+        values: dict[str, Any],
+    ) -> int:
+        """Update multiple rows matching exact-match filters and flush session."""
+        dt = await doctype_registry.get(doctype)
+        table = compile_doctype_to_table(dt)
+
+        update_values = {k: v for k, v in values.items() if k in table.c}
+        if not update_values:
+            return 0
+
+        stmt = update(table).values(**update_values)
+        stmt = _apply_db_filters(stmt, table, filters)
+
+        result = await self._session().execute(stmt)
+        await self._session().flush()
+        return result.rowcount or 0  # type: ignore[attr-defined]
 
     async def aggregate(
         self,

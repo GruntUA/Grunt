@@ -148,48 +148,94 @@ class DocumentWriteMixin:
         user: User,
         now: datetime,
     ) -> None:
-        """Run controller hooks, INSERT, save child tables, aggregations, MultiLink."""
+        """Run create pipeline: hooks -> insert -> children -> aggregates -> links -> hooks."""
         controller_cls = document_registry.get(doctype_name)
         doc = controller_cls(doctype_name, row, user, self.session)
+
+        await self._run_create_before_hooks(doc)
+        compute_formulas(dt, row)
+        await self._insert_row(table, row)
+        await self._save_children(dt, doc_id, data, user, now)
+        await self._apply_aggregations(dt, table, doc_id, row)
+        await self._sync_multi_links(dt, doctype_name, doc_id, data)
+
+        logger.info("document.created", doctype=doctype_name, id=doc_id)
+        await self._run_create_after_hooks(doc)
+
+    async def _run_create_before_hooks(self, doc: Any) -> None:
+        """Run validate/before_insert/before_save hooks and normalize hook errors."""
         try:
             await doc.validate()
             await doc.before_insert()
             await doc.before_save()
         except GruntError as e:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=str(e),
             ) from e
 
-        compute_formulas(dt, row)
-
+    async def _insert_row(self, table: Any, row: dict[str, Any]) -> None:
+        """Insert main document row and flush to materialize DB state before child writes."""
         await self.session.execute(table.insert().values(**row))
         await self.session.flush()
 
+    async def _save_children(
+        self,
+        dt: Any,
+        doc_id: str,
+        data: dict[str, Any],
+        user: User,
+        now: datetime,
+    ) -> None:
+        """Persist child-table rows for the created document."""
         await _save_child_tables(self.session, dt, doc_id, data, user, now)
 
+    async def _apply_aggregations(
+        self,
+        dt: Any,
+        table: Any,
+        doc_id: str,
+        row: dict[str, Any],
+    ) -> None:
+        """Compute and persist aggregate fields derived from child tables."""
         agg_values = await compute_aggregations(self.session, dt, doc_id)
-        if agg_values:
-            await self.session.execute(
-                table.update().where(table.c.id == doc_id).values(**agg_values)
-            )
-            row.update(agg_values)
-            await self.session.flush()
+        if not agg_values:
+            return
 
+        await self.session.execute(
+            table.update().where(table.c.id == doc_id).values(**agg_values)
+        )
+        row.update(agg_values)
+        await self.session.flush()
+
+    async def _sync_multi_links(
+        self,
+        dt: Any,
+        doctype_name: str,
+        doc_id: str,
+        data: dict[str, Any],
+    ) -> None:
+        """Persist values for MultiLink virtual relation fields."""
         for mlf in _get_multi_link_fields(dt):
             values = data.get(mlf.fieldname)
             if isinstance(values, list):
                 await self._ml.set_values(
-                    doctype_name, doc_id, mlf.fieldname, mlf.options or "", values
+                    doctype_name,
+                    doc_id,
+                    mlf.fieldname,
+                    mlf.options or "",
+                    values,
                 )
 
-        logger.info("document.created", doctype=doctype_name, id=doc_id)
-
+    async def _run_create_after_hooks(self, doc: Any) -> None:
+        """Run after_insert/after_save hooks and normalize hook errors."""
         try:
             await doc.after_insert()
             await doc.after_save()
         except GruntError as e:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=str(e),
             ) from e
 
     async def _fire_create_services(
@@ -338,8 +384,7 @@ class DocumentWriteMixin:
             try:
                 from grunt.app import grunt as _g  # noqa: PLC0415
 
-                _log_tokens = _g.set_context(session=self.session, engine=self.engine, user=user)
-                try:
+                async with _g.context(session=self.session, engine=self.engine, user=user):
                     await _g.new_doc(
                         "ActivityLog",
                         {
@@ -350,8 +395,6 @@ class DocumentWriteMixin:
                             "details": {"changes": diff_changes},
                         },
                     )
-                finally:
-                    _g.reset_context(_log_tokens)
             except Exception:  # noqa: BLE001
                 logger.warning(
                     "activity_log.update_failed", doctype=doctype_name, doc_id=real_id
@@ -366,6 +409,207 @@ class DocumentWriteMixin:
 
         await search_index_service.index_document(self.session, doctype_name, dt, result)
         await webhook_service.fire(self.session, "after_update", doctype_name, result)
+
+    async def _run_update_before_hooks(self, doc: Any) -> None:
+        """Run validate/before_save hooks and normalize hook errors."""
+        try:
+            await doc.validate()
+            await doc.before_save()
+        except GruntError as e:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=str(e),
+            ) from e
+
+    async def _persist_update_doc(
+        self,
+        dt: Any,
+        table: Any,
+        doctype_name: str,
+        real_id: str,
+        data: dict[str, Any],
+        row: dict[str, Any],
+        update_data: dict[str, Any],
+        user: User,
+    ) -> None:
+        """Apply update pipeline: formulas -> update row -> children -> aggregates -> MultiLink."""
+        self._propagate_formulas(dt, row, update_data)
+
+        await self.session.execute(
+            table.update().where(table.c.id == real_id).values(**update_data)
+        )
+
+        await _save_child_tables(self.session, dt, real_id, data, user, datetime.now(UTC))
+        await self._apply_aggregations(dt, table, real_id, row)
+
+        for mlf in _get_multi_link_fields(dt):
+            if mlf.fieldname not in data:
+                continue
+            values = data[mlf.fieldname]
+            if isinstance(values, list):
+                await self._ml.set_values(
+                    doctype_name,
+                    real_id,
+                    mlf.fieldname,
+                    mlf.options or "",
+                    values,
+                )
+
+        await self.session.flush()
+
+    async def _run_update_after_hooks(self, doc: Any) -> None:
+        """Run after_save hooks and normalize hook errors."""
+        try:
+            await doc.after_save()
+        except GruntError as e:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=str(e),
+            ) from e
+
+    async def _run_delete_before_hooks(self, doc: Any) -> None:
+        """Run before_delete hook and normalize hook errors."""
+        try:
+            await doc.before_delete()
+        except GruntError as e:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=str(e),
+            ) from e
+
+    async def _delete_row_and_links(
+        self,
+        table: Any,
+        doctype_name: str,
+        real_id: str,
+    ) -> None:
+        """Delete main row and MultiLink relations, then flush pending writes."""
+        await self.session.execute(table.delete().where(table.c.id == real_id))
+        await self._ml.delete_all_for_doc(doctype_name, real_id)
+        await self.session.flush()
+
+    async def _fire_delete_services(
+        self,
+        doctype_name: str,
+        real_id: str,
+        existing: dict[str, Any],
+    ) -> None:
+        """Update external services after delete: search index and outgoing webhooks."""
+        from grunt.core.search.service import search_index_service  # noqa: PLC0415
+        from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
+
+        await search_index_service.remove_document(self.session, doctype_name, real_id)
+        await webhook_service.fire(self.session, "after_delete", doctype_name, existing)
+
+    async def _run_delete_after_hooks(self, doc: Any) -> None:
+        """Run after_delete hook and normalize hook errors."""
+        try:
+            await doc.after_delete()
+        except GruntError as e:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=str(e),
+            ) from e
+
+    async def _bulk_delete_virtual(
+        self,
+        doctype_name: str,
+        ids: list[str],
+        user: User,
+    ) -> tuple[int, list[str]]:
+        """Delete virtual documents one-by-one and aggregate errors."""
+        deleted = 0
+        errors: list[str] = []
+        for doc_id in ids:
+            try:
+                await _virtual_delete(doctype_name, user, doc_id)
+                deleted += 1
+            except Exception as e:  # noqa: BLE001
+                errors.append(f"{doc_id}: {e}")
+        return deleted, errors
+
+    async def _collect_bulk_delete_candidates(
+        self,
+        dt: Any,
+        table: Any,
+        ids: list[str],
+    ) -> tuple[list[dict[str, Any]], list[str]]:
+        """Fetch and validate candidate docs for bulk delete."""
+        from sqlalchemy import select as sa_select  # noqa: PLC0415
+
+        existing_rows: dict[str, dict[str, Any]] = {}
+        result = await self.session.execute(sa_select(table).where(table.c.id.in_(ids)))
+        for row in result.fetchall():
+            existing_rows[str(row._mapping["id"])] = dict(row._mapping)
+
+        errors: list[str] = []
+        to_delete: list[dict[str, Any]] = []
+
+        for doc_id in ids:
+            doc = existing_rows.get(doc_id)
+            if doc is None:
+                errors.append(f"{doc_id}: not found")
+                continue
+            if dt.is_submittable and doc.get("docstatus") == 1:
+                errors.append(f"{doc_id}: submitted — cancel before delete")
+                continue
+            to_delete.append(doc)
+
+        return to_delete, errors
+
+    async def _run_bulk_before_delete_hooks(
+        self,
+        doctype_name: str,
+        docs: list[dict[str, Any]],
+        user: User,
+        errors: list[str],
+        report: Any | None = None,
+    ) -> list[tuple[dict[str, Any], Any]]:
+        """Run per-document before_delete hooks and keep only successful controllers."""
+        controllers: list[tuple[dict[str, Any], Any]] = []
+        for i, doc in enumerate(docs):
+            controller_cls = document_registry.get(doctype_name)
+            ctrl = controller_cls(doctype_name, doc, user, self.session)
+            try:
+                await ctrl.before_delete()
+            except GruntError as e:
+                errors.append(f"{doc['id']}: {e}")
+                continue
+            controllers.append((doc, ctrl))
+            if report is not None:
+                await report(i + 1)
+        return controllers
+
+    async def _run_bulk_delete_writes(
+        self,
+        table: Any,
+        doctype_name: str,
+        final_ids: list[str],
+    ) -> None:
+        """Execute batched DELETE + MultiLink cleanup + search index cleanup."""
+        from grunt.core.search.service import search_index_service  # noqa: PLC0415
+
+        await self.session.execute(table.delete().where(table.c.id.in_(final_ids)))
+        await self._ml.delete_all_for_docs(doctype_name, final_ids)
+        await self.session.flush()
+        await search_index_service.remove_documents(self.session, doctype_name, final_ids)
+
+    async def _run_bulk_after_delete_hooks(
+        self,
+        doctype_name: str,
+        controllers: list[tuple[dict[str, Any], Any]],
+        errors: list[str],
+    ) -> None:
+        """Run per-document after_delete hooks and fire outgoing webhooks."""
+        from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
+
+        for doc, ctrl in controllers:
+            real_id = str(doc["id"])
+            try:
+                await ctrl.after_delete()
+            except GruntError as e:
+                errors.append(f"{real_id}: {e}")
+            await webhook_service.fire(self.session, "after_delete", doctype_name, doc)
 
     # ── Update ────────────────────────────────────────────────────────────
 
@@ -399,51 +643,24 @@ class DocumentWriteMixin:
         try:
             controller_cls = document_registry.get(doctype_name)
             doc = controller_cls(doctype_name, merged, user, self.session)
-            try:
-                await doc.validate()
-                await doc.before_save()
-            except GruntError as e:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
-                ) from e
-
-            self._propagate_formulas(dt, merged, update_data)
-
-            await self.session.execute(
-                table.update().where(table.c.id == real_id).values(**update_data)
+            await self._run_update_before_hooks(doc)
+            await self._persist_update_doc(
+                dt,
+                table,
+                doctype_name,
+                real_id,
+                data,
+                merged,
+                update_data,
+                user,
             )
-
-            await _save_child_tables(self.session, dt, real_id, data, user, datetime.now(UTC))
-
-            agg_values = await compute_aggregations(self.session, dt, real_id)
-            if agg_values:
-                await self.session.execute(
-                    table.update().where(table.c.id == real_id).values(**agg_values)
-                )
-                update_data.update(agg_values)
-                merged.update(agg_values)
-
-            for mlf in _get_multi_link_fields(dt):
-                if mlf.fieldname in data:
-                    values = data[mlf.fieldname]
-                    if isinstance(values, list):
-                        await self._ml.set_values(
-                            doctype_name, real_id, mlf.fieldname, mlf.options or "", values
-                        )
-
-            await self.session.flush()
             logger.info("document.updated", doctype=doctype_name, id=real_id)
 
             result = await self._build_update_result(doctype_name, real_id, dt, merged)
             await self._record_changes(doctype_name, real_id, dt, existing, result, user)
 
             doc.data = result
-            try:
-                await doc.after_save()
-            except GruntError as e:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
-                ) from e
+            await self._run_update_after_hooks(doc)
 
             await self._fire_update_services(doctype_name, dt, result)
             return result
@@ -480,33 +697,10 @@ class DocumentWriteMixin:
         try:
             controller_cls = document_registry.get(doctype_name)
             doc = controller_cls(doctype_name, existing, user, self.session)
-            try:
-                await doc.before_delete()
-            except GruntError as e:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
-                ) from e
-
-            await self.session.execute(table.delete().where(table.c.id == real_id))
-            await self._ml.delete_all_for_doc(doctype_name, real_id)
-            await self.session.flush()
-
-            # Remove from search index
-            from grunt.core.search.service import search_index_service  # noqa: PLC0415
-
-            await search_index_service.remove_document(self.session, doctype_name, real_id)
-
-            # Fire webhooks
-            from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
-
-            await webhook_service.fire(self.session, "after_delete", doctype_name, existing)
-
-            try:
-                await doc.after_delete()
-            except GruntError as e:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
-                ) from e
+            await self._run_delete_before_hooks(doc)
+            await self._delete_row_and_links(table, doctype_name, real_id)
+            await self._fire_delete_services(doctype_name, real_id, existing)
+            await self._run_delete_after_hooks(doc)
 
         finally:
             self._reset_grunt_context(_tokens)
@@ -532,44 +726,13 @@ class DocumentWriteMixin:
         if not ids:
             return 0, []
 
-        from grunt.core.search.service import search_index_service  # noqa: PLC0415
-        from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
-
         dt = await doctype_registry.get(doctype_name)
 
         if dt.is_virtual:
-            deleted = 0
-            errors: list[str] = []
-            for doc_id in ids:
-                try:
-                    await _virtual_delete(doctype_name, user, doc_id)
-                    deleted += 1
-                except Exception as e:  # noqa: BLE001
-                    errors.append(f"{doc_id}: {e}")
-            return deleted, errors
+            return await self._bulk_delete_virtual(doctype_name, ids, user)
 
         table = compile_doctype_to_table(dt)
-
-        # ── 1. Fetch all candidate documents in one query ────────────────
-        from sqlalchemy import select as sa_select  # noqa: PLC0415
-
-        existing_rows: dict[str, dict] = {}
-        result = await self.session.execute(sa_select(table).where(table.c.id.in_(ids)))
-        for row in result.fetchall():
-            existing_rows[str(row._mapping["id"])] = dict(row._mapping)
-
-        errors = []
-        to_delete: list[dict] = []
-
-        for doc_id in ids:
-            doc = existing_rows.get(doc_id)
-            if doc is None:
-                errors.append(f"{doc_id}: not found")
-                continue
-            if dt.is_submittable and doc.get("docstatus") == 1:
-                errors.append(f"{doc_id}: submitted — cancel before delete")
-                continue
-            to_delete.append(doc)
+        to_delete, errors = await self._collect_bulk_delete_candidates(dt, table, ids)
 
         if not to_delete:
             return 0, errors
@@ -580,20 +743,15 @@ class DocumentWriteMixin:
             if progress_cb is not None:
                 await progress_cb(done, total, len(errors))
 
-        # ── 2. before_delete hooks (per-document) ─────────────────────────
         _tokens = self._set_grunt_context(user)
-        controllers = []
         try:
-            for i, doc in enumerate(to_delete):
-                controller_cls = document_registry.get(doctype_name)
-                ctrl = controller_cls(doctype_name, doc, user, self.session)
-                try:
-                    await ctrl.before_delete()
-                except GruntError as e:
-                    errors.append(f"{doc['id']}: {e}")
-                    continue
-                controllers.append((doc, ctrl))
-                await _report(i + 1)
+            controllers = await self._run_bulk_before_delete_hooks(
+                doctype_name,
+                to_delete,
+                user,
+                errors,
+                _report,
+            )
         finally:
             self._reset_grunt_context(_tokens)
 
@@ -602,22 +760,10 @@ class DocumentWriteMixin:
 
         final_ids = [str(d["id"]) for d, _ in controllers]
 
-        # ── 3. Batch DELETE — one SQL query for all selected ids ─────────
         _tokens = self._set_grunt_context(user)
         try:
-            await self.session.execute(table.delete().where(table.c.id.in_(final_ids)))
-            await self._ml.delete_all_for_docs(doctype_name, final_ids)
-            await self.session.flush()
-            await search_index_service.remove_documents(self.session, doctype_name, final_ids)
-
-            # ── 4. after_delete hooks (per-document) ──────────────────────
-            for doc, ctrl in controllers:
-                real_id = str(doc["id"])
-                try:
-                    await ctrl.after_delete()
-                except GruntError as e:
-                    errors.append(f"{real_id}: {e}")
-                await webhook_service.fire(self.session, "after_delete", doctype_name, doc)
+            await self._run_bulk_delete_writes(table, doctype_name, final_ids)
+            await self._run_bulk_after_delete_hooks(doctype_name, controllers, errors)
         finally:
             self._reset_grunt_context(_tokens)
 

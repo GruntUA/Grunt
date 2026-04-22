@@ -41,42 +41,40 @@ async def _audit_log(
     """Write an ActivityLog entry via grunt.new_doc and broadcast via WebSocket."""
     from grunt.app import grunt  # noqa: PLC0415
 
-    tokens = grunt.set_context(session=svc.session, engine=svc.engine, user=user)
     try:
-        doc = await grunt.new_doc(
-            "ActivityLog",
-            {
-                "doctype": doctype,
-                "doc_id": str(doc_id),
-                "action": action,
-                "user": user.email,
-                "details": changes,
-            },
-        )
-        try:
-            from grunt.api.v1.ws import manager  # noqa: PLC0415
-
-            created_at = doc.get("created_at")
-            await manager.broadcast(
-                "public:site",
-                "activity",
+        async with grunt.context(session=svc.session, engine=svc.engine, user=user):
+            doc = await grunt.new_doc(
+                "ActivityLog",
                 {
-                    "id": doc.get("id"),
                     "doctype": doctype,
                     "doc_id": str(doc_id),
                     "action": action,
                     "user": user.email,
-                    "created_at": created_at.isoformat()
-                    if isinstance(created_at, datetime)
-                    else str(created_at or ""),
+                    "details": changes,
                 },
             )
-        except Exception:  # noqa: BLE001
-            pass
+            try:
+                from grunt.api.v1.ws import manager  # noqa: PLC0415
+
+                created_at = doc.get("created_at")
+                await manager.broadcast(
+                    "public:site",
+                    "activity",
+                    {
+                        "id": doc.get("id"),
+                        "doctype": doctype,
+                        "doc_id": str(doc_id),
+                        "action": action,
+                        "user": user.email,
+                        "created_at": created_at.isoformat()
+                        if isinstance(created_at, datetime)
+                        else str(created_at or ""),
+                    },
+                )
+            except Exception:  # noqa: BLE001
+                pass
     except Exception:  # noqa: BLE001
         logger.warning("audit_log_failed", doctype=doctype, doc_id=doc_id, action=action)
-    finally:
-        grunt.reset_context(tokens)
 
 
 def _fmt(val: object) -> str:

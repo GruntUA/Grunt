@@ -6,14 +6,11 @@ Submissions create documents in the target DocType.
 
 from __future__ import annotations
 
-import uuid
-from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import structlog
 
 from grunt.app import grunt
-from grunt.core.metadata.compiler import compile_doctype_to_table
 from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.core.metadata.registry import doctype_registry
 
@@ -31,8 +28,7 @@ class WebFormService:
 
     async def get_form(self, session: AsyncSession, route: str) -> dict[str, Any] | None:
         """Load a published web form by its route slug."""
-        _tokens = grunt.set_context(session, None, None)
-        try:
+        async with grunt.context(session):
             rows = await grunt.db.get_all(
                 "WebForm",
                 filters={"route": route, "is_published": True},
@@ -43,8 +39,6 @@ class WebFormService:
                 ],
                 limit=1,
             )
-        finally:
-            grunt.reset_context(_tokens)
 
         return rows[0] if rows else None
 
@@ -108,7 +102,6 @@ class WebFormService:
             raise WebFormError("Для заповнення цієї форми потрібна авторизація")
 
         dt = await doctype_registry.get(form["doctype"])
-        table = compile_doctype_to_table(dt)
 
         # Check max submissions
         if form.get("max_submissions", 0) > 0:
@@ -120,24 +113,12 @@ class WebFormService:
         allowed_fields = {f["fieldname"] for f in form["fields"]} if form["fields"] else None
         validated = self._validate_submission(dt, data, allowed_fields)
 
-        # Build document row
-        now = datetime.now(UTC)
-        doc_id = str(uuid.uuid4())
         owner = user_email or GUEST_USER
 
-        row: dict[str, Any] = {
-            "id": doc_id,
-            "name": doc_id[:8],
-            "owner": owner,
-            "created_at": now,
-            "modified_at": now,
-            "modified_by": owner,
-            "docstatus": 0,
-        }
-        row.update(validated)
+        async with grunt.context(session, user=None):
+            doc = await grunt.new_doc(form["doctype"], {**validated, "owner": owner})
 
-        await session.execute(table.insert().values(**row))
-        await session.flush()
+        doc_id = doc["id"]
 
         logger.info(
             "webform.submitted",
@@ -149,7 +130,7 @@ class WebFormService:
 
         return {
             "id": doc_id,
-            "name": row["name"],
+            "name": doc.get("name", doc_id[:8]),
             "success_message": form["success_message"],
             "success_url": form.get("success_url"),
         }
@@ -186,11 +167,8 @@ class WebFormService:
 
     async def _count_submissions(self, session: AsyncSession, doctype: str) -> int:
         """Count existing documents in the target table."""
-        _tokens = grunt.set_context(session, None, None)
-        try:
+        async with grunt.context(session):
             return await grunt.db.count(doctype)
-        finally:
-            grunt.reset_context(_tokens)
 
 
 class WebFormError(Exception):

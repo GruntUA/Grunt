@@ -14,6 +14,7 @@ from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt as grunt_app
 from grunt.core.auth.dependencies import current_user
 from grunt.core.doctypes.user.user import User
+from grunt.core.document.bulk_ops import BulkDeleteTask
 from grunt.core.document.service import DocumentService
 
 router = GruntRouter()
@@ -117,8 +118,6 @@ async def bulk_delete_documents(
       { "ids": ["id1", "id2"] }          — delete by explicit IDs
       { "delete_all": true, "filters": {"status__eq": "Draft"} }  — delete all matching
     """
-    from grunt.api.v1.ws import manager  # noqa: PLC0415
-
     delete_all: bool = body.get("delete_all", False)
 
     if delete_all:
@@ -143,33 +142,15 @@ async def bulk_delete_documents(
     total = len(ids)
     user_email = user.email
     engine = grunt_app._require_engine()
+    task = BulkDeleteTask()
 
     async def _run() -> None:
-        from grunt.core.db.session import async_session_factory  # noqa: PLC0415
-
-        async def _progress(done: int, _total: int, error_count: int) -> None:
-            await manager.send_to_user(
-                user_email,
-                {
-                    "event": "bulk_delete_progress",
-                    "data": {"done": done, "total": _total, "errors": error_count},
-                },
-            )
-
-        async with async_session_factory() as session:
-            async with grunt_app.context(session, engine, user):
-                deleted, errors = await grunt_app.bulk_delete_docs(
-                    doctype,
-                    ids,
-                    progress_cb=_progress,
-                )
-
-        await manager.send_to_user(
-            user_email,
-            {
-                "event": "bulk_delete_done",
-                "data": {"deleted": deleted, "total": total, "errors": errors},
-            },
+        await task.run(
+            doctype,
+            ids,
+            user=user,
+            user_email=user_email,
+            engine=engine,
         )
 
     asyncio.create_task(_run(), context=contextvars.Context())

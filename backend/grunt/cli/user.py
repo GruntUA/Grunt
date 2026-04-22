@@ -79,14 +79,11 @@ def users_set_password(email, password, site):
                 click.echo(f"Помилка: користувача '{email}' не знайдено.", err=True)
                 raise SystemExit(1)
 
-            _tokens = grunt_app.set_context(session, eng, SYSTEM_USER)
-            try:
+            async with grunt_app.system_context(session, eng):
                 await grunt.db.set_value(
                     "User", user.id, {"hashed_password": hash_password(password)}
                 )
                 await session.commit()
-            finally:
-                grunt_app.reset_context(_tokens)
 
         click.echo(f"Пароль змінено для {email}.")
 

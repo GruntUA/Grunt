@@ -2,6 +2,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { notificationsApi } from '@/core/api/notifications'
 import { toast } from '@/core/composables/useToast'
 import { useDialog } from '@/core/composables/useDialog'
+import { WebSocketChannel } from '@/core/ws/WebSocketChannel'
 import type { GruntNotification, RealtimeEvent } from '@/types'
 
 // ── Shared state (singleton across components) ───────────────────────────
@@ -14,74 +15,37 @@ const loading = ref(false)
 type UserEventHandler = (data: Record<string, unknown>) => void
 const customEventHandlers = new Map<string, Set<UserEventHandler>>()
 
-let ws: WebSocket | null = null
-let reconnectTimer: ReturnType<typeof setTimeout> | null = null
 let refCount = 0
 
-function getWsUrl(): string {
-  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const token = localStorage.getItem('grunt_token')
-  return `${proto}//${location.host}/api/v1/ws/user${token ? `?token=${encodeURIComponent(token)}` : ''}`
-}
+const userChannel = new WebSocketChannel({
+  url: '/api/v1/ws/user',
+  includeAuthToken: true,
+  pingIntervalMs: 30_000,
+})
+
+userChannel.on('notification', (data) => {
+  handleRealtimeEvent({ event: 'notification', data: (data ?? {}) as RealtimeEvent['data'] })
+})
+userChannel.on('msgprint', (data) => {
+  handleRealtimeEvent({ event: 'msgprint', data: (data ?? {}) as RealtimeEvent['data'] })
+})
+userChannel.on('alert', (data) => {
+  handleRealtimeEvent({ event: 'alert', data: (data ?? {}) as RealtimeEvent['data'] })
+})
+userChannel.on('progress', (data) => {
+  handleRealtimeEvent({ event: 'progress', data: (data ?? {}) as RealtimeEvent['data'] })
+})
 
 function connectWs() {
-  if (ws && ws.readyState <= WebSocket.OPEN) return
-
-  const token = localStorage.getItem('grunt_token')
-  if (!token) return
-
-  ws = new WebSocket(getWsUrl())
-
-  ws.onopen = () => {
-    // Start keep-alive pings
-    pingInterval = setInterval(() => {
-      if (ws?.readyState === WebSocket.OPEN) {
-        ws.send('{"action":"ping"}')
-      }
-    }, 30_000)
+  if (!localStorage.getItem('grunt_token')) {
+    return
   }
 
-  ws.onclose = () => {
-    clearPing()
-    if (refCount > 0) {
-      reconnectTimer = setTimeout(connectWs, 3000)
-    }
-  }
-
-  ws.onerror = () => {
-    // onclose fires after onerror
-  }
-
-  ws.onmessage = (e) => {
-    try {
-      const msg: RealtimeEvent = JSON.parse(e.data)
-      handleRealtimeEvent(msg)
-    } catch {
-      // ignore malformed messages
-    }
-  }
-}
-
-let pingInterval: ReturnType<typeof setInterval> | null = null
-
-function clearPing() {
-  if (pingInterval) {
-    clearInterval(pingInterval)
-    pingInterval = null
-  }
+  userChannel.connect()
 }
 
 function disconnectWs() {
-  if (reconnectTimer) {
-    clearTimeout(reconnectTimer)
-    reconnectTimer = null
-  }
-  clearPing()
-  if (ws) {
-    ws.onclose = null
-    ws.close()
-    ws = null
-  }
+  userChannel.disconnect()
 }
 
 function handleRealtimeEvent(msg: RealtimeEvent) {

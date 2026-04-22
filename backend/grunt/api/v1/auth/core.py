@@ -231,11 +231,8 @@ async def update_me(
         values["theme"] = body.theme
 
     if values:
-        _tokens = grunt.set_context(session, None, SYSTEM_USER)
-        try:
+        async with grunt.system_context(session):
             await grunt.db.set_value("User", user.id, values)
-        finally:
-            grunt.reset_context(_tokens)
 
     updated = await get_user_by_id(user.id, session)
     if updated is None:
@@ -307,16 +304,13 @@ async def list_sessions(
     from grunt.app import grunt  # noqa: PLC0415
     from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
-    try:
+    async with grunt.system_context(session):
         sessions = await grunt.get_list(
             "UserSession",
             filters={"user": user.id, "is_active": True},
             fields=["id", "ip_address", "user_agent", "last_active_at", "creation"],
             order_by="last_active_at desc",
         )
-    finally:
-        grunt.reset_context(_tokens)
 
     return ok(sessions)
 

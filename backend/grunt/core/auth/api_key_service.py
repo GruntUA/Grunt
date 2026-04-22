@@ -78,16 +78,13 @@ async def authenticate_api_key(
     from grunt.app import grunt  # noqa: PLC0415
     from grunt.core.doctypes.user.user import SYSTEM_USER, get_user_by_id  # noqa: PLC0415
 
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
-    try:
+    async with grunt.system_context(session):
         rows = await grunt.db.get_all(
             "ApiKey",
             filters={"key_prefix": key_prefix, "is_active": True},
             fields=["id", "key_hash", "user_id", "expires_at", "allowed_ips"],
             limit=5,
         )
-    finally:
-        grunt.reset_context(_tokens)
 
     if not rows:
         return None
@@ -133,11 +130,8 @@ async def authenticate_api_key(
 
     # Update last_used_at (best-effort, don't fail the request)
     try:
-        _tokens = grunt.set_context(session, None, SYSTEM_USER)
-        try:
+        async with grunt.system_context(session):
             await grunt.db.set_value("ApiKey", matched_row["id"], "last_used_at", datetime.now(UTC))
-        finally:
-            grunt.reset_context(_tokens)
     except Exception:  # noqa: BLE001
         pass
 

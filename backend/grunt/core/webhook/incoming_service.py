@@ -201,11 +201,8 @@ class IncomingWebhookService:
         if not script_id:
             return "run_server_script", "server_script not configured"
 
-        _tokens = grunt.set_context(session, None, SYSTEM_USER)
-        try:
+        async with grunt.system_context(session):
             script_doc = await grunt.get_doc("ServerScript", script_id)
-        finally:
-            grunt.reset_context(_tokens)
 
         if not script_doc:
             return "run_server_script", f"ServerScript '{script_id}' not found"
@@ -256,11 +253,8 @@ class IncomingWebhookService:
             else:
                 doc_data[field] = _resolve_path(payload_dict, str(path))
 
-        _tokens = grunt.set_context(session, None, SYSTEM_USER)
-        try:
+        async with grunt.system_context(session):
             doc = await grunt.new_doc(target_doctype, doc_data)
-        finally:
-            grunt.reset_context(_tokens)
 
         return f"create_document:{target_doctype}:{doc.get('id', '')}", ""
 
@@ -280,15 +274,12 @@ class IncomingWebhookService:
         if not doctype_registry._doctypes.get("IncomingWebhook"):
             return None
 
-        _tokens = grunt.set_context(session, None, SYSTEM_USER)
-        try:
+        async with grunt.system_context(session):
             rows = await grunt.db.get_all(
                 "IncomingWebhook",
                 filters={"slug": slug},
                 limit=1,
             )
-        finally:
-            grunt.reset_context(_tokens)
 
         return rows[0] if rows else None
 
@@ -331,11 +322,8 @@ class IncomingWebhookService:
             log_data["webhook"] = webhook_id
 
         try:
-            _tokens = grunt.set_context(session, None, SYSTEM_USER)
-            try:
+            async with grunt.system_context(session):
                 await grunt.new_doc("IncomingWebhookLog", log_data)
-            finally:
-                grunt.reset_context(_tokens)
         except Exception:  # noqa: BLE001
             logger.warning("incoming_webhook_log.write_failed", slug=slug)
 

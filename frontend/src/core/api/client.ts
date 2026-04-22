@@ -7,6 +7,22 @@ const client: AxiosInstance = axios.create({
 })
 
 const MUTABLE_METHODS = new Set(['post', 'put', 'patch', 'delete'])
+const PUBLIC_AUTH_PATHS = new Set([
+  '/app/login',
+  '/app/register',
+  '/app/forgot-password',
+  '/app/reset-password',
+  '/app/mfa-verify',
+])
+
+async function redirectToRoute(name: 'login' | 'forbidden') {
+  const { default: router } = await import('@/router')
+  window.location.href = router.resolve({ name }).href
+}
+
+function isPublicAuthPath(pathname: string): boolean {
+  return PUBLIC_AUTH_PATHS.has(pathname)
+}
 
 // Request interceptor: attach Authorization header
 client.interceptors.request.use(async (config) => {
@@ -56,12 +72,14 @@ client.interceptors.response.use(
         return client(originalConfig)
       }
 
-      window.location.href = '/login'
+      if (!isPublicAuthPath(window.location.pathname)) {
+        await redirectToRoute('login')
+      }
     }
 
     // Redirect to 403 page on forbidden responses
     if (error.response?.status === 403) {
-      window.location.href = '/403'
+      await redirectToRoute('forbidden')
       return Promise.reject(error)
     }
 

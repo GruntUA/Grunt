@@ -22,8 +22,7 @@ async def get_user_roles(user_id: str, session: AsyncSession) -> list[str]:
     from grunt.app import grunt  # noqa: PLC0415
     from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
-    _tokens = grunt.set_context(session, None, SYSTEM_USER)
-    try:
+    async with grunt.system_context(session):
         rows = await grunt.db.get_all(
             "UserRole",
             filters={"user_id": user_id},
@@ -31,5 +30,3 @@ async def get_user_roles(user_id: str, session: AsyncSession) -> list[str]:
             limit=100,
         )
         return [r["role_name"] for r in rows]
-    finally:
-        grunt.reset_context(_tokens)

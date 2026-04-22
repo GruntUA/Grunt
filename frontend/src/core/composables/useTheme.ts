@@ -1,4 +1,4 @@
-import { ref, watchEffect } from 'vue'
+import { ref, watch } from 'vue'
 import { updatePrimaryPalette } from '@primevue/themes'
 import Aura from '@primevue/themes/aura'
 
@@ -25,14 +25,14 @@ export const PRIMARY_COLORS = [
 const stored = localStorage.getItem('grunt_primary_color')
 const _current = ref(stored || 'indigo')
 
-watchEffect(() => {
+watch(_current, (current) => {
     try {
-        const themePalette = (Aura as any).primitive?.[_current.value] || (Aura as any).primitive?.indigo
+        const themePalette = (Aura as any).primitive?.[current] || (Aura as any).primitive?.indigo
         if (themePalette) updatePrimaryPalette(themePalette)
     } catch (e) {
         console.warn('Failed to update primary color:', e)
     }
-})
+}, { immediate: true })
 
 export function useTheme() {
     function setPrimaryColor(name: string) {

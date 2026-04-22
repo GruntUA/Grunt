@@ -228,14 +228,14 @@ class TranslationService:
     async def load_overrides_from_db(self, session: Any) -> int:
         """Load translation overrides from Translation DocType table."""
         try:
-            from sqlalchemy import select  # noqa: PLC0415
+            from grunt.app import grunt  # noqa: PLC0415
 
-            from grunt.core.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-            from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
-
-            table = compile_doctype_to_table(doctype_registry._doctypes["Translation"])
-            result = await session.execute(select(table))
-            rows = result.mappings().all()
+            async with grunt.context(session):
+                rows = await grunt.db.get_all(
+                    "Translation",
+                    fields=["language", "source", "translated"],
+                    limit=None,
+                )
 
             count = 0
             for row in rows:

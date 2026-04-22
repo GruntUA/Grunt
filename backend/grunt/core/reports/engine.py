@@ -150,8 +150,7 @@ class ReportEngine:
         from grunt.core.scripting.safe_globals import build_safe_globals  # noqa: PLC0415
 
         engine = await _engine_factory()
-        tokens = grunt.set_context(session, engine, user)
-        try:
+        async with grunt.context(session, engine, user):
             extra_globals = build_safe_globals()
             extra_globals["filters"] = filters
 
@@ -159,19 +158,18 @@ class ReportEngine:
             _grunt_ns = extra_globals.get("grunt") or extra_globals.get("_grunt")
 
             start = time.time()
-            exec(compile(script_src, "<script_report>", "exec"), extra_globals)  # noqa: S102
+            try:
+                exec(compile(script_src, "<script_report>", "exec"), extra_globals)  # noqa: S102
+            except HTTPException:
+                raise
+            except Exception as exc:
+                logger.error("report.script_error", error=str(exc))
+                raise HTTPException(500, detail=f"Помилка виконання скрипту: {exc}") from exc
             elapsed = int((time.time() - start) * 1000)
 
             result: Any = extra_globals.get("result") or (
                 _grunt_ns.result if _grunt_ns and hasattr(_grunt_ns, "result") else None
             )
-        except HTTPException:
-            raise
-        except Exception as exc:
-            logger.error("report.script_error", error=str(exc))
-            raise HTTPException(500, detail=f"Помилка виконання скрипту: {exc}") from exc
-        finally:
-            grunt.reset_context(tokens)
 
         if not isinstance(result, dict) or "data" not in result:
             raise HTTPException(

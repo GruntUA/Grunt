@@ -1,105 +1,28 @@
-import { ref, onUnmounted, watch, type MaybeRefOrGetter, toValue } from 'vue'
+import { onUnmounted, watch, type MaybeRefOrGetter, toValue } from 'vue'
 
-type EventHandler = (data: unknown) => void
+import { WebSocketChannel } from '@/core/ws/WebSocketChannel'
 
 export function useWebSocket(urlSource: MaybeRefOrGetter<string | null>) {
-  const ws = ref<WebSocket | null>(null)
-  const lastMessage = ref<unknown>(null)
-  const isConnected = ref(false)
-  let reconnectTimer: ReturnType<typeof setTimeout> | null = null
-  let manualClose = false
-  const eventHandlers = new Map<string, EventHandler[]>()
-
-  function onEvent(eventName: string, handler: EventHandler) {
-    const handlers = eventHandlers.get(eventName) ?? []
-    handlers.push(handler)
-    eventHandlers.set(eventName, handlers)
-  }
-
-  function connect() {
-    const url = toValue(urlSource)
-    if (!url) {
-      if (ws.value) {
-        manualClose = true
-        ws.value.close()
-        ws.value = null
-        isConnected.value = false
-      }
-      return
-    }
-
-    if (ws.value?.readyState === WebSocket.OPEN || ws.value?.readyState === WebSocket.CONNECTING) return
-
-    manualClose = false
-    const token = localStorage.getItem('grunt_token')
-    const sep = url.includes('?') ? '&' : '?'
-    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const fullUrl = url.startsWith('ws')
-      ? url
-      : `${proto}//${location.host}${url}${token ? `${sep}token=${encodeURIComponent(token)}` : ''}`
-
-    console.log(`[WS] connecting to ${fullUrl}`)
-    ws.value = new WebSocket(fullUrl)
-
-    ws.value.onopen = () => {
-      console.log(`[WS] connected`)
-      isConnected.value = true
-    }
-
-    ws.value.onclose = (e) => {
-      console.log(`[WS] closed: code=${e.code} reason=${e.reason}`)
-      isConnected.value = false
-      if (!manualClose) {
-        if (reconnectTimer) clearTimeout(reconnectTimer)
-        reconnectTimer = setTimeout(connect, 3000)
-      }
-    }
-
-    ws.value.onerror = (e) => {
-      console.error('[WS] error', e)
-    }
-
-    ws.value.onmessage = (e) => {
-      try {
-        const parsed = JSON.parse(e.data)
-        lastMessage.value = parsed
-        // Dispatch to named event handlers
-        if (parsed?.event) {
-          const handlers = eventHandlers.get(parsed.event) ?? []
-          for (const h of handlers) h(parsed.data)
-        }
-      } catch {
-        lastMessage.value = e.data
-      }
-    }
-  }
+  const channel = new WebSocketChannel({
+    url: toValue(urlSource),
+    includeAuthToken: true,
+  })
 
   watch(() => toValue(urlSource), (newUrl) => {
+    channel.setUrl(newUrl)
     if (newUrl) {
-      if (ws.value) {
-        manualClose = true
-        ws.value.close()
-      }
-      connect()
-    } else if (ws.value) {
-      manualClose = true
-      ws.value.close()
-      ws.value = null
-      isConnected.value = false
+      channel.connect()
     }
   }, { immediate: true })
 
   onUnmounted(() => {
-    manualClose = true
-    if (reconnectTimer) clearTimeout(reconnectTimer)
-    ws.value?.close()
+    channel.destroy()
   })
 
   return {
-    lastMessage, isConnected, send: (data: unknown) => {
-      if (ws.value?.readyState === WebSocket.OPEN) {
-        ws.value.send(JSON.stringify(data))
-      }
-    }, onEvent
+    lastMessage: channel.lastMessage,
+    isConnected: channel.isConnected,
+    send: (data: unknown) => channel.send(data),
+    onEvent: (eventName: string, handler: (data: unknown) => void) => channel.on(eventName, handler),
   }
 }

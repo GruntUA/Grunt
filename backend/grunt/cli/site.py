@@ -244,12 +244,9 @@ def _run_migrate_for_site(site_name: str) -> None:
     """Run DB migration for a single site (reuses db migrate logic inline)."""
 
     async def _migrate() -> None:
-        from sqlalchemy import select  # noqa: PLC0415
-
         from grunt.core.db.base import Base  # noqa: PLC0415
-        from grunt.core.db.system_tables import GruntMetaDoctype  # noqa: PLC0415
         from grunt.core.metadata.compiler import SA_METADATA, sync_table  # noqa: PLC0415
-        from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
+        from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
         from grunt.core.site.manager import site_manager  # noqa: PLC0415
         from grunt.core.startup import (  # noqa: PLC0415
             apply_doctype_overrides,
@@ -274,14 +271,12 @@ def _run_migrate_for_site(site_name: str) -> None:
             await apply_doctype_overrides(session, eng)
             await populate_system_doctypes(session, eng)
 
-            result = await session.execute(select(GruntMetaDoctype))
-            for row in result.scalars().all():
+            for dt in await doctype_registry.list_all():
                 try:
-                    dt = DocType.model_validate(row.data)
                     if not dt.is_virtual:
                         await sync_table(dt, eng, session=session)
                 except Exception as e:  # noqa: BLE001
-                    click.echo(f"  [warn] {row.name}: {e}", err=True)
+                    click.echo(f"  [warn] {dt.name}: {e}", err=True)
 
             await session.commit()
 

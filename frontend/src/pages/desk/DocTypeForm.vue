@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick, provide } from 'vue'
-import { useRouter, onBeforeRouteLeave } from 'vue-router'
+import { ref, computed, onMounted, provide } from 'vue'
+import { useRouter } from 'vue-router'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useDocument } from '@/core/composables/useDocument'
 import { useToast } from '@/core/composables/useToast'
@@ -8,9 +8,11 @@ import { useWebSocket } from '@/core/composables/useWebSocket'
 import { usePresence } from '@/core/composables/usePresence'
 import { useClientScripts } from '@/core/composables/useClientScripts'
 import { useLinkCreate } from '@/core/composables/useLinkCreate'
-import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
+import { useFormValidation } from '@/core/composables/useFormValidation'
+import { useFormDocWatcher } from '@/core/composables/useFormDocWatcher'
+import { useFormNavigation } from '@/core/composables/useFormNavigation'
+import { useFormSave } from '@/core/composables/useFormSave'
 import { useQueryClient } from '@tanstack/vue-query'
-import { clearScriptCache } from '@/core/scripting/executor'
 import { useShortcut } from '@/core/composables/useShortcuts'
 import type { DocType, GruntDocument } from '@/types'
 import { Spinner } from '@/components/ui/spinner'
@@ -34,13 +36,15 @@ const { startLinkCreate, finishLinkCreate, restoreLinkDraft } = useLinkCreate()
 
 const dt = ref<DocType | null>(null)
 const { document, form, isLoading, isDirty, isSaving, save, remove } = useDocument(props.doctype, props.id)
-const validationErrors = ref<Record<string, string>>({})
 
 // ── WebSocket real-time + presence ───────────────────────────────────────────
 const wsUrl = computed(() => props.id ? `/api/v1/ws/${props.doctype}/${props.id}` : null)
 const docWs = useWebSocket(wsUrl)
 const { lastMessage } = docWs
 const { users: presenceUsers, fieldLocks, focusField, blurField } = usePresence(docWs)
+
+// ── Validation + Save ─────────────────────────────────────────────────────────
+let saveHandler: (() => Promise<void>) | null = null
 
 // ── Client scripts ──────────────────────────────────────────────────────────
 const {
@@ -59,8 +63,24 @@ const {
       await queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })
     }
   },
-  save: () => handleSave(),
+  save: async () => {
+    if (saveHandler) {
+      await saveHandler()
+    }
+  },
   lastMessage,
+})
+
+const {
+  validationErrors,
+  focusFirstError,
+  validateForm,
+} = useFormValidation({
+  dt,
+  form,
+  displayOverrides,
+  reqdOverrides,
+  toast,
 })
 
 // Provide link filter resolver to all descendant Link fields via inject
@@ -70,9 +90,6 @@ provide('docContext', { doctype: props.doctype, getId: () => props.id })
 
 // ── Modals & Navigation ──────────────────────────────────────────────────────
 const showDeleteModal = ref(false)
-const showLeaveModal = ref(false)
-let pendingRoute: string | null = null
-let allowLeave = false
 
 // Quick Entry Dialog state
 const quickEntryDt = ref<import('@/types').DocType | null>(null)
@@ -80,6 +97,50 @@ const quickEntryPreset = ref<Record<string, unknown>>({})
 const quickEntryFieldname = ref('')
 
 const showVersions = ref(false)
+
+const {
+  showLeaveModal,
+  markAllowLeave,
+  confirmLeave,
+  cancelLeave,
+  goToList,
+} = useFormNavigation({
+  router,
+  doctype: props.doctype,
+  workspace: props.workspace,
+  isDirty,
+  showDeleteModal,
+  showVersions,
+  isQuickEntryOpen: computed(() => Boolean(quickEntryDt.value)),
+})
+
+useFormDocWatcher({
+  lastMessage,
+  isDirty,
+  doctype: props.doctype,
+  id: props.id,
+  queryClient,
+  toast,
+})
+
+const { handleSave } = useFormSave({
+  doctype: props.doctype,
+  id: props.id,
+  workspace: props.workspace,
+  dt,
+  validationErrors,
+  save,
+  runScriptEvent,
+  validateForm,
+  focusFirstError,
+  markAllowLeave,
+  finishLinkCreate,
+  queryClient,
+  dtStore,
+  router,
+  toast,
+})
+saveHandler = handleSave
 
 function onVersionRestored() {
   queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })
@@ -124,17 +185,6 @@ useShortcut(['ctrl+p', 'cmd+p'], () => {
   window.print()
 }, { preventDefault: true, allowInInput: true })
 
-useShortcut(['escape'], () => {
-  if (showDeleteModal.value || showLeaveModal.value || quickEntryDt.value) return
-  if (showVersions.value) {
-    showVersions.value = false
-    return
-  }
-  allowLeave = true // to prevent annoying popup if not needed, actually we shouldn't bypass 'isDirty' check if we don't want to lose data.
-  // Better: just trigger router push and let guard handle it.
-  router.push(props.workspace ? `/${props.workspace}/${props.doctype}` : `/${props.doctype}`)
-}, { preventDefault: true, allowInInput: false })
-
 /**
  * Handle "create-new" event from a Link field inside the form.
  * If the linked DocType has quick_entry enabled — show the Quick Entry dialog.
@@ -148,7 +198,7 @@ async function handleCreateNew(linkedDoctype: string, preset: string, fieldname:
     quickEntryFieldname.value = fieldname
     return
   }
-  allowLeave = true
+  markAllowLeave()
   startLinkCreate(
     linkedDoctype,
     preset,
@@ -168,18 +218,6 @@ function onQuickEntrySaved(docname: string) {
   quickEntryDt.value = null
 }
 
-watch(lastMessage, (msg) => {
-  if (!msg || typeof msg !== 'object') return
-  const m = msg as Record<string, unknown>
-  if (m.event === 'doc_change' && !isDirty.value) {
-    const data = m.data as Record<string, unknown> | undefined
-    if (data?.source !== 'import') {
-      toast.info('Документ оновлено іншим користувачем')
-    }
-    queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })
-  }
-})
-
 const docTitle = computed(() => {
   if (!document.value) return props.id ? '...' : `Новий ${dt.value?.label ?? ''}`
   const tf = dt.value?.title_field
@@ -187,125 +225,16 @@ const docTitle = computed(() => {
   return (tf && document.value[tf] as string) || document.value.name || `Новий ${dt.value?.label ?? ''}`
 })
 
-function focusFirstError() {
-  nextTick(() => {
-    const firstKey = Object.keys(validationErrors.value)[0]
-    if (!firstKey) return
-    const el = window.document.querySelector(`[data-fieldname="${firstKey}"]`) as HTMLElement | null
-    if (!el) return
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    el.classList.add('field-shake')
-    el.addEventListener('animationend', () => el.classList.remove('field-shake'), { once: true })
-    const input = el.querySelector('input, textarea, select, [contenteditable]') as HTMLElement | null
-    input?.focus()
-  })
-}
-
-async function handleSave() {
-  validationErrors.value = {}
-
-  // Client-side required field validation
-  if (dt.value) {
-    const NON_PHYSICAL = getNonPhysicalTypeSet()
-    for (const field of dt.value.fields) {
-      if (NON_PHYSICAL.has(field.fieldtype)) continue
-      if (displayOverrides[field.fieldname] === false) continue
-
-      const isReqd = reqdOverrides[field.fieldname] !== undefined
-        ? reqdOverrides[field.fieldname]
-        : field.required
-      if (!isReqd) continue
-
-      const value = form.value[field.fieldname]
-      if (value === null || value === undefined || value === '') {
-        validationErrors.value[field.fieldname] = `Поле "${field.label}" є обов'язковим`
-      }
-    }
-    if (Object.keys(validationErrors.value).length > 0) {
-      toast.error("Заповніть обов'язкові поля")
-      focusFirstError()
-      return
-    }
-  }
-
-  const valid = await runScriptEvent('validate')
-  if (valid === false) return
-
-  await runScriptEvent('before_save')
-
-  try {
-    const saved = await save()
-    toast.success('Збережено')
-    runScriptEvent('after_save')
-    dtStore.invalidate(props.doctype)
-    queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
-    if (props.doctype === 'ClientScript') clearScriptCache()
-
-    if (!props.id) {
-      allowLeave = true
-      const savedDoc = saved as { id: string; name: string }
-      // If this save is part of a link-create flow — navigate back to origin
-      if (finishLinkCreate(props.doctype, savedDoc.name)) return
-      const path = props.workspace
-        ? `/${props.workspace}/${props.doctype}/${savedDoc.id}`
-        : `/${props.doctype}/${savedDoc.id}`
-      router.replace(path)
-    }
-  } catch (err: unknown) {
-    const e = err as { response?: { status?: number; data?: { detail?: string | string[] } } }
-    if (e?.response?.status === 422) {
-      const detail = e.response.data?.detail
-      const details: string[] = Array.isArray(detail) ? detail : (typeof detail === 'string' ? [detail] : [])
-      let hasFieldErrors = false
-      details.forEach((d: string) => {
-        const match = d.match(/^([a-z_]+):\s*(.+)$/)
-        if (match) {
-          validationErrors.value[match[1]] = match[2]
-          hasFieldErrors = true
-        }
-      })
-      if (hasFieldErrors) {
-        toast.error('Перевірте правильність заповнення')
-        focusFirstError()
-      } else if (details.length > 0) {
-        toast.error(details.join('; '))
-      } else {
-        toast.error('Помилка валідації')
-      }
-    } else {
-      toast.error('Помилка збереження')
-    }
-  }
-}
-
 async function handleDelete() {
   try {
     await remove()
     toast.success('Видалено')
     queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
-    router.push(props.workspace ? `/${props.workspace}/${props.doctype}` : `/${props.doctype}`)
+    goToList()
   } catch {
     toast.error('Помилка видалення')
   }
   showDeleteModal.value = false
-}
-
-onBeforeRouteLeave((to) => {
-  if (allowLeave || !isDirty.value) {
-    return true
-  }
-  showLeaveModal.value = true
-  pendingRoute = to.fullPath
-  return false
-})
-
-function confirmLeave() {
-  showLeaveModal.value = false
-  allowLeave = true
-  if (pendingRoute) {
-    router.push(pendingRoute)
-    pendingRoute = null
-  }
 }
 
 function handleDuplicate() {
@@ -317,7 +246,7 @@ function handleDuplicate() {
     ? `/${props.workspace}/${props.doctype}/new`
     : `/${props.doctype}/new`
 
-  allowLeave = true
+  markAllowLeave()
   router.push({ path, state: { duplicate: JSON.stringify(clone) } })
 }
 
@@ -389,7 +318,7 @@ function onFormUpdate(updated: Record<string, unknown>) {
 
     <!-- Modals -->
     <FormModals v-model:show-delete="showDeleteModal" v-model:show-leave="showLeaveModal" @confirm-delete="handleDelete"
-      @confirm-leave="confirmLeave" @cancel-leave="showLeaveModal = false" />
+      @confirm-leave="confirmLeave" @cancel-leave="cancelLeave" />
   </div>
 </template>
 
