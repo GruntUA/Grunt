@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { DocType, DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
+import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 import GruntDataTable from '@/components/views/GruntDataTable.vue'
 import ListPagination from '@/components/views/ListPagination.vue'
 import BulkActionBar from '@/components/views/BulkActionBar.vue'
@@ -32,9 +33,9 @@ const props = defineProps<{
   sortOrder: 'asc' | 'desc'
   activeIndex: number
   groupBy: string | null
-  groupedRows: any[] | null
+  groupedRows: GroupedRowBucket[] | null
   collapsedGroups: Set<string>
-  groupByField: any
+  groupByField: DocField | null
   selection: SelectionState
 }>()
 

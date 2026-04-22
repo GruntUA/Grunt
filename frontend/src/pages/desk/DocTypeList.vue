@@ -7,6 +7,7 @@ import { useListFieldDetection } from '@/core/composables/useListFieldDetection'
 import { useDocTypeListData } from '@/core/composables/useDocTypeListData'
 import { useListRouteSync } from '@/core/composables/useListRouteSync'
 import { useListActions } from '@/core/composables/useListActions'
+import { useListMapMenuItems } from '@/core/composables/useListMapMenuItems'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useAuthStore } from '@/stores/auth'
 import { useWebSocket } from '@/core/composables/useWebSocket'
@@ -19,7 +20,7 @@ import { useListClientScripts } from '@/core/composables/useListClientScripts'
 import { useBulkDeleteProgress } from '@/core/composables/useBulkDeleteProgress'
 import { useListSelection } from '@/core/composables/useListSelection'
 import { useDevMode } from '@/core/composables/useDevMode'
-import type { DocType, ScriptMenuItem } from '@/types'
+import type { DocType } from '@/types'
 import { useDialog } from '@/core/composables/useDialog'
 import { useToast } from '@/core/composables/useToast'
 
@@ -119,6 +120,8 @@ const { bulkUpdate, inlineUpdate } = useListActions({
   queryClient,
 })
 
+const { registerMapMenuItems, unregisterMapMenuItems } = useListMapMenuItems(listMenuItems)
+
 // ── Grouping Logic ───────────────────────────────────────────────────────────
 const {
   collapsedGroups,
@@ -171,17 +174,6 @@ const { deleteProgress, bulkDelete } = useBulkDeleteProgress({
 function navigateToDoc(row: Record<string, unknown>) {
   const ws = props.workspace ?? 'grunt'
   props.doctype === 'DocType' ? router.push(`/${ws}/DocType/${row.name}`) : router.push(`/${ws}/${props.doctype}/${row.id}`)
-}
-
-function registerMapMenuItems(items: ScriptMenuItem[]) {
-  listMenuItems.value.push(...items)
-}
-
-function unregisterMapMenuItems(items: ScriptMenuItem[]) {
-  for (const item of items) {
-    const idx = listMenuItems.value.indexOf(item)
-    if (idx !== -1) listMenuItems.value.splice(idx, 1)
-  }
 }
 
 // ── Keyboard Shortcuts ───────────────────────────────────────────────────────

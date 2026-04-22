@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DocType, DocField, ScriptMenuItem, ActiveFilter } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
+import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 import KanbanView from '@/components/views/KanbanView.vue'
 import CalendarView from '@/components/views/CalendarView.vue'
 import TreeView from '@/components/views/TreeView.vue'
@@ -39,16 +40,16 @@ const props = defineProps<{
   selection: SelectionState
   imageField?: string
   groupBy: string | null
-  groupedRows: any[] | null
+  groupedRows: GroupedRowBucket[] | null
   collapsedGroups: Set<string>
-  groupByField: any
+  groupByField: DocField | null
   sortKey: string | null
   sortOrder: 'asc' | 'desc'
   activeIndex: number
-  kanbanColumnField: any | null
-  calendarDateField: any | null
-  treeParentField: any | null
-  geoField: any | null
+  kanbanColumnField: DocField | null
+  calendarDateField: DocField | null
+  treeParentField: DocField | null
+  geoField: DocField | null
   search?: string
   activeFilters: ActiveFilter[]
 }>()

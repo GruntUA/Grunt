@@ -3,6 +3,11 @@ import type { ComputedRef, Ref } from 'vue'
 import type { DocField, DocType } from '@/types'
 import { getFieldDef } from '@/core/fieldRegistry'
 
+export interface GroupedRowBucket {
+  key: string
+  items: Record<string, unknown>[]
+}
+
 interface UseGroupingParams {
   dt: Ref<DocType | null>
   rows: ComputedRef<Record<string, unknown>[]>
@@ -33,7 +38,7 @@ export function useGrouping({ dt, rows, groupBy, page }: UseGroupingParams) {
       if (!groups.has(key)) groups.set(key, [])
       groups.get(key)!.push(row)
     }
-    return [...groups.entries()].map(([key, items]) => ({ key, items }))
+    return [...groups.entries()].map(([key, items]) => ({ key, items } satisfies GroupedRowBucket))
   })
 
   const groupByField = computed(
