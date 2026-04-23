@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import copy
 from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
 import structlog
 
+from grunt.config import settings
 from grunt.core.db.profiler import profile
 from grunt.core.metadata.registry import doctype_registry
 
@@ -19,6 +21,32 @@ logger = structlog.get_logger()
 
 class DocumentAPI:
     """Document CRUD, list/query, and workflow helpers for GruntApp."""
+
+    def _is_read_only_doctype(self, dt: Any) -> bool:
+        """True when DocType has explicit permissions and none allow mutation."""
+        perms = getattr(dt, "permissions", []) or []
+        if not perms:
+            return False
+        for p in perms:
+            if any(
+                (
+                    bool(getattr(p, "write", False)),
+                    bool(getattr(p, "create", False)),
+                    bool(getattr(p, "delete", False)),
+                    bool(getattr(p, "submit", False)),
+                )
+            ):
+                return False
+        return True
+
+    async def _invalidate_list_cache(self, doctype: str) -> None:
+        cache = getattr(self, "query_cache", None)
+        if cache is None:
+            return
+        try:
+            await cache.invalidate_doctype(doctype)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("query_cache.invalidate_failed", doctype=doctype, error=str(exc))
 
     def _svc(self):
         from grunt.core.document.service import DocumentService  # noqa: PLC0415
@@ -70,6 +98,7 @@ class DocumentAPI:
         )
         await fire("after_insert", doctype=doctype, doc=created, user=user, session=session)
         await fire("after_save", doctype=doctype, doc=created, user=user, session=session)
+        await self._invalidate_list_cache(doctype)
         _, _, hidden_fields = await self._read_guard(doctype)
         return self._apply_hidden_fields_to_doc(created, hidden_fields)
 
@@ -97,6 +126,7 @@ class DocumentAPI:
         )
         await fire("after_update", doctype=doctype, doc=updated, user=user, session=session)
         await fire("after_save", doctype=doctype, doc=updated, user=user, session=session)
+        await self._invalidate_list_cache(doctype)
         _, _, hidden_fields = await self._read_guard(doctype)
         return self._apply_hidden_fields_to_doc(updated, hidden_fields)
 
@@ -122,6 +152,7 @@ class DocumentAPI:
             user=user,
             session=session,
         )
+        await self._invalidate_list_cache(doctype)
 
     async def bulk_delete_docs(
         self,
@@ -186,17 +217,44 @@ class DocumentAPI:
             order=order,
             search=search,
         )
-        result = await self._svc().list_documents(
-            doctype,
-            user,
-            page=page,
-            per_page=limit,
-            sort_by=order_by,
-            sort_order=order,
-            filters=filters,
-            search=search,
-            fields=fields,
-        )
+
+        result = None
+        cache_eligible = settings.query_cache_enabled and self._is_read_only_doctype(dt)
+        cache = getattr(self, "query_cache", None)
+        cache_key: str | None = None
+
+        if cache_eligible and cache is not None:
+            cache_key = cache.build_key(
+                doctype=doctype,
+                user_email=getattr(user, "email", ""),
+                filters=filters,
+                fields=fields,
+                limit=limit,
+                page=page,
+                order_by=order_by,
+                order=order,
+                search=search,
+            )
+            result = await cache.get_list(cache_key)
+
+        if result is None:
+            result = await self._svc().list_documents(
+                doctype,
+                user,
+                page=page,
+                per_page=limit,
+                sort_by=order_by,
+                sort_order=order,
+                filters=filters,
+                search=search,
+                fields=fields,
+            )
+            if cache_key and cache is not None:
+                await cache.set_list(cache_key, result)
+        else:
+            # Protect cached object from accidental in-request mutation.
+            result = copy.deepcopy(result)
+
         self._apply_hidden_fields_to_rows(result, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, data=result)
         return result
@@ -299,6 +357,7 @@ class DocumentAPI:
 
         await self.db.insert_many(doctype, rows)
         logger.info("grunt.bulk_insert", doctype=doctype, count=len(rows))
+        await self._invalidate_list_cache(doctype)
         return ids
 
     async def bulk_update(
@@ -317,6 +376,7 @@ class DocumentAPI:
 
         row_count = await self.db.bulk_update(doctype, filters, update_values)
         logger.info("grunt.bulk_update", doctype=doctype, rows=row_count)
+        await self._invalidate_list_cache(doctype)
         return row_count
 
     @profile("grunt.count")
@@ -409,6 +469,7 @@ class DocumentAPI:
         """
         _, _, _ = await self._write_guard(doctype, "write")
         await self.db.set_value(doctype, id_or_name, fieldname, value)
+        await self._invalidate_list_cache(doctype)
 
     async def get_single(self, doctype: str, fieldname: str) -> Any:
         """Fetch a field value from a Single DocType (singleton document).

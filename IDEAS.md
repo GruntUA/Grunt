@@ -56,7 +56,7 @@
 
 | # | Статус | Ідея | Опис |
 |---|--------|------|------|
-| 5.1 | 💡 | **Query-level кешування** | Результати `get_list` для read-only DocTypes кешувати в Redis з TTL. Інвалідація при `after_save`/`after_delete`. |
+| 5.1 | ✅ | **Query-level кешування** | Реалізовано для read-only DocType у `get_list`: in-memory cache + Redis (опційно) з TTL, інвалідація кешу DocType при create/update/delete/bulk/set_value. |
 | 5.2 | 💡 | **Read replica підтримка** | Конфігурація `DATABASE_REPLICA_URL` → всі SELECT-запити без транзакції йдуть на репліку. Прозоро через кастомний session factory. |
 | 5.3 | ✅ | **N+1 query detector** | Реалізовано в `profiler.py`: якщо один HTTP-запит генерує >N SQL-запитів — виводить `WARNING n1_suspect` у structlog з кількістю запитів і шляхом. Поріг `n1_threshold=10` (змінюється через `PUT /api/v1/dev/profiler/settings`). |
 | 5.4 | ✅ | **Пагінація курсором** | Реалізовано keyset pagination для `/api/v1/docs/{doctype}` через опціональний параметр `cursor=`; у `meta` повертається `next_cursor`. |

@@ -12,6 +12,7 @@ from grunt.core.app.document_api import DocumentAPI
 from grunt.core.app.permission_api import PermissionAPI
 from grunt.core.app.realtime_api import RealtimeAPI
 from grunt.core.app.utility_api import UtilityAPI
+from grunt.core.cache.query_cache import QueryCache
 from grunt.core.metadata.registry import doctype_registry
 from grunt.db import GruntDB
 from grunt.errors import GruntError
@@ -60,6 +61,7 @@ class GruntApp(ContextAPI, RealtimeAPI, PermissionAPI, DocumentAPI, UtilityAPI):
     def __init__(self) -> None:
         self.db = GruntDB()
         self.session = GruntSession()
+        self.query_cache = QueryCache()
 
 # ── Module-level singleton ────────────────────────────────────────────────────
 

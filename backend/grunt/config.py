@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     # Redis (optional)
     redis_url: str | None = None
 
+    # Query-level cache (optional, Redis-backed when redis_url is configured)
+    query_cache_enabled: bool = True
+    query_cache_ttl_seconds: int = 30
+
     # Auth
     access_token_expire_minutes: int = 60 * 24  # 24h
     algorithm: str = "HS256"

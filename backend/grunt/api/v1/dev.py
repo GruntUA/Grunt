@@ -90,3 +90,35 @@ async def update_profiler_settings(
         set_n1_threshold(int(n1_threshold))
 
     return get_settings()
+
+
+@grunt.whitelist()
+async def get_query_cache_stats() -> dict[str, Any]:
+    """Return query cache runtime stats and config."""
+    _require_debug()
+    cache = getattr(grunt, "query_cache", None)
+    if cache is None:
+        return {
+            "enabled": False,
+            "ttl_seconds": int(settings.query_cache_ttl_seconds),
+            "hits": 0,
+            "misses": 0,
+            "keys": 0,
+        }
+
+    stats = cache.stats()
+    return {
+        "enabled": bool(settings.query_cache_enabled),
+        "ttl_seconds": int(settings.query_cache_ttl_seconds),
+        **stats,
+    }
+
+
+@grunt.whitelist()
+async def clear_query_cache() -> bool:
+    """Clear in-memory query cache (dev helper)."""
+    _require_debug()
+    cache = getattr(grunt, "query_cache", None)
+    if cache is not None:
+        cache.clear()
+    return True

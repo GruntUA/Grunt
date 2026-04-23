@@ -164,6 +164,82 @@ async def test_list_cursor_pagination(ctx, setup_doctype):
 
 
 @pytest.mark.asyncio
+async def test_get_list_query_cache_read_only_invalidation(ctx):
+    """Read-only DocType lists are cached and invalidated on write."""
+    from grunt.api.v1.meta import save_doctype
+
+    await save_doctype(
+        doctype_data={
+            "name": "CacheReadOnlyItem",
+            "label": "Cache ReadOnly Item",
+            "module": "core",
+            "fields": [
+                {
+                    "fieldname": "title",
+                    "label": "Title",
+                    "fieldtype": "Text",
+                    "required": True,
+                },
+            ],
+            "permissions": [
+                {
+                    "role": "System Manager",
+                    "read": True,
+                    "write": False,
+                    "create": False,
+                    "delete": False,
+                    "submit": False,
+                    "report": True,
+                }
+            ],
+            "search_fields": ["title"],
+            "__is_new": True,
+        }
+    )
+    await ctx.db._session().commit()
+
+    first = await ctx.new_doc("CacheReadOnlyItem", {"title": "Cached A"})
+    await ctx.new_doc("CacheReadOnlyItem", {"title": "Cached B"})
+    await ctx.db._session().commit()
+
+    ctx.query_cache.clear()
+    s0 = ctx.query_cache.stats()
+
+    await ctx.get_list("CacheReadOnlyItem", limit=10)
+    s1 = ctx.query_cache.stats()
+    assert s1["misses"] == s0["misses"] + 1
+
+    await ctx.get_list("CacheReadOnlyItem", limit=10)
+    s2 = ctx.query_cache.stats()
+    assert s2["hits"] == s1["hits"] + 1
+    assert s2["keys"] >= 1
+
+    await ctx.save_doc("CacheReadOnlyItem", first["id"], {"title": "Cached A+"})
+    await ctx.db._session().commit()
+    assert ctx.query_cache.stats()["keys"] == 0
+
+
+@pytest.mark.asyncio
+async def test_dev_query_cache_methods(ctx, setup_doctype):
+    """Dev methods expose and clear query cache stats."""
+    from grunt.api.v1.dev import clear_query_cache, get_query_cache_stats
+
+    await ctx.new_doc("TestItem", {"title": "A"})
+    await ctx.new_doc("TestItem", {"title": "B"})
+    await ctx.db._session().commit()
+
+    await clear_query_cache()
+    stats0 = await get_query_cache_stats()
+    assert stats0["keys"] == 0
+
+    await ctx.get_list("TestItem", limit=10)
+    stats1 = await get_query_cache_stats()
+    assert "hits" in stats1
+    assert "misses" in stats1
+    assert "keys" in stats1
+
+
+@pytest.mark.asyncio
 async def test_get_document(ctx, setup_doctype):
     """get_doc → returns the document."""
     doc = await ctx.new_doc("TestItem", {"title": "Single Item"})
