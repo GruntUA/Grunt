@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import math
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
@@ -36,6 +37,22 @@ logger = structlog.get_logger()
 
 PROTECTED_FIELDS = frozenset({"id", "owner", "created_at", "docstatus"})
 
+_CURSOR_SEP = "||"  # separator unlikely to appear in sort values
+
+
+def _encode_cursor(sort_val: Any, doc_id: str) -> str:
+    """Encode (sort_value, id) into a safe opaque cursor string."""
+    sort_str = sort_val.isoformat() if isinstance(sort_val, datetime) else str(sort_val)
+    raw = f"{sort_str}{_CURSOR_SEP}{doc_id}"
+    return base64.urlsafe_b64encode(raw.encode()).decode()
+
+
+def _decode_cursor(cursor: str) -> tuple[str, str]:
+    """Decode cursor → (sort_value_str, doc_id)."""
+    raw = base64.urlsafe_b64decode(cursor.encode()).decode()
+    sort_str, doc_id = raw.rsplit(_CURSOR_SEP, 1)
+    return sort_str, doc_id
+
 
 class DocumentReadMixin:
     session: AsyncSession
@@ -54,6 +71,7 @@ class DocumentReadMixin:
         filters: dict[str, str] | None = None,
         search: str | None = None,
         fields: list[str] | None = None,
+        cursor: str | None = None,
     ) -> DocumentList:
         dt = await doctype_registry.get(doctype_name)
 
@@ -133,9 +151,35 @@ class DocumentReadMixin:
         else:
             query = query.order_by(sort_expr.desc())
 
-        # Pagination
-        offset = (page - 1) * per_page
-        query = query.limit(per_page).offset(offset)
+        # Pagination — cursor mode avoids slow OFFSET on large tables
+        if cursor:
+            try:
+                sort_str, cursor_id = _decode_cursor(cursor)
+                # Try to parse as datetime; fall back to raw string
+                try:
+                    cursor_val: Any = datetime.fromisoformat(sort_str)
+                except ValueError:
+                    cursor_val = sort_str
+
+                from sqlalchemy import and_, or_  # noqa: PLC0415
+
+                if sort_order == "asc":
+                    keyset = or_(
+                        sort_col > cursor_val,
+                        and_(sort_col == cursor_val, table.c.id > cursor_id),
+                    )
+                else:
+                    keyset = or_(
+                        sort_col < cursor_val,
+                        and_(sort_col == cursor_val, table.c.id < cursor_id),
+                    )
+                query = query.where(keyset)
+            except Exception:  # noqa: BLE001 — malformed cursor falls back to page
+                logger.warning("list_documents.invalid_cursor", cursor=cursor)
+
+        query = query.limit(per_page)
+        if not cursor:
+            query = query.offset((page - 1) * per_page)
 
         result = await self.session.execute(query)
         rows: list[dict[Any, Any]] = [dict(r._mapping) for r in result]
@@ -154,6 +198,14 @@ class DocumentReadMixin:
                 if isinstance(v, datetime):
                     doc_row[k] = v.isoformat()
 
+        next_cursor: str | None = None
+        if rows and len(rows) == per_page:
+            last = rows[-1]
+            sort_raw = last.get(sort_by)
+            last_id = str(last.get("id", ""))
+            if sort_raw is not None and last_id:
+                next_cursor = _encode_cursor(sort_raw, last_id)
+
         return DocumentList(
             data=rows,
             meta={
@@ -161,6 +213,7 @@ class DocumentReadMixin:
                 "page": page,
                 "per_page": per_page,
                 "pages": math.ceil(total / per_page) if per_page else 1,
+                "next_cursor": next_cursor,
             },
         )
 

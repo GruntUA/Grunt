@@ -297,6 +297,8 @@ export interface PaginationMeta {
   page: number
   per_page: number
   pages: number
+  /** Opaque cursor for keyset pagination — present when more rows exist */
+  next_cursor?: string
 }
 
 export interface StandardListResponse<T> {

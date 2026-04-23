@@ -56,6 +56,8 @@ export interface ListParams {
   filters?: ActiveFilter[]
   /** Raw backend filters — keys may already contain __op suffixes (e.g. { 'date__lte': '2024-01-31' }) */
   rawFilters?: Record<string, string>
+  /** Opaque cursor for keyset pagination (replaces page-based OFFSET) */
+  cursor?: string
 }
 
 export interface LinkSearchItem {
@@ -94,7 +96,7 @@ export const docsApi = {
         ...(sort ? { sort_by: sort } : {}),
         ...(order ? { sort_order: order } : {}),
         ...filterParams,
-      }
+      },
     })
     return r.data
   },

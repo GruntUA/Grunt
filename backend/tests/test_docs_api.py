@@ -120,6 +120,50 @@ async def test_list_pagination(ctx, setup_doctype):
 
 
 @pytest.mark.asyncio
+async def test_list_cursor_pagination(ctx, setup_doctype):
+    """cursor pagination: next_cursor returned on page 1, used on page 2, no overlap."""
+    from grunt.core.document.service import DocumentService
+    from grunt.core.doctypes.user.user import SYSTEM_USER
+
+    session = ctx.db._session()
+    engine = ctx._require_engine()
+    svc = DocumentService(session, engine)
+
+    async with ctx.context(session, engine, SYSTEM_USER):
+        for i in range(5):
+            await ctx.new_doc("TestItem", {"title": f"Cursor {i}"})
+        await session.commit()
+
+        # Page 1 via cursor mode (per_page=2)
+        page1 = await svc.list_documents(
+            "TestItem", SYSTEM_USER, per_page=2, sort_by="modified_at", sort_order="desc"
+        )
+        assert len(page1) == 2
+        cursor = page1.meta.get("next_cursor")
+        assert cursor is not None, "next_cursor must be set when a full page is returned"
+
+        # Page 2 via cursor — must not overlap with page 1
+        page2 = await svc.list_documents(
+            "TestItem", SYSTEM_USER, per_page=2, sort_by="modified_at", sort_order="desc",
+            cursor=cursor,
+        )
+        assert len(page2) == 2
+        ids1 = {r["id"] for r in page1}
+        ids2 = {r["id"] for r in page2}
+        assert ids1.isdisjoint(ids2), "cursor pages must not overlap"
+
+        # Page 3 (only 1 remaining) — next_cursor should be None
+        cursor2 = page2.meta.get("next_cursor")
+        assert cursor2 is not None
+        page3 = await svc.list_documents(
+            "TestItem", SYSTEM_USER, per_page=2, sort_by="modified_at", sort_order="desc",
+            cursor=cursor2,
+        )
+        assert len(page3) == 1
+        assert page3.meta.get("next_cursor") is None
+
+
+@pytest.mark.asyncio
 async def test_get_document(ctx, setup_doctype):
     """get_doc → returns the document."""
     doc = await ctx.new_doc("TestItem", {"title": "Single Item"})

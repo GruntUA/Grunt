@@ -30,6 +30,7 @@ async def list_documents(
     sort_order: str = "desc",
     search: str | None = None,
     fields: str | None = None,
+    cursor: str | None = Query(None, description="Opaque cursor for keyset pagination"),
     user: User = Depends(current_user),
     service: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
@@ -53,6 +54,7 @@ async def list_documents(
         filters=filters if filters else None,
         search=search,
         fields=field_list,
+        cursor=cursor,
     )
     return ok(**result.to_dict())
 
