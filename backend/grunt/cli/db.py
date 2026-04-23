@@ -1,6 +1,7 @@
 import asyncio
 import shutil
 import subprocess
+from contextlib import suppress
 from datetime import datetime
 from pathlib import Path
 
@@ -40,71 +41,89 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
             seed_grunt_workspace,
             seed_system_settings,
         )
+        from grunt.core.tasks.broker import broker  # noqa: PLC0415
 
-        sites = [site] if site else site_manager.get_sites()
-        if not sites:
-            click.echo("Жодного сайту не знайдено.", err=True)
-            raise SystemExit(1)
+        broker_started = False
 
-        for site_name in sites:
-            click.echo(f"\n── Сайт: {site_name} ──")
-            eng = site_manager.get_engine(site_name)
-            maker = site_manager.get_session_maker(site_name)
+        try:
+            await broker.startup()
+            broker_started = True
 
-            # 1. System ORM tables
-            click.echo("  [1/4] System tables (Base.metadata)...")
-            async with eng.begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
+            sites = [site] if site else site_manager.get_sites()
+            if not sites:
+                click.echo("Жодного сайту не знайдено.", err=True)
+                raise SystemExit(1)
 
-            # 2. Shared infrastructure tables (MultiLink junction, etc.)
-            click.echo("  [2/4] Infrastructure tables (SA_METADATA)...")
-            async with eng.begin() as conn:
-                await conn.run_sync(SA_METADATA.create_all)
+            for site_name in sites:
+                click.echo(f"\n── Сайт: {site_name} ──")
+                eng = site_manager.get_engine(site_name)
+                maker = site_manager.get_session_maker(site_name)
 
-            # 3. DocType tables
-            click.echo("  [3/4] DocType tables (sync_table)...")
-            async with maker() as session:
-                await load_core_doctypes(session, sync_db=True)
-                await apply_doctype_overrides(session, eng)
-                await populate_system_doctypes(session, eng)
+                # 1. System ORM tables
+                click.echo("  [1/4] System tables (Base.metadata)...")
+                async with eng.begin() as conn:
+                    await conn.run_sync(Base.metadata.create_all)
 
-                all_dts = await doctype_registry.list_all()
+                # 2. Shared infrastructure tables (MultiLink junction, etc.)
+                click.echo("  [2/4] Infrastructure tables (SA_METADATA)...")
+                async with eng.begin() as conn:
+                    await conn.run_sync(SA_METADATA.create_all)
 
-                synced = 0
-                skipped = 0
-                for dt in all_dts:
-                    try:
-                        if dt.is_virtual:
-                            skipped += 1
-                            continue
-                        if dry_run:
-                            click.echo(f"    [dry-run] would sync: {dt.name}")
-                        else:
-                            await sync_table(dt, eng, session=session)
-                            click.echo(f"    synced: {dt.name}")
-                        synced += 1
-                    except Exception as e:  # noqa: BLE001
-                        click.echo(f"    [error] {dt.name}: {e}", err=True)
-
-                await session.commit()
-
-            click.echo(f"  Done: {synced} synced, {skipped} skipped (virtual).")
-
-            # 4. Seed fixtures (skip on dry-run)
-            if dry_run:
-                click.echo("  [4/4] Seed fixtures — пропущено (dry-run).")
-            else:
-                click.echo("  [4/4] Seed fixtures...")
+                # 3. DocType tables
+                click.echo("  [3/4] DocType tables (sync_table)...")
                 async with maker() as session:
-                    await seed_system_settings(session, eng)
-                    await seed_grunt_workspace(session, eng)
+                    await load_core_doctypes(session, sync_db=True)
+                    await apply_doctype_overrides(session, eng)
+                    await populate_system_doctypes(session, eng)
+
+                    all_dts = await doctype_registry.list_all()
+
+                    synced = 0
+                    skipped = 0
+                    for dt in all_dts:
+                        try:
+                            if dt.is_virtual:
+                                skipped += 1
+                                continue
+                            if dry_run:
+                                click.echo(f"    [dry-run] would sync: {dt.name}")
+                            else:
+                                await sync_table(dt, eng, session=session)
+                                click.echo(f"    synced: {dt.name}")
+                            synced += 1
+                        except Exception as e:  # noqa: BLE001
+                            click.echo(f"    [error] {dt.name}: {e}", err=True)
+
                     await session.commit()
 
-                async with maker() as session:
-                    await seed_app_workspaces(session, site_name)
-                    await session.commit()
+                click.echo(f"  Done: {synced} synced, {skipped} skipped (virtual).")
 
-                click.echo("  Fixtures applied.")
+                # 4. Seed fixtures (skip on dry-run)
+                if dry_run:
+                    click.echo("  [4/4] Seed fixtures — пропущено (dry-run).")
+                else:
+                    click.echo("  [4/4] Seed fixtures...")
+                    async with maker() as session:
+                        await seed_system_settings(session, eng)
+                        await seed_grunt_workspace(session, eng)
+                        await session.commit()
+
+                    async with maker() as session:
+                        await seed_app_workspaces(session, site_name)
+                        await session.commit()
+
+                    click.echo("  Fixtures applied.")
+        finally:
+            if broker_started:
+                with suppress(Exception):
+                    await broker.shutdown()
+
+            for eng in list(site_manager.engines.values()):
+                with suppress(Exception):
+                    await eng.dispose()
+
+            site_manager.engines.clear()
+            site_manager.session_makers.clear()
 
     asyncio.run(_run())
     click.echo("\nМіграцію завершено.")
