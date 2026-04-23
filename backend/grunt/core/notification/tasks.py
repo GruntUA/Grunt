@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 import structlog
@@ -32,5 +33,7 @@ async def evaluate_notification_rules_task(
                 user_email=user_email,
             )
             await session.commit()
+    except asyncio.CancelledError:
+        logger.debug("notification.task_cancelled", event=event, doctype=doctype)
     except Exception:
         logger.exception("notification.task_error", event=event, doctype=doctype)
