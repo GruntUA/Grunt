@@ -1,29 +1,34 @@
 <script setup lang="ts">
 import { ChevronRight, Layers } from '@lucide/vue'
+import type { DocField, DocType } from '@/types'
+import type { ListColumn } from '@/core/composables/useListColumns'
+import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 import GruntDataTable from '@/components/views/GruntDataTable.vue'
 
+interface SelectionState {
+  selectedIds: string[]
+  allSelected: boolean
+  isSelected: (id: string) => boolean
+  toggle: (id: string) => void
+  toggleAll: (ids: string[]) => void
+}
+
 const props = defineProps<{
-  dt: any
-  groupedRows: any[]
-  columns: any[]
+  dt: DocType | null
+  groupedRows: GroupedRowBucket[]
+  columns: ListColumn[]
   collapsedGroups: Set<string>
   sortKey: string
   sortOrder: 'asc' | 'desc'
-  selection?: {
-    selectedIds: string[]
-    allSelected: boolean
-    isSelected: (id: string) => boolean
-    toggle: (id: string) => void
-    toggleAll: (ids: string[]) => void
-  }
-  groupByField: any
+  selection?: SelectionState
+  groupByField: DocField | null
 }>()
 
 const emit = defineEmits<{
   (e: 'toggleGroup', key: string): void
   (e: 'sort', key: string): void
   (e: 'selectAll'): void
-  (e: 'rowClick', row: any): void
+  (e: 'rowClick', row: Record<string, unknown>): void
   (e: 'inlineUpdate', rowId: string, field: string, value: string): void
 }>()
 
@@ -33,7 +38,7 @@ function groupLabel(key: string): string {
   return key
 }
 
-function handleSelectGroup(items: any[]) {
+function handleSelectGroup(items: Record<string, unknown>[]) {
   props.selection?.toggleAll(items.map(r => String(r.id)))
 }
 </script>
@@ -52,7 +57,7 @@ function handleSelectGroup(items: any[]) {
           :selected-ids="[]"
           :status-config="dt?.status_config"
           :hide-body="true"
-          @sort="emit('sort', $event as any)"
+          @sort="emit('sort', $event)"
           @select-all="emit('selectAll')"
         />
     </div>
@@ -105,8 +110,8 @@ function handleSelectGroup(items: any[]) {
                 :hide-header="true"
                 @select="selection?.toggle"
                 @select-all="handleSelectGroup(group.items)"
-                @row-click="emit('rowClick', $event as any)"
-                @inline-update="(rowId: any, field: any, value: any) => emit('inlineUpdate', rowId, field, value)"
+                @row-click="emit('rowClick', $event)"
+                @inline-update="(rowId: string, field: string, value: string) => emit('inlineUpdate', rowId, field, value)"
               />
             </div>
           </Transition>

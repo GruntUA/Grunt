@@ -15,27 +15,39 @@ import {
   Map as MapIcon,
 } from '@lucide/vue'
 import draggable from 'vuedraggable'
-import type { ActiveFilter } from '@/types'
+import type { ActiveFilter, DocField, DocType } from '@/types'
+import type { ListColumn } from '@/core/composables/useListColumns'
 import FilterBar from '@/components/views/FilterBar.vue'
 
+type ViewMode = 'list' | 'kanban' | 'calendar' | 'tree' | 'gallery' | 'map'
+
+interface ListColumnsState {
+  allAvailableColumns: { value: ListColumn[] }
+  visibleColumns: { value: ListColumn[] }
+  isCustomized: { value: boolean }
+  isVisible: (key: string) => boolean
+  toggleCol: (key: string) => void
+  reorderCols: (oldIndex: number, newIndex: number) => void
+}
+
 const props = defineProps<{
-  dt: any
+  dt: DocType | null
   doctype: string
-  viewMode: string
+  viewMode: ViewMode
   inlineSearch: string
   activeFilters: ActiveFilter[]
-  columns: any
-  groupableFields: any[]
+  columns: ListColumnsState
+  groupableFields: DocField[]
   groupBy: string | null
-  groupByField: any | null
-  kanbanColumnField: any
-  treeParentField: any
-  calendarDateField: any
-  geoField: any
+  groupByField: DocField | null
+  kanbanColumnField: DocField | null
+  treeParentField: DocField | null
+  calendarDateField: DocField | null
+  geoField: DocField | null
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:viewMode', val: any): void
+  (e: 'update:viewMode', val: ViewMode): void
   (e: 'update:inlineSearch', val: string): void
   (e: 'update:activeFilters', val: ActiveFilter[]): void
   (e: 'update:groupBy', val: string | null): void
@@ -137,7 +149,7 @@ const toggleGrouping = (event: Event) => {
                 </template>
               </draggable>
               
-              <div v-for="col in columns.allAvailableColumns.value.filter((c: any) => !columns.isVisible(c.key))"
+              <div v-for="col in columns.allAvailableColumns.value.filter((c) => !columns.isVisible(c.key))"
                 :key="col.key"
                 class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group transition-colors"
                 @click="columns.toggleCol(col.key)">

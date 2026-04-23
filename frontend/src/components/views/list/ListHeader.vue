@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
 import { getExporters } from '@/core/io'
 import type { ExportContext } from '@/core/io'
+import type { MenuItem } from 'primevue/menuitem'
 import {
   Plus,
   MoreHorizontal,
@@ -54,7 +55,7 @@ const toggleMenu = (event: Event) => {
 }
 
 const menuItems = computed(() => {
-    const items: any[] = []
+  const items: MenuItem[] = []
 
     // Exporters
     if (!props.isSystemDocType && props.exportCtx) {

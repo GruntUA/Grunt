@@ -24,7 +24,7 @@ export function useListActions(options: UseListActionsOptions) {
             search: options.debouncedSearch.value || undefined,
             filters: options.activeFilters.value,
           })
-        ).data.map((r: any) => String(r.id))
+        ).data.map((row: { id: unknown }) => String(row.id))
       : options.selectedIds.value
 
     if (ids.length) {
