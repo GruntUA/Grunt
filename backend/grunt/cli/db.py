@@ -42,6 +42,7 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
             seed_system_settings,
         )
         from grunt.core.tasks.broker import broker  # noqa: PLC0415
+        from taskiq import InMemoryBroker  # noqa: PLC0415
 
         broker_started = False
 
@@ -115,6 +116,9 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
                     click.echo("  Fixtures applied.")
         finally:
             if broker_started:
+                if isinstance(broker, InMemoryBroker):
+                    with suppress(Exception):
+                        await broker.wait_all()
                 with suppress(Exception):
                     await broker.shutdown()
 
