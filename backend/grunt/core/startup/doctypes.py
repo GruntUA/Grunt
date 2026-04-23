@@ -113,6 +113,9 @@ async def populate_system_doctypes(
     if dt_def is None:
         logger.warning("startup.doctype_def_missing")
         return
+    if dt_def.is_virtual:
+        logger.info("startup.doctype_table_sync_skipped", reason="virtual_doctype")
+        return
     table = compile_doctype_to_table(dt_def)
 
     all_doctypes = await doctype_registry.list_all()

@@ -19,3 +19,4 @@ _engine_ctx: ContextVar[AsyncEngine | None] = ContextVar("grunt_engine", default
 _user_ctx: ContextVar[User | None] = ContextVar("grunt_user", default=None)
 _site_ctx: ContextVar[str | None] = ContextVar("grunt_site", default=None)
 _messages_ctx: ContextVar[list[dict] | None] = ContextVar("grunt_messages", default=None)
+_bootstrap_ctx: ContextVar[bool] = ContextVar("grunt_bootstrap", default=False)

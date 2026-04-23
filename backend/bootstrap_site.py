@@ -2,6 +2,7 @@ import asyncio
 
 import structlog
 
+from grunt.app import grunt
 from grunt.core.db.base import Base
 from grunt.core.db.session import async_session_factory, get_engine
 from grunt.core.startup import (
@@ -9,6 +10,7 @@ from grunt.core.startup import (
     populate_system_doctypes,
     seed_grunt_workspace,
     seed_system_settings,
+    sync_all_doctypes,
 )
 
 logger = structlog.get_logger()
@@ -27,16 +29,20 @@ async def bootstrap():
     # 2. Sync core DocTypes and seed base data
     async with async_session_factory() as session:
         logger.info("bootstrap.loading_core_doctypes")
-        await load_core_doctypes(session, engine)
+        await load_core_doctypes(session, sync_db=True)
+
+        logger.info("bootstrap.syncing_doctype_tables")
+        await sync_all_doctypes(session, engine)
 
         logger.info("bootstrap.populating_system_doctypes")
         await populate_system_doctypes(session, engine)
 
-        logger.info("bootstrap.seeding_system_settings")
-        await seed_system_settings(session, engine)
+        async with grunt.bootstrap_context(session, engine):
+            logger.info("bootstrap.seeding_system_settings")
+            await seed_system_settings(session, engine)
 
-        logger.info("bootstrap.seeding_grunt_workspace")
-        await seed_grunt_workspace(session, engine)
+            logger.info("bootstrap.seeding_grunt_workspace")
+            await seed_grunt_workspace(session, engine)
 
         await session.commit()
 

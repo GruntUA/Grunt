@@ -31,6 +31,8 @@ from typing import TYPE_CHECKING, Any, TypedDict
 
 import structlog
 
+from grunt.core.context import _bootstrap_ctx
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -108,6 +110,10 @@ async def fire(event: str, **kwargs: Any) -> None:
     If `doctype` is present in kwargs, it also fires DocType-specific hooks.
     Also evaluates notification rules for qualifying events.
     """
+    if _bootstrap_ctx.get():
+        logger.debug("hook.skipped", reason="bootstrap", hook_event=event)
+        return
+
     kwargs["event"] = event
 
     # 1. Fire global hooks

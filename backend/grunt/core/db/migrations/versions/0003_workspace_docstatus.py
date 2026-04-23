@@ -16,18 +16,24 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column(
-        "grunt_workspace",
-        sa.Column("docstatus", sa.Integer(), nullable=False, server_default="0"),
-    )
-    op.add_column(
-        "grunt_workspace",
-        sa.Column("owner", sa.String(length=255), nullable=False, server_default=""),
-    )
-    op.add_column(
-        "grunt_workspace",
-        sa.Column("modified_by", sa.String(length=255), nullable=False, server_default=""),
-    )
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    existing = {c["name"] for c in inspector.get_columns("grunt_workspace")}
+    if "docstatus" not in existing:
+        op.add_column(
+            "grunt_workspace",
+            sa.Column("docstatus", sa.Integer(), nullable=False, server_default="0"),
+        )
+    if "owner" not in existing:
+        op.add_column(
+            "grunt_workspace",
+            sa.Column("owner", sa.String(length=255), nullable=False, server_default=""),
+        )
+    if "modified_by" not in existing:
+        op.add_column(
+            "grunt_workspace",
+            sa.Column("modified_by", sa.String(length=255), nullable=False, server_default=""),
+        )
 
 
 def downgrade():

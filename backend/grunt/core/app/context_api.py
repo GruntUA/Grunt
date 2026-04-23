@@ -5,7 +5,7 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING
 
-from grunt.core.context import _engine_ctx, _session_ctx, _user_ctx
+from grunt.core.context import _bootstrap_ctx, _engine_ctx, _session_ctx, _user_ctx
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -84,6 +84,20 @@ class ContextAPI:
 
         async with self.context(session, engine, SYSTEM_USER):
             yield
+
+    @contextlib.asynccontextmanager
+    async def bootstrap_context(
+        self,
+        session: AsyncSession,
+        engine: AsyncEngine | None = None,
+    ) -> AsyncGenerator[None]:
+        """System context with document hooks suppressed during bootstrap."""
+        token = _bootstrap_ctx.set(True)
+        try:
+            async with self.system_context(session, engine):
+                yield
+        finally:
+            _bootstrap_ctx.reset(token)
 
     def _require_session(self) -> AsyncSession:
         s = _session_ctx.get()
