@@ -3,9 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import client from '@/core/api/client'
-import { Input } from '@/components/ui/input'
-import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Loader2, Sprout } from '@lucide/vue'
+import { Sprout } from '@lucide/vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -59,87 +57,86 @@ async function handleRegister() {
         <div class="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
           <Sprout class="size-4" />
         </div>
-        Ґрунт
+        <span class="text-foreground">Ґрунт</span>
       </a>
 
       <!-- Card -->
       <div class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm">
-        <div class="grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 text-center">
-          <h3 class="leading-none font-semibold text-xl">Створити акаунт</h3>
+        <div class="flex flex-col items-center gap-1.5 px-6 text-center">
+          <h3 class="font-semibold text-xl">Створити акаунт</h3>
           <p class="text-muted-foreground text-sm">Заповніть форму для реєстрації</p>
         </div>
         <div class="px-6">
-          <form @submit.prevent="handleRegister">
-            <FieldGroup>
-              <!-- Full Name -->
-              <Field>
-                <FieldLabel for="full-name">Повне ім'я</FieldLabel>
-                <Input
-                  id="full-name"
-                  v-model="fullName"
-                  type="text"
-                  autocomplete="name"
-                  placeholder="Іваненко Іван Іванович"
-                  required
-                />
-              </Field>
+          <form @submit.prevent="handleRegister" class="flex flex-col gap-5">
+            <!-- Full Name -->
+            <div class="flex flex-col gap-1.5">
+              <label for="full-name" class="text-sm font-medium">Повне ім'я</label>
+              <InputText
+                id="full-name"
+                v-model="fullName"
+                type="text"
+                autocomplete="name"
+                placeholder="Іваненко Іван Іванович"
+                required
+                class="w-full"
+              />
+            </div>
 
-              <!-- Email -->
-              <Field>
-                <FieldLabel for="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  v-model="email"
-                  type="email"
-                  autocomplete="username"
-                  placeholder="user@example.com"
-                  required
-                />
-              </Field>
+            <!-- Email -->
+            <div class="flex flex-col gap-1.5">
+              <label for="email" class="text-sm font-medium">Email</label>
+              <InputText
+                id="email"
+                v-model="email"
+                type="email"
+                autocomplete="username"
+                placeholder="user@example.com"
+                required
+                class="w-full"
+              />
+            </div>
 
-              <!-- Password -->
-              <Field>
-                <FieldLabel for="password">Пароль</FieldLabel>
-                <Input
-                  id="password"
-                  v-model="password"
-                  type="password"
-                  autocomplete="new-password"
-                  placeholder="Мінімум 8 символів"
-                  required
-                />
-              </Field>
+            <!-- Password -->
+            <div class="flex flex-col gap-1.5">
+              <label for="password" class="text-sm font-medium">Пароль</label>
+              <InputText
+                id="password"
+                v-model="password"
+                type="password"
+                autocomplete="new-password"
+                placeholder="Мінімум 8 символів"
+                required
+                class="w-full"
+              />
+            </div>
 
-              <!-- Confirm Password -->
-              <Field>
-                <FieldLabel for="password-confirm">Повторіть пароль</FieldLabel>
-                <Input
-                  id="password-confirm"
-                  v-model="passwordConfirm"
-                  type="password"
-                  autocomplete="new-password"
-                  placeholder="••••••••"
-                  required
-                />
-              </Field>
+            <!-- Confirm Password -->
+            <div class="flex flex-col gap-1.5">
+              <label for="password-confirm" class="text-sm font-medium">Повторіть пароль</label>
+              <InputText
+                id="password-confirm"
+                v-model="passwordConfirm"
+                type="password"
+                autocomplete="new-password"
+                placeholder="••••••••"
+                required
+                class="w-full"
+              />
+            </div>
 
-              <!-- Error -->
-              <p v-if="error" class="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center">
-                {{ error }}
+            <!-- Error -->
+            <p v-if="error" class="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
+              {{ error }}
+            </p>
+
+            <!-- Submit -->
+            <div class="flex flex-col gap-3">
+              <Button type="submit" :loading="loading" class="w-full" label="Зареєструватись" />
+              <p class="text-center text-sm text-muted-foreground">
+                Вже маєте акаунт?
+                <router-link to="/login" class="text-primary hover:underline font-medium">Увійти</router-link>
               </p>
-
-              <!-- Submit -->
-              <Field>
-                <Button type="submit" :disabled="loading" class="w-full">
-                  <Loader2 v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
-                  Зареєструватись
-                </Button>
-                <FieldDescription class="text-center">
-                  Вже маєте акаунт?
-                  <router-link to="/login">Увійти</router-link>
-                </FieldDescription>
-              </Field>
-            </FieldGroup>
+            </div>
           </form>
         </div>
       </div>

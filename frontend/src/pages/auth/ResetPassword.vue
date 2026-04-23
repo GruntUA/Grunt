@@ -2,9 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { authApi } from '@/core/api/auth-admin'
-import { Input } from '@/components/ui/input'
-import { Field, FieldLabel } from '@/components/ui/field'
-import { Loader2, Sprout } from '@lucide/vue'
+import { Sprout } from '@lucide/vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -19,18 +17,18 @@ const error = ref('')
 onMounted(() => {
   token.value = (route.query.token as string) ?? ''
   if (!token.value) {
-    error.value = 'Invalid or missing reset token.'
+    error.value = 'Недійсний або відсутній токен скидання.'
   }
 })
 
 async function handleSubmit() {
   error.value = ''
   if (newPassword.value !== confirmPassword.value) {
-    error.value = 'Passwords do not match'
+    error.value = 'Паролі не збігаються'
     return
   }
   if (newPassword.value.length < 8) {
-    error.value = 'Password must be at least 8 characters'
+    error.value = 'Пароль має містити мінімум 8 символів'
     return
   }
   loading.value = true
@@ -42,7 +40,7 @@ async function handleSubmit() {
     if (typeof detail === 'string') {
       error.value = detail
     } else {
-      error.value = e?.message || 'Something went wrong'
+      error.value = e?.message || 'Щось пішло не так'
     }
   } finally {
     loading.value = false
@@ -51,55 +49,52 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-background to-emerald-50/30 relative overflow-hidden">
+  <div class="min-h-screen flex items-center justify-center bg-muted/30 relative overflow-hidden">
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
-      <div class="absolute -top-24 -right-24 w-96 h-96 bg-emerald-100/40 rounded-full blur-3xl" />
-      <div class="absolute -bottom-32 -left-32 w-[500px] h-[500px] bg-emerald-50/60 rounded-full blur-3xl" />
+      <div class="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+      <div class="absolute -bottom-32 -left-32 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl" />
     </div>
 
     <div class="relative w-full max-w-[420px] mx-4">
-      <div class="text-center mb-8">
+      <div class="text-center mb-8 flex flex-col items-center">
         <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground mb-4 shadow-lg shadow-primary/20">
           <Sprout class="w-7 h-7" />
         </div>
-        <h1 class="text-2xl font-bold text-foreground tracking-tight">Set new password</h1>
-        <p class="text-sm text-muted-foreground mt-1">Choose a strong password</p>
+        <h1 class="text-2xl font-bold text-foreground tracking-tight">Новий пароль</h1>
+        <p class="text-sm text-muted-foreground mt-1">Оберіть надійний пароль</p>
       </div>
 
-      <div class="bg-card rounded-xl shadow-xl shadow-black/[0.04] border border-border/60 p-8">
-        <div v-if="done" class="text-center py-4">
-          <p class="text-sm text-foreground font-medium mb-2">Password updated!</p>
-          <p class="text-sm text-muted-foreground mb-4">You can now sign in with your new password.</p>
-          <Button class="w-full h-11" @click="router.push('/login')">
-            Go to login
-          </Button>
+      <div class="bg-card rounded-xl shadow-xl border border-border p-8">
+        <div v-if="done" class="text-center py-4 flex flex-col items-center gap-3">
+          <p class="text-sm text-foreground font-medium">Пароль оновлено!</p>
+          <p class="text-sm text-muted-foreground mb-2">Тепер ви можете увійти з новим паролем.</p>
+          <Button class="w-full h-11" label="Перейти до входу" @click="router.push('/login')" />
         </div>
 
         <form v-else class="flex flex-col gap-5" @submit.prevent="handleSubmit">
-          <Field>
-            <FieldLabel>New password <span class="text-destructive">*</span></FieldLabel>
-            <Input v-model="newPassword" type="password" autocomplete="new-password"
-              placeholder="••••••••" required class="h-11" />
-          </Field>
-
-          <Field>
-            <FieldLabel>Confirm password <span class="text-destructive">*</span></FieldLabel>
-            <Input v-model="confirmPassword" type="password" autocomplete="new-password"
-              placeholder="••••••••" required class="h-11" />
-          </Field>
-
-          <div v-if="error" class="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center">
-            {{ error }}
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium">Новий пароль <span class="text-destructive">*</span></label>
+            <InputText v-model="newPassword" type="password" autocomplete="new-password"
+              placeholder="••••••••" required class="h-11 w-full" />
           </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium">Підтвердіть пароль <span class="text-destructive">*</span></label>
+            <InputText v-model="confirmPassword" type="password" autocomplete="new-password"
+              placeholder="••••••••" required class="h-11 w-full" />
+          </div>
+
+          <p v-if="error" class="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
+            {{ error }}
+          </p>
 
           <Button
             type="submit"
-            :disabled="loading || !token"
+            :loading="loading"
+            :disabled="!token"
             class="w-full h-11 mt-1 text-[15px] font-medium"
-          >
-            <Loader2 v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
-            Set new password
-          </Button>
+            label="Встановити новий пароль"
+          />
         </form>
       </div>
     </div>

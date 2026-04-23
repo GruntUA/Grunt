@@ -2,10 +2,6 @@
 import { ref, computed } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import type { WorkflowState, WorkflowTransition, WorkflowStep, WorkflowStepType } from '@/types'
-import { Separator } from '@/components/ui/separator'
-
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Trash2, Plus, GitBranch, List, ChevronDown, GripVertical, X } from '@lucide/vue'
 import WorkflowGraph from '@/components/views/WorkflowGraph.vue'
 
@@ -146,7 +142,6 @@ const visibleSteps = computed(() => {
   return steps
 })
 
-// const activeSteps = computed(() => (workflow.value.steps ?? []).filter(s => s.is_active))
 const inactiveSteps = computed(() => (workflow.value.steps ?? []).filter(s => !s.is_active))
 
 function addStep(type: WorkflowStepType) {
@@ -205,11 +200,11 @@ function toggleNextStepMenu(id: string) {
     <div class="flex items-center gap-3 px-4 py-2 border-b border-border bg-muted/30 shrink-0 flex-wrap">
       <div class="flex items-center gap-2">
         <ToggleSwitch :model-value="hasWorkflow" @update:model-value="toggleWorkflow" />
-        <Label class="text-sm">Workflow</Label>
+        <span class="text-sm font-medium">Workflow</span>
       </div>
 
       <template v-if="hasWorkflow">
-        <Separator orientation="vertical" class="h-5" />
+        <Divider layout="vertical" class="!mx-1 !h-5 !my-0" />
 
         <!-- View toggle -->
         <div class="flex rounded-lg border border-border overflow-hidden text-xs">
@@ -268,7 +263,7 @@ function toggleNextStepMenu(id: string) {
 
             <!-- Filter -->
             <div class="ml-auto">
-              <Input v-model="stepFilter" placeholder="Фільтр…" class="h-8 w-44 text-sm" />
+              <InputText v-model="stepFilter" placeholder="Фільтр…" class="h-8 w-44 text-sm" />
             </div>
           </div>
 
@@ -406,8 +401,8 @@ function toggleNextStepMenu(id: string) {
 
           <div class="flex-1 overflow-y-auto p-4 space-y-4">
             <!-- Type -->
-            <div class="space-y-1.5">
-              <Label class="text-xs">Тип</Label>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Тип</label>
               <div class="grid grid-cols-2 gap-1.5">
                 <button
                   v-for="t in STEP_TYPES" :key="t.value"
@@ -425,35 +420,35 @@ function toggleNextStepMenu(id: string) {
             </div>
 
             <!-- Name -->
-            <div class="space-y-1.5">
-              <Label class="text-xs">Ім'я (slug)</Label>
-              <Input :model-value="selectedStep.name" class="h-8 text-sm"
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Ім'я (slug)</label>
+              <InputText :model-value="selectedStep.name" class="h-8 text-sm w-full"
                 @update:model-value="updateSelectedStep({ name: $event as string })" />
             </div>
 
             <!-- Title -->
-            <div class="space-y-1.5">
-              <Label class="text-xs">Заголовок</Label>
-              <Input :model-value="selectedStep.title" class="h-8 text-sm" placeholder="Відображуваний заголовок"
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Заголовок</label>
+              <InputText :model-value="selectedStep.title" class="h-8 text-sm w-full" placeholder="Відображуваний заголовок"
                 @update:model-value="updateSelectedStep({ title: $event as string })" />
             </div>
 
             <!-- Variable -->
-            <div class="space-y-1.5">
-              <Label class="text-xs">Змінна</Label>
-              <Input :model-value="selectedStep.variable ?? ''" class="h-8 text-sm font-mono" placeholder="req.vars.my_field"
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Змінна</label>
+              <InputText :model-value="selectedStep.variable ?? ''" class="h-8 text-sm font-mono w-full" placeholder="req.vars.my_field"
                 @update:model-value="updateSelectedStep({ variable: ($event as string) || null })" />
             </div>
 
             <!-- Active -->
             <div class="flex items-center gap-2">
               <ToggleSwitch :model-value="selectedStep.is_active" @update:model-value="updateSelectedStep({ is_active: $event })" />
-              <Label class="text-sm">Активний</Label>
+              <label class="text-sm font-medium">Активний</label>
             </div>
 
             <!-- Next steps (multi) -->
-            <div class="space-y-1.5">
-              <Label class="text-xs">Наступні кроки</Label>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Наступні кроки</label>
               <div class="flex flex-wrap gap-1.5 mb-1">
                 <div
                   v-for="ns in stepNextStepObjects(selectedStep)"
@@ -465,7 +460,7 @@ function toggleNextStepMenu(id: string) {
                 </div>
               </div>
               <select
-                class="w-full h-8 px-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                class="w-full h-8 px-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                 @change="addNextStep(selectedStep.id, ($event.target as HTMLSelectElement).value); ($event.target as HTMLSelectElement).value = ''">
                 <option value="">+ Додати наступний крок…</option>
                 <option
@@ -476,7 +471,7 @@ function toggleNextStepMenu(id: string) {
               </select>
             </div>
 
-            <Separator />
+            <Divider />
             <Button severity="danger" size="small" class="w-full" @click="removeStep(selectedStep.id)">
               <Trash2 class="size-4 mr-1" /> Видалити крок
             </Button>
@@ -516,28 +511,28 @@ function toggleNextStepMenu(id: string) {
           <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Стан</p>
           <div class="flex flex-col gap-3">
             <div class="flex flex-col gap-1.5">
-              <Label class="text-sm">Ім'я *</Label>
-              <Input :model-value="selectedState.name" @update:model-value="updateState(selectedStateIndex, 'name', $event)" />
+              <label class="text-sm font-medium">Ім'я *</label>
+              <InputText :model-value="selectedState.name" class="w-full" @update:model-value="updateState(selectedStateIndex, 'name', $event)" />
             </div>
             <div class="flex flex-col gap-1.5">
-              <Label class="text-sm">Позначка</Label>
-              <Input :model-value="selectedState.label" @update:model-value="updateState(selectedStateIndex, 'label', $event)" />
+              <label class="text-sm font-medium">Позначка</label>
+              <InputText :model-value="selectedState.label" class="w-full" @update:model-value="updateState(selectedStateIndex, 'label', $event)" />
             </div>
             <div class="flex flex-col gap-1.5">
-              <Label class="text-sm">Колір</Label>
+              <label class="text-sm font-medium">Колір</label>
               <input type="color" :value="selectedState.color || '#6b7280'"
-                class="w-full h-9 rounded-md border border-input cursor-pointer"
+                class="w-full h-9 rounded-md border border-border cursor-pointer"
                 @input="updateState(selectedStateIndex, 'color', ($event.target as HTMLInputElement).value)" />
             </div>
             <div class="flex items-center gap-2">
               <Checkbox binary :model-value="!!selectedState.is_initial" @update:model-value="updateState(selectedStateIndex, 'is_initial', $event)" />
-              <Label class="text-sm">Початковий</Label>
+              <label class="text-sm font-medium">Початковий</label>
             </div>
             <div class="flex items-center gap-2">
               <Checkbox binary :model-value="!!selectedState.is_final" @update:model-value="updateState(selectedStateIndex, 'is_final', $event)" />
-              <Label class="text-sm">Фінальний</Label>
+              <label class="text-sm font-medium">Фінальний</label>
             </div>
-            <Separator />
+            <Divider />
             <Button severity="danger" size="small" @click="removeState(selectedStateIndex)">
               <Trash2 class="size-4 mr-1" /> Видалити стан
             </Button>
@@ -549,11 +544,11 @@ function toggleNextStepMenu(id: string) {
           <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Перехід</p>
           <div class="flex flex-col gap-3">
             <div class="flex flex-col gap-1.5">
-              <Label class="text-sm">Дія (кнопка) *</Label>
-              <Input :model-value="selectedTransition.action" @update:model-value="updateTransition(selectedTransitionIndex, 'action', $event)" />
+              <label class="text-sm font-medium">Дія (кнопка) *</label>
+              <InputText :model-value="selectedTransition.action" class="w-full" @update:model-value="updateTransition(selectedTransitionIndex, 'action', $event)" />
             </div>
             <div class="flex flex-col gap-1.5">
-              <Label class="text-sm">Зі стану *</Label>
+              <label class="text-sm font-medium">Зі стану *</label>
               <Select
                 :model-value="selectedTransition.from_state"
                 :options="stateNames"
@@ -563,7 +558,7 @@ function toggleNextStepMenu(id: string) {
               />
             </div>
             <div class="flex flex-col gap-1.5">
-              <Label class="text-sm">До стану *</Label>
+              <label class="text-sm font-medium">До стану *</label>
               <Select
                 :model-value="selectedTransition.to_state"
                 :options="stateNames"
@@ -573,20 +568,20 @@ function toggleNextStepMenu(id: string) {
               />
             </div>
             <div class="flex flex-col gap-1.5">
-              <Label class="text-sm">Дозволені ролі</Label>
-              <textarea
-                :value="(selectedTransition.allowed_roles ?? []).join('\n')"
+              <label class="text-sm font-medium">Дозволені ролі</label>
+              <Textarea
+                :model-value="(selectedTransition.allowed_roles ?? []).join('\n')"
                 rows="3" placeholder="Кожна роль з нового рядка"
-                class="w-full text-sm border border-input rounded-md px-2 py-1.5 bg-background focus:outline-none focus:ring-1 focus:ring-ring"
-                @input="updateTransition(selectedTransitionIndex, 'allowed_roles', ($event.target as HTMLTextAreaElement).value.split('\n').map(r => r.trim()).filter(Boolean))"
+                class="w-full text-sm"
+                @update:model-value="updateTransition(selectedTransitionIndex, 'allowed_roles', ($event ?? '').split('\n').map((r: string) => r.trim()).filter(Boolean))"
               />
             </div>
             <div class="flex flex-col gap-1.5">
-              <Label class="text-sm">Умова (Python)</Label>
-              <Input :model-value="selectedTransition.condition ?? ''" placeholder="doc.amount > 0"
+              <label class="text-sm font-medium">Умова (Python)</label>
+              <InputText :model-value="selectedTransition.condition ?? ''" placeholder="doc.amount > 0" class="w-full"
                 @update:model-value="updateTransition(selectedTransitionIndex, 'condition', $event || null)" />
             </div>
-            <Separator />
+            <Divider />
             <Button severity="danger" size="small" @click="removeTransition(selectedTransitionIndex)">
               <Trash2 class="size-4 mr-1" /> Видалити перехід
             </Button>
@@ -600,7 +595,7 @@ function toggleNextStepMenu(id: string) {
     </template>
 
     <div v-else class="flex-1 flex items-center justify-center text-muted-foreground">
-      <p class="text-sm">Увімкніть workflow для налаштування станів і переходів</p>
+      <p class="text-sm font-medium">Увімкніть workflow для налаштування станів і переходів</p>
     </div>
   </div>
 </template>

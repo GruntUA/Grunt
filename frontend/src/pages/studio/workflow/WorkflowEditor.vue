@@ -5,7 +5,6 @@ import { useDocTypeStore } from '@/stores/doctype'
 import { metaApi } from '@/core/api'
 import { useToast } from '@/core/composables/useToast'
 import type { DocType, WorkflowDef, WorkflowState, WorkflowTransition } from '@/types'
-import { Spinner } from '@/components/ui/spinner'
 import { Loader2 } from '@lucide/vue'
 import WorkflowStatePanel from './WorkflowStatePanel.vue'
 import WorkflowTransitionPanel from './WorkflowTransitionPanel.vue'
@@ -239,7 +238,7 @@ function getTransitionMid(t: WorkflowTransition) {
     </div>
 
     <div v-if="isLoading" class="flex-1 flex items-center justify-center">
-      <Spinner size="lg" />
+      <ProgressSpinner class="size-10!" />
     </div>
 
     <div v-else class="flex flex-1 overflow-hidden">
@@ -362,7 +361,7 @@ function getTransitionMid(t: WorkflowTransition) {
         />
         <div
           v-else
-          class="w-64 flex-shrink-0 border-l border-border flex items-center justify-center text-muted-foreground/70 text-sm p-4 text-center"
+          class="w-64 shrink-0 border-l border-border flex items-center justify-center text-muted-foreground/70 text-sm p-4 text-center"
         >
           Натисніть на стан або перехід для редагування
         </div>

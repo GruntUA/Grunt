@@ -3,7 +3,6 @@ import { ref, watch, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/core/api/client'
 import { metaApi } from '@/core/api/meta'
-import { Input } from '@/components/ui/input'
 import {
     Plus, Search, Save, Play, Trash2, ChevronRight,
     Layout, Table as TableIcon, FileBarChart
@@ -143,8 +142,8 @@ const displayFields = computed(() => {
             <div class="p-6 border-b space-y-4">
                 <div class="flex items-center gap-2">
                     <FileBarChart class="size-5 text-primary" />
-                    <Input v-model="reportTitle" placeholder="Назва звіту"
-                        class="font-bold border-none focus-visible:ring-0 px-0 h-8 text-lg" />
+                    <InputText v-model="reportTitle" placeholder="Назва звіту"
+                        class="font-bold !border-none !ring-0 !shadow-none !px-0 !h-8 text-lg !bg-transparent flex-1" />
                 </div>
 
                 <div class="space-y-2">
@@ -163,12 +162,12 @@ const displayFields = computed(() => {
 
             <!-- Fields & Columns Tabs -->
             <Tabs value="columns" class="flex-1 flex flex-col overflow-hidden">
-                <TabList scrollable variant="underline" class="w-full h-auto border-b border-border">
-                    <Tab value="columns" variant="underline" class="flex-1">Колонки</Tab>
+                <TabList scrollable class="w-full h-auto border-b border-border">
+                    <Tab value="columns" class="flex-1">Колонки</Tab>
                 </TabList>
 
-                <TabPanels>
-                <TabPanel value="columns" class="flex-1 overflow-y-auto p-4 space-y-6 focus-visible:ring-0 m-0">
+                <TabPanels class="flex-1 overflow-hidden">
+                <TabPanel value="columns" class="h-full overflow-y-auto p-4 space-y-6 focus-visible:ring-0 m-0">
                     <!-- Selected Columns -->
                     <div class="space-y-3">
                         <div class="flex items-center justify-between">
@@ -205,7 +204,7 @@ const displayFields = computed(() => {
                                     option-label="label"
                                     option-value="value"
                                     placeholder="Агрегація"
-                                    class="h-7 text-[11px]"
+                                    class="h-7 text-[11px] w-full"
                                 />
                             </div>
                         </div>
@@ -218,9 +217,9 @@ const displayFields = computed(() => {
                             Доступні поля
                         </h4>
                         <div class="relative">
-                            <Search class="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
-                            <Input v-model="filteredFields" placeholder="Пошук полів..."
-                                class="h-9 pl-8 text-xs bg-muted/20 border-none" />
+                            <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground z-10" />
+                            <InputText v-model="filteredFields" placeholder="Пошук полів..."
+                                class="!h-9 !pl-8 !text-xs !bg-muted/20 !border-none !w-full" />
                         </div>
                         <div class="grid grid-cols-1 gap-1">
                             <button v-for="f in displayFields" :key="f.fieldname"
@@ -242,14 +241,16 @@ const displayFields = computed(() => {
             <!-- Sidebar Footer -->
             <div class="p-4 border-t flex flex-col gap-2 bg-muted/10">
                 <Button :disabled="previewLoading || !selectedDoctype || columns.length === 0" @click="runPreview" severity="secondary" class="w-full h-10 font-bold">
-                    <Play class="size-4 mr-2" :class="{ 'animate-pulse': previewLoading }" />
+                    <Play v-if="!previewLoading" class="size-4 mr-2" />
+                    <ProgressSpinner v-else class="!size-4 !mr-2" />
                     Переглянути
                 </Button>
                 <div class="flex gap-2">
                     <Button :disabled="loading || columns.length === 0" @click="saveReport"
-                        class="flex-1 h-10 font-bold">
-                        <Save class="size-4 mr-2" />
-                        Зберегти
+                        class="flex-1 h-10 font-bold" label="Зберегти">
+                        <template #icon>
+                            <Save class="size-4 mr-2" />
+                        </template>
                     </Button>
                     <Button outlined class="h-10 px-3" @click="router.back()">Скасувати</Button>
                 </div>
@@ -259,7 +260,7 @@ const displayFields = computed(() => {
         <!-- Main: Preview -->
         <main class="flex-1 flex flex-col bg-muted/10 overflow-hidden">
             <!-- Tools -->
-            <header class="p-8 pb-4 flex justify-between items-center">
+            <header class="p-8 pb-4 flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-2 text-sm text-muted-foreground/80 font-medium">
                     <span>Звіти</span>
                     <ChevronRight class="size-3 opacity-50" />
@@ -282,7 +283,7 @@ const displayFields = computed(() => {
 
                 <div v-else class="flex-1 bg-card rounded-2xl border shadow-xl overflow-hidden flex flex-col">
                     <!-- Table Toolbar -->
-                    <div class="p-4 border-b flex items-center justify-between bg-muted/20">
+                    <div class="p-4 border-b flex items-center justify-between bg-muted/20 shrink-0">
                         <div
                             class="flex items-center gap-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">
                             <span class="flex items-center gap-1.5">
@@ -292,7 +293,7 @@ const displayFields = computed(() => {
                             <span v-if="previewMeta">{{ previewMeta.time_ms }}мс</span>
                         </div>
                         <div v-if="previewLoading" class="flex items-center gap-2">
-                            <div class="size-2 rounded-full bg-primary animate-ping" />
+                            <ProgressSpinner class="!size-4" />
                             <span
                                 class="text-[10px] font-bold text-primary italic uppercase anima">Завантаження...</span>
                         </div>
@@ -312,7 +313,7 @@ const displayFields = computed(() => {
                             <tbody>
                                 <tr v-if="previewLoading && previewData.length === 0" v-for="i in 10" :key="i"
                                     class="border-b last:border-0 opacity-50">
-                                    <td v-for="col in previewCols.length || 5" :key="col" class="px-4 py-4">
+                                    <td v-for="colIdx in previewCols.length || 5" :key="colIdx" class="px-4 py-4">
                                         <Skeleton class="h-4 w-full" />
                                     </td>
                                 </tr>

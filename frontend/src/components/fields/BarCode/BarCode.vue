@@ -13,7 +13,6 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
-import { Input } from '@/components/ui/input'
 import { ScanLine, Upload, X, CheckCircle2, AlertCircle } from '@lucide/vue'
 
 type BarcodeDetectorInstance = {
@@ -192,12 +191,12 @@ onUnmounted(stopScan)
     <!-- Text input + action buttons -->
     <div class="flex gap-2">
       <div class="relative flex-1">
-        <Input
+        <InputText
           :model-value="String(modelValue ?? '')"
           :placeholder="field.placeholder ?? t('Scan or enter manually')"
           :required="field.required"
           :disabled="disabled || field.read_only"
-          class="pr-8"
+          class="pr-8 w-full"
           @update:model-value="emit('update:modelValue', $event)"
         />
         <CheckCircle2

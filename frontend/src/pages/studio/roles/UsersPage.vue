@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue'
 import { authAdminApi } from '@/core/api/auth-admin'
 import type { UserPublic } from '@/types'
-import { Spinner } from '@/components/ui/spinner'
 import { Loader2 } from '@lucide/vue'
 
 const users = ref<UserPublic[]>([])
@@ -53,7 +52,7 @@ onMounted(loadUsers)
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-16">
-      <Spinner size="lg" />
+      <ProgressSpinner class="size-10!" />
     </div>
 
     <div v-else class="flex flex-col gap-4">
@@ -62,8 +61,7 @@ onMounted(loadUsers)
           <div>
             <p class="font-medium text-foreground">{{ user.full_name }}</p>
             <p class="text-sm text-muted-foreground">{{ user.email }}</p>
-            <span v-if="user.is_superadmin"
-              class="inline-block mt-1 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">Superadmin</span>
+            <Badge v-if="user.is_superadmin" severity="warn" value="Superadmin" class="mt-1" />
           </div>
           <div class="flex-1">
             <p class="text-xs text-muted-foreground/70 mb-1.5">Ролі:</p>
@@ -77,8 +75,8 @@ onMounted(loadUsers)
             </div>
             <!-- Add role form for this user -->
             <div v-if="selectedUserId === user.id" class="flex gap-2">
-              <input v-model="newRole" type="text" placeholder="Назва ролі"
-                class="text-sm border border-border rounded-sm px-2 py-1 focus:outline-none focus:border-primary"
+              <InputText v-model="newRole" placeholder="Назва ролі"
+                class="h-9 text-sm"
                 @keydown.enter="addRole(user.id)" />
               <Button size="small" :disabled="isSubmitting" @click="addRole(user.id)">
                 <Loader2 v-if="isSubmitting" class="size-4 animate-spin" />Додати

@@ -4,7 +4,7 @@ import { Shield, Search, Check, ChevronRight, Save, Trash2, AlertCircle } from '
 import { metaApi } from '@/core/api/meta'
 import { useDocTypeStore } from '@/stores/doctype'
 import client from '@/core/api/client'
-import Spinner from '@/components/ui/spinner/Spinner.vue'
+import client from '@/core/api/client'
 
 interface Role {
     name: string
@@ -146,8 +146,8 @@ onMounted(async () => {
                 </div>
                 <div class="relative">
                     <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input v-model="searchDt" placeholder="Пошук DocType…"
-                        class="w-full h-9 pl-9 pr-3 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                    <InputText v-model="searchDt" placeholder="Пошук DocType…"
+                        class="w-full h-9 pl-9 pr-3 text-sm" />
                 </div>
             </div>
 
@@ -175,7 +175,7 @@ onMounted(async () => {
 
             <!-- Loading -->
             <div v-else-if="loading" class="flex-1 flex items-center justify-center">
-                <Spinner size="lg" />
+                <ProgressSpinner class="size-10!" />
             </div>
 
             <!-- Matrix -->
@@ -191,12 +191,14 @@ onMounted(async () => {
                     <div class="flex items-center gap-2">
                         <!-- Add role quick-add -->
                         <template v-if="unaddedRoles.length">
-                            <select
-                                class="h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                @change="(e) => { addRole((e.target as HTMLSelectElement).value); (e.target as HTMLSelectElement).value = '' }">
-                                <option value="" disabled selected>+ Додати роль</option>
-                                <option v-for="r in unaddedRoles" :key="r.name" :value="r.name">{{ r.name }}</option>
-                            </select>
+                            <Select
+                                :options="unaddedRoles"
+                                optionLabel="name"
+                                optionValue="name"
+                                placeholder="+ Додати роль"
+                                class="h-9 text-sm"
+                                @change="(e) => { addRole(e.value) }"
+                            />
                         </template>
 
                         <div v-if="saveError" class="flex items-center gap-1 text-destructive text-xs">
@@ -206,13 +208,13 @@ onMounted(async () => {
                             <Check class="w-3.5 h-3.5" />Збережено
                         </div>
 
-                        <button
-                            class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-                            :class="{ 'opacity-60': saving }" :disabled="saving" @click="save">
-                            <Save v-if="!saving" class="w-4 h-4" />
-                            <Spinner v-else size="sm" />
+                        <Button
+                            class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                            :disabled="saving" @click="save">
+                            <ProgressSpinner v-if="saving" class="size-4! mr-1" strokeWidth="8" />
+                            <Save v-else class="w-4 h-4" />
                             Зберегти
-                        </button>
+                        </Button>
                     </div>
                 </div>
 

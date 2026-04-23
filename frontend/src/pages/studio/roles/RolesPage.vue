@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue'
 import { authAdminApi } from '@/core/api/auth-admin'
 import { useDocTypeStore } from '@/stores/doctype'
-import { Spinner } from '@/components/ui/spinner'
 import { Loader2 } from '@lucide/vue'
 
 interface RoleInfo {
@@ -53,12 +52,12 @@ onMounted(async () => {
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-16">
-      <Spinner size="lg" />
+      <ProgressSpinner class="size-10!" />
     </div>
 
     <div v-else class="flex gap-6">
       <!-- Roles list -->
-      <div class="w-56 flex-shrink-0">
+      <div class="w-56 shrink-0">
         <p class="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wide mb-3">Ролі</p>
         <div class="flex flex-col gap-1 mb-4">
           <div
@@ -72,11 +71,10 @@ onMounted(async () => {
         </div>
         <!-- Create role -->
         <div class="flex flex-col gap-2">
-          <input
+          <InputText
             v-model="newRoleName"
-            type="text"
             placeholder="Нова роль..."
-            class="w-full text-sm border border-border rounded-sm px-2 py-1.5 focus:outline-none focus:border-primary"
+            class="w-full text-sm h-9"
             @keydown.enter="createRole"
           />
           <Button size="small" :disabled="isCreating" @click="createRole"><Loader2 v-if="isCreating" class="size-4 animate-spin" />Додати роль</Button>

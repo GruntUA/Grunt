@@ -3,8 +3,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import type { AttachmentResult } from '@/core/attachmentChannels/types'
 import { filesApi, type FileItem } from '@/core/api/files'
 import { useDebounce } from '@/core/composables/useDebounce'
-import { Input } from '@/components/ui/input'
-import { File as FileIcon, Loader2 } from '@lucide/vue'
+import { File as FileIcon } from '@lucide/vue'
 
 const props = defineProps<{ imageOnly: boolean }>()
 const emit = defineEmits<{ select: [result: AttachmentResult] }>()
@@ -80,7 +79,7 @@ function formatSize(bytes: number) {
   <div class="flex flex-col h-full">
     <!-- Search -->
     <div class="p-3 border-b border-border">
-      <Input v-model="search" placeholder="Пошук файлів..." class="h-8" />
+      <InputText v-model="search" placeholder="Пошук файлів..." class="h-8 text-sm w-full" />
     </div>
 
     <!-- Grid -->
@@ -119,8 +118,8 @@ function formatSize(bytes: number) {
       </div>
 
       <!-- Sentinel + loader -->
-      <div ref="sentinel" class="h-4 mt-2 flex justify-center">
-        <Loader2 v-if="isLoading" class="size-4 animate-spin text-muted-foreground" />
+      <div ref="sentinel" class="h-8 mt-2 flex justify-center">
+        <ProgressSpinner v-if="isLoading" class="!size-5" />
       </div>
     </div>
   </div>

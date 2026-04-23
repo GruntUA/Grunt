@@ -2,8 +2,6 @@
 import { ref, onMounted, computed } from 'vue'
 import { UploadCloud, File as FileIcon, Trash2, Search, Download, Folder } from '@lucide/vue'
 import { filesApi, type FileItem } from '@/core/api/files'
-import { Input } from '@/components/ui/input'
-import { Spinner } from '@/components/ui/spinner'
 
 const files = ref<FileItem[]>([])
 const loading = ref(false)
@@ -94,12 +92,12 @@ function onSearchInput() {
             <div class="flex items-center gap-3 w-full md:w-auto md:flex-1 md:justify-end">
                 <div class="relative w-full md:max-w-xs xl:max-w-md">
                     <Search class="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                    <Input v-model="searchQuery" placeholder="Введіть назву файла..." class="pl-9 h-9 w-full"
+                    <InputText v-model="searchQuery" placeholder="Введіть назву файла..." class="pl-9 h-9 w-full"
                         @input="onSearchInput" />
                 </div>
                 <div class="relative overflow-hidden group shrink-0">
                     <Button :disabled="uploading" class="h-9 whitespace-nowrap px-4">
-                        <Spinner v-if="uploading" class="size-4 mr-2" />
+                        <ProgressSpinner v-if="uploading" class="size-4! mr-2" strokeWidth="8" />
                         <UploadCloud v-else class="size-4 mr-2" />
                         Завантажити
                     </Button>
@@ -123,7 +121,7 @@ function onSearchInput() {
             </div>
 
             <div v-if="loading" class="flex-1 flex items-center justify-center">
-                <Spinner size="lg" />
+                <ProgressSpinner class="size-10!" />
             </div>
 
             <div v-else-if="files.length === 0"

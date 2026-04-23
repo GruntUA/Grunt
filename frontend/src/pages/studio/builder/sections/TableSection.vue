@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { metaApi } from '@/core/api'
 import type { DocTypeSummary } from '@/types'
-import { Separator } from '@/components/ui/separator'
 
 const { field, updateField } = usePropertyEditor()
 const childDoctypes = ref<DocTypeSummary[]>([])
@@ -17,7 +16,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Separator class="mb-3" />
+  <Divider class="!mb-3" />
   <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Child DocType</p>
   <div class="mb-4">
     <Select

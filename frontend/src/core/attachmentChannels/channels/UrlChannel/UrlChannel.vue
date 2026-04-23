@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { AttachmentResult } from '@/core/attachmentChannels/types'
-import { Input } from '@/components/ui/input'
 import { AlertCircle } from '@lucide/vue'
 
 const props = defineProps<{ imageOnly: boolean }>()
@@ -42,9 +41,10 @@ function confirm() {
   <div class="p-4 flex flex-col gap-3">
     <p class="text-sm text-muted-foreground">Вкажіть пряме посилання на файл у інтернеті.</p>
 
-    <Input
+    <InputText
       v-model="urlInput"
       placeholder="https://example.com/file.pdf"
+      class="w-full"
       @keydown.enter="confirm"
     />
 
@@ -58,8 +58,6 @@ function confirm() {
       URL не схожий на зображення
     </div>
 
-    <Button type="button" :disabled="!urlInput.trim()" @click="confirm">
-      Підтвердити
-    </Button>
+    <Button type="button" :disabled="!urlInput.trim()" @click="confirm" label="Підтвердити" />
   </div>
 </template>

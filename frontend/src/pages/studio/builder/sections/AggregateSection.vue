@@ -2,9 +2,6 @@
 import { computed } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 
 const { field, updateField } = usePropertyEditor()
 const builder = useBuilderStore()
@@ -27,7 +24,7 @@ const tableFields = computed(() =>
 </script>
 
 <template>
-  <Separator class="mb-3" />
+  <Divider class="!mb-3" />
   <div class="flex items-center justify-between mb-3">
     <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Aggregation</p>
     <span
@@ -36,8 +33,8 @@ const tableFields = computed(() =>
     >∑ активна</span>
   </div>
   <div class="flex flex-col gap-3 mb-4">
-    <div class="space-y-1.5">
-      <Label class="text-sm">Функція</Label>
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium">Функція</label>
       <Select
         :model-value="field.aggregate_function ?? '__none__'"
         :options="AGGREGATE_FUNCTIONS"
@@ -48,8 +45,8 @@ const tableFields = computed(() =>
       />
     </div>
     <template v-if="field.aggregate_function">
-      <div class="space-y-1.5">
-        <Label class="text-sm">Таблиця (TABLE поле)</Label>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium">Таблиця (TABLE поле)</label>
         <Select
           :model-value="field.aggregate_table ?? ''"
           :options="tableFields"
@@ -61,11 +58,12 @@ const tableFields = computed(() =>
           @update:model-value="updateField('aggregate_table', $event || null)"
         />
       </div>
-      <div v-if="field.aggregate_function !== 'count'" class="space-y-1.5">
-        <Label class="text-sm">Поле дочірнього DocType</Label>
-        <Input
+      <div v-if="field.aggregate_function !== 'count'" class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium">Поле дочірнього DocType</label>
+        <InputText
           :model-value="field.aggregate_field ?? ''"
           placeholder="напр. amount"
+          class="w-full"
           @update:model-value="updateField('aggregate_field', $event || null)"
         />
         <p class="text-[11px] text-muted-foreground">Fieldname числового поля у дочірньому DocType</p>

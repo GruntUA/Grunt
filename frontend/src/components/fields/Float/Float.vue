@@ -1,25 +1,26 @@
 <script setup lang="ts">
 import type { DocField } from '@/types'
-import { Input } from '@/components/ui/input'
 
 defineProps<{
   field: DocField
-  modelValue: unknown
+  modelValue: number | null | undefined
   disabled?: boolean
   error?: string
 }>()
 
-const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
+const emit = defineEmits<{ 'update:modelValue': [value: number | null] }>()
 </script>
 
 <template>
-  <Input
-    :model-value="modelValue !== null && modelValue !== undefined ? String(modelValue) : ''"
-    type="number"
-    step="any"
+  <InputNumber
+    :model-value="modelValue"
+    :minFractionDigits="2"
+    :maxFractionDigits="9"
     :placeholder="field.placeholder ?? '0.0'"
     :required="field.required"
     :disabled="disabled || field.read_only"
-    @update:model-value="emit('update:modelValue', $event === '' ? null : Number($event))"
+    class="w-full"
+    fluid
+    @update:model-value="emit('update:modelValue', $event)"
   />
 </template>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { DocField } from '@/types'
-import { Label } from '@/components/ui/label'
 import { useId } from 'vue'
 
 defineProps<{
@@ -23,6 +22,6 @@ const id = useId()
       :disabled="disabled || field.read_only"
       @update:model-value="emit('update:modelValue', $event)"
     />
-    <Label :for="id" class="text-sm font-medium cursor-pointer select-none">{{ field.label }}</Label>
+    <label :for="id" class="text-sm font-medium cursor-pointer select-none text-foreground/90">{{ field.label }}</label>
   </div>
 </template>

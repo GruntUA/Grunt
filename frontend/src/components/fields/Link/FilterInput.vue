@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { Input } from '@/components/ui/input'
 import { X, Loader2 } from '@lucide/vue'
 import type { DocField } from '@/types'
 import type { LinkSearchItem } from '@/core/api/docs'
@@ -73,9 +72,9 @@ function clear() {
 <template>
   <div class="mb-3 space-y-1.5">
     <div class="relative">
-      <Input
+      <InputText
         v-model="linkQuery"
-        class="h-8 text-xs pr-7"
+        class="h-8 text-xs pr-7 w-full"
         :placeholder="`Пошук ${field.options}...`"
         @keydown.enter.prevent="linkResults[0] && selectItem(linkResults[0])"
       />

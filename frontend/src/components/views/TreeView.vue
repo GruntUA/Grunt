@@ -3,11 +3,11 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { docsApi } from '@/core/api/docs'
-import { Spinner } from '@/components/ui/spinner'
 import {
   ChevronRight, ChevronDown, Plus, FolderOpen,
   AlertCircle, RefreshCw
 } from '@lucide/vue'
+import type { DocType, GruntDocument } from '@/types'
 
 const props = defineProps<{
   doctype: DocType
@@ -161,6 +161,13 @@ function countDescendants(node: TreeNode): number {
   for (const child of node.children) count += countDescendants(child)
   return count
 }
+
+interface TreeNode {
+  id: string
+  data: GruntDocument
+  children: TreeNode[]
+  expanded: boolean
+}
 </script>
 
 <template>
@@ -190,12 +197,12 @@ function countDescendants(node: TreeNode): number {
 
     <!-- Loading -->
     <div v-if="loading && !allDocs.length" class="flex justify-center py-16">
-      <Spinner size="lg" />
+      <ProgressSpinner class="size-10!" />
     </div>
 
     <!-- Error -->
     <div v-else-if="error" class="flex items-center gap-3 p-4 rounded-lg bg-destructive/10 text-destructive text-sm">
-      <AlertCircle class="size-4 flex-shrink-0" />
+      <AlertCircle class="size-4 shrink-0" />
       {{ error }}
       <Button text size="small" class="ml-auto" @click="loadAll">{{ t('Retry') }}</Button>
     </div>
@@ -237,29 +244,18 @@ function countDescendants(node: TreeNode): number {
 <script lang="ts">
 import { defineComponent, h, type PropType } from 'vue'
 import { ChevronRight as CR, ChevronDown as CD, Plus as PL, Folder as FL, FolderOpen as FO, FileText as FT } from '@lucide/vue'
-import type { DocType, GruntDocument } from '@/types'
 
-// Recursive component defined separately to allow self-reference
- 
- interface TreeNode {
-   id: string
-   data: GruntDocument
-   children: TreeNode[]
-   expanded: boolean
- }
- 
- const TreeNodeRow: any = defineComponent({
+const TreeNodeRow: any = defineComponent({
   name: 'TreeNodeRow',
   props: {
     node: { type: Object as PropType<TreeNode>, required: true },
     depth: { type: Number, required: true },
     expandedIds: { type: Object as PropType<Set<string>>, required: true },
-    getTitle: { type: Function as PropType<(doc: GruntDocument) => string>, required: true },
-    countDescendants: { type: Function as PropType<(node: TreeNode) => number>, required: true },
+    getTitle: { type: Function as PropType<(doc: any) => string>, required: true },
+    countDescendants: { type: Function as PropType<(node: any) => number>, required: true },
   },
   emits: ['toggle', 'navigate', 'create-child'],
   setup(props, { emit }) {
-    const { t } = useI18n()
     return () => {
       const { node, depth, expandedIds } = props
       const isExpanded = expandedIds.has(node.id)
@@ -268,14 +264,14 @@ import type { DocType, GruntDocument } from '@/types'
 
       const chevron = hasChildren
         ? h(isExpanded ? CD : CR, {
-            class: 'size-4 text-muted-foreground flex-shrink-0 transition-transform duration-150',
+            class: 'size-4 text-muted-foreground shrink-0 transition-transform duration-150',
             onClick: (e: Event) => { e.stopPropagation(); emit('toggle', node) },
           })
-        : h('span', { class: 'w-4 flex-shrink-0' })
+        : h('span', { class: 'w-4 shrink-0' })
 
       const icon = hasChildren
-        ? h(isExpanded ? FO : FL, { class: 'size-4 flex-shrink-0 text-amber-500' })
-        : h(FT, { class: 'size-4 flex-shrink-0 text-muted-foreground/60' })
+        ? h(isExpanded ? FO : FL, { class: 'size-4 shrink-0 text-amber-500' })
+        : h(FT, { class: 'size-4 shrink-0 text-muted-foreground/60' })
 
       const descendants = props.countDescendants(node)
 
@@ -290,11 +286,11 @@ import type { DocType, GruntDocument } from '@/types'
           class: 'text-sm text-foreground flex-1 truncate',
         }, props.getTitle(node.data)),
         descendants > 0 && h('span', {
-          class: 'text-[11px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium flex-shrink-0',
+          class: 'text-[11px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium shrink-0',
         }, String(descendants)),
         h('button', {
-          class: 'opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1 rounded hover:bg-primary/10 hover:text-primary text-muted-foreground',
-          title: t('Add child'),
+          class: 'opacity-0 group-hover:opacity-100 transition-opacity shrink-0 p-1 rounded hover:bg-primary/10 hover:text-primary text-muted-foreground',
+          title: 'Add child',
           onClick: (e: Event) => { e.stopPropagation(); emit('create-child', node) },
         }, h(PL, { class: 'size-3.5' })),
       ])
@@ -308,9 +304,9 @@ import type { DocType, GruntDocument } from '@/types'
               expandedIds,
               getTitle: props.getTitle,
               countDescendants: props.countDescendants,
-              onToggle: (n: TreeNode) => emit('toggle', n),
-              onNavigate: (n: TreeNode) => emit('navigate', n),
-              onCreateChild: (n: TreeNode) => emit('create-child', n),
+              onToggle: (n: any) => emit('toggle', n),
+              onNavigate: (n: any) => emit('navigate', n),
+              onCreateChild: (n: any) => emit('create-child', n),
             })
           )
         : []

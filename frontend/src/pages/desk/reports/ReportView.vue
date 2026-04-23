@@ -3,9 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { reportsApi } from '@/core/api/reports'
 import type { ReportDetail, ReportResult, ReportColumn } from '@/types'
-import { Spinner } from '@/components/ui/spinner'
 import { Loader2 } from '@lucide/vue'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 import { useAuthStore } from '@/stores/auth'
 
@@ -91,7 +89,7 @@ onMounted(load)
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-16">
-      <Spinner size="lg" />
+      <ProgressSpinner class="size-10!" />
     </div>
 
     <template v-else>
@@ -101,18 +99,9 @@ onMounted(load)
       </div>
 
       <!-- Table -->
-      <Table v-if="result && result.data.length > 0">
-        <TableHeader>
-          <TableRow>
-            <TableHead v-for="col in tableColumns" :key="col.key">{{ col.label }}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow v-for="(row, i) in tableRows" :key="i">
-            <TableCell v-for="col in tableColumns" :key="col.key">{{ row[col.key] ?? '' }}</TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
+      <DataTable v-if="result && result.data.length > 0" :value="tableRows" size="small" stripedRows class="border border-border/50 rounded-lg overflow-hidden">
+        <Column v-for="col in tableColumns" :key="col.key" :field="col.key" :header="col.label" />
+      </DataTable>
       <div v-else-if="result" class="text-center py-10 text-muted-foreground text-sm">
         Немає даних
       </div>

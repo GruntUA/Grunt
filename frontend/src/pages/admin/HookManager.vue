@@ -10,8 +10,6 @@ import {
     AlertCircle,
     ExternalLink
 } from '@lucide/vue'
-import { Input } from '@/components/ui/input'
-
 
 interface HookEntry {
     source: string
@@ -71,17 +69,14 @@ onMounted(fetchHooks)
                         <p class="text-sm text-muted-foreground">Перегляд та управління подіями системи</p>
                     </div>
                 </div>
-                <button @click="fetchHooks"
-                    class="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium shadow-sm hover:translate-y-[-1px] active:translate-y-0 transition-all">
-                    Оновити
-                </button>
+                <Button @click="fetchHooks">Оновити</Button>
             </div>
 
             <div class="flex items-center gap-4">
                 <div class="relative flex-1">
                     <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                    <Input v-model="searchQuery" placeholder="Пошук за подією, обробником або DocType..."
-                        class="pl-10 h-11 bg-card shadow-inner border-border/60" />
+                    <InputText v-model="searchQuery" placeholder="Пошук за подією, обробником або DocType..."
+                        class="pl-10 h-11 bg-card w-full shadow-inner border-border/60" />
                 </div>
                 <div class="flex gap-2 p-1 bg-muted rounded-lg shadow-inner">
                     <button v-for="s in ['all', 'Python', 'Database']" :key="s" @click="filterSource = s"
@@ -106,7 +101,7 @@ onMounted(fetchHooks)
 
                 <ScrollPanel class="flex-1">
                     <div v-if="loading" class="flex flex-col items-center justify-center h-[400px] gap-4">
-                        <div class="size-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                        <ProgressSpinner class="size-10!" />
                         <span class="text-sm font-medium text-muted-foreground">Завантаження конфігурації...</span>
                     </div>
 

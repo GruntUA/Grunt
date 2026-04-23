@@ -2,11 +2,6 @@
 import { computed, ref, watch, onMounted } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { appsApi, type GruntApp } from '@/core/api'
-import { Input } from '@/components/ui/input'
-import { Field, FieldLabel, FieldDescription } from '@/components/ui/field'
-
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import { X } from '@lucide/vue'
 
 const builder = useBuilderStore()
@@ -197,19 +192,19 @@ function removeSearchField(fieldname: string) {
     <section>
       <h3 class="mb-4 text-lg font-semibold text-foreground">Загальне</h3>
 
-      <Field class="mb-4">
-        <FieldLabel class="text-muted-foreground">Назва</FieldLabel>
-        <Input :model-value="builder.doctype?.label ?? ''" @update:model-value="onLabelChange(String($event))" />
-      </Field>
+      <div class="flex flex-col gap-1.5 mb-4">
+        <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Назва</label>
+        <InputText :model-value="builder.doctype?.label ?? ''" class="w-full" @update:model-value="onLabelChange(String($event))" />
+      </div>
 
-      <Field class="mb-4">
-        <FieldLabel class="text-muted-foreground">Системна назва</FieldLabel>
-        <Input :model-value="builder.doctype?.name ?? ''" :disabled="!builder.isNew" placeholder="PascalCase"
+      <div class="flex flex-col gap-1.5 mb-4">
+        <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Системна назва</label>
+        <InputText :model-value="builder.doctype?.name ?? ''" :disabled="!builder.isNew" placeholder="PascalCase" class="w-full"
           @update:model-value="builder.isNew && builder.updateDocType({ name: String($event) })" />
-      </Field>
+      </div>
 
-      <Field class="mb-4">
-        <FieldLabel class="text-muted-foreground">Додаток</FieldLabel>
+      <div class="flex flex-col gap-1.5 mb-4">
+        <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Додаток</label>
         <Select
           :model-value="pendingAppName ?? '__none__'"
           :options="[{ value: '__none__', label: 'Немає додатку' }, ...apps.map(a => ({ value: a.name, label: a.title }))]"
@@ -220,11 +215,11 @@ function removeSearchField(fieldname: string) {
           class="w-full"
           @update:model-value="setApp(String($event) === '__none__' ? null : (String($event) || null))"
         />
-      </Field>
+      </div>
 
       <!-- Module selector — shown only when an app is selected -->
-      <Field v-if="pendingAppName" class="mb-4">
-        <FieldLabel class="text-muted-foreground">Модуль</FieldLabel>
+      <div v-if="pendingAppName" class="flex flex-col gap-1.5 mb-4">
+        <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Модуль</label>
 
         <!-- App has modules → show select -->
         <Select
@@ -240,49 +235,49 @@ function removeSearchField(fieldname: string) {
         <div v-else class="space-y-2">
           <p class="text-sm text-muted-foreground">У цьому додатку немає модулів. Введіть назву нового модуля:</p>
           <div class="flex gap-2">
-            <Input v-model="newModuleName" placeholder="Назва модуля" @keydown.enter="createModule" />
+            <InputText v-model="newModuleName" placeholder="Назва модуля" class="flex-1" @keydown.enter="createModule" />
             <Button type="button" :disabled="!newModuleName.trim() || isCreatingModule" @click="createModule">
               {{ isCreatingModule ? 'Створення...' : 'Створити' }}
             </Button>
           </div>
         </div>
-      </Field>
+      </div>
 
       <div class="grid grid-cols-2 gap-4">
         <div class="flex items-center justify-between rounded-md border border-border p-3">
-          <Label class="text-sm text-foreground">Сінглтон</Label>
+          <span class="text-sm font-medium text-foreground">Сінглтон</span>
           <ToggleSwitch :model-value="!!builder.doctype?.is_singleton"
             @update:model-value="builder.updateDocType({ is_singleton: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
-          <Label class="text-sm text-foreground">Подання</Label>
+          <span class="text-sm font-medium text-foreground">Подання</span>
           <ToggleSwitch :model-value="!!builder.doctype?.is_submittable"
             @update:model-value="builder.updateDocType({ is_submittable: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
-          <Label class="text-sm text-foreground">Дочірній</Label>
+          <span class="text-sm font-medium text-foreground">Дочірній</span>
           <ToggleSwitch :model-value="!!builder.doctype?.is_child"
             @update:model-value="builder.updateDocType({ is_child: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
-          <Label class="text-sm text-foreground">Ієрархія (дерево)</Label>
+          <span class="text-sm font-medium text-foreground">Ієрархія (дерево)</span>
           <ToggleSwitch :model-value="!!builder.doctype?.is_tree"
             @update:model-value="builder.updateDocType({ is_tree: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
-          <Label class="text-sm text-foreground">Відстеження змін</Label>
+          <span class="text-sm font-medium text-foreground">Відстеження змін</span>
           <ToggleSwitch :model-value="!!builder.doctype?.track_changes"
             @update:model-value="builder.updateDocType({ track_changes: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <div>
-            <Label class="text-sm text-foreground">Швидке створення</Label>
-            <p class="text-xs text-muted-foreground mt-0.5">Відкривати діалог замість повної форми</p>
+            <span class="text-sm font-medium text-foreground">Швидке створення</span>
+            <p class="text-[11px] text-muted-foreground mt-0.5">Відкривати діалог замість повної форми</p>
           </div>
           <ToggleSwitch :model-value="!!builder.doctype?.quick_entry"
             @update:model-value="builder.updateDocType({ quick_entry: $event })" />
@@ -290,14 +285,14 @@ function removeSearchField(fieldname: string) {
       </div>
     </section>
 
-    <Separator class="my-6" />
+    <Divider class="!my-6" />
 
     <!-- Нумерація (Naming) -->
     <section>
       <h3 class="mb-4 text-lg font-semibold text-foreground">Нумерація</h3>
 
-      <Field class="mb-4">
-        <FieldLabel class="text-muted-foreground">Стратегія автоіменування</FieldLabel>
+      <div class="flex flex-col gap-1.5 mb-4">
+        <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Стратегія автоіменування</label>
         <Select
           :model-value="autonameStrategy"
           :options="[
@@ -314,10 +309,10 @@ function removeSearchField(fieldname: string) {
           class="w-full"
           @update:model-value="setAutonameStrategy"
         />
-      </Field>
+      </div>
 
-      <Field v-if="autonameStrategy === 'field:'" class="mb-4">
-        <FieldLabel class="text-muted-foreground">Поле для імені</FieldLabel>
+      <div v-if="autonameStrategy === 'field:'" class="flex flex-col gap-1.5 mb-4">
+        <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Поле для імені</label>
         <Select
           :model-value="autonameValue"
           :options="dataFields.map(f => ({ value: f.fieldname, label: f.label || f.fieldname }))"
@@ -327,16 +322,16 @@ function removeSearchField(fieldname: string) {
           class="w-full"
           @update:model-value="setAutonameValue"
         />
-      </Field>
+      </div>
 
-      <Field v-if="autonameStrategy === 'format:'" class="mb-4">
-        <FieldLabel class="text-muted-foreground">Шаблон</FieldLabel>
-        <Input :model-value="autonameValue" placeholder="CONTR-.YYYY.-.####"
+      <div v-if="autonameStrategy === 'format:'" class="flex flex-col gap-1.5 mb-4">
+        <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Шаблон</label>
+        <InputText :model-value="autonameValue" placeholder="CONTR-.YYYY.-.####" class="w-full"
           @update:model-value="setAutonameValue($event as any)" />
-      </Field>
+      </div>
 
-      <Field class="mb-4">
-        <FieldLabel class="text-muted-foreground">Поле заголовка</FieldLabel>
+      <div class="flex flex-col gap-1.5 mb-4">
+        <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Поле заголовка</label>
         <Select
           :model-value="builder.doctype?.title_field || '__name__'"
           :options="[{ value: '__name__', label: 'name' }, ...dataFields.map(f => ({ value: f.fieldname, label: f.label || f.fieldname }))]"
@@ -346,10 +341,10 @@ function removeSearchField(fieldname: string) {
           class="w-full"
           @update:model-value="builder.updateDocType({ title_field: String($event) === '__name__' ? undefined : String($event) })"
         />
-      </Field>
+      </div>
 
-      <Field class="mb-4">
-        <FieldLabel class="text-muted-foreground">Поле фото</FieldLabel>
+      <div class="flex flex-col gap-1.5 mb-4">
+        <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Поле фото</label>
         <Select
           :model-value="builder.doctype?.image_field || '__none__'"
           :options="[{ value: '__none__', label: 'Немає' }, ...imageFields.map(f => ({ value: f.fieldname, label: f.label || f.fieldname }))]"
@@ -359,20 +354,20 @@ function removeSearchField(fieldname: string) {
           class="w-full"
           @update:model-value="builder.updateDocType({ image_field: String($event) === '__none__' ? null : String($event) })"
         />
-        <FieldDescription v-if="imageFields.length === 0">
+        <p v-if="imageFields.length === 0" class="text-[11px] text-muted-foreground mt-1">
           Додайте поле типу «Image» або «Attach Image» у форму, щоб обрати його тут.
-        </FieldDescription>
-      </Field>
+        </p>
+      </div>
     </section>
 
-    <Separator class="my-6" />
+    <Divider class="!my-6" />
 
     <!-- Вигляд за замовчуванням -->
     <section>
       <h3 class="mb-4 text-lg font-semibold text-foreground">Вигляд</h3>
 
-      <Field class="mb-4">
-        <FieldLabel class="text-muted-foreground">Вигляд за замовчуванням</FieldLabel>
+      <div class="flex flex-col gap-1.5 mb-4">
+        <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Вигляд за замовчуванням</label>
         <Select
           :model-value="builder.doctype?.default_view ?? 'list'"
           :options="[
@@ -387,24 +382,24 @@ function removeSearchField(fieldname: string) {
           class="w-full"
           @update:model-value="builder.updateDocType({ default_view: String($event) === 'list' ? null : String($event) as 'kanban' | 'calendar' | 'tree' })"
         />
-      </Field>
+      </div>
     </section>
 
-    <Separator class="my-6" />
+    <Divider class="!my-6" />
 
     <!-- Пошук (Search) -->
     <section>
       <h3 class="mb-4 text-lg font-semibold text-foreground">Пошук</h3>
 
-      <Field class="mb-4">
-        <FieldLabel class="text-muted-foreground">Поля пошуку</FieldLabel>
+      <div class="flex flex-col gap-1.5 mb-4">
+        <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Поля пошуку</label>
 
         <div v-if="searchFields.length" class="mb-2 flex flex-wrap gap-2">
           <Badge v-for="sf in searchFields" :key="sf" severity="secondary" class="flex items-center gap-1">
             {{ sf }}
-            <Button text class="h-4 w-4 p-0 hover:bg-transparent" @click="removeSearchField(sf)">
+            <button type="button" class="ml-1 hover:text-destructive" @click="removeSearchField(sf)">
               <X class="h-3 w-3" />
-            </Button>
+            </button>
           </Badge>
         </div>
 
@@ -417,7 +412,7 @@ function removeSearchField(fieldname: string) {
           class="w-full"
           @update:model-value="addSearchField($event as string)"
         />
-      </Field>
+      </div>
     </section>
   </div>
 </template>

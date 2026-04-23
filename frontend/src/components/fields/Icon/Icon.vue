@@ -2,7 +2,6 @@
 import { ref, computed, shallowRef, onMounted } from 'vue'
 import type { Component } from 'vue'
 import type { DocField } from '@/types'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Search, X } from '@lucide/vue'
 
 const props = defineProps<{
@@ -52,7 +51,7 @@ function getComponent(name: string): Component | null {
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
-const open = ref(false)
+const op = ref()
 const search = ref('')
 
 const currentName = computed(() => String(props.modelValue ?? ''))
@@ -64,15 +63,15 @@ const filtered = computed(() => {
   return allNames.value.filter(n => n.toLowerCase().includes(q)).slice(0, 200)
 })
 
-async function openPicker() {
+async function toggle(event: Event) {
   if (props.disabled || props.field.read_only) return
   await ensureLoaded()
-  open.value = true
+  op.value.toggle(event)
 }
 
 function select(pascalName: string) {
   emit('update:modelValue', toKebab(pascalName))
-  open.value = false
+  op.value.hide()
   search.value = ''
 }
 
@@ -89,66 +88,64 @@ onMounted(() => {
 <template>
   <div class="flex items-center gap-2">
     <!-- Trigger button -->
-    <Popover v-model:open="open">
-      <PopoverTrigger as-child>
-        <Button
-          type="button" outlined
-          class="h-9 gap-2 min-w-[140px] justify-start font-normal"
-          :disabled="disabled || field.read_only"
-          @click="openPicker"
-        >
-          <component :is="currentComponent" v-if="currentComponent" class="size-4 shrink-0" />
-          <span v-if="currentName" class="text-sm truncate">{{ currentName }}</span>
-          <span v-else class="text-sm text-muted-foreground">Обрати іконку…</span>
-        </Button>
-      </PopoverTrigger>
+    <Button
+        type="button" outlined
+        class="h-9 gap-2 min-w-[140px] justify-start font-normal"
+        :disabled="disabled || field.read_only"
+        @click="toggle"
+    >
+        <component :is="currentComponent" v-if="currentComponent" class="size-4 shrink-0" />
+        <span v-if="currentName" class="text-sm truncate">{{ currentName }}</span>
+        <span v-else class="text-sm text-muted-foreground">Обрати іконку…</span>
+    </Button>
 
-      <PopoverContent class="w-80 p-0" align="start" :side-offset="4">
-        <!-- Search -->
-        <div class="flex items-center gap-2 px-3 py-2.5 border-b border-border/60">
-          <Search class="size-3.5 shrink-0 text-muted-foreground" />
-          <input
-            v-model="search"
-            class="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
-            placeholder="Пошук іконки…"
-            autofocus
-          />
-          <button v-if="search" type="button" @click="search = ''" class="text-muted-foreground hover:text-foreground">
-            <X class="size-3.5" />
-          </button>
-        </div>
+    <Popover ref="op" class="!p-0 !shadow-lg !rounded-xl !border-border/50">
+        <div class="w-80 flex flex-col overflow-hidden">
+            <!-- Search -->
+            <div class="flex items-center gap-2 px-3 py-2.5 border-b border-border/60">
+                <Search class="size-3.5 shrink-0 text-muted-foreground" />
+                <input
+                    v-model="search"
+                    class="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
+                    placeholder="Пошук іконки…"
+                    autofocus
+                />
+                <button v-if="search" type="button" @click="search = ''" class="text-muted-foreground hover:text-foreground">
+                    <X class="size-3.5" />
+                </button>
+            </div>
 
-        <!-- Grid -->
-        <div class="h-64 overflow-y-auto p-2">
-          <div v-if="!allNames.length" class="flex items-center justify-center h-full text-sm text-muted-foreground">
-            Завантаження…
-          </div>
-          <div v-else-if="!filtered.length" class="flex items-center justify-center h-full text-sm text-muted-foreground">
-            Не знайдено
-          </div>
-          <div v-else class="grid grid-cols-8 gap-0.5">
-            <button
-              v-for="name in filtered"
-              :key="name"
-              type="button"
-              class="flex items-center justify-center rounded p-1.5 transition-colors size-9"
-              :class="toKebab(name) === currentName
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted text-foreground'"
-              :title="toKebab(name)"
-              @click="select(name)"
-            >
-              <component :is="allIcons[name]" class="size-4" />
-            </button>
-          </div>
-          <p v-if="filtered.length === 200 && search" class="text-center text-xs text-muted-foreground mt-2">
-            Показано перші 200 результатів
-          </p>
-          <p v-else-if="!search && allNames.length > 120" class="text-center text-xs text-muted-foreground mt-2 pb-1">
-            Введіть назву для пошуку по {{ allNames.length }} іконках
-          </p>
+            <!-- Grid -->
+            <div class="h-64 overflow-y-auto p-2">
+                <div v-if="!allNames.length" class="flex items-center justify-center h-full text-sm text-muted-foreground">
+                    <ProgressSpinner class="!size-6" />
+                </div>
+                <div v-else-if="!filtered.length" class="flex items-center justify-center h-full text-sm text-muted-foreground">
+                    Не знайдено
+                </div>
+                <div v-else class="grid grid-cols-8 gap-0.5">
+                    <button
+                        v-for="name in filtered"
+                        :key="name"
+                        type="button"
+                        class="flex items-center justify-center rounded p-1.5 transition-colors size-9"
+                        :class="toKebab(name) === currentName
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-muted text-foreground'"
+                        :title="toKebab(name)"
+                        @click="select(name)"
+                    >
+                        <component :is="allIcons[name]" class="size-4" />
+                    </button>
+                </div>
+                <p v-if="filtered.length === 200 && search" class="text-center text-xs text-muted-foreground mt-2">
+                    Показано перші 200 результатів
+                </p>
+                <p v-else-if="!search && allNames.length > 120" class="text-center text-xs text-muted-foreground mt-2 pb-1">
+                    Введіть назву для пошуку по {{ allNames.length }} іконках
+                </p>
+            </div>
         </div>
-      </PopoverContent>
     </Popover>
 
     <!-- Clear button -->

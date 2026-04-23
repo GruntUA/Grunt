@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 
 const { field, updateField } = usePropertyEditor()
 </script>
 
 <template>
-  <Separator class="mb-3" />
+  <Divider class="!mb-3" />
   <div class="flex items-center justify-between mb-3">
     <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Formula</p>
     <span
@@ -15,14 +13,15 @@ const { field, updateField } = usePropertyEditor()
       class="text-[10px] font-mono text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-1.5 py-0.5 rounded"
     >ƒx активна</span>
   </div>
-  <div class="flex flex-col gap-2 mb-4">
-    <div class="space-y-1.5">
-      <Label class="text-sm">Вираз (Python)</Label>
-      <textarea
-        :value="field.formula ?? ''"
+  <div class="flex flex-col gap-3 mb-4">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium">Вираз (Python)</label>
+      <Textarea
+        :model-value="field.formula ?? ''"
         rows="2"
         placeholder="qty * unit_price"
-        class="w-full text-sm font-mono border border-input rounded-md px-2 py-1.5 bg-background focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+        class="w-full !text-sm !font-mono"
+        autoResize
         @input="updateField('formula', ($event.target as HTMLTextAreaElement).value.trim() || null)"
       />
       <p class="text-[11px] text-muted-foreground leading-relaxed">
@@ -34,7 +33,7 @@ const { field, updateField } = usePropertyEditor()
     </div>
     <div v-if="field.formula" class="flex items-center gap-2 pt-1 pl-0.5">
       <Checkbox binary :model-value="!!field.read_only" @update:model-value="updateField('read_only', $event)" />
-      <Label class="text-sm text-muted-foreground cursor-pointer">Read Only (рекомендовано)</Label>
+      <label class="text-sm text-muted-foreground cursor-pointer font-medium">Read Only (рекомендовано)</label>
     </div>
   </div>
 </template>

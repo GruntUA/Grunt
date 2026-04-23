@@ -1,23 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Input } from '@/components/ui/input'
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Trash2 } from '@lucide/vue'
 import client from '@/core/api/client'
 
@@ -32,15 +15,6 @@ const availableFields = computed(() =>
     .filter(f => physicalFieldTypes.has(f.fieldtype))
     .map(f => ({ value: f.fieldname, label: f.label || f.fieldname }))
 )
-
-function toggleHiddenField(permIndex: number, fieldname: string) {
-  const perm = permissions.value[permIndex]
-  const current: string[] = perm.hidden_fields ?? []
-  const next = current.includes(fieldname)
-    ? current.filter(f => f !== fieldname)
-    : [...current, fieldname]
-  builder.updatePermission(permIndex, { hidden_fields: next })
-}
 
 const builder = useBuilderStore()
 
@@ -80,114 +54,105 @@ function addRole() {
     </div>
 
     <template v-if="permissions.length > 0">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Роль</TableHead>
-            <TableHead class="text-center">Читати</TableHead>
-            <TableHead class="text-center">Писати</TableHead>
-            <TableHead class="text-center">Створити</TableHead>
-            <TableHead class="text-center">Видалити</TableHead>
-            <TableHead
-              v-if="builder.doctype?.is_submittable"
-              class="text-center"
+      <DataTable :value="permissions" size="small" stripedRows class="border border-border/50 rounded-lg overflow-hidden">
+        <Column field="role" header="Роль" class="font-medium" />
+        
+        <Column header="Читати" class="text-center" headerClass="justify-center">
+          <template #body="{ index }">
+            <Checkbox binary
+              :model-value="!!permissions[index].read"
+              @update:model-value="builder.updatePermission(index, { read: $event })"
+            />
+          </template>
+        </Column>
+
+        <Column header="Писати" class="text-center" headerClass="justify-center">
+          <template #body="{ index }">
+            <Checkbox binary
+              :model-value="!!permissions[index].write"
+              @update:model-value="builder.updatePermission(index, { write: $event })"
+            />
+          </template>
+        </Column>
+
+        <Column header="Створити" class="text-center" headerClass="justify-center">
+          <template #body="{ index }">
+            <Checkbox binary
+              :model-value="!!permissions[index].create"
+              @update:model-value="builder.updatePermission(index, { create: $event })"
+            />
+          </template>
+        </Column>
+
+        <Column header="Видалити" class="text-center" headerClass="justify-center">
+          <template #body="{ index }">
+            <Checkbox binary
+              :model-value="!!permissions[index].delete"
+              @update:model-value="builder.updatePermission(index, { delete: $event })"
+            />
+          </template>
+        </Column>
+
+        <Column v-if="builder.doctype?.is_submittable" header="Підтвердити" class="text-center" headerClass="justify-center">
+          <template #body="{ index }">
+            <Checkbox binary
+              :model-value="!!permissions[index].submit"
+              @update:model-value="builder.updatePermission(index, { submit: $event })"
+            />
+          </template>
+        </Column>
+
+        <Column header="Звіти" class="text-center" headerClass="justify-center">
+          <template #body="{ index }">
+            <Checkbox binary
+              :model-value="!!permissions[index].report"
+              @update:model-value="builder.updatePermission(index, { report: $event })"
+            />
+          </template>
+        </Column>
+
+        <Column header="Фільтр рядків">
+          <template #body="{ data, index }">
+            <InputText
+              :model-value="data.match ?? ''"
+              placeholder="owner == user"
+              class="h-8 text-xs w-40"
+              @update:model-value="builder.updatePermission(index, { match: String($event) || null })"
+            />
+          </template>
+        </Column>
+
+        <Column header="Приховані поля">
+          <template #body="{ data, index }">
+            <div class="flex flex-wrap gap-1 max-w-[220px]">
+              <template v-if="availableFields.length">
+                <MultiSelect
+                  :model-value="data.hidden_fields ?? []"
+                  :options="availableFields"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Всі видимі"
+                  :maxSelectedLabels="1"
+                  selectedItemsLabel="{0} приховано"
+                  class="w-full md:w-40 text-xs h-8"
+                  @update:model-value="builder.updatePermission(index, { hidden_fields: $event })"
+                />
+              </template>
+              <span v-else class="text-xs text-muted-foreground">—</span>
+            </div>
+          </template>
+        </Column>
+
+        <Column class="w-12">
+          <template #body="{ index }">
+            <Button text severity="danger" size="small"
+              @click="builder.removePermission(index)"
             >
-              Підтвердити
-            </TableHead>
-            <TableHead class="text-center">Звіти</TableHead>
-            <TableHead>Фільтр рядків</TableHead>
-            <TableHead>Приховані поля</TableHead>
-            <TableHead />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow v-for="(perm, i) in permissions" :key="i">
-            <TableCell class="font-medium">{{ perm.role }}</TableCell>
-            <TableCell class="text-center">
-              <Checkbox binary
-                :model-value="!!perm.read"
-                @update:model-value="builder.updatePermission(i, { read: $event })"
-              />
-            </TableCell>
-            <TableCell class="text-center">
-              <Checkbox binary
-                :model-value="!!perm.write"
-                @update:model-value="builder.updatePermission(i, { write: $event })"
-              />
-            </TableCell>
-            <TableCell class="text-center">
-              <Checkbox binary
-                :model-value="!!perm.create"
-                @update:model-value="builder.updatePermission(i, { create: $event })"
-              />
-            </TableCell>
-            <TableCell class="text-center">
-              <Checkbox binary
-                :model-value="!!perm.delete"
-                @update:model-value="builder.updatePermission(i, { delete: $event })"
-              />
-            </TableCell>
-            <TableCell
-              v-if="builder.doctype?.is_submittable"
-              class="text-center"
-            >
-              <Checkbox binary
-                :model-value="!!perm.submit"
-                @update:model-value="builder.updatePermission(i, { submit: $event })"
-              />
-            </TableCell>
-            <TableCell class="text-center">
-              <Checkbox binary
-                :model-value="!!perm.report"
-                @update:model-value="builder.updatePermission(i, { report: $event })"
-              />
-            </TableCell>
-            <TableCell>
-              <Input
-                :model-value="perm.match ?? ''"
-                placeholder="owner == user"
-                class="h-8 text-xs w-40"
-                @update:model-value="builder.updatePermission(i, { match: String($event) || null })"
-              />
-            </TableCell>
-            <TableCell>
-              <div class="flex flex-wrap gap-1 max-w-[220px]">
-                <template v-if="availableFields.length">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger as-child>
-                      <Button outlined size="small" class="h-7 text-xs">
-                        {{ (perm.hidden_fields ?? []).length
-                            ? `${(perm.hidden_fields ?? []).length} приховано`
-                            : 'Всі видимі' }}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent class="w-56 max-h-64 overflow-y-auto">
-                      <DropdownMenuLabel class="text-xs">Приховати поле для цієї ролі</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuCheckboxItem
-                        v-for="field in availableFields"
-                        :key="field.value"
-                        :model-value="(perm.hidden_fields ?? []).includes(field.value)"
-                        @update:model-value="toggleHiddenField(i, field.value)"
-                      >
-                        {{ field.label }}
-                      </DropdownMenuCheckboxItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </template>
-                <span v-else class="text-xs text-muted-foreground">—</span>
-              </div>
-            </TableCell>
-            <TableCell>
-              <Button text
-                @click="builder.removePermission(i)"
-              >
-                <Trash2 class="size-4" />
-              </Button>
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
+              <Trash2 class="size-4" />
+            </Button>
+          </template>
+        </Column>
+      </DataTable>
     </template>
 
     <div

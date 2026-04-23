@@ -1,26 +1,24 @@
 <script setup lang="ts">
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 
 const { field, updateField } = usePropertyEditor()
 </script>
 
 <template>
-  <Separator class="mb-3" />
+  <Divider class="!mb-3" />
   <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Display</p>
-  <div class="flex flex-col gap-2 mb-4">
+  <div class="flex flex-col gap-3 mb-4">
     <div class="flex items-center gap-2">
       <Checkbox binary :model-value="!!field.in_list_view" @update:model-value="updateField('in_list_view', $event)" />
-      <Label class="text-sm">In List View</Label>
+      <label class="text-sm font-medium">In List View</label>
     </div>
     <div class="flex items-center gap-2">
       <Checkbox binary :model-value="!!field.in_filter" @update:model-value="updateField('in_filter', $event)" />
-      <Label class="text-sm">In Filter</Label>
+      <label class="text-sm font-medium">In Filter</label>
     </div>
     <div class="flex items-center gap-2">
       <Checkbox binary :model-value="!!field.in_quick_entry" @update:model-value="updateField('in_quick_entry', $event)" />
-      <Label class="text-sm">In Quick Entry</Label>
+      <label class="text-sm font-medium">In Quick Entry</label>
     </div>
   </div>
 </template>

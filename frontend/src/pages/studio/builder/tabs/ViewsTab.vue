@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-
 import { X, List, FileText, Columns3, Calendar, Plus, CircleDot, Network } from '@lucide/vue'
 import type { StatusIndicator } from '@/types'
 
@@ -233,8 +230,8 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
       </div>
       <div class="p-4 space-y-4">
         <!-- Visible columns -->
-        <div class="space-y-2">
-          <Label class="text-xs text-muted-foreground">Видимі колонки</Label>
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Видимі колонки</label>
           <div class="flex flex-wrap gap-1.5">
             <Badge v-for="fname in listViewFields" :key="fname" severity="secondary" class="gap-1 text-xs">
               {{ dataFields.find(f => f.fieldname === fname)?.label ?? fname }}
@@ -257,8 +254,8 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
 
         <!-- Sort -->
         <div class="grid grid-cols-2 gap-3">
-          <div class="space-y-1.5">
-            <Label class="text-xs text-muted-foreground">Сортування за</Label>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Сортування за</label>
             <Select
               :model-value="listView.sort_by"
               :options="[{ value: 'name', label: 'name' }, { value: 'created_at', label: 'created_at' }, { value: 'modified_at', label: 'modified_at' }, ...dataFields.map(f => ({ value: f.fieldname, label: f.label }))]"
@@ -268,8 +265,8 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
               @update:model-value="updateListView({ sort_by: $event })"
             />
           </div>
-          <div class="space-y-1.5">
-            <Label class="text-xs text-muted-foreground">Порядок</Label>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Порядок</label>
             <Select
               :model-value="listView.sort_order"
               :options="[{ value: 'asc', label: 'За зростанням' }, { value: 'desc', label: 'За спаданням' }]"
@@ -291,8 +288,8 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
       </div>
       <div class="p-4">
         <div class="grid grid-cols-2 gap-3">
-          <div class="space-y-1.5">
-            <Label class="text-xs text-muted-foreground">Розкладка</Label>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Розкладка</label>
             <Select
               :model-value="formView.layout"
               :options="[{ value: 'standard', label: 'Стандартна' }, { value: 'compact', label: 'Компактна' }, { value: 'wide', label: 'Широка' }]"
@@ -302,9 +299,9 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
               @update:model-value="updateFormView({ layout: $event })"
             />
           </div>
-          <div class="space-y-1.5">
-            <Label class="text-xs text-muted-foreground">Формат друку</Label>
-            <Input :model-value="formView.print_format ?? ''" placeholder="Назва шаблону" class="h-8 text-xs" @update:model-value="updateFormView({ print_format: $event || null })" />
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Формат друку</label>
+            <InputText :model-value="formView.print_format ?? ''" placeholder="Назва шаблону" class="h-8 text-xs w-full" @update:model-value="updateFormView({ print_format: $event || null })" />
           </div>
         </div>
       </div>
@@ -321,8 +318,8 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
       </div>
       <div v-if="builder.doctype.status_config" class="p-4 space-y-4">
         <!-- Status field selector -->
-        <div class="space-y-1.5">
-          <Label class="text-xs text-muted-foreground">Поле статусу *</Label>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле статусу *</label>
           <Select
             :model-value="statusField"
             :options="statusCandidateFields.map(f => ({ value: f.fieldname, label: `${f.label} (${f.fieldtype})` }))"
@@ -337,7 +334,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
         <!-- Indicators list -->
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <Label class="text-xs text-muted-foreground">Індикатори</Label>
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Індикатори</label>
             <Button outlined size="small" class="h-7 px-2.5 text-xs gap-1" @click="addIndicator">
               <Plus class="size-3" />
               Додати
@@ -356,7 +353,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
             />
 
             <!-- Value -->
-            <Input
+            <InputText
               :model-value="ind.value"
               placeholder="Значення"
               class="h-7 text-xs flex-1 min-w-0"
@@ -372,7 +369,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
             />
 
             <!-- Icon (optional) -->
-            <Input
+            <InputText
               :model-value="ind.icon ?? ''"
               placeholder="Іконка"
               class="h-7 text-xs w-24 shrink-0"
@@ -381,7 +378,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
             />
 
             <!-- Label override -->
-            <Input
+            <InputText
               :model-value="ind.label ?? ''"
               placeholder="Мітка"
               class="h-7 text-xs w-24 shrink-0"
@@ -413,8 +410,8 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
       </div>
       <div v-if="builder.doctype.kanban_view" class="p-4 space-y-3">
         <div class="grid grid-cols-2 gap-3">
-          <div class="space-y-1.5">
-            <Label class="text-xs text-muted-foreground">Поле колонок *</Label>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле колонок *</label>
             <Select
               :model-value="builder.doctype.kanban_view.column_field"
               :options="selectFields.map(f => ({ value: f.fieldname, label: f.label }))"
@@ -425,8 +422,8 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
               @update:model-value="updateKanban({ column_field: $event })"
             />
           </div>
-          <div class="space-y-1.5">
-            <Label class="text-xs text-muted-foreground">Поле заголовка</Label>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле заголовка</label>
             <Select
               :model-value="builder.doctype.kanban_view.title_field"
               :options="[{ value: 'name', label: 'name' }, ...dataFields.map(f => ({ value: f.fieldname, label: f.label }))]"
@@ -437,8 +434,8 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
             />
           </div>
         </div>
-        <div class="space-y-1.5">
-          <Label class="text-xs text-muted-foreground">Поле кольору (опціонально)</Label>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле кольору (опціонально)</label>
           <Select
             :model-value="builder.doctype.kanban_view.color_field ?? '__none__'"
             :options="[{ value: '__none__', label: '— немає —' }, ...dataFields.filter(ff => ff.fieldtype === 'Color' || ff.fieldtype === 'Select').map(f => ({ value: f.fieldname, label: f.label }))]"
@@ -462,8 +459,8 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
       </div>
       <div v-if="builder.doctype.tree_view" class="p-4 space-y-3">
         <div class="grid grid-cols-2 gap-3">
-          <div class="space-y-1.5">
-            <Label class="text-xs text-muted-foreground">Батьківське поле *</Label>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Батьківське поле *</label>
             <Select
               :model-value="builder.doctype.tree_view.parent_field"
               :options="linkFields.map(f => ({ value: f.fieldname, label: f.label }))"
@@ -475,8 +472,8 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
             />
             <p class="text-[11px] text-muted-foreground">Link поле що вказує на цей самий DocType (ієрархія вузлів)</p>
           </div>
-          <div class="space-y-1.5">
-            <Label class="text-xs text-muted-foreground">Поле назви вузла</Label>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле назви вузла</label>
             <Select
               :model-value="builder.doctype.tree_view.title_field"
               :options="[{ value: 'name', label: 'name' }, ...dataFields.filter(ff => ['Data', 'Text', 'LongText'].includes(ff.fieldtype)).map(f => ({ value: f.fieldname, label: f.label }))]"
@@ -501,8 +498,8 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
       </div>
       <div v-if="builder.doctype.calendar_view" class="p-4 space-y-4">
         <div class="grid grid-cols-2 gap-3">
-          <div class="space-y-1.5">
-            <Label class="text-xs text-muted-foreground">Поле дати (Початок) *</Label>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле дати (Початок) *</label>
             <Select
               :model-value="builder.doctype.calendar_view.field"
               :options="allDateFields.map(f => ({ value: f.fieldname, label: f.label }))"
@@ -513,8 +510,8 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
               @update:model-value="updateCalendar({ field: $event })"
             />
           </div>
-          <div class="space-y-1.5">
-            <Label class="text-xs text-muted-foreground">Поле дати (Завершення)</Label>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле дати (Завершення)</label>
             <Select
               :model-value="builder.doctype.calendar_view.end_field ?? '__none__'"
               :options="[{ value: '__none__', label: '— немає (один день) —' }, ...allDateFields.map(f => ({ value: f.fieldname, label: f.label }))]"
@@ -526,8 +523,8 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
           </div>
         </div>
 
-        <div class="space-y-1.5">
-          <Label class="text-xs text-muted-foreground">Поле заголовка</Label>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле заголовка</label>
           <Select
             :model-value="builder.doctype.calendar_view.title_field"
             :options="[{ value: 'name', label: 'name' }, ...dataFields.map(f => ({ value: f.fieldname, label: f.label }))]"
@@ -541,7 +538,7 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
         <!-- Sources -->
         <div class="space-y-3 pt-1">
           <div class="flex items-center justify-between">
-            <Label class="text-xs font-medium text-muted-foreground">Додаткові джерела</Label>
+            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Додаткові джерела</label>
             <Button outlined size="small" class="h-7 px-2.5 text-xs gap-1" @click="addCalendarSource">
               <Plus class="size-3" />
               Додати
@@ -554,21 +551,21 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
             </button>
 
             <div class="grid grid-cols-2 gap-3">
-              <div class="space-y-1">
-                <Label class="text-[11px] text-muted-foreground">DocType</Label>
-                <Input :model-value="source.doctype" placeholder="Наприклад: Task" class="h-7 text-xs" @update:model-value="updateCalendarSource(idx, { doctype: $event })" />
+              <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-medium text-muted-foreground">DocType</label>
+                <InputText :model-value="source.doctype" placeholder="Наприклад: Task" class="h-7 text-xs w-full" @update:model-value="updateCalendarSource(idx, { doctype: $event })" />
               </div>
-              <div class="space-y-1">
-                <Label class="text-[11px] text-muted-foreground">Поле дати (start)</Label>
-                <Input :model-value="source.date_field" placeholder="fieldname" class="h-7 text-xs" @update:model-value="updateCalendarSource(idx, { date_field: $event })" />
+              <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-medium text-muted-foreground">Поле дати (start)</label>
+                <InputText :model-value="source.date_field" placeholder="fieldname" class="h-7 text-xs w-full" @update:model-value="updateCalendarSource(idx, { date_field: $event })" />
               </div>
-              <div class="space-y-1">
-                <Label class="text-[11px] text-muted-foreground">Поле дати (end)</Label>
-                <Input :model-value="source.end_date_field ?? ''" placeholder="опціонально" class="h-7 text-xs" @update:model-value="updateCalendarSource(idx, { end_date_field: $event || undefined })" />
+              <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-medium text-muted-foreground">Поле дати (end)</label>
+                <InputText :model-value="source.end_date_field ?? ''" placeholder="опціонально" class="h-7 text-xs w-full" @update:model-value="updateCalendarSource(idx, { end_date_field: $event || undefined })" />
               </div>
-              <div class="space-y-1">
-                <Label class="text-[11px] text-muted-foreground">Колір</Label>
-                <Input :model-value="source.color ?? ''" placeholder="#hex" class="h-7 text-xs" @update:model-value="updateCalendarSource(idx, { color: $event || undefined })" />
+              <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-medium text-muted-foreground">Колір</label>
+                <InputText :model-value="source.color ?? ''" placeholder="#hex" class="h-7 text-xs w-full" @update:model-value="updateCalendarSource(idx, { color: $event || undefined })" />
               </div>
             </div>
           </div>

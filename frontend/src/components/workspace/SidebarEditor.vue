@@ -5,8 +5,6 @@ import draggable from 'vuedraggable'
 import { workspaceApi, type Workspace, type WorkspaceLink, type SearchResult } from '@/core/api/workspace'
 import { docsApi } from '@/core/api/docs'
 import type { GruntDocument } from '@/types'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 import {
   GripVertical,
@@ -293,10 +291,10 @@ async function save() {
           <div v-if="activePanel === 'doctype'" class="bg-accent/50 p-3 rounded-lg border border-border space-y-3">
             <div class="relative">
               <Search class="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-              <Input
+              <InputText
                 v-model="searchQuery"
                 placeholder="Пошук DocType, Звіту..."
-                class="pl-9"
+                class="pl-9 w-full"
                 @input="performSearch"
               />
             </div>
@@ -322,13 +320,13 @@ async function save() {
             <!-- Mode toggle -->
             <div class="flex gap-2">
               <Button size="small"
-                :variant="!showCreateForm ? 'default' : 'outline'"
+                :severity="!showCreateForm ? 'primary' : 'secondary'" :variant="!showCreateForm ? 'default' : 'outlined'"
                 @click="showCreateForm = false"
               >
                 Вибрати існуючий
               </Button>
               <Button size="small"
-                :variant="showCreateForm ? 'default' : 'outline'"
+                :severity="showCreateForm ? 'primary' : 'secondary'" :variant="showCreateForm ? 'default' : 'outlined'"
                 @click="showCreateForm = true"
               >
                 Створити новий
@@ -339,15 +337,15 @@ async function save() {
             <template v-if="!showCreateForm">
               <div class="relative">
                 <Search class="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                <Input
+                <InputText
                   v-model="dashboardQuery"
                   placeholder="Пошук дашборду..."
-                  class="pl-9"
+                  class="pl-9 w-full"
                   @input="searchDashboards"
                 />
               </div>
               <div v-if="isDashboardSearching" class="flex justify-center py-2">
-                <Loader2 class="size-4 animate-spin text-muted-foreground" />
+                <ProgressSpinner class="size-4!" strokeWidth="8" />
               </div>
               <div v-else-if="dashboardResults.length > 0" class="bg-card border rounded-md divide-y overflow-hidden max-h-48 overflow-y-auto">
                 <button
@@ -372,20 +370,21 @@ async function save() {
             <!-- Create new dashboard -->
             <template v-else>
               <div class="space-y-3">
-                <div class="space-y-1.5">
-                  <Label>Назва дашборду</Label>
-                  <Input
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-sm font-medium">Назва дашборду</label>
+                  <InputText
                     v-model="newDashboardLabel"
                     placeholder="напр. Аналітика продажів"
+                    class="w-full"
                     @input="onNewLabelInput"
                   />
                 </div>
-                <div class="space-y-1.5">
-                  <Label class="text-xs text-muted-foreground">Ідентифікатор (URL)</Label>
-                  <Input
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-sm font-medium text-muted-foreground">Ідентифікатор (URL)</label>
+                  <InputText
                     v-model="newDashboardSlug"
                     placeholder="analityka-prodazhiv"
-                    class="font-mono text-xs"
+                    class="font-mono text-xs w-full"
                   />
                   <p class="text-[11px] text-muted-foreground">Генерується автоматично. Можна змінити вручну.</p>
                 </div>
@@ -394,7 +393,7 @@ async function save() {
                   :disabled="isCreatingDashboard || !newDashboardLabel.trim()"
                   @click="createDashboard"
                 >
-                  <Loader2 v-if="isCreatingDashboard" class="size-4 mr-1.5 animate-spin" />
+                  <ProgressSpinner v-if="isCreatingDashboard" class="size-4! mr-1.5" strokeWidth="8" />
                   <Plus v-else class="size-4 mr-1.5" />
                   Створити і додати до меню
                 </Button>
@@ -427,7 +426,7 @@ async function save() {
                     <Button text class="opacity-0 group-hover:opacity-100" @click="toggleExpand(index)">
                       <Settings2 class="size-4" />
                     </Button>
-                    <Button text class="text-destructive opacity-0 group-hover:opacity-100" @click="removeItem(index)">
+                    <Button text severity="danger" class="opacity-0 group-hover:opacity-100" @click="removeItem(index)">
                       <Trash2 class="size-4" />
                     </Button>
                   </div>
@@ -436,38 +435,38 @@ async function save() {
                 <!-- Expanded edit panel -->
                 <div v-if="expandedIdx === index" class="border-t bg-muted/30 p-4 space-y-4">
                   <div v-if="element.type !== 'Divider'" class="grid grid-cols-2 gap-4">
-                    <div class="space-y-2">
-                      <Label>Назва</Label>
-                      <Input v-model="element.label" />
+                    <div class="flex flex-col gap-2">
+                      <label class="text-sm font-medium">Назва</label>
+                      <InputText v-model="element.label" class="w-full" />
                     </div>
-                    <div class="space-y-2">
-                      <Label>Секція (група)</Label>
-                      <Input v-model="element.section" placeholder="напр. Налаштування" />
+                    <div class="flex flex-col gap-2">
+                      <label class="text-sm font-medium">Секція (група)</label>
+                      <InputText v-model="element.section" placeholder="напр. Налаштування" class="w-full" />
                     </div>
-                    <div class="space-y-2">
-                      <Label>Іконка</Label>
-                      <Input v-model="element.icon" />
+                    <div class="flex flex-col gap-2">
+                      <label class="text-sm font-medium">Іконка</label>
+                      <InputText v-model="element.icon" class="w-full" />
                     </div>
-                    <div class="space-y-2">
-                      <Label>Перехід до</Label>
-                      <Input v-model="element.link_to" :disabled="element.type === 'Dashboard'" />
+                    <div class="flex flex-col gap-2">
+                      <label class="text-sm font-medium">Перехід до</label>
+                      <InputText v-model="element.link_to" :disabled="element.type === 'Dashboard'" class="w-full" />
                     </div>
                   </div>
 
                   <div v-if="element.type === 'DocType'" class="flex flex-wrap gap-6 pt-2">
-                    <div class="flex items-center space-x-2">
-                      <Checkbox binary :id="'sc-' + index" :model-value="element.show_count" @update:model-value="element.show_count = $event" />
-                      <Label :for="'sc-' + index" class="text-xs font-normal">Показувати лічильник</Label>
+                    <div class="flex items-center gap-2">
+                      <Checkbox binary :id="'sc-' + index" v-model="element.show_count" />
+                      <label :for="'sc-' + index" class="text-xs font-normal">Показувати лічильник</label>
                     </div>
-                    <div class="flex items-center space-x-2">
-                      <Checkbox binary :id="'sn-' + index" :model-value="element.show_new_btn" @update:model-value="element.show_new_btn = $event" />
-                      <Label :for="'sn-' + index" class="text-xs font-normal">Кнопка "Створити"</Label>
+                    <div class="flex items-center gap-2">
+                      <Checkbox binary :id="'sn-' + index" v-model="element.show_new_btn" />
+                      <label :for="'sn-' + index" class="text-xs font-normal">Кнопка "Створити"</label>
                     </div>
                   </div>
 
-                  <div v-if="element.type !== 'Divider'" class="space-y-2">
-                    <Label class="text-xs">Ролі (через кому, порожньо — всім)</Label>
-                    <Input v-model="element.roles" placeholder="System Manager, HR User" />
+                  <div v-if="element.type !== 'Divider'" class="flex flex-col gap-2">
+                    <label class="text-xs font-medium">Ролі (через кому, порожньо — всім)</label>
+                    <InputText v-model="element.roles" placeholder="System Manager, HR User" class="w-full" />
                   </div>
                 </div>
               </div>
@@ -481,7 +480,7 @@ async function save() {
       </ScrollPanel>
 
     <template #footer>
-      <Button text @click="$emit('update:open', false)">Скасувати</Button>
+      <Button text severity="secondary" @click="$emit('update:open', false)">Скасувати</Button>
       <Button :disabled="isSaving" @click="save">
         <Plus v-if="!isSaving" class="size-4 mr-1.5" />
         Зберегти зміни

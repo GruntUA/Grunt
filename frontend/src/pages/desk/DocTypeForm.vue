@@ -19,7 +19,6 @@ import { useFormDocumentView } from '@/core/composables/useFormDocumentView'
 import { useFormShortcuts } from '@/core/composables/useFormShortcuts'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { DocType, GruntDocument } from '@/types'
-import { Spinner } from '@/components/ui/spinner'
 import { History } from '@lucide/vue'
 
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
@@ -238,7 +237,7 @@ useFormShortcuts({
 
     <!-- Loading -->
     <div v-if="isLoading || !dt" class="flex justify-center py-24">
-      <Spinner size="lg" />
+      <ProgressSpinner class="size-10!" />
     </div>
 
     <template v-else>

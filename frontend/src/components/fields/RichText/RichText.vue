@@ -8,10 +8,6 @@ import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
 import { TableKit } from '@tiptap/extension-table'
 
-import { Toggle } from '@/components/ui/toggle'
-import { Separator } from '@/components/ui/separator'
-import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Bold, Italic, Strikethrough,
   Heading2, Heading3,
@@ -60,13 +56,13 @@ function updateBubble() {
 }
 
 // ── Link popover ─────────────────────────────────────────────────────────────
-const linkOpen = ref(false)
+const op = ref<any>(null);
 const linkUrl  = ref('')
 
-function openLinkPopover() {
+function openLinkPopover(event: any) {
   if (!editor.value) return
   linkUrl.value = editor.value.getAttributes('link').href ?? ''
-  linkOpen.value = true
+  op.value.toggle(event);
 }
 
 function applyLink() {
@@ -75,24 +71,28 @@ function applyLink() {
   url
     ? editor.value.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
     : editor.value.chain().focus().extendMarkRange('link').unsetLink().run()
-  linkOpen.value = false
+  op.value.hide();
 }
 
 function removeLink() {
   editor.value?.chain().focus().extendMarkRange('link').unsetLink().run()
-  linkOpen.value = false
+  op.value.hide();
 }
 
 // ── Image ────────────────────────────────────────────────────────────────────
-const imageOpen      = ref(false)
+const opImage = ref<any>(null);
 const imageUrl       = ref('')
 const imageUploading = ref(false)
+
+function openImagePopover(event: any) {
+    opImage.value.toggle(event);
+}
 
 function insertImageUrl() {
   const url = imageUrl.value.trim()
   if (url) editor.value?.chain().focus().setImage({ src: url }).run()
   imageUrl.value = ''
-  imageOpen.value = false
+  opImage.value.hide();
 }
 
 async function uploadImage(e: Event) {
@@ -102,7 +102,7 @@ async function uploadImage(e: Event) {
   try {
     const item = await filesApi.upload(file)
     editor.value?.chain().focus().setImage({ src: item.url, alt: item.filename }).run()
-    imageOpen.value = false
+    opImage.value.hide();
   } finally {
     imageUploading.value = false
   }
@@ -145,136 +145,132 @@ const wordCount = () => editor.value?.storage.characterCount.words() ?? 0
     <!-- ── Toolbar ─────────────────────────────────────────────────────── -->
     <div
       v-if="editor && isEditable()"
-      class="flex items-center gap-0.5 rounded-t-md border border-b-0 border-input bg-muted/50 p-1 flex-wrap text-foreground"
+      class="flex items-center gap-0.5 rounded-t-md border border-b-0 border-border bg-muted/50 p-1 flex-wrap text-foreground"
     >
-      <Toggle size="sm" :pressed="editor.isActive('bold')"
+      <Button size="small" :severity="editor.isActive('bold') ? 'primary' : 'secondary'" variant="text"
         :disabled="!editor.can().chain().focus().toggleBold().run()"
         @click="editor.chain().focus().toggleBold().run()">
         <Bold class="size-4" />
-      </Toggle>
-      <Toggle size="sm" :pressed="editor.isActive('italic')"
+      </Button>
+      <Button size="small" :severity="editor.isActive('italic') ? 'primary' : 'secondary'" variant="text"
         :disabled="!editor.can().chain().focus().toggleItalic().run()"
         @click="editor.chain().focus().toggleItalic().run()">
         <Italic class="size-4" />
-      </Toggle>
-      <Toggle size="sm" :pressed="editor.isActive('strike')"
+      </Button>
+      <Button size="small" :severity="editor.isActive('strike') ? 'primary' : 'secondary'" variant="text"
         :disabled="!editor.can().chain().focus().toggleStrike().run()"
         @click="editor.chain().focus().toggleStrike().run()">
         <Strikethrough class="size-4" />
-      </Toggle>
-      <Toggle size="sm" :pressed="editor.isActive('code')"
+      </Button>
+      <Button size="small" :severity="editor.isActive('code') ? 'primary' : 'secondary'" variant="text"
         :disabled="!editor.can().chain().focus().toggleCode().run()"
         @click="editor.chain().focus().toggleCode().run()">
         <Code class="size-4" />
-      </Toggle>
+      </Button>
 
-      <Separator orientation="vertical" class="mx-1 h-6" />
+      <Divider layout="vertical" class="!mx-1 !h-6 !my-0" />
 
-      <Toggle size="sm" :pressed="editor.isActive('heading', { level: 2 })"
+      <Button size="small" :severity="editor.isActive('heading', { level: 2 }) ? 'primary' : 'secondary'" variant="text"
         @click="editor.chain().focus().toggleHeading({ level: 2 }).run()">
         <Heading2 class="size-4" />
-      </Toggle>
-      <Toggle size="sm" :pressed="editor.isActive('heading', { level: 3 })"
+      </Button>
+      <Button size="small" :severity="editor.isActive('heading', { level: 3 }) ? 'primary' : 'secondary'" variant="text"
         @click="editor.chain().focus().toggleHeading({ level: 3 }).run()">
         <Heading3 class="size-4" />
-      </Toggle>
+      </Button>
 
-      <Separator orientation="vertical" class="mx-1 h-6" />
+      <Divider layout="vertical" class="!mx-1 !h-6 !my-0" />
 
-      <Toggle size="sm" :pressed="editor.isActive('bulletList')"
+      <Button size="small" :severity="editor.isActive('bulletList') ? 'primary' : 'secondary'" variant="text"
         @click="editor.chain().focus().toggleBulletList().run()">
         <List class="size-4" />
-      </Toggle>
-      <Toggle size="sm" :pressed="editor.isActive('orderedList')"
+      </Button>
+      <Button size="small" :severity="editor.isActive('orderedList') ? 'primary' : 'secondary'" variant="text"
         @click="editor.chain().focus().toggleOrderedList().run()">
         <ListOrdered class="size-4" />
-      </Toggle>
-      <Toggle size="sm" :pressed="editor.isActive('blockquote')"
+      </Button>
+      <Button size="small" :severity="editor.isActive('blockquote') ? 'primary' : 'secondary'" variant="text"
         @click="editor.chain().focus().toggleBlockquote().run()">
         <Quote class="size-4" />
-      </Toggle>
-      <Toggle size="sm" :pressed="editor.isActive('codeBlock')"
+      </Button>
+      <Button size="small" :severity="editor.isActive('codeBlock') ? 'primary' : 'secondary'" variant="text"
         @click="editor.chain().focus().toggleCodeBlock().run()">
         <Code2 class="size-4" />
-      </Toggle>
-      <Toggle size="sm" :pressed="false"
+      </Button>
+      <Button size="small" severity="secondary" variant="text"
         @click="editor.chain().focus().setHorizontalRule().run()">
         <Minus class="size-4" />
-      </Toggle>
+      </Button>
 
-      <Separator orientation="vertical" class="mx-1 h-6" />
+      <Divider layout="vertical" class="!mx-1 !h-6 !my-0" />
 
       <!-- Link -->
-      <Popover v-model:open="linkOpen">
-        <PopoverTrigger as-child>
-          <Toggle size="sm" :pressed="editor.isActive('link')" @click="openLinkPopover">
-            <LinkIcon class="size-4" />
-          </Toggle>
-        </PopoverTrigger>
-        <PopoverContent class="w-72 p-3">
-          <p class="text-xs font-medium text-muted-foreground mb-2">Посилання</p>
-          <div class="flex gap-2">
-            <Input v-model="linkUrl" placeholder="https://…" class="h-8 text-sm"
-              @keydown.enter.prevent="applyLink" @keydown.escape="linkOpen = false" />
-            <Button size="small" class="h-8 px-3" @click="applyLink">OK</Button>
-            <Button v-if="editor.isActive('link')" size="small" text class="h-8 px-2" @click="removeLink">
-              <Link2Off class="size-4" />
-            </Button>
+      <Button size="small" :severity="editor.isActive('link') ? 'primary' : 'secondary'" variant="text" @click="openLinkPopover">
+        <LinkIcon class="size-4" />
+      </Button>
+      <Popover ref="op">
+          <div class="w-72 p-1">
+              <p class="text-xs font-medium text-muted-foreground mb-2">Посилання</p>
+              <div class="flex gap-2">
+                <InputText v-model="linkUrl" placeholder="https://…" class="h-8 text-sm flex-1"
+                  @keydown.enter.prevent="applyLink" />
+                <Button size="small" class="h-8 px-3" @click="applyLink">OK</Button>
+                <Button v-if="editor.isActive('link')" severity="danger" size="small" variant="text" class="h-8 px-2" @click="removeLink">
+                  <Link2Off class="size-4" />
+                </Button>
+              </div>
           </div>
-        </PopoverContent>
       </Popover>
 
       <!-- Image -->
-      <Popover v-model:open="imageOpen">
-        <PopoverTrigger as-child>
-          <Toggle size="sm" :pressed="false" @click="imageOpen = true">
-            <ImageIcon class="size-4" />
-          </Toggle>
-        </PopoverTrigger>
-        <PopoverContent class="w-72 p-3">
-          <p class="text-xs font-medium text-muted-foreground mb-2">Зображення</p>
-          <div class="flex gap-2 mb-2">
-            <Input v-model="imageUrl" placeholder="https://…" class="h-8 text-sm"
-              @keydown.enter.prevent="insertImageUrl" @keydown.escape="imageOpen = false" />
-            <Button size="small" class="h-8 px-3" @click="insertImageUrl">OK</Button>
+      <Button size="small" severity="secondary" variant="text" @click="openImagePopover">
+        <ImageIcon class="size-4" />
+      </Button>
+      <Popover ref="opImage">
+          <div class="w-72 p-1">
+              <p class="text-xs font-medium text-muted-foreground mb-2">Зображення</p>
+              <div class="flex gap-2 mb-2">
+                <InputText v-model="imageUrl" placeholder="https://…" class="h-8 text-sm flex-1"
+                  @keydown.enter.prevent="insertImageUrl" />
+                <Button size="small" class="h-8 px-3" @click="insertImageUrl">OK</Button>
+              </div>
+              <label class="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors p-2 hover:bg-muted rounded">
+                <Upload class="size-3.5" />
+                <span>{{ imageUploading ? 'Завантаження…' : 'Завантажити файл' }}</span>
+                <input type="file" accept="image/*" class="hidden" :disabled="imageUploading" @change="uploadImage" />
+              </label>
           </div>
-          <label class="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors">
-            <Upload class="size-3.5" />
-            <span>{{ imageUploading ? 'Завантаження…' : 'Завантажити файл' }}</span>
-            <input type="file" accept="image/*" class="hidden" :disabled="imageUploading" @change="uploadImage" />
-          </label>
-        </PopoverContent>
       </Popover>
 
       <!-- Table -->
-      <Toggle size="sm" :pressed="editor.isActive('table')"
+      <Button size="small" :severity="editor.isActive('table') ? 'primary' : 'secondary'" variant="text"
         @click="editor.isActive('table')
           ? editor.chain().focus().deleteTable().run()
           : editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()">
         <TableIcon class="size-4" />
-      </Toggle>
+      </Button>
 
       <div class="flex-1" />
 
-      <Toggle size="sm" :pressed="false"
+      <Button size="small" severity="secondary" variant="text"
         :disabled="!editor.can().chain().focus().undo().run()"
         @click="editor.chain().focus().undo().run()">
         <Undo class="size-4" />
-      </Toggle>
-      <Toggle size="sm" :pressed="false"
+      </Button>
+      <Button size="small" severity="secondary" variant="text"
         :disabled="!editor.can().chain().focus().redo().run()"
         @click="editor.chain().focus().redo().run()">
         <Redo class="size-4" />
-      </Toggle>
+      </Button>
     </div>
 
     <!-- ── Editor area ─────────────────────────────────────────────────── -->
     <div
       ref="wrapperEl"
-      class="relative border border-input min-h-[120px] focus-within:ring-1 focus-within:ring-ring focus-within:border-ring transition-colors"
+      class="relative border border-border min-h-[120px] focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-colors"
       :class="[
         isEditable() ? 'rounded-b-md' : 'rounded-md',
-        error ? 'border-destructive focus-within:ring-destructive' : '',
+        error ? '!border-destructive focus-within:!ring-destructive' : '',
         !isEditable() ? 'bg-muted/30' : '',
       ]"
     >
@@ -283,24 +279,24 @@ const wordCount = () => editor.value?.storage.characterCount.words() ?? 0
         <div
           v-if="bubbleVisible && isEditable()"
           :style="bubbleStyle"
-          class="absolute z-20 flex items-center gap-0.5 rounded-md border border-input bg-background/95 backdrop-blur-sm shadow-md p-1 text-foreground pointer-events-auto"
+          class="absolute z-20 flex items-center gap-0.5 rounded-md border border-border bg-background/95 backdrop-blur-sm shadow-md p-1 text-foreground pointer-events-auto"
         >
-          <Toggle size="sm" :pressed="editor!.isActive('bold')"
+          <Button size="small" :severity="editor!.isActive('bold') ? 'primary' : 'secondary'" variant="text"
             @click="editor!.chain().focus().toggleBold().run()">
             <Bold class="size-3.5" />
-          </Toggle>
-          <Toggle size="sm" :pressed="editor!.isActive('italic')"
+          </Button>
+          <Button size="small" :severity="editor!.isActive('italic') ? 'primary' : 'secondary'" variant="text"
             @click="editor!.chain().focus().toggleItalic().run()">
             <Italic class="size-3.5" />
-          </Toggle>
-          <Toggle size="sm" :pressed="editor!.isActive('strike')"
+          </Button>
+          <Button size="small" :severity="editor!.isActive('strike') ? 'primary' : 'secondary'" variant="text"
             @click="editor!.chain().focus().toggleStrike().run()">
             <Strikethrough class="size-3.5" />
-          </Toggle>
-          <Separator orientation="vertical" class="mx-0.5 h-5" />
-          <Toggle size="sm" :pressed="editor!.isActive('link')" @click="openLinkPopover">
+          </Button>
+          <Divider layout="vertical" class="!mx-0.5 !h-5 !my-0" />
+          <Button size="small" :severity="editor!.isActive('link') ? 'primary' : 'secondary'" variant="text" @click="openLinkPopover">
             <LinkIcon class="size-3.5" />
-          </Toggle>
+          </Button>
         </div>
       </Transition>
 
@@ -330,7 +326,7 @@ const wordCount = () => editor.value?.storage.characterCount.words() ?? 0
 /* Placeholder */
 .richtext-content .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
-  color: hsl(var(--muted-foreground));
+  color: var(--p-text-muted-color);
   pointer-events: none;
   float: left;
   height: 0;
@@ -366,15 +362,15 @@ const wordCount = () => editor.value?.storage.characterCount.words() ?? 0
 .richtext-content .tiptap h6 { font-size: 1rem; }
 
 .richtext-content .tiptap code {
-  background-color: hsl(var(--muted));
+  background-color: var(--p-content-background);
   border-radius: 0.3rem;
   font-size: 0.85em;
   padding: 0.2em 0.4em;
   font-family: ui-monospace, monospace;
 }
 .richtext-content .tiptap pre {
-  background: hsl(222 47% 11%);
-  color: hsl(210 40% 96%);
+  background: #0f172a;
+  color: #f8fafc;
   border-radius: 0.5rem;
   margin: 0.75rem 0;
   padding: 0.75rem 1rem;
@@ -389,18 +385,18 @@ const wordCount = () => editor.value?.storage.characterCount.words() ?? 0
 }
 
 .richtext-content .tiptap blockquote {
-  border-left: 3px solid hsl(var(--border));
+  border-left: 3px solid var(--p-content-border-color);
   margin: 0.75rem 0;
   padding-left: 1rem;
-  color: hsl(var(--muted-foreground));
+  color: var(--p-text-muted-color);
 }
 .richtext-content .tiptap hr {
   border: none;
-  border-top: 1px solid hsl(var(--border));
+  border-top: 1px solid var(--p-content-border-color);
   margin: 1.25rem 0;
 }
 .richtext-content .tiptap a {
-  color: hsl(var(--primary));
+  color: var(--p-primary-color);
   text-decoration: underline;
   cursor: pointer;
 }
@@ -411,7 +407,7 @@ const wordCount = () => editor.value?.storage.characterCount.words() ?? 0
   margin: 0.5rem 0;
 }
 .richtext-content .tiptap img.ProseMirror-selectednode {
-  outline: 2px solid hsl(var(--primary));
+  outline: 2px solid var(--p-primary-color);
   outline-offset: 2px;
 }
 
@@ -424,21 +420,22 @@ const wordCount = () => editor.value?.storage.characterCount.words() ?? 0
 }
 .richtext-content .tiptap td,
 .richtext-content .tiptap th {
-  border: 1px solid hsl(var(--border));
+  border: 1px solid var(--p-content-border-color);
   padding: 0.4rem 0.6rem;
   vertical-align: top;
   min-width: 80px;
   position: relative;
 }
 .richtext-content .tiptap th {
-  background-color: hsl(var(--muted));
+  background-color: var(--p-content-background);
   font-weight: 600;
 }
 .richtext-content .tiptap .selectedCell::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: hsl(var(--primary) / 0.1);
+  background: var(--p-primary-color);
+  opacity: 0.1;
   pointer-events: none;
 }
 .richtext-content .tiptap .column-resize-handle {
@@ -446,7 +443,7 @@ const wordCount = () => editor.value?.storage.characterCount.words() ?? 0
   right: -2px;
   top: 0; bottom: 0;
   width: 4px;
-  background-color: hsl(var(--primary));
+  background-color: var(--p-primary-color);
   cursor: col-resize;
   pointer-events: all;
 }

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Input } from '@/components/ui/input'
 import type { DocField } from '@/types'
 
 defineProps<{
@@ -17,10 +16,10 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <Input
+  <InputText
     :model-value="modelValue"
     type="datetime-local"
-    class="h-8 text-xs mb-3"
+    class="h-8 text-xs mb-3 w-full"
     @update:model-value="emit('update:modelValue', String($event))"
     @keydown.enter="emit('submit')"
   />
