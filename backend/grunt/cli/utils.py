@@ -11,6 +11,7 @@ async def _site_session(site: str | None):
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.site.manager import current_site, site_manager  # noqa: PLC0415
     from grunt.core.startup import load_core_doctypes  # noqa: PLC0415
+    from grunt.core.document.registry import document_registry  # noqa: PLC0415
 
     _sites = site_manager.get_sites()
     target_site: str | None = site or (_sites[0] if _sites else None)
@@ -25,6 +26,7 @@ async def _site_session(site: str | None):
         async with maker() as session:
             await doctype_registry.load_all(session)
             await load_core_doctypes(session, eng)
+            document_registry.discover_core_controllers()
             yield session, eng
     finally:
         current_site.reset(token)

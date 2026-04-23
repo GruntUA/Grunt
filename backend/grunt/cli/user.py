@@ -20,7 +20,7 @@ def users_create(email, password, full_name, site):
     """Створити нового користувача."""
 
     async def _run():
-        from grunt.core.auth.service import create_user, get_user_by_email  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import create_user, get_user_by_email  # noqa: PLC0415
 
         async with _site_session(site) as (session, _eng):
             if await get_user_by_email(email, session) is not None:
