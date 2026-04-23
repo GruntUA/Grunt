@@ -37,7 +37,6 @@ async def _do_install(name: str, site: str | None = None) -> None:
 
     from grunt.app import grunt  # noqa: PLC0415
     from grunt.core.db.base import Base  # noqa: PLC0415
-    from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.site.manager import current_site, site_manager  # noqa: PLC0415
     from grunt.core.startup import load_core_doctypes, seed_app_workspaces  # noqa: PLC0415
@@ -79,7 +78,7 @@ async def _do_install(name: str, site: str | None = None) -> None:
         async with maker() as session:
             await load_core_doctypes(session, eng)
             await doctype_registry.load_all(session)
-            async with grunt.context(session, eng, SYSTEM_USER):
+            async with grunt.system_context(session, eng):
                 await seed_app_workspaces(session, target_site)
             await session.commit()
     finally:

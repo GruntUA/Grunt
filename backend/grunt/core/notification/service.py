@@ -47,7 +47,7 @@ class NotificationService:
         Returns:
             Number of notifications created.
         """
-        async with grunt.context(session):
+        async with grunt.system_context(session):
             rules = await grunt.db.get_all(
                 "NotificationRule",
                 filters={"doctype": doctype, "event": event, "is_enabled": True},
@@ -118,7 +118,7 @@ class NotificationService:
         if unread_only:
             filters["is_read"] = False
 
-        async with grunt.context(session):
+        async with grunt.system_context(session):
             rows = await grunt.db.get_all(
                 "Notification",
                 filters=filters,
@@ -139,12 +139,12 @@ class NotificationService:
 
     async def mark_read(self, session: AsyncSession, notification_id: str) -> None:
         """Mark a single notification as read."""
-        async with grunt.context(session):
+        async with grunt.system_context(session):
             await grunt.db.set_value("Notification", notification_id, "is_read", True)
 
     async def mark_all_read(self, session: AsyncSession, user: str) -> int:
         """Mark all notifications as read for a user. Returns count of affected."""
-        async with grunt.context(session):
+        async with grunt.system_context(session):
             return await grunt.bulk_update(
                 "Notification",
                 {"user": user, "is_read": False},
@@ -164,7 +164,7 @@ class NotificationService:
     ) -> str:
         notif_id = str(uuid.uuid4())
         now = datetime.now(UTC)
-        async with grunt.context(session):
+        async with grunt.system_context(session):
             await grunt.db.insert_one(
                 "Notification",
                 {
@@ -251,8 +251,6 @@ class NotificationService:
             return []
         try:
             from grunt.app import grunt  # noqa: PLC0415
-            from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
-
             async with grunt.system_context(session):
                 # Collect user_ids for all requested roles
                 user_ids: set[str] = set()

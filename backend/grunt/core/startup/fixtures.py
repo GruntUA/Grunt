@@ -126,7 +126,6 @@ async def _apply_doctype_fixture(
 ) -> None:
     """Insert fixture records for a regular DocType, skipping duplicates."""
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
     try:
@@ -135,7 +134,7 @@ async def _apply_doctype_fixture(
         logger.warning("startup.fixture_doctype_not_found", doctype=doctype_name)
         return
 
-    async with grunt.context(session, eng, SYSTEM_USER):
+    async with grunt.system_context(session, eng):
         for rec in records:
             name_val = rec.get("name") or rec.get(dt.title_field or "")
             if not name_val:

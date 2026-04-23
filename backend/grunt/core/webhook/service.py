@@ -40,7 +40,7 @@ class WebhookService:
             return
 
         try:
-            async with grunt.context(session):
+            async with grunt.system_context(session):
                 webhooks = await grunt.db.get_all(
                     "OutgoingWebhook",
                     filters={"doctype_name": doctype, "event": event, "is_enabled": True},
@@ -92,7 +92,6 @@ class WebhookService:
     ) -> dict[str, Any]:
         """Send a test payload for the given webhook and return the log entry."""
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
         async with grunt.system_context(session):
             wh_data = await grunt.get_doc("OutgoingWebhook", webhook_id)
@@ -138,7 +137,6 @@ class WebhookService:
     ) -> dict[str, Any]:
         """Send a webhook POST and write a WebhookLog record. Returns log data."""
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
 
         headers: dict[str, str] = {"Content-Type": "application/json"}

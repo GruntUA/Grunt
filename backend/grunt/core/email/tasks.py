@@ -20,7 +20,7 @@ async def process_email_queue():
     maker = site_manager.get_session_maker(site)
     eng = site_manager.get_engine(site)
     async with maker() as session:
-        async with grunt.context(session, eng, SYSTEM_USER):
+        async with grunt.system_context(session, eng):
 
             # 1. Fetch Pending emails
             try:
@@ -70,7 +70,7 @@ async def pull_from_accounts():
     maker = site_manager.get_session_maker(site)
     eng = site_manager.get_engine(site)
     async with maker() as session:
-        async with grunt.context(session, eng, SYSTEM_USER):
+        async with grunt.system_context(session, eng):
 
             try:
                 accounts = await grunt.get_list(
@@ -118,7 +118,7 @@ async def send_notification_digest(period: str = "daily") -> None:
         from grunt.app import grunt  # noqa: PLC0415
 
         sent = 0
-        async with grunt.context(session):
+        async with grunt.system_context(session):
             user_rows = await grunt.db.get_all(
                 "User",
                 filters={"is_active": True},

@@ -18,6 +18,14 @@ export const useBuilderStore = defineStore('builder', () => {
   const indexHints = ref<IndexHint[]>([])
   const exportedTo = ref<string | null>(null)
 
+  function resetTransientState() {
+    isDirty.value = false
+    _selectedFieldIdx.value = null
+    activeTab.value = 'form'
+    indexHints.value = []
+    exportedTo.value = null
+  }
+
   // ── Computed ─────────────────────────────────────────────────────────
 
   const selectedField = computed<DocField | null>(() => {
@@ -40,14 +48,12 @@ export const useBuilderStore = defineStore('builder', () => {
     if (name === 'new') {
       doctype.value = { name: '', label: '', module: '', fields: [], permissions: [] }
       isNew.value = true
-      isDirty.value = false
-      _selectedFieldIdx.value = null
+      resetTransientState()
       return
     }
     doctype.value = await metaApi.get(name)
     isNew.value = false
-    isDirty.value = false
-    _selectedFieldIdx.value = null
+    resetTransientState()
   }
 
   async function save(): Promise<DocType | null> {

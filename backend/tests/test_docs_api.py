@@ -172,6 +172,39 @@ async def test_delete_document(ctx, setup_doctype):
 
 
 @pytest.mark.asyncio
+async def test_bulk_delete_documents_service(ctx, setup_doctype):
+    """DocumentService.bulk_delete removes multiple docs and reports missing IDs."""
+    from grunt.core.document.service import DocumentService
+    from grunt.core.doctypes.user.user import SYSTEM_USER
+
+    a = await ctx.new_doc("TestItem", {"title": "Bulk A"})
+    b = await ctx.new_doc("TestItem", {"title": "Bulk B"})
+    await ctx.db._session().commit()
+
+    svc = DocumentService(ctx.db._session(), ctx._require_engine())
+    deleted, errors = await svc.bulk_delete(
+        "TestItem",
+        [a["id"], b["id"], "missing-id"],
+        SYSTEM_USER,
+    )
+    await ctx.db._session().commit()
+
+    assert deleted == 2
+    assert len(errors) == 1
+    assert errors[0].startswith("missing-id:")
+
+    from fastapi import HTTPException
+
+    with pytest.raises(HTTPException) as exc_a:
+        await ctx.get_doc("TestItem", a["id"])
+    assert exc_a.value.status_code == 404
+
+    with pytest.raises(HTTPException) as exc_b:
+        await ctx.get_doc("TestItem", b["id"])
+    assert exc_b.value.status_code == 404
+
+
+@pytest.mark.asyncio
 async def test_list_partial_fields(ctx, setup_doctype):
     """get_list?fields=["title"] (direct call)."""
     from grunt.api.v1.documents import get_list, new_doc

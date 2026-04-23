@@ -43,9 +43,9 @@ async def test_register_login_me(ctx, client: AsyncClient):
 @pytest.mark.asyncio
 async def test_first_user_is_superadmin(ctx):
     """The first registered user gets is_superadmin=True."""
-    from grunt.core.doctypes.user.user import SYSTEM_USER, get_user_by_email, register
+    from grunt.core.doctypes.user.user import get_user_by_email, register
 
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         # First user
         await register(email="first@grunt.example.com", password="pass1", full_name="First")
         await ctx.db._session().commit()
@@ -64,9 +64,9 @@ async def test_first_user_is_superadmin(ctx):
 @pytest.mark.asyncio
 async def test_wrong_password_returns_401(ctx):
     """Incorrect password → authenticate() returns None."""
-    from grunt.core.doctypes.user.user import SYSTEM_USER, authenticate, create_user
+    from grunt.core.doctypes.user.user import authenticate, create_user
 
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         await create_user("user@grunt.example.com", "correct", "User", ctx.db._session())
         await ctx.db._session().commit()
 

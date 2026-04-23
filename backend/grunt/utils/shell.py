@@ -62,10 +62,9 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
         return loop.run_until_complete(coro)
 
     async def _get_doc(doctype: str, name: str) -> dict:
-        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.app import grunt  # noqa: PLC0415
 
-        async with grunt.context(session, engine, SYSTEM_USER):
+        async with grunt.system_context(session, engine):
             return await grunt.get_doc(doctype, name)
 
     async def _get_list(
@@ -74,10 +73,9 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
         fields: list[str] | None = None,
         limit: int = 20,
     ) -> list:
-        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.app import grunt  # noqa: PLC0415
 
-        async with grunt.context(session, engine, SYSTEM_USER):
+        async with grunt.system_context(session, engine):
             return await grunt.get_list(
                 doctype,
                 filters=filters or {},
@@ -86,20 +84,18 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
             )
 
     async def _save_doc(doctype: str, data: dict) -> dict:
-        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.app import grunt  # noqa: PLC0415
 
-        async with grunt.context(session, engine, SYSTEM_USER):
+        async with grunt.system_context(session, engine):
             doc_id = data.get("id") or data.get("name")
             if doc_id:
                 return await grunt.save_doc(doctype, doc_id, data)
             return await grunt.new_doc(doctype, data)
 
     async def _delete_doc(doctype: str, name: str) -> None:
-        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.app import grunt  # noqa: PLC0415
 
-        async with grunt.context(session, engine, SYSTEM_USER):
+        async with grunt.system_context(session, engine):
             await grunt.delete_doc(doctype, name)
 
     def get_doc(doctype: str, name: str) -> dict:

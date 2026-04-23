@@ -8,7 +8,6 @@ import structlog
 from taskiq import TaskiqMessage, TaskiqMiddleware, TaskiqResult
 
 from grunt.app import grunt
-from grunt.core.doctypes.user.user import SYSTEM_USER
 from grunt.core.site.manager import site_manager
 
 logger = structlog.get_logger()
@@ -28,7 +27,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             maker = site_manager.get_session_maker(site)
             eng = site_manager.get_engine(site)
             async with maker() as session:
-                async with grunt.context(session, eng, SYSTEM_USER):
+                async with grunt.system_context(session, eng):
                     args_str = json.dumps({"args": message.args, "kwargs": message.kwargs})
                     if len(args_str) > 5000:
                         args_str = args_str[:5000] + "... [TRUNCATED]"
@@ -63,7 +62,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             maker = site_manager.get_session_maker(site)
             eng = site_manager.get_engine(site)
             async with maker() as session:
-                async with grunt.context(session, eng, SYSTEM_USER):
+                async with grunt.system_context(session, eng):
                     update_data: dict[str, Any] = {
                         "status": "Error" if result.is_err else "Success",
                         "finished_at": datetime.now(UTC),
@@ -125,7 +124,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             maker = site_manager.get_session_maker(site)
             eng = site_manager.get_engine(site)
             async with maker() as session:
-                async with grunt.context(session, eng, SYSTEM_USER):
+                async with grunt.system_context(session, eng):
                     await grunt.db.set_value("BackgroundTaskLog", log_id, update_data)
                     await session.commit()
 

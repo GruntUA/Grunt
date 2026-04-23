@@ -221,9 +221,8 @@ async def _write_job_log(
     """Insert a new ScheduledJobLog record via Grunt ORM."""
     try:
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
-        async with grunt.context(session, None, SYSTEM_USER):
+        async with grunt.system_context(session):
             await grunt.new_doc(
                 "ScheduledJobLog",
                 {
@@ -248,13 +247,12 @@ async def _update_job_log(
     """Update a ScheduledJobLog record after job completion via Grunt ORM."""
     try:
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
         values: dict = {"status": status, "finished_at": datetime.now(UTC)}
         if error_message is not None:
             values["error_message"] = error_message
 
-        async with grunt.context(session, None, SYSTEM_USER):
+        async with grunt.system_context(session):
             await grunt.db.set_value("ScheduledJobLog", log_id, values)
     except Exception as exc:
         logger.warning("scheduler.log_update_failed", log_id=log_id, error=str(exc))

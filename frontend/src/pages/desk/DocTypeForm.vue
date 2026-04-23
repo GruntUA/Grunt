@@ -12,8 +12,12 @@ import { useFormValidation } from '@/core/composables/useFormValidation'
 import { useFormDocWatcher } from '@/core/composables/useFormDocWatcher'
 import { useFormNavigation } from '@/core/composables/useFormNavigation'
 import { useFormSave } from '@/core/composables/useFormSave'
+import { useFormInitialization } from '@/core/composables/useFormInitialization'
+import { useFormActions } from '@/core/composables/useFormActions'
+import { useFormLinkCreation } from '@/core/composables/useFormLinkCreation'
+import { useFormDocumentView } from '@/core/composables/useFormDocumentView'
+import { useFormShortcuts } from '@/core/composables/useFormShortcuts'
 import { useQueryClient } from '@tanstack/vue-query'
-import { useShortcut } from '@/core/composables/useShortcuts'
 import type { DocType, GruntDocument } from '@/types'
 import { Spinner } from '@/components/ui/spinner'
 import { History } from '@lucide/vue'
@@ -91,12 +95,34 @@ provide('docContext', { doctype: props.doctype, getId: () => props.id })
 // ── Modals & Navigation ──────────────────────────────────────────────────────
 const showDeleteModal = ref(false)
 
-// Quick Entry Dialog state
-const quickEntryDt = ref<import('@/types').DocType | null>(null)
-const quickEntryPreset = ref<Record<string, unknown>>({})
-const quickEntryFieldname = ref('')
-
 const showVersions = ref(false)
+
+const {
+  quickEntryDt,
+  quickEntryPreset,
+  isQuickEntryOpen,
+  handleCreateNew,
+  onQuickEntrySaved,
+  closeQuickEntry,
+} = useFormLinkCreation({
+  doctype: props.doctype,
+  id: props.id,
+  workspace: props.workspace,
+  form,
+  markAllowLeave: () => markAllowLeave(),
+  loadDocType: (doctype: string) => dtStore.get(doctype),
+  startLinkCreate: ({ linkedDoctype, preset, fieldname, parentDoctype, parentId, formSnapshot, workspace }) => {
+    startLinkCreate(
+      linkedDoctype,
+      preset,
+      fieldname,
+      parentDoctype,
+      parentId,
+      formSnapshot,
+      workspace,
+    )
+  },
+})
 
 const {
   showLeaveModal,
@@ -111,7 +137,7 @@ const {
   isDirty,
   showDeleteModal,
   showVersions,
-  isQuickEntryOpen: computed(() => Boolean(quickEntryDt.value)),
+  isQuickEntryOpen,
 })
 
 useFormDocWatcher({
@@ -142,122 +168,64 @@ const { handleSave } = useFormSave({
 })
 saveHandler = handleSave
 
-function onVersionRestored() {
-  queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })
-  showVersions.value = false
-}
+const { initialize } = useFormInitialization({
+  doctype: props.doctype,
+  id: props.id,
+  dt,
+  form,
+  loadDocType: (doctype: string) => dtStore.get(doctype),
+  restoreLinkDraft,
+  info: (message: string) => {
+    toast.info(message)
+  },
+  runOnLoad: () => runScriptEvent('on_load'),
+})
+
+const {
+  onVersionRestored,
+  handleDelete,
+  handleDuplicate,
+} = useFormActions({
+  doctype: props.doctype,
+  id: props.id,
+  workspace: props.workspace,
+  form,
+  showDeleteModal,
+  showVersions,
+  remove,
+  goToList,
+  markAllowLeave,
+  router,
+  queryClient,
+  toast,
+})
+
+const {
+  docTitle,
+  onFormUpdate,
+} = useFormDocumentView({
+  id: props.id,
+  dt,
+  document: computed(() => (document.value as Record<string, unknown> | null)),
+  form,
+  runOnChange: (field) => {
+    void runScriptEvent('on_change', field)
+  },
+})
 
 onMounted(async () => {
-  dt.value = await dtStore.get(props.doctype)
-
-  // Apply duplicated document data from history state
-  if (!props.id && window.history.state?.duplicate) {
-    try {
-      const clone = JSON.parse(window.history.state.duplicate) as Record<string, unknown>
-      Object.assign(form.value, clone)
-    } catch { /* ignore malformed state */ }
-  }
-
-  // Apply initial data from history state (e.g. from Calendar quick-add)
-  if (!props.id && window.history.state?.initial_data) {
-    try {
-      const initial = JSON.parse(window.history.state.initial_data) as Record<string, unknown>
-      Object.assign(form.value, initial)
-    } catch { /* ignore malformed state */ }
-  }
-
-  // Restore draft + set link field after returning from a link-create flow
-  const linkReturn = restoreLinkDraft(props.doctype, props.id, form.value)
-  if (linkReturn) {
-    form.value[linkReturn.fieldname] = linkReturn.value
-    toast.info(`Поле встановлено: ${linkReturn.value}`)
-  }
-
-  await runScriptEvent('on_load')
+  await initialize()
 })
 
-// ── Shortcuts ────────────────────────────────────────────────────────────────
-useShortcut(['ctrl+s', 'cmd+s'], () => {
-  handleSave()
-}, { preventDefault: true, allowInInput: true })
-
-useShortcut(['ctrl+p', 'cmd+p'], () => {
-  window.print()
-}, { preventDefault: true, allowInInput: true })
-
-/**
- * Handle "create-new" event from a Link field inside the form.
- * If the linked DocType has quick_entry enabled — show the Quick Entry dialog.
- * Otherwise save a draft and navigate to the full linked-doc form.
- */
-async function handleCreateNew(linkedDoctype: string, preset: string, fieldname: string) {
-  const linkedDt = await dtStore.get(linkedDoctype)
-  if (linkedDt?.quick_entry) {
-    quickEntryDt.value = linkedDt
-    quickEntryPreset.value = preset ? { name: preset } : {}
-    quickEntryFieldname.value = fieldname
-    return
-  }
-  markAllowLeave()
-  startLinkCreate(
-    linkedDoctype,
-    preset,
-    fieldname,
-    props.doctype,
-    props.id,
-    { ...form.value },
-    props.workspace,
-  )
-}
-
-/** Called after QuickEntryDialog saves — set the Link field value on the current form. */
-function onQuickEntrySaved(docname: string) {
-  if (quickEntryFieldname.value) {
-    form.value[quickEntryFieldname.value] = docname
-  }
-  quickEntryDt.value = null
-}
-
-const docTitle = computed(() => {
-  if (!document.value) return props.id ? '...' : `Новий ${dt.value?.label ?? ''}`
-  const tf = dt.value?.title_field
-  if (dt.value?.is_singleton && !tf) return dt.value.label
-  return (tf && document.value[tf] as string) || document.value.name || `Новий ${dt.value?.label ?? ''}`
+useFormShortcuts({
+  onSave: () => {
+    void handleSave()
+  },
+  onPrint: () => {
+    window.print()
+  },
 })
 
-async function handleDelete() {
-  try {
-    await remove()
-    toast.success('Видалено')
-    queryClient.invalidateQueries({ queryKey: ['documents', props.doctype] })
-    goToList()
-  } catch {
-    toast.error('Помилка видалення')
-  }
-  showDeleteModal.value = false
-}
-
-function handleDuplicate() {
-  const clone = { ...form.value }
-  const protectedFields = ['id', 'name', 'created_at', 'updated_at', 'owner', 'modified_by', 'workflow_state']
-  protectedFields.forEach(f => delete clone[f])
-
-  const path = props.workspace
-    ? `/${props.workspace}/${props.doctype}/new`
-    : `/${props.doctype}/new`
-
-  markAllowLeave()
-  router.push({ path, state: { duplicate: JSON.stringify(clone) } })
-}
-
-function onFormUpdate(updated: Record<string, unknown>) {
-  const changedFields: string[] = []
-  for (const key of Object.keys(updated)) {
-    if (updated[key] !== form.value[key]) changedFields.push(key)
-  }
-  Object.assign(form.value, updated)
-  for (const field of changedFields) runScriptEvent('on_change', field)
-}
 </script>
 
 <template>
@@ -314,7 +282,7 @@ function onFormUpdate(updated: Record<string, unknown>) {
 
     <!-- Quick Entry Dialog (from Link field) -->
     <QuickEntryDialog v-if="quickEntryDt" :dt="quickEntryDt" :preset="quickEntryPreset" :workspace="workspace"
-      mode="link" @close="quickEntryDt = null" @saved="onQuickEntrySaved" />
+      mode="link" @close="closeQuickEntry" @saved="onQuickEntrySaved" />
 
     <!-- Modals -->
     <FormModals v-model:show-delete="showDeleteModal" v-model:show-leave="showLeaveModal" @confirm-delete="handleDelete"

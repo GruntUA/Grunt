@@ -137,7 +137,7 @@ class EmailService:
         # Find the default outgoing account id (best-effort — None if unconfigured)
         email_account_id: str | None = None
         try:
-            async with grunt.context(session):
+            async with grunt.system_context(session):
                 accounts = await grunt.db.get_all(
                     "EmailAccount",
                     filters={"enable_outgoing": True},
@@ -153,7 +153,7 @@ class EmailService:
         now = datetime.now(UTC)
 
         try:
-            async with grunt.context(session):
+            async with grunt.system_context(session):
                 await grunt.db.insert_one(
                     "EmailQueue",
                     {

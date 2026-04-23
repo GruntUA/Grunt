@@ -19,7 +19,6 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
     import json  # noqa: PLC0415
 
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
 
     fixture_file = _FIXTURES_DIR / "grunt_workspace.json"
     if not fixture_file.exists():
@@ -29,7 +28,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
     data: dict[str, Any] = json.loads(fixture_file.read_text(encoding="utf-8"))
     ws_name: str = data["name"]
 
-    async with grunt.context(session, eng, SYSTEM_USER):
+    async with grunt.system_context(session, eng):
         existing = await grunt.get_list(
             "WorkspaceSidebar",
             filters={"name": ws_name},
@@ -113,7 +112,6 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
     import json  # noqa: PLC0415
 
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
     from grunt.core.metadata.doctype import DocType  # noqa: PLC0415
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.site.manager import site_manager  # noqa: PLC0415
@@ -127,7 +125,7 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
     installed_apps = site_config.get("installed_apps", [])
     eng = site_manager.get_engine(site_name)
 
-    async with grunt.context(session, eng, SYSTEM_USER):
+    async with grunt.system_context(session, eng):
         await doctype_registry.load_all(session)
 
         for app_name in installed_apps:

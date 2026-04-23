@@ -32,6 +32,17 @@ from grunt.core.document.virtual import (
     _virtual_delete,
     _virtual_update,
 )
+from grunt.core.document.update_side_effects import (
+    bulk_delete_virtual,
+    collect_bulk_delete_candidates,
+    delete_row_and_links,
+    fire_delete_services,
+    fire_update_services,
+    record_update_changes,
+    run_bulk_after_delete_hooks,
+    run_bulk_before_delete_hooks,
+    run_bulk_delete_writes,
+)
 from grunt.core.metadata.compiler import compile_doctype_to_table
 from grunt.core.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.core.metadata.registry import doctype_registry
@@ -353,63 +364,6 @@ class DocumentWriteMixin:
                 result[mlf.fieldname] = ml_data.get(mlf.fieldname, [])
         return result
 
-    async def _record_changes(
-        self,
-        doctype_name: str,
-        real_id: str,
-        dt: Any,
-        existing: dict[str, Any],
-        result: dict[str, Any],
-        user: User,
-    ) -> None:
-        """Create a version record and write an ActivityLog diff (both best-effort)."""
-        from grunt.core.document.versioning import version_service  # noqa: PLC0415
-
-        diff_changes = version_service._compute_diff(existing, result)
-
-        if dt.track_changes and diff_changes:
-            try:
-                await version_service.create_version(
-                    session=self.session,
-                    doctype=doctype_name,
-                    doc_id=real_id,
-                    old_doc=existing,
-                    new_doc=result,
-                    user=user.email,
-                )
-            except Exception:
-                logger.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
-
-        if diff_changes:
-            try:
-                from grunt.app import grunt as _g  # noqa: PLC0415
-
-                async with _g.context(session=self.session, engine=self.engine, user=user):
-                    await _g.new_doc(
-                        "ActivityLog",
-                        {
-                            "doctype": doctype_name,
-                            "doc_id": real_id,
-                            "action": "Update",
-                            "user": user.email,
-                            "details": {"changes": diff_changes},
-                        },
-                    )
-            except Exception:  # noqa: BLE001
-                logger.warning(
-                    "activity_log.update_failed", doctype=doctype_name, doc_id=real_id
-                )
-
-    async def _fire_update_services(
-        self, doctype_name: str, dt: Any, result: dict[str, Any]
-    ) -> None:
-        """Update the search index and fire outgoing webhooks after a successful update."""
-        from grunt.core.search.service import search_index_service  # noqa: PLC0415
-        from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
-
-        await search_index_service.index_document(self.session, doctype_name, dt, result)
-        await webhook_service.fire(self.session, "after_update", doctype_name, result)
-
     async def _run_update_before_hooks(self, doc: Any) -> None:
         """Run validate/before_save hooks and normalize hook errors."""
         try:
@@ -477,30 +431,6 @@ class DocumentWriteMixin:
                 detail=str(e),
             ) from e
 
-    async def _delete_row_and_links(
-        self,
-        table: Any,
-        doctype_name: str,
-        real_id: str,
-    ) -> None:
-        """Delete main row and MultiLink relations, then flush pending writes."""
-        await self.session.execute(table.delete().where(table.c.id == real_id))
-        await self._ml.delete_all_for_doc(doctype_name, real_id)
-        await self.session.flush()
-
-    async def _fire_delete_services(
-        self,
-        doctype_name: str,
-        real_id: str,
-        existing: dict[str, Any],
-    ) -> None:
-        """Update external services after delete: search index and outgoing webhooks."""
-        from grunt.core.search.service import search_index_service  # noqa: PLC0415
-        from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
-
-        await search_index_service.remove_document(self.session, doctype_name, real_id)
-        await webhook_service.fire(self.session, "after_delete", doctype_name, existing)
-
     async def _run_delete_after_hooks(self, doc: Any) -> None:
         """Run after_delete hook and normalize hook errors."""
         try:
@@ -510,106 +440,6 @@ class DocumentWriteMixin:
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=str(e),
             ) from e
-
-    async def _bulk_delete_virtual(
-        self,
-        doctype_name: str,
-        ids: list[str],
-        user: User,
-    ) -> tuple[int, list[str]]:
-        """Delete virtual documents one-by-one and aggregate errors."""
-        deleted = 0
-        errors: list[str] = []
-        for doc_id in ids:
-            try:
-                await _virtual_delete(doctype_name, user, doc_id)
-                deleted += 1
-            except Exception as e:  # noqa: BLE001
-                errors.append(f"{doc_id}: {e}")
-        return deleted, errors
-
-    async def _collect_bulk_delete_candidates(
-        self,
-        dt: Any,
-        table: Any,
-        ids: list[str],
-    ) -> tuple[list[dict[str, Any]], list[str]]:
-        """Fetch and validate candidate docs for bulk delete."""
-        from sqlalchemy import select as sa_select  # noqa: PLC0415
-
-        existing_rows: dict[str, dict[str, Any]] = {}
-        result = await self.session.execute(sa_select(table).where(table.c.id.in_(ids)))
-        for row in result.fetchall():
-            existing_rows[str(row._mapping["id"])] = dict(row._mapping)
-
-        errors: list[str] = []
-        to_delete: list[dict[str, Any]] = []
-
-        for doc_id in ids:
-            doc = existing_rows.get(doc_id)
-            if doc is None:
-                errors.append(f"{doc_id}: not found")
-                continue
-            if dt.is_submittable and doc.get("docstatus") == 1:
-                errors.append(f"{doc_id}: submitted — cancel before delete")
-                continue
-            to_delete.append(doc)
-
-        return to_delete, errors
-
-    async def _run_bulk_before_delete_hooks(
-        self,
-        doctype_name: str,
-        docs: list[dict[str, Any]],
-        user: User,
-        errors: list[str],
-        report: Any | None = None,
-    ) -> list[tuple[dict[str, Any], Any]]:
-        """Run per-document before_delete hooks and keep only successful controllers."""
-        controllers: list[tuple[dict[str, Any], Any]] = []
-        for i, doc in enumerate(docs):
-            controller_cls = document_registry.get(doctype_name)
-            ctrl = controller_cls(doctype_name, doc, user, self.session)
-            try:
-                await ctrl.before_delete()
-            except GruntError as e:
-                errors.append(f"{doc['id']}: {e}")
-                continue
-            controllers.append((doc, ctrl))
-            if report is not None:
-                await report(i + 1)
-        return controllers
-
-    async def _run_bulk_delete_writes(
-        self,
-        table: Any,
-        doctype_name: str,
-        final_ids: list[str],
-    ) -> None:
-        """Execute batched DELETE + MultiLink cleanup + search index cleanup."""
-        from grunt.core.search.service import search_index_service  # noqa: PLC0415
-
-        await self.session.execute(table.delete().where(table.c.id.in_(final_ids)))
-        await self._ml.delete_all_for_docs(doctype_name, final_ids)
-        await self.session.flush()
-        await search_index_service.remove_documents(self.session, doctype_name, final_ids)
-
-    async def _run_bulk_after_delete_hooks(
-        self,
-        doctype_name: str,
-        controllers: list[tuple[dict[str, Any], Any]],
-        errors: list[str],
-    ) -> None:
-        """Run per-document after_delete hooks and fire outgoing webhooks."""
-        from grunt.core.webhook.service import webhook_service  # noqa: PLC0415
-
-        for doc, ctrl in controllers:
-            real_id = str(doc["id"])
-            try:
-                await ctrl.after_delete()
-            except GruntError as e:
-                errors.append(f"{real_id}: {e}")
-            await webhook_service.fire(self.session, "after_delete", doctype_name, doc)
 
     # ── Update ────────────────────────────────────────────────────────────
 
@@ -657,12 +487,26 @@ class DocumentWriteMixin:
             logger.info("document.updated", doctype=doctype_name, id=real_id)
 
             result = await self._build_update_result(doctype_name, real_id, dt, merged)
-            await self._record_changes(doctype_name, real_id, dt, existing, result, user)
+            await record_update_changes(
+                session=self.session,
+                engine=self.engine,
+                doctype_name=doctype_name,
+                real_id=real_id,
+                dt=dt,
+                existing=existing,
+                result=result,
+                user=user,
+            )
 
             doc.data = result
             await self._run_update_after_hooks(doc)
 
-            await self._fire_update_services(doctype_name, dt, result)
+            await fire_update_services(
+                session=self.session,
+                doctype_name=doctype_name,
+                dt=dt,
+                result=result,
+            )
             return result
         finally:
             self._reset_grunt_context(_tokens)
@@ -698,8 +542,19 @@ class DocumentWriteMixin:
             controller_cls = document_registry.get(doctype_name)
             doc = controller_cls(doctype_name, existing, user, self.session)
             await self._run_delete_before_hooks(doc)
-            await self._delete_row_and_links(table, doctype_name, real_id)
-            await self._fire_delete_services(doctype_name, real_id, existing)
+            await delete_row_and_links(
+                session=self.session,
+                ml=self._ml,
+                table=table,
+                doctype_name=doctype_name,
+                real_id=real_id,
+            )
+            await fire_delete_services(
+                session=self.session,
+                doctype_name=doctype_name,
+                real_id=real_id,
+                existing=existing,
+            )
             await self._run_delete_after_hooks(doc)
 
         finally:
@@ -729,10 +584,19 @@ class DocumentWriteMixin:
         dt = await doctype_registry.get(doctype_name)
 
         if dt.is_virtual:
-            return await self._bulk_delete_virtual(doctype_name, ids, user)
+            return await bulk_delete_virtual(
+                doctype_name=doctype_name,
+                ids=ids,
+                user=user,
+            )
 
         table = compile_doctype_to_table(dt)
-        to_delete, errors = await self._collect_bulk_delete_candidates(dt, table, ids)
+        to_delete, errors = await collect_bulk_delete_candidates(
+            session=self.session,
+            dt=dt,
+            table=table,
+            ids=ids,
+        )
 
         if not to_delete:
             return 0, errors
@@ -745,12 +609,13 @@ class DocumentWriteMixin:
 
         _tokens = self._set_grunt_context(user)
         try:
-            controllers = await self._run_bulk_before_delete_hooks(
-                doctype_name,
-                to_delete,
-                user,
-                errors,
-                _report,
+            controllers = await run_bulk_before_delete_hooks(
+                doctype_name=doctype_name,
+                docs=to_delete,
+                user=user,
+                session=self.session,
+                errors=errors,
+                report=_report,
             )
         finally:
             self._reset_grunt_context(_tokens)
@@ -762,8 +627,19 @@ class DocumentWriteMixin:
 
         _tokens = self._set_grunt_context(user)
         try:
-            await self._run_bulk_delete_writes(table, doctype_name, final_ids)
-            await self._run_bulk_after_delete_hooks(doctype_name, controllers, errors)
+            await run_bulk_delete_writes(
+                session=self.session,
+                ml=self._ml,
+                table=table,
+                doctype_name=doctype_name,
+                final_ids=final_ids,
+            )
+            await run_bulk_after_delete_hooks(
+                session=self.session,
+                doctype_name=doctype_name,
+                controllers=controllers,
+                errors=errors,
+            )
         finally:
             self._reset_grunt_context(_tokens)
 
