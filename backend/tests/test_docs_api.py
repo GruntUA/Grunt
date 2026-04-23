@@ -175,6 +175,70 @@ async def test_get_document(ctx, setup_doctype):
 
 
 @pytest.mark.asyncio
+async def test_get_document_expand_multilink(ctx):
+    """expand controls MultiLink loading for get_document."""
+    from grunt.api.v1.meta import save_doctype
+    from grunt.core.doctypes.user.user import SYSTEM_USER
+    from grunt.core.document.service import DocumentService
+
+    await save_doctype(
+        doctype_data={
+            "name": "ExpandItem",
+            "label": "Expand Item",
+            "module": "core",
+            "fields": [
+                {
+                    "fieldname": "title",
+                    "label": "Title",
+                    "fieldtype": "Text",
+                    "required": True,
+                },
+                {
+                    "fieldname": "watchers",
+                    "label": "Watchers",
+                    "fieldtype": "MultiLink",
+                    "options": "User",
+                },
+            ],
+            "search_fields": ["title"],
+            "__is_new": True,
+        }
+    )
+    await ctx.db._session().commit()
+
+    created = await ctx.new_doc(
+        "ExpandItem",
+        {"title": "Has Watchers", "watchers": ["system@grunt.local"]},
+    )
+    await ctx.db._session().commit()
+
+    session = ctx.db._session()
+    engine = ctx._require_engine()
+    svc = DocumentService(session, engine)
+
+    async with ctx.context(session, engine, SYSTEM_USER):
+        full_doc = await svc.get_document("ExpandItem", created["id"], SYSTEM_USER)
+        assert "watchers" in full_doc
+        assert full_doc["watchers"] == ["system@grunt.local"]
+
+        narrow_doc = await svc.get_document(
+            "ExpandItem",
+            created["id"],
+            SYSTEM_USER,
+            expand=["title"],
+        )
+        assert "watchers" not in narrow_doc
+
+        expanded_doc = await svc.get_document(
+            "ExpandItem",
+            created["id"],
+            SYSTEM_USER,
+            expand=["watchers"],
+        )
+        assert expanded_doc["watchers"] == ["system@grunt.local"]
+
+
+@pytest.mark.asyncio
 async def test_get_nonexistent_404(ctx, setup_doctype):
     """get_doc nonexistent → HTTPException 404."""
     from fastapi import HTTPException

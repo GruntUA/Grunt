@@ -116,10 +116,17 @@ def _get_multi_link_fields(dt: DocType) -> list:
     return [f for f in dt.fields if f.fieldtype == "MultiLink"]
 
 
-async def _load_child_tables(session: AsyncSession, dt: DocType, doc: dict[str, Any]) -> None:
+async def _load_child_tables(
+    session: AsyncSession,
+    dt: DocType,
+    doc: dict[str, Any],
+    include_fields: set[str] | None = None,
+) -> None:
     """Attach child table rows to *doc* in-place for all TABLE fields."""
     for field in dt.fields:
         if field.fieldtype != "Table" or not field.options:
+            continue
+        if include_fields is not None and field.fieldname not in include_fields:
             continue
         try:
             child_dt = await doctype_registry.get(field.options)
@@ -145,6 +152,15 @@ async def _load_child_tables(session: AsyncSession, dt: DocType, doc: dict[str, 
         except Exception:
             logger.exception("child_table.load_error", doctype=dt.name, field=field.fieldname)
             doc[field.fieldname] = []
+
+
+def _table_fieldnames(dt: DocType) -> set[str]:
+    """Return all child-table fieldnames for a DocType."""
+    return {
+        f.fieldname
+        for f in dt.fields
+        if f.fieldtype == "Table" and bool(f.options)
+    }
 
 
 async def _save_child_tables(

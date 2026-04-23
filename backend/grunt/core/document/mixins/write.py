@@ -78,6 +78,7 @@ class DocumentWriteMixin:
         doctype_name: str,
         doc_id: str,
         user: User,
+        expand: list[str] | None = None,
     ) -> dict[str, Any]:
         raise NotImplementedError
 

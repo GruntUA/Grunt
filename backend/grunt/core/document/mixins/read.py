@@ -25,6 +25,7 @@ from grunt.core.document.relations import (
     _get_multi_link_fields,
     _load_child_tables,
     _resolve_link_labels,
+    _table_fieldnames,
 )
 from grunt.core.document.virtual import (
     _virtual_get,
@@ -224,6 +225,7 @@ class DocumentReadMixin:
         doctype_name: str,
         doc_id: str,
         user: User,
+        expand: list[str] | None = None,
     ) -> dict[str, Any]:
         dt = await doctype_registry.get(doctype_name)
         if dt.is_virtual:
@@ -247,14 +249,31 @@ class DocumentReadMixin:
             if isinstance(v, datetime):
                 doc[k] = v.isoformat()
 
+        table_fields = _table_fieldnames(dt)
+        ml_fields = {f.fieldname for f in _get_multi_link_fields(dt)}
+
+        expand_set = {x for x in (expand or []) if x}
+        load_all_relations = expand is None or "*" in expand_set
+
         # Attach child table values
-        await _load_child_tables(self.session, dt, doc)
+        if load_all_relations or table_fields:
+            selected_tables = None if load_all_relations else (table_fields & expand_set)
+            if selected_tables:
+                await _load_child_tables(self.session, dt, doc, include_fields=selected_tables)
+            elif load_all_relations:
+                await _load_child_tables(self.session, dt, doc)
 
         # Attach MultiLink values
-        ml_fields = _get_multi_link_fields(dt)
         if ml_fields:
-            ml_data = await self._ml.get_all_for_doc(doctype_name, doc["id"])
-            for mlf in ml_fields:
-                doc[mlf.fieldname] = ml_data.get(mlf.fieldname, [])
+            if load_all_relations:
+                ml_data = await self._ml.get_all_for_doc(doctype_name, doc["id"])
+                for fieldname in ml_fields:
+                    doc[fieldname] = ml_data.get(fieldname, [])
+            else:
+                selected_ml = sorted(ml_fields & expand_set)
+                if selected_ml:
+                    ml_data = await self._ml.get_for_doc_fields(doctype_name, doc["id"], selected_ml)
+                    for fieldname in selected_ml:
+                        doc[fieldname] = ml_data.get(fieldname, [])
 
         return doc

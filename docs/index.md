@@ -39,6 +39,15 @@ DocType "Invoice"
 | **Reports** | Query, Script, and dynamic List reports |
 | **i18n** | Multi-language support (English + Ukrainian built-in) |
 
+## API Highlights
+
+- List endpoint supports cursor pagination for large datasets:
+   - `GET /api/v1/docs/{DocType}?per_page=50&cursor=<opaque_token>`
+   - response `meta` includes `next_cursor` when more rows are available
+- Get endpoint supports explicit relation expansion:
+   - `GET /api/v1/docs/{DocType}/{id}?expand=items,watchers`
+   - expands only selected relation fields (`Table`, `MultiLink`)
+
 ## Quick Start
 
 ```bash

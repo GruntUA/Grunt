@@ -9,9 +9,13 @@ from grunt.app import grunt as grunt_app
 
 
 @grunt.whitelist()
-async def get_doc(doctype: str, name: str) -> dict[str, Any]:
+async def get_doc(
+    doctype: str,
+    name: str,
+    expand: list[str] | None = None,
+) -> dict[str, Any]:
     """Get a single document."""
-    return await grunt_app.get_doc(doctype, name)
+    return await grunt_app.get_doc(doctype, name, expand=expand)
 
 
 @grunt.whitelist()

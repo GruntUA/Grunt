@@ -74,11 +74,13 @@ async def create_document(
 async def get_document(
     doctype: str,
     doc_id: str,
+    expand: str | None = Query(None, description="Comma-separated relation fields to expand"),
     user: User = Depends(current_user),
     svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Get document data."""
-    doc = await svc.get_document(doctype, doc_id, user)
+    expand_fields = [f.strip() for f in expand.split(",") if f.strip()] if expand else None
+    doc = await svc.get_document(doctype, doc_id, user, expand=expand_fields)
     return ok(doc)
 
 

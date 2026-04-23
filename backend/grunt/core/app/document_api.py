@@ -26,13 +26,19 @@ class DocumentAPI:
         return DocumentService(self._require_session(), self._require_engine())
 
     @profile("grunt.get_doc")
-    async def get_doc(self, doctype: str, id_or_name: str) -> dict[str, Any]:
+    async def get_doc(
+        self,
+        doctype: str,
+        id_or_name: str,
+        *,
+        expand: list[str] | None = None,
+    ) -> dict[str, Any]:
         """Fetch a single document by id or name."""
         from grunt.core.hooks import fire  # noqa: PLC0415
 
         dt, user, hidden_fields = await self._read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, doc_id=id_or_name)
-        doc = await self._svc().get_document(doctype, id_or_name, user)
+        doc = await self._svc().get_document(doctype, id_or_name, user, expand=expand)
         doc = self._apply_hidden_fields_to_doc(doc, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, doc=doc)
         return doc

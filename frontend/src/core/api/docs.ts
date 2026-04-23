@@ -104,8 +104,17 @@ export const docsApi = {
   get: <T extends GruntDocument = GruntDocument>(
     doctype: string,
     id: string,
+    options?: { expand?: string[] | string },
   ): Promise<T> =>
-    client.get(`/api/v1/docs/${doctype}/${id}`)
+    client.get(`/api/v1/docs/${doctype}/${id}`, {
+      params: options?.expand
+        ? {
+            expand: Array.isArray(options.expand)
+              ? options.expand.join(',')
+              : options.expand,
+          }
+        : undefined,
+    })
       .then(r => r.data.data as T),
 
   create: <T extends GruntDocument = GruntDocument>(

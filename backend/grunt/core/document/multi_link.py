@@ -62,6 +62,31 @@ class MultiLinkService:
             out.setdefault(field, []).append(name)
         return out
 
+    async def get_for_doc_fields(
+        self,
+        parent_doctype: str,
+        parent_id: str,
+        fields: list[str],
+    ) -> dict[str, list[str]]:
+        """Return MultiLink values only for selected field names."""
+        if not fields:
+            return {}
+
+        t = MULTI_LINK_TABLE
+        result = await self.session.execute(
+            select(t.c.parent_field, t.c.link_name)
+            .where(
+                t.c.parent_doctype == parent_doctype,
+                t.c.parent_id == parent_id,
+                t.c.parent_field.in_(fields),
+            )
+            .order_by(t.c.parent_field, t.c.idx)
+        )
+        out: dict[str, list[str]] = {}
+        for field, name in result.fetchall():
+            out.setdefault(field, []).append(name)
+        return out
+
     async def set_values(
         self,
         parent_doctype: str,
