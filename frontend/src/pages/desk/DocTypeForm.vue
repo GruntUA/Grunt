@@ -17,6 +17,7 @@ import { useFormActions } from '@/core/composables/useFormActions'
 import { useFormLinkCreation } from '@/core/composables/useFormLinkCreation'
 import { useFormDocumentView } from '@/core/composables/useFormDocumentView'
 import { useFormShortcuts } from '@/core/composables/useFormShortcuts'
+import { useFetchFrom } from '@/core/composables/useFetchFrom'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { DocType, GruntDocument } from '@/types'
 import { History } from '@lucide/vue'
@@ -233,6 +234,14 @@ useFormShortcuts({
   },
   onPrint: () => {
     window.print()
+  },
+})
+
+useFetchFrom({
+  doctype: dt,
+  modelValue: form,
+  updateField: (fieldname, value) => {
+    form.value[fieldname] = value
   },
 })
 

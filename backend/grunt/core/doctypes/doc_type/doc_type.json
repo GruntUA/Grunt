@@ -178,6 +178,12 @@
       "description": "напр. count(\"Employee\", {\"department\": id})"
     },
     {
+      "fieldname": "fetch_from",
+      "label": "Отримувати з (Fetch From)",
+      "fieldtype": "Data",
+      "description": "напр. link_field.source_field"
+    },
+    {
       "fieldname": "tab_dashboard",
       "label": "Дашборд",
       "fieldtype": "Tab"

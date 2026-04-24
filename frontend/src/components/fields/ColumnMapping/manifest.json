@@ -1,7 +1,1 @@
-{
-  "type": "ColumnMapping",
-  "label": "Маппінг колонок",
-  "icon": "table-2",
-  "category": "Спеціальні",
-  "propertySections": ["core", "display"]
-}
+{"type": "ColumnMapping", "label": "\u041c\u0430\u043f\u043f\u0456\u043d\u0433 \u043a\u043e\u043b\u043e\u043d\u043e\u043a", "icon": "table-2", "category": "\u0421\u043f\u0435\u0446\u0456\u0430\u043b\u044c\u043d\u0456", "propertySections": ["core", "display", "fetch_from"]}

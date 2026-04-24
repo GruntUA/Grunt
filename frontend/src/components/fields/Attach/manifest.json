@@ -1,14 +1,1 @@
-{
-  "type": "Attach",
-  "label": "Attach",
-  "icon": "paperclip",
-  "category": "Медіа",
-  "non_groupable": true,
-  "propertySections": [
-    "core",
-    "flags",
-    "display",
-    "text",
-    "default"
-  ]
-}
+{"type": "Attach", "label": "Attach", "icon": "paperclip", "category": "\u041c\u0435\u0434\u0456\u0430", "non_groupable": true, "propertySections": ["core", "flags", "display", "text", "default", "fetch_from"]}

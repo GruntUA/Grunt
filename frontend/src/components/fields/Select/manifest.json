@@ -1,14 +1,1 @@
-{
-  "type": "Select",
-  "label": "Select",
-  "icon": "chevron-down",
-  "category": "Вибір і зв'язки",
-  "propertySections": [
-    "core",
-    "flags",
-    "display",
-    "text",
-    "default",
-    "options"
-  ]
-}
+{"type": "Select", "label": "Select", "icon": "chevron-down", "category": "\u0412\u0438\u0431\u0456\u0440 \u0456 \u0437\u0432'\u044f\u0437\u043a\u0438", "propertySections": ["core", "flags", "display", "text", "default", "options", "fetch_from"]}

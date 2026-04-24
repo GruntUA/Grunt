@@ -1,14 +1,1 @@
-{
-  "type": "RichText",
-  "label": "Rich Text",
-  "icon": "file-pen",
-  "category": "Текст",
-  "non_groupable": true,
-  "propertySections": [
-    "core",
-    "flags",
-    "display",
-    "text",
-    "default"
-  ]
-}
+{"type": "RichText", "label": "Rich Text", "icon": "file-pen", "category": "\u0422\u0435\u043a\u0441\u0442", "non_groupable": true, "propertySections": ["core", "flags", "display", "text", "default", "fetch_from"]}

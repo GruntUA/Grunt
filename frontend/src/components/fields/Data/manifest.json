@@ -1,1 +1,1 @@
-{"type": "Data", "label": "Data", "icon": "type", "category": "Базові", "propertySections": ["core", "flags", "display", "text", "formula", "default", "validation"]}
+{"type": "Data", "label": "Data", "icon": "type", "category": "\u0411\u0430\u0437\u043e\u0432\u0456", "propertySections": ["core", "flags", "display", "text", "formula", "default", "validation", "fetch_from"]}

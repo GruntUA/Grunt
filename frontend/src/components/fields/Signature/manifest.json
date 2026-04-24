@@ -1,13 +1,1 @@
-{
-  "type": "Signature",
-  "label": "Signature",
-  "icon": "pen",
-  "category": "Спеціальні",
-  "non_groupable": true,
-  "propertySections": [
-    "core",
-    "flags",
-    "display",
-    "text"
-  ]
-}
+{"type": "Signature", "label": "Signature", "icon": "pen", "category": "\u0421\u043f\u0435\u0446\u0456\u0430\u043b\u044c\u043d\u0456", "non_groupable": true, "propertySections": ["core", "flags", "display", "text", "fetch_from"]}

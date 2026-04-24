@@ -1,12 +1,1 @@
-{
-  "type": "Icon",
-  "label": "Іконка",
-  "icon": "shapes",
-  "category": "Базові",
-  "propertySections": [
-    "core",
-    "flags",
-    "display",
-    "default"
-  ]
-}
+{"type": "Icon", "label": "\u0406\u043a\u043e\u043d\u043a\u0430", "icon": "shapes", "category": "\u0411\u0430\u0437\u043e\u0432\u0456", "propertySections": ["core", "flags", "display", "default", "fetch_from"]}

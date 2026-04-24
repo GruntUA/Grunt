@@ -216,6 +216,10 @@ class DocField(BaseModel):
     show_in_dashboard: bool = False
     dashboard_doctype: str | None = None
 
+    # Fetch From — automatically populate value from a linked document.
+    # Format: "link_fieldname.field_to_fetch" (e.g., "customer.name")
+    fetch_from: str | None = None
+
     # Quick Entry — show this field in the quick-entry dialog.
     # If False, field is only shown when quick_entry shows required fields.
     in_quick_entry: bool = False

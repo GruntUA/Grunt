@@ -57,6 +57,14 @@ export interface DocField {
   columns?: number
   collapsible?: boolean
   icon?: string
+  // Virtual
+  is_virtual?: boolean
+  read_formula?: string | null
+  // Dashboard
+  show_in_dashboard?: boolean
+  dashboard_doctype?: string | null
+  // Fetch From
+  fetch_from?: string | null
 }
 
 export interface DocTypeSummary {

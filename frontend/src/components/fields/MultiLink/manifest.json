@@ -1,15 +1,1 @@
-{
-  "type": "MultiLink",
-  "label": "Multi Link",
-  "icon": "link-2",
-  "category": "Вибір і зв'язки",
-  "non_groupable": true,
-  "propertySections": [
-    "core",
-    "flags",
-    "display",
-    "text",
-    "default",
-    "link"
-  ]
-}
+{"type": "MultiLink", "label": "Multi Link", "icon": "link-2", "category": "\u0412\u0438\u0431\u0456\u0440 \u0456 \u0437\u0432'\u044f\u0437\u043a\u0438", "non_groupable": true, "propertySections": ["core", "flags", "display", "text", "default", "link", "fetch_from"]}

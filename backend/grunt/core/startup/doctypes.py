@@ -155,6 +155,7 @@ async def populate_system_doctypes(
             **_col("tree_view", dt.tree_view.model_dump() if dt.tree_view else None),
             **_col("show_in_dashboard", dt.show_in_dashboard),
             **_col("dashboard_doctype", dt.dashboard_doctype),
+            **_col("fetch_from", dt.fetch_from),
         }
 
         if dt.name in existing_names:

@@ -1,11 +1,1 @@
-{
-    "type": "Button",
-    "label": "Button",
-    "icon": "mouse-pointer-click",
-    "category": "Controls",
-    "propertySections": [
-        "core",
-        "button",
-        "display"
-    ]
-}
+{"type": "Button", "label": "Button", "icon": "mouse-pointer-click", "category": "Controls", "propertySections": ["core", "button", "display", "fetch_from"]}
