@@ -214,7 +214,8 @@ class VersionService:
     @staticmethod
     def _serialize(value: Any) -> Any:
         """Serialize a value for JSON storage."""
-        if isinstance(value, datetime):
+        from datetime import date, datetime  # noqa: PLC0415
+        if isinstance(value, (datetime, date)):
             return value.isoformat()
         if isinstance(value, (bytes, bytearray)):
             return None

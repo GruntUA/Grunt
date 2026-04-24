@@ -73,6 +73,9 @@ def __getattr__(name: str):
         "set_value",
         "get_all",
         "count",
+        "context",
+        "system_context",
+        "bootstrap_context",
     ):
         from grunt import api  # noqa: PLC0415
 
@@ -89,6 +92,9 @@ def __getattr__(name: str):
             "set_value",
             "get_all",
             "count",
+            "context",
+            "system_context",
+            "bootstrap_context",
         ):
             from grunt.app import grunt  # noqa: PLC0415
 

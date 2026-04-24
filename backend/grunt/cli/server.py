@@ -22,7 +22,7 @@ def init():
 
 @click.command()
 @click.option("--port", default=8000, help="Порт для API")
-@click.option("--reload", is_flag=True, help="Режим перезавантаження")
+@click.option("--reload", is_flag=True, default=True, help="Режим перезавантаження (увімкнено за замовчуванням)")
 @click.option("--no-frontend", is_flag=True, help="Не запускати фронтенд")
 def serve(port, reload, no_frontend):
     root_dir = Path(__file__).parents[3]
@@ -49,6 +49,8 @@ def serve(port, reload, no_frontend):
     if reload:
         cmd += [
             "--reload",
+            "--reload-include",
+            "*.py",
             "--reload-include",
             "*.js",
             "--reload-include",

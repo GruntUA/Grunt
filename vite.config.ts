@@ -65,7 +65,6 @@ export default defineConfig({
             // WebSocket endpoints — must be listed BEFORE the general /api rule
             '/api/v1/ws': {
                 target: 'http://localhost:8000',
-                changeOrigin: true,
                 ws: true,
             },
             // REST API
