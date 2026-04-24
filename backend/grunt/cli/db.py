@@ -10,7 +10,7 @@ import click
 
 @click.group("db")
 def db_group():
-    """Команди управління базою даних."""
+    """Database management commands."""
     pass
 
 
@@ -139,7 +139,7 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
 
 
 @db_group.command("trim-tables")
-@click.option("--doctype", "-d", default=None, help="Окремий DocType для обробки")
+@click.option("--doctype", "-d", default=None, help="Specific DocType to process")
 @click.option("--dry-run", is_flag=True, help="Тільки показати, що буде видалено")
 @click.option("--quiet", "-q", is_flag=True, help="Не виводити інформацію")
 @click.option("--site", default=None, help="Назва сайту")
