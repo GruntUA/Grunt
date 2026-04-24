@@ -9,6 +9,7 @@ interface UseFormValidationParams {
   displayOverrides: Record<string, boolean>
   reqdOverrides: Record<string, boolean>
   toast: { error: (message: string) => void }
+  activeTab?: Ref<string>
 }
 
 export function useFormValidation(params: UseFormValidationParams) {
@@ -19,10 +20,26 @@ export function useFormValidation(params: UseFormValidationParams) {
   }
 
   function focusFirstError() {
-    nextTick(() => {
-      const firstKey = Object.keys(validationErrors.value)[0]
-      if (!firstKey) return
+    const firstKey = Object.keys(validationErrors.value)[0]
+    if (!firstKey) return
 
+    // 1. Find which tab this field is in
+    if (params.activeTab && params.dt.value) {
+      let fieldTab = 'Main'
+      for (const field of params.dt.value.fields) {
+        if (field.fieldtype === 'Tab') {
+          fieldTab = field.label || 'Main'
+        }
+        if (field.fieldname === firstKey) {
+          if (params.activeTab.value !== fieldTab) {
+            params.activeTab.value = fieldTab
+          }
+          break
+        }
+      }
+    }
+
+    nextTick(() => {
       const el = window.document.querySelector(`[data-fieldname="${firstKey}"]`) as HTMLElement | null
       if (!el) return
 
@@ -60,7 +77,11 @@ export function useFormValidation(params: UseFormValidationParams) {
     }
 
     if (Object.keys(validationErrors.value).length > 0) {
-      params.toast.error("Заповніть обов'язкові поля")
+      const missingLabels = Object.keys(validationErrors.value)
+        .map(fieldname => params.dt.value?.fields.find(f => f.fieldname === fieldname)?.label || fieldname)
+        .join(', ')
+
+      params.toast.error(`Заповніть обов'язкові поля: ${missingLabels}`)
       focusFirstError()
       return false
     }

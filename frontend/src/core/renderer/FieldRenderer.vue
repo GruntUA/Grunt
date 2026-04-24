@@ -41,7 +41,12 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
 </script>
 
 <template>
-  <div v-if="isVisible" :data-fieldname="field.fieldname" class="flex flex-col gap-1.5 relative w-full">
+  <div v-if="isVisible" :data-fieldname="field.fieldname" 
+    class="flex flex-col gap-1.5 relative w-full p-1.5 -m-1.5 rounded-lg transition-all duration-300"
+    :class="{ 
+      'bg-destructive/[0.03] ring-1 ring-destructive/20 shadow-[0_0_8px_rgba(var(--destructive),0.05)]': error,
+      'hover:bg-muted/30': !error 
+    }">
     <label v-if="!hasOwnLabel" class="text-sm font-medium text-foreground/90 flex items-center gap-1">
       {{ field.label }}
       <span v-if="field.required" class="text-destructive font-bold">*</span>

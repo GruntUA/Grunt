@@ -96,6 +96,7 @@ const {
   displayOverrides,
   reqdOverrides,
   toast,
+  activeTab,
 })
 
 // Provide link filter resolver to all descendant Link fields via inject
