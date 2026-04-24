@@ -22,7 +22,7 @@ const error = ref('')
 
 onMounted(async () => {
   try {
-    const resp = await fetch(`/api/v1/public/share/${encodeURIComponent(token)}`)
+    const resp = await fetch(`/api/v1/method/grunt.api.v1.share.get_shared_document?token=${encodeURIComponent(token)}`)
     if (resp.status === 410) { error.value = 'Термін дії посилання закінчився'; return }
     if (resp.status === 404) { error.value = 'Посилання не знайдено або деактивовано'; return }
     if (!resp.ok) { error.value = `Помилка ${resp.status}`; return }

@@ -52,7 +52,7 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
       :field="field"
       :modelValue="modelValue"
       :disabled="disabled"
-      :error="!!error"
+      :error="error"
       :doc="docValues"
       @update:modelValue="emit('update:modelValue', $event)"
       @create-new="(doctype: string, preset: string) => emit('create-new', doctype, preset, field.fieldname)"

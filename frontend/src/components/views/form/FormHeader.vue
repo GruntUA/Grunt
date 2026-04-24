@@ -49,7 +49,7 @@ async function createShare() {
   if (!props.id || !props.doctype) return
   shareLoading.value = true
   try {
-    const resp = await fetch('/api/v1/share', {
+    const resp = await fetch('/api/v1/method/grunt.api.v1.share.create_share', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
