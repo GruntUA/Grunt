@@ -71,7 +71,7 @@ watch(() => props.workspaceName, (name) => { loadWorkspace(name) })
       class="flex-1 flex flex-col min-w-0 relative z-10 bg-background/40 backdrop-blur-[2px] transition-all duration-300 overflow-hidden"
     >
       <div class="flex-1 overflow-y-auto pb-14 md:pb-0">
-        <RouterView v-slot="{ Component }" :key="route.fullPath">
+        <RouterView v-slot="{ Component }" :key="route.path">
           <Transition name="fade" mode="out-in">
             <component :is="Component" />
           </Transition>
