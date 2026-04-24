@@ -53,7 +53,7 @@ function update(key: keyof WorkflowTransition, val: unknown) {
           rows="3"
           placeholder="Кожна роль з нового рядка"
           class="w-full text-sm"
-          @update:model-value="update('allowed_roles', ($event ?? '').split('\n').map((r: string) => r.trim()).filter(Boolean))"
+          @update:model-value="update('allowed_roles', ($event ?? '').split('\n').map(r => r.trim()).filter(Boolean))"
         />
       </div>
       <div class="flex flex-col gap-1.5">

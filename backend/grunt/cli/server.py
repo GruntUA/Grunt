@@ -1,5 +1,6 @@
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import click
@@ -15,7 +16,7 @@ def _npm_cmd() -> list[str]:
 
 @click.command()
 def init():
-    """Ініціалізація проєкту (створення .env, БД та адміна)."""
+    """Заглушка ініціалізації проєкту (поки без створення .env, БД та адміна)."""
     click.echo("Ініціалізація Ґрунт...")
     click.echo("Готово.")
 
@@ -30,11 +31,14 @@ def serve(port, reload, no_frontend):
     frontend_process = None
     if not no_frontend:
         # Kill any stale process on port 5173 so Vite always starts on the expected port
-        subprocess.run(
-            ["fuser", "-k", "5173/tcp"],
-            stderr=subprocess.DEVNULL,
-            check=False,
-        )
+        if sys.platform.startswith("linux"):
+            subprocess.run(
+                ["fuser", "-k", "5173/tcp"],
+                stderr=subprocess.DEVNULL,
+                check=False,
+            )
+        else:
+            click.echo("Пропуск очищення порту 5173: команда fuser підтримується лише на Linux.")
         click.echo("Запуск фронтенда (Vite) на порту 5173...")
         frontend_process = subprocess.Popen(
             [*_npm_cmd(), "npm", "run", "dev"],

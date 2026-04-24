@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { Loader2, AlertCircle, Sprout, Eye, Clock } from '@lucide/vue'
 
 const route = useRoute()
+const { t } = useI18n()
 const token = route.params.token as string
 
 interface SharedField { fieldname: string; label: string; fieldtype: string }
@@ -22,13 +24,21 @@ const error = ref('')
 
 onMounted(async () => {
   try {
-    const resp = await fetch(`/api/v1/method/grunt.api.v1.share.get_shared_document?token=${encodeURIComponent(token)}`)
+    const resp = await fetch('/api/v1/method/grunt.api.v1.share.get_shared_document', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ token })
+    })
     if (resp.status === 410) { error.value = 'Термін дії посилання закінчився'; return }
     if (resp.status === 404) { error.value = 'Посилання не знайдено або деактивовано'; return }
     if (!resp.ok) { error.value = `Помилка ${resp.status}`; return }
     const json = await resp.json()
     data.value = json.data
   } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : String(e)
+    console.error('Failed to load shared document:', errorMessage, e)
     error.value = 'Помилка мережі'
   } finally {
     loading.value = false
@@ -39,8 +49,8 @@ const SKIP_FIELDS = new Set(['id', 'name', 'owner', 'created_at', 'modified_at',
 const MULTILINE = new Set(['LongText', 'Text', 'HTML'])
 
 function formatVal(fieldtype: string, val: string | null): string {
-  if (val === null || val === undefined || val === '') return '—'
-  if (fieldtype === 'Check') return val === '1' || val === 'true' ? 'Так' : 'Ні'
+  if (val === null || val === undefined || val === '') return t('common.empty', '—')
+  if (fieldtype === 'Check') return val === '1' || val === 'true' ? t('common.yes', 'Так') : t('common.no', 'Ні')
   return val
 }
 </script>
@@ -78,7 +88,7 @@ function formatVal(fieldtype: string, val: string | null): string {
       <!-- Doc header -->
       <div class="bg-card border border-border rounded-xl shadow-sm px-6 py-5 mb-6">
         <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">{{ data.doctype_label }}</p>
-        <h1 class="text-2xl font-bold text-foreground">{{ data.doc['name'] ?? data.doc_id }}</h1>
+        <h1 class="text-2xl font-bold text-foreground">{{ data.doc.name ?? data.doc_id }}</h1>
         <div v-if="data.expires_at" class="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
           <Clock class="size-3" />
           Дійсно до {{ new Date(data.expires_at).toLocaleString('uk-UA') }}
