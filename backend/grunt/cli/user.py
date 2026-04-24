@@ -41,7 +41,7 @@ def users_list(site):
     """Показати список всіх користувачів."""
 
     async def _run():
-        from grunt.core.auth.service import list_users  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import list_users  # noqa: PLC0415
 
         async with _site_session(site) as (session, _eng):
             users = await list_users(session)
@@ -70,7 +70,7 @@ def users_set_password(email, password, site):
     async def _run():
         import grunt  # noqa: PLC0415
         from grunt.app import grunt as grunt_app  # noqa: PLC0415
-        from grunt.core.auth.service import get_user_by_email  # noqa: PLC0415
+        from grunt.core.doctypes.user.user import get_user_by_email  # noqa: PLC0415
         from grunt.core.doctypes.user.user import SYSTEM_USER, hash_password  # noqa: PLC0415
 
         async with _site_session(site) as (session, eng):
