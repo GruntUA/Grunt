@@ -126,8 +126,13 @@ def hash_password(plain: str) -> str:
     return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
 
 
-def verify_password(plain: str, hashed: str) -> bool:
-    return bcrypt.checkpw(plain.encode(), hashed.encode())
+def verify_password(plain: str, hashed: str | None) -> bool:
+    if not hashed:
+        return False
+    try:
+        return bcrypt.checkpw(plain.encode(), hashed.encode())
+    except (AttributeError, ValueError):
+        return False
 
 
 # ── User CRUD ─────────────────────────────────────────────────────────────
@@ -240,7 +245,7 @@ async def authenticate(email: str, password: str, session: AsyncSession) -> User
             raise ValueError("locked")
 
     async with grunt.system_context(session):
-        if not verify_password(password, user.hashed_password):
+        if not user.hashed_password or not verify_password(password, user.hashed_password):
             new_attempts = (user.login_attempts or 0) + 1
             updates: dict = {"login_attempts": new_attempts}
             if new_attempts >= _MAX_ATTEMPTS:
