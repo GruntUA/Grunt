@@ -22,8 +22,6 @@ function discoverAppAliases() {
     return aliases
 }
 
-const appAliases = discoverAppAliases()
-
 function isVueVendorModule(id: string): boolean {
     const isVueRouter = id.includes('vue-router')
     const isPinia = id.includes('/pinia/')
@@ -31,6 +29,8 @@ function isVueVendorModule(id: string): boolean {
 
     return isVueRouter || isPinia || isCoreVueButNotVueScopedPackage
 }
+
+const appAliases = discoverAppAliases()
 
 // Match frontend routes that should be proxied to backend clean-URL handling.
 // Excludes known Vite/app/API/static prefixes:
