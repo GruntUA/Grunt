@@ -148,7 +148,12 @@ async def bulk_delete_documents(
     engine = grunt_app._require_engine()
     task = BulkDeleteTask()
 
+    from grunt.core.site.manager import current_site  # noqa: PLC0415
+    active_site = current_site.get()
+
     async def _run() -> None:
+        if active_site:
+            current_site.set(active_site)
         await task.run(
             doctype,
             ids,
@@ -157,7 +162,7 @@ async def bulk_delete_documents(
             engine=engine,
         )
 
-    asyncio.create_task(_run(), context=contextvars.Context())
+    asyncio.create_task(_run())
     return ok({"started": True, "total": total})
 
 

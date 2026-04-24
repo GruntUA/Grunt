@@ -37,21 +37,32 @@ class BulkDeleteTask:
         total = len(ids)
         progress_cb = self._make_progress_cb(user_email, total)
 
-        async with async_session_factory() as session:
-            async with grunt_app.context(session, engine, user):
-                deleted, errors = await grunt_app.bulk_delete_docs(
-                    doctype,
-                    list(ids),
-                    progress_cb=progress_cb,
-                )
+        try:
+            async with async_session_factory() as session:
+                async with grunt_app.context(session, engine, user):
+                    deleted, errors = await grunt_app.bulk_delete_docs(
+                        doctype,
+                        list(ids),
+                        progress_cb=progress_cb,
+                    )
 
-        await self._manager.send_to_user(
-            user_email,
-            {
-                "event": "bulk_delete_done",
-                "data": {"deleted": deleted, "total": total, "errors": errors},
-            },
-        )
+            await self._manager.send_to_user(
+                user_email,
+                {
+                    "event": "bulk_delete_done",
+                    "data": {"deleted": deleted, "total": total, "errors": errors},
+                },
+            )
+        except Exception as e:
+            import structlog
+            structlog.get_logger().exception("bulk_delete.failed", doctype=doctype, error=str(e))
+            await self._manager.send_to_user(
+                user_email,
+                {
+                    "event": "bulk_delete_done",
+                    "data": {"deleted": 0, "total": total, "errors": [str(e)]},
+                },
+            )
 
     def _make_progress_cb(self, user_email: str, total: int) -> ProgressCallback:
         async def _progress(done: int, _total: int, error_count: int) -> None:

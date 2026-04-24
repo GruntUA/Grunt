@@ -37,6 +37,7 @@ async def _do_install(name: str, site: str | None = None) -> None:
 
     from grunt.app import grunt  # noqa: PLC0415
     from grunt.core.db.base import Base  # noqa: PLC0415
+    from grunt.core.metadata.compiler import SA_METADATA  # noqa: PLC0415
     from grunt.core.metadata.registry import doctype_registry  # noqa: PLC0415
     from grunt.core.site.manager import current_site, site_manager  # noqa: PLC0415
     from grunt.core.startup import load_core_doctypes, seed_app_workspaces  # noqa: PLC0415
@@ -74,6 +75,7 @@ async def _do_install(name: str, site: str | None = None) -> None:
 
         async with eng.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+            await conn.run_sync(SA_METADATA.create_all)
 
         async with maker() as session:
             await load_core_doctypes(session, eng)
