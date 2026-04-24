@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, provide } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useDocument } from '@/core/composables/useDocument'
 import { useToast } from '@/core/composables/useToast'
@@ -33,6 +33,16 @@ import DocDashboard from '@/components/views/form/DocDashboard.vue'
 
 const props = defineProps<{ doctype: string; id: string | null; workspace?: string }>()
 const router = useRouter()
+const route = useRoute()
+
+const activeTab = computed({
+  get: () => route.query.tab as string || '',
+  set: (val) => {
+    router.replace({ 
+      query: { ...route.query, tab: val || undefined } 
+    })
+  }
+})
 const dtStore = useDocTypeStore()
 const toast = useToast()
 const queryClient = useQueryClient()
@@ -251,6 +261,7 @@ useFormShortcuts({
           <!-- Main Form Card -->
           <div class="bg-card border border-border rounded-md shadow-sm p-5">
             <FormRenderer :doctype="dt" :model-value="form" :disabled="isSaving" :errors="validationErrors"
+              v-model:active-tab="activeTab"
               :overrides="displayOverrides" :reqd-overrides="reqdOverrides" :field-locks="fieldLocks"
               @update:model-value="onFormUpdate($event)" @field-focus="focusField($event)"
               @field-blur="blurField($event)" @create-new="handleCreateNew" />

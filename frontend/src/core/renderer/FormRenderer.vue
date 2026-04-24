@@ -11,6 +11,7 @@ import FieldRenderer from './FieldRenderer.vue'
 const props = defineProps<{
   doctype: DocType
   modelValue: Record<string, unknown>
+  activeTab?: string
   disabled?: boolean
   errors?: Record<string, string>
   overrides?: Record<string, boolean>
@@ -20,16 +21,19 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: Record<string, unknown>]
+  'update:activeTab': [value: string]
   'field-focus': [fieldname: string]
   'field-blur': [fieldname: string]
   'create-new': [doctype: string, preset: string, fieldname: string]
 }>()
 
 const layout = computed(() => parseLayout(props.doctype.fields))
-const hasTabs = computed(() => layout.value.length > 1 || layout.value[0]?.label !== '')
-// activeTab is no longer needed as Tabs component manages state internally or via v-model if we needed it.
-// However, since we might want to preserve it or use it, we can keep it as a reactive state for v-model.
-const activeTabIndex = ref('0')
+const hasTabs = computed(() => layout.value.length > 1 || (layout.value[0]?.label !== '' && layout.value[0]?.label !== 'Main'))
+
+const currentTab = computed({
+  get: () => props.activeTab || layout.value[0]?.label || 'Main',
+  set: (val) => emit('update:activeTab', val)
+})
 
 const lucideIcons = shallowRef<Record<string, Component>>({})
 let _iconsLoaded = false
@@ -54,7 +58,7 @@ function toggleSection(section: LayoutSection) {
 </script>
 
 <template>
-  <Tabs v-if="hasTabs" v-model:value="activeTabIndex" class="w-full overflow-hidden">
+  <Tabs v-if="hasTabs" v-model:value="currentTab" class="w-full overflow-hidden">
     <!-- Tab navigation -->
     <TabList 
       scrollable 
@@ -65,7 +69,7 @@ function toggleSection(section: LayoutSection) {
         nextButton: { class: 'bg-background hover:bg-muted text-primary shadow-sm border-l border-border/40 w-10 flex items-center justify-center' }
       }"
     >
-      <Tab v-for="(tab, ti) in layout" :key="ti" :value="String(ti)" variant="underline" class="flex items-center gap-1.5 px-4 h-10">
+      <Tab v-for="(tab, ti) in layout" :key="ti" :value="tab.label || 'Main'" variant="underline" class="flex items-center gap-1.5 px-4 h-10">
         <component :is="getTabIcon(tab._field?.icon)" v-if="tab._field?.icon" class="size-3.5 shrink-0" />
         <span class="text-sm font-medium tracking-wide">{{ tab.label || 'Main' }}</span>
       </Tab>
@@ -73,7 +77,7 @@ function toggleSection(section: LayoutSection) {
 
     <!-- Sections -->
     <TabPanels>
-    <TabPanel v-for="(tab, ti) in layout" :key="ti" :value="String(ti)" class="mt-0 flex flex-col gap-3 focus-visible:ring-0">
+    <TabPanel v-for="(tab, ti) in layout" :key="ti" :value="tab.label || 'Main'" class="mt-0 flex flex-col gap-3 focus-visible:ring-0">
       <div v-for="(section, si) in tab.sections" :key="si"
         :class="section.label ? 'form-section' : ''">
 
