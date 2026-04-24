@@ -8,16 +8,12 @@
  */
 
 // ── Cache names ───────────────────────────────────────────────────────────────
-const SHELL_CACHE = 'grunt-shell-v1'
-const RUNTIME_CACHE = 'grunt-runtime-v1'
+const SHELL_CACHE = 'grunt-shell-v2'
+const RUNTIME_CACHE = 'grunt-runtime-v2'
 
 // ── Install: pre-cache app shell ──────────────────────────────────────────────
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(SHELL_CACHE).then((cache) =>
-      cache.addAll(['/index.html', '/favicon.ico'])
-    ).then(() => self.skipWaiting())
-  )
+  event.waitUntil(self.skipWaiting())
 })
 
 // ── Activate: clean up old caches ────────────────────────────────────────────

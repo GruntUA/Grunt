@@ -64,12 +64,33 @@ export function useFormSave(params: UseFormSaveParams) {
         params.router.replace(path)
       }
     } catch (error: unknown) {
-      const err = error as { response?: { status?: number; data?: { detail?: string | string[] } } }
+      const err = error as {
+        response?: {
+          status?: number
+          data?: {
+            detail?: string | string[]
+            error?: {
+              message?: string
+              details?: string[]
+            }
+          }
+        }
+      }
       if (err?.response?.status === 422) {
-        const detail = err.response.data?.detail
-        const details: string[] = Array.isArray(detail)
-          ? detail
-          : (typeof detail === 'string' ? [detail] : [])
+        const payload = err.response.data
+        const legacyDetail = payload?.detail
+        const apiDetails = payload?.error?.details
+        const apiMessage = payload?.error?.message
+
+        const details: string[] = Array.isArray(apiDetails)
+          ? apiDetails.filter((x): x is string => typeof x === 'string' && x.trim().length > 0)
+          : Array.isArray(legacyDetail)
+            ? legacyDetail.filter((x): x is string => typeof x === 'string' && x.trim().length > 0)
+            : typeof legacyDetail === 'string' && legacyDetail.trim()
+              ? [legacyDetail]
+              : typeof apiMessage === 'string' && apiMessage.trim()
+                ? [apiMessage]
+                : []
 
         let hasFieldErrors = false
         for (const item of details) {
@@ -80,13 +101,23 @@ export function useFormSave(params: UseFormSaveParams) {
           hasFieldErrors = true
         }
 
+        // Business-rule fallback: duplicate department title in the same parent.
+        const combinedMessage = details.join('; ')
+        if (!hasFieldErrors && combinedMessage.includes('Підрозділ з такою назвою вже існує')) {
+          params.validationErrors.value.title = combinedMessage
+          hasFieldErrors = true
+        }
+
         if (hasFieldErrors) {
-          params.toast.error('Перевірте правильність заповнення')
+          params.toast.error(combinedMessage || 'Перевірте правильність заповнення')
           params.focusFirstError()
-        } else if (details.length > 0) {
-          params.toast.error(details.join('; '))
+        } else if (combinedMessage) {
+          params.toast.error(combinedMessage)
         } else {
-          params.toast.error('Помилка валідації')
+          const fallback = typeof apiMessage === 'string' && apiMessage.trim()
+            ? apiMessage
+            : 'Помилка валідації'
+          params.toast.error(fallback)
         }
         return
       }

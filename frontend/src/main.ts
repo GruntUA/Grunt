@@ -62,9 +62,10 @@ app.use(VueQueryPlugin, {
 })
 app.mount('#app')
 
-// Register push notification service worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {
+// Register push notification service worker (production only — avoid breaking Vite HMR in dev)
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  const swVersion = '2026-04-24-2'
+  navigator.serviceWorker.register(`/sw.js?v=${swVersion}`).catch(() => {
     // SW registration is best-effort; push won't work but app still runs
   })
 }

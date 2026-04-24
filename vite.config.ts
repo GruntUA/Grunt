@@ -112,6 +112,13 @@ export default defineConfig({
         port: 5173,
         host: true,
         allowedHosts: allowedHosts,
+        hmr: {
+            // When accessed through a reverse proxy / tunnel (e.g. dev2.itmlt.win),
+            // tell the browser to connect HMR WebSocket on the standard HTTPS port
+            // so the proxy doesn't need to expose port 5173 externally.
+            clientPort: 443,
+            protocol: 'wss',
+        },
         proxy: {
             // WebSocket endpoints — must be listed BEFORE the general /api rule
             '/api/v1/ws': {

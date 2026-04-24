@@ -131,7 +131,7 @@ class SearchIndexService:
         doc: dict[str, Any],
     ) -> None:
         """Upsert a document into the search index."""
-        if dt.is_child or dt.is_virtual:
+        if dt.is_child or dt.is_virtual or dt.is_log:
             return
 
         doc_id = str(doc.get("id") or "")

@@ -347,7 +347,7 @@ def _apply_filters(stmt: Any, table: Any, filters: str | dict[str, Any]) -> Any:
     return stmt
 
 
-_FILTER_OPS = ("__gte", "__lte", "__gt", "__lt", "__like", "__in", "__nin")
+_FILTER_OPS = ("__gte", "__lte", "__gt", "__lt", "__like", "__in", "__nin", "__ne")
 
 
 def _build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
@@ -380,6 +380,8 @@ def _build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
             clauses.append(col.in_(value))
         elif op == "nin":
             clauses.append(col.not_in(value))
+        elif op == "ne":
+            clauses.append(col != value)
     return clauses
 
 

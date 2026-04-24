@@ -148,6 +148,7 @@ class DocType(BaseModel):
     is_singleton: bool = False  # only one document per DocType
     is_virtual: bool = False  # True → no DB table, data from controller
     is_tree: bool = False  # True → hierarchical; requires tree_view.parent_field
+    is_log: bool = False  # True → operational log, excluded from global search index
     # to name the self-referential Link
     track_changes: bool = True  # audit log
     quick_entry: bool = False  # True → "Create" opens a dialog instead of full form
