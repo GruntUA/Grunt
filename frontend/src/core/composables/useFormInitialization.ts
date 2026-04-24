@@ -43,6 +43,15 @@ export function useFormInitialization(params: FormInitializationParams) {
     if (!params.id) {
       applyHistoryObject(params.form.value, 'duplicate')
       applyHistoryObject(params.form.value, 'initial_data')
+
+      // Pre-fill from URL query parameters (e.g. ?parent_department=UUID)
+      const query = new URLSearchParams(window.location.search)
+      for (const [key, value] of query.entries()) {
+        const field = params.dt.value?.fields.find((f: any) => f.fieldname === key)
+        if (field) {
+          params.form.value[key] = value
+        }
+      }
     }
 
     const linkReturn = params.restoreLinkDraft(params.doctype, params.id, params.form.value)

@@ -39,6 +39,7 @@ const titleField = ref<string>('name')
 const isTree = ref(false)
 const treeNodes = ref<TreeNode[]>([])
 const treeLoading = ref(false)
+const expandedKeys = ref<Record<string, boolean>>({})
 
 // Cache: name → display label
 const displayCache = new Map<string, string>()
@@ -85,12 +86,31 @@ function transformNodes(nodes: any[]): TreeNode[] {
   }))
 }
 
+/** Recursively find and expand the path to a node with the given key. */
+function expandToSelection(key: string, nodes: TreeNode[]): boolean {
+  for (const node of nodes) {
+    if (node.key === key) return true
+    if (node.children?.length) {
+      if (expandToSelection(key, node.children)) {
+        expandedKeys.value[String(node.key)] = true
+        return true
+      }
+    }
+  }
+  return false
+}
+
 async function loadTree() {
   if (!props.field.options) return
   treeLoading.value = true
   try {
     const raw = await docsApi.getTree(props.field.options)
     treeNodes.value = transformNodes(raw)
+    
+    // Auto-expand to current selection
+    if (props.modelValue) {
+      expandToSelection(String(props.modelValue), treeNodes.value)
+    }
   } catch {
     treeNodes.value = []
   } finally {
@@ -109,7 +129,10 @@ const treeSelection = computed<Record<string, boolean> | null>({
     if (!val || Object.keys(val).length === 0) {
       emit('update:modelValue', null)
     } else {
-      emit('update:modelValue', Object.keys(val)[0])
+      const selectedKey = Object.keys(val)[0]
+      emit('update:modelValue', selectedKey)
+      // On selection, also expand the node's lineage (in case filter was used)
+      expandToSelection(selectedKey, treeNodes.value)
     }
   },
 })
@@ -291,6 +314,7 @@ function openLinkedDoc() {
   <div v-if="isTree" class="relative flex items-center gap-1">
     <TreeSelect
       v-model="treeSelection"
+      v-model:expanded-keys="expandedKeys"
       :options="treeNodes"
       :loading="treeLoading"
       :disabled="disabled || field.read_only"
