@@ -315,12 +315,13 @@ const TreeNodeRow: any = defineComponent({
       const row = h('div', {
         class: 'flex items-center gap-2 px-3 py-2 border-b border-border last:border-0 hover:bg-muted/40 cursor-pointer transition-colors group',
         style: { paddingLeft: `${12 + indent}px` },
-        onClick: () => emit('navigate', node),
+        onClick: () => hasChildren ? emit('toggle', node) : emit('navigate', node),
       }, [
         chevron,
         icon,
         h('span', {
-          class: 'text-sm text-foreground flex-1 truncate',
+          class: 'text-sm text-foreground flex-1 truncate hover:text-primary hover:underline underline-offset-2 transition-colors',
+          onClick: (e: Event) => { e.stopPropagation(); emit('navigate', node) },
         }, props.getTitle(node.data)),
         descendants > 0 && h('span', {
           class: 'text-[11px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium shrink-0',
