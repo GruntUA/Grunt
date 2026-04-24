@@ -22,6 +22,36 @@ function discoverAppAliases() {
     return aliases
 }
 
+// Discover allowed hosts from sites/ directory and their .env files
+function discoverAllowedHosts() {
+    const hosts = new Set<string>(['localhost', '127.0.0.1'])
+    const sitesDir = path.resolve(__dirname, '../../sites')
+    if (!fs.existsSync(sitesDir)) return Array.from(hosts)
+
+    for (const siteName of fs.readdirSync(sitesDir)) {
+        if (siteName.startsWith('.')) continue
+        const sitePath = path.join(sitesDir, siteName)
+        if (!fs.statSync(sitePath).isDirectory()) continue
+
+        // Add the directory name itself (e.g. 'itmlt.win')
+        hosts.add(siteName)
+        hosts.add(`.${siteName}`) // Allow all subdomains
+
+        // Try to read .env for APP_URL
+        const envPath = path.join(sitePath, '.env')
+        if (fs.existsSync(envPath)) {
+            const envContent = fs.readFileSync(envPath, 'utf-8')
+            const appUrlMatch = envContent.match(/^APP_URL=https?:\/\/([^/\s]+)/m)
+            if (appUrlMatch?.[1]) {
+                const host = appUrlMatch[1].split(':')[0]
+                hosts.add(host)
+                hosts.add(`.${host}`)
+            }
+        }
+    }
+    return Array.from(hosts)
+}
+
 function isVueVendorModule(id: string): boolean {
     const isVueRouter = id.includes('vue-router')
     const isPinia = id.includes('/pinia/')
@@ -31,6 +61,7 @@ function isVueVendorModule(id: string): boolean {
 }
 
 const appAliases = discoverAppAliases()
+const allowedHosts = discoverAllowedHosts()
 
 // Match frontend routes that should be proxied to backend clean-URL handling.
 // Excludes known Vite/app/API/static prefixes:
@@ -79,6 +110,8 @@ export default defineConfig({
     },
     server: {
         port: 5173,
+        host: true,
+        allowedHosts: allowedHosts,
         proxy: {
             // WebSocket endpoints — must be listed BEFORE the general /api rule
             '/api/v1/ws': {

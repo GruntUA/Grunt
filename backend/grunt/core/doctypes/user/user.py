@@ -36,9 +36,15 @@ class User(Document):
 
     # Field annotations for IDE support — values live in self.data at runtime.
     email: str
+    first_name: str
+    last_name: str
+    middle_name: str | None
     full_name: str
     avatar: str | None
     phone: str | None
+    birth_date: str | None
+    gender: str | None
+    timezone: str | None
     bio: str | None
     is_active: bool
     is_superadmin: bool
@@ -48,14 +54,22 @@ class User(Document):
     language: str | None
     login_attempts: int
     locked_until: datetime | None
+    last_login: datetime | None
     mfa_enabled: bool
     mfa_secret: str | None
 
     async def validate(self) -> None:
         if not self.email:
             raise ValueError("Email є обов'язковим")
-        if not self.full_name:
-            raise ValueError("Повне ім'я є обов'язковим")
+        if not self.first_name:
+            raise ValueError("Ім'я є обов'язковим")
+        if not self.last_name:
+            raise ValueError("Прізвище є обов'язковим")
+
+    async def before_save(self) -> None:
+        """Construct full_name from components."""
+        parts = [self.last_name, self.first_name, self.middle_name]
+        self.full_name = " ".join([p.strip() for p in parts if p and p.strip()])
 
     async def before_insert(self) -> None:
         # If a plain-text password was passed through the generic API, hash it.
@@ -169,7 +183,9 @@ async def list_users(session: AsyncSession) -> list[User]:
 async def create_user(
     email: str,
     password: str,
-    full_name: str,
+    first_name: str,
+    last_name: str,
+    middle_name: str | None,
     session: AsyncSession,
 ) -> User:
     """Create a new user. The first user automatically becomes superadmin."""
@@ -185,7 +201,9 @@ async def create_user(
             "User",
             {
                 "email": email,
-                "full_name": full_name,
+                "first_name": first_name,
+                "last_name": last_name,
+                "middle_name": middle_name,
                 "password": password,
                 "is_superadmin": is_superadmin,
                 "is_active": True,
@@ -237,7 +255,13 @@ async def authenticate(email: str, password: str, session: AsyncSession) -> User
 
 
 @grunt.whitelist(allow_guest=True)
-async def register(email: str, password: str, full_name: str | None = None) -> dict[str, Any]:
+async def register(
+    email: str,
+    password: str,
+    first_name: str | None = None,
+    last_name: str | None = None,
+    middle_name: str | None = None,
+) -> dict[str, Any]:
     """Register a new user."""
     from grunt.app import grunt as grunt_app  # noqa: PLC0415
 
@@ -247,7 +271,14 @@ async def register(email: str, password: str, full_name: str | None = None) -> d
     if existing is not None:
         grunt_app.throw(f"User with email '{email}' already exists", "CONFLICT")
 
-    user = await create_user(email, password, full_name or email, session)
+    user = await create_user(
+        email,
+        password,
+        first_name or "",
+        last_name or "",
+        middle_name,
+        session,
+    )
     return {
         "id": user.id,
         "email": user.email,

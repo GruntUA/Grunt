@@ -28,6 +28,14 @@ function on_load(frm) {
 }
 
 async function on_change(frm, fieldname) {
+  if (["first_name", "last_name", "middle_name"].includes(fieldname)) {
+    const last = frm.get_value("last_name") || "";
+    const first = frm.get_value("first_name") || "";
+    const middle = frm.get_value("middle_name") || "";
+    const full = [last, first, middle].map(v => v.trim()).filter(Boolean).join(" ");
+    frm.set_value("full_name", full);
+  }
+
   if (fieldname === "mfa_setup_button") {
     if (frm.doc.mfa_enabled) {
       if (!confirm("Ви впевнені, що хочете вимкнути двофакторну автентифікацію?")) return;

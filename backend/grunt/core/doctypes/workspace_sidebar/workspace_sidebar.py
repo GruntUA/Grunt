@@ -37,25 +37,28 @@ class WorkspaceSidebar(Document):
 
     async def get_counts(self) -> dict[str, int]:
         """Get document counts for sidebar items that have show_count=true."""
+        from grunt.core.document.registry import document_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import get_table_name  # noqa: PLC0415
 
         items = [
-            item for item in self.get("sidebar_items", [])
+            item
+            for item in self.get("sidebar_items", [])
             if item.get("show_count") and item.get("type") == "DocType" and item.get("link_to")
         ]
         if not items:
             return {}
 
-        # Resolve table names via in-memory meta cache (no extra queries)
-        resolved: list[tuple[str, str, dict[str, Any]]] = []
+        counts: dict[str, int] = {}
+        sql_resolved: list[tuple[str, str, dict[str, Any]]] = []
+
         for item in items:
             link_to = item["link_to"]
             try:
                 dt = await grunt.get_meta(link_to)
             except Exception:
                 continue
-            table_name = dt.table_name or get_table_name(dt.module, dt.name)
 
+            # Handle filters
             filters: dict[str, Any] = {}
             count_filters_raw = item.get("count_filters")
             if count_filters_raw:
@@ -71,34 +74,50 @@ class WorkspaceSidebar(Document):
                 suffix = "_".join(str(v).lower() for v in filters.values())
                 key = f"{link_to}_{suffix}"
 
-            resolved.append((key, table_name, filters))
+            # ── OPTION A: Virtual DocType ─────────────────────────────────────
+            if dt.is_virtual:
+                try:
+                    ctrl_cls = document_registry.get(link_to)
+                    # Instantiate virtual controller (user/session context is optional but nice)
+                    ctrl = ctrl_cls(link_to, user=self.user)
+                    if hasattr(ctrl, "get_count"):
+                        counts[key] = await ctrl.get_count(filters=filters)
+                except Exception as e:
+                    logger.warning("workspace.virtual_count_error", doctype=link_to, error=str(e))
+                continue
 
-        if not resolved:
-            return {}
+            # ── OPTION B: Physical DocType (SQL) ──────────────────────────────
+            table_name = dt.table_name or get_table_name(dt.module, dt.name)
+            sql_resolved.append((key, table_name, filters))
 
-        # Single UNION ALL instead of N separate COUNT queries
-        parts: list[str] = []
-        params: dict[str, Any] = {}
-        for i, (key, table_name, filters) in enumerate(resolved):
-            key_param = f"k{i}"
-            params[key_param] = key
-            if filters:
-                conditions = []
-                for col, val in filters.items():
-                    p = f"{col}_{i}"
-                    params[p] = val
-                    conditions.append(f'"{col}" = :{p}')
-                where = " WHERE " + " AND ".join(conditions)
-            else:
-                where = ""
-            parts.append(f'SELECT :{key_param} AS k, COUNT(*) AS c FROM "{table_name}"{where}')  # noqa: S608
+        # Perform batched SQL counts for physical DocTypes
+        if sql_resolved:
+            parts: list[str] = []
+            params: dict[str, Any] = {}
+            for i, (key, table_name, filters) in enumerate(sql_resolved):
+                key_param = f"k{i}"
+                params[key_param] = key
+                if filters:
+                    conditions = []
+                    for col, val in filters.items():
+                        p = f"{col}_{i}"
+                        params[p] = val
+                        conditions.append(f'"{col}" = :{p}')
+                    where = " WHERE " + " AND ".join(conditions)
+                else:
+                    where = ""
+                parts.append(
+                    f'SELECT :{key_param} AS k, COUNT(*) AS c FROM "{table_name}"{where}'
+                )  # noqa: S608
 
-        try:
-            result = await grunt.db._session().execute(text(" UNION ALL ".join(parts)), params)
-            return {row.k: row.c for row in result}
-        except Exception:
-            logger.warning("workspace.counts_error")
-            return {}
+            try:
+                result = await grunt.db._session().execute(text(" UNION ALL ".join(parts)), params)
+                for row in result:
+                    counts[row.k] = row.c
+            except Exception as e:
+                logger.warning("workspace.counts_error", error=str(e))
+
+        return counts
 
     async def get_widget_data(
         self,

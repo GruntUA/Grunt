@@ -13,23 +13,65 @@
       "fieldtype": "Tab"
     },
     {
-      "fieldname": "sec_general",
-      "label": "Загальні дані",
+      "fieldname": "sec_name_fields",
+      "label": "Прізвище, Ім'я, По-батькові",
       "fieldtype": "Section"
     },
     {
-      "fieldname": "full_name",
-      "label": "Повне ім'я",
+      "fieldname": "last_name",
+      "label": "Прізвище",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
       "in_filter": true
     },
     {
+      "fieldname": "col_n1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "first_name",
+      "label": "Ім'я",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "col_n2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "middle_name",
+      "label": "По-батькові",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "sec_full_display",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "full_name",
+      "label": "Повне ім'я",
+      "fieldtype": "Text",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "col_f1",
+      "fieldtype": "Column"
+    },
+    {
       "fieldname": "avatar",
       "label": "Фото профілю",
       "fieldtype": "Image",
       "in_list_view": true
+    },
+    {
+      "fieldname": "sec_contact",
+      "label": "Контакти",
+      "fieldtype": "Section"
     },
     {
       "fieldname": "email",
@@ -41,9 +83,53 @@
       "in_filter": true
     },
     {
+      "fieldname": "col_c1",
+      "fieldtype": "Column"
+    },
+    {
       "fieldname": "phone",
       "label": "Телефон",
       "fieldtype": "Text"
+    },
+    {
+      "fieldname": "sec_personal",
+      "label": "Додатково",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "birth_date",
+      "label": "Дата народження",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "col_p1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "gender",
+      "label": "Стать",
+      "fieldtype": "Select",
+      "options": "Чоловіча\nЖіноча\nІнше"
+    },
+    {
+      "fieldname": "col_p2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "timezone",
+      "label": "Часовий пояс",
+      "fieldtype": "Data",
+      "default": "Europe/Kyiv"
+    },
+    {
+      "fieldname": "col_p3",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "last_login",
+      "label": "Останній вхід",
+      "fieldtype": "Datetime",
+      "read_only": true
     },
     {
       "fieldname": "sec_bio",

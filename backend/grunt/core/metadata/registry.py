@@ -268,8 +268,11 @@ class DocTypeRegistry:
                         if json_val is not None and getattr(active_dt, attr, None) != json_val:
                             setattr(active_dt, attr, json_val)
 
-                    # Sync field-level structural properties from JSON (fieldtype, options, label, default)
-                    _STRUCTURAL = {"fieldtype", "options", "label", "default"}
+                    # Sync field-level structural properties from JSON (fieldtype, options, label, default, etc.)
+                    _STRUCTURAL = {
+                        "fieldtype", "options", "label", "default", "read_only",
+                        "required", "hidden", "in_list_view", "in_filter", "description",
+                    }
                     for json_field in doctype.fields:
                         stored_field = stored_fieldnames.get(json_field.fieldname)
                         if stored_field is None:
@@ -277,6 +280,13 @@ class DocTypeRegistry:
                         for attr in _STRUCTURAL:
                             if getattr(stored_field, attr, None) != getattr(json_field, attr, None):
                                 setattr(stored_field, attr, getattr(json_field, attr, None))
+
+                    # Sync field order: position JSON-defined fields according to JSON order, 
+                    # followed by any custom fields that were added locally.
+                    json_order = {f.fieldname: i for i, f in enumerate(doctype.fields)}
+                    active_dt.fields.sort(
+                        key=lambda f: json_order.get(f.fieldname, 9999)
+                    )
 
                     if sync_db:
                         try:
