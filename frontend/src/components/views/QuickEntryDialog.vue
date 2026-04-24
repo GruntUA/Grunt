@@ -134,20 +134,20 @@ const isVisible = ref(true)
     @hide="emit('close')"
     class="max-w-4xl w-[90vw]"
     :pt="{
-        header: { class: 'px-8 py-5 border-b border-border/40' },
+        header: { class: 'px-8 py-4 border-b border-border/40' },
         content: { class: 'p-0' },
-        footer: { class: 'px-8 py-4 border-t border-border/40 bg-muted/20' }
+        footer: { class: 'px-8 py-3 border-t border-border/40 bg-muted/20 flex items-center' }
     }"
   >
     <template #header>
         <div class="flex items-center gap-3">
-            <div class="size-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                <Plus class="size-5 text-primary" />
+            <div class="size-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                <Plus class="size-4 text-primary" />
             </div>
             <div class="flex flex-col">
-                <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 leading-none mb-1">Швидке додавання</span>
-                <h2 class="text-xl font-black text-foreground tracking-tight">
-                    {{ t('New {doctype}', { doctype: dt.label }) }}
+                <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 leading-none mb-0.5">Швидке додавання</span>
+                <h2 class="text-base font-bold text-foreground tracking-tight">
+                    Новий {{ dt.label }}
                 </h2>
             </div>
         </div>
@@ -164,24 +164,24 @@ const isVisible = ref(true)
     </div>
 
     <template #footer>
-      <div class="flex items-center justify-end gap-3 w-full">
-          <Button outlined severity="secondary" :disabled="isSaving" @click="emit('close')" class="!px-6">
+      <div class="flex items-center justify-end gap-2 w-full">
+          <Button text size="small" :disabled="isSaving" @click="emit('close')">
             {{ t('Cancel') }}
           </Button>
 
           <!-- List mode: two action buttons -->
           <template v-if="mode === 'list'">
-            <Button outlined :disabled="isSaving" @click="handleSave(false)" class="!px-6 font-bold">
+            <Button outlined size="small" :disabled="isSaving" @click="handleSave(false)" class="font-medium">
               {{ t('Save and close') }}
             </Button>
-            <Button :disabled="isSaving" @click="handleSave(true)" class="!px-6 shadow-lg shadow-primary/10 font-bold">
-              <ExternalLink class="size-4 mr-2" />
+            <Button size="small" :disabled="isSaving" @click="handleSave(true)" class="font-medium">
+              <ExternalLink class="size-3.5 mr-1.5" />
               {{ t('Save and open') }}
             </Button>
           </template>
 
           <!-- Link mode: single save button -->
-          <Button v-else :disabled="isSaving" @click="handleSave(false)" class="!px-10 shadow-lg shadow-primary/10 font-bold">
+          <Button v-else size="small" :disabled="isSaving" @click="handleSave(false)" class="font-medium">
             {{ t('Save') }}
           </Button>
       </div>
