@@ -130,7 +130,7 @@ function goHome() {
               : 'text-foreground hover:bg-muted'"
             @click="navigate(item)"
           >
-            <span class="text-base w-6 text-center leading-none">{{ item.icon || '📄' }}</span>
+            <AppIcon :icon="item.icon || 'file'" class="size-5 shrink-0 opacity-80" />
             <span class="flex-1 text-left truncate">{{ item.label }}</span>
           </button>
         </div>

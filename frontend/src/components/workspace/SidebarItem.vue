@@ -3,10 +3,6 @@ import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { WorkspaceLink } from '@/core/api/workspace'
 import { Plus, Star, StarOff } from '@lucide/vue'
-import {
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from '@/components/ui/sidebar'
 import AppIcon from '@/components/AppIcon.vue'
 
 const props = defineProps<{
@@ -14,6 +10,7 @@ const props = defineProps<{
   workspaceName: string
   count?: number
   color?: string
+  collapsed?: boolean
 }>()
 
 const router = useRouter()
@@ -84,33 +81,48 @@ const displayCount = computed(() => {
 </script>
 
 <template>
-  <SidebarMenuItem>
-    <SidebarMenuButton :is-active="isActive" @click="navigate">
-      <AppIcon :icon="item.icon || 'file'" class="size-4 shrink-0" />
-      <span class="flex-1 truncate">{{ item.label }}</span>
-      <!-- Hover actions: pin + new (hidden when collapsed) -->
-      <div
-        class="ml-auto flex items-center gap-0.5 opacity-0 group-hover/menu-item:opacity-100 group-data-[collapsible=icon]:hidden transition-opacity pointer-events-none group-hover/menu-item:pointer-events-auto">
-        <button
-          class="flex size-6 items-center justify-center rounded-md hover:bg-sidebar-accent text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors"
-          :title="pinned ? 'Відкріпити' : 'Закріпити'"
-          @click.stop="togglePin">
-          <component :is="pinned ? Star : StarOff" class="size-3.5" :class="pinned ? 'fill-current text-primary' : ''" />
-        </button>
-        <button v-if="item.show_new_btn"
-          class="flex size-6 items-center justify-center rounded-md hover:bg-sidebar-accent text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors"
-          title="Створити новий"
-          @click.stop="createNew">
-          <Plus class="size-3.5" />
-        </button>
-      </div>
+  <li class="relative list-none group/item">
+    <button
+      class="w-full flex items-center gap-2.5 px-2 py-2.5 rounded-xl transition-all duration-300 group relative overflow-hidden"
+      :class="[
+        isActive
+          ? 'bg-primary/10 text-primary font-bold shadow-sm'
+          : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
+        collapsed ? 'justify-center px-1' : ''
+      ]"
+      @click="navigate"
+    >
+      <AppIcon :icon="item.icon || 'file'" class="size-4 shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" />
 
-      <Badge v-if="displayCount"
-        :value="displayCount"
-        severity="secondary"
-        style="font-size: 10px; padding: 0 6px; height: 18px; min-width: 18px;"
-        class="ml-2 rounded-full tabular-nums"
-      />
-    </SidebarMenuButton>
-  </SidebarMenuItem>
+      <template v-if="!collapsed">
+        <span class="flex-1 truncate text-[13px] text-left leading-none">{{ item.label }}</span>
+
+        <!-- Hover actions -->
+        <div class="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-all duration-300">
+          <button
+            class="flex size-7 items-center justify-center rounded-lg hover:bg-primary/20 text-muted-foreground/50 hover:text-primary transition-all"
+            @click.stop="togglePin"
+          >
+            <component :is="pinned ? Star : StarOff" class="size-3.5" :class="pinned ? 'fill-current text-primary' : ''" />
+          </button>
+          <button
+            v-if="item.show_new_btn"
+            class="flex size-7 items-center justify-center rounded-lg hover:bg-primary/20 text-muted-foreground/50 hover:text-primary transition-all"
+            @click.stop="createNew"
+          >
+            <Plus class="size-4" />
+          </button>
+        </div>
+
+        <Badge v-if="displayCount"
+          :value="displayCount"
+          severity="secondary"
+          class="ml-2 !text-[10px] !h-4.5 !min-w-4.5 !px-1.5 !font-bold !rounded-full !shadow-inner"
+        />
+      </template>
+
+      <!-- Indicator line for active state -->
+      <div v-if="isActive" class="absolute left-0 top-1/4 bottom-1/4 w-1 bg-primary rounded-r-full" />
+    </button>
+  </li>
 </template>

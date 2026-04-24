@@ -2,13 +2,14 @@
 import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWorkspaceStore } from '@/stores/workspace'
+import { useSidebarStore } from '@/stores/sidebar'
 import WorkspaceSidebar from '@/components/workspace/WorkspaceSidebar.vue'
 import MobileBottomNav from '@/components/mobile/MobileBottomNav.vue'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import NotFound from '@/pages/errors/NotFound.vue'
 
 const props = defineProps<{ workspaceName: string }>()
 const wsStore = useWorkspaceStore()
+const sidebarStore = useSidebarStore()
 const route = useRoute()
 const contentKey = ref(0)
 const notFound = ref(false)
@@ -29,7 +30,7 @@ watch(() => props.workspaceName, (name) => { loadWorkspace(name) })
 
 <template>
   <NotFound v-if="notFound" />
-  <SidebarProvider v-else class="h-screen overflow-hidden bg-background">
+  <div v-else class="h-screen overflow-hidden bg-background flex relative">
     <!-- Background pattern -->
     <div class="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05] z-0">
       <svg class="h-full w-full" xmlns="http://www.w3.org/2000/svg">
@@ -44,18 +45,42 @@ watch(() => props.workspaceName, (name) => { loadWorkspace(name) })
     <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
     <div class="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
 
-    <WorkspaceSidebar :workspace-name="workspaceName" />
+    <!-- Sidebar: Desktop -->
+    <div class="hidden md:block h-full shrink-0 transition-all duration-300 overflow-hidden">
+      <WorkspaceSidebar :workspace-name="workspaceName" />
+    </div>
 
-    <SidebarInset class="overflow-y-auto pb-14 md:pb-0 relative z-10 bg-background/40 backdrop-blur-[2px]">
-      <RouterView v-slot="{ Component }" :key="route.fullPath">
-        <Transition name="fade" mode="out-in">
-          <component :is="Component" />
-        </Transition>
-      </RouterView>
-    </SidebarInset>
+    <!-- Sidebar: Mobile (Drawer) -->
+    <Drawer
+      v-model:visible="sidebarStore.isMobileVisible"
+      position="left"
+      class="!w-[280px] !p-0"
+      :showCloseIcon="false"
+      :pt="{
+        content: { class: '!p-0' },
+        header: { class: '!p-0' }
+      }"
+    >
+      <div class="h-full w-full">
+        <WorkspaceSidebar :workspace-name="workspaceName" />
+      </div>
+    </Drawer>
+
+    <!-- Main Content -->
+    <main
+      class="flex-1 flex flex-col min-w-0 relative z-10 bg-background/40 backdrop-blur-[2px] transition-all duration-300 overflow-hidden"
+    >
+      <div class="flex-1 overflow-y-auto pb-14 md:pb-0">
+        <RouterView v-slot="{ Component }" :key="route.fullPath">
+          <Transition name="fade" mode="out-in">
+            <component :is="Component" />
+          </Transition>
+        </RouterView>
+      </div>
+    </main>
 
     <MobileBottomNav :workspace-name="workspaceName" />
-  </SidebarProvider>
+  </div>
 </template>
 
 <style scoped>

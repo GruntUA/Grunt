@@ -24,6 +24,7 @@ declare module 'vue' {
     DatePicker: typeof import('primevue/datepicker')['default']
     Dialog: typeof import('primevue/dialog')['default']
     Divider: typeof import('primevue/divider')['default']
+    Drawer: typeof import('primevue/drawer')['default']
     Dropdown: typeof import('primevue/dropdown')['default']
     IconField: typeof import('primevue/iconfield')['default']
     InputGroup: typeof import('primevue/inputgroup')['default']

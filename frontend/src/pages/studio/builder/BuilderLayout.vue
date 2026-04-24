@@ -3,9 +3,9 @@ import { onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useBuilderStore } from '@/stores/builder'
+import { useSidebarStore } from '@/stores/sidebar'
 import { grunt } from '@/core/grunt'
-import { Loader2, FileJson } from '@lucide/vue'
-import { SidebarTrigger } from '@/components/ui/sidebar'
+import { Loader2, FileJson, PanelLeft } from '@lucide/vue'
 import FieldPalette from './FieldPalette.vue'
 import BuilderCanvas from './BuilderCanvas.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
@@ -19,6 +19,7 @@ const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const builder = useBuilderStore()
+const sidebarStore = useSidebarStore()
 
 const backWorkspace = props.workspaceName ?? (route.params.workspaceName as string | undefined) ?? 'grunt'
 
@@ -65,7 +66,12 @@ async function handleSave() {
   <div class="flex flex-col h-screen overflow-hidden">
     <Tabs v-model:value="builder.activeTab" class="flex-1 flex flex-col overflow-hidden">
       <div class="flex items-center gap-2 px-4 py-1 border-b bg-card">
-        <SidebarTrigger class="md:hidden shrink-0 -ml-2" />
+        <button
+          class="md:hidden size-8 flex items-center justify-center rounded-lg text-muted-foreground/80 hover:text-foreground hover:bg-muted/50 transition-colors shrink-0 -ml-2"
+          @click="sidebarStore.toggleMobile"
+        >
+          <PanelLeft class="size-4" />
+        </button>
         <Breadcrumb :model="breadcrumb" class="bg-transparent p-0">
           <template #item="{ item }">
             <template v-if="item.url">

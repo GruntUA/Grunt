@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useWorkspaceStore } from '@/stores/workspace'
+import { useSidebarStore } from '@/stores/sidebar'
 import { workspaceApi } from '@/core/api/workspace'
 import AppIcon from '@/components/AppIcon.vue'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
-import { SidebarTrigger } from '@/components/ui/sidebar'
+import { PanelLeft } from '@lucide/vue'
 
 const props = defineProps<{ workspaceName: string }>()
 const wsStore = useWorkspaceStore()
+const sidebarStore = useSidebarStore()
 
 const widgetData = ref<Record<string, unknown>>({})
 const loading = ref(false)
@@ -55,10 +57,15 @@ watch(() => props.workspaceName, init)
 </script>
 
 <template>
-  <div class="p-6">
+  <div class="flex flex-1 flex-col gap-4 p-4 md:p-5 animate-in fade-in duration-500">
     <!-- Header -->
     <div v-if="wsStore.active" class="flex items-center gap-3 mb-6">
-      <SidebarTrigger class="md:hidden shrink-0 -ml-3" />
+      <button
+        class="md:hidden size-8 flex items-center justify-center rounded-lg text-muted-foreground/80 hover:text-foreground hover:bg-muted/50 transition-colors shrink-0 -ml-3"
+        @click="sidebarStore.toggleMobile"
+      >
+        <PanelLeft class="size-4" />
+      </button>
       <AppIcon :icon="wsStore.active.icon || 'folder'" class="size-8 shrink-0" />
       <div>
         <h1 class="text-xl font-semibold text-foreground">{{ wsStore.active.label }}</h1>
