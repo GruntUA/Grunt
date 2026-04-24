@@ -8,6 +8,7 @@ import {
   AlertCircle, RefreshCw
 } from '@lucide/vue'
 import type { DocType, GruntDocument } from '@/types'
+import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 
 const props = defineProps<{
   doctype: DocType
@@ -158,14 +159,17 @@ function navigateTo(node: TreeNode) {
   }
 }
 
+// ── Quick entry for child creation ─────────────────────────────────────────
+
+const quickEntryPreset = ref<Record<string, unknown> | null>(null)
+
 function createChild(parentNode: TreeNode) {
-  const parentId = parentNode.id
-  const query = `?${props.parentField}=${parentId}`
-  if (props.workspace) {
-    router.push(`/${props.workspace}/${props.doctype.name}/new${query}`)
-  } else {
-    router.push(`/${props.doctype.name}/new${query}`)
-  }
+  quickEntryPreset.value = { [props.parentField]: parentNode.id }
+}
+
+function onQuickEntrySaved() {
+  quickEntryPreset.value = null
+  loadAll()
 }
 
 function createRoot() {
@@ -259,6 +263,17 @@ interface TreeNode {
     <p v-if="allDocs.length" class="mt-3 text-xs text-muted-foreground text-right">
       Всього: {{ allDocs.length }} записів
     </p>
+
+    <!-- Quick entry dialog for child creation -->
+    <QuickEntryDialog
+      v-if="quickEntryPreset !== null"
+      :dt="doctype"
+      :preset="quickEntryPreset"
+      :workspace="workspace"
+      mode="list"
+      @close="quickEntryPreset = null"
+      @saved="onQuickEntrySaved"
+    />
   </div>
 </template>
 
