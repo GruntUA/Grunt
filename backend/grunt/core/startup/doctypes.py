@@ -153,6 +153,8 @@ async def populate_system_doctypes(
             **_col("search_fields", dt.search_fields if dt.search_fields else None),
             **_col("is_tree", dt.is_tree),
             **_col("tree_view", dt.tree_view.model_dump() if dt.tree_view else None),
+            **_col("show_in_dashboard", dt.show_in_dashboard),
+            **_col("dashboard_doctype", dt.dashboard_doctype),
         }
 
         if dt.name in existing_names:

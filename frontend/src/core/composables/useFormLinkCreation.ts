@@ -29,11 +29,11 @@ export function useFormLinkCreation(params: UseFormLinkCreationParams) {
 
   const isQuickEntryOpen = computed(() => Boolean(quickEntryDt.value))
 
-  async function handleCreateNew(linkedDoctype: string, preset: string, fieldname: string) {
+  async function handleCreateNew(linkedDoctype: string, preset: string | Record<string, unknown>, fieldname: string) {
     const linkedDt = await params.loadDocType(linkedDoctype)
     if (linkedDt?.quick_entry) {
       quickEntryDt.value = linkedDt
-      quickEntryPreset.value = preset ? { name: preset } : {}
+      quickEntryPreset.value = typeof preset === 'string' ? { name: preset } : (preset || {})
       quickEntryFieldname.value = fieldname
       return
     }
@@ -41,7 +41,7 @@ export function useFormLinkCreation(params: UseFormLinkCreationParams) {
     params.markAllowLeave()
     params.startLinkCreate({
       linkedDoctype,
-      preset,
+      preset: typeof preset === 'string' ? preset : '', // Fallback for full page create
       fieldname,
       parentDoctype: params.doctype,
       parentId: params.id,

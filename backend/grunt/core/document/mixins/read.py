@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from grunt.core.document.multi_link import MultiLinkService
 
 
+from grunt.core.document.formula import compute_formulas, evaluate_read_formulas
 from grunt.core.document.query import _apply_filters, _apply_search
 from grunt.core.document.relations import (
     _EXTRA_INJECT,
@@ -193,11 +194,12 @@ class DocumentReadMixin:
                 "list_documents.link_labels_failed", doctype=doctype_name, error=str(_lbl_err)
             )
 
-        # Serialise datetimes
+        # Serialise datetimes and evaluate read formulas
         for doc_row in rows:
             for k, v in doc_row.items():
                 if isinstance(v, datetime):
                     doc_row[k] = v.isoformat()
+            await evaluate_read_formulas(dt, doc_row)
 
         next_cursor: str | None = None
         if rows and len(rows) == per_page:
@@ -272,8 +274,8 @@ class DocumentReadMixin:
             else:
                 selected_ml = sorted(ml_fields & expand_set)
                 if selected_ml:
-                    ml_data = await self._ml.get_for_doc_fields(doctype_name, doc["id"], selected_ml)
                     for fieldname in selected_ml:
                         doc[fieldname] = ml_data.get(fieldname, [])
 
+        await evaluate_read_formulas(dt, doc)
         return doc

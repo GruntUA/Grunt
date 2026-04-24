@@ -29,6 +29,7 @@ import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 // Custom sub-components
 import FormHeader from '@/components/views/form/FormHeader.vue'
 import FormModals from '@/components/views/form/FormModals.vue'
+import DocDashboard from '@/components/views/form/DocDashboard.vue'
 
 const props = defineProps<{ doctype: string; id: string | null; workspace?: string }>()
 const router = useRouter()
@@ -244,6 +245,9 @@ useFormShortcuts({
       <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
         <!-- Left Column -->
         <div class="min-w-0 flex flex-col gap-4">
+          <!-- Dashboard / Connections -->
+          <DocDashboard v-if="id && document && dt" :dt="dt" :document="document" @create-new="handleCreateNew" />
+
           <!-- Main Form Card -->
           <div class="bg-card border border-border rounded-md shadow-sm p-5">
             <FormRenderer :doctype="dt" :model-value="form" :disabled="isSaving" :errors="validationErrors"

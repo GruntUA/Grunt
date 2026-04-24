@@ -157,7 +157,42 @@
       "fieldname": "tree_view",
       "label": "Налаштування дерева",
       "fieldtype": "JSON",
-      "description": "{\"parent_field\": \"parent_fieldname\", \"title_field\": \"fieldname\"}"
+      "description": "{\"parent_field\": \"parent_department\", \"title_field\": \"title\"}"
+    },
+    {
+      "fieldname": "tab_virtual",
+      "label": "Віртуальні поля",
+      "fieldtype": "Tab"
+    },
+    {
+      "fieldname": "is_virtual_field",
+      "label": "Віртуальне поле",
+      "fieldtype": "Check",
+      "description": "Поле не створює колонку в БД, розраховується при читанні"
+    },
+    {
+      "fieldname": "read_formula",
+      "label": "Формула читання",
+      "fieldtype": "Code",
+      "options": "python",
+      "description": "напр. count(\"Employee\", {\"department\": id})"
+    },
+    {
+      "fieldname": "tab_dashboard",
+      "label": "Дашборд",
+      "fieldtype": "Tab"
+    },
+    {
+      "fieldname": "show_in_dashboard",
+      "label": "Показувати в дашборді",
+      "fieldtype": "Check",
+      "description": "Відображати це поле як бейдж з лічильником у заголовку форми"
+    },
+    {
+      "fieldname": "dashboard_doctype",
+      "label": "Документ дашборду",
+      "fieldtype": "Text",
+      "description": "DocType для створення нового запису при натисканні '+'"
     }
   ]
 }

@@ -207,6 +207,15 @@ class DocField(BaseModel):
     aggregate_table: str | None = None
     aggregate_field: str | None = None
 
+    # Virtual — field has no physical column, calculated on read via read_formula.
+    is_virtual: bool = False
+    read_formula: str | None = None
+
+    # Dashboard — show this field as a badge at the top of the form.
+    # dashboard_doctype: if set, adds a "+" button to create new records of this type.
+    show_in_dashboard: bool = False
+    dashboard_doctype: str | None = None
+
     # Quick Entry — show this field in the quick-entry dialog.
     # If False, field is only shown when quick_entry shows required fields.
     in_quick_entry: bool = False
@@ -251,8 +260,8 @@ class DocField(BaseModel):
 
         factory = _SA_TYPE_MAP.get(self.fieldtype)
         if factory is None:
-            if self.fieldtype in NON_PHYSICAL_FIELDS:
-                raise ValueError(f"Field type '{self.fieldtype}' is non-physical")
+            if self.fieldtype in NON_PHYSICAL_FIELDS or self.is_virtual:
+                raise ValueError(f"Field type '{self.fieldtype}' is non-physical or virtual")
             raise ValueError(f"Field type '{self.fieldtype}' has no SA mapping")
 
         spec = factory(self)

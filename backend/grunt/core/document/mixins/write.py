@@ -165,7 +165,7 @@ class DocumentWriteMixin:
         doc = controller_cls(doctype_name, row, user, self.session)
 
         await self._run_create_before_hooks(doc)
-        compute_formulas(dt, row)
+        await compute_formulas(dt, row)
         await self._insert_row(table, row)
         await self._save_children(dt, doc_id, data, user, now)
         await self._apply_aggregations(dt, table, doc_id, row)
@@ -332,11 +332,11 @@ class DocumentWriteMixin:
         return update_data
 
     @staticmethod
-    def _propagate_formulas(
+    async def _propagate_formulas(
         dt: Any, merged: dict[str, Any], update_data: dict[str, Any]
     ) -> None:
         """Compute formula fields on *merged* then copy changed values back into *update_data*."""
-        compute_formulas(dt, merged)
+        await compute_formulas(dt, merged)
         for field in dt.fields:
             if (
                 field.formula
@@ -388,7 +388,7 @@ class DocumentWriteMixin:
         user: User,
     ) -> None:
         """Apply update pipeline: formulas -> update row -> children -> aggregates -> MultiLink."""
-        self._propagate_formulas(dt, row, update_data)
+        await self._propagate_formulas(dt, row, update_data)
 
         await self.session.execute(
             table.update().where(table.c.id == real_id).values(**update_data)
