@@ -24,6 +24,24 @@ function discoverAppAliases() {
 
 const appAliases = discoverAppAliases()
 
+function isVueVendorModule(id: string): boolean {
+    const isVueRouter = id.includes('vue-router')
+    const isPinia = id.includes('/pinia/')
+    const isCoreVueButNotVueScopedPackage = id.includes('/vue/') && !id.includes('vue-')
+
+    return isVueRouter || isPinia || isCoreVueButNotVueScopedPackage
+}
+
+// Match frontend routes that should be proxied to backend clean-URL handling.
+// Excludes known Vite/app/API/static prefixes:
+// - /app
+// - /api
+// - /ws
+// - /assets
+// - /@
+// - /node_modules
+const CLEAN_URL_PROXY_REGEX = '^(?!(/app($|/)|/api($|/)|/ws($|/)|/assets($|/)|/@|/node_modules))'
+
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [
@@ -46,7 +64,7 @@ export default defineConfig({
             output: {
                 manualChunks(id) {
                     if (id.includes('primevue') || id.includes('@primevue')) return 'vendor-primevue'
-                    if (id.includes('vue-router') || id.includes('/pinia/') || (id.includes('/vue/') && !id.includes('vue-'))) return 'vendor-vue'
+                    if (isVueVendorModule(id)) return 'vendor-vue'
                     if (id.includes('@tanstack/vue-query')) return 'vendor-query'
                     if (id.includes('class-variance-authority') || id.includes('/clsx/') || id.includes('tailwind-merge')) return 'vendor-ui'
                     if (id.includes('@lucide/vue')) return 'vendor-icons'
@@ -78,7 +96,7 @@ export default defineConfig({
                 changeOrigin: true,
             },
             // Public www pages: proxy clean URLs (no file extension) to backend
-            '^(?!(/app($|/)|/api($|/)|/ws($|/)|/assets($|/)|/@|/node_modules))': {
+            [CLEAN_URL_PROXY_REGEX]: {
                 target: 'http://localhost:8000',
                 changeOrigin: true,
                 bypass(req) {
