@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, provide } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useDocument } from '@/core/composables/useDocument'
 import { useToast } from '@/core/composables/useToast'
@@ -46,6 +47,7 @@ const activeTab = computed({
 })
 const dtStore = useDocTypeStore()
 const toast = useToast()
+const { t } = useI18n()
 const queryClient = useQueryClient()
 const { startLinkCreate, finishLinkCreate, restoreLinkDraft } = useLinkCreate()
 
@@ -263,7 +265,7 @@ useFetchFrom({
 <template>
   <div class="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
     <!-- Header -->
-    <FormHeader :title="docTitle || doctype" :doctype="doctype" :id="id" :is-dirty="isDirty"
+    <FormHeader :doc-title="docTitle || doctype" :dt="dt" :document="form" :is-dirty="isDirty"
       :is-loading="isLoading" :is-saving="isSaving" :script-buttons="scriptButtons"
       @save="handleSave" @delete="showDeleteModal = true" @duplicate="handleDuplicate"
       @rename="async (newId) => {
@@ -277,7 +279,7 @@ useFetchFrom({
               id: newId 
             }
           })
-          toast.success('Документ перейменовано')
+          toast.success(t('Document renamed'))
         } catch (e: any) {
           toast.error(e.response?.data?.detail || e.message)
         }
@@ -286,7 +288,7 @@ useFetchFrom({
 
     <!-- Loading -->
     <div v-if="isLoading || !dt" class="flex justify-center py-24">
-      <ProgressSpinner class="size-10!" />
+      <ProgressSpinner class="!size-10" />
     </div>
 
     <template v-else>
