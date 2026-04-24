@@ -68,3 +68,9 @@ async def delete_doc(doctype: str, name: str) -> bool:
     """Delete a document."""
     await grunt_app.delete_doc(doctype, name)
     return True
+
+
+@grunt.whitelist()
+async def rename_doc(doctype: str, name: str, new_name: str) -> dict[str, Any]:
+    """Rename a document."""
+    return await grunt_app.rename_doc(doctype, name, new_name)

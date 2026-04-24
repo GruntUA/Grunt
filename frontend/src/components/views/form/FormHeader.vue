@@ -31,6 +31,7 @@ const emit = defineEmits<{
   (e: 'save'): void
   (e: 'delete'): void
   (e: 'duplicate'): void
+  (e: 'rename', newId: string): void
   (e: 'toggleLog'): void
   (e: 'invalidate'): void
 }>()
@@ -44,6 +45,9 @@ const shareLink = ref<string | null>(null)
 const shareLoading = ref(false)
 const showShareDialog = ref(false)
 const shareExpires = ref('')
+const showRenameDialog = ref(false)
+const newDocId = ref('')
+const isRenaming = ref(false)
 
 async function createShare() {
   if (!props.id || !props.doctype) return
@@ -74,6 +78,17 @@ async function createShare() {
 function copyShareLink() {
   if (shareLink.value) {
     navigator.clipboard.writeText(shareLink.value)
+  }
+}
+
+async function handleRename() {
+  if (!newDocId.value || newDocId.value === props.id) return
+  isRenaming.value = true
+  try {
+    emit('rename', newDocId.value)
+    showRenameDialog.value = false
+  } finally {
+    isRenaming.value = false
   }
 }
 
@@ -195,6 +210,15 @@ const menuItems = computed(() => {
     if (props.id) {
         items.push({ separator: true })
         items.push({
+            label: t('Rename'),
+            icon: 'pi pi-pencil',
+            command: () => {
+                newDocId.value = props.id || ''
+                showRenameDialog.value = true
+            }
+        })
+
+        items.push({
             label: t('Delete'),
             icon: 'pi pi-trash',
             class: 'text-destructive',
@@ -301,6 +325,33 @@ const menuItems = computed(() => {
             <Button size="small" @click="showShareDialog = false">{{ t('Done') }}</Button>
           </div>
         </template>
+      </div>
+    </div>
+  </Teleport>
+
+  <!-- Rename Dialog -->
+  <Teleport to="body">
+    <div v-if="showRenameDialog" class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="fixed inset-0 bg-black/40" @click="showRenameDialog = false" />
+      <div class="relative bg-card border border-border rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+        <div class="flex items-center gap-2 mb-5">
+           <h2 class="text-lg font-semibold">{{ t('Rename document') }}</h2>
+        </div>
+        <div class="mb-4">
+          <label class="text-xs font-medium text-muted-foreground block mb-1.5">{{ t('New ID') }}</label>
+          <input
+            v-model="newDocId"
+            class="w-full h-10 px-3 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+            @keyup.enter="handleRename"
+          />
+        </div>
+        <div class="flex justify-end gap-2">
+          <Button outlined size="small" @click="showRenameDialog = false">{{ t('Cancel') }}</Button>
+          <Button size="small" :disabled="isRenaming || !newDocId || newDocId === props.id" @click="handleRename">
+            <Loader2 v-if="isRenaming" class="size-3.5 mr-1.5 animate-spin" />
+            {{ t('Rename') }}
+          </Button>
+        </div>
       </div>
     </div>
   </Teleport>

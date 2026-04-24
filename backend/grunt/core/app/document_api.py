@@ -154,6 +154,34 @@ class DocumentAPI:
         )
         await self._invalidate_list_cache(doctype)
 
+    async def rename_doc(self, doctype: str, old_id: str, new_id: str) -> dict[str, Any]:
+        """Rename a document and cascade all references."""
+        from grunt.core.hooks import fire  # noqa: PLC0415
+
+        dt, user, session = await self._write_guard(doctype, "write")
+        await fire(
+            "before_rename",
+            doctype=doctype,
+            old_id=old_id,
+            new_id=new_id,
+            user=user,
+            session=session,
+        )
+
+        res = await self._svc().rename_document(doctype, old_id, new_id, user)
+
+        await fire(
+            "after_rename",
+            doctype=doctype,
+            old_id=old_id,
+            new_id=new_id,
+            doc=res,
+            user=user,
+            session=session,
+        )
+        await self._invalidate_list_cache(doctype)
+        return res
+
     async def bulk_delete_docs(
         self,
         doctype: str,

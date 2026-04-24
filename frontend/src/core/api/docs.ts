@@ -109,10 +109,10 @@ export const docsApi = {
     client.get(`/api/v1/docs/${doctype}/${id}`, {
       params: options?.expand
         ? {
-            expand: Array.isArray(options.expand)
-              ? options.expand.join(',')
-              : options.expand,
-          }
+          expand: Array.isArray(options.expand)
+            ? options.expand.join(',')
+            : options.expand,
+        }
         : undefined,
     })
       .then(r => r.data.data as T),
@@ -236,6 +236,10 @@ export const docsApi = {
     client.get(`/api/v1/docs/${doctype}/${id}/timeline`).then(r => r.data.data ?? []),
 
   // ── Bulk update ──────────────────────────────────────────────────────────
+
+  rename: <T extends GruntDocument = GruntDocument>(doctype: string, id: string, newId: string): Promise<T> =>
+    client.post(`/api/v1/docs/${doctype}/${id}/rename`, { new_name: newId })
+      .then(r => r.data.data as T),
 
   bulkUpdate: (doctype: string, ids: string[], field: string, value: unknown): Promise<{ updated: number; errors: string[] }> =>
     client.post(`/api/v1/docs/${doctype}/bulk-update`, { ids, field, value }).then(r => r.data.data),

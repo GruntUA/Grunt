@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -111,8 +111,8 @@ class DocumentWriteMixin:
         """
         from grunt.core.naming import naming_service  # noqa: PLC0415
 
-        doc_id = str(data.get("id") or uuid.uuid4())
         generated_name = await naming_service.generate(dt.autoname or "", data, self.session)
+        doc_id = str(data.get("id") or generated_name or uuid.uuid4())
 
         row: dict[str, Any] = {}
         standard: dict[str, Any] = {
@@ -647,3 +647,121 @@ class DocumentWriteMixin:
         deleted = len(final_ids)
         await _report(total)
         return deleted, errors
+
+    async def rename_document(
+        self,
+        doctype_name: str,
+        old_id: str,
+        new_id: str,
+        user: User,
+    ) -> dict[str, Any]:
+        """Update the primary ID of a document and cascade changes to all references."""
+        if old_id == new_id:
+            return await self.get_document(doctype_name, old_id, user)
+
+        dt = await doctype_registry.get(doctype_name)
+        if dt.is_virtual:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot rename virtual documents",
+            )
+
+        table = compile_doctype_to_table(dt)
+
+        # 0. Check if new_id already exists
+        exists_q = select(table.c.id).where(table.c.id == new_id)
+        exists_res = await self.session.execute(exists_q)
+        if exists_res.first():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Document with ID '{new_id}' already exists",
+            )
+
+        # Fetch document before rename for hooks
+        doc_data = await self.get_document(doctype_name, old_id, user)
+
+        # 1. Update main table
+        # We update both 'id' and 'name' to keep them in sync for autonamed docs
+        await self.session.execute(
+            table.update().where(table.c.id == old_id).values(id=new_id, name=new_id)
+        )
+
+        # 2. Update references across all DocTypes
+        all_dts = await doctype_registry.list_all()
+        for other_dt in all_dts:
+            # A. Update child tables (Tables)
+            is_child = any(
+                f.fieldtype == "Table" and f.options == other_dt.name for f in dt.fields
+            )
+            if is_child:
+                child_table = compile_doctype_to_table(other_dt)
+                await self.session.execute(
+                    child_table.update()
+                    .where(child_table.c.parent_id == old_id)
+                    .values(parent_id=new_id)
+                )
+
+            # B. Update Link fields referencing our doctype
+            for f in other_dt.fields:
+                if f.fieldtype == "Link" and f.options == doctype_name:
+                    ref_table = compile_doctype_to_table(other_dt)
+                    await self.session.execute(
+                        ref_table.update()
+                        .where(ref_table.c[f.fieldname] == old_id)
+                        .values(**{f.fieldname: new_id})
+                    )
+
+        # 3. Update MultiLink references
+        from grunt.core.metadata.compiler import MULTI_LINK_TABLE  # noqa: PLC0415
+
+        await self.session.execute(
+            update(MULTI_LINK_TABLE)
+            .where(
+                MULTI_LINK_TABLE.c.parent_id == old_id,
+                MULTI_LINK_TABLE.c.parent_doctype == doctype_name,
+            )
+            .values(parent_id=new_id)
+        )
+        await self.session.execute(
+            update(MULTI_LINK_TABLE)
+            .where(
+                MULTI_LINK_TABLE.c.link_name == old_id,
+                MULTI_LINK_TABLE.c.link_doctype == doctype_name,
+            )
+            .values(link_name=new_id)
+        )
+
+        # 4. Update system DocTypes
+        system_refs = [
+            ("ActivityLog", "doc_id"),
+            ("DocVersion", "doc_id"),
+            ("File", "doc_id"),
+            ("File", "parent_id"),
+            ("Comment", "parent_id"),
+            ("EmailQueue", "doc_id"),
+        ]
+        for sys_dt_name, sys_fieldname in system_refs:
+            try:
+                sys_dt = await doctype_registry.get(sys_dt_name)
+                sys_table = compile_doctype_to_table(sys_dt)
+                if sys_fieldname in sys_table.c:
+                    await self.session.execute(
+                        sys_table.update()
+                        .where(sys_table.c[sys_fieldname] == old_id)
+                        .values(**{sys_fieldname: new_id})
+                    )
+            except Exception:  # noqa: BLE001
+                continue
+
+        await self.session.flush()
+
+        # 5. Update Search Index (delete old, index new)
+        from grunt.core.search.service import search_index_service  # noqa: PLC0415
+
+        await search_index_service.remove_document(self.session, doctype_name, old_id)
+        # Re-fetch with new ID for indexing
+        new_doc = await self.get_document(doctype_name, new_id, user)
+        await search_index_service.index_document(self.session, doctype_name, dt, new_doc)
+
+        logger.info("document.renamed", doctype=doctype_name, old=old_id, new=new_id)
+        return new_doc

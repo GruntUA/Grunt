@@ -40,5 +40,13 @@ export function useDocument(doctype: string, id: string | null) {
     }
   })
 
-  return { document, form, isLoading, isDirty, isSaving, save, remove }
+  const { mutateAsync: rename } = useMutation({
+    mutationFn: (newId: string) => docsApi.rename(doctype, id!, newId),
+    onSuccess: (saved: GruntDocument) => {
+      queryClient.setQueryData(['document', doctype, saved.id], saved)
+      queryClient.invalidateQueries({ queryKey: ['documents', doctype] })
+    }
+  })
+
+  return { document, form, isLoading, isDirty, isSaving, save, remove, rename }
 }

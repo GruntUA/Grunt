@@ -50,7 +50,7 @@ const queryClient = useQueryClient()
 const { startLinkCreate, finishLinkCreate, restoreLinkDraft } = useLinkCreate()
 
 const dt = ref<DocType | null>(null)
-const { document, form, isLoading, isDirty, isSaving, save, remove } = useDocument(props.doctype, props.id)
+const { document, form, isLoading, isDirty, isSaving, save, remove, rename } = useDocument(props.doctype, props.id)
 
 // ── WebSocket real-time + presence ───────────────────────────────────────────
 const wsUrl = computed(() => props.id ? `/api/v1/ws/${props.doctype}/${props.id}` : null)
@@ -263,9 +263,25 @@ useFetchFrom({
 <template>
   <div class="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
     <!-- Header -->
-    <FormHeader :dt="dt" :doctype="doctype" :id="id" :workspace="workspace" :doc-title="docTitle" :document="document"
-      :is-dirty="isDirty" :is-loading="isLoading" :is-saving="isSaving" :script-buttons="scriptButtons"
+    <FormHeader :title="docTitle || doctype" :doctype="doctype" :id="id" :is-dirty="isDirty"
+      :is-loading="isLoading" :is-saving="isSaving" :script-buttons="scriptButtons"
       @save="handleSave" @delete="showDeleteModal = true" @duplicate="handleDuplicate"
+      @rename="async (newId) => {
+        try {
+          await rename(newId)
+          router.push({
+            name: 'workspace-form',
+            params: { 
+              workspaceName: workspace || 'grunt', 
+              doctype: doctype, 
+              id: newId 
+            }
+          })
+          toast.success('Документ перейменовано')
+        } catch (e: any) {
+          toast.error(e.response?.data?.detail || e.message)
+        }
+      }"
       @invalidate="queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })" />
 
     <!-- Loading -->
