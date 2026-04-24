@@ -63,6 +63,7 @@ export interface DocField {
   // Dashboard
   show_in_dashboard?: boolean
   dashboard_doctype?: string | null
+  dashboard_link_field?: string | null
   // Fetch From
   fetch_from?: string | null
 }

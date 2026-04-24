@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useListViewKeyboard } from '@/core/composables/useListViewKeyboard'
@@ -70,7 +70,7 @@ const {
   clear: clearSelection,
   count: selectionCount
 } = useListSelection()
-const columns = useListColumns(props.doctype, () => dt.value?.fields ?? [], () => dt.value?.title_field)
+const colState = useListColumns(props.doctype, () => dt.value?.fields ?? [], () => dt.value?.title_field)
 const showQuickEntry = ref(false)
 const dialog = useDialog()
 const {
@@ -94,8 +94,8 @@ const { data, isLoading, isFetching, meta, rows, exportCtx } = useDocTypeListDat
   sortOrder,
   groupBy,
   activeFilters,
-  visibleKeys: columns.visibleKeys,
-  visibleColumns: columns.visibleColumns,
+  visibleKeys: colState.visibleKeys,
+  visibleColumns: colState.visibleColumns,
   dt,
 })
 
@@ -106,9 +106,31 @@ const { applyRouteState, setGroupByInRoute, applySort } = useListRouteSync({
   groupBy,
   sortKey,
   sortOrder,
+  activeFilters,
   validViews: VALID_VIEWS,
   getDefaultView: () => dt.value?.default_view ?? 'list',
+  dt,
 })
+
+// Resolve display values (titles) for Link fields when filters are added from URL
+watch(activeFilters, async (newFilters) => {
+  if (!dt.value) return
+  
+  const filtersToResolve = newFilters.filter(f => !f.displayValue && f.value)
+  if (!filtersToResolve.length) return
+
+  for (const f of filtersToResolve) {
+    const field = dt.value.fields.find(ff => ff.fieldname === f.fieldname)
+    if (field?.fieldtype === 'Link' && field.options) {
+      try {
+        const doc = await dtStore.getDoc(field.options, f.value)
+        if (doc) {
+          f.displayValue = doc.name || doc.id
+        }
+      } catch (e) { console.error('Failed to resolve filter title', e) }
+    }
+  }
+}, { deep: true })
 
 const { bulkUpdate, inlineUpdate } = useListActions({
   doctype: props.doctype,
@@ -136,17 +158,6 @@ function setGroupBy(field: string | null) {
   setGroupByInRoute(field)
 }
 
-onMounted(async () => {
-  dt.value = await dtStore.get(props.doctype)
-  if (dt.value?.is_singleton) {
-    router.replace(`/${props.workspace ?? 'grunt'}/${props.doctype}/${props.doctype}`)
-    return
-  }
-
-  applyRouteState()
-
-  await runListClientSetup()
-})
 
 // ── View Detection ───────────────────────────────────────────────────────────
 const { kanbanColumnField, treeParentField, geoField, calendarDateField } = useListFieldDetection(
@@ -186,6 +197,16 @@ const { activeIndex } = useListViewKeyboard({
   onBulkDelete: bulkDelete,
   onConfirmDelete: (title, subtitle) => dialog.confirm(title, subtitle),
 })
+
+watch(() => props.doctype, async (newDoctype) => {
+  dt.value = await dtStore.get(newDoctype)
+  if (dt.value?.is_singleton) {
+    router.replace(`/${props.workspace ?? 'grunt'}/${newDoctype}/${newDoctype}`)
+    return
+  }
+  applyRouteState()
+  await runListClientSetup()
+}, { immediate: true })
 </script>
 
 <template>
@@ -198,21 +219,22 @@ const { activeIndex } = useListViewKeyboard({
       @create-quick="showQuickEntry = true" />
 
     <!-- Toolbar -->
-    <ListToolbar v-model:view-mode="viewMode" v-model:inline-search="inlineSearch"
+    <ListToolbar v-if="colState" v-model:view-mode="viewMode" v-model:inline-search="inlineSearch"
       v-model:active-filters="activeFilters" :group-by="groupBy" @update:group-by="setGroupBy" :dt="dt"
-      :doctype="doctype" :columns="columns" :groupable-fields="groupableFields" :group-by-field="groupByField"
+      :doctype="doctype" :columns="colState" :groupable-fields="groupableFields" :group-by-field="groupByField"
       :kanban-column-field="kanbanColumnField" :tree-parent-field="treeParentField"
       :calendar-date-field="calendarDateField" :geo-field="geoField"
       @reset="inlineSearch = ''; activeFilters = []; page = 1" />
 
     <ListViewRouter
+      v-if="dt && colState"
       :view-mode="viewMode"
       :dt="dt"
       :workspace="workspace"
       :doctype="doctype"
       :rows="rows"
       :fields="dt?.fields ?? []"
-      :columns="columns.visibleColumns.value"
+      :columns="colState.visibleColumns.value"
       :meta="meta"
       :is-loading="isLoading"
       :has-data="!!data"
@@ -249,7 +271,7 @@ const { activeIndex } = useListViewKeyboard({
       @close="showQuickEntry = false" @saved="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })" />
 
     <!-- Bulk delete progress dialog -->
-    <Dialog :visible="deleteProgress.active" modal :closable="false" :show-header="false"
+    <Dialog v-if="deleteProgress" :visible="deleteProgress.active" modal :closable="false" :show-header="false"
       :pt="{ root: { class: 'max-w-sm' }, content: { class: 'p-6' } }">
       <div class="flex flex-col gap-4 py-2">
         <div class="flex items-center gap-3">

@@ -215,6 +215,9 @@ class DocField(BaseModel):
     # dashboard_doctype: if set, adds a "+" button to create new records of this type.
     show_in_dashboard: bool = False
     dashboard_doctype: str | None = None
+    # The fieldname in dashboard_doctype that links back here (used for:
+    # 1) pre-filling on create, 2) filtering the list view)
+    dashboard_link_field: str | None = None
 
     # Fetch From — automatically populate value from a linked document.
     # Format: "link_fieldname.field_to_fetch" (e.g., "customer.name")

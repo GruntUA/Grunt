@@ -9,7 +9,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'create-new': [doctype: string, preset: string, fieldname: string]
+  'create-new': [doctype: string, preset: Record<string, unknown>, fieldname: string]
+  'view-list': [doctype: string, filters: Record<string, unknown>]
 }>()
 
 const dashboardFields = computed(() => {
@@ -18,11 +19,18 @@ const dashboardFields = computed(() => {
 
 function handleAdd(field: any) {
   if (field.dashboard_doctype) {
-    // We pass a preset object to pre-fill the back-link field.
-    // Convention: target doctype has a field named after our doctype (lowercase).
-    const targetField = props.dt.name.toLowerCase()
-    const preset = { [targetField]: props.document.id }
+    // If dashboard_link_field is set, use it. Otherwise fallback to lowercase parent doctype name.
+    const linkField = field.dashboard_link_field || props.dt.name.toLowerCase()
+    const preset = { [linkField]: props.document.id }
     emit('create-new', field.dashboard_doctype, preset, '')
+  }
+}
+
+function handleViewList(field: any) {
+  if (field.dashboard_doctype) {
+    const linkField = field.dashboard_link_field || props.dt.name.toLowerCase()
+    const filters = { [linkField]: props.document.id }
+    emit('view-list', field.dashboard_doctype, filters)
   }
 }
 </script>
@@ -31,10 +39,20 @@ function handleAdd(field: any) {
   <div v-if="dashboardFields.length > 0" class="flex flex-wrap gap-2 mb-1">
     <div v-for="f in dashboardFields" :key="f.fieldname" 
       class="inline-flex items-center gap-2.5 bg-background border border-border/80 hover:border-primary/30 rounded-lg px-3 py-1.5 shadow-sm transition-all group">
-      <span class="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{{ f.label }}</span>
-      <Badge severity="secondary" class="rounded-md font-mono text-[10px] h-4.5 px-1.5 min-w-[20px] flex items-center justify-center bg-muted/50 border-none">
-        {{ document[f.fieldname] || 0 }}
-      </Badge>
+      
+      <div 
+        class="flex items-center gap-2.5 cursor-pointer"
+        @click="handleViewList(f)"
+        :title="`Переглянути ${f.label}`"
+      >
+        <span class="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-primary transition-colors">
+          {{ f.label }}
+        </span>
+        <Badge severity="secondary" class="rounded-md font-mono text-[10px] h-4.5 px-1.5 min-w-[20px] flex items-center justify-center bg-muted/50 group-hover:bg-primary/10 group-hover:text-primary border-none transition-colors">
+          {{ document[f.fieldname] || 0 }}
+        </Badge>
+      </div>
+
       <button 
         v-if="f.dashboard_doctype"
         type="button"

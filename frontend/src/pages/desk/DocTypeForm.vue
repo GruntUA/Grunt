@@ -211,6 +211,18 @@ const {
   toast,
 })
 
+function handleViewList(targetDoctype: string, filters: Record<string, unknown>) {
+  const ws = props.workspace || 'grunt'
+  const query: Record<string, string> = {}
+  for (const [k, v] of Object.entries(filters)) {
+    query[`filter[${k}__eq]`] = String(v)
+  }
+  router.push({
+    path: `/${ws}/${targetDoctype}`,
+    query,
+  })
+}
+
 const {
   docTitle,
   onFormUpdate,
@@ -265,7 +277,10 @@ useFetchFrom({
         <!-- Left Column -->
         <div class="min-w-0 flex flex-col gap-4">
           <!-- Dashboard / Connections -->
-          <DocDashboard v-if="id && document && dt" :dt="dt" :document="document" @create-new="handleCreateNew" />
+          <DocDashboard v-if="id && document && dt" :dt="dt" :document="document" 
+            @create-new="handleCreateNew" 
+            @view-list="handleViewList" 
+          />
 
           <!-- Main Form Card -->
           <div class="bg-card border border-border rounded-md shadow-sm p-5">
