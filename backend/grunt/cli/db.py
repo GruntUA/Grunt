@@ -114,6 +114,11 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
                         await session.commit()
 
                     click.echo("  Fixtures applied.")
+
+                # 5. Trigger hot-reload for running servers
+                reload_file = site_manager.sites_dir / site_name / ".reload_meta"
+                reload_file.touch()
+                click.echo("  Hot-reload triggered.")
         finally:
             if broker_started:
                 if isinstance(broker, InMemoryBroker):

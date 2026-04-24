@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from grunt.core.site.manager import current_site, site_manager
+from grunt.config import settings
 
 if TYPE_CHECKING:
     from fastapi import Request
@@ -25,7 +26,18 @@ class SiteContextMiddleware(BaseHTTPMiddleware):
             if host_name in known_sites:
                 site = host_name
 
-        # 3. If still no site — don't set context, let get_active_site()
+        # 3. Development hot reload: check for .reload_meta trigger
+        if site and settings.debug:
+            reload_file = site_manager.sites_dir / site / ".reload_meta"
+            if reload_file.exists():
+                from grunt.core.metadata.registry import doctype_registry
+                doctype_registry.clear_cache()
+                try:
+                    reload_file.unlink()
+                except Exception:
+                    pass
+
+        # 4. If still no site — don't set context, let get_active_site()
         #    fallback to currentsite.txt
         token = current_site.set(site) if site else None
 

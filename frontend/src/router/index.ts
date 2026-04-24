@@ -90,9 +90,9 @@ const router = createRouter({
           component: () => import('@/pages/workspace/WorkspaceHome.vue'),
           props: true,
         },
-        // DocType builder — must come before generic :doctype/:id
+        // DocType builder — moved to studio/ to avoid shadowing standard DocType/:id documents
         {
-          path: 'DocType/:id',
+          path: 'studio/DocType/:id',
           name: 'doctype-builder',
           component: () => import('@/pages/studio/builder/BuilderLayout.vue'),
           props: (route) => ({ doctype: route.params.id, workspaceName: route.params.workspaceName }),

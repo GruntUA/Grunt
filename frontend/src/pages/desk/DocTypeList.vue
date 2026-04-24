@@ -184,7 +184,8 @@ const { deleteProgress, bulkDelete } = useBulkDeleteProgress({
 
 function navigateToDoc(row: Record<string, unknown>) {
   const ws = props.workspace ?? 'grunt'
-  props.doctype === 'DocType' ? router.push(`/${ws}/DocType/${row.name}`) : router.push(`/${ws}/${props.doctype}/${row.id}`)
+  // Use generic routing for all DocTypes including DocType itself
+  router.push(`/${ws}/${props.doctype}/${row.id}`)
 }
 
 // ── Keyboard Shortcuts ───────────────────────────────────────────────────────

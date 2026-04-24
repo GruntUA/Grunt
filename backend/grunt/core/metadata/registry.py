@@ -60,6 +60,18 @@ class DocTypeRegistry:
     def _known_index_remove(self, name: str) -> None:
         self._known_lower.pop(name.lower(), None)
 
+    def clear_cache(self) -> None:
+        """Clear all in-memory DocType definitions and known names.
+
+        This forces the registry to re-fetch metadata from the database
+        (or core JSON files) on the next access.
+        """
+        self._doctypes.clear()
+        self._known_names.clear()
+        self._lower_index.clear()
+        self._known_lower.clear()
+        logger.info("registry.cache_cleared")
+
     # ── Read ─────────────────────────────────────────────────────────────
 
     async def prefetch_names(self, session: AsyncSession) -> None:

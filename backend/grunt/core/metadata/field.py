@@ -182,6 +182,7 @@ class DocField(BaseModel):
     collapsible: bool = False
     columns: int = 12
     icon: str | None = None
+    experimental_component: str | None = None
 
     # Validation rules
     min_value: float | None = None

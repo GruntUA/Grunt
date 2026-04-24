@@ -159,3 +159,20 @@ async def export_schemas(
         all_dts = [dt for dt in all_dts if dt.module == module]
 
     return {dt.name: dt.model_dump() for dt in all_dts}
+
+
+@grunt.whitelist()
+async def clear_cache() -> bool:
+    """Clear metadata cache. Admin only."""
+    from grunt.app import grunt as grunt_app
+
+    user = grunt_app._require_user()
+    if not user.is_superadmin:
+        grunt.throw("Admin only", "PERMISSION_DENIED")
+
+    doctype_registry.clear_cache()
+    # Also invalidate permission cache
+    from grunt.core.permissions.rbac import invalidate_permission_cache
+
+    invalidate_permission_cache()
+    return True
