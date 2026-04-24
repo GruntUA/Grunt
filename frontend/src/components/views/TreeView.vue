@@ -23,7 +23,26 @@ const router = useRouter()
 const allDocs = ref<GruntDocument[]>([])
 const loading = ref(false)
 const error = ref('')
-const expandedIds = ref<Set<string>>(new Set())
+
+// ── Persist expanded ids to localStorage ─────────────────────────────────
+
+const STORAGE_KEY = `tree_expanded_${props.doctype.name}`
+
+function loadExpandedIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (raw) return new Set(JSON.parse(raw) as string[])
+  } catch { /* ignore */ }
+  return new Set()
+}
+
+function saveExpandedIds(ids: Set<string>) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]))
+  } catch { /* ignore */ }
+}
+
+const expandedIds = ref<Set<string>>(loadExpandedIds())
 
 // ── Data fetching ────────────────────────────────────────────────────────
 
@@ -111,6 +130,7 @@ function toggle(node: TreeNode) {
   }
   // Trigger reactivity
   expandedIds.value = new Set(expandedIds.value)
+  saveExpandedIds(expandedIds.value)
 }
 
 function expandAll(nodes: TreeNode[] = tree.value) {
@@ -121,10 +141,12 @@ function expandAll(nodes: TreeNode[] = tree.value) {
     }
   }
   expandedIds.value = new Set(expandedIds.value)
+  saveExpandedIds(expandedIds.value)
 }
 
 function collapseAll() {
   expandedIds.value = new Set()
+  saveExpandedIds(expandedIds.value)
 }
 
 function navigateTo(node: TreeNode) {
