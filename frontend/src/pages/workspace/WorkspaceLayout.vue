@@ -6,6 +6,7 @@ import { useSidebarStore } from '@/stores/sidebar'
 import WorkspaceSidebar from '@/components/workspace/WorkspaceSidebar.vue'
 import MobileBottomNav from '@/components/mobile/MobileBottomNav.vue'
 import NotFound from '@/pages/errors/NotFound.vue'
+import Drawer from 'primevue/drawer'
 
 const props = defineProps<{ workspaceName: string }>()
 const wsStore = useWorkspaceStore()
@@ -25,12 +26,18 @@ async function loadWorkspace(name: string) {
 }
 
 onMounted(() => loadWorkspace(props.workspaceName))
-watch(() => props.workspaceName, (name) => { loadWorkspace(name) })
+watch(() => props.workspaceName, async (name) => {
+  try {
+    await loadWorkspace(name)
+  } catch (error) {
+    notFound.value = true
+  }
+})
 </script>
 
 <template>
   <NotFound v-if="notFound" />
-  <div v-else class="h-screen overflow-hidden bg-background flex relative">
+  <div v-else :key="contentKey" class="h-screen overflow-hidden bg-background flex relative">
     <!-- Background pattern -->
     <div class="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05] z-0">
       <svg class="h-full w-full" xmlns="http://www.w3.org/2000/svg">

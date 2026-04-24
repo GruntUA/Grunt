@@ -22,6 +22,7 @@ import { useFetchFrom } from '@/core/composables/useFetchFrom'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { DocType, GruntDocument } from '@/types'
 import { History } from '@lucide/vue'
+import ProgressSpinner from 'primevue/progressspinner'
 
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import DocSidebar from '@/components/views/DocSidebar.vue'
@@ -316,7 +317,7 @@ useFetchFrom({
             <button type="button" class="form-section-header w-full hover:bg-muted/70 transition-colors"
               @click="showVersions = !showVersions">
               <History class="size-3.5 text-muted-foreground" />
-              <span class="flex-1 text-left">Версії документа</span>
+              <span class="flex-1 text-left">{{ t('version_history') }}</span>
               <div class="size-4 flex items-center justify-center transition-transform duration-300"
                 :class="{ 'rotate-180': showVersions }">
                 <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2"

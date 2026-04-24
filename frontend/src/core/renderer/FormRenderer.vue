@@ -118,7 +118,7 @@ function toggleSection(section: LayoutSection) {
                       class="mb-1 flex items-center gap-1 self-start rounded-full px-2 py-0.5 text-[10px] font-bold text-white shadow-sm ring-2 ring-background"
                       :style="{ backgroundColor: fieldLocks[f.fieldname].color }">
                       <span class="opacity-80">{{ initials(fieldLocks[f.fieldname].full_name) }}</span>
-                      <span>редагує...</span>
+                      <span>editing...</span>
                     </div>
 
                     <FieldRenderer
@@ -165,7 +165,7 @@ function toggleSection(section: LayoutSection) {
                   class="mb-1 flex items-center gap-1 self-start rounded-full px-2 py-0.5 text-[10px] font-bold text-white shadow-sm ring-2 ring-background"
                   :style="{ backgroundColor: fieldLocks[f.fieldname].color }">
                   <span class="opacity-80">{{ initials(fieldLocks[f.fieldname].full_name) }}</span>
-                  <span>редагує...</span>
+                  <span>editing...</span>
                 </div>
                 <FieldRenderer
                   :field="reqdOverrides?.[f.fieldname] !== undefined ? { ...f, required: reqdOverrides[f.fieldname] } : f"
