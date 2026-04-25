@@ -40,7 +40,7 @@ async def _bootstrap(site: str | None) -> dict:
     session_cm = maker()
     session = await session_cm.__aenter__()
     await doctype_registry.load_all(session)
-    await load_core_doctypes(session, eng)
+    await load_core_doctypes(session)
 
     return {
         "session": session,

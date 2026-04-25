@@ -79,8 +79,14 @@ class WorkflowEngine:
                 detail="Перехід недоступний",
             )
 
+        if not doctype.workflow:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Документ не має налаштованого Workflow",
+            )
+            
         # Apply
-        state_field = doctype.workflow.state_field  # type: ignore[union-attr]
+        state_field = doctype.workflow.state_field
         await grunt.db.set_value(doctype.name, doc_id, state_field, transition.to_state)
 
         # Re-read updated document (set_value already flushed)

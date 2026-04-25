@@ -321,7 +321,7 @@ async def grunt_error_handler(request: Request, exc: GruntError) -> JSONResponse
         "CONFLICT": 409,
         "VALIDATION_ERROR": 422,
     }
-    status_code = status_map.get(exc.title, 422)
+    status_code = status_map.get(exc.title or "APPLICATION_ERROR", 422)
     return JSONResponse(
         status_code=status_code,
         content={

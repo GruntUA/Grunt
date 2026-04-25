@@ -31,14 +31,10 @@ async def render_template(
     )
 
     # Globals available in every grunt template — mirrors Frappe's Jinja API.
-    env.globals.update(
-        {
-            "grunt": app,
-            "session": app.session,
-            "_": app._,
-            "now": datetime.now(UTC),
-        }
-    )
+    env.globals["grunt"] = app
+    env.globals["session"] = app.session
+    env.globals["_"] = app._
+    env.globals["now"] = datetime.now(UTC)
 
     tpl = env.get_template(template if is_file else "_")
     return await tpl.render_async(**ctx)

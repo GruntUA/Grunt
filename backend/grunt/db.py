@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
-from sqlalchemy import func, or_, select, update
+from sqlalchemy import CursorResult, func, or_, select, update
 
 from grunt.core.context import _session_ctx
 from grunt.core.metadata.compiler import compile_doctype_to_table
@@ -67,7 +67,7 @@ class GruntDB:
         result = await self._session().execute(
             table.update().where(table.c.id == doc_id).values(values)
         )
-        row_count = result.rowcount  # type: ignore[attr-defined]
+        row_count = cast(CursorResult, result).rowcount
         if row_count == 0:
             await self._session().execute(
                 table.update().where(table.c.name == doc_id).values(values)
@@ -203,7 +203,7 @@ class GruntDB:
 
         result = await self._session().execute(stmt)
         await self._session().flush()
-        return result.rowcount  # type: ignore[attr-defined]
+        return cast(CursorResult, result).rowcount
 
     async def insert_one(self, doctype: str, values: dict[str, Any]) -> None:
         """Insert a single row into a DocType table and flush the session.
@@ -226,7 +226,7 @@ class GruntDB:
         table = compile_doctype_to_table(dt)
         result = await self._session().execute(table.insert(), rows)
         await self._session().flush()
-        return result.rowcount or len(rows)  # type: ignore[attr-defined]
+        return cast(CursorResult, result).rowcount or len(rows)
 
     async def bulk_update(
         self,
@@ -247,7 +247,7 @@ class GruntDB:
 
         result = await self._session().execute(stmt)
         await self._session().flush()
-        return result.rowcount or 0  # type: ignore[attr-defined]
+        return cast(CursorResult, result).rowcount or 0
 
     async def aggregate(
         self,

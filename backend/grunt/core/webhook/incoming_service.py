@@ -195,7 +195,8 @@ class IncomingWebhookService:
         """Execute the linked ServerScript.  Returns (action_taken, error)."""
         from grunt.app import grunt  # noqa: PLC0415
         from grunt.core.doctypes.user.user import SYSTEM_USER  # noqa: PLC0415
-        from grunt.core.scripting.server_script import server_script_engine  # noqa: PLC0415
+        from grunt.core.scripting.server_script import ServerScriptRunner  # noqa: PLC0415
+        server_script_engine = ServerScriptRunner()
 
         script_id = webhook.get("server_script")
         if not script_id:

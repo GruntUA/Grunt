@@ -91,7 +91,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
         return will_retry, attempt, max_retries, delay
 
     async def on_error(  # noqa: ARG002
-        self, message: TaskiqMessage, _result: TaskiqResult[Any], exception: BaseException
+        self, message: TaskiqMessage, result: TaskiqResult[Any], exception: BaseException
     ) -> None:
         """Called if an unhandled error occurs."""
         log_id = self.log_ids.get(message.task_id)
