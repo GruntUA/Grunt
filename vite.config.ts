@@ -71,7 +71,7 @@ const allowedHosts = discoverAllowedHosts()
 // - /assets
 // - /@
 // - /node_modules
-const CLEAN_URL_PROXY_REGEX = '^(?!(/app($|/)|/api($|/)|/ws($|/)|/assets($|/)|/@|/node_modules))'
+const CLEAN_URL_PROXY_REGEX = '^(?!(/app($|/)|/api($|/)|/ws($|/)|/assets($|/)|/@|/node_modules|/frontend($|/)|/vite-hmr($|/)))'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -116,6 +116,8 @@ export default defineConfig({
             // When accessed through a reverse proxy / tunnel (e.g. dev2.itmlt.win),
             // tell the browser to connect HMR WebSocket on the standard HTTPS port
             // so the proxy doesn't need to expose port 5173 externally.
+            path: 'vite-hmr',
+            host: 'dev2.itmlt.win',
             clientPort: 443,
             protocol: 'wss',
         },
@@ -140,9 +142,10 @@ export default defineConfig({
                 target: 'http://localhost:8000',
                 changeOrigin: true,
                 bypass(req) {
-                    const url = (req.url ?? '').split('?')[0]
+                    const urlPath = (req.url ?? '').split('?')[0]
                     // Let Vite serve anything with a file extension (source files, manifests, etc.)
-                    if (/\.\w+$/.test(url)) return url
+                    // Return false to skip the proxy and let Vite handle it natively
+                    if (/\.\w+$/.test(urlPath)) return false
                     return undefined
                 },
             },
