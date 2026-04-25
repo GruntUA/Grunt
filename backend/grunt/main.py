@@ -91,6 +91,8 @@ async def lifespan(app: FastAPI):
         load_core_doctypes,
     )  # noqa: PLC0415
 
+    from grunt.website import make_website_handler, website_registry  # noqa: PLC0415
+
     sites = site_manager.get_sites()
     if not sites:
         logger.warning("grunt.startup.no_sites")
@@ -207,17 +209,16 @@ async def lifespan(app: FastAPI):
                     )
                     logger.info("www.assets.mounted", app=ext_app.name)
 
-                # Discover www/ pages and register FastAPI routes
-                from grunt.www import make_www_handler, www_registry  # noqa: PLC0415
-
-                for page in www_registry.discover_app(ext_app, ext_app.name):
+                # 2. Discover external app pages
+                for page in website_registry.discover_app(ext_app, ext_app.name):
                     app.add_api_route(
                         page.url_pattern,
-                        make_www_handler(page),
-                        methods=["GET"],
+                        make_website_handler(page),
+                        methods=["GET", "POST"],
                         include_in_schema=False,
                         tags=["www"],
                     )
+
 
     # Initialize Sentry (optional)
     if settings.sentry_dsn:
@@ -275,7 +276,63 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── Vite Dev Proxy (Development only) ───────────────────────────────────
+if settings.debug:
+    import httpx  # noqa: PLC0415
+    from fastapi.responses import StreamingResponse  # noqa: PLC0415
+
+    VITE_SERVER_URL = "http://localhost:5173"
+
+    @app.get("/frontend/{path:path}")
+    @app.get("/@vite/{path:path}")
+    @app.get("/@id/{path:path}")
+    @app.get("/@fs/{path:path}")
+    @app.get("/node_modules/{path:path}")
+    async def vite_proxy(request: Request):
+        path = request.url.path
+        query = request.url.query
+        target_url = f"{VITE_SERVER_URL}{path}{'?' + query if query else ''}"
+        
+        async with httpx.AsyncClient() as client:
+            # We skip content-length to let StreamingResponse handle it
+            headers = {k: v for k, v in request.headers.items() if k.lower() not in ("host", "content-length")}
+            try:
+                # Proxy the request to Vite
+                v_res = await client.request(
+                    method=request.method,
+                    url=target_url,
+                    headers=headers,
+                    content=await request.body(),
+                    follow_redirects=True,
+                )
+                return StreamingResponse(
+                    v_res.aiter_raw(),
+                    status_code=v_res.status_code,
+                    headers=dict(v_res.headers),
+                )
+            except Exception as e:
+                logger.warning("vite.proxy.error", url=target_url, error=str(e))
+                raise HTTPException(status_code=502, detail="Vite server unreachable") from e
+
 app.include_router(v1_router, prefix="/api/v1")
+
+# ── Register Core Website Pages (mounted at root) ──
+from grunt.website import make_website_handler, website_registry  # noqa: PLC0415
+core_website_dir = _Path(__file__).parent / "website"
+for page in website_registry.discover_app(core_website_dir, "grunt", is_main_app=True):
+    app.add_api_route(
+        page.url_pattern,
+        make_website_handler(page),
+        methods=["GET", "POST"],
+        include_in_schema=False,
+        tags=["website"],
+    )
+
+# ── Static Assets ──
+from fastapi.staticfiles import StaticFiles  # noqa: PLC0415
+root_public_dir = _Path(__file__).parent.parent.parent / "public"
+if root_public_dir.is_dir():
+    app.mount("/", StaticFiles(directory=str(root_public_dir)), name="root_public")
 
 
 # ── Exception handlers ───────────────────────────────────────────────────
@@ -412,3 +469,22 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
             },
         },
     )
+
+
+# ── Catch-all Website Handler (Dynamic DB Pages) ────────────────────────
+@app.get("/{path:path}", include_in_schema=False)
+async def website_catch_all(request: Request):
+    from grunt.website.router import render_page_by_route  # noqa: PLC0415
+    
+    # We need a session to query the DB
+    from grunt.core.site.manager import site_manager  # noqa: PLC0415
+    site = request.headers.get("X-Grunt-Site") or "dev2.itmlt.win"
+    maker = site_manager.get_session_maker(site)
+    
+    async with maker() as session:
+        response = await render_page_by_route(request, session)
+        if response:
+            return response
+    
+    # If no page found, raise 404
+    raise HTTPException(status_code=404, detail="Сторінку не знайдено")

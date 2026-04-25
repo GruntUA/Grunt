@@ -17,7 +17,7 @@ function totalCount(): number {
 }
 
 function navigate() {
-  router.push(`/${props.workspace.name}`)
+  router.push({ name: 'workspace-home', params: { workspaceName: props.workspace.name } })
 }
 
 // Generate a subtle gradient from the workspace color

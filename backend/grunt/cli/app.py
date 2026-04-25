@@ -159,3 +159,64 @@ def app_list(site: str | None):
     click.echo(f"Сайт: {target_site}")
     for a in apps:
         click.echo(f"  • {a}")
+
+
+@app_group.command("doctor")
+@click.argument("name", required=False)
+def app_doctor(name: str | None):
+    """Перевірити додатки на помилки структури та виправити їх.
+    
+    Якщо NAME не вказано — перевіряє всі додатки.
+    """
+    import subprocess  # noqa: PLC0415
+
+    from grunt.core.site.manager import site_manager  # noqa: PLC0415
+    
+    apps_dir = site_manager.bench_dir / "apps"
+    target_apps = [name] if name else [d.name for d in apps_dir.iterdir() if d.is_dir() and not d.name.startswith(".")]
+
+    for app_name in target_apps:
+        app_path = apps_dir / app_name
+        click.echo(f"🩺 Перевірка додатку: {click.style(app_name, fg='cyan')}")
+        
+        # 1. Перевірка Git
+        git_dir = app_path / ".git"
+        if not git_dir.is_dir():
+            click.echo(f"  [!] Git не ініціалізовано. {click.style('Виправлення...', fg='yellow')}")
+            try:
+                subprocess.run(["git", "init"], cwd=str(app_path), check=True, capture_output=True)
+                
+                # Додаємо базовий .gitignore
+                gitignore = app_path / ".gitignore"
+                if not gitignore.exists():
+                    content = "__pycache__/\n*.py[cod]\n.env\n.venv/\nnode_modules/\ndist/\n"
+                    gitignore.write_text(content, encoding="utf-8")
+                
+                click.echo(f"  {click.style('✓', fg='green')} Git репозиторій створено.")
+            except Exception as e:
+                click.echo(f"  {click.style('✗', fg='red')} Помилка при ініціалізації Git: {e}")
+
+        # 2. Перевірка app.json
+        app_json = app_path / "app.json"
+        if not app_json.exists():
+            click.echo(f"  [!] app.json відсутній. {click.style('Створення...', fg='yellow')}")
+            import json  # noqa: PLC0415
+            basic_meta = {
+                "name": app_name,
+                "title": app_name.replace("_", " ").title(),
+                "description": f"Додаток {app_name}",
+                "version": "0.1.0"
+            }
+            app_json.write_text(json.dumps(basic_meta, indent=2, ensure_ascii=False), encoding="utf-8")
+            click.echo(f"  {click.style('✓', fg='green')} app.json створено.")
+
+        # 3. Перевірка пакету (__init__.py)
+        pkg_dir = app_path / app_name
+        if pkg_dir.is_dir():
+            init_py = pkg_dir / "__init__.py"
+            if not init_py.exists():
+                click.echo(f"  [!] {app_name}/__init__.py відсутній. {click.style('Створення...', fg='yellow')}")
+                init_py.touch()
+                click.echo(f"  {click.style('✓', fg='green')} __init__.py створено.")
+
+    click.echo(f"\n{click.style('Доктор завершив роботу!', bold=True)}")

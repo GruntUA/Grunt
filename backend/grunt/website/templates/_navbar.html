@@ -1,0 +1,39 @@
+<header class="glass" style="position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--border-color);">
+    <div class="container" style="height: 4.5rem; display: flex; align-items: center; justify-content: space-between;">
+        <a href="/" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: var(--text-main);">
+            {% if website_settings and website_settings.brand_logo %}
+                <img src="{{ website_settings.brand_logo }}" alt="Logo" style="height: 2.25rem;">
+            {% else %}
+                <div style="width: 2.25rem; height: 2.25rem; background: var(--primary); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                    <span style="color: white; font-weight: 700; font-family: 'Outfit';">
+                        {{ (website_settings.site_name or "Ґ")[0] }}
+                    </span>
+                </div>
+            {% endif %}
+            <span style="font-family: 'Outfit'; font-weight: 700; font-size: 1.25rem; letter-spacing: -0.025em;">
+                {{ website_settings.site_name or "Ґрунт" }}
+            </span>
+        </a>
+
+        <nav style="display: flex; align-items: center; gap: 2rem;">
+            {% if website_settings and website_settings.navbar_items %}
+                {% for item in website_settings.navbar_items %}
+                    <a href="{{ item.url }}" 
+                       style="text-decoration: none; color: var(--text-muted); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;" 
+                       onmouseover="this.style.color='var(--text-main)'" 
+                       onmouseout="this.style.color='var(--text-muted)'"
+                       {% if item.is_external %}target="_blank"{% endif %}>
+                        {{ item.label }}
+                    </a>
+                {% endfor %}
+            {% endif %}
+
+            {% if session and session.user %}
+                <a href="/app" class="btn btn-primary" style="padding: 0.5rem 1rem;">Увійти в систему</a>
+            {% else %}
+                <a href="/login" style="text-decoration: none; color: var(--text-muted); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='var(--text-main)'" onmouseout="this.style.color='var(--text-muted)'">Вхід</a>
+                <a href="/signup" class="btn btn-primary" style="padding: 0.5rem 1rem;">Реєстрація</a>
+            {% endif %}
+        </nav>
+    </div>
+</header>

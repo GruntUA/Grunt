@@ -35,7 +35,7 @@ async function handleVerify() {
 
     toast.success('Вітаємо в системі!')
     setTimeout(() => {
-      router.push('/')
+      router.push({ name: 'desk' })
     }, 200)
   } catch (e: any) {
     console.error('MFA Verify Error:', e)

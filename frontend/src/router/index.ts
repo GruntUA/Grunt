@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
-  history: createWebHistory('/app'),
+  history: createWebHistory('/'),
   routes: [
     // Auth
     {
@@ -30,7 +30,7 @@ const router = createRouter({
       meta: { public: true },
     },
     {
-      path: '/register',
+      path: '/signup',
       name: 'register',
       component: () => import('@/pages/auth/Register.vue'),
       meta: { public: true },
@@ -66,7 +66,7 @@ const router = createRouter({
 
     // Desk (app launcher)
     {
-      path: '/',
+      path: '/app',
       name: 'desk',
       component: () => import('@/pages/DeskPage.vue'),
     },
@@ -80,7 +80,8 @@ const router = createRouter({
       meta: { public: true },
     },
     {
-      path: '/:workspaceName',
+      path: '/app/:workspaceName',
+      alias: '/:workspaceName',
       component: () => import('@/pages/workspace/WorkspaceLayout.vue'),
       props: true,
       children: [

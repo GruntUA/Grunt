@@ -1,0 +1,123 @@
+{% extends "_base.html" %}
+
+{% block title %}Реєстрація — Ґрунт{% endblock %}
+
+{% block head %}
+<style>
+    .auth-card {
+        max-width: 500px;
+        width: 100%;
+        margin: 4rem auto;
+        padding: 3rem;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: var(--text-main);
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-color);
+        background: white;
+        transition: all 0.2s;
+        font-size: 1rem;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .alert-error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="auth-card glass animate-fade-in">
+        <div style="text-align: center; margin-bottom: 2.5rem;">
+            <h1 style="font-size: 1.75rem; margin-bottom: 0.5rem;">Створити акаунт</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Приєднуйтесь до нашої спільноти сьогодні</p>
+        </div>
+
+        {% if error %}
+            <div class="alert alert-error">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <form action="/signup" method="post">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="first_name">Ім'я</label>
+                    <input type="text" id="first_name" name="first_name" class="form-input" placeholder="Іван" required value="{{ first_name or '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="last_name">Прізвище</label>
+                    <input type="text" id="last_name" name="last_name" class="form-input" placeholder="Франко" required value="{{ last_name or '' }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Електронна пошта</label>
+                <input type="email" id="email" name="email" class="form-input" placeholder="name@company.com" required value="{{ email or '' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Пароль</label>
+                <input type="password" id="password" name="password" class="form-input" placeholder="Мінімум 8 символів" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="confirm_password">Підтвердіть пароль</label>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-input" placeholder="••••••••" required>
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: flex-start; gap: 0.5rem; margin-top: 1.5rem;">
+                <input type="checkbox" id="terms" name="terms" required style="width: 1rem; height: 1rem; cursor: pointer; margin-top: 0.2rem;">
+                <label for="terms" style="font-size: 0.85rem; color: var(--text-muted); cursor: pointer;">
+                    Я погоджуюся з <a href="/terms" style="color: var(--primary); text-decoration: none;">Умовами використання</a> та <a href="/privacy" style="color: var(--primary); text-decoration: none;">Політикою конфіденційності</a>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; height: 3rem; font-size: 1rem; margin-top: 1rem;">
+                Зареєструватися
+            </button>
+        </form>
+
+        <div style="margin-top: 2rem; text-align: center; font-size: 0.95rem; color: var(--text-muted);">
+            Вже маєте акаунт? <a href="/login" style="color: var(--primary); text-decoration: none; font-weight: 600;">Увійти</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

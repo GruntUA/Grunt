@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <title>{{ title or "Ґрунт" }}</title>
+    
+    <!-- PWA / Icons -->
+    <meta name="theme-color" content="#4f46e5" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Using relative paths so the request goes through the backend proxy/gateway -->
+    {% if dev_mode %}
+        <script type="module" src="/@vite/client"></script>
+        <script type="module" src="/frontend/src/main.ts"></script>
+    {% else %}
+        <!-- Build assets in prod -->
+        <link rel="stylesheet" href="/assets/grunt/main.css">
+        <script type="module" src="/assets/grunt/main.js"></script>
+    {% endif %}
+  </head>
+  <body class="bg-gray-50 text-gray-900 font-sans antialiased">
+    <div id="app"></div>
+  </body>
+</html>

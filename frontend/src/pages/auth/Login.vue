@@ -26,7 +26,7 @@ async function handleLogin() {
         }
       })
     } else {
-      router.push('/')
+      router.push({ name: 'desk' })
     }
   } catch (e: any) {
     const status = e?.response?.status

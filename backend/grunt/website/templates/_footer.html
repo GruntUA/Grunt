@@ -1,0 +1,54 @@
+<footer style="background: white; border-top: 1px solid var(--border-color); padding: 4rem 0 2rem;">
+    <div class="container">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 3rem; margin-bottom: 3rem;">
+            <div>
+                <h4 style="margin-bottom: 1.25rem; font-size: 1.1rem;">Про платформу</h4>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">
+                    {{ website_settings.site_name or "Ґрунт" }} — це потужний фреймворк для створення сучасних бізнес-додатків з українською душею та глобальними стандартами.
+                </p>
+            </div>
+            
+            {% if website_settings and website_settings.footer_items %}
+                {# Grouping footer items by 'group' field #}
+                {% set groups = {} %}
+                {% for item in website_settings.footer_items %}
+                    {% set g = item.group or "Посилання" %}
+                    {% if g not in groups %}
+                        {% set _ = groups.update({g: []}) %}
+                    {% endif %}
+                    {% set _ = groups[g].append(item) %}
+                {% endfor %}
+
+                {% for group_name, items in groups.items() %}
+                <div>
+                    <h4 style="margin-bottom: 1.25rem; font-size: 1.1rem;">{{ group_name }}</h4>
+                    <ul style="list-style: none;">
+                        {% for item in items %}
+                            <li style="margin-bottom: 0.5rem;">
+                                <a href="{{ item.url }}" style="color: var(--text-muted); text-decoration: none; font-size: 0.95rem;">
+                                    {{ item.label }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            {% else %}
+                {# Default footer content if no settings exist #}
+                <div>
+                    <h4 style="margin-bottom: 1.25rem; font-size: 1.1rem;">Посилання</h4>
+                    <ul style="list-style: none;">
+                        <li style="margin-bottom: 0.5rem;"><a href="/docs" style="color: var(--text-muted); text-decoration: none; font-size: 0.95rem;">Документація</a></li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+        <div style="padding-top: 2rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; color: var(--text-muted); font-size: 0.875rem;">
+            <p>{{ website_settings.copyright_text or "© 2026 Платформа Ґрунт" }}</p>
+            <div style="display: flex; gap: 1.5rem;">
+                <a href="/privacy" style="color: inherit; text-decoration: none;">Конфіденційність</a>
+                <a href="/terms" style="color: inherit; text-decoration: none;">Умови використання</a>
+            </div>
+        </div>
+    </div>
+</footer>

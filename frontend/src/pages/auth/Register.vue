@@ -35,7 +35,7 @@ async function handleRegister() {
       full_name: fullName.value,
     })
     await auth.login(email.value, password.value)
-    router.push('/')
+    router.push({ name: 'desk' })
   } catch (e: any) {
     const status = e?.response?.status
     if (status === 409) {

@@ -37,7 +37,6 @@ class WorkspaceSidebar(Document):
 
     async def get_counts(self) -> dict[str, int]:
         """Get document counts for sidebar items that have show_count=true."""
-        from grunt.core.document.registry import document_registry  # noqa: PLC0415
         from grunt.core.metadata.compiler import get_table_name  # noqa: PLC0415
 
         items = [
@@ -58,65 +57,83 @@ class WorkspaceSidebar(Document):
             except Exception:
                 continue
 
-            # Handle filters
-            filters: dict[str, Any] = {}
-            count_filters_raw = item.get("count_filters")
-            if count_filters_raw:
-                try:
-                    f_data = json.loads(count_filters_raw)
-                    if isinstance(f_data, dict) and f_data:
-                        filters = f_data
-                except (json.JSONDecodeError, ValueError):
-                    logger.debug("suppressed_expected_error", exc_info=True)
+            filters = self._parse_filters(item)
+            key = self._generate_count_key(link_to, filters)
 
-            key = link_to
-            if filters:
-                suffix = "_".join(str(v).lower() for v in filters.values())
-                key = f"{link_to}_{suffix}"
-
-            # ── OPTION A: Virtual DocType ─────────────────────────────────────
             if dt.is_virtual:
-                try:
-                    ctrl_cls = document_registry.get(link_to)
-                    # Instantiate virtual controller (user/session context is optional but nice)
-                    ctrl = ctrl_cls(link_to, user=self.user)
-                    if hasattr(ctrl, "get_count"):
-                        counts[key] = await ctrl.get_count(filters=filters)
-                except Exception as e:
-                    logger.warning("workspace.virtual_count_error", doctype=link_to, error=str(e))
+                counts[key] = await self._get_virtual_count(link_to, filters)
                 continue
 
-            # ── OPTION B: Physical DocType (SQL) ──────────────────────────────
             table_name = dt.table_name or get_table_name(dt.module, dt.name)
             sql_resolved.append((key, table_name, filters))
 
-        # Perform batched SQL counts for physical DocTypes
         if sql_resolved:
-            parts: list[str] = []
-            params: dict[str, Any] = {}
-            for i, (key, table_name, filters) in enumerate(sql_resolved):
-                key_param = f"k{i}"
-                params[key_param] = key
-                if filters:
-                    conditions = []
-                    for col, val in filters.items():
-                        p = f"{col}_{i}"
-                        params[p] = val
-                        conditions.append(f'"{col}" = :{p}')
-                    where = " WHERE " + " AND ".join(conditions)
-                else:
-                    where = ""
-                parts.append(
-                    f'SELECT :{key_param} AS k, COUNT(*) AS c FROM "{table_name}"{where}'
-                )  # noqa: S608
+            batched_counts = await self._execute_batched_counts(sql_resolved)
+            counts.update(batched_counts)
 
-            try:
-                result = await grunt.db._session().execute(text(" UNION ALL ".join(parts)), params)
-                for row in result:
-                    counts[row.k] = row.c
-            except Exception as e:
-                logger.warning("workspace.counts_error", error=str(e))
+        return counts
 
+    def _parse_filters(self, item: dict[str, Any]) -> dict[str, Any]:
+        """Parse JSON filters from sidebar item."""
+        raw = item.get("count_filters")
+        if not raw:
+            return {}
+        try:
+            data = json.loads(raw)
+            return data if isinstance(data, dict) else {}
+        except (json.JSONDecodeError, ValueError):
+            return {}
+
+    def _generate_count_key(self, doctype: str, filters: dict[str, Any]) -> str:
+        """Generate a unique key for the count result based on filters."""
+        if not filters:
+            return doctype
+        suffix = "_".join(str(v).lower() for v in filters.values())
+        return f"{doctype}_{suffix}"
+
+    async def _get_virtual_count(self, doctype: str, filters: dict[str, Any]) -> int:
+        """Fetch count for a Virtual DocType by calling its controller."""
+        from grunt.core.document.registry import document_registry  # noqa: PLC0415
+        try:
+            ctrl_cls = document_registry.get(doctype)
+            ctrl = ctrl_cls(doctype, user=self.user)
+            if hasattr(ctrl, "get_count"):
+                return await ctrl.get_count(filters=filters)
+        except Exception as e:
+            logger.warning("workspace.virtual_count_error", doctype=doctype, error=str(e))
+        return 0
+
+    async def _execute_batched_counts(
+        self, sql_resolved: list[tuple[str, str, dict[str, Any]]]
+    ) -> dict[str, int]:
+        """Execute multiple count queries in a single SQL UNION ALL batch."""
+        parts: list[str] = []
+        params: dict[str, Any] = {}
+        counts: dict[str, int] = {}
+
+        for i, (key, table_name, filters) in enumerate(sql_resolved):
+            key_param = f"k{i}"
+            params[key_param] = key
+            
+            where = ""
+            if filters:
+                conditions = []
+                for col, val in filters.items():
+                    p = f"{col}_{i}"
+                    params[p] = val
+                    conditions.append(f'"{col}" = :{p}')
+                where = " WHERE " + " AND ".join(conditions)
+            
+            parts.append(f'SELECT :{key_param} AS k, COUNT(*) AS c FROM "{table_name}"{where}')
+
+        try:
+            sql = " UNION ALL ".join(parts)
+            result = await grunt.db._session().execute(text(sql), params)
+            for row in result:
+                counts[row.k] = row.c
+        except Exception as e:
+            logger.warning("workspace.counts_error", error=str(e))
+        
         return counts
 
     async def get_widget_data(
