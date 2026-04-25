@@ -52,7 +52,7 @@ class ConnectionManager:
             if ws_connections_active is not None:
                 ws_connections_active.set(total)
         except Exception:  # noqa: BLE001
-            pass
+            logger.exception("suppressed_error")
 
     def disconnect(self, ws: WebSocket, channel: str) -> None:
         conns = self._connections.get(channel, [])
@@ -65,7 +65,7 @@ class ConnectionManager:
             if ws_connections_active is not None:
                 ws_connections_active.set(total)
         except Exception:  # noqa: BLE001
-            pass
+            logger.exception("suppressed_error")
 
     async def _send(self, channel: str, message: str) -> None:
         """Send a message to all connections on a channel, removing dead ones."""
@@ -93,7 +93,7 @@ class ConnectionManager:
             await r.publish(f"grunt:ws:{channel}", message)
             await r.aclose()
         except Exception:  # noqa: BLE001
-            pass
+            logger.exception("suppressed_error")
 
     async def ensure_redis_listener(self) -> None:
         """Start the Redis subscriber background task (once per process)."""
@@ -109,7 +109,7 @@ class ConnectionManager:
             self._redis_listener_started = True
             asyncio.create_task(self._redis_listener_loop())
         except Exception:  # noqa: BLE001
-            pass
+            logger.exception("suppressed_error")
 
     async def _redis_listener_loop(self) -> None:
         """Subscribe to grunt:ws:* and relay messages to local connections."""
@@ -406,6 +406,6 @@ async def ws_list(
                 if msg.get("action") == "ping":
                     await websocket.send_text('{"event":"pong"}')
             except json.JSONDecodeError:
-                pass
+                logger.warning("json_decode_error_suppressed", exc_info=True)
     except WebSocketDisconnect:
         manager.disconnect(websocket, channel)

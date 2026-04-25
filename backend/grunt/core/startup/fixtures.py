@@ -54,7 +54,7 @@ def _load_app_meta(app_dir: Path) -> dict | None:
                 }
             )
         except Exception:  # noqa: BLE001
-            pass
+            logger.exception("suppressed_error")
 
     if app_json.exists():
         try:
@@ -72,7 +72,7 @@ def _load_app_meta(app_dir: Path) -> dict | None:
                 if key in app_data:
                     result[key] = app_data[key]
         except Exception:  # noqa: BLE001
-            pass
+            logger.exception("suppressed_error")
 
     return result
 

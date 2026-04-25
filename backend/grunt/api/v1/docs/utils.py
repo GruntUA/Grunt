@@ -72,7 +72,7 @@ async def _audit_log(
                     },
                 )
             except Exception:  # noqa: BLE001
-                pass
+                logger.exception("suppressed_error")
     except Exception:  # noqa: BLE001
         logger.warning("audit_log_failed", doctype=doctype, doc_id=doc_id, action=action)
 

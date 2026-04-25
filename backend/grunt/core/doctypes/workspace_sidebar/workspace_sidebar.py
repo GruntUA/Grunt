@@ -67,7 +67,7 @@ class WorkspaceSidebar(Document):
                     if isinstance(f_data, dict) and f_data:
                         filters = f_data
                 except (json.JSONDecodeError, ValueError):
-                    pass
+                    logger.debug("suppressed_expected_error", exc_info=True)
 
             key = link_to
             if filters:

@@ -178,7 +178,7 @@ class DataImport(Document):
                 },
             )
         except Exception:  # noqa: BLE001
-            pass
+            logger.exception("suppressed_error")
 
     async def _resolve_file_path(self) -> Path:
         """Resolve the attached file reference to an absolute Path."""

@@ -66,7 +66,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
             record_request(request.method, path, response.status_code, duration_ms / 1000)
         except Exception:  # noqa: BLE001
-            pass
+            logger.exception("suppressed_error")
 
         if path not in _SKIP_PATHS:
             logger.info(

@@ -133,7 +133,7 @@ async def authenticate_api_key(
         async with grunt.system_context(session):
             await grunt.db.set_value("ApiKey", matched_row["id"], "last_used_at", datetime.now(UTC))
     except Exception:  # noqa: BLE001
-        pass
+        logger.exception("suppressed_error")
 
     logger.info("api_key.authenticated", prefix=key_prefix, user=user.email)
     return user

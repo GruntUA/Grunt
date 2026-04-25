@@ -56,6 +56,8 @@ Accessing document data::
 
 from __future__ import annotations
 
+import structlog
+logger = structlog.get_logger()
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -304,7 +306,7 @@ class Document:
                     payload,
                 )
         except Exception:  # noqa: BLE001
-            pass
+            logger.exception("suppressed_error")
 
     # ── Repr ──────────────────────────────────────────────────────────────
 

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import structlog
+logger = structlog.get_logger()
 from datetime import UTC, datetime
 from typing import Any
 
@@ -53,7 +55,7 @@ async def get_shared_document(token: str) -> dict[str, Any]:
         current = int(share.get("view_count") or 0)
         await grunt.set_value("DocumentShare", share["id"], "view_count", current + 1)
     except Exception:
-        pass
+        logger.exception("suppressed_error")
 
     layout_types = {"Section", "Column", "Tab"}
     visible_fields = [

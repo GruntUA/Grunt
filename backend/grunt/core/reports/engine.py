@@ -86,7 +86,7 @@ class ReportEngine:
                 if stmt_type not in ("SELECT", None):
                     raise HTTPException(400, detail="Дозволено тільки SELECT")
         except ImportError:
-            pass  # sqlparse not installed, skip check
+            logger.debug("suppressed_expected_error", exc_info=True)
 
         forbidden = ["drop", "delete", "update", "insert", "create", "alter", "truncate"]
         query_lower = query_str.lower()

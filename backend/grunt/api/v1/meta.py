@@ -141,7 +141,7 @@ async def search_meta(q: str, limit: int = 20) -> list[dict[str, Any]]:
                 {"doctype": "Report", "id": r["id"], "name": r["name"], "display_title": r["name"]}
             )
     except Exception:
-        pass
+        logger.exception("suppressed_error")
     return results[: int(limit)]
 
 

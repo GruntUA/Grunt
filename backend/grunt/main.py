@@ -399,7 +399,7 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
             if orig:
                 debug_info["db_error"] = str(orig)
     except Exception:
-        pass
+        logger.exception("suppressed_error")
 
     return JSONResponse(
         status_code=500,

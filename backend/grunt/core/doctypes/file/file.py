@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import structlog
+logger = structlog.get_logger()
 import uuid
 from typing import Any
 
@@ -33,7 +35,7 @@ class File(Document):
             try:
                 await storage.delete(self.path)
             except Exception:
-                pass
+                logger.exception("suppressed_error")
 
 
 @whitelist()

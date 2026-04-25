@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import structlog
+logger = structlog.get_logger()
 from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
@@ -131,7 +133,7 @@ def discover_field_types() -> None:
                             module.register()
                 except Exception:
                     # Silent failure to avoid breaking startup
-                    pass
+                    logger.exception("suppressed_error")
 
 
 # Initialise core mappings

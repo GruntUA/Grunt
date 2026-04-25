@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import structlog
+logger = structlog.get_logger()
 import importlib
 from inspect import iscoroutinefunction
 from typing import TYPE_CHECKING, Any
@@ -28,7 +30,7 @@ def _process_params(params: dict[str, str]) -> dict[str, Any]:
                 args[key] = json.loads(val)
                 continue
             except Exception:
-                pass
+                logger.exception("suppressed_error")
 
         if val.isdigit():
             args[key] = int(val)
@@ -173,7 +175,7 @@ async def run_method_post(
             form_data = await request.form()
             args.update(dict(form_data))
         except Exception:
-            pass
+            logger.exception("suppressed_error")
 
     result = await _invoke_with_context(method, args, request, session, engine, token)
     if isinstance(result, Response):

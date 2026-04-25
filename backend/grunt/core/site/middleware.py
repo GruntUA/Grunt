@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import structlog
+logger = structlog.get_logger()
 from typing import TYPE_CHECKING
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -35,7 +37,7 @@ class SiteContextMiddleware(BaseHTTPMiddleware):
                 try:
                     reload_file.unlink()
                 except Exception:
-                    pass
+                    logger.exception("suppressed_error")
 
         # 4. If still no site — don't set context, let get_active_site()
         #    fallback to currentsite.txt

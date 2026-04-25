@@ -197,7 +197,7 @@ async def _track_session(request: Request, user_id: str, session: AsyncSession):
         ua = request.headers.get("user-agent")
         await create_session(user_id, ip, ua, session)
     except Exception:  # noqa: BLE001
-        pass
+        logger.exception("suppressed_error")
 
 
 @router.get("/me", response_model=UserResponse)
@@ -291,7 +291,7 @@ async def logout(
 
         await terminate_all_user_sessions(user.id, session)
     except Exception:  # noqa: BLE001
-        pass
+        logger.exception("suppressed_error")
     return ok()
 
 

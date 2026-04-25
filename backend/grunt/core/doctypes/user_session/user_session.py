@@ -69,7 +69,7 @@ async def touch_session(
                     datetime.now(UTC).isoformat(),
                 )
     except Exception:  # noqa: BLE001
-        pass
+        logger.exception("suppressed_error")
 
 
 async def terminate_session(

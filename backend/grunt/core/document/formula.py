@@ -137,11 +137,11 @@ def _to_number_if_possible(value: Any) -> Any:
         try:
             return int(value)
         except ValueError:
-            pass
+            logger.debug("suppressed_expected_error", exc_info=True)
         try:
             return float(value)
         except ValueError:
-            pass
+            logger.debug("suppressed_expected_error", exc_info=True)
     return value
 
 

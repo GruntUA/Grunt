@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import structlog
+logger = structlog.get_logger()
 from typing import Any
 
 import grunt
@@ -77,6 +79,6 @@ async def get_hooks() -> list[dict[str, Any]]:
                 }
             )
     except Exception:
-        pass
+        logger.exception("suppressed_error")
 
     return hooks

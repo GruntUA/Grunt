@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import structlog
+logger = structlog.get_logger()
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
@@ -31,7 +33,7 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
 
                 _set(session)
             except ImportError:
-                pass  # API not yet loaded
+                logger.debug("suppressed_expected_error", exc_info=True)
 
             yield session
             await session.commit()
@@ -45,7 +47,7 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
 
                 _clear()
             except ImportError:
-                pass
+                logger.debug("suppressed_expected_error", exc_info=True)
 
 
 async def get_engine() -> AsyncEngine:
@@ -59,7 +61,7 @@ async def get_engine() -> AsyncEngine:
 
         _set(engine)
     except ImportError:
-        pass
+        logger.debug("suppressed_expected_error", exc_info=True)
 
     return engine
 
@@ -86,7 +88,7 @@ async def async_session_factory() -> AsyncGenerator[AsyncSession]:
 
                 _set(session)
             except ImportError:
-                pass
+                logger.debug("suppressed_expected_error", exc_info=True)
 
             yield session
             await session.commit()
@@ -99,4 +101,4 @@ async def async_session_factory() -> AsyncGenerator[AsyncSession]:
 
                 _clear()
             except ImportError:
-                pass
+                logger.debug("suppressed_expected_error", exc_info=True)

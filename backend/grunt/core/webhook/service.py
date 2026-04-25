@@ -155,7 +155,7 @@ class WebhookService:
                 if isinstance(extra, dict):
                     headers.update({str(k): str(v) for k, v in extra.items()})
             except Exception:  # noqa: BLE001
-                pass
+                logger.exception("suppressed_error")
 
         status_code: int | None = None
         response_body: str = ""

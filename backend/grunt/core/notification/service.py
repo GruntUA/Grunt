@@ -189,7 +189,7 @@ class NotificationService:
 
             await webpush_service.send_push(session, user, subject, message)
         except Exception:  # noqa: BLE001
-            pass
+            logger.exception("suppressed_error")
 
         return notif_id
 
@@ -359,7 +359,7 @@ class NotificationService:
                     },
                 )
         except Exception:  # noqa: BLE001
-            pass  # WS broadcast is best-effort
+            logger.exception("suppressed_error")
 
 
 notification_service = NotificationService()

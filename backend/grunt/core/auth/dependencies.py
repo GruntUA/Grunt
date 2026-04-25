@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import structlog
+logger = structlog.get_logger()
 from typing import TYPE_CHECKING, Any
 
 import jwt
@@ -168,7 +170,7 @@ async def grunt_context(
                 for msg in messages:
                     await manager.send_to_user(user.email, {"event": "msgprint", "data": msg})
             except Exception:
-                pass
+                logger.exception("suppressed_error")
         clear_messages()
         grunt.reset_context(tokens)
 

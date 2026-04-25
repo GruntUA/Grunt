@@ -147,7 +147,7 @@ class EmailService:
             if accounts:
                 email_account_id = str(accounts[0]["id"])
         except Exception:  # noqa: BLE001
-            pass
+            logger.exception("suppressed_error")
 
         record_id = str(uuid.uuid4())
         now = datetime.now(UTC)
