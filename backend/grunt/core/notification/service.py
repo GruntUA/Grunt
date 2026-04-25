@@ -309,10 +309,9 @@ class NotificationService:
 
     def _eval_condition(self, condition: str, doc: dict[str, Any], user: str) -> bool:
         """Evaluate a Python condition expression safely."""
-        safe_globals: dict = {"__builtins__": {}}
-        safe_locals: dict = {"doc": doc, "user": user}
         try:
-            return bool(eval(condition, safe_globals, safe_locals))  # noqa: S307
+            from simpleeval import simple_eval
+            return bool(simple_eval(condition, names={"doc": doc, "user": user}))
         except Exception:  # noqa: BLE001
             return True  # Don't block on eval errors
 

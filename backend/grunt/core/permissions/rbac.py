@@ -145,14 +145,14 @@ class PermissionChecker:
         return result
 
     def _eval_match(self, match_expr: str, user: User, doc: dict) -> bool:
-        safe_globals: dict = {"__builtins__": {}}
-        safe_locals: dict = {
-            "user": user.email,
-            "owner": doc.get("owner"),
-            "doc": doc,
-        }
         try:
-            return bool(eval(match_expr, safe_globals, safe_locals))  # noqa: S307
+            from simpleeval import simple_eval
+            names = {
+                "user": user.email,
+                "owner": doc.get("owner"),
+                "doc": doc,
+            }
+            return bool(simple_eval(match_expr, names=names))
         except Exception:  # noqa: BLE001
             return True
 

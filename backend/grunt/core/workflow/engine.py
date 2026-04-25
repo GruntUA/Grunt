@@ -177,10 +177,9 @@ class WorkflowEngine:
         )
 
     def _eval_condition(self, condition: str, doc: dict, user: str) -> bool:
-        safe_globals: dict = {"__builtins__": {}, "now": datetime.now}
-        safe_locals: dict = {"doc": doc, "user": user}
         try:
-            result = eval(condition, safe_globals, safe_locals)  # noqa: S307
+            from simpleeval import simple_eval
+            result = simple_eval(condition, functions={"now": datetime.now}, names={"doc": doc, "user": user})
             return bool(result)
         except Exception:  # noqa: BLE001
             return True  # Don't block on error

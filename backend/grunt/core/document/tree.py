@@ -133,8 +133,15 @@ class TreeService:
         select_cols = self._build_select_cols(table, fields, title_col, parent_field)
         col_names = [c.key for c in select_cols]
 
-        # WITH RECURSIVE to pull the entire subtree in one query
-        pf = parent_field
+        import re
+        def _check_id(s: str) -> str:
+            if not re.match(r"^[a-zA-Z0-9_]+$", s):
+                raise ValueError(f"Invalid identifier: {s}")
+            return s
+            
+        table_name = _check_id(table.name)
+        pf = _check_id(parent_field)
+        
         if root_id is None:
             # Start from root nodes
             anchor_where = f'("{pf}" IS NULL OR "{pf}" = \'\')'
@@ -143,8 +150,8 @@ class TreeService:
             anchor_where = f'"{pf}" = :root_id'
             anchor_param = {"root_id": root_id}
 
-        col_list = ", ".join(f't."{c}"' for c in col_names)
-        cte_cols = ", ".join(f'"{c}"' for c in col_names)
+        col_list = ", ".join(f't."{_check_id(c)}"' for c in col_names)
+        cte_cols = ", ".join(f'"{_check_id(c)}"' for c in col_names)
 
         sql = text(f"""
             WITH RECURSIVE tree AS (
@@ -183,9 +190,16 @@ class TreeService:
 
         select_cols = self._build_select_cols(table, fields, title_col, parent_field)
         col_names = [c.key for c in select_cols]
-        col_list = ", ".join(f't."{c}"' for c in col_names)
-        cte_cols = ", ".join(f'"{c}"' for c in col_names)
-        pf = parent_field
+        import re
+        def _check_id(s: str) -> str:
+            if not re.match(r"^[a-zA-Z0-9_]+$", s):
+                raise ValueError(f"Invalid identifier: {s}")
+            return s
+
+        table_name = _check_id(table.name)
+        col_list = ", ".join(f't."{_check_id(c)}"' for c in col_names)
+        cte_cols = ", ".join(f'"{_check_id(c)}"' for c in col_names)
+        pf = _check_id(parent_field)
 
         sql = text(f"""
             WITH RECURSIVE ancestors AS (

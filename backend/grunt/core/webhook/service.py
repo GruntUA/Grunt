@@ -66,8 +66,8 @@ class WebhookService:
             # Evaluate optional condition
             if wh.get("condition"):
                 try:
-                    safe_ns: dict = {"doc": doc, "__builtins__": {}}
-                    if not eval(wh["condition"], safe_ns):  # noqa: S307
+                    from simpleeval import simple_eval
+                    if not simple_eval(wh["condition"], names={"doc": doc}):
                         continue
                 except Exception:  # noqa: BLE001
                     continue
