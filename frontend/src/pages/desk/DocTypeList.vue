@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
+import { docsApi } from '@/core/api/docs'
 import { useListViewKeyboard } from '@/core/composables/useListViewKeyboard'
 import { useListFieldDetection } from '@/core/composables/useListFieldDetection'
 import { useDocTypeListData } from '@/core/composables/useDocTypeListData'
@@ -123,7 +124,7 @@ watch(activeFilters, async (newFilters) => {
     const field = dt.value.fields.find(ff => ff.fieldname === f.fieldname)
     if (field?.fieldtype === 'Link' && field.options) {
       try {
-        const doc = await dtStore.getDoc(field.options, f.value)
+        const doc = await docsApi.get(field.options, String(f.value))
         if (doc) {
           f.displayValue = doc.name || doc.id
         }

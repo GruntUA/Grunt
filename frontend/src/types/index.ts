@@ -57,6 +57,7 @@ export interface DocField {
   columns?: number
   collapsible?: boolean
   icon?: string
+  experimental_component?: string
   // Virtual
   is_virtual?: boolean
   read_formula?: string | null

@@ -15,7 +15,6 @@ import {
   ArrowLeft, ChevronsUpDown, Sun, Moon, Monitor,
   Settings2, Search, Shield, Activity,
   Mail, X, LogOut, Check, PanelLeftClose, PanelLeftOpen,
-  LayoutDashboard
 } from '@lucide/vue'
 
 const props = defineProps<{ workspaceName: string }>()
@@ -239,10 +238,10 @@ const isCollapsed = computed(() => sidebarStore.isCollapsed)
       <nav class="px-1 flex flex-col gap-1">
         <!-- Dashboard -->
         <ul class="flex w-full min-w-0 flex-col gap-1 list-none p-0 m-0">
-          <RouterLink :to="`/${workspaceName}/dashboard/${workspaceName}`" custom v-slot="{ isActive }">
+          <RouterLink :to="`/${workspaceName}/dashboard/${workspaceName}`" custom v-slot="{ navigate }">
             <SidebarItem
               :item="{ type: 'Dashboard', link_to: workspaceName, label: 'Огляд', icon: 'layout-dashboard', section: '', sequence: 0, show_count: false, show_new_btn: false, roles: '' }"
-              :workspace-name="workspaceName" :collapsed="isCollapsed" />
+              :workspace-name="workspaceName" :collapsed="isCollapsed" @click="navigate" />
           </RouterLink>
         </ul>
 

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { nextTick, ref } from 'vue'
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router'
 import { useListRouteSync } from '../useListRouteSync'
+import type { ActiveFilter, DocType } from '@/types'
 
 describe('useListRouteSync', () => {
   const replace = vi.fn()
@@ -11,6 +12,8 @@ describe('useListRouteSync', () => {
     const groupBy = ref<string | null>(null)
     const sortKey = ref('')
     const sortOrder = ref<'asc' | 'desc'>('asc')
+    const activeFilters = ref<ActiveFilter[]>([])
+    const dt = ref<DocType | null>(null)
     replace.mockReset()
 
     const route = { query } as RouteLocationNormalizedLoaded
@@ -23,8 +26,10 @@ describe('useListRouteSync', () => {
       groupBy,
       sortKey,
       sortOrder,
+      activeFilters,
       validViews: ['list', 'kanban', 'calendar'],
       getDefaultView: () => 'list',
+      dt,
     })
 
     return {
@@ -33,6 +38,8 @@ describe('useListRouteSync', () => {
       groupBy,
       sortKey,
       sortOrder,
+      activeFilters,
+      dt,
     }
   }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, shallowRef, defineAsyncComponent, type Component } from 'vue'
+import { computed, shallowRef, type Component } from 'vue'
 import type { DocType } from '@/types'
 import { parseLayout } from '@/core/composables/useFormLayout'
 import type { LayoutSection } from '@/core/composables/useFormLayout'
@@ -89,7 +89,7 @@ function toggleSection(section: LayoutSection) {
       <TabPanel v-for="(tab, ti) in layout" :key="ti" :value="tab.label || 'Main'"
         class="mt-0 flex flex-col gap-3 focus-visible:ring-0">
         <!-- Support for custom tab components (e.g. Studio Designer) -->
-        <template v-if="tab._field?.experimental_component">
+        <template v-if="typeof tab._field?.experimental_component === 'string'">
           <component :is="getCustomTabComponent(tab._field.experimental_component)" :doctype="doctype"
             :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" />
         </template>

@@ -4,7 +4,6 @@ import { Shield, Search, Check, ChevronRight, Save, Trash2, AlertCircle } from '
 import { metaApi } from '@/core/api/meta'
 import { useDocTypeStore } from '@/stores/doctype'
 import client from '@/core/api/client'
-import client from '@/core/api/client'
 
 interface Role {
     name: string

@@ -282,6 +282,13 @@ interface TreeNode {
 import { defineComponent, h, type PropType } from 'vue'
 import { ChevronRight as CR, ChevronDown as CD, Plus as PL, Folder as FL, FolderOpen as FO, FileText as FT } from '@lucide/vue'
 
+interface TreeNode {
+  id: string
+  data: Record<string, unknown>
+  children: TreeNode[]
+  expanded: boolean
+}
+
 const TreeNodeRow: any = defineComponent({
   name: 'TreeNodeRow',
   props: {
@@ -334,7 +341,7 @@ const TreeNodeRow: any = defineComponent({
       ])
 
       const children = isExpanded && hasChildren
-        ? node.children.map(child =>
+        ? node.children.map((child: TreeNode) =>
             h(TreeNodeRow, {
               key: child.id,
               node: child,

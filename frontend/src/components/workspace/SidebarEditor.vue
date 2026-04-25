@@ -13,7 +13,6 @@ import {
   Search,
   Settings2,
   LayoutDashboard,
-  Loader2,
 } from '@lucide/vue'
 import { useToast } from '@/core/composables/useToast'
 
