@@ -274,7 +274,19 @@ class DocTypeRegistry:
                                 added=[f.fieldname for f in new_fields],
                             )
                     # Sync top-level structural properties from JSON
-                    _TOP_STRUCTURAL = {"is_tree", "is_submittable", "title_field", "tree_view", "search_fields", "label", "module"}
+                    _TOP_STRUCTURAL = {
+                        "is_child",
+                        "is_singleton",
+                        "is_virtual",
+                        "is_tree",
+                        "is_log",
+                        "is_submittable",
+                        "title_field",
+                        "tree_view",
+                        "search_fields",
+                        "label",
+                        "module",
+                    }
                     for attr in _TOP_STRUCTURAL:
                         json_val = getattr(doctype, attr, None)
                         if json_val is not None and getattr(active_dt, attr, None) != json_val:
