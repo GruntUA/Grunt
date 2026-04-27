@@ -344,7 +344,7 @@ const printPage = () => window.print()
         v-for="w in dashboard.widgets"
         :key="w.id"
         :widget="w"
-        :data="(widgetData[w.id] as unknown)"
+        :data="(widgetData[w.id] ?? null) as unknown"
         :loading="refreshing"
         :workspace-name="workspaceName"
       />
@@ -447,7 +447,7 @@ const printPage = () => window.print()
                 <!-- Widget preview -->
                 <WidgetCard
                   :widget="element"
-                  :data="(widgetData[element.id] as unknown)"
+                  :data="(widgetData[element.id] ?? null) as unknown"
                   :workspace-name="workspaceName"
                 />
               </div>

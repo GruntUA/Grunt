@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from grunt.api.v1.auth import router as auth_router
+from grunt.api.v1.dashboard_data import router as dashboard_data_router
 from grunt.api.v1.docs import router as docs_router
 from grunt.api.v1.health import router as health_router
 from grunt.api.v1.method import router as method_router
@@ -24,6 +25,9 @@ v1_router.include_router(method_router, prefix="/method", tags=["method"])
 
 # DocType RESTful API (The core engine)
 v1_router.include_router(docs_router, prefix="/docs", tags=["docs"])
+
+# Dashboard widget data
+v1_router.include_router(dashboard_data_router, tags=["dashboard"])
 
 # External / Binary endpoints
 v1_router.include_router(oauth_router, prefix="/oauth", tags=["oauth"])

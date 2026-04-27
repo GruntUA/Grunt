@@ -66,14 +66,13 @@ def _validate_data(
 
         value = data.get(field.fieldname)
 
-        # Required check (skip for partial updates, ignore_required flag, or if a default will be applied)
-        if (
-            field.required
-            and not partial
-            and not ignore_required
-            and (value is None or value == "")
-            and field.default is None
-        ):
-            errors.append(f"{field.fieldname}: Поле '{field.label}' є обов'язковим")
+        # Required check (skip for partial updates where field is absent,
+        # ignore_required flag, or if a default will be applied)
+        if field.required and not ignore_required:
+            # In a partial update skip the check only when the field is absent from payload
+            if partial and field.fieldname not in data:
+                continue
+            if (value is None or value == "") and field.default is None:
+                errors.append(f"{field.fieldname}: Поле '{field.label}' є обов'язковим")
 
     return errors

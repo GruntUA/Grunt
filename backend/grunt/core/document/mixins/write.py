@@ -460,7 +460,7 @@ class DocumentWriteMixin:
         table = compile_doctype_to_table(dt)
         existing = await self.get_document(doctype_name, doc_id, user)
 
-        errors = _validate_data(dt, data, ignore_required=ignore_required)
+        errors = _validate_data(dt, data, partial=True, ignore_required=ignore_required)
         if errors:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors

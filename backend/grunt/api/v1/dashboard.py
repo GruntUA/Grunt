@@ -85,24 +85,52 @@ async def _compute_widget_data(
         date_field = widget.get("date_field")
         if not date_field:
             return {"labels": [], "values": []}
+        group_by = widget.get("group_by") or ""
+        date_expr = f"date({date_field})"
         try:
             filters = {
                 f"{date_field}__gte": since.isoformat(),
                 f"{date_field}__lte": until.isoformat(),
             }
-            group_by_expr = f"date({date_field})"
-            rows = await grunt.db.aggregate(
-                doctype_name,
-                filters=filters,
-                group_by=group_by_expr,
-                aggregations={"cnt": "count"},
-                order_by=group_by_expr,
-                order="asc",
-            )
-            return {
-                "labels": [str(r.get(group_by_expr)) for r in rows],
-                "values": [r.get("cnt") for r in rows],
-            }
+            if group_by:
+                rows = await grunt.db.aggregate(
+                    doctype_name,
+                    filters=filters,
+                    group_by=[date_expr, group_by],
+                    aggregations={"cnt": "count"},
+                    order_by=date_expr,
+                    order="asc",
+                )
+                # collect all labels (dates) and all group values
+                all_labels: list[str] = sorted(
+                    {str(r.get(date_expr)) for r in rows}
+                )
+                group_values: list[str] = sorted(
+                    {str(r.get(group_by)) for r in rows if r.get(group_by) is not None}
+                )
+                # build lookup: (date, group) -> count
+                lookup: dict[tuple[str, str], int] = {
+                    (str(r.get(date_expr)), str(r.get(group_by))): int(r.get("cnt") or 0)
+                    for r in rows
+                }
+                groups = {
+                    gv: [lookup.get((lbl, gv), 0) for lbl in all_labels]
+                    for gv in group_values
+                }
+                return {"labels": all_labels, "groups": groups}
+            else:
+                rows = await grunt.db.aggregate(
+                    doctype_name,
+                    filters=filters,
+                    group_by=date_expr,
+                    aggregations={"cnt": "count"},
+                    order_by=date_expr,
+                    order="asc",
+                )
+                return {
+                    "labels": [str(r.get(date_expr)) for r in rows],
+                    "values": [r.get("cnt") for r in rows],
+                }
         except Exception:
             return {"labels": [], "values": []}
 

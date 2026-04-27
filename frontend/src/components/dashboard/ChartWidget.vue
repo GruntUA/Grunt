@@ -21,9 +21,14 @@ const { t } = useI18n()
 
 const props = defineProps<{
   widget: DashboardWidget
-  data: { labels: string[]; values: number[] } | null
+  data: { labels: string[]; values?: number[]; groups?: Record<string, number[]> } | null
   loading?: boolean
 }>()
+
+const PALETTE = [
+  '#2D6A4F', '#3b82f6', '#f59e0b', '#ef4444',
+  '#8b5cf6', '#06b6d4', '#10b981', '#f97316',
+]
 
 const colorAccents: Record<string, string> = {
   primary: '#2D6A4F',
@@ -37,28 +42,51 @@ const colorAccents: Record<string, string> = {
 
 const accent = computed(() => colorAccents[props.widget.color] ?? colorAccents.primary)
 
-const chartData = computed(() => ({
-  labels: props.data?.labels ?? [],
-  datasets: [{
-    label: props.widget.title,
-    data: props.data?.values ?? [],
-    backgroundColor: props.widget.widget_type === 'chart_area'
-      ? accent.value + '33'
-      : accent.value + 'cc',
-    borderColor: accent.value,
-    borderWidth: 2,
-    borderRadius: props.widget.widget_type === 'chart_bar' ? 4 : 0,
-    fill: props.widget.widget_type === 'chart_area',
-    tension: 0.4,
-    pointRadius: 3,
-  }],
-}))
+const isGrouped = computed(() => !!props.data?.groups && Object.keys(props.data.groups).length > 0)
+
+const chartData = computed(() => {
+  if (isGrouped.value) {
+    const groups = props.data!.groups!
+    return {
+      labels: props.data?.labels ?? [],
+      datasets: Object.entries(groups).map(([name, values], i) => ({
+        label: name,
+        data: values,
+        backgroundColor: props.widget.widget_type === 'chart_area'
+          ? PALETTE[i % PALETTE.length] + '44'
+          : PALETTE[i % PALETTE.length] + 'cc',
+        borderColor: PALETTE[i % PALETTE.length],
+        borderWidth: 2,
+        borderRadius: props.widget.widget_type === 'chart_bar' ? 4 : 0,
+        fill: props.widget.widget_type === 'chart_area',
+        tension: 0.4,
+        pointRadius: 3,
+      })),
+    }
+  }
+  return {
+    labels: props.data?.labels ?? [],
+    datasets: [{
+      label: props.widget.title,
+      data: props.data?.values ?? [],
+      backgroundColor: props.widget.widget_type === 'chart_area'
+        ? accent.value + '33'
+        : accent.value + 'cc',
+      borderColor: accent.value,
+      borderWidth: 2,
+      borderRadius: props.widget.widget_type === 'chart_bar' ? 4 : 0,
+      fill: props.widget.widget_type === 'chart_area',
+      tension: 0.4,
+      pointRadius: 3,
+    }],
+  }
+})
 
 const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
-    legend: { display: false },
+    legend: { display: isGrouped.value },
     tooltip: { mode: 'index' as const, intersect: false },
   },
   scales: {

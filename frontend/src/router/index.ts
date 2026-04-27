@@ -207,6 +207,17 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
+  // Redirect alias paths (/:workspaceName/...) to canonical /app/:workspaceName/...
+  // When matched via alias, matched[0].path is the alias path (e.g. /:workspaceName),
+  // but matched[0].aliasOf?.path is the canonical path (/app/:workspaceName).
+  const firstRecord = to.matched[0]
+  const isWorkspaceRoute =
+    firstRecord?.path === '/app/:workspaceName' ||
+    (firstRecord as any)?.aliasOf?.path === '/app/:workspaceName'
+  if (isWorkspaceRoute && !to.path.startsWith('/app/')) {
+    return '/app' + to.path
+  }
+
   const auth = useAuthStore()
   if (to.meta.public) return true
   if (!auth.isLoggedIn) return { name: 'login' }

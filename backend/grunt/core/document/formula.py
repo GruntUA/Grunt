@@ -63,6 +63,9 @@ _SAFE_BUILTINS: dict[str, Any] = {
 }
 
 
+_NUMERIC_FIELDTYPES = frozenset({"Int", "Float", "Currency", "Percent"})
+
+
 async def compute_formulas(dt: DocType, row: dict[str, Any]) -> dict[str, Any]:
     """Evaluate all formula fields in *row* and return the updated dict."""
     return await _evaluate_formulas(dt, row, "formula")
@@ -96,8 +99,9 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
         "sum_docs": _sum,  # renamed to avoid conflict with built-in sum
         "grunt": grunt,
     }
+    numeric_fields = {f.fieldname for f in dt.fields if f.fieldtype in _NUMERIC_FIELDTYPES}
     for k, v in row.items():
-        ns[k] = _to_number_if_possible(v)
+        ns[k] = _to_number_if_possible(v) if k in numeric_fields else v
 
     for field in formula_fields:
         formula = getattr(field, attr)
@@ -116,7 +120,7 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
             # Coerce result to the field's target type
             coerced = _coerce_result(result, field.fieldtype)
             row[field.fieldname] = coerced
-            ns[field.fieldname] = _to_number_if_possible(coerced)
+            ns[field.fieldname] = _to_number_if_possible(coerced) if field.fieldtype in _NUMERIC_FIELDTYPES else coerced
         except Exception as exc:  # noqa: BLE001
             logger.warning(
                 "formula.eval_error",
@@ -137,11 +141,11 @@ def _to_number_if_possible(value: Any) -> Any:
         try:
             return int(value)
         except ValueError:
-            logger.debug("suppressed_expected_error", exc_info=True)
+            pass
         try:
             return float(value)
         except ValueError:
-            logger.debug("suppressed_expected_error", exc_info=True)
+            pass
     return value
 
 

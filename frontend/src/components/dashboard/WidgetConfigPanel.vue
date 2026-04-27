@@ -478,8 +478,8 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
         </div>
       </template>
 
-      <!-- Group by (donut / funnel / table) -->
-      <div v-if="isDonut || isFunnel || isTableWidget" class="space-y-1">
+      <!-- Group by (chart / donut / funnel / table) -->
+      <div v-if="isChart || isDonut || isFunnel || isTableWidget" class="space-y-1">
         <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Group by') }}</label>
         <input v-model="draft.group_by" class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="fieldname" @change="apply" />
       </div>
