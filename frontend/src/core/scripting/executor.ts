@@ -27,7 +27,7 @@ export interface ScriptButtonHandle {
 /** Callback registered via frm.set_query — returns filters for a link field. */
 export type LinkQueryFn = (
   doc: Record<string, unknown>,
-) => { filters: Record<string, string> } | Record<string, string>
+) => { filters: Record<string, string | string[]> } | Record<string, string | string[]>
 
 /** Form proxy exposed to client scripts as `cur_frm`. */
 export interface FormProxy {

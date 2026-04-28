@@ -49,12 +49,12 @@ let blurTimer: ReturnType<typeof setTimeout>
 
 // ── Script-registered filters (from frm.set_query) ───────────────────────────
 
-type LinkFiltersFn = (fieldname: string, doc: Record<string, unknown>) => Record<string, string>
+type LinkFiltersFn = (fieldname: string, doc: Record<string, unknown>) => Record<string, string | string[]>
 const getScriptFilters = inject<LinkFiltersFn>('getLinkFilters', () => ({}))
 
 // ── Resolve link_filters ──────────────────────────────────────────────────────
 
-function resolveFilters(): Record<string, string> {
+function resolveFilters(): Record<string, string | string[]> {
   const doc = props.doc ?? {}
   const scriptFilters = getScriptFilters(props.field.fieldname, doc)
   let metaFilters: Record<string, string> = {}
@@ -297,6 +297,65 @@ const isSelected = computed(
   () => props.modelValue !== null && props.modelValue !== undefined && props.modelValue !== '',
 )
 
+// ── Active filter chips ───────────────────────────────────────────────────────
+
+const filterChipLabels = ref<Map<string, string>>(new Map())
+
+async function resolveFilterChipLabels() {
+  const filters = resolveFilters()
+  if (!props.field.options || !Object.keys(filters).length) return
+
+  for (const [key, value] of Object.entries(filters)) {
+    // Skip __in filters — show count summary chip, no need to resolve
+    if (key.endsWith('__in')) continue
+
+    const cacheKey = `${key}:${String(value)}`
+    if (filterChipLabels.value.has(cacheKey)) continue
+
+    // 1. Try label already in doc (e.g. loaded from server with __label suffix)
+    const docLabel = props.doc?.[`${key}__label`] as string | undefined
+    if (docLabel) {
+      filterChipLabels.value.set(cacheKey, docLabel)
+      continue
+    }
+
+    // 2. Look up via linked doctype’s field metadata to find the target doctype,
+    //    then resolve via link_search
+    try {
+      const meta = await metaApi.get(props.field.options)
+      const filterField = meta.fields.find((f: any) => f.fieldname === key)
+      if (filterField?.fieldtype === 'Link' && filterField.options) {
+        const hits = await docsApi.linkSearch(filterField.options, String(value), {}, 5)
+        const match = hits.find(r => r.name === String(value) || r.id === String(value))
+        if (match) {
+          filterChipLabels.value.set(cacheKey, match.title)
+          continue
+        }
+      }
+    } catch { /* ignore */ }
+
+    // 3. Fallback to raw value
+    filterChipLabels.value.set(cacheKey, String(value))
+  }
+}
+
+// Re-resolve when filters change (e.g. user picks a different department)
+watch(
+  () => JSON.stringify(resolveFilters()),
+  () => { void resolveFilterChipLabels() },
+  { immediate: true },
+)
+
+const activeFilterChips = computed(() =>
+  Object.entries(resolveFilters()).map(([key, value]) => {
+    if (key.endsWith('__in') && Array.isArray(value)) {
+      return { key, display: `${value.length} доступних` }
+    }
+    const cacheKey = `${key}:${String(value)}`
+    return { key, display: filterChipLabels.value.get(cacheKey) ?? String(value) }
+  })
+)
+
 const linkedDocUrl = computed(() => {
   if (!isSelected.value || !props.field.options || !props.modelValue) return null
   const workspace = route.params.workspaceName as string | undefined
@@ -437,6 +496,20 @@ function openLinkedDoc() {
             {{ t('Create new') }} {{ field.options }}
           </span>
         </button>
+      </template>
+
+      <template v-if="activeFilterChips.length">
+        <div class="border-t border-border" />
+        <div class="px-3 py-1.5 flex items-center gap-1.5 flex-wrap">
+          <span class="text-xs text-muted-foreground">Фільтр:</span>
+          <span
+            v-for="chip in activeFilterChips"
+            :key="chip.key"
+            class="inline-flex items-center text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 font-medium"
+          >
+            {{ chip.display }}
+          </span>
+        </div>
       </template>
     </div>
   </div>

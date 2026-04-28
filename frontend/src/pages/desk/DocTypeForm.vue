@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, provide } from 'vue'
+import { ref, computed, onMounted, provide, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useDocTypeStore } from '@/stores/doctype'
@@ -243,6 +243,18 @@ const {
 onMounted(async () => {
   await initialize()
 })
+
+// Re-run on_load once document data arrives from server.
+// initialize() fires on_load before the async fetch completes, so
+// frm.doc fields are empty. This watcher catches the "fresh load" case.
+if (props.id) {
+  const unwatchDoc = watch(document, async (doc) => {
+    if (doc) {
+      unwatchDoc()
+      await runScriptEvent('on_load')
+    }
+  })
+}
 
 useFormShortcuts({
   onSave: () => {

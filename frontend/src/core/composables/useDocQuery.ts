@@ -158,7 +158,7 @@ export function useDocSave<T extends GruntDocument = GruntDocument>(
 export function useLinkSearch(
     doctype: MaybeRefOrGetter<string>,
     query: MaybeRefOrGetter<string>,
-    filters: MaybeRefOrGetter<Record<string, string>> = {},
+    filters: MaybeRefOrGetter<Record<string, string | string[]>> = {},
     pageLength = 10,
 ) {
     return useQuery({

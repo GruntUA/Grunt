@@ -50,6 +50,8 @@ const quickStats = computed(() => [
 ])
 
 onMounted(async () => {
+  document.title = 'Головна — Grunt'
+
   await wsStore.loadAll()
 
   for (const ws of wsStore.workspaces) {
@@ -83,14 +85,23 @@ function findWorkspaceForDoc(doc: RecentDoc) {
   return wsStore.workspaces.find(w => w.name === doc.workspace)
 }
 
-// Initials from document title
-function docInitials(title: string): string {
-  return title ? title.slice(0, 2).toUpperCase() : '??'
+// Returns a human-readable display title for a document.
+// Falls back to "DocType · short-id" when title is blank or looks like a UUID.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function docDisplayTitle(doc: RecentDoc): string {
+  if (doc.title && !UUID_RE.test(doc.title)) return doc.title
+  return `${doc.doctype} · ${doc.id.slice(0, 8)}`
+}
+
+function docInitials(doc: RecentDoc): string {
+  if (doc.title && !UUID_RE.test(doc.title)) return doc.title.slice(0, 2).toUpperCase()
+  return doc.doctype.slice(0, 2).toUpperCase()
 }
 </script>
 
 <template>
-  <div class="overflow-y-auto bg-background min-h-screen">
+  <div class="overflow-y-auto bg-background h-screen">
 
     <!-- Ambient background blobs -->
     <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
@@ -170,8 +181,8 @@ function docInitials(title: string): string {
           </div>
 
           <!-- Loading skeleton -->
-          <div v-if="wsStore.loading" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            <div v-for="i in 5" :key="i" class="h-52 rounded-3xl bg-card/50 border border-border/30 animate-pulse" />
+          <div v-if="wsStore.loading" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div v-for="i in 4" :key="i" class="h-52 rounded-3xl bg-card/50 border border-border/30 animate-pulse" />
           </div>
 
           <!-- Empty state -->
@@ -182,7 +193,7 @@ function docInitials(title: string): string {
           </div>
 
           <!-- Cards grid -->
-          <div v-else class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div v-else class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             <AppCard v-for="ws in wsStore.workspaces" :key="ws.name" :workspace="ws" :counts="allCounts[ws.name]" />
           </div>
         </section>
@@ -191,7 +202,7 @@ function docInitials(title: string): string {
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start pb-12">
 
           <!-- Recent documents -->
-          <section v-if="recentDocs.length > 0" class="lg:col-span-3">
+          <section class="lg:col-span-3">
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-2">
                 <div class="size-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
@@ -201,7 +212,15 @@ function docInitials(title: string): string {
               </div>
             </div>
 
-            <div class="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm overflow-hidden shadow-sm">
+            <!-- Empty state -->
+            <div v-if="recentDocs.length === 0"
+              class="flex flex-col items-center justify-center py-14 rounded-2xl border border-dashed border-border/40 text-center space-y-2">
+              <div class="size-12 rounded-xl bg-muted/20 flex items-center justify-center text-2xl">🕐</div>
+              <p class="text-sm text-muted-foreground">Відкритих документів ще немає</p>
+              <p class="text-xs text-muted-foreground/50">Перейдіть до будь-якого запису, і він з'явиться тут</p>
+            </div>
+
+            <div v-else class="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm overflow-hidden shadow-sm">
               <div v-for="doc in recentDocs.slice(0, 8)" :key="doc.id"
                 class="group flex items-center gap-3 px-4 py-3 border-b border-border/20 last:border-0 hover:bg-primary/[0.03] cursor-pointer transition-all duration-200"
                 @click="router.push(`/${doc.workspace}/${doc.doctype}/${doc.id}`)">
@@ -212,14 +231,14 @@ function docInitials(title: string): string {
                     backgroundColor: (findWorkspaceForDoc(doc)?.color ?? '#6366f1') + '20',
                     color: findWorkspaceForDoc(doc)?.color ?? '#6366f1'
                   }">
-                  {{ docInitials(doc.title) }}
+                  {{ docInitials(doc) }}
                 </div>
 
                 <!-- Info -->
                 <div class="flex-1 min-w-0">
                   <p
                     class="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors duration-200">
-                    {{ doc.title }}
+                    {{ docDisplayTitle(doc) }}
                   </p>
                   <div class="flex items-center gap-1.5 mt-0.5">
                     <span v-if="findWorkspaceForDoc(doc)"

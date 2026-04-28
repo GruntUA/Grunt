@@ -106,7 +106,8 @@ async def link_search(
         # as a more human-readable title when available.
         if title_val == name_val:
             for sf in search_fields:
-                candidate = row.get(sf)
+                # Prefer resolved label for Link fields (injected as sf__label by _resolve_link_labels)
+                candidate = row.get(f"{sf}__label") or row.get(sf)
                 if candidate is not None:
                     candidate_str = str(candidate)
                     if candidate_str:
@@ -115,15 +116,15 @@ async def link_search(
 
         subtitle_val: str | None = None
         for sf in search_fields:
-            candidate = row.get(sf)
+            # Prefer resolved label for Link fields (injected as sf__label by _resolve_link_labels)
+            candidate = row.get(f"{sf}__label") or row.get(sf)
             if candidate is None:
                 continue
             candidate_str = str(candidate)
             if candidate_str and candidate_str != title_val:
                 subtitle_val = candidate_str
                 break
-        if subtitle_val is None and title_val != name_val:
-            subtitle_val = name_val
+        # Do not fall back to UUID — it's not human-readable
 
         items.append(
             {

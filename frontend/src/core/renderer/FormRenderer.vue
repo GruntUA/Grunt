@@ -52,8 +52,12 @@ const customTabComponents: Record<string, Component> = {
   DesignerTab,
 }
 
-function getCustomTabComponent(name: string): Component | null {
-  return customTabComponents[name] ?? null
+function getCustomTabComponent(name: string | undefined): Component | null {
+  return name ? (customTabComponents[name] ?? null) : null
+}
+
+function hasCustomTabComponent(name: string | undefined): boolean {
+  return !!(name && customTabComponents[name])
 }
 
 
@@ -79,7 +83,11 @@ function toggleSection(section: LayoutSection) {
       }"
     >
       <Tab v-for="(tab, ti) in layout" :key="ti" :value="tab.label || 'Main'" variant="underline" class="flex items-center gap-1.5 px-4 h-10">
-        <component :is="getTabIcon(tab._field?.icon)" v-if="tab._field?.icon" class="size-3.5 shrink-0" />
+        <component
+          v-if="tab._field?.icon && getTabIcon(tab._field?.icon)"
+          :is="getTabIcon(tab._field?.icon)"
+          class="size-3.5 shrink-0"
+        />
         <span class="text-sm font-medium tracking-wide">{{ tab.label || 'Main' }}</span>
       </Tab>
     </TabList>
@@ -89,8 +97,8 @@ function toggleSection(section: LayoutSection) {
       <TabPanel v-for="(tab, ti) in layout" :key="ti" :value="tab.label || 'Main'"
         class="mt-0 flex flex-col gap-3 focus-visible:ring-0">
         <!-- Support for custom tab components (e.g. Studio Designer) -->
-        <template v-if="typeof tab._field?.experimental_component === 'string'">
-          <component :is="getCustomTabComponent(tab._field.experimental_component)" :doctype="doctype"
+        <template v-if="hasCustomTabComponent(tab._field?.experimental_component)">
+          <component :is="getCustomTabComponent(tab._field?.experimental_component)" :doctype="doctype"
             :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" />
         </template>
         <template v-else>

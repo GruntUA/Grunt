@@ -167,16 +167,16 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
   function getLinkFilters(
     fieldname: string,
     doc: Record<string, unknown>,
-  ): Record<string, string> {
+  ): Record<string, string | string[]> {
     const fn = frm._queries[fieldname]
     if (!fn) return {}
     try {
       const result = fn(doc)
       // Support both `{ filters: {...} }` and bare `{...}`
       if (result && typeof result === 'object' && 'filters' in result) {
-        return (result as { filters: Record<string, string> }).filters ?? {}
+        return (result as { filters: Record<string, string | string[]> }).filters ?? {}
       }
-      return result as Record<string, string>
+      return result as Record<string, string | string[]>
     } catch {
       return {}
     }

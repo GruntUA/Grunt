@@ -71,7 +71,7 @@ export const docsApi = {
   linkSearch: async (
     doctype: string,
     q: string,
-    filters: Record<string, string> = {},
+    filters: Record<string, string | string[]> = {},
     pageLength = 10,
   ): Promise<LinkSearchItem[]> => {
     const r = await client.get(`/api/v1/docs/${doctype}/link_search`, {
