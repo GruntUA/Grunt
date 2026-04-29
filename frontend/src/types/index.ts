@@ -31,6 +31,7 @@ export interface DocField {
   // Display
   in_list_view?: boolean
   in_filter?: boolean
+  in_quick_filter?: boolean
   // Type-specific
   options?: string
   default?: unknown
@@ -140,6 +141,7 @@ export interface DocTypeListView {
   sort_by: string
   sort_order: 'asc' | 'desc'
   default_filters: Record<string, string>
+  fast_filters?: FastFilter[]
 }
 
 export interface DocTypeFormView {
@@ -173,6 +175,28 @@ export interface DocTypeCalendarView {
 export interface DocTypeTreeView {
   parent_field: string   // fieldname of the self-referential Link field
   title_field?: string   // which field to display as node label (defaults to 'name')
+  as_of_date_field?: string  // Date field enabling the "as of date" picker in tree toolbar
+}
+
+// ── Fast filter types ─────────────────────────────────────────────────────
+
+export interface FastFilterOnChange {
+  mode: 'local' | 'external'
+  source?: string
+  debounce_ms?: number
+}
+
+export interface FastFilter {
+  id: string
+  field: string
+  operator: string
+  label?: string
+  input_type: string  // 'text' | 'date' | 'select' | 'check' | 'number' | 'link'
+  default_value?: string | null
+  /** Explicit list of select options; overrides field.options when set */
+  options?: string[] | null
+  on_change: FastFilterOnChange
+  enabled_in: Array<'list' | 'tree'>
 }
 
 /** A single active filter — used by FilterBar, DocTypeList, and docsApi */

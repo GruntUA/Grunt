@@ -14,6 +14,8 @@ interface UseDocTypeListDataOptions {
   sortOrder: Ref<'asc' | 'desc'>
   groupBy: Ref<string | null>
   activeFilters: Ref<ActiveFilter[]>
+  /** Debounced raw fast filter map in backend format { 'field__op': 'value' } */
+  debouncedFastFilters?: ComputedRef<Record<string, string>> | Ref<Record<string, string>>
   visibleKeys: ComputedRef<string[]>
   visibleColumns: ComputedRef<ListColumn[]>
   dt: Ref<DocType | null>
@@ -38,6 +40,7 @@ export function useDocTypeListData(options: UseDocTypeListDataOptions) {
       options.sortKey.value,
       options.sortOrder.value,
       JSON.stringify(options.activeFilters.value),
+      JSON.stringify(options.debouncedFastFilters?.value ?? {}),
       options.groupBy.value,
       listFields.value,
     ]),
@@ -48,6 +51,7 @@ export function useDocTypeListData(options: UseDocTypeListDataOptions) {
       sort: options.groupBy.value ?? options.sortKey.value ?? undefined,
       order: options.groupBy.value ? 'asc' : (options.sortKey.value ? options.sortOrder.value : undefined),
       filters: options.activeFilters.value,
+      fastFilters: options.debouncedFastFilters?.value,
       fields: listFields.value,
     }),
     refetchOnMount: 'always',

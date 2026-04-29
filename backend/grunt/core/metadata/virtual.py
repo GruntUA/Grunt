@@ -98,8 +98,8 @@ class VirtualDocType:
     def apply_filters(self, rows: list[dict], filters: dict[str, Any]) -> list[dict]:
         """Filter *rows* using the standard Grunt filter syntax.
 
-        Supported operators (appended to fieldname with ``__``):
-          eq (default), gt, gte, lt, lte, like, ilike, in, isnull
+                Supported operators (appended to fieldname with ``__``):
+                    eq (default), gt, gte, lt, lte, lte_or_null, like, ilike, in, isnull
         """
         for key, val in filters.items():
             if "__" in key:
@@ -126,6 +126,14 @@ class VirtualDocType:
                             if op == "lt"
                             else a <= b
                         )
+                    elif op == "lte_or_null":
+                        if raw in (None, ""):
+                            match = True
+                        else:
+                            try:
+                                match = float(raw) <= float(val or 0)
+                            except (TypeError, ValueError):
+                                match = str(raw) <= str(val)
                     elif op == "in":
                         match = str(raw) in [v.strip() for v in str(val).split(",")]
                     elif op == "isnull":

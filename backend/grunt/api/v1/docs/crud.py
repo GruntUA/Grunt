@@ -35,12 +35,16 @@ async def list_documents(
     service: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """List documents for a DocType."""
-    # Extract filter[field]=value from query params
-    filters: dict[str, str] = {}
+    # Extract fast_filter[field__op]=value — applied first (lower precedence)
+    merged_filters: dict[str, str] = {}
+    for key, value in request.query_params.items():
+        if key.startswith("fast_filter[") and key.endswith("]"):
+            merged_filters[key[12:-1]] = value
+
+    # Extract filter[field__op]=value — explicit user filters override fast filters
     for key, value in request.query_params.items():
         if key.startswith("filter[") and key.endswith("]"):
-            filter_name = key[7:-1]
-            filters[filter_name] = value
+            merged_filters[key[7:-1]] = value
 
     field_list = [f.strip() for f in fields.split(",") if f.strip()] if fields else None
 
@@ -51,7 +55,7 @@ async def list_documents(
         per_page=per_page,
         sort_by=sort_by,
         sort_order=sort_order,
-        filters=filters if filters else None,
+        filters=merged_filters if merged_filters else None,
         search=search,
         fields=field_list,
         cursor=cursor,

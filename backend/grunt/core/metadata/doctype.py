@@ -6,7 +6,7 @@ and is the single source of truth for DB tables, REST API and UI forms.
 
 from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from grunt.core.doctypes.doc_type_permission.doc_type_permission import DocTypePermission
 from grunt.core.metadata.field import DocField
@@ -57,12 +57,37 @@ class DocTypeWorkflow(BaseModel):
 
 # ── View configuration sub-models ────────────────────────────────────────
 
+_FAST_FILTER_OPERATORS: frozenset[str] = frozenset({
+    "eq", "ne", "neq", "ilike", "like", "gt", "lt", "gte", "lte", "in", "isnull", "lte_or_null",
+})
+
+
+class FastFilterOnChange(BaseModel):
+    mode: Literal["local", "external"] = "local"
+    source: str | None = None  # required when mode="external"; identifies context source
+    debounce_ms: int = 300
+
+
+class FastFilter(BaseModel):
+    """A metadata-driven fast filter displayed in the list/tree toolbar."""
+
+    id: str  # unique within the DocType; used as the backend query key prefix
+    field: str  # fieldname on the DocType
+    operator: str = "eq"  # must be one of _FAST_FILTER_OPERATORS
+    label: str | None = None  # display label; falls back to field label when omitted
+    input_type: str = "text"  # text | date | select | check | number | link
+    default_value: str | None = None
+    options: list[str] | None = None  # explicit select options; overrides field.options when set
+    on_change: FastFilterOnChange = FastFilterOnChange()
+    enabled_in: list[Literal["list", "tree"]] = ["list", "tree"]
+
 
 class DocTypeListView(BaseModel):
     fields: list[str] = []  # field names to display
     sort_by: str = "modified"
     sort_order: Literal["asc", "desc"] = "desc"
     default_filters: dict[str, str] = {}
+    fast_filters: list[FastFilter] = []
 
 
 class DocTypeFormView(BaseModel):
@@ -101,6 +126,7 @@ class DocTypeTreeView(BaseModel):
 
     parent_field: str  # fieldname of the Link field pointing to the same DocType
     title_field: str = "name"  # field displayed as node label
+    as_of_date_field: str | None = None  # Date field for "as-of" filtering; enables the date picker in tree toolbar
 
 
 class DocTypeMapView(BaseModel):
@@ -185,3 +211,32 @@ class DocType(BaseModel):
     table_name: str | None = None
 
     model_config = {"use_enum_values": True}
+
+    @model_validator(mode="after")
+    def _validate_fast_filters(self) -> "DocType":
+        """Validate each fast_filter entry against declared fields and allowed operators."""
+        if not self.list_view.fast_filters:
+            return self
+        field_names = {f.fieldname for f in self.fields}
+        seen_ids: set[str] = set()
+        for ff in self.list_view.fast_filters:
+            if ff.id in seen_ids:
+                raise ValueError(
+                    f"fast_filter id '{ff.id}' is duplicated. Each id must be unique."
+                )
+            seen_ids.add(ff.id)
+            if ff.operator not in _FAST_FILTER_OPERATORS:
+                raise ValueError(
+                    f"fast_filter '{ff.id}': invalid operator '{ff.operator}'. "
+                    f"Allowed: {sorted(_FAST_FILTER_OPERATORS)}"
+                )
+            if ff.field not in field_names:
+                raise ValueError(
+                    f"fast_filter '{ff.id}': field '{ff.field}' not found in DocType fields."
+                )
+            if ff.on_change.mode == "external" and not ff.on_change.source:
+                raise ValueError(
+                    f"fast_filter '{ff.id}': on_change.mode='external' requires "
+                    "on_change.source to be set."
+                )
+        return self

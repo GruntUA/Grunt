@@ -229,6 +229,8 @@ class DocField(BaseModel):
     # Quick Entry — show this field in the quick-entry dialog.
     # If False, field is only shown when quick_entry shows required fields.
     in_quick_entry: bool = False
+    # Quick Filter — show this field in list quick filters bar.
+    in_quick_filter: bool = False
 
     model_config = {"use_enum_values": True}
 

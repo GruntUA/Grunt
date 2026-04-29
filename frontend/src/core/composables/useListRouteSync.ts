@@ -11,6 +11,7 @@ interface UseListRouteSyncOptions {
   sortKey: Ref<string>
   sortOrder: Ref<'asc' | 'desc'>
   activeFilters: Ref<any[]>
+  fastFilterValues?: Ref<Record<string, string>>
   validViews: readonly string[]
   getDefaultView: () => string
   dt: Ref<DocType | null>
@@ -27,22 +28,31 @@ const REVERSE_OP_MAP: Record<string, string> = Object.fromEntries(
 
 export function useListRouteSync(options: UseListRouteSyncOptions) {
   // Sync state to URL
-  watch([options.viewMode, options.activeFilters], () => {
+  watch([options.viewMode, options.activeFilters, options.fastFilterValues], () => {
     const query = { ...options.route.query }
 
     // View mode
     if (options.viewMode.value === options.getDefaultView()) delete query.view
     else query.view = options.viewMode.value
 
-    // Filters
+    // Regular filters
     Object.keys(query).forEach(k => {
       if (k.startsWith('filter[')) delete query[k]
     })
-
     options.activeFilters.value.forEach(f => {
       const backendOp = OP_MAP[f.op] ?? 'eq'
       query[`filter[${f.fieldname}__${backendOp}]`] = f.value
     })
+
+    // Fast filters
+    Object.keys(query).forEach(k => {
+      if (k.startsWith('ff[')) delete query[k]
+    })
+    if (options.fastFilterValues) {
+      Object.entries(options.fastFilterValues.value).forEach(([id, val]) => {
+        if (val !== '' && val != null) query[`ff[${id}]`] = val
+      })
+    }
 
     options.router.replace({ query })
   }, { deep: true })
@@ -89,6 +99,16 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
 
     if (filters.length > 0) {
       options.activeFilters.value = filters
+    }
+
+    // Parse fast filter values from URL: ff[id]=value
+    const ffValues: Record<string, string> = {}
+    Object.entries(options.route.query).forEach(([key, value]) => {
+      const match = key.match(/^ff\[(.+)\]$/)
+      if (match && value) ffValues[match[1]] = String(value)
+    })
+    if (Object.keys(ffValues).length > 0 && options.fastFilterValues) {
+      options.fastFilterValues.value = { ...options.fastFilterValues.value, ...ffValues }
     }
   }
 

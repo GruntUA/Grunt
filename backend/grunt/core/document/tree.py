@@ -119,6 +119,7 @@ class TreeService:
         *,
         fields: list[str] | None = None,
         max_depth: int = 10,
+        filters: dict[str, str] | None = None,
     ) -> list[dict[str, Any]]:
         """Return the full subtree as nested dicts.
 
@@ -169,6 +170,35 @@ class TreeService:
 
         result = await session.execute(sql, {**anchor_param, "max_depth": max_depth})
         all_rows = [dict(zip([*col_names, "_depth"], r, strict=False)) for r in result.fetchall()]
+
+        # ── Fast-filter: keep matched nodes + all their ancestors ──────────
+        if filters:
+            from grunt.core.document.query import _apply_filters  # noqa: PLC0415
+
+            # Build parent lookup from the flat result set (avoids extra DB round-trip)
+            parent_lookup: dict[str, str | None] = {
+                r["id"]: r.get(parent_field) or None for r in all_rows
+            }
+
+            # Resolve matching IDs by running the filters against the DB table,
+            # scoped only to the nodes already present in this subtree.
+            tree_ids = [r["id"] for r in all_rows]
+            filtered_q = select(table.c.id)
+            filtered_q = _apply_filters(filtered_q, table, filters)
+            filtered_q = filtered_q.where(table.c.id.in_(tree_ids))
+            filtered_result = await session.execute(filtered_q)
+            matched_ids: set[str] = {str(r[0]) for r in filtered_result.fetchall()}
+
+            # Collect ancestor IDs for each matched node so the tree stays readable
+            keep_ids: set[str] = set(matched_ids)
+            for mid in matched_ids:
+                current = parent_lookup.get(mid)
+                while current:
+                    keep_ids.add(current)
+                    current = parent_lookup.get(current)
+
+            all_rows = [r for r in all_rows if r["id"] in keep_ids]
+        # ──────────────────────────────────────────────────────────────────
 
         # Build nested structure
         return self._nest(all_rows, parent_field, root_id)

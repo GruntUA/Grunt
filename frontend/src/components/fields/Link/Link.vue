@@ -79,11 +79,24 @@ function resolveFilters(): Record<string, string | string[]> {
 function transformNodes(nodes: any[]): TreeNode[] {
   return nodes.map(node => ({
     key: node.id,
-    label: node[titleField.value] || node.name || node.id,
+    label: node.display_title || node[titleField.value] || node.name || node.id,
     data: node,
     children: node.children?.length ? transformNodes(node.children) : undefined,
     leaf: !node.children?.length,
   }))
+}
+
+/** Collect all node keys recursively. */
+function getAllKeys(nodes: TreeNode[]): Record<string, boolean> {
+  const keys: Record<string, boolean> = {}
+  function walk(list: TreeNode[]) {
+    for (const node of list) {
+      keys[String(node.key)] = true
+      if (node.children?.length) walk(node.children)
+    }
+  }
+  walk(nodes)
+  return keys
 }
 
 /** Recursively find and expand the path to a node with the given key. */
@@ -104,7 +117,14 @@ async function loadTree() {
   if (!props.field.options) return
   treeLoading.value = true
   try {
-    const raw = await docsApi.getTree(props.field.options)
+    let asOf: string | undefined
+    if (props.field.options === 'Department') {
+      const rawDate = props.doc?.order_date ?? props.doc?.effective_date
+      const normalized = String(rawDate ?? '').slice(0, 10)
+      if (normalized) asOf = normalized
+    }
+
+    const raw = await docsApi.getTree(props.field.options, asOf ? { as_of: asOf } : undefined)
     treeNodes.value = transformNodes(raw)
     
     // Auto-expand to current selection
@@ -116,6 +136,16 @@ async function loadTree() {
   } finally {
     treeLoading.value = false
   }
+}
+
+function onTreeFilter(e: any) {
+  const q = (e?.filterValue ?? e?.value ?? '').trim()
+  if (q) {
+    expandedKeys.value = getAllKeys(treeNodes.value)
+    return
+  }
+  expandedKeys.value = {}
+  if (props.modelValue) expandToSelection(String(props.modelValue), treeNodes.value)
 }
 
 // TreeSelect v-model is { [key]: true } for single selection mode
@@ -189,6 +219,15 @@ watch(() => props.field.options, async (doctype) => {
   }
   if (!isTree.value && props.modelValue) syncQueryFromValue(props.modelValue)
 }, { immediate: true })
+
+watch(
+  () => [props.doc?.order_date, props.doc?.effective_date],
+  () => {
+    if (isTree.value && props.field.options === 'Department') {
+      loadTree()
+    }
+  },
+)
 
 // ── Search via dedicated link_search endpoint ─────────────────────────────────
 
@@ -385,6 +424,7 @@ function openLinkedDoc() {
         'w-full',
         error ? 'p-invalid' : '',
       ]"
+      @filter="onTreeFilter"
       @clear="emit('update:modelValue', null)"
     />
     <button

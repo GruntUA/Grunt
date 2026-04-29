@@ -28,6 +28,8 @@ def _apply_filters(query: Any, table: Any, filters: dict[str, str]) -> Any:
             query = query.where(col >= value)
         elif op == "lte":
             query = query.where(col <= value)
+        elif op == "lte_or_null":
+            query = query.where(or_(col <= value, col.is_(None)))
         elif op == "gt":
             query = query.where(col > value)
         elif op == "lt":

@@ -17,6 +17,10 @@ const { field, updateField } = usePropertyEditor()
       <label class="text-sm font-medium">In Filter</label>
     </div>
     <div class="flex items-center gap-2">
+      <Checkbox binary :model-value="!!field.in_quick_filter" @update:model-value="updateField('in_quick_filter', $event)" />
+      <label class="text-sm font-medium">In Quick Filter</label>
+    </div>
+    <div class="flex items-center gap-2">
       <Checkbox binary :model-value="!!field.in_quick_entry" @update:model-value="updateField('in_quick_entry', $event)" />
       <label class="text-sm font-medium">In Quick Entry</label>
     </div>

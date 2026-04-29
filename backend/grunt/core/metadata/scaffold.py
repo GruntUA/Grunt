@@ -61,23 +61,22 @@ def _generate_type_block(doctype_name: str, fields: list) -> str:
             continue
 
         py_type = get_python_type(fieldtype)
-        field_lines.append(f"\t\t{fieldname}: {py_type}")
+        field_lines.append(f"        {fieldname}: {py_type}")
 
     # Build the type hints block
-    type_block = f"""# begin: auto-generated types
-# This code is auto-generated. Do not modify anything in this block.
+    type_block = f"""    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
 
-from typing import TYPE_CHECKING, Any
+    from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-\tfrom typing import DF
+    if TYPE_CHECKING:
+        from typing import Any, DF
 
-\tclass {doctype_name}:
-\t\t\"\"\"Type hints for {doctype_name} fields.\"\"\"
+        \"\"\"Type hints for {doctype_name} fields.\"\"\"
 
-{chr(10).join(field_lines) if field_lines else chr(9) * 2 + "name: str | None"}
+{chr(10).join(field_lines) if field_lines else "        name: str | None"}
 
-# end: auto-generated types
+    # end: auto-generated types
 """
 
     return type_block
@@ -110,10 +109,10 @@ from __future__ import annotations
 
 from grunt.core.document.base import Document
 
-{type_hints}
-
 
 class {name}(Document):
+
+{type_hints}
 
     async def validate(self) -> None:
         """Runs before every save — raise an exception to block."""

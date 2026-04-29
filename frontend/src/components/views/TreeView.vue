@@ -1,32 +1,60 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { docsApi } from '@/core/api/docs'
-import {
-  ChevronRight, ChevronDown, Plus, FolderOpen,
-  AlertCircle, RefreshCw
-} from '@lucide/vue'
-import type { DocType, GruntDocument } from '@/types'
+import { ChevronRight, ChevronDown, Plus, FolderOpen, AlertCircle, RefreshCw } from '@lucide/vue'
+import type { DocType, FastFilter, ActiveFilter } from '@/types'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
+import { useFastFilters } from '@/core/composables/useFastFilters'
 
 const props = defineProps<{
   doctype: DocType
   parentField: string
   workspace?: string
+  fastFilterDefs?: FastFilter[]
+  fastFilterValues?: Record<string, string>
+  activeFilters?: ActiveFilter[]
+}>()
+
+const emit = defineEmits<{
+  (e: 'update:fastFilterValues', val: Record<string, string>): void
+  (e: 'update:activeFilters', val: ActiveFilter[]): void
 }>()
 
 const { t } = useI18n()
 const router = useRouter()
 
-// ── State ────────────────────────────────────────────────────────────────
+// ── Fast filter state ────────────────────────────────────────────────────────
+const _ffValues = ref<Record<string, string>>(props.fastFilterValues ?? {})
 
-const allDocs = ref<GruntDocument[]>([])
+watch(() => props.fastFilterValues, (v) => {
+  if (v !== undefined) _ffValues.value = v
+}, { deep: true, immediate: true })
+
+watch(_ffValues, (v) => {
+  emit('update:fastFilterValues', v)
+}, { deep: true })
+
+const ffDefs = computed<FastFilter[]>(
+  () => {
+    const defs = props.fastFilterDefs
+    return (defs && defs.length > 0) ? defs : (props.doctype.list_view?.fast_filters ?? [])
+  }
+)
+
+const { rawFastFilters } = useFastFilters(ffDefs, 'tree', _ffValues)
+
+// ── As-of date (from tree_view.as_of_date_field) ──────────────────────────────
+const asOfField = computed(() => props.doctype.tree_view?.as_of_date_field ?? null)
+const asOf = computed(() => _ffValues.value.as_of_date ?? '')
+
+// ── Tree state ───────────────────────────────────────────────────────────────
+const treeNodes = ref<any[]>([])
 const loading = ref(false)
 const error = ref('')
 
-// ── Persist expanded ids to localStorage ─────────────────────────────────
-
+// ── Expanded IDs persistence ─────────────────────────────────────────────────
 const STORAGE_KEY = `tree_expanded_${props.doctype.name}`
 
 function loadExpandedIds(): Set<string> {
@@ -45,15 +73,37 @@ function saveExpandedIds(ids: Set<string>) {
 
 const expandedIds = ref<Set<string>>(loadExpandedIds())
 
-// ── Data fetching ────────────────────────────────────────────────────────
+// ── Active filters (FilterBar) ───────────────────────────────────────────────
+const _activeFilters = ref<ActiveFilter[]>(props.activeFilters ?? [])
 
-async function loadAll() {
+watch(() => props.activeFilters, (v) => {
+  if (v !== undefined) _activeFilters.value = v
+}, { deep: true, immediate: true })
+
+watch(_activeFilters, (v) => {
+  emit('update:activeFilters', v)
+}, { deep: true })
+
+// ── Data fetching ────────────────────────────────────────────────────────────
+async function loadTree() {
   loading.value = true
   error.value = ''
   try {
-    // Load all records — tree structures are typically small enough
-    const result = await docsApi.list(props.doctype.name, { per_page: 500 })
-    allDocs.value = result.data
+    const ffRaw = Object.keys(rawFastFilters.value).length ? rawFastFilters.value : undefined
+    // Merge as_of date as a raw filter on the designated field (tree_view.as_of_date_field)
+    const dateFilter: Record<string, string> | undefined =
+      asOf.value && asOfField.value
+        ? { [`${asOfField.value}__lte`]: asOf.value }
+        : undefined
+    const mergedFastFilters = (ffRaw || dateFilter)
+      ? { ...(ffRaw ?? {}), ...(dateFilter ?? {}) }
+      : undefined
+
+    treeNodes.value = await docsApi.getTree(props.doctype.name, {
+      fastFilters: mergedFastFilters,
+      as_of: asOf.value || undefined,
+      filters: _activeFilters.value.length ? _activeFilters.value : undefined,
+    })
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : t('Load error')
   } finally {
@@ -61,96 +111,50 @@ async function loadAll() {
   }
 }
 
-onMounted(loadAll)
+watch(rawFastFilters, () => loadTree(), { deep: true })
+watch(_activeFilters, () => loadTree(), { deep: true })
+onMounted(loadTree)
 
-// ── Tree building ────────────────────────────────────────────────────────
-
+// ── Helpers ──────────────────────────────────────────────────────────────────
 const titleField = computed(() =>
   props.doctype.tree_view?.title_field
-    ?? props.doctype.title_field
-    ?? props.doctype.fields.find(f => f.fieldtype === 'Text' && f.in_list_view)?.fieldname
-    ?? 'name'
+  ?? props.doctype.title_field
+  ?? props.doctype.fields.find(f => f.fieldtype === 'Text' && f.in_list_view)?.fieldname
+  ?? 'name'
 )
 
-function getTitle(doc: GruntDocument): string {
-  const v = doc[titleField.value]
+function getTitle(node: any): string {
+  if (node.display_title) return String(node.display_title)
+  const v = node[titleField.value]
   if (v !== null && v !== undefined) return String(v)
-  return doc.name ?? String(doc.id)
+  return node.name ?? String(node.id)
 }
 
-function getParentId(doc: GruntDocument): string | null {
-  const v = doc[props.parentField]
-  return v !== null && v !== undefined && v !== '' ? String(v) : null
+function countDescendants(node: any): number {
+  const children: any[] = node.children ?? []
+  let count = children.length
+  for (const child of children) count += countDescendants(child)
+  return count
 }
 
-const tree = computed<TreeNode[]>(() => {
-  const byId = new Map<string, TreeNode>()
-  const byName = new Map<string, TreeNode>()
-  const roots: TreeNode[] = []
-
-  // First pass: create all nodes and index by ID and Name
-  for (const doc of allDocs.value) {
-    const node: TreeNode = {
-      id: String(doc.id),
-      data: doc,
-      children: [],
-      expanded: expandedIds.value.has(String(doc.id)),
-    }
-    byId.set(node.id, node)
-    if (doc.name) {
-      byName.set(String(doc.name), node)
-    }
-  }
-
-  // Second pass: attach children
-  for (const doc of allDocs.value) {
-    const node = byId.get(String(doc.id))!
-    const parentIdOrName = getParentId(doc)
-    
-    const parentNode = parentIdOrName 
-      ? (byId.get(parentIdOrName) || byName.get(parentIdOrName))
-      : null
-
-    if (parentNode && parentNode !== node) {
-      parentNode.children.push(node)
-    } else {
-      roots.push(node)
-    }
-  }
-
-  // Sort children (and roots) by sort_order if present, then by title
-  const sortNodes = (nodes: TreeNode[]) => {
-    nodes.sort((a, b) => {
-      const aOrder = (a.data.sort_order as number | null | undefined) ?? 0
-      const bOrder = (b.data.sort_order as number | null | undefined) ?? 0
-      if (aOrder !== bOrder) return aOrder - bOrder
-      return String(a.data[titleField.value] ?? '').localeCompare(String(b.data[titleField.value] ?? ''))
-    })
-    nodes.forEach(n => sortNodes(n.children))
-  }
-  sortNodes(roots)
-
-  return roots
-})
-
-// ── Interactions ─────────────────────────────────────────────────────────
-
-function toggle(node: TreeNode) {
-  if (expandedIds.value.has(node.id)) {
-    expandedIds.value.delete(node.id)
+// ── Interactions ─────────────────────────────────────────────────────────────
+function toggle(node: any) {
+  const id = String(node.id)
+  if (expandedIds.value.has(id)) {
+    expandedIds.value.delete(id)
   } else {
-    expandedIds.value.add(node.id)
+    expandedIds.value.add(id)
   }
-  // Trigger reactivity
   expandedIds.value = new Set(expandedIds.value)
   saveExpandedIds(expandedIds.value)
 }
 
-function expandAll(nodes: TreeNode[] = tree.value) {
+function expandAll(nodes: any[] = treeNodes.value) {
   for (const n of nodes) {
-    if (n.children.length > 0) {
-      expandedIds.value.add(n.id)
-      expandAll(n.children)
+    const children: any[] = n.children ?? []
+    if (children.length) {
+      expandedIds.value.add(String(n.id))
+      expandAll(children)
     }
   }
   expandedIds.value = new Set(expandedIds.value)
@@ -162,26 +166,24 @@ function collapseAll() {
   saveExpandedIds(expandedIds.value)
 }
 
-function navigateTo(node: TreeNode) {
-  const id = node.id
+function navigateTo(node: any) {
   if (props.workspace) {
-    router.push(`/${props.workspace}/${props.doctype.name}/${id}`)
+    router.push(`/${props.workspace}/${props.doctype.name}/${node.id}`)
   } else {
-    router.push(`/${props.doctype.name}/${id}`)
+    router.push(`/${props.doctype.name}/${node.id}`)
   }
 }
 
-// ── Quick entry for child creation ─────────────────────────────────────────
-
+// ── Quick entry ───────────────────────────────────────────────────────────────
 const quickEntryPreset = ref<Record<string, unknown> | null>(null)
 
-function createChild(parentNode: TreeNode) {
+function createChild(parentNode: any) {
   quickEntryPreset.value = { [props.parentField]: parentNode.id }
 }
 
 function onQuickEntrySaved() {
   quickEntryPreset.value = null
-  loadAll()
+  loadTree()
 }
 
 function createRoot() {
@@ -192,38 +194,20 @@ function createRoot() {
   }
 }
 
-// ── Stats ────────────────────────────────────────────────────────────────
-
-function countDescendants(node: TreeNode): number {
-  let count = node.children.length
-  for (const child of node.children) count += countDescendants(child)
-  return count
-}
-
-interface TreeNode {
-  id: string
-  data: GruntDocument
-  children: TreeNode[]
-  expanded: boolean
-}
+const totalCount = computed(() => {
+  let n = 0
+  const countAll = (nodes: any[]) => { for (const node of nodes) { n++; countAll(node.children ?? []) } }
+  countAll(treeNodes.value)
+  return n
+})
 </script>
 
 <template>
   <div>
-    <!-- Toolbar -->
-    <div class="flex items-center justify-between mb-4">
-      <div class="flex items-center gap-2">
-        <Button text size="small" @click="expandAll()">
-          <ChevronDown class="size-3.5 mr-1" />
-          Розгорнути все
-        </Button>
-        <Button text size="small" @click="collapseAll">
-          <ChevronRight class="size-3.5 mr-1" />
-          Згорнути все
-        </Button>
-      </div>
-      <div class="flex items-center gap-2">
-        <Button text :title="t('Refresh')" @click="loadAll">
+    <!-- Primary actions row -->
+    <div class="flex items-center justify-end mb-3 gap-2 flex-wrap">
+      <div class="flex items-center gap-2 shrink-0">
+        <Button text :title="t('Refresh')" @click="loadTree">
           <RefreshCw class="size-4" :class="{ 'animate-spin': loading }" />
         </Button>
         <Button size="small" @click="createRoot">
@@ -233,8 +217,20 @@ interface TreeNode {
       </div>
     </div>
 
+    <!-- Secondary tree controls -->
+    <div class="flex items-center gap-2 mb-4 flex-wrap">
+      <Button text size="small" @click="expandAll()">
+        <ChevronDown class="size-3.5 mr-1" />
+        Розгорнути все
+      </Button>
+      <Button text size="small" @click="collapseAll">
+        <ChevronRight class="size-3.5 mr-1" />
+        Згорнути все
+      </Button>
+    </div>
+
     <!-- Loading -->
-    <div v-if="loading && !allDocs.length" class="flex justify-center py-16">
+    <div v-if="loading && !treeNodes.length" class="flex justify-center py-16">
       <ProgressSpinner class="size-10!" />
     </div>
 
@@ -242,11 +238,12 @@ interface TreeNode {
     <div v-else-if="error" class="flex items-center gap-3 p-4 rounded-lg bg-destructive/10 text-destructive text-sm">
       <AlertCircle class="size-4 shrink-0" />
       {{ error }}
-      <Button text size="small" class="ml-auto" @click="loadAll">{{ t('Retry') }}</Button>
+      <Button text size="small" class="ml-auto" @click="loadTree">{{ t('Retry') }}</Button>
     </div>
 
     <!-- Empty -->
-    <div v-else-if="!loading && !allDocs.length" class="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
+    <div v-else-if="!loading && !treeNodes.length"
+      class="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
       <FolderOpen class="size-12 opacity-30" />
       <p class="text-sm">Записів поки немає</p>
       <Button size="small" @click="createRoot">
@@ -257,48 +254,31 @@ interface TreeNode {
 
     <!-- Tree -->
     <div v-else class="border border-border rounded-lg overflow-hidden bg-card shadow-sm">
-      <TreeNodeRow
-        v-for="node in tree"
-        :key="node.id"
-        :node="node"
-        :depth="0"
-        :expanded-ids="expandedIds"
-        :get-title="getTitle"
-        :count-descendants="countDescendants"
-        @toggle="toggle"
-        @navigate="navigateTo"
-        @create-child="createChild"
-      />
+      <TreeNodeRow v-for="node in treeNodes" :key="node.id" :node="node" :depth="0" :expanded-ids="expandedIds"
+        :get-title="getTitle" :count-descendants="countDescendants" @toggle="toggle" @navigate="navigateTo"
+        @create-child="createChild" />
     </div>
 
     <!-- Counter -->
-    <p v-if="allDocs.length" class="mt-3 text-xs text-muted-foreground text-right">
-      Всього: {{ allDocs.length }} записів
+    <p v-if="totalCount" class="mt-3 text-xs text-muted-foreground text-right">
+      Всього: {{ totalCount }} записів
     </p>
 
-    <!-- Quick entry dialog for child creation -->
-    <QuickEntryDialog
-      v-if="quickEntryPreset !== null"
-      :dt="doctype"
-      :preset="quickEntryPreset"
-      :workspace="workspace"
-      mode="list"
-      @close="quickEntryPreset = null"
-      @saved="onQuickEntrySaved"
-    />
+    <!-- Quick entry dialog -->
+    <QuickEntryDialog v-if="quickEntryPreset !== null" :dt="doctype" :preset="quickEntryPreset" :workspace="workspace"
+      mode="list" @close="quickEntryPreset = null" @saved="onQuickEntrySaved" />
   </div>
 </template>
 
-<!-- ── Recursive tree node ──────────────────────────────────────────────── -->
+<!-- ── Recursive tree node component ─────────────────────────────────────── -->
 <script lang="ts">
 import { defineComponent, h, type PropType } from 'vue'
 import { ChevronRight as CR, ChevronDown as CD, Plus as PL, Folder as FL, FolderOpen as FO, FileText as FT } from '@lucide/vue'
 
 interface TreeNode {
   id: string
-  data: Record<string, unknown>
   children: TreeNode[]
-  expanded: boolean
+  [key: string]: unknown
 }
 
 const TreeNodeRow: any = defineComponent({
@@ -307,22 +287,23 @@ const TreeNodeRow: any = defineComponent({
     node: { type: Object as PropType<TreeNode>, required: true },
     depth: { type: Number, required: true },
     expandedIds: { type: Object as PropType<Set<string>>, required: true },
-    getTitle: { type: Function as PropType<(doc: any) => string>, required: true },
+    getTitle: { type: Function as PropType<(node: any) => string>, required: true },
     countDescendants: { type: Function as PropType<(node: any) => number>, required: true },
   },
   emits: ['toggle', 'navigate', 'create-child'],
   setup(props, { emit }) {
     return () => {
       const { node, depth, expandedIds } = props
-      const isExpanded = expandedIds.has(node.id)
-      const hasChildren = node.children.length > 0
-      const indent = depth * 20 // px per level
+      const isExpanded = expandedIds.has(String(node.id))
+      const children: TreeNode[] = (node.children ?? []) as TreeNode[]
+      const hasChildren = children.length > 0
+      const indent = depth * 20
 
       const chevron = hasChildren
         ? h(isExpanded ? CD : CR, {
-            class: 'size-4 text-muted-foreground shrink-0 transition-transform duration-150',
-            onClick: (e: Event) => { e.stopPropagation(); emit('toggle', node) },
-          })
+          class: 'size-4 text-muted-foreground shrink-0 transition-transform duration-150',
+          onClick: (e: Event) => { e.stopPropagation(); emit('toggle', node) },
+        })
         : h('span', { class: 'w-4 shrink-0' })
 
       const icon = hasChildren
@@ -341,7 +322,7 @@ const TreeNodeRow: any = defineComponent({
         h('span', {
           class: 'text-sm text-foreground flex-1 truncate hover:text-primary hover:underline underline-offset-2 transition-colors',
           onClick: (e: Event) => { e.stopPropagation(); emit('navigate', node) },
-        }, props.getTitle(node.data)),
+        }, props.getTitle(node)),
         descendants > 0 && h('span', {
           class: 'text-[11px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium shrink-0',
         }, String(descendants)),
@@ -352,23 +333,23 @@ const TreeNodeRow: any = defineComponent({
         }, h(PL, { class: 'size-3.5' })),
       ])
 
-      const children = isExpanded && hasChildren
-        ? node.children.map((child: TreeNode) =>
-            h(TreeNodeRow, {
-              key: child.id,
-              node: child,
-              depth: depth + 1,
-              expandedIds,
-              getTitle: props.getTitle,
-              countDescendants: props.countDescendants,
-              onToggle: (n: any) => emit('toggle', n),
-              onNavigate: (n: any) => emit('navigate', n),
-              onCreateChild: (n: any) => emit('create-child', n),
-            })
-          )
+      const childRows = isExpanded && hasChildren
+        ? children.map((child: TreeNode) =>
+          h(TreeNodeRow, {
+            key: child.id,
+            node: child,
+            depth: depth + 1,
+            expandedIds,
+            getTitle: props.getTitle,
+            countDescendants: props.countDescendants,
+            onToggle: (n: any) => emit('toggle', n),
+            onNavigate: (n: any) => emit('navigate', n),
+            onCreateChild: (n: any) => emit('create-child', n),
+          })
+        )
         : []
 
-      return [row, ...children]
+      return [row, ...childRows]
     }
   },
 })

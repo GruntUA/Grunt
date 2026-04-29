@@ -34,6 +34,7 @@ class DocFieldSchema(BaseModel):
 
     in_list_view: bool = False
     in_filter: bool = False
+    in_quick_filter: bool = False
     bold: bool = False
 
     options: str | None = None

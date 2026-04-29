@@ -15,9 +15,10 @@ import {
   Map as MapIcon,
 } from '@lucide/vue'
 import draggable from 'vuedraggable'
-import type { ActiveFilter, DocField, DocType } from '@/types'
+import type { ActiveFilter, DocField, DocType, FastFilter } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import FilterBar from '@/components/views/FilterBar.vue'
+import FastFilterBar from '@/components/views/FastFilterBar.vue'
 
 type ViewMode = 'list' | 'kanban' | 'calendar' | 'tree' | 'gallery' | 'map'
 
@@ -36,6 +37,8 @@ const props = defineProps<{
   viewMode: ViewMode
   inlineSearch: string
   activeFilters: ActiveFilter[]
+  fastFilterDefs: FastFilter[]
+  fastFilterValues: Record<string, string>
   columns: ListColumnsState
   groupableFields: DocField[]
   groupBy: string | null
@@ -50,6 +53,7 @@ const emit = defineEmits<{
   (e: 'update:viewMode', val: ViewMode): void
   (e: 'update:inlineSearch', val: string): void
   (e: 'update:activeFilters', val: ActiveFilter[]): void
+  (e: 'update:fastFilterValues', val: Record<string, string>): void
   (e: 'update:groupBy', val: string | null): void
   (e: 'reset'): void
 }>()
@@ -86,18 +90,30 @@ const toggleGrouping = (event: Event) => {
 </script>
 
 <template>
-  <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-1.5 bg-muted/30 rounded-xl ring-1 ring-border/40 mb-2">
-    <!-- Left: search + filters -->
-    <div class="flex flex-1 items-center gap-2">
-      <div class="relative flex-1 max-w-[320px] group">
-        <Search
-          class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
-        <input v-model="localSearch"
-          class="flex h-9 w-full rounded-lg border border-border/60 bg-background px-3 py-1 pl-9 text-sm text-foreground shadow-sm transition-all placeholder:text-muted-foreground/70 focus-visible:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30"
-          :placeholder="t('Search...')" />
-      </div>
-      <FilterBar v-if="dt" :fields="dt.fields" :doctype="doctype" :initial-filters="activeFilters" @change="onFiltersChange" class="!mb-0" />
-      <Button v-if="inlineSearch || activeFilters.length" text size="small"
+  <div class="flex flex-col gap-0 bg-muted/30 rounded-xl ring-1 ring-border/40 mb-2">
+    <!-- Main row: search + filters + view switcher -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-1.5">
+      <!-- Left: search + filters -->
+      <div class="flex flex-1 items-center gap-2">
+        <div class="relative flex-1 max-w-[320px] group">
+          <Search
+            class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
+          <input v-model="localSearch"
+            class="flex h-9 w-full rounded-lg border border-border/60 bg-background px-3 py-1 pl-9 text-sm text-foreground shadow-sm transition-all placeholder:text-muted-foreground/70 focus-visible:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30"
+            :placeholder="t('Search...')" />
+        </div>
+        <FastFilterBar
+          v-if="dt && fastFilterDefs.length && ['list', 'tree'].includes(viewMode)"
+          :defs="fastFilterDefs"
+          :dt="dt"
+          :scope="viewMode === 'tree' ? 'tree' : 'list'"
+          :model-value="fastFilterValues"
+          variant="quick"
+          class="!px-0 !py-0"
+          @update:model-value="emit('update:fastFilterValues', $event)"
+        />
+        <FilterBar v-if="dt" :fields="dt.fields" :doctype="doctype" :initial-filters="activeFilters" @change="onFiltersChange" class="!mb-0" />
+        <Button v-if="inlineSearch || activeFilters.length" text size="small"
         class="h-8 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50" @click="emit('reset')">
         <X class="size-4 mr-1" />
         {{ t('Reset') }}
@@ -237,5 +253,18 @@ const toggleGrouping = (event: Event) => {
         </button>
       </div>
     </div>
+    </div>
+
+    <!-- Fast filter bar (shown below main row when defs exist for current view) -->
+    <FastFilterBar
+      v-if="dt && fastFilterDefs.length && !['list', 'tree'].includes(viewMode)"
+      :defs="fastFilterDefs"
+      :dt="dt"
+      :scope="['tree'].includes(viewMode) ? 'tree' : 'list'"
+      :model-value="fastFilterValues"
+      variant="default"
+      class="border-t border-border/30 px-2"
+      @update:model-value="emit('update:fastFilterValues', $event)"
+    />
   </div>
 </template>

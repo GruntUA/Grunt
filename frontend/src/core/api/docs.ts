@@ -56,6 +56,11 @@ export interface ListParams {
   filters?: ActiveFilter[]
   /** Raw backend filters — keys may already contain __op suffixes (e.g. { 'date__lte': '2024-01-31' }) */
   rawFilters?: Record<string, string>
+  /**
+   * Fast filter values in backend format { 'field__op': 'value' }.
+   * Sent as fast_filter[...] params; explicit filter[...] take precedence on the backend.
+   */
+  fastFilters?: Record<string, string>
   /** Opaque cursor for keyset pagination (replaces page-based OFFSET) */
   cursor?: string
 }
@@ -81,8 +86,12 @@ export const docsApi = {
   },
 
   list: async (doctype: string, params: ListParams = {}): Promise<StandardListResponse<GruntDocument>> => {
-    const { filters = [], rawFilters = {}, sort, order, ...rest } = params
+    const { filters = [], rawFilters = {}, fastFilters = {}, sort, order, ...rest } = params
     const filterParams: Record<string, string> = {}
+    // Fast filters have lower precedence — sent first so backend override logic applies
+    for (const [k, v] of Object.entries(fastFilters)) {
+      filterParams[`fast_filter[${k}]`] = v
+    }
     for (const f of filters) {
       const backendOp = OP_MAP[f.op] ?? 'eq'
       filterParams[`filter[${f.fieldname}__${backendOp}]`] = f.value
@@ -155,8 +164,26 @@ export const docsApi = {
   getLinks: (doctype: string, id: string): Promise<BacklinkItem[]> =>
     client.get(`/api/v1/docs/${doctype}/${id}/links`).then(r => r.data.data ?? []),
 
-  getTree: async (doctype: string): Promise<any[]> => {
-    const r = await client.get(`/api/v1/docs/${doctype}/tree`)
+  getTree: async (
+    doctype: string,
+    params?: {
+      as_of?: string
+      fastFilters?: Record<string, string>
+      filters?: ActiveFilter[]
+    },
+  ): Promise<any[]> => {
+    const queryParams: Record<string, string> = {}
+    if (params?.as_of) queryParams.as_of = params.as_of
+    for (const [k, v] of Object.entries(params?.fastFilters ?? {})) {
+      queryParams[`fast_filter[${k}]`] = v
+    }
+    for (const f of params?.filters ?? []) {
+      const backendOp = OP_MAP[f.op] ?? 'eq'
+      queryParams[`filter[${f.fieldname}__${backendOp}]`] = f.value
+    }
+    const r = await client.get(`/api/v1/docs/${doctype}/tree`, {
+      params: Object.keys(queryParams).length ? queryParams : undefined,
+    })
     return r.data.data ?? []
   },
 

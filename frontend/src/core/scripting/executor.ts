@@ -83,7 +83,19 @@ export interface ListViewProxy {
    * listview.set_filters([{ fieldname: 'language', op: '=', value: 'uk', label: 'Мова' }])
    * ```
    */
-  set_filters: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string }>) => void
+  set_filters: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string }>) => void  /** Set a single fast-filter value by its id. */
+  set_fast_filter_value: (id: string, value: string) => void
+  /** Replace all fast-filter values at once. */
+  set_fast_filters: (values: Record<string, string>) => void}
+
+export interface ListFastFilterChange {
+  id: string
+  value: string
+  previousValue: string
+  fieldname?: string
+  operator?: string
+  source?: string
+  viewScope?: 'list' | 'tree'
 }
 
 /** Framework helpers exposed as `grunt`. */
@@ -452,6 +464,8 @@ export function createListViewProxy(
     addMenuItem?: (label: string, action: () => void | Promise<void>, options?: { separator_before?: boolean }) => ScriptMenuItemHandle
     refresh?: () => void
     setFilters?: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string }>) => void
+    setFastFilterValue?: (id: string, value: string) => void
+    setFastFilters?: (values: Record<string, string>) => void
   } = {},
 ): ListViewProxy {
   return {
@@ -467,6 +481,12 @@ export function createListViewProxy(
     },
     set_filters(filters) {
       callbacks.setFilters?.(filters)
+    },
+    set_fast_filter_value(id, value) {
+      callbacks.setFastFilterValue?.(id, value)
+    },
+    set_fast_filters(values) {
+      callbacks.setFastFilters?.(values)
     },
   }
 }
@@ -496,6 +516,44 @@ export async function executeListSetup(
       await fn(listview, gruntProxy, gruntProxy)
     } catch (err) {
       console.warn(`[ClientScript] Error in "${entry.name}" (setup_list):`, err)
+    }
+  }
+}
+
+/**
+ * Execute `on_fast_filter_change(listview, change)` from client scripts.
+ *
+ * Example in Client Script:
+ *
+ * ```js
+ * function on_fast_filter_change(listview, change) {
+ *   if (change.id !== 'as_of_date') return
+ *   listview.set_fast_filter_value('valid_from_upto', change.value)
+ * }
+ * ```
+ */
+export async function executeListFastFilterOnChange(
+  doctype: string,
+  listview: ListViewProxy,
+  gruntProxy: GruntProxy,
+  change: ListFastFilterChange,
+): Promise<void> {
+  const scripts = await loadClientScripts(doctype)
+  if (!scripts.length) return
+
+  for (const entry of scripts) {
+    try {
+      const fn = new Function(
+        'listview',
+        'grunt',
+        'frappe',
+        'change',
+        `${entry.script};\n` +
+        `if (typeof on_fast_filter_change === 'function') { return on_fast_filter_change(listview, change); }`,
+      )
+      await fn(listview, gruntProxy, gruntProxy, change)
+    } catch (err) {
+      console.warn(`[ClientScript] Error in "${entry.name}" (on_fast_filter_change):`, err)
     }
   }
 }

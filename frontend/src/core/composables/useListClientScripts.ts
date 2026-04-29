@@ -5,12 +5,19 @@ import {
   createListViewProxy,
   createGruntProxy,
   executeListSetup,
+  executeListFastFilterOnChange,
+  type ListFastFilterChange,
+  type ListViewProxy,
+  type GruntProxy,
 } from '@/core/scripting/executor'
 import type { ScriptButton, ScriptMenuItem } from '@/types'
 
 interface UseListClientScriptsParams {
   doctype: string
   activeFilters: Ref<any[]>
+  fastFilterValues: Ref<Record<string, string>>
+  setFastFilterValue: (id: string, value: string) => void
+  setFastFilters: (values: Record<string, string>) => void
   page: Ref<number>
   queryClient: QueryClient
   dialog: any
@@ -20,9 +27,11 @@ interface UseListClientScriptsParams {
 export function useListClientScripts(params: UseListClientScriptsParams) {
   const listButtons = ref<ScriptButton[]>([])
   const listMenuItems = ref<ScriptMenuItem[]>([])
+  const listviewProxy = ref<ListViewProxy | null>(null)
+  const gruntProxy = ref<GruntProxy | null>(null)
 
   async function runListClientSetup() {
-    const gruntProxy = createGruntProxy({
+    const gp = createGruntProxy({
       msgprint: (msgOrOpts) =>
         params.dialog.msgprint(
           typeof msgOrOpts === 'string'
@@ -47,7 +56,7 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
         params.dialog.progress(title, count, total, description),
     })
 
-    const listview = createListViewProxy(params.doctype, {
+    const lv = createListViewProxy(params.doctype, {
       addButton(label, action, options) {
         const btn: ScriptButton = { label, action, severity: options?.variant }
         const idx = listButtons.value.push(btn) - 1
@@ -86,14 +95,33 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
         }))
         params.page.value = 1
       },
+      setFastFilterValue(id, value) {
+        params.setFastFilterValue(id, value)
+      },
+      setFastFilters(values) {
+        params.setFastFilters(values)
+      },
     })
 
-    await executeListSetup(params.doctype, listview, gruntProxy)
+    listviewProxy.value = lv
+    gruntProxy.value = gp
+    await executeListSetup(params.doctype, lv, gp)
+  }
+
+  async function runFastFilterOnChange(change: ListFastFilterChange) {
+    if (!listviewProxy.value || !gruntProxy.value) return
+    await executeListFastFilterOnChange(
+      params.doctype,
+      listviewProxy.value,
+      gruntProxy.value,
+      change,
+    )
   }
 
   return {
     listButtons,
     listMenuItems,
     runListClientSetup,
+    runFastFilterOnChange,
   }
 }

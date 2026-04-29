@@ -9,6 +9,7 @@ interface ListViewState {
   sortOrder: 'asc' | 'desc'
   groupBy: string | null
   activeFilters: ActiveFilter[]
+  fastFilterValues: Record<string, string>
 }
 
 function storageKey(doctype: string) {
@@ -36,9 +37,10 @@ export function useListViewState(doctype: string) {
   const sortOrder = ref<'asc' | 'desc'>(saved.sortOrder ?? 'asc')
   const groupBy = ref<string | null>(saved.groupBy ?? null)
   const activeFilters = ref<ActiveFilter[]>(saved.activeFilters ?? [])
+  const fastFilterValues = ref<Record<string, string>>(saved.fastFilterValues ?? {})
 
   watch(
-    [viewMode, sortKey, sortOrder, groupBy, activeFilters],
+    [viewMode, sortKey, sortOrder, groupBy, activeFilters, fastFilterValues],
     () => {
       saveState(doctype, {
         viewMode: viewMode.value,
@@ -46,10 +48,11 @@ export function useListViewState(doctype: string) {
         sortOrder: sortOrder.value,
         groupBy: groupBy.value,
         activeFilters: activeFilters.value,
+        fastFilterValues: fastFilterValues.value,
       })
     },
     { deep: true },
   )
 
-  return { viewMode, sortKey, sortOrder, groupBy, activeFilters }
+  return { viewMode, sortKey, sortOrder, groupBy, activeFilters, fastFilterValues }
 }

@@ -132,8 +132,8 @@ def build_controller_context(name: str, fields: list[dict]) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def _render_type_block(name: str, fields: list[dict]) -> str:
-    """Render only the auto-generated types block (without surrounding class)."""
+def _render_type_block(name: str, fields: list[dict], indent: str = "    ") -> str:
+    """Render only the auto-generated types block for insertion inside class body."""
     physical = [
         f
         for f in fields
@@ -147,7 +147,6 @@ def _render_type_block(name: str, fields: list[dict]) -> str:
         if f.get("fieldtype") == "Table" and f.get("fieldname") not in _SKIP_FIELDNAMES
     ]
 
-    indent = "    "
     indent2 = indent * 2
 
     field_lines: list[str] = []
@@ -159,31 +158,21 @@ def _render_type_block(name: str, fields: list[dict]) -> str:
         table_opt = f.get("options", "?")
         field_lines.append(f"{indent2}{f['fieldname']}: list[dict]  # Table: {table_opt}")
 
-    needs_datetime = any(
-        f["fieldtype"] in {"Date", "Datetime", "Time"}
-        for f in fields
-        if f.get("fieldtype") not in _NON_PHYSICAL and f.get("fieldname") not in _SKIP_FIELDNAMES
-    )
-
-    if field_lines:
-        imports = "from typing import TYPE_CHECKING, Any"
-        if needs_datetime:
-            imports = f"import datetime\n{imports}"
-        type_if = f"{indent}if TYPE_CHECKING:\n" + "\n".join(field_lines)
-    else:
-        imports = "from typing import Any"
-        type_if = f"{indent}if TYPE_CHECKING:\n{indent2}pass"
+    typing_imports = "Any, DF" if field_lines else "DF"
+    type_if = f"{indent}if TYPE_CHECKING:\n"
+    type_if += f"{indent2}from typing import {typing_imports}\n\n"
+    type_if += f'{indent2}"""Type hints for {name} fields."""\n\n'
+    type_if += "\n".join(field_lines) if field_lines else f"{indent2}name: str | None"
 
     return (
-        f"{_BEGIN_MARKER}\n"
+        f"{indent}{_BEGIN_MARKER}\n"
         f"{indent}# This code is auto-generated. Do not modify anything in this block.\n"
         f"\n"
-        f"{imports}\n"
+        f"{indent}from typing import TYPE_CHECKING\n"
         f"\n"
-        f"\n"
-        f"class {name}Controller:\n"
         f"{type_if}\n"
-        f"{_END_MARKER}"
+        f"\n"
+        f"{indent}{_END_MARKER}"
     )
 
 
@@ -197,30 +186,56 @@ def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
     Returns True if the file was modified, False if already up-to-date.
     """
     source = py_path.read_text(encoding="utf-8")
-    new_block = _render_type_block(name, fields)
+    new_block = _render_type_block(name, fields, indent="    ")
+
+    def _find_class_insert_offset(text: str) -> int | None:
+        lines = text.splitlines(keepends=True)
+        exact = (f"class {name}(", f"class {name}:")
+
+        for i, line in enumerate(lines):
+            stripped = line.lstrip()
+            if stripped.startswith(exact):
+                return sum(len(part) for part in lines[: i + 1])
+
+        for i, line in enumerate(lines):
+            stripped = line.lstrip()
+            if stripped.startswith("class "):
+                return sum(len(part) for part in lines[: i + 1])
+
+        return None
+
+    def _insert_block_into_class(text: str, block: str) -> str:
+        insert_at = _find_class_insert_offset(text)
+        if insert_at is None:
+            suffix = "\n" if text.endswith("\n") else "\n\n"
+            return text + suffix + block + "\n"
+
+        rest = text[insert_at:]
+        if rest.startswith("\n"):
+            rest = rest[1:]
+        return text[:insert_at] + "\n" + block + "\n\n" + rest
 
     begin_idx = source.find(_BEGIN_MARKER)
     end_idx = source.find(_END_MARKER)
 
     if begin_idx != -1 and end_idx != -1:
-        # Replace existing block
+        block_line_start = source.rfind("\n", 0, begin_idx) + 1
+        marker_indent = source[block_line_start:begin_idx]
+        block_is_class_scoped = marker_indent == "    "
+
         end_of_block = end_idx + len(_END_MARKER)
-        new_source = source[:begin_idx] + new_block + source[end_of_block:]
+        if block_is_class_scoped:
+            # Replace class-scoped block in place.
+            new_source = source[:begin_idx] + new_block + source[end_of_block:]
+        else:
+            # Legacy format had top-level block that declared a second class.
+            # Remove it and reinsert as class-scoped annotations.
+            while end_of_block < len(source) and source[end_of_block] in "\r\n":
+                end_of_block += 1
+            source_without_legacy_block = source[:begin_idx] + source[end_of_block:]
+            new_source = _insert_block_into_class(source_without_legacy_block, new_block)
     else:
-        # Insert after last import line
-        lines = source.splitlines(keepends=True)
-        insert_after = 0
-        for i, line in enumerate(lines):
-            stripped = line.lstrip()
-            if stripped.startswith(("import ", "from ")) or stripped.startswith("from __future__"):
-                insert_after = i
-        new_source = (
-            "".join(lines[: insert_after + 1])
-            + "\n"
-            + new_block
-            + "\n"
-            + "".join(lines[insert_after + 1 :])
-        )
+        new_source = _insert_block_into_class(source, new_block)
 
     if new_source == source:
         return False
