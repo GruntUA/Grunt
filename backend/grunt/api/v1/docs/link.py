@@ -83,9 +83,18 @@ async def link_search(
     # ── Parse extra filters ───────────────────────────────────────────────────
     try:
         parsed = json.loads(filters) if filters and filters != "{}" else {}
-        extra_filters: dict[str, Any] = parsed if isinstance(parsed, dict) else {}
+        raw_filters: dict[str, Any] = parsed if isinstance(parsed, dict) else {}
     except (json.JSONDecodeError, ValueError):
-        extra_filters = {}
+        raw_filters = {}
+
+    # Normalise Frappe-style filters: {"field": ["in", [...]]} → {"field__in": [...]}
+    extra_filters: dict[str, Any] = {}
+    for k, v in raw_filters.items():
+        if isinstance(v, list) and len(v) == 2 and isinstance(v[0], str):
+            op, operand = v[0].lower(), v[1]
+            extra_filters[f"{k}__{op}"] = operand
+        else:
+            extra_filters[k] = v
 
     query = q.strip()
     rows = await grunt_app.get_list(

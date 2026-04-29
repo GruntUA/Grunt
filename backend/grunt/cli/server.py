@@ -62,6 +62,12 @@ def serve(port, reload, no_frontend):
             "--reload-dir",
             str(root_dir / "backend"),
         ]
+        # Also watch external apps so changes to doctypes, hooks, etc. trigger reload
+        apps_dir = root_dir / "apps"
+        if apps_dir.exists():
+            for app_dir in apps_dir.iterdir():
+                if app_dir.is_dir() and app_dir.name != "grunt":
+                    cmd += ["--reload-dir", str(app_dir)]
 
     try:
         subprocess.run(cmd, cwd=root_dir)

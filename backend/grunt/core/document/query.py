@@ -37,7 +37,8 @@ def _apply_filters(query: Any, table: Any, filters: dict[str, str]) -> Any:
         elif op == "ilike":
             query = query.where(col.ilike(f"%{value}%"))
         elif op == "in":
-            query = query.where(col.in_(value.split(",")))
+            items = value if isinstance(value, (list, tuple)) else value.split(",")
+            query = query.where(col.in_(items))
         elif op in ("ne", "neq"):
             query = query.where(col != value)
         elif op == "isnull":

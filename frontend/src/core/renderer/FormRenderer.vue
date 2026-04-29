@@ -2,7 +2,7 @@
 import { computed, shallowRef, type Component } from 'vue'
 import type { DocType } from '@/types'
 import { parseLayout } from '@/core/composables/useFormLayout'
-import type { LayoutSection } from '@/core/composables/useFormLayout'
+import type { LayoutSection, LayoutTab } from '@/core/composables/useFormLayout'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { initials } from '@/core/composables/usePresence'
 import { ChevronDown } from '@lucide/vue'
@@ -68,6 +68,26 @@ function update(fieldname: string, val: unknown) {
 function toggleSection(section: LayoutSection) {
   if (section.collapsible) section.collapsed = !section.collapsed
 }
+
+function isSectionVisible(section: LayoutSection): boolean {
+  const sectionField = section._field
+  if (!sectionField) return true
+  if (sectionField.hidden) return false
+  if (!sectionField.depends_on) return true
+
+  const expr = sectionField.depends_on.replace(/^eval:\s*/, '')
+  try {
+    const doc = props.modelValue ?? {}
+    // eslint-disable-next-line no-new-func
+    return !!(new Function('doc', `return !!(${expr})`))(doc)
+  } catch {
+    return true
+  }
+}
+
+function getVisibleSections(tab: LayoutTab): LayoutSection[] {
+  return tab.sections.filter(isSectionVisible)
+}
 </script>
 
 <template>
@@ -102,7 +122,7 @@ function toggleSection(section: LayoutSection) {
             :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" />
         </template>
         <template v-else>
-          <div v-for="(section, si) in tab.sections" :key="si" :class="section.label ? 'form-section' : ''">
+          <div v-for="(section, si) in getVisibleSections(tab)" :key="si" :class="section.label ? 'form-section' : ''">
 
             <!-- Section header (Frappe-style card header) -->
             <div v-if="section.label" class="form-section-header"
@@ -148,7 +168,7 @@ function toggleSection(section: LayoutSection) {
   <!-- Non-tabbed layout fallback (or single tab with no label) -->
   <template v-else v-for="(tab, ti) in layout" :key="ti">
     <div class="flex flex-col gap-3">
-      <div v-for="(section, si) in tab.sections" :key="si"
+      <div v-for="(section, si) in getVisibleSections(tab)" :key="si"
         :class="section.label ? 'form-section' : ''">
         <!-- ... same content as inside TabPanel above ... -->
         <div v-if="section.label" class="form-section-header"

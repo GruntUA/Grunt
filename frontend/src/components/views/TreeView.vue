@@ -118,6 +118,18 @@ const tree = computed<TreeNode[]>(() => {
     }
   }
 
+  // Sort children (and roots) by sort_order if present, then by title
+  const sortNodes = (nodes: TreeNode[]) => {
+    nodes.sort((a, b) => {
+      const aOrder = (a.data.sort_order as number | null | undefined) ?? 0
+      const bOrder = (b.data.sort_order as number | null | undefined) ?? 0
+      if (aOrder !== bOrder) return aOrder - bOrder
+      return String(a.data[titleField.value] ?? '').localeCompare(String(b.data[titleField.value] ?? ''))
+    })
+    nodes.forEach(n => sortNodes(n.children))
+  }
+  sortNodes(roots)
+
   return roots
 })
 

@@ -88,7 +88,22 @@ export interface ListViewProxy {
 
 /** Framework helpers exposed as `grunt`. */
 export interface GruntProxy {
-  call: (opts: { method: string; args?: Record<string, unknown> }) => Promise<unknown>
+  /**
+   * Call a whitelisted server method.
+   *
+   * Both signatures are supported:
+   * ```js
+   * // Frappe-style
+   * grunt.call('hrm.hrm.api.get_positions_by_department', { department: doc.department })
+   *
+   * // Object-style
+   * grunt.call({ method: 'hrm.hrm.api.get_positions_by_department', args: { department: doc.department } })
+   * ```
+   */
+  call: {
+    (method: string, args?: Record<string, unknown>): Promise<unknown>
+    (opts: { method: string; args?: Record<string, unknown> }): Promise<unknown>
+  }
   /** Raw HTTP helpers for arbitrary API calls. */
   api: {
     get: (url: string, params?: Record<string, unknown>) => Promise<unknown>
@@ -265,9 +280,11 @@ export function createGruntProxy(
   _messageListeners: Map<string, Set<(data: unknown) => void>> = new Map(),
 ): GruntProxy {
   return {
-    async call(opts) {
+    async call(methodOrOpts: string | { method: string; args?: Record<string, unknown> }, argsArg?: Record<string, unknown>) {
+      const method = typeof methodOrOpts === 'string' ? methodOrOpts : methodOrOpts.method
+      const args = typeof methodOrOpts === 'string' ? (argsArg ?? {}) : (methodOrOpts.args ?? {})
       try {
-        const { data } = await client.post(`/api/v1/method/${opts.method}`, opts.args ?? {})
+        const { data } = await client.post(`/api/v1/method/${method}`, args)
         return data?.data
       } catch (err: unknown) {
         const e = err as { response?: { data?: { detail?: string } } }

@@ -22,6 +22,7 @@ const emit = defineEmits<{
 }>()
 
 const isVisible = computed(() => {
+  if (props.field.hidden) return false
   if (!props.field.depends_on) return true
   const expr = props.field.depends_on.replace(/^eval:\s*/, '')
   try {

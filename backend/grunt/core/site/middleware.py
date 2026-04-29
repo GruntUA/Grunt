@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from grunt.core.site.manager import current_site, site_manager
-from grunt.config import settings
 
 if TYPE_CHECKING:
     from fastapi import Request
@@ -28,8 +27,8 @@ class SiteContextMiddleware(BaseHTTPMiddleware):
             if host_name in known_sites:
                 site = host_name
 
-        # 3. Development hot reload: check for .reload_meta trigger
-        if site and settings.debug:
+        # 3. Hot reload: check for .reload_meta trigger (written by `grunt migrate`)
+        if site:
             reload_file = site_manager.sites_dir / site / ".reload_meta"
             if reload_file.exists():
                 from grunt.core.metadata.registry import doctype_registry

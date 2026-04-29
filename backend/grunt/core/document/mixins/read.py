@@ -278,4 +278,14 @@ class DocumentReadMixin:
                         doc[fieldname] = ml_data.get(fieldname, [])
 
         await evaluate_read_formulas(dt, doc)
+
+        # Call controller on_load if the app overrides it
+        from grunt.core.document.base import Document  # noqa: PLC0415
+        from grunt.core.document.registry import document_registry  # noqa: PLC0415
+
+        controller_cls = document_registry.get(doctype_name)
+        if controller_cls.on_load is not Document.on_load:
+            controller = controller_cls(doctype_name, doc, user, self.session)
+            await controller.on_load()
+
         return doc
