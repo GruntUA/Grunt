@@ -52,6 +52,7 @@ export interface UseClientScriptsOptions {
 
 export function useClientScripts(doctype: string, options: UseClientScriptsOptions) {
     const SEVERITY_MAP: Record<string, string | undefined> = {
+  primary: 'primary',
       default: undefined,
       secondary: 'secondary',
       success: 'success',
@@ -84,6 +85,19 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
         group: opts?.group,
       }
     }
+
+  function buttonKey(label: string, group?: string | null) {
+    return `${String(group ?? '').trim()}::${label}`
+  }
+
+  function applyButtonType(btn: ScriptButton, buttonType: string): ScriptButton {
+    const style = normalizeButtonStyle({ color: buttonType })
+    return {
+      ...btn,
+      severity: style.severity,
+      className: style.className,
+    }
+  }
 
   const dialog = useDialog()
   const toast = useToast()
@@ -132,8 +146,8 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
       refreshField: options.refreshField,
       addButton: (label, action, opts) => {
         const style = normalizeButtonStyle(opts)
-        const key = `${style.group ?? ''}::${label}`
-        const idx = buttons.value.findIndex(b => `${b.group ?? ''}::${b.label}` === key)
+        const key = buttonKey(label, style.group)
+        const idx = buttons.value.findIndex(b => buttonKey(b.label, b.group) === key)
         const next: ScriptButton = {
           label,
           action,
@@ -147,6 +161,19 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
         } else {
           buttons.value.push(next)
         }
+      },
+      removeButton: (label, group) => {
+        const key = buttonKey(label, group)
+        buttons.value = buttons.value.filter((b) => buttonKey(b.label, b.group) !== key)
+      },
+      clearButtons: () => {
+        buttons.value = []
+      },
+      updateButtonType: (label, group, buttonType) => {
+        const key = buttonKey(label, group)
+        const idx = buttons.value.findIndex((b) => buttonKey(b.label, b.group) === key)
+        if (idx < 0) return
+        buttons.value[idx] = applyButtonType(buttons.value[idx], buttonType)
       },
       reload: options.reload,
       save: options.save,
@@ -230,6 +257,10 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
     }
   }
 
+  function setTableSelection(fieldname: string, rowNames: string[]) {
+    frm._selected_rows[fieldname] = [...new Set(rowNames.filter(Boolean))]
+  }
+
   return {
     buttons,
     displayOverrides,
@@ -237,5 +268,6 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
     dfPropOverrides,
     runEvent,
     getLinkFilters,
+    setTableSelection,
   }
 }

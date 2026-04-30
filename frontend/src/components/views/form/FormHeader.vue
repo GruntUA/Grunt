@@ -12,7 +12,6 @@ import {
   RefreshCw,
   Share2,
   Copy as CopyIcon,
-  ChevronDown,
 } from '@lucide/vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 
@@ -129,20 +128,11 @@ const toggleMenu = (event: Event) => {
     menu.value.toggle(event)
 }
 
-const scriptGroupPopovers = ref<Record<string, any>>({})
-
-function setScriptGroupPopover(group: string, instance: any) {
-  if (!instance) return
-  scriptGroupPopovers.value[group] = instance
-}
-
-function toggleScriptGroup(event: Event, group: string) {
-  scriptGroupPopovers.value[group]?.toggle(event)
-}
-
-function runGroupedScriptButton(btn: ScriptButton, group: string) {
-  btn.action()
-  scriptGroupPopovers.value[group]?.hide()
+function toSplitButtonItem(btn: ScriptButton) {
+  return {
+    label: btn.label,
+    command: () => btn.action(),
+  }
 }
 
 const ungroupedScriptButtons = computed(() =>
@@ -157,7 +147,15 @@ const groupedScriptButtons = computed(() => {
     if (!groups.has(group)) groups.set(group, [])
     groups.get(group)!.push(btn)
   }
-  return Array.from(groups.entries()).map(([name, items]) => ({ name, items }))
+  return Array.from(groups.entries()).map(([name, items]) => {
+    const [primary, ...secondary] = items
+    return {
+      name,
+      primary,
+      secondary,
+      model: secondary.map(toSplitButtonItem),
+    }
+  }).filter((g) => !!g.primary)
 })
 
 const menuItems = computed(() => {
@@ -312,35 +310,42 @@ const menuItems = computed(() => {
 
         <template v-for="grp in groupedScriptButtons" :key="`script-group-${grp.name}`">
           <Button
+            v-if="grp.secondary.length === 0"
             outlined
             size="small"
-            severity="secondary"
-            class="hidden sm:inline-flex gap-1.5"
-            @click="toggleScriptGroup($event, grp.name)"
+            :severity="grp.primary.severity"
+            @click="grp.primary.action"
+            :class="['hidden sm:inline-flex gap-1.5', grp.primary.className]"
+            :title="grp.name"
           >
-            {{ grp.name }}
-            <ChevronDown class="size-3.5" />
+            <component
+              :is="getIconComponent(grp.primary.icon)"
+              v-if="grp.primary.icon"
+              class="size-3.5"
+            />
+            {{ grp.primary.label }}
           </Button>
-          <Popover :ref="(el) => setScriptGroupPopover(grp.name, el)">
-            <div class="flex flex-col gap-1.5 min-w-[220px] p-1.5">
-              <Button
-                v-for="btn in grp.items"
-                :key="`script-group-item-${grp.name}-${btn.label}`"
-                text
-                size="small"
-                :severity="btn.severity"
-                :class="['justify-start gap-2', btn.className]"
-                @click="runGroupedScriptButton(btn, grp.name)"
-              >
-                <component
-                  :is="getIconComponent(btn.icon)"
-                  v-if="btn.icon"
-                  class="size-3.5"
-                />
-                {{ btn.label }}
-              </Button>
-            </div>
-          </Popover>
+          <SplitButton
+            v-else
+            outlined
+            size="small"
+            :label="grp.primary.label"
+            :model="grp.model"
+            :severity="grp.primary.severity"
+            :class="['hidden sm:inline-flex', grp.primary.className]"
+            :buttonProps="{ 'aria-label': grp.primary.label }"
+            :menuButtonProps="{ 'aria-label': `${grp.name} options` }"
+            @click="grp.primary.action"
+          >
+            <span class="inline-flex items-center gap-1.5">
+              <component
+                :is="getIconComponent(grp.primary.icon)"
+                v-if="grp.primary.icon"
+                class="size-3.5"
+              />
+              {{ grp.primary.label }}
+            </span>
+          </SplitButton>
         </template>
 
         <Button v-if="id" outlined class="text-foreground" :title="t('Refresh')"

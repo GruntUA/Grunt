@@ -26,6 +26,7 @@ const emit = defineEmits<{
   'field-focus': [fieldname: string]
   'field-blur': [fieldname: string]
   'create-new': [doctype: string, preset: string, fieldname: string]
+  'table-selection-change': [payload: { fieldname: string; rowNames: string[] }]
 }>()
 
 const layout = computed(() => parseLayout(props.doctype.fields))
@@ -154,7 +155,8 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
                       :model-value="modelValue[f.fieldname]"
                       :disabled="disabled || f.read_only || !!fieldLocks?.[f.fieldname]" :error="errors?.[f.fieldname]"
                       :doc-values="modelValue" @update:model-value="update(f.fieldname, $event)"
-                      @create-new="(doctype, preset, fieldname) => emit('create-new', doctype, preset, fieldname)" />
+                      @create-new="(doctype, preset, fieldname) => emit('create-new', doctype, preset, fieldname)"
+                      @table-selection-change="(fieldname, rowNames) => emit('table-selection-change', { fieldname, rowNames })" />
                   </div>
                 </div>
               </div>
@@ -202,6 +204,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
                   :doc-values="modelValue"
                   @update:model-value="update(f.fieldname, $event)"
                   @create-new="(doctype, preset, fieldname) => emit('create-new', doctype, preset, fieldname)"
+                  @table-selection-change="(fieldname, rowNames) => emit('table-selection-change', { fieldname, rowNames })"
                 />
               </div>
             </div>

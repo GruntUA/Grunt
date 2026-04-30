@@ -40,6 +40,7 @@ declare module 'vue' {
     ScrollPanel: typeof import('primevue/scrollpanel')['default']
     Select: typeof import('primevue/select')['default']
     Skeleton: typeof import('primevue/skeleton')['default']
+    SplitButton: typeof import('primevue/splitbutton')['default']
     StepPanel: typeof import('primevue/steppanel')['default']
     StepPanels: typeof import('primevue/steppanels')['default']
     Stepper: typeof import('primevue/stepper')['default']

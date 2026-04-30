@@ -68,6 +68,10 @@ export interface FormProxy {
     group?: string,
     options?: ScriptButtonOptions,
   ) => void
+  remove_custom_button: (label: string, group?: string | null) => void
+  clear_custom_buttons: () => void
+  change_custom_button_type: (label: string, group: string | null, buttonType: string) => void
+  get_selected: () => Record<string, string[]>
   reload: () => Promise<void>
   save: () => Promise<void>
   /** Internal state modified by scripts */
@@ -75,6 +79,7 @@ export interface FormProxy {
   _reqd: Record<string, boolean>
   _df_props: Record<string, Record<string, unknown>>
   _queries: Record<string, LinkQueryFn>
+  _selected_rows: Record<string, string[]>
 }
 
 /** Handle returned by listview.add_menu_item — allows in-place updates. */
@@ -170,6 +175,9 @@ export interface GruntProxy {
    * ```
    */
   on_progress: (cb: (data: { processed: number; total: number; message?: string }) => void) => () => void
+  route_options?: Record<string, unknown> | null
+  set_route: (...route: unknown[]) => void
+  open_route: (...route: unknown[]) => void
 }
 
 export type ClientScriptEvent = 'on_load' | 'on_change' | 'validate' | 'before_save' | 'after_save'
@@ -228,6 +236,9 @@ export function createFormProxy(
     setValue?: (field: string, value: unknown) => void
     refreshField?: (field: string) => void
     addButton?: (label: string, action: () => void | Promise<void>, options?: ScriptButtonOptions) => void
+    removeButton?: (label: string, group?: string | null) => void
+    clearButtons?: () => void
+    updateButtonType?: (label: string, group: string | null, buttonType: string) => void
     reload?: () => Promise<void>
     save?: () => Promise<void>
   } = {},
@@ -242,6 +253,7 @@ export function createFormProxy(
     _reqd: {},
     _df_props: {},
     _queries: {},
+    _selected_rows: {},
 
     get_value(fieldname: string) {
       return proxy.doc[fieldname]
@@ -292,6 +304,26 @@ export function createFormProxy(
       callbacks.addButton?.(label, action, merged)
     },
 
+    remove_custom_button(label: string, group?: string | null) {
+      callbacks.removeButton?.(label, group)
+    },
+
+    clear_custom_buttons() {
+      callbacks.clearButtons?.()
+    },
+
+    change_custom_button_type(label: string, group: string | null, buttonType: string) {
+      callbacks.updateButtonType?.(label, group, buttonType)
+    },
+
+    get_selected() {
+      return Object.fromEntries(
+        Object.entries(proxy._selected_rows)
+          .filter(([, rows]) => Array.isArray(rows) && rows.length > 0)
+          .map(([fieldname, rows]) => [fieldname, [...rows]]),
+      )
+    },
+
     async reload() {
       await callbacks.reload?.()
     },
@@ -320,6 +352,115 @@ export function createGruntProxy(
   // Internal registry populated by useClientScripts when a WS message arrives
   _messageListeners: Map<string, Set<(data: unknown) => void>> = new Map(),
 ): GruntProxy {
+  const isPlainObject = (v: unknown): v is Record<string, unknown> =>
+    typeof v === 'object' && v !== null && !Array.isArray(v)
+
+  const currentWorkspace = (): string => {
+    const parts = window.location.pathname.split('/').filter(Boolean)
+    if (parts[0] === 'app' && parts[1]) return decodeURIComponent(parts[1])
+    if (parts[0]) return decodeURIComponent(parts[0])
+    return 'grunt'
+  }
+
+  const buildListQuery = (filters?: Record<string, unknown> | null): string => {
+    if (!filters) return ''
+    const params = new URLSearchParams()
+    for (const [rawKey, rawVal] of Object.entries(filters)) {
+      if (rawVal == null) continue
+      const key = rawKey.includes('__') ? rawKey : `${rawKey}__eq`
+      params.append(`filter[${key}]`, String(rawVal))
+    }
+    const q = params.toString()
+    return q ? `?${q}` : ''
+  }
+
+  const buildQuery = (paramsObject?: Record<string, unknown> | null): string => {
+    if (!paramsObject) return ''
+    const params = new URLSearchParams()
+    for (const [key, rawVal] of Object.entries(paramsObject)) {
+      if (rawVal == null) continue
+      params.append(key, String(rawVal))
+    }
+    const q = params.toString()
+    return q ? `?${q}` : ''
+  }
+
+  const normalizeRouteParts = (route: unknown[]): string[] => {
+    const parts = route.length === 1 && Array.isArray(route[0])
+      ? route[0] as unknown[]
+      : route
+    return parts
+      .map((v) => String(v ?? '').trim())
+      .filter(Boolean)
+  }
+
+  const buildWorkspaceHref = (
+    routeParts: string[],
+    filters?: Record<string, unknown> | null,
+  ): string | null => {
+    if (!routeParts.length) return null
+    const ws = encodeURIComponent(currentWorkspace())
+    const [kind, ...rest] = routeParts
+    const lowerKind = kind.toLowerCase()
+
+    if (lowerKind === 'list') {
+      const doctype = rest[0]
+      if (!doctype) return null
+      return `/app/${ws}/${encodeURIComponent(doctype)}${buildListQuery(filters)}`
+    }
+
+    if (lowerKind === 'form') {
+      const doctype = rest[0]
+      const docId = rest[1]
+      if (!doctype) return null
+      if (!docId || docId.toLowerCase() === 'new') {
+        return `/app/${ws}/${encodeURIComponent(doctype)}/new${buildQuery(filters)}`
+      }
+      return `/app/${ws}/${encodeURIComponent(doctype)}/${encodeURIComponent(docId)}`
+    }
+
+    if (lowerKind === 'report') {
+      const reportName = rest[0]
+      if (!reportName) return null
+      return `/app/${ws}/report/${encodeURIComponent(reportName)}`
+    }
+
+    if (routeParts.length === 1) {
+      return `/app/${ws}/${encodeURIComponent(kind)}${buildListQuery(filters)}`
+    }
+
+    if (routeParts.length >= 2) {
+      return `/app/${ws}/${encodeURIComponent(routeParts[0])}/${encodeURIComponent(routeParts[1])}`
+    }
+
+    return null
+  }
+
+  let routeOptions: Record<string, unknown> | null = null
+
+  const resolveRouteCall = (route: unknown[]): { parts: string[]; filters: Record<string, unknown> | null } => {
+    if (!route.length) return { parts: [], filters: routeOptions }
+    const last = route[route.length - 1]
+    const hasInlineFilters = isPlainObject(last)
+    const rawParts = hasInlineFilters ? route.slice(0, -1) : route
+    return {
+      parts: normalizeRouteParts(rawParts),
+      filters: (hasInlineFilters ? (last as Record<string, unknown>) : routeOptions) ?? null,
+    }
+  }
+
+  const navigateRoute = (route: unknown[], inNewTab: boolean) => {
+    const { parts, filters } = resolveRouteCall(route)
+    const href = buildWorkspaceHref(parts, filters)
+    if (!href) return
+    if (inNewTab) {
+      window.open(href, '_blank')
+    } else {
+      window.location.assign(href)
+    }
+    routeOptions = null
+  }
+
   return {
     async call(methodOrOpts: string | { method: string; args?: Record<string, unknown> }, argsArg?: Record<string, unknown>) {
       const method = typeof methodOrOpts === 'string' ? methodOrOpts : methodOrOpts.method
@@ -414,6 +555,22 @@ export function createGruntProxy(
 
     on_progress(cb: (data: { processed: number; total: number; message?: string }) => void): () => void {
       return this.onMessage('import_progress', cb as (data: unknown) => void)
+    },
+
+    get route_options() {
+      return routeOptions
+    },
+
+    set route_options(value: Record<string, unknown> | null | undefined) {
+      routeOptions = isPlainObject(value) ? value : null
+    },
+
+    set_route(...route: unknown[]) {
+      navigateRoute(route, false)
+    },
+
+    open_route(...route: unknown[]) {
+      navigateRoute(route, true)
     },
   }
 }

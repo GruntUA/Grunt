@@ -20,6 +20,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: unknown]
   'create-new': [doctype: string, preset: string, fieldname: string]
+  'selection-change': [rowNames: string[]]
 }>()
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -31,6 +32,7 @@ const loading = ref(false)
 
 const editIdx = ref<number | null>(null)
 const editDraft = ref<Record<string, unknown>>({})
+const selectedRows = ref<Set<string>>(new Set())
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -56,6 +58,16 @@ watch(
     rows.value = Array.isArray(val) ? [...(val as Record<string, unknown>[])] : []
   },
   { immediate: true },
+)
+
+watch(
+  rows,
+  () => {
+    const current = new Set(rows.value.map((row, i) => rowName(row, i)))
+    selectedRows.value = new Set(Array.from(selectedRows.value).filter((k) => current.has(k)))
+    emitSelection()
+  },
+  { deep: true },
 )
 
 // ── Computed ──────────────────────────────────────────────────────────────────
@@ -115,6 +127,7 @@ function addRow() {
 }
 
 function removeRow(i: number) {
+  selectedRows.value.delete(rowName(rows.value[i], i))
   push(rows.value.filter((_, idx) => idx !== i))
 }
 
@@ -150,6 +163,35 @@ function onCellKeydown(e: KeyboardEvent, rowIdx: number, colIdx: number) {
     e.preventDefault()
     addRow()
   }
+}
+
+function rowName(row: Record<string, unknown>, index: number): string {
+  const key = row.name ?? row.id ?? row.__name ?? row._name
+  return key ? String(key) : `idx:${index}`
+}
+
+const allSelected = computed(() => rows.value.length > 0 && selectedRows.value.size === rows.value.length)
+const someSelected = computed(() => selectedRows.value.size > 0 && !allSelected.value)
+
+function emitSelection() {
+  emit('selection-change', Array.from(selectedRows.value))
+}
+
+function toggleRowSelection(index: number, checked: boolean) {
+  const key = rowName(rows.value[index], index)
+  if (checked) selectedRows.value.add(key)
+  else selectedRows.value.delete(key)
+  emitSelection()
+}
+
+function toggleAllSelections(checked: boolean) {
+  if (!checked) {
+    selectedRows.value.clear()
+    emitSelection()
+    return
+  }
+  selectedRows.value = new Set(rows.value.map((row, i) => rowName(row, i)))
+  emitSelection()
 }
 
 // ── Quick Entry for Link fields in row dialog ─────────────────────────────────
@@ -194,6 +236,15 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
           <tr>
             <!-- Drag handle spacer -->
             <th v-if="!disabled" class="w-7 border-b border-border" />
+            <th class="w-9 px-2 py-2 border-b border-border text-center">
+              <input
+                type="checkbox"
+                :checked="allSelected"
+                :indeterminate.prop="someSelected"
+                class="rounded border-border size-4"
+                @change="toggleAllSelections(($event.target as HTMLInputElement).checked)"
+              />
+            </th>
             <th class="w-8 px-3 py-2 text-xs font-medium text-muted-foreground border-b border-border text-center">#</th>
             <th
               v-for="f in tableColumns"
@@ -220,6 +271,15 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
               <!-- Drag handle -->
               <td v-if="!disabled" class="pl-2 py-1 text-center">
                 <GripVertical class="drag-handle size-4 text-muted-foreground/40 hover:text-muted-foreground cursor-grab active:cursor-grabbing transition-colors" />
+              </td>
+
+              <td class="px-2 py-1 text-center">
+                <input
+                  type="checkbox"
+                  :checked="selectedRows.has(rowName(row, i))"
+                  class="rounded border-border size-4"
+                  @change="toggleRowSelection(i, ($event.target as HTMLInputElement).checked)"
+                />
               </td>
 
               <!-- Row number -->
@@ -327,7 +387,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
           <!-- Empty state (slot required by draggable) -->
           <template #footer>
             <tr v-if="!rows.length">
-              <td :colspan="tableColumns.length + (disabled ? 2 : 3)" class="px-3 py-8 text-center text-muted-foreground text-sm">
+              <td :colspan="tableColumns.length + (disabled ? 3 : 4)" class="px-3 py-8 text-center text-muted-foreground text-sm">
                 <span v-if="loading">{{ t('Loading...') }}</span>
                 <span v-else>{{ t('No rows') }}</span>
               </td>

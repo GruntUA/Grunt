@@ -71,6 +71,7 @@ const {
   reqdOverrides,
   runEvent: runScriptEvent,
   getLinkFilters,
+  setTableSelection,
 } = useClientScripts(props.doctype, {
   getDoc: () => form.value,
   getFields: () => (dt.value?.fields ?? []) as Record<string, unknown>[],
@@ -320,7 +321,8 @@ useFetchFrom({
               v-model:active-tab="activeTab"
               :overrides="displayOverrides" :reqd-overrides="reqdOverrides" :field-locks="fieldLocks"
               @update:model-value="onFormUpdate($event)" @field-focus="focusField($event)"
-              @field-blur="blurField($event)" @create-new="handleCreateNew" />
+              @field-blur="blurField($event)" @create-new="handleCreateNew"
+              @table-selection-change="({ fieldname, rowNames }) => setTableSelection(fieldname, rowNames)" />
           </div>
 
 

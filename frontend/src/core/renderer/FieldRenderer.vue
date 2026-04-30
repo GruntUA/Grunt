@@ -19,6 +19,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: unknown]
   'create-new': [doctype: string, preset: string, fieldname: string]
+  'table-selection-change': [fieldname: string, rowNames: string[]]
 }>()
 
 const isVisible = computed(() => {
@@ -62,6 +63,7 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
       :doc="docValues"
       @update:modelValue="emit('update:modelValue', $event)"
       @create-new="(doctype: string, preset: string) => emit('create-new', doctype, preset, field.fieldname)"
+      @selection-change="(rowNames: string[]) => emit('table-selection-change', field.fieldname, rowNames)"
     />
 
     <p v-if="field.description" class="text-[11px] text-muted-foreground leading-snug">
