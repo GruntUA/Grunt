@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, shallowRef } from 'vue'
+import type { Component } from 'vue'
 import type { DocField, DocTypeStatusConfig } from '@/types'
 
 const props = defineProps<{
@@ -8,6 +9,23 @@ const props = defineProps<{
   field: DocField
   statusConfig?: DocTypeStatusConfig | null
 }>()
+
+type IconMap = Record<string, Component>
+const lucideIcons = shallowRef<IconMap>({})
+let iconsLoaded = false
+
+function loadIcons() {
+  if (iconsLoaded) return
+  iconsLoaded = true
+  import('@lucide/vue').then((lib) => { lucideIcons.value = lib as unknown as IconMap })
+}
+
+function getIconComponent(name: string): Component | null {
+  loadIcons()
+  if (!name) return null
+  const pascal = name.split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join('')
+  return (lucideIcons.value[pascal] ?? null) as Component | null
+}
 
 const COLOR_CLASSES: Record<string, string> = {
   default: '',
@@ -28,6 +46,25 @@ const COLOR_CLASSES: Record<string, string> = {
   pink: 'border-pink-500/30 bg-pink-500/10 text-pink-700 dark:text-pink-300',
 }
 
+const COLOR_SEVERITY: Record<string, string | undefined> = {
+  default: undefined,
+  secondary: 'secondary',
+  success: 'success',
+  info: 'info',
+  warn: 'warn',
+  danger: 'danger',
+  contrast: 'contrast',
+  // Legacy aliases
+  gray: 'secondary',
+  blue: 'info',
+  green: 'success',
+  yellow: 'warn',
+  orange: 'warn',
+  red: 'danger',
+  purple: undefined,
+  pink: undefined,
+}
+
 const badge = computed(() => {
   if (props.value === null || props.value === undefined || props.value === '') return null
   const val = String(props.value)
@@ -35,15 +72,29 @@ const badge = computed(() => {
   if (isStatusField && props.statusConfig?.indicators) {
     const ind = props.statusConfig.indicators.find((i) => i.value === val)
     if (ind) {
-      return { colorClass: COLOR_CLASSES[ind.color] ?? '', label: ind.label ?? val }
+      return {
+        colorClass: COLOR_CLASSES[ind.color] ?? '',
+        severity: COLOR_SEVERITY[ind.color],
+        label: ind.label ?? val,
+        icon: ind.icon ?? null,
+      }
     }
   }
-  return { colorClass: '', label: val }
+  return { colorClass: '', severity: undefined, label: val, icon: null }
 })
 </script>
 
 <template>
-  <Badge v-if="badge" severity="contrast" :class="['font-normal whitespace-nowrap', badge.colorClass]">
+  <Badge
+    v-if="badge"
+    :severity="badge.severity"
+    :class="['font-normal whitespace-nowrap inline-flex items-center gap-1.5', badge.colorClass]"
+  >
+    <component
+      :is="getIconComponent(String(badge.icon ?? ''))"
+      v-if="badge.icon"
+      class="size-3.5 shrink-0"
+    />
     {{ badge.label }}
   </Badge>
   <span v-else class="text-muted-foreground/30">—</span>

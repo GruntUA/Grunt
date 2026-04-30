@@ -17,6 +17,16 @@ export interface ScriptButton {
   label: string
   action: () => void | Promise<void>
   severity?: string
+  className?: string
+  icon?: string
+  group?: string
+}
+
+export interface ScriptButtonOptions {
+  variant?: string
+  color?: string
+  icon?: string
+  group?: string
 }
 
 /** Handle returned by listview.add_button — allows in-place updates. */
@@ -51,7 +61,13 @@ export interface FormProxy {
    */
   set_query: (fieldname: string, fn: LinkQueryFn) => void
   refresh_field: (fieldname: string) => void
-  add_button: (label: string, action: () => void | Promise<void>, options?: { variant?: string }) => void
+  add_button: (label: string, action: () => void | Promise<void>, options?: ScriptButtonOptions) => void
+  add_custom_button: (
+    label: string,
+    action: () => void | Promise<void>,
+    group?: string,
+    options?: ScriptButtonOptions,
+  ) => void
   reload: () => Promise<void>
   save: () => Promise<void>
   /** Internal state modified by scripts */
@@ -211,7 +227,7 @@ export function createFormProxy(
   callbacks: {
     setValue?: (field: string, value: unknown) => void
     refreshField?: (field: string) => void
-    addButton?: (label: string, action: () => void | Promise<void>, options?: { variant?: string }) => void
+    addButton?: (label: string, action: () => void | Promise<void>, options?: ScriptButtonOptions) => void
     reload?: () => Promise<void>
     save?: () => Promise<void>
   } = {},
@@ -259,8 +275,21 @@ export function createFormProxy(
       callbacks.refreshField?.(fieldname)
     },
 
-    add_button(label: string, action: () => void | Promise<void>, options?: { variant?: string }) {
+    add_button(label: string, action: () => void | Promise<void>, options?: ScriptButtonOptions) {
       callbacks.addButton?.(label, action, options)
+    },
+
+    add_custom_button(
+      label: string,
+      action: () => void | Promise<void>,
+      group?: string,
+      options?: ScriptButtonOptions,
+    ) {
+      const merged: ScriptButtonOptions = {
+        ...(options ?? {}),
+        group: options?.group ?? group,
+      }
+      callbacks.addButton?.(label, action, merged)
     },
 
     async reload() {

@@ -222,6 +222,9 @@ export interface ScriptButton {
   label: string
   action: () => void | Promise<void>
   severity?: string
+  className?: string
+  icon?: string
+  group?: string
 }
 
 /** Item registered via `listview.add_menu_item()` — appears in the "⋯" header dropdown. */

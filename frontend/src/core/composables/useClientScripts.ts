@@ -35,6 +35,7 @@ import {
   type GruntProxy,
   type ClientScriptEvent,
   type ScriptButton,
+  type ScriptButtonOptions,
 } from '@/core/scripting/executor'
 
 export interface UseClientScriptsOptions {
@@ -50,6 +51,40 @@ export interface UseClientScriptsOptions {
 }
 
 export function useClientScripts(doctype: string, options: UseClientScriptsOptions) {
+    const SEVERITY_MAP: Record<string, string | undefined> = {
+      default: undefined,
+      secondary: 'secondary',
+      success: 'success',
+      info: 'info',
+      warn: 'warn',
+      warning: 'warn',
+      danger: 'danger',
+      error: 'danger',
+      contrast: 'contrast',
+      gray: 'secondary',
+      blue: 'info',
+      green: 'success',
+      yellow: 'warn',
+      orange: 'warn',
+      red: 'danger',
+    }
+
+    const COLOR_CLASS_MAP: Record<string, string> = {
+      purple: 'border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300',
+      pink: 'border-pink-500/30 bg-pink-500/10 text-pink-700 dark:text-pink-300',
+      teal: 'border-teal-500/30 bg-teal-500/10 text-teal-700 dark:text-teal-300',
+    }
+
+    function normalizeButtonStyle(opts?: ScriptButtonOptions) {
+      const tone = String(opts?.color ?? opts?.variant ?? '').trim().toLowerCase()
+      return {
+        severity: tone ? SEVERITY_MAP[tone] : undefined,
+        className: tone ? (COLOR_CLASS_MAP[tone] ?? '') : '',
+        icon: opts?.icon,
+        group: opts?.group,
+      }
+    }
+
   const dialog = useDialog()
   const toast = useToast()
   const buttons = ref<ScriptButton[]>([])
@@ -96,8 +131,21 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
       },
       refreshField: options.refreshField,
       addButton: (label, action, opts) => {
-        if (!buttons.value.some(b => b.label === label)) {
-          buttons.value.push({ label, action, severity: opts?.variant })
+        const style = normalizeButtonStyle(opts)
+        const key = `${style.group ?? ''}::${label}`
+        const idx = buttons.value.findIndex(b => `${b.group ?? ''}::${b.label}` === key)
+        const next: ScriptButton = {
+          label,
+          action,
+          severity: style.severity,
+          className: style.className,
+          icon: style.icon,
+          group: style.group,
+        }
+        if (idx >= 0) {
+          buttons.value[idx] = next
+        } else {
+          buttons.value.push(next)
         }
       },
       reload: options.reload,

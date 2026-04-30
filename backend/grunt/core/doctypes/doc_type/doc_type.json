@@ -184,6 +184,13 @@
       "fieldtype": "JSON"
     },
     {
+      "fieldname": "status_config",
+      "label": "Налаштування статусів",
+      "fieldtype": "Code",
+      "options": "json",
+      "description": "{\"field\": \"status\", \"indicators\": [{\"value\": \"Чернетка\", \"color\": \"secondary\"}, {\"value\": \"Підписаний\", \"color\": \"success\"}, {\"value\": \"Скасований\", \"color\": \"danger\"}]}"
+    },
+    {
       "fieldname": "tab_tree",
       "label": "Дерево",
       "fieldtype": "Tab",

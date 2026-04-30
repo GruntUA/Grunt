@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useQueryClient } from '@tanstack/vue-query'
-import type { DocType } from '@/types'
+import type { Component } from 'vue'
+import type { DocType, ScriptButton } from '@/types'
 import {
   Loader2,
   EllipsisVertical,
   RefreshCw,
   Share2,
   Copy as CopyIcon,
+  ChevronDown,
 } from '@lucide/vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 
@@ -24,7 +26,7 @@ const props = defineProps<{
   isDirty: boolean
   isLoading: boolean
   isSaving: boolean
-  scriptButtons: any[]
+  scriptButtons: ScriptButton[]
 }>()
 
 const emit = defineEmits<{
@@ -48,6 +50,24 @@ const shareExpires = ref('')
 const showRenameDialog = ref(false)
 const newDocId = ref('')
 const isRenaming = ref(false)
+
+type IconMap = Record<string, Component>
+const lucideIcons = shallowRef<IconMap>({})
+let iconsLoaded = false
+
+function loadIcons() {
+  if (iconsLoaded) return
+  iconsLoaded = true
+  import('@lucide/vue').then((lib) => { lucideIcons.value = lib as unknown as IconMap })
+}
+
+function getIconComponent(name?: string | null): Component | null {
+  loadIcons()
+  const raw = String(name ?? '').trim()
+  if (!raw) return null
+  const pascal = raw.split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join('')
+  return (lucideIcons.value[pascal] ?? null) as Component | null
+}
 
 async function createShare() {
   if (!props.id || !props.doctype) return
@@ -108,6 +128,37 @@ const menu = ref()
 const toggleMenu = (event: Event) => {
     menu.value.toggle(event)
 }
+
+const scriptGroupPopovers = ref<Record<string, any>>({})
+
+function setScriptGroupPopover(group: string, instance: any) {
+  if (!instance) return
+  scriptGroupPopovers.value[group] = instance
+}
+
+function toggleScriptGroup(event: Event, group: string) {
+  scriptGroupPopovers.value[group]?.toggle(event)
+}
+
+function runGroupedScriptButton(btn: ScriptButton, group: string) {
+  btn.action()
+  scriptGroupPopovers.value[group]?.hide()
+}
+
+const ungroupedScriptButtons = computed(() =>
+  (props.scriptButtons ?? []).filter((b) => !String(b.group ?? '').trim())
+)
+
+const groupedScriptButtons = computed(() => {
+  const groups = new Map<string, ScriptButton[]>()
+  for (const btn of props.scriptButtons ?? []) {
+    const group = String(btn.group ?? '').trim()
+    if (!group) continue
+    if (!groups.has(group)) groups.set(group, [])
+    groups.get(group)!.push(btn)
+  }
+  return Array.from(groups.entries()).map(([name, items]) => ({ name, items }))
+})
 
 const menuItems = computed(() => {
     const items: any[] = []
@@ -242,10 +293,55 @@ const menuItems = computed(() => {
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <!-- Client script buttons -->
-        <Button v-for="btn in scriptButtons" :key="btn.label" outlined size="small"
-          :severity="btn.severity" @click="btn.action" class="hidden sm:inline-flex">
+        <Button
+          v-for="btn in ungroupedScriptButtons"
+          :key="`script-${btn.label}`"
+          outlined
+          size="small"
+          :severity="btn.severity"
+          @click="btn.action"
+          :class="['hidden sm:inline-flex gap-1.5', btn.className]"
+        >
+          <component
+            :is="getIconComponent(btn.icon)"
+            v-if="btn.icon"
+            class="size-3.5"
+          />
           {{ btn.label }}
         </Button>
+
+        <template v-for="grp in groupedScriptButtons" :key="`script-group-${grp.name}`">
+          <Button
+            outlined
+            size="small"
+            severity="secondary"
+            class="hidden sm:inline-flex gap-1.5"
+            @click="toggleScriptGroup($event, grp.name)"
+          >
+            {{ grp.name }}
+            <ChevronDown class="size-3.5" />
+          </Button>
+          <Popover :ref="(el) => setScriptGroupPopover(grp.name, el)">
+            <div class="flex flex-col gap-1.5 min-w-[220px] p-1.5">
+              <Button
+                v-for="btn in grp.items"
+                :key="`script-group-item-${grp.name}-${btn.label}`"
+                text
+                size="small"
+                :severity="btn.severity"
+                :class="['justify-start gap-2', btn.className]"
+                @click="runGroupedScriptButton(btn, grp.name)"
+              >
+                <component
+                  :is="getIconComponent(btn.icon)"
+                  v-if="btn.icon"
+                  class="size-3.5"
+                />
+                {{ btn.label }}
+              </Button>
+            </div>
+          </Popover>
+        </template>
 
         <Button v-if="id" outlined class="text-foreground" :title="t('Refresh')"
           :disabled="isDirty || isLoading"

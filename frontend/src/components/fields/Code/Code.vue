@@ -45,8 +45,26 @@ const extensions = computed<Extension[]>(() => {
 })
 
 const value = computed(() => {
-  const raw = String(props.modelValue ?? '')
   const lang = (props.field.options ?? '').toLowerCase().trim()
+
+  if (lang === 'json') {
+    const src = props.modelValue
+    if (src === null || src === undefined || src === '') return ''
+    if (typeof src === 'string') {
+      try {
+        return JSON.stringify(JSON.parse(src), null, 2)
+      } catch {
+        return src
+      }
+    }
+    try {
+      return JSON.stringify(src, null, 2)
+    } catch {
+      return String(src)
+    }
+  }
+
+  const raw = String(props.modelValue ?? '')
   if (lang === 'sql' && raw) {
     try {
       return formatSql(raw, { language: 'sql', tabWidth: 2, keywordCase: 'upper' })
