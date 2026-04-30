@@ -247,6 +247,49 @@ class Document:
     async def validate(self) -> None:
         """Custom validation — raise :class:`~grunt.app.GruntError` to abort the save."""
 
+    @classmethod
+    async def list_filter_extra(
+        cls,
+        session: Any,
+        filters: dict[str, Any],
+        table: Any,
+    ) -> Any | None:
+        """Return an extra SQLAlchemy WHERE clause to append to list/tree queries.
+
+        Override in a controller to inject custom per-DocType filtering that
+        cannot be expressed as simple ``field__op=value`` pairs.  Return a
+        SQLAlchemy ``ClauseElement`` or ``None`` to skip.
+
+        The clause is appended *before* the standard ``_apply_filters`` step
+        so that both the data query and the COUNT query are guarded.
+
+        Example::
+
+            @classmethod
+            async def list_filter_extra(cls, session, filters, table):
+                from sqlalchemy import or_
+                col = table.c.get("archived")
+                if col is None:
+                    return None
+                return or_(col == False, col.is_(None))
+        """
+        return None
+
+    @classmethod
+    async def tree_preserve_ancestors(
+        cls,
+        session: Any,
+        filters: dict[str, Any],
+        table: Any,
+    ) -> bool:
+        """Return whether matched tree nodes should include ancestor chain.
+
+        Override in a controller when tree filters should return strictly
+        matching nodes (for example, time-sliced hierarchy views where
+        non-matching ancestors must stay hidden).
+        """
+        return True
+
     # ── Real-time helpers ─────────────────────────────────────────────────
 
     async def publish_progress(

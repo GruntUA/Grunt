@@ -119,6 +119,21 @@ class DocumentReadMixin:
 
         query = select(*cols)
 
+        # Controller hook: list_filter_extra — DocType controllers may inject
+        # extra WHERE clauses (e.g. temporal guards, visibility rules) without
+        # modifying the framework core.
+        from grunt.core.document.base import Document  # noqa: PLC0415
+        from grunt.core.document.registry import document_registry  # noqa: PLC0415
+
+        controller_cls = document_registry.get(doctype_name)
+        extra_clause = None
+        if controller_cls.list_filter_extra is not Document.list_filter_extra:
+            extra_clause = await controller_cls.list_filter_extra(
+                self.session, filters or {}, table
+            )
+        if extra_clause is not None:
+            query = query.where(extra_clause)
+
         # Filters
         if filters:
             query = _apply_filters(query, table, filters)
@@ -129,6 +144,8 @@ class DocumentReadMixin:
 
         # Count
         count_q = select(func.count()).select_from(table)
+        if extra_clause is not None:
+            count_q = count_q.where(extra_clause)
         if filters:
             count_q = _apply_filters(count_q, table, filters)
         if search:

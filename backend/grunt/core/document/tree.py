@@ -185,17 +185,37 @@ class TreeService:
             tree_ids = [r["id"] for r in all_rows]
             filtered_q = select(table.c.id)
             filtered_q = _apply_filters(filtered_q, table, filters)
+
+            # Controller hook: list_filter_extra — allows DocType controllers
+            # (e.g. in app code) to inject extra WHERE clauses without touching
+            # the framework core.
+            from grunt.core.document.base import Document  # noqa: PLC0415
+            from grunt.core.document.registry import document_registry  # noqa: PLC0415
+
+            ctrl_cls = document_registry.get(doctype)
+            if ctrl_cls.list_filter_extra is not Document.list_filter_extra:
+                extra_clause = await ctrl_cls.list_filter_extra(session, filters, table)
+                if extra_clause is not None:
+                    filtered_q = filtered_q.where(extra_clause)
+
+            preserve_ancestors = True
+            if ctrl_cls.tree_preserve_ancestors is not Document.tree_preserve_ancestors:
+                preserve_ancestors = await ctrl_cls.tree_preserve_ancestors(
+                    session, filters, table
+                )
+
             filtered_q = filtered_q.where(table.c.id.in_(tree_ids))
             filtered_result = await session.execute(filtered_q)
             matched_ids: set[str] = {str(r[0]) for r in filtered_result.fetchall()}
 
             # Collect ancestor IDs for each matched node so the tree stays readable
             keep_ids: set[str] = set(matched_ids)
-            for mid in matched_ids:
-                current = parent_lookup.get(mid)
-                while current:
-                    keep_ids.add(current)
-                    current = parent_lookup.get(current)
+            if preserve_ancestors:
+                for mid in matched_ids:
+                    current = parent_lookup.get(mid)
+                    while current:
+                        keep_ids.add(current)
+                        current = parent_lookup.get(current)
 
             all_rows = [r for r in all_rows if r["id"] in keep_ids]
         # ──────────────────────────────────────────────────────────────────

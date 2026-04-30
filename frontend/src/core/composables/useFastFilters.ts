@@ -2,6 +2,30 @@ import { computed, watch } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import type { FastFilter } from '@/types'
 
+function currentLocalIsoDate(): string {
+  const now = new Date()
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000)
+  return local.toISOString().slice(0, 10)
+}
+
+function isTodayToken(value: string | null | undefined): boolean {
+  if (value == null) return false
+  const token = String(value).trim().toLowerCase()
+  return token === 'today' || token === 'today()'
+}
+
+function resolveDefaultValue(ff: FastFilter): string | null {
+  if (ff.default_value == null) return null
+  const raw = String(ff.default_value)
+  if (ff.input_type === 'date') {
+    const token = raw.trim().toLowerCase()
+    if (token === 'today' || token === 'today()') {
+      return currentLocalIsoDate()
+    }
+  }
+  return raw
+}
+
 export interface UseFastFiltersReturn {
   /** Raw backend-format filter map { "field__op": "value" } */
   rawFastFilters: ComputedRef<Record<string, string>>
@@ -32,10 +56,16 @@ export function useFastFilters(
     (newDefs) => {
       for (const ff of newDefs) {
         if (!ff.enabled_in.includes(scope)) continue
-        if (!(ff.id in fastFilterValues.value) && ff.default_value != null) {
+        const defaultValue = resolveDefaultValue(ff)
+        const existing = fastFilterValues.value[ff.id]
+        const hasKey = ff.id in fastFilterValues.value
+        const shouldReapplyTodayDefault =
+          hasKey && existing === '' && ff.input_type === 'date' && isTodayToken(ff.default_value)
+
+        if ((!hasKey || shouldReapplyTodayDefault) && defaultValue != null) {
           fastFilterValues.value = {
             ...fastFilterValues.value,
-            [ff.id]: String(ff.default_value),
+            [ff.id]: defaultValue,
           }
         }
       }

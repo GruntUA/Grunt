@@ -475,6 +475,18 @@ class DocumentWriteMixin:
             controller_cls = document_registry.get(doctype_name)
             doc = controller_cls(doctype_name, merged, user, self.session)
             await self._run_update_before_hooks(doc)
+
+            # Hooks may request a document rename by mutating `id`.
+            requested_id = str(merged.get("id") or "").strip()
+            if requested_id and requested_id != real_id:
+                await self.rename_document(doctype_name, real_id, requested_id, user)
+                real_id = requested_id
+
+            # Hooks may mutate standard fields (e.g. `name`) via Document attrs.
+            # Ensure these changes are persisted even though they are not DocType fields.
+            if "name" in table.c and merged.get("name") != existing.get("name"):
+                update_data["name"] = merged.get("name")
+
             await self._persist_update_doc(
                 dt,
                 table,
