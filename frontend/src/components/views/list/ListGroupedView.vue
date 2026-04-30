@@ -15,6 +15,8 @@ interface SelectionState {
 
 const props = defineProps<{
   dt: DocType | null
+  workspace: string
+  doctype: string
   groupedRows: GroupedRowBucket[]
   columns: ListColumn[]
   collapsedGroups: Set<string>
@@ -101,6 +103,7 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
                 :columns="columns"
                 :rows="group.items"
                 :fields="dt?.fields ?? []"
+                :row-link-base="`/app/${workspace}/${doctype}`"
                 :is-loading="false"
                 :sort-key="sortKey"
                 :sort-order="sortOrder"

@@ -9,6 +9,7 @@ const props = defineProps<{
   columns: ListColumn[]
   rows: Record<string, unknown>[]
   fields: DocField[]
+  rowLinkBase?: string
   isLoading: boolean
   sortKey: string
   sortOrder: 'asc' | 'desc'
@@ -91,6 +92,20 @@ function getFieldType(key: string): string {
 }
 
 const sortOrderValue = computed(() => props.sortOrder === 'desc' ? -1 : 1)
+
+function rowHref(row: Record<string, unknown>): string | null {
+  if (!props.rowLinkBase) return null
+  const id = row.id
+  if (id === null || id === undefined) return null
+  return `${props.rowLinkBase}/${encodeURIComponent(String(id))}`
+}
+
+function onRowAnchorClick(event: MouseEvent, row: Record<string, unknown>) {
+  if (event.button !== 0) return
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+  event.preventDefault()
+  emit('rowClick', row)
+}
 
 
 // Mapping for PT (Pass Through) to match our design system
@@ -180,12 +195,27 @@ const pt = {
           </template>
 
           <!-- Field-type cell renderer (registry) -->
-          <div v-else
-            :class="{ 'font-semibold text-primary hover:underline': ci === 0 && !['Image', 'Attach', 'Check'].includes(getFieldType(col.key)) }">
-            <component :is="getListCell(getFieldType(col.key)) ?? DefaultListCell" :value="slotProps.data[col.key]" :row="slotProps.data"
-              :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
-              :status-config="statusConfig" />
-          </div>
+          <template v-else>
+            <a
+              v-if="rowHref(slotProps.data)"
+              :href="rowHref(slotProps.data)!"
+              class="block"
+              :class="{ 'font-semibold text-primary hover:underline': ci === 0 && !['Image', 'Attach', 'Check'].includes(getFieldType(col.key)) }"
+              @click.stop="onRowAnchorClick($event, slotProps.data)"
+            >
+              <component :is="getListCell(getFieldType(col.key)) ?? DefaultListCell" :value="slotProps.data[col.key]" :row="slotProps.data"
+                :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
+                :status-config="statusConfig" />
+            </a>
+            <div
+              v-else
+              :class="{ 'font-semibold text-primary hover:underline': ci === 0 && !['Image', 'Attach', 'Check'].includes(getFieldType(col.key)) }"
+            >
+              <component :is="getListCell(getFieldType(col.key)) ?? DefaultListCell" :value="slotProps.data[col.key]" :row="slotProps.data"
+                :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
+                :status-config="statusConfig" />
+            </div>
+          </template>
         </div>
       </template>
     </Column>

@@ -109,6 +109,8 @@ const emit = defineEmits<{
 
     <template v-else>
       <ListTableView :dt="dt" :rows="rows" :columns="columns" :fields="fields" :meta="meta"
+        :workspace="workspace"
+        :doctype="doctype"
         :is-loading="isLoading && !hasData" :sort-key="sortKey" :sort-order="sortOrder" :active-index="activeIndex"
         :group-by="groupBy" :grouped-rows="groupedRows" :collapsed-groups="collapsedGroups"
         :group-by-field="groupByField" :selection="selection" @sort="(key) => emit('sort', key)"

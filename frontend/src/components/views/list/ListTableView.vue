@@ -24,6 +24,8 @@ interface SelectionState {
 
 const props = defineProps<{
   dt: DocType | null
+  workspace: string
+  doctype: string
   rows: Record<string, unknown>[]
   columns: ListColumn[]
   fields: DocField[]
@@ -76,6 +78,8 @@ const normalizedSortKey = computed(() => props.sortKey || '')
       <ListGroupedView
         v-if="groupBy && groupedRows && dt && groupByField"
         :dt="dt"
+        :workspace="workspace"
+        :doctype="doctype"
         :grouped-rows="groupedRows"
         :columns="columns"
         :collapsed-groups="collapsedGroups"
@@ -97,6 +101,7 @@ const normalizedSortKey = computed(() => props.sortKey || '')
             :columns="columns"
             :rows="rows"
             :fields="fields"
+            :row-link-base="`/app/${workspace}/${doctype}`"
             :is-loading="isLoading"
             :sort-key="normalizedSortKey"
             :sort-order="sortOrder"
