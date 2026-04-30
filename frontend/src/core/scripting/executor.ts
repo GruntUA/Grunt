@@ -10,6 +10,7 @@
  */
 
 import client from '@/core/api/client'
+import type { DialogSize } from '@/core/composables/useDialog'
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -150,7 +151,7 @@ export interface GruntProxy {
   show_alert: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void
   prompt: (labelOrOpts: string | { label: string; fieldtype?: string; title?: string }, title?: string) => Promise<string | null>
   warn: (title: string, message: string, primaryLabel?: string) => Promise<boolean>
-  form: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: string }) => Promise<Record<string, unknown> | null>
+  form: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: DialogSize }) => Promise<Record<string, unknown> | null>
   show_progress: (title: string, count: number, total: number, description?: string) => void
   /**
    * Subscribe to a WebSocket event on the current document channel.
@@ -346,7 +347,7 @@ export function createGruntProxy(
     showAlert?: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void
     prompt?: (labelOrOpts: string | { label: string; fieldtype?: string; title?: string }, title?: string) => Promise<string | null>
     warn?: (title: string, message: string, primaryLabel?: string) => Promise<boolean>
-    form?: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: string }) => Promise<Record<string, unknown> | null>
+    form?: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: DialogSize }) => Promise<Record<string, unknown> | null>
     showProgress?: (title: string, count: number, total: number, description?: string) => void
   } = {},
   // Internal registry populated by useClientScripts when a WS message arrives

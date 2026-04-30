@@ -157,6 +157,8 @@ def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> No
     _write_doctypes_init(app_dir, module)
     _write_fixtures_init(app_dir, module)
     _write_workspace_fixture(app_dir, module, hooks)
+    _write_jsconfig(app_dir, module)
+    _write_types_dts(app_dir, module)
 
     # Git
     if not no_git and hooks.get("use_git", True):
@@ -288,6 +290,24 @@ def _write_workspace_fixture(app_dir: Path, module: str, h: dict) -> None:
     ]
     (app_dir / module / "fixtures" / "00_workspace.json").write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _write_jsconfig(app_dir: Path, module: str) -> None:
+    from grunt.utils.codegen import render_template  # noqa: PLC0415
+
+    (app_dir / "jsconfig.json").write_text(
+        render_template("app/jsconfig.json.jinja", {"module": module}),
+        encoding="utf-8",
+    )
+
+
+def _write_types_dts(app_dir: Path, module: str) -> None:
+    from grunt.utils.codegen import render_template  # noqa: PLC0415
+
+    (app_dir / module / "types.d.ts").write_text(
+        render_template("app/types.d.ts.jinja", {}),
         encoding="utf-8",
     )
 

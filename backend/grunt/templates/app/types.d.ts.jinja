@@ -1,0 +1,14 @@
+import type {
+  FormProxy as _FormProxy,
+  GruntProxy as _GruntProxy,
+  ScriptButtonOptions as _ScriptButtonOptions,
+} from '../../grunt/frontend/src/core/scripting/executor'
+
+declare global {
+  type FormProxy = _FormProxy
+  type GruntProxy = _GruntProxy
+  type ScriptButtonOptions = _ScriptButtonOptions
+  const grunt: _GruntProxy
+}
+
+export {}

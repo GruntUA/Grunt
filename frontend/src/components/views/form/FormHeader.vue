@@ -131,6 +131,7 @@ const toggleMenu = (event: Event) => {
 function toSplitButtonItem(btn: ScriptButton) {
   return {
     label: btn.label,
+    icon: btn.icon,
     command: () => btn.action(),
   }
 }
@@ -345,6 +346,16 @@ const menuItems = computed(() => {
               />
               {{ grp.primary.label }}
             </span>
+            <template #item="{ item }">
+              <span class="inline-flex items-center gap-2 px-3 py-2 cursor-pointer">
+                <component
+                  :is="getIconComponent(item.icon)"
+                  v-if="item.icon"
+                  class="size-3.5"
+                />
+                {{ item.label }}
+              </span>
+            </template>
           </SplitButton>
         </template>
 
