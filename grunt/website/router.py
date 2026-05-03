@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import structlog
-from fastapi import Depends, Request
+from fastapi import Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, select_autoescape
 
@@ -130,7 +130,7 @@ async def render_page(
 
     try:
         # Fetch global website settings (Singleton)
-        ws = await grunt.get_doc("WebsiteSettings", "WebsiteSettings", session=session)
+        ws = await grunt.get_doc("WebsiteSettings", "WebsiteSettings")
         context["website_settings"] = ws
     except Exception:
         context["website_settings"] = None
@@ -192,15 +192,18 @@ async def render_page_by_route(
 
     # 2. Try database-based pages (WebPage)
     try:
-        pages = await grunt.get_all(
+        pages = await grunt.db.get_all(
             "WebPage",
             filters={"route": path, "published": 1},
             limit=1,
-            session=session
         )
         if pages:
-            doc = await grunt.get_doc("WebPage", pages[0]["id"], session=session)
+            doc = await grunt.get_doc("WebPage", pages[0]["id"])
             return await render_db_page(doc, request, session=session)
+    except HTTPException as exc:
+        if exc.status_code == 404 and "DocType 'WebPage' not found" in str(exc.detail):
+            return None
+        logger.warning("website.db_page.error", route=path, error=str(exc))
     except Exception as e:
         logger.warning("website.db_page.error", route=path, error=str(e))
 
@@ -222,7 +225,7 @@ async def render_db_page(doc: Any, request: Request, session: Any) -> HTMLRespon
     }
 
     try:
-        ws = await grunt.get_doc("WebsiteSettings", "WebsiteSettings", session=session)
+        ws = await grunt.get_doc("WebsiteSettings", "WebsiteSettings")
         context["website_settings"] = ws
     except Exception:
         context["website_settings"] = None

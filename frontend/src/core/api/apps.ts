@@ -16,7 +16,7 @@ export const appsApi = {
     },
 
     addModule: async (appName: string, moduleName: string): Promise<GruntApp> => {
-        const response = await client.post('/api/v1/method/grunt.core.doctypes.grunt_installed_app.grunt_installed_app.add_module', {
+        const response = await client.post('/api/v1/method/grunt.startup.doctypes.GruntInstalledApp.GruntInstalledApp.add_module', {
             name: appName,
             module: moduleName
         })
