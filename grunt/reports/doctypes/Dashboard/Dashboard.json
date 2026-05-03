@@ -1,0 +1,48 @@
+{
+  "name": "Dashboard",
+  "label": "Дашборд",
+  "module": "reports",
+  "is_child": false,
+  "autoname": "prompt",
+  "title_field": "label",
+  "fields": [
+    {
+      "fieldname": "label",
+      "label": "Назва",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "description",
+      "label": "Опис",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "workspace",
+      "label": "Воркспейс",
+      "fieldtype": "Text",
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "is_published",
+      "label": "Опублікований",
+      "fieldtype": "Check",
+      "default": false,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "roles",
+      "label": "Ролі (через кому)",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "widgets",
+      "label": "Віджети",
+      "fieldtype": "Table",
+      "options": "Dashboard Widget"
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "name": "DocTypePermission",
+  "label": "Дозвіл DocType",
+  "module": "metadata",
+  "title_field": "doctype_name",
+  "fields": [
+    {
+      "fieldname": "doctype_name",
+      "label": "DocType",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "role",
+      "label": "Роль",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "sec_actions",
+      "label": "Дії",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "read",
+      "label": "Читати",
+      "fieldtype": "Check",
+      "default": false,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "write",
+      "label": "Редагувати",
+      "fieldtype": "Check",
+      "default": false,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "create",
+      "label": "Створювати",
+      "fieldtype": "Check",
+      "default": false,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "delete",
+      "label": "Видаляти",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "submit",
+      "label": "Підтверджувати",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "cancel",
+      "label": "Скасовувати",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "report",
+      "label": "Звіти",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "sec_advanced",
+      "label": "Додатково",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "match",
+      "label": "Умова відповідності (eval:)",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "hidden_fields",
+      "label": "Приховані поля (через кому)",
+      "fieldtype": "LongText"
+    }
+  ]
+}

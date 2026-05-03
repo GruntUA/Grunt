@@ -1,0 +1,255 @@
+{
+  "name": "DocType",
+  "label": "Тип документа",
+  "module": "metadata",
+  "is_virtual": true,
+  "is_child": false,
+  "track_changes": false,
+  "autoname": "prompt",
+  "title_field": "label",
+  "search_fields": [
+    "name",
+    "label",
+    "module"
+  ],
+  "list_view": {
+    "sort_by": "modified_at",
+    "sort_order": "desc"
+  },
+  "fields": [
+    {
+      "fieldname": "tab_main",
+      "label": "Основне",
+      "fieldtype": "Tab",
+      "icon": "Info"
+    },
+    {
+      "fieldname": "label",
+      "label": "Назва",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "bold": true
+    },
+    {
+      "fieldname": "col_app_module_1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "app",
+      "label": "Додаток",
+      "fieldtype": "Select",
+      "options": ""
+    },
+    {
+      "fieldname": "col_app_module_2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "module",
+      "label": "Модуль",
+      "fieldtype": "Select",
+      "options": "",
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "Спочатку оберіть Додаток"
+    },
+    {
+      "fieldname": "tab_fields",
+      "label": "Поля",
+      "fieldtype": "Tab",
+      "icon": "List"
+    },
+    {
+      "fieldname": "fields",
+      "label": "Список полів",
+      "fieldtype": "Table",
+      "options": "DocField"
+    },
+    {
+      "fieldname": "tab_permissions",
+      "label": "Дозволи",
+      "fieldtype": "Tab",
+      "icon": "ShieldLock"
+    },
+    {
+      "fieldname": "permissions",
+      "label": "Дозволи",
+      "fieldtype": "Table",
+      "options": "DocTypePermission"
+    },
+    {
+      "fieldname": "tab_settings",
+      "label": "Налаштування (Advanced)",
+      "fieldtype": "Tab",
+      "icon": "Settings"
+    },
+    {
+      "fieldname": "sec_naming",
+      "label": "Автонумерація та відображення",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "col_n1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "autoname",
+      "label": "Автонумерація",
+      "fieldtype": "Text",
+      "description": "Серія (CONTR-.YYYY.-.####), field:fieldname, prompt або hash"
+    },
+    {
+      "fieldname": "title_field",
+      "label": "Поле заголовка",
+      "fieldtype": "Text",
+      "description": "Яке поле відображається як назва документа (default: name)"
+    },
+    {
+      "fieldname": "image_field",
+      "label": "Поле зображення",
+      "fieldtype": "Text",
+      "description": "Поле типу Image або Attach для аватара документа"
+    },
+    {
+      "fieldname": "col_n2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "default_view",
+      "label": "Вигляд за замовчуванням",
+      "fieldtype": "Select",
+      "options": "\nlist\nkanban\ncalendar\ntree"
+    },
+    {
+      "fieldname": "table_name",
+      "label": "Назва таблиці (override)",
+      "fieldtype": "Text",
+      "read_only": true,
+      "description": "Фізична таблиця в БД. Заповнюється автоматично"
+    },
+    {
+      "fieldname": "search_fields",
+      "label": "Поля пошуку",
+      "fieldtype": "JSON",
+      "description": "Список полів для full-text пошуку, наприклад [\"name\", \"label\"]"
+    },
+    {
+      "fieldname": "sec_flags",
+      "label": "Прапори",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "col_f1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "is_child",
+      "label": "Дочірній (Child Table)",
+      "fieldtype": "Check",
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "Використовується всередині поля TABLE іншого DocType"
+    },
+    {
+      "fieldname": "is_submittable",
+      "label": "Можна подати (Submittable)",
+      "fieldtype": "Check",
+      "description": "Додає кнопку Submit та поле docstatus"
+    },
+    {
+      "fieldname": "is_singleton",
+      "label": "Одинарний (Singleton)",
+      "fieldtype": "Check",
+      "description": "Лише один документ цього типу (налаштування, профіль)"
+    },
+    {
+      "fieldname": "col_f2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "is_virtual",
+      "label": "Віртуальний",
+      "fieldtype": "Check",
+      "description": "Без фізичної таблиці — дані з контролера"
+    },
+    {
+      "fieldname": "track_changes",
+      "label": "Журналювати зміни",
+      "fieldtype": "Check",
+      "description": "Зберігати версії документа при кожному збереженні"
+    },
+    {
+      "fieldname": "sec_views",
+      "label": "Вигляди (Views JSON)",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "list_view",
+      "label": "Налаштування списку",
+      "fieldtype": "JSON"
+    },
+    {
+      "fieldname": "form_view",
+      "label": "Налаштування форми",
+      "fieldtype": "JSON"
+    },
+    {
+      "fieldname": "status_config",
+      "label": "Налаштування статусів",
+      "fieldtype": "Code",
+      "options": "json",
+      "description": "{\"field\": \"status\", \"indicators\": [{\"value\": \"Чернетка\", \"color\": \"secondary\"}, {\"value\": \"Підписаний\", \"color\": \"success\"}, {\"value\": \"Скасований\", \"color\": \"danger\"}]}"
+    },
+    {
+      "fieldname": "tab_tree",
+      "label": "Дерево",
+      "fieldtype": "Tab",
+      "icon": "GitBranch"
+    },
+    {
+      "fieldname": "is_tree",
+      "label": "Це дерево (Is Tree)",
+      "fieldtype": "Check",
+      "description": "Дозволяє ієрархічне відображення та TreeSelect вміст"
+    },
+    {
+      "fieldname": "tree_view",
+      "label": "Налаштування дерева",
+      "fieldtype": "JSON",
+      "description": "{\"parent_field\": \"parent_department\", \"title_field\": \"title\"}"
+    },
+    {
+      "fieldname": "tab_dashboard",
+      "label": "Дашборд",
+      "fieldtype": "Tab",
+      "icon": "LayoutDashboard"
+    },
+    {
+      "fieldname": "show_in_dashboard",
+      "label": "Показувати в дашборді",
+      "fieldtype": "Check",
+      "description": "Відображати це поле як бейдж з лічильником у заголовку форми"
+    },
+    {
+      "fieldname": "dashboard_doctype",
+      "label": "Документ дашборду",
+      "fieldtype": "Text",
+      "description": "DocType для створення нового запису при натисканні '+'"
+    },
+    {
+      "fieldname": "tab_designer",
+      "label": "Конструктор",
+      "fieldtype": "Tab",
+      "experimental_component": "DesignerTab",
+      "icon": "LayoutTemplate"
+    }
+  ]
+}

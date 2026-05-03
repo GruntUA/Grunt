@@ -1,0 +1,23 @@
+"""Database layer — engine, session, base models, and high-level helpers."""
+
+from grunt.db.api import GruntDB
+from grunt.db.base import Base, GruntBase
+from grunt.db.session import get_engine, get_session
+
+__all__ = [
+    "Base",
+    "GruntBase",
+    "GruntDB",
+    "get_engine",
+    "get_session",
+]
+
+# Module-level proxy so `grunt.db.get_all(...)` works when grunt.db resolves
+# to this package rather than a GruntDB() instance.
+_db_proxy = GruntDB()
+
+
+def __getattr__(name: str):
+    if hasattr(_db_proxy, name):
+        return getattr(_db_proxy, name)
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

@@ -1,0 +1,33 @@
+{
+  "name": "SharedWith",
+  "label": "Доступ",
+  "module": "permissions",
+  "fields": [
+    {
+      "fieldname": "reference_doctype",
+      "label": "Тип документа",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true
+    },
+    {
+      "fieldname": "reference_id",
+      "label": "ID документа",
+      "fieldtype": "Text",
+      "required": true
+    },
+    {
+      "fieldname": "user",
+      "label": "Користувач",
+      "fieldtype": "Text",
+      "required": true
+    },
+    {
+      "fieldname": "permission",
+      "label": "Дозвіл",
+      "fieldtype": "Select",
+      "options": "Read\nWrite",
+      "default": "Read"
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "name": "AssignmentLog",
+  "label": "Assignment Log",
+  "doctype": "DocType",
+  "module": "assignment",
+  "log_changes": false,
+  "fields": [
+    {
+      "fieldname": "rule_id",
+      "label": "Rule ID",
+      "fieldtype": "Link",
+      "options": "AssignmentRule",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "doctype_affected",
+      "label": "DocType Affected",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "document_id",
+      "label": "Document ID",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "assigned_to",
+      "label": "Assigned To",
+      "fieldtype": "Link",
+      "options": "User",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "assignment_method",
+      "label": "Assignment Method",
+      "fieldtype": "Select",
+      "options": "user\nrole",
+      "required": true,
+      "help": "user = assign to specific user, role = assign to role"
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Success\nFailed",
+      "default": "Success",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "error_message",
+      "label": "Error Message",
+      "fieldtype": "LongText",
+      "help": "If status is Failed, error details here"
+    },
+    {
+      "fieldname": "filters_matched",
+      "label": "Filters Matched",
+      "fieldtype": "Check",
+      "help": "Whether the document matched the rule filters"
+    },
+    {
+      "fieldname": "timestamp",
+      "label": "Timestamp",
+      "fieldtype": "Datetime",
+      "required": true,
+      "in_list_view": true,
+      "read_only": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "permlevel": 0,
+      "read": 1,
+      "write": 0,
+      "create": 0,
+      "delete": 0
+    }
+  ]
+}

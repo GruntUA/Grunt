@@ -1,0 +1,102 @@
+{
+  "name": "DocField",
+  "label": "Поле доктайпу",
+  "module": "metadata",
+  "is_child": true,
+  "fields": [
+    {
+      "fieldname": "label",
+      "label": "Назва (Label)",
+      "fieldtype": "Text",
+      "in_list_view": true,
+      "required": true
+    },
+    {
+      "fieldname": "fieldname",
+      "label": "Код поля (Fieldname)",
+      "fieldtype": "Text",
+      "in_list_view": true,
+      "required": true
+    },
+    {
+      "fieldname": "fieldtype",
+      "label": "Тип поля",
+      "fieldtype": "Select",
+      "in_list_view": true,
+      "required": true,
+      "options": "Text\nLongText\nRichText\nInt\nFloat\nCheck\nDate\nDatetime\nTime\nSelect\nLink\nMultiLink\nTable\nAttach\nImage\nJSON\nCode\nSection\nColumn\nTab\nSignature\nGeolocation\nRating\nIcon"
+    },
+    {
+      "fieldname": "options",
+      "label": "Опції",
+      "fieldtype": "Text",
+      "description": "DocType для Link/Table або список для Select"
+    },
+    {
+      "fieldname": "sec_validation",
+      "label": "Валідація та прапори",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "col_v1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "required",
+      "label": "Обов'язкове",
+      "fieldtype": "Check"
+    },
+    {
+      "fieldname": "unique",
+      "label": "Унікальне",
+      "fieldtype": "Check"
+    },
+    {
+      "fieldname": "read_only",
+      "label": "Лише читання",
+      "fieldtype": "Check"
+    },
+    {
+      "fieldname": "col_v2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "in_list_view",
+      "label": "У списку",
+      "fieldtype": "Check"
+    },
+    {
+      "fieldname": "in_filter",
+      "label": "У фільтрах",
+      "fieldtype": "Check"
+    },
+    {
+      "fieldname": "hidden",
+      "label": "Приховане",
+      "fieldtype": "Check"
+    },
+    {
+      "fieldname": "sec_details",
+      "label": "Додатково",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "description",
+      "label": "Опис",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "default",
+      "label": "Значення за замовчуванням",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "depends_on",
+      "label": "Залежить від (Depends On)",
+      "fieldtype": "Text",
+      "description": "Умова відображення (Python/JS)"
+    }
+  ]
+}

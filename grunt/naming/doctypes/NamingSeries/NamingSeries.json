@@ -1,0 +1,21 @@
+{
+  "name": "NamingSeries",
+  "label": "Серія нумерації",
+  "module": "naming",
+  "fields": [
+    {
+      "fieldname": "prefix",
+      "label": "Префікс",
+      "fieldtype": "Text",
+      "unique": true,
+      "required": true
+    },
+    {
+      "fieldname": "current",
+      "label": "Поточне значення",
+      "fieldtype": "Int",
+      "default": "0"
+    }
+  ],
+  "autoname": "field:prefix"
+}

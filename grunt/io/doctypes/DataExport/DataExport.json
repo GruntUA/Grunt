@@ -1,0 +1,89 @@
+{
+  "name": "DataExport",
+  "label": "Експорт даних",
+  "module": "io",
+  "title_field": "doctype_name",
+  "fields": [
+    {
+      "fieldname": "doctype_name",
+      "label": "Тип документа",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "label",
+      "label": "Назва",
+      "fieldtype": "Data",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "export_format",
+      "label": "Формат",
+      "fieldtype": "Select",
+      "options": "csv\nxlsx",
+      "default": "xlsx",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "fields_to_export",
+      "label": "Поля для експорту",
+      "fieldtype": "JSON",
+      "description": "Масив fieldname. Якщо порожньо — всі поля."
+    },
+    {
+      "fieldname": "filters",
+      "label": "Фільтри",
+      "fieldtype": "JSON",
+      "description": "JSON-об'єкт: {\"fieldname\": \"value\"}"
+    },
+    {
+      "fieldname": "limit",
+      "label": "Макс. рядків",
+      "fieldtype": "Int",
+      "default": 10000
+    },
+    {
+      "fieldname": "status",
+      "label": "Статус",
+      "fieldtype": "Select",
+      "options": "Pending\nIn Progress\nSuccess\nFailed",
+      "default": "Pending",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "exported_rows",
+      "label": "Експортовано рядків",
+      "fieldtype": "Int",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "file",
+      "label": "Файл результату",
+      "fieldtype": "Attach",
+      "read_only": true,
+      "description": "Заповнюється автоматично після експорту"
+    },
+    {
+      "fieldname": "error",
+      "label": "Помилка",
+      "fieldtype": "Text",
+      "read_only": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

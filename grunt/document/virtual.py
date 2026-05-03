@@ -1,0 +1,69 @@
+"""Virtual DocType delegation for DocumentService."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+from grunt.document.registry import document_registry
+
+if TYPE_CHECKING:
+    from grunt.auth.doctypes.User.User import User
+    from grunt.document.base import DocumentList
+
+
+def _get_virtual_controller(doctype_name: str, user: User):
+    """Get the VirtualDocType controller instance for a virtual DocType."""
+    from grunt.metadata.virtual import VirtualDocType  # noqa: PLC0415
+
+    controller_cls = document_registry.get(doctype_name)
+    # Check if it's a VirtualDocType subclass
+    if issubclass(controller_cls, VirtualDocType):
+        return controller_cls(doctype_name, user)
+    # Fallback — create a base VirtualDocType (will raise NotImplementedError)
+    return VirtualDocType(doctype_name, user)
+
+
+async def _virtual_list(
+    doctype_name: str,
+    user: User,
+    page: int,
+    per_page: int,
+    sort_by: str,
+    sort_order: str,
+    filters: Any,
+    search: str | None,
+) -> "DocumentList":
+    from grunt.document.base import DocumentList  # noqa: PLC0415
+
+    ctrl = _get_virtual_controller(doctype_name, user)
+    result = await ctrl.get_list(
+        filters=filters,
+        page=page,
+        per_page=per_page,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        search=search,
+    )
+    if isinstance(result, DocumentList):
+        return result
+    return DocumentList(data=result.get("data", []), meta=result.get("meta", {}))
+
+
+async def _virtual_get(doctype_name: str, user: User, doc_id: str):
+    ctrl = _get_virtual_controller(doctype_name, user)
+    return await ctrl.get(doc_id)
+
+
+async def _virtual_create(doctype_name: str, user: User, data: dict[str, Any]):
+    ctrl = _get_virtual_controller(doctype_name, user)
+    return await ctrl.create(data)
+
+
+async def _virtual_update(doctype_name: str, user: User, doc_id: str, data: dict[str, Any]):
+    ctrl = _get_virtual_controller(doctype_name, user)
+    return await ctrl.update(doc_id, data)
+
+
+async def _virtual_delete(doctype_name: str, user: User, doc_id: str):
+    ctrl = _get_virtual_controller(doctype_name, user)
+    return await ctrl.delete(doc_id)

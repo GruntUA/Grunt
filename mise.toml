@@ -37,19 +37,19 @@ wait $CHILD
 description = "Start only the Vite frontend dev server"
 
 [tasks.worker]
-run = "uv run backend/grunt/cli/main.py worker"
+run = "uv run grunt/cli/main.py worker"
 description = "Start the TaskIQ background worker"
 
 [tasks.bootstrap]
-run = "uv run python backend/bootstrap_site.py"
+run = "uv run python bootstrap_site.py"
 description = "Initialize database and core doctypes"
 
 [tasks."db:migrate"]
-run = "uv run alembic -c backend/alembic.ini upgrade head"
+run = "uv run alembic -c alembic.ini upgrade head"
 description = "Apply database migrations"
 
 [tasks.db-reset]
-run = "uv run alembic -c backend/alembic.ini downgrade base && uv run alembic -c backend/alembic.ini upgrade head"
+run = "uv run alembic -c alembic.ini downgrade base && uv run alembic -c alembic.ini upgrade head"
 description = "Reset developer database (CAUTION: wipes all data)"
 
 [tasks.test]
@@ -57,7 +57,7 @@ depends = ["test-py", "test-js"]
 description = "Run all tests"
 
 [tasks.test-py]
-run = "uv run pytest backend/tests/ -v --tb=short"
+run = "uv run pytest tests/ -v --tb=short"
 description = "Run Python backend tests"
 
 [tasks.test-js]

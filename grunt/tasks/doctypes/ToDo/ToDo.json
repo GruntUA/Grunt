@@ -1,0 +1,53 @@
+{
+  "name": "ToDo",
+  "label": "Завдання",
+  "module": "tasks",
+  "fields": [
+    {
+      "fieldname": "description",
+      "label": "Опис",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "reference_doctype",
+      "label": "Тип документа",
+      "fieldtype": "Link",
+      "options": "DocType"
+    },
+    {
+      "fieldname": "reference_id",
+      "label": "ID документа",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "assigned_to",
+      "label": "Виконавець",
+      "fieldtype": "Text",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "status",
+      "label": "Статус",
+      "fieldtype": "Select",
+      "options": "Open\nClosed",
+      "default": "Open",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "priority",
+      "label": "Пріоритет",
+      "fieldtype": "Select",
+      "options": "Low\nMedium\nHigh\nUrgent",
+      "default": "Medium",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "due_date",
+      "label": "Термін",
+      "fieldtype": "Date",
+      "in_list_view": true
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "name": "PushSubscription",
+  "label": "Push-підписка",
+  "module": "webpush",
+  "table_name": "grunt_push_subscription",
+  "fields": [
+    {
+      "fieldname": "user",
+      "label": "Користувач",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "endpoint",
+      "label": "Endpoint",
+      "fieldtype": "LongText",
+      "required": true
+    },
+    {
+      "fieldname": "p256dh",
+      "label": "p256dh ключ",
+      "fieldtype": "LongText",
+      "required": true
+    },
+    {
+      "fieldname": "auth",
+      "label": "Auth ключ",
+      "fieldtype": "Text",
+      "required": true
+    },
+    {
+      "fieldname": "user_agent",
+      "label": "User Agent",
+      "fieldtype": "Text"
+    }
+  ]
+}

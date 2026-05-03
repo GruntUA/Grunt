@@ -1,7 +1,5 @@
 {
   "venvPath": "/home/maks4/grunt-bench/apps/grunt",
   "venv": ".venv",
-  "extraPaths": [
-    "backend"
-  ]
+  "extraPaths": []
 }

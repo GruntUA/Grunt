@@ -1,4 +1,4 @@
-from grunt.core.metadata.field import register_field_type
+from grunt.metadata.field import register_field_type
 
 _MIN_VARCHAR = 64
 _MAX_VARCHAR = 1000

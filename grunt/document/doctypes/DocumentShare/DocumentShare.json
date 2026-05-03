@@ -1,0 +1,58 @@
+{
+  "name": "DocumentShare",
+  "label": "Спільний доступ",
+  "module": "document",
+  "table_name": "grunt_document_share",
+  "track_changes": false,
+  "fields": [
+    {
+      "fieldname": "doctype_name",
+      "label": "Тип документа",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "doc_id",
+      "label": "Документ ID",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "token",
+      "label": "Токен",
+      "fieldtype": "Data",
+      "hidden": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "expires_at",
+      "label": "Дійсно до",
+      "fieldtype": "Datetime",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "is_active",
+      "label": "Активне",
+      "fieldtype": "Check",
+      "default": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "view_count",
+      "label": "Перегляди",
+      "fieldtype": "Int",
+      "default": 0,
+      "read_only": true
+    },
+    {
+      "fieldname": "note",
+      "label": "Примітка",
+      "fieldtype": "Text"
+    }
+  ]
+}
