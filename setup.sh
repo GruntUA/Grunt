@@ -154,7 +154,7 @@ fi
 
 # Запуск міграцій
 info "Запуск міграцій Alembic..."
-uv run alembic -c backend/alembic.ini upgrade head 2>/dev/null || {
+uv run alembic -c alembic.ini upgrade head 2>/dev/null || {
     warn "alembic.ini не знайдено, пропускаю міграції (буде виконано при першому запуску)"
 }
 ok "База даних готова"
@@ -171,7 +171,7 @@ echo ""
 if [[ "$MODE" == "docker" ]]; then
     echo -e "  Запуск:  ${BOLD}docker compose up${NC}"
 else
-    echo -e "  Backend: ${BOLD}uv run uvicorn backend.grunt.main:app --reload${NC}"
+    echo -e "  Backend: ${BOLD}uv run uvicorn grunt.main:app --reload${NC}"
     echo -e "  Frontend:${BOLD}cd frontend && npm run dev${NC}"
     echo ""
     echo -e "  Або разом через grunt CLI:"

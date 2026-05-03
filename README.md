@@ -53,10 +53,10 @@ mise dev
 ## Структура проєкту
 
 ```
-grunt-bench/        # Корінь (Bench / Workspace)
-├── apps/grunt/     # Основний додаток
-│   ├── backend/    # Python / FastAPI
-│   └── frontend/   # Vue 3 / TypeScript
-├── mise.toml       # Глобальна конфігурація інструментів та задач
+my-project/         # Корінь project
+├── apps/grunt/     # Framework app
+│   ├── grunt/      # Python package / FastAPI backend
+│   └── frontend/   # Vue 3 / TypeScript frontend
+├── sites/          # Site instances
 └── ...
 ```

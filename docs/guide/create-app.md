@@ -8,19 +8,19 @@ An **App** in Grunt is a set of DocTypes, controllers, hooks, and background tas
 grunt create-app my_crm
 ```
 
-This creates the following structure inside `grunt_apps/my_crm/`:
+This creates the following structure inside `apps/my_crm/`:
 
 ```
-grunt_apps/my_crm/
-├── app.json              ← App manifest
-├── __init__.py
-├── doctypes/             ← DocType JSON definitions
-├── tasks/
-│   ├── __init__.py
-│   └── tasks.py          ← Background tasks
-└── hooks/
-    ├── __init__.py
-    └── hooks.py          ← Event hooks
+apps/my_crm/
+├── my_crm/               ← Python module
+│   ├── doctypes/
+│   │   └── Customer/
+│   │       ├── Customer.json
+│   │       └── Customer.py
+│   ├── tasks.py          ← Background tasks
+│   └── hooks.py          ← Event hooks
+├── grunt_app.py          ← App manifest + hooks entrypoint
+└── app.json
 ```
 
 ## App manifest (`app.json`)
@@ -37,9 +37,9 @@ grunt_apps/my_crm/
 
 ## Defining DocTypes
 
-Create a JSON file in `doctypes/`:
+Create a JSON file in `my_crm/doctypes/Customer/`:
 
-```json title="doctypes/Customer.json"
+```json title="my_crm/doctypes/Customer/Customer.json"
 {
   "name": "Customer",
   "label": "Customer",
@@ -68,8 +68,8 @@ grunt doctype sync Customer
 
 Create a Python file next to the DocType JSON:
 
-```python title="doctypes/Customer.py"
-from grunt.core.document.controller import Document
+```python title="my_crm/doctypes/Customer/Customer.py"
+from grunt.document.base import Document
 
 class Customer(Document):
     async def validate(self) -> None:
@@ -88,10 +88,10 @@ class Customer(Document):
 
 ## Registering hooks
 
-```python title="hooks/hooks.py"
-from grunt.core.hooks import on
+```python title="my_crm/hooks.py"
+from grunt.hooks import on_doc
 
-@on("after_insert", doctype="Customer")
+@on_doc("Customer", "after_insert")
 async def on_customer_insert(doc, user, **kwargs):
     """Called after any Customer document is created."""
     await grunt.publish(
@@ -104,8 +104,8 @@ async def on_customer_insert(doc, user, **kwargs):
 
 ## Adding background tasks
 
-```python title="tasks/tasks.py"
-from grunt.core.tasks.broker import retryable_task
+```python title="my_crm/tasks.py"
+from grunt.tasks.broker import retryable_task
 
 @retryable_task(max_retries=3, delay=60)
 async def sync_customers_from_crm():

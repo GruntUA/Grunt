@@ -39,6 +39,7 @@ node_modules/
 frontend/dist/
 .nuxt/
 *.local
+site/
 
 # ──── Testing ──────────────────────────────
 .coverage
