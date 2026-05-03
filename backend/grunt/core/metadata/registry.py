@@ -14,6 +14,7 @@ This keeps startup fast regardless of how many DocTypes an application has.
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 import structlog
@@ -29,6 +30,9 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 logger = structlog.get_logger()
+
+_FIELDNAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+_MAX_FIELDNAME_LEN = 64
 
 
 class DocTypeRegistry:
@@ -382,10 +386,16 @@ class DocTypeRegistry:
     ) -> None:
         """Update an existing DocType, re-sync its table, refresh cache."""
         if doctype.name not in self._doctypes:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"DocType '{doctype.name}' not found",
+            # DocType may be known but not yet lazy-loaded — check DB before failing.
+            exists = await session.scalar(
+                select(GruntMetaDoctype.id).where(GruntMetaDoctype.name == doctype.name)
             )
+            if not exists:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"DocType '{doctype.name}' not found",
+                )
+            await self._lazy_load(doctype.name)
         self._validate_fields(doctype)
 
         await session.execute(
@@ -434,7 +444,7 @@ class DocTypeRegistry:
 
     @staticmethod
     def _validate_fields(doctype: DocType) -> None:
-        """Check for duplicate fieldnames."""
+        """Check for duplicate, invalid, or oversized fieldnames."""
         seen: set[str] = set()
         for f in doctype.fields:
             if f.fieldname in seen:
@@ -443,6 +453,17 @@ class DocTypeRegistry:
                     detail=f"Duplicate fieldname '{f.fieldname}' in DocType '{doctype.name}'",
                 )
             seen.add(f.fieldname)
+
+            if not _FIELDNAME_RE.match(f.fieldname):
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                    detail=f"Invalid fieldname '{f.fieldname}': must start with a-z and contain only a-z, 0-9, _",
+                )
+            if len(f.fieldname) > _MAX_FIELDNAME_LEN:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                    detail=f"Fieldname '{f.fieldname}' exceeds {_MAX_FIELDNAME_LEN} characters",
+                )
 
 
 # Module-level singleton

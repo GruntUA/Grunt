@@ -110,7 +110,7 @@ class DocTypeController(VirtualDocType):
             await sync_table(dt, engine, session=session)
 
         # Export to files if applicable
-        export_doctype_files(dt)
+        export_doctype_files(dt, app_name=dt.app or None)
 
         return dt.model_dump()
 
@@ -131,7 +131,7 @@ class DocTypeController(VirtualDocType):
             await sync_table(dt, engine, session=session)
 
         # Export to files
-        export_doctype_files(dt)
+        export_doctype_files(dt, app_name=dt.app or None)
 
         return dt.model_dump()
 

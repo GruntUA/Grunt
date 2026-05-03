@@ -38,8 +38,9 @@ export const useBuilderStore = defineStore('builder', () => {
   )
 
   const layout = computed<FormLayout>(() => {
-    if (!doctype.value) return []
-    return parseLayout(doctype.value.fields)
+    const fields = doctype.value?.fields
+    if (!Array.isArray(fields)) return []
+    return parseLayout(fields)
   })
 
   // ── Load / Save ──────────────────────────────────────────────────────

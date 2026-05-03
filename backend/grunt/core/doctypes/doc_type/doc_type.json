@@ -33,11 +33,29 @@
       "bold": true
     },
     {
+      "fieldname": "col_app_module_1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "app",
+      "label": "Додаток",
+      "fieldtype": "Select",
+      "options": ""
+    },
+    {
+      "fieldname": "col_app_module_2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
       "fieldname": "module",
       "label": "Модуль",
-      "fieldtype": "Text",
+      "fieldtype": "Select",
+      "options": "",
       "in_list_view": true,
-      "in_filter": true
+      "in_filter": true,
+      "description": "Спочатку оберіть Додаток"
     },
     {
       "fieldname": "tab_fields",

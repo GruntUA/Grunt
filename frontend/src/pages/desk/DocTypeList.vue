@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { docsApi } from '@/core/api/docs'
 import { useListViewKeyboard } from '@/core/composables/useListViewKeyboard'
 import { useListFieldDetection } from '@/core/composables/useListFieldDetection'
-import { useDocTypeListData } from '@/core/composables/useDocTypeListData'
+import { useInfiniteDocTypeListData } from '@/core/composables/useInfiniteDocTypeListData'
 import { useListRouteSync } from '@/core/composables/useListRouteSync'
 import { useListActions } from '@/core/composables/useListActions'
 import { useListMapMenuItems } from '@/core/composables/useListMapMenuItems'
@@ -169,9 +169,8 @@ watch(
   { deep: true },
 )
 
-const { data, isLoading, isFetching, meta, rows, exportCtx } = useDocTypeListData({
+const { data, isLoading, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, meta, rows, exportCtx } = useInfiniteDocTypeListData({
   doctype: props.doctype,
-  page,
   debouncedSearch,
   sortKey,
   sortOrder,
@@ -346,6 +345,9 @@ watch(() => props.doctype, async (newDoctype) => {
       :fast-filter-defs="fastFilterDefs"
       :fast-filter-values="fastFilterValues"
       @update:fast-filter-values="fastFilterValues = $event"
+      :fetch-next-page="fetchNextPage"
+      :has-next-page="hasNextPage"
+      :is-fetching-next-page="isFetchingNextPage"
       @sort="onSort"
       @row-click="navigateToDoc"
       @inline-update="inlineUpdate"
@@ -354,7 +356,6 @@ watch(() => props.doctype, async (newDoctype) => {
       @select-all="selectAllDocuments"
       @update="bulkUpdate"
       @toggle-group="(k) => collapsedGroups.has(k) ? collapsedGroups.delete(k) : collapsedGroups.add(k)"
-      @page="page = $event"
       @register-menu-items="registerMapMenuItems"
       @unregister-menu-items="unregisterMapMenuItems"
     />

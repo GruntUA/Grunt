@@ -17,6 +17,7 @@ const props = defineProps<{
   errors?: Record<string, string>
   overrides?: Record<string, boolean>
   reqdOverrides?: Record<string, boolean>
+  dfPropOverrides?: Record<string, Record<string, unknown>>
   fieldLocks?: Record<string, PresenceUser>
 }>()
 
@@ -66,6 +67,14 @@ function update(fieldname: string, val: unknown) {
   emit('update:modelValue', { ...props.modelValue, [fieldname]: val })
 }
 
+function mergedField(f: Record<string, unknown>): Record<string, unknown> {
+  const dfOverrides = props.dfPropOverrides?.[f.fieldname as string]
+  const reqdOverride = props.reqdOverrides?.[f.fieldname as string]
+  if (!dfOverrides && reqdOverride === undefined) return f
+  const base = dfOverrides ? { ...f, ...dfOverrides } : f
+  return reqdOverride !== undefined ? { ...base, required: reqdOverride } : base
+}
+
 function toggleSection(section: LayoutSection) {
   if (section.collapsible) section.collapsed = !section.collapsed
 }
@@ -94,14 +103,9 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
 <template>
   <Tabs v-if="hasTabs" v-model:value="currentTab" class="w-full overflow-hidden">
     <!-- Tab navigation -->
-    <TabList 
-      scrollable 
-      variant="underline" 
-      class="mb-6 h-auto border-b border-border px-2"
-      :pt="{
-        prevButton: { class: 'bg-background hover:bg-muted text-primary shadow-sm border-r border-border/40 w-10 flex items-center justify-center' },
-        nextButton: { class: 'bg-background hover:bg-muted text-primary shadow-sm border-l border-border/40 w-10 flex items-center justify-center' }
-      }"
+    <TabList
+      variant="underline"
+      class="mb-6 h-auto border-b border-border px-2 overflow-x-auto"
     >
       <Tab v-for="(tab, ti) in layout" :key="ti" :value="tab.label || 'Main'" variant="underline" class="flex items-center gap-1.5 px-4 h-10">
         <component
@@ -151,7 +155,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
                     </div>
 
                     <FieldRenderer
-                      :field="reqdOverrides?.[f.fieldname] !== undefined ? { ...f, required: reqdOverrides[f.fieldname] } : f"
+                      :field="mergedField(f)"
                       :model-value="modelValue[f.fieldname]"
                       :disabled="disabled || f.read_only || !!fieldLocks?.[f.fieldname]" :error="errors?.[f.fieldname]"
                       :doc-values="modelValue" @update:model-value="update(f.fieldname, $event)"
@@ -198,7 +202,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
                   <span>editing...</span>
                 </div>
                 <FieldRenderer
-                  :field="reqdOverrides?.[f.fieldname] !== undefined ? { ...f, required: reqdOverrides[f.fieldname] } : f"
+                  :field="mergedField(f)"
                   :model-value="modelValue[f.fieldname]"
                   :disabled="disabled || f.read_only || !!fieldLocks?.[f.fieldname]" :error="errors?.[f.fieldname]"
                   :doc-values="modelValue"

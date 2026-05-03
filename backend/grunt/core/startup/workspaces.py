@@ -29,6 +29,19 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
     ws_name: str = data["name"]
 
     async with grunt.system_context(session, eng):
+        # Register the grunt framework itself as an installed app (once)
+        if await grunt.exists("GruntInstalledApp", {"name": "grunt"}) is None:
+            await grunt.new_doc(
+                "GruntInstalledApp",
+                {
+                    "name": "grunt",
+                    "title": "Grunt",
+                    "version": "0.1.0",
+                    "modules": ["core"],
+                },
+            )
+            logger.info("startup.grunt_app_registered")
+
         existing = await grunt.get_list(
             "WorkspaceSidebar",
             filters={"name": ws_name},

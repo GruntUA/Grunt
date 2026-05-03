@@ -80,6 +80,42 @@ def get_table_name(module: str, doctype_name: str) -> str:
     return f"grunt_{module}_{to_snake_case(doctype_name)}"
 
 
+# ── Type comparison helpers ───────────────────────────────────────────────
+
+# Normalize DB-reported type names to canonical SA type names for comparison.
+_TYPE_ALIASES: dict[str, str] = {
+    "VARCHAR": "STRING",
+    "CHAR": "STRING",
+    "BIGINT": "INTEGER",
+    "SMALLINT": "INTEGER",
+    "TINYINT": "INTEGER",
+    "DOUBLE": "FLOAT",
+    "REAL": "FLOAT",
+    "NUMERIC": "FLOAT",
+    "TIMESTAMP": "DATETIME",
+}
+
+
+def _normalize_type(name: str) -> str:
+    return _TYPE_ALIASES.get(name.upper(), name.upper())
+
+
+def _type_changed(desired, current, dialect) -> bool:
+    """True if the desired SA type differs from the current DB type."""
+    desired_str = _normalize_type(desired.compile(dialect).upper().split("(")[0].strip())
+    current_str = _normalize_type(type(current).__name__)
+    return desired_str != current_str
+
+
+def _is_varchar_reduction(desired, current) -> bool:
+    """True if both are string types and the desired length is shorter than current."""
+    if not isinstance(desired, String):
+        return False
+    current_len = getattr(current, "length", None)
+    desired_len = getattr(desired, "length", None)
+    return bool(current_len and desired_len and desired_len < current_len)
+
+
 # ── Compiler ─────────────────────────────────────────────────────────────
 
 
@@ -142,11 +178,12 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
 
         columns.append(col)
 
-    # Unique constraints
+    # Per-field unique constraints (named so they can be synced on ALTER)
     constraints: list = []
-    unique_fields = [f.fieldname for f in doctype.fields if f.unique]
-    if unique_fields:
-        constraints.append(UniqueConstraint(*unique_fields))
+    for field in doctype.fields:
+        if field.unique:
+            uq_name = f"uq_{table_name}_{field.fieldname}"
+            constraints.append(UniqueConstraint(field.fieldname, name=uq_name))
 
     # Non-unique indexes
     for field in doctype.fields:
@@ -170,8 +207,12 @@ async def sync_table(
 
     1. Compile DocType → SA Table.
     2. If the table does not exist — ``CREATE TABLE``.
-    3. If the table exists — compare columns and ``ALTER TABLE ADD COLUMN``
-       for any new ones.  Columns are **never** dropped.
+    3. If the table exists:
+       - Add missing columns (always as NULL).
+       - Alter columns whose type changed (with varchar-reduction safety check).
+       - Sync per-field unique constraints (add missing, drop stale).
+       - Add missing indexes.
+       Columns are **never** dropped.
 
     When *session* is provided, uses its underlying connection instead of
     opening a new one (avoids SQLite "database is locked" errors).
@@ -187,27 +228,88 @@ async def sync_table(
         if not insp.has_table(table.name):
             SA_METADATA.create_all(connection, tables=[table])
             logger.info("compiler.table_created", table=table.name)
-        else:
-            existing_cols = {c["name"] for c in insp.get_columns(table.name)}
-            for col in table.columns:
-                if col.name not in existing_cols:
-                    col_type = col.type.compile(connection.dialect)
-                    # Always add as NULL to avoid failures on tables with existing rows
-                    connection.execute(
-                        text(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {col_type} NULL')
-                    )
-                    logger.info(
-                        "compiler.column_added",
-                        table=table.name,
-                        column=col.name,
-                    )
+            return
 
-            # Apply any new indexes that don't exist yet
-            existing_indexes = {ix["name"] for ix in insp.get_indexes(table.name)}
-            for index in table.indexes:
-                if index.name and index.name not in existing_indexes:
-                    index.create(connection)
-                    logger.info("compiler.index_created", table=table.name, index=index.name)
+        # ── Columns ────────────────────────────────────────────────────
+        existing_col_map = {c["name"]: c["type"] for c in insp.get_columns(table.name)}
+
+        for col in table.columns:
+            if col.name not in existing_col_map:
+                col_type = col.type.compile(connection.dialect)
+                # Always add as NULL to avoid failures on tables with existing rows
+                connection.execute(
+                    text(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {col_type} NULL')
+                )
+                logger.info("compiler.column_added", table=table.name, column=col.name)
+
+            elif connection.dialect.name != "sqlite" and _type_changed(
+                col.type, existing_col_map[col.name], connection.dialect
+            ):
+                # Varchar reduction safety: skip if existing data would be truncated
+                if _is_varchar_reduction(col.type, existing_col_map[col.name]):
+                    max_stored = (
+                        connection.execute(
+                            text(
+                                f'SELECT MAX(char_length("{col.name}")) FROM "{table.name}"'
+                                f' WHERE "{col.name}" IS NOT NULL'
+                            )
+                        ).scalar()
+                        or 0
+                    )
+                    if max_stored > col.type.length:
+                        logger.warning(
+                            "compiler.skip_varchar_reduction",
+                            table=table.name,
+                            column=col.name,
+                            current_max=max_stored,
+                            new_length=col.type.length,
+                        )
+                        continue
+
+                desired_type = col.type.compile(connection.dialect)
+                connection.execute(
+                    text(
+                        f'ALTER TABLE "{table.name}" ALTER COLUMN "{col.name}" TYPE {desired_type}'
+                    )
+                )
+                logger.info(
+                    "compiler.column_altered",
+                    table=table.name,
+                    column=col.name,
+                    new_type=desired_type,
+                )
+
+        # ── Unique constraints ──────────────────────────────────────────
+        existing_uq = {ix["name"] for ix in insp.get_unique_constraints(table.name)}
+        desired_uq = {
+            c.name: c
+            for c in table.constraints
+            if isinstance(c, UniqueConstraint) and c.name
+        }
+        uq_prefix = f"uq_{table.name}_"
+
+        for name, uq in desired_uq.items():
+            if name not in existing_uq:
+                cols = ", ".join(f'"{c.name}"' for c in uq.columns)
+                connection.execute(
+                    text(f'ALTER TABLE "{table.name}" ADD CONSTRAINT "{name}" UNIQUE ({cols})')
+                )
+                logger.info("compiler.unique_added", table=table.name, constraint=name)
+
+        # Drop stale per-field constraints (those with our naming prefix only)
+        for name in existing_uq:
+            if name.startswith(uq_prefix) and name not in desired_uq:
+                connection.execute(
+                    text(f'ALTER TABLE "{table.name}" DROP CONSTRAINT IF EXISTS "{name}"')
+                )
+                logger.info("compiler.unique_dropped", table=table.name, constraint=name)
+
+        # ── Indexes ────────────────────────────────────────────────────
+        existing_indexes = {ix["name"] for ix in insp.get_indexes(table.name)}
+        for index in table.indexes:
+            if index.name and index.name not in existing_indexes:
+                index.create(connection)
+                logger.info("compiler.index_created", table=table.name, index=index.name)
 
     if session is not None:
         conn = await session.connection()

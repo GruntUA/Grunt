@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import type { DocType, DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 import GruntDataTable from '@/components/views/GruntDataTable.vue'
-import ListPagination from '@/components/views/ListPagination.vue'
 import BulkActionBar from '@/components/views/BulkActionBar.vue'
 import ListGroupedView from '@/components/views/list/ListGroupedView.vue'
 
@@ -34,6 +33,9 @@ const props = defineProps<{
   sortKey: string | null
   sortOrder: 'asc' | 'desc'
   activeIndex: number
+  fetchNextPage?: () => void
+  hasNextPage?: boolean
+  isFetchingNextPage?: boolean
   groupBy: string | null
   groupedRows: GroupedRowBucket[] | null
   collapsedGroups: Set<string>
@@ -50,11 +52,31 @@ const emit = defineEmits<{
   'select-all': []
   'update': [field: string, value: string]
   'toggle-group': [key: string]
-  'page': [page: number]
 }>()
 
 const selectionCount = computed(() => props.selection.selectedIds.length)
 const normalizedSortKey = computed(() => props.sortKey || '')
+
+const sentinelEl = ref<HTMLElement | null>(null)
+let observer: IntersectionObserver | null = null
+
+function setupObserver() {
+  observer?.disconnect()
+  if (!sentinelEl.value || !props.fetchNextPage) return
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting && props.hasNextPage && !props.isFetchingNextPage) {
+        props.fetchNextPage?.()
+      }
+    },
+    { rootMargin: '300px' },
+  )
+  observer.observe(sentinelEl.value)
+}
+
+onMounted(setupObserver)
+onUnmounted(() => observer?.disconnect())
+watch(() => sentinelEl.value, setupObserver)
 </script>
 
 <template>
@@ -116,15 +138,27 @@ const normalizedSortKey = computed(() => props.sortKey || '')
             @inline-update="(rowId, field, value) => emit('inline-update', rowId, field, value)"
           />
         </div>
-        <ListPagination
-          v-if="meta"
-          :page="meta.page"
-          :pages="meta.pages"
-          :total="meta.total"
-          :per-page="20"
-          class="mt-4"
-          @update:page="(page) => emit('page', page)"
-        />
+        <!-- Infinite scroll footer -->
+        <div v-if="meta" class="flex items-center gap-2 px-1 py-2 mt-2">
+          <span class="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">Всього:</span>
+          <Badge severity="secondary" class="!text-[10px] !font-black !px-2 !py-0.5 shadow-sm">
+            {{ meta.total }}
+          </Badge>
+          <span v-if="rows.length < meta.total" class="ml-auto text-xs text-muted-foreground">
+            {{ rows.length }} / {{ meta.total }}
+          </span>
+        </div>
+
+        <!-- Sentinel element — triggers next page load when scrolled into view -->
+        <div ref="sentinelEl" class="h-1" aria-hidden="true" />
+
+        <div v-if="isFetchingNextPage" class="flex justify-center py-4">
+          <div class="size-5 rounded-full border-2 border-muted border-t-primary animate-spin" />
+        </div>
+        <p v-else-if="meta && !hasNextPage && rows.length > 0 && rows.length >= meta.total"
+          class="py-3 text-center text-xs text-muted-foreground/50">
+          Усі {{ meta.total }} записів завантажено
+        </p>
       </template>
     </div>
   </div>

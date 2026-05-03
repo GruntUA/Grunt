@@ -13,16 +13,49 @@ export function useFetchFrom({ doctype, modelValue, updateField }: UseFetchFromP
     // oldVal for object refs in deep watch (prevDoc === doc by reference).
     const prevLinkValues = new Map<string, unknown>()
 
+    async function applyFetchFrom(dt: NonNullable<typeof doctype.value>, linkField: string, linkValue: unknown) {
+        const fetchFields = dt.fields.filter(
+            f => f.fetch_from?.startsWith(`${linkField}.`)
+        )
+        if (!fetchFields.length) return
+
+        if (!linkValue) {
+            for (const field of fetchFields) updateField(field.fieldname, null)
+            return
+        }
+
+        const fieldMeta = dt.fields.find(f => f.fieldname === linkField)
+        if (!fieldMeta?.options) return
+
+        try {
+            const linkedDoc = await docsApi.get(fieldMeta.options, String(linkValue))
+            for (const field of fetchFields) {
+                const sourceField = field.fetch_from!.split('.')[1]
+                const fetchedVal = linkedDoc[sourceField]
+                if (fetchedVal !== undefined) updateField(field.fieldname, fetchedVal)
+            }
+        } catch (err) {
+            console.error(`[fetch_from] Failed to fetch ${fieldMeta.options}/${linkValue}`, err)
+        }
+    }
+
     watch(
         doctype,
         (dt) => {
-            // When schema changes, reset baseline from the current form values
             prevLinkValues.clear()
             if (!dt) return
+
+            const seen = new Set<string>()
             for (const field of dt.fields) {
-                if (field.fetch_from?.includes('.')) {
-                    const linkField = field.fetch_from.split('.')[0]
-                    prevLinkValues.set(linkField, modelValue.value[linkField])
+                if (!field.fetch_from?.includes('.')) continue
+                const linkField = field.fetch_from.split('.')[0]
+                const linkValue = modelValue.value[linkField]
+                prevLinkValues.set(linkField, linkValue)
+
+                // Fetch on initial load for every unique link field that has a value
+                if (!seen.has(linkField)) {
+                    seen.add(linkField)
+                    applyFetchFrom(dt, linkField, linkValue)
                 }
             }
         },
@@ -35,35 +68,20 @@ export function useFetchFrom({ doctype, modelValue, updateField }: UseFetchFromP
             const dt = doctype.value
             if (!dt) return
 
+            const seen = new Set<string>()
             for (const field of dt.fields) {
                 if (!field.fetch_from?.includes('.')) continue
 
-                const [linkField, sourceField] = field.fetch_from.split('.')
+                const linkField = field.fetch_from.split('.')[0]
+                if (seen.has(linkField)) continue
+                seen.add(linkField)
+
                 const newVal = doc[linkField]
                 const oldVal = prevLinkValues.get(linkField)
-
                 if (newVal === oldVal) continue
 
-                // Update baseline immediately to avoid double-triggering
                 prevLinkValues.set(linkField, newVal)
-
-                if (newVal) {
-                    const fieldMeta = dt.fields.find(f => f.fieldname === linkField)
-                    if (!fieldMeta?.options) continue
-
-                    try {
-                        const linkedDoc = await docsApi.get(fieldMeta.options, String(newVal))
-                        const fetchedVal = linkedDoc[sourceField]
-                        if (fetchedVal !== undefined) {
-                            updateField(field.fieldname, fetchedVal)
-                        }
-                    } catch (err) {
-                        console.error(`[fetch_from] Failed to fetch ${fieldMeta.options}/${newVal}`, err)
-                    }
-                } else {
-                    // Link was cleared — reset target field
-                    updateField(field.fieldname, null)
-                }
+                await applyFetchFrom(dt, linkField, newVal)
             }
         },
         { deep: true },

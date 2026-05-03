@@ -35,6 +35,25 @@ const isLoading = ref(false)
 const activeIdx = ref(-1)
 const titleField = ref<string>('name')
 
+const containerRef = ref<HTMLElement | null>(null)
+const dropdownStyle = ref<Record<string, string>>({})
+
+function computeDropdownStyle() {
+  if (!containerRef.value) return
+  const rect = containerRef.value.getBoundingClientRect()
+  const spaceBelow = window.innerHeight - rect.bottom - 4
+  const openUp = spaceBelow < 120 && rect.top > spaceBelow
+  dropdownStyle.value = {
+    position: 'fixed',
+    left: `${rect.left}px`,
+    width: `${rect.width}px`,
+    zIndex: '9999',
+    ...(openUp
+      ? { bottom: `${window.innerHeight - rect.top + 4}px` }
+      : { top: `${rect.bottom + 4}px` }),
+  }
+}
+
 // Tree mode
 const isTree = ref(false)
 const treeNodes = ref<TreeNode[]>([])
@@ -257,6 +276,7 @@ function onInput(val: string) {
 
 function onFocus() {
   clearTimeout(blurTimer)
+  computeDropdownStyle()
   if (!isOpen.value) search(query.value)
 }
 
@@ -439,7 +459,7 @@ function openLinkedDoc() {
   </div>
 
   <!-- Regular mode: custom input + dropdown -->
-  <div v-else class="relative">
+  <div v-else ref="containerRef" class="relative">
     <div class="relative">
       <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
 
@@ -483,9 +503,11 @@ function openLinkedDoc() {
       </div>
     </div>
 
+    <Teleport to="body">
     <div
       v-if="isOpen"
-      class="absolute top-full mt-1 left-0 right-0 bg-popover border border-border rounded-lg shadow-lg z-50 overflow-hidden"
+      :style="dropdownStyle"
+      class="bg-popover border border-border rounded-lg shadow-lg overflow-hidden"
     >
       <div v-if="results.length" class="max-h-52 overflow-y-auto py-1">
         <button
@@ -552,5 +574,6 @@ function openLinkedDoc() {
         </div>
       </template>
     </div>
+    </Teleport>
   </div>
 </template>

@@ -46,6 +46,9 @@ const props = defineProps<{
   sortKey: string | null
   sortOrder: 'asc' | 'desc'
   activeIndex: number
+  fetchNextPage?: () => void
+  hasNextPage?: boolean
+  isFetchingNextPage?: boolean
   kanbanColumnField: DocField | null
   calendarDateField: DocField | null
   treeParentField: DocField | null
@@ -113,11 +116,15 @@ const emit = defineEmits<{
         :doctype="doctype"
         :is-loading="isLoading && !hasData" :sort-key="sortKey" :sort-order="sortOrder" :active-index="activeIndex"
         :group-by="groupBy" :grouped-rows="groupedRows" :collapsed-groups="collapsedGroups"
-        :group-by-field="groupByField" :selection="selection" @sort="(key) => emit('sort', key)"
+        :group-by-field="groupByField" :selection="selection"
+        :fetch-next-page="fetchNextPage"
+        :has-next-page="hasNextPage"
+        :is-fetching-next-page="isFetchingNextPage"
+        @sort="(key) => emit('sort', key)"
         @row-click="(row) => emit('row-click', row)"
         @inline-update="(rowId, field, value) => emit('inline-update', rowId, field, value)" @delete="emit('delete')"
         @clear="emit('clear')" @select-all="emit('select-all')" @update="(field, value) => emit('update', field, value)"
-        @toggle-group="(k) => emit('toggle-group', k)" @page="(page) => emit('page', page)" />
+        @toggle-group="(k) => emit('toggle-group', k)" />
     </template>
   </div>
 </template>

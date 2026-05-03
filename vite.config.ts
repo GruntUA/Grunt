@@ -143,9 +143,9 @@ export default defineConfig({
                 changeOrigin: true,
                 bypass(req) {
                     const urlPath = (req.url ?? '').split('?')[0]
-                    // Let Vite serve anything with a file extension (source files, manifests, etc.)
-                    // Return false to skip the proxy and let Vite handle it natively
-                    if (/\.\w+$/.test(urlPath)) return false
+                    // Return the path to let Vite serve static files (public/ dir, source files, etc.)
+                    // Returning false would produce a 404; returning the path delegates to Vite.
+                    if (/\.\w+$/.test(urlPath)) return urlPath
                     return undefined
                 },
             },

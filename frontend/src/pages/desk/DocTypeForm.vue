@@ -69,6 +69,7 @@ const {
   buttons: scriptButtons,
   displayOverrides,
   reqdOverrides,
+  dfPropOverrides,
   runEvent: runScriptEvent,
   getLinkFilters,
   setTableSelection,
@@ -319,7 +320,7 @@ useFetchFrom({
           <div class="bg-card border border-border rounded-md shadow-sm p-5">
             <FormRenderer :doctype="dt" :model-value="form" :disabled="isSaving" :errors="validationErrors"
               v-model:active-tab="activeTab"
-              :overrides="displayOverrides" :reqd-overrides="reqdOverrides" :field-locks="fieldLocks"
+              :overrides="displayOverrides" :reqd-overrides="reqdOverrides" :df-prop-overrides="dfPropOverrides" :field-locks="fieldLocks"
               @update:model-value="onFormUpdate($event)" @field-focus="focusField($event)"
               @field-blur="blurField($event)" @create-new="handleCreateNew"
               @table-selection-change="({ fieldname, rowNames }) => setTableSelection(fieldname, rowNames)" />

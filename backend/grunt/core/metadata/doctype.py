@@ -167,6 +167,7 @@ class DocType(BaseModel):
     name: str  # PascalCase, globally unique
     label: str  # "Договір постачання"
     module: str  # "crm"
+    app: str | None = None  # installed app name (e.g. "hrm"); UI convenience, derived from module
 
     # Flags
     is_child: bool = False  # True → used inside a TABLE field
