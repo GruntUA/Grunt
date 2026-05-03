@@ -22,11 +22,31 @@ def users_create(email, password, full_name, site):
     async def _run():
         from grunt.auth.doctypes.User.User import create_user, get_user_by_email  # noqa: PLC0415
 
+        name_parts = full_name.strip().split()
+        first_name = name_parts[0] if name_parts else full_name.strip()
+        if len(name_parts) == 1:
+            # User DocType requires last_name; fallback to first_name for single-token names.
+            last_name = first_name
+            middle_name = None
+        elif len(name_parts) == 2:
+            last_name = name_parts[1]
+            middle_name = None
+        else:
+            last_name = name_parts[-1]
+            middle_name = " ".join(name_parts[1:-1])
+
         async with _site_session(site) as (session, _eng):
             if await get_user_by_email(email, session) is not None:
                 click.echo(f"Помилка: користувач '{email}' вже існує.", err=True)
                 raise SystemExit(1)
-            user = await create_user(email, password, full_name, session)
+            user = await create_user(
+                email,
+                password,
+                first_name,
+                last_name,
+                middle_name,
+                session,
+            )
             await session.commit()
 
         label = "superadmin" if user.is_superadmin else "user"

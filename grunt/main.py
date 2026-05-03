@@ -331,9 +331,13 @@ for page in website_registry.discover_app(core_website_dir, "grunt", is_main_app
 
 # ── Static Assets ──
 from fastapi.staticfiles import StaticFiles  # noqa: PLC0415
-root_public_dir = _Path(__file__).parent.parent.parent / "public"
-if root_public_dir.is_dir():
-    app.mount("/", StaticFiles(directory=str(root_public_dir)), name="root_public")
+main_public_dir = _Path(__file__).parent.parent / "public"
+if main_public_dir.is_dir():
+    app.mount("/assets/grunt", StaticFiles(directory=str(main_public_dir)), name="assets_grunt")
+# NOTE: Do NOT mount StaticFiles at "/" — it would intercept all paths
+# (including SPA routes like /403) and return its own 404 before our
+# website_catch_all ever runs.  Root-level static files are served
+# inside website_catch_all below.
 
 
 # ── Exception handlers ───────────────────────────────────────────────────
@@ -476,16 +480,38 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
 @app.get("/{path:path}", include_in_schema=False)
 async def website_catch_all(request: Request):
     from grunt.website.router import render_page_by_route  # noqa: PLC0415
-    
-    # We need a session to query the DB
     from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.config import settings  # noqa: PLC0415
+
+    # 1. Serve root-level static files (replaces StaticFiles mount at "/")
+    from fastapi.responses import FileResponse  # noqa: PLC0415
+    req_path = request.url.path.lstrip("/")
+    if req_path:  # ignore "/" itself
+        candidate = main_public_dir / req_path
+        if candidate.is_file():
+            return FileResponse(str(candidate))
+
+    # 2. Try server-side website pages
     site = request.headers.get("X-Grunt-Site") or "dev2.itmlt.win"
     maker = site_manager.get_session_maker(site)
-    
+
     async with maker() as session:
         response = await render_page_by_route(request, session)
         if response:
             return response
-    
-    # If no page found, raise 404
+
+    # 3. No server-side page found — fall back to SPA so vue-router handles
+    #    the path (covers /403, /app/*, and any other frontend routes).
+    from grunt.website import website_registry  # noqa: PLC0415
+    from fastapi.responses import HTMLResponse  # noqa: PLC0415
+
+    env = website_registry.get_env("grunt")
+    if env is not None:
+        try:
+            template = env.get_template("_spa.html")
+            html = await template.render_async(request=request, title="Ґрунт", dev_mode=settings.debug)
+            return HTMLResponse(content=html)
+        except Exception as _exc:
+            logger.warning("website.spa_fallback.error", path=request.url.path, error=str(_exc))
+
     raise HTTPException(status_code=404, detail="Сторінку не знайдено")
