@@ -7,6 +7,8 @@ export interface DocTypeSaveResult {
   exported_to: string | null
 }
 
+export interface ValidatorInfo { name: string; label: string; field_types: string[] }
+
 export const metaApi = {
   list: (module?: string): Promise<DocTypeSummary[]> =>
     client.get('/api/v1/method/grunt.api.v1.meta.list_doctypes', { params: { module } })
@@ -14,6 +16,10 @@ export const metaApi = {
 
   get: (name: string): Promise<DocType> =>
     client.get('/api/v1/method/grunt.api.v1.meta.get_doctype', { params: { name } })
+      .then(r => r.data.data),
+
+  listValidators: (): Promise<ValidatorInfo[]> =>
+    client.get('/api/v1/method/grunt.api.v1.meta.list_validators')
       .then(r => r.data.data),
 
   create: (dt: DocType): Promise<DocTypeSaveResult> =>

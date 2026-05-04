@@ -22,7 +22,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import delete, select, update
 
 from grunt.db.system_tables import GruntMetaDoctype
-from grunt.metadata.compiler import invalidate_table_cache, sync_table
+from grunt.metadata.compiler import DuplicateDataError, invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.permissions.rbac import invalidate_permission_cache
 
@@ -145,6 +145,7 @@ class DocTypeRegistry:
             logger.warning("registry.lazy_load_invalid", name=name)
             return None
 
+        invalidate_table_cache(dt.name)
         self._doctypes[dt.name] = dt
         self._index_add(dt.name)
         self._known_names.discard(dt.name)
@@ -302,7 +303,7 @@ class DocTypeRegistry:
                         "required", "hidden", "in_list_view", "in_filter", "description",
                         "depends_on", "bold", "in_quick_entry", "in_filter", "in_quick_filter",
                         "is_virtual", "read_formula", "show_in_dashboard",
-                        "dashboard_doctype", "dashboard_link_field",
+                        "dashboard_doctype", "dashboard_link_field", "validator",
                     }
                     for json_field in doctype.fields:
                         stored_field = stored_fieldnames.get(json_field.fieldname)

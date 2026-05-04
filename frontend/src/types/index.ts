@@ -68,6 +68,8 @@ export interface DocField {
   dashboard_link_field?: string | null
   // Fetch From
   fetch_from?: string | null
+  // Named validator (e.g. "email", "phone", "url", "iban_ua")
+  validator?: string | null
 }
 
 export interface DocTypeSummary {

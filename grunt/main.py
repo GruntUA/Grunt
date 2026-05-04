@@ -90,7 +90,10 @@ async def lifespan(app: FastAPI):
     from grunt.startup import (
         apply_doctype_overrides,
         load_core_doctypes,
+        load_validators,
     )  # noqa: PLC0415
+
+    load_validators()
 
     from grunt.website import make_website_handler, website_registry  # noqa: PLC0415
 
@@ -403,6 +406,7 @@ async def application_error_handler(request: Request, exc: ApplicationError) -> 
         "PERMISSION_DENIED": 403,
         "NOT_FOUND": 404,
         "CONFLICT": 409,
+        "DUPLICATE_DATA": 409,
         "VALIDATION_ERROR": 422,
     }
     status_code = status_map.get(exc.code, 422)

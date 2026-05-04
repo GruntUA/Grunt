@@ -12,7 +12,7 @@ from sqlalchemy import select
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt.metadata.compiler import compile_doctype_to_table
+from grunt.metadata.compiler import DuplicateDataError, compile_doctype_to_table
 
 logger = structlog.get_logger()
 
@@ -214,5 +214,7 @@ async def sync_all_doctypes(session: AsyncSession, engine: AsyncEngine) -> None:
     for dt in doctypes:
         try:
             await sync_table(dt, engine, session=session)
+        except DuplicateDataError as e:
+            logger.warning("startup.sync_doctype_duplicates", name=dt.name, detail=str(e))
         except Exception as e:  # noqa: BLE001
             logger.warning("startup.sync_doctype_failed", name=dt.name, error=str(e))

@@ -232,6 +232,10 @@ class DocField(BaseModel):
     # Quick Filter — show this field in list quick filters bar.
     in_quick_filter: bool = False
 
+    # Named validator — runs at save time (e.g. "email", "phone", "url", "iban_ua").
+    # Custom validators can be registered via grunt.document.validators.register_validator().
+    validator: str | None = None
+
     model_config = {"use_enum_values": True}
 
     @property

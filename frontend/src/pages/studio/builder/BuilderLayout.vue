@@ -56,7 +56,9 @@ async function handleSave() {
       router.replace(`/${backWorkspace}/DocType/${saved.name}`)
     }
   } catch (err: unknown) {
-    const msg = (err as { message?: string })?.message ?? t('Save error')
+    type AxiosLike = { response?: { data?: { error?: { message?: string } } }; message?: string }
+    const e = err as AxiosLike
+    const msg = e.response?.data?.error?.message ?? e.message ?? t('Save error')
     grunt.show_alert(msg, 'error')
   }
 }

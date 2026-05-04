@@ -2,6 +2,7 @@
 import { defineAsyncComponent, computed } from 'vue'
 import { getFieldDef, FallbackFieldLoader } from '@/core/fieldRegistry'
 import { useDevMode } from '@/core/composables/useDevMode'
+import { validateFieldValue } from '@/core/validators'
 import type { DocField } from '@/types'
 
 const { isDev, altPressed } = useDevMode()
@@ -35,6 +36,13 @@ const isVisible = computed(() => {
   }
 })
 
+const validatorError = computed(() => {
+  if (!props.field.validator) return null
+  return validateFieldValue(props.field.validator, props.modelValue)
+})
+
+const displayError = computed(() => props.error || validatorError.value || null)
+
 const component = computed(() =>
   defineAsyncComponent(getFieldDef(props.field.fieldtype)?.component ?? FallbackFieldLoader)
 )
@@ -43,11 +51,11 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
 </script>
 
 <template>
-  <div v-if="isVisible" :data-fieldname="field.fieldname" 
+  <div v-if="isVisible" :data-fieldname="field.fieldname"
     class="flex flex-col gap-1.5 relative w-full p-1.5 -m-1.5 rounded-lg transition-all duration-300"
-    :class="{ 
-      'bg-destructive/[0.03] ring-1 ring-destructive/20 shadow-[0_0_8px_rgba(var(--destructive),0.05)]': error,
-      'hover:bg-muted/30': !error 
+    :class="{
+      'bg-destructive/[0.03] ring-1 ring-destructive/20 shadow-[0_0_8px_rgba(var(--destructive),0.05)]': displayError,
+      'hover:bg-muted/30': !displayError
     }">
     <label v-if="!hasOwnLabel" class="text-sm font-medium text-foreground/90 flex items-center gap-1">
       {{ field.label }}
@@ -59,7 +67,7 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
       :field="field"
       :modelValue="modelValue"
       :disabled="disabled"
-      :error="error"
+      :error="displayError"
       :doc="docValues"
       @update:modelValue="emit('update:modelValue', $event)"
       @create-new="(doctype: string, preset: string) => emit('create-new', doctype, preset, field.fieldname)"
@@ -70,8 +78,8 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
       {{ field.description }}
     </p>
 
-    <p v-if="error" class="text-xs text-destructive font-medium animate-in fade-in slide-in-from-top-1 duration-200">
-      {{ error }}
+    <p v-if="displayError" class="text-xs text-destructive font-medium animate-in fade-in slide-in-from-top-1 duration-200">
+      {{ displayError }}
     </p>
 
     <span v-if="isDev && altPressed"

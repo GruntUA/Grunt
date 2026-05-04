@@ -7,7 +7,7 @@ from typing import Any
 import structlog
 
 import grunt
-from grunt.metadata.compiler import get_table_name, sync_table
+from grunt.metadata.compiler import DuplicateDataError, get_table_name, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_doctype_files
@@ -67,17 +67,15 @@ async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     session = grunt_app._require_session()
     engine = grunt_app._require_engine()
 
-    if dt.name in doctype_registry._doctypes:
-        # If it's in registry, it's an update.
-        # But wait, the test expects 409 on second POST.
-        # In a generic 'save' method, we usually update.
-        # For the sake of tests, let's see if we should throw.
-        # Actually, let's check if the caller wants to throw on duplicate.
-        if doctype_data.get("__is_new"):
-            grunt.throw(f"DocType '{dt.name}' already exists", "CONFLICT")
-        await doctype_registry.update(dt, session, engine)
-    else:
-        await doctype_registry.register(dt, session, engine)
+    try:
+        if dt.name in doctype_registry._doctypes:
+            if doctype_data.get("__is_new"):
+                grunt.throw(f"DocType '{dt.name}' already exists", "CONFLICT")
+            await doctype_registry.update(dt, session, engine)
+        else:
+            await doctype_registry.register(dt, session, engine)
+    except DuplicateDataError as exc:
+        grunt.throw(str(exc), "DUPLICATE_DATA")
 
     app_name = await _get_app_name_for_module(dt.module or "")
     export_doctype_files(dt, app_name=app_name)
@@ -112,7 +110,10 @@ async def sync_doctype(name: str) -> dict[str, Any]:
     session = grunt_app._require_session()
     engine = grunt_app._require_engine()
 
-    await sync_table(dt, engine, session=session)
+    try:
+        await sync_table(dt, engine, session=session)
+    except DuplicateDataError as exc:
+        grunt.throw(str(exc), "DUPLICATE_DATA")
     return {"name": dt.name, "table_name": get_table_name(dt.module, dt.name)}
 
 
@@ -162,6 +163,14 @@ async def export_schemas(
         all_dts = [dt for dt in all_dts if dt.module == module]
 
     return {dt.name: dt.model_dump() for dt in all_dts}
+
+
+@grunt.whitelist()
+async def list_validators() -> list[dict[str, object]]:
+    """Return all registered field validators for the Studio UI."""
+    from grunt.document.validators import list_validators as _list  # noqa: PLC0415
+
+    return _list()
 
 
 @grunt.whitelist()

@@ -37,6 +37,38 @@ _TABLE_CACHE: dict[str, Table] = {}
 logger = structlog.get_logger()
 
 
+class DuplicateDataError(Exception):
+    """Raised when a unique constraint cannot be added due to duplicate values.
+
+    Attributes:
+        table      — physical table name
+        constraint — constraint/index name
+        columns    — list of column names in the constraint
+        duplicates — list of {value, ids} dicts describing the offending rows
+    """
+
+    def __init__(
+        self,
+        table: str,
+        constraint: str,
+        columns: list[str],
+        duplicates: list[dict[str, object]],
+    ) -> None:
+        self.table = table
+        self.constraint = constraint
+        self.columns = columns
+        self.duplicates = duplicates
+        super().__init__(self._format())
+
+    def _format(self) -> str:
+        col_label = ", ".join(self.columns)
+        lines = [f"Неможливо додати унікальне обмеження на «{col_label}»: знайдено дублікати:"]
+        for dup in self.duplicates:
+            lines.append(f"  • значення {dup['value']!r} — записи: {dup['ids']}")
+        lines.append("Виправте дублікати та повторіть операцію.")
+        return "\n".join(lines)
+
+
 def invalidate_table_cache(doctype_name: str) -> None:
     """Remove a cached Table for the given DocType (call on update/delete)."""
     _TABLE_CACHE.pop(doctype_name, None)
@@ -280,28 +312,71 @@ async def sync_table(
                 )
 
         # ── Unique constraints ──────────────────────────────────────────
-        existing_uq = {ix["name"] for ix in insp.get_unique_constraints(table.name)}
+        # SQLite exposes unique indexes via get_indexes (not get_unique_constraints),
+        # so merge both sources for a complete picture.
+        existing_uq: set[str] = {ix["name"] for ix in insp.get_unique_constraints(table.name)}
+        existing_uq |= {ix["name"] for ix in insp.get_indexes(table.name) if ix.get("unique")}
         desired_uq = {
             c.name: c
             for c in table.constraints
             if isinstance(c, UniqueConstraint) and c.name
         }
         uq_prefix = f"uq_{table.name}_"
+        is_sqlite = connection.dialect.name == "sqlite"
 
         for name, uq in desired_uq.items():
             if name not in existing_uq:
-                cols = ", ".join(f'"{c.name}"' for c in uq.columns)
+                uq_cols = [c.name for c in uq.columns]
+                cols_sql = ", ".join(f'"{c}"' for c in uq_cols)
+                # Partial index: uniqueness applies only to non-NULL, non-empty values.
+                # Empty strings are treated the same as NULL (not provided).
+                where_nonempty = " AND ".join(
+                    f'("{c}" IS NOT NULL AND "{c}" != \'\')' for c in uq_cols
+                )
+
+                # Safety: raise with details if non-empty data has duplicates
+                dup_rows = connection.execute(
+                    text(
+                        f'SELECT {cols_sql}, GROUP_CONCAT(id) as ids, COUNT(*) as cnt '
+                        f'FROM "{table.name}" '
+                        f'WHERE {where_nonempty} '
+                        f'GROUP BY {cols_sql} HAVING COUNT(*) > 1'
+                    )
+                ).fetchall()
+                if dup_rows:
+                    duplicates = [
+                        {
+                            "value": row[0] if len(uq_cols) == 1 else tuple(row[: len(uq_cols)]),
+                            "ids": row[-2],  # GROUP_CONCAT(id)
+                        }
+                        for row in dup_rows
+                    ]
+                    raise DuplicateDataError(table.name, name, uq_cols, duplicates)
+
+                # Use a partial unique index for both dialects so that NULL and
+                # empty-string values are exempt from the uniqueness check.
                 connection.execute(
-                    text(f'ALTER TABLE "{table.name}" ADD CONSTRAINT "{name}" UNIQUE ({cols})')
+                    text(
+                        f'CREATE UNIQUE INDEX IF NOT EXISTS "{name}" '
+                        f'ON "{table.name}" ({cols_sql}) '
+                        f'WHERE {where_nonempty}'
+                    )
                 )
                 logger.info("compiler.unique_added", table=table.name, constraint=name)
 
-        # Drop stale per-field constraints (those with our naming prefix only)
+        # Drop stale per-field unique indexes (those with our naming prefix only)
         for name in existing_uq:
             if name and name.startswith(uq_prefix) and name not in desired_uq:
-                connection.execute(
-                    text(f'ALTER TABLE "{table.name}" DROP CONSTRAINT IF EXISTS "{name}"')
-                )
+                if is_sqlite:
+                    connection.execute(text(f'DROP INDEX IF EXISTS "{name}"'))
+                else:
+                    # Index may have been created via CREATE UNIQUE INDEX or ADD CONSTRAINT
+                    try:
+                        connection.execute(text(f'DROP INDEX IF EXISTS "{name}"'))
+                    except Exception:
+                        connection.execute(
+                            text(f'ALTER TABLE "{table.name}" DROP CONSTRAINT IF EXISTS "{name}"')
+                        )
                 logger.info("compiler.unique_dropped", table=table.name, constraint=name)
 
         # ── Indexes ────────────────────────────────────────────────────

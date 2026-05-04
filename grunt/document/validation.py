@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import date, datetime, time
 from typing import TYPE_CHECKING, Any
 
+from grunt.document.validators import validate_field_value
 from grunt.metadata.field import NON_PHYSICAL_FIELDS
 
 if TYPE_CHECKING:
@@ -74,5 +75,11 @@ def _validate_data(
                 continue
             if (value is None or value == "") and field.default is None:
                 errors.append(f"{field.fieldname}: Поле '{field.label}' є обов'язковим")
+
+        # Named validator check
+        if field.validator and value is not None and value != "":
+            error = validate_field_value(field.validator, str(value), field.label or field.fieldname)
+            if error:
+                errors.append(f"{field.fieldname}: {error}")
 
     return errors

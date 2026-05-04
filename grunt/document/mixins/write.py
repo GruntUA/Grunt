@@ -281,7 +281,8 @@ class DocumentWriteMixin:
         *,
         ignore_required: bool = False,
     ) -> dict[str, Any]:
-        dt = await doctype_registry.get(doctype_name)
+        fresh = await doctype_registry._lazy_load(doctype_name)
+        dt = fresh if fresh is not None else await doctype_registry.get(doctype_name)
         if dt.is_virtual:
             return await _virtual_create(doctype_name, user, data)
 
@@ -453,7 +454,8 @@ class DocumentWriteMixin:
         *,
         ignore_required: bool = False,
     ) -> dict[str, Any]:
-        dt = await doctype_registry.get(doctype_name)
+        fresh = await doctype_registry._lazy_load(doctype_name)
+        dt = fresh if fresh is not None else await doctype_registry.get(doctype_name)
         if dt.is_virtual:
             return await _virtual_update(doctype_name, user, doc_id, data)
 

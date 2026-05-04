@@ -11,6 +11,7 @@ from grunt.startup.doctypes import (
 )
 from grunt.startup.fixtures import _load_app_meta
 from grunt.startup.settings import seed_system_settings
+from grunt.startup.validators import load_validators
 from grunt.startup.workspaces import (
     _auto_seed_workspace,
     seed_app_workspaces,
@@ -27,4 +28,5 @@ __all__ = [
     "seed_app_workspaces",
     "_load_app_meta",
     "_auto_seed_workspace",
+    "load_validators",
 ]
