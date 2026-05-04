@@ -76,11 +76,25 @@ export function useFormSave(params: UseFormSaveParams) {
           }
         }
       }
+      const status = err?.response?.status
+      const apiMessage = err?.response?.data?.error?.message
+      const detailMsg = err?.response?.data?.detail
+
+      // Any 4xx with a structured error message → show it directly
+      if (status && status >= 400 && status < 500 && status !== 422 && (apiMessage || detailMsg)) {
+        const msg = typeof apiMessage === 'string' && apiMessage.trim()
+          ? apiMessage
+          : typeof detailMsg === 'string' && detailMsg.trim()
+            ? detailMsg
+            : 'Помилка'
+        params.toast.error(msg)
+        return
+      }
+
       if (err?.response?.status === 422) {
         const payload = err.response.data
         const legacyDetail = payload?.detail
         const apiDetails = payload?.error?.details
-        const apiMessage = payload?.error?.message
 
         const details: string[] = Array.isArray(apiDetails)
           ? apiDetails.filter((x): x is string => typeof x === 'string' && x.trim().length > 0)

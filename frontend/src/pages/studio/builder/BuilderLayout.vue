@@ -51,7 +51,7 @@ async function handleSave() {
   try {
     const saved = await builder.save()
     if (!saved) return
-    grunt.show_alert(t('DocType {label} saved', { label: saved.label || saved.name }), 'success')
+    grunt.show_alert(`DocType «${saved.label || saved.name}» збережено`, 'success')
     if (props.doctype === 'new') {
       router.replace(`/${backWorkspace}/DocType/${saved.name}`)
     }

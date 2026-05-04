@@ -256,13 +256,19 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
         encoding="utf-8",
     )
 
-    # Generate type hints from fields
-    type_hints = _generate_type_block(dt.name, dt.fields)
-
-    # Controller — create or update with types
+    # Controller — create if missing, otherwise only sync the auto-generated type block
     py_file = dt_dir / f"{dt.name}.py"
-    py_content = CONTROLLER_TEMPLATE.format(name=dt.name, type_hints=type_hints)
-    py_file.write_text(py_content, encoding="utf-8")
+    if py_file.exists():
+        from grunt.utils.codegen import sync_controller_types  # noqa: PLC0415
+
+        fields_as_dicts = [
+            f.model_dump() if hasattr(f, "model_dump") else f for f in dt.fields
+        ]
+        sync_controller_types(py_file, dt.name, fields_as_dicts)
+    else:
+        type_hints = _generate_type_block(dt.name, dt.fields)
+        py_content = CONTROLLER_TEMPLATE.format(name=dt.name, type_hints=type_hints)
+        py_file.write_text(py_content, encoding="utf-8")
 
     # Client script — only create if missing
     js_file = dt_dir / f"{dt.name}.js"

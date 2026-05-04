@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import func, select, update
+from sqlalchemy.exc import IntegrityError
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -60,6 +61,35 @@ def _chunks(lst: list, size: int):
     it = iter(lst)
     while chunk := list(islice(it, size)):
         yield chunk
+
+
+def _friendly_integrity_error(exc: IntegrityError, dt: Any) -> HTTPException:
+    """Convert a DB IntegrityError into a user-friendly 409 HTTPException."""
+    import re  # noqa: PLC0415
+
+    raw = str(exc.orig or exc)
+    # SQLite: "UNIQUE constraint failed: table.column"
+    # PostgreSQL: 'duplicate key value violates unique constraint "uq_..."'
+    col_name: str | None = None
+    m = re.search(r"UNIQUE constraint failed:\s*\S+\.(\w+)", raw, re.IGNORECASE)
+    if m:
+        col_name = m.group(1)
+    else:
+        # PostgreSQL via constraint name: uq_{table}_{fieldname}
+        m2 = re.search(r'"uq_[^"]+?_(\w+)"', raw)
+        if m2:
+            col_name = m2.group(1)
+
+    if col_name and dt is not None:
+        label = next(
+            (f.label or f.fieldname for f in dt.fields if f.fieldname == col_name),
+            col_name,
+        )
+        message = f"Значення поля «{label}» вже існує в системі. Введіть унікальне значення."
+    else:
+        message = "Запис з таким значенням вже існує. Введіть унікальне значення."
+
+    return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=message)
 
 
 class DocumentWriteMixin:
@@ -302,6 +332,8 @@ class DocumentWriteMixin:
         try:
             await self._persist_new_doc(dt, table, doctype_name, doc_id, data, row, user, now)
             await self._fire_create_services(doctype_name, dt, row)
+        except IntegrityError as exc:
+            raise _friendly_integrity_error(exc, dt) from exc
         finally:
             self._reset_grunt_context(_tokens)
 
@@ -523,6 +555,8 @@ class DocumentWriteMixin:
                 result=result,
             )
             return result
+        except IntegrityError as exc:
+            raise _friendly_integrity_error(exc, dt) from exc
         finally:
             self._reset_grunt_context(_tokens)
 
