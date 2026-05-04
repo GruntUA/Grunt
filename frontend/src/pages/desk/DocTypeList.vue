@@ -311,7 +311,11 @@ watch(() => props.doctype, async (newDoctype) => {
       :calendar-date-field="calendarDateField" :geo-field="geoField"
       :fast-filter-defs="fastFilterDefs"
       :fast-filter-values="fastFilterValues"
+      :sort-key="sortKey"
+      :sort-order="sortOrder"
+      :sortable-columns="colState.allAvailableColumns.value"
       @update:fast-filter-values="fastFilterValues = $event"
+      @sort="onSort"
       @reset="inlineSearch = ''; activeFilters = []; fastFilterValues = {}; page = 1" />
 
     <ListViewRouter

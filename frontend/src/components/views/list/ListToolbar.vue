@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   Search,
@@ -13,6 +13,9 @@ import {
   Check,
   Image as ImageIcon,
   Map as MapIcon,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from '@lucide/vue'
 import draggable from 'vuedraggable'
 import type { ActiveFilter, DocField, DocType, FastFilter } from '@/types'
@@ -47,6 +50,9 @@ const props = defineProps<{
   treeParentField: DocField | null
   calendarDateField: DocField | null
   geoField: DocField | null
+  sortKey: string
+  sortOrder: 'asc' | 'desc'
+  sortableColumns: ListColumn[]
 }>()
 
 const emit = defineEmits<{
@@ -56,6 +62,7 @@ const emit = defineEmits<{
   (e: 'update:fastFilterValues', val: Record<string, string>): void
   (e: 'update:groupBy', val: string | null): void
   (e: 'reset'): void
+  (e: 'sort', key: string): void
 }>()
 
 const { t } = useI18n()
@@ -76,9 +83,31 @@ function onColReorder(e: { oldIndex: number; newIndex: number }) {
   props.columns.reorderCols(e.oldIndex, e.newIndex)
 }
 
+// Sort options: system fields always shown, then custom columns
+const SYSTEM_SORT_OPTIONS = [
+  { key: 'modified_at', label: 'Дата оновлення' },
+  { key: 'created_at', label: 'Дата створення' },
+  { key: 'name', label: 'Назва' },
+]
+
+const allSortOptions = computed(() => {
+  const systemKeys = new Set(SYSTEM_SORT_OPTIONS.map(o => o.key))
+  const customOptions = props.sortableColumns
+    .filter(c => !systemKeys.has(c.key))
+    .map(c => ({ key: c.key, label: c.label }))
+  return [...SYSTEM_SORT_OPTIONS, ...customOptions]
+})
+
+const activeSortLabel = computed(() =>
+  props.sortKey
+    ? (allSortOptions.value.find(o => o.key === props.sortKey)?.label ?? props.sortKey)
+    : null
+)
+
 // PrimeVue Popover refs
 const opColumns = ref()
 const opGrouping = ref()
+const opSorting = ref()
 
 const toggleColumns = (event: Event) => {
     opColumns.value.toggle(event)
@@ -86,6 +115,10 @@ const toggleColumns = (event: Event) => {
 
 const toggleGrouping = (event: Event) => {
     opGrouping.value.toggle(event)
+}
+
+const toggleSorting = (event: Event) => {
+    opSorting.value.toggle(event)
 }
 </script>
 
@@ -209,6 +242,46 @@ const toggleGrouping = (event: Event) => {
                 <Check class="size-3.5 text-primary" :class="groupBy === f.fieldname ? 'opacity-100' : 'opacity-0'" />
               </div>
               <span class="text-sm font-medium">{{ f.label }}</span>
+            </div>
+          </div>
+        </Popover>
+
+        <!-- Sort Popover -->
+        <Button text size="small" class="h-9 px-2.5 gap-2 font-medium transition-all"
+          :class="sortKey ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'"
+          @click="toggleSorting">
+          <ArrowUpDown class="size-4" />
+          <span class="hidden lg:inline">{{ activeSortLabel ?? 'Сортування' }}</span>
+        </Button>
+
+        <Popover ref="opSorting">
+          <div class="w-64 p-1">
+            <div class="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">Сортувати за</div>
+            <div class="h-px bg-border/40 my-1" />
+
+            <!-- Reset / default -->
+            <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+              @click="emit('sort', ''); opSorting.hide()">
+              <div class="size-4 flex items-center justify-center">
+                <Check class="size-3.5 text-primary" :class="!sortKey ? 'opacity-100' : 'opacity-0'" />
+              </div>
+              <span class="text-sm font-medium">За замовчуванням</span>
+            </div>
+
+            <div class="h-px bg-border/40 my-1" />
+
+            <div class="max-h-[min(60vh,24rem)] overflow-y-auto pr-1">
+              <div v-for="opt in allSortOptions" :key="opt.key"
+                class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                @click="emit('sort', opt.key); opSorting.hide()">
+                <div class="size-4 flex items-center justify-center">
+                  <Check class="size-3.5 text-primary" :class="sortKey === opt.key ? 'opacity-100' : 'opacity-0'" />
+                </div>
+                <span class="flex-1 text-sm" :class="sortKey === opt.key ? 'font-semibold text-foreground' : ''">{{ opt.label }}</span>
+                <component :is="sortOrder === 'asc' ? ArrowUp : ArrowDown"
+                  v-if="sortKey === opt.key"
+                  class="size-3.5 text-primary shrink-0" />
+              </div>
             </div>
           </div>
         </Popover>

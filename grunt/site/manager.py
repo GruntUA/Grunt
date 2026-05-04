@@ -176,6 +176,12 @@ class SiteManager:
                         cursor.execute("PRAGMA auto_vacuum=INCREMENTAL")
                         cursor.close()
                         dbapi_conn.create_function("uk_sort_key", 1, _uk_sort_key)
+                        # Override SQLite's built-in lower() with a Unicode-aware version
+                        # so that ILIKE (which compiles to lower(x) LIKE lower(y)) works
+                        # correctly for Cyrillic/Ukrainian characters.
+                        dbapi_conn.create_function(
+                            "lower", 1, lambda s: s.lower() if isinstance(s, str) else s
+                        )
 
             if settings.debug:
                 from grunt.db.profiler import attach_query_profiler  # noqa: PLC0415

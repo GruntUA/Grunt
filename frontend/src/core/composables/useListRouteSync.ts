@@ -120,6 +120,16 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
   }
 
   function applySort(key: string) {
+    if (!key) {
+      // Reset sort
+      options.sortKey.value = ''
+      options.sortOrder.value = 'asc'
+      const query = { ...options.route.query }
+      delete query.sort
+      delete query.order
+      options.router.replace({ query })
+      return
+    }
     options.sortOrder.value =
       options.sortKey.value === key && options.sortOrder.value === 'asc' ? 'desc' : 'asc'
     options.sortKey.value = key
