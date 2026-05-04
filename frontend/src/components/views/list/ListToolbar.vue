@@ -117,7 +117,15 @@ const toggleGrouping = (event: Event) => {
     opGrouping.value.toggle(event)
 }
 
+const sortSearch = ref('')
+const filteredSortOptions = computed(() => {
+  const q = sortSearch.value.trim().toLowerCase()
+  if (!q) return allSortOptions.value
+  return allSortOptions.value.filter(o => o.label.toLowerCase().includes(q))
+})
+
 const toggleSorting = (event: Event) => {
+    sortSearch.value = ''
     opSorting.value.toggle(event)
 }
 </script>
@@ -258,6 +266,17 @@ const toggleSorting = (event: Event) => {
           <div class="w-64 p-1">
             <div class="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">Сортувати за</div>
             <div class="h-px bg-border/40 my-1" />
+            <div class="px-1 pb-1">
+              <div class="relative group">
+                <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
+                <input
+                  v-model="sortSearch"
+                  class="w-full rounded-md border border-border/60 bg-muted/40 px-2 py-1.5 pl-8 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30 transition-all"
+                  placeholder="Пошук поля..."
+                />
+              </div>
+            </div>
+            <div class="h-px bg-border/40 my-1" />
 
             <!-- Reset / default -->
             <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
@@ -270,8 +289,9 @@ const toggleSorting = (event: Event) => {
 
             <div class="h-px bg-border/40 my-1" />
 
-            <div class="max-h-[min(60vh,24rem)] overflow-y-auto pr-1">
-              <div v-for="opt in allSortOptions" :key="opt.key"
+            <div v-if="!filteredSortOptions.length" class="px-2 py-3 text-sm text-center text-muted-foreground/60">Нічого не знайдено</div>
+            <div class="max-h-[min(60vh,20rem)] overflow-y-auto pr-1">
+              <div v-for="opt in filteredSortOptions" :key="opt.key"
                 class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
                 @click="emit('sort', opt.key); opSorting.hide()">
                 <div class="size-4 flex items-center justify-center">
