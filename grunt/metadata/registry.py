@@ -300,6 +300,9 @@ class DocTypeRegistry:
                     _STRUCTURAL = {
                         "fieldtype", "options", "label", "default", "read_only",
                         "required", "hidden", "in_list_view", "in_filter", "description",
+                        "depends_on", "bold", "in_quick_entry", "in_filter", "in_quick_filter",
+                        "is_virtual", "read_formula", "show_in_dashboard",
+                        "dashboard_doctype", "dashboard_link_field",
                     }
                     for json_field in doctype.fields:
                         stored_field = stored_fieldnames.get(json_field.fieldname)

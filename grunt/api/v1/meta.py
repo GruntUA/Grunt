@@ -27,9 +27,12 @@ async def _get_app_name_for_module(module: str) -> str | None:
 
 @grunt.whitelist()
 async def get_doctype(name: str) -> dict[str, Any]:
-    """Get a single DocType definition."""
-    dt = await doctype_registry.get(name)
-    return dt.model_dump()
+    """Get a single DocType definition, always re-reading from DB."""
+    await doctype_registry.get(name)  # ensure it exists (raises 404 if not)
+    fresh = await doctype_registry._lazy_load(name)
+    if fresh is None:
+        fresh = await doctype_registry.get(name)
+    return fresh.model_dump()
 
 
 @grunt.whitelist()

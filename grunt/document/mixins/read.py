@@ -291,6 +291,7 @@ class DocumentReadMixin:
             else:
                 selected_ml = sorted(ml_fields & expand_set)
                 if selected_ml:
+                    ml_data = await self._ml.get_all_for_doc(doctype_name, doc["id"])
                     for fieldname in selected_ml:
                         doc[fieldname] = ml_data.get(fieldname, [])
 

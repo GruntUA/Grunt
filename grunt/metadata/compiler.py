@@ -298,7 +298,7 @@ async def sync_table(
 
         # Drop stale per-field constraints (those with our naming prefix only)
         for name in existing_uq:
-            if name.startswith(uq_prefix) and name not in desired_uq:
+            if name and name.startswith(uq_prefix) and name not in desired_uq:
                 connection.execute(
                     text(f'ALTER TABLE "{table.name}" DROP CONSTRAINT IF EXISTS "{name}"')
                 )

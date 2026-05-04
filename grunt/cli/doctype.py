@@ -16,55 +16,54 @@ def doctype_group():
 @doctype_group.command("sync")
 @click.argument("name")
 @click.option("--site", default=None, help="Назва сайту")
-@click.option(
-    "--force", is_flag=True, help="Перезаписати метадані в БД з JSON-файлу (для core DocTypes)"
-)
-def doctype_sync(name: str, site: str | None, force: bool):
-    """Синхронізувати конкретний DocType зі схемою БД.
-
-    За замовчуванням синхронізує лише фізичну схему таблиці.
-    З --force також оновлює метадані в grunt_meta_doctype з JSON-файлу на диску.
-    """
+def doctype_sync(name: str, site: str | None):
+    """Синхронізувати DocType: перечитати JSON з диску, оновити БД і схему таблиці."""
 
     async def _run():
         import json  # noqa: PLC0415
 
-        from grunt.metadata.compiler import sync_table  # noqa: PLC0415
         from grunt.metadata.doctype import DocType  # noqa: PLC0415
         from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.startup.doctypes import _find_doctype_dirs  # noqa: PLC0415
+
+        # Find JSON file across all grunt/*/doctypes/ and app doctypes/
+        json_file = None
+        from grunt.site.manager import site_manager  # noqa: PLC0415
+        search_dirs = list(_find_doctype_dirs())
+        # Also search installed app doctypes
+        if site_manager.bench_dir:
+            for app_dir in sorted((site_manager.bench_dir / "apps").iterdir()):
+                dt_dir = app_dir / app_dir.name / "doctypes"
+                if dt_dir.is_dir():
+                    search_dirs.append(dt_dir)
+                dt_dir2 = app_dir / "doctypes"
+                if dt_dir2.is_dir():
+                    search_dirs.append(dt_dir2)
+
+        for dt_dir in search_dirs:
+            candidate = dt_dir / name / f"{name}.json"
+            if candidate.exists():
+                json_file = candidate
+                break
+            # Fallback: snake_case filename
+            snake = to_snake_case(name)
+            candidate2 = dt_dir / name / f"{snake}.json"
+            if candidate2.exists():
+                json_file = candidate2
+                break
+
+        if json_file is None:
+            click.echo(f"Помилка: JSON-файл для '{name}' не знайдено.", err=True)
+            raise SystemExit(1)
+
+        dt_data = json.loads(json_file.read_text(encoding="utf-8"))
+        dt = DocType.model_validate(dt_data)
 
         async with _site_session(site) as (session, eng):
-            dt = await doctype_registry.get(name)
-
-            if force:
-                # Find JSON file on disk and reload definition
-                from grunt.startup.doctypes import _CORE_DOCTYPES_DIR  # noqa: PLC0415
-
-                json_file = _CORE_DOCTYPES_DIR / name / f"{name}.json"
-                if not json_file.exists():
-                    json_file = (
-                        _CORE_DOCTYPES_DIR / to_snake_case(name) / f"{to_snake_case(name)}.json"
-                    )
-                if not json_file.exists():
-                    # Try flat .json files too
-                    json_file = _CORE_DOCTYPES_DIR / f"{name}.json"
-                if not json_file.exists():
-                    json_file = _CORE_DOCTYPES_DIR / f"{to_snake_case(name)}.json"
-                if not json_file.exists():
-                    click.echo(f"Помилка: JSON-файл для '{name}' не знайдено.", err=True)
-                    raise SystemExit(1)
-                dt_data = json.loads(json_file.read_text(encoding="utf-8"))
-                dt = DocType.model_validate(dt_data)
-                await doctype_registry.update(dt, session, eng)
-                click.echo(f"Метадані '{name}' оновлено з {json_file.name}.")
-                # sync_table already called by doctype_registry.update; skip below
-                await session.commit()
-                click.echo(f"DocType '{name}' синхронізовано.")
-                return
-
-            await sync_table(dt, eng, session=session)
+            await doctype_registry.update(dt, session, eng)
             await session.commit()
-            click.echo(f"DocType '{name}' синхронізовано.")
+
+        click.echo(f"DocType '{name}' синхронізовано з {json_file.relative_to(json_file.parents[3])}.")
 
     asyncio.run(_run())
 
