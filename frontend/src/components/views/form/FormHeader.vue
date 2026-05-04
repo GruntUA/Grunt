@@ -159,6 +159,21 @@ const groupedScriptButtons = computed(() => {
   }).filter((g) => !!g.primary)
 })
 
+const documentStatus = computed(() => {
+  return props.document?.status ?? null
+})
+
+const statusBadgeSeverity = computed(() => {
+  const status = documentStatus.value
+  if (!status) return 'secondary'
+  const lower = String(status).toLowerCase()
+  if (['active', 'enabled', 'published'].includes(lower)) return 'success'
+  if (['inactive', 'disabled', 'draft'].includes(lower)) return 'info'
+  if (['archived', 'deleted'].includes(lower)) return 'warning'
+  if (['error', 'failed'].includes(lower)) return 'danger'
+  return 'secondary'
+})
+
 const menuItems = computed(() => {
     const items: any[] = []
   const workspaceName = props.workspace ?? 'grunt'
@@ -286,7 +301,10 @@ const menuItems = computed(() => {
     <div class="flex items-center justify-between gap-4 px-4 py-2.5">
       <div class="min-w-0 flex items-center gap-3">
         <h1 class="text-xl font-bold text-foreground truncate selection:bg-primary/20">{{ docTitle }}</h1>
-        <Badge v-if="isDirty" severity="contrast" class="animate-in fade-in slide-in-from-left-2 duration-300 text-[10px] h-5 px-1.5 border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-amber-400">
+        <Badge v-if="documentStatus" :severity="statusBadgeSeverity" class="animate-in fade-in slide-in-from-left-2 duration-300 text-[10px] h-5 px-1.5 shrink-0">
+          {{ documentStatus }}
+        </Badge>
+        <Badge v-if="isDirty" severity="contrast" class="animate-in fade-in slide-in-from-left-2 duration-300 text-[10px] h-5 px-1.5 border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-amber-400 shrink-0">
           {{ t('Unsaved') }}
         </Badge>
       </div>

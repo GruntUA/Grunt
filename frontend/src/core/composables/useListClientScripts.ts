@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import type { Ref } from 'vue'
 import type { QueryClient } from '@tanstack/vue-query'
+import { useRouter } from 'vue-router'
 import {
   createListViewProxy,
   createGruntProxy,
@@ -25,6 +26,7 @@ interface UseListClientScriptsParams {
 }
 
 export function useListClientScripts(params: UseListClientScriptsParams) {
+  const router = useRouter()
   const listButtons = ref<ScriptButton[]>([])
   const listMenuItems = ref<ScriptMenuItem[]>([])
   const listviewProxy = ref<ListViewProxy | null>(null)
@@ -54,6 +56,13 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
       form: (opts) => params.dialog.form(opts),
       showProgress: (title, count, total, description) =>
         params.dialog.progress(title, count, total, description),
+      navigateTo: (href, inNewTab) => {
+        if (inNewTab) {
+          window.open(href, '_blank')
+          return
+        }
+        router.push(href)
+      },
     })
 
     const lv = createListViewProxy(params.doctype, {

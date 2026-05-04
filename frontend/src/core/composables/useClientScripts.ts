@@ -24,6 +24,7 @@
 
 import { ref, reactive, watch } from 'vue'
 import type { Ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useDialog } from '@/core/composables/useDialog'
 import { useToast } from '@/core/composables/useToast'
 import {
@@ -101,6 +102,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
 
   const dialog = useDialog()
   const toast = useToast()
+  const router = useRouter()
   const buttons = ref<ScriptButton[]>([])
   const displayOverrides = reactive<Record<string, boolean>>({})
   const reqdOverrides = reactive<Record<string, boolean>>({})
@@ -204,6 +206,13 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
         },
         prompt: (labelOrOpts, title) => dialog.prompt(labelOrOpts as any, title),
         form: (opts) => dialog.form(opts as any),
+        navigateTo: (href, inNewTab) => {
+          if (inNewTab) {
+            window.open(href, '_blank')
+            return
+          }
+          router.push(href)
+        },
       }, messageListeners)
     }
     return gruntProxy

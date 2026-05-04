@@ -349,6 +349,7 @@ export function createGruntProxy(
     warn?: (title: string, message: string, primaryLabel?: string) => Promise<boolean>
     form?: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: DialogSize }) => Promise<Record<string, unknown> | null>
     showProgress?: (title: string, count: number, total: number, description?: string) => void
+    navigateTo?: (href: string, inNewTab: boolean) => void
   } = {},
   // Internal registry populated by useClientScripts when a WS message arrives
   _messageListeners: Map<string, Set<(data: unknown) => void>> = new Map(),
@@ -454,11 +455,17 @@ export function createGruntProxy(
     const { parts, filters } = resolveRouteCall(route)
     const href = buildWorkspaceHref(parts, filters)
     if (!href) return
-    if (inNewTab) {
-      window.open(href, '_blank')
-    } else {
-      window.location.assign(href)
+    if (callbacks.navigateTo) {
+      try {
+        callbacks.navigateTo(href, inNewTab)
+        routeOptions = null
+        return
+      } catch {
+        // Fall back to hard navigation when injected router navigation fails.
+      }
     }
+    if (inNewTab) window.open(href, '_blank')
+    else window.location.assign(href)
     routeOptions = null
   }
 

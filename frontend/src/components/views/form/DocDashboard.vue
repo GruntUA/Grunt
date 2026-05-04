@@ -17,19 +17,29 @@ const dashboardFields = computed(() => {
   return props.dt.fields.filter(f => f.show_in_dashboard)
 })
 
+function getCurrentDocLinkValue(): string {
+  // Link fields store document name (human-readable/autoname), not internal id.
+  const value = props.document?.name ?? props.document?.id
+  return value ? String(value) : ''
+}
+
 function handleAdd(field: any) {
   if (field.dashboard_doctype) {
+    const currentDoc = getCurrentDocLinkValue()
+    if (!currentDoc) return
     // If dashboard_link_field is set, use it. Otherwise fallback to lowercase parent doctype name.
     const linkField = field.dashboard_link_field || props.dt.name.toLowerCase()
-    const preset = { [linkField]: props.document.id }
+    const preset = { [linkField]: currentDoc }
     emit('create-new', field.dashboard_doctype, preset, '')
   }
 }
 
 function handleViewList(field: any) {
   if (field.dashboard_doctype) {
+    const currentDoc = getCurrentDocLinkValue()
+    if (!currentDoc) return
     const linkField = field.dashboard_link_field || props.dt.name.toLowerCase()
-    const filters = { [linkField]: props.document.id }
+    const filters = { [linkField]: currentDoc }
     emit('view-list', field.dashboard_doctype, filters)
   }
 }
