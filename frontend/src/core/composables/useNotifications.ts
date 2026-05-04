@@ -23,17 +23,10 @@ const userChannel = new WebSocketChannel({
   pingIntervalMs: 30_000,
 })
 
-userChannel.on('notification', (data) => {
-  handleRealtimeEvent({ event: 'notification', data: (data ?? {}) as RealtimeEvent['data'] })
-})
-userChannel.on('msgprint', (data) => {
-  handleRealtimeEvent({ event: 'msgprint', data: (data ?? {}) as RealtimeEvent['data'] })
-})
-userChannel.on('alert', (data) => {
-  handleRealtimeEvent({ event: 'alert', data: (data ?? {}) as RealtimeEvent['data'] })
-})
-userChannel.on('progress', (data) => {
-  handleRealtimeEvent({ event: 'progress', data: (data ?? {}) as RealtimeEvent['data'] })
+// Single wildcard handler — catches ALL events, including bulk_delete_progress/done
+userChannel.on('*', (msg) => {
+  const m = msg as { event: string; data?: unknown }
+  handleRealtimeEvent({ event: m.event, data: (m.data ?? {}) as RealtimeEvent['data'] })
 })
 
 function connectWs() {

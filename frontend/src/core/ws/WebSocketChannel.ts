@@ -117,10 +117,18 @@ export class WebSocketChannel {
 
         this.lastMessage.value = parsed
         if (parsed?.event) {
+          // Dispatch to specific event handlers
           const handlers = this.eventHandlers.get(parsed.event)
           if (handlers) {
             for (const handler of handlers) {
               handler(parsed.data)
+            }
+          }
+          // Dispatch to wildcard handlers (receive the full parsed message)
+          const wildcardHandlers = this.eventHandlers.get('*')
+          if (wildcardHandlers) {
+            for (const handler of wildcardHandlers) {
+              handler(parsed)
             }
           }
         }
