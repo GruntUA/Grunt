@@ -29,6 +29,7 @@ from grunt.document.relations import (
     _table_fieldnames,
 )
 from grunt.document.virtual import (
+    _is_virtual_routed,
     _virtual_get,
     _virtual_list,
 )
@@ -77,8 +78,8 @@ class DocumentReadMixin:
     ) -> DocumentList:
         dt = await doctype_registry.get(doctype_name)
 
-        # Virtual DocType — delegate to sub-module
-        if dt.is_virtual:
+        # Virtual DocType or VirtualDocType controller — delegate to sub-module
+        if _is_virtual_routed(dt, doctype_name):
             return await _virtual_list(
                 doctype_name, user, page, per_page, sort_by, sort_order, filters, search
             )
@@ -247,7 +248,7 @@ class DocumentReadMixin:
         expand: list[str] | None = None,
     ) -> dict[str, Any]:
         dt = await doctype_registry.get(doctype_name)
-        if dt.is_virtual:
+        if _is_virtual_routed(dt, doctype_name):
             return await _virtual_get(doctype_name, user, doc_id)
 
         table = compile_doctype_to_table(dt)

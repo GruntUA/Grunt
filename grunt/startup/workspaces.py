@@ -184,6 +184,8 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                         if not dt_name:
                             continue
                         dt_obj = DocType.model_validate(dt_data)
+                        if not dt_obj.app:
+                            dt_obj.app = app_name
                         if dt_name not in doctype_registry._doctypes:
                             async with session.begin_nested():
                                 await doctype_registry.register(dt_obj, session, eng)

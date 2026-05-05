@@ -238,9 +238,16 @@ class DocTypeRegistry:
         existing = existing_row.scalar_one_or_none()
 
         if existing:
-            # Virtual DocTypes have no physical DB tables, so there is nothing
-            # to migrate and no risk of data loss. Always use memory version.
-            if doctype.is_virtual:
+            # Load the stored definition (preserves Studio customisations).
+            try:
+                active_dt = DocType.model_validate(existing.data)
+            except Exception:
+                # Stored data is invalid — fall back to JSON and repair.
+                logger.warning(
+                    "registry.core_stored_invalid",
+                    name=doctype.name,
+                    action="falling_back_to_json",
+                )
                 active_dt = doctype
                 if sync_db:
                     await session.execute(
@@ -249,91 +256,74 @@ class DocTypeRegistry:
                         .values(module=doctype.module, data=doctype.model_dump())
                     )
             else:
-                # Load the stored definition (preserves Studio customisations).
-                try:
-                    active_dt = DocType.model_validate(existing.data)
-                except Exception:
-                    # Stored data is invalid — fall back to JSON and repair.
-                    logger.warning(
-                        "registry.core_stored_invalid",
-                        name=doctype.name,
-                        action="falling_back_to_json",
-                    )
-                    active_dt = doctype
+                # Merge logic
+                stored_fieldnames = {f.fieldname: f for f in active_dt.fields}
+                new_fields = [f for f in doctype.fields if f.fieldname not in stored_fieldnames]
+                if new_fields:
+                    active_dt.fields.extend(new_fields)
                     if sync_db:
+                        logger.info(
+                            "registry.core_fields_merged",
+                            name=doctype.name,
+                            added=[f.fieldname for f in new_fields],
+                        )
+                # Sync top-level structural properties from JSON
+                _TOP_STRUCTURAL = {
+                    "is_child",
+                    "is_singleton",
+                    "is_virtual",
+                    "is_tree",
+                    "is_log",
+                    "is_submittable",
+                    "title_field",
+                    "tree_view",
+                    "search_fields",
+                    "label",
+                    "module",
+                    "app",
+                }
+                for attr in _TOP_STRUCTURAL:
+                    json_val = getattr(doctype, attr, None)
+                    if json_val is not None and getattr(active_dt, attr, None) != json_val:
+                        setattr(active_dt, attr, json_val)
+
+                # Sync field-level structural properties from JSON (fieldtype, options, label, default, etc.)
+                _STRUCTURAL = {
+                    "fieldtype", "options", "label", "default", "read_only",
+                    "required", "hidden", "in_list_view", "in_filter", "description",
+                    "depends_on", "bold", "in_quick_entry", "in_filter", "in_quick_filter",
+                    "is_virtual", "read_formula", "show_in_dashboard",
+                    "dashboard_doctype", "dashboard_link_field", "validator",
+                }
+                for json_field in doctype.fields:
+                    stored_field = stored_fieldnames.get(json_field.fieldname)
+                    if stored_field is None:
+                        continue
+                    for attr in _STRUCTURAL:
+                        if getattr(stored_field, attr, None) != getattr(json_field, attr, None):
+                            setattr(stored_field, attr, getattr(json_field, attr, None))
+
+                # Sync field order: position JSON-defined fields according to JSON order,
+                # followed by any custom fields that were added locally.
+                json_order = {f.fieldname: i for i, f in enumerate(doctype.fields)}
+                active_dt.fields.sort(
+                    key=lambda f: json_order.get(f.fieldname, 9999)
+                )
+
+                if sync_db:
+                    try:
                         await session.execute(
                             update(GruntMetaDoctype)
                             .where(GruntMetaDoctype.name == doctype.name)
-                            .values(module=doctype.module, data=doctype.model_dump())
+                            .values(module=doctype.module, data=active_dt.model_dump())
                         )
-                else:
-                    # Merge logic
-                    stored_fieldnames = {f.fieldname: f for f in active_dt.fields}
-                    new_fields = [f for f in doctype.fields if f.fieldname not in stored_fieldnames]
-                    if new_fields:
-                        active_dt.fields.extend(new_fields)
-                        if sync_db:
-                            logger.info(
-                                "registry.core_fields_merged",
-                                name=doctype.name,
-                                added=[f.fieldname for f in new_fields],
-                            )
-                    # Sync top-level structural properties from JSON
-                    _TOP_STRUCTURAL = {
-                        "is_child",
-                        "is_singleton",
-                        "is_virtual",
-                        "is_tree",
-                        "is_log",
-                        "is_submittable",
-                        "title_field",
-                        "tree_view",
-                        "search_fields",
-                        "label",
-                        "module",
-                    }
-                    for attr in _TOP_STRUCTURAL:
-                        json_val = getattr(doctype, attr, None)
-                        if json_val is not None and getattr(active_dt, attr, None) != json_val:
-                            setattr(active_dt, attr, json_val)
-
-                    # Sync field-level structural properties from JSON (fieldtype, options, label, default, etc.)
-                    _STRUCTURAL = {
-                        "fieldtype", "options", "label", "default", "read_only",
-                        "required", "hidden", "in_list_view", "in_filter", "description",
-                        "depends_on", "bold", "in_quick_entry", "in_filter", "in_quick_filter",
-                        "is_virtual", "read_formula", "show_in_dashboard",
-                        "dashboard_doctype", "dashboard_link_field", "validator",
-                    }
-                    for json_field in doctype.fields:
-                        stored_field = stored_fieldnames.get(json_field.fieldname)
-                        if stored_field is None:
-                            continue
-                        for attr in _STRUCTURAL:
-                            if getattr(stored_field, attr, None) != getattr(json_field, attr, None):
-                                setattr(stored_field, attr, getattr(json_field, attr, None))
-
-                    # Sync field order: position JSON-defined fields according to JSON order, 
-                    # followed by any custom fields that were added locally.
-                    json_order = {f.fieldname: i for i, f in enumerate(doctype.fields)}
-                    active_dt.fields.sort(
-                        key=lambda f: json_order.get(f.fieldname, 9999)
-                    )
-
-                    if sync_db:
-                        try:
-                            await session.execute(
-                                update(GruntMetaDoctype)
-                                .where(GruntMetaDoctype.name == doctype.name)
-                                .values(module=doctype.module, data=active_dt.model_dump())
-                            )
-                            await session.flush()
-                        except Exception as _upd_err:  # noqa: BLE001
-                            logger.warning(
-                                "registry.core_metadata_update_failed",
-                                name=doctype.name,
-                                error=str(_upd_err),
-                            )
+                        await session.flush()
+                    except Exception as _upd_err:  # noqa: BLE001
+                        logger.warning(
+                            "registry.core_metadata_update_failed",
+                            name=doctype.name,
+                            error=str(_upd_err),
+                        )
         else:
             # First run: seed from the bundled JSON file.
             active_dt = doctype

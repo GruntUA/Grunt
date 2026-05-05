@@ -29,6 +29,7 @@ from grunt.document.relations import (
 )
 from grunt.document.validation import _coerce_value, _validate_data
 from grunt.document.virtual import (
+    _is_virtual_routed,
     _virtual_create,
     _virtual_delete,
     _virtual_update,
@@ -313,7 +314,7 @@ class DocumentWriteMixin:
     ) -> dict[str, Any]:
         fresh = await doctype_registry._lazy_load(doctype_name)
         dt = fresh if fresh is not None else await doctype_registry.get(doctype_name)
-        if dt.is_virtual:
+        if _is_virtual_routed(dt, doctype_name):
             return await _virtual_create(doctype_name, user, data)
 
         table = compile_doctype_to_table(dt)
@@ -488,7 +489,7 @@ class DocumentWriteMixin:
     ) -> dict[str, Any]:
         fresh = await doctype_registry._lazy_load(doctype_name)
         dt = fresh if fresh is not None else await doctype_registry.get(doctype_name)
-        if dt.is_virtual:
+        if _is_virtual_routed(dt, doctype_name):
             return await _virtual_update(doctype_name, user, doc_id, data)
 
         table = compile_doctype_to_table(dt)
@@ -569,7 +570,7 @@ class DocumentWriteMixin:
         user: User,
     ) -> None:
         dt = await doctype_registry.get(doctype_name)
-        if dt.is_virtual:
+        if _is_virtual_routed(dt, doctype_name):
             await _virtual_delete(doctype_name, user, doc_id)
             return
 
@@ -632,7 +633,7 @@ class DocumentWriteMixin:
 
         dt = await doctype_registry.get(doctype_name)
 
-        if dt.is_virtual:
+        if _is_virtual_routed(dt, doctype_name):
             return await bulk_delete_virtual(
                 doctype_name=doctype_name,
                 ids=ids,
@@ -708,7 +709,7 @@ class DocumentWriteMixin:
             return await self.get_document(doctype_name, old_id, user)
 
         dt = await doctype_registry.get(doctype_name)
-        if dt.is_virtual:
+        if _is_virtual_routed(dt, doctype_name):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Cannot rename virtual documents",

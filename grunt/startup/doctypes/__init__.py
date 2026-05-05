@@ -102,6 +102,8 @@ async def load_core_doctypes(session: AsyncSession, sync_db: bool = False) -> No
             if not dt_name:
                 continue
             dt_obj = DocType.model_validate(dt_data)
+            if not dt_obj.app:
+                dt_obj.app = "grunt"
             await doctype_registry._inject_core(dt_obj, session, sync_db=sync_db)
             if sync_db:
                 logger.info("startup.core_doctype_injected", doctype=dt_name)
@@ -123,10 +125,11 @@ async def populate_system_doctypes(
     if dt_def is None:
         logger.warning("startup.doctype_def_missing")
         return
-    if dt_def.is_virtual:
-        logger.info("startup.doctype_table_sync_skipped", reason="virtual_doctype")
-        return
     table = compile_doctype_to_table(dt_def)
+
+    # Ensure the physical table exists before querying it (idempotent on upgrades)
+    from grunt.metadata.compiler import sync_table  # noqa: PLC0415
+    await sync_table(dt_def, engine, session=session)
 
     all_doctypes = await doctype_registry.list_all()
 
@@ -149,6 +152,7 @@ async def populate_system_doctypes(
     for dt in all_doctypes:
         scalar_fields: dict = {
             **_col("label", dt.label),
+            **_col("app", dt.app),
             **_col("module", dt.module),
             **_col("is_child", dt.is_child),
             **_col("is_submittable", dt.is_submittable),

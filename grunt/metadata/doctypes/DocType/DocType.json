@@ -2,7 +2,7 @@
   "name": "DocType",
   "label": "Тип документа",
   "module": "metadata",
-  "is_virtual": true,
+  "is_virtual": false,
   "is_child": false,
   "track_changes": false,
   "autoname": "prompt",

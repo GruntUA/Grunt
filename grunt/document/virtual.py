@@ -11,6 +11,22 @@ if TYPE_CHECKING:
     from grunt.document.base import DocumentList
 
 
+def _is_virtual_routed(dt: Any, doctype_name: str) -> bool:
+    """True якщо CRUD треба делегувати VirtualDocType-контролеру.
+
+    Перевіряє dt.is_virtual АБО наявність зареєстрованого VirtualDocType-контролера.
+    Це дозволяє DocType мати is_virtual=False (нормальний merge при install),
+    але продовжувати маршрутизувати CRUD через DocTypeController.
+    """
+    from grunt.document.base import Document  # noqa: PLC0415
+    from grunt.metadata.virtual import VirtualDocType  # noqa: PLC0415
+
+    if dt.is_virtual:
+        return True
+    ctrl_cls = document_registry.get(doctype_name)
+    return ctrl_cls is not Document and issubclass(ctrl_cls, VirtualDocType)
+
+
 def _get_virtual_controller(doctype_name: str, user: User):
     """Get the VirtualDocType controller instance for a virtual DocType."""
     from grunt.metadata.virtual import VirtualDocType  # noqa: PLC0415
