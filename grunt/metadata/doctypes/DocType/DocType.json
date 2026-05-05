@@ -33,6 +33,28 @@
       "bold": true
     },
     {
+      "fieldname": "description",
+      "label": "Опис",
+      "fieldtype": "Text",
+      "description": "Короткий опис DocType (відображається у підказках та Studio)"
+    },
+    {
+      "fieldname": "col_icon_app_1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "icon",
+      "label": "Іконка",
+      "fieldtype": "Icon",
+      "description": "Іконка Lucide для меню та Workspace"
+    },
+    {
+      "fieldname": "col_icon_app_2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
       "fieldname": "col_app_module_1",
       "label": "",
       "fieldtype": "Column"
@@ -106,13 +128,15 @@
     {
       "fieldname": "title_field",
       "label": "Поле заголовка",
-      "fieldtype": "Text",
+      "fieldtype": "Select",
+      "options": "",
       "description": "Яке поле відображається як назва документа (default: name)"
     },
     {
       "fieldname": "image_field",
       "label": "Поле зображення",
-      "fieldtype": "Text",
+      "fieldtype": "Select",
+      "options": "",
       "description": "Поле типу Image або Attach для аватара документа"
     },
     {
@@ -124,7 +148,7 @@
       "fieldname": "default_view",
       "label": "Вигляд за замовчуванням",
       "fieldtype": "Select",
-      "options": "\nlist\nkanban\ncalendar\ntree"
+      "options": "\nlist\nkanban\ncalendar\ntree\ngallery\nmap"
     },
     {
       "fieldname": "table_name",
@@ -194,12 +218,14 @@
     {
       "fieldname": "list_view",
       "label": "Налаштування списку",
-      "fieldtype": "JSON"
+      "fieldtype": "Code",
+      "options": "json"
     },
     {
       "fieldname": "form_view",
       "label": "Налаштування форми",
-      "fieldtype": "JSON"
+      "fieldtype": "Code",
+      "options": "json"
     },
     {
       "fieldname": "status_config",

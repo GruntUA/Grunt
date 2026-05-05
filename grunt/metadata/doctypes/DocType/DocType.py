@@ -47,7 +47,10 @@ class DocTypeController(VirtualDocType):
         stmt = select(GruntMetaDoctype)
 
         if search:
-            stmt = stmt.where(GruntMetaDoctype.name.ilike(f"%{search}%"))
+            stmt = stmt.where(
+                GruntMetaDoctype.name.ilike(f"%{search}%")
+                | GruntMetaDoctype.data["label"].as_string().ilike(f"%{search}%")
+            )
 
         for key, val in (filters or {}).items():
             if key == "module":

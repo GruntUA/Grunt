@@ -8,6 +8,28 @@ function setup_list(listview) {
     }, { variant: 'secondary' })
 }
 
+/**
+ * Refresh title_field and image_field options based on current fields list.
+ * title_field — all non-layout fields; image_field — only Image/Attach fields.
+ */
+function _refresh_field_selects(frm) {
+    const LAYOUT_TYPES = new Set(['Tab', 'Section', 'Column', 'HTML', 'Heading'])
+    const IMAGE_TYPES = new Set(['Image', 'Attach', 'AttachImage'])
+
+    const fields = frm.doc.fields || []
+
+    const allFieldnames = fields
+        .filter(f => f.fieldname && !LAYOUT_TYPES.has(f.fieldtype))
+        .map(f => f.fieldname)
+
+    const imageFieldnames = fields
+        .filter(f => f.fieldname && IMAGE_TYPES.has(f.fieldtype))
+        .map(f => f.fieldname)
+
+    frm.set_df_property('title_field', 'options', '\n' + allFieldnames.join('\n'))
+    frm.set_df_property('image_field', 'options', '\n' + imageFieldnames.join('\n'))
+}
+
 async function on_load(frm) {
     // Add Studio button for existing DocTypes
     if (frm.doc && frm.doc.name && !frm.is_new) {
@@ -16,6 +38,9 @@ async function on_load(frm) {
             window.open(`/${workspace}/studio/DocType/${frm.doc.name}`, '_blank')
         }, { variant: 'primary' })
     }
+
+    // Populate title_field / image_field selects from current fields
+    _refresh_field_selects(frm)
 
     // Load apps and populate selects
     try {
@@ -49,6 +74,12 @@ async function on_load(frm) {
 }
 
 async function on_change(frm, fieldname) {
+    // Refresh field selects whenever the fields table changes
+    if (fieldname === 'fields') {
+        _refresh_field_selects(frm)
+        return
+    }
+
     if (fieldname !== 'app') return
 
     const selectedApp = frm.get_value('app')

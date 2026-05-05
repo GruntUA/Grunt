@@ -65,8 +65,9 @@ const filtered = computed(() => {
 
 async function toggle(event: Event) {
   if (props.disabled || props.field.read_only) return
+  const target = event.currentTarget
   await ensureLoaded()
-  op.value.toggle(event)
+  op.value.toggle({ currentTarget: target })
 }
 
 function select(pascalName: string) {
