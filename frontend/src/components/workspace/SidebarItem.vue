@@ -23,17 +23,30 @@ const isActive = computed(() => {
   return false
 })
 
-function navigate() {
+function getRoutePath(): string | null {
   switch (props.item.type) {
     case 'DocType':
-      router.push(props.item.is_singleton
+      return props.item.is_singleton
         ? `/${props.workspaceName}/${props.item.link_to}/${props.item.link_to}`
-        : `/${props.workspaceName}/${props.item.link_to}`)
-      break
-    case 'Report': router.push(`/${props.workspaceName}/report/${props.item.link_to}`); break
-    case 'URL': window.open(props.item.link_to, '_blank'); break
-    case 'Dashboard': router.push(`/${props.workspaceName}/dashboard/${props.item.link_to}`); break
+        : `/${props.workspaceName}/${props.item.link_to}`
+    case 'Report': return `/${props.workspaceName}/report/${props.item.link_to}`
+    case 'Dashboard': return `/${props.workspaceName}/dashboard/${props.item.link_to}`
+    default: return null
   }
+}
+
+const itemHref = computed(() => {
+  if (props.item.type === 'URL') return props.item.link_to
+  return getRoutePath() ?? '#'
+})
+
+function navigate(e: MouseEvent) {
+  // Let middle-click and Ctrl/Meta+click fall through to default <a> behavior
+  if (e.button === 1 || e.ctrlKey || e.metaKey || e.shiftKey) return
+  e.preventDefault()
+  if (props.item.type === 'URL') { window.open(props.item.link_to, '_blank'); return }
+  const path = getRoutePath()
+  if (path) router.push(path)
 }
 
 function createNew(e: Event) {
@@ -82,7 +95,8 @@ const displayCount = computed(() => {
 
 <template>
   <li class="relative list-none group/item">
-    <button
+    <a
+      :href="itemHref"
       class="w-full flex items-center gap-2.5 px-2 py-2.5 rounded-xl transition-all duration-300 group relative overflow-hidden"
       :class="[
         isActive
@@ -90,6 +104,8 @@ const displayCount = computed(() => {
           : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
         collapsed ? 'justify-center px-1' : ''
       ]"
+      :target="item.type === 'URL' ? '_blank' : undefined"
+      :rel="item.type === 'URL' ? 'noopener noreferrer' : undefined"
       @click="navigate"
     >
       <AppIcon :icon="item.icon || 'file'" class="size-4 shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" />
@@ -123,6 +139,6 @@ const displayCount = computed(() => {
 
       <!-- Indicator line for active state -->
       <div v-if="isActive" class="absolute left-0 top-1/4 bottom-1/4 w-1 bg-primary rounded-r-full" />
-    </button>
+    </a>
   </li>
 </template>
