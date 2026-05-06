@@ -50,6 +50,7 @@ interface CalendarEvent {
   doctype: string
   color?: string
   recurring?: boolean
+  event_type?: 'default' | 'birthday'
 }
 
 const events = ref<CalendarEvent[]>([])
@@ -60,12 +61,33 @@ const dragOverDay = ref<string | null>(null)
 const op = ref()
 const selectedEvent = ref<CalendarEvent | null>(null)
 
+function normalizeBirthdayDate(rawDate: string, targetYear: number) {
+  if (!rawDate) return null
+  const birth = rawDate.slice(0, 10)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birth)) return null
+
+  const monthDay = birth.slice(5)
+  if (monthDay === '02-29') {
+    const isLeapYear = (targetYear % 4 === 0 && targetYear % 100 !== 0) || targetYear % 400 === 0
+    return `${targetYear}-${isLeapYear ? '02-29' : '02-28'}`
+  }
+  return `${targetYear}-${monthDay}`
+}
+
+function getBirthdayAge(rawDate: string, targetYear: number) {
+  const year = Number(rawDate?.slice(0, 4))
+  if (!Number.isFinite(year)) return null
+  const age = targetYear - year
+  return age >= 0 ? age : null
+}
+
 async function loadDocuments() {
   isLoading.value = true
   try {
     const startM = startOfMonth(currentMonth.value)
     const endM = endOfMonth(currentMonth.value)
     const endStr = format(endM, 'yyyy-MM-dd')
+    const currentYear = currentMonth.value.getFullYear()
 
     const endField = props.doctype.calendar_view?.end_field
     const primaryFetch = docsApi.list(props.doctype.name, {
@@ -119,18 +141,29 @@ async function loadDocuments() {
       const source = sources[idx]
       if (resp.data) {
         resp.data.forEach((doc: any) => {
-          const d_start = doc[source.date_field]
+          const d_source = doc[source.date_field]
+          const isBirthday = source.event_type === 'birthday'
+          const d_start = isBirthday
+            ? normalizeBirthdayDate(String(d_source || ''), currentYear)
+            : d_source
           const d_end = source.end_date_field ? doc[source.end_date_field] : undefined
+          const baseTitle = String(doc[source.label_field || 'name'] || doc.name || doc.id)
+          const age = isBirthday && source.show_age ? getBirthdayAge(String(d_source || ''), currentYear) : null
+          const title = isBirthday
+            ? `🎂 ${baseTitle}${age !== null ? ` - ${age}` : ''}`
+            : baseTitle
+
           if (overlaps(d_start, d_end, source.recurring)) {
             allEvents.push({
               id: doc.id,
               name: doc.name,
-              title: source.recurring ? `🎂 ${String(doc[source.label_field || 'name'] || doc.name)}` : String(doc[source.label_field || 'name'] || doc.name || doc.id),
+              title,
               date: d_start,
               end_date: d_end,
               doctype: source.doctype,
               color: source.color,
-              recurring: source.recurring
+              recurring: source.recurring,
+              event_type: source.event_type || 'default',
             })
           }
         })
@@ -181,6 +214,10 @@ function showEventDetails(event: CalendarEvent, target: any) {
 
 // DRAG AND DROP
 function onDragStart(e: DragEvent, event: CalendarEvent) {
+  if (event.recurring) {
+    e.preventDefault()
+    return
+  }
   if (e.dataTransfer) {
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('application/json', JSON.stringify(event))
@@ -203,6 +240,7 @@ async function onDrop(e: DragEvent, day: Date) {
   if (!data) return
 
   const event = JSON.parse(data) as CalendarEvent
+  if (event.recurring) return
   const dateField = event.doctype === props.doctype.name
     ? props.dateField
     : props.doctype.calendar_view?.sources?.find(s => s.doctype === event.doctype)?.date_field

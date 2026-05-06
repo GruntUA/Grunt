@@ -259,6 +259,13 @@
       "icon": "LayoutDashboard"
     },
     {
+      "fieldname": "tab_views_builder",
+      "label": "Налаштування виглядів",
+      "fieldtype": "Tab",
+      "experimental_component": "ViewsTab",
+      "icon": "PanelsTopLeft"
+    },
+    {
       "fieldname": "show_in_dashboard",
       "label": "Показувати в дашборді",
       "fieldtype": "Check",

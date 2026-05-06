@@ -106,11 +106,24 @@ class DocTypeKanbanViewSchema(BaseModel):
     color_field: str | None = None
 
 
+class CalendarSourceSchema(BaseModel):
+    doctype: str
+    date_field: str
+    end_date_field: str | None = None
+    label_field: str | None = None
+    color: str | None = None
+    filters: dict[str, str] = {}
+    recurring: bool = False
+    event_type: Literal["default", "birthday"] = "default"
+    show_age: bool = False
+    remind_before_days: int | None = None
+
+
 class DocTypeCalendarViewSchema(BaseModel):
     field: str
     end_field: str | None = None
     title_field: str = "name"
-    sources: list[dict[str, Any]] = []
+    sources: list[CalendarSourceSchema] = []
 
 
 class DocTypeTreeViewSchema(BaseModel):

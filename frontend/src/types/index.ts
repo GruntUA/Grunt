@@ -165,6 +165,9 @@ export interface CalendarSource {
   color?: string
   filters?: Record<string, string>
   recurring?: boolean
+  event_type?: 'default' | 'birthday'
+  show_age?: boolean
+  remind_before_days?: number
 }
 
 export interface DocTypeCalendarView {

@@ -1,10 +1,37 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { X, List, FileText, Columns3, Calendar, Plus, CircleDot, Network } from '@lucide/vue'
-import type { StatusIndicator } from '@/types'
+import type { DocType, StatusIndicator } from '@/types'
+
+const props = defineProps<{
+  doctype?: DocType
+  modelValue?: Record<string, any>
+}>()
+
+const emit = defineEmits<{
+  'update:modelValue': [value: Record<string, any>]
+}>()
 
 const builder = useBuilderStore()
+const isInitializing = ref(true)
+
+watch(() => props.modelValue, (newVal) => {
+  if (!newVal || builder.isSaving || isInitializing.value) return
+  builder.doctype = newVal as DocType
+}, { deep: true })
+
+watch(() => builder.doctype, (newVal) => {
+  if (!newVal || isInitializing.value || !props.modelValue) return
+  emit('update:modelValue', { ...newVal })
+}, { deep: true })
+
+onMounted(() => {
+  if (props.modelValue) {
+    builder.doctype = { ...props.modelValue } as DocType
+  }
+  isInitializing.value = false
+})
 
 // Data fields — non-layout fields for selects
 const dataFields = computed(() =>
@@ -200,7 +227,16 @@ function updateCalendar(patch: Record<string, any>) {
 function addCalendarSource() {
   if (!builder.doctype?.calendar_view) return
   const sources = [...(builder.doctype.calendar_view.sources || [])]
-  sources.push({ doctype: '', date_field: '', label_field: 'name' })
+  sources.push({
+    doctype: '',
+    date_field: '',
+    label_field: 'name',
+    filters: {},
+    recurring: false,
+    event_type: 'default',
+    show_age: false,
+    remind_before_days: 1,
+  })
   updateCalendar({ sources })
 }
 
@@ -216,6 +252,42 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
   const sources = [...(builder.doctype.calendar_view.sources || [])]
   sources[index] = { ...sources[index], ...patch }
   updateCalendar({ sources })
+}
+
+function sourceFiltersText(source: Record<string, any>) {
+  const filters = source.filters || {}
+  try {
+    return Object.keys(filters).length > 0 ? JSON.stringify(filters) : ''
+  } catch {
+    return ''
+  }
+}
+
+function updateCalendarSourceFilters(index: number, raw: string | number | bigint | Record<string, any> | null | undefined) {
+  const text = String(raw || '').trim()
+  if (!text) {
+    updateCalendarSource(index, { filters: {} })
+    return
+  }
+  try {
+    const parsed = JSON.parse(text)
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      updateCalendarSource(index, { filters: parsed })
+    }
+  } catch {
+    // Ignore invalid JSON while editing; persist previous valid value.
+  }
+}
+
+function updateCalendarSourceReminderDays(index: number, raw: string | number | bigint | Record<string, any> | null | undefined) {
+  const text = String(raw ?? '').trim()
+  if (!text) {
+    updateCalendarSource(index, { remind_before_days: undefined })
+    return
+  }
+  const parsed = Number(text)
+  if (!Number.isFinite(parsed)) return
+  updateCalendarSource(index, { remind_before_days: Math.max(0, Math.floor(parsed)) })
 }
 </script>
 
@@ -556,6 +628,20 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
                 <InputText :model-value="source.doctype" placeholder="Наприклад: Task" class="h-7 text-xs w-full" @update:model-value="updateCalendarSource(idx, { doctype: $event })" />
               </div>
               <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-medium text-muted-foreground">Тип події</label>
+                <Select
+                  :model-value="source.event_type ?? 'default'"
+                  :options="[
+                    { value: 'default', label: 'Звичайна подія' },
+                    { value: 'birthday', label: 'День народження' }
+                  ]"
+                  option-label="label"
+                  option-value="value"
+                  class="h-7 text-xs"
+                  @update:model-value="updateCalendarSource(idx, { event_type: $event, recurring: $event === 'birthday' ? true : (source.recurring ?? false), show_age: $event === 'birthday' ? true : (source.show_age ?? false) })"
+                />
+              </div>
+              <div class="flex flex-col gap-1">
                 <label class="text-[11px] font-medium text-muted-foreground">Поле дати (start)</label>
                 <InputText :model-value="source.date_field" placeholder="fieldname" class="h-7 text-xs w-full" @update:model-value="updateCalendarSource(idx, { date_field: $event })" />
               </div>
@@ -564,10 +650,57 @@ function updateCalendarSource(index: number, patch: Record<string, any>) {
                 <InputText :model-value="source.end_date_field ?? ''" placeholder="опціонально" class="h-7 text-xs w-full" @update:model-value="updateCalendarSource(idx, { end_date_field: $event || undefined })" />
               </div>
               <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-medium text-muted-foreground">Поле заголовка</label>
+                <InputText :model-value="source.label_field ?? 'name'" placeholder="Наприклад: full_name" class="h-7 text-xs w-full" @update:model-value="updateCalendarSource(idx, { label_field: $event || 'name' })" />
+              </div>
+              <div class="flex flex-col gap-1">
                 <label class="text-[11px] font-medium text-muted-foreground">Колір</label>
                 <InputText :model-value="source.color ?? ''" placeholder="#hex" class="h-7 text-xs w-full" @update:model-value="updateCalendarSource(idx, { color: $event || undefined })" />
               </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-medium text-muted-foreground">Щорічне повторення</label>
+                <Select
+                  :model-value="source.recurring ? 'yes' : 'no'"
+                  :options="[{ value: 'yes', label: 'Так' }, { value: 'no', label: 'Ні' }]"
+                  option-label="label"
+                  option-value="value"
+                  class="h-7 text-xs"
+                  @update:model-value="updateCalendarSource(idx, { recurring: $event === 'yes' })"
+                />
+              </div>
+              <div class="flex flex-col gap-1" v-if="source.event_type === 'birthday'">
+                <label class="text-[11px] font-medium text-muted-foreground">Показувати вік</label>
+                <Select
+                  :model-value="source.show_age ? 'yes' : 'no'"
+                  :options="[{ value: 'yes', label: 'Так' }, { value: 'no', label: 'Ні' }]"
+                  option-label="label"
+                  option-value="value"
+                  class="h-7 text-xs"
+                  @update:model-value="updateCalendarSource(idx, { show_age: $event === 'yes' })"
+                />
+              </div>
+              <div class="flex flex-col gap-1" v-if="source.event_type === 'birthday'">
+                <label class="text-[11px] font-medium text-muted-foreground">Нагадати за (днів)</label>
+                <InputText
+                  :model-value="String(source.remind_before_days ?? 1)"
+                  placeholder="1"
+                  class="h-7 text-xs w-full"
+                  @update:model-value="updateCalendarSourceReminderDays(idx, $event)"
+                />
+              </div>
+              <div class="flex flex-col gap-1 col-span-2">
+                <label class="text-[11px] font-medium text-muted-foreground">Фільтри (JSON)</label>
+                <InputText
+                  :model-value="sourceFiltersText(source)"
+                  placeholder='Наприклад: {"status":"Активний"}'
+                  class="h-7 text-xs w-full"
+                  @update:model-value="updateCalendarSourceFilters(idx, $event)"
+                />
+              </div>
             </div>
+            <p v-if="source.event_type === 'birthday'" class="text-[10px] text-muted-foreground">
+              Для співробітників: date_field = birth_date, label_field = full_name, recurring = Так, remind_before_days = 1.
+            </p>
           </div>
         </div>
       </div>

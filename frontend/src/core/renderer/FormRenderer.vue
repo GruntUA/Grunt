@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, shallowRef, type Component } from 'vue'
-import type { DocType } from '@/types'
+import type { DocField, DocType } from '@/types'
 import { parseLayout } from '@/core/composables/useFormLayout'
 import type { LayoutSection, LayoutTab } from '@/core/composables/useFormLayout'
 import type { PresenceUser } from '@/core/composables/usePresence'
@@ -8,6 +8,7 @@ import { initials } from '@/core/composables/usePresence'
 import { ChevronDown } from '@lucide/vue'
 import FieldRenderer from './FieldRenderer.vue'
 import DesignerTab from '../../pages/studio/builder/DesignerTab.vue'
+import ViewsTab from '../../pages/studio/builder/tabs/ViewsTab.vue'
 
 const props = defineProps<{
   doctype: DocType
@@ -52,6 +53,7 @@ function getTabIcon(name: string | undefined): Component | null {
 
 const customTabComponents: Record<string, Component> = {
   DesignerTab,
+  ViewsTab,
 }
 
 function getCustomTabComponent(name: string | undefined): Component | null {
@@ -67,11 +69,11 @@ function update(fieldname: string, val: unknown) {
   emit('update:modelValue', { ...props.modelValue, [fieldname]: val })
 }
 
-function mergedField(f: Record<string, unknown>): Record<string, unknown> {
-  const dfOverrides = props.dfPropOverrides?.[f.fieldname as string]
-  const reqdOverride = props.reqdOverrides?.[f.fieldname as string]
+function mergedField(f: DocField): DocField {
+  const dfOverrides = props.dfPropOverrides?.[f.fieldname]
+  const reqdOverride = props.reqdOverrides?.[f.fieldname]
   if (!dfOverrides && reqdOverride === undefined) return f
-  const base = dfOverrides ? { ...f, ...dfOverrides } : f
+  const base: DocField = dfOverrides ? ({ ...f, ...dfOverrides } as DocField) : f
   return reqdOverride !== undefined ? { ...base, required: reqdOverride } : base
 }
 

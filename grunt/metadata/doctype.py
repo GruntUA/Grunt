@@ -110,6 +110,10 @@ class CalendarSource(BaseModel):
     label_field: str | None = None
     color: str | None = None
     filters: dict[str, Any] | None = None
+    recurring: bool = False
+    event_type: Literal["default", "birthday"] = "default"
+    show_age: bool = False
+    remind_before_days: int | None = None
 
 
 class DocTypeCalendarView(BaseModel):
