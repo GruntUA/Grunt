@@ -132,6 +132,8 @@ export interface ViewDefinition {
   icon: Component
   /** Position in the toolbar — lower numbers appear first. */
   order: number
+  /** Builder-only entries can opt out of toolbar and route availability. */
+  showInToolbar?: boolean
   /**
    * Detects the field that enables this view for a given DocType.
    * The toolbar button is hidden when this returns null.
@@ -140,6 +142,13 @@ export interface ViewDefinition {
   resolveField?(dt: DocType): DocField | null
   /** Async loader for the view's root Vue component. */
   component(): Promise<Component>
+  /**
+   * Optional async loader for the view's settings component in the Builder.
+   * When provided, a settings panel for this view will appear in the
+   * ViewsTab of the DocType builder. The component receives no props and
+   * reads/writes directly via useBuilderStore().
+   */
+  settingsComponent?: () => Promise<Component>
   /**
    * Maps ViewContext → the props object bound to the component via v-bind.
    * Called reactively on each render by ListViewRouter.
@@ -223,7 +232,16 @@ export function getViewDef(type: string): ViewDefinition | undefined {
 
 /** All registered views sorted by order. Used by DocTypeToolbar. */
 export function getRegisteredViews(): ViewDefinition[] {
-  return [..._registry.values()].sort((a, b) => a.order - b.order)
+  return [..._registry.values()]
+    .filter((def) => def.showInToolbar !== false)
+    .sort((a, b) => a.order - b.order)
+}
+
+/** All views that expose builder settings panels. Used by ViewsTab. */
+export function getRegisteredViewSettings(): ViewDefinition[] {
+  return [..._registry.values()]
+    .filter((def) => !!def.settingsComponent)
+    .sort((a, b) => a.order - b.order)
 }
 
 /**

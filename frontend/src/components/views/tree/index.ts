@@ -16,6 +16,7 @@ const def: ViewDefinition = {
   },
 
   component: () => import('./TreeView.vue').then((m) => m.default),
+  settingsComponent: () => import('./TreeSettings.vue').then((m) => m.default),
 
   mountProps: (ctx) => ({
     doctype: ctx.dt,

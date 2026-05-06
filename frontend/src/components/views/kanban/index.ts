@@ -12,6 +12,7 @@ const def: ViewDefinition = {
     dt.fields.find((f) => f.fieldtype === 'Select' && f.in_list_view && !f.hidden) ?? null,
 
   component: () => import('./KanbanView.vue').then((m) => m.default),
+  settingsComponent: () => import('./KanbanSettings.vue').then((m) => m.default),
 
   mountProps: (ctx) => ({
     doctype: ctx.dt,

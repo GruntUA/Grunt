@@ -10,6 +10,7 @@ const def: ViewDefinition = {
   // No resolveField — list is always available
 
   component: () => import('./ListTableView.vue').then((m) => m.default),
+  settingsComponent: () => import('./ListViewSettings.vue').then((m) => m.default),
 
   mountProps: (ctx) => ({
     dt: ctx.dt,

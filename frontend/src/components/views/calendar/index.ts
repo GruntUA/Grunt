@@ -20,6 +20,7 @@ const def: ViewDefinition = {
   },
 
   component: () => import('./CalendarView.vue').then((m) => m.default),
+  settingsComponent: () => import('./CalendarSettings.vue').then((m) => m.default),
 
   mountProps: (ctx) => ({
     doctype: ctx.dt,
