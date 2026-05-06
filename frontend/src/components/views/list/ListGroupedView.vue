@@ -41,7 +41,7 @@ function groupLabel(key: string): string {
 }
 
 function handleSelectGroup(items: Record<string, unknown>[]) {
-  props.selection?.toggleAll(items.map(r => String(r.id)))
+  props.selection?.toggleAll(items.map((r) => String(r.id ?? r.name ?? '')).filter(Boolean))
 }
 </script>
 

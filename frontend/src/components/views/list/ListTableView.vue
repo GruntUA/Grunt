@@ -57,6 +57,10 @@ const emit = defineEmits<{
 const selectionCount = computed(() => props.selection.selectedIds.length)
 const normalizedSortKey = computed(() => props.sortKey || '')
 
+function rowDocId(row: Record<string, unknown>): string {
+  return String(row.id ?? row.name ?? '')
+}
+
 const sentinelEl = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
 
@@ -111,7 +115,7 @@ watch(() => sentinelEl.value, setupObserver)
         :group-by-field="groupByField"
         @toggle-group="(k) => emit('toggle-group', k)"
         @sort="(key) => emit('sort', key)"
-        @select-all="selection.toggleAll(rows?.map(r => String(r.id)) || [])"
+        @select-all="selection.toggleAll(rows?.map((r) => rowDocId(r)).filter(Boolean) || [])"
         @row-click="(row) => emit('row-click', row)"
         @inline-update="(rowId, field, value) => emit('inline-update', rowId, field, value)"
       />
@@ -133,7 +137,7 @@ watch(() => sentinelEl.value, setupObserver)
             :active-index="activeIndex"
             @sort="(key) => emit('sort', key)"
             @select="(id) => selection.toggle(id)"
-            @select-all="selection.toggleAll(rows.map(r => String(r.id)))"
+            @select-all="selection.toggleAll(rows.map((r) => rowDocId(r)).filter(Boolean))"
             @row-click="(row) => emit('row-click', row)"
             @inline-update="(rowId, field, value) => emit('inline-update', rowId, field, value)"
           />

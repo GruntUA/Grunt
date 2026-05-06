@@ -33,10 +33,9 @@ const props = defineProps<{
   sortableColumns: ListColumn[]
 }>()
 
-const emit = defineEmits<{
-  'update:groupBy': [val: string | null]
-  sort: [key: string]
-}>()
+const emit = defineEmits(['update:groupBy', 'sort'])
+
+defineOptions({ inheritAttrs: false })
 
 const { t } = useI18n()
 
@@ -85,6 +84,7 @@ const activeSortLabel = computed(() =>
 </script>
 
 <template>
+<div class="contents">
   <!-- Columns -->
   <Button
     text size="small"
@@ -246,4 +246,5 @@ const activeSortLabel = computed(() =>
       </div>
     </div>
   </Popover>
+</div>
 </template>

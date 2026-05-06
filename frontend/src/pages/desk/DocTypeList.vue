@@ -259,9 +259,11 @@ const { deleteProgress, bulkDelete } = useBulkDeleteProgress({
 })
 
 function navigateToDoc(row: Record<string, unknown>) {
+  const docId = row.id ?? row.name
+  if (docId === null || docId === undefined || String(docId).trim() === '') return
   const ws = props.workspace ?? 'grunt'
   // Use generic routing for all DocTypes including DocType itself
-  router.push(`/${ws}/${props.doctype}/${row.id}`)
+  router.push(`/${ws}/${props.doctype}/${encodeURIComponent(String(docId))}`)
 }
 
 // ── Keyboard Shortcuts ───────────────────────────────────────────────────────

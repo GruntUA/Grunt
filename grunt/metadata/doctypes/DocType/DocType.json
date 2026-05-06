@@ -206,30 +206,6 @@
       "description": "Зберігати версії документа при кожному збереженні"
     },
     {
-      "fieldname": "sec_views",
-      "label": "Відображення і подання",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "list_view",
-      "label": "Налаштування списку",
-      "fieldtype": "Code",
-      "options": "json"
-    },
-    {
-      "fieldname": "form_view",
-      "label": "Налаштування форми",
-      "fieldtype": "Code",
-      "options": "json"
-    },
-    {
-      "fieldname": "status_config",
-      "label": "Налаштування статусів",
-      "fieldtype": "Code",
-      "options": "json",
-      "description": "{\"field\": \"status\", \"indicators\": [{\"value\": \"Чернетка\", \"color\": \"secondary\"}, {\"value\": \"Підписаний\", \"color\": \"success\"}, {\"value\": \"Скасований\", \"color\": \"danger\"}]}"
-    },
-    {
       "fieldname": "tab_tree",
       "label": "Ієрархія",
       "fieldtype": "Tab",
@@ -254,13 +230,6 @@
       "icon": "LayoutDashboard"
     },
     {
-      "fieldname": "tab_views_builder",
-      "label": "Вигляди",
-      "fieldtype": "Tab",
-      "experimental_component": "ViewsTab",
-      "icon": "PanelsTopLeft"
-    },
-    {
       "fieldname": "show_in_dashboard",
       "label": "Показувати в дашборді",
       "fieldtype": "Check",
@@ -271,6 +240,74 @@
       "label": "Документ дашборду",
       "fieldtype": "Text",
       "description": "DocType для створення нового запису при натисканні '+'"
+    },
+    {
+      "fieldname": "tab_views_builder",
+      "label": "Вигляди",
+      "fieldtype": "Tab",
+      "icon": "PanelsTopLeft"
+    },
+    {
+      "fieldname": "sec_list_view",
+      "label": "Список",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "list_view",
+      "label": "Налаштування списку",
+      "fieldtype": "Code",
+      "options": "json"
+    },
+    {
+      "fieldname": "sec_form_view",
+      "label": "Форма",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "form_view",
+      "label": "Налаштування форми",
+      "fieldtype": "Code",
+      "options": "json"
+    },
+    {
+      "fieldname": "sec_status_config",
+      "label": "Статуси",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "status_field",
+      "label": "Поле статусу",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Поле DocType, яке відображає статус документа (наприклад «status»)"
+    },
+    {
+      "fieldname": "status_indicators",
+      "label": "Індикатори",
+      "fieldtype": "Table",
+      "options": "DocTypeStatusIndicator"
+    },
+    {
+      "fieldname": "sec_kanban_view",
+      "label": "Kanban",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "kanban_view",
+      "label": "Налаштування Kanban",
+      "fieldtype": "JSON",
+      "description": "{\"grouping_field\": \"status\"}"
+    },
+    {
+      "fieldname": "sec_calendar_view",
+      "label": "Календар",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "calendar_view",
+      "label": "Налаштування календаря",
+      "fieldtype": "JSON",
+      "description": "{\"start_date_field\": \"start_date\", \"end_date_field\": \"end_date\", \"title_field\": \"name\"}"
     },
     {
       "fieldname": "tab_designer",

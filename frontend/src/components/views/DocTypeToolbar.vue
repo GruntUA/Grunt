@@ -137,8 +137,7 @@ const toolbarControlsEvents = computed(() =>
         >
           <component
             :is="toolbarControlsComponent"
-            v-bind="toolbarControlsProps"
-            v-on="toolbarControlsEvents"
+            v-bind="{ ...toolbarControlsProps, ...toolbarControlsEvents }"
           />
         </div>
 

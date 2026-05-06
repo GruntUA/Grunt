@@ -132,8 +132,7 @@ const viewEvents = computed(() => viewDef.value?.mountEvents?.(ctx.value) ?? {})
     <component
       :is="viewComponent"
       v-if="isRenderable && viewComponent"
-      v-bind="viewProps"
-      v-on="viewEvents"
+      v-bind="{ ...viewProps, ...viewEvents }"
     />
   </div>
 </template>

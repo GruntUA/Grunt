@@ -1,0 +1,44 @@
+{
+  "name": "DocTypeStatusIndicator",
+  "label": "Індикатор статусу",
+  "module": "metadata",
+  "is_child": true,
+  "fields": [
+    {
+      "fieldname": "col_value_color",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "value",
+      "label": "Значення поля",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true,
+      "bold": true,
+      "description": "Значення, яке має містити поле статусу (наприклад «Чернетка»)"
+    },
+    {
+      "fieldname": "color",
+      "label": "Колір",
+      "fieldtype": "Select",
+      "options": "secondary\nsuccess\ninfo\nwarn\ndanger\ncontrast\nprimary\ndefault",
+      "required": true,
+      "in_list_view": true,
+      "default": "secondary"
+    },
+    {
+      "fieldname": "icon",
+      "label": "Іконка",
+      "fieldtype": "Icon",
+      "in_list_view": true,
+      "description": "Lucide-іконка (необов'язково)"
+    },
+    {
+      "fieldname": "label",
+      "label": "Мітка",
+      "fieldtype": "Text",
+      "description": "Відображувана назва; якщо порожньо — використовується значення поля"
+    }
+  ]
+}

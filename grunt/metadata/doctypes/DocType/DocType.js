@@ -9,8 +9,8 @@ function setup_list(listview) {
 }
 
 /**
- * Refresh title_field and image_field options based on current fields list.
- * title_field — all non-layout fields; image_field — only Image/Attach fields.
+ * Refresh title_field, image_field, and status_field options based on current fields list.
+ * title_field / status_field — all non-layout fields; image_field — only Image/Attach fields.
  */
 function _refresh_field_selects(frm) {
     const LAYOUT_TYPES = new Set(['Tab', 'Section', 'Column', 'HTML', 'Heading'])
@@ -28,6 +28,7 @@ function _refresh_field_selects(frm) {
 
     frm.set_df_property('title_field', 'options', '\n' + allFieldnames.join('\n'))
     frm.set_df_property('image_field', 'options', '\n' + imageFieldnames.join('\n'))
+    frm.set_df_property('status_field', 'options', '\n' + allFieldnames.join('\n'))
 }
 
 async function on_load(frm) {

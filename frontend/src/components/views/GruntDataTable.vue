@@ -29,9 +29,19 @@ const emit = defineEmits<{
   inlineUpdate: [rowId: string, field: string, value: string]
 }>()
 
+function getRowDocId(row: Record<string, unknown>): string | null {
+  const raw = row.id ?? row.name
+  if (raw === null || raw === undefined) return null
+  const normalized = String(raw)
+  return normalized.length > 0 ? normalized : null
+}
+
 // ── Selection bridge ───────────────────────────────────────────────────────
 const selection = computed({
-  get: () => props.allSelected ? props.rows : props.rows.filter(r => props.selectedIds.includes(String(r.id))),
+  get: () => props.allSelected ? props.rows : props.rows.filter((r) => {
+    const docId = getRowDocId(r)
+    return docId ? props.selectedIds.includes(docId) : false
+  }),
   set: (_val: Record<string, unknown>[]) => {
     // This is tricky because emit select is per-id. 
     // Usually, we'd just want to emit the whole set, but the framework expects individual selects.
@@ -40,11 +50,15 @@ const selection = computed({
 })
 
 function onRowSelect(e: any) {
-  emit('select', String(e.data.id))
+  const docId = getRowDocId(e.data)
+  if (!docId) return
+  emit('select', docId)
 }
 
 function onRowUnselect(e: any) {
-  emit('select', String(e.data.id)) // Our emit just toggles
+  const docId = getRowDocId(e.data)
+  if (!docId) return
+  emit('select', docId) // Our emit just toggles
 }
 
 function onSelectAll() {
@@ -64,7 +78,7 @@ function isEditing(rowId: string, field: string) {
 
 async function startEdit(row: any, field: string, fieldtype: string) {
   if (INLINE_SKIP.has(fieldtype) || props.fields.find(f => f.fieldname === field)?.read_only) return
-  inlineEdit.value = { rowId: String(row.id), field, value: String(row[field] ?? '') }
+  inlineEdit.value = { rowId: String(row.id ?? row.name ?? ''), field, value: String(row[field] ?? '') }
   await nextTick()
   inlineInput.value?.focus()
 }
@@ -95,9 +109,9 @@ const sortOrderValue = computed(() => props.sortOrder === 'desc' ? -1 : 1)
 
 function rowHref(row: Record<string, unknown>): string | null {
   if (!props.rowLinkBase) return null
-  const id = row.id
-  if (id === null || id === undefined) return null
-  return `${props.rowLinkBase}/${encodeURIComponent(String(id))}`
+  const id = getRowDocId(row)
+  if (!id) return null
+  return `${props.rowLinkBase}/${encodeURIComponent(id)}`
 }
 
 function onRowAnchorClick(event: MouseEvent, row: Record<string, unknown>) {
@@ -169,11 +183,11 @@ const pt = {
             </div>
         </template>
         <template #body="slotProps">
-            <div v-if="props.selectedIds.includes(String(slotProps.data.id))"
+            <div v-if="props.selectedIds.includes(getRowDocId(slotProps.data) ?? '')"
               class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full pointer-events-none" />
             <Checkbox binary 
-              :model-value="props.selectedIds.includes(String(slotProps.data.id))" 
-              @change="emit('select', String(slotProps.data.id))" />
+              :model-value="props.selectedIds.includes(getRowDocId(slotProps.data) ?? '')" 
+              @change="() => { const docId = getRowDocId(slotProps.data); if (docId) emit('select', docId) }" />
         </template>
     </Column>
 
@@ -187,7 +201,7 @@ const pt = {
       <template #body="slotProps">
         <div @dblclick.stop="ci > 0 && startEdit(slotProps.data, col.key, getFieldType(col.key))">
           <!-- Inline edit input -->
-          <template v-if="isEditing(String(slotProps.data.id), col.key)">
+          <template v-if="isEditing(getRowDocId(slotProps.data) ?? '', col.key)">
             <input ref="inlineInput" v-model="inlineEdit!.value"
               class="w-full rounded-md border border-primary px-2 py-1 text-sm bg-background shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow"
               @blur="commitEdit" @keydown.enter.prevent="commitEdit" @keydown.escape.prevent="cancelEdit"
