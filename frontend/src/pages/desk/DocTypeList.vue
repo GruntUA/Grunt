@@ -4,7 +4,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
 import { docsApi } from '@/core/api/docs'
 import { useListViewKeyboard } from '@/core/composables/useListViewKeyboard'
-import { useListFieldDetection } from '@/core/composables/useListFieldDetection'
 import { useInfiniteDocTypeListData } from '@/core/composables/useInfiniteDocTypeListData'
 import { useListRouteSync } from '@/core/composables/useListRouteSync'
 import { useListActions } from '@/core/composables/useListActions'
@@ -25,6 +24,7 @@ import { useBulkDeleteProgress } from '@/core/composables/useBulkDeleteProgress'
 import { useListSelection } from '@/core/composables/useListSelection'
 import { useDevMode } from '@/core/composables/useDevMode'
 import type { DocType, FastFilter } from '@/types'
+import { getRegisteredViews } from '@/core/viewRegistry'
 import { useDialog } from '@/core/composables/useDialog'
 import { useToast } from '@/core/composables/useToast'
 
@@ -33,7 +33,7 @@ import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 
 // Custom sub-components
 import ListHeader from '@/components/views/list/ListHeader.vue'
-import ListToolbar from '@/components/views/list/ListToolbar.vue'
+import DocTypeToolbar from '@/components/views/DocTypeToolbar.vue'
 import ListViewRouter from '@/components/views/list/ListViewRouter.vue'
 
 const props = defineProps<{ doctype: string; workspace?: string }>()
@@ -58,9 +58,6 @@ const { onUserEvent, offUserEvent } = useNotifications()
 // ── State ────────────────────────────────────────────────────────────────────
 const dt = ref<DocType | null>(null)
 const page = ref(1)
-type ViewMode = 'list' | 'kanban' | 'calendar' | 'tree' | 'gallery' | 'map'
-const VALID_VIEWS: ViewMode[] = ['list', 'kanban', 'calendar', 'tree', 'gallery', 'map']
-
 const { viewMode, sortKey, sortOrder, groupBy, activeFilters, fastFilterValues } = useListViewState(props.doctype)
 const { inlineSearch, debouncedSearch } = useListSearch(page)
 
@@ -191,7 +188,7 @@ const { applyRouteState, setGroupByInRoute, applySort } = useListRouteSync({
   sortOrder,
   activeFilters,
   fastFilterValues,
-  validViews: VALID_VIEWS,
+  validViews: getRegisteredViews().map((d) => d.type),
   getDefaultView: () => dt.value?.default_view ?? 'list',
   dt,
 })
@@ -242,11 +239,6 @@ function setGroupBy(field: string | null) {
   setGroupByInRoute(field)
 }
 
-
-// ── View Detection ───────────────────────────────────────────────────────────
-const { kanbanColumnField, treeParentField, geoField, calendarDateField } = useListFieldDetection(
-  computed(() => dt.value)
-)
 
 // ── Handlers ─────────────────────────────────────────────────────────────────
 function onSort(key: string) {
@@ -304,19 +296,29 @@ watch(() => props.doctype, async (newDoctype) => {
       @create-quick="showQuickEntry = true" />
 
     <!-- Toolbar -->
-    <ListToolbar v-if="colState" v-model:view-mode="viewMode" v-model:inline-search="inlineSearch"
-      v-model:active-filters="activeFilters" :group-by="groupBy" @update:group-by="setGroupBy" :dt="dt"
-      :doctype="doctype" :columns="colState" :groupable-fields="groupableFields" :group-by-field="groupByField"
-      :kanban-column-field="kanbanColumnField" :tree-parent-field="treeParentField"
-      :calendar-date-field="calendarDateField" :geo-field="geoField"
+    <DocTypeToolbar
+      v-if="colState"
+      v-model:view-mode="viewMode"
+      v-model:inline-search="inlineSearch"
+      v-model:active-filters="activeFilters"
+      :dt="dt"
+      :doctype="doctype"
       :fast-filter-defs="fastFilterDefs"
       :fast-filter-values="fastFilterValues"
-      :sort-key="sortKey"
-      :sort-order="sortOrder"
-      :sortable-columns="colState.allAvailableColumns.value"
+      :view-extras="{
+        columns: colState,
+        groupableFields,
+        groupBy,
+        groupByField,
+        sortKey,
+        sortOrder,
+        sortableColumns: colState.allAvailableColumns.value,
+      }"
       @update:fast-filter-values="fastFilterValues = $event"
+      @update:group-by="setGroupBy"
       @sort="onSort"
-      @reset="inlineSearch = ''; activeFilters = []; fastFilterValues = {}; page = 1" />
+      @reset="inlineSearch = ''; activeFilters = []; fastFilterValues = {}; page = 1"
+    />
 
     <ListViewRouter
       v-if="dt && colState"
@@ -340,11 +342,7 @@ watch(() => props.doctype, async (newDoctype) => {
       :sort-key="sortKey"
       :sort-order="sortOrder"
       :active-index="activeIndex"
-      :kanban-column-field="kanbanColumnField"
-      :calendar-date-field="calendarDateField"
-      :tree-parent-field="treeParentField"
-      :geo-field="geoField"
-      :search="debouncedSearch || undefined"
+:search="debouncedSearch || undefined"
       :active-filters="activeFilters"
       :fast-filter-defs="fastFilterDefs"
       :fast-filter-values="fastFilterValues"

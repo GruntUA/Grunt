@@ -268,7 +268,7 @@ export interface DocType {
   image_field?: string | null
   search_fields?: string[]
   autoname?: string | null
-  default_view?: 'list' | 'kanban' | 'calendar' | 'tree' | null
+  default_view?: string | null
   list_view?: DocTypeListView
   form_view?: DocTypeFormView
   kanban_view?: DocTypeKanbanView | null

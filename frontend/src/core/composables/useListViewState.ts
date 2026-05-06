@@ -1,10 +1,8 @@
 import { ref, watch } from 'vue'
 import type { ActiveFilter } from '@/types'
 
-type ViewMode = 'list' | 'kanban' | 'calendar' | 'tree' | 'gallery' | 'map'
-
 interface ListViewState {
-  viewMode: ViewMode
+  viewMode: string
   sortKey: string
   sortOrder: 'asc' | 'desc'
   groupBy: string | null
@@ -32,7 +30,7 @@ function saveState(doctype: string, state: ListViewState) {
 export function useListViewState(doctype: string) {
   const saved = loadState(doctype)
 
-  const viewMode = ref<ViewMode>(saved.viewMode ?? 'list')
+  const viewMode = ref<string>(saved.viewMode ?? 'list')
   const sortKey = ref<string>(saved.sortKey ?? '')
   const sortOrder = ref<'asc' | 'desc'>(saved.sortOrder ?? 'asc')
   const groupBy = ref<string | null>(saved.groupBy ?? null)

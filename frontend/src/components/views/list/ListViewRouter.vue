@@ -1,15 +1,9 @@
 <script setup lang="ts">
-import type { DocType, DocField, ScriptMenuItem, ActiveFilter, FastFilter } from '@/types'
+import { computed, defineAsyncComponent } from 'vue'
+import { getViewDef, type ViewContext, type SelectionState } from '@/core/viewRegistry'
+import type { DocType, DocField, ActiveFilter, FastFilter, ScriptMenuItem } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import type { GroupedRowBucket } from '@/core/composables/useGrouping'
-import KanbanView from '@/components/views/KanbanView.vue'
-import CalendarView from '@/components/views/CalendarView.vue'
-import TreeView from '@/components/views/TreeView.vue'
-import GalleryView from '@/components/views/GalleryView.vue'
-import MapView from '@/components/views/MapView.vue'
-import BulkActionBar from '@/components/views/BulkActionBar.vue'
-import ListPagination from '@/components/views/ListPagination.vue'
-import ListTableView from '@/components/views/list/ListTableView.vue'
 
 interface TableMeta {
   page: number
@@ -17,16 +11,8 @@ interface TableMeta {
   total: number
 }
 
-interface SelectionState {
-  selectedIds: string[]
-  allSelected: boolean
-  isSelected: (id: string) => boolean
-  toggle: (id: string) => void
-  toggleAll: (ids: string[]) => void
-}
-
 const props = defineProps<{
-  viewMode: 'list' | 'kanban' | 'calendar' | 'tree' | 'gallery' | 'map'
+  viewMode: string
   dt: DocType | null
   workspace: string
   doctype: string
@@ -49,10 +35,6 @@ const props = defineProps<{
   fetchNextPage?: () => void
   hasNextPage?: boolean
   isFetchingNextPage?: boolean
-  kanbanColumnField: DocField | null
-  calendarDateField: DocField | null
-  treeParentField: DocField | null
-  geoField: DocField | null
   search?: string
   activeFilters: ActiveFilter[]
   fastFilterDefs: FastFilter[]
@@ -60,71 +42,98 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'sort': [key: string]
+  sort: [key: string]
   'row-click': [row: Record<string, unknown>]
   'inline-update': [rowId: string, field: string, value: string]
-  'delete': []
-  'clear': []
+  delete: []
+  clear: []
   'select-all': []
-  'update': [field: string, value: string]
+  update: [field: string, value: string]
   'toggle-group': [key: string]
-  'page': [page: number]
+  page: [page: number]
   'register-menu-items': [items: ScriptMenuItem[]]
   'unregister-menu-items': [items: ScriptMenuItem[]]
   'update:fastFilterValues': [val: Record<string, string>]
   'update:activeFilters': [val: ActiveFilter[]]
 }>()
+
+const viewDef = computed(() => getViewDef(props.viewMode))
+
+const resolvedField = computed((): DocField | null => {
+  const def = viewDef.value
+  if (!def?.resolveField || !props.dt) return null
+  return def.resolveField(props.dt)
+})
+
+const isRenderable = computed(() => {
+  const def = viewDef.value
+  if (!def) return false
+  if (!def.resolveField) return true
+  return resolvedField.value !== null
+})
+
+const ctx = computed((): ViewContext => ({
+  dt: props.dt,
+  workspace: props.workspace,
+  doctype: props.doctype,
+  rows: props.rows,
+  fields: props.fields,
+  columns: props.columns,
+  meta: props.meta,
+  isLoading: props.isLoading,
+  hasData: props.hasData,
+  selectionCount: props.selectionCount,
+  selection: props.selection,
+  imageField: props.imageField,
+  groupBy: props.groupBy,
+  groupedRows: props.groupedRows,
+  collapsedGroups: props.collapsedGroups,
+  groupByField: props.groupByField,
+  sortKey: props.sortKey,
+  sortOrder: props.sortOrder,
+  activeIndex: props.activeIndex,
+  fetchNextPage: props.fetchNextPage,
+  hasNextPage: props.hasNextPage,
+  isFetchingNextPage: props.isFetchingNextPage,
+  search: props.search,
+  activeFilters: props.activeFilters,
+  fastFilterDefs: props.fastFilterDefs,
+  fastFilterValues: props.fastFilterValues,
+  resolvedField: resolvedField.value,
+  emit: {
+    sort: (key) => emit('sort', key),
+    rowClick: (row) => emit('row-click', row),
+    inlineUpdate: (id, field, value) => emit('inline-update', id, field, value),
+    delete: () => emit('delete'),
+    clear: () => emit('clear'),
+    selectAll: () => emit('select-all'),
+    update: (field, value) => emit('update', field, value),
+    toggleGroup: (key) => emit('toggle-group', key),
+    page: (p) => emit('page', p),
+    registerMenuItems: (items) => emit('register-menu-items', items),
+    unregisterMenuItems: (items) => emit('unregister-menu-items', items),
+    updateFastFilterValues: (val) => emit('update:fastFilterValues', val),
+    updateActiveFilters: (val) => emit('update:activeFilters', val),
+  },
+}))
+
+// defineAsyncComponent is recreated on viewMode change; Vite caches the import promise
+const viewComponent = computed(() => {
+  const def = viewDef.value
+  return def ? defineAsyncComponent(def.component) : null
+})
+
+const viewProps = computed(() => viewDef.value?.mountProps?.(ctx.value) ?? {})
+const viewEvents = computed(() => viewDef.value?.mountEvents?.(ctx.value) ?? {})
 </script>
 
 <template>
   <div class="flex-1 min-h-0">
-    <div v-if="viewMode === 'kanban' && kanbanColumnField && dt" class="h-[calc(100vh-14rem)]">
-      <KanbanView :doctype="dt" :column-field="kanbanColumnField.fieldname" />
-    </div>
-
-    <div v-else-if="viewMode === 'calendar' && calendarDateField && dt" class="h-[calc(100vh-14rem)]">
-      <CalendarView :doctype="dt" :date-field="calendarDateField.fieldname" :workspace="workspace" />
-    </div>
-
-    <div v-else-if="viewMode === 'tree' && treeParentField && dt">
-      <TreeView :doctype="dt" :parent-field="treeParentField.fieldname" :workspace="workspace"
-        :fast-filter-defs="fastFilterDefs" :fast-filter-values="fastFilterValues" :active-filters="activeFilters"
-        @update:fast-filter-values="emit('update:fastFilterValues', $event)"
-        @update:active-filters="emit('update:activeFilters', $event)" />
-    </div>
-
-    <div v-else-if="viewMode === 'map' && geoField && dt">
-      <MapView :doctype="dt" :geo-field="geoField.fieldname" :workspace="workspace" :search="search"
-        :filters="activeFilters" @register-menu-items="(items) => emit('register-menu-items', items)"
-        @unregister-menu-items="(items) => emit('unregister-menu-items', items)" />
-    </div>
-
-    <div v-else-if="viewMode === 'gallery'">
-      <BulkActionBar :count="selectionCount" :total="meta?.total" :all-selected="selection.allSelected"
-        :page-count="rows?.length || 0" :editable-fields="dt?.fields" @delete="emit('delete')" @clear="emit('clear')"
-        @select-all="emit('select-all')" @update="(field, value) => emit('update', field, value)" />
-      <GalleryView :rows="rows" :columns="columns" :fields="fields" :doctype="doctype" :image-field="imageField"
-        :workspace="workspace" :is-loading="isLoading && !hasData"
-        :selection="{ selectedIds: selection.selectedIds, allSelected: selection.allSelected, isSelected: selection.isSelected, toggle: selection.toggle }" />
-      <ListPagination v-if="meta" :page="meta.page" :pages="meta.pages" :total="meta.total" :per-page="20"
-        @update:page="(page) => emit('page', page)" />
-    </div>
-
-    <template v-else>
-      <ListTableView :dt="dt" :rows="rows" :columns="columns" :fields="fields" :meta="meta"
-        :workspace="workspace"
-        :doctype="doctype"
-        :is-loading="isLoading && !hasData" :sort-key="sortKey" :sort-order="sortOrder" :active-index="activeIndex"
-        :group-by="groupBy" :grouped-rows="groupedRows" :collapsed-groups="collapsedGroups"
-        :group-by-field="groupByField" :selection="selection"
-        :fetch-next-page="fetchNextPage"
-        :has-next-page="hasNextPage"
-        :is-fetching-next-page="isFetchingNextPage"
-        @sort="(key) => emit('sort', key)"
-        @row-click="(row) => emit('row-click', row)"
-        @inline-update="(rowId, field, value) => emit('inline-update', rowId, field, value)" @delete="emit('delete')"
-        @clear="emit('clear')" @select-all="emit('select-all')" @update="(field, value) => emit('update', field, value)"
-        @toggle-group="(k) => emit('toggle-group', k)" />
-    </template>
+    <component
+      :is="viewComponent"
+      v-if="isRenderable && viewComponent"
+      v-bind="viewProps"
+      v-on="viewEvents"
+    />
   </div>
 </template>
