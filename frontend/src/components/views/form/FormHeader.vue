@@ -219,8 +219,8 @@ const menuItems = computed(() => {
         label: t('Edit DocType'),
         icon: 'pi pi-cog',
         url: router.resolve({
-          name: 'doctype-builder',
-          params: { workspaceName, id: props.doctype }
+          name: 'workspace-form',
+          params: { workspaceName, doctype: 'DocType', id: props.doctype }
         }).href,
         target: '_blank'
     })

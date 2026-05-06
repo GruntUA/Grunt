@@ -19,9 +19,14 @@
   "fields": [
     {
       "fieldname": "tab_main",
-      "label": "Основне",
+      "label": "Ідентичність",
       "fieldtype": "Tab",
       "icon": "Info"
+    },
+    {
+      "fieldname": "sec_identity",
+      "label": "Базові параметри",
+      "fieldtype": "Section"
     },
     {
       "fieldname": "label",
@@ -50,25 +55,10 @@
       "description": "Іконка Lucide для меню та Workspace"
     },
     {
-      "fieldname": "col_icon_app_2",
-      "label": "",
-      "fieldtype": "Column"
-    },
-    {
-      "fieldname": "col_app_module_1",
-      "label": "",
-      "fieldtype": "Column"
-    },
-    {
       "fieldname": "app",
       "label": "Додаток",
       "fieldtype": "Select",
       "options": ""
-    },
-    {
-      "fieldname": "col_app_module_2",
-      "label": "",
-      "fieldtype": "Column"
     },
     {
       "fieldname": "module",
@@ -105,13 +95,13 @@
     },
     {
       "fieldname": "tab_settings",
-      "label": "Налаштування (Advanced)",
+      "label": "Керованість",
       "fieldtype": "Tab",
       "icon": "Settings"
     },
     {
       "fieldname": "sec_naming",
-      "label": "Автонумерація та відображення",
+      "label": "Збереження та ідентифікація",
       "fieldtype": "Section"
     },
     {
@@ -158,6 +148,11 @@
       "description": "Фізична таблиця в БД. Заповнюється автоматично"
     },
     {
+      "fieldname": "sec_search",
+      "label": "Пошук",
+      "fieldtype": "Section"
+    },
+    {
       "fieldname": "search_fields",
       "label": "Поля пошуку",
       "fieldtype": "JSON",
@@ -165,7 +160,7 @@
     },
     {
       "fieldname": "sec_flags",
-      "label": "Прапори",
+      "label": "Життєвий цикл та модель даних",
       "fieldtype": "Section"
     },
     {
@@ -212,7 +207,7 @@
     },
     {
       "fieldname": "sec_views",
-      "label": "Вигляди (Views JSON)",
+      "label": "Відображення і подання",
       "fieldtype": "Section"
     },
     {
@@ -236,7 +231,7 @@
     },
     {
       "fieldname": "tab_tree",
-      "label": "Дерево",
+      "label": "Ієрархія",
       "fieldtype": "Tab",
       "icon": "GitBranch"
     },
@@ -260,7 +255,7 @@
     },
     {
       "fieldname": "tab_views_builder",
-      "label": "Налаштування виглядів",
+      "label": "Вигляди",
       "fieldtype": "Tab",
       "experimental_component": "ViewsTab",
       "icon": "PanelsTopLeft"

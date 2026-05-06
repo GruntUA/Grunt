@@ -292,13 +292,18 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto p-6 space-y-5 overflow-y-auto h-full pb-24">
+  <div class="w-full p-6 space-y-6 overflow-y-auto h-full pb-24">
+
+    <!-- Intro -->
+    <div class="rounded-lg border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+      Налаштуйте відображення DocType: список, форму, статуси та розширені уявлення.
+    </div>
 
     <!-- List View -->
-    <div class="rounded-lg border border-border bg-card overflow-hidden">
+    <div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
       <div class="flex items-center gap-2.5 px-4 py-3 bg-muted/40 border-b border-border">
         <List class="size-4 text-muted-foreground" />
-        <h3 class="text-sm font-semibold text-foreground">Список</h3>
+        <h3 class="text-sm font-semibold text-foreground">Відображення: Список</h3>
       </div>
       <div class="p-4 space-y-4">
         <!-- Visible columns -->
@@ -353,10 +358,10 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
     </div>
 
     <!-- Form View -->
-    <div class="rounded-lg border border-border bg-card overflow-hidden">
+    <div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
       <div class="flex items-center gap-2.5 px-4 py-3 bg-muted/40 border-b border-border">
         <FileText class="size-4 text-muted-foreground" />
-        <h3 class="text-sm font-semibold text-foreground">Форма</h3>
+        <h3 class="text-sm font-semibold text-foreground">Відображення: Форма</h3>
       </div>
       <div class="p-4">
         <div class="grid grid-cols-2 gap-3">
@@ -380,11 +385,12 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
     </div>
 
     <!-- Status Indicators -->
-    <div v-if="builder.doctype" class="rounded-lg border border-border bg-card overflow-hidden">
+    <div v-if="builder.doctype" class="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
       <div class="flex items-center justify-between px-4 py-3 bg-muted/40 border-b border-border">
         <div class="flex items-center gap-2.5">
           <CircleDot class="size-4 text-muted-foreground" />
-          <h3 class="text-sm font-semibold text-foreground">Статуси</h3>
+          <h3 class="text-sm font-semibold text-foreground">Відображення: Статуси</h3>
+          <span v-if="hasStatus" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/15 text-green-700 dark:text-green-400">Увімкнено</span>
         </div>
         <ToggleSwitch :model-value="hasStatus" @update:model-value="toggleStatus" />
       </div>
@@ -416,7 +422,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
           <div
             v-for="(ind, idx) in statusIndicators"
             :key="idx"
-            class="flex items-center gap-2 p-2.5 border border-border rounded-md bg-muted/20"
+            class="flex items-center gap-3 p-2.5 border border-border rounded-md bg-muted/20"
           >
             <!-- Color dot preview -->
             <div
@@ -436,7 +442,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
             <Select
               :model-value="ind.color"
               :options="[...statusColors]"
-              class="h-7 text-xs w-28 shrink-0"
+              class="h-7 text-xs w-32 shrink-0"
               @update:model-value="updateIndicator(idx, { color: String($event) })"
             />
 
@@ -472,11 +478,12 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
     </div>
 
     <!-- Kanban View -->
-    <div v-if="builder.doctype" class="rounded-lg border border-border bg-card overflow-hidden">
+    <div v-if="builder.doctype" class="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
       <div class="flex items-center justify-between px-4 py-3 bg-muted/40 border-b border-border">
         <div class="flex items-center gap-2.5">
           <Columns3 class="size-4 text-muted-foreground" />
-          <h3 class="text-sm font-semibold text-foreground">Канбан</h3>
+          <h3 class="text-sm font-semibold text-foreground">Відображення: Канбан</h3>
+          <span v-if="hasKanban" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/15 text-blue-700 dark:text-blue-400">Увімкнено</span>
         </div>
         <ToggleSwitch :model-value="hasKanban" @update:model-value="toggleKanban" />
       </div>
@@ -521,11 +528,12 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
     </div>
 
     <!-- Tree View -->
-    <div v-if="builder.doctype" class="rounded-lg border border-border bg-card overflow-hidden">
+    <div v-if="builder.doctype" class="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
       <div class="flex items-center justify-between px-4 py-3 bg-muted/40 border-b border-border">
         <div class="flex items-center gap-2.5">
           <Network class="size-4 text-muted-foreground" />
-          <h3 class="text-sm font-semibold text-foreground">Дерево</h3>
+          <h3 class="text-sm font-semibold text-foreground">Відображення: Дерево</h3>
+          <span v-if="hasTree" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/15 text-violet-700 dark:text-violet-400">Увімкнено</span>
         </div>
         <ToggleSwitch :model-value="hasTree" @update:model-value="toggleTree" />
       </div>
@@ -560,11 +568,12 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
     </div>
 
     <!-- Calendar View -->
-    <div v-if="builder.doctype" class="rounded-lg border border-border bg-card overflow-hidden">
+    <div v-if="builder.doctype" class="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
       <div class="flex items-center justify-between px-4 py-3 bg-muted/40 border-b border-border">
         <div class="flex items-center gap-2.5">
           <Calendar class="size-4 text-muted-foreground" />
-          <h3 class="text-sm font-semibold text-foreground">Календар</h3>
+          <h3 class="text-sm font-semibold text-foreground">Відображення: Календар</h3>
+          <span v-if="hasCalendar" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/15 text-amber-700 dark:text-amber-400">Увімкнено</span>
         </div>
         <ToggleSwitch :model-value="hasCalendar" @update:model-value="toggleCalendar" />
       </div>

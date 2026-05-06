@@ -188,9 +188,9 @@ function removeSearchField(fieldname: string) {
 
 <template>
   <div class="mx-auto max-w-2xl p-6">
-    <!-- Загальне (General) -->
+    <!-- Ідентичність -->
     <section>
-      <h3 class="mb-4 text-lg font-semibold text-foreground">Загальне</h3>
+      <h3 class="mb-4 text-lg font-semibold text-foreground">Ідентичність</h3>
 
       <div class="flex flex-col gap-1.5 mb-4">
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Назва</label>
@@ -287,9 +287,9 @@ function removeSearchField(fieldname: string) {
 
     <Divider class="!my-6" />
 
-    <!-- Нумерація (Naming) -->
+    <!-- Збереження та ідентифікація -->
     <section>
-      <h3 class="mb-4 text-lg font-semibold text-foreground">Нумерація</h3>
+      <h3 class="mb-4 text-lg font-semibold text-foreground">Збереження та ідентифікація</h3>
 
       <div class="flex flex-col gap-1.5 mb-4">
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Стратегія автоіменування</label>
@@ -362,9 +362,9 @@ function removeSearchField(fieldname: string) {
 
     <Divider class="!my-6" />
 
-    <!-- Вигляд за замовчуванням -->
+    <!-- Відображення -->
     <section>
-      <h3 class="mb-4 text-lg font-semibold text-foreground">Вигляд</h3>
+      <h3 class="mb-4 text-lg font-semibold text-foreground">Відображення</h3>
 
       <div class="flex flex-col gap-1.5 mb-4">
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Вигляд за замовчуванням</label>
@@ -382,6 +382,39 @@ function removeSearchField(fieldname: string) {
           class="w-full"
           @update:model-value="builder.updateDocType({ default_view: String($event) === 'list' ? null : String($event) as 'kanban' | 'calendar' | 'tree' })"
         />
+      </div>
+    </section>
+
+    <Divider class="!my-6" />
+
+    <!-- Керованість та безпека (advanced) -->
+    <section>
+      <h3 class="mb-4 text-lg font-semibold text-foreground">Керованість та безпека</h3>
+
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="flex items-center justify-between rounded-md border border-border p-3">
+          <div>
+            <span class="text-sm font-medium text-foreground">Віртуальний DocType</span>
+            <p class="text-[11px] text-muted-foreground mt-0.5">Без фізичної таблиці в БД, дані повертає контролер</p>
+          </div>
+          <ToggleSwitch :model-value="!!builder.doctype?.is_virtual"
+            @update:model-value="builder.updateDocType({ is_virtual: $event })" />
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1.5 mb-4">
+        <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Фізична таблиця</label>
+        <InputText
+          :model-value="builder.doctype?.table_name ?? ''"
+          disabled
+          placeholder="Згенерується після збереження"
+          class="w-full"
+        />
+        <p class="text-[11px] text-muted-foreground mt-1">Службове поле тільки для перегляду. Назва визначається системою.</p>
+      </div>
+
+      <div class="rounded-md border border-border bg-muted/20 p-3 text-xs text-muted-foreground">
+        Права доступу керуються у вкладці «Permissions», а налаштування виглядів (list/tree/kanban/calendar/statuses) — у вкладці «Views».
       </div>
     </section>
 

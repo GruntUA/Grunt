@@ -260,12 +260,15 @@ export interface DocType {
   name: string
   label: string
   module: string
+  app?: string | null
   is_child?: boolean
   is_submittable?: boolean
   is_singleton?: boolean
+  is_virtual?: boolean
   is_tree?: boolean
   track_changes?: boolean
   quick_entry?: boolean
+  table_name?: string | null
   fields: DocField[]
   title_field?: string
   image_field?: string | null
