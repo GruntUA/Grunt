@@ -317,7 +317,7 @@ useFetchFrom({
           />
 
           <!-- Main Form Card -->
-          <div class="bg-card border border-border rounded-md shadow-sm p-5">
+          <div class="bg-card border border-border rounded-md shadow-sm p-5 overflow-hidden">
             <FormRenderer :doctype="dt" :model-value="form" :disabled="isSaving" :errors="validationErrors"
               v-model:active-tab="activeTab"
               :overrides="displayOverrides" :reqd-overrides="reqdOverrides" :df-prop-overrides="dfPropOverrides" :field-locks="fieldLocks"

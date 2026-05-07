@@ -43,7 +43,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col h-[calc(100vh-350px)] min-h-[600px] overflow-hidden border rounded-lg bg-background shadow-inner">
+  <div class="flex flex-col h-[calc(100vh-230px)] overflow-hidden -mx-5 -mb-5 border-t border-border bg-background">
     <div v-if="isInitializing" class="flex flex-1 items-center justify-center p-8">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       <span class="ml-2">Завантаження конструктора...</span>
