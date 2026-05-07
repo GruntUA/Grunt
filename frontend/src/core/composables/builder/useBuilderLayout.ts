@@ -19,6 +19,12 @@ export function useBuilderLayout({ doctype, isDirty, selectedFieldIdx }: UseBuil
     return `${base}_${i}`
   }
 
+  function normalizeFields() {
+    if (doctype.value && !Array.isArray(doctype.value.fields)) {
+      doctype.value.fields = []
+    }
+  }
+
   function rebuildFlatFields(newLayout: FormLayout) {
     if (!doctype.value) return
     doctype.value.fields = flattenLayout(newLayout)
@@ -27,6 +33,7 @@ export function useBuilderLayout({ doctype, isDirty, selectedFieldIdx }: UseBuil
 
   function addTab(afterTabFieldname?: string) {
     if (!doctype.value) return
+    normalizeFields()
     const tabField: DocField = {
       fieldname: generateFieldname('Tab'),
       label: 'New Tab',
@@ -41,7 +48,7 @@ export function useBuilderLayout({ doctype, isDirty, selectedFieldIdx }: UseBuil
     if (afterTabFieldname) {
       const tabIdx = doctype.value.fields.findIndex((f) => f.fieldname === afterTabFieldname)
       if (tabIdx === -1) {
-        doctype.value.fields.push(tabField, sectionField)
+        doctype.value.fields = [...doctype.value.fields, tabField, sectionField]
       } else {
         let endIdx = doctype.value.fields.length
         for (let i = tabIdx + 1; i < doctype.value.fields.length; i++) {
@@ -50,16 +57,19 @@ export function useBuilderLayout({ doctype, isDirty, selectedFieldIdx }: UseBuil
             break
           }
         }
-        doctype.value.fields.splice(endIdx, 0, tabField, sectionField)
+        const newFields = [...doctype.value.fields]
+        newFields.splice(endIdx, 0, tabField, sectionField)
+        doctype.value.fields = newFields
       }
     } else {
-      doctype.value.fields.push(tabField, sectionField)
+      doctype.value.fields = [...doctype.value.fields, tabField, sectionField]
     }
     isDirty.value = true
   }
 
   function removeTab(tabFieldname: string) {
     if (!doctype.value) return
+    normalizeFields()
     const tabIdx = doctype.value.fields.findIndex((f) => f.fieldname === tabFieldname)
     if (tabIdx === -1) return
 
@@ -71,7 +81,9 @@ export function useBuilderLayout({ doctype, isDirty, selectedFieldIdx }: UseBuil
       }
     }
 
-    const removed = doctype.value.fields.splice(tabIdx, endIdx - tabIdx)
+    const newFields = [...doctype.value.fields]
+    const removed = newFields.splice(tabIdx, endIdx - tabIdx)
+    doctype.value.fields = newFields
     if (selectedFieldIdx.value !== null && selectedFieldIdx.value >= tabIdx && selectedFieldIdx.value < tabIdx + removed.length) {
       selectedFieldIdx.value = null
     } else if (selectedFieldIdx.value !== null && selectedFieldIdx.value >= tabIdx + removed.length) {
@@ -82,6 +94,7 @@ export function useBuilderLayout({ doctype, isDirty, selectedFieldIdx }: UseBuil
 
   function addSection(tabFieldname: string) {
     if (!doctype.value) return
+    normalizeFields()
     const sectionField: DocField = {
       fieldname: generateFieldname('Section'),
       label: '',
@@ -99,12 +112,15 @@ export function useBuilderLayout({ doctype, isDirty, selectedFieldIdx }: UseBuil
       }
     }
 
-    doctype.value.fields.splice(endIdx, 0, sectionField)
+    const newFields = [...doctype.value.fields]
+    newFields.splice(endIdx, 0, sectionField)
+    doctype.value.fields = newFields
     isDirty.value = true
   }
 
   function promoteImplicitSection(implicitFieldname: string): string {
     if (!doctype.value) return implicitFieldname
+    normalizeFields()
     const currentLayout = parseLayout(doctype.value.fields)
     for (const tab of currentLayout) {
       for (const section of tab.sections) {
@@ -118,7 +134,9 @@ export function useBuilderLayout({ doctype, isDirty, selectedFieldIdx }: UseBuil
         } else {
           insertIdx = 0
         }
-        doctype.value.fields.splice(insertIdx, 0, sectionField)
+        const newFields = [...doctype.value.fields]
+        newFields.splice(insertIdx, 0, sectionField)
+        doctype.value.fields = newFields
         isDirty.value = true
         return fieldname
       }
@@ -128,6 +146,7 @@ export function useBuilderLayout({ doctype, isDirty, selectedFieldIdx }: UseBuil
 
   function removeSection(sectionFieldname: string) {
     if (!doctype.value) return
+    normalizeFields()
     const secIdx = doctype.value.fields.findIndex((f) => f.fieldname === sectionFieldname)
     if (secIdx === -1) return
 
@@ -139,7 +158,9 @@ export function useBuilderLayout({ doctype, isDirty, selectedFieldIdx }: UseBuil
       }
     }
 
-    const removed = doctype.value.fields.splice(secIdx, endIdx - secIdx)
+    const newFields = [...doctype.value.fields]
+    const removed = newFields.splice(secIdx, endIdx - secIdx)
+    doctype.value.fields = newFields
     if (selectedFieldIdx.value !== null && selectedFieldIdx.value >= secIdx && selectedFieldIdx.value < secIdx + removed.length) {
       selectedFieldIdx.value = null
     } else if (selectedFieldIdx.value !== null && selectedFieldIdx.value >= secIdx + removed.length) {
@@ -150,6 +171,7 @@ export function useBuilderLayout({ doctype, isDirty, selectedFieldIdx }: UseBuil
 
   function setSectionColumns(sectionFieldname: string, count: number) {
     if (!doctype.value || count < 1 || count > 4) return
+    normalizeFields()
     const currentLayout = parseLayout(doctype.value.fields)
 
     for (const tab of currentLayout) {
@@ -181,6 +203,7 @@ export function useBuilderLayout({ doctype, isDirty, selectedFieldIdx }: UseBuil
 
   function addFieldToColumn(fieldtype: FieldType, sectionFieldname: string, columnIndex: number) {
     if (!doctype.value) return
+    normalizeFields()
     const newField: DocField = {
       fieldname: generateFieldname(fieldtype),
       label: fieldtype,
@@ -203,7 +226,7 @@ export function useBuilderLayout({ doctype, isDirty, selectedFieldIdx }: UseBuil
       }
     }
 
-    doctype.value.fields.push(newField)
+    doctype.value.fields = [...doctype.value.fields, newField]
     selectedFieldIdx.value = doctype.value.fields.length - 1
     isDirty.value = true
   }

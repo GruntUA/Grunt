@@ -21,7 +21,7 @@ const isInitializing = ref(true)
 // Sync modelValue -> builder.doctype
 watch(() => props.modelValue, (newVal) => {
   if (!builder.isSaving && newVal && !isInitializing.value) {
-    builder.doctype = newVal as DocType
+    builder.doctype = { fields: [], ...newVal } as unknown as DocType
   }
 }, { deep: true })
 
@@ -35,7 +35,7 @@ watch(() => builder.doctype, (newVal) => {
 onMounted(async () => {
   console.log('DesignerTab initializing with:', props.modelValue?.name)
   // Initialize builder state with current document
-  builder.doctype = { ...props.modelValue } as DocType
+  builder.doctype = { fields: [], ...props.modelValue } as unknown as DocType
   builder.isNew = !props.modelValue.name
   builder.isDirty = false
   isInitializing.value = false
