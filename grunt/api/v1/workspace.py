@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from typing import Any
 
 import structlog
@@ -62,7 +61,7 @@ def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
         "sequence": ws_data.get("sequence", 0),
         "is_hidden": ws_data.get("is_hidden", False),
         "roles": ws_data.get("roles", ""),
-        "widgets": ws_data.get("widgets") or [],
+        "home_page": ws_data.get("home_page") or None,
         "items": items,
     }
 
@@ -153,16 +152,3 @@ async def get_counts(name: str) -> dict[str, int]:
     return {}
 
 
-@grunt.whitelist()
-async def get_widget_data(
-    name: str, date_from: str | None = None, date_to: str | None = None
-) -> dict[str, Any]:
-    """Compute widget data for all widgets in a workspace."""
-    ws = await _get_ws_controller(name)
-
-    global_since = datetime.fromisoformat(date_from).replace(tzinfo=UTC) if date_from else None
-    global_until = datetime.fromisoformat(date_to).replace(tzinfo=UTC) if date_to else None
-
-    if hasattr(ws, "get_widget_data"):
-        return await ws.get_widget_data(date_from=global_since, date_to=global_until)
-    return {}

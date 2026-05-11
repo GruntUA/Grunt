@@ -3,6 +3,8 @@ import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DashboardWidget, WidgetType, WidgetAggregation, WidgetPeriod, WidgetCols, ShortcutItem } from '@/types'
 import type { WorkspaceLinkItem } from '@/core/api/workspace'
+import { docsApi } from '@/core/api'
+import type { LinkSearchItem } from '@/core/api/docs'
 import { useDocTypeStore } from '@/stores/doctype'
 import { Plus, Trash2 } from '@lucide/vue'
 
@@ -106,7 +108,7 @@ const COLORS = computed(() => [
 const LINK_TYPES = computed(() => [
   { value: 'DocType',   label: t('DocType (list)') },
   { value: 'Report',    label: t('Report') },
-  { value: 'Dashboard', label: t('Dashboard') },
+  { value: 'Page', label: t('Page') },
   { value: 'URL',       label: t('External URL') },
 ])
 
@@ -134,6 +136,62 @@ const isDataWidget   = computed(() =>
 const needsField = computed(() =>
   draft.value ? ['sum', 'avg', 'min', 'max'].includes(draft.value.aggregation) : false
 )
+
+// ── Shortcut link-search autocomplete ───────────────────────────────────────
+
+const linkQuery = ref('')
+const linkResults = ref<LinkSearchItem[]>([])
+const linkOpen = ref(false)
+let linkTimer: ReturnType<typeof setTimeout>
+let linkBlurTimer: ReturnType<typeof setTimeout>
+
+const linkSearchDoctype = computed(() => {
+  if (!isShortcut.value || !draft.value) return null
+  const lt = draft.value.link_type
+  return (lt === 'DocType' || lt === 'Report' || lt === 'Page') ? lt : null
+})
+
+watch(() => draft.value?.doctype, (v) => {
+  if (isShortcut.value) linkQuery.value = v ?? ''
+}, { immediate: true })
+
+watch(linkSearchDoctype, () => {
+  if (draft.value) linkQuery.value = draft.value.doctype ?? ''
+})
+
+async function onLinkInput(val: string) {
+  linkQuery.value = val
+  if (draft.value) { draft.value = { ...draft.value, doctype: val }; apply() }
+  if (!linkSearchDoctype.value) return
+  clearTimeout(linkTimer)
+  linkTimer = setTimeout(async () => {
+    try {
+      linkResults.value = await docsApi.linkSearch(linkSearchDoctype.value!, val)
+      linkOpen.value = true
+    } catch { linkResults.value = [] }
+  }, val ? 250 : 0)
+}
+
+async function onLinkFocus() {
+  clearTimeout(linkBlurTimer)
+  if (!linkSearchDoctype.value) return
+  try {
+    linkResults.value = await docsApi.linkSearch(linkSearchDoctype.value, linkQuery.value)
+    linkOpen.value = true
+  } catch { linkResults.value = [] }
+}
+
+function onLinkBlur() {
+  linkBlurTimer = setTimeout(() => { linkOpen.value = false }, 200)
+}
+
+function selectLink(item: LinkSearchItem) {
+  if (!draft.value) return
+  draft.value = { ...draft.value, doctype: item.name }
+  linkQuery.value = item.title
+  linkOpen.value = false
+  apply()
+}
 
 // ── Links editor setters ─────────────────────────────────────────────────────
 
@@ -238,6 +296,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
         <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           {{ isShortcut ? t('Target') : 'DocType' }}
         </label>
+        <!-- data widgets — static select -->
         <select
           v-if="isDataWidget"
           v-model="draft.doctype"
@@ -249,11 +308,36 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
             {{ dt.label }}
           </option>
         </select>
+        <!-- shortcut: link-search autocomplete (DocType / Report / Page) -->
+        <div v-else-if="isShortcut && linkSearchDoctype" class="relative">
+          <input
+            :value="linkQuery"
+            class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            :placeholder="t('Search {dt}...', { dt: linkSearchDoctype })"
+            autocomplete="off"
+            @input="onLinkInput(($event.target as HTMLInputElement).value)"
+            @focus="onLinkFocus"
+            @blur="onLinkBlur"
+          />
+          <div
+            v-if="linkOpen && linkResults.length"
+            class="absolute left-0 right-0 top-full mt-1 z-50 bg-popover border border-border rounded-md shadow-md max-h-48 overflow-y-auto"
+          >
+            <button
+              v-for="item in linkResults"
+              :key="item.name"
+              type="button"
+              class="w-full text-left px-3 py-1.5 text-sm hover:bg-accent/50 transition-colors"
+              @mousedown.prevent="selectLink(item)"
+            >{{ item.title }}</button>
+          </div>
+        </div>
+        <!-- shortcut: plain URL input -->
         <input
-          v-else
+          v-else-if="isShortcut"
           v-model="draft.doctype"
           class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-          :placeholder="t('DocType, Report, Dashboard or URL')"
+          placeholder="https://…"
           @change="apply"
         />
       </div>
@@ -358,7 +442,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
             >
               <option value="DocType">DocType</option>
               <option value="Report">{{ t('Report') }}</option>
-              <option value="Dashboard">Dashboard</option>
+              <option value="Page">Page</option>
               <option value="URL">URL</option>
             </select>
           </div>
@@ -414,7 +498,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
             <select :value="link.type" class="h-7 px-2 rounded border bg-background text-xs focus:outline-none" @change="updateLink(i, 'type', ($event.target as HTMLSelectElement).value)">
               <option value="DocType">DocType</option>
               <option value="Report">{{ t('Report') }}</option>
-              <option value="Dashboard">Dashboard</option>
+              <option value="Page">Page</option>
               <option value="URL">URL</option>
             </select>
           </div>

@@ -1,18 +1,13 @@
 import client from './client'
 
-export interface AppPage {
-  id: string
-  route: string
-  title: string
-  icon: string | null
-  component: string
-  app: string
-  sidebar_section: string | null
-  sidebar_order: number
-  is_default_home: boolean
-}
-
-export async function fetchPages(): Promise<AppPage[]> {
-  const r = await client.get('/api/v1/pages/')
-  return r.data?.data ?? []
+/** Compute widget data for a Page by name. */
+export async function getPageData(
+  name: string,
+  opts?: { dateFrom?: string; dateTo?: string },
+): Promise<Record<string, unknown>> {
+  const params: Record<string, string> = {}
+  if (opts?.dateFrom) params.date_from = opts.dateFrom
+  if (opts?.dateTo)   params.date_to   = opts.dateTo
+  const r = await client.get(`/api/v1/page-data/${name}`, { params })
+  return r.data.data
 }

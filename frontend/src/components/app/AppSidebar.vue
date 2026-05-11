@@ -238,11 +238,11 @@ const otherWorkspaces = computed(() =>
 
       <!-- Navigation -->
       <nav class="px-1 flex flex-col gap-1">
-        <!-- Dashboard -->
+        <!-- Home -->
         <ul class="flex w-full min-w-0 flex-col gap-1 list-none p-0 m-0">
-          <RouterLink :to="`/${workspaceName}/dashboard/${workspaceName}`" custom v-slot="{ navigate }">
+          <RouterLink :to="`/app/${workspaceName}`" custom v-slot="{ navigate }">
             <SidebarItem
-              :item="{ type: 'Dashboard', link_to: workspaceName, label: 'Огляд', icon: 'layout-dashboard', section: '', sequence: 0, show_count: false, show_new_btn: false, roles: '' }"
+              :item="{ type: 'DocType', link_to: '', label: 'Огляд', icon: 'layout-dashboard', section: '', sequence: 0, show_count: false, show_new_btn: false, roles: '' }"
               :workspace-name="workspaceName" :collapsed="isCollapsed" @click="navigate" />
           </RouterLink>
         </ul>

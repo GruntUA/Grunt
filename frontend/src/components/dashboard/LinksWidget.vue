@@ -27,8 +27,8 @@ function navigate(link: WorkspaceLinkItem) {
     router.push(`/${ws}/${link.link_to}`)
   } else if (link.type === 'Report' && ws) {
     router.push(`/${ws}/report/${link.link_to}`)
-  } else if (link.type === 'Dashboard' && ws) {
-    router.push(`/${ws}/dashboard/${link.link_to}`)
+  } else if (link.type === 'Page' && ws) {
+    router.push(`/${ws}/page/${link.link_to}`)
   } else if (link.type === 'URL') {
     window.open(link.link_to, '_blank')
   }

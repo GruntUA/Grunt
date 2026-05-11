@@ -292,22 +292,22 @@ async def _compute_widget_data(
 
 
 @grunt.whitelist()
-async def get_dashboard_data(
+async def get_page_data(
     name: str,
     date_from: str | None = None,
     date_to: str | None = None,
 ) -> dict[str, Any]:
-    """Return computed data for all widgets of a Dashboard document."""
+    """Return computed data for all widgets of a Page document."""
     from grunt.app import grunt as grunt_app
 
     try:
-        dashboard = dict(await grunt.get_doc("Dashboard", name))
+        dashboard = dict(await grunt.get_doc("Page", name))
     except Exception:
-        grunt.throw("Дашборд не знайдено", "NOT_FOUND")
+        grunt.throw("Сторінку не знайдено", "NOT_FOUND")
 
     user = grunt_app._require_user()
     if not user.is_superadmin and not dashboard.get("is_published"):
-        grunt.throw("Дашборд не опубліковано", "PERMISSION_DENIED")
+        grunt.throw("Сторінку не опубліковано", "PERMISSION_DENIED")
 
     widgets: list[dict[str, Any]] = sorted(
         dashboard.get("widgets") or [],

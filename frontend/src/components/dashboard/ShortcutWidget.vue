@@ -38,8 +38,8 @@ function navigate() {
     window.open(target, '_blank')
   } else if (linkType === 'Report') {
     router.push({ name: 'workspace-report', params: { workspaceName: ws, reportName: target } })
-  } else if (linkType === 'Dashboard') {
-    router.push({ name: 'workspace-dashboard', params: { workspaceName: ws, dashboardName: target } })
+  } else if (linkType === 'Page') {
+    router.push({ name: 'workspace-page', params: { workspaceName: ws, pageName: target } })
   } else {
     router.push(`/${ws}/${target}`)
   }

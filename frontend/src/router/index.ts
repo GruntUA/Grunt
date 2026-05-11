@@ -135,19 +135,22 @@ const router = createRouter({
         {
           path: 'report/:reportName',
           name: 'workspace-report',
+          sensitive: true,
           component: () => import('@/pages/reports/ReportView.vue'),
           props: true,
         },
         {
           path: 'report-builder/:reportName?',
           name: 'report-builder',
+          sensitive: true,
           component: () => import('@/pages/reports/QueryReportBuilder.vue'),
           props: true,
         },
         {
-          path: 'dashboard/:dashboardName',
-          name: 'workspace-dashboard',
-          component: () => import('@/pages/app/AppDashboard.vue'),
+          path: 'page/:pageName',
+          name: 'workspace-page',
+          sensitive: true,
+          component: () => import('@/pages/app/AppPage.vue'),
           props: true,
         },
         {

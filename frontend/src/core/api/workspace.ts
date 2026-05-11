@@ -1,9 +1,8 @@
 import client from './client'
-import type { DashboardWidget } from '@/types'
 
 export interface WorkspaceLink {
   section: string
-  type: 'DocType' | 'Report' | 'Dashboard' | 'URL' | 'Divider'
+  type: 'DocType' | 'Report' | 'Page' | 'URL' | 'Divider'
   label: string
   icon: string
   link_to: string
@@ -18,7 +17,7 @@ export interface WorkspaceLink {
 export interface WorkspaceLinkItem {
   label: string
   icon?: string
-  type: 'DocType' | 'Report' | 'Dashboard' | 'URL'
+  type: 'DocType' | 'Report' | 'Page' | 'URL'
   link_to: string
   description?: string
 }
@@ -33,8 +32,8 @@ export interface Workspace {
   sequence: number
   is_hidden: boolean
   roles: string
+  home_page: string | null
   items: WorkspaceLink[]
-  widgets: DashboardWidget[]
 }
 
 export interface SearchResult {
@@ -80,13 +79,4 @@ export const workspaceApi = {
     return r.data.data
   },
 
-  getWidgetData: async (
-    name: string,
-    opts?: { dateFrom?: string; dateTo?: string },
-  ): Promise<Record<string, unknown>> => {
-    const r = await client.get('/api/v1/method/grunt.api.v1.workspace.get_widget_data', {
-      params: { name, date_from: opts?.dateFrom, date_to: opts?.dateTo },
-    })
-    return r.data.data
-  },
 }

@@ -19,7 +19,7 @@ const route = useRoute()
 const isActive = computed(() => {
   if (props.item.type === 'DocType') return route.params.doctype === props.item.link_to
   if (props.item.type === 'Report') return route.params.reportName === props.item.link_to
-  if (props.item.type === 'Dashboard') return route.params.dashboardName === props.item.link_to
+  if (props.item.type === 'Page') return route.params.pageName === props.item.link_to
   return false
 })
 
@@ -30,7 +30,7 @@ function getRoutePath(): string | null {
         ? `/${props.workspaceName}/${props.item.link_to}/${props.item.link_to}`
         : `/${props.workspaceName}/${props.item.link_to}`
     case 'Report': return `/${props.workspaceName}/report/${props.item.link_to}`
-    case 'Dashboard': return `/${props.workspaceName}/dashboard/${props.item.link_to}`
+    case 'Page': return `/${props.workspaceName}/page/${props.item.link_to}`
     default: return null
   }
 }

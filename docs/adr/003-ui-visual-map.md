@@ -2,13 +2,13 @@
 
 ## Статус
 
-Прийнято — 2026-05-11
+Прийнято — 2026-05-11 (оновлено)
 
 ---
 
 ## Контекст
 
-Grunt-frontend складається з десятків компонентів, сторінок і stores. Без єдиної карти важко швидко знайти що потрібно змінити коли є запит виду "виправ заголовок форми" або "зміни поведінку App Menu". Цей документ є **візуальним довідником**: для кожної UI-зони — що вона робить, який маршрут, які файли, який store.
+Grunt-frontend складається з десятків компонентів, сторінок і stores. Без єдиної карти важко швидко знайти що потрібно змінити. Цей документ є **візуальним довідником**: для кожної UI-зони — що вона робить, який маршрут, які файли, який store.
 
 ---
 
@@ -17,15 +17,15 @@ Grunt-frontend складається з десятків компонентів
 ```
 /login                            → pages/auth/Login.vue
 /app                              → pages/DeskPage.vue            ← App Launcher
-/app/:workspaceName               → pages/workspace/AppLayout.vue
+/app/:workspaceName               → pages/app/AppLayout.vue
   (дочірні маршрути)
-  /                               → pages/workspace/WorkspaceHome.vue
-  /:doctype                       → pages/workspace/WorkspaceListView.vue
-  /:doctype/new                   → pages/workspace/WorkspaceFormView.vue
-  /:doctype/:id                   → pages/workspace/WorkspaceFormView.vue
-  /dashboard/:dashboardName       → pages/workspace/WorkspaceDashboard.vue
-  /report/:reportName             → pages/workspace/WorkspaceReportView.vue
-  /search                         → pages/workspace/SearchResultsPage.vue
+  /                               → pages/app/AppHome.vue
+  /:doctype                       → pages/app/AppListView.vue
+  /:doctype/new                   → pages/app/AppFormView.vue
+  /:doctype/:id                   → pages/app/AppFormView.vue
+  /page/:pageName                 → pages/app/AppPage.vue
+  /report/:reportName             → pages/reports/ReportView.vue
+  /search                         → pages/app/SearchResultsPage.vue
   /files                          → pages/desk/FileManager.vue
 /403                              → pages/errors/Forbidden.vue
 /* (404)                          → pages/errors/NotFound.vue
@@ -37,8 +37,7 @@ Grunt-frontend складається з десятків компонентів
 
 ### Що показує
 
-Головна сторінка після логіну. Показує всі встановлені додатки (workspaces) у вигляді карток,
-лічильники документів по кожному, нещодавно відкриті документи та стрічку активності.
+Головна сторінка після логіну. Показує всі встановлені додатки у вигляді карток, лічильники документів по кожному, нещодавно відкриті документи та стрічку активності.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -51,7 +50,7 @@ Grunt-frontend складається з десятків компонентів
 │  └───────────┘  └───────────┘  └───────────┘           │
 │                                                         │
 │  Нещодавні документи          Стрічка активності        │
-│  ─────────────────────        ─────────────────────     │
+│  ─────────────────────────    ─────────────────────     │
 │  • Жулій В.  (Employee)       Ви редагували...          │
 │  • Відпустка #123             Ви створили...            │
 └─────────────────────────────────────────────────────────┘
@@ -73,8 +72,8 @@ Grunt-frontend складається з десятків компонентів
 
 | | |
 |---|---|
-| Store | `stores/auth` (ім'я юзера, привітання), `stores/workspace` (список workspaces) |
-| API | `core/api/workspace.ts` → `getCounts()` (лічильники по кожному WS) |
+| Store | `stores/auth` (ім'я юзера), `stores/app` (список workspaces) |
+| API | `core/api/workspace.ts` → `getCounts()` |
 
 ---
 
@@ -87,34 +86,19 @@ Grunt-frontend складається з десятків компонентів
 - Передачу `workspaceName` у дочірні маршрути
 - Показ `NotFound` якщо workspace не існує
 
-```
-┌──────────────────────────────────────────────────────────┐
-│  AppLayout.vue  /app/:workspaceName                │
-│                                                          │
-│  ┌──────────┐  ┌─────────────────────────────────────┐  │
-│  │Sidebar   │  │  <RouterView>                        │  │
-│  │(desktop) │  │  WorkspaceHome / ListVIew / FormView │  │
-│  └──────────┘  └─────────────────────────────────────┘  │
-│                                                          │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │  MobileBottomNav (тільки mobile)                   │  │
-│  └────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────┘
-```
-
 ### Файли
 
 | Елемент | Файл |
 |---|---|
-| Layout-обгортка | `pages/workspace/AppLayout.vue` |
-| Sidebar (desktop) | `components/workspace/AppSidebar.vue` |
+| Layout-обгортка | `pages/app/AppLayout.vue` |
+| Sidebar (desktop) | `components/app/AppSidebar.vue` |
 | Sidebar (mobile) | `components/mobile/MobileBottomNav.vue` + PrimeVue `Drawer` |
 
 ### Stores
 
 | Store | За що відповідає |
 |---|---|
-| `stores/workspace` | Завантаження і збереження активного workspace (`setActive`) |
+| `stores/app` | Завантаження і збереження активного workspace (`setActive`) |
 | `stores/sidebar` | Collapsed/expanded стан sidebar |
 
 ---
@@ -128,21 +112,20 @@ Grunt-frontend складається з десятків компонентів
 - **Search** — відкриває Command Palette
 - **Notifications** — NotificationsPopover
 - **Закріплені документи** (pinnedItems з localStorage)
-- **Огляд** — посилання на WorkspaceHome
-- **AppMenu** — навігаційні елементи, згруповані по секціях. В одному додатку може бути кілька AppMenu (наприклад, HRM: «Персонал», «Документи», «Звіти»). Кожне AppMenu відображається як окремий блок у sidebar
-- **Інші додатки** (посилання на решту workspaces + "На головну")
+- **Огляд** — посилання на AppHome (домашня сторінка)
+- **AppMenu** — навігаційні елементи, згруповані по секціях
 - **Адмін shortcuts** (тільки superadmin): Права доступу, Журнал, Пошта, Редагувати меню
 - **Footer** — аватар + ім'я юзера → user menu (тема, акцент, вийти)
 
 ```
 ┌───────────────────────────────────┐
-│  [👥 Кадри         ˅]  ← App Switcher (AppSwitcher popup)
+│  [👥 Кадри         ˅]  ← App Switcher
 ├───────────────────────────────────┤
 │  🔍 Пошук...               ⌘K    │
 │  🔔 Сповіщення                   │
 │  📌 Закріплені (якщо є)          │
 ├───────────────────────────────────┤
-│  ⬜ Огляд                        │  ← Dashboard
+│  ⬜ Огляд                        │  ← AppHome
 ├───────────────────────────────────┤
 │  СПІВРОБІТНИКИ                    │  ← AppMenu (секція)
 │  👤 Співробітники          99+   │
@@ -150,6 +133,7 @@ Grunt-frontend складається з десятків компонентів
 │  💼 Посади                 44   │
 │  ДОКУМЕНТИ                        │
 │  📄 Накази                  6   │
+│  📊 Огляд HRM (Page)            │  ← sidebar item type=Page
 │  ...                             │
 ├───────────────────────────────────┤
 │  ДОДАТКИ                          │  ← інші workspaces
@@ -170,23 +154,22 @@ Grunt-frontend складається з десятків компонентів
 
 | Елемент | Файл |
 |---|---|
-| Весь sidebar | `components/workspace/AppSidebar.vue` |
-| Один пункт меню | `components/workspace/SidebarItem.vue` |
-| Breadcrumb (вгорі контенту) | `components/workspace/WorkspaceBreadcrumb.vue` |
+| Весь sidebar | `components/app/AppSidebar.vue` |
+| Один пункт меню | `components/app/SidebarItem.vue` |
+| Breadcrumb (вгорі контенту) | `components/app/AppBreadcrumb.vue` |
 | Notifications popover | `components/layout/NotificationsPopover.vue` |
 | Іконка додатку | `components/AppIcon.vue` |
 
 ### AppMenu — конфігурація навігації
 
 Структура sidebar визначається у fixture-файлі додатку через записи DocType **AppMenu**.
-В одному додатку може бути кілька AppMenu — кожен відображається як окремий іменований блок у sidebar
-(наприклад, HRM може мати AppMenu: «Персонал», «Документи», «Звіти»).
+В одному додатку може бути кілька AppMenu — кожен відображається як окремий іменований блок у sidebar.
 
 ```
 grunt_apps/{app}/fixtures/00_workspace.json  ← doctype: AppMenu (один або кілька записів)
 ```
 
-Після зміни файлу потрібно запустити:
+Після зміни файлу:
 ```bash
 grunt fixture import hrm
 ```
@@ -195,20 +178,17 @@ grunt fixture import hrm
 
 | Store | За що відповідає |
 |---|---|
-| `stores/workspace` | `workspaces` (список всіх WS), `active` (поточний), `groupedItems` (items по секціях), `counts` (лічильники) |
-| `stores/sidebar` | `isCollapsed` — стан collapsed/expanded |
-| `stores/auth` | `user` — ім'я, аватар, email, `is_superadmin` |
+| `stores/app` | `workspaces`, `active`, `groupedItems`, `counts` |
+| `stores/sidebar` | `isCollapsed` |
+| `stores/auth` | `user` (ім'я, аватар, is_superadmin) |
 
 ---
 
-## 4. WorkSpace (Робоча область)
+## 4. AppHome (Домашня сторінка)
 
 ### Що показує
 
-Стартова сторінка додатку — **робоча область** з інтерактивними елементами: кнопками швидкого
-доступу, діаграмами, метриками, списками та іншими widgets для відображення поточного стану
-документів і навігації. Концептуально — персоналізований дашборд конкретного додатку.
-Якщо widgets відсутні — показує порожній стан з пропозицією налаштувати.
+Стартова сторінка додатку. Якщо у AppMenu налаштоване поле `home_page` (посилання на **Page** докумeнт), завантажує та рендерить його widgets. Якщо `home_page` не вказано — показує порожній стан з підказкою.
 
 ### Маршрут
 
@@ -218,180 +198,23 @@ grunt fixture import hrm
 
 | Елемент | Файл |
 |---|---|
-| Сторінка | `pages/workspace/WorkspaceHome.vue` |
+| Сторінка | `pages/app/AppHome.vue` |
 | Widget-картка | `components/dashboard/WidgetCard.vue` |
-| Окремі widgets | `components/dashboard/*.vue` (MetricWidget, ChartWidget тощо) |
+| Окремі widgets | `components/dashboard//*.vue` |
 
-### Stores
+### Stores / API
 
-`stores/workspace` → `active.widgets` (масив конфігурацій widgets)
-
----
-
-## 5. List View
-
-### Що показує
-
-Список документів одного DocType з фільтрами, пошуком, сортуванням, пагінацією та перемиканням
-типу відображення (таблиця / kanban / calendar / gallery / map / tree / status).
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│  Кадри > Співробітники                ← WorkspaceBreadcrumb  │
-├──────────────────────────────────────────────────────────────┤
-│  [+Новий]  [Filters▾] [Search...]  [⊞][☰][📅] ← DocTypeToolbar│
-│  [Fast filters: Активний | Звільнений]       ← FastFilterBar  │
-├──────────────────────────────────────────────────────────────┤
-│  ☐ │ ПІБ              │ Відділ     │ Посада    │ Статус      │
-│  ──┼──────────────────┼────────────┼───────────┼─────────    │
-│  ☐ │ Жулій Валерій    │ Бухгалтерія│ Бухгалтер │ Активний    │
-│  ☐ │ Федоренко О.     │ IT відділ  │ Програміст│ Активний    │
-│  ... (infinite scroll або pagination)                        │
-├──────────────────────────────────────────────────────────────┤
-│  [Bulk actions: видалити, призначити] ← BulkActionBar        │
-└──────────────────────────────────────────────────────────────┘
-```
-
-### Маршрут
-
-`/app/:workspaceName/:doctype`
-
-### Ієрархія компонентів
-
-```
-WorkspaceListView.vue          ← pages/workspace/ (тонка обгортка)
-  WorkspaceBreadcrumb.vue      ← components/workspace/
-  DocTypeList.vue              ← pages/desk/  (весь стан і логіка)
-    DocTypeToolbar.vue         ← components/views/  (кнопки, filters, view switcher)
-      FastFilterBar.vue        ← components/views/
-      FilterBar.vue            ← components/views/
-    ListViewRouter.vue         ← components/views/list/  (перемикає view-тип)
-      ListTableView.vue        ← components/views/list/  (view: list)
-      KanbanView.vue           ← components/views/kanban/  (view: kanban)
-      CalendarView.vue         ← components/views/calendar/  (view: calendar)
-      GalleryView.vue          ← components/views/gallery/  (view: gallery)
-      MapView.vue              ← components/views/map/  (view: map)
-      TreeView.vue             ← components/views/tree/  (view: tree)
-    ListHeader.vue             ← components/views/list/  (заголовок таблиці)
-    BulkActionBar.vue          ← components/views/
-    ListPagination.vue         ← components/views/
-    QuickEntryDialog.vue       ← components/views/  (швидке створення)
-```
-
-### Stores
-
-| Store | За що відповідає |
-|---|---|
-| `stores/doctype` | Метадані DocType (поля, permissions, налаштування views) |
-| `stores/auth` | Перевірка permissions юзера |
-
-### Ключові composables (DocTypeList.vue)
-
-| Composable | За що відповідає |
-|---|---|
-| `useInfiniteDocTypeListData` | Завантаження і infinite scroll |
-| `useListColumns` | Які стовпці показувати |
-| `useListViewState` | `viewMode`, `groupBy`, `sortKey`, `sortOrder` |
-| `useListRouteSync` | Синхронізація фільтрів/sorting з URL query params |
-| `useListSelection` | Множинний вибір рядків (checkboxes) |
-| `useListActions` | Bulk delete, export, print |
-| `useListSearch` | Інлайн-пошук |
-| `useFastFilters` | Швидкі фільтри під toolbar |
-| `useGrouping` | Групування по полю |
-| `useListClientScripts` | Виконання list hooks з `{DocType}.js` |
+- `stores/app` → `active.home_page` (name документа Page)
+- `core/api/pages.ts` → `getPageData(pageName)` — обчислює дані widgets
+- `core/api/docs.ts` → `docsApi.get('Page', pageName)` — завантажує список widgets
 
 ---
 
-## 6. Form View
+## 5. Page (Сторінка)
 
-### Що показує
+### Концепція
 
-Форма редагування або перегляду одного документа. Ліворуч — основна форма,
-праворуч — DocSidebar (коментарі, теги, прив'язки, версії, файли).
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│  Кадри > Співробітники > Жулій Валерій    ← Breadcrumb       │
-├──────────────────────────────────────────────────────────────┤
-│  [← Назад]  [Зберегти]  [Редагувати]  [...▾]  ← FormHeader  │
-│  [Workflow: Активний → Відрядження → Звільнений] ← WorkflowBar│
-├───────────────────────────────────┬──────────────────────────┤
-│  Вкладка 1 │ Вкладка 2 │ ...    │  Коментарі               │
-│  ──────────────────────────────  │  ─────────────────────   │
-│  ПІБ:  [Жулій Валерій        ]  │  💬 Немає коментарів     │
-│  Відділ: [Бухгалтерія        ]  │                          │
-│  ────── Особисті дані ────────  │  Теги                    │
-│  Дата народж: [12.05.1985    ]  │  🏷 [+ додати]           │
-│  ...                            │                          │
-│                                 │  Зв'язки                 │
-│  Пов'язані документи (DocDash) │  🔗 LeaveRequest (3)      │
-│  ─────────────────────────────  │                          │
-│  Відпустки: 3  Накази: 1       │  Версії                  │
-│                                 │  🕐 v4, v3, v2...        │
-│                                 │  Файли                   │
-│                                 │  📎 passport.pdf         │
-└───────────────────────────────────┴──────────────────────────┘
-```
-
-### Маршрути
-
-| Маршрут | Що відкриває |
-|---|---|
-| `/app/:workspaceName/:doctype/new` | Нова форма (id = null) |
-| `/app/:workspaceName/:doctype/:id` | Форма існуючого документа |
-| `?tab=TabName` | Query param для активної вкладки |
-
-### Ієрархія компонентів
-
-```
-WorkspaceFormView.vue          ← pages/workspace/ (тонка обгортка)
-  WorkspaceBreadcrumb.vue      ← components/workspace/
-  DocTypeForm.vue              ← pages/desk/  (весь стан і логіка)
-    FormHeader.vue             ← components/views/form/  (кнопки: зберегти, редагувати, ...)
-    WorkflowBar.vue            ← components/views/  (workflow статус і переходи)
-    FormRenderer.vue           ← core/renderer/  (рендерить поля за схемою DocType)
-      FieldRenderer.vue        ← core/renderer/  (рендерить одне поле за типом)
-    DocSidebar.vue             ← components/views/  (права панель)
-      SidebarTimeline.vue      ← components/views/sidebar/  (стрічка активності)
-      SidebarTags.vue          ← components/views/sidebar/
-      SidebarBacklinks.vue     ← components/views/sidebar/
-      SidebarShare.vue         ← components/views/sidebar/
-      SidebarFileInfo.vue      ← components/views/sidebar/
-    VersionHistoryPanel.vue    ← components/views/  (список версій)
-    DocDashboard.vue           ← components/views/form/  (пов'язані документи)
-    FormModals.vue             ← components/views/form/  (модалки форми)
-    QuickEntryDialog.vue       ← components/views/  (швидке створення зв'язаного)
-```
-
-### Stores
-
-| Store | За що відповідає |
-|---|---|
-| `stores/doctype` | Схема DocType (поля, tabs, sections) |
-
-### Ключові composables (DocTypeForm.vue)
-
-| Composable | За що відповідає |
-|---|---|
-| `useDocument` | CRUD документа (`doc`, `save`, `delete`, `reload`) |
-| `useFormInitialization` | Ініціалізація нового/існуючого документа |
-| `useFormSave` | Логіка кнопки "Зберегти" (валідація → POST → toast) |
-| `useFormValidation` | Валідація required-полів перед збереженням |
-| `useFormNavigation` | Перехід між документами (← →) |
-| `useFormDocWatcher` | Відстеження незбережених змін (dirty flag) |
-| `useFormShortcuts` | Ctrl+S, Ctrl+Enter тощо |
-| `useFormActions` | Кастомні дії з `actions` у DocType |
-| `useClientScripts` | Виконання form hooks з `{DocType}.js` |
-| `usePresence` | Аватари юзерів які зараз дивляться цей документ |
-| `useFetchFrom` | Авто-заповнення полів з пов'язаного документа |
-
----
-
-## 7. Dashboard
-
-### Що показує
-
-Дашборд workspace з налаштовуваними widgets: метрики, графіки, списки, ярлики тощо.
+`Page` — уніфікований DocType для будь-якого комбінованого контенту: дашборди з метриками/графіками, сторінки з ярликами і посиланнями, або змішані. Різниця між "дашбордом" і "воркспейсом" — тільки в тому, якими widgets заповнює сторінку користувач. Зберігається в DocType `Page` (таблиця: `grunt_site_page`).
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -403,46 +226,116 @@ WorkspaceFormView.vue          ← pages/workspace/ (тонка обгортка
 │  │ Співроб. │  │ Відділів │  │  наказ]  │                  │
 │  └──────────┘  └──────────┘  └──────────┘                  │
 │  ┌──────────────────────────┐  ┌─────────────────────────┐ │
-│  │ Chart (Bar/Line/Pie)     │  │ List                    │ │
+│  │ Chart (Bar/Area/Donut)   │  │ List                    │ │
 │  │                          │  │ Нещодавні накази         │ │
 │  └──────────────────────────┘  └─────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Маршрути
+### Маршрут
 
-| Маршрут | Що відкриває |
-|---|---|
-| `/app/:workspaceName` | `WorkspaceHome.vue` — widgets workspace |
-| `/app/:workspaceName/dashboard/:dashboardName` | `WorkspaceDashboard.vue` — окремий дашборд |
+`/app/:workspaceName/page/:pageName`
+
+### DocType
+
+| Поле | Тип | Опис |
+|---|---|---|
+| name | autoname | Унікальний ідентифікатор |
+| label | Text | Назва сторінки |
+| description | Text | Опис |
+| is_published | Check | Видима не-адмінам |
+| roles | Text | Доступ за ролями (через кому) |
+| widgets | Table → PageWidget | Список widgets |
+
+Дочірня таблиця **PageWidget** (таблиця: `grunt_site_page_widget`) містить конфігурацію кожного widget.
 
 ### Файли
 
 | Елемент | Файл |
 |---|---|
-| WorkSpace — Робоча область (стартова сторінка додатку) | `pages/workspace/WorkspaceHome.vue` |
-| Окремий дашборд | `pages/workspace/WorkspaceDashboard.vue` |
+| Перегляд / редагування | `pages/app/AppPage.vue` |
 | Widget-обгортка | `components/dashboard/WidgetCard.vue` |
 | Конфіг-панель widget | `components/dashboard/WidgetConfigPanel.vue` |
+
+### API
+
+| | |
+|---|---|
+| Дані widgets | `GET /api/v1/page-data/:name` |
+| CRUD | `core/api/docs.ts` → `docsApi.get/create/update('Page', ...)` |
+| Frontend | `core/api/pages.ts` → `getPageData(name)` |
 
 ### Типи widgets
 
 | Widget | Файл |
 |---|---|
 | Числова метрика | `components/dashboard/MetricWidget.vue` |
-| Графік (bar/line/pie) | `components/dashboard/ChartWidget.vue` |
-| Donut-діаграма | `components/dashboard/DonutWidget.vue` |
 | Gauge | `components/dashboard/GaugeWidget.vue` |
+| Графік (bar/area) | `components/dashboard/ChartWidget.vue` |
+| Donut-діаграма | `components/dashboard/DonutWidget.vue` |
 | Список документів | `components/dashboard/ListWidget.vue` |
 | Таблиця | `components/dashboard/TableWidget.vue` |
 | Heatmap | `components/dashboard/HeatmapWidget.vue` |
 | Funnel | `components/dashboard/FunnelWidget.vue` |
-| Ярлики / Shortcuts | `components/dashboard/ShortcutWidget.vue`, `ShortcutsGridWidget.vue` |
-| Посилання | `components/dashboard/LinksWidget.vue` |
+| Ярлик (shortcut) | `components/dashboard/ShortcutWidget.vue` |
+| Сітка ярликів | `components/dashboard/ShortcutsGridWidget.vue` |
+| Посилання (links) | `components/dashboard/LinksWidget.vue` |
 | Текст | `components/dashboard/TextWidget.vue` |
 | Годинник | `components/dashboard/ClockWidget.vue` |
 | Календар | `components/dashboard/CalendarWidget.vue` |
 | Стрічка активності | `components/dashboard/ActivityWidget.vue` |
+
+---
+
+## 6. List View
+
+### Маршрут
+
+`/app/:workspaceName/:doctype`
+
+### Ієрархія компонентів
+
+```
+AppListView.vue                ← pages/app/
+  AppBreadcrumb.vue            ← components/app/
+  DocTypeList.vue              ← pages/desk/
+    DocTypeToolbar.vue         ← components/views/
+    ListViewRouter.vue         ← components/views/list/
+      ListTableView.vue
+      KanbanView.vue
+      CalendarView.vue
+      GalleryView.vue
+      MapView.vue
+      TreeView.vue
+    ListHeader.vue
+    BulkActionBar.vue
+    ListPagination.vue
+    QuickEntryDialog.vue
+```
+
+---
+
+## 7. Form View
+
+### Маршрути
+
+| Маршрут | Що відкриває |
+|---|---|
+| `/app/:workspaceName/:doctype/new` | Нова форма |
+| `/app/:workspaceName/:doctype/:id` | Форма існуючого документа |
+
+### Ієрархія компонентів
+
+```
+AppFormView.vue                ← pages/app/
+  AppBreadcrumb.vue            ← components/app/
+  DocTypeForm.vue              ← pages/desk/
+    FormHeader.vue             ← components/views/form/
+    WorkflowBar.vue            ← components/views/
+    FormRenderer.vue           ← core/renderer/
+    DocSidebar.vue             ← components/views/
+    DocDashboard.vue           ← components/views/form/
+```
 
 ---
 
@@ -456,7 +349,7 @@ WorkspaceFormView.vue          ← pages/workspace/ (тонка обгортка
 
 | Елемент | Файл |
 |---|---|
-| Сторінка | `pages/workspace/WorkspaceReportView.vue` |
+| Сторінка | `pages/app/AppReportView.vue` |
 | Report viewer | `pages/reports/ReportView.vue` |
 | Query Report Builder | `pages/reports/QueryReportBuilder.vue` |
 | API | `core/api/reports.ts` |
@@ -464,29 +357,6 @@ WorkspaceFormView.vue          ← pages/workspace/ (тонка обгортка
 ---
 
 ## 9. Studio — Form Builder
-
-### Що показує
-
-Візуальний редактор DocType: перетягування полів, налаштування властивостей, управління
-permissions, views і workflow.
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  [Дизайнер │ Налаштування │ Permissions │ Views │ Workflow]     │
-│  ─────────────────────────────────────────────────────────────  │
-│  ┌──────────────┐  ┌────────────────────────┐  ┌────────────┐  │
-│  │  Palette     │  │  Canvas                │  │ Properties │  │
-│  │  ─────────   │  │  ─────────────────────  │  │ ─────────  │  │
-│  │  Базові      │  │  ┌─ Section ─────────┐  │  │ Мітка:    │  │
-│  │  [Data]      │  │  │ [ПІБ] [Дата н.] │  │  │ [ПІБ    ] │  │
-│  │  [Int ]      │  │  └────────────────────┘  │  │ Тип:      │  │
-│  │  [Float]     │  │  ┌─ Section ─────────┐  │  │ [Data   ] │  │
-│  │  Зв'язки     │  │  │ [Відділ][Посада] │  │  │ Required: │  │
-│  │  [Link ]     │  │  └────────────────────┘  │  │ [✓]       │  │
-│  │  ...         │  │                          │  │ ...       │  │
-│  └──────────────┘  └────────────────────────┘  └────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-```
 
 ### Маршрути
 
@@ -498,126 +368,58 @@ permissions, views і workflow.
 ### Ієрархія компонентів
 
 ```
-pages/studio/DocTypeList.vue          ← список DocType
 pages/studio/builder/
-  BuilderLayout.vue                   ← головна обгортка Builder
-    BuilderCanvas.vue                 ← центральна зона (drag-and-drop)
-      CanvasSection.vue               ← секція на canvas
-      CanvasColumn.vue                ← колонка в секції
-      CanvasFieldCard.vue             ← картка поля на canvas
-      CanvasTabBar.vue                ← Tab-бар
-    FieldPalette.vue                  ← ліва панель (доступні поля)
-    PropertiesPanel.vue               ← права панель (властивості поля)
-      sections/CoreSection.vue
-      sections/FlagsSection.vue
-      sections/DisplaySection.vue
-      sections/ValidationSection.vue
-      sections/LinkSection.vue
-      ... (інші секції властивостей)
-    BuilderPreview.vue                ← preview форми
+  BuilderLayout.vue
+    BuilderCanvas.vue
+    FieldPalette.vue
+    PropertiesPanel.vue
+    BuilderPreview.vue
   tabs/
-    DesignerTab.vue                   ← вкладка "Дизайнер"
-    SettingsTab.vue                   ← вкладка "Налаштування"
-    PermissionsTab.vue                ← вкладка "Permissions"
-    ViewsTab.vue                      ← вкладка "Views"
-    WorkflowTab.vue                   ← вкладка "Workflow"
-  WorkflowEditor.vue                  ← редактор Workflow (з pages/studio/workflow/)
+    DesignerTab.vue
+    SettingsTab.vue
+    PermissionsTab.vue
+    ViewsTab.vue
+    WorkflowTab.vue
 ```
 
 ### Stores
 
-`stores/builder` — весь стан Form Builder (вибраний DocType, активний field, canvas layout)
-
-### Ключові composables
-
-| Composable | За що відповідає |
-|---|---|
-| `useBuilderLayout` | Стан canvas (sections, columns, fields) |
-| `useBuilderPermissions` | Управління permission rules |
-| `useBuilderWorkflow` | Стан workflow editor |
-| `useBuilderFields` | Утиліти для роботи з полями |
-| `usePropertyEditor` | Стан PropertiesPanel (що вибрано, яка секція) |
+`stores/builder`
 
 ---
 
 ## 10. Overlay UI
 
-### Що показує
-
-Елементи, що накладаються поверх основного інтерфейсу незалежно від поточного маршруту.
-
-```
-┌────────────────────────────────────────┐
-│  Command Palette          Esc          │
-│  ────────────────────────────────────  │
-│  🔍  Пошук документів, дій...         │
-│  ────────────────────────────────────  │
-│  Нещодавні                            │
-│  📄 Жулій Валерій (Employee)          │
-│  📄 Відпустка #123 (LeaveRequest)     │
-│  ────────────────────────────────────  │
-│  Дії                                  │
-│  + Новий Співробітник                 │
-│  + Новий Наказ                        │
-└────────────────────────────────────────┘
-```
-
-### Файли та тригери
-
 | Елемент | Файл | Тригер |
 |---|---|---|
-| Command Palette | `components/layout/CommandPalette.vue` | `Ctrl+K` / `⌘K` або кнопка Search у sidebar |
-| Notifications Popover | `components/layout/NotificationsPopover.vue` | Кнопка 🔔 у sidebar |
-| Palette Picker (акцент) | `components/layout/PalettePicker.vue` | User menu → Акцент |
-| PWA Install Prompt | `components/pwa/PWAInstallPrompt.vue` | Браузер детектує PWA-можливість |
-| Server Error Modal | `components/debug/ServerErrorModal.vue` | HTTP 500 з бекенду |
-| GruntDialog | `components/desk/GruntDialog.vue` | `useDialog()` composable |
-
-Всі overlay-елементи монтуються в `App.vue` на рівні кореня.
-
-### Composables
-
-| Composable | За що відповідає |
-|---|---|
-| `useNotifications` | Toast-повідомлення (`success`, `error`, `warn`) |
-| `useToast` | Глобальний ref до PrimeVue Toast |
-| `useDialog` | Програмне відкриття GruntDialog |
-| `useShortcuts` | Глобальні keyboard shortcuts |
-| `useServerError` | Стан ServerErrorModal |
-| `useNetworkStatus` | Онлайн/офлайн статус |
-| `useWebPush` | Web Push підписка |
+| Command Palette | `components/layout/CommandPalette.vue` | `Ctrl+K` / кнопка Search |
+| Notifications Popover | `components/layout/NotificationsPopover.vue` | Кнопка 🔔 |
+| Palette Picker | `components/layout/PalettePicker.vue` | User menu → Акцент |
+| Server Error Modal | `components/debug/ServerErrorModal.vue` | HTTP 500 |
 
 ---
 
 ## Швидкий довідник
 
-> Таблиця для швидкого пошуку: "хочу змінити X — шукати у Y"
-
 | Якщо потрібно змінити... | Файл |
 |---|---|
-| App Launcher (головна з картками додатків) | `pages/DeskPage.vue` |
+| App Launcher (головна з картками) | `pages/DeskPage.vue` |
 | Картку додатку на Desk | `components/desk/AppCard.vue` |
-| Sidebar (вся ліва панель) | `components/workspace/AppSidebar.vue` |
-| Один пункт меню в sidebar | `components/workspace/SidebarItem.vue` |
-| AppMenu (структуру меню, секції, пункти) | `{app}/fixtures/00_workspace.json` (doctype: AppMenu, може бути кілька записів на один додаток) |
-| App Switcher (список додатків у sidebar) | `components/workspace/AppSidebar.vue` → `AppSwitcher` (popup) |
-| Кнопку "На головну" / список інших додатків | `components/workspace/AppSidebar.vue` → `goToDesk()`, `otherWorkspaces` |
-| Toolbar над списком (кнопки, view-switcher) | `components/views/DocTypeToolbar.vue` |
-| Швидкі фільтри (chips під toolbar) | `components/views/FastFilterBar.vue` |
+| Sidebar (вся ліва панель) | `components/app/AppSidebar.vue` |
+| Один пункт меню в sidebar | `components/app/SidebarItem.vue` |
+| AppMenu (структуру меню) | `{app}/fixtures/00_workspace.json` (doctype: AppMenu) |
+| App Switcher | `components/app/AppSidebar.vue` → AppSwitcher popup |
+| Домашню сторінку (AppHome) | `pages/app/AppHome.vue` |
+| Page (сторінку з widgets) | `pages/app/AppPage.vue` |
+| Widget будь-якого типу | `components/dashboard/{WidgetName}Widget.vue` |
+| Конфігурацію widget у редакторі | `components/dashboard/WidgetConfigPanel.vue` |
+| Toolbar над списком | `components/views/DocTypeToolbar.vue` |
 | Таблицю зі списком документів | `components/views/list/ListTableView.vue` |
-| Заголовок таблиці (колонки) | `components/views/list/ListHeader.vue` |
-| Kanban board | `components/views/kanban/KanbanView.vue` |
-| Заголовок форми (кнопки Save, Edit, ...) | `components/views/form/FormHeader.vue` |
-| Workflow bar (статуси і переходи) | `components/views/WorkflowBar.vue` |
-| Праву панель форми (коментарі, теги, файли) | `components/views/DocSidebar.vue` |
-| Рендер полів у формі | `core/renderer/FormRenderer.vue`, `core/renderer/FieldRenderer.vue` |
+| Заголовок форми | `components/views/form/FormHeader.vue` |
+| Праву панель форми | `components/views/DocSidebar.vue` |
+| Рендер полів у формі | `core/renderer/FormRenderer.vue` |
 | Конкретний тип поля | `components/fields/{FieldName}/{FieldName}.vue` |
-| Відображення поля в таблиці | `components/fields/{FieldName}/ListCell.vue` |
-| Фільтр по полю | `components/fields/{FieldName}/FilterInput.vue` |
-| Dashboard widgets | `components/dashboard/{WidgetName}Widget.vue` |
 | Command Palette | `components/layout/CommandPalette.vue` |
-| Notifications | `components/layout/NotificationsPopover.vue` |
 | Form Builder (canvas) | `pages/studio/builder/BuilderCanvas.vue` |
-| Form Builder (palette полів) | `pages/studio/builder/FieldPalette.vue` |
 | Form Builder (властивості поля) | `pages/studio/builder/PropertiesPanel.vue` |
 | Сторінки 404 / 403 | `pages/errors/NotFound.vue`, `pages/errors/Forbidden.vue` |

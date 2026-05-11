@@ -2,57 +2,40 @@
   "name": "Page",
   "label": "Сторінка",
   "module": "site",
-  "track_changes": false,
-  "table_name": "grunt_page",
+  "is_child": false,
+  "autoname": "prompt",
+  "title_field": "label",
   "fields": [
     {
-      "fieldname": "route",
-      "label": "Маршрут",
-      "fieldtype": "Text",
-      "required": true,
-      "unique": true,
-      "in_list_view": true
-    },
-    {
-      "fieldname": "title",
-      "label": "Заголовок",
+      "fieldname": "label",
+      "label": "Назва",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
-      "fieldname": "icon",
-      "label": "Іконка",
+      "fieldname": "description",
+      "label": "Опис",
       "fieldtype": "Text"
     },
     {
-      "fieldname": "component",
-      "label": "Компонент",
-      "fieldtype": "Text",
-      "required": true
-    },
-    {
-      "fieldname": "app",
-      "label": "Додаток",
-      "fieldtype": "Text",
-      "required": true,
+      "fieldname": "is_published",
+      "label": "Опублікована",
+      "fieldtype": "Check",
+      "default": false,
       "in_list_view": true,
       "in_filter": true
     },
     {
-      "fieldname": "sidebar_section",
-      "label": "Розділ бічної панелі",
+      "fieldname": "roles",
+      "label": "Ролі (через кому)",
       "fieldtype": "Text"
     },
     {
-      "fieldname": "sidebar_order",
-      "label": "Порядок",
-      "fieldtype": "Int"
-    },
-    {
-      "fieldname": "is_default_home",
-      "label": "Домашня сторінка",
-      "fieldtype": "Check"
+      "fieldname": "widgets",
+      "label": "Віджети",
+      "fieldtype": "Table",
+      "options": "PageWidget"
     }
   ]
 }

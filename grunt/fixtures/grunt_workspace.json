@@ -238,11 +238,11 @@
     },
 
     {
-      "section": "Дашборди",
+      "section": "Сторінки",
       "type": "DocType",
-      "label": "Дашборди",
-      "icon": "bar-chart-2",
-      "link_to": "Dashboard",
+      "label": "Сторінки",
+      "icon": "layout-dashboard",
+      "link_to": "Page",
       "show_count": true,
       "show_new_btn": true,
       "sequence": 70

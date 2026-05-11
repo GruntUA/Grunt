@@ -38,8 +38,8 @@ function navigate(tile: ShortcutItem) {
     window.open(tile.link_to, '_blank')
   } else if (tile.link_type === 'Report') {
     router.push({ name: 'workspace-report', params: { workspaceName: ws, reportName: tile.link_to } })
-  } else if (tile.link_type === 'Dashboard') {
-    router.push({ name: 'workspace-dashboard', params: { workspaceName: ws, dashboardName: tile.link_to } })
+  } else if (tile.link_type === 'Page') {
+    router.push({ name: 'workspace-page', params: { workspaceName: ws, pageName: tile.link_to } })
   } else {
     router.push(`/${ws}/${tile.link_to}`)
   }

@@ -10,7 +10,7 @@
       "fieldname": "type",
       "label": "Тип",
       "fieldtype": "Select",
-      "options": "DocType\nReport\nDashboard\nURL\nDivider",
+      "options": "DocType\nReport\nPage\nURL\nDivider",
       "default": "DocType",
       "required": true,
       "in_list_view": true

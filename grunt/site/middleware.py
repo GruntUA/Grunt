@@ -32,7 +32,13 @@ class SiteContextMiddleware(BaseHTTPMiddleware):
             reload_file = site_manager.sites_dir / site / ".reload_meta"
             if reload_file.exists():
                 from grunt.metadata.registry import doctype_registry
+                from grunt.scripting.file_scripts import (
+                    FILE_CLIENT_SCRIPT_REGISTRY,
+                    _client_script_scanned,
+                )
                 doctype_registry.clear_cache()
+                FILE_CLIENT_SCRIPT_REGISTRY.clear()
+                _client_script_scanned.clear()
                 try:
                     reload_file.unlink()
                 except Exception:

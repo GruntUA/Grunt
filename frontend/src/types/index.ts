@@ -375,7 +375,7 @@ export type WidgetAggregation = 'count' | 'sum' | 'avg' | 'min' | 'max'
 export type WidgetPeriod = '7d' | '30d' | '90d' | '365d'
 export type WidgetCols = 1 | 2 | 3 | 4
 
-export type LinkType = 'DocType' | 'Report' | 'Dashboard' | 'URL'
+export type LinkType = 'DocType' | 'Report' | 'Page' | 'URL'
 
 export interface ShortcutItem {
   title: string
@@ -421,7 +421,7 @@ export interface Dashboard {
   widgets: DashboardWidget[]
 }
 
-export interface DashboardSummary extends Omit<Dashboard, 'widgets'> { }
+export interface PageSummary extends Omit<Page, 'widgets'> { }
 
 // ── Notifications ────────────────────────────────────────────────────────
 
