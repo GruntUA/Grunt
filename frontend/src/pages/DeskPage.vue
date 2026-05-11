@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useWorkspaceStore } from '@/stores/workspace'
+import { useAppStore } from '@/stores/app'
 import { useUIStore } from '@/stores/ui'
 import { workspaceApi } from '@/core/api/workspace'
 import AppCard from '@/components/desk/AppCard.vue'
@@ -10,7 +10,7 @@ import ActivityStream from '@/components/dashboard/ActivityStream.vue'
 import { Clock, Search, Zap, LayoutGrid, ArrowRight } from '@lucide/vue'
 
 const auth = useAuthStore()
-const wsStore = useWorkspaceStore()
+const appStore = useAppStore()
 const uiStore = useUIStore()
 const router = useRouter()
 
@@ -44,7 +44,7 @@ const totalDocsCount = computed(() => {
 })
 
 const quickStats = computed(() => [
-  { label: 'Додатків', value: wsStore.workspaces.length, color: '#6366f1' },
+  { label: 'Додатків', value: appStore.workspaces.length, color: '#6366f1' },
   { label: 'Документів', value: totalDocsCount.value, color: '#10b981' },
   { label: 'Нещодавніх', value: recentDocs.value.length, color: '#f59e0b' },
 ])
@@ -52,9 +52,9 @@ const quickStats = computed(() => [
 onMounted(async () => {
   document.title = 'Головна — Grunt'
 
-  await wsStore.loadAll()
+  await appStore.loadAll()
 
-  for (const ws of wsStore.workspaces) {
+  for (const ws of appStore.workspaces) {
     try {
       allCounts.value[ws.name] = await workspaceApi.getCounts(ws.name)
     } catch {
@@ -82,7 +82,7 @@ function timeAgo(ts: number): string {
 }
 
 function findWorkspaceForDoc(doc: RecentDoc) {
-  return wsStore.workspaces.find(w => w.name === doc.workspace)
+  return appStore.workspaces.find(w => w.name === doc.workspace)
 }
 
 // Returns a human-readable display title for a document.
@@ -176,17 +176,17 @@ function docInitials(doc: RecentDoc): string {
               </div>
               <h2 class="text-sm font-black text-foreground/70 uppercase tracking-widest">Ваші додатки</h2>
             </div>
-            <span class="text-xs text-muted-foreground/40 font-medium">{{ wsStore.workspaces.length }}
+            <span class="text-xs text-muted-foreground/40 font-medium">{{ appStore.workspaces.length }}
               встановлено</span>
           </div>
 
           <!-- Loading skeleton -->
-          <div v-if="wsStore.loading" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div v-if="appStore.loading" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             <div v-for="i in 4" :key="i" class="h-52 rounded-3xl bg-card/50 border border-border/30 animate-pulse" />
           </div>
 
           <!-- Empty state -->
-          <div v-else-if="wsStore.workspaces.length === 0 && !auth.user?.is_superadmin"
+          <div v-else-if="appStore.workspaces.length === 0 && !auth.user?.is_superadmin"
             class="flex flex-col items-center justify-center py-20 rounded-3xl border border-dashed border-border/40 text-center space-y-3">
             <div class="size-16 rounded-2xl bg-muted/20 flex items-center justify-center text-3xl">📦</div>
             <p class="text-sm text-muted-foreground">Немає встановлених додатків</p>
@@ -194,7 +194,7 @@ function docInitials(doc: RecentDoc): string {
 
           <!-- Cards grid -->
           <div v-else class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            <AppCard v-for="ws in wsStore.workspaces" :key="ws.name" :workspace="ws" :counts="allCounts[ws.name]" />
+            <AppCard v-for="ws in appStore.workspaces" :key="ws.name" :workspace="ws" :counts="allCounts[ws.name]" />
           </div>
         </section>
 

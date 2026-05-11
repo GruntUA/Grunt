@@ -43,7 +43,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
             logger.info("startup.grunt_app_registered")
 
         existing = await grunt.get_list(
-            "WorkspaceSidebar",
+            "AppMenu",
             filters={"name": ws_name},
             fields=["id"],
             limit=1,
@@ -52,7 +52,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
         if existing:
             ws_id = existing[0]["id"]
             await grunt.save_doc(
-                "WorkspaceSidebar",
+                "AppMenu",
                 ws_id,
                 {
                     k: v
@@ -69,7 +69,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
             logger.info("startup.grunt_workspace_updating")
         else:
             ws = await grunt.new_doc(
-                "WorkspaceSidebar",
+                "AppMenu",
                 {
                     "name": ws_name,
                     "label": data["label"],
@@ -94,7 +94,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
                 [
                     {
                         "parent_id": ws_id,
-                        "parent_doctype": "WorkspaceSidebar",
+                        "parent_doctype": "AppMenu",
                         "parent_field": "sidebar_items",
                         "idx": item_data.get("sequence", i),
                         "section": item_data.get("section", ""),
@@ -222,7 +222,7 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                         fx_doctype = fx.get("doctype", "")
                         records = fx.get("records", [])
 
-                        if fx_doctype == "WorkspaceSidebar":
+                        if fx_doctype == "AppMenu":
                             workspace_from_fixture = await _apply_workspace_fixture(
                                 records, app_name, app_meta
                             )
@@ -294,7 +294,7 @@ async def _apply_workspace_fixture(
     app_name: str,
     app_meta: dict,
 ) -> bool:
-    """Upsert WorkspaceSidebar + WorkspaceSidebarItem rows from fixture data."""
+    """Upsert AppMenu + WorkspaceSidebarItem rows from fixture data."""
     from grunt.app import grunt  # noqa: PLC0415
 
     applied = False
@@ -302,7 +302,7 @@ async def _apply_workspace_fixture(
     for rec in records:
         ws_name = rec.get("name", app_name)
         existing = await grunt.get_list(
-            "WorkspaceSidebar",
+            "AppMenu",
             filters={"name": ws_name},
             fields=["id"],
             limit=1,
@@ -311,7 +311,7 @@ async def _apply_workspace_fixture(
         if existing:
             ws_id = existing[0]["id"]
             await grunt.save_doc(
-                "WorkspaceSidebar",
+                "AppMenu",
                 ws_id,
                 {
                     k: v
@@ -329,7 +329,7 @@ async def _apply_workspace_fixture(
             )
         else:
             ws = await grunt.new_doc(
-                "WorkspaceSidebar",
+                "AppMenu",
                 {
                     "name": ws_name,
                     "label": rec.get("label", ws_name),
@@ -354,7 +354,7 @@ async def _apply_workspace_fixture(
                 [
                     {
                         "parent_id": ws_id,
-                        "parent_doctype": "WorkspaceSidebar",
+                        "parent_doctype": "AppMenu",
                         "parent_field": "sidebar_items",
                         "idx": item.get("sequence", i),
                         "section": item.get("section", ""),
@@ -385,7 +385,7 @@ async def _auto_seed_workspace(
     from grunt.app import grunt  # noqa: PLC0415
 
     existing = await grunt.get_list(
-        "WorkspaceSidebar",
+        "AppMenu",
         filters={"name": app_name},
         fields=["id"],
         limit=1,
@@ -394,7 +394,7 @@ async def _auto_seed_workspace(
     if existing:
         ws_id = existing[0]["id"]
         await grunt.save_doc(
-            "WorkspaceSidebar",
+            "AppMenu",
             ws_id,
             {
                 "label": app_meta.get("title", app_name),
@@ -405,7 +405,7 @@ async def _auto_seed_workspace(
         )
     else:
         ws = await grunt.new_doc(
-            "WorkspaceSidebar",
+            "AppMenu",
             {
                 "name": app_name,
                 "label": app_meta.get("title", app_name),
@@ -429,7 +429,7 @@ async def _auto_seed_workspace(
             [
                 {
                     "parent_id": ws_id,
-                    "parent_doctype": "WorkspaceSidebar",
+                    "parent_doctype": "AppMenu",
                     "parent_field": "sidebar_items",
                     "idx": seq,
                     "section": app_meta.get("title", app_name),

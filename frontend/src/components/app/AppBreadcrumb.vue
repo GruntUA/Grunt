@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useWorkspaceStore } from '@/stores/workspace'
+import { useAppStore } from '@/stores/app'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useSidebarStore } from '@/stores/sidebar'
 import AppIcon from '@/components/AppIcon.vue'
@@ -12,12 +12,12 @@ const props = defineProps<{
   docId?: string | null
 }>()
 
-const wsStore = useWorkspaceStore()
+const appStore = useAppStore()
 const dtStore = useDocTypeStore()
 const sidebarStore = useSidebarStore()
 
-const workspaceLabel = computed(() => wsStore.active?.label ?? props.workspaceName)
-const workspaceIcon = computed(() => wsStore.active?.icon ?? '')
+const workspaceLabel = computed(() => appStore.active?.label ?? props.workspaceName)
+const workspaceIcon = computed(() => appStore.active?.icon ?? '')
 
 const doctypeLabel = computed(() => {
   if (!props.doctype) return ''
@@ -27,8 +27,8 @@ const doctypeLabel = computed(() => {
   if (cached) return cached.label ?? cached.name
 
   // 2. Try to find in workspace items
-  if (wsStore.active) {
-    const item = wsStore.active.items.find(i => i.link_to === props.doctype)
+  if (appStore.active) {
+    const item = appStore.active.items.find(i => i.link_to === props.doctype)
     if (item) return item.label
   }
 

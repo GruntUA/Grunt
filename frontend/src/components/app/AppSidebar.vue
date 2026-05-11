@@ -2,13 +2,12 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useWorkspaceStore } from '@/stores/workspace'
+import { useAppStore } from '@/stores/app'
 import { useSidebarStore } from '@/stores/sidebar'
 import AppIcon from '@/components/AppIcon.vue'
 import NotificationsPopover from '@/components/layout/NotificationsPopover.vue'
 import PalettePicker from '@/components/layout/PalettePicker.vue'
 import SidebarItem from './SidebarItem.vue'
-import SidebarEditor from './SidebarEditor.vue'
 import { useColorMode } from '@/core/composables/useColorMode'
 import type { Theme } from '@/core/composables/useColorMode'
 import {
@@ -19,13 +18,12 @@ import {
 
 const props = defineProps<{ workspaceName: string }>()
 
-const wsStore = useWorkspaceStore()
+const appStore = useAppStore()
 const sidebarStore = useSidebarStore()
 const auth = useAuthStore()
 const router = useRouter()
 const colorMode = useColorMode()
 
-const showEditor = ref(false)
 const pinnedItems = ref<{ workspace: string; type: string; link_to: string; label: string; icon: string }[]>([])
 
 // ── PrimeVue Menu refs ────────────────────────────────────────────────────────
@@ -34,11 +32,11 @@ const userMenuRef = ref()
 
 // ── App Switcher items ────────────────────────────────────────────────────────
 const appSwitcherItems = computed(() => [
-  ...wsStore.workspaces.map(ws => ({
+  ...appStore.workspaces.map(ws => ({
     key: ws.name,
     label: ws.label,
     icon: ws.icon,
-    isActive: ws.name === wsStore.active?.name,
+    isActive: ws.name === appStore.active?.name,
     command: () => router.push(`/${ws.name}`),
   })),
   { separator: true },
@@ -76,7 +74,7 @@ function loadPinnedItems() {
       .map(id => {
         const [workspace, type, link_to] = id.split(':')
         if (!workspace || !type || !link_to) return null
-        const found = wsStore.active?.items.find(i => i.type === type && i.link_to === link_to)
+        const found = appStore.active?.items.find(i => i.type === type && i.link_to === link_to)
         return { workspace, type, link_to, label: found?.label || link_to, icon: found?.icon || '📌' }
       })
       .filter((i): i is NonNullable<typeof i> => !!i)
@@ -118,23 +116,23 @@ const _onQuickCreate = () => {
 onMounted(() => {
   loadPinnedItems()
   window.addEventListener('grunt_sidebar_pinned_changed', loadPinnedItems)
-  window.addEventListener('grunt_recent_docs_changed', () => wsStore.refreshCounts())
+  window.addEventListener('grunt_recent_docs_changed', () => appStore.refreshCounts())
   window.addEventListener('open-quick-create', _onQuickCreate)
 })
 
 onUnmounted(() => {
   window.removeEventListener('grunt_sidebar_pinned_changed', loadPinnedItems)
-  window.removeEventListener('grunt_recent_docs_changed', () => wsStore.refreshCounts())
+  window.removeEventListener('grunt_recent_docs_changed', () => appStore.refreshCounts())
   window.removeEventListener('open-quick-create', _onQuickCreate)
 })
 
-watch(() => wsStore.active?.name, () => loadPinnedItems())
-watch(() => router.currentRoute.value.path, () => { if (wsStore.active) wsStore.refreshCounts() })
+watch(() => appStore.active?.name, () => loadPinnedItems())
+watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStore.refreshCounts() })
 
 const isCollapsed = computed(() => sidebarStore.isCollapsed)
 
 const otherWorkspaces = computed(() =>
-  wsStore.workspaces.filter(ws => ws.name !== wsStore.active?.name)
+  appStore.workspaces.filter(ws => ws.name !== appStore.active?.name)
 )
 </script>
 
@@ -167,15 +165,15 @@ const otherWorkspaces = computed(() =>
           <div class="flex items-center gap-3.5 min-w-0 relative z-10">
             <div
               class="size-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-inner">
-              <AppIcon :icon="wsStore.active?.icon || 'folder'" class="size-5 text-primary" />
+              <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-5 text-primary" />
             </div>
             <div class="flex flex-col items-start min-w-0">
               <span class="text-[9px] font-black text-primary/70 uppercase tracking-[0.25em] leading-none mb-1.5">
-                {{ wsStore.active?.name === 'grunt' ? 'СИСТЕМА' : 'ДОДАТОК' }}
+                {{ appStore.active?.name === 'grunt' ? 'СИСТЕМА' : 'ДОДАТОК' }}
               </span>
               <span
                 class="text-sm font-bold text-foreground truncate w-full group-hover:text-primary transition-colors">
-                {{ wsStore.active?.label }}
+                {{ appStore.active?.label }}
               </span>
             </div>
           </div>
@@ -187,8 +185,8 @@ const otherWorkspaces = computed(() =>
       <!-- Collapsed: icon only -->
       <button v-else
         class="h-11 w-11 mx-auto flex items-center justify-center rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-all shadow-sm"
-        @click="goToDesk" v-tooltip.right="wsStore.active?.label || 'Workspace'">
-        <AppIcon :icon="wsStore.active?.icon || 'folder'" class="size-5" />
+        @click="goToDesk" v-tooltip.right="appStore.active?.label || 'Workspace'">
+        <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-5" />
       </button>
     </header>
 
@@ -214,7 +212,7 @@ const otherWorkspaces = computed(() =>
         </button>
 
         <!-- Notifications -->
-        <NotificationsPopover :workspace="wsStore.active?.name" />
+        <NotificationsPopover :workspace="appStore.active?.name" />
 
         <!-- Pinned -->
         <div v-if="pinnedItems.length" class="space-y-1 mt-2">
@@ -252,7 +250,7 @@ const otherWorkspaces = computed(() =>
         <Divider class="!my-3 !mx-2 opacity-50" />
 
         <!-- Workspace groups -->
-        <template v-for="(group, gi) in wsStore.groupedItems" :key="gi">
+        <template v-for="(group, gi) in appStore.groupedItems" :key="gi">
           <Divider v-if="group.section === '__divider__'" class="!my-3 !mx-2 opacity-50" />
           <div v-else class="mb-2">
             <p v-if="group.section && !isCollapsed"
@@ -261,8 +259,8 @@ const otherWorkspaces = computed(() =>
             </p>
             <ul class="flex w-full min-w-0 flex-col gap-1 list-none p-0 m-0">
               <SidebarItem v-for="item in group.items" :key="item.link_to + item.sequence" :item="item"
-                :workspace-name="workspaceName" :count="wsStore.counts[item.link_to] ?? 0"
-                :color="wsStore.active?.color" :collapsed="isCollapsed" />
+                :workspace-name="workspaceName" :count="appStore.counts[item.link_to] ?? 0"
+                :color="appStore.active?.color" :collapsed="isCollapsed" />
             </ul>
           </div>
         </template>
@@ -291,7 +289,7 @@ const otherWorkspaces = computed(() =>
               <li>
                 <button
                   class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all"
-                  @click="showEditor = true">
+                  @click="router.push(`/app/grunt/AppMenu/${appStore.active?.name}`)">
                   <Settings2 class="size-4 shrink-0" />
                   <span>Редагувати меню</span>
                 </button>
@@ -353,8 +351,7 @@ const otherWorkspaces = computed(() =>
       <PanelLeftOpen v-else class="size-3.5 transition-transform group-hover/toggle:scale-110" />
     </button>
 
-    <SidebarEditor v-if="wsStore.active" v-model:open="showEditor" :workspace="wsStore.active"
-      @saved="wsStore.setActive(workspaceName, true)" />
+
   </div>
 </template>
 

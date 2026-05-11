@@ -30,11 +30,16 @@ function buildGroups(items: WorkspaceLink[]): SidebarGroup[] {
   return groups
 }
 
-export const useWorkspaceStore = defineStore('workspace', () => {
+export const useAppStore = defineStore('app', () => {
   const workspaces = ref<Workspace[]>([])
   const active = ref<Workspace | null>(null)
   const counts = ref<Record<string, number>>({})
   const loading = ref(false)
+  const _stale = ref(new Set<string>())
+
+  function markStale(name: string) {
+    _stale.value.add(name)
+  }
 
   async function loadAll() {
     loading.value = true
@@ -46,8 +51,9 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   }
 
   async function setActive(name: string, forceRefresh = false) {
+    const isStale = _stale.value.delete(name)
     const cached = workspaces.value.find(w => w.name === name)
-    if (cached && !forceRefresh) {
+    if (cached && !forceRefresh && !isStale) {
       active.value = cached
     } else {
       try {
@@ -87,5 +93,5 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     return buildGroups(sorted)
   })
 
-  return { workspaces, active, counts, loading, loadAll, setActive, refreshCounts, clearActive, groupedItems }
+  return { workspaces, active, counts, loading, loadAll, setActive, refreshCounts, clearActive, groupedItems, markStale }
 })

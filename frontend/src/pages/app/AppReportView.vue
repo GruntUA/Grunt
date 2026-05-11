@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import WorkspaceBreadcrumb from '@/components/workspace/WorkspaceBreadcrumb.vue'
+import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
 
 defineProps<{
   workspaceName: string
@@ -9,7 +9,7 @@ defineProps<{
 
 <template>
   <div class="p-8">
-    <WorkspaceBreadcrumb :workspace-name="workspaceName" :doctype="reportName" />
+    <AppBreadcrumb :workspace-name="workspaceName" :doctype="reportName" />
     <!-- Reuse existing ReportView if available -->
     <div class="text-sm text-muted-foreground/70">
       Звіт: {{ reportName }}

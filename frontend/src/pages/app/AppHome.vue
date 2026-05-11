@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useWorkspaceStore } from '@/stores/workspace'
+import { useAppStore } from '@/stores/app'
 import { useSidebarStore } from '@/stores/sidebar'
 import { workspaceApi } from '@/core/api/workspace'
 import AppIcon from '@/components/AppIcon.vue'
@@ -8,14 +8,14 @@ import WidgetCard from '@/components/dashboard/WidgetCard.vue'
 import { PanelLeft } from '@lucide/vue'
 
 const props = defineProps<{ workspaceName: string }>()
-const wsStore = useWorkspaceStore()
+const appStore = useAppStore()
 const sidebarStore = useSidebarStore()
 
 const widgetData = ref<Record<string, unknown>>({})
 const loading = ref(false)
 
 const widgets = computed(() => {
-  const raw = wsStore.active ? wsStore.active.widgets : []
+  const raw = appStore.active ? appStore.active.widgets : []
   let items: any[] = []
   if (Array.isArray(raw)) {
     items = raw
@@ -45,8 +45,8 @@ async function loadWidgetData() {
 }
 
 async function init() {
-  if (!wsStore.active || wsStore.active.name !== props.workspaceName) {
-    await wsStore.setActive(props.workspaceName)
+  if (!appStore.active || appStore.active.name !== props.workspaceName) {
+    await appStore.setActive(props.workspaceName)
   }
 
   await loadWidgetData()
@@ -59,18 +59,18 @@ watch(() => props.workspaceName, init)
 <template>
   <div class="flex flex-1 flex-col gap-4 p-4 md:p-5 animate-in fade-in duration-500">
     <!-- Header -->
-    <div v-if="wsStore.active" class="flex items-center gap-3 mb-6">
+    <div v-if="appStore.active" class="flex items-center gap-3 mb-6">
       <button
         class="md:hidden size-8 flex items-center justify-center rounded-lg text-muted-foreground/80 hover:text-foreground hover:bg-muted/50 transition-colors shrink-0 -ml-3"
         @click="sidebarStore.toggleMobile"
       >
         <PanelLeft class="size-4" />
       </button>
-      <AppIcon :icon="wsStore.active.icon || 'folder'" class="size-8 shrink-0" />
+      <AppIcon :icon="appStore.active.icon || 'folder'" class="size-8 shrink-0" />
       <div>
-        <h1 class="text-xl font-semibold text-foreground">{{ wsStore.active.label }}</h1>
-        <p v-if="wsStore.active.description" class="text-sm text-muted-foreground">
-          {{ wsStore.active.description }}
+        <h1 class="text-xl font-semibold text-foreground">{{ appStore.active.label }}</h1>
+        <p v-if="appStore.active.description" class="text-sm text-muted-foreground">
+          {{ appStore.active.description }}
         </p>
       </div>
     </div>
@@ -82,8 +82,8 @@ watch(() => props.workspaceName, init)
     </div>
 
     <!-- Empty state (no widgets, no redirect target) -->
-    <div v-else-if="wsStore.active" class="flex flex-col items-center justify-center py-20 text-center">
-      <AppIcon :icon="wsStore.active.icon || 'folder'" class="size-12 mb-4 text-muted-foreground/40" />
+    <div v-else-if="appStore.active" class="flex flex-col items-center justify-center py-20 text-center">
+      <AppIcon :icon="appStore.active.icon || 'folder'" class="size-12 mb-4 text-muted-foreground/40" />
       <p class="text-muted-foreground text-sm">Цей воркспейс ще не має модулів.</p>
       <p class="text-muted-foreground/60 text-xs mt-1">
         Додайте віджети у

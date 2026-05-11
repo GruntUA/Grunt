@@ -34,10 +34,10 @@ class GruntInstalledApp(Document):
             logger.info(f"Physically deleted app files for '{name}' at {app_path}")
 
         # Clean up associated Workspaces
-        workspaces = await grunt_app.get_list("WorkspaceSidebar", filters={"app": name})
+        workspaces = await grunt_app.get_list("AppMenu", filters={"app": name})
         for ws in workspaces:
             try:
-                await grunt_app.delete_doc("WorkspaceSidebar", ws["name"])
+                await grunt_app.delete_doc("AppMenu", ws["name"])
                 logger.info(f"Deleted workspace {ws['name']} associated with app {name}")
             except Exception as e:
                 logger.error(f"Failed to delete workspace {ws['name']}: {e}")

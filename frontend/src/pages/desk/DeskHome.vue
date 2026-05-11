@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import AppIcon from '@/components/AppIcon.vue'
 import { useAuthStore } from '@/stores/auth'
-import { useWorkspaceStore } from '@/stores/workspace'
+import { useAppStore } from '@/stores/app'
 import client from '@/core/api/client'
 import {
   Clock,
@@ -24,7 +24,7 @@ interface ActivityEntry {
 }
 
 const auth = useAuthStore()
-const wsStore = useWorkspaceStore()
+const appStore = useAppStore()
 const router = useRouter()
 
 const recentActivity = ref<ActivityEntry[]>([])
@@ -43,7 +43,7 @@ async function loadActivity() {
 }
 
 onMounted(async () => {
-  await wsStore.loadAll()
+  await appStore.loadAll()
   await loadActivity()
 })
 
@@ -109,7 +109,7 @@ function actionConfig(action: string) {
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div v-for="ws in wsStore.workspaces" :key="ws.name"
+            <div v-for="ws in appStore.workspaces" :key="ws.name"
               class="group relative bg-card border border-sidebar-border rounded-2xl p-6 cursor-pointer hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1"
               @click="router.push(`/${ws.name}/desk`)">
               <div class="flex items-start justify-between mb-6">

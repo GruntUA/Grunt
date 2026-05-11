@@ -2,6 +2,7 @@ import { nextTick, type Ref } from 'vue'
 import type { Router } from 'vue-router'
 
 import { clearScriptCache } from '@/core/scripting/executor'
+import { useAppStore } from '@/stores/app'
 import type { DocType } from '@/types'
 import type { QueryClient } from '@tanstack/vue-query'
 
@@ -96,6 +97,11 @@ export function useFormSave(params: UseFormSaveParams) {
 
       if (params.doctype === 'ClientScript') {
         clearScriptCache()
+      }
+
+      if (params.doctype === 'AppMenu') {
+        const name = params.id ?? (saved as { name: string }).name
+        useAppStore().markStale(name)
       }
 
       if (!params.id) {

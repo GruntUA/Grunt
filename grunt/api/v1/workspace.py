@@ -14,7 +14,7 @@ logger = structlog.get_logger()
 
 
 def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
-    """Convert WorkspaceSidebar document data to dict, filtering items by role."""
+    """Convert AppMenu document data to dict, filtering items by role."""
     from grunt.app import grunt as grunt_app
 
     user = grunt_app._require_user()
@@ -68,16 +68,16 @@ def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
 
 
 async def _get_ws_controller(name: str) -> Any:
-    doc_data = await grunt.get_doc("WorkspaceSidebar", name)
+    doc_data = await grunt.get_doc("AppMenu", name)
     if not doc_data:
         grunt.throw(f"Workspace '{name}' не знайдено", "NOT_FOUND")
 
-    ws_cls = document_registry.get("WorkspaceSidebar")
+    ws_cls = document_registry.get("AppMenu")
     if ws_cls:
         from grunt.app import grunt as grunt_app
 
         return ws_cls(
-            "WorkspaceSidebar", doc_data, grunt_app._require_user(), grunt_app._require_session()
+            "AppMenu", doc_data, grunt_app._require_user(), grunt_app._require_session()
         )
     return doc_data
 
@@ -85,7 +85,7 @@ async def _get_ws_controller(name: str) -> Any:
 @grunt.whitelist()
 async def list_workspaces() -> list[dict[str, Any]]:
     """List workspaces visible to the current user."""
-    all_ws = await grunt.get_list("WorkspaceSidebar", fields=["name"], order_by="sequence")
+    all_ws = await grunt.get_list("AppMenu", fields=["name"], order_by="sequence")
     data = []
     user = await grunt.get_current_user()
     if not user:
@@ -93,7 +93,7 @@ async def list_workspaces() -> list[dict[str, Any]]:
 
     for ws_brief in all_ws:
         try:
-            ws_data = await grunt.get_doc("WorkspaceSidebar", ws_brief["name"])
+            ws_data = await grunt.get_doc("AppMenu", ws_brief["name"])
             if ws_data.get("is_hidden") and not user.is_superadmin:
                 continue
             # Basic role check could be added here
@@ -106,7 +106,7 @@ async def list_workspaces() -> list[dict[str, Any]]:
 @grunt.whitelist()
 async def get_workspace(name: str) -> dict[str, Any]:
     """Get a single workspace with filtered items."""
-    ws_data = await grunt.get_doc("WorkspaceSidebar", name)
+    ws_data = await grunt.get_doc("AppMenu", name)
     if not ws_data:
         grunt.throw("Not found", "NOT_FOUND")
     return _workspace_to_dict(ws_data)
@@ -126,9 +126,9 @@ async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
 
     name = data.get("name")
     if name:
-        ws_data = await grunt.save_doc("WorkspaceSidebar", name, data)
+        ws_data = await grunt.save_doc("AppMenu", name, data)
     else:
-        ws_data = await grunt.new_doc("WorkspaceSidebar", data)
+        ws_data = await grunt.new_doc("AppMenu", data)
 
     return _workspace_to_dict(ws_data)
 
@@ -140,7 +140,7 @@ async def delete_workspace(name: str) -> bool:
 
     if not grunt_app._require_user().is_superadmin:
         grunt.throw("Not authorized", "PERMISSION_DENIED")
-    await grunt.delete_doc("WorkspaceSidebar", name)
+    await grunt.delete_doc("AppMenu", name)
     return True
 
 

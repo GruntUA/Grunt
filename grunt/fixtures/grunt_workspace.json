@@ -1,5 +1,5 @@
 {
-  "doctype": "WorkspaceSidebar",
+  "doctype": "AppMenu",
   "name": "grunt",
   "label": "Ґрунт",
   "app": "grunt",

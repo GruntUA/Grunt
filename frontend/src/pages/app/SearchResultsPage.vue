@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useWorkspaceStore } from '@/stores/workspace'
+import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/core/composables/useToast'
 import client from '@/core/api/client'
@@ -11,7 +11,7 @@ const props = defineProps<{ workspaceName?: string }>()
 
 const route = useRoute()
 const router = useRouter()
-const wsStore = useWorkspaceStore()
+const appStore = useAppStore()
 const auth = useAuthStore()
 const toast = useToast()
 
@@ -63,7 +63,7 @@ watch(inputQ, (val) => {
 watch(q, runSearch)
 
 onMounted(async () => {
-  if (wsStore.workspaces.length === 0) await wsStore.loadAll()
+  if (appStore.workspaces.length === 0) await appStore.loadAll()
   if (q.value) runSearch()
 })
 
@@ -93,7 +93,7 @@ const doctypeChips = computed(() => {
 // ── Navigation ────────────────────────────────────────────────────────────
 
 function navigateToDoc(r: SearchResult) {
-  const ws = wsStore.workspaces.find(w => w.items?.some(i => i.link_to === r.doctype))
+  const ws = appStore.workspaces.find(w => w.items?.some(i => i.link_to === r.doctype))
   const workspace = ws?.name ?? props.workspaceName ?? 'grunt'
   router.push(`/${workspace}/${r.doctype}/${r.id}`)
 }

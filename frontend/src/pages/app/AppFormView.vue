@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import WorkspaceBreadcrumb from '@/components/workspace/WorkspaceBreadcrumb.vue'
+import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
 import DocTypeForm from '@/pages/desk/DocTypeForm.vue'
 
 const props = defineProps<{
@@ -41,7 +41,7 @@ onMounted(() => {
 
 <template>
   <div class="px-4 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-4">
-    <WorkspaceBreadcrumb
+    <AppBreadcrumb
       :workspace-name="workspaceName"
       :doctype="doctype"
       :doc-id="id"

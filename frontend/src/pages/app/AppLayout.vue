@@ -1,35 +1,35 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useWorkspaceStore } from '@/stores/workspace'
+import { useAppStore } from '@/stores/app'
 import { useSidebarStore } from '@/stores/sidebar'
-import WorkspaceSidebar from '@/components/workspace/WorkspaceSidebar.vue'
+import AppSidebar from '@/components/app/AppSidebar.vue'
 import MobileBottomNav from '@/components/mobile/MobileBottomNav.vue'
 import NotFound from '@/pages/errors/NotFound.vue'
 import Drawer from 'primevue/drawer'
 
 const props = defineProps<{ workspaceName: string }>()
-const wsStore = useWorkspaceStore()
+const appStore = useAppStore()
 const sidebarStore = useSidebarStore()
 const route = useRoute()
 const contentKey = ref(0)
 const notFound = ref(false)
 
-async function loadWorkspace(name: string) {
+async function loadApp(name: string) {
   notFound.value = false
-  if (wsStore.workspaces.length === 0) await wsStore.loadAll()
-  await wsStore.setActive(name)
-  if (!wsStore.active) {
+  if (appStore.workspaces.length === 0) await appStore.loadAll()
+  await appStore.setActive(name)
+  if (!appStore.active) {
     notFound.value = true
     return
   }
   contentKey.value++
 }
 
-onMounted(() => loadWorkspace(props.workspaceName))
+onMounted(() => loadApp(props.workspaceName))
 watch(() => props.workspaceName, async (name) => {
   try {
-    await loadWorkspace(name)
+    await loadApp(name)
   } catch (error) {
     notFound.value = true
   }
@@ -55,7 +55,7 @@ watch(() => props.workspaceName, async (name) => {
 
     <!-- Sidebar: Desktop -->
     <div class="hidden md:block h-full shrink-0 transition-all duration-300 overflow-hidden">
-      <WorkspaceSidebar :workspace-name="workspaceName" />
+      <AppSidebar :workspace-name="workspaceName" />
     </div>
 
     <!-- Sidebar: Mobile (Drawer) -->
@@ -70,7 +70,7 @@ watch(() => props.workspaceName, async (name) => {
       }"
     >
       <div class="h-full w-full">
-        <WorkspaceSidebar :workspace-name="workspaceName" />
+        <AppSidebar :workspace-name="workspaceName" />
       </div>
     </Drawer>
 

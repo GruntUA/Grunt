@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { DocField } from '@/types'
 import LinkField from '@/components/fields/Link/Link.vue'
+import DataField from '@/components/fields/Data/Data.vue'
 
 const props = defineProps<{
   field: DocField
@@ -16,23 +17,40 @@ const emit = defineEmits<{
   'create-new': [doctype: string, preset: string]
 }>()
 
-// field.options holds the fieldname of the field that contains the target doctype
-const resolvedField = computed<DocField>(() => {
-  const targetDoctype = props.doc && props.field.options
+// field.options holds the fieldname whose value is the target doctype name.
+// Empty string → no doctype resolved → fall back to plain text input.
+const targetDoctype = computed(() =>
+  props.doc && props.field.options
     ? String(props.doc[props.field.options] ?? '')
     : ''
-  return { ...props.field, fieldtype: 'Link', options: targetDoctype }
-})
+)
+
+const isLinkMode = computed(() => !!targetDoctype.value)
+
+const resolvedLinkField = computed<DocField>(() => ({
+  ...props.field,
+  fieldtype: 'Link',
+  options: targetDoctype.value,
+}))
 </script>
 
 <template>
   <LinkField
-    :field="resolvedField"
+    v-if="isLinkMode"
+    :field="resolvedLinkField"
     :model-value="modelValue"
-    :disabled="disabled || !resolvedField.options"
+    :disabled="disabled"
     :error="error"
     :doc="doc"
     @update:model-value="emit('update:modelValue', $event)"
     @create-new="(doctype, preset) => emit('create-new', doctype, preset)"
+  />
+  <DataField
+    v-else
+    :field="field"
+    :model-value="modelValue"
+    :disabled="disabled"
+    :error="error"
+    @update:model-value="emit('update:modelValue', $event)"
   />
 </template>

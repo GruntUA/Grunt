@@ -82,13 +82,13 @@ const router = createRouter({
     {
       path: '/app/:workspaceName',
       alias: '/:workspaceName',
-      component: () => import('@/pages/workspace/WorkspaceLayout.vue'),
+      component: () => import('@/pages/app/AppLayout.vue'),
       props: true,
       children: [
         {
           path: '',
           name: 'workspace-home',
-          component: () => import('@/pages/workspace/WorkspaceHome.vue'),
+          component: () => import('@/pages/app/AppHome.vue'),
           props: true,
         },
         // Backward compatibility: old DocType studio route now points to standard DocType form.
@@ -99,7 +99,7 @@ const router = createRouter({
         {
           path: ':doctype/new',
           name: 'workspace-new',
-          component: () => import('@/pages/workspace/WorkspaceFormView.vue'),
+          component: () => import('@/pages/app/AppFormView.vue'),
           props: (route) => ({
             workspaceName: route.params.workspaceName,
             doctype: route.params.doctype,
@@ -109,19 +109,19 @@ const router = createRouter({
         {
           path: ':doctype/:id',
           name: 'workspace-form',
-          component: () => import('@/pages/workspace/WorkspaceFormView.vue'),
+          component: () => import('@/pages/app/AppFormView.vue'),
           props: true,
         },
         {
           path: ':doctype',
           name: 'workspace-list',
-          component: () => import('@/pages/workspace/WorkspaceListView.vue'),
+          component: () => import('@/pages/app/AppListView.vue'),
           props: true,
         },
-        // Workspace Sidebar list (Studio → Воркспейси)
+        // AppMenu list (Studio → Меню додатків)
         {
           path: 'studio/workspaces',
-          redirect: (route) => `/${route.params.workspaceName}/WorkspaceSidebar`,
+          redirect: (route) => `/app/${route.params.workspaceName}/AppMenu`,
         },
         // Backward compat: old /list/… URLs
         {
@@ -147,13 +147,13 @@ const router = createRouter({
         {
           path: 'dashboard/:dashboardName',
           name: 'workspace-dashboard',
-          component: () => import('@/pages/workspace/WorkspaceDashboard.vue'),
+          component: () => import('@/pages/app/AppDashboard.vue'),
           props: true,
         },
         {
           path: 'search',
           name: 'workspace-search',
-          component: () => import('@/pages/workspace/SearchResultsPage.vue'),
+          component: () => import('@/pages/app/SearchResultsPage.vue'),
           props: true,
         },
         {

@@ -41,7 +41,7 @@ pages/
     MfaVerify.vue            ← /mfa-verify
     Register.vue             ← /signup
   workspace/
-    WorkspaceLayout.vue      ← /app/:workspaceName (layout-обгортка)
+    AppLayout.vue            ← /app/:workspaceName (layout-обгортка)
     WorkspaceHome.vue        ← /app/:workspaceName (головна WS)
     WorkspaceListView.vue    ← /app/:workspaceName/:doctype
     WorkspaceFormView.vue    ← /app/:workspaceName/:doctype/:id

@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useDocTypeStore } from '@/stores/doctype'
-import { useWorkspaceStore } from '@/stores/workspace'
+import { useAppStore } from '@/stores/app'
 import { useUIStore } from '@/stores/ui'
 import api from '@/core/api/client'
 import {
@@ -26,7 +26,7 @@ const { t } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
 const dtStore = useDocTypeStore()
-const wsStore = useWorkspaceStore()
+const appStore = useAppStore()
 const uiStore = useUIStore()
 
 const search = ref('')
@@ -125,8 +125,8 @@ watch(search, async (val) => {
         })
 
         // 2. Match Workspaces (load on demand)
-        if (wsStore.workspaces.length === 0) await wsStore.loadAll()
-        wsStore.workspaces.forEach(ws => {
+        if (appStore.workspaces.length === 0) await appStore.loadAll()
+        appStore.workspaces.forEach(ws => {
             if (ws.label.toLowerCase().includes(q) || ws.name.toLowerCase().includes(q)) {
                 matchedResults.push({
                     id: `ws-${ws.name}`,
@@ -150,7 +150,7 @@ watch(search, async (val) => {
                     type: 'doctype',
                     icon: FilePlus,
                     action: () => {
-                        const ws = wsStore.workspaces.find(w => w.items.some(i => i.link_to === dt.name))
+                        const ws = appStore.workspaces.find(w => w.items.some(i => i.link_to === dt.name))
                         if (dt.is_singleton) {
                             navigateTo(`/${ws?.name || 'grunt'}/${dt.name}/${dt.name}`)
                         } else {
@@ -171,7 +171,7 @@ watch(search, async (val) => {
                 type: 'document',
                 icon: FileText,
                 action: () => {
-                    const ws = wsStore.workspaces.find(w => w.items.some(i => i.link_to === d.doctype))
+                    const ws = appStore.workspaces.find(w => w.items.some(i => i.link_to === d.doctype))
                     navigateTo(`/${ws?.name || 'grunt'}/${d.doctype}/${d.id || d.name}`)
                 },
                 category: t('Documents')
@@ -266,7 +266,7 @@ const flatResults = computed(() => results.value)
                         </select>
                         <button class="px-3 py-2 rounded bg-primary text-primary-foreground"
                             :disabled="!quickCreateDoctype"
-                            @click="{ const ws = wsStore.active?.name || 'grunt'; uiStore.closeCommandPalette(); quickCreateOpen = false; router.push(`/${ws}/${quickCreateDoctype}/new`) }">
+                            @click="{ const ws = appStore.active?.name || 'grunt'; uiStore.closeCommandPalette(); quickCreateOpen = false; router.push(`/${ws}/${quickCreateDoctype}/new`) }">
                             {{ t('Create') }}
                         </button>
                     </div>

@@ -17,7 +17,7 @@ Grunt-frontend складається з десятків компонентів
 ```
 /login                            → pages/auth/Login.vue
 /app                              → pages/DeskPage.vue            ← App Launcher
-/app/:workspaceName               → pages/workspace/WorkspaceLayout.vue
+/app/:workspaceName               → pages/workspace/AppLayout.vue
   (дочірні маршрути)
   /                               → pages/workspace/WorkspaceHome.vue
   /:doctype                       → pages/workspace/WorkspaceListView.vue
@@ -78,18 +78,18 @@ Grunt-frontend складається з десятків компонентів
 
 ---
 
-## 2. Workspace Layout
+## 2. App Layout
 
 ### Що робить
 
 Обгортка для всіх сторінок всередині одного workspace. Відповідає за:
-- Рендер `WorkspaceSidebar` (desktop) або `Drawer` (mobile)
+- Рендер `AppSidebar` (desktop) або `Drawer` (mobile)
 - Передачу `workspaceName` у дочірні маршрути
 - Показ `NotFound` якщо workspace не існує
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  WorkspaceLayout.vue  /app/:workspaceName                │
+│  AppLayout.vue  /app/:workspaceName                │
 │                                                          │
 │  ┌──────────┐  ┌─────────────────────────────────────┐  │
 │  │Sidebar   │  │  <RouterView>                        │  │
@@ -106,8 +106,8 @@ Grunt-frontend складається з десятків компонентів
 
 | Елемент | Файл |
 |---|---|
-| Layout-обгортка | `pages/workspace/WorkspaceLayout.vue` |
-| Sidebar (desktop) | `components/workspace/WorkspaceSidebar.vue` |
+| Layout-обгортка | `pages/workspace/AppLayout.vue` |
+| Sidebar (desktop) | `components/workspace/AppSidebar.vue` |
 | Sidebar (mobile) | `components/mobile/MobileBottomNav.vue` + PrimeVue `Drawer` |
 
 ### Stores
@@ -170,21 +170,20 @@ Grunt-frontend складається з десятків компонентів
 
 | Елемент | Файл |
 |---|---|
-| Весь sidebar | `components/workspace/WorkspaceSidebar.vue` |
+| Весь sidebar | `components/workspace/AppSidebar.vue` |
 | Один пункт меню | `components/workspace/SidebarItem.vue` |
-| Редактор меню | `components/workspace/SidebarEditor.vue` |
 | Breadcrumb (вгорі контенту) | `components/workspace/WorkspaceBreadcrumb.vue` |
 | Notifications popover | `components/layout/NotificationsPopover.vue` |
 | Іконка додатку | `components/AppIcon.vue` |
 
 ### AppMenu — конфігурація навігації
 
-Структура sidebar визначається у fixture-файлі додатку через записи DocType **WorkspaceSidebar**.
+Структура sidebar визначається у fixture-файлі додатку через записи DocType **AppMenu**.
 В одному додатку може бути кілька AppMenu — кожен відображається як окремий іменований блок у sidebar
 (наприклад, HRM може мати AppMenu: «Персонал», «Документи», «Звіти»).
 
 ```
-grunt_apps/{app}/fixtures/00_workspace.json  ← doctype: WorkspaceSidebar (один або кілька записів)
+grunt_apps/{app}/fixtures/00_workspace.json  ← doctype: AppMenu (один або кілька записів)
 ```
 
 Після зміни файлу потрібно запустити:
@@ -598,11 +597,11 @@ pages/studio/builder/
 |---|---|
 | App Launcher (головна з картками додатків) | `pages/DeskPage.vue` |
 | Картку додатку на Desk | `components/desk/AppCard.vue` |
-| Sidebar (вся ліва панель) | `components/workspace/WorkspaceSidebar.vue` |
+| Sidebar (вся ліва панель) | `components/workspace/AppSidebar.vue` |
 | Один пункт меню в sidebar | `components/workspace/SidebarItem.vue` |
-| AppMenu (структуру меню, секції, пункти) | `{app}/fixtures/00_workspace.json` (doctype: WorkspaceSidebar, може бути кілька записів на один додаток) |
-| App Switcher (список додатків у sidebar) | `components/workspace/WorkspaceSidebar.vue` → `AppSwitcher` (popup) |
-| Кнопку "На головну" / список інших додатків | `components/workspace/WorkspaceSidebar.vue` → `goToDesk()`, `otherWorkspaces` |
+| AppMenu (структуру меню, секції, пункти) | `{app}/fixtures/00_workspace.json` (doctype: AppMenu, може бути кілька записів на один додаток) |
+| App Switcher (список додатків у sidebar) | `components/workspace/AppSidebar.vue` → `AppSwitcher` (popup) |
+| Кнопку "На головну" / список інших додатків | `components/workspace/AppSidebar.vue` → `goToDesk()`, `otherWorkspaces` |
 | Toolbar над списком (кнопки, view-switcher) | `components/views/DocTypeToolbar.vue` |
 | Швидкі фільтри (chips під toolbar) | `components/views/FastFilterBar.vue` |
 | Таблицю зі списком документів | `components/views/list/ListTableView.vue` |

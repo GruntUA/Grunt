@@ -1,17 +1,11 @@
 {
   "name": "WorkspaceSidebarItem",
-  "label": "Пункт Workspace Sidebar",
+  "label": "Пункт меню додатку",
   "module": "site",
   "is_child": true,
   "title_field": "label",
   "table_name": "grunt_workspace_sidebar_item",
   "fields": [
-    {
-      "fieldname": "section",
-      "label": "Секція",
-      "fieldtype": "Text",
-      "in_list_view": true
-    },
     {
       "fieldname": "type",
       "label": "Тип",
@@ -22,44 +16,73 @@
       "in_list_view": true
     },
     {
+      "fieldname": "section",
+      "label": "Секція",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "depends_on": "eval:doc.type != 'Divider'"
+    },
+    {
       "fieldname": "label",
       "label": "Назва",
-      "fieldtype": "Text",
-      "in_list_view": true
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "depends_on": "eval:doc.type != 'Divider'"
     },
     {
       "fieldname": "icon",
       "label": "Іконка",
-      "fieldtype": "Text"
+      "fieldtype": "Icon",
+      "depends_on": "eval:doc.type != 'Divider'"
+    },
+    {
+      "fieldname": "link_doctype",
+      "label": "Doctype посилання",
+      "fieldtype": "Data",
+      "hidden": true
     },
     {
       "fieldname": "link_to",
       "label": "Посилання на",
-      "fieldtype": "Text",
-      "in_list_view": true
+      "fieldtype": "DynamicLink",
+      "options": "link_doctype",
+      "in_list_view": true,
+      "depends_on": "eval:doc.type != 'Divider'"
+    },
+    {
+      "fieldname": "is_singleton",
+      "label": "Singleton (один запис)",
+      "fieldtype": "Check",
+      "default": false,
+      "depends_on": "eval:doc.type == 'DocType'"
     },
     {
       "fieldname": "show_count",
       "label": "Показати лічильник",
       "fieldtype": "Check",
-      "default": false
+      "default": false,
+      "depends_on": "eval:doc.type == 'DocType'"
     },
     {
       "fieldname": "count_filters",
-      "label": "Фільтри лічильника",
-      "fieldtype": "Text",
-      "default": ""
+      "label": "Фільтри лічильника (JSON)",
+      "fieldtype": "Code",
+      "options": "json",
+      "default": "",
+      "depends_on": "eval:doc.type == 'DocType' && doc.show_count"
     },
     {
       "fieldname": "show_new_btn",
       "label": "Кнопка «Новий»",
       "fieldtype": "Check",
-      "default": false
+      "default": false,
+      "depends_on": "eval:doc.type == 'DocType'"
     },
     {
       "fieldname": "roles",
       "label": "Ролі (через кому)",
-      "fieldtype": "Text"
+      "fieldtype": "Text",
+      "depends_on": "eval:doc.type != 'Divider'"
     }
   ]
 }

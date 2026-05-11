@@ -8,7 +8,7 @@
  */
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useWorkspaceStore } from '@/stores/workspace'
+import { useAppStore } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
 import { MoreHorizontal, Home, X } from '@lucide/vue'
 
@@ -17,19 +17,19 @@ const props = defineProps<{ workspaceName: string }>()
 
 const router = useRouter()
 const route = useRoute()
-const wsStore = useWorkspaceStore()
+const appStore = useAppStore()
 
 // ── Derive nav items from active workspace ─────────────────────────────────
 
 const navItems = computed(() => {
-  return wsStore.groupedItems
+  return appStore.groupedItems
     .flatMap(g => g.items)
     .filter(i => i.type === 'DocType' || i.type === 'Report')
     .slice(0, 4)
 })
 
 const overflowItems = computed(() => {
-  return wsStore.groupedItems
+  return appStore.groupedItems
     .flatMap(g => g.items)
     .filter(i => i.type === 'DocType' || i.type === 'Report')
     .slice(4)
