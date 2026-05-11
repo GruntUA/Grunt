@@ -78,7 +78,14 @@ const allFields = computed(() =>
 )
 
 const tableColumns = computed(() => {
-  const listView = allFields.value.filter((f) => f.in_list_view)
+  const listView = allFields.value.filter((f) => {
+    if (!f.in_list_view) return false
+    if (props.doc) {
+      const toggleKey = `show_${f.fieldname}`
+      if (toggleKey in props.doc && !props.doc[toggleKey]) return false
+    }
+    return true
+  })
   if (listView.length) return listView
   return allFields.value.filter((f) => INLINE_TYPES.has(f.fieldtype))
 })
@@ -182,18 +189,18 @@ function groupHeaderLabel(data: Record<string, unknown>): string {
 
 // ── Column width ──────────────────────────────────────────────────────────────
 
-const COL_WIDTH: Record<string, string> = {
-  Check: 'w-16',
-  Int: 'w-28',
-  Float: 'w-28',
-  Date: 'w-36',
-  Datetime: 'w-44',
-  Time: 'w-28',
-  Select: 'w-36',
+const COL_MIN_WIDTH: Record<string, string> = {
+  Check: '4rem',
+  Int: '7rem',
+  Float: '7rem',
+  Date: '9rem',
+  Datetime: '11rem',
+  Time: '7rem',
+  Select: '9rem',
 }
 
-function colClass(f: DocField): string {
-  return COL_WIDTH[f.fieldtype] ?? 'min-w-[120px]'
+function colStyle(f: DocField): string {
+  return `min-width: ${COL_MIN_WIDTH[f.fieldtype] ?? '8rem'}`
 }
 
 // ── Row mutations ─────────────────────────────────────────────────────────────
@@ -341,11 +348,13 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
 <template>
   <div>
   <div class="flex flex-col gap-2">
+    <div class="border border-border rounded-lg overflow-x-auto">
     <DataTable
       :value="displayRows"
       dataKey="__row_key"
-      class="border border-border rounded-lg overflow-hidden"
       size="small"
+      scrollable
+      scrollHeight="480px"
       rowHover
       :selection="selectedTableRows"
       :rowGroupMode="groupField ? 'subheader' : undefined"
@@ -368,14 +377,14 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
         v-for="(f, colIdx) in tableColumns"
         :key="f.fieldname"
         :field="f.fieldname"
-        :class="colClass(f)"
+        :style="colStyle(f)"
       >
         <template #header>
           {{ f.label }}<span v-if="f.required" class="text-destructive ml-0.5">*</span>
         </template>
 
         <template #body="{ data }">
-          <template v-if="disabled || !INLINE_TYPES.has(f.fieldtype)">
+          <template v-if="disabled || f.read_only || !INLINE_TYPES.has(f.fieldtype)">
             <span
               :class="['block px-2 py-1 text-sm break-words whitespace-pre-wrap', !cellDisplay(data, f) && 'text-muted-foreground/40']"
             >
@@ -475,6 +484,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
         </div>
       </template>
     </DataTable>
+    </div>
 
     <!-- Add row -->
     <Button
