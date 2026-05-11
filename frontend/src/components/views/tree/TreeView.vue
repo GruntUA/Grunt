@@ -49,6 +49,48 @@ const { rawFastFilters } = useFastFilters(ffDefs, 'tree', _ffValues)
 const asOfField = computed(() => props.doctype.tree_view?.as_of_date_field ?? null)
 const asOf = computed(() => _ffValues.value.as_of_date ?? '')
 
+// ── Sorting (metadata defaults + runtime override) ───────────────────────────
+const defaultSortBy = computed(() =>
+  props.doctype.tree_view?.sort_by
+  ?? props.doctype.tree_view?.title_field
+  ?? props.doctype.title_field
+  ?? 'name'
+)
+
+const defaultSortOrder = computed<'asc' | 'desc'>(() =>
+  props.doctype.tree_view?.sort_order === 'desc' ? 'desc' : 'asc'
+)
+
+const sortBy = ref(defaultSortBy.value)
+const sortOrder = ref<'asc' | 'desc'>(defaultSortOrder.value)
+
+watch(() => props.doctype.name, () => {
+  sortBy.value = defaultSortBy.value
+  sortOrder.value = defaultSortOrder.value
+})
+
+const sortFieldOptions = computed(() => {
+  const base = [
+    'name',
+    props.doctype.tree_view?.title_field,
+    props.doctype.title_field,
+    props.doctype.tree_view?.sort_by,
+  ].filter((v): v is string => Boolean(v && v.trim()))
+
+  const metadata = props.doctype.fields
+    .filter((f) => !['Section', 'Column', 'Tab', 'Table'].includes(f.fieldtype))
+    .map((f) => f.fieldname)
+
+  return Array.from(new Set([...base, ...metadata]))
+})
+
+const sortFieldLabel = computed<Record<string, string>>(() => {
+  const labels: Record<string, string> = {}
+  for (const f of props.doctype.fields) labels[f.fieldname] = f.label || f.fieldname
+  labels.name = labels.name || 'name'
+  return labels
+})
+
 // ── Tree state ───────────────────────────────────────────────────────────────
 const treeNodes = ref<any[]>([])
 const loading = ref(false)
@@ -103,6 +145,8 @@ async function loadTree() {
       fastFilters: mergedFastFilters,
       as_of: asOf.value || undefined,
       filters: _activeFilters.value.length ? _activeFilters.value : undefined,
+      sort_by: sortBy.value || undefined,
+      sort_order: sortOrder.value,
     })
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : t('Load error')
@@ -113,6 +157,8 @@ async function loadTree() {
 
 watch(rawFastFilters, () => loadTree(), { deep: true })
 watch(_activeFilters, () => loadTree(), { deep: true })
+watch(sortBy, () => loadTree())
+watch(sortOrder, () => loadTree())
 onMounted(loadTree)
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -164,6 +210,10 @@ function expandAll(nodes: any[] = treeNodes.value) {
 function collapseAll() {
   expandedIds.value = new Set()
   saveExpandedIds(expandedIds.value)
+}
+
+function toggleSortOrder() {
+  sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
 }
 
 function navigateTo(node: any) {
@@ -226,6 +276,18 @@ const totalCount = computed(() => {
       <Button text size="small" @click="collapseAll">
         <ChevronRight class="size-3.5 mr-1" />
         Згорнути все
+      </Button>
+      <select
+        v-model="sortBy"
+        class="h-8 rounded-md border border-border bg-background px-2 text-xs text-foreground"
+        :title="t('Sort by')"
+      >
+        <option v-for="field in sortFieldOptions" :key="field" :value="field">
+          {{ sortFieldLabel[field] ?? field }}
+        </option>
+      </select>
+      <Button text size="small" @click="toggleSortOrder" :title="t('Sort order')">
+        {{ sortOrder === 'asc' ? 'A-Z' : 'Z-A' }}
       </Button>
     </div>
 

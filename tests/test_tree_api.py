@@ -94,6 +94,17 @@ def _collect_titles(nodes: list) -> set:
     return titles
 
 
+def _root_titles(nodes: list[dict]) -> list[str]:
+    return [str(n.get("title") or "") for n in nodes]
+
+
+def _child_titles(nodes: list[dict], root_title: str) -> list[str]:
+    for node in nodes:
+        if node.get("title") == root_title:
+            return [str(c.get("title") or "") for c in (node.get("children") or [])]
+    return []
+
+
 # ── Tests ─────────────────────────────────────────────────────────────────────
 
 
@@ -188,3 +199,81 @@ async def test_tree_filter_by_title_ilike(ctx, tree_doctype):
     # Parents appear as ancestors
     assert "Root-A" in titles
     assert "Root-B" in titles
+
+
+@pytest.mark.asyncio
+async def test_tree_sort_by_query_params(ctx, tree_doctype):
+    """Explicit sort_by/sort_order sorts root level in tree output."""
+    from grunt.document.tree import tree_service
+
+    session = ctx.db._session()
+    nodes = await tree_service.get_tree(
+        session,
+        "TreeCategory",
+        sort_by="title",
+        sort_order="desc",
+    )
+
+    assert _root_titles(nodes) == ["Root-B", "Root-A"]
+
+
+@pytest.mark.asyncio
+async def test_tree_children_sort_by_query_params(ctx, tree_doctype):
+    """get_children applies the same optional sort params contract."""
+    from grunt.document.tree import tree_service
+
+    session = ctx.db._session()
+    root_a_name = tree_doctype["root_a"]["name"]
+    children = await tree_service.get_children(
+        session,
+        "TreeCategory",
+        parent_id=root_a_name,
+        sort_by="title",
+        sort_order="desc",
+    )
+
+    assert [c["title"] for c in children] == ["Child-A2", "Child-A1"]
+
+
+@pytest.mark.asyncio
+async def test_tree_sort_override_via_document_controller(ctx, tree_doctype):
+    """Third-party controllers can override tree sorting via Document virtual methods."""
+    from typing import Any
+
+    from grunt.document.base import Document
+    from grunt.document.registry import document_registry
+    from grunt.document.tree import tree_service
+
+    class TreeCategoryController(Document):
+        @classmethod
+        async def tree_get_sort_order(
+            cls,
+            session: Any,
+            filters: dict[str, Any],
+            table: Any,
+            *,
+            sort_by: str | None,
+            sort_order: str,
+        ) -> tuple[str | None, str] | None:
+            return ("title", "desc")
+
+    previous = document_registry._controllers.get("TreeCategory")
+    document_registry.register("TreeCategory", TreeCategoryController)
+
+    try:
+        session = ctx.db._session()
+        nodes = await tree_service.get_tree(session, "TreeCategory")
+        assert _root_titles(nodes) == ["Root-B", "Root-A"]
+
+        root_a_name = tree_doctype["root_a"]["name"]
+        children = await tree_service.get_children(
+            session,
+            "TreeCategory",
+            parent_id=root_a_name,
+        )
+        assert [c["title"] for c in children] == ["Child-A2", "Child-A1"]
+    finally:
+        if previous is None:
+            document_registry._controllers.pop("TreeCategory", None)
+        else:
+            document_registry.register("TreeCategory", previous)

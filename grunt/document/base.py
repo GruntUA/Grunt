@@ -290,6 +290,40 @@ class Document:
         """
         return True
 
+    @classmethod
+    async def tree_get_sort_order(
+        cls,
+        session: Any,
+        filters: dict[str, Any],
+        table: Any,
+        *,
+        sort_by: str | None,
+        sort_order: str,
+    ) -> tuple[str | None, str] | None:
+        """Return custom tree sort settings as ``(sort_by, sort_order)``.
+
+        Override in a DocType controller to provide app-specific ordering for
+        tree nodes. Return ``None`` to keep the resolved defaults.
+        """
+        return None
+
+    @classmethod
+    async def tree_sort_children(
+        cls,
+        session: Any,
+        children: list[dict[str, Any]],
+        *,
+        parent: dict[str, Any] | None,
+        sort_by: str | None,
+        sort_order: str,
+    ) -> list[dict[str, Any]]:
+        """Return reordered child nodes for advanced tree sorting use-cases.
+
+        Override to apply business-specific sorting that cannot be expressed as
+        a single ``sort_by`` field. The default implementation is a no-op.
+        """
+        return children
+
     # ── Real-time helpers ─────────────────────────────────────────────────
 
     async def publish_progress(

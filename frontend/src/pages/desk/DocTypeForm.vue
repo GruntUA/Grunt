@@ -96,6 +96,7 @@ const {
   focusFirstError,
   validateForm,
 } = useFormValidation({
+  doctype: props.doctype,
   dt,
   form,
   displayOverrides,
@@ -171,6 +172,7 @@ const { handleSave } = useFormSave({
   id: props.id,
   workspace: props.workspace,
   dt,
+  form,
   validationErrors,
   save,
   runScriptEvent,
@@ -190,7 +192,11 @@ const { initialize } = useFormInitialization({
   id: props.id,
   dt,
   form,
-  loadDocType: (doctype: string) => dtStore.get(doctype),
+  loadDocType: async (doctype: string) => {
+    // Always refresh the main form DocType metadata to pick up recent schema changes.
+    if (doctype === props.doctype) dtStore.invalidate(doctype)
+    return dtStore.get(doctype)
+  },
   restoreLinkDraft,
   info: (message: string) => {
     toast.info(message)

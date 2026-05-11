@@ -29,11 +29,11 @@ const showEditor = ref(false)
 const pinnedItems = ref<{ workspace: string; type: string; link_to: string; label: string; icon: string }[]>([])
 
 // ── PrimeVue Menu refs ────────────────────────────────────────────────────────
-const wsMenuRef = ref()
+const appSwitcherRef = ref()
 const userMenuRef = ref()
 
-// ── Workspace dropdown items ──────────────────────────────────────────────────
-const wsMenuItems = computed(() => [
+// ── App Switcher items ────────────────────────────────────────────────────────
+const appSwitcherItems = computed(() => [
   ...wsStore.workspaces.map(ws => ({
     key: ws.name,
     label: ws.label,
@@ -61,7 +61,7 @@ const userMenuItems = computed(() => [
 const THEME_ICONS: Record<string, any> = { light: Sun, dark: Moon, system: Monitor }
 
 // ── Actions ───────────────────────────────────────────────────────────────────
-function goToDesk() { router.push('/') }
+function goToDesk() { router.push('/app') }
 function triggerSearch() { window.dispatchEvent(new CustomEvent('toggle-search')) }
 function initials(name: string) { return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() }
 async function onThemeChange(theme: string) { await auth.setTheme(theme as Theme) }
@@ -132,16 +132,20 @@ watch(() => wsStore.active?.name, () => loadPinnedItems())
 watch(() => router.currentRoute.value.path, () => { if (wsStore.active) wsStore.refreshCounts() })
 
 const isCollapsed = computed(() => sidebarStore.isCollapsed)
+
+const otherWorkspaces = computed(() =>
+  wsStore.workspaces.filter(ws => ws.name !== wsStore.active?.name)
+)
 </script>
 
 <template>
   <div class="h-full flex flex-col bg-card border-r border-sidebar-border transition-all duration-300 relative z-20"
     :class="isCollapsed ? 'w-[72px]' : 'w-72'">
-    <!-- ── Header: Workspace switcher ─────────────────────────────────────── -->
+    <!-- ── Header: App Switcher ──────────────────────────────────────────── -->
     <header class="flex flex-col gap-2 pt-1 px-1 pb-3">
       <!-- Expanded: full button + popup menu -->
       <template v-if="!isCollapsed">
-        <Menu ref="wsMenuRef" :model="wsMenuItems" popup
+        <Menu ref="appSwitcherRef" :model="appSwitcherItems" popup
           :pt="{ root: { class: 'rounded-xl shadow-xl p-1.5 min-w-[200px]' } }">
           <template #item="{ item, props: mp }">
             <hr v-if="item.separator" class="border-border my-1 mx-1" />
@@ -157,7 +161,7 @@ const isCollapsed = computed(() => sidebarStore.isCollapsed)
 
         <button
           class="group w-full flex items-center justify-between px-1.5 py-2.5 rounded-xl border border-sidebar-border bg-linear-to-br from-card via-card to-primary/5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 relative overflow-hidden"
-          @click="(e) => wsMenuRef?.toggle(e)">
+          @click="(e) => appSwitcherRef?.toggle(e)">
           <div
             class="absolute inset-0 bg-linear-to-tr from-transparent via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
           <div class="flex items-center gap-3.5 min-w-0 relative z-10">
@@ -167,7 +171,7 @@ const isCollapsed = computed(() => sidebarStore.isCollapsed)
             </div>
             <div class="flex flex-col items-start min-w-0">
               <span class="text-[9px] font-black text-primary/70 uppercase tracking-[0.25em] leading-none mb-1.5">
-                {{ wsStore.active?.name === 'grunt' ? 'СИСТЕМА' : 'РОБОЧИЙ ПРОСТІР' }}
+                {{ wsStore.active?.name === 'grunt' ? 'СИСТЕМА' : 'ДОДАТОК' }}
               </span>
               <span
                 class="text-sm font-bold text-foreground truncate w-full group-hover:text-primary transition-colors">

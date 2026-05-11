@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import delete, select, update
+from sqlalchemy.exc import IntegrityError
 
 from grunt.db.system_tables import GruntMetaDoctype
 from grunt.metadata.compiler import DuplicateDataError, invalidate_table_cache, sync_table
@@ -353,6 +354,16 @@ class DocTypeRegistry:
         """Validate, persist, sync table, and cache a new DocType."""
         self._validate_new(doctype)
 
+        # Registry may be partially lazy-loaded; always re-check DB uniqueness.
+        existing = await session.scalar(
+            select(GruntMetaDoctype.id).where(GruntMetaDoctype.name == doctype.name)
+        )
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"DocType '{doctype.name}' already exists",
+            )
+
         # Persist to DB
         row = GruntMetaDoctype(
             name=doctype.name,
@@ -360,7 +371,16 @@ class DocTypeRegistry:
             data=doctype.model_dump(),
         )
         session.add(row)
-        await session.flush()
+        try:
+            await session.flush()
+        except IntegrityError as exc:
+            # DB-level fallback for race conditions / stale cache.
+            if "grunt_meta_doctype.name" in str(exc):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"DocType '{doctype.name}' already exists",
+                ) from exc
+            raise
 
         # Create / update physical table (pass session to avoid SQLite locking)
         await sync_table(doctype, async_engine, session=session)

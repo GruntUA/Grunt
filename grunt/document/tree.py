@@ -67,6 +67,9 @@ class TreeService:
         *,
         fields: list[str] | None = None,
         limit: int = 500,
+        filters: dict[str, str] | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "asc",
     ) -> list[dict[str, Any]]:
         """Return direct children of *parent_id* (or root nodes if None)."""
         dt = await doctype_registry.get(doctype)
@@ -74,7 +77,28 @@ class TreeService:
         table = compile_doctype_to_table(dt)
         title_col = _title_field(dt)
 
-        select_cols = self._build_select_cols(table, fields, title_col, parent_field)
+        from grunt.document.registry import document_registry  # noqa: PLC0415
+
+        controller_filters = filters or {}
+        sort_by, sort_order = await self._resolve_sort_config(
+            session,
+            dt,
+            table,
+            controller_filters,
+            explicit_sort_by=sort_by,
+            explicit_sort_order=sort_order,
+            fallback_field=title_col,
+            fallback_if_missing=True,
+            controller_cls=document_registry.get(doctype),
+        )
+
+        select_cols = self._build_select_cols(
+            table,
+            fields,
+            title_col,
+            parent_field,
+            sort_by=sort_by,
+        )
         stmt = select(*select_cols)
 
         pf_col = table.c.get(parent_field)
@@ -89,10 +113,14 @@ class TreeService:
         else:
             stmt = stmt.where(pf_col == parent_id)
 
-        # Order by title if available
-        title_sa = table.c.get(title_col) or table.c.get("name")
-        if title_sa is not None:
-            stmt = stmt.order_by(title_sa.asc())
+        sort_col = table.c.get(sort_by) if sort_by else None
+        if sort_col is not None:
+            stmt = stmt.order_by(sort_col.desc() if sort_order == "desc" else sort_col.asc())
+        else:
+            # Preserve historic behavior when no valid sort field is resolved.
+            title_sa = table.c.get(title_col) or table.c.get("name")
+            if title_sa is not None:
+                stmt = stmt.order_by(title_sa.asc())
 
         stmt = stmt.limit(limit)
         result = await session.execute(stmt)
@@ -120,6 +148,8 @@ class TreeService:
         fields: list[str] | None = None,
         max_depth: int = 10,
         filters: dict[str, str] | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "asc",
     ) -> list[dict[str, Any]]:
         """Return the full subtree as nested dicts.
 
@@ -131,7 +161,30 @@ class TreeService:
         title_col = _title_field(dt)
         table_name = table.name
 
-        select_cols = self._build_select_cols(table, fields, title_col, parent_field)
+        from grunt.document.base import Document  # noqa: PLC0415
+        from grunt.document.registry import document_registry  # noqa: PLC0415
+
+        ctrl_cls = document_registry.get(doctype)
+        controller_filters = filters or {}
+        sort_by, sort_order = await self._resolve_sort_config(
+            session,
+            dt,
+            table,
+            controller_filters,
+            explicit_sort_by=sort_by,
+            explicit_sort_order=sort_order,
+            fallback_field=title_col,
+            fallback_if_missing=False,
+            controller_cls=ctrl_cls,
+        )
+
+        select_cols = self._build_select_cols(
+            table,
+            fields,
+            title_col,
+            parent_field,
+            sort_by=sort_by,
+        )
         col_names = [c.key for c in select_cols]
 
         import re
@@ -189,10 +242,6 @@ class TreeService:
             # Controller hook: list_filter_extra — allows DocType controllers
             # (e.g. in app code) to inject extra WHERE clauses without touching
             # the framework core.
-            from grunt.document.base import Document  # noqa: PLC0415
-            from grunt.document.registry import document_registry  # noqa: PLC0415
-
-            ctrl_cls = document_registry.get(doctype)
             if ctrl_cls.list_filter_extra is not Document.list_filter_extra:
                 extra_clause = await ctrl_cls.list_filter_extra(session, filters, table)
                 if extra_clause is not None:
@@ -220,8 +269,20 @@ class TreeService:
             all_rows = [r for r in all_rows if r["id"] in keep_ids]
         # ──────────────────────────────────────────────────────────────────
 
+        if sort_by:
+            all_rows = self._sort_flat_rows(all_rows, sort_by, sort_order)
+
         # Build nested structure
-        return self._nest(all_rows, parent_field, root_id)
+        nested = self._nest(all_rows, parent_field, root_id)
+        if ctrl_cls.tree_sort_children is not Document.tree_sort_children:
+            nested = await self._apply_tree_sort_children_hook(
+                ctrl_cls,
+                session,
+                nested,
+                sort_by=sort_by,
+                sort_order=sort_order,
+            )
+        return nested
 
     async def get_ancestors(
         self,
@@ -328,13 +389,123 @@ class TreeService:
 
     @staticmethod
     def _build_select_cols(
-        table: Any, fields: list[str] | None, title_col: str, parent_field: str
+        table: Any,
+        fields: list[str] | None,
+        title_col: str,
+        parent_field: str,
+        *,
+        sort_by: str | None = None,
     ) -> list:
         """Build SA column list: always include id + parent_field + title, then requested extras."""
         always = {"id", parent_field, title_col}
+        if sort_by:
+            always.add(sort_by)
         wanted = set(fields) if fields else {c.key for c in table.c}
         final = always | wanted
         return [table.c[c] for c in final if c in table.c]
+
+    @staticmethod
+    def _normalize_sort_order(raw: str | None) -> str:
+        value = (raw or "asc").strip().lower()
+        return "desc" if value == "desc" else "asc"
+
+    async def _resolve_sort_config(
+        self,
+        session: AsyncSession,
+        dt: Any,
+        table: Any,
+        filters: dict[str, Any],
+        *,
+        explicit_sort_by: str | None,
+        explicit_sort_order: str | None,
+        fallback_field: str,
+        fallback_if_missing: bool,
+        controller_cls: type,
+    ) -> tuple[str | None, str]:
+        tree_view = getattr(dt, "tree_view", None)
+        default_sort_by = getattr(tree_view, "sort_by", None) if tree_view else None
+        default_sort_order = getattr(tree_view, "sort_order", "asc") if tree_view else "asc"
+
+        resolved_sort_by = explicit_sort_by or default_sort_by
+        resolved_sort_order = self._normalize_sort_order(explicit_sort_order or default_sort_order)
+
+        if resolved_sort_by is None and fallback_if_missing:
+            resolved_sort_by = fallback_field
+
+        from grunt.document.base import Document  # noqa: PLC0415
+
+        if controller_cls.tree_get_sort_order is not Document.tree_get_sort_order:
+            override = await controller_cls.tree_get_sort_order(
+                session,
+                filters,
+                table,
+                sort_by=resolved_sort_by,
+                sort_order=resolved_sort_order,
+            )
+            if override:
+                override_sort_by, override_sort_order = override
+                if override_sort_by:
+                    resolved_sort_by = override_sort_by
+                resolved_sort_order = self._normalize_sort_order(override_sort_order)
+
+        if resolved_sort_by and resolved_sort_by not in table.c:
+            if fallback_if_missing and fallback_field in table.c:
+                resolved_sort_by = fallback_field
+            else:
+                resolved_sort_by = None
+
+        return resolved_sort_by, resolved_sort_order
+
+    @staticmethod
+    def _sort_flat_rows(
+        rows: list[dict[str, Any]],
+        sort_by: str,
+        sort_order: str,
+    ) -> list[dict[str, Any]]:
+        present: list[dict[str, Any]] = []
+        missing: list[dict[str, Any]] = []
+
+        for row in rows:
+            if row.get(sort_by) is None:
+                missing.append(row)
+            else:
+                present.append(row)
+
+        def _key(row: dict[str, Any]) -> tuple[int, Any, str]:
+            value = row.get(sort_by)
+            if isinstance(value, (int, float)):
+                return (0, value, str(row.get("id") or ""))
+            return (0, str(value).casefold(), str(row.get("id") or ""))
+
+        present_sorted = sorted(present, key=_key, reverse=(sort_order == "desc"))
+        return [*present_sorted, *missing]
+
+    async def _apply_tree_sort_children_hook(
+        self,
+        controller_cls: type,
+        session: AsyncSession,
+        nodes: list[dict[str, Any]],
+        *,
+        sort_by: str | None,
+        sort_order: str,
+    ) -> list[dict[str, Any]]:
+        stack: list[tuple[dict[str, Any] | None, list[dict[str, Any]]]] = [(None, nodes)]
+        while stack:
+            parent, children = stack.pop()
+            reordered = await controller_cls.tree_sort_children(
+                session,
+                children,
+                parent=parent,
+                sort_by=sort_by,
+                sort_order=sort_order,
+            )
+            if reordered is not children:
+                children[:] = reordered
+            for child in children:
+                nested_children = child.get("children") or []
+                if nested_children:
+                    stack.append((child, nested_children))
+        return nodes
 
     @staticmethod
     def _nest(

@@ -53,6 +53,8 @@ class DocFieldSchema(BaseModel):
     depends_on: str | None = None
     mandatory_depends_on: str | None = None
 
+    group_by: str | None = None
+
 
 class DocTypePermissionSchema(BaseModel):
     role: str

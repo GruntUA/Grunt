@@ -23,14 +23,14 @@ watch(() => props.modelValue, (newVal) => {
   if (!builder.isSaving && newVal && !isInitializing.value) {
     builder.doctype = { fields: [], ...newVal } as unknown as DocType
   }
-}, { deep: true })
+}, { deep: true, flush: 'sync' })
 
 // Sync builder.doctype -> modelValue
 watch(() => builder.doctype, (newVal) => {
   if (newVal && !isInitializing.value) {
     emit('update:modelValue', { ...newVal })
   }
-}, { deep: true })
+}, { deep: true, flush: 'sync' })
 
 onMounted(async () => {
   console.log('DesignerTab initializing with:', props.modelValue?.name)

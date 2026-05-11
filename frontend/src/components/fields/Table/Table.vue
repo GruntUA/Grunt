@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import draggable from 'vuedraggable'
 import type { DocField, DocType } from '@/types'
-import { metaApi } from '@/core/api'
-import { Plus, X, Pencil, GripVertical } from '@lucide/vue'
+import { metaApi, docsApi } from '@/core/api'
+import { Plus, X, Pencil, Trash2, CheckSquare } from '@lucide/vue'
 import FieldRenderer from '@/core/renderer/FieldRenderer.vue'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
@@ -33,6 +32,7 @@ const loading = ref(false)
 const editIdx = ref<number | null>(null)
 const editDraft = ref<Record<string, unknown>>({})
 const selectedRows = ref<Set<string>>(new Set())
+const selectedTableRows = ref<Array<Record<string, unknown>>>([])
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -65,6 +65,7 @@ watch(
   () => {
     const current = new Set(rows.value.map((row, i) => rowName(row, i)))
     selectedRows.value = new Set(Array.from(selectedRows.value).filter((k) => current.has(k)))
+    syncSelectedTableRows()
     emitSelection()
   },
   { deep: true },
@@ -85,6 +86,99 @@ const tableColumns = computed(() => {
 const hasComplexFields = computed(() =>
   allFields.value.some((f) => !INLINE_TYPES.has(f.fieldtype)),
 )
+
+const rowsWithMeta = computed(() =>
+  rows.value.map((row, i) => ({
+    ...row,
+    __row_key: rowName(row, i),
+    __row_index: i,
+  })),
+)
+
+const groupField = computed(() => props.field.group_by ?? null)
+
+// Use group_by for sorting when enabled, otherwise fall back to Department link field.
+const sortField = computed(() => {
+  if (groupField.value) return groupField.value
+  const departmentField = allFields.value.find((f) => f.fieldname === 'department' && f.fieldtype === 'Link')
+  return departmentField?.fieldname ?? null
+})
+
+// sort_order map: link field value → sort_order number (from linked DocType)
+const groupSortMap = ref<Map<string, number>>(new Map())
+
+// Fetch sort_order values for the active link sort field
+watch(
+  [sortField, childDocType, rows],
+  async ([sf, cdt]) => {
+    if (!sf || !cdt) { groupSortMap.value = new Map(); return }
+    const fieldDef = cdt.fields.find((f) => f.fieldname === sf)
+    if (fieldDef?.fieldtype !== 'Link' || !fieldDef.options) { groupSortMap.value = new Map(); return }
+    try {
+      const res = await docsApi.list(fieldDef.options, { fields: 'id,name,sort_order', per_page: 9999 })
+      const map = new Map<string, number>()
+      res.data.forEach((doc, idx) => {
+        const so = doc['sort_order']
+        const order = so !== null && so !== undefined ? Number(so) : idx
+        if (doc.id !== null && doc.id !== undefined) map.set(String(doc.id), order)
+        if (doc.name !== null && doc.name !== undefined) map.set(String(doc.name), order)
+      })
+      groupSortMap.value = map
+    } catch {
+      groupSortMap.value = new Map()
+    }
+  },
+  { immediate: true },
+)
+
+// Pre-sort rows by linked DocType sort_order (Department fallback) for stable visual order
+const displayRows = computed(() => {
+  if (!sortField.value) return rowsWithMeta.value
+  const sf = sortField.value
+  const sortMap = groupSortMap.value
+  const prepared = rowsWithMeta.value.map((row) => {
+    const key = String((row as Record<string, unknown>)[sf] ?? '')
+    const ord = sortMap.has(key) ? sortMap.get(key)! : Number.MAX_SAFE_INTEGER
+    return {
+      ...row,
+      __group_sort_order: ord,
+    }
+  })
+  const sorted = [...prepared].sort((a, b) => {
+    const aKey = String((a as Record<string, unknown>)[sf] ?? '')
+    const bKey = String((b as Record<string, unknown>)[sf] ?? '')
+    if (sortMap.size > 0) {
+      const aOrd = Number((a as Record<string, unknown>).__group_sort_order ?? Number.MAX_SAFE_INTEGER)
+      const bOrd = Number((b as Record<string, unknown>).__group_sort_order ?? Number.MAX_SAFE_INTEGER)
+      if (aOrd !== bOrd) return aOrd - bOrd
+    }
+    return aKey.localeCompare(bKey)
+  })
+  return sorted.map((row, idx) => ({
+    ...row,
+    __display_index: idx + 1,
+  }))
+})
+
+const dataTableSortField = computed(() => {
+  if (!groupField.value) return undefined
+  return groupSortMap.value.size > 0 ? '__group_sort_order' : groupField.value
+})
+
+const dataTableSortOrder = computed(() =>
+  groupField.value ? 1 : undefined,
+)
+
+function groupHeaderLabel(data: Record<string, unknown>): string {
+  const gf = groupField.value
+  if (!gf) return ''
+  const fieldDef = allFields.value.find((f) => f.fieldname === gf)
+  const val = data[gf]
+  if (val === null || val === undefined || val === '') return t('(not set)')
+  if (fieldDef?.fieldtype === 'Link') return String(data[`${gf}__label`] ?? val)
+  if (fieldDef?.fieldtype === 'Check') return val ? t('Yes') : t('No')
+  return String(val)
+}
 
 // ── Column width ──────────────────────────────────────────────────────────────
 
@@ -109,8 +203,12 @@ function push(updated: Record<string, unknown>[]) {
   emit('update:modelValue', updated)
 }
 
-function onDragEnd() {
-  emit('update:modelValue', [...rows.value])
+function onRowReorder(event: { value?: Array<Record<string, unknown>> }) {
+  const reordered = (event.value ?? []).map((row) => {
+    const { __row_key: _k, __row_index: _i, __display_index: _d, __group_sort_order: _g, ...raw } = row
+    return raw
+  })
+  push(reordered)
 }
 
 function addRow() {
@@ -170,27 +268,23 @@ function rowName(row: Record<string, unknown>, index: number): string {
   return key ? String(key) : `idx:${index}`
 }
 
-const allSelected = computed(() => rows.value.length > 0 && selectedRows.value.size === rows.value.length)
-const someSelected = computed(() => selectedRows.value.size > 0 && !allSelected.value)
+function syncSelectedTableRows() {
+  const keys = selectedRows.value
+  selectedTableRows.value = rowsWithMeta.value.filter((row) => keys.has(String(row.__row_key)))
+}
 
 function emitSelection() {
   emit('selection-change', Array.from(selectedRows.value))
 }
 
-function toggleRowSelection(index: number, checked: boolean) {
-  const key = rowName(rows.value[index], index)
-  if (checked) selectedRows.value.add(key)
-  else selectedRows.value.delete(key)
-  emitSelection()
-}
-
-function toggleAllSelections(checked: boolean) {
-  if (!checked) {
-    selectedRows.value.clear()
-    emitSelection()
-    return
+function onSelectionUpdate(selection: Array<Record<string, unknown>> | null | undefined) {
+  const next = new Set<string>()
+  for (const row of selection ?? []) {
+    const key = row.__row_key
+    if (key !== null && key !== undefined) next.add(String(key))
   }
-  selectedRows.value = new Set(rows.value.map((row, i) => rowName(row, i)))
+  selectedRows.value = next
+  selectedTableRows.value = rowsWithMeta.value.filter((row) => next.has(String(row.__row_key)))
   emitSelection()
 }
 
@@ -215,187 +309,172 @@ function onQuickEntrySaved(docname: string) {
   quickEntryDt.value = null
 }
 
+// ── Bulk selection actions ────────────────────────────────────────────────────
+
+const selectionCount = computed(() => selectedRows.value.size)
+
+function deleteSelected() {
+  const keys = selectedRows.value
+  const remaining = rows.value.filter((row, i) => !keys.has(rowName(row, i)))
+  selectedRows.value = new Set()
+  selectedTableRows.value = []
+  push(remaining)
+}
+
+function clearSelection() {
+  selectedRows.value = new Set()
+  selectedTableRows.value = []
+  emitSelection()
+}
+
 // Display value for non-editable cells (complex types or disabled mode)
 function cellDisplay(row: Record<string, unknown>, f: DocField): string {
   const val = row[f.fieldname]
   if (val === null || val === undefined || val === '') return ''
   if (f.fieldtype === 'Check') return val ? t('Yes') : t('No')
-  const str = f.fieldtype === 'Link'
+  return f.fieldtype === 'Link'
     ? String(row[`${f.fieldname}__label`] ?? val)
     : String(val)
-  return str.length > 40 ? str.slice(0, 40) + '…' : str
 }
 </script>
 
 <template>
   <div>
   <div class="flex flex-col gap-2">
-    <div class="border border-border rounded-lg overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-muted/60">
-          <tr>
-            <!-- Drag handle spacer -->
-            <th v-if="!disabled" class="w-7 border-b border-border" />
-            <th class="w-9 px-2 py-2 border-b border-border text-center">
+    <DataTable
+      :value="displayRows"
+      dataKey="__row_key"
+      class="border border-border rounded-lg overflow-hidden"
+      size="small"
+      rowHover
+      :selection="selectedTableRows"
+      :rowGroupMode="groupField ? 'subheader' : undefined"
+      :groupRowsBy="groupField || undefined"
+      :sortField="dataTableSortField"
+      :sortOrder="dataTableSortOrder"
+      @update:selection="onSelectionUpdate"
+      @rowReorder="onRowReorder"
+    >
+      <Column v-if="!disabled && !groupField" rowReorder headerStyle="width: 2rem" />
+      <Column selectionMode="multiple" headerStyle="width: 2.5rem" bodyStyle="text-align: center" />
+
+      <Column header="№" headerStyle="width: 3rem" bodyClass="text-center text-xs text-muted-foreground select-none">
+        <template #body="{ data }">
+            {{ Number(data.__display_index ?? (Number(data.__row_index) + 1)) }}
+        </template>
+      </Column>
+
+      <Column
+        v-for="(f, colIdx) in tableColumns"
+        :key="f.fieldname"
+        :field="f.fieldname"
+        :class="colClass(f)"
+      >
+        <template #header>
+          {{ f.label }}<span v-if="f.required" class="text-destructive ml-0.5">*</span>
+        </template>
+
+        <template #body="{ data }">
+          <template v-if="disabled || !INLINE_TYPES.has(f.fieldtype)">
+            <span
+              :class="['block px-2 py-1 text-sm break-words whitespace-pre-wrap', !cellDisplay(data, f) && 'text-muted-foreground/40']"
+            >
+              {{ cellDisplay(data, f) || '—' }}
+            </span>
+          </template>
+
+          <template v-else-if="f.fieldtype === 'Check'">
+            <div class="flex justify-center">
               <input
                 type="checkbox"
-                :checked="allSelected"
-                :indeterminate.prop="someSelected"
+                :checked="Boolean(data[f.fieldname])"
                 class="rounded border-border size-4"
-                @change="toggleAllSelections(($event.target as HTMLInputElement).checked)"
+                @change="updateCell(Number(data.__row_index), f.fieldname, ($event.target as HTMLInputElement).checked)"
               />
-            </th>
-            <th class="w-8 px-3 py-2 text-xs font-medium text-muted-foreground border-b border-border text-center">#</th>
-            <th
-              v-for="f in tableColumns"
-              :key="f.fieldname"
-              :class="['text-left px-3 py-2 text-xs font-medium text-muted-foreground border-b border-border', colClass(f)]"
+            </div>
+          </template>
+
+          <template v-else-if="f.fieldtype === 'Select'">
+            <select
+              :value="String(data[f.fieldname] ?? '')"
+              class="w-full px-2 py-1 text-sm border border-transparent rounded-md bg-transparent hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+              @change="updateCell(Number(data.__row_index), f.fieldname, ($event.target as HTMLSelectElement).value)"
+              @keydown="onCellKeydown($event, Number(data.__row_index), colIdx)"
             >
-              {{ f.label }}<span v-if="f.required" class="text-destructive ml-0.5">*</span>
-            </th>
-            <th class="w-20 border-b border-border" />
-          </tr>
-        </thead>
-
-        <!-- Draggable tbody -->
-        <draggable
-          v-model="rows"
-          tag="tbody"
-          item-key="__idx"
-          handle=".drag-handle"
-          :disabled="disabled"
-          @end="onDragEnd"
-        >
-          <template #item="{ element: row, index: i }">
-            <tr class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors group">
-              <!-- Drag handle -->
-              <td v-if="!disabled" class="pl-2 py-1 text-center">
-                <GripVertical class="drag-handle size-4 text-muted-foreground/40 hover:text-muted-foreground cursor-grab active:cursor-grabbing transition-colors" />
-              </td>
-
-              <td class="px-2 py-1 text-center">
-                <input
-                  type="checkbox"
-                  :checked="selectedRows.has(rowName(row, i))"
-                  class="rounded border-border size-4"
-                  @change="toggleRowSelection(i, ($event.target as HTMLInputElement).checked)"
-                />
-              </td>
-
-              <!-- Row number -->
-              <td class="px-3 py-1.5 text-center text-xs text-muted-foreground select-none">{{ i + 1 }}</td>
-
-              <!-- Cells -->
-              <td v-for="(f, colIdx) in tableColumns" :key="f.fieldname" :class="['px-2 py-1', colClass(f)]">
-
-                <!-- Disabled or complex type → plain text -->
-                <template v-if="disabled || !INLINE_TYPES.has(f.fieldtype)">
-                  <span
-                    :class="['block px-2 py-1 text-sm truncate', !cellDisplay(row, f) && 'text-muted-foreground/40']"
-                    :title="String(row[f.fieldname] ?? '')"
-                  >
-                    {{ cellDisplay(row, f) || '—' }}
-                  </span>
-                </template>
-
-                <!-- Check -->
-                <template v-else-if="f.fieldtype === 'Check'">
-                  <div class="flex justify-center">
-                    <input
-                      type="checkbox"
-                      :checked="Boolean(row[f.fieldname])"
-                      class="rounded border-border size-4"
-                      @change="updateCell(i, f.fieldname, ($event.target as HTMLInputElement).checked)"
-                    />
-                  </div>
-                </template>
-
-                <!-- Select -->
-                <template v-else-if="f.fieldtype === 'Select'">
-                  <select
-                    :value="String(row[f.fieldname] ?? '')"
-                    class="w-full px-2 py-1 text-sm border border-transparent rounded-md bg-transparent hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
-                    @change="updateCell(i, f.fieldname, ($event.target as HTMLSelectElement).value)"
-                    @keydown="onCellKeydown($event, i, colIdx)"
-                  >
-                    <option value="">—</option>
-                    <option v-for="opt in selectOptions(f)" :key="opt" :value="opt">{{ opt }}</option>
-                  </select>
-                </template>
-
-                <!-- Int / Float -->
-                <template v-else-if="f.fieldtype === 'Int' || f.fieldtype === 'Float'">
-                  <input
-                    type="number"
-                    :value="row[f.fieldname] ?? ''"
-                    :step="f.fieldtype === 'Float' ? 'any' : '1'"
-                    class="w-full px-2 py-1 text-sm border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
-                    @input="updateCell(i, f.fieldname, Number(($event.target as HTMLInputElement).value))"
-                    @keydown="onCellKeydown($event, i, colIdx)"
-                  />
-                </template>
-
-                <!-- Date / Datetime / Time -->
-                <template v-else-if="['Date', 'Datetime', 'Time'].includes(f.fieldtype)">
-                  <input
-                    :type="f.fieldtype === 'Date' ? 'date' : f.fieldtype === 'Datetime' ? 'datetime-local' : 'time'"
-                    :value="String(row[f.fieldname] ?? '')"
-                    class="w-full px-2 py-1 text-sm border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
-                    @input="updateCell(i, f.fieldname, ($event.target as HTMLInputElement).value)"
-                    @keydown="onCellKeydown($event, i, colIdx)"
-                  />
-                </template>
-
-                <!-- Text -->
-                <template v-else>
-                  <input
-                    type="text"
-                    :value="String(row[f.fieldname] ?? '')"
-                    class="w-full px-2 py-1 text-sm border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
-                    @input="updateCell(i, f.fieldname, ($event.target as HTMLInputElement).value)"
-                    @keydown="onCellKeydown($event, i, colIdx)"
-                  />
-                </template>
-              </td>
-
-              <!-- Row actions -->
-              <td class="px-2 py-1">
-                <div class="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    v-if="allFields.length"
-                    type="button"
-                    class="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                    :title="disabled ? t('View') : t('Edit')"
-                    @click="openEditor(i)"
-                  >
-                    <Pencil class="size-3.5" />
-                  </button>
-                  <button
-                    v-if="!disabled"
-                    type="button"
-                    class="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                    :title="t('Delete row')"
-                    @click="removeRow(i)"
-                  >
-                    <X class="size-3.5" />
-                  </button>
-                </div>
-              </td>
-            </tr>
+              <option value="">—</option>
+              <option v-for="opt in selectOptions(f)" :key="opt" :value="opt">{{ opt }}</option>
+            </select>
           </template>
 
-          <!-- Empty state (slot required by draggable) -->
-          <template #footer>
-            <tr v-if="!rows.length">
-              <td :colspan="tableColumns.length + (disabled ? 3 : 4)" class="px-3 py-8 text-center text-muted-foreground text-sm">
-                <span v-if="loading">{{ t('Loading...') }}</span>
-                <span v-else>{{ t('No rows') }}</span>
-              </td>
-            </tr>
+          <template v-else-if="f.fieldtype === 'Int' || f.fieldtype === 'Float'">
+            <input
+              type="number"
+              :value="data[f.fieldname] ?? ''"
+              :step="f.fieldtype === 'Float' ? 'any' : '1'"
+              class="w-full px-2 py-1 text-sm border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+              @input="updateCell(Number(data.__row_index), f.fieldname, Number(($event.target as HTMLInputElement).value))"
+              @keydown="onCellKeydown($event, Number(data.__row_index), colIdx)"
+            />
           </template>
-        </draggable>
-      </table>
-    </div>
+
+          <template v-else-if="['Date', 'Datetime', 'Time'].includes(f.fieldtype)">
+            <input
+              :type="f.fieldtype === 'Date' ? 'date' : f.fieldtype === 'Datetime' ? 'datetime-local' : 'time'"
+              :value="String(data[f.fieldname] ?? '')"
+              class="w-full px-2 py-1 text-sm border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+              @input="updateCell(Number(data.__row_index), f.fieldname, ($event.target as HTMLInputElement).value)"
+              @keydown="onCellKeydown($event, Number(data.__row_index), colIdx)"
+            />
+          </template>
+
+          <template v-else>
+            <input
+              type="text"
+              :value="String(data[f.fieldname] ?? '')"
+              class="w-full px-2 py-1 text-sm border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+              @input="updateCell(Number(data.__row_index), f.fieldname, ($event.target as HTMLInputElement).value)"
+              @keydown="onCellKeydown($event, Number(data.__row_index), colIdx)"
+            />
+          </template>
+        </template>
+      </Column>
+
+      <Column headerStyle="width: 5rem" bodyStyle="padding: 0.25rem 0.5rem">
+        <template #body="{ data }">
+          <div class="flex items-center justify-end gap-0.5">
+            <button
+              v-if="allFields.length"
+              type="button"
+              class="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+              :title="disabled ? t('View') : t('Edit')"
+              @click="openEditor(Number(data.__row_index))"
+            >
+              <Pencil class="size-3.5" />
+            </button>
+            <button
+              v-if="!disabled"
+              type="button"
+              class="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+              :title="t('Delete row')"
+              @click="removeRow(Number(data.__row_index))"
+            >
+              <X class="size-3.5" />
+            </button>
+          </div>
+        </template>
+      </Column>
+
+      <template v-if="groupField" #groupheader="{ data }">
+        <span class="font-semibold text-sm">{{ groupHeaderLabel(data) }}</span>
+      </template>
+
+      <template #empty>
+        <div class="px-3 py-8 text-center text-muted-foreground text-sm">
+          <span v-if="loading">{{ t('Loading...') }}</span>
+          <span v-else>{{ t('No rows') }}</span>
+        </div>
+      </template>
+    </DataTable>
 
     <!-- Add row -->
     <Button
@@ -443,5 +522,50 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
     @saved="onQuickEntrySaved"
     @close="quickEntryDt = null"
   />
+
+  <!-- Floating bulk action bar (fixed at bottom of screen) -->
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition-all duration-200 ease-out"
+      enter-from-class="opacity-0 translate-y-4"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition-all duration-150 ease-in"
+      leave-from-class="opacity-100 translate-y-0"
+      leave-to-class="opacity-0 translate-y-4"
+    >
+      <div
+        v-if="!disabled && selectionCount > 0"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 bg-card/80 backdrop-blur-xl rounded-2xl border border-primary/20 shadow-2xl shadow-primary/10 ring-1 ring-primary/20 overflow-hidden min-w-[320px]"
+      >
+        <div class="absolute -right-8 -top-8 size-28 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+        <div class="absolute -left-8 -bottom-8 size-24 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+        <div class="flex items-center gap-2 shrink-0 relative z-10">
+          <CheckSquare class="size-4 text-primary" />
+          <span class="text-sm font-bold text-foreground">
+            {{ t('Selected:') }} <span class="text-primary tabular-nums ml-1">{{ selectionCount }}</span>
+          </span>
+        </div>
+        <div class="h-5 w-px bg-primary/20 relative z-10" />
+        <div class="flex items-center gap-1.5 p-1 bg-background/60 backdrop-blur-sm rounded-xl border border-primary/10 relative z-10">
+          <Button
+            severity="danger" text size="small"
+            class="!px-3 !h-7 !text-xs !font-bold gap-1.5 hover:!bg-destructive/10"
+            @click="deleteSelected"
+          >
+            <Trash2 class="size-3.5" />
+            <span>{{ t('Delete') }}</span>
+          </Button>
+        </div>
+        <button
+          type="button"
+          class="ml-auto p-1 rounded-md text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 transition-colors relative z-10"
+          :title="t('Clear selection')"
+          @click="clearSelection"
+        >
+          <X class="size-4" />
+        </button>
+      </div>
+    </Transition>
+  </Teleport>
   </div>
 </template>

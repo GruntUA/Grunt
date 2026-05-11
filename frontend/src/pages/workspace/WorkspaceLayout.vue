@@ -17,6 +17,7 @@ const notFound = ref(false)
 
 async function loadWorkspace(name: string) {
   notFound.value = false
+  if (wsStore.workspaces.length === 0) await wsStore.loadAll()
   await wsStore.setActive(name)
   if (!wsStore.active) {
     notFound.value = true

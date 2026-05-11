@@ -131,6 +131,8 @@ class DocTypeTreeView(BaseModel):
     parent_field: str  # fieldname of the Link field pointing to the same DocType
     title_field: str = "name"  # field displayed as node label
     as_of_date_field: str | None = None  # Date field for "as-of" filtering; enables the date picker in tree toolbar
+    sort_by: str | None = None  # optional default sort field for tree nodes
+    sort_order: Literal["asc", "desc"] = "asc"  # optional default sort direction
 
 
 class DocTypeMapView(BaseModel):

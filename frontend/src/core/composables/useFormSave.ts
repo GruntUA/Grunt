@@ -1,4 +1,4 @@
-import type { Ref } from 'vue'
+import { nextTick, type Ref } from 'vue'
 import type { Router } from 'vue-router'
 
 import { clearScriptCache } from '@/core/scripting/executor'
@@ -10,6 +10,7 @@ interface UseFormSaveParams {
   id: string | null
   workspace?: string
   dt: Ref<DocType | null>
+  form: Ref<Record<string, unknown>>
   validationErrors: Ref<Record<string, string>>
   save: () => Promise<unknown>
   runScriptEvent: (event: 'validate' | 'before_save' | 'after_save', changedField?: string) => Promise<boolean>
@@ -26,8 +27,55 @@ interface UseFormSaveParams {
   }
 }
 
+const CYRILLIC_TO_LATIN: Record<string, string> = {
+  а: 'a', б: 'b', в: 'v', г: 'h', ґ: 'g', д: 'd', е: 'e', є: 'ye', ж: 'zh', з: 'z', и: 'y',
+  і: 'i', ї: 'yi', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's',
+  т: 't', у: 'u', ф: 'f', х: 'kh', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'shch', ь: '', ю: 'yu',
+  я: 'ya', ы: 'y', э: 'e', ъ: '', ё: 'yo',
+}
+
+function makeDocTypeNameFromLabel(label: string): string {
+  const transliterated = Array.from(label)
+    .map((ch) => {
+      const lower = ch.toLowerCase()
+      const mapped = CYRILLIC_TO_LATIN[lower]
+      if (!mapped) return ch
+      return ch === lower ? mapped : `${mapped.charAt(0).toUpperCase()}${mapped.slice(1)}`
+    })
+    .join('')
+
+  const parts = transliterated
+    .replace(/[^a-zA-Z0-9]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+
+  let pascal = parts
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join('')
+    .replace(/[^a-zA-Z0-9]/g, '')
+
+  if (!pascal) return ''
+  if (!/^[A-Za-z]/.test(pascal)) pascal = `DocType${pascal}`
+  return pascal
+}
+
 export function useFormSave(params: UseFormSaveParams) {
   async function handleSave() {
+    // Ensure pending watcher/emit chains (e.g. builder tab -> form model) are applied.
+    await nextTick()
+
+    if (params.doctype === 'DocType' && !params.id) {
+      const currentName = String(params.form.value.name ?? '').trim()
+      if (!currentName) {
+        const label = String(params.form.value.label ?? '').trim()
+        const generated = makeDocTypeNameFromLabel(label)
+        if (generated) {
+          params.form.value.name = generated
+        }
+      }
+    }
+
     params.validationErrors.value = {}
 
     if (!params.validateForm()) {
@@ -96,15 +144,39 @@ export function useFormSave(params: UseFormSaveParams) {
         const legacyDetail = payload?.detail
         const apiDetails = payload?.error?.details
 
-        const details: string[] = Array.isArray(apiDetails)
-          ? apiDetails.filter((x): x is string => typeof x === 'string' && x.trim().length > 0)
-          : Array.isArray(legacyDetail)
-            ? legacyDetail.filter((x): x is string => typeof x === 'string' && x.trim().length > 0)
-            : typeof legacyDetail === 'string' && legacyDetail.trim()
-              ? [legacyDetail]
-              : typeof apiMessage === 'string' && apiMessage.trim()
-                ? [apiMessage]
-                : []
+        const details: string[] = []
+        const appendString = (value: unknown) => {
+          if (typeof value === 'string' && value.trim().length > 0) details.push(value)
+        }
+        const appendFastApiValidation = (value: unknown) => {
+          if (!value || typeof value !== 'object') return
+          const entry = value as { loc?: unknown[]; msg?: unknown }
+          const msg = typeof entry.msg === 'string' ? entry.msg.trim() : ''
+          if (!msg) return
+          const locParts = Array.isArray(entry.loc)
+            ? entry.loc.filter((p): p is string | number => typeof p === 'string' || typeof p === 'number')
+            : []
+          const field = locParts.length > 0 ? String(locParts[locParts.length - 1]) : ''
+          details.push(field ? `${field}: ${msg}` : msg)
+        }
+
+        if (Array.isArray(apiDetails)) {
+          for (const item of apiDetails) appendString(item)
+        }
+
+        if (Array.isArray(legacyDetail)) {
+          for (const item of legacyDetail) {
+            appendString(item)
+            appendFastApiValidation(item)
+          }
+        } else {
+          appendString(legacyDetail)
+          appendFastApiValidation(legacyDetail)
+        }
+
+        if (details.length === 0 && typeof apiMessage === 'string' && apiMessage.trim()) {
+          details.push(apiMessage)
+        }
 
         let hasFieldErrors = false
         for (const item of details) {

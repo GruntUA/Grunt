@@ -138,6 +138,8 @@ async def get_tree(
     max_depth: int = Query(10, ge=1, le=50),
     fields: str | None = Query(None, description="Comma-separated extra fields to include"),
     as_of: str | None = Query(None, description="ISO date (YYYY-MM-DD) for historical labels"),
+    sort_by: str | None = Query(None, description="Field name used to sort tree nodes"),
+    sort_order: str = Query("asc", pattern="^(asc|desc)$", description="Tree sort direction"),
     _user: User = Depends(current_user),
 ) -> dict[str, Any]:
     """Return the full tree (or subtree) as nested dicts with ``children`` arrays.
@@ -178,6 +180,8 @@ async def get_tree(
         fields=parsed_fields,
         max_depth=max_depth,
         filters=merged_tree_filters if merged_tree_filters else None,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
     as_of_date = _parse_iso_day(as_of)
@@ -191,9 +195,12 @@ async def get_tree(
 @router.get("/{doctype}/tree/children")
 async def get_children(
     doctype: str,
+    request: Request,
     parent_id: str | None = Query(None, description="Parent node id; omit for root nodes"),
     fields: str | None = Query(None, description="Comma-separated extra fields to include"),
     limit: int = Query(500, ge=1, le=2000),
+    sort_by: str | None = Query(None, description="Field name used to sort direct children"),
+    sort_order: str = Query("asc", pattern="^(asc|desc)$", description="Children sort direction"),
     _user: User = Depends(current_user),
 ) -> dict[str, Any]:
     """Return direct children of *parent_id* (lazy-load one level at a time).
@@ -202,12 +209,23 @@ async def get_children(
     """
     parsed_fields = [f.strip() for f in fields.split(",")] if fields else None
     session = grunt._require_session()
+    merged_tree_filters: dict[str, str] = {}
+    for key, value in request.query_params.items():
+        if key.startswith("fast_filter[") and key.endswith("]"):
+            merged_tree_filters[key[12:-1]] = value
+    for key, value in request.query_params.items():
+        if key.startswith("filter[") and key.endswith("]"):
+            merged_tree_filters[key[7:-1]] = value
+
     nodes = await tree_service.get_children(
         session,
         doctype,
         parent_id=parent_id,
         fields=parsed_fields,
         limit=limit,
+        filters=merged_tree_filters if merged_tree_filters else None,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
     return ok(nodes)
 

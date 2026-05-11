@@ -187,17 +187,40 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
     _client_script_scanned.add(doctype)
     results: list[dict[str, str]] = []
 
+    logger.info("file_scripts.scan_start", doctype=doctype, dirs_count=len(_client_script_dirs))
+
     for app_name, doctypes_dir in _client_script_dirs:
-        # Try exact match first (e.g. Applicant/Applicant.js)
+        import re  # noqa: PLC0415
+
+        # Try exact match first (e.g. HromsStaffingTable/HromsStaffingTable.js)
         js_file = doctypes_dir / doctype / f"{doctype}.js"
+        logger.info("file_scripts.try_path", app=app_name, path=str(js_file), exists=js_file.exists())
+
+        if not js_file.exists():
+            # Try first-letter-capitalized (e.g. hromsStaffingTable → HromsStaffingTable)
+            capitalized = doctype[0].upper() + doctype[1:] if doctype else doctype
+            js_file = doctypes_dir / capitalized / f"{capitalized}.js"
+
         if not js_file.exists():
             # Try snake_case fallback (e.g. data_import/data_import.js)
-            import re  # noqa: PLC0415
             snake = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", doctype).lower()
             js_file = doctypes_dir / snake / f"{snake}.js"
+
         if not js_file.exists():
             # Try all-lowercase fallback (e.g. user/user.js)
             js_file = doctypes_dir / doctype.lower() / f"{doctype.lower()}.js"
+
+        if not js_file.exists():
+            # Last resort: case-insensitive directory scan
+            try:
+                for dir_entry in doctypes_dir.iterdir():
+                    if dir_entry.is_dir() and dir_entry.name.lower() == doctype.lower():
+                        candidate = dir_entry / f"{dir_entry.name}.js"
+                        if candidate.exists():
+                            js_file = candidate
+                            break
+            except OSError:
+                pass
 
         if js_file.exists():
             source = js_file.read_text(encoding="utf-8")

@@ -170,10 +170,14 @@ export const docsApi = {
       as_of?: string
       fastFilters?: Record<string, string>
       filters?: ActiveFilter[]
+      sort_by?: string
+      sort_order?: 'asc' | 'desc'
     },
   ): Promise<any[]> => {
     const queryParams: Record<string, string> = {}
     if (params?.as_of) queryParams.as_of = params.as_of
+    if (params?.sort_by) queryParams.sort_by = params.sort_by
+    if (params?.sort_order) queryParams.sort_order = params.sort_order
     for (const [k, v] of Object.entries(params?.fastFilters ?? {})) {
       queryParams[`fast_filter[${k}]`] = v
     }

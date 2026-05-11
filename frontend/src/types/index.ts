@@ -70,6 +70,8 @@ export interface DocField {
   fetch_from?: string | null
   // Named validator (e.g. "email", "phone", "url", "iban_ua")
   validator?: string | null
+  // Table field — group rows by this child fieldname
+  group_by?: string | null
 }
 
 export interface DocTypeSummary {
@@ -181,6 +183,8 @@ export interface DocTypeTreeView {
   parent_field: string   // fieldname of the self-referential Link field
   title_field?: string   // which field to display as node label (defaults to 'name')
   as_of_date_field?: string  // Date field enabling the "as of date" picker in tree toolbar
+  sort_by?: string
+  sort_order?: 'asc' | 'desc'
 }
 
 // ── Fast filter types ─────────────────────────────────────────────────────

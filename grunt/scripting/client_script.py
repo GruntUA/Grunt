@@ -43,12 +43,15 @@ async def get_client_scripts(
     scripts: list[dict[str, Any]] = [
         {"name": str(r.get("name") or ""), "script": str(r.get("script") or "")} for r in rows
     ]
+    logger.info("client_scripts.db_scripts", doctype=doctype, count=len(scripts))
 
     # Append file-based client scripts (from app directories)
     try:
         from grunt.scripting.file_scripts import get_file_client_scripts  # noqa: PLC0415
 
-        scripts.extend(get_file_client_scripts(doctype))
+        file_scripts = get_file_client_scripts(doctype)
+        logger.info("client_scripts.file_scripts", doctype=doctype, count=len(file_scripts), names=[s["name"] for s in file_scripts])
+        scripts.extend(file_scripts)
     except ImportError:
         logger.debug(
             "Optional file-based client scripts module not available; "
@@ -56,4 +59,5 @@ async def get_client_scripts(
             doctype=doctype,
         )
 
+    logger.info("client_scripts.total", doctype=doctype, total=len(scripts))
     return scripts

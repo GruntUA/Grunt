@@ -236,6 +236,10 @@ class DocField(BaseModel):
     # Custom validators can be registered via grunt.document.validators.register_validator().
     validator: str | None = None
 
+    # Table field — group child rows by this fieldname of the child DocType.
+    # When set, the Table component renders a subheader row for each distinct value.
+    group_by: str | None = None
+
     model_config = {"use_enum_values": True}
 
     @property

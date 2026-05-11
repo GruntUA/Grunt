@@ -4,6 +4,7 @@ import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 import type { DocType } from '@/types'
 
 interface UseFormValidationParams {
+  doctype: string
   dt: Ref<DocType | null>
   form: Ref<Record<string, unknown>>
   displayOverrides: Record<string, boolean>
@@ -76,9 +77,30 @@ export function useFormValidation(params: UseFormValidationParams) {
       }
     }
 
+    // DocType core schema has required fields on backend model level
+    // that may not always be marked as `required` in form metadata.
+    if (params.doctype === 'DocType') {
+      const requiredCore: Array<{ key: 'name' | 'label' | 'module'; label: string }> = [
+        { key: 'name', label: 'Назва' },
+        { key: 'label', label: 'Мітка' },
+        { key: 'module', label: 'Модуль' },
+      ]
+      for (const core of requiredCore) {
+        const value = params.form.value[core.key]
+        if (value === null || value === undefined || value === '') {
+          validationErrors.value[core.key] = `Поле "${core.label}" є обов'язковим`
+        }
+      }
+    }
+
     if (Object.keys(validationErrors.value).length > 0) {
+      const coreLabels: Record<string, string> = {
+        name: 'Назва',
+        label: 'Мітка',
+        module: 'Модуль',
+      }
       const missingLabels = Object.keys(validationErrors.value)
-        .map(fieldname => params.dt.value?.fields.find(f => f.fieldname === fieldname)?.label || fieldname)
+        .map((fieldname) => coreLabels[fieldname] || params.dt.value?.fields.find((f) => f.fieldname === fieldname)?.label || fieldname)
         .join(', ')
 
       params.toast.error(`Заповніть обов'язкові поля: ${missingLabels}`)
