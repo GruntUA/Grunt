@@ -13,7 +13,7 @@ import type { Theme } from '@/core/composables/useColorMode'
 import {
   ArrowLeft, ChevronsUpDown, Sun, Moon, Monitor,
   Settings2, Search, Shield, Activity,
-  Mail, X, LogOut, Check, PanelLeftClose, PanelLeftOpen,
+  Mail, X, LogOut, Check,
 } from '@lucide/vue'
 
 const props = defineProps<{ workspaceName: string }>()
@@ -342,15 +342,6 @@ const otherWorkspaces = computed(() =>
           class="size-4 text-muted-foreground/30 group-hover:text-primary transition-all shrink-0" />
       </button>
     </footer>
-
-    <!-- Collapse toggle (Desktop only) -->
-    <button
-      class="absolute top-1/2 -right-3 size-6 rounded-full border bg-card shadow-sm flex items-center justify-center text-muted-foreground/60 hover:text-primary hover:border-primary/30 transition-all hidden md:flex z-50 group/toggle"
-      @click="sidebarStore.toggleCollapse">
-      <PanelLeftClose v-if="!isCollapsed" class="size-3.5 transition-transform group-hover/toggle:scale-110" />
-      <PanelLeftOpen v-else class="size-3.5 transition-transform group-hover/toggle:scale-110" />
-    </button>
-
 
   </div>
 </template>

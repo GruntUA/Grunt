@@ -4,7 +4,7 @@ import { useAppStore } from '@/stores/app'
 import { useDocTypeStore } from '@/stores/doctype'
 import { useSidebarStore } from '@/stores/sidebar'
 import AppIcon from '@/components/AppIcon.vue'
-import { ChevronRight, PanelLeft } from '@lucide/vue'
+import { ChevronRight, PanelLeft, PanelLeftClose, PanelLeftOpen } from '@lucide/vue'
 
 const props = defineProps<{
   workspaceName: string
@@ -54,10 +54,21 @@ const items = computed(() => {
   }
   return result
 })
+
+const isCollapsed = computed(() => sidebarStore.isCollapsed)
 </script>
 
 <template>
   <div class="flex items-center gap-3 mb-2 px-0 py-0 md:bg-transparent md:border-none">
+    <!-- Desktop Sidebar Collapse Trigger -->
+    <button
+      class="hidden md:flex size-9 items-center justify-center rounded-xl text-muted-foreground/60 hover:text-primary hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-all shrink-0"
+      @click="sidebarStore.toggleCollapse"
+    >
+      <PanelLeftClose v-if="!isCollapsed" class="size-4.5" />
+      <PanelLeftOpen v-else class="size-4.5" />
+    </button>
+
     <!-- Custom Mobile Sidebar Trigger -->
     <button
       class="md:hidden size-9 flex items-center justify-center rounded-xl text-muted-foreground/60 hover:text-primary hover:bg-primary/10 transition-all shrink-0 shadow-sm border border-transparent hover:border-primary/20"
