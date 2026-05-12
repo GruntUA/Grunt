@@ -83,6 +83,16 @@ logger = structlog.get_logger()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # ── Startup ──────────────────────────────────────────────────────
+    from grunt.logging_config import configure_logging  # noqa: PLC0415
+
+    configure_logging(
+        bench_dir=site_manager.bench_dir,
+        site_names=site_manager.get_sites(),
+        log_level=settings.log_level,
+        log_to_file=settings.log_to_file,
+        debug=settings.debug,
+    )
+
     logger.info("grunt.startup", version="0.1.0")
 
     import importlib  # noqa: PLC0415

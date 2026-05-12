@@ -10,12 +10,13 @@ import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from grunt.config import settings
+from grunt.logging_config import _safe_logger_name
 
 if TYPE_CHECKING:
     from starlette.requests import Request
     from starlette.responses import Response
 
-logger = structlog.get_logger()
+logger = structlog.get_logger(__name__)
 
 _SKIP_PATHS = frozenset({"/api/v1/health", "/api/v1/ready", "/api/v1/metrics"})
 # Don't profile the profiler endpoints themselves
@@ -69,13 +70,22 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             logger.exception("suppressed_error")
 
         if path not in _SKIP_PATHS:
-            logger.info(
+            from grunt.site.manager import current_site  # noqa: PLC0415
+
+            site = current_site.get(None)
+            access_logger = (
+                structlog.get_logger(f"grunt.web.{_safe_logger_name(site)}")
+                if site
+                else logger
+            )
+            access_logger.info(
                 "http.request",
                 request_id=request_id,
                 method=request.method,
                 path=path,
                 status_code=response.status_code,
                 duration_ms=duration_ms,
+                site=site,
             )
 
         return response

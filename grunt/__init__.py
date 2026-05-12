@@ -29,6 +29,11 @@ Example usage in a DocType controller:
 # Lazy loading to avoid circular imports
 def __getattr__(name: str):
     """Lazy load API exports when first accessed."""
+    if name == "log":
+        from grunt.log import log  # noqa: PLC0415
+
+        return log
+
     if name in (
         "db",
         "GruntDB",
@@ -105,6 +110,7 @@ def __getattr__(name: str):
 
 
 __all__ = [
+    "log",
     "db",
     "GruntDB",
     "msgprint",

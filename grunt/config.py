@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     debug: bool = True
     secret_key: str = "change-me-to-a-random-64-char-string"
 
+    # Logging
+    log_level: str = "INFO"
+    log_to_file: bool = True
+
     # Database
     database_url: str = "sqlite+aiosqlite:///./grunt.db"
     database_echo: bool = False
