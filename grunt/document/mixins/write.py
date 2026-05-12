@@ -428,7 +428,7 @@ class DocumentWriteMixin:
             table.update().where(table.c.id == real_id).values(**update_data)
         )
 
-        await _save_child_tables(self.session, dt, real_id, data, user, datetime.now(UTC))
+        await _save_child_tables(self.session, dt, real_id, row, user, datetime.now(UTC))
         await self._apply_aggregations(dt, table, real_id, row)
 
         for mlf in _get_multi_link_fields(dt):
@@ -504,6 +504,11 @@ class DocumentWriteMixin:
         update_data = self._build_update_payload(dt, table, data, user)
         real_id = existing["id"]
         merged = {**existing, **update_data}
+        # Inject submitted child-table rows into merged so lifecycle hooks see the
+        # incoming data (not the old DB rows) and their mutations are persisted.
+        for _f in dt.fields:
+            if _f.fieldtype == "Table" and _f.fieldname in data:
+                merged[_f.fieldname] = data[_f.fieldname]
 
         _tokens = self._set_grunt_context(user)
         try:

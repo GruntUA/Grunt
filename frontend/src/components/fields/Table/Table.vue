@@ -348,11 +348,12 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
 <template>
   <div>
   <div class="flex flex-col gap-2">
-    <div class="border border-border rounded-lg overflow-x-auto">
+    <div class="border border-border rounded-lg overflow-x-auto text-xs">
     <DataTable
       :value="displayRows"
       dataKey="__row_key"
       size="small"
+      showGridlines
       scrollable
       scrollHeight="480px"
       rowHover
@@ -386,7 +387,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
         <template #body="{ data }">
           <template v-if="disabled || f.read_only || !INLINE_TYPES.has(f.fieldtype)">
             <span
-              :class="['block px-2 py-1 text-sm break-words whitespace-pre-wrap', !cellDisplay(data, f) && 'text-muted-foreground/40']"
+              :class="['block px-2 py-1 text-xs break-words whitespace-pre-wrap', !cellDisplay(data, f) && 'text-muted-foreground/40']"
             >
               {{ cellDisplay(data, f) || '—' }}
             </span>
@@ -406,7 +407,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
           <template v-else-if="f.fieldtype === 'Select'">
             <select
               :value="String(data[f.fieldname] ?? '')"
-              class="w-full px-2 py-1 text-sm border border-transparent rounded-md bg-transparent hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+              class="w-full px-2 py-1 text-xs border border-transparent rounded-md bg-transparent hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
               @change="updateCell(Number(data.__row_index), f.fieldname, ($event.target as HTMLSelectElement).value)"
               @keydown="onCellKeydown($event, Number(data.__row_index), colIdx)"
             >
@@ -420,7 +421,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
               type="number"
               :value="data[f.fieldname] ?? ''"
               :step="f.fieldtype === 'Float' ? 'any' : '1'"
-              class="w-full px-2 py-1 text-sm border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+              class="w-full px-2 py-1 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
               @input="updateCell(Number(data.__row_index), f.fieldname, Number(($event.target as HTMLInputElement).value))"
               @keydown="onCellKeydown($event, Number(data.__row_index), colIdx)"
             />
@@ -430,7 +431,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
             <input
               :type="f.fieldtype === 'Date' ? 'date' : f.fieldtype === 'Datetime' ? 'datetime-local' : 'time'"
               :value="String(data[f.fieldname] ?? '')"
-              class="w-full px-2 py-1 text-sm border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+              class="w-full px-2 py-1 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
               @input="updateCell(Number(data.__row_index), f.fieldname, ($event.target as HTMLInputElement).value)"
               @keydown="onCellKeydown($event, Number(data.__row_index), colIdx)"
             />
@@ -440,7 +441,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
             <input
               type="text"
               :value="String(data[f.fieldname] ?? '')"
-              class="w-full px-2 py-1 text-sm border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+              class="w-full px-2 py-1 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
               @input="updateCell(Number(data.__row_index), f.fieldname, ($event.target as HTMLInputElement).value)"
               @keydown="onCellKeydown($event, Number(data.__row_index), colIdx)"
             />
@@ -474,11 +475,11 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
       </Column>
 
       <template v-if="groupField" #groupheader="{ data }">
-        <span class="font-semibold text-sm">{{ groupHeaderLabel(data) }}</span>
+        <span class="font-semibold text-xs">{{ groupHeaderLabel(data) }}</span>
       </template>
 
       <template #empty>
-        <div class="px-3 py-8 text-center text-muted-foreground text-sm">
+        <div class="px-3 py-8 text-center text-muted-foreground text-xs">
           <span v-if="loading">{{ t('Loading...') }}</span>
           <span v-else>{{ t('No rows') }}</span>
         </div>
