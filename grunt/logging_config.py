@@ -15,6 +15,7 @@ from __future__ import annotations
 import logging
 import logging.handlers
 from pathlib import Path
+from typing import Any, MutableMapping
 
 import structlog
 
@@ -22,6 +23,42 @@ _LOG_SUBDIRS = ("system", "web", "apps", "sites", "db", "scheduler")
 
 # Loggers that write to the scheduler log file
 _SCHEDULER_LOGGERS = ("grunt.tasks", "grunt.worker", "grunt.tasks.scheduler")
+
+_SEP = "─" * 80
+
+
+def _slow_query_renderer(_logger: object, _method: str, event_dict: MutableMapping[str, Any]) -> str:
+    """Human-readable formatter for slow query log entries."""
+    ts = (event_dict.get("timestamp") or "")[:19].replace("T", " ")
+    level = (event_dict.get("level") or "").upper()
+    event = event_dict.get("event") or ""
+    sql = (event_dict.get("sql") or "").strip()
+    duration = event_dict.get("duration_ms", "")
+    threshold = event_dict.get("threshold_ms", "")
+    req_id = event_dict.get("request_id") or ""
+    param_count = event_dict.get("param_count", "")
+
+    # Extra fields (anything not handled above)
+    _known = {"timestamp", "level", "logger", "event", "sql",
+               "duration_ms", "threshold_ms", "request_id", "param_count"}
+    extras = {k: v for k, v in event_dict.items() if k not in _known and v is not None}
+
+    header = f"{ts}  {level}  {event}"
+    if duration != "":
+        header += f"    {duration}ms  (limit: {threshold}ms)"
+    if param_count != "":
+        header += f"  params={param_count}"
+    if req_id:
+        header += f"\nreq: {req_id}"
+    if extras:
+        header += "  " + "  ".join(f"{k}={v}" for k, v in extras.items())
+
+    parts = [_SEP, header]
+    if sql:
+        parts.append("")
+        parts.append(sql)
+    parts.append("")
+    return "\n".join(parts)
 
 
 def configure_logging(
@@ -74,6 +111,25 @@ def configure_logging(
     root.setLevel(logging.DEBUG if debug else numeric_level)
     root.addHandler(console_handler)
 
+    # Suppress verbose third-party libraries that spam at DEBUG level
+    _NOISY_LOGGERS = (
+        "aiosqlite",           # logs every SQLite operation
+        "sqlalchemy.pool",     # logs every connection pool event
+        "sqlalchemy.engine",   # logs raw SQL when echo=True
+        "sqlalchemy.orm",
+        "uvicorn.access",      # uvicorn request log (we log via middleware)
+        "asyncio",
+        "multipart",
+        "httpcore",
+        "httpx",
+        "apscheduler",         # job add/remove/wakeup spam
+        "apscheduler.scheduler",
+        "apscheduler.executors",
+        "apscheduler.jobstores",
+    )
+    for _name in _NOISY_LOGGERS:
+        logging.getLogger(_name).setLevel(logging.WARNING)
+
     if not log_to_file:
         return
 
@@ -105,11 +161,17 @@ def configure_logging(
             propagate=False,
         )
 
-    # DB log
+    # DB log — human-readable format with SQL on its own lines
+    db_formatter = structlog.stdlib.ProcessorFormatter(
+        processors=[
+            structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+            _slow_query_renderer,
+        ],
+    )
     _add_file_handler(
         "grunt.db",
         log_dir / "db" / "queries.log",
-        json_formatter,
+        db_formatter,
         numeric_level,
         propagate=False,
     )
@@ -139,7 +201,7 @@ def configure_logging(
                     log_dir / "apps" / app_name / f"{app_name}.log",
                     json_formatter,
                     numeric_level,
-                    propagate=False,
+                    propagate=True,  # propagates to root for console output
                 )
 
 
