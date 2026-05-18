@@ -13,6 +13,7 @@ from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from grunt.document.base import SYS_FIELDS
 from grunt.utils.strings import to_snake_case
 
 # ---------------------------------------------------------------------------
@@ -49,7 +50,6 @@ _FIELDTYPE_TO_PY: dict[str, str] = {
 }
 
 _NON_PHYSICAL = {"Section", "Column", "Tab", "Empty"}
-_SKIP_FIELDNAMES = {"name", "id", "docstatus", "owner", "created_at", "modified_at", "modified_by"}
 
 
 # ---------------------------------------------------------------------------
@@ -106,7 +106,7 @@ def build_controller_context(name: str, fields: list[dict]) -> dict[str, Any]:
     physical = [
         f
         for f in fields
-        if f.get("fieldtype") not in _NON_PHYSICAL and f.get("fieldname") not in _SKIP_FIELDNAMES
+        if f.get("fieldtype") not in _NON_PHYSICAL and f.get("fieldname") not in SYS_FIELDS
     ]
 
     needs_datetime = any(f["fieldtype"] in {"Date", "Datetime", "Time"} for f in physical)
@@ -139,12 +139,12 @@ def _render_type_block(name: str, fields: list[dict], indent: str = "    ") -> s
         for f in fields
         if f.get("fieldtype") not in _NON_PHYSICAL
         and f.get("fieldtype") != "Table"
-        and f.get("fieldname") not in _SKIP_FIELDNAMES
+        and f.get("fieldname") not in SYS_FIELDS
     ]
     table_fields = [
         f
         for f in fields
-        if f.get("fieldtype") == "Table" and f.get("fieldname") not in _SKIP_FIELDNAMES
+        if f.get("fieldtype") == "Table" and f.get("fieldname") not in SYS_FIELDS
     ]
 
     indent2 = indent * 2

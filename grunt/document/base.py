@@ -69,6 +69,22 @@ if TYPE_CHECKING:
 # Fields that are stored as real instance attributes (not routed into self.data)
 _RESERVED = frozenset({"doctype", "data", "user", "session"})
 
+# System fields managed by the framework — exposed as read-only properties on Document.
+# Controllers must not set these directly; use self.data["field"] = ... if truly needed.
+SYS_FIELDS: frozenset[str] = frozenset({
+    "id",
+    "name",
+    "owner",
+    "docstatus",
+    "idx",
+    "created_at",
+    "modified_at",
+    "modified_by",
+    "parent",
+    "parentfield",
+    "parenttype",
+})
+
 
 class DocumentList(list):
     """A list of documents/rows with associated metadata (pagination, etc.)."""
@@ -155,8 +171,70 @@ class Document:
     def __setattr__(self, name: str, value: Any) -> None:
         if name in _RESERVED or name.startswith("_"):
             object.__setattr__(self, name, value)
+        elif name in SYS_FIELDS:
+            raise AttributeError(
+                f"'{name}' is a system field and cannot be set directly. "
+                f"Use self.data['{name}'] = ... if you must override it."
+            )
         else:
             object.__getattribute__(self, "data")[name] = value
+
+    # ── System field accessors (read-only) ───────────────────────────────
+
+    @property
+    def id(self) -> str | None:
+        """Primary key (UUID) assigned by the database."""
+        return object.__getattribute__(self, "data").get("id")
+
+    @property
+    def name(self) -> str | None:
+        """Human-readable document identifier (naming series or auto-generated)."""
+        return object.__getattribute__(self, "data").get("name")
+
+    @property
+    def owner(self) -> str | None:
+        """Username of the user who created this document."""
+        return object.__getattribute__(self, "data").get("owner")
+
+    @property
+    def docstatus(self) -> int:
+        """Workflow state: 0 = Draft, 1 = Submitted, 2 = Cancelled."""
+        return object.__getattribute__(self, "data").get("docstatus", 0)
+
+    @property
+    def idx(self) -> int:
+        """Row index within a parent document's child table."""
+        return object.__getattribute__(self, "data").get("idx", 0)
+
+    @property
+    def created_at(self) -> Any:
+        """Timestamp when the document was first created."""
+        return object.__getattribute__(self, "data").get("created_at")
+
+    @property
+    def modified_at(self) -> Any:
+        """Timestamp of the most recent save."""
+        return object.__getattribute__(self, "data").get("modified_at")
+
+    @property
+    def modified_by(self) -> str | None:
+        """Username of the user who last saved this document."""
+        return object.__getattribute__(self, "data").get("modified_by")
+
+    @property
+    def parent(self) -> str | None:
+        """ID of the parent document (set for child-table rows only)."""
+        return object.__getattribute__(self, "data").get("parent")
+
+    @property
+    def parentfield(self) -> str | None:
+        """Field name in the parent DocType that references this child table."""
+        return object.__getattribute__(self, "data").get("parentfield")
+
+    @property
+    def parenttype(self) -> str | None:
+        """DocType name of the parent document."""
+        return object.__getattribute__(self, "data").get("parenttype")
 
     # ── Convenience accessors ─────────────────────────────────────────────
 

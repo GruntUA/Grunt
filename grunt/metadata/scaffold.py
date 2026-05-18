@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 
 import structlog
 
+from grunt.document.base import SYS_FIELDS
 from grunt.site.manager import site_manager
 
 if TYPE_CHECKING:
@@ -24,8 +25,6 @@ if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
 
 logger = structlog.get_logger()
-
-_SKIP_FIELDNAMES = frozenset({"name", "docstatus", "idx", "owner", "creation", "modified", "modified_by"})
 
 
 def _build_scaffold_context(doctype_name: str, fields: list) -> dict:
@@ -47,7 +46,7 @@ def _build_scaffold_context(doctype_name: str, fields: list) -> dict:
             label = field.get("label", "")
             options = field.get("options")
 
-        if fieldname in _SKIP_FIELDNAMES:
+        if fieldname in SYS_FIELDS:
             continue
 
         if fieldtype in ("Table", "Table MultiSelect"):
