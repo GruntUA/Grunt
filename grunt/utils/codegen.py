@@ -14,6 +14,7 @@ from typing import Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from grunt.document.base import SYS_FIELDS
+from grunt.metadata.field import get_python_type
 from grunt.utils.strings import to_snake_case
 
 # ---------------------------------------------------------------------------
@@ -22,32 +23,6 @@ from grunt.utils.strings import to_snake_case
 
 _BEGIN_MARKER = "# begin: auto-generated types"
 _END_MARKER = "# end: auto-generated types"
-
-_FIELDTYPE_TO_PY: dict[str, str] = {
-    "Data": "str | None",
-    "Text": "str | None",
-    "LongText": "str | None",
-    "RichText": "str | None",
-    "Code": "str | None",
-    "Select": "str | None",
-    "Link": "str | None",
-    "Attach": "str | None",
-    "Image": "str | None",
-    "Color": "str | None",
-    "Signature": "str | None",
-    "Int": "int | None",
-    "Float": "float | None",
-    "Check": "bool",
-    "Date": "datetime.date | None",
-    "Datetime": "datetime.datetime | None",
-    "Time": "datetime.time | None",
-    "JSON": "dict | list | None",
-    "Geolocation": "dict | None",
-    "MultiLink": "list[str]",
-    "Rating": "int | None",
-    "Percent": "float | None",
-    "Duration": "float | None",
-}
 
 _NON_PHYSICAL = {"Section", "Column", "Tab", "Empty"}
 
@@ -109,14 +84,14 @@ def build_controller_context(name: str, fields: list[dict]) -> dict[str, Any]:
         if f.get("fieldtype") not in _NON_PHYSICAL and f.get("fieldname") not in SYS_FIELDS
     ]
 
-    needs_datetime = any(f["fieldtype"] in {"Date", "Datetime", "Time"} for f in physical)
+    needs_datetime = any("datetime" in get_python_type(f["fieldtype"]) for f in physical)
 
     enriched = []
     for f in physical:
         enriched.append(
             {
                 **f,
-                "py_type": _FIELDTYPE_TO_PY.get(f["fieldtype"], "Any"),
+                "py_type": get_python_type(f["fieldtype"]),
             }
         )
 
@@ -132,7 +107,7 @@ def build_controller_context(name: str, fields: list[dict]) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def _render_type_block(name: str, fields: list[dict], indent: str = "    ") -> str:
+def _render_type_block(fields: list[dict], indent: str = "    ") -> str:
     """Render only the auto-generated types block for insertion inside class body."""
     physical = [
         f
@@ -147,30 +122,22 @@ def _render_type_block(name: str, fields: list[dict], indent: str = "    ") -> s
         if f.get("fieldtype") == "Table" and f.get("fieldname") not in SYS_FIELDS
     ]
 
-    indent2 = indent * 2
-
     field_lines: list[str] = []
     for f in physical:
-        py_type = _FIELDTYPE_TO_PY.get(f["fieldtype"], "Any")
+        py_type = get_python_type(f["fieldtype"])
         comment = f"  # {f['label']}" if f.get("label") and f["label"] != f["fieldname"] else ""
-        field_lines.append(f"{indent2}{f['fieldname']}: {py_type}{comment}")
+        field_lines.append(f"{indent}{f['fieldname']}: {py_type}{comment}")
     for f in table_fields:
         table_opt = f.get("options", "?")
-        field_lines.append(f"{indent2}{f['fieldname']}: list[dict]  # Table: {table_opt}")
+        field_lines.append(f"{indent}{f['fieldname']}: list[dict]  # Table: {table_opt}")
 
-    typing_imports = "Any, DF" if field_lines else "DF"
-    type_if = f"{indent}if TYPE_CHECKING:\n"
-    type_if += f"{indent2}from typing import {typing_imports}\n\n"
-    type_if += f'{indent2}"""Type hints for {name} fields."""\n\n'
-    type_if += "\n".join(field_lines) if field_lines else f"{indent2}name: str | None"
+    body = "\n".join(field_lines) if field_lines else f"{indent}name: str | None"
 
     return (
         f"{indent}{_BEGIN_MARKER}\n"
         f"{indent}# This code is auto-generated. Do not modify anything in this block.\n"
         f"\n"
-        f"{indent}from typing import TYPE_CHECKING\n"
-        f"\n"
-        f"{type_if}\n"
+        f"{body}\n"
         f"\n"
         f"{indent}{_END_MARKER}"
     )
@@ -186,7 +153,7 @@ def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
     Returns True if the file was modified, False if already up-to-date.
     """
     source = py_path.read_text(encoding="utf-8")
-    new_block = _render_type_block(name, fields, indent="    ")
+    new_block = _render_type_block(fields, indent="    ")
 
     def _find_class_insert_offset(text: str) -> int | None:
         lines = text.splitlines(keepends=True)

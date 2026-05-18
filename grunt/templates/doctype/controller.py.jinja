@@ -28,21 +28,14 @@ class {{ name }}(Document):
     # begin: auto-generated types
     # This code is auto-generated. Do not modify anything in this block.
 
-    from typing import TYPE_CHECKING
-
-    if TYPE_CHECKING:
-        from typing import Any, DF
-
-        """Type hints for {{ name }} fields."""
-
 {% for field in physical_fields %}
-        {{ field.fieldname }}: {{ field.py_type }}{% if field.label and field.label != field.fieldname %}  # {{ field.label }}{% endif %}
+    {{ field.fieldname }}: {{ field.py_type }}{% if field.label and field.label != field.fieldname %}  # {{ field.label }}{% endif %}
 {% endfor %}
 {% for field in table_fields %}
-        {{ field.fieldname }}: list[dict]  # Table: {{ field.options or "?" }}
+    {{ field.fieldname }}: list[dict]  # Table: {{ field.options or "?" }}
 {% endfor %}
 {% if not physical_fields and not table_fields %}
-        name: str | None
+    name: str | None
 {% endif %}
 
     # end: auto-generated types

@@ -75,6 +75,7 @@
 | 6.5 | ✅ | **Command Palette** | Реалізовано: `CommandPalette.vue` — fuzzy-пошук по DocTypes, документах, workspaces і командах. Групований результат, навігація клавіатурою, quick create, статичні дії. |
 | 6.6 | 💡 | **Inline edit у ListView** | Подвійний клік на комірку таблиці — редагування на місці без відкриття форми. Для полів типу Text, Select, Check. |
 | 6.7 | 💡 | **DocType Playground** | Сторінка в Studio де можна протестувати DocType: заповнити форму, побачити згенерований JSON, перевірити API. |
+| 6.8 | 💡 | **Типізовані проксі для полів у контролері (через реєстр)** | `register_field_type` отримує новий параметр `proxy_factory: Callable[[options, value], Any] \| None`. `Document.__getattr__` перевіряє реєстр і автоматично обгортає значення — без жодних знань фреймворку про конкретні типи. Приклад: Link реєструє `LinkProxy` з `__await__` → `str(self.parent_kved)` = `"KVED-001"` (зворотна сумісність), `kved = await self.parent_kved` → повний Document, `kved.name_uk` → значення. Пряме `self.parent_kved.name_uk` без await неможливе (async DB). Для окремих полів лінкованого документа краще використовувати існуючий механізм `fetch_from`. Аналогічно Table → `TableRowProxy`. Передумова: синхронний in-memory кеш мети DocType (fieldname → fieldtype + options) для використання в `__getattr__`. |
 
 ---
 
