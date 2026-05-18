@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING
 
 import structlog
 
-from grunt.metadata.field import get_python_type
 from grunt.site.manager import site_manager
 
 if TYPE_CHECKING:
@@ -26,146 +25,45 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
+_SKIP_FIELDNAMES = frozenset({"name", "docstatus", "idx", "owner", "creation", "modified", "modified_by"})
 
-def _generate_type_block(doctype_name: str, fields: list) -> str:
-    """Generate auto-typed field annotations from a DocType definition.
 
-    Maps fieldtype to Python type hints.
-    Fields can be either dicts or Pydantic DocField models.
-    """
-    # Collect field type annotations (skip structural fields)
-    field_lines = []
+def _build_scaffold_context(doctype_name: str, fields: list) -> dict:
+    """Build Jinja template context for a new DocType controller."""
+    from grunt.metadata.field import get_python_type, is_physical_fieldtype  # noqa: PLC0415
+
+    physical_fields = []
+    table_fields = []
+
     for field in fields:
-        # Handle both dict and Pydantic model
         if hasattr(field, "fieldname"):
             fieldname = field.fieldname
             fieldtype = field.fieldtype
+            label = field.label or ""
+            options = getattr(field, "options", None)
         else:
             fieldname = field.get("fieldname", "")
             fieldtype = field.get("fieldtype", "Data")
+            label = field.get("label", "")
+            options = field.get("options")
 
-        # Skip structural fields
-        if fieldtype in ("Section", "Column", "Tab", "Table", "Empty"):
+        if fieldname in _SKIP_FIELDNAMES:
             continue
 
-        # Skip standard fields
-        if fieldname in (
-            "name",
-            "docstatus",
-            "idx",
-            "owner",
-            "creation",
-            "modified",
-            "modified_by",
-        ):
-            continue
+        if fieldtype in ("Table", "Table MultiSelect"):
+            table_fields.append({"fieldname": fieldname, "options": options})
+        elif is_physical_fieldtype(fieldtype):
+            physical_fields.append({
+                "fieldname": fieldname,
+                "py_type": get_python_type(fieldtype),
+                "label": label,
+            })
 
-        py_type = get_python_type(fieldtype)
-        field_lines.append(f"        {fieldname}: {py_type}")
-
-    # Build the type hints block
-    type_block = f"""    # begin: auto-generated types
-    # This code is auto-generated. Do not modify anything in this block.
-
-    from typing import TYPE_CHECKING
-
-    if TYPE_CHECKING:
-        from typing import Any, DF
-
-        \"\"\"Type hints for {doctype_name} fields.\"\"\"
-
-{chr(10).join(field_lines) if field_lines else "        name: str | None"}
-
-    # end: auto-generated types
-"""
-
-    return type_block
-
-
-# ── Templates ────────────────────────────────────────────────────────────────
-
-CONTROLLER_TEMPLATE = '''\
-"""Controller for {name}.
-
-Lifecycle hooks — override any method to add custom logic:
-  before_insert  — before a NEW document is saved to DB
-  after_insert   — after a NEW document is saved to DB
-  validate       — runs before every save (insert or update), raise to block
-  before_save    — before an EXISTING document is updated
-  after_save     — after an EXISTING document is updated
-  before_delete  — before document is deleted
-  after_delete   — after document is deleted
-
-Access fields:
-  self.field_name          — read field value
-  self.field_name = value  — set field value
-  self.data                — full document dict
-  self.doctype             — DocType name ("{name}")
-  self.user                — current User (or None)
-  self.session             — async SQLAlchemy session (for advanced queries)
-"""
-
-from __future__ import annotations
-
-from grunt.document.base import Document
-
-
-class {name}(Document):
-
-{type_hints}
-
-    async def validate(self) -> None:
-        """Runs before every save — raise an exception to block."""
-        pass
-
-    async def before_save(self) -> None:
-        """Runs before an existing document is updated."""
-        pass
-
-    async def after_save(self) -> None:
-        """Runs after document is saved to the database."""
-        pass
-'''
-
-CLIENT_SCRIPT_TEMPLATE = """\
-// Client script for {name}
-//
-// Available objects:
-//   frm.doc                              — current document data (live, always up-to-date)
-//   frm.doc.fieldname                    — read a field value
-//   frm.is_new                           — true if document is not yet saved
-//   frm.fields                           — list of field definitions
-//
-// Form helpers:
-//   frm.get_value(fieldname)             — read a field value
-//   frm.set_value(fieldname, value)      — set a field value
-//   frm.toggle_display(fieldname, show)  — show/hide a field (true = visible)
-//   frm.toggle_reqd(fieldname, reqd)     — make field required/optional
-//   frm.set_df_property(field, prop, v)  — set any field property
-//   frm.add_button(label, action, opts)  — add a custom button to the form
-//   frm.save()                           — save the document
-//
-// Framework helpers:
-//   grunt.call({{ method, args }})         — call a server script (POST /api/v1/method/...)
-//   grunt.msgprint(msg)                  — show info dialog
-//   grunt.msgprint({{ message, title }})   — show dialog with title
-//   grunt.show_alert(msg, type)          — show toast (type: success/error/info/warning)
-//   grunt.confirm(msg)                   — show confirm dialog (returns Promise<boolean>)
-//   grunt.throw(msg)                     — throw an error and stop execution
-
-function on_load(frm) {{
-  // Called once when the form loads — add buttons, set initial state
-}}
-
-function on_change(frm, fieldname) {{
-  // Called when any field value changes
-}}
-
-function validate(frm) {{
-  // Called before save — return false to cancel
-  return true
-}}
-"""
+    return {
+        "name": doctype_name,
+        "physical_fields": physical_fields,
+        "table_fields": table_fields,
+    }
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────
@@ -222,6 +120,8 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
     Returns the absolute path to the written JSON file, or ``None`` if export
     was skipped (module directory not found).
     """
+    from grunt.utils.codegen import render_template, sync_controller_types  # noqa: PLC0415
+
     app_dir = _find_app_dir(dt.module, app_name=app_name)
     if not app_dir:
         logger.warning(
@@ -259,21 +159,21 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
     # Controller — create if missing, otherwise only sync the auto-generated type block
     py_file = dt_dir / f"{dt.name}.py"
     if py_file.exists():
-        from grunt.utils.codegen import sync_controller_types  # noqa: PLC0415
-
-        fields_as_dicts = [
-            f.model_dump() if hasattr(f, "model_dump") else f for f in dt.fields
-        ]
-        sync_controller_types(py_file, dt.name, fields_as_dicts)
+        sync_controller_types(py_file, dt.name, [f.model_dump() for f in dt.fields])
     else:
-        type_hints = _generate_type_block(dt.name, dt.fields)
-        py_content = CONTROLLER_TEMPLATE.format(name=dt.name, type_hints=type_hints)
-        py_file.write_text(py_content, encoding="utf-8")
+        context = _build_scaffold_context(dt.name, dt.fields)
+        py_file.write_text(
+            render_template("doctype/controller.py.jinja", context),
+            encoding="utf-8",
+        )
 
     # Client script — only create if missing
     js_file = dt_dir / f"{dt.name}.js"
     if not js_file.exists():
-        js_file.write_text(CLIENT_SCRIPT_TEMPLATE.format(name=dt.name), encoding="utf-8")
+        js_file.write_text(
+            render_template("doctype/client_script.js.jinja", {"name": dt.name}),
+            encoding="utf-8",
+        )
 
     logger.info("scaffold.exported", doctype=dt.name, path=str(dt_dir))
     return str(json_file.resolve())

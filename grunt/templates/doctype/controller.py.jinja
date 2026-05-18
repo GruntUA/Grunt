@@ -1,56 +1,60 @@
-"""{{ name }} controller.
+"""Controller for {{ name }}.
 
-Business logic for {{ name }} DocType.
+Lifecycle hooks — override any method to add custom logic:
+  before_insert  — before a NEW document is saved to DB
+  after_insert   — after a NEW document is saved to DB
+  validate       — runs before every save (insert or update), raise to block
+  before_save    — before an EXISTING document is updated
+  after_save     — after an EXISTING document is updated
+  before_delete  — before document is deleted
+  after_delete   — after document is deleted
+
+Access fields:
+  self.field_name          — read field value
+  self.field_name = value  — set field value
+  self.data                — full document dict
+  self.doctype             — DocType name ("{{ name }}")
+  self.user                — current User (or None)
+  self.session             — async SQLAlchemy session (for advanced queries)
 """
 
 from __future__ import annotations
 
-{% if needs_datetime %}import datetime
-{% endif %}{% if physical_fields %}from typing import TYPE_CHECKING, Any
-{% else %}from typing import Any
-{% endif %}
+from grunt.document.base import Document
 
-{% if physical_fields %}
+
+class {{ name }}(Document):
+
     # begin: auto-generated types
     # This code is auto-generated. Do not modify anything in this block.
 
-    if TYPE_CHECKING:
-{% for field in physical_fields %}
-{% if field.fieldtype == "Table" %}
-        {{ field.fieldname }}: list[dict]  # Table: {{ field.options or "?" }}
-{% else %}
-        {{ field.fieldname }}: {{ field.py_type }}{% if field.label and field.label != field.fieldname %}  # {{ field.label }}{% endif %}
+    from typing import TYPE_CHECKING
 
-{% endif %}
+    if TYPE_CHECKING:
+        from typing import Any, DF
+
+        """Type hints for {{ name }} fields."""
+
+{% for field in physical_fields %}
+        {{ field.fieldname }}: {{ field.py_type }}{% if field.label and field.label != field.fieldname %}  # {{ field.label }}{% endif %}
 {% endfor %}
+{% for field in table_fields %}
+        {{ field.fieldname }}: list[dict]  # Table: {{ field.options or "?" }}
+{% endfor %}
+{% if not physical_fields and not table_fields %}
+        name: str | None
+{% endif %}
+
     # end: auto-generated types
 
-{% endif %}
-
-class {{ name }}Controller:
-    """Controller for {{ name }} documents."""
-
-    def __init__(self, doc: dict[str, Any], session: Any | None = None) -> None:
-        self.doc = doc
-        self.session = session
-
-    async def before_insert(self) -> None:
-        """Called before inserting a new document."""
-
-    async def after_insert(self) -> None:
-        """Called after inserting a new document."""
+    async def validate(self) -> None:
+        """Runs before every save — raise an exception to block."""
+        pass
 
     async def before_save(self) -> None:
-        """Called before saving (new or existing)."""
+        """Runs before an existing document is updated."""
+        pass
 
     async def after_save(self) -> None:
-        """Called after saving."""
-
-    async def before_delete(self) -> None:
-        """Called before deletion."""
-
-    async def after_delete(self) -> None:
-        """Called after deletion."""
-
-    async def validate(self) -> None:
-        """Called during validation — raise ValueError to block save."""
+        """Runs after document is saved to the database."""
+        pass
