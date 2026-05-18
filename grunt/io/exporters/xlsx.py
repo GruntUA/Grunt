@@ -14,8 +14,6 @@ from grunt.io.exporters.registry import Exporter
 if TYPE_CHECKING:
     from grunt.metadata.field import DocField
 
-# Layout-only field types that carry no data value
-_SKIP = frozenset({"Section", "Column", "Tab", "Table", "MultiLink", "HTML", "Heading"})
 
 # Header style
 _HEADER_FONT = Font(bold=True, color="FFFFFF")
@@ -53,7 +51,7 @@ class XlsxExporter(Exporter):
         rows: list[dict[str, Any]],
         fields: list[DocField],
     ) -> bytes:
-        exportable = [f for f in fields if f.fieldtype not in _SKIP]
+        exportable = [f for f in fields if f.is_physical]
 
         wb = openpyxl.Workbook()
         ws = wb.active

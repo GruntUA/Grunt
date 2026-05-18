@@ -9,8 +9,6 @@ from grunt.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()
 
-# Field types that are skippable in import/export templates
-_SKIP_FIELDTYPES = frozenset({"Section", "Column", "Tab", "Table", "MultiLink", "HTML", "Heading"})
 
 
 class DataImport(Document):
@@ -45,7 +43,7 @@ class DataImport(Document):
                     "required": f.required,
                 }
                 for f in dt.fields
-                if f.fieldtype not in _SKIP_FIELDTYPES
+                if f.is_physical
             ],
         }
 

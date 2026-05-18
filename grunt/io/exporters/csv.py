@@ -11,9 +11,6 @@ from grunt.io.exporters.registry import Exporter
 if TYPE_CHECKING:
     from grunt.metadata.field import DocField
 
-_SKIP = frozenset({"Section", "Column", "Tab", "Table", "MultiLink", "HTML", "Heading"})
-
-
 def _fmt(value: Any) -> str:
     if value is None:
         return ""
@@ -36,7 +33,7 @@ class CsvExporter(Exporter):
         rows: list[dict[str, Any]],
         fields: list[DocField],
     ) -> bytes:
-        exportable = [f for f in fields if f.fieldtype not in _SKIP]
+        exportable = [f for f in fields if f.is_physical]
         col_labels = [f.label for f in exportable]
         col_names = [f.fieldname for f in exportable]
 

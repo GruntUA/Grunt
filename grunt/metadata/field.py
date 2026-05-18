@@ -146,9 +146,26 @@ _init_core_mappings()
 
 
 # Field types that do NOT produce a column in the database.
-# These are layout helpers (Section/Column/Tab) or relation containers
-# (Table/MultiLink) — they never store a plain value on the document row.
-NON_PHYSICAL_FIELDS: frozenset[str] = frozenset({"Section", "Column", "Tab", "Table", "MultiLink"})
+# Computed from the registry: any registered type without an SA factory is non-physical.
+# Layout helpers (Section/Column/Tab), relation containers (Table/MultiLink) and
+# display-only types (HTML, Button, Heading, …) all fall into this category.
+NON_PHYSICAL_FIELDS: frozenset[str] = frozenset(
+    ft for ft in _FIELD_META if ft not in _SA_TYPE_MAP
+)
+
+
+def is_physical_fieldtype(fieldtype: str) -> bool:
+    """Return True if *fieldtype* produces a column in the database.
+
+    This is the single source of truth for physical vs. non-physical fields.
+    A field type is physical when it was registered with a non-None SA factory
+    via :func:`register_field_type`.  Layout helpers (Section, Column, Tab),
+    relation containers (Table, MultiLink) and display-only types (HTML,
+    Button, Heading …) return False.
+
+    Unknown / unregistered field types also return False (safe default).
+    """
+    return fieldtype in _SA_TYPE_MAP
 
 
 class DocField(BaseModel):
@@ -243,6 +260,16 @@ class DocField(BaseModel):
     model_config = {"use_enum_values": True}
 
     @property
+    def is_physical(self) -> bool:
+        """Return True if this field stores a value in a database column.
+
+        A field is physical when its type has a registered SA factory *and*
+        it is not marked as virtual.  Use this as the canonical check instead
+        of comparing against hardcoded field-type sets.
+        """
+        return is_physical_fieldtype(self.fieldtype) and not self.is_virtual
+
+    @property
     def is_searchable(self) -> bool:
         """Return True if this field's value should be included in full-text search.
 
@@ -251,7 +278,7 @@ class DocField(BaseModel):
         (layout helpers) are never searchable.  Unknown / plugin field types
         default to ``True`` so they are indexed by default.
         """
-        if self.fieldtype in NON_PHYSICAL_FIELDS:
+        if not is_physical_fieldtype(self.fieldtype):
             return False
         meta = _FIELD_META.get(self.fieldtype)
         if meta is not None:
@@ -280,9 +307,11 @@ class DocField(BaseModel):
 
         factory = _SA_TYPE_MAP.get(self.fieldtype)
         if factory is None:
-            if self.fieldtype in NON_PHYSICAL_FIELDS or self.is_virtual:
-                raise ValueError(f"Field type '{self.fieldtype}' is non-physical or virtual")
-            raise ValueError(f"Field type '{self.fieldtype}' has no SA mapping")
+            raise ValueError(
+                f"Field type '{self.fieldtype}' is virtual"
+                if self.is_virtual
+                else f"Field type '{self.fieldtype}' is non-physical or has no SA mapping"
+            )
 
         spec = factory(self)
         sa_type_name, *args = spec
