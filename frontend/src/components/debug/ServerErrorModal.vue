@@ -28,7 +28,7 @@ function copyAll() {
     d.sql ? `\nSQL:\n${d.sql}` : '',
     d.sql_params ? `\nParams: ${d.sql_params}` : '',
     d.db_error ? `\nDB Error: ${d.db_error}` : '',
-    `\nTraceback:\n${d.traceback}`,
+    `\nTraceback:\n${visibleLines.value.join('\n')}`,
   ].join('')
   navigator.clipboard.writeText(text).then(() => {
     copied.value = true

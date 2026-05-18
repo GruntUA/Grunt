@@ -77,9 +77,13 @@ client.interceptors.response.use(
       }
     }
 
-    // Redirect to 403 page on forbidden responses
+    // Show toast for 403 forbidden responses — no redirect so the page and
+    // network tab stay intact and the error is easy to debug.
     if (error.response?.status === 403) {
-      await redirectToRoute('forbidden')
+      const body = error.response?.data
+      const message: string = body?.detail ?? body?.error?.message ?? 'Доступ заборонено'
+      const { useToast } = await import('@/core/composables/useToast')
+      useToast().error(message)
       return Promise.reject(error)
     }
 

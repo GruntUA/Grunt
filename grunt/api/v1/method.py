@@ -62,9 +62,10 @@ def get_whitelisted_method(method_path: str) -> Any:
         attr_path = parts[i:]
         try:
             module = importlib.import_module(mod_path)
-            method = module
+            obj = module
             for attr in attr_path:
-                method = getattr(method, attr)
+                obj = getattr(obj, attr)
+            method = obj  # only assign when all attrs resolved successfully
             break
         except (ImportError, AttributeError):
             continue

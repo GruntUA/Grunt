@@ -53,21 +53,22 @@ def serve(port, reload, no_frontend):
     if reload:
         cmd += [
             "--reload",
-            "--reload-include",
-            "*.py",
-            "--reload-include",
-            "*.js",
-            "--reload-include",
-            "*.json",
-            "--reload-dir",
-            str(root_dir / "grunt"),
+            "--reload-include", "*.py",
+            "--reload-include", "*.js",
+            "--reload-include", "*.json",
+            "--reload-dir", str(root_dir / "grunt"),
         ]
-        # Also watch external apps so changes to doctypes, hooks, etc. trigger reload
+        # Watch inner Python packages of external apps so .py/.js/.json
+        # changes trigger reload without picking up .git/, README, etc.
         apps_dir = root_dir / "apps"
         if apps_dir.exists():
             for app_dir in apps_dir.iterdir():
-                if app_dir.is_dir() and app_dir.name != "grunt":
-                    cmd += ["--reload-dir", str(app_dir)]
+                if not app_dir.is_dir() or app_dir.name == "grunt":
+                    continue
+                # Inner package directory has the same name as the app
+                inner = app_dir / app_dir.name
+                watch_dir = inner if inner.is_dir() else app_dir
+                cmd += ["--reload-dir", str(watch_dir)]
 
     try:
         subprocess.run(cmd, cwd=root_dir)
