@@ -4,7 +4,7 @@ import type { DocType } from '@/types'
 
 interface StartLinkCreateParams {
   linkedDoctype: string
-  preset: string
+  preset: string | Record<string, unknown>
   fieldname: string
   parentDoctype: string
   parentId: string | null
@@ -20,6 +20,7 @@ interface UseFormLinkCreationParams {
   markAllowLeave: () => void
   loadDocType: (doctype: string) => Promise<DocType>
   startLinkCreate: (params: StartLinkCreateParams) => void
+  navigateToNew: (linkedDoctype: string, preset: Record<string, unknown>) => void
 }
 
 export function useFormLinkCreation(params: UseFormLinkCreationParams) {
@@ -39,9 +40,17 @@ export function useFormLinkCreation(params: UseFormLinkCreationParams) {
     }
 
     params.markAllowLeave()
+
+    // Dashboard "+" has no fieldname — use simple navigation with query params
+    // so there's no unwanted return-flow after saving the new document.
+    if (!fieldname && typeof preset !== 'string') {
+      params.navigateToNew(linkedDoctype, preset)
+      return
+    }
+
     params.startLinkCreate({
       linkedDoctype,
-      preset: typeof preset === 'string' ? preset : '', // Fallback for full page create
+      preset,
       fieldname,
       parentDoctype: params.doctype,
       parentId: params.id,

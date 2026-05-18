@@ -18,8 +18,11 @@ const dashboardFields = computed(() => {
 })
 
 function getCurrentDocLinkValue(): string {
-  // Link fields store document name (human-readable/autoname), not internal id.
-  const value = props.document?.name ?? props.document?.id
+  // Tree doctypes: TreeSelect stores node.id (UUID) as the Link value.
+  // Non-tree doctypes: link search stores item.name as the Link value.
+  const value = props.dt.is_tree
+    ? props.document?.id
+    : (props.document?.name ?? props.document?.id)
   return value ? String(value) : ''
 }
 

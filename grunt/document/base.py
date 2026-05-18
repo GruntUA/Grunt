@@ -143,14 +143,17 @@ class Document:
     # ── Attribute routing ─────────────────────────────────────────────────
 
     def __getattr__(self, name: str) -> Any:
-        # Only called when normal attribute lookup fails (i.e. for non-reserved names)
+        # Only called when normal attribute lookup fails (i.e. for non-reserved names).
+        # Private attributes (underscore-prefixed) are not routed through data.
+        if name.startswith("_"):
+            raise AttributeError(name)
         try:
             return object.__getattribute__(self, "data")[name]
         except KeyError:
             return None
 
     def __setattr__(self, name: str, value: Any) -> None:
-        if name in _RESERVED:
+        if name in _RESERVED or name.startswith("_"):
             object.__setattr__(self, name, value)
         else:
             object.__getattribute__(self, "data")[name] = value

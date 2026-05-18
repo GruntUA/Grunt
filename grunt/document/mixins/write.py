@@ -527,6 +527,21 @@ class DocumentWriteMixin:
             if "name" in table.c and merged.get("name") != existing.get("name"):
                 update_data["name"] = merged.get("name")
 
+            # Sync hook mutations: any physical field that validate()/before_save()
+            # changed in `merged` must be written to the DB even if the frontend
+            # did not submit it (e.g. read-only computed fields).
+            _table_cols = {c.name for c in table.columns}
+            for _f in dt.fields:
+                if (
+                    _f.fieldtype in NON_PHYSICAL_FIELDS
+                    or _f.fieldname in PROTECTED_FIELDS
+                    or _f.fieldname not in _table_cols
+                ):
+                    continue
+                _merged_val = merged.get(_f.fieldname)
+                if _merged_val != existing.get(_f.fieldname):
+                    update_data[_f.fieldname] = _merged_val
+
             await self._persist_update_doc(
                 dt,
                 table,

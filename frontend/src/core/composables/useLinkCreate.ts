@@ -84,7 +84,7 @@ export function useLinkCreate() {
    */
   function startLinkCreate(
     linkedDoctype: string,
-    preset: string,
+    preset: string | Record<string, unknown>,
     fieldname: string,
     currentDoctype: string,
     currentId: string | null,
@@ -102,9 +102,16 @@ export function useLinkCreate() {
       ? `/${workspace}/${linkedDoctype}/new`
       : `/${linkedDoctype}/new`
 
+    let initialData: Record<string, unknown> | null = null
+    if (typeof preset === 'string') {
+      initialData = preset ? { name: preset } : null
+    } else if (Object.keys(preset).length > 0) {
+      initialData = preset
+    }
+
     router.push({
       path: newPath,
-      state: preset ? { initial_data: JSON.stringify({ name: preset }) } : undefined,
+      state: initialData ? { initial_data: JSON.stringify(initialData) } : undefined,
     })
   }
 

@@ -140,6 +140,14 @@ const {
       workspace,
     )
   },
+  navigateToNew: (linkedDoctype: string, preset: Record<string, unknown>) => {
+    const ws = props.workspace || 'grunt'
+    const query: Record<string, string> = {}
+    for (const [k, v] of Object.entries(preset)) {
+      query[k] = String(v)
+    }
+    router.push({ path: `/${ws}/${linkedDoctype}/new`, query })
+  },
 })
 
 const {
