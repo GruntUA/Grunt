@@ -25,6 +25,15 @@ Example usage in a DocType controller:
             msgprint(f"Amount: {self.doc.total}", type="success")
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from grunt.app import GruntDB
+
+    db: GruntDB
+
 
 # Lazy loading to avoid circular imports
 def __getattr__(name: str):
@@ -107,51 +116,3 @@ def __getattr__(name: str):
 
         return getattr(api, name)
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
-
-
-__all__ = [
-    "log",
-    "db",
-    "GruntDB",
-    "msgprint",
-    "msgprint_list",
-    "throw",
-    "notify",
-    "notify_all",
-    "queue_email",
-    "ApplicationError",
-    "can_read",
-    "can_write",
-    "can_submit",
-    "can_delete",
-    "can_create",
-    "get_current_user",
-    "add_comment",
-    "get_comments",
-    "delete_comment",
-    "log_activity",
-    "get_activity_log",
-    "Comment",
-    "ActivityEntry",
-    "set_session",
-    "get_session",
-    "set_user",
-    "get_user",
-    "set_engine",
-    "get_engine",
-    "set_site",
-    "get_site",
-    "clear_context",
-    "whitelist",
-    "get_doc",
-    "get_list",
-    "new_doc",
-    "save_doc",
-    "delete_doc",
-    "get_meta",
-    "get_values",
-    "get_value",
-    "set_value",
-    "get_all",
-    "count",
-]

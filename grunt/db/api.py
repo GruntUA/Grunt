@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, cast, overload
 
 from sqlalchemy import CursorResult, func, or_, select, update
 
@@ -81,6 +81,36 @@ class GruntDB:
         result = await self._session().execute(stmt)
         row = result.first()
         return row[0] if row else None
+
+    @overload
+    async def get_all(
+        self,
+        doctype: str,
+        *,
+        filters: dict[str, Any] | None = ...,
+        or_filters: dict[str, Any] | None = ...,
+        fields: list[str] | None = ...,
+        pluck: str,
+        limit: int | None = ...,
+        offset: int = ...,
+        order_by: str | None = ...,
+        order: str = ...,
+    ) -> list[Any]: ...
+
+    @overload
+    async def get_all(
+        self,
+        doctype: str,
+        *,
+        filters: dict[str, Any] | None = ...,
+        or_filters: dict[str, Any] | None = ...,
+        fields: list[str] | None = ...,
+        pluck: None = ...,
+        limit: int | None = ...,
+        offset: int = ...,
+        order_by: str | None = ...,
+        order: str = ...,
+    ) -> list[dict[str, Any]]: ...
 
     async def get_all(
         self,
@@ -340,7 +370,7 @@ def _apply_filters(stmt: Any, table: Any, filters: str | dict[str, Any]) -> Any:
     return stmt
 
 
-_FILTER_OPS = ("__gte", "__lte", "__gt", "__lt", "__like", "__in", "__nin", "__ne")
+_FILTER_OPS = ("__gte", "__lte", "__gt", "__lt", "__like", "__in", "__nin", "__ne", "__isnull")
 
 
 def _build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
@@ -375,6 +405,11 @@ def _build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
             clauses.append(col.not_in(value))
         elif op == "ne":
             clauses.append(col != value)
+        elif op == "isnull":
+            if value:
+                clauses.append(col.is_(None))
+            else:
+                clauses.append(col.isnot(None))
     return clauses
 
 
