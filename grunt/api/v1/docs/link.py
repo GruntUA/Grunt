@@ -117,7 +117,8 @@ async def link_search(
         # as a more human-readable title when available.
         if title_val == name_val:
             for sf in search_fields:
-                # Prefer resolved label for Link fields (injected as sf__label by _resolve_link_labels)
+                # Prefer resolved label for Link fields
+                # (injected as sf__label by _resolve_link_labels)
                 candidate = row.get(f"{sf}__label") or row.get(sf)
                 if candidate is not None:
                     candidate_str = str(candidate)

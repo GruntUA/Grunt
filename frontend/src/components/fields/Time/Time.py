@@ -12,6 +12,7 @@ class TimeField(FieldType):
     @classmethod
     def coerce(cls, value):
         from datetime import time  # noqa: PLC0415
+
         if value is None or value == "":
             return None
         if isinstance(value, str):

@@ -38,13 +38,12 @@ class BulkDeleteTask:
         progress_cb = self._make_progress_cb(user_email, total)
 
         try:
-            async with async_session_factory() as session:
-                async with grunt_app.context(session, engine, user):
-                    deleted, errors = await grunt_app.bulk_delete_docs(
-                        doctype,
-                        list(ids),
-                        progress_cb=progress_cb,
-                    )
+            async with async_session_factory() as session, grunt_app.context(session, engine, user):
+                deleted, errors = await grunt_app.bulk_delete_docs(
+                    doctype,
+                    list(ids),
+                    progress_cb=progress_cb,
+                )
 
             await self._manager.send_to_user(
                 user_email,

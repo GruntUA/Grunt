@@ -99,4 +99,4 @@ async def test_rule(rule_id: str, test_doc: dict[str, Any]) -> dict[str, Any]:
         return await assignment_service.preview_rule(rule_id, test_doc)
     except Exception as exc:
         grunt.throw(str(exc))
-        raise RuntimeError(str(exc))
+        raise RuntimeError(str(exc)) from exc

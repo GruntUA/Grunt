@@ -56,16 +56,17 @@ Accessing document data::
 
 from __future__ import annotations
 
-import structlog
-
-logger = structlog.get_logger()
 from typing import TYPE_CHECKING, Any
+
+import structlog
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from grunt.app import GruntApp
     from grunt.auth.doctypes.User.user import User
+
+logger = structlog.get_logger()
 
 # Fields that are stored as real instance attributes (not routed into self.data)
 _RESERVED = frozenset({"doctype", "data", "user", "session"})

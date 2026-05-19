@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import structlog
-
-logger = structlog.get_logger()
 import importlib
 from inspect import iscoroutinefunction
 from typing import TYPE_CHECKING, Any
 
+import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
 from grunt.app import grunt as grunt_app
@@ -17,6 +15,7 @@ from grunt.db.session import get_session
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
+logger = structlog.get_logger()
 router = APIRouter()
 
 

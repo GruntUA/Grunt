@@ -191,7 +191,8 @@ def _migrate_doctype_table(
         # For each distinct parent_doctype, join against the parent table to get the real name
         doctype_rows = conn.execute(
             sa.text(
-                f"SELECT DISTINCT parent_doctype FROM \"{table}\" WHERE parent_doctype IS NOT NULL AND parent_doctype != ''"
+                f'SELECT DISTINCT parent_doctype FROM "{table}"'
+                f" WHERE parent_doctype IS NOT NULL AND parent_doctype != ''"
             )
         ).fetchall()
 
@@ -207,7 +208,8 @@ def _migrate_doctype_table(
                     {"dt": parent_doctype},
                 )
                 log.warning(
-                    "0008: could not find parent table for %s (doctype=%s), using UUID as parent_name",
+                    "0008: could not find parent table for %s (doctype=%s),"
+                    " using UUID as parent_name",
                     table,
                     parent_doctype,
                 )
@@ -220,8 +222,10 @@ def _migrate_doctype_table(
                     conn.execute(
                         sa.text(
                             f'UPDATE "{table}" SET parent_name = ('
-                            f'  SELECT p.name FROM "{parent_table}" p WHERE p.id = "{table}".parent_id'
-                            f") WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = '')"
+                            f'  SELECT p.name FROM "{parent_table}" p'
+                            f' WHERE p.id = "{table}".parent_id'
+                            f") WHERE parent_doctype = :dt"
+                            f" AND (parent_name IS NULL OR parent_name = '')"
                         ),
                         {"dt": parent_doctype},
                     )
@@ -347,7 +351,8 @@ def _migrate_multi_link(conn: sa.engine.Connection, doctype_table_map: dict[str,
                         f'UPDATE "{_MULTI_LINK_TABLE}" SET parent_name = ('
                         f'  SELECT p.name FROM "{parent_table}" p '
                         f'  WHERE p.id = "{_MULTI_LINK_TABLE}".parent_id'
-                        f") WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = '')"
+                        f") WHERE parent_doctype = :dt"
+                        f" AND (parent_name IS NULL OR parent_name = '')"
                     ),
                     {"dt": parent_doctype},
                 )
@@ -384,7 +389,8 @@ def _migrate_multi_link(conn: sa.engine.Connection, doctype_table_map: dict[str,
     else:
         conn.execute(
             sa.text(
-                f'ALTER TABLE "{_MULTI_LINK_TABLE}" DROP CONSTRAINT IF EXISTS "{_MULTI_LINK_TABLE}_pkey"'
+                f'ALTER TABLE "{_MULTI_LINK_TABLE}"'
+                f' DROP CONSTRAINT IF EXISTS "{_MULTI_LINK_TABLE}_pkey"'
             )
         )
         conn.execute(sa.text(f'ALTER TABLE "{_MULTI_LINK_TABLE}" DROP COLUMN IF EXISTS id'))
@@ -403,7 +409,8 @@ def _migrate_multi_link(conn: sa.engine.Connection, doctype_table_map: dict[str,
 def upgrade() -> None:
     conn = op.get_bind()
 
-    # Load DocType → table_name mapping from grunt_meta_doctype for JOIN-based parent_name population
+    # Load DocType → table_name mapping from grunt_meta_doctype
+    # for JOIN-based parent_name population
     doctype_table_map = _load_doctype_table_map(conn)
 
     # 1. Fix Link field values that still contain old UUID strings.

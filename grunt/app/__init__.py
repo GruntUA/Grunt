@@ -1,6 +1,7 @@
 """Grunt developer API — the primary interface for building apps on the Grunt framework.
 
-This module provides a high-level, async-first API for app developers. It is context-aware: the current
+This module provides a high-level, async-first API for app developers.
+It is context-aware: the current
 database session, engine, and user are automatically injected via ContextVars that
 are set by the framework at the start of each request / lifecycle hook call.
 """

@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-import structlog
-
-logger = structlog.get_logger()
 from typing import Any
 
+import structlog
+
 import grunt
+
+logger = structlog.get_logger()
 
 
 @grunt.whitelist()

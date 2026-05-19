@@ -91,7 +91,6 @@ async def delete_doctype(name: str) -> bool:
     if not user.is_superadmin:
         grunt.throw("Admin only", "PERMISSION_DENIED")
 
-    dt = await doctype_registry.get(name)
     await doctype_registry.delete(name, grunt_app._require_session())
     return True
 

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from itertools import islice
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -51,16 +50,6 @@ from grunt.metadata.registry import doctype_registry
 logger = structlog.get_logger()
 
 PROTECTED_FIELDS = frozenset({"name", "owner", "created_at", "docstatus"})
-
-
-# SQLite degrades with large IN (...) lists; 500 is safe for all backends.
-_IN_CHUNK = 500
-
-
-def _chunks(lst: list, size: int):
-    it = iter(lst)
-    while chunk := list(islice(it, size)):
-        yield chunk
 
 
 def _friendly_integrity_error(exc: IntegrityError, dt: Any) -> HTTPException:
@@ -725,9 +714,6 @@ class DocumentWriteMixin:
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Document with name '{new_id}' already exists",
             )
-
-        # Fetch document before rename for hooks
-        doc_data = await self.get_document(doctype_name, old_id, user)
 
         # 1. Update main table
         await self.session.execute(table.update().where(table.c.name == old_id).values(name=new_id))

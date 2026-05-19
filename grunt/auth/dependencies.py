@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import structlog
-
-logger = structlog.get_logger()
 from typing import TYPE_CHECKING, Any
 
 import jwt
+import structlog
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 
@@ -22,7 +20,7 @@ if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
 
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
+logger = structlog.get_logger()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 _oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)
 

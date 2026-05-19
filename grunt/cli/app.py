@@ -223,7 +223,8 @@ def app_doctor(name: str | None):
             init_py = pkg_dir / "__init__.py"
             if not init_py.exists():
                 click.echo(
-                    f"  [!] {app_name}/__init__.py відсутній. {click.style('Створення...', fg='yellow')}"
+                    f"  [!] {app_name}/__init__.py відсутній. "
+                    f"{click.style('Створення...', fg='yellow')}"
                 )
                 init_py.touch()
                 click.echo(f"  {click.style('✓', fg='green')} __init__.py створено.")

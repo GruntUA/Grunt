@@ -396,7 +396,8 @@ class TreeService:
         *,
         sort_by: str | None = None,
     ) -> list:
-        """Build SA column list: always include name + parent_field + title, then requested extras."""
+        """Build SA column list: always include name + parent_field + title,
+        then requested extras."""
         always = {"name", parent_field, title_col}
         if sort_by:
             always.add(sort_by)

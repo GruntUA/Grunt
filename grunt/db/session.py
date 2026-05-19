@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import structlog
-
-logger = structlog.get_logger()
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
+
+import structlog
 
 from grunt.site.manager import site_manager
 
@@ -14,6 +13,9 @@ if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
 
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
+
+logger = structlog.get_logger()
 
 
 async def get_session() -> AsyncGenerator[AsyncSession]:
