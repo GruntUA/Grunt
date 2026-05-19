@@ -184,7 +184,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
         )
 
     # Names already claimed by system columns — skip any user field that would conflict.
-    _SYSTEM_COLS = frozenset(
+    _system_cols = frozenset(
         {
             "name",
             "owner",
@@ -203,7 +203,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     for field in doctype.fields:
         if field.fieldtype in NON_PHYSICAL_FIELDS:
             continue
-        if field.fieldname in _SYSTEM_COLS:
+        if field.fieldname in _system_cols:
             continue
 
         try:
@@ -221,7 +221,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     # Per-field unique constraints (named so they can be synced on ALTER)
     constraints: list = []
     for field in doctype.fields:
-        if field.fieldname in _SYSTEM_COLS:
+        if field.fieldname in _system_cols:
             continue
         if field.unique:
             uq_name = f"uq_{table_name}_{field.fieldname}"
@@ -229,7 +229,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
 
     # Non-unique indexes
     for field in doctype.fields:
-        if field.fieldname in _SYSTEM_COLS:
+        if field.fieldname in _system_cols:
             continue
         if field.index and not field.unique:
             constraints.append(Index(f"ix_{table_name}_{field.fieldname}", field.fieldname))
@@ -300,13 +300,14 @@ async def sync_table(
                         ).scalar()
                         or 0
                     )
-                    if max_stored > col.type.length:
+                    col_length = getattr(col.type, "length", None)
+                    if col_length is not None and max_stored > col_length:
                         logger.warning(
                             "compiler.skip_varchar_reduction",
                             table=table.name,
                             column=col.name,
                             current_max=max_stored,
-                            new_length=col.type.length,
+                            new_length=col_length,
                         )
                         continue
 
@@ -328,8 +329,8 @@ async def sync_table(
         # so merge both sources for a complete picture.
         existing_uq: set[str] = {ix["name"] for ix in insp.get_unique_constraints(table.name)}
         existing_uq |= {ix["name"] for ix in insp.get_indexes(table.name) if ix.get("unique")}
-        desired_uq = {
-            c.name: c for c in table.constraints if isinstance(c, UniqueConstraint) and c.name
+        desired_uq: dict[str, UniqueConstraint] = {
+            str(c.name): c for c in table.constraints if isinstance(c, UniqueConstraint) and c.name
         }
         uq_prefix = f"uq_{table.name}_"
         is_sqlite = connection.dialect.name == "sqlite"

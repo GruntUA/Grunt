@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import structlog
-
-logger = structlog.get_logger()
 from typing import TYPE_CHECKING, Any
 
+import structlog
 from pydantic import BaseModel
 
 if TYPE_CHECKING:
@@ -15,6 +13,8 @@ if TYPE_CHECKING:
 
 import importlib.util
 from pathlib import Path
+
+logger = structlog.get_logger()
 
 # Core field types (for documentation / reference)
 # Plugins can use any string identifier. Built-in types:
@@ -41,25 +41,29 @@ def register_field_type(
     factory: Any | None,
     *,
     searchable: bool = True,
+    empty_as_null: bool = False,
     python_type: str = "Any | None",
 ) -> None:
     """Register a new field type and its SQLAlchemy column factory.
 
     Args:
-        name:        Field type identifier (e.g. ``"Text"``, ``"Image"``).
-        factory:     Callable ``(DocField) -> (sa_type_name, *args)`` that
-                     returns the SQLAlchemy type spec for the field.
-                     Pass ``None`` for non-physical types (e.g. MultiLink)
-                     that have no database column.
-        searchable:  Whether the field's value should be included in
-                     full-text search indexing.  Set to ``False`` for
-                     binary data, structured blobs, or layout-only types.
-        python_type: Python type hint string used when scaffolding
-                     controller code (e.g. ``"str | None"``).
+        name:          Field type identifier (e.g. ``"Text"``, ``"Image"``).
+        factory:       Callable ``(DocField) -> (sa_type_name, *args)`` that
+                       returns the SQLAlchemy type spec for the field.
+                       Pass ``None`` for non-physical types (e.g. MultiLink)
+                       that have no database column.
+        searchable:    Whether the field's value should be included in
+                       full-text search indexing.  Set to ``False`` for
+                       binary data, structured blobs, or layout-only types.
+        empty_as_null: Whether an empty string should be coerced to ``None``
+                       during validation.  True for numeric, date, and boolean
+                       types where ``""`` is not a valid value.
+        python_type:   Python type hint string used when scaffolding
+                       controller code (e.g. ``"str | None"``).
     """
     if factory is not None:
         _SA_TYPE_MAP[name] = factory
-    _FIELD_META[name] = {"searchable": searchable}
+    _FIELD_META[name] = {"searchable": searchable, "empty_as_null": empty_as_null}
     _PYTHON_TYPE_MAP[name] = python_type
 
 
@@ -151,6 +155,15 @@ _init_core_mappings()
 # Layout helpers (Section/Column/Tab), relation containers (Table/MultiLink) and
 # display-only types (HTML, Button, Heading, …) all fall into this category.
 NON_PHYSICAL_FIELDS: frozenset[str] = frozenset(ft for ft in _FIELD_META if ft not in _SA_TYPE_MAP)
+
+
+def is_empty_as_null_fieldtype(fieldtype: str) -> bool:
+    """Return True if an empty string should be coerced to None for *fieldtype*.
+
+    Numeric, date/time, and boolean types cannot store ``""`` — empty input
+    should become ``None``.  Unknown / unregistered types return False.
+    """
+    return bool(_FIELD_META.get(fieldtype, {}).get("empty_as_null"))
 
 
 def is_physical_fieldtype(fieldtype: str) -> bool:
@@ -267,6 +280,11 @@ class DocField(BaseModel):
         of comparing against hardcoded field-type sets.
         """
         return is_physical_fieldtype(self.fieldtype) and not self.is_virtual
+
+    @property
+    def empty_as_null(self) -> bool:
+        """Return True if an empty string should be coerced to None for this field."""
+        return is_empty_as_null_fieldtype(self.fieldtype)
 
     @property
     def is_searchable(self) -> bool:

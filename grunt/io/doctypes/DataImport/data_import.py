@@ -75,9 +75,7 @@ class DataImport(Document):
 
         # Load required fields for dry-run validation
         dt = await doctype_registry.get(self.doctype_name)
-        required_fields = {
-            f.fieldname for f in dt.fields if f.required and f.fieldtype not in _SKIP_FIELDTYPES
-        }
+        required_fields = {f.fieldname for f in dt.fields if f.required and f.is_physical}
         mapped_dt_fields = set(mapping.values())
 
         total = len(rows)
@@ -250,7 +248,7 @@ class DataImport(Document):
             raise ValueError(f"Невідомий формат експорту: {fmt}")
 
         dt = await doctype_registry.get(doctype)
-        exportable = [f for f in dt.fields if f.fieldtype not in _SKIP_FIELDTYPES]
+        exportable = [f for f in dt.fields if f.is_physical]
         if fields:
             exportable = [f for f in exportable if f.fieldname in fields]
 
@@ -279,7 +277,7 @@ class DataImport(Document):
             raise ValueError(f"Невідомий формат: {fmt}")
 
         dt = await doctype_registry.get(doctype)
-        exportable = [f for f in dt.fields if f.fieldtype not in _SKIP_FIELDTYPES]
+        exportable = [f for f in dt.fields if f.is_physical]
         content = await exporter.export(doctype, [], exportable)
         filename = f"{doctype.lower()}_template.{exporter.file_extension}"
         return content, filename

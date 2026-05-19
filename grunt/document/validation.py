@@ -6,7 +6,7 @@ from datetime import date, datetime, time
 from typing import TYPE_CHECKING, Any
 
 from grunt.document.validators import validate_field_value
-from grunt.metadata.field import NON_PHYSICAL_FIELDS
+from grunt.metadata.field import is_empty_as_null_fieldtype, is_physical_fieldtype
 
 if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
@@ -14,28 +14,22 @@ if TYPE_CHECKING:
 
 def _coerce_value(value: Any, fieldtype: str) -> Any:
     """Convert string values to proper Python types for SQLAlchemy."""
-    from grunt.metadata.field import _SA_TYPE_MAP  # noqa: PLC0415
-
     # Check fields always coerce to bool — never store NULL
     if fieldtype == "Check":
         if value is None or value == "":
             return False
         return bool(value)
 
-    # Determine the SA type name for this fieldtype (built-in or registered)
+    if value is None or value == "":
+        return None if is_empty_as_null_fieldtype(fieldtype) else value
+
+    from grunt.metadata.field import _SA_TYPE_MAP  # noqa: PLC0415
+
     factory = _SA_TYPE_MAP.get(fieldtype)
     try:
         sa_type = factory(None)[0] if factory else fieldtype
     except Exception:
-        sa_type = fieldtype  # fallback if factory requires field attributes
-
-    _NULL_TYPES = {"Date", "Datetime", "Time", "Integer", "Float"}
-    if value is None or value == "":
-        return (
-            None
-            if (fieldtype in ("Date", "Datetime", "Time", "Int") or sa_type in _NULL_TYPES)
-            else value
-        )
+        sa_type = fieldtype
 
     if fieldtype == "Date" and isinstance(value, str):
         # Accept both "YYYY-MM-DD" and "YYYY-MM-DD HH:MM:SS" / full ISO datetime
@@ -66,7 +60,7 @@ def _validate_data(
     """Validate document data against DocType fields."""
     errors: list[str] = []
     for field in doctype.fields:
-        if field.fieldtype in NON_PHYSICAL_FIELDS:
+        if not is_physical_fieldtype(field.fieldtype):
             continue
 
         value = data.get(field.fieldname)

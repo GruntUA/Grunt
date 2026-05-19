@@ -53,7 +53,6 @@ async def list_apps() -> list[dict[str, Any]]:
     apps = await grunt_app.get_list("GruntInstalledApp")
     return [
         {
-            "name": str(a.get("name")),
             "name": a.get("name"),
             "title": a.get("title"),
             "version": a.get("version", "0.1.0"),

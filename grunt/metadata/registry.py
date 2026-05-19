@@ -269,7 +269,7 @@ class DocTypeRegistry:
                             added=[f.fieldname for f in new_fields],
                         )
                 # Sync top-level structural properties from JSON
-                _TOP_STRUCTURAL = {
+                _top_structural = {
                     "is_child",
                     "is_singleton",
                     "is_virtual",
@@ -283,13 +283,14 @@ class DocTypeRegistry:
                     "module",
                     "app",
                 }
-                for attr in _TOP_STRUCTURAL:
+                for attr in _top_structural:
                     json_val = getattr(doctype, attr, None)
                     if json_val is not None and getattr(active_dt, attr, None) != json_val:
                         setattr(active_dt, attr, json_val)
 
-                # Sync field-level structural properties from JSON (fieldtype, options, label, default, etc.)
-                _STRUCTURAL = {
+                # Sync field-level structural properties from JSON
+                # (fieldtype, options, label, default, etc.)
+                _structural = {
                     "fieldtype",
                     "options",
                     "label",
@@ -315,7 +316,7 @@ class DocTypeRegistry:
                     stored_field = stored_fieldnames.get(json_field.fieldname)
                     if stored_field is None:
                         continue
-                    for attr in _STRUCTURAL:
+                    for attr in _structural:
                         if getattr(stored_field, attr, None) != getattr(json_field, attr, None):
                             setattr(stored_field, attr, getattr(json_field, attr, None))
 
@@ -484,7 +485,10 @@ class DocTypeRegistry:
             if not _FIELDNAME_RE.match(f.fieldname):
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                    detail=f"Invalid fieldname '{f.fieldname}': must start with a-z and contain only a-z, 0-9, _",
+                    detail=(
+                        f"Invalid fieldname '{f.fieldname}': "
+                        "must start with a-z and contain only a-z, 0-9, _"
+                    ),
                 )
             if len(f.fieldname) > _MAX_FIELDNAME_LEN:
                 raise HTTPException(

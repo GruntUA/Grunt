@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import structlog
-
-logger = structlog.get_logger()
 from typing import Any
 
+import structlog
 from fastapi import HTTPException, Response, UploadFile
 
 from grunt.api.context import whitelist
@@ -13,6 +11,8 @@ from grunt.config import settings
 from grunt.context import _user_ctx
 from grunt.document.base import Document
 from grunt.storage import get_storage_backend
+
+logger = structlog.get_logger()
 
 _IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"}
 

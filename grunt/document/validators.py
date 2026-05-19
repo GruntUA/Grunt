@@ -26,11 +26,14 @@ from __future__ import annotations
 import importlib
 import importlib.util
 import inspect
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import structlog
 
 from grunt.validators.base import Validator
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = structlog.get_logger()
 

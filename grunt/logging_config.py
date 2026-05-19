@@ -14,11 +14,13 @@ from __future__ import annotations
 
 import logging
 import logging.handlers
-from collections.abc import MutableMapping
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
+
+if TYPE_CHECKING:
+    from collections.abc import MutableMapping
+    from pathlib import Path
 
 _LOG_SUBDIRS = ("system", "web", "apps", "sites", "db", "scheduler")
 
@@ -124,7 +126,7 @@ def configure_logging(
     root.addHandler(console_handler)
 
     # Suppress verbose third-party libraries that spam at DEBUG level
-    _NOISY_LOGGERS = (
+    _noisy_loggers = (
         "aiosqlite",  # logs every SQLite operation
         "sqlalchemy.pool",  # logs every connection pool event
         "sqlalchemy.engine",  # logs raw SQL when echo=True
@@ -139,7 +141,7 @@ def configure_logging(
         "apscheduler.executors",
         "apscheduler.jobstores",
     )
-    for _name in _NOISY_LOGGERS:
+    for _name in _noisy_loggers:
         logging.getLogger(_name).setLevel(logging.WARNING)
 
     if not log_to_file:

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 from fastapi import HTTPException
-from sqlalchemy import func, text
+from sqlalchemy import func, select, text
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

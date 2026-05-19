@@ -6,6 +6,7 @@ import structlog
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
 import grunt.auth.doctypes.User.user  # noqa: F401
@@ -19,13 +20,6 @@ from grunt.config import settings
 from grunt.document.registry import document_registry
 from grunt.errors import GruntError
 from grunt.hooks import register_doc_events
-from grunt.metadata.registry import doctype_registry
-from grunt.site.manager import current_site, site_manager
-from grunt.site.middleware import SiteContextMiddleware
-from grunt.tasks.broker import broker
-from grunt.tasks.scheduler import register_scheduler_events, start_scheduler, stop_scheduler
-
-document_registry.discover_core_controllers()
 
 # Register built-in io exporters / importers
 from grunt.io import register_exporter, register_importer  # noqa: E402
@@ -33,7 +27,14 @@ from grunt.io.exporters.csv import CsvExporter  # noqa: E402
 from grunt.io.exporters.xlsx import XlsxExporter  # noqa: E402
 from grunt.io.importers.csv import CsvImporter  # noqa: E402
 from grunt.io.importers.xlsx import XlsxImporter  # noqa: E402
+from grunt.metadata.registry import doctype_registry
+from grunt.site.manager import current_site, site_manager
+from grunt.site.middleware import SiteContextMiddleware
+from grunt.tasks.broker import broker
+from grunt.tasks.scheduler import register_scheduler_events, start_scheduler, stop_scheduler
+from grunt.website import make_website_handler, website_registry
 
+document_registry.discover_core_controllers()
 register_exporter(XlsxExporter())
 register_exporter(CsvExporter())
 register_importer(CsvImporter())
@@ -337,7 +338,7 @@ if settings.debug:
 app.include_router(v1_router, prefix="/api/v1")
 
 # ── Register Core Website Pages (mounted at root) ──
-from grunt.website import make_website_handler, website_registry  # noqa: PLC0415
+
 
 core_website_dir = _Path(__file__).parent / "website"
 for page in website_registry.discover_app(core_website_dir, "grunt", is_main_app=True):
@@ -350,8 +351,6 @@ for page in website_registry.discover_app(core_website_dir, "grunt", is_main_app
     )
 
 # ── Static Assets ──
-from fastapi.staticfiles import StaticFiles  # noqa: PLC0415
-
 main_public_dir = _Path(__file__).parent.parent / "public"
 if main_public_dir.is_dir():
     app.mount("/assets/grunt", StaticFiles(directory=str(main_public_dir)), name="assets_grunt")

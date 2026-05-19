@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 import json
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from grunt.startup.doctypes import _find_doctype_dirs
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def load_doctype_from_file(doctype: str) -> dict[str, Any]:

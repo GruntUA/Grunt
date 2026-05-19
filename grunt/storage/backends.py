@@ -206,11 +206,7 @@ def get_storage_backend() -> StorageBackend:
     from grunt.site.manager import current_site  # noqa: PLC0415
 
     site = current_site.get("")
-    if not site:
-        # fallback outside of a site context (e.g. tests)
-        upload_dir = settings.upload_dir
-    else:
-        upload_dir = _resolve_local_upload_dir(site)
+    upload_dir = settings.upload_dir if not site else _resolve_local_upload_dir(site)
 
     if upload_dir not in _backends:
         _backends[upload_dir] = LocalStorageBackend(upload_dir)
