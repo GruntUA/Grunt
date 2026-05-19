@@ -25,7 +25,7 @@ import { reactive } from 'vue'
 
 // ── Types ────────────────────────────────────────────────────────────────
 
-export type DialogFieldType = 'Text' | 'LongText' | 'Int' | 'Float' | 'Date' | 'Datetime' | 'Select' | 'Check' | 'HTML'
+export type DialogFieldType = 'Text' | 'LongText' | 'Code' | 'Int' | 'Float' | 'Date' | 'Datetime' | 'Select' | 'Check' | 'HTML' | 'Link'
 
 export interface DialogField {
   fieldname: string
@@ -33,8 +33,10 @@ export interface DialogField {
   fieldtype?: DialogFieldType
   required?: boolean
   default?: unknown
-  options?: string // for Select: newline-separated
+  options?: string // for Select: newline-separated; for Link: DocType name
   placeholder?: string
+  read_only?: boolean
+  description?: string
 }
 
 export interface MsgprintOptions {

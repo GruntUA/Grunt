@@ -1,10 +1,22 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useDialog } from '@/core/composables/useDialog'
+import LinkField from '@/components/fields/Link/Link.vue'
 
 const { state, close } = useDialog()
 const promptValue = ref('')
 const formValues = ref<Record<string, any>>({})
+const copiedField = ref<string | null>(null)
+
+async function copyToClipboard(fieldname: string, value: string) {
+  try {
+    await navigator.clipboard.writeText(value)
+    copiedField.value = fieldname
+    setTimeout(() => { copiedField.value = null }, 2000)
+  } catch {
+    // fallback: select text in the textarea
+  }
+}
 
 watch(() => state.open, (v) => {
   if (v) {
@@ -84,8 +96,44 @@ function onOpenChange(v: boolean) {
                         <label :for="field.fieldname" class="cursor-pointer text-sm">{{ field.label }}</label>
                     </div>
                 </template>
+                <template v-else-if="field.fieldtype === 'LongText' || field.fieldtype === 'Code'">
+                    <div class="flex items-center justify-between gap-2">
+                        <label :for="field.fieldname" class="text-sm font-medium">{{ field.label }}</label>
+                        <button
+                            v-if="field.read_only"
+                            type="button"
+                            class="shrink-0 text-xs px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+                            @click="copyToClipboard(field.fieldname, String(formValues[field.fieldname] ?? ''))"
+                        >
+                            {{ copiedField === field.fieldname ? 'Скопійовано ✓' : 'Копіювати' }}
+                        </button>
+                    </div>
+                    <p v-if="field.description" class="text-xs text-muted-foreground -mt-1">{{ field.description }}</p>
+                    <textarea
+                        :id="field.fieldname"
+                        v-model="formValues[field.fieldname]"
+                        :readonly="field.read_only"
+                        rows="12"
+                        :class="[
+                            'w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none',
+                            field.fieldtype === 'Code' ? 'font-mono' : '',
+                            field.read_only ? 'bg-muted/40 cursor-default' : '',
+                        ]"
+                    />
+                </template>
+                <template v-else-if="field.fieldtype === 'Link'">
+                    <label :for="field.fieldname" class="text-sm font-medium">{{ field.label }}</label>
+                    <p v-if="field.description" class="text-xs text-muted-foreground -mt-1">{{ field.description }}</p>
+                    <LinkField
+                        :field="{ fieldname: field.fieldname, fieldtype: 'Link', options: field.options, label: field.label }"
+                        :model-value="formValues[field.fieldname]"
+                        @update:model-value="formValues[field.fieldname] = $event"
+                        @create-new="() => {}"
+                    />
+                </template>
                 <template v-else>
                     <label :for="field.fieldname" class="text-sm font-medium">{{ field.label }}</label>
+                    <p v-if="field.description" class="text-xs text-muted-foreground -mt-1">{{ field.description }}</p>
                     <InputText :id="field.fieldname" v-model="formValues[field.fieldname]" :placeholder="field.placeholder"
                         :type="field.fieldtype === 'Int' || field.fieldtype === 'Float' ? 'number' : 'text'"
                         class="w-full"
