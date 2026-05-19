@@ -52,11 +52,13 @@ def _build_scaffold_context(doctype_name: str, fields: list) -> dict:
         if fieldtype in ("Table", "Table MultiSelect"):
             table_fields.append({"fieldname": fieldname, "options": options})
         elif is_physical_fieldtype(fieldtype):
-            physical_fields.append({
-                "fieldname": fieldname,
-                "py_type": get_python_type(fieldtype),
-                "label": label,
-            })
+            physical_fields.append(
+                {
+                    "fieldname": fieldname,
+                    "py_type": get_python_type(fieldtype),
+                    "label": label,
+                }
+            )
 
     return {
         "name": doctype_name,

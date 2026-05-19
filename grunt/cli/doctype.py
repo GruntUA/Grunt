@@ -29,6 +29,7 @@ def doctype_sync(name: str, site: str | None):
         # Find JSON file across all grunt/*/doctypes/ and app doctypes/
         json_file = None
         from grunt.site.manager import site_manager  # noqa: PLC0415
+
         search_dirs = list(_find_doctype_dirs())
         # Also search installed app doctypes
         if site_manager.bench_dir:
@@ -63,7 +64,9 @@ def doctype_sync(name: str, site: str | None):
             await doctype_registry.update(dt, session, eng)
             await session.commit()
 
-        click.echo(f"DocType '{name}' синхронізовано з {json_file.relative_to(json_file.parents[3])}.")
+        click.echo(
+            f"DocType '{name}' синхронізовано з {json_file.relative_to(json_file.parents[3])}."
+        )
 
     asyncio.run(_run())
 

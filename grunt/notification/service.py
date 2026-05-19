@@ -251,6 +251,7 @@ class NotificationService:
             return []
         try:
             from grunt.app import grunt  # noqa: PLC0415
+
             async with grunt.system_context(session):
                 # Collect user_ids for all requested roles
                 user_ids: set[str] = set()
@@ -304,13 +305,14 @@ class NotificationService:
 
         try:
             return template.format(**context)
-        except (KeyError, IndexError):
+        except KeyError, IndexError:
             return template
 
     def _eval_condition(self, condition: str, doc: dict[str, Any], user: str) -> bool:
         """Evaluate a Python condition expression safely."""
         try:
             from simpleeval import simple_eval
+
             return bool(simple_eval(condition, names={"doc": doc, "user": user}))
         except Exception:  # noqa: BLE001
             return True  # Don't block on eval errors

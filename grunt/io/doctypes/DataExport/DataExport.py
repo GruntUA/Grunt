@@ -11,8 +11,8 @@ from typing import Any
 
 import structlog
 
-from grunt.io.doctypes.DataImport.DataImport import DataImport
 from grunt.document.base import Document
+from grunt.io.doctypes.DataImport.DataImport import DataImport
 
 logger = structlog.get_logger()
 

@@ -188,14 +188,15 @@ class TreeService:
         col_names = [c.key for c in select_cols]
 
         import re
+
         def _check_id(s: str) -> str:
             if not re.match(r"^[a-zA-Z0-9_]+$", s):
                 raise ValueError(f"Invalid identifier: {s}")
             return s
-            
+
         table_name = _check_id(table.name)
         pf = _check_id(parent_field)
-        
+
         if root_id is None:
             # Start from root nodes
             anchor_where = f'("{pf}" IS NULL OR "{pf}" = \'\')'
@@ -249,9 +250,7 @@ class TreeService:
 
             preserve_ancestors = True
             if ctrl_cls.tree_preserve_ancestors is not Document.tree_preserve_ancestors:
-                preserve_ancestors = await ctrl_cls.tree_preserve_ancestors(
-                    session, filters, table
-                )
+                preserve_ancestors = await ctrl_cls.tree_preserve_ancestors(session, filters, table)
 
             filtered_q = filtered_q.where(table.c.name.in_(tree_ids))
             filtered_result = await session.execute(filtered_q)
@@ -302,6 +301,7 @@ class TreeService:
         select_cols = self._build_select_cols(table, fields, title_col, parent_field)
         col_names = [c.key for c in select_cols]
         import re
+
         def _check_id(s: str) -> str:
             if not re.match(r"^[a-zA-Z0-9_]+$", s):
                 raise ValueError(f"Invalid identifier: {s}")

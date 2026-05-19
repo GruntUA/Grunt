@@ -194,7 +194,9 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
 
         # Try exact match first (e.g. HromsStaffingTable/HromsStaffingTable.js)
         js_file = doctypes_dir / doctype / f"{doctype}.js"
-        logger.info("file_scripts.try_path", app=app_name, path=str(js_file), exists=js_file.exists())
+        logger.info(
+            "file_scripts.try_path", app=app_name, path=str(js_file), exists=js_file.exists()
+        )
 
         if not js_file.exists():
             # Try first-letter-capitalized (e.g. hromsStaffingTable → HromsStaffingTable)

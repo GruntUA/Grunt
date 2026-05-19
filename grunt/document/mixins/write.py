@@ -26,13 +26,6 @@ from grunt.document.relations import (
     _load_child_tables,
     _save_child_tables,
 )
-from grunt.document.validation import _coerce_value, _validate_data
-from grunt.document.virtual import (
-    _is_virtual_routed,
-    _virtual_create,
-    _virtual_delete,
-    _virtual_update,
-)
 from grunt.document.update_side_effects import (
     bulk_delete_virtual,
     collect_bulk_delete_candidates,
@@ -43,6 +36,13 @@ from grunt.document.update_side_effects import (
     run_bulk_after_delete_hooks,
     run_bulk_before_delete_hooks,
     run_bulk_delete_writes,
+)
+from grunt.document.validation import _coerce_value, _validate_data
+from grunt.document.virtual import (
+    _is_virtual_routed,
+    _virtual_create,
+    _virtual_delete,
+    _virtual_update,
 )
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.field import NON_PHYSICAL_FIELDS
@@ -278,9 +278,7 @@ class DocumentWriteMixin:
                 detail=str(e),
             ) from e
 
-    async def _fire_create_services(
-        self, doctype_name: str, dt: Any, row: dict[str, Any]
-    ) -> None:
+    async def _fire_create_services(self, doctype_name: str, dt: Any, row: dict[str, Any]) -> None:
         """Update the search index and fire outgoing webhooks after a successful insert."""
         from grunt.search.service import search_index_service  # noqa: PLC0415
         from grunt.webhook.service import webhook_service  # noqa: PLC0415
@@ -319,9 +317,7 @@ class DocumentWriteMixin:
 
         errors = _validate_data(dt, data, ignore_required=ignore_required)
         if errors:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors
-            )
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
         now = datetime.now(UTC)
         doc_id, row = await self._build_initial_row(dt, table, data, user, now)
@@ -494,9 +490,7 @@ class DocumentWriteMixin:
 
         errors = _validate_data(dt, data, partial=True, ignore_required=ignore_required)
         if errors:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors
-            )
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
         update_data = self._build_update_payload(dt, table, data, user)
         real_id = existing["name"]
@@ -736,17 +730,13 @@ class DocumentWriteMixin:
         doc_data = await self.get_document(doctype_name, old_id, user)
 
         # 1. Update main table
-        await self.session.execute(
-            table.update().where(table.c.name == old_id).values(name=new_id)
-        )
+        await self.session.execute(table.update().where(table.c.name == old_id).values(name=new_id))
 
         # 2. Update references across all DocTypes
         all_dts = await doctype_registry.list_all()
         for other_dt in all_dts:
             # A. Update child tables (Tables)
-            is_child = any(
-                f.fieldtype == "Table" and f.options == other_dt.name for f in dt.fields
-            )
+            is_child = any(f.fieldtype == "Table" and f.options == other_dt.name for f in dt.fields)
             if is_child:
                 child_table = compile_doctype_to_table(other_dt)
                 await self.session.execute(

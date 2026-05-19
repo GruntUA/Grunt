@@ -14,8 +14,9 @@ from __future__ import annotations
 
 import logging
 import logging.handlers
+from collections.abc import MutableMapping
 from pathlib import Path
-from typing import Any, MutableMapping
+from typing import Any
 
 import structlog
 
@@ -27,7 +28,9 @@ _SCHEDULER_LOGGERS = ("grunt.tasks", "grunt.worker", "grunt.tasks.scheduler")
 _SEP = "─" * 80
 
 
-def _slow_query_renderer(_logger: object, _method: str, event_dict: MutableMapping[str, Any]) -> str:
+def _slow_query_renderer(
+    _logger: object, _method: str, event_dict: MutableMapping[str, Any]
+) -> str:
     """Human-readable formatter for slow query log entries."""
     ts = (event_dict.get("timestamp") or "")[:19].replace("T", " ")
     level = (event_dict.get("level") or "").upper()
@@ -39,8 +42,17 @@ def _slow_query_renderer(_logger: object, _method: str, event_dict: MutableMappi
     param_count = event_dict.get("param_count", "")
 
     # Extra fields (anything not handled above)
-    _known = {"timestamp", "level", "logger", "event", "sql",
-               "duration_ms", "threshold_ms", "request_id", "param_count"}
+    _known = {
+        "timestamp",
+        "level",
+        "logger",
+        "event",
+        "sql",
+        "duration_ms",
+        "threshold_ms",
+        "request_id",
+        "param_count",
+    }
     extras = {k: v for k, v in event_dict.items() if k not in _known and v is not None}
 
     header = f"{ts}  {level}  {event}"
@@ -113,16 +125,16 @@ def configure_logging(
 
     # Suppress verbose third-party libraries that spam at DEBUG level
     _NOISY_LOGGERS = (
-        "aiosqlite",           # logs every SQLite operation
-        "sqlalchemy.pool",     # logs every connection pool event
-        "sqlalchemy.engine",   # logs raw SQL when echo=True
+        "aiosqlite",  # logs every SQLite operation
+        "sqlalchemy.pool",  # logs every connection pool event
+        "sqlalchemy.engine",  # logs raw SQL when echo=True
         "sqlalchemy.orm",
-        "uvicorn.access",      # uvicorn request log (we log via middleware)
+        "uvicorn.access",  # uvicorn request log (we log via middleware)
         "asyncio",
         "multipart",
         "httpcore",
         "httpx",
-        "apscheduler",         # job add/remove/wakeup spam
+        "apscheduler",  # job add/remove/wakeup spam
         "apscheduler.scheduler",
         "apscheduler.executors",
         "apscheduler.jobstores",

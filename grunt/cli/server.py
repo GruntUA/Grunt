@@ -23,7 +23,12 @@ def init():
 
 @click.command()
 @click.option("--port", default=8000, help="Порт для API")
-@click.option("--reload", is_flag=True, default=True, help="Режим перезавантаження (увімкнено за замовчуванням)")
+@click.option(
+    "--reload",
+    is_flag=True,
+    default=True,
+    help="Режим перезавантаження (увімкнено за замовчуванням)",
+)
 @click.option("--no-frontend", is_flag=True, help="Не запускати фронтенд")
 def serve(port, reload, no_frontend):
     root_dir = Path(__file__).parents[2]
@@ -53,10 +58,14 @@ def serve(port, reload, no_frontend):
     if reload:
         cmd += [
             "--reload",
-            "--reload-include", "*.py",
-            "--reload-include", "*.js",
-            "--reload-include", "*.json",
-            "--reload-dir", str(root_dir / "grunt"),
+            "--reload-include",
+            "*.py",
+            "--reload-include",
+            "*.js",
+            "--reload-include",
+            "*.json",
+            "--reload-dir",
+            str(root_dir / "grunt"),
         ]
         # Watch inner Python packages of external apps so .py/.js/.json
         # changes trigger reload without picking up .git/, README, etc.

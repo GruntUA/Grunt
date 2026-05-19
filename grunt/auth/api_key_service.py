@@ -76,7 +76,7 @@ async def authenticate_api_key(
     key_prefix = raw[:8]
 
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.auth.doctypes.User.User import SYSTEM_USER, get_user_by_id  # noqa: PLC0415
+    from grunt.auth.doctypes.User.User import get_user_by_id  # noqa: PLC0415
 
     async with grunt.system_context(session):
         rows = await grunt.db.get_all(
@@ -131,7 +131,9 @@ async def authenticate_api_key(
     # Update last_used_at (best-effort, don't fail the request)
     try:
         async with grunt.system_context(session):
-            await grunt.db.set_value("ApiKey", matched_row["name"], "last_used_at", datetime.now(UTC))
+            await grunt.db.set_value(
+                "ApiKey", matched_row["name"], "last_used_at", datetime.now(UTC)
+            )
     except Exception:  # noqa: BLE001
         logger.exception("suppressed_error")
 

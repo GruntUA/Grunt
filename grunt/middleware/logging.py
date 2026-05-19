@@ -74,9 +74,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
             site = current_site.get(None)
             access_logger = (
-                structlog.get_logger(f"grunt.web.{_safe_logger_name(site)}")
-                if site
-                else logger
+                structlog.get_logger(f"grunt.web.{_safe_logger_name(site)}") if site else logger
             )
             access_logger.info(
                 "http.request",

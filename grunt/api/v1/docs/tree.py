@@ -18,10 +18,10 @@ from grunt.api.router import GruntRouter
 from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.auth.dependencies import current_user
-from grunt.metadata.compiler import compile_doctype_to_table
-from grunt.metadata.registry import doctype_registry
 from grunt.auth.doctypes.User.User import User
 from grunt.document.tree import tree_service
+from grunt.metadata.compiler import compile_doctype_to_table
+from grunt.metadata.registry import doctype_registry
 
 router = GruntRouter(prefix="", tags=["docs", "tree"])
 

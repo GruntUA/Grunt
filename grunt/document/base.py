@@ -57,6 +57,7 @@ Accessing document data::
 from __future__ import annotations
 
 import structlog
+
 logger = structlog.get_logger()
 from typing import TYPE_CHECKING, Any
 
@@ -71,19 +72,21 @@ _RESERVED = frozenset({"doctype", "data", "user", "session"})
 
 # System fields managed by the framework — exposed as read-only properties on Document.
 # Controllers must not set these directly; use self.data["field"] = ... if truly needed.
-SYS_FIELDS: frozenset[str] = frozenset({
-    "id",
-    "name",
-    "owner",
-    "docstatus",
-    "idx",
-    "created_at",
-    "modified_at",
-    "modified_by",
-    "parent",
-    "parentfield",
-    "parenttype",
-})
+SYS_FIELDS: frozenset[str] = frozenset(
+    {
+        "id",
+        "name",
+        "owner",
+        "docstatus",
+        "idx",
+        "created_at",
+        "modified_at",
+        "modified_by",
+        "parent",
+        "parentfield",
+        "parenttype",
+    }
+)
 
 
 class DocumentList(list):

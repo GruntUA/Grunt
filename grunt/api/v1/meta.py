@@ -24,7 +24,6 @@ async def _get_app_name_for_module(module: str) -> str | None:
     return None
 
 
-
 @grunt.whitelist()
 async def get_doctype(name: str) -> dict[str, Any]:
     """Get a single DocType definition, always re-reading from DB."""
@@ -140,9 +139,7 @@ async def search_meta(q: str, limit: int = 20) -> list[dict[str, Any]]:
             "Report", filters={"name": ["like", f"%{q}%"]}, fields=["name"], limit=int(limit)
         )
         for r in reports:
-            results.append(
-                {"doctype": "Report", "name": r["name"], "display_title": r["name"]}
-            )
+            results.append({"doctype": "Report", "name": r["name"], "display_title": r["name"]})
     except Exception:
         logger.exception("suppressed_error")
     return results[: int(limit)]
@@ -245,7 +242,7 @@ async def fix_link_uuids(doctype: str | None = None) -> dict[str, Any]:
                         f'SET "{fieldname}" = ('
                         f'  SELECT t.name FROM "{target_table}" t'
                         f'  WHERE t.id = "{source_table}"."{fieldname}"'
-                        f') '
+                        f") "
                         f'WHERE "{fieldname}" IN (SELECT id FROM "{target_table}")'
                     )
                 )

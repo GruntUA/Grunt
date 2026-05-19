@@ -285,7 +285,9 @@ class TestGruntAppLayerPermissions:
                 "grunt.permissions.rbac.permission_checker.require",
                 new_callable=AsyncMock,
             ) as mock_require,
-            patch.object(grunt.db, "exists", new_callable=AsyncMock, return_value="INV-001") as mock_db_exists,
+            patch.object(
+                grunt.db, "exists", new_callable=AsyncMock, return_value="INV-001"
+            ) as mock_db_exists,
             patch("grunt.hooks.fire", new_callable=AsyncMock),
         ):
             result = await grunt.exists("Invoice", {"name": "INV-001"})
@@ -318,7 +320,9 @@ class TestGruntAppLayerPermissions:
                 "grunt.permissions.rbac.permission_checker.require",
                 new_callable=AsyncMock,
             ) as mock_require,
-            patch.object(grunt.db, "get_all", new_callable=AsyncMock, return_value=rows) as mock_db_get_all,
+            patch.object(
+                grunt.db, "get_all", new_callable=AsyncMock, return_value=rows
+            ) as mock_db_get_all,
             patch("grunt.hooks.fire", new_callable=AsyncMock) as mock_fire,
         ):
             result = await grunt.get_all(

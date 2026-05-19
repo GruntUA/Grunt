@@ -18,6 +18,13 @@ from grunt.api.v1.auth.schemas import (
 )
 from grunt.api.v1.schemas.response import ok
 from grunt.auth.dependencies import current_user
+from grunt.auth.doctypes.User.User import (
+    User,
+    authenticate,
+    create_user,
+    get_user_by_email,
+    get_user_by_id,
+)
 from grunt.auth.service import (
     create_access_token,
     create_mfa_token,
@@ -27,14 +34,6 @@ from grunt.auth.service import (
     verify_mfa_token,
 )
 from grunt.db.session import get_session
-from grunt.auth.doctypes.User.User import (
-    SYSTEM_USER,
-    User,
-    authenticate,
-    create_user,
-    get_user_by_email,
-    get_user_by_id,
-)
 from grunt.middleware.rate_limit import limiter
 
 if TYPE_CHECKING:
@@ -302,7 +301,6 @@ async def list_sessions(
 ) -> dict:
     """Return all active sessions for the current user."""
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
 
     async with grunt.system_context(session):
         sessions = await grunt.get_list(

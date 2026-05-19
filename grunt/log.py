@@ -43,9 +43,7 @@ class GruntLogger:
         stack = inspect.stack()
         # stack depth: _log (0) → info/error/... (1) → caller (2)
         caller_module = (
-            stack[2][0].f_globals.get("__name__", "grunt")
-            if len(stack) > 2
-            else "grunt"
+            stack[2][0].f_globals.get("__name__", "grunt") if len(stack) > 2 else "grunt"
         )
         getattr(structlog.get_logger(caller_module), level)(event, **kwargs)
 

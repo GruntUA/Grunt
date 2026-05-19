@@ -29,8 +29,9 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import io
+from collections.abc import Awaitable, Callable
 from datetime import UTC
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import structlog
 
@@ -448,8 +449,7 @@ class ServerScriptRunner:
             _session_ctx.reset(token)
 
         scripts: list[dict[str, Any]] = [
-            {"name": str(r.get("name") or ""), "script": str(r.get("script") or "")}
-            for r in rows
+            {"name": str(r.get("name") or ""), "script": str(r.get("script") or "")} for r in rows
         ]
 
         # Append file-based scripts
@@ -518,8 +518,7 @@ class ServerScriptRunner:
             _session_ctx.reset(token)
 
         return [
-            {"name": r.get("name"), "script": r.get("script"), "cron": r.get("cron")}
-            for r in rows
+            {"name": r.get("name"), "script": r.get("script"), "cron": r.get("cron")} for r in rows
         ]
 
     async def execute(

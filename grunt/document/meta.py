@@ -38,6 +38,7 @@ class Meta:
     def table_name(self) -> str:
         """Return the physical table name, computing it if not explicitly set."""
         from grunt.metadata.compiler import get_table_name  # noqa: PLC0415
+
         return self.doc.table_name or get_table_name(self.doc.module, self.doc.name)
 
     def get_field(self, fieldname: str) -> DocField | None:

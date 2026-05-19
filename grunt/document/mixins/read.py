@@ -19,10 +19,9 @@ if TYPE_CHECKING:
     from grunt.document.multi_link import MultiLinkService
 
 
-from grunt.document.formula import compute_formulas, evaluate_read_formulas
+from grunt.document.formula import evaluate_read_formulas
 from grunt.document.query import _apply_filters, _apply_search
 from grunt.document.relations import (
-    _EXTRA_INJECT,
     _get_multi_link_fields,
     _load_child_tables,
     _resolve_link_labels,

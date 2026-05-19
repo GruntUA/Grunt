@@ -184,10 +184,20 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
         )
 
     # Names already claimed by system columns — skip any user field that would conflict.
-    _SYSTEM_COLS = frozenset({
-        "name", "owner", "created_at", "modified_at", "modified_by", "docstatus",
-        "parent_name", "parent_doctype", "parent_field", "idx",
-    })
+    _SYSTEM_COLS = frozenset(
+        {
+            "name",
+            "owner",
+            "created_at",
+            "modified_at",
+            "modified_by",
+            "docstatus",
+            "parent_name",
+            "parent_doctype",
+            "parent_field",
+            "idx",
+        }
+    )
 
     # User-defined fields
     for field in doctype.fields:
@@ -319,9 +329,7 @@ async def sync_table(
         existing_uq: set[str] = {ix["name"] for ix in insp.get_unique_constraints(table.name)}
         existing_uq |= {ix["name"] for ix in insp.get_indexes(table.name) if ix.get("unique")}
         desired_uq = {
-            c.name: c
-            for c in table.constraints
-            if isinstance(c, UniqueConstraint) and c.name
+            c.name: c for c in table.constraints if isinstance(c, UniqueConstraint) and c.name
         }
         uq_prefix = f"uq_{table.name}_"
         is_sqlite = connection.dialect.name == "sqlite"
@@ -339,10 +347,10 @@ async def sync_table(
                 # Safety: raise with details if non-empty data has duplicates
                 dup_rows = connection.execute(
                     text(
-                        f'SELECT {cols_sql}, GROUP_CONCAT(name) as ids, COUNT(*) as cnt '
+                        f"SELECT {cols_sql}, GROUP_CONCAT(name) as ids, COUNT(*) as cnt "
                         f'FROM "{table.name}" '
-                        f'WHERE {where_nonempty} '
-                        f'GROUP BY {cols_sql} HAVING COUNT(*) > 1'
+                        f"WHERE {where_nonempty} "
+                        f"GROUP BY {cols_sql} HAVING COUNT(*) > 1"
                     )
                 ).fetchall()
                 if dup_rows:
@@ -361,7 +369,7 @@ async def sync_table(
                     text(
                         f'CREATE UNIQUE INDEX IF NOT EXISTS "{name}" '
                         f'ON "{table.name}" ({cols_sql}) '
-                        f'WHERE {where_nonempty}'
+                        f"WHERE {where_nonempty}"
                     )
                 )
                 logger.info("compiler.unique_added", table=table.name, constraint=name)

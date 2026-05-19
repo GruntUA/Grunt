@@ -29,6 +29,8 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
     import asyncio  # noqa: PLC0415
 
     async def _run() -> None:
+        from taskiq import InMemoryBroker  # noqa: PLC0415
+
         from grunt.db.base import Base  # noqa: PLC0415
         from grunt.metadata.compiler import SA_METADATA, sync_table  # noqa: PLC0415
         from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
@@ -42,7 +44,6 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
             seed_system_settings,
         )
         from grunt.tasks.broker import broker  # noqa: PLC0415
-        from taskiq import InMemoryBroker  # noqa: PLC0415
 
         broker_started = False
 

@@ -30,9 +30,7 @@ _KEEP_FIELDS = {"label", "description", "is_published", "roles", "widgets"}
 
 def upgrade() -> None:
     conn = op.get_bind()
-    result = conn.execute(
-        sa.text("SELECT data FROM grunt_meta_doctype WHERE name = 'Page'")
-    )
+    result = conn.execute(sa.text("SELECT data FROM grunt_meta_doctype WHERE name = 'Page'"))
     row = result.fetchone()
     if row is None:
         return

@@ -25,10 +25,18 @@ _EXTRA_INJECT = ("color", "icon")
 
 # Columns present in every child table row that carry no value for callers:
 # parent linkage is implicit, audit fields are not rendered in child rows.
-_CHILD_SKIP_COLS: frozenset[str] = frozenset({
-    "parent_name", "parent_doctype", "parent_field",
-    "owner", "created_at", "modified_at", "modified_by", "docstatus",
-})
+_CHILD_SKIP_COLS: frozenset[str] = frozenset(
+    {
+        "parent_name",
+        "parent_doctype",
+        "parent_field",
+        "owner",
+        "created_at",
+        "modified_at",
+        "modified_by",
+        "docstatus",
+    }
+)
 
 
 async def _resolve_link_labels(
@@ -68,15 +76,14 @@ async def _resolve_link_labels(
 
         linked_field_names = {f.fieldname for f in target_dt.fields}
         extra_to_fetch = [
-            fname for fname in _EXTRA_INJECT
+            fname
+            for fname in _EXTRA_INJECT
             if fname in linked_field_names and fname in target_table.c
         ]
         for fname in extra_to_fetch:
             cols_to_fetch.append(target_table.c[fname])
 
-        q = select(*cols_to_fetch).where(
-            target_table.c.name.in_(raw_ids)
-        )
+        q = select(*cols_to_fetch).where(target_table.c.name.in_(raw_ids))
 
         try:
             async with session.begin_nested():
@@ -129,8 +136,7 @@ async def _load_child_tables(
             child_dt = await doctype_registry.get(field.options)
             child_table = compile_doctype_to_table(child_dt)
             data_fields = {
-                f.fieldname for f in child_dt.fields
-                if f.fieldtype not in NON_PHYSICAL_FIELDS
+                f.fieldname for f in child_dt.fields if f.fieldtype not in NON_PHYSICAL_FIELDS
             }
             keep = {"name", "idx"} | data_fields
             cols = [c for c in child_table.c if c.key not in _CHILD_SKIP_COLS and c.key in keep]
@@ -153,11 +159,7 @@ async def _load_child_tables(
 
 def _table_fieldnames(dt: DocType) -> set[str]:
     """Return all child-table fieldnames for a DocType."""
-    return {
-        f.fieldname
-        for f in dt.fields
-        if f.fieldtype == "Table" and bool(f.options)
-    }
+    return {f.fieldname for f in dt.fields if f.fieldtype == "Table" and bool(f.options)}
 
 
 async def _save_child_tables(
@@ -181,7 +183,9 @@ async def _save_child_tables(
             child_dt = await doctype_registry.get(field.options)
             child_table = compile_doctype_to_table(child_dt)
             # Delete existing rows for this parent
-            await session.execute(child_table.delete().where(child_table.c.parent_name == parent_id))
+            await session.execute(
+                child_table.delete().where(child_table.c.parent_name == parent_id)
+            )
             # Build all rows then insert in one batch
             rows_to_insert: list[dict[str, Any]] = []
             for idx, child_data in enumerate(child_rows):

@@ -20,9 +20,11 @@ def __getattr__(name: str):
     global _db_proxy
     if name == "GruntDB":
         from grunt.db.api import GruntDB  # noqa: PLC0415
+
         return GruntDB
     if _db_proxy is None:
         from grunt.db.api import GruntDB  # noqa: PLC0415
+
         _db_proxy = GruntDB()
     if hasattr(_db_proxy, name):
         return getattr(_db_proxy, name)

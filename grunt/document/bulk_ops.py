@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Sequence
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from grunt.app import grunt as grunt_app
 
@@ -55,6 +55,7 @@ class BulkDeleteTask:
             )
         except Exception as e:
             import structlog
+
             structlog.get_logger().exception("bulk_delete.failed", doctype=doctype, error=str(e))
             await self._manager.send_to_user(
                 user_email,

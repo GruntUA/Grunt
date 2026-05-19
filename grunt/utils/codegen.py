@@ -117,9 +117,7 @@ def _render_type_block(fields: list[dict], indent: str = "    ") -> str:
         and f.get("fieldname") not in SYS_FIELDS
     ]
     table_fields = [
-        f
-        for f in fields
-        if f.get("fieldtype") == "Table" and f.get("fieldname") not in SYS_FIELDS
+        f for f in fields if f.get("fieldtype") == "Table" and f.get("fieldname") not in SYS_FIELDS
     ]
 
     field_lines: list[str] = []

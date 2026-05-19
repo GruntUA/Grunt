@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import structlog
+
 logger = structlog.get_logger()
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING

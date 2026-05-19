@@ -51,7 +51,9 @@ class WebsiteRegistry:
         # Jinja2 Environment per app name
         self._envs: dict[str, Environment] = {}
 
-    def discover_app(self, app_dir: Path, app_name: str, is_main_app: bool = False) -> list[WebsitePage]:
+    def discover_app(
+        self, app_dir: Path, app_name: str, is_main_app: bool = False
+    ) -> list[WebsitePage]:
         """Scan app_dir/www/ for .html files and register pages."""
         www_dir = app_dir / "www"
         if not www_dir.is_dir():
@@ -84,11 +86,13 @@ class WebsiteRegistry:
             # 1. Main app (grunt) pages are mounted at root: /login, /signup
             # 2. Other apps are mounted with prefix: /hrm/dashboard
             # 3. If a page is named 'index' in a subfolder, it takes the folder name
-            
+
             if is_main_app:
                 url_pattern = "/" + "/".join(rel_parts) if rel_parts else "/"
             else:
-                url_pattern = "/" + "/".join([app_name] + rel_parts) if rel_parts else f"/{app_name}"
+                url_pattern = (
+                    "/" + "/".join([app_name] + rel_parts) if rel_parts else f"/{app_name}"
+                )
 
             page = WebsitePage(html_file, www_dir, app_name, url_pattern)
             self._pages.append(page)
@@ -117,7 +121,7 @@ async def render_page(
     """Load controller context, render Jinja2 template, return HTMLResponse."""
     from grunt.app import grunt  # noqa: PLC0415
     from grunt.config import settings  # noqa: PLC0415
-    
+
     context: dict[str, Any] = {
         "request": request,
         "path_params": path_params or {},
@@ -178,7 +182,7 @@ async def render_page_by_route(
 ) -> HTMLResponse | None:
     """Try to render a page by its route, checking both files and database."""
     from grunt.app import grunt  # noqa: PLC0415
-    
+
     path = request.url.path
     # Clean trailing slash for matching
     if path != "/" and path.endswith("/"):
@@ -212,8 +216,8 @@ async def render_page_by_route(
 
 async def render_db_page(doc: Any, request: Request, session: Any) -> HTMLResponse:
     """Render a dynamic page from the database using a generic template."""
-    from grunt.config import settings  # noqa: PLC0415
     from grunt.app import grunt  # noqa: PLC0415
+    from grunt.config import settings  # noqa: PLC0415
 
     context: dict[str, Any] = {
         "request": request,

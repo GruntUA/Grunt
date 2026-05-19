@@ -1,4 +1,5 @@
 """Base classes for field validators."""
+
 from __future__ import annotations
 
 import re

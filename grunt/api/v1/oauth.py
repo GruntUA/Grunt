@@ -28,8 +28,8 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
-from grunt.config import settings
 from grunt.auth.dependencies import grunt_context_optional
+from grunt.config import settings
 
 router = APIRouter(prefix="", tags=["oauth"])
 
@@ -125,13 +125,13 @@ async def oauth_callback(
 
     import httpx
 
-    from grunt.auth.service import (
-        create_access_token,
-        create_refresh_token,
-    )
     from grunt.auth.doctypes.User.User import (
         create_user,
         get_user_by_email,
+    )
+    from grunt.auth.service import (
+        create_access_token,
+        create_refresh_token,
     )
 
     # Fetch OIDC discovery document

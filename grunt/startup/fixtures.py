@@ -93,7 +93,7 @@ def _coerce_fixture_value(fieldtype: str, value: object) -> object:
             h, m = int(parts[0]), int(parts[1])
             s = int(parts[2]) if len(parts) > 2 else 0
             return _time(h, m, s)
-        except (ValueError, IndexError):
+        except ValueError, IndexError:
             return None
     if fieldtype == "Date" and isinstance(value, str):
         import re as _re  # noqa: PLC0415

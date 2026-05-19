@@ -57,9 +57,22 @@ class DocTypeWorkflow(BaseModel):
 
 # ── View configuration sub-models ────────────────────────────────────────
 
-_FAST_FILTER_OPERATORS: frozenset[str] = frozenset({
-    "eq", "ne", "neq", "ilike", "like", "gt", "lt", "gte", "lte", "in", "isnull", "lte_or_null",
-})
+_FAST_FILTER_OPERATORS: frozenset[str] = frozenset(
+    {
+        "eq",
+        "ne",
+        "neq",
+        "ilike",
+        "like",
+        "gt",
+        "lt",
+        "gte",
+        "lte",
+        "in",
+        "isnull",
+        "lte_or_null",
+    }
+)
 
 
 class FastFilterOnChange(BaseModel):
@@ -130,7 +143,9 @@ class DocTypeTreeView(BaseModel):
 
     parent_field: str  # fieldname of the Link field pointing to the same DocType
     title_field: str = "name"  # field displayed as node label
-    as_of_date_field: str | None = None  # Date field for "as-of" filtering; enables the date picker in tree toolbar
+    as_of_date_field: str | None = (
+        None  # Date field for "as-of" filtering; enables the date picker in tree toolbar
+    )
     sort_by: str | None = None  # optional default sort field for tree nodes
     sort_order: Literal["asc", "desc"] = "asc"  # optional default sort direction
 
@@ -220,7 +235,7 @@ class DocType(BaseModel):
     model_config = {"use_enum_values": True}
 
     @model_validator(mode="after")
-    def _validate_fast_filters(self) -> "DocType":
+    def _validate_fast_filters(self) -> DocType:
         """Validate each fast_filter entry against declared fields and allowed operators."""
         if not self.list_view.fast_filters:
             return self
@@ -228,9 +243,7 @@ class DocType(BaseModel):
         seen_ids: set[str] = set()
         for ff in self.list_view.fast_filters:
             if ff.id in seen_ids:
-                raise ValueError(
-                    f"fast_filter id '{ff.id}' is duplicated. Each id must be unique."
-                )
+                raise ValueError(f"fast_filter id '{ff.id}' is duplicated. Each id must be unique.")
             seen_ids.add(ff.id)
             if ff.operator not in _FAST_FILTER_OPERATORS:
                 raise ValueError(

@@ -84,7 +84,7 @@ class WorkflowEngine:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Документ не має налаштованого Workflow",
             )
-            
+
         # Apply
         state_field = doctype.workflow.state_field
         await grunt.db.set_value(doctype.name, doc_id, state_field, transition.to_state)
@@ -185,7 +185,10 @@ class WorkflowEngine:
     def _eval_condition(self, condition: str, doc: dict, user: str) -> bool:
         try:
             from simpleeval import simple_eval
-            result = simple_eval(condition, functions={"now": datetime.now}, names={"doc": doc, "user": user})
+
+            result = simple_eval(
+                condition, functions={"now": datetime.now}, names={"doc": doc, "user": user}
+            )
             return bool(result)
         except Exception:  # noqa: BLE001
             return True  # Don't block on error

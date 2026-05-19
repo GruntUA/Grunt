@@ -2,4 +2,6 @@ from grunt.metadata.field import register_field_type
 
 
 def register():
-    register_field_type("Signature", lambda f: ("Text",), searchable=False, python_type="str | None")
+    register_field_type(
+        "Signature", lambda f: ("Text",), searchable=False, python_type="str | None"
+    )

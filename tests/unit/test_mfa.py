@@ -3,9 +3,9 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import HTTPException
 
+from grunt.auth.doctypes.User.User import User
 from grunt.auth.mfa import check_mfa_code
 from grunt.auth.service import create_mfa_token, verify_mfa_token
-from grunt.auth.doctypes.User.User import User
 
 
 @pytest.fixture

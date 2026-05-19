@@ -49,8 +49,6 @@ class AssignmentLog(Document):
         if not session:
             return
 
-        from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
-
         log_doc: dict[str, Any] = {
             "rule_id": rule_id,
             "doctype_affected": doctype_affected,

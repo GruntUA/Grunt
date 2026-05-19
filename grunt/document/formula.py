@@ -112,15 +112,19 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
             code = compile(f"async def __f__(): return {formula}", "<string>", "exec")
             exec(code, ns)  # noqa: S102
             result = await ns["__f__"]()
-            
+
             # Auto-await if the formula returned a coroutine (e.g. from an async helper)
             if hasattr(result, "__await__"):
                 result = await result
-            
+
             # Coerce result to the field's target type
             coerced = _coerce_result(result, field.fieldtype)
             row[field.fieldname] = coerced
-            ns[field.fieldname] = _to_number_if_possible(coerced) if field.fieldtype in _NUMERIC_FIELDTYPES else coerced
+            ns[field.fieldname] = (
+                _to_number_if_possible(coerced)
+                if field.fieldtype in _NUMERIC_FIELDTYPES
+                else coerced
+            )
         except Exception as exc:  # noqa: BLE001
             logger.warning(
                 "formula.eval_error",
@@ -156,12 +160,12 @@ def _coerce_result(value: Any, fieldtype: str) -> Any:
     if fieldtype in ("Int",):
         try:
             return int(round(float(value)))
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return value
     if fieldtype in ("Float", "Currency", "Percent"):
         try:
             return float(value)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return value
     if fieldtype == "Check":
         return bool(value)

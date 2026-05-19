@@ -13,9 +13,9 @@ from grunt.app.permission_api import PermissionAPI
 from grunt.app.realtime_api import RealtimeAPI
 from grunt.app.utility_api import UtilityAPI
 from grunt.cache.query_cache import QueryCache
-from grunt.metadata.registry import doctype_registry
 from grunt.db import GruntDB
 from grunt.errors import GruntError
+from grunt.metadata.registry import doctype_registry
 from grunt.session import GruntSession
 
 # ── Main API ──────────────────────────────────────────────────────────────────
@@ -62,6 +62,7 @@ class GruntApp(ContextAPI, RealtimeAPI, PermissionAPI, DocumentAPI, UtilityAPI):
         self.db = GruntDB()
         self.session = GruntSession()
         self.query_cache = QueryCache()
+
 
 # ── Module-level singleton ────────────────────────────────────────────────────
 

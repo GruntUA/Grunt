@@ -25,7 +25,7 @@ class AssignmentRule(Document):
         if self.filters:
             try:
                 json.loads(self.filters)
-            except (json.JSONDecodeError, TypeError):
+            except json.JSONDecodeError, TypeError:
                 grunt.throw(
                     "Поле 'Filters (JSON)' має містити валідний JSON. "
                     'Приклад: {"status": "Draft"}',
@@ -45,7 +45,7 @@ class AssignmentRule(Document):
             return raw
         try:
             return json.loads(raw)
-        except (json.JSONDecodeError, TypeError):
+        except json.JSONDecodeError, TypeError:
             return {}
 
     def match(self, doc: dict[str, Any]) -> bool:
@@ -85,6 +85,7 @@ class AssignmentRule(Document):
                     return False
 
         return True
+
 
 # ------------------------------------------------------------------
 # Whitelisted API

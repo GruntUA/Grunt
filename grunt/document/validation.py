@@ -31,7 +31,11 @@ def _coerce_value(value: Any, fieldtype: str) -> Any:
 
     _NULL_TYPES = {"Date", "Datetime", "Time", "Integer", "Float"}
     if value is None or value == "":
-        return None if (fieldtype in ("Date", "Datetime", "Time", "Int") or sa_type in _NULL_TYPES) else value
+        return (
+            None
+            if (fieldtype in ("Date", "Datetime", "Time", "Int") or sa_type in _NULL_TYPES)
+            else value
+        )
 
     if fieldtype == "Date" and isinstance(value, str):
         # Accept both "YYYY-MM-DD" and "YYYY-MM-DD HH:MM:SS" / full ISO datetime
@@ -78,7 +82,9 @@ def _validate_data(
 
         # Named validator check
         if field.validator and value is not None and value != "":
-            error = validate_field_value(field.validator, str(value), field.label or field.fieldname)
+            error = validate_field_value(
+                field.validator, str(value), field.label or field.fieldname
+            )
             if error:
                 errors.append(f"{field.fieldname}: {error}")
 

@@ -22,5 +22,3 @@ async def page_data(
     """Return computed widget data for a Page."""
     data = await get_page_data(name, date_from=date_from, date_to=date_to)
     return ok(data)
-
-

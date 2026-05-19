@@ -48,7 +48,7 @@ async def _virtual_list(
     sort_order: str,
     filters: Any,
     search: str | None,
-) -> "DocumentList":
+) -> DocumentList:
     from grunt.document.base import DocumentList  # noqa: PLC0415
 
     ctrl = _get_virtual_controller(doctype_name, user)

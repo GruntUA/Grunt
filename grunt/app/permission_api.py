@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class PermissionAPI:
     """Permission and identity helper methods for GruntApp."""
 
-    def _require_user(self) -> "User":
+    def _require_user(self) -> User:
         from grunt.context import _user_ctx  # noqa: PLC0415
 
         u = _user_ctx.get()
@@ -46,7 +46,7 @@ class PermissionAPI:
                 row.pop(field, None)
         return rows
 
-    async def _read_guard(self, doctype: str) -> tuple[Any, "User", frozenset[str]]:
+    async def _read_guard(self, doctype: str) -> tuple[Any, User, frozenset[str]]:
         """Shared pre-flight for every read operation at the high-level layer.
 
         Returns ``(dt, user, hidden_fields)``.  Raises ``403`` when the user
@@ -60,7 +60,7 @@ class PermissionAPI:
         hidden_fields = permission_checker.hidden_fields(user, dt)
         return dt, user, hidden_fields
 
-    async def _write_guard(self, doctype: str, action: str) -> tuple[Any, "User", "AsyncSession"]:
+    async def _write_guard(self, doctype: str, action: str) -> tuple[Any, User, AsyncSession]:
         """Shared pre-flight for every write operation at the high-level layer.
 
         Returns ``(dt, user, session)``.  Raises ``403`` when the user has no

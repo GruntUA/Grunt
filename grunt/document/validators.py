@@ -20,13 +20,15 @@ Programmatic registration:
 
     register_validator(PostalCodeValidator)
 """
+
 from __future__ import annotations
 
 import importlib
 import importlib.util
 import inspect
-import structlog
 from pathlib import Path
+
+import structlog
 
 from grunt.validators.base import Validator
 

@@ -129,8 +129,6 @@ class DocTypeController(VirtualDocType):
         engine = grunt._require_engine()
 
         if dt.name in doctype_registry._doctypes:
-            from grunt.metadata.virtual import VirtualDocType  # noqa: PLC0415
-
             raise ValueError(f"DocType '{dt.name}' already exists")
 
         await doctype_registry.register(dt, session, engine)

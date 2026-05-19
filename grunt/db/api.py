@@ -64,9 +64,7 @@ class GruntDB:
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
         values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
-        await self._session().execute(
-            table.update().where(table.c.name == doc_id).values(values)
-        )
+        await self._session().execute(table.update().where(table.c.name == doc_id).values(values))
         await self._session().flush()
 
     async def exists(
@@ -198,7 +196,7 @@ class GruntDB:
 
         result = await self._session().execute(stmt)
         await self._session().flush()
-        return cast(CursorResult, result).rowcount
+        return cast("CursorResult", result).rowcount
 
     async def insert_one(self, doctype: str, values: dict[str, Any]) -> None:
         """Insert a single row into a DocType table and flush the session.
@@ -221,7 +219,7 @@ class GruntDB:
         table = compile_doctype_to_table(dt)
         result = await self._session().execute(table.insert(), rows)
         await self._session().flush()
-        return cast(CursorResult, result).rowcount or len(rows)
+        return cast("CursorResult", result).rowcount or len(rows)
 
     async def bulk_update(
         self,
@@ -242,7 +240,7 @@ class GruntDB:
 
         result = await self._session().execute(stmt)
         await self._session().flush()
-        return cast(CursorResult, result).rowcount or 0
+        return cast("CursorResult", result).rowcount or 0
 
     async def aggregate(
         self,

@@ -122,8 +122,8 @@ async def test_list_pagination(ctx, setup_doctype):
 @pytest.mark.asyncio
 async def test_list_cursor_pagination(ctx, setup_doctype):
     """cursor pagination: next_cursor returned on page 1, used on page 2, no overlap."""
-    from grunt.document.service import DocumentService
     from grunt.auth.doctypes.User.User import SYSTEM_USER
+    from grunt.document.service import DocumentService
 
     session = ctx.db._session()
     engine = ctx._require_engine()
@@ -144,7 +144,11 @@ async def test_list_cursor_pagination(ctx, setup_doctype):
 
         # Page 2 via cursor — must not overlap with page 1
         page2 = await svc.list_documents(
-            "TestItem", SYSTEM_USER, per_page=2, sort_by="modified_at", sort_order="desc",
+            "TestItem",
+            SYSTEM_USER,
+            per_page=2,
+            sort_by="modified_at",
+            sort_order="desc",
             cursor=cursor,
         )
         assert len(page2) == 2
@@ -156,7 +160,11 @@ async def test_list_cursor_pagination(ctx, setup_doctype):
         cursor2 = page2.meta.get("next_cursor")
         assert cursor2 is not None
         page3 = await svc.list_documents(
-            "TestItem", SYSTEM_USER, per_page=2, sort_by="modified_at", sort_order="desc",
+            "TestItem",
+            SYSTEM_USER,
+            per_page=2,
+            sort_by="modified_at",
+            sort_order="desc",
             cursor=cursor2,
         )
         assert len(page3) == 1
@@ -358,8 +366,8 @@ async def test_delete_document(ctx, setup_doctype):
 @pytest.mark.asyncio
 async def test_bulk_delete_documents_service(ctx, setup_doctype):
     """DocumentService.bulk_delete removes multiple docs and reports missing IDs."""
-    from grunt.document.service import DocumentService
     from grunt.auth.doctypes.User.User import SYSTEM_USER
+    from grunt.document.service import DocumentService
 
     a = await ctx.new_doc("TestItem", {"title": "Bulk A"})
     b = await ctx.new_doc("TestItem", {"title": "Bulk B"})

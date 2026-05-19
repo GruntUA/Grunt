@@ -1,5 +1,6 @@
-from grunt.validators.base import Validator
 import re
+
+from grunt.validators.base import Validator
 
 _RE = re.compile(r"^UA\d{27}$")
 

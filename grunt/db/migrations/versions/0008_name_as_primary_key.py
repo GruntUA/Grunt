@@ -90,7 +90,7 @@ def _load_doctype_table_map(conn: sa.engine.Connection) -> dict[str, str]:
         return {}
 
     result: dict[str, str] = {}
-    for (dt_name, module, data_json) in rows:
+    for dt_name, module, data_json in rows:
         try:
             data = json.loads(data_json) if isinstance(data_json, str) else (data_json or {})
         except Exception:
@@ -101,6 +101,7 @@ def _load_doctype_table_map(conn: sa.engine.Connection) -> dict[str, str]:
         elif module and dt_name:
             # Derive from module + name: grunt_{module}_{snake_case_name}
             import re  # noqa: PLC0415
+
             snake = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", dt_name).lower()
             result[dt_name] = f"grunt_{module}_{snake}"
     return result
@@ -178,22 +179,20 @@ def _migrate_doctype_table(
     is_child = _col_exists(conn, table, "parent_id")
 
     # Ensure name is populated (fallback to id for rows that never got a name)
-    conn.execute(
-        sa.text(
-            f'UPDATE "{table}" SET name = id WHERE name IS NULL OR name = \'\''
-        )
-    )
+    conn.execute(sa.text(f"UPDATE \"{table}\" SET name = id WHERE name IS NULL OR name = ''"))
 
     if is_child and _col_exists(conn, table, "parent_doctype"):
         # Add parent_name if missing
         if not _col_exists(conn, table, "parent_name"):
             conn.execute(
-                sa.text(f'ALTER TABLE "{table}" ADD COLUMN parent_name VARCHAR(255) DEFAULT \'\'')
+                sa.text(f"ALTER TABLE \"{table}\" ADD COLUMN parent_name VARCHAR(255) DEFAULT ''")
             )
 
         # For each distinct parent_doctype, join against the parent table to get the real name
         doctype_rows = conn.execute(
-            sa.text(f'SELECT DISTINCT parent_doctype FROM "{table}" WHERE parent_doctype IS NOT NULL AND parent_doctype != \'\'')
+            sa.text(
+                f"SELECT DISTINCT parent_doctype FROM \"{table}\" WHERE parent_doctype IS NOT NULL AND parent_doctype != ''"
+            )
         ).fetchall()
 
         for (parent_doctype,) in doctype_rows:
@@ -203,11 +202,15 @@ def _migrate_doctype_table(
                 conn.execute(
                     sa.text(
                         f'UPDATE "{table}" SET parent_name = parent_id '
-                        f'WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = \'\')'
+                        f"WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = '')"
                     ),
                     {"dt": parent_doctype},
                 )
-                log.warning("0008: could not find parent table for %s (doctype=%s), using UUID as parent_name", table, parent_doctype)
+                log.warning(
+                    "0008: could not find parent table for %s (doctype=%s), using UUID as parent_name",
+                    table,
+                    parent_doctype,
+                )
                 continue
 
             # The parent table may still have its 'id' column at this point;
@@ -218,7 +221,7 @@ def _migrate_doctype_table(
                         sa.text(
                             f'UPDATE "{table}" SET parent_name = ('
                             f'  SELECT p.name FROM "{parent_table}" p WHERE p.id = "{table}".parent_id'
-                            f') WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = \'\')'
+                            f") WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = '')"
                         ),
                         {"dt": parent_doctype},
                     )
@@ -227,8 +230,8 @@ def _migrate_doctype_table(
                         sa.text(
                             f'UPDATE "{table}" c SET parent_name = p.name '
                             f'FROM "{parent_table}" p '
-                            f'WHERE p.id = c.parent_id AND c.parent_doctype = :dt '
-                            f'AND (c.parent_name IS NULL OR c.parent_name = \'\')'
+                            f"WHERE p.id = c.parent_id AND c.parent_doctype = :dt "
+                            f"AND (c.parent_name IS NULL OR c.parent_name = '')"
                         ),
                         {"dt": parent_doctype},
                     )
@@ -237,7 +240,7 @@ def _migrate_doctype_table(
                 conn.execute(
                     sa.text(
                         f'UPDATE "{table}" SET parent_name = parent_id '
-                        f'WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = \'\')'
+                        f"WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = '')"
                     ),
                     {"dt": parent_doctype},
                 )
@@ -246,12 +249,12 @@ def _migrate_doctype_table(
         # No parent_doctype column — fall back to copying parent_id
         if not _col_exists(conn, table, "parent_name"):
             conn.execute(
-                sa.text(f'ALTER TABLE "{table}" ADD COLUMN parent_name VARCHAR(255) DEFAULT \'\'')
+                sa.text(f"ALTER TABLE \"{table}\" ADD COLUMN parent_name VARCHAR(255) DEFAULT ''")
             )
         conn.execute(
             sa.text(
                 f'UPDATE "{table}" SET parent_name = parent_id '
-                f'WHERE parent_name IS NULL OR parent_name = \'\''
+                f"WHERE parent_name IS NULL OR parent_name = ''"
             )
         )
 
@@ -261,9 +264,7 @@ def _migrate_doctype_table(
         _migrate_doctype_table_pg(conn, table, is_child)
 
 
-def _migrate_doctype_table_sqlite(
-    conn: sa.engine.Connection, table: str, is_child: bool
-) -> None:
+def _migrate_doctype_table_sqlite(conn: sa.engine.Connection, table: str, is_child: bool) -> None:
     cols_rows = conn.execute(sa.text(f"PRAGMA table_info({table})")).fetchall()
     skip = {"id", "parent_id"}
     col_defs = []
@@ -282,13 +283,9 @@ def _migrate_doctype_table_sqlite(
 
 def _migrate_doctype_table_pg(conn: sa.engine.Connection, table: str, is_child: bool) -> None:
     # Drop existing PK on id
-    conn.execute(
-        sa.text(f'ALTER TABLE "{table}" DROP CONSTRAINT IF EXISTS "{table}_pkey"')
-    )
+    conn.execute(sa.text(f'ALTER TABLE "{table}" DROP CONSTRAINT IF EXISTS "{table}_pkey"'))
     # Drop unique constraint on name if any
-    conn.execute(
-        sa.text(f'ALTER TABLE "{table}" DROP CONSTRAINT IF EXISTS "{table}_name_key"')
-    )
+    conn.execute(sa.text(f'ALTER TABLE "{table}" DROP CONSTRAINT IF EXISTS "{table}_name_key"'))
     # Drop id column
     conn.execute(sa.text(f'ALTER TABLE "{table}" DROP COLUMN IF EXISTS id'))
     # Make name the PK
@@ -316,7 +313,7 @@ def _migrate_multi_link(conn: sa.engine.Connection, doctype_table_map: dict[str,
         conn.execute(
             sa.text(
                 f'ALTER TABLE "{_MULTI_LINK_TABLE}" '
-                f'ADD COLUMN parent_name VARCHAR(255) NOT NULL DEFAULT \'\''
+                f"ADD COLUMN parent_name VARCHAR(255) NOT NULL DEFAULT ''"
             )
         )
 
@@ -324,7 +321,7 @@ def _migrate_multi_link(conn: sa.engine.Connection, doctype_table_map: dict[str,
     doctype_rows = conn.execute(
         sa.text(
             f'SELECT DISTINCT parent_doctype FROM "{_MULTI_LINK_TABLE}" '
-            f'WHERE parent_doctype IS NOT NULL AND parent_doctype != \'\''
+            f"WHERE parent_doctype IS NOT NULL AND parent_doctype != ''"
         )
     ).fetchall()
 
@@ -334,11 +331,13 @@ def _migrate_multi_link(conn: sa.engine.Connection, doctype_table_map: dict[str,
             conn.execute(
                 sa.text(
                     f'UPDATE "{_MULTI_LINK_TABLE}" SET parent_name = parent_id '
-                    f'WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = \'\')'
+                    f"WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = '')"
                 ),
                 {"dt": parent_doctype},
             )
-            log.warning("0008: no parent table for multi_link doctype=%s, using UUID", parent_doctype)
+            log.warning(
+                "0008: no parent table for multi_link doctype=%s, using UUID", parent_doctype
+            )
             continue
 
         if _col_exists(conn, parent_table, "id"):
@@ -348,7 +347,7 @@ def _migrate_multi_link(conn: sa.engine.Connection, doctype_table_map: dict[str,
                         f'UPDATE "{_MULTI_LINK_TABLE}" SET parent_name = ('
                         f'  SELECT p.name FROM "{parent_table}" p '
                         f'  WHERE p.id = "{_MULTI_LINK_TABLE}".parent_id'
-                        f') WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = \'\')'
+                        f") WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = '')"
                     ),
                     {"dt": parent_doctype},
                 )
@@ -357,8 +356,8 @@ def _migrate_multi_link(conn: sa.engine.Connection, doctype_table_map: dict[str,
                     sa.text(
                         f'UPDATE "{_MULTI_LINK_TABLE}" m SET parent_name = p.name '
                         f'FROM "{parent_table}" p '
-                        f'WHERE p.id = m.parent_id AND m.parent_doctype = :dt '
-                        f'AND (m.parent_name IS NULL OR m.parent_name = \'\')'
+                        f"WHERE p.id = m.parent_id AND m.parent_doctype = :dt "
+                        f"AND (m.parent_name IS NULL OR m.parent_name = '')"
                     ),
                     {"dt": parent_doctype},
                 )
@@ -366,7 +365,7 @@ def _migrate_multi_link(conn: sa.engine.Connection, doctype_table_map: dict[str,
             conn.execute(
                 sa.text(
                     f'UPDATE "{_MULTI_LINK_TABLE}" SET parent_name = parent_id '
-                    f'WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = \'\')'
+                    f"WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = '')"
                 ),
                 {"dt": parent_doctype},
             )
@@ -388,16 +387,12 @@ def _migrate_multi_link(conn: sa.engine.Connection, doctype_table_map: dict[str,
                 f'ALTER TABLE "{_MULTI_LINK_TABLE}" DROP CONSTRAINT IF EXISTS "{_MULTI_LINK_TABLE}_pkey"'
             )
         )
-        conn.execute(
-            sa.text(f'ALTER TABLE "{_MULTI_LINK_TABLE}" DROP COLUMN IF EXISTS id')
-        )
-        conn.execute(
-            sa.text(f'ALTER TABLE "{_MULTI_LINK_TABLE}" DROP COLUMN IF EXISTS parent_id')
-        )
+        conn.execute(sa.text(f'ALTER TABLE "{_MULTI_LINK_TABLE}" DROP COLUMN IF EXISTS id'))
+        conn.execute(sa.text(f'ALTER TABLE "{_MULTI_LINK_TABLE}" DROP COLUMN IF EXISTS parent_id'))
         conn.execute(
             sa.text(
                 f'ALTER TABLE "{_MULTI_LINK_TABLE}" ADD PRIMARY KEY '
-                f'(parent_doctype, parent_name, parent_field, idx)'
+                f"(parent_doctype, parent_name, parent_field, idx)"
             )
         )
 
@@ -471,7 +466,7 @@ def _fix_link_uuids(conn: sa.engine.Connection, doctype_table_map: dict[str, str
 
     # Build list of (dt_name, fieldname, target_doctype) for all Link fields
     link_fields: list[tuple[str, str, str]] = []
-    for (dt_name, data_json) in meta_rows:
+    for dt_name, data_json in meta_rows:
         try:
             data = json.loads(data_json) if isinstance(data_json, str) else data_json
         except Exception:
@@ -481,7 +476,7 @@ def _fix_link_uuids(conn: sa.engine.Connection, doctype_table_map: dict[str, str
                 link_fields.append((dt_name, field["fieldname"], field["options"]))
 
     updated = 0
-    for (dt_name, fieldname, target_doctype) in link_fields:
+    for dt_name, fieldname, target_doctype in link_fields:
         source_table = doctype_table_map.get(dt_name)
         target_table = doctype_table_map.get(target_doctype)
         if not source_table or not target_table:
@@ -500,7 +495,7 @@ def _fix_link_uuids(conn: sa.engine.Connection, doctype_table_map: dict[str, str
                     f'SET "{fieldname}" = ('
                     f'  SELECT t.name FROM "{target_table}" t'
                     f'  WHERE t.id = "{source_table}"."{fieldname}"'
-                    f') '
+                    f") "
                     f'WHERE "{fieldname}" IN (SELECT id FROM "{target_table}")'
                 )
             )

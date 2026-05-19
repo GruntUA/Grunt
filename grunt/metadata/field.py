@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import structlog
+
 logger = structlog.get_logger()
 from typing import TYPE_CHECKING, Any
 
@@ -149,9 +150,7 @@ _init_core_mappings()
 # Computed from the registry: any registered type without an SA factory is non-physical.
 # Layout helpers (Section/Column/Tab), relation containers (Table/MultiLink) and
 # display-only types (HTML, Button, Heading, …) all fall into this category.
-NON_PHYSICAL_FIELDS: frozenset[str] = frozenset(
-    ft for ft in _FIELD_META if ft not in _SA_TYPE_MAP
-)
+NON_PHYSICAL_FIELDS: frozenset[str] = frozenset(ft for ft in _FIELD_META if ft not in _SA_TYPE_MAP)
 
 
 def is_physical_fieldtype(fieldtype: str) -> bool:

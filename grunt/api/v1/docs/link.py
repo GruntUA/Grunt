@@ -59,12 +59,14 @@ async def link_search(
         for row in result.get("data", []):
             name_val = str(row.get("name") or "")
             title_val = str(row.get(title_field) or name_val)
-            items.append({
-                "id": name_val,
-                "name": name_val,
-                "title": title_val,
-                "subtitle": name_val if title_val != name_val else None,
-            })
+            items.append(
+                {
+                    "id": name_val,
+                    "name": name_val,
+                    "title": title_val,
+                    "subtitle": name_val if title_val != name_val else None,
+                }
+            )
         return ok(items)
 
     title_field: str = (dt.title_field or "name") if hasattr(dt, "title_field") else "name"
@@ -84,7 +86,7 @@ async def link_search(
     try:
         parsed = json.loads(filters) if filters and filters != "{}" else {}
         raw_filters: dict[str, Any] = parsed if isinstance(parsed, dict) else {}
-    except (json.JSONDecodeError, ValueError):
+    except json.JSONDecodeError, ValueError:
         raw_filters = {}
 
     # Normalise Frappe-style filters: {"field": ["in", [...]]} → {"field__in": [...]}

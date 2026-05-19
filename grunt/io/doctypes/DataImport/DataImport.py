@@ -10,7 +10,6 @@ from grunt.metadata.registry import doctype_registry
 logger = structlog.get_logger()
 
 
-
 class DataImport(Document):
     """DocType controller for DataImport."""
 
@@ -103,7 +102,9 @@ class DataImport(Document):
                     # Validate required fields are present and non-empty
                     if not self.skip_required_validation:
                         missing = [
-                            f for f in required_fields if f in mapped_dt_fields and not doc_data.get(f)
+                            f
+                            for f in required_fields
+                            if f in mapped_dt_fields and not doc_data.get(f)
                         ]
                         if missing:
                             raise ValueError(
@@ -130,14 +131,17 @@ class DataImport(Document):
                         skip_req = bool(self.skip_required_validation)
                         if existing:
                             await self.grunt.save_doc(
-                                self.doctype_name, existing[0]["name"], doc_data,
+                                self.doctype_name,
+                                existing[0]["name"],
+                                doc_data,
                                 ignore_required=skip_req,
                             )
                         else:
                             raise ValueError(f"Документ з {key}={key_value} не знайдено")
                     else:
                         await self.grunt.new_doc(
-                            self.doctype_name, doc_data,
+                            self.doctype_name,
+                            doc_data,
                             ignore_required=bool(self.skip_required_validation),
                         )
 
@@ -190,6 +194,7 @@ class DataImport(Document):
             file_id = self.file.rstrip("/").split("/")[-1]
         elif "file_id=" in self.file:
             from urllib.parse import parse_qs, urlparse  # noqa: PLC0415
+
             qs = parse_qs(urlparse(self.file).query)
             ids = qs.get("file_id", [])
             file_id = ids[0] if ids else None

@@ -90,8 +90,10 @@ def users_set_password(email, password, site):
     async def _run():
         import grunt  # noqa: PLC0415
         from grunt.app import grunt as grunt_app  # noqa: PLC0415
-        from grunt.auth.doctypes.User.User import get_user_by_email  # noqa: PLC0415
-        from grunt.auth.doctypes.User.User import SYSTEM_USER, hash_password  # noqa: PLC0415
+        from grunt.auth.doctypes.User.User import (  # noqa: PLC0415
+            get_user_by_email,  # noqa: PLC0415
+            hash_password,
+        )
 
         async with _site_session(site) as (session, eng):
             user = await get_user_by_email(email, session)

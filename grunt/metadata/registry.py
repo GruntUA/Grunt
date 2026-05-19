@@ -23,7 +23,7 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 
 from grunt.db.system_tables import GruntMetaDoctype
-from grunt.metadata.compiler import DuplicateDataError, invalidate_table_cache, sync_table
+from grunt.metadata.compiler import invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.permissions.rbac import invalidate_permission_cache
 
@@ -290,11 +290,26 @@ class DocTypeRegistry:
 
                 # Sync field-level structural properties from JSON (fieldtype, options, label, default, etc.)
                 _STRUCTURAL = {
-                    "fieldtype", "options", "label", "default", "read_only",
-                    "required", "hidden", "in_list_view", "in_filter", "description",
-                    "depends_on", "bold", "in_quick_entry", "in_filter", "in_quick_filter",
-                    "is_virtual", "read_formula", "show_in_dashboard",
-                    "dashboard_doctype", "dashboard_link_field", "validator",
+                    "fieldtype",
+                    "options",
+                    "label",
+                    "default",
+                    "read_only",
+                    "required",
+                    "hidden",
+                    "in_list_view",
+                    "in_filter",
+                    "description",
+                    "depends_on",
+                    "bold",
+                    "in_quick_entry",
+                    "in_quick_filter",
+                    "is_virtual",
+                    "read_formula",
+                    "show_in_dashboard",
+                    "dashboard_doctype",
+                    "dashboard_link_field",
+                    "validator",
                 }
                 for json_field in doctype.fields:
                     stored_field = stored_fieldnames.get(json_field.fieldname)
@@ -307,9 +322,7 @@ class DocTypeRegistry:
                 # Sync field order: position JSON-defined fields according to JSON order,
                 # followed by any custom fields that were added locally.
                 json_order = {f.fieldname: i for i, f in enumerate(doctype.fields)}
-                active_dt.fields.sort(
-                    key=lambda f: json_order.get(f.fieldname, 9999)
-                )
+                active_dt.fields.sort(key=lambda f: json_order.get(f.fieldname, 9999))
 
                 if sync_db:
                     try:

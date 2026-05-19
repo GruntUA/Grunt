@@ -1,16 +1,45 @@
+from __future__ import annotations
+
 import shutil
 import subprocess
 from pathlib import Path
 
 import click
 
+# ── Discovery helpers ─────────────────────────────────────────────────────────
 
-def _find_app_root(start: Path) -> Path:
+
+def _is_bench_root(path: Path) -> bool:
+    """True if path looks like a bench root (has apps/ with ≥1 Python package)."""
+    apps_dir = path / "apps"
+    return apps_dir.is_dir() and any(
+        (d / "pyproject.toml").exists() for d in apps_dir.iterdir() if d.is_dir()
+    )
+
+
+def _find_bench_root(start: Path) -> Path | None:
+    """Walk up from start to find a bench root."""
+    for directory in [start.resolve(), *start.resolve().parents]:
+        if _is_bench_root(directory):
+            return directory
+    return None
+
+
+def _find_app_root(start: Path) -> Path | None:
     """Walk up from start to find the nearest directory with pyproject.toml."""
     for directory in [start.resolve(), *start.resolve().parents]:
         if (directory / "pyproject.toml").exists():
             return directory
-    return Path(__file__).parents[3]
+    return None
+
+
+def _discover_apps(bench_root: Path) -> list[Path]:
+    """Return all app directories inside bench_root/apps/ that have pyproject.toml."""
+    apps_dir = bench_root / "apps"
+    return sorted(d for d in apps_dir.iterdir() if d.is_dir() and (d / "pyproject.toml").exists())
+
+
+# ── Linters ───────────────────────────────────────────────────────────────────
 
 
 def _print_status(name: str, ok: bool) -> None:
@@ -25,17 +54,16 @@ def _run_python(root: Path, fix: bool) -> int:
         click.echo(click.style("  [skip] ruff не встановлено", fg="yellow"))
         return 0
 
-    backend = root / "backend"
     results = []
 
     click.echo(click.style("── ruff check ──", bold=True))
-    cmd = ["ruff", "check", str(backend)]
+    cmd = ["ruff", "check", "."]
     if fix:
         cmd.append("--fix")
     results.append(subprocess.run(cmd, cwd=root).returncode)
 
     click.echo(click.style("── ruff format ──", bold=True))
-    cmd = ["ruff", "format", str(backend)]
+    cmd = ["ruff", "format", "."]
     if not fix:
         cmd.append("--check")
     results.append(subprocess.run(cmd, cwd=root).returncode)
@@ -68,31 +96,124 @@ def _run_frontend(root: Path) -> int:
     return result.returncode
 
 
+def _lint_app(app_root: Path, fix: bool, only_py: bool, only_js: bool) -> int:
+    """Run lint for a single app. Returns 0 on success, 1 on failure."""
+    codes: list[int] = []
+    if not only_js:
+        codes.append(_run_python(app_root, fix))
+    if not only_py:
+        codes.append(_run_frontend(app_root))
+    return 1 if any(c != 0 for c in codes) else 0
+
+
+# ── Modes ─────────────────────────────────────────────────────────────────────
+
+
+def _run_single(root: Path, fix: bool, only_py: bool, only_js: bool) -> None:
+    click.echo(f"Проєкт: {root}\n")
+    code = _lint_app(root, fix, only_py, only_js)
+    if code != 0:
+        click.echo(click.style("Є помилки.", fg="red", bold=True))
+        raise SystemExit(1)
+    click.echo(click.style("Все гаразд.", fg="green", bold=True))
+
+
+def _run_bench(
+    bench_root: Path,
+    selected: tuple[str, ...],
+    fix: bool,
+    only_py: bool,
+    only_js: bool,
+) -> None:
+    all_apps = _discover_apps(bench_root)
+
+    if selected:
+        apps_map = {a.name: a for a in all_apps}
+        unknown = [a for a in selected if a not in apps_map]
+        if unknown:
+            available = ", ".join(sorted(apps_map))
+            click.echo(
+                click.style(
+                    f"[error] Невідомі додатки: {', '.join(unknown)}. Доступні: {available}",
+                    fg="red",
+                ),
+                err=True,
+            )
+            raise SystemExit(1)
+        target = [apps_map[a] for a in selected]
+    else:
+        target = all_apps
+
+    click.echo(f"Bench: {bench_root}")
+    click.echo(f"Додатки: {', '.join(a.name for a in target)}\n")
+
+    results: dict[str, int] = {}
+    for app_root in target:
+        click.echo(click.style(f"{'─' * 6} {app_root.name} {'─' * 30}", bold=True, fg="cyan"))
+        results[app_root.name] = _lint_app(app_root, fix, only_py, only_js)
+
+    click.echo(click.style("─" * 40, bold=True))
+    click.echo(click.style("Підсумок:", bold=True))
+    all_ok = True
+    for app_name, code in results.items():
+        ok = code == 0
+        all_ok = all_ok and ok
+        status = click.style("✓ OK", fg="green") if ok else click.style("✗ помилки", fg="red")
+        click.echo(f"  {app_name}: {status}")
+
+    click.echo()
+    if not all_ok:
+        click.echo(click.style("Є помилки.", fg="red", bold=True))
+        raise SystemExit(1)
+    click.echo(click.style("Все гаразд.", fg="green", bold=True))
+
+
+# ── Command ───────────────────────────────────────────────────────────────────
+
+
 @click.command("lint")
 @click.option("--fix", is_flag=True, help="Автоматично виправити (ruff --fix + ruff format)")
 @click.option("--py", "only_py", is_flag=True, help="Тільки Python")
 @click.option("--js", "only_js", is_flag=True, help="Тільки TypeScript/Vue")
-@click.option("--path", default=None, help="Корінь проєкту (авто-пошук за замовчуванням)")
-def lint(fix: bool, only_py: bool, only_js: bool, path: str | None) -> None:
-    """Перевірити код на стандарти: ruff (Python) + vue-tsc (TS/Vue)."""
-    root = Path(path).resolve() if path else _find_app_root(Path.cwd())
+@click.option("--path", default=None, help="Корінь проєкту або bench (авто-пошук за замовчуванням)")
+@click.option(
+    "--app",
+    "apps",
+    multiple=True,
+    metavar="APP",
+    help="Додаток для перевірки (можна повторити). Активує bench-режим.",
+)
+def lint(fix: bool, only_py: bool, only_js: bool, path: str | None, apps: tuple[str, ...]) -> None:
+    """Перевірити код: ruff (Python) + vue-tsc (TS/Vue).
 
-    if not (root / "pyproject.toml").exists():
-        click.echo(click.style(f"[error] pyproject.toml не знайдено в: {root}", fg="red"), err=True)
+    З директорії bench — перевіряє всі або вибрані (--app) додатки.
+    З директорії додатку — перевіряє тільки цей додаток.
+    """
+    start = Path(path).resolve() if path else Path.cwd()
+
+    if _is_bench_root(start):
+        _run_bench(start, apps, fix, only_py, only_js)
+        return
+
+    if apps:
+        # --app вказано поза bench root → знайти bench вгору по дереву
+        bench = _find_bench_root(start)
+        if bench is None:
+            click.echo(
+                click.style(
+                    "[error] bench root не знайдено (немає apps/ з Python-пакетами)", fg="red"
+                ),
+                err=True,
+            )
+            raise SystemExit(1)
+        _run_bench(bench, apps, fix, only_py, only_js)
+        return
+
+    # Single app mode
+    root = _find_app_root(start)
+    if root is None or not (root / "pyproject.toml").exists():
+        click.echo(
+            click.style(f"[error] pyproject.toml не знайдено в: {start}", fg="red"), err=True
+        )
         raise SystemExit(1)
-
-    click.echo(f"Проєкт: {root}\n")
-
-    codes: list[int] = []
-
-    if not only_js:
-        codes.append(_run_python(root, fix))
-
-    if not only_py:
-        codes.append(_run_frontend(root))
-
-    if any(c != 0 for c in codes):
-        click.echo(click.style("Є помилки.", fg="red", bold=True))
-        raise SystemExit(1)
-    else:
-        click.echo(click.style("Все гаразд.", fg="green", bold=True))
+    _run_single(root, fix, only_py, only_js)

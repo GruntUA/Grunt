@@ -105,7 +105,9 @@ async def get_print_format_template(
     try:
         rows = await GruntDB().get_all(
             "PrintFormat",
-            filters={"name": format_name} if format_name else {"doctype": doctype, "is_default": True},
+            filters={"name": format_name}
+            if format_name
+            else {"doctype": doctype, "is_default": True},
             fields=["template", "template_type"],
             limit=1,
         )

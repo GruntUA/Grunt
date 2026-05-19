@@ -67,6 +67,7 @@ class WebhookService:
             if wh.get("condition"):
                 try:
                     from simpleeval import simple_eval
+
                     if not simple_eval(wh["condition"], names={"doc": doc}):
                         continue
                 except Exception:  # noqa: BLE001

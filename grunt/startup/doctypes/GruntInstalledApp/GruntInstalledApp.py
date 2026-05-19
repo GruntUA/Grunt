@@ -1,16 +1,17 @@
 from __future__ import annotations
 
+import shutil
+from pathlib import Path
 from typing import Any
+
+import structlog
 
 import grunt
 from grunt.app import grunt as grunt_app
 from grunt.document.base import Document
 
-from pathlib import Path
-import shutil
-import structlog
-
 logger = structlog.get_logger(__name__)
+
 
 class GruntInstalledApp(Document):
     """GruntInstalledApp DocType controller."""
@@ -23,12 +24,14 @@ class GruntInstalledApp(Document):
 
         # Refuse to physically delete core framework
         if name == "grunt":
-            logger.warning("Attempted to delete core 'grunt' app files from disk, blocked by safety check.")
+            logger.warning(
+                "Attempted to delete core 'grunt' app files from disk, blocked by safety check."
+            )
             return
 
         apps_dir = Path(grunt.__file__).resolve().parents[3]
         app_path = apps_dir / name
-        
+
         if app_path.exists() and app_path.is_dir():
             shutil.rmtree(app_path)
             logger.info(f"Physically deleted app files for '{name}' at {app_path}")

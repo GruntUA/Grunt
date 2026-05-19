@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import structlog
+
 logger = structlog.get_logger()
 from typing import TYPE_CHECKING, Any
 
@@ -10,12 +11,12 @@ import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 
-from grunt.config import settings
-from grunt.db.session import get_engine, get_session
 from grunt.auth.doctypes.User.User import (
     User,
     get_user_by_email,
 )
+from grunt.config import settings
+from grunt.db.session import get_engine, get_session
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator

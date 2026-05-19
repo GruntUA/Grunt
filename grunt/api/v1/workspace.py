@@ -75,9 +75,7 @@ async def _get_ws_controller(name: str) -> Any:
     if ws_cls:
         from grunt.app import grunt as grunt_app
 
-        return ws_cls(
-            "AppMenu", doc_data, grunt_app._require_user(), grunt_app._require_session()
-        )
+        return ws_cls("AppMenu", doc_data, grunt_app._require_user(), grunt_app._require_session())
     return doc_data
 
 
@@ -150,5 +148,3 @@ async def get_counts(name: str) -> dict[str, int]:
     if hasattr(ws, "get_counts"):
         return await ws.get_counts()
     return {}
-
-

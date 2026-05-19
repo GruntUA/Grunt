@@ -108,13 +108,17 @@ class QueryCache:
         payload = self._get_memory(key)
         if payload is not None:
             self._hits += 1
-            return DocumentList(data=list(payload.get("data", [])), meta=dict(payload.get("meta", {})))
+            return DocumentList(
+                data=list(payload.get("data", [])), meta=dict(payload.get("meta", {}))
+            )
 
         payload = await self._get_redis(key)
         if payload is not None:
             self._hits += 1
             self._set_memory(key, payload)
-            return DocumentList(data=list(payload.get("data", [])), meta=dict(payload.get("meta", {})))
+            return DocumentList(
+                data=list(payload.get("data", [])), meta=dict(payload.get("meta", {}))
+            )
 
         self._misses += 1
         return None

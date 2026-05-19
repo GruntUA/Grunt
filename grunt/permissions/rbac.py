@@ -147,6 +147,7 @@ class PermissionChecker:
     def _eval_match(self, match_expr: str, user: User, doc: dict) -> bool:
         try:
             from simpleeval import simple_eval
+
             names = {
                 "user": user.email,
                 "owner": doc.get("owner"),

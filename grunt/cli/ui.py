@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import json
 import shutil
 import subprocess
 from pathlib import Path
 
 import click
 
-
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _app_dir() -> Path:
     """Root of the grunt app (where package.json and components.json live)."""
@@ -39,10 +38,9 @@ def _installed_components(ui_dir: Path) -> list[str]:
     if not ui_dir.exists():
         return []
     return sorted(
-        d.name for d in ui_dir.iterdir()
-        if d.is_dir()
-        and (d / "index.ts").exists()
-        and d.name not in _CUSTOM_COMPONENTS
+        d.name
+        for d in ui_dir.iterdir()
+        if d.is_dir() and (d / "index.ts").exists() and d.name not in _CUSTOM_COMPONENTS
     )
 
 
@@ -56,6 +54,7 @@ def _shadcn(app_dir: Path, args: list[str]) -> int:
 
 # ── Command group ─────────────────────────────────────────────────────────────
 
+
 @click.group("ui")
 def ui_group() -> None:
     """Керування shadcn-vue UI компонентами."""
@@ -63,8 +62,9 @@ def ui_group() -> None:
 
 @ui_group.command("add")
 @click.argument("components", nargs=-1, required=True)
-@click.option("--overwrite", is_flag=True, default=True, show_default=True,
-              help="Перезаписати існуючі файли")
+@click.option(
+    "--overwrite", is_flag=True, default=True, show_default=True, help="Перезаписати існуючі файли"
+)
 def ui_add(components: tuple[str, ...], overwrite: bool) -> None:
     """Додати один або кілька shadcn-vue компонентів.
 
@@ -85,8 +85,7 @@ def ui_add(components: tuple[str, ...], overwrite: bool) -> None:
 
 @ui_group.command("update")
 @click.argument("components", nargs=-1, required=False)
-@click.option("--skip-package", is_flag=True,
-              help="Не оновлювати пакет shadcn-vue через npm")
+@click.option("--skip-package", is_flag=True, help="Не оновлювати пакет shadcn-vue через npm")
 def ui_update(components: tuple[str, ...], skip_package: bool) -> None:
     """Оновити shadcn-vue та його компоненти до останньої версії.
 
@@ -106,14 +105,17 @@ def ui_update(components: tuple[str, ...], skip_package: bool) -> None:
     if not skip_package:
         click.echo("── [1/2] Оновлення пакету shadcn-vue...")
         mise = shutil.which("mise")
-        npm_runner = ([mise, "exec", "--", "npm"] if mise else
-                      [shutil.which("npm") or "npm"])
+        npm_runner = [mise, "exec", "--", "npm"] if mise else [shutil.which("npm") or "npm"]
         result = subprocess.run(
             [*npm_runner, "install", "shadcn-vue@latest"],
-            cwd=app_dir, check=False,
+            cwd=app_dir,
+            check=False,
         )
         if result.returncode != 0:
-            click.echo(click.style("  [warn] npm install shadcn-vue@latest не вдалося", fg="yellow"), err=True)
+            click.echo(
+                click.style("  [warn] npm install shadcn-vue@latest не вдалося", fg="yellow"),
+                err=True,
+            )
     else:
         click.echo("── [1/2] Оновлення npm-пакету пропущено")
 
@@ -121,7 +123,9 @@ def ui_update(components: tuple[str, ...], skip_package: bool) -> None:
     targets = list(components) if components else _installed_components(ui_dir)
 
     if not targets:
-        click.echo(click.style("  Компонентів не знайдено у frontend/src/components/ui/", fg="yellow"))
+        click.echo(
+            click.style("  Компонентів не знайдено у frontend/src/components/ui/", fg="yellow")
+        )
         return
 
     click.echo(f"\n── [2/2] Оновлення {len(targets)} компонент(ів): {', '.join(targets)}")

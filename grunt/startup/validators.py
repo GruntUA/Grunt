@@ -4,6 +4,7 @@ Scans:
   1. grunt/validators/          — built-in validators shipped with the framework
   2. {bench}/apps/{app}/{app}/validators/  — per-app custom validators
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -30,7 +31,11 @@ def _find_validator_dirs() -> list[Path]:
         apps_dir = bench_dir / "apps"
         if apps_dir.is_dir():
             for app_dir in sorted(apps_dir.iterdir()):
-                if not app_dir.is_dir() or app_dir.name in ("grunt",) or app_dir.name.startswith((".", "_")):
+                if (
+                    not app_dir.is_dir()
+                    or app_dir.name in ("grunt",)
+                    or app_dir.name.startswith((".", "_"))
+                ):
                     continue
                 # Convention: {app}/{app}/validators/
                 candidate = app_dir / app_dir.name / "validators"

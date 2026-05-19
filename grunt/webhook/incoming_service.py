@@ -196,6 +196,7 @@ class IncomingWebhookService:
         from grunt.app import grunt  # noqa: PLC0415
         from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
         from grunt.scripting.server_script import ServerScriptRunner  # noqa: PLC0415
+
         server_script_engine = ServerScriptRunner()
 
         script_id = webhook.get("server_script")
@@ -230,7 +231,6 @@ class IncomingWebhookService:
     ) -> tuple[str, str]:
         """Create a DocType document from the payload using field_mapping."""
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
 
         target_doctype = webhook.get("target_doctype")
         if not target_doctype:
@@ -269,7 +269,6 @@ class IncomingWebhookService:
         slug: str,
     ) -> dict[str, Any] | None:
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
         from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
 
         if not doctype_registry._doctypes.get("IncomingWebhook"):
@@ -298,7 +297,6 @@ class IncomingWebhookService:
         duration_ms: int,
     ) -> None:
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
         from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
 
         if not doctype_registry._doctypes.get("IncomingWebhookLog"):

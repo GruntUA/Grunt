@@ -14,15 +14,15 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-import grunt.db.system_tables  # noqa: F401
 import grunt.auth.doctypes.User.User  # noqa: F401
+import grunt.db.system_tables  # noqa: F401
 from grunt.config import settings
 from grunt.db.base import Base
 from grunt.db.session import get_session
+from grunt.main import app
 from grunt.metadata.compiler import MULTI_LINK_TABLE, SA_METADATA, compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
-from grunt.main import app
 
 # Disable rate limiting for tests
 settings.rate_limit_enabled = False

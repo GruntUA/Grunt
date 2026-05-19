@@ -1,6 +1,5 @@
 """Startup — SystemSettings singleton seeding."""
-#todo: прибрати цей файл взагалі. налаштування - це звичайний доктайп
-
+# todo: прибрати цей файл взагалі. налаштування - це звичайний доктайп
 
 from __future__ import annotations
 

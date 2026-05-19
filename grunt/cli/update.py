@@ -20,6 +20,7 @@ console = Console(force_terminal=True, color_system="truecolor")
 # Bench / site discovery
 # ---------------------------------------------------------------------------
 
+
 def _get_bench_dir() -> Path | None:
     cwd = Path.cwd()
     for parent in [cwd, *cwd.parents]:
@@ -84,26 +85,36 @@ def _run_mise(cwd: Path, *args: str) -> bool:
 # git helpers
 # ---------------------------------------------------------------------------
 
+
 def _git_pull(path: Path, label: str) -> bool:
     if not (path / ".git").exists():
         console.print(f"  [yellow]⚠[/yellow]  {label}: не є git-репозиторієм, пропускаю")
         return False
 
-    branch = subprocess.run(
-        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-        cwd=str(path), capture_output=True, text=True,
-    ).stdout.strip() or "?"
+    branch = (
+        subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd=str(path),
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        or "?"
+    )
 
     old_hash = subprocess.run(
         ["git", "rev-parse", "--short", "HEAD"],
-        cwd=str(path), capture_output=True, text=True,
+        cwd=str(path),
+        capture_output=True,
+        text=True,
     ).stdout.strip()
 
     console.print(f"  [dim]Оновлюю {label} ({branch})...[/dim]")
 
     result = subprocess.run(
         ["git", "pull", "--rebase", "--autostash"],
-        cwd=str(path), capture_output=True, text=True,
+        cwd=str(path),
+        capture_output=True,
+        text=True,
     )
 
     if result.returncode != 0:
@@ -121,7 +132,9 @@ def _git_pull(path: Path, label: str) -> bool:
 
     new_hash = subprocess.run(
         ["git", "rev-parse", "--short", "HEAD"],
-        cwd=str(path), capture_output=True, text=True,
+        cwd=str(path),
+        capture_output=True,
+        text=True,
     ).stdout.strip()
 
     if old_hash == new_hash:
@@ -130,13 +143,17 @@ def _git_pull(path: Path, label: str) -> bool:
         console.print(f"  [green]✓[/green] {label}: оновлено {old_hash} → {new_hash}")
         diff = subprocess.run(
             ["git", "diff", "--stat", f"{old_hash}..{new_hash}"],
-            cwd=str(path), capture_output=True, text=True,
+            cwd=str(path),
+            capture_output=True,
+            text=True,
         )
         if diff.returncode == 0:
             for line in diff.stdout.strip().splitlines():
                 line = line.strip()
                 if "changed" in line and ("insertion" in line or "deletion" in line):
-                    line = line.replace("(+)", "[green](+)[/green]").replace("(-)", "[red](-)[/red]")
+                    line = line.replace("(+)", "[green](+)[/green]").replace(
+                        "(-)", "[red](-)[/red]"
+                    )
                     console.print(f"    [cyan]{line}[/cyan]")
                 else:
                     if "|" in line:
@@ -166,6 +183,7 @@ def _install_deps(path: Path, label: str) -> None:
 # package / npm / migrate helpers
 # ---------------------------------------------------------------------------
 
+
 def _run_package_update() -> None:
     app_dir = _grunt_app_dir()
     uv = _find_uv()
@@ -173,7 +191,9 @@ def _run_package_update() -> None:
         console.print("  [dim]uv sync --upgrade...[/dim]")
         env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
         env["PWD"] = str(app_dir)
-        result = subprocess.run([uv, "sync", "--upgrade", "--all-extras"], cwd=str(app_dir), check=False, env=env)
+        result = subprocess.run(
+            [uv, "sync", "--upgrade", "--all-extras"], cwd=str(app_dir), check=False, env=env
+        )
         if result.returncode != 0:
             console.print("  [yellow]⚠[/yellow]  uv sync --upgrade завершився з помилкою")
         else:
@@ -182,7 +202,8 @@ def _run_package_update() -> None:
     console.print("  [dim]uv не знайдено, використовую pip...[/dim]")
     result = subprocess.run(
         [sys.executable, "-m", "pip", "install", "--upgrade", "grunt"],
-        cwd=str(app_dir), check=False,
+        cwd=str(app_dir),
+        check=False,
     )
     if result.returncode != 0:
         console.print("  [yellow]⚠[/yellow]  pip install --upgrade завершився з помилкою")
@@ -192,7 +213,11 @@ def _run_package_update() -> None:
 
 def _run_npm_install_for(app_dir: Path) -> None:
     mise = shutil.which("mise")
-    npm_run = [mise, "exec", "--", "npm"] if mise else ([shutil.which("npm")] if shutil.which("npm") else None)
+    npm_run = (
+        [mise, "exec", "--", "npm"]
+        if mise
+        else ([shutil.which("npm")] if shutil.which("npm") else None)
+    )
     if not npm_run:
         console.print("  [yellow]⚠[/yellow]  npm не знайдено")
         return
@@ -213,6 +238,7 @@ def _run_npm_install_for(app_dir: Path) -> None:
 
 def _run_migrations(site: str | None) -> None:
     from grunt.cli.db import db_migrate  # noqa: PLC0415
+
     ctx = click.Context(db_migrate)
     ctx.invoke(db_migrate, dry_run=False, site=site)
 
@@ -221,19 +247,29 @@ def _run_migrations(site: str | None) -> None:
 # Command
 # ---------------------------------------------------------------------------
 
+
 @click.command("update")
 @click.option("--cli", "update_cli", is_flag=True, default=False, help="Оновити тільки CLI")
-@click.option("--framework", "update_framework", is_flag=True, default=False, help="Оновити тільки фреймворк")
+@click.option(
+    "--framework", "update_framework", is_flag=True, default=False, help="Оновити тільки фреймворк"
+)
 @click.option("--apps", "update_apps", is_flag=True, default=False, help="Оновити тільки додатки")
 @click.option("--skip-packages", is_flag=True, default=False, help="Не оновлювати Python пакети")
 @click.option("--skip-npm", is_flag=True, default=False, help="Не встановлювати npm пакети")
 @click.option("--skip-migrate", is_flag=True, default=False, help="Не запускати міграції БД")
-@click.option("--no-deps", is_flag=True, default=False, help="Не встановлювати залежності після git pull")
+@click.option(
+    "--no-deps", is_flag=True, default=False, help="Не встановлювати залежності після git pull"
+)
 @click.option("--site", default=None, help="Назва сайту (для migrate)")
 def update(
-    update_cli: bool, update_framework: bool, update_apps: bool,
-    skip_packages: bool, skip_npm: bool, skip_migrate: bool,
-    no_deps: bool, site: str | None,
+    update_cli: bool,
+    update_framework: bool,
+    update_apps: bool,
+    skip_packages: bool,
+    skip_npm: bool,
+    skip_migrate: bool,
+    no_deps: bool,
+    site: str | None,
 ) -> None:
     """Оновити CLI, фреймворк, додатки, пакети та схему БД.
 
@@ -290,7 +326,8 @@ def update(
         apps_dir = _find_apps_dir()
         if apps_dir and apps_dir.exists():
             app_dirs = sorted(
-                p for p in apps_dir.iterdir()
+                p
+                for p in apps_dir.iterdir()
                 if p.is_dir() and p.name != "grunt" and (p / ".git").exists()
             )
             if app_dirs:

@@ -22,7 +22,6 @@ async def create_session(
 ) -> str:
     """Create a new UserSession record and return the session_key."""
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
 
     session_key = uuid.uuid4().hex
 
@@ -51,7 +50,6 @@ async def touch_session(
 ) -> None:
     """Update last_active_at for the given session (best-effort, fire-and-forget)."""
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
 
     try:
         async with grunt.system_context(db_session):
@@ -82,7 +80,6 @@ async def terminate_session(
     Returns True on success.
     """
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
 
     async with grunt.system_context(db_session):
         sessions = await grunt.get_list(
@@ -108,7 +105,6 @@ async def terminate_all_user_sessions(
 ) -> int:
     """Deactivate all active sessions for a user (e.g. on logout / password change)."""
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
 
     async with grunt.system_context(db_session):
         sessions = await grunt.get_list(

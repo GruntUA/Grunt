@@ -8,12 +8,12 @@ import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from grunt.api.v1.schemas.response import ok
+from grunt.auth.doctypes.User.User import get_user_by_email
 from grunt.auth.service import (
     consume_password_reset_token,
     create_password_reset_token,
 )
 from grunt.db.session import get_session
-from grunt.auth.doctypes.User.User import get_user_by_email
 from grunt.middleware.rate_limit import limiter
 
 if TYPE_CHECKING:
@@ -49,6 +49,9 @@ async def forgot_password(
     log = structlog.get_logger()
     user = await get_user_by_email(body.email, session)
     if user is None:
+        return ok()
+
+    if not user.id:
         return ok()
 
     token = await create_password_reset_token(user.id, session)

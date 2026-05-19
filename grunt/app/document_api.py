@@ -13,7 +13,6 @@ from grunt.db.profiler import profile
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.User import User
     from grunt.document.base import Document
 
 logger = structlog.get_logger()
@@ -71,7 +70,7 @@ class DocumentAPI:
         await fire("after_read", doctype=doctype, user=user, doc=doc)
         return doc
 
-    async def get_doc_instance(self, doctype: str, id_or_name: str) -> "Document":
+    async def get_doc_instance(self, doctype: str, id_or_name: str) -> Document:
         """Fetch a document and return it as an instantiated controller."""
         from grunt.document.registry import document_registry  # noqa: PLC0415
 
@@ -396,6 +395,7 @@ class DocumentAPI:
     ) -> int:
         """Update multiple documents matching ``filters`` in a single query."""
         from datetime import datetime  # noqa: PLC0415
+
         user = self._require_user()
 
         update_values = dict(values)

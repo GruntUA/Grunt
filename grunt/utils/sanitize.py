@@ -1,7 +1,9 @@
 """HTML sanitization for RichText fields."""
 
 from __future__ import annotations
+
 import structlog
+
 logger = structlog.get_logger()
 
 _ALLOWED_TAGS = {"p", "br", "b", "i", "u", "s", "h2", "h3", "ul", "ol", "li", "a", "blockquote"}

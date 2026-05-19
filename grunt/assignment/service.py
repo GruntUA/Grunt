@@ -187,7 +187,9 @@ class AssignmentService:
                 status="Success",
                 session=session,
             )
-            logger.info("assignment.assigned_user", doctype=doctype, doc_id=doc.get("name"), user=user_email)
+            logger.info(
+                "assignment.assigned_user", doctype=doctype, doc_id=doc.get("name"), user=user_email
+            )
         except Exception as exc:
             logger.exception(
                 "assignment.assign_user_error",
@@ -247,7 +249,9 @@ class AssignmentService:
                 user_count=len(user_ids),
             )
         except Exception as exc:
-            logger.exception("assignment.assign_role_error", doctype=doctype, role=role, exc_info=exc)
+            logger.exception(
+                "assignment.assign_role_error", doctype=doctype, role=role, exc_info=exc
+            )
 
     async def _create_todo(
         self,

@@ -11,6 +11,7 @@ from grunt.io.exporters.registry import Exporter
 if TYPE_CHECKING:
     from grunt.metadata.field import DocField
 
+
 def _fmt(value: Any) -> str:
     if value is None:
         return ""

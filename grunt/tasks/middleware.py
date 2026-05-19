@@ -61,16 +61,15 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             site = site_manager.get_active_site()
             maker = site_manager.get_session_maker(site)
             eng = site_manager.get_engine(site)
-            async with maker() as session:
-                async with grunt.system_context(session, eng):
-                    update_data: dict[str, Any] = {
-                        "status": "Error" if result.is_err else "Success",
-                        "finished_at": datetime.now(UTC),
-                    }
-                    if result.is_err:
-                        update_data["error_message"] = str(result.error)
-                    await grunt.db.set_value("BackgroundTaskLog", log_id, update_data)
-                    await session.commit()
+            async with maker() as session, grunt.system_context(session, eng):
+                update_data: dict[str, Any] = {
+                    "status": "Error" if result.is_err else "Success",
+                    "finished_at": datetime.now(UTC),
+                }
+                if result.is_err:
+                    update_data["error_message"] = str(result.error)
+                await grunt.db.set_value("BackgroundTaskLog", log_id, update_data)
+                await session.commit()
 
         except Exception as e:
             logger.error("tasks.middleware.post_execute_failed", error=str(e), log_id=log_id)
@@ -123,10 +122,9 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             site = site_manager.get_active_site()
             maker = site_manager.get_session_maker(site)
             eng = site_manager.get_engine(site)
-            async with maker() as session:
-                async with grunt.system_context(session, eng):
-                    await grunt.db.set_value("BackgroundTaskLog", log_id, update_data)
-                    await session.commit()
+            async with maker() as session, grunt.system_context(session, eng):
+                await grunt.db.set_value("BackgroundTaskLog", log_id, update_data)
+                await session.commit()
 
         except Exception:
             logger.error(

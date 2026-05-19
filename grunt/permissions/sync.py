@@ -18,7 +18,6 @@ async def load_all_permissions_from_db(session) -> None:  # noqa: ANN001
     """Read DocTypePermission table and inject into registry. Called at startup."""
     try:
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
         from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
         from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
 
@@ -59,7 +58,6 @@ async def sync_permissions(doc: dict, session=None, **_kwargs) -> None:  # noqa:
 async def _reload_doctype_perms(doctype_name: str, session) -> None:  # noqa: ANN001
     try:
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
         from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
         from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
 
@@ -119,7 +117,6 @@ async def migrate_doctype_meta_permissions(session) -> None:  # noqa: ANN001
     """
     try:
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
         from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
         from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
 

@@ -50,7 +50,12 @@ async def get_client_scripts(
         from grunt.scripting.file_scripts import get_file_client_scripts  # noqa: PLC0415
 
         file_scripts = get_file_client_scripts(doctype)
-        logger.info("client_scripts.file_scripts", doctype=doctype, count=len(file_scripts), names=[s["name"] for s in file_scripts])
+        logger.info(
+            "client_scripts.file_scripts",
+            doctype=doctype,
+            count=len(file_scripts),
+            names=[s["name"] for s in file_scripts],
+        )
         scripts.extend(file_scripts)
     except ImportError:
         logger.debug(

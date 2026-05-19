@@ -19,48 +19,46 @@ async def process_email_queue():
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
     eng = site_manager.get_engine(site)
-    async with maker() as session:
-        async with grunt.system_context(session, eng):
+    async with maker() as session, grunt.system_context(session, eng):
+        # 1. Fetch Pending emails
+        try:
+            queue_items = await grunt.get_list(
+                "EmailQueue", filters={"status": "Pending"}, limit=100
+            )
 
-            # 1. Fetch Pending emails
-            try:
-                queue_items = await grunt.get_list(
-                    "EmailQueue", filters={"status": "Pending"}, limit=100
-                )
+            if not queue_items:
+                return
 
-                if not queue_items:
-                    return
+            logger.info("email.processing_queue", count=len(queue_items))
 
-                logger.info("email.processing_queue", count=len(queue_items))
+            for item in queue_items:
+                # 2. Get Account settings
+                # Note: list_documents returns raw data. We need to fetch the account.
+                account_id = item.get("email_account")
+                if not account_id:
+                    logger.warning("email.no_account_for_item", id=item["name"])
+                    continue
 
-                for item in queue_items:
-                    # 2. Get Account settings
-                    # Note: list_documents returns raw data. We need to fetch the account.
-                    account_id = item.get("email_account")
-                    if not account_id:
-                        logger.warning("email.no_account_for_item", id=item["name"])
-                        continue
+                account = await grunt.get_doc("EmailAccount", account_id)
 
-                    account = await grunt.get_doc("EmailAccount", account_id)
+                try:
+                    # 3. Send
+                    await EmailService.send_now(account, item)
 
-                    try:
-                        # 3. Send
-                        await EmailService.send_now(account, item)
+                    # 4. Update status
+                    await grunt.save_doc("EmailQueue", item["name"], {"status": "Sent"})
+                    await session.commit()
+                except Exception as e:
+                    await grunt.save_doc(
+                        "EmailQueue",
+                        item["name"],
+                        {"status": "Error", "error_message": str(e)},
+                    )
+                    await session.commit()
 
-                        # 4. Update status
-                        await grunt.save_doc("EmailQueue", item["name"], {"status": "Sent"})
-                        await session.commit()
-                    except Exception as e:
-                        await grunt.save_doc(
-                            "EmailQueue",
-                            item["name"],
-                            {"status": "Error", "error_message": str(e)},
-                        )
-                        await session.commit()
-
-            except Exception as e:
-                logger.error("email.queue_processing_failed", error=str(e))
-                raise
+        except Exception as e:
+            logger.error("email.queue_processing_failed", error=str(e))
+            raise
 
 
 @retryable_task()
@@ -69,33 +67,31 @@ async def pull_from_accounts():
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
     eng = site_manager.get_engine(site)
-    async with maker() as session:
-        async with grunt.system_context(session, eng):
+    async with maker() as session, grunt.system_context(session, eng):
+        try:
+            accounts = await grunt.get_list(
+                "EmailAccount", filters={"enable_incoming": "True"}, limit=1000
+            )
 
-            try:
-                accounts = await grunt.get_list(
-                    "EmailAccount", filters={"enable_incoming": "True"}, limit=1000
-                )
+            for account in accounts:
+                emails = await EmailService.pull_emails(account)
+                for email_data in emails:
+                    # Trigger hook for inbound email
+                    # Apps can register to this hook to create Support Tickets, Leads, etc.
+                    from grunt.hooks import fire
 
-                for account in accounts:
-                    emails = await EmailService.pull_emails(account)
-                    for email_data in emails:
-                        # Trigger hook for inbound email
-                        # Apps can register to this hook to create Support Tickets, Leads, etc.
-                        from grunt.hooks import fire
+                    await fire(
+                        "inbound_email",
+                        account=account,
+                        email_data=email_data,
+                        session=session,
+                        user=SYSTEM_USER,
+                    )
+                    await session.commit()
 
-                        await fire(
-                            "inbound_email",
-                            account=account,
-                            email_data=email_data,
-                            session=session,
-                            user=SYSTEM_USER,
-                        )
-                        await session.commit()
-
-            except Exception as e:
-                logger.error("email.pull_from_accounts_failed", error=str(e))
-                raise
+        except Exception as e:
+            logger.error("email.pull_from_accounts_failed", error=str(e))
+            raise
 
 
 @retryable_task()

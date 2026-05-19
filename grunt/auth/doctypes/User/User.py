@@ -131,7 +131,7 @@ def verify_password(plain: str, hashed: str | None) -> bool:
         return False
     try:
         return bcrypt.checkpw(plain.encode(), hashed.encode())
-    except (AttributeError, ValueError):
+    except AttributeError, ValueError:
         return False
 
 

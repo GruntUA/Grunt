@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import contextvars
 from typing import Any
 
 from fastapi import Body, Depends, HTTPException, Query, Request, status
@@ -153,6 +152,7 @@ async def bulk_delete_documents(
     task = BulkDeleteTask()
 
     from grunt.site.manager import current_site  # noqa: PLC0415
+
     active_site = current_site.get()
 
     async def _run() -> None:

@@ -15,7 +15,9 @@ from grunt.metadata.compiler import DuplicateDataError, compile_doctype_to_table
 
 logger = structlog.get_logger()
 
-_GRUNT_ROOT = __import__("pathlib").Path(__file__).parent.parent.parent  # grunt/startup/doctypes/ → grunt/
+_GRUNT_ROOT = (
+    __import__("pathlib").Path(__file__).parent.parent.parent
+)  # grunt/startup/doctypes/ → grunt/
 
 
 def _find_doctype_dirs(_root=None):
@@ -90,9 +92,7 @@ async def load_core_doctypes(session: AsyncSession, sync_db: bool = False) -> No
     from grunt.metadata.doctype import DocType  # noqa: PLC0415
     from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
 
-    dt_files = sorted(
-        f for d in _find_doctype_dirs() for f in d.glob("**/*.json")
-    )
+    dt_files = sorted(f for d in _find_doctype_dirs() for f in d.glob("**/*.json"))
 
     for dt_file in dt_files:
         try:
@@ -128,6 +128,7 @@ async def populate_system_doctypes(
 
     # Ensure the physical table exists before querying it (idempotent on upgrades)
     from grunt.metadata.compiler import sync_table  # noqa: PLC0415
+
     await sync_table(dt_def, engine, session=session)
 
     all_doctypes = await doctype_registry.list_all()

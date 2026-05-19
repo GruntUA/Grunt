@@ -67,7 +67,9 @@ def upgrade() -> None:
         elif _d == "mysql":
             _insert_sql = "INSERT IGNORE INTO grunt_workspace_sidebar_item"
         else:
-            _insert_sql = "INSERT INTO grunt_workspace_sidebar_item ON CONFLICT (name) DO NOTHING --"
+            _insert_sql = (
+                "INSERT INTO grunt_workspace_sidebar_item ON CONFLICT (name) DO NOTHING --"
+            )
 
         for row in rows:
             # Use workspace_id as parent_name (it was the workspace's name/id)
