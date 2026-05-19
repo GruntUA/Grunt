@@ -36,7 +36,10 @@ const bookmarkLoading = ref(false)
 
 async function loadBookmark() {
   try {
-    bookmark.value = await docsApi.getBookmark(props.doctype.name, props.document.id)
+    const doctypeName = props.doctype.name
+    if (doctypeName && props.document.id) {
+      bookmark.value = await docsApi.getBookmark(doctypeName, props.document.name)
+    }
   } catch { /* silent */ }
 }
 
@@ -44,11 +47,11 @@ async function toggleBookmark() {
   bookmarkLoading.value = true
   try {
     if (bookmark.value) {
-      await docsApi.removeBookmark(props.doctype.name, props.document.id)
+      await docsApi.removeBookmark(props.doctype.name, props.document.name)
       bookmark.value = null
     } else {
-      const title = String(props.document[props.doctype.title_field ?? 'name'] ?? props.document.id)
-      bookmark.value = await docsApi.addBookmark(props.doctype.name, props.document.id, title)
+      const title = String(props.document[props.doctype.title_field ?? 'name'] ?? props.document.name)
+      bookmark.value = await docsApi.addBookmark(props.doctype.name, props.document.name, title)
     }
   } catch { /* silent */ }
   finally { bookmarkLoading.value = false }

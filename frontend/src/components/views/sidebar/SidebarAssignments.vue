@@ -18,7 +18,7 @@ const assignLoading = ref(false)
 async function loadAssignees() {
   assignLoading.value = true
   try {
-    assignees.value = await docsApi.getAssignees(props.doctype.name, props.document.id)
+    assignees.value = await docsApi.getAssignees(props.doctype.name, props.document.name)
   } catch { /* silent */ }
   finally { assignLoading.value = false }
 }
@@ -47,7 +47,7 @@ async function submitAssign() {
   if (!user) return
   assignSaving.value = true
   try {
-    await docsApi.assign(props.doctype.name, props.document.id, user)
+    await docsApi.assign(props.doctype.name, props.document.name, user)
     await loadAssignees()
     showAssignDialog.value = false
     assignUser.value = ''
@@ -57,8 +57,8 @@ async function submitAssign() {
 
 async function removeAssignee(assignee: GruntDocument) {
   try {
-    await docsApi.unassign(assignee.id)
-    assignees.value = assignees.value.filter(a => a.id !== assignee.id)
+    await docsApi.unassign(assignee.name)
+    assignees.value = assignees.value.filter(a => a.name !== assignee.name)
   } catch { /* silent */ }
 }
 

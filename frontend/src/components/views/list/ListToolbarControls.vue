@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import {
   Search,
   Columns3,
@@ -36,8 +35,6 @@ const props = defineProps<{
 const emit = defineEmits(['update:groupBy', 'sort'])
 
 defineOptions({ inheritAttrs: false })
-
-const { t } = useI18n()
 
 const opColumns = ref()
 const opGrouping = ref()

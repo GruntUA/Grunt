@@ -232,7 +232,7 @@ const {
   groupedRows,
   groupByField,
   setGroupBy: baseSetGroupBy,
-} = useGrouping({ dt, rows: computed(() => (data.value?.data ?? []) as Record<string, unknown>[]), groupBy, page })
+} = useGrouping({ dt, rows: computed(() => rows.value), groupBy, page })
 
 function setGroupBy(field: string | null) {
   baseSetGroupBy(field)

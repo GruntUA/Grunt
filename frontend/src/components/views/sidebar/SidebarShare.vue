@@ -23,7 +23,7 @@ const shareLoading = ref(false)
 async function loadShared() {
   shareLoading.value = true
   try {
-    sharedWith.value = await docsApi.getSharedWith(props.doctype.name, props.document.id)
+    sharedWith.value = await docsApi.getSharedWith(props.doctype.name, props.document.name)
   } catch { /* silent */ }
   finally { shareLoading.value = false }
 }
@@ -53,7 +53,7 @@ async function submitShare() {
   if (!user) return
   shareSaving.value = true
   try {
-    await docsApi.share(props.doctype.name, props.document.id, user, sharePermission.value)
+    await docsApi.share(props.doctype.name, props.document.name, user, sharePermission.value)
     await loadShared()
     showShareDialog.value = false
     shareUser.value = ''
@@ -64,7 +64,7 @@ async function submitShare() {
 
 async function removeShare(share: GruntDocument) {
   try {
-    await docsApi.unshare(share.id)
+    await docsApi.unshare(share.name)
     sharedWith.value = sharedWith.value.filter(s => s.id !== share.id)
   } catch { /* silent */ }
 }

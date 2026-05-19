@@ -18,7 +18,7 @@ const linksLoading = ref(false)
 async function loadLinks() {
   linksLoading.value = true
   try {
-    links.value = await docsApi.getLinks(props.doctype.name, props.document.id)
+    links.value = await docsApi.getLinks(props.doctype.name, props.document.name)
   } catch { /* silent */ }
   finally { linksLoading.value = false }
 }

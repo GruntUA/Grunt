@@ -17,7 +17,7 @@ onMounted(async () => {
     return
   }
 
-  const loader = resolvePageComponent(pageDef.component)
+  const loader = resolvePageComponent(pageDef.component ?? '')
   if (!loader) {
     error.value = `Компонент "${pageDef.component}" не знайдено. Перевірте що файл існує в src/apps/`
     return

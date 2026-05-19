@@ -110,7 +110,7 @@ export function useDocUpdate<T extends GruntDocument = GruntDocument>(
             docsApi.update<T>(doctype, id, data),
         onSuccess: (updated) => {
             // Update detail cache immediately
-            qc.setQueryData(docKeys.detail(doctype, updated.id), updated)
+            qc.setQueryData(docKeys.detail(doctype, updated.name), updated)
             // Invalidate lists so counts/order stay fresh
             qc.invalidateQueries({ queryKey: docKeys.lists(doctype) })
         },
@@ -144,7 +144,7 @@ export function useDocSave<T extends GruntDocument = GruntDocument>(
                 ? docsApi.update<T>(doctype, id, data)
                 : docsApi.create<T>(doctype, data),
         onSuccess: (saved) => {
-            qc.setQueryData(docKeys.detail(doctype, saved.id), saved)
+            qc.setQueryData(docKeys.detail(doctype, saved.name), saved)
             qc.invalidateQueries({ queryKey: docKeys.lists(doctype) })
         },
     })

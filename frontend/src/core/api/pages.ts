@@ -1,5 +1,22 @@
 import client from './client'
 
+export interface AppPage {
+  name: string
+  route: string
+  title?: string | null
+  icon?: string | null
+  component?: string | null
+  app?: string | null
+  sidebar_section?: string | null
+  sidebar_order?: number | null
+  is_default_home?: boolean
+}
+
+export async function fetchPages(): Promise<AppPage[]> {
+  const r = await client.get('/api/v1/method/grunt.api.v1.pages.list_pages')
+  return r.data.data ?? []
+}
+
 /** Compute widget data for a Page by name. */
 export async function getPageData(
   name: string,

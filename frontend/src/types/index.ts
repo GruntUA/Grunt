@@ -422,6 +422,17 @@ export interface Dashboard {
   widgets: DashboardWidget[]
 }
 
+export interface Page {
+  name: string
+  label: string
+  description?: string | null
+  is_published: boolean
+  roles: string
+  created_at?: string
+  modified_at?: string
+  widgets: DashboardWidget[]
+}
+
 export interface PageSummary extends Omit<Page, 'widgets'> { }
 
 // ── Notifications ────────────────────────────────────────────────────────

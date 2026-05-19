@@ -24,7 +24,7 @@ const timelineLoading = ref(false)
 async function loadTimeline() {
   timelineLoading.value = true
   try {
-    timeline.value = await docsApi.getTimeline(props.doctype.name, props.document.id)
+    timeline.value = await docsApi.getTimeline(props.doctype.name, props.document.name)
   } catch { /* silent */ }
   finally { timelineLoading.value = false }
 }
@@ -64,7 +64,7 @@ async function sendComment() {
   if (!text) return
   commentSending.value = true
   try {
-    await docsApi.addComment(props.doctype.name, props.document.id, text)
+    await docsApi.addComment(props.doctype.name, props.document.name, text)
     commentInput.value = ''
     await loadTimeline()
   } catch { /* silent */ }
@@ -73,7 +73,7 @@ async function sendComment() {
 
 async function deleteComment(item: TimelineItem) {
   try {
-    await docsApi.deleteComment(props.doctype.name, props.document.id, item.id)
+    await docsApi.deleteComment(props.doctype.name, props.document.name, item.id)
     timeline.value = timeline.value.filter(t => t.id !== item.id)
   } catch { /* silent */ }
 }

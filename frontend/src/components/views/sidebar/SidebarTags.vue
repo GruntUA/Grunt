@@ -17,7 +17,7 @@ const tagAdding = ref(false)
 async function loadTags() {
   tagsLoading.value = true
   try {
-    tags.value = await docsApi.getTags(props.doctype.name, props.document.id)
+    tags.value = await docsApi.getTags(props.doctype.name, props.document.name)
   } catch { /* silent */ }
   finally { tagsLoading.value = false }
 }
@@ -31,7 +31,7 @@ async function addTag() {
   }
   tagAdding.value = true
   try {
-    const created = await docsApi.addTag(props.doctype.name, props.document.id, tag)
+    const created = await docsApi.addTag(props.doctype.name, props.document.name, tag)
     tags.value = [...tags.value, created]
     tagInput.value = ''
   } catch { /* silent */ }
@@ -40,8 +40,8 @@ async function addTag() {
 
 async function removeTag(tag: GruntDocument) {
   try {
-    await docsApi.removeTag(tag.id)
-    tags.value = tags.value.filter(t => t.id !== tag.id)
+    await docsApi.removeTag(tag.name)
+    tags.value = tags.value.filter(t => t.name !== tag.name)
   } catch { /* silent */ }
 }
 

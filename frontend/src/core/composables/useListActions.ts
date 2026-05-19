@@ -20,11 +20,11 @@ export function useListActions(options: UseListActionsOptions) {
           await docsApi.list(options.doctype, {
             page: 1,
             per_page: 10000,
-            fields: 'id',
+            fields: 'name',
             search: options.debouncedSearch.value || undefined,
             filters: options.activeFilters.value,
           })
-        ).data.map((row: { id: unknown }) => String(row.id))
+        ).data.map((row) => row.name)
       : options.selectedIds.value
 
     if (ids.length) {

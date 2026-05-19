@@ -331,3 +331,48 @@ async def get_page_data(
 
     pairs = await asyncio.gather(*(_safe_compute(w) for w in widgets))
     return dict(pairs)
+
+
+@grunt.whitelist()
+async def get_dashboard_data(
+    name: str,
+    date_from: str | None = None,
+    date_to: str | None = None,
+) -> dict[str, Any]:
+    """Return computed data for all widgets of a Dashboard document."""
+    from grunt.app import grunt as grunt_app
+
+    try:
+        dashboard = dict(await grunt.get_doc("Dashboard", name))
+    except Exception:
+        grunt.throw("Дашборд не знайдено", "NOT_FOUND")
+
+    user = grunt_app._require_user()
+    if not user.is_superadmin and not dashboard.get("is_published"):
+        grunt.throw("Дашборд не опубліковано", "PERMISSION_DENIED")
+
+    widgets: list[dict[str, Any]] = sorted(
+        dashboard.get("widgets") or [],
+        key=lambda w: w.get("sequence") or 0,
+    )
+
+    global_since: datetime | None = None
+    global_until: datetime | None = None
+    if date_from:
+        with contextlib.suppress(ValueError):
+            global_since = datetime.fromisoformat(date_from).replace(tzinfo=UTC)
+    if date_to:
+        with contextlib.suppress(ValueError):
+            global_until = datetime.fromisoformat(date_to).replace(tzinfo=UTC)
+
+    async def _safe_compute(w_dict: dict[str, Any]) -> tuple[str, Any]:
+        try:
+            result = await _compute_widget_data(
+                w_dict, global_since=global_since, global_until=global_until
+            )
+        except Exception:
+            result = None
+        return w_dict["name"], result
+
+    pairs = await asyncio.gather(*(_safe_compute(w) for w in widgets))
+    return dict(pairs)

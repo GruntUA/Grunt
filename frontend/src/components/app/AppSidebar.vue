@@ -130,10 +130,6 @@ watch(() => appStore.active?.name, () => loadPinnedItems())
 watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStore.refreshCounts() })
 
 const isCollapsed = computed(() => sidebarStore.isCollapsed)
-
-const otherWorkspaces = computed(() =>
-  appStore.workspaces.filter(ws => ws.name !== appStore.active?.name)
-)
 </script>
 
 <template>
