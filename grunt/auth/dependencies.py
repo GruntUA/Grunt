@@ -83,7 +83,7 @@ async def current_user(
     user = User(
         doctype="User",
         data={
-            "id": uid,
+            "name": uid,
             "email": email,
             "full_name": payload.get("full_name") or "",
             "is_superadmin": bool(payload.get("is_superadmin", False)),

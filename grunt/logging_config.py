@@ -134,6 +134,8 @@ def configure_logging(
         "uvicorn.access",  # uvicorn request log (we log via middleware)
         "asyncio",
         "multipart",
+        "python_multipart",
+        "taskiq",
         "httpcore",
         "httpx",
         "apscheduler",  # job add/remove/wakeup spam

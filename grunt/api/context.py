@@ -52,7 +52,7 @@ def get_user() -> User:
         return _User(
             doctype="User",
             data={
-                "id": "system",
+                "name": "system",
                 "email": "system",
                 "full_name": "System",
                 "roles": [],
@@ -106,15 +106,15 @@ def whitelist(allow_guest: bool = False):
     """Decorator to mark a function as whitelisted for API access."""
 
     def decorator(fn):
-        fn._whitelisted = True
-        fn._allow_guest = allow_guest
+        setattr(fn, "_whitelisted", True)
+        setattr(fn, "_allow_guest", allow_guest)
         return fn
 
     # Support both @whitelist and @whitelist()
     if callable(allow_guest):
         fn = allow_guest
-        fn._whitelisted = True
-        fn._allow_guest = False
+        setattr(fn, "_whitelisted", True)
+        setattr(fn, "_allow_guest", False)
         return fn
 
     return decorator

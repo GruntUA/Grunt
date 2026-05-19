@@ -1,11 +1,19 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, ParamSpec, TypeVar
+
 import structlog
-from taskiq import AsyncBroker, InMemoryBroker, SmartRetryMiddleware
+from taskiq import AsyncBroker, AsyncTaskiqDecoratedTask, InMemoryBroker, SmartRetryMiddleware
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 from taskiq_redis import RedisStreamBroker
 
 from grunt.config import settings
 from grunt.tasks.middleware import BackgroundTaskLoggingMiddleware
+
+_P = ParamSpec("_P")
+_R = TypeVar("_R")
 
 logger = structlog.get_logger()
 
@@ -48,7 +56,10 @@ def task(*args, **kwargs):
     return broker.task(*args, **kwargs)
 
 
-def retryable_task(max_retries: int = _DEFAULT_MAX_RETRIES, delay: int = _DEFAULT_RETRY_DELAY):
+def retryable_task(
+    max_retries: int = _DEFAULT_MAX_RETRIES,
+    delay: int = _DEFAULT_RETRY_DELAY,
+) -> Callable[[Callable[_P, _R]], AsyncTaskiqDecoratedTask[_P, _R]]:
     """Decorator to register a background task with automatic retry on failure.
 
     Uses SmartRetryMiddleware to re-enqueue the task after ``delay`` seconds,
@@ -64,7 +75,7 @@ def retryable_task(max_retries: int = _DEFAULT_MAX_RETRIES, delay: int = _DEFAUL
             ...
     """
 
-    def decorator(func):
+    def decorator(func: Callable[_P, _R]) -> AsyncTaskiqDecoratedTask[_P, _R]:
         return broker.task(
             retry_on_error=True,
             max_retries=max_retries,
