@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any
 import structlog
 from sqlalchemy import select
 
-from grunt.document.validation import _coerce_value
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.metadata.registry import doctype_registry
@@ -208,13 +207,11 @@ async def _save_child_tables(
                     if child_field.fieldtype in NON_PHYSICAL_FIELDS:
                         continue
                     if child_field.fieldname in child_data:
-                        row[child_field.fieldname] = _coerce_value(
-                            child_data[child_field.fieldname], child_field.fieldtype
+                        row[child_field.fieldname] = child_field.coerce(
+                            child_data[child_field.fieldname]
                         )
                     elif child_field.default is not None:
-                        row[child_field.fieldname] = _coerce_value(
-                            child_field.default, child_field.fieldtype
-                        )
+                        row[child_field.fieldname] = child_field.coerce(child_field.default)
                     else:
                         # Always include every column to avoid NOT NULL constraint
                         # errors. Use a type-appropriate empty value.

@@ -2,53 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, time
 from typing import TYPE_CHECKING, Any
 
 from grunt.document.validators import validate_field_value
-from grunt.metadata.field import is_empty_as_null_fieldtype, is_physical_fieldtype
+from grunt.metadata.field import is_physical_fieldtype
 
 if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
-
-
-def _coerce_value(value: Any, fieldtype: str) -> Any:
-    """Convert string values to proper Python types for SQLAlchemy."""
-    # Check fields always coerce to bool — never store NULL
-    if fieldtype == "Check":
-        if value is None or value == "":
-            return False
-        return bool(value)
-
-    if value is None or value == "":
-        return None if is_empty_as_null_fieldtype(fieldtype) else value
-
-    from grunt.metadata.field import _SA_TYPE_MAP  # noqa: PLC0415
-
-    factory = _SA_TYPE_MAP.get(fieldtype)
-    try:
-        sa_type = factory(None)[0] if factory else fieldtype
-    except Exception:
-        sa_type = fieldtype
-
-    if fieldtype == "Date" and isinstance(value, str):
-        # Accept both "YYYY-MM-DD" and "YYYY-MM-DD HH:MM:SS" / full ISO datetime
-        return date.fromisoformat(value[:10])
-    if fieldtype == "Datetime" and isinstance(value, str):
-        return datetime.fromisoformat(value.replace(" ", "T"))
-    if fieldtype == "Time" and isinstance(value, str):
-        return time.fromisoformat(value)
-    if (fieldtype == "Int" or sa_type == "Integer") and isinstance(value, str):
-        try:
-            return int(float(value))  # handles "1.0" → 1
-        except ValueError:
-            return None
-    if (fieldtype == "Float" or sa_type == "Float") and isinstance(value, str):
-        try:
-            return float(value)
-        except ValueError:
-            return None
-    return value
 
 
 def _validate_data(
@@ -65,16 +25,12 @@ def _validate_data(
 
         value = data.get(field.fieldname)
 
-        # Required check (skip for partial updates where field is absent,
-        # ignore_required flag, or if a default will be applied)
         if field.required and not ignore_required:
-            # In a partial update skip the check only when the field is absent from payload
             if partial and field.fieldname not in data:
                 continue
             if (value is None or value == "") and field.default is None:
                 errors.append(f"{field.fieldname}: Поле '{field.label}' є обов'язковим")
 
-        # Named validator check
         if field.validator and value is not None and value != "":
             error = validate_field_value(
                 field.validator, str(value), field.label or field.fieldname

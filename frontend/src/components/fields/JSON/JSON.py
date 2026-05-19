@@ -1,5 +1,12 @@
-from grunt.metadata.field import register_field_type
+from grunt.metadata.field import FieldType, register_field_type_class
+
+
+class JSONField(FieldType):
+    name = "JSON"
+    sa_factory = staticmethod(lambda f: ("JSON",))
+    searchable = False
+    python_type = "dict | None"
 
 
 def register():
-    register_field_type("JSON", lambda f: ("JSON",), searchable=False, python_type="dict | None")
+    register_field_type_class(JSONField)

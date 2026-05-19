@@ -37,7 +37,7 @@ from grunt.document.update_side_effects import (
     run_bulk_before_delete_hooks,
     run_bulk_delete_writes,
 )
-from grunt.document.validation import _coerce_value, _validate_data
+from grunt.document.validation import _validate_data
 from grunt.document.virtual import (
     _is_virtual_routed,
     _virtual_create,
@@ -160,9 +160,9 @@ class DocumentWriteMixin:
             if field.fieldtype in NON_PHYSICAL_FIELDS:
                 continue
             if field.fieldname in data:
-                row[field.fieldname] = _coerce_value(data[field.fieldname], field.fieldtype)
+                row[field.fieldname] = field.coerce(data[field.fieldname])
             elif field.default is not None:
-                row[field.fieldname] = _coerce_value(field.default, field.fieldtype)
+                row[field.fieldname] = field.coerce(field.default)
             elif field.fieldtype == "Check":
                 row[field.fieldname] = False
 
@@ -351,7 +351,7 @@ class DocumentWriteMixin:
             if field.fieldname not in table_columns:
                 continue
             if field.fieldname in data and field.fieldname not in PROTECTED_FIELDS:
-                update_data[field.fieldname] = _coerce_value(data[field.fieldname], field.fieldtype)
+                update_data[field.fieldname] = field.coerce(data[field.fieldname])
         if "modified_at" in table.c:
             update_data["modified_at"] = datetime.now(UTC)
         if "modified_by" in table.c:

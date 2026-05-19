@@ -1,11 +1,12 @@
-from grunt.metadata.field import register_field_type
+from grunt.metadata.field import FieldType, register_field_type_class
 
 
-def register() -> None:
-    """Register ColumnMapping as a JSON-backed field type."""
-    register_field_type(
-        "ColumnMapping",
-        factory=lambda field: ("JSON",),
-        searchable=False,
-        python_type="dict[str, str] | None",
-    )
+class ColumnMappingField(FieldType):
+    name = "ColumnMapping"
+    sa_factory = staticmethod(lambda f: ("JSON",))
+    searchable = False
+    python_type = "dict[str, str] | None"
+
+
+def register():
+    register_field_type_class(ColumnMappingField)
