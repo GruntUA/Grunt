@@ -103,5 +103,5 @@ async def remove_user_role(user_id: str, role: str) -> dict:
     )
     if not rows:
         raise HTTPException(status_code=404, detail="Роль не знайдено у користувача")
-    await grunt.db.delete("UserRole", {"id": rows[0]["name"]})
+    await grunt.db.delete("UserRole", {"name": rows[0]["name"]})
     return ok(message="Роль знято")

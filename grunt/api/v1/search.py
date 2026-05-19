@@ -53,8 +53,7 @@ async def global_search(
             results.append(
                 {
                     "doctype": r["doctype"],
-                    "id": r["doc_id"],
-                    "name": r["doc_name"],
+                    "name": r["doc_id"],
                     "display_title": r.get("title") or r.get("doc_name", ""),
                     "module": r.get("module", ""),
                 }

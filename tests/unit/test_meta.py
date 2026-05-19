@@ -15,7 +15,6 @@ async def test_meta_helpers(ctx):
     # Test valid columns
     columns = meta.get_valid_columns()
     assert "email" in columns
-    assert "id" in columns
     assert "name" in columns
 
     # Test link fields

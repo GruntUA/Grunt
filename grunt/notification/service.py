@@ -78,7 +78,7 @@ class NotificationService:
                     session=session,
                     user=recipient,
                     doctype=doctype,
-                    doc_id=str(doc.get("id", "")),
+                    doc_id=str(doc.get("name", "")),
                     subject=subject,
                     message=message,
                 )
@@ -271,7 +271,7 @@ class NotificationService:
                 for user_id in user_ids:
                     user_rows = await grunt.db.get_all(
                         "User",
-                        filters={"id": user_id, "is_active": True},
+                        filters={"name": user_id, "is_active": True},
                         fields=["email"],
                         limit=1,
                     )
@@ -354,7 +354,7 @@ class NotificationService:
                         "data": {
                             "subject": subject,
                             "doctype": doctype,
-                            "doc_id": str(doc.get("id", "")),
+                            "doc_id": str(doc.get("name", "")),
                         },
                     },
                 )

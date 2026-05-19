@@ -82,7 +82,7 @@ async def create_api_key(
 
     return ok(
         {
-            "id": doc["name"],
+            "name": doc["name"],
             "key": full_key,
             "key_prefix": key_prefix,
             "label": doc["label"],
@@ -106,7 +106,7 @@ async def list_api_keys(
         "ApiKey",
         filters=filters,
         fields=[
-            "id",
+            "name",
             "label",
             "key_prefix",
             "is_active",
@@ -153,7 +153,7 @@ async def update_api_key(
     doc = await grunt.save_doc("ApiKey", key_id, updates)
     return ok(
         {
-            "id": doc["name"],
+            "name": doc["name"],
             "label": doc["label"],
             "key_prefix": doc["key_prefix"],
             "is_active": doc["is_active"],

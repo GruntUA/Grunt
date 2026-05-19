@@ -96,4 +96,4 @@ async def create_share(
         },
     )
 
-    return {"id": doc["name"], "token": doc["token"]}
+    return {"name": doc["name"], "token": doc["token"]}

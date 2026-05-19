@@ -161,7 +161,7 @@ async def get_user_by_id(user_id: str, session: AsyncSession) -> User | None:
     async with grunt.system_context(session):
         from grunt.auth.doctypes.UserRole.UserRole import get_user_roles  # noqa: PLC0415
 
-        rows = await grunt.db.get_all("User", filters={"id": user_id}, limit=1)
+        rows = await grunt.db.get_all("User", filters={"name": user_id}, limit=1)
         if not rows:
             return None
         row = rows[0]
@@ -251,10 +251,10 @@ async def authenticate(email: str, password: str, session: AsyncSession) -> User
             if new_attempts >= _MAX_ATTEMPTS:
                 updates["locked_until"] = now + timedelta(minutes=_LOCKOUT_MINUTES)
                 updates["login_attempts"] = 0
-            await grunt.db.set_value("User", user.id, updates)
+            await grunt.db.set_value("User", user.name, updates)
             return None
 
-        await grunt.db.set_value("User", user.id, {"login_attempts": 0, "locked_until": None})
+        await grunt.db.set_value("User", user.name, {"login_attempts": 0, "locked_until": None})
 
     return user
 
@@ -285,7 +285,7 @@ async def register(
         session,
     )
     return {
-        "id": user.id,
+        "name": user.name,
         "email": user.email,
         "full_name": user.full_name,
         "roles": user.roles,
@@ -300,7 +300,7 @@ async def whoami() -> dict[str, Any]:
 
     user = grunt_app._require_user()
     return {
-        "id": user.id,
+        "name": user.name,
         "email": user.email,
         "full_name": user.full_name,
         "roles": user.roles,
@@ -321,7 +321,7 @@ async def list_users_api() -> list[dict[str, Any]]:
     users = await list_users(grunt_app._require_session())
     return [
         {
-            "id": u.id,
+            "name": u.name,
             "email": u.email,
             "full_name": u.full_name,
             "roles": u.roles,

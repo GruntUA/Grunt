@@ -151,7 +151,6 @@ async def test_search_result_fields(ctx):
 
     r = results[0]
     assert "doctype" in r
-    assert "id" in r
     assert "name" in r
     assert "display_title" in r
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
@@ -181,7 +180,6 @@ async def populate_system_doctypes(
         else:
             await conn.execute(
                 table.insert().values(
-                    id=str(uuid.uuid4()),
                     name=dt.name,
                     owner="system",
                     created_at=now,

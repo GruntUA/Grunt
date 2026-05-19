@@ -7,7 +7,7 @@ from typing import Any
 import grunt
 
 _PAGE_FIELDS = [
-    "id",
+    "name",
     "route",
     "title",
     "icon",

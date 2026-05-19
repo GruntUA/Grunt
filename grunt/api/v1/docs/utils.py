@@ -61,7 +61,7 @@ async def _audit_log(
                     "public:site",
                     "activity",
                     {
-                        "id": doc.get("name"),
+                        "name": doc.get("name"),
                         "doctype": doctype,
                         "doc_id": str(doc_id),
                         "action": action,

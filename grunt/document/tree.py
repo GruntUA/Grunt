@@ -316,11 +316,11 @@ class TreeService:
             WITH RECURSIVE ancestors AS (
                 SELECT {col_list}, 0 AS _depth
                 FROM "{table_name}" t
-                WHERE t.id = :node_id
+                WHERE t.name = :node_id
               UNION ALL
                 SELECT {col_list}, ancestors._depth + 1
                 FROM "{table_name}" t
-                JOIN ancestors ON t.id = ancestors."{pf}"
+                JOIN ancestors ON t.name = ancestors."{pf}"
                 WHERE ancestors."{pf}" IS NOT NULL
                   AND ancestors."{pf}" != ''
             )

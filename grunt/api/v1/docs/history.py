@@ -100,7 +100,7 @@ async def get_document_log(
 
     data = [
         {
-            "id": str(e["name"]),
+            "name": str(e["name"]),
             "action": e.get("action"),
             "user": e.get("user"),
             "details": e.get("details"),
@@ -132,7 +132,7 @@ async def get_document_timeline(
         items.append(
             {
                 "type": "activity",
-                "id": str(r["name"]),
+                "name": str(r["name"]),
                 "action": r.get("action"),
                 "user": r.get("user"),
                 "details": r.get("details"),
@@ -143,7 +143,7 @@ async def get_document_timeline(
         items.append(
             {
                 "type": "comment",
-                "id": str(r["name"]),
+                "name": str(r["name"]),
                 "content": r.get("content"),
                 "comment_type": r.get("comment_type"),
                 "user": r.get("owner"),

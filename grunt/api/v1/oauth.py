@@ -184,7 +184,7 @@ async def oauth_callback(
             "token_type": "bearer",
             "mfa_required": user.mfa_enabled,
             "user": {
-                "id": user.id,
+                "name": user.name,
                 "email": user.email,
                 "full_name": user.full_name,
                 "roles": user.roles,

@@ -205,7 +205,7 @@ class GruntDB:
 
         This helper performs a direct table insert without lifecycle hooks.
         Caller is responsible for providing required standard fields
-        (`id`, `name`, timestamps, owner, etc.) when needed.
+        (`name`, timestamps, owner, etc.) when needed.
         """
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)

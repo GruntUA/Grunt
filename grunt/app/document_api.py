@@ -140,14 +140,14 @@ class DocumentAPI:
         try:
             snapshot = await self._svc().get_document(doctype, id_or_name, user)
         except Exception:  # noqa: BLE001
-            snapshot = {"id": id_or_name}
+            snapshot = {"name": id_or_name}
 
         await fire("before_delete", doctype=doctype, doc=snapshot, user=user, session=session)
         await self._svc().delete_document(doctype, id_or_name, user)
         await fire(
             "after_delete",
             doctype=doctype,
-            doc_id=snapshot.get("id", id_or_name),
+            doc_id=snapshot.get("name", id_or_name),
             doc=snapshot,
             user=user,
             session=session,
@@ -352,26 +352,26 @@ class DocumentAPI:
         records: list[dict[str, Any]],
     ) -> list[str]:
         """Create multiple documents in a single database round-trip."""
-        import uuid  # noqa: PLC0415
         from datetime import datetime  # noqa: PLC0415
 
         from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.naming import naming_service  # noqa: PLC0415
 
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
         user = self._require_user()
+        session = self._require_session()
 
         now = datetime.now(UTC)
         rows: list[dict[str, Any]] = []
-        ids: list[str] = []
+        names: list[str] = []
 
         for rec in records:
-            doc_id = str(uuid.uuid4())
-            ids.append(doc_id)
+            doc_name = await naming_service.generate(dt.autoname or "", rec, session)
+            names.append(doc_name)
             row = {k: v for k, v in rec.items() if k in table.c}
             standard = {
-                "id": doc_id,
-                "name": rec.get("name") or doc_id,
+                "name": doc_name,
                 "owner": user.email,
                 "created_at": now,
                 "modified_at": now,
@@ -386,7 +386,7 @@ class DocumentAPI:
         await self.db.insert_many(doctype, rows)
         logger.info("grunt.bulk_insert", doctype=doctype, count=len(rows))
         await self._invalidate_list_cache(doctype)
-        return ids
+        return names
 
     async def bulk_update(
         self,

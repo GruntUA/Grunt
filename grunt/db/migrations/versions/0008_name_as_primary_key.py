@@ -76,6 +76,36 @@ def _list_grunt_tables(conn: sa.engine.Connection) -> list[str]:
         return [r[0] for r in rows]
 
 
+def _load_doctype_table_map(conn: sa.engine.Connection) -> dict[str, str]:
+    """Return {doctype_name: table_name} by parsing grunt_meta_doctype.data JSON."""
+    import json  # noqa: PLC0415
+
+    if not _table_exists(conn, "grunt_meta_doctype"):
+        return {}
+    try:
+        rows = conn.execute(
+            sa.text("SELECT name, module, data FROM grunt_meta_doctype WHERE data IS NOT NULL")
+        ).fetchall()
+    except Exception:
+        return {}
+
+    result: dict[str, str] = {}
+    for (dt_name, module, data_json) in rows:
+        try:
+            data = json.loads(data_json) if isinstance(data_json, str) else (data_json or {})
+        except Exception:
+            data = {}
+        table_name = data.get("table_name") or ""
+        if table_name:
+            result[dt_name] = table_name
+        elif module and dt_name:
+            # Derive from module + name: grunt_{module}_{snake_case_name}
+            import re  # noqa: PLC0415
+            snake = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", dt_name).lower()
+            result[dt_name] = f"grunt_{module}_{snake}"
+    return result
+
+
 # ── Per-dialect table rebuild (SQLite cannot DROP/ALTER PK) ───────────────
 
 
@@ -111,7 +141,6 @@ def _migrate_system_table(conn: sa.engine.Connection, table: str) -> None:
     if dialect == "sqlite":
         # SQLite: recreate table without id column
         cols_rows = conn.execute(sa.text(f"PRAGMA table_info({table})")).fetchall()
-        # Build minimal DDL for the table without `id`
         col_defs = []
         for r in cols_rows:
             col_name = r[1]
@@ -135,7 +164,11 @@ def _migrate_system_table(conn: sa.engine.Connection, table: str) -> None:
 # ── Dynamic DocType table migration ──────────────────────────────────────
 
 
-def _migrate_doctype_table(conn: sa.engine.Connection, table: str) -> None:
+def _migrate_doctype_table(
+    conn: sa.engine.Connection,
+    table: str,
+    doctype_table_map: dict[str, str],
+) -> None:
     """Migrate a dynamic DocType table: make name PK, add parent_name, drop id/parent_id."""
     if not _col_exists(conn, table, "id"):
         return  # already migrated or new-style table
@@ -144,20 +177,77 @@ def _migrate_doctype_table(conn: sa.engine.Connection, table: str) -> None:
     dialect = conn.dialect.name
     is_child = _col_exists(conn, table, "parent_id")
 
-    # Ensure name is populated (fallback to id)
+    # Ensure name is populated (fallback to id for rows that never got a name)
     conn.execute(
         sa.text(
             f'UPDATE "{table}" SET name = id WHERE name IS NULL OR name = \'\''
         )
     )
 
-    if is_child:
+    if is_child and _col_exists(conn, table, "parent_doctype"):
         # Add parent_name if missing
         if not _col_exists(conn, table, "parent_name"):
             conn.execute(
                 sa.text(f'ALTER TABLE "{table}" ADD COLUMN parent_name VARCHAR(255) DEFAULT \'\'')
             )
-        # Populate parent_name from parent_id (they were the same column under old scheme)
+
+        # For each distinct parent_doctype, join against the parent table to get the real name
+        doctype_rows = conn.execute(
+            sa.text(f'SELECT DISTINCT parent_doctype FROM "{table}" WHERE parent_doctype IS NOT NULL AND parent_doctype != \'\'')
+        ).fetchall()
+
+        for (parent_doctype,) in doctype_rows:
+            parent_table = doctype_table_map.get(parent_doctype)
+            if not parent_table or not _table_exists(conn, parent_table):
+                # Fallback: copy UUID as name (better than NULL)
+                conn.execute(
+                    sa.text(
+                        f'UPDATE "{table}" SET parent_name = parent_id '
+                        f'WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = \'\')'
+                    ),
+                    {"dt": parent_doctype},
+                )
+                log.warning("0008: could not find parent table for %s (doctype=%s), using UUID as parent_name", table, parent_doctype)
+                continue
+
+            # The parent table may still have its 'id' column at this point;
+            # if so, join on id; otherwise fall back to name (already migrated).
+            if _col_exists(conn, parent_table, "id"):
+                if dialect == "sqlite":
+                    conn.execute(
+                        sa.text(
+                            f'UPDATE "{table}" SET parent_name = ('
+                            f'  SELECT p.name FROM "{parent_table}" p WHERE p.id = "{table}".parent_id'
+                            f') WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = \'\')'
+                        ),
+                        {"dt": parent_doctype},
+                    )
+                else:
+                    conn.execute(
+                        sa.text(
+                            f'UPDATE "{table}" c SET parent_name = p.name '
+                            f'FROM "{parent_table}" p '
+                            f'WHERE p.id = c.parent_id AND c.parent_doctype = :dt '
+                            f'AND (c.parent_name IS NULL OR c.parent_name = \'\')'
+                        ),
+                        {"dt": parent_doctype},
+                    )
+            else:
+                # Parent already migrated: parent_id was the name value
+                conn.execute(
+                    sa.text(
+                        f'UPDATE "{table}" SET parent_name = parent_id '
+                        f'WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = \'\')'
+                    ),
+                    {"dt": parent_doctype},
+                )
+
+    elif is_child:
+        # No parent_doctype column — fall back to copying parent_id
+        if not _col_exists(conn, table, "parent_name"):
+            conn.execute(
+                sa.text(f'ALTER TABLE "{table}" ADD COLUMN parent_name VARCHAR(255) DEFAULT \'\'')
+            )
         conn.execute(
             sa.text(
                 f'UPDATE "{table}" SET parent_name = parent_id '
@@ -211,7 +301,7 @@ def _migrate_doctype_table_pg(conn: sa.engine.Connection, table: str, is_child: 
 # ── MultiLink table migration ─────────────────────────────────────────────
 
 
-def _migrate_multi_link(conn: sa.engine.Connection) -> None:
+def _migrate_multi_link(conn: sa.engine.Connection, doctype_table_map: dict[str, str]) -> None:
     if not _table_exists(conn, _MULTI_LINK_TABLE):
         return
     if not _col_exists(conn, _MULTI_LINK_TABLE, "id"):
@@ -229,13 +319,57 @@ def _migrate_multi_link(conn: sa.engine.Connection) -> None:
                 f'ADD COLUMN parent_name VARCHAR(255) NOT NULL DEFAULT \'\''
             )
         )
-    # Populate parent_name from parent_id
-    conn.execute(
+
+    # Populate parent_name by joining against each parent DocType's table
+    doctype_rows = conn.execute(
         sa.text(
-            f'UPDATE "{_MULTI_LINK_TABLE}" SET parent_name = parent_id '
-            f'WHERE parent_name IS NULL OR parent_name = \'\''
+            f'SELECT DISTINCT parent_doctype FROM "{_MULTI_LINK_TABLE}" '
+            f'WHERE parent_doctype IS NOT NULL AND parent_doctype != \'\''
         )
-    )
+    ).fetchall()
+
+    for (parent_doctype,) in doctype_rows:
+        parent_table = doctype_table_map.get(parent_doctype)
+        if not parent_table or not _table_exists(conn, parent_table):
+            conn.execute(
+                sa.text(
+                    f'UPDATE "{_MULTI_LINK_TABLE}" SET parent_name = parent_id '
+                    f'WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = \'\')'
+                ),
+                {"dt": parent_doctype},
+            )
+            log.warning("0008: no parent table for multi_link doctype=%s, using UUID", parent_doctype)
+            continue
+
+        if _col_exists(conn, parent_table, "id"):
+            if dialect == "sqlite":
+                conn.execute(
+                    sa.text(
+                        f'UPDATE "{_MULTI_LINK_TABLE}" SET parent_name = ('
+                        f'  SELECT p.name FROM "{parent_table}" p '
+                        f'  WHERE p.id = "{_MULTI_LINK_TABLE}".parent_id'
+                        f') WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = \'\')'
+                    ),
+                    {"dt": parent_doctype},
+                )
+            else:
+                conn.execute(
+                    sa.text(
+                        f'UPDATE "{_MULTI_LINK_TABLE}" m SET parent_name = p.name '
+                        f'FROM "{parent_table}" p '
+                        f'WHERE p.id = m.parent_id AND m.parent_doctype = :dt '
+                        f'AND (m.parent_name IS NULL OR m.parent_name = \'\')'
+                    ),
+                    {"dt": parent_doctype},
+                )
+        else:
+            conn.execute(
+                sa.text(
+                    f'UPDATE "{_MULTI_LINK_TABLE}" SET parent_name = parent_id '
+                    f'WHERE parent_doctype = :dt AND (parent_name IS NULL OR parent_name = \'\')'
+                ),
+                {"dt": parent_doctype},
+            )
 
     if dialect == "sqlite":
         ddl = f'''CREATE TABLE "{_MULTI_LINK_TABLE}" (
@@ -274,29 +408,111 @@ def _migrate_multi_link(conn: sa.engine.Connection) -> None:
 def upgrade() -> None:
     conn = op.get_bind()
 
-    # 1. System tables (GruntBase ORM tables)
+    # Load DocType → table_name mapping from grunt_meta_doctype for JOIN-based parent_name population
+    doctype_table_map = _load_doctype_table_map(conn)
+
+    # 1. Fix Link field values that still contain old UUID strings.
+    #    MUST run BEFORE schema changes so the JOIN against the id column still works.
+    _fix_link_uuids(conn, doctype_table_map)
+
+    # 2. System tables (GruntBase ORM tables) — migrate first so parent tables are ready
     for tbl in _SYSTEM_TABLES:
         try:
             _migrate_system_table(conn, tbl)
         except Exception as exc:
             log.warning("0008: system table %s migration failed — %s", tbl, exc)
 
-    # 2. Dynamic DocType tables
+    # 3. Dynamic DocType tables — parent tables before child tables
     all_tables = _list_grunt_tables(conn)
     skip = set(_SYSTEM_TABLES) | {_MULTI_LINK_TABLE}
-    for tbl in all_tables:
-        if tbl in skip:
-            continue
+
+    # Separate non-child tables (no parent_id) from child tables so parents migrate first
+    non_child = [t for t in all_tables if t not in skip and not _col_exists(conn, t, "parent_id")]
+    child = [t for t in all_tables if t not in skip and _col_exists(conn, t, "parent_id")]
+
+    for tbl in non_child:
         try:
-            _migrate_doctype_table(conn, tbl)
+            _migrate_doctype_table(conn, tbl, doctype_table_map)
         except Exception as exc:
             log.warning("0008: table %s migration failed — %s", tbl, exc)
 
-    # 3. MultiLink junction table
+    for tbl in child:
+        try:
+            _migrate_doctype_table(conn, tbl, doctype_table_map)
+        except Exception as exc:
+            log.warning("0008: table %s migration failed — %s", tbl, exc)
+
+    # 4. MultiLink junction table
     try:
-        _migrate_multi_link(conn)
+        _migrate_multi_link(conn, doctype_table_map)
     except Exception as exc:
         log.warning("0008: multi_link migration failed — %s", exc)
+
+
+def _fix_link_uuids(conn: sa.engine.Connection, doctype_table_map: dict[str, str]) -> None:
+    """Replace UUID values in Link fields with the target document's ``name``.
+
+    DocField definitions are stored as JSON in grunt_meta_doctype.data — we parse
+    each row's ``fields`` array to discover Link-typed columns and their target doctype.
+    This must run BEFORE dropping the ``id`` column so the JOIN still resolves values.
+    """
+    import json  # noqa: PLC0415
+
+    if not _table_exists(conn, "grunt_meta_doctype"):
+        return
+
+    try:
+        meta_rows = conn.execute(
+            sa.text("SELECT name, data FROM grunt_meta_doctype WHERE data IS NOT NULL")
+        ).fetchall()
+    except Exception as exc:
+        log.warning("0008: could not read grunt_meta_doctype — %s", exc)
+        return
+
+    # Build list of (dt_name, fieldname, target_doctype) for all Link fields
+    link_fields: list[tuple[str, str, str]] = []
+    for (dt_name, data_json) in meta_rows:
+        try:
+            data = json.loads(data_json) if isinstance(data_json, str) else data_json
+        except Exception:
+            continue
+        for field in data.get("fields") or []:
+            if field.get("fieldtype") == "Link" and field.get("options") and field.get("fieldname"):
+                link_fields.append((dt_name, field["fieldname"], field["options"]))
+
+    updated = 0
+    for (dt_name, fieldname, target_doctype) in link_fields:
+        source_table = doctype_table_map.get(dt_name)
+        target_table = doctype_table_map.get(target_doctype)
+        if not source_table or not target_table:
+            continue
+        if not _table_exists(conn, source_table) or not _table_exists(conn, target_table):
+            continue
+        if not _col_exists(conn, target_table, "id"):
+            continue  # target already migrated or never had id; skip
+        if not _col_exists(conn, source_table, fieldname):
+            continue
+
+        try:
+            result = conn.execute(
+                sa.text(
+                    f'UPDATE "{source_table}" '
+                    f'SET "{fieldname}" = ('
+                    f'  SELECT t.name FROM "{target_table}" t'
+                    f'  WHERE t.id = "{source_table}"."{fieldname}"'
+                    f') '
+                    f'WHERE "{fieldname}" IN (SELECT id FROM "{target_table}")'
+                )
+            )
+            n = result.rowcount or 0
+            if n:
+                updated += n
+                log.info("0008: fix_link_uuids %s.%s → %d rows", dt_name, fieldname, n)
+        except Exception as exc:
+            log.warning("0008: fix_link_uuids failed %s.%s — %s", dt_name, fieldname, exc)
+
+    if updated:
+        log.info("0008: fix_link_uuids total %d rows repaired", updated)
 
 
 def downgrade() -> None:

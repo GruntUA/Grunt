@@ -83,16 +83,16 @@ async def _resolve_department_titles_on_date(
 
     history_rows = await session.execute(
         select(
-            history_table.c.parent_id,
+            history_table.c.parent_name,
             history_table.c.change_type,
             history_table.c.effective_date,
             history_table.c.old_name,
-        ).where(history_table.c.parent_id.in_(dept_ids))
+        ).where(history_table.c.parent_name.in_(dept_ids))
     )
 
     by_parent: dict[str, list[dict[str, Any]]] = {}
-    for parent_id, change_type, effective_date, old_name in history_rows.fetchall():
-        pid = str(parent_id or "")
+    for parent_name, change_type, effective_date, old_name in history_rows.fetchall():
+        pid = str(parent_name or "")
         if not pid:
             continue
         by_parent.setdefault(pid, []).append(

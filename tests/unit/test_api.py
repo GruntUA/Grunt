@@ -132,29 +132,27 @@ class TestGruntAppDocs:
     @pytest.mark.asyncio
     async def test_get_doc(self, setup_context):
         """Test grunt.get_doc() retrieves a document."""
-        doc_data = {"id": "DOC-001", "name": "Test Document"}
+        doc_data = {"name": "DOC-001"}
 
         with patch.object(grunt, "get_doc", new_callable=AsyncMock, return_value=doc_data):
             result = await grunt.get_doc("Invoice", "DOC-001")
 
-            assert result["id"] == "DOC-001"
-            assert result["name"] == "Test Document"
+            assert result["name"] == "DOC-001"
 
     @pytest.mark.asyncio
     async def test_new_doc(self, setup_context):
         """Test grunt.new_doc() creates a new document."""
-        doc_data = {"id": "DOC-002", "name": "New Doc"}
+        doc_data = {"name": "DOC-002"}
 
         with patch.object(grunt, "new_doc", new_callable=AsyncMock, return_value=doc_data):
             result = await grunt.new_doc("Invoice", {"name": "New Doc"})
 
-            assert result["id"] == "DOC-002"
-            assert result["name"] == "New Doc"
+            assert result["name"] == "DOC-002"
 
     @pytest.mark.asyncio
     async def test_save_doc(self, setup_context):
         """Test grunt.save_doc() updates a document."""
-        original = {"id": "DOC-001", "name": "Test", "status": "Draft"}
+        original = {"name": "DOC-001", "status": "Draft"}
         updated = {**original, "status": "Active"}
 
         with patch.object(grunt, "save_doc", new_callable=AsyncMock, return_value=updated):
@@ -174,20 +172,20 @@ class TestGruntAppDocs:
     async def test_get_list(self, setup_context):
         """Test grunt.get_list() returns a list of documents."""
         docs = [
-            {"id": "DOC-001", "name": "Doc 1"},
-            {"id": "DOC-002", "name": "Doc 2"},
+            {"name": "DOC-001"},
+            {"name": "DOC-002"},
         ]
 
         with patch.object(grunt, "get_list", new_callable=AsyncMock, return_value=docs):
             result = await grunt.get_list("Invoice", limit=50)
 
             assert len(result) == 2
-            assert result[0]["id"] == "DOC-001"
+            assert result[0]["name"] == "DOC-001"
 
     @pytest.mark.asyncio
     async def test_get_list_with_filters(self, setup_context):
         """Test grunt.get_list() respects filters."""
-        docs = [{"id": "DOC-001", "status": "Draft"}]
+        docs = [{"name": "DOC-001", "status": "Draft"}]
 
         with patch.object(
             grunt, "get_list", new_callable=AsyncMock, return_value=docs
@@ -312,7 +310,7 @@ class TestGruntAppLayerPermissions:
         dt = Mock()
         dt.name = "Invoice"
         dt.permissions = []
-        rows = [{"id": "1", "name": "INV-001", "status": "Draft"}]
+        rows = [{"name": "INV-001", "status": "Draft"}]
 
         with (
             patch("grunt.app.doctype_registry.get", new_callable=AsyncMock, return_value=dt),
@@ -326,7 +324,7 @@ class TestGruntAppLayerPermissions:
             result = await grunt.get_all(
                 InvoiceModel,
                 filters={"status": "Draft"},
-                fields=["id", "name", "status"],
+                fields=["name", "status"],
                 limit=10,
                 page=2,
                 order_by="modified_at",
@@ -339,7 +337,7 @@ class TestGruntAppLayerPermissions:
             mock_db_get_all.assert_awaited_once_with(
                 "Invoice",
                 filters={"status": "Draft"},
-                fields=["id", "name", "status"],
+                fields=["name", "status"],
                 limit=10,
                 offset=10,
                 order_by="modified_at",
@@ -540,7 +538,7 @@ class TestIntegration:
     @pytest.mark.asyncio
     async def test_get_and_save_workflow(self, setup_context):
         """Test getting a document and saving it via grunt API."""
-        doc_data = {"id": "INV-001", "amount": 100, "status": "Draft"}
+        doc_data = {"name": "INV-001", "amount": 100, "status": "Draft"}
         updated_data = {**doc_data, "status": "Active"}
 
         with (

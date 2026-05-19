@@ -13,8 +13,7 @@ def mock_user():
     user = User(
         doctype="User",
         data={
-            "id": "user-123",
-            "name": "Test User",
+            "name": "user-123",
             "email": "test@example.com",
             "full_name": "Test User",
             "is_active": True,

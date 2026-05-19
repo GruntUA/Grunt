@@ -4,14 +4,14 @@ from grunt.document.base import DocumentList
 
 
 def test_document_list_behavior():
-    data = [{"id": "1"}, {"id": "2"}]
+    data = [{"name": "1"}, {"name": "2"}]
     meta = {"total": 2, "page": 1}
 
     dl = DocumentList(data, meta=meta)
 
     # 1. Verify it behaves like a list
     assert len(dl) == 2
-    assert dl[0] == {"id": "1"}
+    assert dl[0] == {"name": "1"}
     assert list(dl) == data
 
     # 2. Verify backward compatibility (dict-like access)

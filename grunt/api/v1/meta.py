@@ -130,7 +130,6 @@ async def search_meta(q: str, limit: int = 20) -> list[dict[str, Any]]:
             results.append(
                 {
                     "doctype": "DocType",
-                    "id": dt.name,
                     "name": dt.name,
                     "display_title": dt.label or dt.name,
                     "module": dt.module or "",
@@ -142,7 +141,7 @@ async def search_meta(q: str, limit: int = 20) -> list[dict[str, Any]]:
         )
         for r in reports:
             results.append(
-                {"doctype": "Report", "id": r["name"], "name": r["name"], "display_title": r["name"]}
+                {"doctype": "Report", "name": r["name"], "display_title": r["name"]}
             )
     except Exception:
         logger.exception("suppressed_error")
@@ -171,6 +170,106 @@ async def list_validators() -> list[dict[str, object]]:
     from grunt.document.validators import list_validators as _list  # noqa: PLC0415
 
     return _list()
+
+
+@grunt.whitelist()
+async def fix_link_uuids(doctype: str | None = None) -> dict[str, Any]:
+    """Repair Link field values that still contain old UUID strings.
+
+    After the id→name migration, Link fields may store the old UUID (id) of
+    the target document instead of its name.  This scans every Link field,
+    finds rows where the stored value matches an existing target document's
+    ``id`` column, and replaces it with the correct ``name``.
+
+    Pass *doctype* to limit the repair to a single DocType; omit to fix all.
+    Superadmin only.
+    """
+    import sqlalchemy as sa  # noqa: PLC0415
+
+    from grunt.app import grunt as grunt_app  # noqa: PLC0415
+    from grunt.metadata.compiler import get_table_name  # noqa: PLC0415
+    from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.site.manager import site_manager  # noqa: PLC0415
+
+    user = grunt_app._require_user()
+    if not user.is_superadmin:
+        grunt.throw("Not authorized", "PERMISSION_DENIED")
+
+    engine = site_manager.get_engine(site_manager.get_active_site())
+    all_dts = await doctype_registry.list_all()
+    if doctype:
+        all_dts = [dt for dt in all_dts if dt.name == doctype]
+
+    updated_total = 0
+    report: list[dict[str, Any]] = []
+
+    # Build a doctype_name → table_name map from the registry
+    dt_table_map = {}
+    for dt in all_dts:
+        if dt.table_name:
+            dt_table_map[dt.name] = dt.table_name
+        elif dt.module:
+            dt_table_map[dt.name] = get_table_name(dt.module, dt.name)
+
+    def _fix_all(conn: sa.engine.Connection) -> None:
+        nonlocal updated_total
+
+        def _col_exists(table: str, col: str) -> bool:
+            rows = conn.execute(sa.text(f'PRAGMA table_info("{table}")')).fetchall()
+            return any(r[1] == col for r in rows)
+
+        def _table_exists(table: str) -> bool:
+            return conn.dialect.has_table(conn, table)
+
+        for dt in all_dts:
+            source_table = dt_table_map.get(dt.name)
+            if not source_table or not _table_exists(source_table):
+                continue
+
+            count = 0
+            for field in dt.fields:
+                if field.fieldtype != "Link" or not field.options:
+                    continue
+                fieldname = field.fieldname
+                target_table = dt_table_map.get(field.options)
+                if not target_table or not _table_exists(target_table):
+                    continue
+                if not _col_exists(target_table, "id"):
+                    continue  # target already migrated
+                if not _col_exists(source_table, fieldname):
+                    continue
+
+                result = conn.execute(
+                    sa.text(
+                        f'UPDATE "{source_table}" '
+                        f'SET "{fieldname}" = ('
+                        f'  SELECT t.name FROM "{target_table}" t'
+                        f'  WHERE t.id = "{source_table}"."{fieldname}"'
+                        f') '
+                        f'WHERE "{fieldname}" IN (SELECT id FROM "{target_table}")'
+                    )
+                )
+                n = result.rowcount or 0
+                if n:
+                    count += n
+                    logger.info(
+                        "fix_link_uuids.fixed",
+                        doctype=dt.name,
+                        field=fieldname,
+                        rows=n,
+                    )
+
+            if count:
+                updated_total += count
+                report.append({"doctype": dt.name, "rows_fixed": count})
+
+        conn.commit()
+
+    async with engine.connect() as aconn:
+        await aconn.run_sync(_fix_all)
+
+    logger.info("fix_link_uuids.done", total=updated_total)
+    return {"total_rows_fixed": updated_total, "details": report}
 
 
 @grunt.whitelist()

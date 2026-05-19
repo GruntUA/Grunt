@@ -32,7 +32,7 @@ async def get_document_comments(
 
     data = [
         {
-            "id": str(r["name"]),
+            "name": str(r["name"]),
             "content": r.get("content"),
             "comment_type": r.get("comment_type"),
             "owner": r.get("owner"),

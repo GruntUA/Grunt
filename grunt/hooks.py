@@ -163,7 +163,7 @@ async def fire(event: str, **kwargs: Any) -> None:
             from grunt.document.links import link_service  # noqa: PLC0415
 
             doc = kwargs["doc"]
-            doc_id = doc.get("id", doc.get("name", ""))
+            doc_id = doc.get("name", "")
             await link_service.sync_links(kwargs["session"], doctype, str(doc_id), doc)
         except Exception:  # noqa: BLE001
             logger.exception("links.sync_error", hook_event=event, doctype=doctype)
@@ -173,7 +173,7 @@ async def fire(event: str, **kwargs: Any) -> None:
             from grunt.document.links import link_service  # noqa: PLC0415
 
             doc = kwargs["doc"]
-            doc_id = doc.get("id", doc.get("name", ""))
+            doc_id = doc.get("name", "")
             await link_service.delete_links(kwargs["session"], doctype, str(doc_id))
         except Exception:  # noqa: BLE001
             logger.exception("links.delete_error", hook_event=event, doctype=doctype)

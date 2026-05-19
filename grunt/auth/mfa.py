@@ -146,7 +146,7 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
     Raises HTTP 422 if the code is wrong or no secret is pending.
     """
     rows = await grunt_app.db.get_all(
-        "User", filters={"id": user.id}, fields=["mfa_secret"], limit=1
+        "User", filters={"name": user.id}, fields=["mfa_secret"], limit=1
     )
     if not rows or not rows[0].get("mfa_secret"):
         raise HTTPException(422, detail="MFA не налаштовано. Спочатку запустіть setup.")
@@ -207,7 +207,7 @@ async def check_mfa_code(user: User, code: str, session: object | None = None) -
     async with ctx:
         rows = await grunt_app.db.get_all(
             "User",
-            filters={"id": user.id},
+            filters={"name": user.id},
             fields=["mfa_secret", "mfa_backup_codes"],
             limit=1,
         )

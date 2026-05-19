@@ -103,4 +103,4 @@ class Test{{ name }}REST:
         """Create a valid {{ name }} via REST API."""
         resp = await client.post(self.BASE_URL, json=VALID_PAYLOAD, headers=auth_headers)
         assert resp.status_code in (200, 201), resp.text
-        assert resp.json()["data"]["id"]
+        assert resp.json()["data"]["name"]

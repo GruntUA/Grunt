@@ -185,7 +185,6 @@ async def print_format_preview(
         else:
             # Synthetic empty doc with all field names set to None
             doc = {f.fieldname: None for f in dt.fields}
-            doc.setdefault("id", "preview")
             doc.setdefault("name", "Зразок")
 
     try:

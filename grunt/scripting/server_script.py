@@ -237,9 +237,7 @@ class ScriptContext:
             db = GruntDB()
             rows: list[dict[str, Any]]
             if isinstance(filters_or_id, str):
-                rows = await db.get_all(doctype, filters={"id": filters_or_id}, limit=1)
-                if not rows:
-                    rows = await db.get_all(doctype, filters={"name": filters_or_id}, limit=1)
+                rows = await db.get_all(doctype, filters={"name": filters_or_id}, limit=1)
             else:
                 rows = await db.get_all(doctype, filters=filters_or_id, limit=1)
             return rows[0] if rows else None
@@ -322,9 +320,7 @@ class ScriptContext:
             update_data["modified_at"] = datetime.now(UTC)
             await GruntDB().set_value(doctype, id_or_name, update_data)
 
-            rows = await GruntDB().get_all(doctype, filters={"id": id_or_name}, limit=1)
-            if not rows:
-                rows = await GruntDB().get_all(doctype, filters={"name": id_or_name}, limit=1)
+            rows = await GruntDB().get_all(doctype, filters={"name": id_or_name}, limit=1)
             return rows[0] if rows else {}
 
         return await self._run_with_session(_action)

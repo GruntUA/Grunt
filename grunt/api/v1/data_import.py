@@ -26,7 +26,7 @@ async def get_import_status(data_import_id: str) -> dict[str, Any]:
     if not doc:
         grunt.throw("DataImport not found", "NOT_FOUND")
     return {
-        "id": doc["name"],
+        "name": doc["name"],
         "status": doc.get("status"),
         "total_rows": doc.get("total_rows") or 0,
         "processed_rows": doc.get("processed_rows") or 0,
@@ -51,7 +51,7 @@ async def run_import_job(data_import_id: str) -> dict[str, Any]:
     else:
         await run_data_import.kiq(data_import_id)
 
-    return {"id": data_import_id, "message": "Import started in background"}
+    return {"name": data_import_id, "message": "Import started in background"}
 
 
 @grunt.whitelist()

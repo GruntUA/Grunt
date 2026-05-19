@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import importlib
-import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
@@ -165,13 +164,11 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
 
     async def _run() -> None:
         logger.info("scheduler.server_script_run", name=name)
-        log_id = str(uuid.uuid4())
         started_at = datetime.now(UTC)
 
         async with async_session_factory() as session:
-            await _write_job_log(
+            log_id = await _write_job_log(
                 session,
-                log_id=log_id,
                 job_name=name,
                 started_at=started_at,
                 status="Running",
@@ -187,15 +184,17 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
             if result.output:
                 logger.debug("scheduler.server_script_output", name=name, output=result.output)
 
-            async with async_session_factory() as session:
-                await _update_job_log(session, log_id=log_id, status="Success")
+            if log_id:
+                async with async_session_factory() as session:
+                    await _update_job_log(session, log_id=log_id, status="Success")
 
         except Exception as exc:
             logger.error("scheduler.server_script_error", name=name, error=str(exc))
-            async with async_session_factory() as session:
-                await _update_job_log(
-                    session, log_id=log_id, status="Failed", error_message=str(exc)
-                )
+            if log_id:
+                async with async_session_factory() as session:
+                    await _update_job_log(
+                        session, log_id=log_id, status="Failed", error_message=str(exc)
+                    )
 
     try:
         scheduler.add_job(
@@ -212,29 +211,29 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
 async def _write_job_log(
     session: AsyncSession,
     *,
-    log_id: str,
     job_name: str,
     started_at: datetime,
     status: str,
     cron_expression: str,
-) -> None:
-    """Insert a new ScheduledJobLog record via Grunt ORM."""
+) -> str | None:
+    """Insert a new ScheduledJobLog record. Returns the generated name, or None on failure."""
     try:
         from grunt.app import grunt  # noqa: PLC0415
 
         async with grunt.system_context(session):
-            await grunt.new_doc(
+            doc = await grunt.new_doc(
                 "ScheduledJobLog",
                 {
-                    "id": log_id,
                     "job_name": job_name,
                     "started_at": started_at,
                     "status": status,
                     "cron_expression": cron_expression,
                 },
             )
+            return str(doc.get("name", ""))
     except Exception as exc:
         logger.warning("scheduler.log_write_failed", job_name=job_name, error=str(exc))
+        return None
 
 
 async def _update_job_log(

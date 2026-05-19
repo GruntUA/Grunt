@@ -103,13 +103,6 @@ class DocumentReadMixin:
             )
 
         # Select columns
-        # ... (lines 79-153 unchanged logic) ...
-        # (Assuming the logic above remains the same until the final return)
-
-        # ... (skipping some lines for conciseness in replacement chunk) ...
-        # I'll replace the last return as well.
-
-        # Select columns
         cols: list[Any]
         if fields:
             required = {"name", "modified_at", "docstatus"}
