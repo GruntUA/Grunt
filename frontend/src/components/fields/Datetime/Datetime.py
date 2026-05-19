@@ -7,7 +7,7 @@ class DatetimeField(FieldType):
     name = "Datetime"
     sa_factory = staticmethod(lambda f: ("DateTime",))
     empty_as_null = True
-    python_type = "str | None"
+    python_type = "datetime | None"
 
     @classmethod
     def coerce(cls, value):

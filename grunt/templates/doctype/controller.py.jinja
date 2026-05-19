@@ -20,6 +20,11 @@ Access fields:
 
 from __future__ import annotations
 
+{% set date_types = physical_fields | selectattr('fieldtype', 'in', ['Date', 'Datetime', 'Time']) | list -%}
+{% if date_types -%}
+from datetime import {{ date_types | map(attribute='fieldtype') | unique | map('lower') | join(', ') }}
+
+{% endif -%}
 from grunt.document.base import Document
 
 

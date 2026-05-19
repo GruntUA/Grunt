@@ -57,6 +57,7 @@ def _build_scaffold_context(doctype_name: str, fields: list) -> dict:
                     "fieldname": fieldname,
                     "py_type": get_python_type(fieldtype),
                     "label": label,
+                    "fieldtype": fieldtype,
                 }
             )
 
