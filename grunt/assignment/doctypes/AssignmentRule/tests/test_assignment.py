@@ -60,7 +60,7 @@ class TestAssignmentAPI:
     @pytest.mark.asyncio
     async def test_test_assignment_rule_api(self, ctx):
         """Test the assignment rule test logic directly."""
-        from grunt.assignment.doctypes.AssignmentRule.AssignmentRule import test_rule
+        from grunt.assignment.doctypes.AssignmentRule.assignment_rule import test_rule
 
         # 1. Create a rule via documents API
         rule_data = {
@@ -84,7 +84,7 @@ class TestAssignmentAPI:
         """Test the assignment log listing logic directly."""
         import datetime
 
-        from grunt.assignment.doctypes.AssignmentLog.AssignmentLog import list_logs
+        from grunt.assignment.doctypes.AssignmentLog.assignment_log import list_logs
 
         log_doc = {
             "doctype_affected": "Invoice",

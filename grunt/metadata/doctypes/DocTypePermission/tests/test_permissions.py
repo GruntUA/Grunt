@@ -103,7 +103,7 @@ async def test_list_users_requires_superadmin(ctx):
     """list_users requires superadmin (contextual check)."""
 
     from grunt.app import grunt
-    from grunt.auth.doctypes.User.User import User, list_users_api
+    from grunt.auth.doctypes.User.user import User, list_users_api
 
     # 1. Create a regular user
     reg_user_data = {
@@ -131,7 +131,7 @@ async def test_list_users_requires_superadmin(ctx):
 @pytest.mark.asyncio
 async def test_list_users_as_superadmin(ctx):
     """list_users works for superadmin."""
-    from grunt.auth.doctypes.User.User import list_users_api, register
+    from grunt.auth.doctypes.User.user import list_users_api, register
 
     # Register at least one user to list
     await register(email="admin@example.com", password="pass", full_name="Admin")
@@ -145,7 +145,7 @@ async def test_list_users_as_superadmin(ctx):
 @pytest.mark.asyncio
 async def test_add_remove_role(ctx):
     """Superadmin can add and remove roles from users."""
-    from grunt.auth.doctypes.User.User import add_role, list_users_api, remove_role
+    from grunt.auth.doctypes.User.user import add_role, list_users_api, remove_role
 
     # Register a regular user
     target_data = {"email": "target@grunt.example.com", "password": "pass", "full_name": "Target"}

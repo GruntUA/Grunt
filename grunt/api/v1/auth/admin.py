@@ -13,12 +13,12 @@ from grunt.api.v1.auth.schemas import (
 from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.auth.dependencies import superadmin_user
-from grunt.auth.doctypes.User.User import (
+from grunt.auth.doctypes.User.user import (
     get_user_by_email,
     get_user_by_id,
     hash_password,
 )
-from grunt.auth.doctypes.User.User import (
+from grunt.auth.doctypes.User.user import (
     list_users as service_list_users,
 )
 

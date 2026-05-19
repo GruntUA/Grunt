@@ -23,7 +23,7 @@ from grunt.api.context import get_user
 from grunt.app import grunt
 
 if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.User import User
+    from grunt.auth.doctypes.User.user import User
 
 
 async def get_current_user() -> User:

@@ -18,7 +18,7 @@ from grunt.api.router import GruntRouter
 from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt as grunt_app
 from grunt.auth.dependencies import current_user
-from grunt.auth.doctypes.User.User import User
+from grunt.auth.doctypes.User.user import User
 from grunt.metadata.registry import doctype_registry
 
 router = GruntRouter()

@@ -125,7 +125,7 @@ async def oauth_callback(
 
     import httpx
 
-    from grunt.auth.doctypes.User.User import (
+    from grunt.auth.doctypes.User.user import (
         create_user,
         get_user_by_email,
     )

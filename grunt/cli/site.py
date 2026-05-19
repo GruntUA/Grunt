@@ -294,7 +294,7 @@ def _run_migrate_for_site(site_name: str) -> None:
 
 
 async def _create_admin(site_name: str, email: str, password: str) -> None:
-    from grunt.auth.doctypes.User.User import create_user, get_user_by_email  # noqa: PLC0415
+    from grunt.auth.doctypes.User.user import create_user, get_user_by_email  # noqa: PLC0415
     from grunt.site.manager import current_site, site_manager  # noqa: PLC0415
 
     token = current_site.set(site_name)

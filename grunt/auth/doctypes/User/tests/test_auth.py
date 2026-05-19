@@ -35,8 +35,8 @@ async def test_register_login_me(ctx, client: AsyncClient):
     assert token
 
     # whoami via whitelisted method directly
-    from grunt.auth.doctypes.User.User import User as UserController
-    from grunt.auth.doctypes.User.User import whoami
+    from grunt.auth.doctypes.User.user import User as UserController
+    from grunt.auth.doctypes.User.user import whoami
 
     # Wrap dict in controller to support attribute access in context
     u_obj = UserController(doctype="User", data=u)
@@ -49,7 +49,7 @@ async def test_register_login_me(ctx, client: AsyncClient):
 @pytest.mark.asyncio
 async def test_first_user_is_superadmin(ctx):
     """The first registered user gets is_superadmin=True."""
-    from grunt.auth.doctypes.User.User import get_user_by_email, register
+    from grunt.auth.doctypes.User.user import get_user_by_email, register
 
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         # First user
@@ -80,7 +80,7 @@ async def test_first_user_is_superadmin(ctx):
 @pytest.mark.asyncio
 async def test_wrong_password_returns_401(ctx):
     """Incorrect password → authenticate() returns None."""
-    from grunt.auth.doctypes.User.User import authenticate, create_user
+    from grunt.auth.doctypes.User.user import authenticate, create_user
 
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         await create_user(
@@ -101,7 +101,7 @@ async def test_wrong_password_returns_401(ctx):
 async def test_invalid_token_returns_401(client: AsyncClient):
     """An invalid JWT → 401 on whoami."""
     resp = await client.get(
-        "/api/v1/method/grunt.auth.doctypes.User.User.whoami",
+        "/api/v1/method/grunt.auth.doctypes.User.user.whoami",
         headers={"Authorization": "Bearer invalid.token.here"},
     )
     assert resp.status_code == 401

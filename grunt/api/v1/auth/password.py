@@ -8,7 +8,7 @@ import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from grunt.api.v1.schemas.response import ok
-from grunt.auth.doctypes.User.User import get_user_by_email
+from grunt.auth.doctypes.User.user import get_user_by_email
 from grunt.auth.service import (
     consume_password_reset_token,
     create_password_reset_token,

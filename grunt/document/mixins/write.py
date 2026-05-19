@@ -14,7 +14,7 @@ from sqlalchemy.exc import IntegrityError
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.auth.doctypes.User.User import User
+    from grunt.auth.doctypes.User.user import User
     from grunt.document.multi_link import MultiLinkService
 
 from grunt.app import GruntError

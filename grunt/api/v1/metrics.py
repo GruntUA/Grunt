@@ -10,7 +10,7 @@ from fastapi.responses import Response
 from grunt.auth.dependencies import current_user
 
 if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.User import User
+    from grunt.auth.doctypes.User.user import User
 
 router = APIRouter()
 

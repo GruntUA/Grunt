@@ -1,6 +1,6 @@
 import pytest
 
-from grunt.auth.doctypes.User.User import User
+from grunt.auth.doctypes.User.user import User
 
 
 @pytest.mark.asyncio

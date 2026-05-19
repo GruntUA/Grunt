@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 import structlog
 
 from grunt.app import grunt
-from grunt.auth.doctypes.User.User import SYSTEM_USER
+from grunt.auth.doctypes.User.user import SYSTEM_USER
 from grunt.email.service import EmailService, email_service
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task

@@ -46,7 +46,7 @@ class AssignmentService:
         session: AsyncSession,
     ) -> None:
         """Apply all matching assignment rules for a document."""
-        from grunt.assignment.doctypes.AssignmentRule.AssignmentRule import (  # noqa: PLC0415
+        from grunt.assignment.doctypes.AssignmentRule.assignment_rule import (  # noqa: PLC0415
             AssignmentRule,
         )
 
@@ -77,10 +77,10 @@ class AssignmentService:
 
     async def preview_rule(self, rule_id: str, test_doc: dict[str, Any]) -> dict[str, Any]:
         """Evaluate a rule against a sample document and return preview details."""
-        from grunt.assignment.doctypes.AssignmentRule.AssignmentRule import (  # noqa: PLC0415
+        from grunt.assignment.doctypes.AssignmentRule.assignment_rule import (  # noqa: PLC0415
             AssignmentRule,
         )
-        from grunt.auth.doctypes.User.User import get_user_by_id  # noqa: PLC0415
+        from grunt.auth.doctypes.User.user import get_user_by_id  # noqa: PLC0415
 
         raw = await grunt.get_doc("AssignmentRule", rule_id)
         rule = AssignmentRule("AssignmentRule", raw)
@@ -172,7 +172,7 @@ class AssignmentService:
         session: AsyncSession,
         rule_id: str | None,
     ) -> None:
-        from grunt.assignment.doctypes.AssignmentLog.AssignmentLog import (  # noqa: PLC0415
+        from grunt.assignment.doctypes.AssignmentLog.assignment_log import (  # noqa: PLC0415
             AssignmentLog,
         )
 
@@ -206,10 +206,10 @@ class AssignmentService:
         session: AsyncSession,
         rule_id: str | None,
     ) -> None:
-        from grunt.assignment.doctypes.AssignmentLog.AssignmentLog import (  # noqa: PLC0415
+        from grunt.assignment.doctypes.AssignmentLog.assignment_log import (  # noqa: PLC0415
             AssignmentLog,
         )
-        from grunt.auth.doctypes.User.User import get_user_by_id  # noqa: PLC0415
+        from grunt.auth.doctypes.User.user import get_user_by_id  # noqa: PLC0415
 
         try:
             async with grunt.system_context(session):
@@ -282,7 +282,7 @@ class AssignmentService:
         Залишено для зворотної сумісності з тестами.
         Делегує до AssignmentRule.match().
         """
-        from grunt.assignment.doctypes.AssignmentRule.AssignmentRule import (  # noqa: PLC0415
+        from grunt.assignment.doctypes.AssignmentRule.assignment_rule import (  # noqa: PLC0415
             AssignmentRule,
         )
 

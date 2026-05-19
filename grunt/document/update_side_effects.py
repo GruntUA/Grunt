@@ -14,7 +14,7 @@ import structlog
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.auth.doctypes.User.User import User
+    from grunt.auth.doctypes.User.user import User
 
 ProgressCallback = Callable[[int], Awaitable[None]]
 

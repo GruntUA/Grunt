@@ -18,7 +18,7 @@ from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.auth.api_key_service import generate_api_key
 from grunt.auth.dependencies import current_user
-from grunt.auth.doctypes.User.User import User
+from grunt.auth.doctypes.User.user import User
 
 if TYPE_CHECKING:
     from datetime import datetime

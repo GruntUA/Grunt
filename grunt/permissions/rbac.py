@@ -8,7 +8,7 @@ import structlog
 from fastapi import HTTPException, status
 
 if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.User import User
+    from grunt.auth.doctypes.User.user import User
     from grunt.metadata.doctype import DocType
 
 logger = structlog.get_logger()

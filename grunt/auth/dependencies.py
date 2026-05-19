@@ -11,7 +11,7 @@ import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 
-from grunt.auth.doctypes.User.User import (
+from grunt.auth.doctypes.User.user import (
     User,
     get_user_by_email,
 )

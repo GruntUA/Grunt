@@ -53,7 +53,7 @@ async def upload(
     if len(content) > max_bytes:
         raise HTTPException(
             413,
-            f"File too large (max {grunt.settings.max_upload_size_mb} MB)",
+            f"File too large (max {settings.max_upload_size_mb} MB)",
         )
 
     content_type = file.content_type or "application/octet-stream"
@@ -87,7 +87,7 @@ async def upload(
     file_id = str(file_doc["name"])
 
     # Build URL using the document name and persist it.
-    file_url = f"/api/v1/method/grunt.storage.doctypes.File.File.get_content?file_id={file_id}"
+    file_url = f"/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={file_id}"
     update: dict[str, Any] = {"file_url": file_url}
     if is_image:
         update["thumbnail_url"] = file_url

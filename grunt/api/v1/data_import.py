@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, cast
 import grunt
 
 if TYPE_CHECKING:
-    from grunt.io.doctypes.DataImport.DataImport import DataImport
+    from grunt.io.doctypes.DataImport.data_import import DataImport
 
 
 @grunt.whitelist()
@@ -59,7 +59,7 @@ async def download_template(doctype: str, fmt: str = "csv") -> dict[str, Any]:
     """Return template data (base64) and filename."""
     import base64
 
-    from grunt.io.doctypes.DataImport.DataImport import DataImport
+    from grunt.io.doctypes.DataImport.data_import import DataImport
 
     try:
         file_bytes, filename = await DataImport.download_template(doctype, fmt=fmt)
@@ -86,7 +86,7 @@ async def export_quick(
     import base64
     import json
 
-    from grunt.io.doctypes.DataImport.DataImport import DataImport
+    from grunt.io.doctypes.DataImport.data_import import DataImport
 
     parsed_filters = json.loads(filters) if filters else None
     parsed_fields = [f.strip() for f in fields.split(",")] if fields else None

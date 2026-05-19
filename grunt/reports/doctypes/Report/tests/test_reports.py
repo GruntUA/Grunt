@@ -132,7 +132,7 @@ async def test_duplicate_report_rejected(ctx):
 @pytest.mark.asyncio
 async def test_apps_crud(ctx):
     """Apps CRUD directly."""
-    from grunt.startup.doctypes.GruntInstalledApp.GruntInstalledApp import (
+    from grunt.startup.doctypes.GruntInstalledApp.grunt_installed_app import (
         delete_app,
         list_apps,
         register_app,

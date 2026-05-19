@@ -194,7 +194,7 @@ class IncomingWebhookService:
     ) -> tuple[str, str]:
         """Execute the linked ServerScript.  Returns (action_taken, error)."""
         from grunt.app import grunt  # noqa: PLC0415
-        from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
+        from grunt.auth.doctypes.User.user import SYSTEM_USER  # noqa: PLC0415
         from grunt.scripting.server_script import ServerScriptRunner  # noqa: PLC0415
 
         server_script_engine = ServerScriptRunner()

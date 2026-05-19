@@ -17,7 +17,7 @@ from grunt.document.service import DocumentService
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.auth.doctypes.User.User import User
+    from grunt.auth.doctypes.User.user import User
 
 logger = structlog.get_logger()
 

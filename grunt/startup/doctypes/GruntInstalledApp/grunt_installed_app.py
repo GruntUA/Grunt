@@ -7,6 +7,7 @@ from typing import Any
 import structlog
 
 import grunt
+from grunt.api.context import whitelist
 from grunt.app import grunt as grunt_app
 from grunt.document.base import Document
 
@@ -46,7 +47,7 @@ class GruntInstalledApp(Document):
                 logger.error(f"Failed to delete workspace {ws['name']}: {e}")
 
 
-@grunt.whitelist()
+@whitelist()
 async def list_apps() -> list[dict[str, Any]]:
     """List all installed apps."""
     apps = await grunt_app.get_list("GruntInstalledApp")
@@ -63,7 +64,7 @@ async def list_apps() -> list[dict[str, Any]]:
     ]
 
 
-@grunt.whitelist()
+@whitelist()
 async def register_app(
     name: str,
     title: str | None = None,
@@ -94,7 +95,7 @@ async def register_app(
     return {"name": app.get("name"), "title": app.get("title")}
 
 
-@grunt.whitelist()
+@whitelist()
 async def add_module(name: str, module: str) -> dict[str, Any]:
     """Add a module to an installed app."""
     apps = await grunt_app.get_list("GruntInstalledApp", filters={"name": name})
@@ -118,7 +119,7 @@ async def add_module(name: str, module: str) -> dict[str, Any]:
     return {"name": app.get("name"), "title": app.get("title"), "modules": current_modules}
 
 
-@grunt.whitelist()
+@whitelist()
 async def delete_app(name: str) -> bool:
     """Uninstall an app. Superadmin only."""
     user = grunt_app._require_user()

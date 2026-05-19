@@ -12,7 +12,7 @@ from grunt.api.v1.docs.utils import get_doc_service
 from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt as grunt_app
 from grunt.auth.dependencies import current_user
-from grunt.auth.doctypes.User.User import User
+from grunt.auth.doctypes.User.user import User
 from grunt.document.bulk_ops import BulkDeleteTask
 from grunt.document.service import DocumentService
 

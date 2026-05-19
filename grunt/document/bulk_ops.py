@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 from grunt.app import grunt as grunt_app
 
 if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.User import User
+    from grunt.auth.doctypes.User.user import User
 
 
 ProgressCallback = Callable[[int, int, int], Awaitable[None]]

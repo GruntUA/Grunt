@@ -18,7 +18,7 @@ from grunt.config import settings
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from grunt.auth.doctypes.User.User import User
+    from grunt.auth.doctypes.User.user import User
 
 logger = structlog.get_logger()
 
@@ -91,7 +91,7 @@ async def rotate_refresh_token(
     Returns (new_refresh_token, user) on success, None if invalid/expired.
     """
     from grunt.app import grunt
-    from grunt.auth.doctypes.User.User import get_user_by_id
+    from grunt.auth.doctypes.User.user import get_user_by_id
 
     now = datetime.now(UTC)
 
@@ -163,7 +163,7 @@ async def consume_password_reset_token(
 ) -> bool:
     """Verify token and update the user's password. Returns True on success."""
     from grunt.app import grunt
-    from grunt.auth.doctypes.User.User import hash_password
+    from grunt.auth.doctypes.User.user import hash_password
     from grunt.site.manager import site_manager
 
     now = datetime.now(UTC)

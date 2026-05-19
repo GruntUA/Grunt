@@ -8,7 +8,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, model_validator
 
-from grunt.metadata.doctypes.DocTypePermission.DocTypePermission import DocTypePermission
+from grunt.metadata.doctypes.DocTypePermission.doc_type_permission import DocTypePermission
 from grunt.metadata.field import DocField
 
 # ── Workflow sub-models ──────────────────────────────────────────────────

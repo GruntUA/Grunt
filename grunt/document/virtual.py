@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 from grunt.document.registry import document_registry
 
 if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.User import User
+    from grunt.auth.doctypes.User.user import User
     from grunt.document.base import DocumentList
 
 

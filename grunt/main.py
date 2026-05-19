@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
-import grunt.auth.doctypes.User.User  # noqa: F401
+import grunt.auth.doctypes.User.user  # noqa: F401
 
 # Ensure all ORM models are imported so metadata is complete
 import grunt.db.system_tables  # noqa: F401

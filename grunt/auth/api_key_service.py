@@ -23,7 +23,7 @@ import structlog
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from grunt.auth.doctypes.User.User import User
+    from grunt.auth.doctypes.User.user import User
 
 logger = structlog.get_logger()
 
@@ -76,7 +76,7 @@ async def authenticate_api_key(
     key_prefix = raw[:8]
 
     from grunt.app import grunt  # noqa: PLC0415
-    from grunt.auth.doctypes.User.User import get_user_by_id  # noqa: PLC0415
+    from grunt.auth.doctypes.User.user import get_user_by_id  # noqa: PLC0415
 
     async with grunt.system_context(session):
         rows = await grunt.db.get_all(

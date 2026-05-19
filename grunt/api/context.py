@@ -19,7 +19,7 @@ from grunt.context import _engine_ctx, _messages_ctx, _session_ctx, _site_ctx, _
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.auth.doctypes.User.User import User
+    from grunt.auth.doctypes.User.user import User
 
 
 def set_session(session: AsyncSession) -> None:
@@ -47,7 +47,7 @@ def get_user() -> User:
     """Get the current user (may be anonymous for scheduler tasks)."""
     user = _user_ctx.get()
     if user is None:
-        from grunt.auth.doctypes.User.User import User as _User  # noqa: PLC0415
+        from grunt.auth.doctypes.User.user import User as _User  # noqa: PLC0415
 
         return _User(
             doctype="User",

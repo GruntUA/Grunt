@@ -249,9 +249,12 @@ async def render_db_page(doc: Any, request: Request, session: Any) -> HTMLRespon
             <div class="container py-5">
                 <article>
                     <header class="mb-5">
-                        <h1 class="display-4" style="font-family: 'Outfit'; font-weight: 700;">{{ doc.title }}</h1>
+                        <h1 class="display-4" style="font-family: 'Outfit'; font-weight: 700;">
+                        {{ doc.title }}
+                        </h1>
                     </header>
-                    <div class="cms-content" style="font-size: 1.125rem; line-height: 1.75; color: var(--text-main);">
+                    <div class="cms-content"
+                         style="font-size: 1.125rem; line-height: 1.75; color: var(--text-main);">
                         {{ doc.content | safe }}
                     </div>
                 </article>

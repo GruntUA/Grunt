@@ -55,7 +55,7 @@ class DocumentRegistry:
         """Import a module path and register the Document subclass found in it.
 
         Supports two formats:
-        - ``grunt.auth.doctypes.User.User``          → scan module for Document subclass
+        - ``grunt.auth.doctypes.User.user``          → scan module for Document subclass
         - ``myapp.module.MyController``              → explicit class path (overrides)
 
         Accepts both Document and VirtualDocType subclasses.
@@ -102,9 +102,9 @@ class DocumentRegistry:
     # ── Index builders (no imports, no I/O beyond filesystem stat) ────────────
 
     def index_core_controllers(self) -> None:
-        """Index controllers bundled with grunt core (grunt/*/doctypes/{Name}/{Name}.py).
+        """Index controllers bundled with grunt core (grunt/*/doctypes/{Name}/{snake}.py).
 
-        Scans all module doctypes/ directories for PascalCase controller files.
+        Prefers snake_case file names; falls back to PascalCase for backwards compatibility.
         No Python modules are imported.
         """
         from grunt.startup.doctypes import _find_doctype_dirs  # noqa: PLC0415
@@ -117,9 +117,12 @@ class DocumentRegistry:
                 if not dt_dir.is_dir() or dt_dir.name.startswith((".", "_")):
                     continue
                 pascal = dt_dir.name
-                py_file = dt_dir / f"{pascal}.py"
+                snake = to_snake_case(pascal)
+                py_file = dt_dir / f"{snake}.py"
+                if not py_file.exists():
+                    py_file = dt_dir / f"{pascal}.py"
                 if py_file.exists():
-                    module_path = f"grunt.{module_name}.doctypes.{pascal}.{pascal}"
+                    module_path = f"grunt.{module_name}.doctypes.{pascal}.{py_file.stem}"
                     self._index[pascal] = module_path
                     count += 1
 

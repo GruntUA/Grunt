@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-    from grunt.auth.doctypes.User.User import User
+    from grunt.auth.doctypes.User.user import User
 
 
 class ContextAPI:
@@ -80,7 +80,7 @@ class ContextAPI:
             async with grunt.system_context(session):
                 await grunt.new_doc("ActivityLog", {...})
         """
-        from grunt.auth.doctypes.User.User import SYSTEM_USER  # noqa: PLC0415
+        from grunt.auth.doctypes.User.user import SYSTEM_USER  # noqa: PLC0415
 
         async with self.context(session, engine, SYSTEM_USER):
             yield

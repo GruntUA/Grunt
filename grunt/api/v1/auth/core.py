@@ -18,7 +18,7 @@ from grunt.api.v1.auth.schemas import (
 )
 from grunt.api.v1.schemas.response import ok
 from grunt.auth.dependencies import current_user
-from grunt.auth.doctypes.User.User import (
+from grunt.auth.doctypes.User.user import (
     User,
     authenticate,
     create_user,
@@ -190,7 +190,7 @@ async def mfa_login_verify(
 async def _track_session(request: Request, user_id: str, session: AsyncSession):
     """Best-effort session tracking."""
     try:
-        from grunt.auth.doctypes.UserSession.UserSession import create_session  # noqa: PLC0415
+        from grunt.auth.doctypes.UserSession.user_session import create_session  # noqa: PLC0415
 
         ip = request.client.host if request.client else None
         ua = request.headers.get("user-agent")
@@ -284,7 +284,7 @@ async def logout(
     """Revoke all refresh tokens and terminate all sessions."""
     await revoke_refresh_tokens_for_user(user.id, session)
     try:
-        from grunt.auth.doctypes.UserSession.UserSession import (  # noqa: PLC0415
+        from grunt.auth.doctypes.UserSession.user_session import (  # noqa: PLC0415
             terminate_all_user_sessions,
         )
 
@@ -320,7 +320,7 @@ async def revoke_session(
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Terminate a specific session. Only the owner can revoke their own sessions."""
-    from grunt.auth.doctypes.UserSession.UserSession import terminate_session  # noqa: PLC0415
+    from grunt.auth.doctypes.UserSession.user_session import terminate_session  # noqa: PLC0415
 
     terminated = await terminate_session(session_id, user.id, session)
     if not terminated:

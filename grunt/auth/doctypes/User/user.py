@@ -145,7 +145,7 @@ async def get_user_by_email(
     from grunt.app import grunt  # noqa: PLC0415
 
     async with grunt.system_context(session):
-        from grunt.auth.doctypes.UserRole.UserRole import get_user_roles  # noqa: PLC0415
+        from grunt.auth.doctypes.UserRole.user_role import get_user_roles  # noqa: PLC0415
 
         rows = await grunt.db.get_all("User", filters={"email": email}, limit=1)
         if not rows:
@@ -159,7 +159,7 @@ async def get_user_by_id(user_id: str, session: AsyncSession) -> User | None:
     from grunt.app import grunt  # noqa: PLC0415
 
     async with grunt.system_context(session):
-        from grunt.auth.doctypes.UserRole.UserRole import get_user_roles  # noqa: PLC0415
+        from grunt.auth.doctypes.UserRole.user_role import get_user_roles  # noqa: PLC0415
 
         rows = await grunt.db.get_all("User", filters={"name": user_id}, limit=1)
         if not rows:
@@ -175,7 +175,7 @@ async def list_users(session: AsyncSession) -> list[User]:
 
     _engine = site_manager.get_engine(site_manager.get_active_site())
     async with grunt.system_context(session, _engine):
-        from grunt.auth.doctypes.UserRole.UserRole import get_user_roles  # noqa: PLC0415
+        from grunt.auth.doctypes.UserRole.user_role import get_user_roles  # noqa: PLC0415
 
         rows = await grunt.db.get_all("User", limit=10_000)
         users = []

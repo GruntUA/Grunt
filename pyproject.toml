@@ -99,7 +99,10 @@ src = ["."]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "SIM", "TC"]
-ignore = ["B008", "TC001"]  # FastAPI Depends() requires runtime imports for type resolution
+ignore = [
+    "B008",  # FastAPI Depends() requires runtime imports for type resolution
+    "TC001", # FastAPI Depends() requires runtime imports for type resolution
+]
 
 [tool.mypy]
 python_version = "3.14"

@@ -9,7 +9,7 @@ from sqlalchemy import Table, or_
 if TYPE_CHECKING:
     from sqlalchemy.sql import Select
 
-    from grunt.auth.doctypes.User.User import User
+    from grunt.auth.doctypes.User.user import User
     from grunt.metadata.doctype import DocType
 
 

@@ -29,7 +29,6 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import io
-from collections.abc import Awaitable, Callable
 from datetime import UTC
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -38,6 +37,8 @@ import structlog
 from grunt.scripting.safe_globals import build_safe_globals, validate_script
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
     from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
