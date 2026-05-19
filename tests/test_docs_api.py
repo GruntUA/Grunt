@@ -48,7 +48,7 @@ async def test_create_document(ctx, setup_doctype):
     doc = await ctx.new_doc("TestItem", {"title": "My First Item", "status": "Draft"})
     await ctx.db._session().commit()
 
-    assert doc["id"]
+    assert doc["name"]
     assert doc["name"]
     assert doc["owner"] == "system@grunt.local"
     assert doc["created_at"]
@@ -148,8 +148,8 @@ async def test_list_cursor_pagination(ctx, setup_doctype):
             cursor=cursor,
         )
         assert len(page2) == 2
-        ids1 = {r["id"] for r in page1}
-        ids2 = {r["id"] for r in page2}
+        ids1 = {r["name"] for r in page1}
+        ids2 = {r["name"] for r in page2}
         assert ids1.isdisjoint(ids2), "cursor pages must not overlap"
 
         # Page 3 (only 1 remaining) — next_cursor should be None
@@ -214,7 +214,7 @@ async def test_get_list_query_cache_read_only_invalidation(ctx):
     assert s2["hits"] == s1["hits"] + 1
     assert s2["keys"] >= 1
 
-    await ctx.save_doc("CacheReadOnlyItem", first["id"], {"title": "Cached A+"})
+    await ctx.save_doc("CacheReadOnlyItem", first["name"], {"title": "Cached A+"})
     await ctx.db._session().commit()
     assert ctx.query_cache.stats()["keys"] == 0
 
@@ -244,7 +244,7 @@ async def test_get_document(ctx, setup_doctype):
     """get_doc → returns the document."""
     doc = await ctx.new_doc("TestItem", {"title": "Single Item"})
     await ctx.db._session().commit()
-    doc_id = doc["id"]
+    doc_id = doc["name"]
 
     retrieved = await ctx.get_doc("TestItem", doc_id)
     assert retrieved["title"] == "Single Item"
@@ -293,13 +293,13 @@ async def test_get_document_expand_multilink(ctx):
     svc = DocumentService(session, engine)
 
     async with ctx.context(session, engine, SYSTEM_USER):
-        full_doc = await svc.get_document("ExpandItem", created["id"], SYSTEM_USER)
+        full_doc = await svc.get_document("ExpandItem", created["name"], SYSTEM_USER)
         assert "watchers" in full_doc
         assert full_doc["watchers"] == ["system@grunt.local"]
 
         narrow_doc = await svc.get_document(
             "ExpandItem",
-            created["id"],
+            created["name"],
             SYSTEM_USER,
             expand=["title"],
         )
@@ -307,7 +307,7 @@ async def test_get_document_expand_multilink(ctx):
 
         expanded_doc = await svc.get_document(
             "ExpandItem",
-            created["id"],
+            created["name"],
             SYSTEM_USER,
             expand=["watchers"],
         )
@@ -331,7 +331,7 @@ async def test_update_document(ctx, setup_doctype):
     await ctx.db._session().commit()
     orig_modified = doc["modified_at"]
 
-    updated = await ctx.save_doc("TestItem", doc["id"], {"title": "Updated"})
+    updated = await ctx.save_doc("TestItem", doc["name"], {"title": "Updated"})
     await ctx.db._session().commit()
 
     assert updated["title"] == "Updated"
@@ -343,7 +343,7 @@ async def test_delete_document(ctx, setup_doctype):
     """delete_doc → ok, then get_doc → fail."""
     doc = await ctx.new_doc("TestItem", {"title": "ToDelete"})
     await ctx.db._session().commit()
-    doc_id = doc["id"]
+    doc_id = doc["name"]
 
     await ctx.delete_doc("TestItem", doc_id)
     await ctx.db._session().commit()
@@ -368,7 +368,7 @@ async def test_bulk_delete_documents_service(ctx, setup_doctype):
     svc = DocumentService(ctx.db._session(), ctx._require_engine())
     deleted, errors = await svc.bulk_delete(
         "TestItem",
-        [a["id"], b["id"], "missing-id"],
+        [a["name"], b["name"], "missing-id"],
         SYSTEM_USER,
     )
     await ctx.db._session().commit()
@@ -380,11 +380,11 @@ async def test_bulk_delete_documents_service(ctx, setup_doctype):
     from fastapi import HTTPException
 
     with pytest.raises(HTTPException) as exc_a:
-        await ctx.get_doc("TestItem", a["id"])
+        await ctx.get_doc("TestItem", a["name"])
     assert exc_a.value.status_code == 404
 
     with pytest.raises(HTTPException) as exc_b:
-        await ctx.get_doc("TestItem", b["id"])
+        await ctx.get_doc("TestItem", b["name"])
     assert exc_b.value.status_code == 404
 
 
@@ -401,7 +401,7 @@ async def test_list_partial_fields(ctx, setup_doctype):
         body = await get_list("TestItem", fields=["title"])
         row = body["data"][0]
         assert "title" in row
-        assert "id" in row  # always included
+        assert "name" in row  # always included
         assert "name" in row  # always included
         assert "status" not in row
         assert "count" not in row

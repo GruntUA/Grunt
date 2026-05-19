@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from typing import TYPE_CHECKING
 
 import structlog
@@ -79,24 +78,16 @@ def invalidate_table_cache(doctype_name: str) -> None:
 MULTI_LINK_TABLE = Table(
     "grunt_core_multi_link",
     SA_METADATA,
-    Column("id", String(36), primary_key=True, default=lambda: str(uuid.uuid4())),
-    Column("parent_doctype", String(255), nullable=False),
-    Column("parent_id", String(36), nullable=False),
-    Column("parent_field", String(255), nullable=False),
+    Column("parent_doctype", String(255), nullable=False, primary_key=True),
+    Column("parent_name", String(255), nullable=False, primary_key=True),
+    Column("parent_field", String(255), nullable=False, primary_key=True),
+    Column("idx", Integer, default=0, primary_key=True),
     Column("link_doctype", String(255), nullable=False),
     Column("link_name", String(255), nullable=False),
-    Column("idx", Integer, default=0),
-    UniqueConstraint(
-        "parent_doctype",
-        "parent_id",
-        "parent_field",
-        "idx",
-        name="uq_grunt_core_multi_link_parent_field_idx",
-    ),
     Index(
         "ix_grunt_core_multi_link_parent_parentfield_idx",
         "parent_doctype",
-        "parent_id",
+        "parent_name",
         "parent_field",
         "idx",
     ),
@@ -169,8 +160,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     table_name = doctype.table_name or get_table_name(doctype.module, doctype.name)
 
     columns: list[Column] = [
-        Column("id", String(36), primary_key=True, default=lambda: str(uuid.uuid4())),
-        Column("name", String(255), nullable=False),
+        Column("name", String(255), primary_key=True),
         Column("owner", String(255), nullable=False),
         Column("created_at", DateTime(timezone=True)),
         Column("modified_at", DateTime(timezone=True)),
@@ -186,16 +176,24 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     if doctype.is_child:
         columns.extend(
             [
-                Column("parent_id", String(36), nullable=False),
+                Column("parent_name", String(255), nullable=False),
                 Column("parent_doctype", String(255), nullable=False),
                 Column("parent_field", String(255), nullable=False),
                 Column("idx", Integer, default=0),
             ]
         )
 
+    # Names already claimed by system columns — skip any user field that would conflict.
+    _SYSTEM_COLS = frozenset({
+        "name", "owner", "created_at", "modified_at", "modified_by", "docstatus",
+        "parent_name", "parent_doctype", "parent_field", "idx",
+    })
+
     # User-defined fields
     for field in doctype.fields:
         if field.fieldtype in NON_PHYSICAL_FIELDS:
+            continue
+        if field.fieldname in _SYSTEM_COLS:
             continue
 
         try:
@@ -213,12 +211,16 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     # Per-field unique constraints (named so they can be synced on ALTER)
     constraints: list = []
     for field in doctype.fields:
+        if field.fieldname in _SYSTEM_COLS:
+            continue
         if field.unique:
             uq_name = f"uq_{table_name}_{field.fieldname}"
             constraints.append(UniqueConstraint(field.fieldname, name=uq_name))
 
     # Non-unique indexes
     for field in doctype.fields:
+        if field.fieldname in _SYSTEM_COLS:
+            continue
         if field.index and not field.unique:
             constraints.append(Index(f"ix_{table_name}_{field.fieldname}", field.fieldname))
 
@@ -337,7 +339,7 @@ async def sync_table(
                 # Safety: raise with details if non-empty data has duplicates
                 dup_rows = connection.execute(
                     text(
-                        f'SELECT {cols_sql}, GROUP_CONCAT(id) as ids, COUNT(*) as cnt '
+                        f'SELECT {cols_sql}, GROUP_CONCAT(name) as ids, COUNT(*) as cnt '
                         f'FROM "{table.name}" '
                         f'WHERE {where_nonempty} '
                         f'GROUP BY {cols_sql} HAVING COUNT(*) > 1'
@@ -347,7 +349,7 @@ async def sync_table(
                     duplicates = [
                         {
                             "value": row[0] if len(uq_cols) == 1 else tuple(row[: len(uq_cols)]),
-                            "ids": row[-2],  # GROUP_CONCAT(id)
+                            "ids": row[-2],  # GROUP_CONCAT(name)
                         }
                         for row in dup_rows
                     ]

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import uuid
 from itertools import islice
 from typing import TYPE_CHECKING
 
@@ -35,7 +34,7 @@ class MultiLinkService:
             select(t.c.link_name)
             .where(
                 t.c.parent_doctype == parent_doctype,
-                t.c.parent_id == parent_id,
+                t.c.parent_name == parent_id,
                 t.c.parent_field == parent_field,
             )
             .order_by(t.c.idx)
@@ -53,7 +52,7 @@ class MultiLinkService:
             select(t.c.parent_field, t.c.link_name)
             .where(
                 t.c.parent_doctype == parent_doctype,
-                t.c.parent_id == parent_id,
+                t.c.parent_name == parent_id,
             )
             .order_by(t.c.parent_field, t.c.idx)
         )
@@ -77,7 +76,7 @@ class MultiLinkService:
             select(t.c.parent_field, t.c.link_name)
             .where(
                 t.c.parent_doctype == parent_doctype,
-                t.c.parent_id == parent_id,
+                t.c.parent_name == parent_id,
                 t.c.parent_field.in_(fields),
             )
             .order_by(t.c.parent_field, t.c.idx)
@@ -102,7 +101,7 @@ class MultiLinkService:
         await self.session.execute(
             delete(t).where(
                 t.c.parent_doctype == parent_doctype,
-                t.c.parent_id == parent_id,
+                t.c.parent_name == parent_id,
                 t.c.parent_field == parent_field,
             )
         )
@@ -111,9 +110,8 @@ class MultiLinkService:
         if values:
             rows = [
                 {
-                    "id": str(uuid.uuid4()),
                     "parent_doctype": parent_doctype,
-                    "parent_id": parent_id,
+                    "parent_name": parent_id,
                     "parent_field": parent_field,
                     "link_doctype": link_doctype,
                     "link_name": name,
@@ -133,7 +131,7 @@ class MultiLinkService:
         await self.session.execute(
             delete(t).where(
                 t.c.parent_doctype == parent_doctype,
-                t.c.parent_id == parent_id,
+                t.c.parent_name == parent_id,
             )
         )
 
@@ -152,6 +150,6 @@ class MultiLinkService:
             await self.session.execute(
                 delete(t).where(
                     t.c.parent_doctype == parent_doctype,
-                    t.c.parent_id.in_(chunk),
+                    t.c.parent_name.in_(chunk),
                 )
             )

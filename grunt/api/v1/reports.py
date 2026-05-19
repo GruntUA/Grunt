@@ -13,7 +13,7 @@ async def list_reports() -> list[dict[str, Any]]:
     """List all reports."""
     return await grunt_app.db.get_all(
         "Report",
-        fields=["id", "report_name", "report_type", "doctype", "created_at"],
+        fields=["name", "report_name", "report_type", "doctype", "created_at"],
         limit=1000,
         order_by="created_at",
     )
@@ -26,7 +26,7 @@ async def get_report(name: str) -> dict[str, Any]:
         "Report",
         {"report_name": name},
         [
-            "id",
+            "name",
             "report_name",
             "report_type",
             "doctype",
@@ -52,15 +52,15 @@ async def save_report(report_data: dict[str, Any]) -> dict[str, Any]:
     if not name:
         grunt_app.throw("report_name є обов'язковим", "VALIDATION_ERROR")
 
-    existing = await grunt_app.db.get_values("Report", {"report_name": name}, ["id"])
+    existing = await grunt_app.db.get_values("Report", {"report_name": name}, ["name"])
     if existing:
         if report_data.get("__is_new"):
             grunt_app.throw(f"Звіт '{name}' вже існує", "CONFLICT")
-        await grunt_app.save_doc("Report", existing["id"], report_data)
-        return {"report_name": name, "id": existing["id"]}
+        await grunt_app.save_doc("Report", existing["name"], report_data)
+        return {"report_name": name, "name": existing["name"]}
 
     doc = await grunt_app.new_doc("Report", report_data)
-    return {"id": doc["id"], "report_name": name}
+    return {"name": doc["name"], "report_name": name}
 
 
 @grunt.whitelist()
@@ -69,11 +69,11 @@ async def delete_report(name: str) -> bool:
     if not grunt_app._require_user().is_superadmin:
         grunt_app.throw("Admin only", "PERMISSION_DENIED")
 
-    existing = await grunt_app.db.get_values("Report", {"report_name": name}, ["id"])
+    existing = await grunt_app.db.get_values("Report", {"report_name": name}, ["name"])
     if not existing:
         grunt_app.throw(f"Звіт '{name}' не знайдено", "NOT_FOUND")
 
-    await grunt_app.delete_doc("Report", existing["id"])
+    await grunt_app.delete_doc("Report", existing["name"])
     return True
 
 

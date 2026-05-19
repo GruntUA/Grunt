@@ -6,7 +6,6 @@ and supports restoring a document to any previous version.
 
 from __future__ import annotations
 
-import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
@@ -66,12 +65,11 @@ class VersionService:
         max_version = result.scalar() or 0
         next_version = max_version + 1
 
-        version_id = str(uuid.uuid4())
+        version_name = f"{doctype}-{doc_id}-v{next_version}"
         now = datetime.now(UTC)
         await session.execute(
             table.insert().values(
-                id=version_id,
-                name=version_id,
+                name=version_name,
                 owner=user,
                 created_at=now,
                 modified_at=now,
@@ -93,7 +91,7 @@ class VersionService:
             version=next_version,
             fields_changed=len(changes),
         )
-        return version_id
+        return version_name
 
     async def get_versions(
         self,
@@ -117,7 +115,7 @@ class VersionService:
 
         return [
             {
-                "id": row["id"],
+                "id": row["name"],
                 "version": row["version"],
                 "changes": row["changes"],
                 "user": row["user"],
@@ -136,14 +134,14 @@ class VersionService:
         from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
 
         table = compile_doctype_to_table(doctype_registry._doctypes["DocVersion"])
-        stmt = select(table).where(table.c.id == version_id)
+        stmt = select(table).where(table.c.name == version_id)
         result = await session.execute(stmt)
         row = result.mappings().first()
         if row is None:
             return None
 
         return {
-            "id": row["id"],
+            "id": row["name"],
             "doctype": row["doctype"],
             "doc_id": row["doc_id"],
             "version": row["version"],

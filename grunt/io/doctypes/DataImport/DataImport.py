@@ -130,7 +130,7 @@ class DataImport(Document):
                         skip_req = bool(self.skip_required_validation)
                         if existing:
                             await self.grunt.save_doc(
-                                self.doctype_name, existing[0]["id"], doc_data,
+                                self.doctype_name, existing[0]["name"], doc_data,
                                 ignore_required=skip_req,
                             )
                         else:

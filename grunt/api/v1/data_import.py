@@ -26,7 +26,7 @@ async def get_import_status(data_import_id: str) -> dict[str, Any]:
     if not doc:
         grunt.throw("DataImport not found", "NOT_FOUND")
     return {
-        "id": doc["id"],
+        "id": doc["name"],
         "status": doc.get("status"),
         "total_rows": doc.get("total_rows") or 0,
         "processed_rows": doc.get("processed_rows") or 0,

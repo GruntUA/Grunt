@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import structlog
 logger = structlog.get_logger()
-import uuid
 from typing import Any
 
 from fastapi import HTTPException, Response, UploadFile
@@ -70,14 +69,10 @@ async def upload(
 
     is_image = content_type in _IMAGE_TYPES
 
-    # Generate the whitelisted method URL for this file.
-    file_id = str(uuid.uuid4())
-    file_url = f"/api/v1/method/grunt.storage.doctypes.File.File.get_content?file_id={file_id}"
-
+    # Create the File document first to get the auto-generated name.
     doc_data: dict[str, Any] = {
-        "id": file_id,
         "file_name": file.filename,
-        "file_url": file_url,
+        "file_url": "",  # placeholder; updated below with the real name
         "path": path,
         "content_type": content_type,
         "file_size": len(content),
@@ -86,10 +81,16 @@ async def upload(
         "attached_to_doctype": attached_to_doctype or None,
         "attached_to_id": attached_to_id or None,
     }
-    if is_image:
-        doc_data["thumbnail_url"] = file_url
 
     file_doc = await grunt.new_doc("File", doc_data)
+    file_id = str(file_doc["name"])
+
+    # Build URL using the document name and persist it.
+    file_url = f"/api/v1/method/grunt.storage.doctypes.File.File.get_content?file_id={file_id}"
+    update: dict[str, Any] = {"file_url": file_url}
+    if is_image:
+        update["thumbnail_url"] = file_url
+    await grunt.save_doc("File", file_id, update)
 
     return {
         "id": file_id,
@@ -148,7 +149,7 @@ async def get_list(
         "File",
         filters=filters,
         fields=[
-            "id",
+            "name",
             "file_name",
             "file_url",
             "content_type",
@@ -166,7 +167,7 @@ async def get_list(
     return {
         "items": [
             {
-                "id": str(r["id"]),
+                "name": str(r["name"]),
                 "url": r.get("file_url"),
                 "filename": r.get("file_name"),
                 "content_type": r.get("content_type"),

@@ -331,7 +331,8 @@ export interface UserPublic {
 }
 
 export interface GruntDocument {
-  id: string
+  /** Synthesized from `name` by the API client shim — use `name` as the canonical PK. */
+  id?: string
   name: string
   owner: string
   created_at: string

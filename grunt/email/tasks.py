@@ -38,7 +38,7 @@ async def process_email_queue():
                     # Note: list_documents returns raw data. We need to fetch the account.
                     account_id = item.get("email_account")
                     if not account_id:
-                        logger.warning("email.no_account_for_item", id=item["id"])
+                        logger.warning("email.no_account_for_item", id=item["name"])
                         continue
 
                     account = await grunt.get_doc("EmailAccount", account_id)
@@ -48,12 +48,12 @@ async def process_email_queue():
                         await EmailService.send_now(account, item)
 
                         # 4. Update status
-                        await grunt.save_doc("EmailQueue", item["id"], {"status": "Sent"})
+                        await grunt.save_doc("EmailQueue", item["name"], {"status": "Sent"})
                         await session.commit()
                     except Exception as e:
                         await grunt.save_doc(
                             "EmailQueue",
-                            item["id"],
+                            item["name"],
                             {"status": "Error", "error_message": str(e)},
                         )
                         await session.commit()

@@ -66,7 +66,7 @@ class AssignmentService:
         """Apply one assignment rule and persist ToDo/log entries."""
         assign_to_user = rule_data.get("assign_to_user")
         assign_to_role = rule_data.get("assign_to_role")
-        rule_id = rule_data.get("id")
+        rule_id = rule_data.get("name")
 
         if assign_to_user:
             await self._assign_to_user(doctype, doc, str(assign_to_user), session, rule_id)
@@ -133,7 +133,7 @@ class AssignmentService:
                     "AssignmentRule",
                     filters={"doctype_target": doctype, "enabled": True},
                     fields=[
-                        "id",
+                        "name",
                         "doctype_target",
                         "filters",
                         "assign_to_role",
@@ -151,7 +151,7 @@ class AssignmentService:
 
                 rules.append(
                     {
-                        "id": row["id"],
+                        "name": row["name"],
                         "doctype_target": row["doctype_target"],
                         "filters": filters,
                         "assign_to_role": row.get("assign_to_role"),
@@ -181,13 +181,13 @@ class AssignmentService:
             await AssignmentLog.create(
                 rule_id=rule_id,
                 doctype_affected=doctype,
-                document_id=doc.get("id") or doc.get("name") or "",
+                document_id=doc.get("name") or "",
                 assigned_to=user_email,
                 assignment_method="user",
                 status="Success",
                 session=session,
             )
-            logger.info("assignment.assigned_user", doctype=doctype, doc_id=doc.get("id"), user=user_email)
+            logger.info("assignment.assigned_user", doctype=doctype, doc_id=doc.get("name"), user=user_email)
         except Exception as exc:
             logger.exception(
                 "assignment.assign_user_error",
@@ -232,7 +232,7 @@ class AssignmentService:
                 await AssignmentLog.create(
                     rule_id=rule_id,
                     doctype_affected=doctype,
-                    document_id=doc.get("id") or doc.get("name") or "",
+                    document_id=doc.get("name") or "",
                     assigned_to=user.email,
                     assignment_method="role",
                     status="Success",
@@ -242,7 +242,7 @@ class AssignmentService:
             logger.info(
                 "assignment.assigned_role",
                 doctype=doctype,
-                doc_id=doc.get("id"),
+                doc_id=doc.get("name"),
                 role=role,
                 user_count=len(user_ids),
             )
@@ -259,7 +259,7 @@ class AssignmentService:
         todo_doc = {
             "title": f"{doctype}: {doc.get('name', doc.get('id', 'Document'))}",
             "reference_type": doctype,
-            "reference_name": doc.get("id") or doc.get("name"),
+            "reference_name": doc.get("name"),
             "assigned_by": "system",
             "owner": owner_email,
             "status": "Open",

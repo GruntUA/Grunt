@@ -356,7 +356,7 @@ class DocTypeRegistry:
 
         # Registry may be partially lazy-loaded; always re-check DB uniqueness.
         existing = await session.scalar(
-            select(GruntMetaDoctype.id).where(GruntMetaDoctype.name == doctype.name)
+            select(GruntMetaDoctype.name).where(GruntMetaDoctype.name == doctype.name)
         )
         if existing:
             raise HTTPException(
@@ -402,7 +402,7 @@ class DocTypeRegistry:
         if doctype.name not in self._doctypes:
             # DocType may be known but not yet lazy-loaded — check DB before failing.
             exists = await session.scalar(
-                select(GruntMetaDoctype.id).where(GruntMetaDoctype.name == doctype.name)
+                select(GruntMetaDoctype.name).where(GruntMetaDoctype.name == doctype.name)
             )
             if not exists:
                 raise HTTPException(

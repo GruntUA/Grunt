@@ -70,7 +70,7 @@ def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
     parts: list[str] = []
 
     # Always include name
-    name = doc.get("name") or doc.get("id") or ""
+    name = doc.get("name") or ""
     if name:
         parts.append(str(name))
 
@@ -134,14 +134,14 @@ class SearchIndexService:
         if dt.is_child or dt.is_virtual or dt.is_log:
             return
 
-        doc_id = str(doc.get("id") or "")
+        doc_id = str(doc.get("name") or "")
         if not doc_id:
             return
 
         idx_id = f"{doctype}:{doc_id}"
         title_field = dt.title_field or "name"
         title = str(doc.get(title_field) or doc.get("name") or "")
-        doc_name = str(doc.get("name") or doc_id)
+        doc_name = str(doc.get("name") or "")
         content_raw = _build_content(dt, doc)
 
         try:

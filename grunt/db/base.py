@@ -1,6 +1,5 @@
 """Base SQLAlchemy model with common columns."""
 
-import uuid
 from datetime import datetime  # noqa: TC003
 
 from sqlalchemy import DateTime, String, func
@@ -16,14 +15,14 @@ class Base(DeclarativeBase):
 class GruntBase(Base):
     """Common columns shared by every Grunt system table.
 
-    Provides: id (UUID PK), created_at, modified_at, modified_by.
+    Provides: name (string PK), created_at, modified_at, modified_by.
     """
 
     __abstract__ = True
 
-    id: Mapped[uuid.UUID] = mapped_column(
+    name: Mapped[str] = mapped_column(
+        String(255),
         primary_key=True,
-        default=uuid.uuid4,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

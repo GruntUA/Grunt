@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
@@ -27,7 +26,7 @@ _EXTRA_INJECT = ("color", "icon")
 # Columns present in every child table row that carry no value for callers:
 # parent linkage is implicit, audit fields are not rendered in child rows.
 _CHILD_SKIP_COLS: frozenset[str] = frozenset({
-    "parent_id", "parent_doctype", "parent_field",
+    "parent_name", "parent_doctype", "parent_field",
     "owner", "created_at", "modified_at", "modified_by", "docstatus",
 })
 
@@ -40,8 +39,6 @@ async def _resolve_link_labels(
     """Inject ``fieldname__label`` (and extra display fields) for Link fields."""
     if not rows:
         return
-
-    from sqlalchemy import or_  # noqa: PLC0415
 
     link_fields = [f for f in dt.fields if f.fieldtype == "Link" and f.options]
     present_keys = set(rows[0].keys())
@@ -65,7 +62,7 @@ async def _resolve_link_labels(
         if not raw_ids:
             continue
 
-        cols_to_fetch = [target_table.c.id, target_table.c.name]
+        cols_to_fetch = [target_table.c.name]
         if title_field != "name" and title_field in target_table.c:
             cols_to_fetch.append(target_table.c[title_field])
 
@@ -78,7 +75,7 @@ async def _resolve_link_labels(
             cols_to_fetch.append(target_table.c[fname])
 
         q = select(*cols_to_fetch).where(
-            or_(target_table.c.id.in_(raw_ids), target_table.c.name.in_(raw_ids))
+            target_table.c.name.in_(raw_ids)
         )
 
         try:
@@ -92,7 +89,7 @@ async def _resolve_link_labels(
         extra_maps: dict[str, dict[str, Any]] = {fname: {} for fname in extra_to_fetch}
         for lr in linked_rows:
             label = str(lr.get(title_field) or lr.get("name") or "")
-            for key in (str(lr["id"]), str(lr["name"])):
+            for key in (str(lr["name"]),):
                 label_map[key] = label
                 for fname in extra_to_fetch:
                     val = lr.get(fname)
@@ -135,11 +132,11 @@ async def _load_child_tables(
                 f.fieldname for f in child_dt.fields
                 if f.fieldtype not in NON_PHYSICAL_FIELDS
             }
-            keep = {"id", "name", "idx"} | data_fields
+            keep = {"name", "idx"} | data_fields
             cols = [c for c in child_table.c if c.key not in _CHILD_SKIP_COLS and c.key in keep]
             result = await session.execute(
                 select(*cols)
-                .where(child_table.c.parent_id == doc["id"])
+                .where(child_table.c.parent_name == doc["name"])
                 .order_by(child_table.c.idx)
             )
             rows = [dict(r._mapping) for r in result.all()]
@@ -184,19 +181,19 @@ async def _save_child_tables(
             child_dt = await doctype_registry.get(field.options)
             child_table = compile_doctype_to_table(child_dt)
             # Delete existing rows for this parent
-            await session.execute(child_table.delete().where(child_table.c.parent_id == parent_id))
+            await session.execute(child_table.delete().where(child_table.c.parent_name == parent_id))
             # Build all rows then insert in one batch
             rows_to_insert: list[dict[str, Any]] = []
             for idx, child_data in enumerate(child_rows):
                 if not isinstance(child_data, dict):
                     continue
+                child_idx = child_data.get("idx", idx)
                 row: dict[str, Any] = {
-                    "id": str(uuid.uuid4()),
-                    "name": str(uuid.uuid4())[:8],
-                    "parent_id": parent_id,
+                    "name": f"{parent_id}-{field.fieldname}-{child_idx}",
+                    "parent_name": parent_id,
                     "parent_doctype": dt.name,
                     "parent_field": field.fieldname,
-                    "idx": child_data.get("idx", idx),
+                    "idx": child_idx,
                     "owner": user.email,
                     "created_at": now,
                     "modified_at": now,

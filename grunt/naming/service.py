@@ -2,9 +2,10 @@
 
 Supports:
   - "field:<fieldname>"          → use a field value as the name
-  - "hash"                       → short random UUID
+  - "hash"                       → short random token
   - "prompt"                     → user supplies name explicitly
   - "PREFIX-.YYYY.-.####"        → pattern with date tokens and auto-incrementing counter
+  - ""  (empty)                  → falls back to "hash"
 """
 
 from __future__ import annotations
@@ -37,8 +38,11 @@ class NamingService:
         autoname: str,
         data: dict[str, Any],
         session: AsyncSession,
-    ) -> str | None:
+    ) -> str:
         """Generate a name for a new document.
+
+        Always returns a non-empty string. When autoname is empty or unresolvable,
+        falls back to the "hash" pattern (short random token).
 
         Args:
             autoname: The autoname pattern from the DocType definition.
@@ -46,14 +50,15 @@ class NamingService:
             session: DB session for counter operations.
 
         Returns:
-            The generated name, or None if the pattern is invalid.
+            The generated name.
         """
-        if not autoname:
-            return None
-
         # Strip optional "format:" prefix stored by the Studio UI
         if autoname.startswith("format:"):
             autoname = autoname[7:]
+
+        # Empty autoname → use hash as fallback
+        if not autoname:
+            autoname = "hash"
 
         # Try simple patterns first (field:, hash, prompt)
         simple = resolve_simple(autoname, data)
@@ -63,7 +68,8 @@ class NamingService:
         # Parse pattern-based autoname
         parts = parse_pattern(autoname)
         if not parts:
-            return None
+            # Unrecognised pattern — fall back to hash
+            return resolve_simple("hash", data)  # type: ignore[return-value]
 
         now = datetime.now(UTC)
 
@@ -86,8 +92,6 @@ class NamingService:
 
         Uses SELECT ... FOR UPDATE to prevent race conditions.
         """
-        import uuid  # noqa: PLC0415
-
         from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
         from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
 
@@ -107,11 +111,9 @@ class NamingService:
             return new_counter
 
         # First time — insert with counter = 1
-        entry_id = str(uuid.uuid4())
         now = datetime.now(UTC)
         await session.execute(
             table.insert().values(
-                id=entry_id,
                 name=prefix,
                 owner="system",
                 created_at=now,

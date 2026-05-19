@@ -90,7 +90,7 @@ async def list_activity(
     entries = await grunt.get_list(
         "ActivityLog",
         filters=filters,
-        fields=["id", "doctype", "doc_id", "action", "user", "details", "created_at"],
+        fields=["name", "doctype", "doc_id", "action", "user", "details", "created_at"],
         limit=per_page,
         page=page,
         order_by=sort_by,

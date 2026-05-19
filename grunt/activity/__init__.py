@@ -28,7 +28,7 @@ async def log_activity(event: str, **kwargs) -> None:
     if not action or not doc or not user:
         return
 
-    doc_id = doc.get("id") if isinstance(doc, dict) else str(doc)
+    doc_id = doc.get("name") if isinstance(doc, dict) else str(doc)
     user_email = user.email if hasattr(user, "email") else str(user)
 
     try:

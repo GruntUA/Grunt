@@ -68,7 +68,7 @@ async def test_compile_produces_correct_columns():
     col_names = {c.name for c in table.columns}
 
     # System columns
-    for sys_col in ("id", "name", "owner", "created_at", "modified_at", "modified_by", "docstatus"):
+    for sys_col in ("name", "owner", "created_at", "modified_at", "modified_by", "docstatus"):
         assert sys_col in col_names, f"Missing system column: {sys_col}"
 
     # User-defined physical columns
@@ -103,7 +103,7 @@ async def test_child_doctype_has_parent_columns():
     table = compile_doctype_to_table(dt)
     col_names = {c.name for c in table.columns}
 
-    for col in ("parent_id", "parent_doctype", "parent_field", "idx"):
+    for col in ("parent_name", "parent_doctype", "parent_field", "idx"):
         assert col in col_names
 
 
@@ -156,9 +156,6 @@ def test_multi_link_table_has_query_supporting_index_and_unique_order_constraint
     index_names = {index.name for index in MULTI_LINK_TABLE.indexes}
     assert "ix_grunt_core_multi_link_parent_parentfield_idx" in index_names
 
-    unique_names = {
-        c.name
-        for c in MULTI_LINK_TABLE.constraints
-        if getattr(c, "name", None) and c.__class__.__name__ == "UniqueConstraint"
-    }
-    assert "uq_grunt_core_multi_link_parent_field_idx" in unique_names
+    # Composite PK (parent_doctype, parent_name, parent_field, idx) enforces uniqueness.
+    pk_cols = {c.name for c in MULTI_LINK_TABLE.primary_key.columns}
+    assert pk_cols == {"parent_doctype", "parent_name", "parent_field", "idx"}

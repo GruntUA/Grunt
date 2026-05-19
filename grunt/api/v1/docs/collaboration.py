@@ -32,7 +32,7 @@ async def get_document_comments(
 
     data = [
         {
-            "id": str(r["id"]),
+            "id": str(r["name"]),
             "content": r.get("content"),
             "comment_type": r.get("comment_type"),
             "owner": r.get("owner"),
@@ -157,4 +157,4 @@ async def remove_bookmark(
         limit=1,
     )
     if rows:
-        await grunt.delete_doc("Bookmark", rows[0]["id"])
+        await grunt.delete_doc("Bookmark", rows[0]["name"])

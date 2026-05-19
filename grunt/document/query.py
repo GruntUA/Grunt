@@ -54,11 +54,11 @@ def _apply_filters(query: Any, table: Any, filters: dict[str, str]) -> Any:
 
 def _apply_search(query: Any, table: Any, dt: DocType, search: str) -> Any:
     """Apply full-text search conditions to a statement."""
-    search_cols = [table.c.id, table.c.name]
+    search_cols = [table.c.name]
     if dt.search_fields:
         for fname in dt.search_fields:
             col = table.c.get(fname)
-            if col is not None and col.name not in ("id", "name"):
+            if col is not None and col.name != "name":
                 search_cols.append(col)
 
     conditions = [col.ilike(f"%{search}%") for col in search_cols]

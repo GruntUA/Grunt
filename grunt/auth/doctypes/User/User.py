@@ -151,7 +151,7 @@ async def get_user_by_email(
         if not rows:
             return None
         row = rows[0]
-        roles = await get_user_roles(row["id"], session)
+        roles = await get_user_roles(row["name"], session)
         return User(doctype="User", data={**row, "roles": roles})
 
 
@@ -165,7 +165,7 @@ async def get_user_by_id(user_id: str, session: AsyncSession) -> User | None:
         if not rows:
             return None
         row = rows[0]
-        roles = await get_user_roles(row["id"], session)
+        roles = await get_user_roles(row["name"], session)
         return User(doctype="User", data={**row, "roles": roles})
 
 
@@ -180,7 +180,7 @@ async def list_users(session: AsyncSession) -> list[User]:
         rows = await grunt.db.get_all("User", limit=10_000)
         users = []
         for row in rows:
-            roles = await get_user_roles(row["id"], session)
+            roles = await get_user_roles(row["name"], session)
             users.append(User(doctype="User", data={**row, "roles": roles}))
         return users
 
@@ -373,13 +373,13 @@ async def remove_role(user_id: str, role_name: str) -> bool:
     rows = await grunt_app.get_list(
         "UserRole",
         filters={"user_id": user_id, "role_name": role_name},
-        fields=["id"],
+        fields=["name"],
         limit=1,
     )
     if not rows:
         grunt_app.throw("Роль не знайдено у користувача", "NOT_FOUND")
 
-    await grunt_app.delete_doc("UserRole", rows[0]["id"])
+    await grunt_app.delete_doc("UserRole", rows[0]["name"])
     return True
 
 

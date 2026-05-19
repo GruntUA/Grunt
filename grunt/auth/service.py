@@ -100,7 +100,7 @@ async def rotate_refresh_token(
         users = await grunt.get_list(
             "User",
             filters={"refresh_token": token},
-            fields=["id", "refresh_token_expires_at"],
+            fields=["name", "refresh_token_expires_at"],
             limit=1,
         )
         if not users:
@@ -115,10 +115,10 @@ async def rotate_refresh_token(
             return None
 
         # Revoke token
-        await grunt.db.set_value("User", user_data["id"], "refresh_token", None)
-        await grunt.db.set_value("User", user_data["id"], "refresh_token_expires_at", None)
+        await grunt.db.set_value("User", user_data["name"], "refresh_token", None)
+        await grunt.db.set_value("User", user_data["name"], "refresh_token_expires_at", None)
 
-        user_id = user_data["id"]
+        user_id = user_data["name"]
 
     user = await get_user_by_id(user_id, session)
     if user is None:
@@ -176,7 +176,7 @@ async def consume_password_reset_token(
         users = await grunt.get_list(
             "User",
             filters={"reset_token": token},
-            fields=["id", "reset_token_expires_at"],
+            fields=["name", "reset_token_expires_at"],
             limit=1,
         )
         if not users:
@@ -191,13 +191,13 @@ async def consume_password_reset_token(
             return False
 
         # Invalidate token
-        await grunt.db.set_value("User", user_data["id"], "reset_token", None)
-        await grunt.db.set_value("User", user_data["id"], "reset_token_expires_at", None)
+        await grunt.db.set_value("User", user_data["name"], "reset_token", None)
+        await grunt.db.set_value("User", user_data["name"], "reset_token_expires_at", None)
 
         # Update password
         await grunt.db.set_value(
             "User",
-            user_data["id"],
+            user_data["name"],
             "hashed_password",
             hash_password(new_password),
         )

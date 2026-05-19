@@ -64,14 +64,9 @@ class GruntDB:
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
         values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
-        result = await self._session().execute(
-            table.update().where(table.c.id == doc_id).values(values)
+        await self._session().execute(
+            table.update().where(table.c.name == doc_id).values(values)
         )
-        row_count = cast(CursorResult, result).rowcount
-        if row_count == 0:
-            await self._session().execute(
-                table.update().where(table.c.name == doc_id).values(values)
-            )
         await self._session().flush()
 
     async def exists(
@@ -339,9 +334,9 @@ class GruntDB:
 
 
 def _apply_filters(stmt: Any, table: Any, filters: str | dict[str, Any]) -> Any:
-    """Apply id/name (str) or operator-aware dict filters to a statement."""
+    """Apply name (str) or operator-aware dict filters to a statement."""
     if isinstance(filters, str):
-        stmt = stmt.where((table.c.id == filters) | (table.c.name == filters))
+        stmt = stmt.where(table.c.name == filters)
     elif isinstance(filters, dict):
         stmt = _apply_db_filters(stmt, table, filters)
     return stmt

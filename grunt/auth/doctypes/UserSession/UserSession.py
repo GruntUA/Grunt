@@ -58,13 +58,13 @@ async def touch_session(
             sessions = await grunt.get_list(
                 "UserSession",
                 filters={"session_key": session_key, "is_active": True},
-                fields=["id"],
+                fields=["name"],
                 limit=1,
             )
             if sessions:
                 await grunt.db.set_value(
                     "UserSession",
-                    sessions[0]["id"],
+                    sessions[0]["name"],
                     "last_active_at",
                     datetime.now(UTC).isoformat(),
                 )
@@ -87,8 +87,8 @@ async def terminate_session(
     async with grunt.system_context(db_session):
         sessions = await grunt.get_list(
             "UserSession",
-            filters={"id": session_id},
-            fields=["id", "user"],
+            filters={"name": session_id},
+            fields=["name", "user"],
             limit=1,
         )
         if not sessions:
@@ -114,12 +114,12 @@ async def terminate_all_user_sessions(
         sessions = await grunt.get_list(
             "UserSession",
             filters={"user": user_id, "is_active": True},
-            fields=["id", "session_key"],
+            fields=["name", "session_key"],
         )
         count = 0
         for s in sessions:
             if exclude_key and s.get("session_key") == exclude_key:
                 continue
-            await grunt.db.set_value("UserSession", s["id"], "is_active", False)
+            await grunt.db.set_value("UserSession", s["name"], "is_active", False)
             count += 1
         return count

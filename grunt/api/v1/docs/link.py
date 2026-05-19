@@ -26,7 +26,7 @@ router = GruntRouter()
 
 def _doctype_fieldnames(dt: Any) -> set[str]:
     """Collect DocType fieldnames from metadata objects or dicts."""
-    names: set[str] = {"id", "name"}
+    names: set[str] = {"name"}
     for field in list(getattr(dt, "fields", None) or []):
         if isinstance(field, dict):
             fieldname = field.get("fieldname")
@@ -57,10 +57,10 @@ async def link_search(
         title_field = dt.title_field or "name"
         items = []
         for row in result.get("data", []):
-            name_val = str(row.get("name") or row.get("id") or "")
+            name_val = str(row.get("name") or "")
             title_val = str(row.get(title_field) or name_val)
             items.append({
-                "id": str(row.get("id") or name_val),
+                "id": name_val,
                 "name": name_val,
                 "title": title_val,
                 "subtitle": name_val if title_val != name_val else None,
@@ -71,7 +71,7 @@ async def link_search(
     doctype_fields = _doctype_fieldnames(dt)
 
     # ── Columns to fetch ─────────────────────────────────────────────────────
-    cols_needed: list[str] = ["id", "name"]
+    cols_needed: list[str] = ["name"]
     if title_field and title_field != "name" and title_field in doctype_fields:
         cols_needed.append(title_field)
     # Include search_fields for display as subtitle
@@ -108,7 +108,7 @@ async def link_search(
     # ── Shape response ────────────────────────────────────────────────────────
     items = []
     for row in rows:
-        name_val = str(row.get("name") or row.get("id") or "")
+        name_val = str(row.get("name") or "")
         title_val = str(row.get(title_field) or name_val) if title_field else name_val
 
         # If title_field is effectively "name", use the first search_field value
@@ -133,11 +133,13 @@ async def link_search(
             if candidate_str and candidate_str != title_val:
                 subtitle_val = candidate_str
                 break
-        # Do not fall back to UUID — it's not human-readable
+        # Fall back to name as subtitle when title differs (name is human-readable, not a UUID)
+        if subtitle_val is None and title_val != name_val:
+            subtitle_val = name_val
 
         items.append(
             {
-                "id": str(row.get("id") or name_val),
+                "id": name_val,
                 "name": name_val,
                 "title": title_val,
                 "subtitle": subtitle_val,

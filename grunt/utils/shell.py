@@ -87,7 +87,7 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
         from grunt.app import grunt  # noqa: PLC0415
 
         async with grunt.system_context(session, engine):
-            doc_id = data.get("id") or data.get("name")
+            doc_id = data.get("name")
             if doc_id:
                 return await grunt.save_doc(doctype, doc_id, data)
             return await grunt.new_doc(doctype, data)

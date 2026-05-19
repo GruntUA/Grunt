@@ -12,12 +12,6 @@
       "unique": 1
     },
     {
-      "fieldname": "name",
-      "label": "Назва",
-      "fieldtype": "Data",
-      "reqd": 1
-    },
-    {
       "fieldname": "enabled",
       "label": "Увімкнено",
       "fieldtype": "Check",

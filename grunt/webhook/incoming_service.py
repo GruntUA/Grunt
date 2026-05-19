@@ -68,7 +68,7 @@ class IncomingWebhookService:
         if not webhook.get("is_enabled"):
             return {"accepted": False, "detail": "Webhook disabled"}
 
-        webhook_id = str(webhook.get("id") or "")
+        webhook_id = str(webhook.get("name") or "")
         action = webhook.get("action") or "log_only"
         status = "success"
         action_taken = action

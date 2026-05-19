@@ -86,7 +86,7 @@ async def notify(
                 "is_read": False,
             },
         )
-        ids.append(doc["id"])
+        ids.append(doc["name"])
 
     if push:
         for user_email in users:

@@ -17,7 +17,6 @@ def _row_to_doc(row: GruntMetaDoctype) -> dict[str, Any]:
     """Convert GruntMetaDoctype row to DocType model data."""
     # Data is the primary source, row columns (name, module) are for indexing/querying
     data: dict[str, Any] = row.data or {}
-    data["id"] = row.id
     data["name"] = row.name
     data["module"] = row.module
     data["created_at"] = row.created_at.isoformat() if row.created_at else None

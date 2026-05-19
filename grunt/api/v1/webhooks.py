@@ -66,7 +66,7 @@ async def list_incoming_logs(webhook_id: str, page: int = 1, per_page: int = 20)
     logs = await grunt.get_list(
         "IncomingWebhookLog",
         filters={"webhook": webhook_id},
-        fields=["id", "slug", "status", "action_taken", "duration_ms", "error", "created_at"],
+        fields=["name", "slug", "status", "action_taken", "duration_ms", "error", "created_at"],
         order_by="created_at",
         order="desc",
         limit=int(per_page),

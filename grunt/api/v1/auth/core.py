@@ -308,7 +308,7 @@ async def list_sessions(
         sessions = await grunt.get_list(
             "UserSession",
             filters={"user": user.id, "is_active": True},
-            fields=["id", "ip_address", "user_agent", "last_active_at", "creation"],
+            fields=["name", "ip_address", "user_agent", "last_active_at", "creation"],
             order_by="last_active_at desc",
         )
 

@@ -53,7 +53,7 @@ async def get_shared_document(token: str) -> dict[str, Any]:
     # Increment view count (best-effort)
     try:
         current = int(share.get("view_count") or 0)
-        await grunt.set_value("DocumentShare", share["id"], "view_count", current + 1)
+        await grunt.set_value("DocumentShare", share["name"], "view_count", current + 1)
     except Exception:
         logger.exception("suppressed_error")
 
@@ -96,4 +96,4 @@ async def create_share(
         },
     )
 
-    return {"id": doc["id"], "token": doc["token"]}
+    return {"id": doc["name"], "token": doc["token"]}

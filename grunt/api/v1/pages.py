@@ -50,7 +50,7 @@ async def register_page(page_data: dict[str, Any]) -> dict[str, Any]:
         grunt.throw("route є обов'язковим", "VALIDATION_ERROR")
 
     existing = await grunt.get_list("Page", filters={"route": route}, limit=1)
-    page_id = existing[0]["id"] if existing else None
+    page_id = existing[0]["name"] if existing else None
     update_data = {k: v for k, v in page_data.items() if k in _PAGE_UPDATABLE}
 
     if page_id:
@@ -76,5 +76,5 @@ async def delete_page(route: str) -> bool:
     if not existing:
         grunt.throw("Сторінку не знайдено", "NOT_FOUND")
 
-    await grunt.delete_doc("Page", existing[0]["id"])
+    await grunt.delete_doc("Page", existing[0]["name"])
     return True

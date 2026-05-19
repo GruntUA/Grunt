@@ -97,10 +97,10 @@ class DataExport(Document):
                 "is_public": False,
             },
         )
-        file_id = str(file_doc["id"])
+        file_id = str(file_doc["name"])
         file_url = f"/api/v1/files/{file_id}"
         await self.grunt.save_doc("File", file_id, {"file_url": file_url})
-        file_doc["id"] = file_id
+        file_doc["name"] = file_id
         return file_doc
 
     @staticmethod

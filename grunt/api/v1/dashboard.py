@@ -330,7 +330,7 @@ async def get_page_data(
             )
         except Exception:
             result = None
-        return w_dict["id"], result
+        return w_dict["name"], result
 
     pairs = await asyncio.gather(*(_safe_compute(w) for w in widgets))
     return dict(pairs)

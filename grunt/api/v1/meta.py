@@ -138,11 +138,11 @@ async def search_meta(q: str, limit: int = 20) -> list[dict[str, Any]]:
             )
     try:
         reports = await grunt.db.get_all(
-            "Report", filters={"name": ["like", f"%{q}%"]}, fields=["id", "name"], limit=int(limit)
+            "Report", filters={"name": ["like", f"%{q}%"]}, fields=["name"], limit=int(limit)
         )
         for r in reports:
             results.append(
-                {"doctype": "Report", "id": r["id"], "name": r["name"], "display_title": r["name"]}
+                {"doctype": "Report", "id": r["name"], "name": r["name"], "display_title": r["name"]}
             )
     except Exception:
         logger.exception("suppressed_error")

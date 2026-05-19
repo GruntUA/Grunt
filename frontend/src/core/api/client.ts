@@ -1,6 +1,22 @@
 import axios from 'axios'
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 
+// Backward-compat shim: backend no longer sends `id` (name is the sole PK).
+// Recursively add `id = name` so existing components keep working unchanged.
+function _normalizeIds(v: unknown): unknown {
+  if (!v || typeof v !== 'object') return v
+  if (Array.isArray(v)) return v.map(_normalizeIds)
+  const obj = v as Record<string, unknown>
+  const result: Record<string, unknown> = {}
+  for (const k of Object.keys(obj)) {
+    result[k] = typeof obj[k] === 'object' ? _normalizeIds(obj[k]) : obj[k]
+  }
+  if ('name' in result && !('id' in result) && result.name != null) {
+    result.id = result.name
+  }
+  return result
+}
+
 const client: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? '',
   timeout: 30_000,
@@ -37,9 +53,14 @@ client.interceptors.request.use(async (config) => {
 // Track whether a refresh is in flight to avoid parallel refresh loops
 let _refreshing: Promise<boolean> | null = null
 
-// Response interceptor: on 401, try to refresh once, then redirect to login
+// Response interceptor: normalize id=name shim, then handle auth errors
 client.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+      response.data.data = _normalizeIds(response.data.data)
+    }
+    return response
+  },
   async (error) => {
     const originalConfig = error.config as InternalAxiosRequestConfig & { _retried?: boolean }
     const url = originalConfig?.url || ''

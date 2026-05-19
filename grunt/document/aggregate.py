@@ -94,7 +94,7 @@ async def compute_aggregations(
             stmt = (
                 select(func.count())
                 .select_from(child_table)
-                .where(child_table.c.parent_id == parent_id)
+                .where(child_table.c.parent_name == parent_id)
             )
         else:
             if not child_col or child_col not in child_table.c:
@@ -122,7 +122,7 @@ async def compute_aggregations(
                 )
                 continue
 
-            stmt = select(agg_func(col)).where(child_table.c.parent_id == parent_id)
+            stmt = select(agg_func(col)).where(child_table.c.parent_name == parent_id)
 
         try:
             row = (await session.execute(stmt)).one()

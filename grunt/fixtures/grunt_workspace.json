@@ -34,12 +34,32 @@
     {
       "section": "Користувачі та безпека",
       "type": "DocType",
+      "label": "Ролі",
+      "icon": "shield",
+      "link_to": "Role",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 11
+    },
+    {
+      "section": "Користувачі та безпека",
+      "type": "DocType",
       "label": "Дозволи",
       "icon": "lock",
       "link_to": "DocTypePermission",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 11
+      "sequence": 12
+    },
+    {
+      "section": "Користувачі та безпека",
+      "type": "DocType",
+      "label": "API ключі",
+      "icon": "key",
+      "link_to": "ApiKey",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 13
     },
 
     {
@@ -95,12 +115,43 @@
     {
       "section": "Пошта та сповіщення",
       "type": "DocType",
+      "label": "Вхідні вебхуки",
+      "icon": "arrow-down-circle",
+      "link_to": "IncomingWebhook",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 25
+    },
+    {
+      "section": "Пошта та сповіщення",
+      "type": "DocType",
       "label": "Push підписки",
       "icon": "smartphone",
       "link_to": "PushSubscription",
       "show_count": true,
       "show_new_btn": false,
-      "sequence": 25
+      "sequence": 26
+    },
+
+    {
+      "section": "Автоматизація",
+      "type": "DocType",
+      "label": "Правила призначення",
+      "icon": "git-branch",
+      "link_to": "AssignmentRule",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 35
+    },
+    {
+      "section": "Автоматизація",
+      "type": "DocType",
+      "label": "Завдання",
+      "icon": "check-square",
+      "link_to": "ToDo",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 36
     },
 
     {
@@ -111,7 +162,7 @@
       "link_to": "ServerScript",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 30
+      "sequence": 40
     },
     {
       "section": "Розробка",
@@ -121,7 +172,7 @@
       "link_to": "ClientScript",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 31
+      "sequence": 41
     },
     {
       "section": "Розробка",
@@ -131,7 +182,37 @@
       "link_to": "Report",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 32
+      "sequence": 42
+    },
+    {
+      "section": "Розробка",
+      "type": "DocType",
+      "label": "Дашборди",
+      "icon": "layout-dashboard",
+      "link_to": "Dashboard",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 43
+    },
+    {
+      "section": "Розробка",
+      "type": "DocType",
+      "label": "Графіки",
+      "icon": "bar-chart-2",
+      "link_to": "DashboardChart",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 44
+    },
+    {
+      "section": "Розробка",
+      "type": "DocType",
+      "label": "Числові картки",
+      "icon": "hash",
+      "link_to": "NumberCard",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 45
     },
     {
       "section": "Розробка",
@@ -141,7 +222,17 @@
       "link_to": "WebForm",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 33
+      "sequence": 46
+    },
+    {
+      "section": "Розробка",
+      "type": "DocType",
+      "label": "Сторінки",
+      "icon": "file",
+      "link_to": "Page",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 47
     },
 
     {
@@ -152,7 +243,7 @@
       "link_to": "File",
       "show_count": true,
       "show_new_btn": false,
-      "sequence": 40
+      "sequence": 50
     },
     {
       "section": "Документи та файли",
@@ -162,17 +253,7 @@
       "link_to": "PrintFormat",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 41
-    },
-    {
-      "section": "Документи та файли",
-      "type": "DocType",
-      "label": "Версії документів",
-      "icon": "refresh-cw",
-      "link_to": "DocVersion",
-      "show_count": true,
-      "show_new_btn": false,
-      "sequence": 42
+      "sequence": 51
     },
     {
       "section": "Документи та файли",
@@ -182,7 +263,27 @@
       "link_to": "DataImport",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 43
+      "sequence": 52
+    },
+    {
+      "section": "Документи та файли",
+      "type": "DocType",
+      "label": "Експорт даних",
+      "icon": "download",
+      "link_to": "DataExport",
+      "show_count": true,
+      "show_new_btn": true,
+      "sequence": 53
+    },
+    {
+      "section": "Документи та файли",
+      "type": "DocType",
+      "label": "Версії документів",
+      "icon": "refresh-cw",
+      "link_to": "DocVersion",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 54
     },
 
     {
@@ -193,17 +294,17 @@
       "link_to": "SystemSettings",
       "show_count": false,
       "show_new_btn": false,
-      "sequence": 50
+      "sequence": 60
     },
     {
       "section": "Налаштування",
       "type": "DocType",
       "label": "Серії нумерації",
-      "icon": "hash",
+      "icon": "list-ordered",
       "link_to": "NamingSeries",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 51
+      "sequence": 61
     },
     {
       "section": "Налаштування",
@@ -213,7 +314,17 @@
       "link_to": "Translation",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 52
+      "sequence": 62
+    },
+    {
+      "section": "Налаштування",
+      "type": "DocType",
+      "label": "Встановлені додатки",
+      "icon": "box",
+      "link_to": "GruntInstalledApp",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 63
     },
 
     {
@@ -224,7 +335,7 @@
       "link_to": "ActivityLog",
       "show_count": true,
       "show_new_btn": false,
-      "sequence": 60
+      "sequence": 70
     },
     {
       "section": "Моніторинг",
@@ -234,18 +345,77 @@
       "link_to": "BackgroundTaskLog",
       "show_count": true,
       "show_new_btn": false,
-      "sequence": 61
+      "sequence": 71
     },
-
     {
-      "section": "Сторінки",
+      "section": "Моніторинг",
       "type": "DocType",
-      "label": "Сторінки",
-      "icon": "layout-dashboard",
-      "link_to": "Page",
+      "label": "Заплановані завдання",
+      "icon": "calendar",
+      "link_to": "ScheduledJob",
       "show_count": true,
       "show_new_btn": true,
-      "sequence": 70
+      "sequence": 72
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Лог завдань",
+      "icon": "file-text",
+      "link_to": "ScheduledJobLog",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 73
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Лог призначень",
+      "icon": "user-check",
+      "link_to": "AssignmentLog",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 74
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Лог вебхуків",
+      "icon": "activity",
+      "link_to": "IncomingWebhookLog",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 75
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Лог вихідних вебхуків",
+      "icon": "zap",
+      "link_to": "WebhookLog",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 76
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Сесії користувачів",
+      "icon": "monitor",
+      "link_to": "UserSession",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 77
+    },
+    {
+      "section": "Моніторинг",
+      "type": "DocType",
+      "label": "Профілювання SQL",
+      "icon": "database",
+      "link_to": "SqlProfilerRequest",
+      "show_count": true,
+      "show_new_btn": false,
+      "sequence": 78
     }
   ]
 }

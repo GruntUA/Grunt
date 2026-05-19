@@ -49,7 +49,7 @@ async def list_apps() -> list[dict[str, Any]]:
     apps = await grunt_app.get_list("GruntInstalledApp")
     return [
         {
-            "id": str(a.get("id")),
+            "name": str(a.get("name")),
             "name": a.get("name"),
             "title": a.get("title"),
             "version": a.get("version", "0.1.0"),
@@ -98,7 +98,7 @@ async def add_module(name: str, module: str) -> dict[str, Any]:
     if not apps:
         grunt_app.throw(f"Додаток '{name}' не знайдено", "NOT_FOUND")
 
-    app_id = apps[0]["id"]
+    app_id = apps[0]["name"]
     app = await grunt_app.get_doc("GruntInstalledApp", app_id)
 
     module_name = (module or "").strip()
@@ -126,5 +126,5 @@ async def delete_app(name: str) -> bool:
     if not apps:
         grunt_app.throw(f"Додаток '{name}' не знайдено", "NOT_FOUND")
 
-    await grunt_app.delete_doc("GruntInstalledApp", apps[0]["id"])
+    await grunt_app.delete_doc("GruntInstalledApp", apps[0]["name"])
     return True

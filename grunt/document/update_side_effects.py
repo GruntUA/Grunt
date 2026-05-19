@@ -132,7 +132,7 @@ async def run_bulk_before_delete_hooks(
         try:
             await ctrl.before_delete()
         except GruntError as e:
-            errors.append(f"{doc['id']}: {e}")
+            errors.append(f"{doc['name']}: {e}")
             continue
         controllers.append((doc, ctrl))
         if report is not None:
@@ -152,7 +152,7 @@ async def run_bulk_after_delete_hooks(
 
     docs_for_webhook: list[dict[str, Any]] = []
     for doc, ctrl in controllers:
-        real_id = str(doc["id"])
+        real_id = str(doc["name"])
         try:
             await ctrl.after_delete()
         except GruntError as e:
@@ -177,7 +177,7 @@ async def run_bulk_delete_writes(
     """Execute batched DELETE + MultiLink cleanup + search index cleanup."""
     from grunt.search.service import search_index_service  # noqa: PLC0415
 
-    await session.execute(table.delete().where(table.c.id.in_(final_ids)))
+    await session.execute(table.delete().where(table.c.name.in_(final_ids)))
     await ml.delete_all_for_docs(doctype_name, final_ids)
     await session.flush()
     await search_index_service.remove_documents(session, doctype_name, final_ids)
@@ -212,7 +212,7 @@ async def delete_row_and_links(
     real_id: str,
 ) -> None:
     """Delete main row and MultiLink relations, then flush pending writes."""
-    await session.execute(table.delete().where(table.c.id == real_id))
+    await session.execute(table.delete().where(table.c.name == real_id))
     await ml.delete_all_for_doc(doctype_name, real_id)
     await session.flush()
 
@@ -228,9 +228,9 @@ async def collect_bulk_delete_candidates(
     from sqlalchemy import select as sa_select  # noqa: PLC0415
 
     existing_rows: dict[str, dict[str, Any]] = {}
-    result = await session.execute(sa_select(table).where(table.c.id.in_(ids)))
+    result = await session.execute(sa_select(table).where(table.c.name.in_(ids)))
     for row in result.fetchall():
-        existing_rows[str(row._mapping["id"])] = dict(row._mapping)
+        existing_rows[str(row._mapping["name"])] = dict(row._mapping)
 
     errors: list[str] = []
     to_delete: list[dict[str, Any]] = []

@@ -198,7 +198,7 @@ async def render_page_by_route(
             limit=1,
         )
         if pages:
-            doc = await grunt.get_doc("WebPage", pages[0]["id"])
+            doc = await grunt.get_doc("WebPage", pages[0]["name"])
             return await render_db_page(doc, request, session=session)
     except HTTPException as exc:
         if exc.status_code == 404 and "DocType 'WebPage' not found" in str(exc.detail):

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import uuid
 from datetime import UTC, datetime
 from itertools import islice
 from typing import TYPE_CHECKING, Any
@@ -51,7 +50,7 @@ from grunt.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()
 
-PROTECTED_FIELDS = frozenset({"id", "owner", "created_at", "docstatus"})
+PROTECTED_FIELDS = frozenset({"name", "owner", "created_at", "docstatus"})
 
 
 # SQLite degrades with large IN (...) lists; 500 is safe for all backends.
@@ -142,13 +141,11 @@ class DocumentWriteMixin:
         """
         from grunt.naming import naming_service  # noqa: PLC0415
 
-        generated_name = await naming_service.generate(dt.autoname or "", data, self.session)
-        doc_id = str(data.get("id") or generated_name or uuid.uuid4())
+        doc_name = await naming_service.generate(dt.autoname or "", data, self.session)
 
         row: dict[str, Any] = {}
         standard: dict[str, Any] = {
-            "id": doc_id,
-            "name": generated_name or doc_id[:8],
+            "name": doc_name,
             "owner": user.email,
             "created_at": now,
             "modified_at": now,
@@ -178,7 +175,7 @@ class DocumentWriteMixin:
                 if initial:
                     row[sf] = initial.name
 
-        return doc_id, row
+        return doc_name, row
 
     async def _persist_new_doc(
         self,
@@ -246,7 +243,7 @@ class DocumentWriteMixin:
             return
 
         await self.session.execute(
-            table.update().where(table.c.id == doc_id).values(**agg_values)
+            table.update().where(table.c.name == doc_id).values(**agg_values)
         )
         row.update(agg_values)
         await self.session.flush()
@@ -425,7 +422,7 @@ class DocumentWriteMixin:
         await self._propagate_formulas(dt, row, update_data)
 
         await self.session.execute(
-            table.update().where(table.c.id == real_id).values(**update_data)
+            table.update().where(table.c.name == real_id).values(**update_data)
         )
 
         await _save_child_tables(self.session, dt, real_id, row, user, datetime.now(UTC))
@@ -502,7 +499,7 @@ class DocumentWriteMixin:
             )
 
         update_data = self._build_update_payload(dt, table, data, user)
-        real_id = existing["id"]
+        real_id = existing["name"]
         merged = {**existing, **update_data}
         # Inject submitted child-table rows into merged so lifecycle hooks see the
         # incoming data (not the old DB rows) and their mutations are persisted.
@@ -515,17 +512,6 @@ class DocumentWriteMixin:
             controller_cls = document_registry.get(doctype_name)
             doc = controller_cls(doctype_name, merged, user, self.session)
             await self._run_update_before_hooks(doc)
-
-            # Hooks may request a document rename by mutating `id`.
-            requested_id = str(merged.get("id") or "").strip()
-            if requested_id and requested_id != real_id:
-                await self.rename_document(doctype_name, real_id, requested_id, user)
-                real_id = requested_id
-
-            # Hooks may mutate standard fields (e.g. `name`) via Document attrs.
-            # Ensure these changes are persisted even though they are not DocType fields.
-            if "name" in table.c and merged.get("name") != existing.get("name"):
-                update_data["name"] = merged.get("name")
 
             # Sync hook mutations: any physical field that validate()/before_save()
             # changed in `merged` must be written to the DB even if the frontend
@@ -604,7 +590,7 @@ class DocumentWriteMixin:
                 detail="Скасуйте документ перед видаленням",
             )
 
-        real_id = existing["id"]
+        real_id = existing["name"]
 
         # Custom Controller Hooks
         _tokens = self._set_grunt_context(user)
@@ -693,7 +679,7 @@ class DocumentWriteMixin:
         if not controllers:
             return 0, errors
 
-        final_ids = [str(d["id"]) for d, _ in controllers]
+        final_ids = [str(d["name"]) for d, _ in controllers]
 
         _tokens = self._set_grunt_context(user)
         try:
@@ -738,21 +724,20 @@ class DocumentWriteMixin:
         table = compile_doctype_to_table(dt)
 
         # 0. Check if new_id already exists
-        exists_q = select(table.c.id).where(table.c.id == new_id)
+        exists_q = select(table.c.name).where(table.c.name == new_id)
         exists_res = await self.session.execute(exists_q)
         if exists_res.first():
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"Document with ID '{new_id}' already exists",
+                detail=f"Document with name '{new_id}' already exists",
             )
 
         # Fetch document before rename for hooks
         doc_data = await self.get_document(doctype_name, old_id, user)
 
         # 1. Update main table
-        # We update both 'id' and 'name' to keep them in sync for autonamed docs
         await self.session.execute(
-            table.update().where(table.c.id == old_id).values(id=new_id, name=new_id)
+            table.update().where(table.c.name == old_id).values(name=new_id)
         )
 
         # 2. Update references across all DocTypes
@@ -766,8 +751,8 @@ class DocumentWriteMixin:
                 child_table = compile_doctype_to_table(other_dt)
                 await self.session.execute(
                     child_table.update()
-                    .where(child_table.c.parent_id == old_id)
-                    .values(parent_id=new_id)
+                    .where(child_table.c.parent_name == old_id)
+                    .values(parent_name=new_id)
                 )
 
             # B. Update Link fields referencing our doctype
@@ -786,10 +771,10 @@ class DocumentWriteMixin:
         await self.session.execute(
             update(MULTI_LINK_TABLE)
             .where(
-                MULTI_LINK_TABLE.c.parent_id == old_id,
+                MULTI_LINK_TABLE.c.parent_name == old_id,
                 MULTI_LINK_TABLE.c.parent_doctype == doctype_name,
             )
-            .values(parent_id=new_id)
+            .values(parent_name=new_id)
         )
         await self.session.execute(
             update(MULTI_LINK_TABLE)
@@ -805,8 +790,8 @@ class DocumentWriteMixin:
             ("ActivityLog", "doc_id"),
             ("DocVersion", "doc_id"),
             ("File", "doc_id"),
-            ("File", "parent_id"),
-            ("Comment", "parent_id"),
+            ("File", "attached_to_id"),
+            ("Comment", "reference_id"),
             ("EmailQueue", "doc_id"),
         ]
         for sys_dt_name, sys_fieldname in system_refs:

@@ -118,7 +118,7 @@ class WebFormService:
         async with grunt.context(session, user=None):
             doc = await grunt.new_doc(form["doctype"], {**validated, "owner": owner})
 
-        doc_id = doc["id"]
+        doc_id = doc["name"]
 
         logger.info(
             "webform.submitted",

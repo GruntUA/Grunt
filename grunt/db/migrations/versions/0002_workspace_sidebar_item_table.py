@@ -7,8 +7,6 @@ Create Date: 2026-04-08
 
 from __future__ import annotations
 
-import uuid as _uuid
-
 import sqlalchemy as sa
 from alembic import op
 
@@ -16,8 +14,6 @@ revision = "0002"
 down_revision = "0001"
 branch_labels = None
 depends_on = None
-
-_ts = sa.func.now()
 
 
 def upgrade() -> None:
@@ -28,21 +24,14 @@ def upgrade() -> None:
     if not conn.dialect.has_table(conn, "grunt_workspace_sidebar_item"):
         op.create_table(
             "grunt_workspace_sidebar_item",
-            sa.Column("id", sa.String(36), primary_key=True),
-            sa.Column("name", sa.String(255), nullable=False, unique=True),
+            sa.Column("name", sa.String(255), primary_key=True),
             sa.Column("owner", sa.String(255), nullable=False, server_default=""),
             sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
             sa.Column("modified_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
             sa.Column("modified_by", sa.String(255), nullable=False, server_default=""),
             sa.Column("docstatus", sa.Integer(), nullable=False, server_default="0"),
             # DocType child table required columns
-            sa.Column(
-                "parent_id",
-                sa.String(36),
-                sa.ForeignKey("grunt_workspace.id", ondelete="CASCADE"),
-                nullable=True,
-                index=True,
-            ),
+            sa.Column("parent_name", sa.String(255), nullable=True, index=True),
             sa.Column(
                 "parent_doctype", sa.String(255), nullable=False, server_default="WorkspaceSidebar"
             ),
@@ -72,32 +61,31 @@ def upgrade() -> None:
             )
         ).fetchall()
 
-        # Build a dialect-portable INSERT that ignores duplicate PKs.
         _d = conn.dialect.name
         if _d == "sqlite":
             _insert_sql = "INSERT OR IGNORE INTO grunt_workspace_sidebar_item"
         elif _d == "mysql":
             _insert_sql = "INSERT IGNORE INTO grunt_workspace_sidebar_item"
-        else:  # postgresql and others
-            _insert_sql = "INSERT INTO grunt_workspace_sidebar_item ON CONFLICT (id) DO NOTHING --"
+        else:
+            _insert_sql = "INSERT INTO grunt_workspace_sidebar_item ON CONFLICT (name) DO NOTHING --"
 
         for row in rows:
-            new_id = str(_uuid.uuid4())
+            # Use workspace_id as parent_name (it was the workspace's name/id)
+            item_name = f"{row.workspace_id}-sidebar_items-{row.sequence}"
             conn.execute(
                 sa.text(
                     f"{_insert_sql} "
-                    "(id, name, parent_id, parent_doctype, parent_field, idx, "
+                    "(name, parent_name, parent_doctype, parent_field, idx, "
                     " section, type, label, icon, link_to, show_count, "
                     " count_filters, show_new_btn, roles) "
-                    "VALUES (:id, :name, :parent_id, 'WorkspaceSidebar', "
+                    "VALUES (:name, :parent_name, 'WorkspaceSidebar', "
                     "        'sidebar_items', :idx, :section, :type, "
                     "        :label, :icon, :link_to, :show_count, "
                     "        :count_filters, :show_new_btn, :roles)"
                 ),
                 {
-                    "id": new_id,
-                    "name": new_id,
-                    "parent_id": row.workspace_id,
+                    "name": item_name,
+                    "parent_name": row.workspace_id,
                     "idx": row.sequence,
                     "section": row.section or "",
                     "type": row.type or "DocType",
@@ -111,7 +99,6 @@ def upgrade() -> None:
                 },
             )
 
-        # 3. Drop old table
         op.drop_table("grunt_workspace_link")
 
 
@@ -119,13 +106,7 @@ def downgrade() -> None:
     op.create_table(
         "grunt_workspace_link",
         sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column(
-            "workspace_id",
-            sa.String(36),
-            sa.ForeignKey("grunt_workspace.id", ondelete="CASCADE"),
-            nullable=False,
-            index=True,
-        ),
+        sa.Column("workspace_id", sa.String(255), nullable=False, index=True),
         sa.Column("section", sa.String(255), nullable=False, server_default=""),
         sa.Column("type", sa.String(50), nullable=False, server_default="DocType"),
         sa.Column("label", sa.String(255), nullable=False, server_default=""),

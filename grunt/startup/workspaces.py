@@ -45,12 +45,12 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
         existing = await grunt.get_list(
             "AppMenu",
             filters={"name": ws_name},
-            fields=["id"],
+            fields=["name"],
             limit=1,
         )
 
         if existing:
-            ws_id = existing[0]["id"]
+            ws_id = existing[0]["name"]
             await grunt.save_doc(
                 "AppMenu",
                 ws_id,
@@ -82,10 +82,10 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
                     "roles": data.get("roles", ""),
                 },
             )
-            ws_id = ws["id"]
+            ws_id = ws["name"]
 
         # Replace sidebar items: bulk-delete old, bulk-insert new
-        await grunt.db.delete("WorkspaceSidebarItem", {"parent_id": ws_id})
+        await grunt.db.delete("WorkspaceSidebarItem", {"parent_name": ws_id})
 
         items = data.get("sidebar_items", [])
         if items:
@@ -93,7 +93,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
                 "WorkspaceSidebarItem",
                 [
                     {
-                        "parent_id": ws_id,
+                        "parent_name": ws_id,
                         "parent_doctype": "AppMenu",
                         "parent_field": "sidebar_items",
                         "idx": item_data.get("sequence", i),
@@ -304,12 +304,12 @@ async def _apply_workspace_fixture(
         existing = await grunt.get_list(
             "AppMenu",
             filters={"name": ws_name},
-            fields=["id"],
+            fields=["name"],
             limit=1,
         )
 
         if existing:
-            ws_id = existing[0]["id"]
+            ws_id = existing[0]["name"]
             await grunt.save_doc(
                 "AppMenu",
                 ws_id,
@@ -342,10 +342,10 @@ async def _apply_workspace_fixture(
                     "roles": rec.get("roles", ""),
                 },
             )
-            ws_id = ws["id"]
+            ws_id = ws["name"]
 
         # Replace sidebar items: bulk-delete old, bulk-insert new
-        await grunt.db.delete("WorkspaceSidebarItem", {"parent_id": ws_id})
+        await grunt.db.delete("WorkspaceSidebarItem", {"parent_name": ws_id})
 
         items = rec.get("sidebar_items", rec.get("items", []))
         if items:
@@ -353,7 +353,7 @@ async def _apply_workspace_fixture(
                 "WorkspaceSidebarItem",
                 [
                     {
-                        "parent_id": ws_id,
+                        "parent_name": ws_id,
                         "parent_doctype": "AppMenu",
                         "parent_field": "sidebar_items",
                         "idx": item.get("sequence", i),
@@ -387,12 +387,12 @@ async def _auto_seed_workspace(
     existing = await grunt.get_list(
         "AppMenu",
         filters={"name": app_name},
-        fields=["id"],
+        fields=["name"],
         limit=1,
     )
 
     if existing:
-        ws_id = existing[0]["id"]
+        ws_id = existing[0]["name"]
         await grunt.save_doc(
             "AppMenu",
             ws_id,
@@ -418,17 +418,17 @@ async def _auto_seed_workspace(
                 "roles": "",
             },
         )
-        ws_id = ws["id"]
+        ws_id = ws["name"]
 
     # Replace sidebar items: bulk-delete old, bulk-insert new
-    await grunt.db.delete("WorkspaceSidebarItem", {"parent_id": ws_id})
+    await grunt.db.delete("WorkspaceSidebarItem", {"parent_name": ws_id})
 
     if app_doctypes:
         await grunt.bulk_insert(
             "WorkspaceSidebarItem",
             [
                 {
-                    "parent_id": ws_id,
+                    "parent_name": ws_id,
                     "parent_doctype": "AppMenu",
                     "parent_field": "sidebar_items",
                     "idx": seq,

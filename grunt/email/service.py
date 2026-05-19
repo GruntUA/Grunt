@@ -141,11 +141,11 @@ class EmailService:
                 accounts = await grunt.db.get_all(
                     "EmailAccount",
                     filters={"enable_outgoing": True},
-                    fields=["id"],
+                    fields=["name"],
                     limit=1,
                 )
             if accounts:
-                email_account_id = str(accounts[0]["id"])
+                email_account_id = str(accounts[0]["name"])
         except Exception:  # noqa: BLE001
             logger.exception("suppressed_error")
 
@@ -157,7 +157,6 @@ class EmailService:
                 await grunt.db.insert_one(
                     "EmailQueue",
                     {
-                        "id": record_id,
                         "name": record_id,
                         "owner": "system",
                         "created_at": now,

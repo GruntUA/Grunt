@@ -129,13 +129,13 @@ class TreeService:
         # Annotate each node with has_children flag
         child_parent_ids = set()
         if rows:
-            parent_ids = [r["id"] for r in rows]
+            parent_ids = [r["name"] for r in rows]
             check_stmt = select(pf_col).where(pf_col.in_(parent_ids)).distinct()
             cr = await session.execute(check_stmt)
             child_parent_ids = {r[0] for r in cr.fetchall()}
 
         for row in rows:
-            row["has_children"] = row["id"] in child_parent_ids
+            row["has_children"] = row["name"] in child_parent_ids
 
         return rows
 
@@ -215,7 +215,7 @@ class TreeService:
               UNION ALL
                 SELECT {col_list}, tree._depth + 1
                 FROM "{table_name}" t
-                JOIN tree ON t."{pf}" = tree.id
+                JOIN tree ON t."{pf}" = tree.name
                 WHERE tree._depth < :max_depth
             )
             SELECT {cte_cols}, _depth FROM tree
@@ -230,13 +230,13 @@ class TreeService:
 
             # Build parent lookup from the flat result set (avoids extra DB round-trip)
             parent_lookup: dict[str, str | None] = {
-                r["id"]: r.get(parent_field) or None for r in all_rows
+                r["name"]: r.get(parent_field) or None for r in all_rows
             }
 
             # Resolve matching IDs by running the filters against the DB table,
             # scoped only to the nodes already present in this subtree.
-            tree_ids = [r["id"] for r in all_rows]
-            filtered_q = select(table.c.id)
+            tree_ids = [r["name"] for r in all_rows]
+            filtered_q = select(table.c.name)
             filtered_q = _apply_filters(filtered_q, table, filters)
 
             # Controller hook: list_filter_extra — allows DocType controllers
@@ -253,7 +253,7 @@ class TreeService:
                     session, filters, table
                 )
 
-            filtered_q = filtered_q.where(table.c.id.in_(tree_ids))
+            filtered_q = filtered_q.where(table.c.name.in_(tree_ids))
             filtered_result = await session.execute(filtered_q)
             matched_ids: set[str] = {str(r[0]) for r in filtered_result.fetchall()}
 
@@ -266,7 +266,7 @@ class TreeService:
                         keep_ids.add(current)
                         current = parent_lookup.get(current)
 
-            all_rows = [r for r in all_rows if r["id"] in keep_ids]
+            all_rows = [r for r in all_rows if r["name"] in keep_ids]
         # ──────────────────────────────────────────────────────────────────
 
         if sort_by:
@@ -324,7 +324,7 @@ class TreeService:
                 WHERE ancestors."{pf}" IS NOT NULL
                   AND ancestors."{pf}" != ''
             )
-            SELECT {cte_cols} FROM ancestors WHERE id != :node_id ORDER BY _depth DESC
+            SELECT {cte_cols} FROM ancestors WHERE name != :node_id ORDER BY _depth DESC
         """)
 
         result = await session.execute(sql, {"node_id": node_id})
@@ -366,7 +366,7 @@ class TreeService:
 
         stmt = (
             sa_update(table)
-            .where(table.c.id == node_id)
+            .where(table.c.name == node_id)
             .values(
                 **{parent_field: new_parent_id or None},
                 modified_at=datetime.now(UTC),
@@ -396,8 +396,8 @@ class TreeService:
         *,
         sort_by: str | None = None,
     ) -> list:
-        """Build SA column list: always include id + parent_field + title, then requested extras."""
-        always = {"id", parent_field, title_col}
+        """Build SA column list: always include name + parent_field + title, then requested extras."""
+        always = {"name", parent_field, title_col}
         if sort_by:
             always.add(sort_by)
         wanted = set(fields) if fields else {c.key for c in table.c}
@@ -474,8 +474,8 @@ class TreeService:
         def _key(row: dict[str, Any]) -> tuple[int, Any, str]:
             value = row.get(sort_by)
             if isinstance(value, (int, float)):
-                return (0, value, str(row.get("id") or ""))
-            return (0, str(value).casefold(), str(row.get("id") or ""))
+                return (0, value, str(row.get("name") or ""))
+            return (0, str(value).casefold(), str(row.get("name") or ""))
 
         present_sorted = sorted(present, key=_key, reverse=(sort_order == "desc"))
         return [*present_sorted, *missing]
@@ -518,21 +518,17 @@ class TreeService:
         Supports both UUID-based and name-based parent_field values, since
         Link fields may store either the document's id or its name field.
         """
-        by_id: dict[str, dict[str, Any]] = {}
         by_name: dict[str, dict[str, Any]] = {}
         for row in flat:
             row["children"] = []
-            by_id[row["id"]] = row
-            name_val = row.get("name")
-            if name_val and name_val != row["id"]:
-                by_name[name_val] = row
+            by_name[row["name"]] = row
 
         roots: list[dict[str, Any]] = []
         for row in flat:
             pid = row.get(parent_field)
             if pid:
-                parent = by_id.get(pid) or by_name.get(pid)
-                if parent and parent["id"] != row["id"]:
+                parent = by_name.get(pid)
+                if parent and parent["name"] != row["name"]:
                     parent["children"].append(row)
                     continue
             roots.append(row)
@@ -540,12 +536,12 @@ class TreeService:
 
     @staticmethod
     def _collect_ids(nodes: list[dict[str, Any]]) -> set[str]:
-        """Recursively collect all ``id`` values from a nested tree."""
+        """Recursively collect all ``name`` values from a nested tree."""
         ids: set[str] = set()
         stack = list(nodes)
         while stack:
             n = stack.pop()
-            ids.add(n["id"])
+            ids.add(n["name"])
             stack.extend(n.get("children") or [])
         return ids
 

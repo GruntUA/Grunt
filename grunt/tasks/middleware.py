@@ -42,7 +42,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
                         },
                     )
                 await session.commit()
-                self.log_ids[message.task_id] = result["id"]
+                self.log_ids[message.task_id] = result["name"]
 
         except Exception as e:
             logger.error(

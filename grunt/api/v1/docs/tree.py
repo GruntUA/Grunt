@@ -41,7 +41,7 @@ def _flatten_tree_ids(nodes: list[dict[str, Any]]) -> list[str]:
     stack = list(nodes)
     while stack:
         node = stack.pop()
-        node_id = node.get("id")
+        node_id = node.get("name")
         if isinstance(node_id, str) and node_id:
             ids.append(node_id)
         children = node.get("children") or []
@@ -54,7 +54,7 @@ def _apply_display_titles(nodes: list[dict[str, Any]], resolved_titles: dict[str
     stack = list(nodes)
     while stack:
         node = stack.pop()
-        node_id = node.get("id")
+        node_id = node.get("name")
         if isinstance(node_id, str) and node_id in resolved_titles:
             node["display_title"] = resolved_titles[node_id]
         children = node.get("children") or []
@@ -77,7 +77,7 @@ async def _resolve_department_titles_on_date(
     history_table = compile_doctype_to_table(history_dt)
 
     dept_rows = await session.execute(
-        select(dept_table.c.id, dept_table.c.title).where(dept_table.c.id.in_(dept_ids))
+        select(dept_table.c.name, dept_table.c.title).where(dept_table.c.name.in_(dept_ids))
     )
     current_titles = {str(r[0]): str(r[1] or r[0]) for r in dept_rows.fetchall()}
 

@@ -38,7 +38,7 @@ from grunt.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()
 
-PROTECTED_FIELDS = frozenset({"id", "owner", "created_at", "docstatus"})
+PROTECTED_FIELDS = frozenset({"name", "owner", "created_at", "docstatus"})
 
 _CURSOR_SEP = "||"  # separator unlikely to appear in sort values
 
@@ -112,7 +112,7 @@ class DocumentReadMixin:
         # Select columns
         cols: list[Any]
         if fields:
-            required = {"id", "name", "modified_at", "docstatus"}
+            required = {"name", "modified_at", "docstatus"}
             requested = required | set(fields)
             cols = [table.c[c] for c in requested if c in table.c]
         else:
@@ -186,12 +186,12 @@ class DocumentReadMixin:
                 if sort_order == "asc":
                     keyset = or_(
                         sort_col > cursor_val,
-                        and_(sort_col == cursor_val, table.c.id > cursor_id),
+                        and_(sort_col == cursor_val, table.c.name > cursor_id),
                     )
                 else:
                     keyset = or_(
                         sort_col < cursor_val,
-                        and_(sort_col == cursor_val, table.c.id < cursor_id),
+                        and_(sort_col == cursor_val, table.c.name < cursor_id),
                     )
                 query = query.where(keyset)
             except Exception:  # noqa: BLE001 — malformed cursor falls back to page
@@ -223,7 +223,7 @@ class DocumentReadMixin:
         if rows and len(rows) == per_page:
             last = rows[-1]
             sort_raw = last.get(sort_by)
-            last_id = str(last.get("id", ""))
+            last_id = str(last.get("name", ""))
             if sort_raw is not None and last_id:
                 next_cursor = _encode_cursor(sort_raw, last_id)
 
@@ -253,11 +253,8 @@ class DocumentReadMixin:
 
         table = compile_doctype_to_table(dt)
 
-        result = await self.session.execute(select(table).where(table.c.id == doc_id))
+        result = await self.session.execute(select(table).where(table.c.name == doc_id))
         row = result.first()
-        if row is None:
-            result = await self.session.execute(select(table).where(table.c.name == doc_id))
-            row = result.first()
         if row is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -286,13 +283,13 @@ class DocumentReadMixin:
         # Attach MultiLink values
         if ml_fields:
             if load_all_relations:
-                ml_data = await self._ml.get_all_for_doc(doctype_name, doc["id"])
+                ml_data = await self._ml.get_all_for_doc(doctype_name, doc["name"])
                 for fieldname in ml_fields:
                     doc[fieldname] = ml_data.get(fieldname, [])
             else:
                 selected_ml = sorted(ml_fields & expand_set)
                 if selected_ml:
-                    ml_data = await self._ml.get_all_for_doc(doctype_name, doc["id"])
+                    ml_data = await self._ml.get_all_for_doc(doctype_name, doc["name"])
                     for fieldname in selected_ml:
                         doc[fieldname] = ml_data.get(fieldname, [])
 

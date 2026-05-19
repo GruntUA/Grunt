@@ -183,12 +183,12 @@ class Document:
 
     @property
     def id(self) -> str | None:
-        """Primary key (UUID) assigned by the database."""
-        return object.__getattribute__(self, "data").get("id")
+        """Document identifier — alias for name (primary key)."""
+        return object.__getattribute__(self, "data").get("name")
 
     @property
     def name(self) -> str | None:
-        """Human-readable document identifier (naming series or auto-generated)."""
+        """Human-readable document identifier (primary key)."""
         return object.__getattribute__(self, "data").get("name")
 
     @property
@@ -449,7 +449,7 @@ class Document:
         try:
             from grunt.api.v1.ws import manager  # noqa: PLC0415
 
-            doc_id = data.get("id")
+            doc_id = data.get("name")
             if doc_id:
                 payload: dict[str, object] = {
                     "processed": processed,
@@ -469,6 +469,6 @@ class Document:
     # ── Repr ──────────────────────────────────────────────────────────────
 
     def __repr__(self) -> str:
-        doc_id = object.__getattribute__(self, "data").get("id", "?")
+        doc_id = object.__getattribute__(self, "data").get("name", "?")
         doctype = object.__getattribute__(self, "doctype")
         return f"<{doctype} id={doc_id!r}>"

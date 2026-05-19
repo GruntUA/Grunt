@@ -7,7 +7,6 @@ this one" efficiently.
 
 from __future__ import annotations
 
-import uuid
 from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
@@ -67,14 +66,13 @@ class LinkService:
             if not target_doctype:
                 continue
 
-            link_id = str(uuid.uuid4())
+            link_name = f"{doctype}-{doc_id}-{field.fieldname}"
             from datetime import datetime  # noqa: PLC0415
 
             now = datetime.now(UTC)
             await session.execute(
                 table.insert().values(
-                    id=link_id,
-                    name=link_id,
+                    name=link_name,
                     owner="system",
                     created_at=now,
                     modified_at=now,

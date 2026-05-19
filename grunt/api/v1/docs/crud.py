@@ -134,12 +134,12 @@ async def bulk_delete_documents(
         result = await grunt_app.get_list(
             doctype,
             filters=raw_filters if raw_filters else None,
-            fields=["id"],
+            fields=["name"],
             limit=100_000,
             page=1,
             search=search,
         )
-        ids: list[str] = [str(row["id"]) for row in result]
+        ids: list[str] = [str(row["name"]) for row in result]
     else:
         ids = body.get("ids", [])
         if not ids:

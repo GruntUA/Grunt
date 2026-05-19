@@ -7,7 +7,6 @@ queue emails.
 
 from __future__ import annotations
 
-import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
@@ -99,7 +98,7 @@ class NotificationService:
                 "notification.sent",
                 event=event,
                 doctype=doctype,
-                doc_id=doc.get("id"),
+                doc_id=doc.get("name"),
                 count=count,
             )
 
@@ -122,7 +121,7 @@ class NotificationService:
             rows = await grunt.db.get_all(
                 "Notification",
                 filters=filters,
-                fields=["id", "subject", "message", "doctype", "doc_id", "is_read", "created_at"],
+                fields=["name", "subject", "message", "doctype", "doc_id", "is_read", "created_at"],
                 limit=limit,
                 offset=offset,
                 order_by="created_at",
@@ -162,14 +161,15 @@ class NotificationService:
         subject: str,
         message: str,
     ) -> str:
-        notif_id = str(uuid.uuid4())
+        import secrets  # noqa: PLC0415
+
+        notif_name = f"notif-{user}-{secrets.token_urlsafe(6)}"
         now = datetime.now(UTC)
         async with grunt.system_context(session):
             await grunt.db.insert_one(
                 "Notification",
                 {
-                    "id": notif_id,
-                    "name": notif_id,
+                    "name": notif_name,
                     "owner": user,
                     "created_at": now,
                     "modified_at": now,
@@ -191,7 +191,7 @@ class NotificationService:
         except Exception:  # noqa: BLE001
             logger.exception("suppressed_error")
 
-        return notif_id
+        return notif_name
 
     def _resolve_recipients(
         self,
@@ -294,7 +294,7 @@ class NotificationService:
             "doctype": doctype,
             "event": event,
             "name": doc.get("name", ""),
-            "id": doc.get("id", ""),
+            "id": doc.get("name", ""),
             "owner": doc.get("owner", ""),
         }
         # Add all doc fields

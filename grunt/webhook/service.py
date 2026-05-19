@@ -74,7 +74,7 @@ class WebhookService:
 
             await self._send_and_log(
                 session=session,
-                webhook_id=str(wh.get("id") or wh.get("name") or ""),
+                webhook_id=str(wh.get("name") or ""),
                 event=event,
                 url=str(wh["url"]),
                 payload=payload_str,
