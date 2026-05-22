@@ -182,8 +182,10 @@ class SearchIndexService:
                 stmt = _search_index_table.insert().values(**row)
 
             await session.execute(stmt)
-        except Exception:  # noqa: BLE001
-            logger.warning("search_index.index_failed", doctype=doctype, doc_id=doc_id)
+        except Exception as e:
+            logger.warning(
+                "search_index.index_failed", doctype=doctype, doc_id=doc_id, error=str(e)
+            )
 
     async def remove_document(
         self,

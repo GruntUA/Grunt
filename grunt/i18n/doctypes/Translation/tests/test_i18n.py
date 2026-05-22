@@ -4,7 +4,7 @@ from pathlib import Path
 
 from grunt.i18n.service import TranslationService, _parse_po_file
 
-LOCALES_DIR = Path(__file__).parent.parent.parent.parent / "i18n" / "locales"
+LOCALES_DIR = Path(__file__).parent.parent.parent.parent / "locales"
 
 
 class TestPoParser:

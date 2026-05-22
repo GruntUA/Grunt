@@ -109,7 +109,8 @@ async def test_list_users_requires_superadmin(ctx):
     reg_user_data = {
         "email": "regular@grunt.example.com",
         "password": "pass",
-        "full_name": "Regular",
+        "first_name": "Regular",
+        "last_name": "User",
     }
     reg_user_doc = await ctx.new_doc("User", reg_user_data)
     await ctx.db._session().commit()
@@ -134,7 +135,7 @@ async def test_list_users_as_superadmin(ctx):
     from grunt.auth.doctypes.User.user import list_users_api, register
 
     # Register at least one user to list
-    await register(email="admin@example.com", password="pass", full_name="Admin")
+    await register(email="admin@example.com", password="pass", first_name="Admin", last_name="User")
     await ctx.db._session().commit()
 
     users = await list_users_api()
@@ -148,9 +149,14 @@ async def test_add_remove_role(ctx):
     from grunt.auth.doctypes.User.user import add_role, list_users_api, remove_role
 
     # Register a regular user
-    target_data = {"email": "target@grunt.example.com", "password": "pass", "full_name": "Target"}
+    target_data = {
+        "email": "target@grunt.example.com",
+        "password": "pass",
+        "first_name": "Target",
+        "last_name": "User",
+    }
     target_doc = await ctx.new_doc("User", target_data)
-    target_id = target_doc["id"]
+    target_id = target_doc["name"]
     await ctx.db._session().commit()
 
     # Add role
@@ -159,7 +165,7 @@ async def test_add_remove_role(ctx):
 
     # Verify role is in user list
     users = await list_users_api()
-    user_data = next(u for u in users if u["id"] == target_id)
+    user_data = next(u for u in users if u["name"] == target_id)
     assert "Manager" in user_data["roles"]
 
     # Remove role
@@ -168,5 +174,5 @@ async def test_add_remove_role(ctx):
 
     # Verify role removed
     users = await list_users_api()
-    user_data = next(u for u in users if u["id"] == target_id)
+    user_data = next(u for u in users if u["name"] == target_id)
     assert "Manager" not in user_data["roles"]

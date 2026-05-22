@@ -32,8 +32,8 @@ async def test_export_schemas_module(ctx):
     """Test that we can filter schemas by module."""
     from grunt.api.v1.meta import export_schemas
 
-    # DocType "User" is in module "core"
-    data = await export_schemas(module="core")
+    # DocType "User" is in module "auth"
+    data = await export_schemas(module="auth")
     assert "User" in data
     for dt in data.values():
-        assert dt["module"] == "core"
+        assert dt["module"] == "auth"

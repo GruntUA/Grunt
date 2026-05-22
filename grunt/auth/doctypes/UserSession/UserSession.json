@@ -2,6 +2,7 @@
   "name": "UserSession",
   "label": "Сесія користувача",
   "module": "auth",
+  "is_log": true,
   "track_changes": false,
   "fields": [
     {

@@ -24,7 +24,7 @@ async def list_documents(
     doctype: str,
     request: Request,
     page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=1, le=10000),
+    per_page: int = Query(20, ge=1, le=1000),
     sort_by: str = "modified_at",
     sort_order: str = "desc",
     search: str | None = None,

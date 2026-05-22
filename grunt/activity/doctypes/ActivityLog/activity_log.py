@@ -35,7 +35,7 @@ class ActivityLog(Document):
                 "doctype": doctype,
                 "doc_id": doc_id,
                 "action": action,
-                "details": details,
+                "details": details or {},
             },
         )
 

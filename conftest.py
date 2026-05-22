@@ -14,8 +14,8 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-import grunt.auth.doctypes.User.User  # noqa: F401
-import grunt.db.system_tables  # noqa: F401
+import grunt.auth.doctypes.User.user
+import grunt.db.system_tables
 from grunt.config import settings
 from grunt.db.base import Base
 from grunt.db.session import get_session
@@ -151,7 +151,7 @@ async def client():
 async def ctx(db_session: AsyncSession, engine: AsyncEngine):
     """Provide an active grunt context with SYSTEM_USER for tests."""
     from grunt.app import grunt as grunt_app
-    from grunt.auth.doctypes.User.User import SYSTEM_USER
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
 
     async with grunt_app.context(db_session, engine, SYSTEM_USER):
         yield grunt_app

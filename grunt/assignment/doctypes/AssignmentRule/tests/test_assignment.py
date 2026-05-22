@@ -75,7 +75,7 @@ class TestAssignmentAPI:
 
         # 2. Test the rule
         test_doc = {"status": "Draft", "amount": 100}
-        data = await test_rule(rule_id=rule["id"], test_doc=test_doc)
+        data = await test_rule(rule_id=rule["name"], test_doc=test_doc)
 
         assert data["matched"] is True
         assert data["will_assign_to"] == ["admin@grunt.local"]

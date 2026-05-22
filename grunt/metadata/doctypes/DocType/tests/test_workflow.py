@@ -70,7 +70,7 @@ async def test_workflow_transitions_empty_for_no_workflow(ctx):
 
     # Create a document
     doc = await ctx.new_doc("Note", {"title": "Test Note"})
-    doc_id = doc["id"]
+    doc_id = doc["name"]
 
     # Check transitions
     transitions = await get_transitions("Note", doc_id)
@@ -89,7 +89,7 @@ async def test_workflow_initial_transitions(ctx):
 
     # Create doc
     doc = await ctx.new_doc("Contract", {"title": "Test Contract", "status": "Draft"})
-    doc_id = doc["id"]
+    doc_id = doc["name"]
 
     # Get transitions
     transitions = await get_transitions("Contract", doc_id)
@@ -105,7 +105,7 @@ async def test_workflow_apply_transition(ctx):
     await ctx.db._session().commit()
 
     doc = await ctx.new_doc("Contract", {"title": "Test Contract", "status": "Draft"})
-    doc_id = doc["id"]
+    doc_id = doc["name"]
 
     # Apply Submit transition
     updated = await ctx.submit("Contract", doc_id, "Submit")
@@ -123,7 +123,7 @@ async def test_workflow_invalid_transition_rejected(ctx):
     await ctx.db._session().commit()
 
     doc = await ctx.new_doc("Contract", {"title": "Test", "status": "Draft"})
-    doc_id = doc["id"]
+    doc_id = doc["name"]
 
     # Try to apply Approve from Draft (invalid)
     with pytest.raises(HTTPException) as excinfo:
@@ -140,7 +140,7 @@ async def test_workflow_multi_step(ctx):
     await ctx.db._session().commit()
 
     doc = await ctx.new_doc("Contract", {"title": "Multi-step", "status": "Draft"})
-    doc_id = doc["id"]
+    doc_id = doc["name"]
 
     # Submit
     updated = await ctx.submit("Contract", doc_id, "Submit")

@@ -2,6 +2,7 @@
   "name": "ActivityLog",
   "label": "Журнал активності",
   "module": "activity",
+  "is_log": true,
   "track_changes": false,
   "table_name": "grunt_log_activity",
   "fields": [

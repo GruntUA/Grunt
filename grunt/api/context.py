@@ -106,15 +106,15 @@ def whitelist(allow_guest: bool = False):
     """Decorator to mark a function as whitelisted for API access."""
 
     def decorator(fn):
-        setattr(fn, "_whitelisted", True)
-        setattr(fn, "_allow_guest", allow_guest)
+        fn._whitelisted = True
+        fn._allow_guest = allow_guest
         return fn
 
     # Support both @whitelist and @whitelist()
     if callable(allow_guest):
         fn = allow_guest
-        setattr(fn, "_whitelisted", True)
-        setattr(fn, "_allow_guest", False)
+        fn._whitelisted = True
+        fn._allow_guest = False
         return fn
 
     return decorator

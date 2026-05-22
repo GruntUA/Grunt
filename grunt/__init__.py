@@ -30,9 +30,91 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from contextlib import AbstractAsyncContextManager
+    from typing import Any, TypeVar
+
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
     from grunt.app import GruntDB
+    from grunt.auth.doctypes.User.user import User
+
+    _T = TypeVar("_T")
 
     db: GruntDB
+
+    # ── Document API ──────────────────────────────────────────────────────────
+    async def get_doc(
+        doctype: str,
+        id_or_name: str,
+        *,
+        expand: list[str] | None = None,
+    ) -> dict[str, Any]: ...
+    async def new_doc(
+        doctype: str,
+        data: dict[str, Any],
+        *,
+        ignore_required: bool = False,
+    ) -> dict[str, Any]: ...
+    async def save_doc(
+        doctype: str,
+        id_or_name: str,
+        data: dict[str, Any],
+        *,
+        ignore_required: bool = False,
+    ) -> dict[str, Any]: ...
+    async def delete_doc(doctype: str, id_or_name: str) -> None: ...
+    async def rename_doc(doctype: str, old_id: str, new_id: str) -> dict[str, Any]: ...
+    async def get_list(
+        doctype: str,
+        *,
+        filters: dict[str, Any] | None = None,
+        fields: list[str] | None = None,
+        limit: int = 20,
+        page: int = 1,
+        order_by: str = "modified_at",
+        order: str = "desc",
+        search: str | None = None,
+    ) -> list[dict[str, Any]]: ...
+    async def count(
+        doctype: str,
+        *,
+        filters: dict[str, Any] | None = None,
+    ) -> int: ...
+    async def exists(
+        doctype: str,
+        filters: dict[str, Any] | str,
+    ) -> str | None: ...
+    async def get_value(doctype: str, id_or_name: str, fieldname: str) -> Any: ...
+    async def set_value(
+        doctype: str,
+        id_or_name: str,
+        fieldname: str | dict[str, Any],
+        value: Any = None,
+    ) -> None: ...
+    async def get_single(doctype: str, fieldname: str) -> Any: ...
+    async def submit(doctype: str, doc_id: str, action: str) -> dict[str, Any]: ...
+    async def duplicate(
+        doctype: str,
+        id_or_name: str,
+        *,
+        overrides: dict[str, Any] | None = None,
+    ) -> dict[str, Any]: ...
+    async def get_meta(doctype: str) -> Any: ...
+
+    # ── Context managers ──────────────────────────────────────────────────────
+    def context(
+        session: AsyncSession,
+        engine: AsyncEngine | None = None,
+        user: User | None = None,
+    ) -> AbstractAsyncContextManager[None]: ...
+    def system_context(
+        session: AsyncSession,
+        engine: AsyncEngine | None = None,
+    ) -> AbstractAsyncContextManager[None]: ...
+    def bootstrap_context(
+        session: AsyncSession,
+        engine: AsyncEngine | None = None,
+    ) -> AbstractAsyncContextManager[None]: ...
 
 
 # Lazy loading to avoid circular imports

@@ -28,9 +28,11 @@ def test(
     # 1. Base test paths
     test_paths = []
 
-    # If no filters, include base tests
+    # If no filters, include base framework tests (skip silently if the dir doesn't exist)
     if not app and not doctype:
-        test_paths.append(str(site_manager.bench_dir / "apps" / "grunt" / "backend" / "tests"))
+        base_tests = site_manager.bench_dir / "apps" / "grunt" / "backend" / "tests"
+        if base_tests.is_dir():
+            test_paths.append(str(base_tests))
 
     # 2. Discover DocType tests
     apps_dir = site_manager.bench_dir / "apps"
@@ -83,16 +85,40 @@ def test(
 
         os.environ["GRUNT_SITE"] = site
 
-    # 4. Run pytest
-    import pytest  # noqa: PLC0415
+    # 4. Run pytest via subprocess so the correct project venv is used
+    import shutil  # noqa: PLC0415
+    import subprocess  # noqa: PLC0415
+
+    bench_dir = site_manager.bench_dir
+    venv_pytest = bench_dir / ".venv" / "bin" / "pytest"
+    if venv_pytest.exists():
+        pytest_bin = str(venv_pytest)
+    else:
+        pytest_bin = shutil.which("pytest") or ""
+
+    if not pytest_bin:
+        click.echo(
+            click.style("[error] pytest не знайдено. Встановіть: pip install pytest", fg="red"),
+            err=True,
+        )
+        raise SystemExit(1)
+
+    # Resolve app root for the app whose conftest/pyproject.toml should anchor pytest.
+    # When a single app is targeted use its root; otherwise use the grunt framework root
+    # (which has conftest.py and pyproject.toml defining asyncio mode etc.).
+    grunt_app_root = bench_dir / "apps" / "grunt"
+    if app and (bench_dir / "apps" / app).is_dir():
+        pytest_cwd = bench_dir / "apps" / app
+    else:
+        pytest_cwd = grunt_app_root
 
     click.echo(f"Running tests for: {', '.join(test_paths)}")
-    args = test_paths + list(pytest_args)
-    if "-v" not in args and "-q" not in args:
-        args.append("-v")
+    cmd = [pytest_bin] + test_paths + list(pytest_args)
+    if "-v" not in cmd and "-q" not in cmd:
+        cmd.append("-v")
 
-    retcode = pytest.main(args)
-    sys.exit(retcode)
+    result = subprocess.run(cmd, cwd=str(pytest_cwd))
+    sys.exit(result.returncode)
 
 
 def _add_tests_from_dir(dt_dir: Path, test_paths: list[str]):
