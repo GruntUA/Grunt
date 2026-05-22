@@ -9,7 +9,6 @@ import structlog
 from sqlalchemy import select
 
 from grunt.metadata.compiler import compile_doctype_to_table
-from grunt.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
@@ -134,9 +133,7 @@ async def _load_child_tables(
         try:
             child_dt = await doctype_registry.get(field.options)
             child_table = compile_doctype_to_table(child_dt)
-            data_fields = {
-                f.fieldname for f in child_dt.fields if f.fieldtype not in NON_PHYSICAL_FIELDS
-            }
+            data_fields = {f.fieldname for f in child_dt.fields if f.is_physical}
             keep = {"name", "idx"} | data_fields
             cols = [c for c in child_table.c if c.key not in _CHILD_SKIP_COLS and c.key in keep]
             result = await session.execute(
@@ -204,7 +201,7 @@ async def _save_child_tables(
                     "docstatus": 0,
                 }
                 for child_field in child_dt.fields:
-                    if child_field.fieldtype in NON_PHYSICAL_FIELDS:
+                    if not child_field.is_physical:
                         continue
                     if child_field.fieldname in child_data:
                         row[child_field.fieldname] = child_field.coerce(

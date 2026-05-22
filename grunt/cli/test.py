@@ -91,10 +91,7 @@ def test(
 
     bench_dir = site_manager.bench_dir
     venv_pytest = bench_dir / ".venv" / "bin" / "pytest"
-    if venv_pytest.exists():
-        pytest_bin = str(venv_pytest)
-    else:
-        pytest_bin = shutil.which("pytest") or ""
+    pytest_bin = str(venv_pytest) if venv_pytest.exists() else shutil.which("pytest") or ""
 
     if not pytest_bin:
         click.echo(

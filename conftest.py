@@ -14,8 +14,6 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-import grunt.auth.doctypes.User.user
-import grunt.db.system_tables
 from grunt.config import settings
 from grunt.db.base import Base
 from grunt.db.session import get_session

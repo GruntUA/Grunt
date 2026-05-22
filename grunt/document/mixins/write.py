@@ -44,7 +44,6 @@ from grunt.document.virtual import (
     _virtual_update,
 )
 from grunt.metadata.compiler import compile_doctype_to_table
-from grunt.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()
@@ -146,7 +145,7 @@ class DocumentWriteMixin:
                 row[k] = v
 
         for field in dt.fields:
-            if field.fieldtype in NON_PHYSICAL_FIELDS:
+            if not field.is_physical:
                 continue
             if field.fieldname in data:
                 row[field.fieldname] = field.coerce(data[field.fieldname])
@@ -335,7 +334,7 @@ class DocumentWriteMixin:
         table_columns = {c.name for c in table.columns}
         update_data: dict[str, Any] = {}
         for field in dt.fields:
-            if field.fieldtype in NON_PHYSICAL_FIELDS:
+            if not field.is_physical:
                 continue
             if field.fieldname not in table_columns:
                 continue
@@ -502,7 +501,7 @@ class DocumentWriteMixin:
             _table_cols = {c.name for c in table.columns}
             for _f in dt.fields:
                 if (
-                    _f.fieldtype in NON_PHYSICAL_FIELDS
+                    not _f.is_physical
                     or _f.fieldname in PROTECTED_FIELDS
                     or _f.fieldname not in _table_cols
                 ):
