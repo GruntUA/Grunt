@@ -211,8 +211,12 @@ function push(updated: Record<string, unknown>[]) {
 }
 
 function onRowReorder(event: { value?: Array<Record<string, unknown>> }) {
-  const reordered = (event.value ?? []).map((row) => {
-    const { __row_key: _k, __row_index: _i, __display_index: _d, __group_sort_order: _g, ...raw } = row
+  const reordered = (event.value ?? []).map((row, i) => {
+    // Strip DataTable meta-fields added by rowsWithMeta/displayRows computed properties.
+    const { __row_key: _k, __row_index: _i, __display_index: _d, __group_sort_order: _g, ...raw } = row as Record<string, unknown>
+    // Reassign idx to match the new visual position so the backend
+    // (which sorts child rows by idx on load) persists the drag order.
+    raw['idx'] = i
     return raw
   })
   push(reordered)

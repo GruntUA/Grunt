@@ -122,6 +122,11 @@ async def lifespan(app: FastAPI):
             eng = site_manager.get_engine(site)
             maker = site_manager.get_session_maker(site)
 
+            # Ensure the full-text search index table exists (DDL, not Alembic)
+            from grunt.search.service import search_index_service  # noqa: PLC0415
+
+            await search_index_service.ensure_table(eng)
+
             async with maker() as session:
                 # Load core DocType definitions into registry (no table sync — use grunt migrate)
                 await load_core_doctypes(session)

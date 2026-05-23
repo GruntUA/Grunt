@@ -77,8 +77,11 @@ export const useAuthStore = defineStore('auth', () => {
       _setTokens(data.access_token, data.refresh_token)
       user.value = data.user
       return true
-    } catch {
-      _logout()
+    } catch (err: any) {
+      // Only log out on auth errors (401/403), not on network/server errors
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        _logout()
+      }
       return false
     }
   }
@@ -95,8 +98,11 @@ export const useAuthStore = defineStore('auth', () => {
             localStorage.setItem('grunt_primary_color', u.primary_color)
           }
         })
-        .catch(() => {
-          _logout()
+        .catch((err: any) => {
+          // Only log out on auth errors (401/403), not on network/server errors
+          if (err?.response?.status === 401 || err?.response?.status === 403) {
+            _logout()
+          }
         })
         .finally(() => { _fetchMePromise = null })
     }

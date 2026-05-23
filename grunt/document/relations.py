@@ -187,7 +187,11 @@ async def _save_child_tables(
             for idx, child_data in enumerate(child_rows):
                 if not isinstance(child_data, dict):
                     continue
-                child_idx = child_data.get("idx", idx)
+                # Always use the array position as the canonical idx so that
+                # drag-and-drop reordering on the client is faithfully persisted.
+                # The client-side `idx` field is intentionally ignored here because
+                # it may carry stale values from a previous save.
+                child_idx = idx
                 row: dict[str, Any] = {
                     "name": f"{parent_id}-{field.fieldname}-{child_idx}",
                     "parent_name": parent_id,

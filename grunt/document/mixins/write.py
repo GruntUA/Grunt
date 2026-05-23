@@ -204,7 +204,9 @@ class DocumentWriteMixin:
 
     async def _insert_row(self, table: Any, row: dict[str, Any]) -> None:
         """Insert main document row and flush to materialize DB state before child writes."""
-        await self.session.execute(table.insert().values(**row))
+        table_cols = {c.name for c in table.c}
+        db_row = {k: v for k, v in row.items() if k in table_cols}
+        await self.session.execute(table.insert().values(**db_row))
         await self.session.flush()
 
     async def _save_children(
