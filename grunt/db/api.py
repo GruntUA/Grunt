@@ -8,10 +8,16 @@ from sqlalchemy import CursorResult, func, or_, select, update
 
 from grunt.context import _session_ctx
 from grunt.metadata.compiler import compile_doctype_to_table
-from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+    from grunt.metadata.registry import DocTypeRegistry
+
+
+def _get_registry() -> "DocTypeRegistry":
+    """Lazy import to avoid circular dependency grunt.db ↔ grunt.metadata.registry."""
+    from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+    return doctype_registry
 
 
 class GruntDB:
@@ -40,7 +46,7 @@ class GruntDB:
         fieldname: str,
     ) -> Any:
         """Return a single field value from the first matching document."""
-        dt = await doctype_registry.get(doctype)
+        dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
         col = table.c.get(fieldname)
         if col is None:
@@ -61,7 +67,7 @@ class GruntDB:
         value: Any = None,
     ) -> None:
         """Update one or more fields on a document."""
-        dt = await doctype_registry.get(doctype)
+        dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
         values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
         await self._session().execute(table.update().where(table.c.name == doc_id).values(values))
@@ -73,7 +79,7 @@ class GruntDB:
         filters: str | dict[str, Any],
     ) -> str | None:
         """Return the document name if a match exists, else ``None``."""
-        dt = await doctype_registry.get(doctype)
+        dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
         stmt = select(table.c.name)
         stmt = _apply_filters(stmt, table, filters)
@@ -126,7 +132,7 @@ class GruntDB:
         order: str = "desc",
     ) -> list[dict[str, Any]] | list[Any]:
         """Fetch a list of documents as plain dicts."""
-        dt = await doctype_registry.get(doctype)
+        dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
 
         select_fields = [pluck] if pluck else fields
@@ -168,7 +174,7 @@ class GruntDB:
         fieldnames: list[str],
     ) -> dict[str, Any] | None:
         """Return multiple field values from the first matching document."""
-        dt = await doctype_registry.get(doctype)
+        dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
         cols = [table.c[f] for f in fieldnames if f in table.c]
         if not cols:
@@ -185,7 +191,7 @@ class GruntDB:
 
     async def get_single_value(self, doctype: str, fieldname: str) -> Any:
         """Return a field value from a Singleton DocType (e.g. SystemSettings)."""
-        dt = await doctype_registry.get(doctype)
+        dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
         col = table.c.get(fieldname)
         if col is None:
@@ -201,7 +207,7 @@ class GruntDB:
         filters: dict[str, Any] | None = None,
     ) -> int:
         """Count documents matching optional filters."""
-        dt = await doctype_registry.get(doctype)
+        dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
         stmt = select(func.count()).select_from(table)
         if filters:
@@ -218,7 +224,7 @@ class GruntDB:
         if not filters:
             raise ValueError("grunt.db.delete requires at least one filter.")
 
-        dt = await doctype_registry.get(doctype)
+        dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
 
         stmt = table.delete()
@@ -235,7 +241,7 @@ class GruntDB:
         Caller is responsible for providing required standard fields
         (`name`, timestamps, owner, etc.) when needed.
         """
-        dt = await doctype_registry.get(doctype)
+        dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
         await self._session().execute(table.insert().values(**values))
         await self._session().flush()
@@ -245,7 +251,7 @@ class GruntDB:
         if not rows:
             return 0
 
-        dt = await doctype_registry.get(doctype)
+        dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
         result = await self._session().execute(table.insert(), rows)
         await self._session().flush()
@@ -258,7 +264,7 @@ class GruntDB:
         values: dict[str, Any],
     ) -> int:
         """Update multiple rows matching exact-match filters and flush session."""
-        dt = await doctype_registry.get(doctype)
+        dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
 
         update_values = {k: v for k, v in values.items() if k in table.c}
@@ -288,7 +294,7 @@ class GruntDB:
 
         from sqlalchemy import text
 
-        dt = await doctype_registry.get(doctype)
+        dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
 
         select_exprs: list[Any] = []

@@ -61,11 +61,22 @@ def doctype_sync(name: str, site: str | None):
         dt = DocType.model_validate(dt_data)
 
         async with _site_session(site) as (session, eng):
-            await doctype_registry.update(dt, session, eng)
+            from sqlalchemy import select  # noqa: PLC0415
+            from grunt.db.system_tables import GruntMetaDoctype  # noqa: PLC0415
+
+            exists = await session.scalar(
+                select(GruntMetaDoctype.name).where(GruntMetaDoctype.name == dt.name)
+            )
+            if exists:
+                await doctype_registry.update(dt, session, eng)
+                action = "оновлено"
+            else:
+                await doctype_registry.register(dt, session, eng)
+                action = "зареєстровано"
             await session.commit()
 
         click.echo(
-            f"DocType '{name}' синхронізовано з {json_file.relative_to(json_file.parents[3])}."
+            f"DocType '{name}' {action} з {json_file.relative_to(json_file.parents[3])}."
         )
 
     asyncio.run(_run())
@@ -80,7 +91,7 @@ def doctype_list(site: str | None):
         from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
 
         async with _site_session(site) as (session, _eng):
-            all_dts = doctype_registry.all()
+            all_dts = await doctype_registry.list_all()
             if not all_dts:
                 click.echo("DocTypes не знайдено.")
                 return

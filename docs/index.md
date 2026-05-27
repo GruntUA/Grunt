@@ -58,7 +58,7 @@ pip install grunt[postgres,redis]
 grunt init
 
 # Create your first app
-grunt create-app my_crm
+grunt app create my_crm
 
 # Start the server
 grunt serve --reload

@@ -66,15 +66,21 @@ class DocTypeRegistry:
         self._known_lower.pop(name.lower(), None)
 
     def clear_cache(self) -> None:
-        """Clear all in-memory DocType definitions and known names.
+        """Clear in-memory DocType definitions so they are re-fetched from the DB.
 
-        This forces the registry to re-fetch metadata from the database
-        (or core JSON files) on the next access.
+        All currently loaded DocType names (including core DocTypes) are moved
+        to ``_known_names`` before clearing ``_doctypes``, so the lazy-load path
+        in :meth:`get` can still find them on the next access without a server
+        restart.
         """
+        # Promote every loaded DocType name to the lazy-known set so _lazy_load
+        # can re-fetch its definition from the DB on the next request.
+        for name in self._doctypes:
+            self._known_names.add(name)
+            self._known_lower[name.lower()] = name
+
         self._doctypes.clear()
-        self._known_names.clear()
         self._lower_index.clear()
-        self._known_lower.clear()
         logger.info("registry.cache_cleared")
 
     # ── Read ─────────────────────────────────────────────────────────────

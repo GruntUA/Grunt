@@ -4,7 +4,13 @@ from pathlib import Path
 import click
 
 
-@click.command("create-app")
+@click.group("app")
+def app_group():
+    """Керування встановленими додатками."""
+    pass
+
+
+@app_group.command("create")
 @click.argument("name")
 @click.option("--no-git", is_flag=True, default=False, help="Не ініціалізувати git репозиторій")
 @click.option(
@@ -13,7 +19,7 @@ import click
     help="Директорія для створення додатку (за замовчуванням: bench_dir/apps/)",
 )
 def create_app(name: str, no_git: bool, dest: str | None):
-    """Інтерактивно створити новий Grunt додаток.
+    """Створити новий Grunt додаток (scaffold).
 
     NAME — назва додатку (snake_case), наприклад: my_crm
     """
@@ -23,12 +29,6 @@ def create_app(name: str, no_git: bool, dest: str | None):
     dest_path = Path(dest) if dest else site_manager.bench_dir / "apps"
     dest_path.mkdir(parents=True, exist_ok=True)
     make_boilerplate(dest_path, name, no_git=no_git)
-
-
-@click.group("app")
-def app_group():
-    """Керування встановленими додатками."""
-    pass
 
 
 async def _do_install(name: str, site: str | None = None) -> None:

@@ -181,8 +181,13 @@ function groupHeaderLabel(data: Record<string, unknown>): string {
   if (!gf) return ''
   const fieldDef = allFields.value.find((f) => f.fieldname === gf)
   const val = data[gf]
-  if (val === null || val === undefined || val === '') return t('(not set)')
-  if (fieldDef?.fieldtype === 'Link') return String(data[`${gf}__label`] ?? val)
+  if (val === null || val === undefined || val === '') return ''
+  if (fieldDef?.fieldtype === 'Link') {
+    const label = data[`${gf}__label`]
+    // Якщо label явно встановлено як '' — це "позавідомча група", заголовок приховуємо
+    if (label === '') return ''
+    return String(label ?? val)
+  }
   if (fieldDef?.fieldtype === 'Check') return val ? t('Yes') : t('No')
   return String(val)
 }
@@ -288,6 +293,16 @@ function emitSelection() {
   emit('selection-change', Array.from(selectedRows.value))
 }
 
+function isSubtotalRow(row: Record<string, unknown>): boolean {
+  return !!(row as Record<string, unknown>)['_is_subtotal']
+}
+
+function rowClass(data: Record<string, unknown>): string {
+  return isSubtotalRow(data)
+    ? 'bg-muted/40 border-t border-border font-semibold'
+    : ''
+}
+
 function onSelectionUpdate(selection: Array<Record<string, unknown>> | null | undefined) {
   const next = new Set<string>()
   for (const row of selection ?? []) {
@@ -347,6 +362,16 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
     ? String(row[`${f.fieldname}__label`] ?? val)
     : String(val)
 }
+
+// Display value for a subtotal row cell
+function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string {
+  if (f.fieldname === 'position_title') return 'Разом:'
+  if (f.fieldtype === 'Float' || f.fieldtype === 'Int') {
+    const val = Number(row[f.fieldname] ?? 0)
+    return val.toFixed(2)
+  }
+  return ''
+}
 </script>
 
 <template>
@@ -366,6 +391,8 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
       :groupRowsBy="groupField || undefined"
       :sortField="dataTableSortField"
       :sortOrder="dataTableSortOrder"
+      :rowClass="rowClass"
+      :isRowSelectable="(event: { data: Record<string, unknown> }) => !isSubtotalRow(event.data)"
       @update:selection="onSelectionUpdate"
       @rowReorder="onRowReorder"
     >
@@ -374,7 +401,9 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
 
       <Column header="№" headerStyle="width: 3rem" bodyClass="text-center text-xs text-muted-foreground select-none">
         <template #body="{ data }">
+          <span v-if="!isSubtotalRow(data)">
             {{ Number(data.__display_index ?? (Number(data.__row_index) + 1)) }}
+          </span>
         </template>
       </Column>
 
@@ -389,7 +418,14 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
         </template>
 
         <template #body="{ data }">
-          <template v-if="disabled || f.read_only || !INLINE_TYPES.has(f.fieldtype)">
+          <!-- Subtotal row: bold, "Разом:" in title column, sums in numeric columns -->
+          <template v-if="isSubtotalRow(data)">
+            <span class="block px-2 py-1 text-xs font-semibold text-foreground">
+              {{ subtotalCellDisplay(data, f) }}
+            </span>
+          </template>
+
+          <template v-else-if="disabled || f.read_only || !INLINE_TYPES.has(f.fieldtype)">
             <span
               :class="['block px-2 py-1 text-xs break-words whitespace-pre-wrap', !cellDisplay(data, f) && 'text-muted-foreground/40']"
             >
@@ -457,7 +493,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
         <template #body="{ data }">
           <div class="flex items-center justify-end gap-0.5">
             <button
-              v-if="allFields.length"
+              v-if="allFields.length && !isSubtotalRow(data)"
               type="button"
               class="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
               :title="disabled ? t('View') : t('Edit')"
@@ -466,7 +502,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
               <Pencil class="size-3.5" />
             </button>
             <button
-              v-if="!disabled"
+              v-if="!disabled && !isSubtotalRow(data)"
               type="button"
               class="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
               :title="t('Delete row')"

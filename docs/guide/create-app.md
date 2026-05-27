@@ -5,7 +5,7 @@ An **App** in Grunt is a set of DocTypes, controllers, hooks, and background tas
 ## Scaffold a new app
 
 ```bash
-grunt create-app my_crm
+grunt app create my_crm
 ```
 
 This creates the following structure inside `apps/my_crm/`:

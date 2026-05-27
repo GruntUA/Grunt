@@ -44,10 +44,12 @@ class SiteContextMiddleware(BaseHTTPMiddleware):
                 except Exception:
                     logger.exception("suppressed_error")
 
-        # 3b. Hot reload fallback: if site not in headers, check currentsite.txt
+        # 3b. Fallback to currentsite.txt when Host header didn't match any site.
         if not site:
             try:
                 fallback = site_manager.get_active_site()
+                # Set the site so the context var is populated for downstream deps.
+                site = fallback
                 reload_file = site_manager.sites_dir / fallback / ".reload_meta"
                 if reload_file.exists():
                     from grunt.metadata.registry import doctype_registry
@@ -65,8 +67,7 @@ class SiteContextMiddleware(BaseHTTPMiddleware):
             except Exception:
                 pass
 
-        # 4. If still no site — don't set context, let get_active_site()
-        #    fallback to currentsite.txt
+        # 4. Set site context var (or leave unset if still unknown).
         token = current_site.set(site) if site else None
 
         try:
