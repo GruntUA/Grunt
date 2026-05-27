@@ -170,13 +170,26 @@ async def lifespan(app: FastAPI):
                 and ext_app.name not in ("grunt",)
                 and not ext_app.name.startswith((".", "_"))
             ):
+                # Also add the app directory itself so that `import {app}` resolves
+                # the inner Python package (apps/{app}/{app}/) rather than treating
+                # apps/{app}/ as a namespace package. This allows `car_ua.services.*`
+                # to work instead of requiring `car_ua.car_ua.services.*`.
+                ext_app_str = str(ext_app)
+                if ext_app_str not in sys.path:
+                    sys.path.insert(0, ext_app_str)
+
                 _discover_scripts(ext_app.parent, app_filter=ext_app.name)
                 document_registry.discover_controllers_from_app(ext_app)
 
                 # Load hooks from external app modules: {app}/{module}/hooks.py
                 for hooks_file in ext_app.glob("*/hooks.py"):
                     hooks_module_name = hooks_file.parent.name
-                    hooks_import = f"{ext_app.name}.{hooks_module_name}.hooks"
+                    # Same-name layout (apps/car_ua/car_ua/hooks.py): app dir is on
+                    # sys.path so importable prefix is just the module name.
+                    if hooks_module_name == ext_app.name:
+                        hooks_import = f"{hooks_module_name}.hooks"
+                    else:
+                        hooks_import = f"{ext_app.name}.{hooks_module_name}.hooks"
                     try:
                         hooks_mod = importlib.import_module(hooks_import)
                         logger.info("hooks.loaded", module=hooks_import)
@@ -187,6 +200,20 @@ async def lifespan(app: FastAPI):
                             document_registry.register_overrides(hooks_mod.override_doctype_class)
                         if hasattr(hooks_mod, "scheduler_events"):
                             register_scheduler_events(hooks_mod.scheduler_events)
+                        if hasattr(hooks_mod, "on_startup"):
+                            for startup_fn_path in hooks_mod.on_startup:
+                                try:
+                                    mod_path, fn_name = startup_fn_path.rsplit(".", 1)
+                                    startup_mod = importlib.import_module(mod_path)
+                                    fn = getattr(startup_mod, fn_name)
+                                    await fn()
+                                    logger.info("hooks.on_startup.called", handler=startup_fn_path)
+                                except Exception as e:
+                                    logger.warning(
+                                        "hooks.on_startup.error",
+                                        handler=startup_fn_path,
+                                        error=str(e),
+                                    )
                         if hasattr(hooks_mod, "io_exporters"):
                             from grunt.io import register_exporter as _reg_exp  # noqa: PLC0415
 
@@ -205,7 +232,10 @@ async def lifespan(app: FastAPI):
                 # Discover app API routers: {app}/{module}/routes.py → router: APIRouter
                 for routes_file in ext_app.glob("*/routes.py"):
                     module_name = routes_file.parent.name
-                    import_path = f"{ext_app.name}.{module_name}.routes"
+                    if module_name == ext_app.name:
+                        import_path = f"{module_name}.routes"
+                    else:
+                        import_path = f"{ext_app.name}.{module_name}.routes"
                     try:
                         mod = importlib.import_module(import_path)
                         if hasattr(mod, "router"):

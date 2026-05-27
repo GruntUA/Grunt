@@ -89,7 +89,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchMe() {
     if (!token.value) return
     if (!_fetchMePromise) {
-      _fetchMePromise = client.get('/api/v1/method/grunt.auth.doctypes.User.User.whoami')
+      _fetchMePromise = client.get('/api/v1/method/grunt.auth.doctypes.User.user.whoami')
         .then(({ data }) => {
           const u = data.data ?? data
           user.value = u

@@ -124,36 +124,63 @@ async def bulk_delete_documents(
     Body variants:
       { "ids": ["id1", "id2"] }          — delete by explicit IDs
       { "delete_all": true, "filters": {"status__eq": "Draft"} }  — delete all matching
+
+    When ``delete_all`` is true, deletion loops in rolling batches until no
+    matching records remain — so datasets of any size are supported.
     """
+    from grunt.site.manager import current_site  # noqa: PLC0415
+
     delete_all: bool = body.get("delete_all", False)
+    user_email = user.email
+    engine = grunt_app._require_engine()
+    task = BulkDeleteTask()
+    active_site = current_site.get()
 
     if delete_all:
         raw_filters: dict[str, str] = body.get("filters", {}) or {}
         search: str | None = body.get("search") or None
-        result = await grunt_app.get_list(
-            doctype,
-            filters=raw_filters if raw_filters else None,
-            fields=["name"],
-            limit=100_000,
-            page=1,
-            search=search,
-        )
-        ids: list[str] = [str(row["name"]) for row in result]
-    else:
-        ids = body.get("ids", [])
-        if not ids:
-            raise HTTPException(
-                status.HTTP_422_UNPROCESSABLE_CONTENT, detail="ids or delete_all is required"
+        fast: bool = body.get("fast", False)
+        filters = raw_filters if raw_filters else None
+
+        if fast:
+            # ── Fast path: direct SQL DELETE, superadmin only ─────────────
+            async def _run_fast() -> None:
+                if active_site:
+                    current_site.set(active_site)
+                await task.run_fast_delete_all(
+                    doctype,
+                    filters=filters,
+                    user=user,
+                    user_email=user_email,
+                    engine=engine,
+                )
+
+            asyncio.create_task(_run_fast())
+            return ok({"started": True, "total": None, "fast": True})
+
+        async def _run_all() -> None:
+            if active_site:
+                current_site.set(active_site)
+            await task.run_delete_all(
+                doctype,
+                filters=filters,
+                search=search,
+                user=user,
+                user_email=user_email,
+                engine=engine,
             )
 
+        asyncio.create_task(_run_all())
+        return ok({"started": True, "total": None})
+
+    # ── Explicit IDs path ─────────────────────────────────────────────────
+    ids: list[str] = body.get("ids", [])
+    if not ids:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, detail="ids or delete_all is required"
+        )
+
     total = len(ids)
-    user_email = user.email
-    engine = grunt_app._require_engine()
-    task = BulkDeleteTask()
-
-    from grunt.site.manager import current_site  # noqa: PLC0415
-
-    active_site = current_site.get()
 
     async def _run() -> None:
         if active_site:

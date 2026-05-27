@@ -147,10 +147,10 @@ export const docsApi = {
   bulkDelete: (
     doctype: string,
     ids: string[],
-    options?: { deleteAll?: boolean; rawFilters?: Record<string, string>; search?: string }
+    options?: { deleteAll?: boolean; rawFilters?: Record<string, string>; search?: string; fast?: boolean }
   ): Promise<{ started: boolean; total: number }> => {
     const body = options?.deleteAll
-      ? { delete_all: true, filters: options.rawFilters ?? {}, search: options.search ?? null }
+      ? { delete_all: true, filters: options.rawFilters ?? {}, search: options.search ?? null, fast: options.fast ?? false }
       : { ids }
     return client.post(`/api/v1/docs/${doctype}/bulk-delete`, body).then(r => r.data.data)
   },

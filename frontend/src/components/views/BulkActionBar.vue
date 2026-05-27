@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Trash2, Pencil, Loader2, CheckCircle, AlertCircle } from '@lucide/vue'
+import { Trash2, Pencil, Loader2, CheckCircle, AlertCircle, X, Zap } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 
@@ -11,6 +11,7 @@ const props = defineProps<{
   allSelected?: boolean
   pageCount?: number
   editableFields?: DocField[]
+  isSuperadmin?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -18,10 +19,12 @@ const emit = defineEmits<{
   (e: 'clear'): void
   (e: 'selectAll'): void
   (e: 'update', field: string, value: string): void
+  (e: 'fastDelete'): void
 }>()
 
 const { t } = useI18n()
 const showDeleteModal = ref(false)
+const showFastDeleteModal = ref(false)
 const showUpdateModal = ref(false)
 const updateField = ref('')
 const updateValue = ref('')
@@ -59,133 +62,205 @@ async function submitUpdate() {
 </script>
 
 <template>
-  <div v-if="count > 0 || allSelected"
-    class="relative z-30 flex items-center gap-4 mb-4 px-6 py-4 bg-primary/10 backdrop-blur-md rounded-2xl border border-primary/20 shadow-lg shadow-primary/5 overflow-hidden ring-1 ring-primary/20">
-    
-    <!-- Background Accents -->
-    <div class="absolute -right-8 -top-8 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-    <div class="absolute -left-8 -bottom-8 size-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="translate-y-4 opacity-0"
+      enter-to-class="translate-y-0 opacity-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="translate-y-0 opacity-100"
+      leave-to-class="translate-y-4 opacity-0"
+    >
+      <div v-if="count > 0 || allSelected"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3
+               px-4 py-2.5 rounded-2xl border border-primary/25
+               bg-background/90 backdrop-blur-xl shadow-xl shadow-black/10">
 
-    <div class="flex items-center gap-2 shrink-0 relative z-10">
-        <div class="size-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
-            <CheckCircle class="size-4 text-primary" />
+        <!-- Count -->
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="size-5 rounded-full bg-primary/20 flex items-center justify-center">
+            <CheckCircle class="size-3 text-primary" />
+          </div>
+          <span class="text-sm font-bold text-foreground tabular-nums">
+            {{ allSelected ? `всі ${total ?? count}` : count }}
+          </span>
+          <span class="text-xs text-muted-foreground">вибрано</span>
         </div>
-        <span class="text-sm text-foreground font-black tracking-tight">
-          {{ t('Selected:') }} 
-          <span class="text-primary font-black tabular-nums">{{ allSelected ? `всі ${total ?? count}` : count }}</span>
-        </span>
-    </div>
 
-    <div class="h-6 w-px bg-primary/20 hidden sm:block relative z-10" />
+        <div class="h-4 w-px bg-border" />
 
-    <div class="flex flex-wrap items-center gap-2 relative z-10">
+        <!-- Select all -->
         <button
           v-if="isFullPage && total && total > count"
           type="button"
-          class="text-xs font-bold text-primary underline-offset-4 hover:underline transition-all mr-2"
+          class="text-xs font-semibold text-primary hover:underline underline-offset-2 transition-all whitespace-nowrap"
           @click="emit('selectAll')"
         >
-          Вибрати всі {{ total }} записів
+          Вибрати всі {{ total }}
         </button>
 
-        <div class="flex items-center gap-1.5 p-1 bg-background/60 backdrop-blur-sm rounded-xl border border-primary/10 shadow-sm">
-            <Button text size="small" class="!px-3 !h-8 !text-xs !font-bold gap-2 hover:!bg-primary/10" @click="openUpdateModal"
-              :disabled="!updatableFields.length">
-              <Pencil class="size-3.5" />
-              <span>Редагувати</span>
-            </Button>
+        <!-- Actions -->
+        <div class="flex items-center gap-1">
+          <Button
+            text size="small"
+            class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 hover:!bg-muted/60"
+            :disabled="!updatableFields.length"
+            @click="openUpdateModal"
+          >
+            <Pencil class="size-3" />
+            Редагувати
+          </Button>
 
-            <Button severity="danger" text size="small" class="!px-3 !h-8 !text-xs !font-bold gap-2 hover:!bg-destructive/10" @click="showDeleteModal = true">
-              <Trash2 class="size-3.5" />
-              <span>{{ t('Delete') }}</span>
-            </Button>
+          <Button
+            severity="danger" text size="small"
+            class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 hover:!bg-destructive/10"
+            @click="showDeleteModal = true"
+          >
+            <Trash2 class="size-3" />
+            Видалити
+          </Button>
+
+          <!-- Fast delete — superadmin only, only when all records selected -->
+          <Button
+            v-if="isSuperadmin && allSelected"
+            severity="danger" text size="small"
+            class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 hover:!bg-destructive/10 opacity-80"
+            @click="showFastDeleteModal = true"
+          >
+            <Zap class="size-3" />
+            Швидке видалення
+          </Button>
         </div>
+
+        <div class="h-4 w-px bg-border" />
+
+        <!-- Close -->
+        <button
+          type="button"
+          class="size-6 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+          @click="emit('clear')"
+        >
+          <X class="size-3.5" />
+        </button>
+      </div>
+    </Transition>
+  </Teleport>
+
+  <!-- Delete confirmation -->
+  <Dialog v-model:visible="showDeleteModal" modal
+    class="max-w-sm w-full mx-4"
+    :pt="{ content: { class: 'p-0 px-6 pb-6 pt-1' } }">
+    <template #header>
+      <div class="flex items-center gap-3">
+        <div class="size-10 rounded-full bg-destructive/10 flex items-center justify-center border border-destructive/20">
+          <AlertCircle class="size-5 text-destructive" />
+        </div>
+        <span class="font-black text-lg">{{ t('Confirm Deletion') }}</span>
+      </div>
+    </template>
+
+    <div class="py-2">
+      <p class="text-sm text-muted-foreground leading-relaxed">
+        Ви збираєтесь видалити <span class="font-bold text-foreground">{{ displayCount }}</span> записів.
+        Цю дію неможливо буде скасувати. Ви впевнені?
+      </p>
     </div>
 
-    <Button icon="pi pi-times" text rounded size="small" 
-        class="ml-auto !size-8 !text-muted-foreground/40 hover:!text-foreground hover:!bg-muted/20 relative z-10"
-        @click="emit('clear')" 
-    />
+    <template #footer>
+      <div class="flex gap-2 w-full pt-2">
+        <Button severity="secondary" outlined class="flex-1" @click="showDeleteModal = false">{{ t('Cancel') }}</Button>
+        <Button severity="danger" class="flex-1" @click="showDeleteModal = false; emit('delete')">{{ t('Delete') }}</Button>
+      </div>
+    </template>
+  </Dialog>
 
-    <!-- Delete confirmation -->
-    <Dialog v-model:visible="showDeleteModal" modal
-      class="max-w-sm w-full mx-4"
-      :pt="{ content: { class: 'p-0 px-6 pb-6 pt-1' } }">
-      <template #header>
-        <div class="flex items-center gap-3">
-            <div class="size-10 rounded-full bg-destructive/10 flex items-center justify-center border border-destructive/20">
-                <AlertCircle class="size-5 text-destructive" />
-            </div>
-            <span class="font-black text-lg">{{ t('Confirm Deletion') }}</span>
+  <!-- Fast delete confirmation (superadmin) -->
+  <Dialog v-model:visible="showFastDeleteModal" modal
+    class="max-w-sm w-full mx-4"
+    :pt="{ content: { class: 'p-0 px-6 pb-6 pt-1' } }">
+    <template #header>
+      <div class="flex items-center gap-3">
+        <div class="size-10 rounded-full bg-destructive/10 flex items-center justify-center border border-destructive/20">
+          <Zap class="size-5 text-destructive" />
         </div>
-      </template>
-      
-      <div class="py-2">
-          <p class="text-sm text-muted-foreground leading-relaxed">
-              Ви збираєтесь видалити <span class="font-bold text-foreground">{{ displayCount }}</span> записів. 
-              Цю дію неможливо буде скасувати. Ви впевнені?
-          </p>
+        <span class="font-black text-lg">Швидке видалення</span>
+      </div>
+    </template>
+
+    <div class="py-2 flex flex-col gap-3">
+      <p class="text-sm text-muted-foreground leading-relaxed">
+        Видалити <span class="font-bold text-foreground">{{ displayCount }}</span> записів напряму через SQL
+        — без lifecycle хуків, ActivityLog per-record.
+      </p>
+      <div class="p-3 bg-destructive/5 border border-destructive/20 rounded-xl">
+        <p class="text-xs text-destructive font-semibold">
+          ⚡ Це незворотна операція. Хуки <code>before_delete</code> / <code>after_delete</code> не виконуються.
+          Використовуй лише для масового очищення тестових або імпортованих даних.
+        </p>
+      </div>
+    </div>
+
+    <template #footer>
+      <div class="flex gap-2 w-full pt-2">
+        <Button severity="secondary" outlined class="flex-1" @click="showFastDeleteModal = false">Скасувати</Button>
+        <Button severity="danger" class="flex-1" @click="showFastDeleteModal = false; emit('fastDelete')">
+          <Zap class="size-4 mr-1" />
+          Видалити
+        </Button>
+      </div>
+    </template>
+  </Dialog>
+
+  <!-- Bulk update dialog -->
+  <Dialog v-model:visible="showUpdateModal" modal
+    header="Масове редагування"
+    class="max-w-sm w-full mx-4"
+    :pt="{ content: { class: 'p-0 px-6 pb-6 pt-1' } }">
+    <template #header>
+      <div class="flex items-center gap-3">
+        <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+          <Pencil class="size-5 text-primary" />
+        </div>
+        <span class="font-black text-lg">{{ t('Bulk Update') }}</span>
+      </div>
+    </template>
+
+    <div class="flex flex-col gap-5 py-2">
+      <div class="flex flex-col gap-2">
+        <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Оберіть поле</label>
+        <Select
+          v-model="updateField"
+          :options="updatableFields"
+          option-label="label"
+          option-value="fieldname"
+          :placeholder="t('Select field...')"
+          class="w-full"
+          fluid
+        />
+      </div>
+      <div class="flex flex-col gap-2">
+        <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Нове значення</label>
+        <InputText v-model="updateValue" :placeholder="t('Enter value...')"
+          class="w-full"
+          fluid
+          @keydown.enter="submitUpdate" />
       </div>
 
-      <template #footer>
-        <div class="flex gap-2 w-full pt-2">
-            <Button severity="secondary" outlined class="flex-1" @click="showDeleteModal = false">{{ t('Cancel') }}</Button>
-            <Button severity="danger" class="flex-1 shadow-lg shadow-destructive/10" @click="showDeleteModal = false; emit('delete')">{{ t('Delete') }}</Button>
-        </div>
-      </template>
-    </Dialog>
-
-    <!-- Bulk update dialog -->
-    <Dialog v-model:visible="showUpdateModal" modal
-      header="Масове редагування"
-      class="max-w-sm w-full mx-4"
-      :pt="{ content: { class: 'p-0 px-6 pb-6 pt-1' } }">
-      <template #header>
-        <div class="flex items-center gap-3">
-            <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-                <Pencil class="size-5 text-primary" />
-            </div>
-            <span class="font-black text-lg">{{ t('Bulk Update') }}</span>
-        </div>
-      </template>
-
-      <div class="flex flex-col gap-5 py-2">
-        <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Оберіть поле</label>
-          <Select
-            v-model="updateField"
-            :options="updatableFields"
-            option-label="label"
-            option-value="fieldname"
-            :placeholder="t('Select field...')"
-            class="w-full"
-            fluid
-          />
-        </div>
-        <div class="flex flex-col gap-2">
-          <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Нове значення</label>
-          <InputText v-model="updateValue" :placeholder="t('Enter value...')"
-            class="w-full"
-            fluid
-            @keydown.enter="submitUpdate" />
-        </div>
-        
-        <div class="p-3 bg-muted/30 rounded-xl border border-border/40">
-            <p class="text-[10px] text-muted-foreground leading-tight italic">
-                Це оновить поле для всіх <span class="font-bold text-foreground">{{ displayCount }}</span> виділених записів.
-            </p>
-        </div>
+      <div class="p-3 bg-muted/30 rounded-xl border border-border/40">
+        <p class="text-[10px] text-muted-foreground leading-tight italic">
+          Це оновить поле для всіх <span class="font-bold text-foreground">{{ displayCount }}</span> виділених записів.
+        </p>
       </div>
+    </div>
 
-      <template #footer>
-        <div class="flex gap-2 w-full pt-2">
-            <Button outlined severity="secondary" class="flex-1" @click="showUpdateModal = false">{{ t('Cancel') }}</Button>
-            <Button class="flex-1 shadow-lg shadow-primary/10" :disabled="!updateField || updateSaving" @click="submitUpdate">
-              <Loader2 v-if="updateSaving" class="size-4 animate-spin mr-2" />
-              <span>{{ t('Apply') }}</span>
-            </Button>
-        </div>
-      </template>
-    </Dialog>
-  </div>
+    <template #footer>
+      <div class="flex gap-2 w-full pt-2">
+        <Button outlined severity="secondary" class="flex-1" @click="showUpdateModal = false">{{ t('Cancel') }}</Button>
+        <Button class="flex-1" :disabled="!updateField || updateSaving" @click="submitUpdate">
+          <Loader2 v-if="updateSaving" class="size-4 animate-spin mr-2" />
+          <span>{{ t('Apply') }}</span>
+        </Button>
+      </div>
+    </template>
+  </Dialog>
 </template>

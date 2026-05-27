@@ -245,7 +245,7 @@ function onSort(key: string) {
   applySort(key)
 }
 
-const { deleteProgress, bulkDelete } = useBulkDeleteProgress({
+const { deleteProgress, bulkDelete, bulkFastDelete } = useBulkDeleteProgress({
   doctype: props.doctype,
   metaTotal: computed(() => meta.value?.total ?? 0),
   selectedIds,
@@ -355,7 +355,9 @@ watch(() => props.doctype, async (newDoctype) => {
       @sort="onSort"
       @row-click="navigateToDoc"
       @inline-update="inlineUpdate"
+      :is-superadmin="!!auth.user?.is_superadmin"
       @delete="bulkDelete"
+      @fast-delete="bulkFastDelete"
       @clear="clearSelection"
       @select-all="selectAllDocuments"
       @update="bulkUpdate"

@@ -6,7 +6,10 @@ while preserving existing behavior.
 
 from __future__ import annotations
 
+import uuid
 from collections.abc import Awaitable, Callable
+from datetime import UTC, datetime
+from itertools import islice
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -17,6 +20,10 @@ if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
 ProgressCallback = Callable[[int], Awaitable[None]]
+
+# SQLite allows at most 999 host parameters per statement (SQLITE_LIMIT_VARIABLE_NUMBER).
+# We use 900 as a safe upper bound; PostgreSQL supports far more.
+_IN_CHUNK = 900
 
 logger = structlog.get_logger()
 
@@ -174,10 +181,17 @@ async def run_bulk_delete_writes(
     doctype_name: str,
     final_ids: list[str],
 ) -> None:
-    """Execute batched DELETE + MultiLink cleanup + search index cleanup."""
+    """Execute batched DELETE + MultiLink cleanup + search index cleanup.
+
+    All IN-clause queries are chunked to stay within SQLite's 999-parameter limit.
+    MultiLink and search-index helpers have their own internal chunking.
+    """
     from grunt.search.service import search_index_service  # noqa: PLC0415
 
-    await session.execute(table.delete().where(table.c.name.in_(final_ids)))
+    it = iter(final_ids)
+    while chunk := list(islice(it, _IN_CHUNK)):
+        await session.execute(table.delete().where(table.c.name.in_(chunk)))
+
     await ml.delete_all_for_docs(doctype_name, final_ids)
     await session.flush()
     await search_index_service.remove_documents(session, doctype_name, final_ids)
@@ -224,13 +238,18 @@ async def collect_bulk_delete_candidates(
     table: Any,
     ids: list[str],
 ) -> tuple[list[dict[str, Any]], list[str]]:
-    """Fetch and validate candidate docs for bulk delete."""
+    """Fetch and validate candidate docs for bulk delete.
+
+    The SELECT is chunked to stay within SQLite's 999-parameter limit.
+    """
     from sqlalchemy import select as sa_select  # noqa: PLC0415
 
     existing_rows: dict[str, dict[str, Any]] = {}
-    result = await session.execute(sa_select(table).where(table.c.name.in_(ids)))
-    for row in result.fetchall():
-        existing_rows[str(row._mapping["name"])] = dict(row._mapping)
+    it = iter(ids)
+    while chunk := list(islice(it, _IN_CHUNK)):
+        result = await session.execute(sa_select(table).where(table.c.name.in_(chunk)))
+        for row in result.fetchall():
+            existing_rows[str(row._mapping["name"])] = dict(row._mapping)
 
     errors: list[str] = []
     to_delete: list[dict[str, Any]] = []
@@ -246,3 +265,67 @@ async def collect_bulk_delete_candidates(
         to_delete.append(doc)
 
     return to_delete, errors
+
+
+async def write_bulk_delete_activity_log(
+    *,
+    session: AsyncSession,
+    doctype_name: str,
+    doc_ids: list[str],
+    user_email: str,
+    now: datetime | None = None,
+) -> None:
+    """Batch-insert ActivityLog rows for bulk deletion in a single SQL statement.
+
+    This is a fast alternative to firing the ``after_delete`` hook N times.
+    Each deleted document still gets its own audit row, so the trail is complete.
+    """
+    if not doc_ids:
+        return
+
+    from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+    from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+
+    _now = now or datetime.now(UTC)
+
+    try:
+        dt_log = await doctype_registry.get("ActivityLog")
+        t_log = compile_doctype_to_table(dt_log)
+
+        table_cols = {c.name for c in t_log.c}
+
+        def _make_row(doc_id: str) -> dict:
+            raw = {
+                "name": uuid.uuid4().hex[:10],
+                "doctype": doctype_name,
+                "doc_id": doc_id,
+                "user": user_email,
+                "action": "Delete",
+                "details": None,
+                "owner": user_email,
+                "created_at": _now,
+                "modified_at": _now,
+                "modified_by": user_email,
+                "docstatus": 0,
+            }
+            return {k: v for k, v in raw.items() if k in table_cols}
+
+        # Chunk INSERT to stay within SQLite's per-statement parameter limit.
+        # Each ActivityLog row has ~10 columns; 900 // 10 = 90 rows per INSERT.
+        insert_chunk = max(1, _IN_CHUNK // 10)
+        it = iter(doc_ids)
+        while chunk := list(islice(it, insert_chunk)):
+            await session.execute(t_log.insert(), [_make_row(doc_id) for doc_id in chunk])
+
+        await session.flush()
+        logger.info(
+            "bulk_delete.activity_log_written",
+            doctype=doctype_name,
+            count=len(doc_ids),
+        )
+    except Exception:
+        logger.warning(
+            "bulk_delete.activity_log_failed",
+            doctype=doctype_name,
+            count=len(doc_ids),
+        )

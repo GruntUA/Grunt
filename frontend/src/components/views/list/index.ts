@@ -32,6 +32,7 @@ const def: ViewDefinition = {
     collapsedGroups: ctx.collapsedGroups,
     groupByField: ctx.groupByField,
     selection: ctx.selection,
+    isSuperadmin: ctx.isSuperadmin,
   }),
 
   mountEvents: (ctx) => ({
@@ -40,6 +41,7 @@ const def: ViewDefinition = {
     onInlineUpdate: (rowId: unknown, field: unknown, value: unknown) =>
       ctx.emit.inlineUpdate(rowId as string, field as string, value as string),
     onDelete: () => ctx.emit.delete(),
+    onFastDelete: () => ctx.emit.fastDelete(),
     onClear: () => ctx.emit.clear(),
     onSelectAll: () => ctx.emit.selectAll(),
     onUpdate: (field: unknown, value: unknown) =>

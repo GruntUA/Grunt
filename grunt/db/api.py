@@ -11,12 +11,14 @@ from grunt.metadata.compiler import compile_doctype_to_table
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+
     from grunt.metadata.registry import DocTypeRegistry
 
 
-def _get_registry() -> "DocTypeRegistry":
+def _get_registry() -> DocTypeRegistry:
     """Lazy import to avoid circular dependency grunt.db ↔ grunt.metadata.registry."""
     from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+
     return doctype_registry
 
 

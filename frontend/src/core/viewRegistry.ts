@@ -60,6 +60,7 @@ export interface ViewEmit {
   rowClick(row: Record<string, unknown>): void
   inlineUpdate(rowId: string, field: string, value: string): void
   delete(): void
+  fastDelete(): void
   clear(): void
   selectAll(): void
   update(field: string, value: string): void
@@ -119,6 +120,8 @@ export interface ViewContext {
   resolvedField: DocField | null
   /** Typed wrappers around ListViewRouter's emit function. */
   emit: ViewEmit
+  /** Whether the current user is a superadmin (for privileged actions like fast delete). */
+  isSuperadmin?: boolean
 }
 
 // ── ViewDefinition ─────────────────────────────────────────────────────────────

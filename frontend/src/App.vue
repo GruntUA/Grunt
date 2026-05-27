@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted } from 'vue'
 import { RouterView } from 'vue-router'
 import GruntDialog from '@/components/desk/GruntDialog.vue'
+import TaskProgressPanel from '@/components/desk/TaskProgressPanel.vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import CommandPalette from '@/components/layout/CommandPalette.vue'
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt.vue'
@@ -33,6 +34,7 @@ onUnmounted(() => {
 
 <template>
   <GruntDialog />
+  <TaskProgressPanel />
   <ServerErrorModal />
   <ErrorBoundary>
     <!-- Offline banner — persistent top bar, shown only when offline -->

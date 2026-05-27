@@ -62,6 +62,7 @@ def doctype_sync(name: str, site: str | None):
 
         async with _site_session(site) as (session, eng):
             from sqlalchemy import select  # noqa: PLC0415
+
             from grunt.db.system_tables import GruntMetaDoctype  # noqa: PLC0415
 
             exists = await session.scalar(
@@ -75,9 +76,7 @@ def doctype_sync(name: str, site: str | None):
                 action = "зареєстровано"
             await session.commit()
 
-        click.echo(
-            f"DocType '{name}' {action} з {json_file.relative_to(json_file.parents[3])}."
-        )
+        click.echo(f"DocType '{name}' {action} з {json_file.relative_to(json_file.parents[3])}.")
 
     asyncio.run(_run())
 

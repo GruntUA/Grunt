@@ -177,7 +177,15 @@ class DocumentRegistry:
                 if not py_file.exists():
                     py_file = dt_dir / f"{to_snake_case(dt_dir.name)}.py"
                 if py_file.exists():
-                    module_path = f"{app_name}.{module_name}.doctypes.{dt_dir.name}.{py_file.stem}"
+                    # When the inner package name matches the app dir name
+                    # (e.g. apps/car_ua/car_ua/doctypes/…), the app dir is already
+                    # on sys.path, so the importable prefix is just `module_name`.
+                    if module_name == app_name:
+                        module_path = f"{module_name}.doctypes.{dt_dir.name}.{py_file.stem}"
+                    else:
+                        module_path = (
+                            f"{app_name}.{module_name}.doctypes.{dt_dir.name}.{py_file.stem}"
+                        )
                     self._index[dt_dir.name] = module_path
                     pascal = "".join(w.capitalize() for w in dt_dir.name.split("_"))
                     self._index[pascal] = module_path

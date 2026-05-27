@@ -39,6 +39,7 @@ const props = defineProps<{
   activeFilters: ActiveFilter[]
   fastFilterDefs: FastFilter[]
   fastFilterValues: Record<string, string>
+  isSuperadmin?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -46,6 +47,7 @@ const emit = defineEmits<{
   'row-click': [row: Record<string, unknown>]
   'inline-update': [rowId: string, field: string, value: string]
   delete: []
+  'fast-delete': []
   clear: []
   'select-all': []
   update: [field: string, value: string]
@@ -100,11 +102,13 @@ const ctx = computed((): ViewContext => ({
   fastFilterDefs: props.fastFilterDefs,
   fastFilterValues: props.fastFilterValues,
   resolvedField: resolvedField.value,
+  isSuperadmin: props.isSuperadmin,
   emit: {
     sort: (key) => emit('sort', key),
     rowClick: (row) => emit('row-click', row),
     inlineUpdate: (id, field, value) => emit('inline-update', id, field, value),
     delete: () => emit('delete'),
+    fastDelete: () => emit('fast-delete'),
     clear: () => emit('clear'),
     selectAll: () => emit('select-all'),
     update: (field, value) => emit('update', field, value),

@@ -105,7 +105,8 @@ class LinkService:
         """
         from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
-        table = compile_doctype_to_table(doctype_registry._doctypes["DocLink"])
+        dt_doc_link = await doctype_registry.get("DocLink")
+        table = compile_doctype_to_table(dt_doc_link)
         stmt = (
             select(table)
             .where(table.c.target_doctype == doctype)
@@ -133,7 +134,8 @@ class LinkService:
         """Remove all links from and to a document (on delete)."""
         from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
 
-        table = compile_doctype_to_table(doctype_registry._doctypes["DocLink"])
+        dt_doc_link = await doctype_registry.get("DocLink")
+        table = compile_doctype_to_table(dt_doc_link)
 
         # Links FROM this document
         await session.execute(

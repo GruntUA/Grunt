@@ -258,6 +258,7 @@ async def show_progress(
     count: int,
     total: int,
     description: str | None = None,
+    task_id: str | None = None,
 ) -> None:
     """Show/update a progress bar for the user (like frappe.show_progress).
 
@@ -267,6 +268,7 @@ async def show_progress(
         count: Current progress value.
         total: Total value.
         description: Optional description text.
+        task_id: Unique task identifier — use when multiple tasks share the same title.
     """
     await publish(
         user=user,
@@ -277,6 +279,7 @@ async def show_progress(
             "total": total,
             "description": description,
             "percent": round((count / total) * 100) if total > 0 else 0,
+            **({"task_id": task_id} if task_id else {}),
         },
     )
 

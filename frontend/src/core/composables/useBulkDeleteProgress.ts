@@ -27,23 +27,26 @@ export function useBulkDeleteProgress(params: UseBulkDeleteProgressParams) {
     if (deleteDoneHandler) params.offUserEvent('bulk_delete_done', deleteDoneHandler)
   })
 
-  async function bulkDelete() {
-    const ids = params.allSelected.value ? [] : params.selectedIds.value
-    if (!params.allSelected.value && !ids.length) return
-
-    const total = params.allSelected.value ? params.metaTotal.value : ids.length
+  /** Subscribe to WebSocket progress events and track progress state. */
+  function _subscribeProgress(total: number) {
     deleteProgress.value = { active: true, total, done: 0, errors: 0 }
 
     function onProgress(data: Record<string, unknown>) {
       deleteProgress.value.done = (data.done as number) ?? deleteProgress.value.done
+      deleteProgress.value.total = (data.total as number) ?? deleteProgress.value.total
       deleteProgress.value.errors = (data.errors as number) ?? deleteProgress.value.errors
     }
 
-    function onDone() {
+    function onDone(data: Record<string, unknown>) {
       params.offUserEvent('bulk_delete_progress', onProgress)
       params.offUserEvent('bulk_delete_done', onDone)
       deleteProgressHandler = null
       deleteDoneHandler = null
+      // Show final count from server
+      if (data.deleted != null) {
+        deleteProgress.value.done = data.deleted as number
+        deleteProgress.value.total = data.deleted as number
+      }
       deleteProgress.value.active = false
       params.clearSelection()
       params.queryClient.invalidateQueries({ queryKey: ['documents', params.doctype] })
@@ -53,6 +56,23 @@ export function useBulkDeleteProgress(params: UseBulkDeleteProgressParams) {
     deleteDoneHandler = onDone
     params.onUserEvent('bulk_delete_progress', onProgress)
     params.onUserEvent('bulk_delete_done', onDone)
+
+    return () => {
+      params.offUserEvent('bulk_delete_progress', onProgress)
+      params.offUserEvent('bulk_delete_done', onDone)
+      deleteProgressHandler = null
+      deleteDoneHandler = null
+      deleteProgress.value.active = false
+    }
+  }
+
+  /** Normal bulk delete — respects lifecycle hooks, streams batch progress. */
+  async function bulkDelete() {
+    const ids = params.allSelected.value ? [] : params.selectedIds.value
+    if (!params.allSelected.value && !ids.length) return
+
+    const total = params.allSelected.value ? params.metaTotal.value : ids.length
+    const unsubscribe = _subscribeProgress(total)
 
     try {
       if (params.allSelected.value) {
@@ -65,16 +85,30 @@ export function useBulkDeleteProgress(params: UseBulkDeleteProgressParams) {
         await docsApi.bulkDelete(params.doctype, ids)
       }
     } catch {
-      params.offUserEvent('bulk_delete_progress', onProgress)
-      params.offUserEvent('bulk_delete_done', onDone)
-      deleteProgressHandler = null
-      deleteDoneHandler = null
-      deleteProgress.value.active = false
+      unsubscribe()
+    }
+  }
+
+  /** Fast delete — direct SQL, no hooks, superadmin only. Near-instant for large datasets. */
+  async function bulkFastDelete() {
+    const total = params.metaTotal.value
+    const unsubscribe = _subscribeProgress(total)
+
+    try {
+      await docsApi.bulkDelete(params.doctype, [], {
+        deleteAll: true,
+        rawFilters: filtersToRaw(params.activeFilters.value),
+        search: params.debouncedSearch.value || undefined,
+        fast: true,
+      })
+    } catch {
+      unsubscribe()
     }
   }
 
   return {
     deleteProgress,
     bulkDelete,
+    bulkFastDelete,
   }
 }

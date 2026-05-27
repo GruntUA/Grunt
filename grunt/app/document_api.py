@@ -188,7 +188,15 @@ class DocumentAPI:
         *,
         progress_cb: Any | None = None,
     ) -> tuple[int, list[str]]:
-        """Delete multiple documents through high-level API with hooks/permissions.
+        """Delete multiple documents efficiently with a single batch transaction.
+
+        Uses the optimised ``DocumentWriteMixin.bulk_delete`` path:
+        - 1 SELECT to fetch all candidates
+        - Per-document ``before_delete`` / ``after_delete`` controller hooks
+        - 1 batch DELETE statement
+        - 1 batch MultiLink cleanup
+        - 1 batch search-index removal
+        - 1 batch ActivityLog INSERT (instead of N individual writes)
 
         Returns ``(deleted_count, errors)`` where ``errors`` items are
         formatted as ``"<doc_id>: <message>"``.
@@ -196,23 +204,27 @@ class DocumentAPI:
         if not ids:
             return 0, []
 
-        deleted = 0
-        errors: list[str] = []
-        total = len(ids)
+        from grunt.document.update_side_effects import (  # noqa: PLC0415
+            write_bulk_delete_activity_log,
+        )
 
-        async def _report(done: int) -> None:
-            if progress_cb is not None:
-                await progress_cb(done, total, len(errors))
+        _dt, user, session = await self._write_guard(doctype, "delete")
+        svc = self._svc()
 
-        for idx, doc_id in enumerate(ids, start=1):
-            try:
-                await self.delete_doc(doctype, doc_id)
-                deleted += 1
-            except Exception as e:  # noqa: BLE001
-                detail = getattr(e, "detail", str(e))
-                errors.append(f"{doc_id}: {detail}")
-            await _report(idx)
+        deleted, errors = await svc.bulk_delete(doctype, ids, user, progress_cb=progress_cb)
 
+        if deleted > 0:
+            # Compute the IDs that were actually deleted (ids - failed)
+            failed_ids: set[str] = {e.split(":")[0].strip() for e in errors}
+            deleted_ids = [i for i in ids if i not in failed_ids]
+            await write_bulk_delete_activity_log(
+                session=session,
+                doctype_name=doctype,
+                doc_ids=deleted_ids,
+                user_email=user.email,
+            )
+
+        await self._invalidate_list_cache(doctype)
         return deleted, errors
 
     @profile("grunt.get_list")

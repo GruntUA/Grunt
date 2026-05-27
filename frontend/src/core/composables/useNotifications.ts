@@ -2,6 +2,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { notificationsApi } from '@/core/api/notifications'
 import { toast } from '@/core/composables/useToast'
 import { useDialog } from '@/core/composables/useDialog'
+import { useTaskTracker } from '@/core/composables/useTaskTracker'
 import { WebSocketChannel } from '@/core/ws/WebSocketChannel'
 import type { GruntNotification, RealtimeEvent } from '@/types'
 
@@ -99,13 +100,29 @@ function handleRealtimeEvent(msg: RealtimeEvent) {
       break
     }
 
-    case 'progress': {
-      dialog.progress(
-        (msg.data.title as string) ?? 'Прогрес',
-        (msg.data.count as number) ?? 0,
-        (msg.data.total as number) ?? 100,
-        msg.data.description as string | undefined,
-      )
+    case 'progress':
+    case 'task_progress': {
+      // Route to the floating TaskProgressPanel (non-blocking).
+      const taskTracker = useTaskTracker()
+      taskTracker.update({
+        task_id: msg.data.task_id as string | undefined,
+        title: (msg.data.title as string) ?? 'Задача',
+        count: (msg.data.count as number) ?? 0,
+        total: (msg.data.total as number) ?? 100,
+        percent: msg.data.percent as number | undefined,
+        description: msg.data.description as string | undefined,
+      })
+      break
+    }
+
+    case 'task_done': {
+      const taskTracker = useTaskTracker()
+      taskTracker.done({
+        task_id: msg.data.task_id as string | undefined,
+        title: msg.data.title as string | undefined,
+        status: (msg.data.status as 'done' | 'error') ?? 'done',
+        message: msg.data.message as string | undefined,
+      })
       break
     }
   }

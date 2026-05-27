@@ -41,6 +41,7 @@ const props = defineProps<{
   collapsedGroups: Set<string>
   groupByField: DocField | null
   selection: SelectionState
+  isSuperadmin?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -48,6 +49,7 @@ const emit = defineEmits<{
   'row-click': [row: Record<string, unknown>]
   'inline-update': [rowId: string, field: string, value: string]
   'delete': []
+  'fast-delete': []
   'clear': []
   'select-all': []
   'update': [field: string, value: string]
@@ -92,14 +94,27 @@ watch(() => sentinelEl.value, setupObserver)
       :all-selected="selection.allSelected"
       :page-count="rows?.length || 0"
       :editable-fields="dt?.fields"
+      :is-superadmin="isSuperadmin"
       @delete="emit('delete')"
+      @fast-delete="emit('fast-delete')"
       @clear="emit('clear')"
       @select-all="emit('select-all')"
       @update="(field, value) => emit('update', field, value)"
     />
 
+    <!-- Total count — always visible above the table -->
+    <div v-if="meta" class="flex items-center gap-2 mb-2 px-1">
+      <span class="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-widest">Всього:</span>
+      <Badge severity="secondary" class="!text-[10px] !font-black !px-2 !py-0.5 shadow-sm">
+        {{ meta.total }}
+      </Badge>
+      <span v-if="rows.length < meta.total" class="text-[11px] text-muted-foreground/50">
+        (завантажено {{ rows.length }})
+      </span>
+    </div>
+
     <!-- List Content -->
-    <div class="mt-2">
+    <div>
       <!-- Grouped View -->
       <ListGroupedView
         v-if="groupBy && groupedRows && dt && groupByField"
@@ -142,17 +157,6 @@ watch(() => sentinelEl.value, setupObserver)
             @inline-update="(rowId, field, value) => emit('inline-update', rowId, field, value)"
           />
         </div>
-        <!-- Infinite scroll footer -->
-        <div v-if="meta" class="flex items-center gap-2 px-1 py-2 mt-2">
-          <span class="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">Всього:</span>
-          <Badge severity="secondary" class="!text-[10px] !font-black !px-2 !py-0.5 shadow-sm">
-            {{ meta.total }}
-          </Badge>
-          <span v-if="rows.length < meta.total" class="ml-auto text-xs text-muted-foreground">
-            {{ rows.length }} / {{ meta.total }}
-          </span>
-        </div>
-
         <!-- Sentinel element — triggers next page load when scrolled into view -->
         <div ref="sentinelEl" class="h-1" aria-hidden="true" />
 
