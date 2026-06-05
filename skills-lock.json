@@ -5,6 +5,16 @@
       "source": "GruntUA/grunt-agent-skills",
       "sourceType": "github",
       "computedHash": "9fb67dbc55e9e5b444ea550003068fae86dade6414525b4fd0d7809e2ee7d94c"
+    },
+    "grunt-naming": {
+      "sourceType": "local",
+      "path": "skills/grunt-naming",
+      "linkedTo": "/home/grunt/.claude/skills/grunt-naming"
+    },
+    "grunt-doctypes": {
+      "sourceType": "local",
+      "path": "skills/grunt-doctypes",
+      "linkedTo": "/home/grunt/.claude/skills/grunt-doctypes"
     }
   }
 }

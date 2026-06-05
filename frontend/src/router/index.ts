@@ -107,7 +107,7 @@ const router = createRouter({
           }),
         },
         {
-          path: ':doctype/:id',
+          path: ':doctype/:id(.*)',
           name: 'workspace-form',
           component: () => import('@/pages/app/AppFormView.vue'),
           props: true,

@@ -24,8 +24,14 @@ async function loadAssignees() {
 }
 
 const showAssignDialog = ref(false)
-const assignUser = ref('')
+const assignUser = ref<any>('')
 const assignSaving = ref(false)
+
+function getAssignEmail(): string {
+  const v = assignUser.value
+  if (!v) return ''
+  return typeof v === 'object' ? (v.email ?? '') : String(v)
+}
 
 // User search
 const users = ref<UserPublic[]>([])
@@ -43,7 +49,7 @@ async function searchUsers(event: any) {
 }
 
 async function submitAssign() {
-  const user = assignUser.value.trim()
+  const user = getAssignEmail().trim()
   if (!user) return
   assignSaving.value = true
   try {
@@ -126,7 +132,7 @@ onMounted(loadAssignees)
       <template #footer>
         <div class="flex gap-2 w-full pt-2">
             <Button outlined severity="secondary" class="flex-1" @click="showAssignDialog = false">{{ t('Cancel') }}</Button>
-            <Button class="flex-1" :disabled="!assignUser.trim() || assignSaving" @click="submitAssign">
+            <Button class="flex-1" :disabled="!getAssignEmail().trim() || assignSaving" @click="submitAssign">
                 <Loader2 v-if="assignSaving" class="size-4 animate-spin mr-2" />
                 <span v-else>{{ t('Assign') }}</span>
             </Button>

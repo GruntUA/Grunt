@@ -12,7 +12,7 @@ export interface FileItem {
 
 export const filesApi = {
     list: async (params?: { limit?: number; page?: number; filters?: any; search?: string }): Promise<{ items: FileItem[], total: number }> => {
-        const res = await client.get('/api/v1/method/grunt.storage.doctypes.File.File.get_list', { params })
+        const res = await client.get('/api/v1/method/grunt.storage.doctypes.File.file.get_list', { params })
         return res.data.data
     },
 
@@ -21,7 +21,7 @@ export const filesApi = {
         formData.append('file', file)
         if (opts?.attachedToDoctype) formData.append('attached_to_doctype', opts.attachedToDoctype)
         if (opts?.attachedToId) formData.append('attached_to_id', opts.attachedToId)
-        const res = await client.post('/api/v1/method/grunt.storage.doctypes.File.File.upload', formData, {
+        const res = await client.post('/api/v1/method/grunt.storage.doctypes.File.file.upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         })
         return res.data.data
@@ -42,6 +42,6 @@ export const filesApi = {
     },
 
     delete: async (id: string): Promise<void> => {
-        await client.post('/api/v1/method/grunt.storage.doctypes.File.File.remove', { file_id: id })
+        await client.post('/api/v1/method/grunt.storage.doctypes.File.file.remove', { file_id: id })
     }
 }

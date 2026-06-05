@@ -129,7 +129,12 @@ class DocumentWriteMixin:
         """
         from grunt.naming import naming_service  # noqa: PLC0415
 
-        doc_name = await naming_service.generate(dt.autoname or "", data, self.session)
+        controller_cls = document_registry.get(dt.name)
+        custom_autoname = getattr(controller_cls, "autoname", None)
+        if custom_autoname is not None and callable(custom_autoname):
+            doc_name = await custom_autoname(data, self.session)
+        else:
+            doc_name = await naming_service.generate(dt.autoname or "", data, self.session)
 
         row: dict[str, Any] = {}
         standard: dict[str, Any] = {

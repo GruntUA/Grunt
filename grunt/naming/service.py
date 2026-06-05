@@ -95,7 +95,8 @@ class NamingService:
         from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
         from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
 
-        table = compile_doctype_to_table(doctype_registry._doctypes["NamingSeries"])
+        ns_dt = doctype_registry._doctypes.get("NamingSeries") or await doctype_registry.get("NamingSeries")
+        table = compile_doctype_to_table(ns_dt)
 
         # Try to get existing row with lock
         stmt = select(table).where(table.c.prefix == prefix).with_for_update()

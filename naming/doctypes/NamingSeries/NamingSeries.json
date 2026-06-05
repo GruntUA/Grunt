@@ -1,0 +1,23 @@
+{
+  "name": "NamingSeries",
+  "label": "Серія нумерації",
+  "module": "naming",
+  "app": "grunt",
+  "fields": [
+    {
+      "fieldname": "prefix",
+      "label": "Префікс",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "current",
+      "label": "Поточне значення",
+      "fieldtype": "Int",
+      "in_list_view": true,
+      "default": "0"
+    }
+  ],
+  "table_name": "grunt_naming_series"
+}

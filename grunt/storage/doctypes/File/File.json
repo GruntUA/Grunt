@@ -18,7 +18,6 @@
       "fieldname": "file_url",
       "label": "URL файлу",
       "fieldtype": "Text",
-      "required": true,
       "read_only": true
     },
     {

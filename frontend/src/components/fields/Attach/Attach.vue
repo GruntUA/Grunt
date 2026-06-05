@@ -2,7 +2,7 @@
 import { ref, computed, watch, inject } from 'vue'
 import type { DocField } from '@/types'
 import type { AttachmentResult } from '@/core/attachmentChannels/types'
-import { Paperclip, X } from '@lucide/vue'
+import { Paperclip, X, ExternalLink } from '@lucide/vue'
 import { cn } from '@/lib/utils'
 import AttachPicker from './AttachPicker.vue'
 import { filesApi } from '@/core/api/files'
@@ -66,21 +66,52 @@ function remove(e: Event) {
       :class="cn(
         'flex h-9 w-full items-center gap-2 rounded-md border border-input bg-transparent px-3 text-sm shadow-sm transition-colors',
         'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-        isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-ring/40',
+        isDisabled ? 'cursor-not-allowed opacity-50' : '',
+        !currentUrl && !isDisabled ? 'cursor-pointer hover:border-ring/40' : '',
         error ? 'border-destructive' : '',
       )"
-      @click="!isDisabled && (pickerOpen = true)"
+      @click="!isDisabled && !currentUrl && (pickerOpen = true)"
     >
       <Paperclip class="size-4 text-muted-foreground shrink-0" />
-      <span class="flex-1 truncate" :class="currentUrl ? 'text-foreground' : 'text-muted-foreground'">
-        {{ filename ?? (field.placeholder || 'Прикріпити файл...') }}
+
+      <!-- File attached: filename opens the file in a new tab -->
+      <a
+        v-if="currentUrl"
+        :href="currentUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex-1 truncate text-primary hover:underline flex items-center gap-1"
+        @click.stop
+      >
+        <span class="truncate">{{ filename ?? currentUrl }}</span>
+        <ExternalLink class="size-3 shrink-0" />
+      </a>
+
+      <!-- No file: placeholder -->
+      <span v-else class="flex-1 truncate text-muted-foreground">
+        {{ field.placeholder || 'Прикріпити файл...' }}
       </span>
+
+      <!-- Replace button (when file attached and not disabled) -->
       <button
         v-if="currentUrl && !isDisabled"
         type="button"
+        title="Замінити файл"
         class="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
         tabindex="-1"
-        @click="remove"
+        @click.stop="pickerOpen = true"
+      >
+        <Paperclip class="size-3.5" />
+      </button>
+
+      <!-- Remove button -->
+      <button
+        v-if="currentUrl && !isDisabled"
+        type="button"
+        title="Видалити вкладення"
+        class="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+        tabindex="-1"
+        @click.stop="remove"
       >
         <X class="size-3.5" />
       </button>
