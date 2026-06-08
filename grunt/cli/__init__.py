@@ -8,8 +8,8 @@ from grunt.cli.doctype import doctype_group
 from grunt.cli.lint import lint
 from grunt.cli.server import init, serve, worker
 from grunt.cli.site import site_group
-from grunt.cli.test import test
 from grunt.cli.skills import skills_group
+from grunt.cli.test import test
 from grunt.cli.ui import ui_group
 from grunt.cli.update import update
 from grunt.cli.user import users_group

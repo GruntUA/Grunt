@@ -93,7 +93,9 @@ def skills_install(app_name: str | None):
             click.echo(f"Помилка: додаток '{app_name}' не знайдено.", err=True)
             raise SystemExit(1)
     else:
-        app_dirs = sorted(d for d in apps_dir.iterdir() if d.is_dir() and not d.name.startswith("."))
+        app_dirs = sorted(
+            d for d in apps_dir.iterdir() if d.is_dir() and not d.name.startswith(".")
+        )
 
     total: list[str] = []
     for app_dir in app_dirs:
