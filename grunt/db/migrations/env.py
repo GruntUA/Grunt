@@ -1,7 +1,7 @@
 """Alembic env.py — configured for Grunt system tables.
 
 Reads database_url from grunt.config.settings so the URL lives in .env only.
-target_metadata points to Base.metadata which includes all system ORM models.
+target_metadata points to the shared MetaData that includes all system tables.
 """
 
 from logging.config import fileConfig
@@ -9,18 +9,13 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-import grunt.auth.doctypes.User.user as _auth_models
-
-# Ensure all ORM models are imported so Base.metadata knows about them
-import grunt.db.system_tables as _system_tables
+# Ensure system table definitions are imported so metadata knows about them
+import grunt.db.system_tables as _system_tables  # noqa: F401
 
 # ── Grunt imports ────────────────────────────────────────────────────────
 from grunt.config import settings
-from grunt.db.base import Base
+from grunt.db.base import metadata
 from grunt.site.manager import site_manager
-
-# Make dummy references so static analyzers treat these imports as used.
-_ = (_system_tables, _auth_models)
 
 # ── Alembic config ──────────────────────────────────────────────────────
 config = context.config
@@ -40,8 +35,6 @@ def _convert_async_url_to_sync(db_url: str) -> str:
         "+aiomysql": "+pymysql",
     }
 
-    # Split once on the scheme/driver delimiter. If it's not present,
-    # fall back to the original URL.
     if "://" not in db_url:
         return db_url
 
@@ -60,16 +53,14 @@ try:
     site_name = site_manager.get_active_site()
     db_url = site_manager.get_database_url(site_name)
 except Exception:
-    # Fallback to default setting if no active site can be determined
     db_url = settings.database_url
-# Alembic needs a sync driver — swap async drivers for sync equivalents
 db_url = _convert_async_url_to_sync(db_url)
 config.set_main_option("sqlalchemy.url", db_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = Base.metadata
+target_metadata = metadata
 
 
 def run_migrations_offline() -> None:

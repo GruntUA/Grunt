@@ -31,7 +31,7 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
     async def _run() -> None:
         from taskiq import InMemoryBroker
 
-        from grunt.db.base import Base
+        from grunt.db.base import metadata
         from grunt.metadata.compiler import SA_METADATA, sync_table
         from grunt.metadata.registry import doctype_registry
         from grunt.site.manager import site_manager
@@ -63,9 +63,9 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
                 maker = site_manager.get_session_maker(site_name)
 
                 # 1. System ORM tables
-                click.echo("  [1/4] System tables (Base.metadata)...")
+                click.echo("  [1/4] System tables (metadata.create_all)...")
                 async with eng.begin() as conn:
-                    await conn.run_sync(Base.metadata.create_all)
+                    await conn.run_sync(metadata.create_all)
 
                 # 2. Shared infrastructure tables (MultiLink junction, etc.)
                 click.echo("  [2/4] Infrastructure tables (SA_METADATA)...")

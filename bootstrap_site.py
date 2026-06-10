@@ -3,7 +3,7 @@ import asyncio
 import structlog
 
 from grunt.app import grunt
-from grunt.db.base import Base
+from grunt.db.base import metadata
 from grunt.db.session import async_session_factory, get_engine
 from grunt.startup import (
     load_core_doctypes,
@@ -24,7 +24,7 @@ async def bootstrap():
     # 1. Create all base tables from models
     async with engine.begin() as conn:
         logger.info("bootstrap.create_all_models")
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(metadata.create_all)
 
     # 2. Sync core DocTypes and seed base data
     async with async_session_factory() as session:

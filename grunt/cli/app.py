@@ -36,7 +36,7 @@ async def _do_install(name: str, site: str | None = None) -> None:
     import json
 
     from grunt.app import grunt
-    from grunt.db.base import Base
+    from grunt.db.base import metadata
     from grunt.metadata.compiler import SA_METADATA
     from grunt.metadata.registry import doctype_registry
     from grunt.site.manager import current_site, site_manager
@@ -74,7 +74,7 @@ async def _do_install(name: str, site: str | None = None) -> None:
         maker = site_manager.get_session_maker(target_site)
 
         async with eng.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+            await conn.run_sync(metadata.create_all)
             await conn.run_sync(SA_METADATA.create_all)
 
         async with maker() as session:

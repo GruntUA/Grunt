@@ -1,52 +1,39 @@
-"""System tables — static SQLAlchemy models for Grunt internals.
+"""System tables — Core SQLAlchemy Table definitions for Grunt internals.
 
 Only bootstrap-critical tables that must exist before the DocType registry
-loads, plus tables with complex ORM relationships (Workspace), are kept here.
+loads are kept here.
 
 All other system tables (ServerScript, Notification, ActivityLog, etc.) are
-now DocType-driven — defined in core/doctypes/*.json.
+DocType-driven — defined in core/doctypes/*.json.
 """
 
 from __future__ import annotations
 
-from datetime import datetime
+from sqlalchemy import Column, DateTime, Integer, JSON, String, Table, func, text
 
-from sqlalchemy import JSON, DateTime, Integer, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from grunt.db.base import metadata
 
-from grunt.db.base import Base
+GruntMetaDoctype = Table(
+    "grunt_meta_doctype",
+    metadata,
+    Column("name", String(255), primary_key=True),
+    Column("module", String(255), nullable=False),
+    Column("data", JSON, nullable=False),
+    Column("created_at", DateTime(timezone=True), server_default=func.now()),
+    Column("modified_at", DateTime(timezone=True), server_default=func.now()),
+)
 
-
-class GruntMetaDoctype(Base):
-    """Stores DocType definitions as JSON."""
-
-    __tablename__ = "grunt_meta_doctype"
-
-    name: Mapped[str] = mapped_column(String(255), primary_key=True)
-    module: Mapped[str] = mapped_column(String(255), nullable=False)
-    data: Mapped[dict] = mapped_column(JSON, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    modified_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-
-
-class GruntInstalledApp(Base):
-    """Registry of installed Grunt apps."""
-
-    __tablename__ = "grunt_meta_installed_app"
-
-    name: Mapped[str] = mapped_column(String(100), primary_key=True)
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
-    version: Mapped[str] = mapped_column(String(50), nullable=False, default="0.1.0")
-    modules: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-    owner: Mapped[str] = mapped_column(String(255), nullable=False, default="system")
-    docstatus: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    modified_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-    modified_by: Mapped[str] = mapped_column(String(255), nullable=True)
-    installed_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+GruntInstalledApp = Table(
+    "grunt_meta_installed_app",
+    metadata,
+    Column("name", String(100), primary_key=True),
+    Column("title", String(255), nullable=False),
+    Column("version", String(50), nullable=False, server_default=text("'0.1.0'")),
+    Column("modules", JSON, nullable=False, server_default=text("'[]'")),
+    Column("owner", String(255), nullable=False, server_default=text("'system'")),
+    Column("docstatus", Integer, server_default=text("0")),
+    Column("created_at", DateTime(timezone=True), server_default=func.now()),
+    Column("modified_at", DateTime(timezone=True), server_default=func.now()),
+    Column("modified_by", String(255), nullable=True),
+    Column("installed_at", DateTime(timezone=True), server_default=func.now()),
+)

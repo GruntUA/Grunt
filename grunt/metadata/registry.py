@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING
 
 import structlog
 from fastapi import HTTPException, status
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
 from grunt.db.system_tables import GruntMetaDoctype
@@ -93,7 +93,7 @@ class DocTypeRegistry:
         ``_known_names`` so they are never lazy-loaded (their definition is
         already in memory).
         """
-        result = await session.execute(select(GruntMetaDoctype.name))
+        result = await session.execute(select(GruntMetaDoctype.c.name))
         all_names = {row[0] for row in result}
         self._known_names = all_names - set(self._doctypes)
         # Rebuild the known-names index in one pass
@@ -112,13 +112,13 @@ class DocTypeRegistry:
         :meth:`prefetch_names` + lazy loading via :meth:`get`.
         """
         result = await session.execute(select(GruntMetaDoctype))
-        rows = result.scalars().all()
+        rows = result.mappings().all()
 
         for row in rows:
-            if row.name in self._doctypes:
+            if row["name"] in self._doctypes:
                 continue  # already loaded (core doctype)
             try:
-                dt = DocType.model_validate(row.data)
+                dt = DocType.model_validate(row["data"])
                 self._doctypes[dt.name] = dt
                 self._index_add(dt.name)
                 self._known_names.discard(dt.name)
@@ -139,15 +139,15 @@ class DocTypeRegistry:
 
         async with maker() as session:
             result = await session.execute(
-                select(GruntMetaDoctype).where(GruntMetaDoctype.name == name)
+                select(GruntMetaDoctype).where(GruntMetaDoctype.c.name == name)
             )
-            row = result.scalar_one_or_none()
+            row = result.mappings().one_or_none()
 
         if row is None:
             return None
 
         try:
-            dt = DocType.model_validate(row.data)
+            dt = DocType.model_validate(row["data"])
         except Exception:
             logger.warning("registry.lazy_load_invalid", name=name)
             return None
@@ -240,14 +240,14 @@ class DocTypeRegistry:
         on upgrades). If False, only merges new fields in memory.
         """
         existing_row = await session.execute(
-            select(GruntMetaDoctype).where(GruntMetaDoctype.name == doctype.name)
+            select(GruntMetaDoctype).where(GruntMetaDoctype.c.name == doctype.name)
         )
-        existing = existing_row.scalar_one_or_none()
+        existing = existing_row.mappings().one_or_none()
 
         if existing:
             # Load the stored definition (preserves Studio customisations).
             try:
-                active_dt = DocType.model_validate(existing.data)
+                active_dt = DocType.model_validate(existing["data"])
             except Exception:
                 # Stored data is invalid — fall back to JSON and repair.
                 logger.warning(
@@ -259,7 +259,7 @@ class DocTypeRegistry:
                 if sync_db:
                     await session.execute(
                         update(GruntMetaDoctype)
-                        .where(GruntMetaDoctype.name == doctype.name)
+                        .where(GruntMetaDoctype.c.name == doctype.name)
                         .values(module=doctype.module, data=doctype.model_dump())
                     )
             else:
@@ -335,7 +335,7 @@ class DocTypeRegistry:
                     try:
                         await session.execute(
                             update(GruntMetaDoctype)
-                            .where(GruntMetaDoctype.name == doctype.name)
+                            .where(GruntMetaDoctype.c.name == doctype.name)
                             .values(module=doctype.module, data=active_dt.model_dump())
                         )
                         await session.flush()
@@ -349,8 +349,8 @@ class DocTypeRegistry:
             # First run: seed from the bundled JSON file.
             active_dt = doctype
             if sync_db:
-                session.add(
-                    GruntMetaDoctype(
+                await session.execute(
+                    insert(GruntMetaDoctype).values(
                         name=doctype.name,
                         module=doctype.module,
                         data=doctype.model_dump(),
@@ -376,7 +376,7 @@ class DocTypeRegistry:
 
         # Registry may be partially lazy-loaded; always re-check DB uniqueness.
         existing = await session.scalar(
-            select(GruntMetaDoctype.name).where(GruntMetaDoctype.name == doctype.name)
+            select(GruntMetaDoctype.c.name).where(GruntMetaDoctype.c.name == doctype.name)
         )
         if existing:
             raise HTTPException(
@@ -385,13 +385,14 @@ class DocTypeRegistry:
             )
 
         # Persist to DB
-        row = GruntMetaDoctype(
-            name=doctype.name,
-            module=doctype.module,
-            data=doctype.model_dump(),
-        )
-        session.add(row)
         try:
+            await session.execute(
+                insert(GruntMetaDoctype).values(
+                    name=doctype.name,
+                    module=doctype.module,
+                    data=doctype.model_dump(),
+                )
+            )
             await session.flush()
         except IntegrityError as exc:
             # DB-level fallback for race conditions / stale cache.
@@ -422,7 +423,7 @@ class DocTypeRegistry:
         if doctype.name not in self._doctypes:
             # DocType may be known but not yet lazy-loaded — check DB before failing.
             exists = await session.scalar(
-                select(GruntMetaDoctype.name).where(GruntMetaDoctype.name == doctype.name)
+                select(GruntMetaDoctype.c.name).where(GruntMetaDoctype.c.name == doctype.name)
             )
             if not exists:
                 raise HTTPException(
@@ -434,7 +435,7 @@ class DocTypeRegistry:
 
         await session.execute(
             update(GruntMetaDoctype)
-            .where(GruntMetaDoctype.name == doctype.name)
+            .where(GruntMetaDoctype.c.name == doctype.name)
             .values(module=doctype.module, data=doctype.model_dump())
         )
         await session.flush()
@@ -455,7 +456,7 @@ class DocTypeRegistry:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"DocType '{name}' not found",
             )
-        await session.execute(delete(GruntMetaDoctype).where(GruntMetaDoctype.name == name))
+        await session.execute(delete(GruntMetaDoctype).where(GruntMetaDoctype.c.name == name))
         await session.flush()
         self._doctypes.pop(name, None)
         self._index_remove(name)

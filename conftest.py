@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import (
 # Override engine for docs router
 from grunt.api.v1.docs.utils import get_engine
 from grunt.config import settings
-from grunt.db.base import Base
+from grunt.db.base import metadata
 
 # Override engine for meta.py (uses get_engine dependency, already overridden above)
 from grunt.db.session import get_engine as _get_engine_dep
@@ -68,8 +68,8 @@ app.dependency_overrides[_get_engine_dep] = override_get_engine
 async def setup_db():
     """Create tables before each test, drop after. Clear registry."""
     async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(metadata.drop_all)
+        await conn.run_sync(metadata.create_all)
     doctype_registry._doctypes.clear()
 
     # Remove previously compiled dynamic doctype tables from SA_METADATA
@@ -108,7 +108,7 @@ async def setup_db():
 
     async with test_engine.begin() as conn:
         await conn.run_sync(SA_METADATA.drop_all)
-        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(metadata.drop_all)
 
     # Remove dynamic doctype tables; preserve static tables (e.g. grunt_core_multi_link)
     # so they stay in SA_METADATA and get re-created by the next test's create_all.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
 from typing import Any
 
 from sqlalchemy import func, select
@@ -13,14 +14,15 @@ from grunt.metadata.registry import doctype_registry
 from grunt.metadata.virtual import VirtualDocType
 
 
-def _row_to_doc(row: GruntMetaDoctype) -> dict[str, Any]:
-    """Convert GruntMetaDoctype row to DocType model data."""
-    # Data is the primary source, row columns (name, module) are for indexing/querying
-    data: dict[str, Any] = row.data or {}
-    data["name"] = row.name
-    data["module"] = row.module
-    data["created_at"] = row.created_at.isoformat() if row.created_at else None
-    data["modified_at"] = row.modified_at.isoformat() if row.modified_at else None
+def _row_to_doc(row: Mapping[str, Any]) -> dict[str, Any]:
+    """Convert grunt_meta_doctype row to DocType model data."""
+    data: dict[str, Any] = dict(row.get("data") or {})
+    data["name"] = row["name"]
+    data["module"] = row["module"]
+    created_at = row.get("created_at")
+    modified_at = row.get("modified_at")
+    data["created_at"] = created_at.isoformat() if created_at else None
+    data["modified_at"] = modified_at.isoformat() if modified_at else None
     return data
 
 
@@ -72,28 +74,27 @@ class DocTypeController(VirtualDocType):
 
         if search:
             stmt = stmt.where(
-                GruntMetaDoctype.name.ilike(f"%{search}%")
-                | GruntMetaDoctype.data["label"].as_string().ilike(f"%{search}%")
+                GruntMetaDoctype.c.name.ilike(f"%{search}%")
+                | GruntMetaDoctype.c.data["label"].as_string().ilike(f"%{search}%")
             )
 
         for key, val in (filters or {}).items():
             if key == "module":
-                stmt = stmt.where(GruntMetaDoctype.module == val)
+                stmt = stmt.where(GruntMetaDoctype.c.module == val)
             elif key == "name":
-                stmt = stmt.where(GruntMetaDoctype.name.ilike(f"%{val}%"))
+                stmt = stmt.where(GruntMetaDoctype.c.name.ilike(f"%{val}%"))
             elif key == "is_child":
-                # JSON filtering
-                stmt = stmt.where(GruntMetaDoctype.data["is_child"].as_boolean() == bool(val))
+                stmt = stmt.where(GruntMetaDoctype.c.data["is_child"].as_boolean() == bool(val))
 
         # Count
         total = await session.scalar(select(func.count()).select_from(stmt.subquery())) or 0
 
         # Sort & Paginate
-        # Default to 'name' as GruntMetaDoctype doesn't have all DocType fields as top-level columns
-        col = getattr(GruntMetaDoctype, sort_by if hasattr(GruntMetaDoctype, sort_by) else "name")
+        col_name = sort_by if sort_by in GruntMetaDoctype.c else "name"
+        col = GruntMetaDoctype.c[col_name]
         stmt = stmt.order_by(col.desc() if sort_order.lower() == "desc" else col.asc())
         stmt = stmt.offset((page - 1) * per_page).limit(per_page)
-        rows = (await session.execute(stmt)).scalars().all()
+        rows = (await session.execute(stmt)).mappings().all()
 
         return {
             "data": [_row_to_doc(r) for r in rows],
@@ -107,12 +108,10 @@ class DocTypeController(VirtualDocType):
 
     async def get(self, doc_id: str, **kwargs: Any) -> dict[str, Any]:
         session = self._session()
-        row = await session.get(GruntMetaDoctype, doc_id)
-        if not row:
-            result = await session.execute(
-                select(GruntMetaDoctype).where(GruntMetaDoctype.name == doc_id)
-            )
-            row = result.scalar_one_or_none()
+        result = await session.execute(
+            select(GruntMetaDoctype).where(GruntMetaDoctype.c.name == doc_id)
+        )
+        row = result.mappings().one_or_none()
         data = _row_to_doc(row) if row else {}
         _expand_status_config(data)
         return data
@@ -170,9 +169,9 @@ class DocTypeController(VirtualDocType):
 
     async def delete(self, doc_id: str, **kwargs: Any) -> None:
         """Delete a DocType."""
-        # Find name first if doc_id is UUID
         session = self._session()
-        row = await session.get(GruntMetaDoctype, doc_id)
-        name = row.name if row else doc_id
-
+        result = await session.execute(
+            select(GruntMetaDoctype.c.name).where(GruntMetaDoctype.c.name == doc_id)
+        )
+        name = result.scalar_one_or_none() or doc_id
         await doctype_registry.delete(name, session)

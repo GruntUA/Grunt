@@ -66,7 +66,7 @@ def doctype_sync(name: str, site: str | None):
             from grunt.db.system_tables import GruntMetaDoctype
 
             exists = await session.scalar(
-                select(GruntMetaDoctype.name).where(GruntMetaDoctype.name == dt.name)
+                select(GruntMetaDoctype.c.name).where(GruntMetaDoctype.c.name == dt.name)
             )
             if exists:
                 await doctype_registry.update(dt, session, eng)

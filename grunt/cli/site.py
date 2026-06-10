@@ -244,7 +244,7 @@ def _run_migrate_for_site(site_name: str) -> None:
     """Run DB migration for a single site (reuses db migrate logic inline)."""
 
     async def _migrate() -> None:
-        from grunt.db.base import Base
+        from grunt.db.base import metadata
         from grunt.metadata.compiler import SA_METADATA, sync_table
         from grunt.metadata.registry import doctype_registry
         from grunt.site.manager import site_manager
@@ -261,7 +261,7 @@ def _run_migrate_for_site(site_name: str) -> None:
         maker = site_manager.get_session_maker(site_name)
 
         async with eng.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+            await conn.run_sync(metadata.create_all)
 
         async with eng.begin() as conn:
             await conn.run_sync(SA_METADATA.create_all)
