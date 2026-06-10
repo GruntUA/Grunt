@@ -12,6 +12,7 @@ from sqlalchemy import func, select, text
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from openpyxl.cell import Cell
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from grunt.auth.doctypes.User.user import User
@@ -310,7 +311,6 @@ class ReportEngine:
             from io import BytesIO
 
             import openpyxl
-            from openpyxl.cell import Cell
             from openpyxl.styles import Font
         except ImportError as e:
             raise HTTPException(status_code=500, detail="openpyxl не встановлено") from e
@@ -336,7 +336,7 @@ class ReportEngine:
         # Auto-width
         for col in ws.columns:
             max_len = max((len(str(cell.value or "")) for cell in col), default=0)
-            ws.column_dimensions[cast(Cell, col[0]).column_letter].width = min(max_len + 2, 50)
+            ws.column_dimensions[cast("Cell", col[0]).column_letter].width = min(max_len + 2, 50)
 
         buf = BytesIO()
         wb.save(buf)

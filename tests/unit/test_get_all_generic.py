@@ -1,5 +1,4 @@
 import pytest
-
 from grunt.auth.doctypes.User.User import User
 
 

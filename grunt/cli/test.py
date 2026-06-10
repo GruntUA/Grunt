@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import sys
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 @click.command("test", context_settings={"ignore_unknown_options": True})

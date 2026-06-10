@@ -101,16 +101,20 @@ src = ["."]
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "SIM", "TC"]
 ignore = [
-    "B008",  # FastAPI Depends() requires runtime imports for type resolution
-    "TC001", # FastAPI Depends() requires runtime imports for type resolution
+    "B008",  # FastAPI Depends() requires call in argument default
+    "TC001", # Pydantic model fields need runtime imports for get_type_hints()
+    "TC002", # same for third-party types used in Pydantic fields
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"grunt/db/base.py" = ["TC003"]       # datetime in Mapped[] needs runtime for SQLAlchemy
+"grunt/db/system_tables.py" = ["TC003"]  # same
 
 [tool.mypy]
 python_version = "3.14"
 plugins = ["pydantic.mypy"]
 mypy_path = "."
 explicit_package_bases = true
-ignore_missing_imports = true
 
 # Checks enabled (subset of strict that the codebase satisfies)
 warn_redundant_casts = true

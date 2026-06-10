@@ -109,7 +109,7 @@ class TreeService:
             )
 
         if parent_id is None:
-            stmt = stmt.where((pf_col == None) | (pf_col == ""))
+            stmt = stmt.where(pf_col.is_(None) | (pf_col == ""))
         else:
             stmt = stmt.where(pf_col == parent_id)
 

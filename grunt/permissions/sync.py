@@ -139,14 +139,17 @@ async def migrate_doctype_meta_permissions(session) -> None:
                 # perm may be a DocTypePermission Pydantic model or a plain dict
                 if isinstance(perm, dict):
                     role = perm.get("role", "")
-                    _b = lambda attr, p=perm: bool(p.get(attr, False))
                     hf_raw = perm.get("hidden_fields", [])
                     match_val = perm.get("match")
                 else:
                     role = getattr(perm, "role", "")
-                    _b = lambda attr, p=perm: bool(getattr(p, attr, False))
                     hf_raw = getattr(perm, "hidden_fields", [])
                     match_val = getattr(perm, "match", None)
+
+                def _b(attr: str, _p: object = perm) -> bool:
+                    if isinstance(_p, dict):
+                        return bool(_p.get(attr, False))
+                    return bool(getattr(_p, attr, False))
 
                 if not role:
                     continue
