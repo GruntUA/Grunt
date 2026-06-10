@@ -11,7 +11,7 @@ from grunt.cli.site import site_group
 from grunt.cli.skills import skills_group
 from grunt.cli.test import test
 from grunt.cli.ui import ui_group
-from grunt.cli.update import update
+from grunt.cli.update import update_group
 from grunt.cli.user import users_group
 
 
@@ -45,7 +45,7 @@ cli.add_command(init)
 cli.add_command(serve)
 cli.add_command(test)
 cli.add_command(worker)
-cli.add_command(update)
+cli.add_command(update_group)
 cli.add_command(users_group)
 cli.add_command(db_group)
 cli.add_command(app_group)

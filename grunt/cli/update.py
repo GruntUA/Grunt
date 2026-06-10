@@ -49,7 +49,7 @@ def _find_apps_dir() -> Path | None:
 
 def _grunt_app_dir() -> Path:
     """apps/grunt/ — корінь фреймворку (де pyproject.toml і package.json)."""
-    return Path(__file__).resolve().parent.parent.parent.parent
+    return Path(__file__).resolve().parent.parent.parent
 
 
 def _find_uv() -> str | None:
@@ -248,7 +248,12 @@ def _run_migrations(site: str | None) -> None:
 # ---------------------------------------------------------------------------
 
 
-@click.command("update")
+@click.group("update")
+def update_group() -> None:
+    """Оновити фреймворк, додатки та залежності."""
+
+
+@update_group.command("all")
 @click.option("--cli", "update_cli", is_flag=True, default=False, help="Оновити тільки CLI")
 @click.option(
     "--framework", "update_framework", is_flag=True, default=False, help="Оновити тільки фреймворк"
@@ -373,3 +378,65 @@ def update(
         console.print()
 
     console.print("[bold green]✅ Оновлення завершено[/bold green]")
+
+
+# ---------------------------------------------------------------------------
+# grunt deps
+# ---------------------------------------------------------------------------
+
+
+@update_group.command("deps")
+@click.option("-U", "--upgrade", is_flag=True, default=False, help="Оновити пакети до нових версій")
+@click.option("--python-only", is_flag=True, default=False, help="Тільки Python (uv sync)")
+@click.option("--npm-only", is_flag=True, default=False, help="Тільки npm install")
+def deps(upgrade: bool, python_only: bool, npm_only: bool) -> None:
+    """Встановити / оновити залежності (uv sync + npm install).
+
+    \b
+    Приклади:
+      grunt deps              встановити всі залежності
+      grunt deps -U           оновити до нових версій
+      grunt deps --python-only
+      grunt deps --npm-only
+    """
+    console.print("[bold]📦 Grunt Deps[/bold]")
+    console.print()
+
+    run_python = not npm_only
+    run_npm = not python_only
+
+    if run_python:
+        console.print("[bold cyan]Python пакети[/bold cyan]")
+        uv = _find_uv()
+        app_dir = _grunt_app_dir()
+        env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
+        env["PWD"] = str(app_dir)
+        if uv:
+            cmd = [uv, "sync", "--all-extras"]
+            if upgrade:
+                cmd.append("--upgrade")
+            label = "uv sync --all-extras" + (" --upgrade" if upgrade else "")
+            console.print(f"  [dim]{label}...[/dim]")
+            result = subprocess.run(cmd, cwd=str(app_dir), check=False, env=env)
+            if result.returncode == 0:
+                console.print("  [green]✓[/green] Python пакети встановлені")
+            else:
+                console.print("  [yellow]⚠[/yellow]  uv sync завершився з помилкою")
+        else:
+            console.print("  [dim]uv не знайдено, використовую pip...[/dim]")
+            cmd = [sys.executable, "-m", "pip", "install", "-e", ".[all]"]
+            if upgrade:
+                cmd.insert(4, "--upgrade")
+            result = subprocess.run(cmd, cwd=str(app_dir), check=False)
+            if result.returncode == 0:
+                console.print("  [green]✓[/green] Python пакети встановлені")
+            else:
+                console.print("  [yellow]⚠[/yellow]  pip install завершився з помилкою")
+        console.print()
+
+    if run_npm:
+        console.print("[bold cyan]npm пакети[/bold cyan]")
+        _run_npm_install_for(_grunt_app_dir())
+        console.print()
+
+    console.print("[bold green]✅ Залежності встановлено[/bold green]")
