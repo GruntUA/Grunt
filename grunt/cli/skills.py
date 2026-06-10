@@ -83,7 +83,7 @@ def skills_install(app_name: str | None):
 
     APP_NAME — назва додатку (опційно). Якщо не вказано — сканує всі додатки.
     """
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.site.manager import site_manager
 
     apps_dir = site_manager.bench_dir / "apps"
 
@@ -114,7 +114,7 @@ def skills_install(app_name: str | None):
 @click.argument("skill_name")
 def skills_uninstall(skill_name: str):
     """Видалити встановлений скіл (видаляє симлінк)."""
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.site.manager import site_manager
 
     target = _claude_skills_dir() / skill_name
     if not target.exists() and not target.is_symlink():
@@ -139,7 +139,7 @@ def skills_uninstall(skill_name: str):
 @skills_group.command("list")
 def skills_list():
     """Показати локальні скіли з усіх додатків."""
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.site.manager import site_manager
 
     apps_dir = site_manager.bench_dir / "apps"
     found = False

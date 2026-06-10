@@ -33,8 +33,8 @@ class WebhookService:
         doc: dict[str, Any],
     ) -> None:
         """Load matching enabled webhooks and fire them concurrently (best-effort)."""
-        from grunt.app import grunt  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import grunt
+        from grunt.metadata.registry import doctype_registry
 
         if not doctype_registry._doctypes.get("OutgoingWebhook"):
             return
@@ -46,7 +46,7 @@ class WebhookService:
                     filters={"doctype_name": doctype, "event": event, "is_enabled": True},
                     limit=100,
                 )
-        except Exception:  # noqa: BLE001
+        except Exception:
             return
 
         if not webhooks:
@@ -70,7 +70,7 @@ class WebhookService:
 
                     if not simple_eval(wh["condition"], names={"doc": doc}):
                         continue
-                except Exception:  # noqa: BLE001
+                except Exception:
                     continue
 
             await self._send_and_log(
@@ -92,7 +92,7 @@ class WebhookService:
         user_email: str,
     ) -> dict[str, Any]:
         """Send a test payload for the given webhook and return the log entry."""
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         async with grunt.system_context(session):
             wh_data = await grunt.get_doc("OutgoingWebhook", webhook_id)
@@ -137,8 +137,8 @@ class WebhookService:
         is_test: bool = False,
     ) -> dict[str, Any]:
         """Send a webhook POST and write a WebhookLog record. Returns log data."""
-        from grunt.app import grunt  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import grunt
+        from grunt.metadata.registry import doctype_registry
 
         headers: dict[str, str] = {"Content-Type": "application/json"}
 
@@ -155,7 +155,7 @@ class WebhookService:
                 extra = json.loads(extra_headers)
                 if isinstance(extra, dict):
                     headers.update({str(k): str(v) for k, v in extra.items()})
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.exception("suppressed_error")
 
         status_code: int | None = None
@@ -171,7 +171,7 @@ class WebhookService:
                 response_body = resp.text[:4000]
                 success = 200 <= resp.status_code < 300
                 logger.info("webhook.fired", url=url, status=resp.status_code, is_test=is_test)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             error = str(exc)
             logger.warning("webhook.fire_failed", url=url, error=error, is_test=is_test)
 
@@ -194,7 +194,7 @@ class WebhookService:
             try:
                 async with grunt.system_context(session):
                     await grunt.new_doc("WebhookLog", log_entry)
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.warning("webhook_log.write_failed", webhook_id=webhook_id)
 
         return {**log_entry, "success": success}

@@ -75,8 +75,8 @@ async def authenticate_api_key(
 
     key_prefix = raw[:8]
 
-    from grunt.app import grunt  # noqa: PLC0415
-    from grunt.auth.doctypes.User.user import get_user_by_id  # noqa: PLC0415
+    from grunt.app import grunt
+    from grunt.auth.doctypes.User.user import get_user_by_id
 
     async with grunt.system_context(session):
         rows = await grunt.db.get_all(
@@ -134,7 +134,7 @@ async def authenticate_api_key(
             await grunt.db.set_value(
                 "ApiKey", matched_row["name"], "last_used_at", datetime.now(UTC)
             )
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.exception("suppressed_error")
 
     logger.info("api_key.authenticated", prefix=key_prefix, user=user.email)

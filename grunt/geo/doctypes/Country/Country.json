@@ -1,0 +1,123 @@
+{
+  "name": "Country",
+  "label": "Країна",
+  "module": "geo",
+  "autoname": "field:code",
+  "title_field": "title",
+  "track_changes": false,
+  "fields": [
+    {
+      "fieldname": "code",
+      "label": "Код ISO 3166-1 alpha-2",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "bold": true,
+      "description": "Двобуквений код країни (UA, US, DE)"
+    },
+    {
+      "fieldname": "code3",
+      "label": "Код ISO 3166-1 alpha-3",
+      "fieldtype": "Data",
+      "description": "Трибуквений код країни (UKR, USA, DEU)"
+    },
+    {
+      "fieldname": "numeric_code",
+      "label": "Числовий код",
+      "fieldtype": "Data",
+      "description": "Числовий код ISO 3166-1 (804 для України)"
+    },
+    {
+      "fieldname": "flag_emoji",
+      "label": "Прапор",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "description": "Emoji-прапор країни (🇺🇦)"
+    },
+    {
+      "fieldname": "title",
+      "label": "Назва (англ.)",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "title_uk",
+      "label": "Назва (укр.)",
+      "fieldtype": "Text",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "continent",
+      "label": "Континент",
+      "fieldtype": "Select",
+      "options": "\nАфрика\nАзія\nАвстралія та Океанія\nАнтарктида\nЄвропа\nПівнічна Америка\nПівденна Америка",
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "capital",
+      "label": "Столиця",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "phone_code",
+      "label": "Телефонний код",
+      "fieldtype": "Data",
+      "description": "Міжнародний телефонний код (+380)"
+    },
+    {
+      "fieldname": "tld",
+      "label": "Домен верхнього рівня",
+      "fieldtype": "Data",
+      "description": "Національний домен (.ua, .us)"
+    },
+    {
+      "fieldname": "currency",
+      "label": "Валюта",
+      "fieldtype": "Link",
+      "options": "Currency",
+      "in_filter": true
+    },
+    {
+      "fieldname": "official_language",
+      "label": "Офіційна мова",
+      "fieldtype": "Link",
+      "options": "Language",
+      "in_filter": true
+    },
+    {
+      "fieldname": "is_active",
+      "label": "Активна",
+      "fieldtype": "Check",
+      "default": "1",
+      "in_list_view": true,
+      "in_filter": true
+    }
+  ],
+  "default_view": "list",
+  "list_view": {
+    "fast_filters": [
+      {
+        "id": "continent_filter",
+        "field": "continent",
+        "label": "Континент",
+        "input_type": "select",
+        "on_change": { "debounce_ms": 0 }
+      },
+      {
+        "id": "active_filter",
+        "field": "is_active",
+        "label": "Активні",
+        "input_type": "select",
+        "default_value": "1",
+        "on_change": { "debounce_ms": 0 }
+      }
+    ]
+  },
+  "search_fields": ["code", "title", "title_uk"],
+  "permissions": [
+    { "role": "All", "read": true },
+    { "role": "System Manager", "read": true, "write": true, "create": true, "delete": true }
+  ]
+}

@@ -56,13 +56,13 @@ async def forgot_password(
 
     token = await create_password_reset_token(user.id, session)
 
-    from grunt.config import settings  # noqa: PLC0415
+    from grunt.config import settings
 
     reset_url = f"{settings.app_url}/reset-password?token={token}"
 
     try:
-        from grunt.app import grunt  # noqa: PLC0415
-        from grunt.email.service import email_service  # noqa: PLC0415
+        from grunt.app import grunt
+        from grunt.email.service import email_service
 
         html_body = await grunt.render_template(
             "password_reset.html",
@@ -83,7 +83,7 @@ async def forgot_password(
         )
         await session.flush()
         log.info("auth.forgot_password", email=user.email)
-    except Exception:  # noqa: BLE001
+    except Exception:
         log.warning("auth.forgot_password_email_queue_failed", email=user.email)
 
     return ok()

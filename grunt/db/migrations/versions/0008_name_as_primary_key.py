@@ -78,7 +78,7 @@ def _list_grunt_tables(conn: sa.engine.Connection) -> list[str]:
 
 def _load_doctype_table_map(conn: sa.engine.Connection) -> dict[str, str]:
     """Return {doctype_name: table_name} by parsing grunt_meta_doctype.data JSON."""
-    import json  # noqa: PLC0415
+    import json
 
     if not _table_exists(conn, "grunt_meta_doctype"):
         return {}
@@ -100,7 +100,7 @@ def _load_doctype_table_map(conn: sa.engine.Connection) -> dict[str, str]:
             result[dt_name] = table_name
         elif module and dt_name:
             # Derive from module + name: grunt_{module}_{snake_case_name}
-            import re  # noqa: PLC0415
+            import re
 
             snake = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", dt_name).lower()
             result[dt_name] = f"grunt_{module}_{snake}"
@@ -458,7 +458,7 @@ def _fix_link_uuids(conn: sa.engine.Connection, doctype_table_map: dict[str, str
     each row's ``fields`` array to discover Link-typed columns and their target doctype.
     This must run BEFORE dropping the ``id`` column so the JOIN still resolves values.
     """
-    import json  # noqa: PLC0415
+    import json
 
     if not _table_exists(conn, "grunt_meta_doctype"):
         return

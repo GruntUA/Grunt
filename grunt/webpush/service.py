@@ -55,22 +55,22 @@ def _generate_vapid_keys() -> tuple[str, str]:
 class WebPushService:
     async def get_vapid_public_key(self, session: AsyncSession) -> str | None:
         """Return the VAPID public key stored in SystemSettings, or None."""
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         try:
             return await grunt.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
-        except Exception:  # noqa: BLE001
+        except Exception:
             return None
 
     async def ensure_vapid_keys(self, session: AsyncSession) -> str | None:
         """Ensure VAPID keys exist in SystemSettings; generate if missing. Returns public key."""
-        try:
-            from py_vapid import Vapid  # noqa: F401 — test import
-        except ImportError:
+        import importlib.util
+
+        if importlib.util.find_spec("py_vapid") is None:
             logger.warning("webpush.pywebpush_not_installed")
             return None
 
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         try:
             public_key = await grunt.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
@@ -105,7 +105,7 @@ class WebPushService:
         user_agent: str = "",
     ) -> None:
         """Upsert a push subscription for a user (one per endpoint)."""
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         # Remove old subscription at this endpoint if any using db.delete for performance
         await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint})
@@ -124,7 +124,7 @@ class WebPushService:
 
     async def remove_subscription(self, session: AsyncSession, endpoint: str) -> None:
         """Delete a push subscription by endpoint URL."""
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint})
 
@@ -142,14 +142,14 @@ class WebPushService:
         except ImportError:
             return  # Silently skip if not installed
 
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         # Get VAPID private key
         try:
             vapid_private = await grunt.get_single("SystemSettings", _VAPID_PRIVATE_KEY_FIELD)
             if not vapid_private:
                 return
-        except Exception:  # noqa: BLE001
+        except Exception:
             return
 
         # Get subscriptions for this user
@@ -168,7 +168,7 @@ class WebPushService:
                     vapid_private_key=vapid_private,
                     vapid_claims={"sub": _VAPID_CLAIMS_SUB, "aud": sub["endpoint"].split("/")[2]},
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("webpush.send_failed", user=user, error=str(exc))
 
 

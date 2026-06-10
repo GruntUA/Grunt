@@ -157,7 +157,7 @@ async def mfa_login_verify(
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="Користувача не знайдено")
 
-    from grunt.auth.mfa import check_mfa_code  # noqa: PLC0415
+    from grunt.auth.mfa import check_mfa_code
 
     try:
         await check_mfa_code(user, body.code, session)
@@ -190,12 +190,12 @@ async def mfa_login_verify(
 async def _track_session(request: Request, user_id: str, session: AsyncSession):
     """Best-effort session tracking."""
     try:
-        from grunt.auth.doctypes.UserSession.user_session import create_session  # noqa: PLC0415
+        from grunt.auth.doctypes.UserSession.user_session import create_session
 
         ip = request.client.host if request.client else None
         ua = request.headers.get("user-agent")
         await create_session(user_id, ip, ua, session)
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.exception("suppressed_error")
 
 
@@ -221,7 +221,7 @@ async def update_me(
     session: AsyncSession = Depends(get_session),
 ) -> UserResponse:
     """Update current user preferences."""
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     values: dict = {}
     if body.theme is not None:
@@ -284,12 +284,12 @@ async def logout(
     """Revoke all refresh tokens and terminate all sessions."""
     await revoke_refresh_tokens_for_user(user.id, session)
     try:
-        from grunt.auth.doctypes.UserSession.user_session import (  # noqa: PLC0415
+        from grunt.auth.doctypes.UserSession.user_session import (
             terminate_all_user_sessions,
         )
 
         await terminate_all_user_sessions(user.id, session)
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.exception("suppressed_error")
     return ok()
 
@@ -300,7 +300,7 @@ async def list_sessions(
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Return all active sessions for the current user."""
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     async with grunt.system_context(session):
         sessions = await grunt.get_list(
@@ -320,7 +320,7 @@ async def revoke_session(
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Terminate a specific session. Only the owner can revoke their own sessions."""
-    from grunt.auth.doctypes.UserSession.user_session import terminate_session  # noqa: PLC0415
+    from grunt.auth.doctypes.UserSession.user_session import terminate_session
 
     terminated = await terminate_session(session_id, user.id, session)
     if not terminated:

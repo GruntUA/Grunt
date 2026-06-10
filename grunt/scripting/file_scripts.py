@@ -175,7 +175,7 @@ def get_file_doctype_scripts(doctype: str, event: str) -> list[dict[str, Any]]:
 
 def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
     """Get file-based client scripts for a DocType (lazy — read from disk on first request)."""
-    from grunt.config import settings  # noqa: PLC0415
+    from grunt.config import settings
 
     if not settings.debug:
         if doctype in FILE_CLIENT_SCRIPT_REGISTRY:
@@ -190,7 +190,7 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
     logger.info("file_scripts.scan_start", doctype=doctype, dirs_count=len(_client_script_dirs))
 
     for app_name, doctypes_dir in _client_script_dirs:
-        import re  # noqa: PLC0415
+        import re
 
         # Try exact match first (e.g. HromsStaffingTable/HromsStaffingTable.js)
         js_file = doctypes_dir / doctype / f"{doctype}.js"

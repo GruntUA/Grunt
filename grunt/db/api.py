@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 def _get_registry() -> DocTypeRegistry:
     """Lazy import to avoid circular dependency grunt.db ↔ grunt.metadata.registry."""
-    from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.metadata.registry import doctype_registry
 
     return doctype_registry
 

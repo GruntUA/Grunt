@@ -89,7 +89,7 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
         will_retry = bool(retry_on_error) and attempt < max_retries
         return will_retry, attempt, max_retries, delay
 
-    async def on_error(  # noqa: ARG002
+    async def on_error(
         self, message: TaskiqMessage, result: TaskiqResult[Any], exception: BaseException
     ) -> None:
         """Called if an unhandled error occurs."""

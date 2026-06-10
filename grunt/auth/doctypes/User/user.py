@@ -88,19 +88,19 @@ class User(Document):
 
     async def setup_mfa(self) -> dict:
         """Whitelisted method: Start MFA setup for the user."""
-        from grunt.auth.mfa import begin_mfa_setup  # noqa: PLC0415
+        from grunt.auth.mfa import begin_mfa_setup
 
         return await begin_mfa_setup(self)
 
     async def confirm_mfa(self, code: str) -> list[str]:
         """Whitelisted method: Confirm MFA setup with TOTP code."""
-        from grunt.auth.mfa import confirm_mfa_setup  # noqa: PLC0415
+        from grunt.auth.mfa import confirm_mfa_setup
 
         return await confirm_mfa_setup(self, code)
 
     async def disable_mfa(self) -> None:
         """Whitelisted method: Disable MFA for the user."""
-        from grunt.auth.mfa import disable_mfa  # noqa: PLC0415
+        from grunt.auth.mfa import disable_mfa
 
         await disable_mfa(self)
 
@@ -142,10 +142,10 @@ async def get_user_by_email(
     email: str,
     session: AsyncSession,
 ) -> User | None:
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     async with grunt.system_context(session):
-        from grunt.auth.doctypes.UserRole.user_role import get_user_roles  # noqa: PLC0415
+        from grunt.auth.doctypes.UserRole.user_role import get_user_roles
 
         rows = await grunt.db.get_all("User", filters={"email": email}, limit=1)
         if not rows:
@@ -156,10 +156,10 @@ async def get_user_by_email(
 
 
 async def get_user_by_id(user_id: str, session: AsyncSession) -> User | None:
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     async with grunt.system_context(session):
-        from grunt.auth.doctypes.UserRole.user_role import get_user_roles  # noqa: PLC0415
+        from grunt.auth.doctypes.UserRole.user_role import get_user_roles
 
         rows = await grunt.db.get_all("User", filters={"name": user_id}, limit=1)
         if not rows:
@@ -170,12 +170,12 @@ async def get_user_by_id(user_id: str, session: AsyncSession) -> User | None:
 
 
 async def list_users(session: AsyncSession) -> list[User]:
-    from grunt.app import grunt  # noqa: PLC0415
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.app import grunt
+    from grunt.site.manager import site_manager
 
     _engine = site_manager.get_engine(site_manager.get_active_site())
     async with grunt.system_context(session, _engine):
-        from grunt.auth.doctypes.UserRole.user_role import get_user_roles  # noqa: PLC0415
+        from grunt.auth.doctypes.UserRole.user_role import get_user_roles
 
         rows = await grunt.db.get_all("User", limit=10_000)
         users = []
@@ -194,8 +194,8 @@ async def create_user(
     session: AsyncSession,
 ) -> User:
     """Create a new user. The first user automatically becomes superadmin."""
-    from grunt.app import grunt  # noqa: PLC0415
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.app import grunt
+    from grunt.site.manager import site_manager
 
     _engine = site_manager.get_engine(site_manager.get_active_site())
     async with grunt.system_context(session, _engine):
@@ -228,7 +228,7 @@ async def authenticate(email: str, password: str, session: AsyncSession) -> User
     Tracks failed attempts and locks the account after _MAX_ATTEMPTS failures.
     Raises ``ValueError("locked")`` when the account is temporarily locked.
     """
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     user = await get_user_by_email(email, session)
     if user is None:
@@ -268,7 +268,7 @@ async def register(
     middle_name: str | None = None,
 ) -> dict[str, Any]:
     """Register a new user."""
-    from grunt.app import grunt as grunt_app  # noqa: PLC0415
+    from grunt.app import grunt as grunt_app
 
     session = grunt_app._require_session()
 
@@ -296,7 +296,7 @@ async def register(
 @grunt.whitelist()
 async def whoami() -> dict[str, Any]:
     """Return the currently authenticated user."""
-    from grunt.app import grunt as grunt_app  # noqa: PLC0415
+    from grunt.app import grunt as grunt_app
 
     user = grunt_app._require_user()
     return {
@@ -312,7 +312,7 @@ async def whoami() -> dict[str, Any]:
 @grunt.whitelist()
 async def list_users_api() -> list[dict[str, Any]]:
     """List all users. Superadmin only."""
-    from grunt.app import grunt as grunt_app  # noqa: PLC0415
+    from grunt.app import grunt as grunt_app
 
     user = grunt_app._require_user()
     if not user.is_superadmin:
@@ -334,7 +334,7 @@ async def list_users_api() -> list[dict[str, Any]]:
 @grunt.whitelist()
 async def add_role(user_id: str, role_name: str) -> dict[str, Any]:
     """Assign a role to a user. Superadmin only."""
-    from grunt.app import grunt as grunt_app  # noqa: PLC0415
+    from grunt.app import grunt as grunt_app
 
     user = grunt_app._require_user()
     if not user.is_superadmin:
@@ -364,7 +364,7 @@ async def add_role(user_id: str, role_name: str) -> dict[str, Any]:
 @grunt.whitelist()
 async def remove_role(user_id: str, role_name: str) -> bool:
     """Remove a role from a user. Superadmin only."""
-    from grunt.app import grunt as grunt_app  # noqa: PLC0415
+    from grunt.app import grunt as grunt_app
 
     user = grunt_app._require_user()
     if not user.is_superadmin:
@@ -386,7 +386,7 @@ async def remove_role(user_id: str, role_name: str) -> bool:
 @grunt.whitelist()
 async def setup_mfa() -> dict[str, Any]:
     """Whitelisted method: Start MFA setup for the current user."""
-    from grunt.app import grunt as grunt_app  # noqa: PLC0415
+    from grunt.app import grunt as grunt_app
 
     current = grunt_app._require_user()
     session = grunt_app._require_session()
@@ -399,7 +399,7 @@ async def setup_mfa() -> dict[str, Any]:
 @grunt.whitelist()
 async def confirm_mfa(code: str) -> dict[str, Any]:
     """Whitelisted method: Confirm MFA setup for the current user."""
-    from grunt.app import grunt as grunt_app  # noqa: PLC0415
+    from grunt.app import grunt as grunt_app
 
     current = grunt_app._require_user()
     session = grunt_app._require_session()
@@ -413,7 +413,7 @@ async def confirm_mfa(code: str) -> dict[str, Any]:
 @grunt.whitelist()
 async def disable_mfa() -> bool:
     """Whitelisted method: Disable MFA for the current user."""
-    from grunt.app import grunt as grunt_app  # noqa: PLC0415
+    from grunt.app import grunt as grunt_app
 
     current = grunt_app._require_user()
     session = grunt_app._require_session()

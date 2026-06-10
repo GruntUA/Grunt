@@ -32,7 +32,7 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
         try:
             # Set session in Grunt API context (lazy import to avoid cycles)
             try:
-                from grunt.api.context import set_session as _set  # noqa: PLC0415
+                from grunt.api.context import set_session as _set
 
                 _set(session)
             except ImportError:
@@ -46,7 +46,7 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
         finally:
             # Clear session from context
             try:
-                from grunt.api.context import clear_context as _clear  # noqa: PLC0415
+                from grunt.api.context import clear_context as _clear
 
                 _clear()
             except ImportError:
@@ -60,7 +60,7 @@ async def get_engine() -> AsyncEngine:
 
     # Also set in context (lazy import)
     try:
-        from grunt.api.context import set_engine as _set  # noqa: PLC0415
+        from grunt.api.context import set_engine as _set
 
         _set(engine)
     except ImportError:
@@ -87,7 +87,7 @@ async def async_session_factory() -> AsyncGenerator[AsyncSession]:
         try:
             # Set in context for Grunt API (lazy import)
             try:
-                from grunt.api.context import set_session as _set  # noqa: PLC0415
+                from grunt.api.context import set_session as _set
 
                 _set(session)
             except ImportError:
@@ -100,7 +100,7 @@ async def async_session_factory() -> AsyncGenerator[AsyncSession]:
             raise
         finally:
             try:
-                from grunt.api.context import clear_context as _clear  # noqa: PLC0415
+                from grunt.api.context import clear_context as _clear
 
                 _clear()
             except ImportError:

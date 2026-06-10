@@ -85,7 +85,7 @@ class DocumentReadMixin:
 
         table = compile_doctype_to_table(dt)
 
-        from grunt.document.base import DocumentList  # noqa: PLC0415
+        from grunt.document.base import DocumentList
 
         # Singleton — return at most 1 row, ignore pagination
         if dt.is_singleton:
@@ -115,8 +115,8 @@ class DocumentReadMixin:
         # Controller hook: list_filter_extra — DocType controllers may inject
         # extra WHERE clauses (e.g. temporal guards, visibility rules) without
         # modifying the framework core.
-        from grunt.document.base import Document  # noqa: PLC0415
-        from grunt.document.registry import document_registry  # noqa: PLC0415
+        from grunt.document.base import Document
+        from grunt.document.registry import document_registry
 
         controller_cls = document_registry.get(doctype_name)
         extra_clause = None
@@ -152,7 +152,7 @@ class DocumentReadMixin:
         col_type = str(sort_col.type).upper()
         is_text = any(t in col_type for t in text_types)
         if is_text:
-            from grunt.site.manager import text_sort_expr  # noqa: PLC0415
+            from grunt.site.manager import text_sort_expr
 
             dialect_name = self.session.bind.dialect.name if self.session.bind else "sqlite"
             sort_expr = text_sort_expr(sort_col, dialect_name)
@@ -173,7 +173,7 @@ class DocumentReadMixin:
                 except ValueError:
                     cursor_val = sort_str
 
-                from sqlalchemy import and_, or_  # noqa: PLC0415
+                from sqlalchemy import and_, or_
 
                 if sort_order == "asc":
                     keyset = or_(
@@ -186,7 +186,7 @@ class DocumentReadMixin:
                         and_(sort_col == cursor_val, table.c.name < cursor_id),
                     )
                 query = query.where(keyset)
-            except Exception:  # noqa: BLE001 — malformed cursor falls back to page
+            except Exception:
                 logger.warning("list_documents.invalid_cursor", cursor=cursor)
 
         query = query.limit(per_page)
@@ -199,7 +199,7 @@ class DocumentReadMixin:
         # Resolve Link field labels (inject fieldname__label into each row)
         try:
             await _resolve_link_labels(self.session, dt, rows)
-        except Exception as _lbl_err:  # noqa: BLE001
+        except Exception as _lbl_err:
             logger.warning(
                 "list_documents.link_labels_failed", doctype=doctype_name, error=str(_lbl_err)
             )
@@ -288,8 +288,8 @@ class DocumentReadMixin:
         await evaluate_read_formulas(dt, doc)
 
         # Call controller on_load if the app overrides it
-        from grunt.document.base import Document  # noqa: PLC0415
-        from grunt.document.registry import document_registry  # noqa: PLC0415
+        from grunt.document.base import Document
+        from grunt.document.registry import document_registry
 
         controller_cls = document_registry.get(doctype_name)
         if controller_cls.on_load is not Document.on_load:

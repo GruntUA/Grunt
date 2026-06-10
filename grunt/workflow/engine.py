@@ -93,17 +93,17 @@ class WorkflowEngine:
         updated_doc = await grunt.get_doc(doctype.name, doc_id)
 
         # Run controller after_save (so apps can react to state changes)
-        from grunt.document.registry import document_registry  # noqa: PLC0415
+        from grunt.document.registry import document_registry
 
         try:
             controller_cls = document_registry.get(doctype.name)
             controller = controller_cls(doctype.name, updated_doc, user, session)
             await controller.after_save()
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("workflow.controller_after_save_error", doctype=doctype.name)
 
         # Fire on_transition hooks
-        from grunt.hooks import fire as fire_hook  # noqa: PLC0415
+        from grunt.hooks import fire as fire_hook
 
         try:
             await fire_hook(
@@ -116,7 +116,7 @@ class WorkflowEngine:
                 user=user,
                 session=session,
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("hook.on_transition_error")
 
         # Fire after_save / after_update hooks (so doc_events work for transitions too)
@@ -128,7 +128,7 @@ class WorkflowEngine:
                 user=user,
                 session=session,
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("hook.after_save_on_transition_error")
 
         # Log activity
@@ -148,7 +148,7 @@ class WorkflowEngine:
 
         # Broadcast WS
         with contextlib.suppress(Exception):
-            from grunt.api.v1.ws import manager  # noqa: PLC0415
+            from grunt.api.v1.ws import manager
 
             await manager.broadcast_doc(
                 doctype.name,
@@ -190,7 +190,7 @@ class WorkflowEngine:
                 condition, functions={"now": datetime.now}, names={"doc": doc, "user": user}
             )
             return bool(result)
-        except Exception:  # noqa: BLE001
+        except Exception:
             return True  # Don't block on error
 
 

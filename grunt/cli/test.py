@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sys
-from pathlib import Path  # noqa: TC003
+from pathlib import Path
 
 import click
 
@@ -86,8 +86,8 @@ def test(
         os.environ["GRUNT_SITE"] = site
 
     # 4. Run pytest via subprocess so the correct project venv is used
-    import shutil  # noqa: PLC0415
-    import subprocess  # noqa: PLC0415
+    import shutil
+    import subprocess
 
     bench_dir = site_manager.bench_dir
     venv_pytest = bench_dir / ".venv" / "bin" / "pytest"

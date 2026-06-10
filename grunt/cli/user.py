@@ -20,7 +20,7 @@ def users_create(email, password, full_name, site):
     """Створити нового користувача."""
 
     async def _run():
-        from grunt.auth.doctypes.User.user import create_user, get_user_by_email  # noqa: PLC0415
+        from grunt.auth.doctypes.User.user import create_user, get_user_by_email
 
         name_parts = full_name.strip().split()
         first_name = name_parts[0] if name_parts else full_name.strip()
@@ -61,7 +61,7 @@ def users_list(site):
     """Показати список всіх користувачів."""
 
     async def _run():
-        from grunt.auth.doctypes.User.user import list_users  # noqa: PLC0415
+        from grunt.auth.doctypes.User.user import list_users
 
         async with _site_session(site) as (session, _eng):
             users = await list_users(session)
@@ -88,10 +88,10 @@ def users_set_password(email, password, site):
     """Змінити пароль користувача."""
 
     async def _run():
-        import grunt  # noqa: PLC0415
-        from grunt.app import grunt as grunt_app  # noqa: PLC0415
-        from grunt.auth.doctypes.User.user import (  # noqa: PLC0415
-            get_user_by_email,  # noqa: PLC0415
+        import grunt
+        from grunt.app import grunt as grunt_app
+        from grunt.auth.doctypes.User.user import (
+            get_user_by_email,
             hash_password,
         )
 

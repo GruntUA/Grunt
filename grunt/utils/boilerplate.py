@@ -28,7 +28,7 @@ def is_valid_app_name(name: str) -> bool:
 
 def is_valid_email(addr: str) -> bool:
     """Validate email address format."""
-    import email.headerregistry  # noqa: PLC0415
+    import email.headerregistry
 
     try:
         email.headerregistry.Address(addr_spec=addr)
@@ -181,7 +181,7 @@ def _create_app_boilerplate(dest: Path, hooks: dict, no_git: bool = False) -> No
 
 
 def _write_grunt_app_py(app_dir: Path, module: str, h: dict) -> None:
-    from grunt.utils.codegen import render_template  # noqa: PLC0415
+    from grunt.utils.codegen import render_template
 
     (app_dir / "grunt_app.py").write_text(
         render_template("app/app.py.jinja", {**h, "module": module}),
@@ -209,7 +209,7 @@ def _write_app_json(app_dir: Path, module: str, h: dict) -> None:
 
 
 def _write_install_py(app_dir: Path, h: dict) -> None:
-    from grunt.utils.codegen import render_template  # noqa: PLC0415
+    from grunt.utils.codegen import render_template
 
     (app_dir / "install.py").write_text(
         render_template("app/install.py.jinja", h),
@@ -218,7 +218,7 @@ def _write_install_py(app_dir: Path, h: dict) -> None:
 
 
 def _write_readme(app_dir: Path, h: dict) -> None:
-    from grunt.utils.codegen import render_template  # noqa: PLC0415
+    from grunt.utils.codegen import render_template
 
     (app_dir / "README.md").write_text(
         render_template("app/README.md.jinja", h),
@@ -227,7 +227,7 @@ def _write_readme(app_dir: Path, h: dict) -> None:
 
 
 def _write_gitignore(app_dir: Path) -> None:
-    from grunt.utils.codegen import render_template  # noqa: PLC0415
+    from grunt.utils.codegen import render_template
 
     (app_dir / ".gitignore").write_text(
         render_template("app/.gitignore.jinja", {}),
@@ -243,7 +243,7 @@ def _write_module_init(app_dir: Path, module: str, h: dict) -> None:
 
 
 def _write_hooks_py(app_dir: Path, module: str, h: dict) -> None:
-    from grunt.utils.codegen import render_template  # noqa: PLC0415
+    from grunt.utils.codegen import render_template
 
     (app_dir / module / "hooks.py").write_text(
         render_template("app/hooks.py.jinja", h),
@@ -252,7 +252,7 @@ def _write_hooks_py(app_dir: Path, module: str, h: dict) -> None:
 
 
 def _write_tasks_py(app_dir: Path, module: str, h: dict) -> None:
-    from grunt.utils.codegen import render_template  # noqa: PLC0415
+    from grunt.utils.codegen import render_template
 
     (app_dir / module / "tasks.py").write_text(
         render_template("app/tasks.py.jinja", h),
@@ -261,7 +261,7 @@ def _write_tasks_py(app_dir: Path, module: str, h: dict) -> None:
 
 
 def _write_routes_py(app_dir: Path, module: str, h: dict) -> None:
-    from grunt.utils.codegen import render_template  # noqa: PLC0415
+    from grunt.utils.codegen import render_template
 
     (app_dir / module / "routes.py").write_text(
         render_template("app/routes.py.jinja", h),
@@ -295,7 +295,7 @@ def _write_workspace_fixture(app_dir: Path, module: str, h: dict) -> None:
 
 
 def _write_jsconfig(app_dir: Path, module: str) -> None:
-    from grunt.utils.codegen import render_template  # noqa: PLC0415
+    from grunt.utils.codegen import render_template
 
     (app_dir / "jsconfig.json").write_text(
         render_template("app/jsconfig.json.jinja", {"module": module}),
@@ -304,7 +304,7 @@ def _write_jsconfig(app_dir: Path, module: str) -> None:
 
 
 def _write_types_dts(app_dir: Path, module: str) -> None:
-    from grunt.utils.codegen import render_template  # noqa: PLC0415
+    from grunt.utils.codegen import render_template
 
     (app_dir / module / "types.d.ts").write_text(
         render_template("app/types.d.ts.jinja", {}),

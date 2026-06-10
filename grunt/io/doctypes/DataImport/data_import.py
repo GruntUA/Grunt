@@ -162,7 +162,7 @@ class DataImport(Document):
         await self.session.commit()
 
         try:
-            from grunt.api.v1.ws import manager  # noqa: PLC0415
+            from grunt.api.v1.ws import manager
 
             await manager.broadcast_doc(
                 "DataImport",
@@ -177,7 +177,7 @@ class DataImport(Document):
                     "error_log": self.error_log,
                 },
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("suppressed_error")
 
     async def _resolve_file_path(self) -> Path:
@@ -191,7 +191,7 @@ class DataImport(Document):
         if self.file.startswith("/api/v1/files/"):
             file_id = self.file.rstrip("/").split("/")[-1]
         elif "file_id=" in self.file:
-            from urllib.parse import parse_qs, urlparse  # noqa: PLC0415
+            from urllib.parse import parse_qs, urlparse
 
             qs = parse_qs(urlparse(self.file).query)
             ids = qs.get("file_id", [])
@@ -200,7 +200,7 @@ class DataImport(Document):
         if file_id:
             doc = await self.grunt.get_doc("File", file_id)
             if doc:
-                from grunt.storage.backends import get_storage_backend  # noqa: PLC0415
+                from grunt.storage.backends import get_storage_backend
 
                 storage = get_storage_backend()
                 rel = doc["path"]
@@ -215,7 +215,7 @@ class DataImport(Document):
     @staticmethod
     def _read_file(file_path: Path, limit: int | None = None) -> list[list[Any]]:
         """Read CSV or XLSX file via the io importer registry."""
-        from grunt.io.importers.registry import get_importer_for_file  # noqa: PLC0415
+        from grunt.io.importers.registry import get_importer_for_file
 
         imp = get_importer_for_file(file_path.name)
         if imp is None:
@@ -241,7 +241,7 @@ class DataImport(Document):
 
         Returns ``(file_bytes, filename)``.
         """
-        from grunt.io.exporters.registry import get_exporter  # noqa: PLC0415
+        from grunt.io.exporters.registry import get_exporter
 
         exporter = get_exporter(fmt)
         if exporter is None:
@@ -270,7 +270,7 @@ class DataImport(Document):
         fmt: str = "csv",
     ) -> tuple[bytes, str]:
         """Return an empty import template (headers only) for *doctype*."""
-        from grunt.io.exporters.registry import get_exporter  # noqa: PLC0415
+        from grunt.io.exporters.registry import get_exporter
 
         exporter = get_exporter(fmt)
         if exporter is None:

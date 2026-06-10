@@ -135,7 +135,7 @@ async def fire(event: str, **kwargs: Any) -> None:
     # 3. Run Server Scripts (DocType Event type)
     if event in _SERVER_SCRIPT_EVENTS and doctype and kwargs.get("session"):
         try:
-            from grunt.scripting import server_script_runner  # noqa: PLC0415
+            from grunt.scripting import server_script_runner
 
             user_email = ""
             user_obj_ss = kwargs.get("user")
@@ -149,7 +149,7 @@ async def fire(event: str, **kwargs: Any) -> None:
                 doc=kwargs.get("doc", {}),
                 user_email=user_email,
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("server_script.hook_error", hook_event=event, doctype=doctype)
 
     # 4. Sync document links (backlinks)
@@ -160,22 +160,22 @@ async def fire(event: str, **kwargs: Any) -> None:
         and kwargs.get("session")
     ):
         try:
-            from grunt.document.links import link_service  # noqa: PLC0415
+            from grunt.document.links import link_service
 
             doc = kwargs["doc"]
             doc_id = doc.get("name", "")
             await link_service.sync_links(kwargs["session"], doctype, str(doc_id), doc)
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("links.sync_error", hook_event=event, doctype=doctype)
 
     if event == "after_delete" and doctype and kwargs.get("doc") and kwargs.get("session"):
         try:
-            from grunt.document.links import link_service  # noqa: PLC0415
+            from grunt.document.links import link_service
 
             doc = kwargs["doc"]
             doc_id = doc.get("name", "")
             await link_service.delete_links(kwargs["session"], doctype, str(doc_id))
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("links.delete_error", hook_event=event, doctype=doctype)
 
     # 5. Evaluate notification rules (Background)
@@ -188,7 +188,7 @@ async def fire(event: str, **kwargs: Any) -> None:
     ):
         try:
             from grunt.notification.tasks import (
-                evaluate_notification_rules_task,  # noqa: PLC0415
+                evaluate_notification_rules_task,
             )
 
             user_email = ""
@@ -203,7 +203,7 @@ async def fire(event: str, **kwargs: Any) -> None:
                 doc=kwargs["doc"],
                 user_email=user_email,
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("notification.offload_error", hook_event=event, doctype=doctype)
 
     # 6. Evaluate assignment rules
@@ -214,14 +214,14 @@ async def fire(event: str, **kwargs: Any) -> None:
         and kwargs.get("session")
     ):
         try:
-            from grunt.assignment import assignment_service  # noqa: PLC0415
+            from grunt.assignment import assignment_service
 
             await assignment_service.evaluate_and_assign(
                 doctype=doctype,
                 doc=kwargs["doc"],
                 session=kwargs["session"],
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("assignment.evaluate_error", hook_event=event, doctype=doctype)
 
 

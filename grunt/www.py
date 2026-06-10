@@ -159,7 +159,7 @@ async def render_page(
 
 def make_www_handler(page: WwwPage):
     """Return a FastAPI route handler for the given WwwPage."""
-    from grunt.db.session import get_session  # noqa: PLC0415
+    from grunt.db.session import get_session
 
     async def _handler(
         request: Request,

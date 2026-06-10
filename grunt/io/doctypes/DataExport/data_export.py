@@ -75,7 +75,7 @@ class DataExport(Document):
 
     async def _save_file(self, filename: str, content: bytes, fmt: str) -> dict[str, Any]:
         """Store export bytes via the storage backend and create a File record."""
-        from grunt.storage import get_storage_backend  # noqa: PLC0415
+        from grunt.storage import get_storage_backend
 
         mime = (
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -105,9 +105,9 @@ class DataExport(Document):
 
     @staticmethod
     def _count_xlsx_rows(file_bytes: bytes) -> int:
-        import io  # noqa: PLC0415
+        import io
 
-        import openpyxl  # noqa: PLC0415
+        import openpyxl
 
         try:
             wb = openpyxl.load_workbook(io.BytesIO(file_bytes), read_only=True)

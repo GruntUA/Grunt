@@ -12,6 +12,7 @@ from datetime import date
 from typing import Any
 
 from fastapi import Depends, Query, Request
+from pydantic import BaseModel
 from sqlalchemy import select
 
 from grunt.api.router import GruntRouter
@@ -254,9 +255,6 @@ async def get_ancestors(
 
 class MoveNodeRequest:
     pass
-
-
-from pydantic import BaseModel  # noqa: E402
 
 
 class MoveNodeBody(BaseModel):

@@ -15,7 +15,7 @@ logger = structlog.get_logger()
 
 async def seed_system_settings(session: AsyncSession, engine: AsyncEngine) -> None:
     """Ensure a row exists for the SystemSettings singleton."""
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     async with grunt.system_context(session, engine):
         if await grunt.db.count("SystemSettings") > 0:

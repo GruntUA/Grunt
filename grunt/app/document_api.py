@@ -44,11 +44,11 @@ class DocumentAPI:
             return
         try:
             await cache.invalidate_doctype(doctype)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("query_cache.invalidate_failed", doctype=doctype, error=str(exc))
 
     def _svc(self):
-        from grunt.document.service import DocumentService  # noqa: PLC0415
+        from grunt.document.service import DocumentService
 
         return DocumentService(self._require_session(), self._require_engine())
 
@@ -61,7 +61,7 @@ class DocumentAPI:
         expand: list[str] | None = None,
     ) -> dict[str, Any]:
         """Fetch a single document by id or name."""
-        from grunt.hooks import fire  # noqa: PLC0415
+        from grunt.hooks import fire
 
         dt, user, hidden_fields = await self._read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, doc_id=id_or_name)
@@ -72,7 +72,7 @@ class DocumentAPI:
 
     async def get_doc_instance(self, doctype: str, id_or_name: str) -> Document:
         """Fetch a document and return it as an instantiated controller."""
-        from grunt.document.registry import document_registry  # noqa: PLC0415
+        from grunt.document.registry import document_registry
 
         dt, user, hidden_fields = await self._read_guard(doctype)
         data = await self._svc().get_document(doctype, id_or_name, user)
@@ -88,7 +88,7 @@ class DocumentAPI:
         ignore_required: bool = False,
     ) -> dict[str, Any]:
         """Create a new document and return it."""
-        from grunt.hooks import fire  # noqa: PLC0415
+        from grunt.hooks import fire
 
         dt, user, session = await self._write_guard(doctype, "create")
         await fire("before_save", doctype=doctype, doc=dict(data), user=user, session=session)
@@ -110,7 +110,7 @@ class DocumentAPI:
         ignore_required: bool = False,
     ) -> dict[str, Any]:
         """Update an existing document and return the updated version."""
-        from grunt.hooks import fire  # noqa: PLC0415
+        from grunt.hooks import fire
 
         dt, user, session = await self._write_guard(doctype, "write")
         await fire(
@@ -131,14 +131,14 @@ class DocumentAPI:
 
     async def delete_doc(self, doctype: str, id_or_name: str) -> None:
         """Delete a document."""
-        from grunt.hooks import fire  # noqa: PLC0415
+        from grunt.hooks import fire
 
         dt, user, session = await self._write_guard(doctype, "delete")
 
         snapshot: dict[str, Any] | None = None
         try:
             snapshot = await self._svc().get_document(doctype, id_or_name, user)
-        except Exception:  # noqa: BLE001
+        except Exception:
             snapshot = {"name": id_or_name}
 
         await fire("before_delete", doctype=doctype, doc=snapshot, user=user, session=session)
@@ -155,7 +155,7 @@ class DocumentAPI:
 
     async def rename_doc(self, doctype: str, old_id: str, new_id: str) -> dict[str, Any]:
         """Rename a document and cascade all references."""
-        from grunt.hooks import fire  # noqa: PLC0415
+        from grunt.hooks import fire
 
         dt, user, session = await self._write_guard(doctype, "write")
         await fire(
@@ -204,7 +204,7 @@ class DocumentAPI:
         if not ids:
             return 0, []
 
-        from grunt.document.update_side_effects import (  # noqa: PLC0415
+        from grunt.document.update_side_effects import (
             write_bulk_delete_activity_log,
         )
 
@@ -241,7 +241,7 @@ class DocumentAPI:
         search: str | None = None,
     ) -> list[dict[str, Any]]:
         """Fetch a list of documents as dictionaries."""
-        from grunt.hooks import fire  # noqa: PLC0415
+        from grunt.hooks import fire
 
         dt, user, hidden_fields = await self._read_guard(doctype)
         await fire(
@@ -317,8 +317,8 @@ class DocumentAPI:
 
             users = await grunt.get_all(User, filters={"active": True})
         """
-        from grunt.document.base import DocumentList  # noqa: PLC0415
-        from grunt.hooks import fire  # noqa: PLC0415
+        from grunt.document.base import DocumentList
+        from grunt.hooks import fire
 
         doctype: str = getattr(model_class, "doctype", model_class.__name__)
         _, user, hidden_fields = await self._read_guard(doctype)
@@ -363,10 +363,10 @@ class DocumentAPI:
         records: list[dict[str, Any]],
     ) -> list[str]:
         """Create multiple documents in a single database round-trip."""
-        from datetime import datetime  # noqa: PLC0415
+        from datetime import datetime
 
-        from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.naming import naming_service  # noqa: PLC0415
+        from grunt.metadata.compiler import compile_doctype_to_table
+        from grunt.naming import naming_service
 
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
@@ -406,7 +406,7 @@ class DocumentAPI:
         values: dict[str, Any],
     ) -> int:
         """Update multiple documents matching ``filters`` in a single query."""
-        from datetime import datetime  # noqa: PLC0415
+        from datetime import datetime
 
         user = self._require_user()
 
@@ -441,7 +441,7 @@ class DocumentAPI:
             if await grunt.exists("Invoice", {"number": "INV-001", "status": "Unpaid"}):
                 ...
         """
-        from grunt.hooks import fire  # noqa: PLC0415
+        from grunt.hooks import fire
 
         _, user, _ = await self._read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, filters=filters, method="exists")
@@ -467,7 +467,7 @@ class DocumentAPI:
 
             status = await grunt.get_value("Invoice", invoice_id, "status")
         """
-        from grunt.hooks import fire  # noqa: PLC0415
+        from grunt.hooks import fire
 
         _, user, _ = await self._read_guard(doctype)
         await fire(
@@ -535,7 +535,7 @@ class DocumentAPI:
 
             await grunt.submit("LeaveRequest", request_id, "Approve")
         """
-        from grunt.workflow.engine import workflow_engine  # noqa: PLC0415
+        from grunt.workflow.engine import workflow_engine
 
         dt = await doctype_registry.get(doctype)
         return await workflow_engine.apply_transition(

@@ -14,6 +14,30 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
+_GRUNT_ROOT = __import__("pathlib").Path(__file__).parent.parent  # grunt/startup/../ = grunt/
+
+
+async def load_core_fixtures(session: AsyncSession, eng: AsyncEngine) -> None:
+    """Load seed fixtures from grunt/*/fixtures/*.json (core module data).
+
+    Scans all grunt/<module>/fixtures/ directories and applies records
+    that don't yet exist in the database. Safe to call repeatedly.
+    """
+    import json
+
+    for fixtures_dir in sorted(_GRUNT_ROOT.glob("*/fixtures")):
+        for fx_file in sorted(fixtures_dir.glob("*.json")):
+            try:
+                fx = json.loads(fx_file.read_text(encoding="utf-8"))
+                fx_doctype = fx.get("doctype", "")
+                records = fx.get("records", [])
+                if not fx_doctype or not records:
+                    continue
+                await _apply_doctype_fixture(fx_doctype, records, session, eng)
+                logger.info("startup.core_fixture_applied", file=fx_file.name, doctype=fx_doctype)
+            except Exception as e:
+                logger.warning("startup.core_fixture_failed", file=fx_file.name, error=str(e))
+
 
 def _load_app_meta(app_dir: Path) -> dict | None:
     """Load app metadata from app.json and/or grunt_app.py with fallback merging.
@@ -21,7 +45,7 @@ def _load_app_meta(app_dir: Path) -> dict | None:
     Priority: app.json values override grunt_app.py values.
     Guarantees presence of: name, title, version, modules, icon, color, description.
     """
-    import json  # noqa: PLC0415
+    import json
 
     app_json = app_dir / "app.json"
     grunt_app = app_dir / "grunt_app.py"
@@ -40,7 +64,7 @@ def _load_app_meta(app_dir: Path) -> dict | None:
     if grunt_app.exists():
         ns: dict = {}
         try:
-            exec(grunt_app.read_text(), ns)  # noqa: S102
+            exec(grunt_app.read_text(), ns)
             result.update(
                 {
                     "name": ns.get("APP_NAME", result["name"]),
@@ -53,7 +77,7 @@ def _load_app_meta(app_dir: Path) -> dict | None:
                     "color": ns.get("APP_COLOR", result["color"]),
                 }
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("suppressed_error")
 
     if app_json.exists():
@@ -71,7 +95,7 @@ def _load_app_meta(app_dir: Path) -> dict | None:
             ):
                 if key in app_data:
                     result[key] = app_data[key]
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("suppressed_error")
 
     return result
@@ -86,7 +110,7 @@ def _coerce_fixture_value(fieldtype: str, value: object) -> object:
     if value is None:
         return None
     if fieldtype == "Time" and isinstance(value, str):
-        from datetime import time as _time  # noqa: PLC0415
+        from datetime import time as _time
 
         parts = value.split(":")
         try:
@@ -96,8 +120,8 @@ def _coerce_fixture_value(fieldtype: str, value: object) -> object:
         except ValueError, IndexError:
             return None
     if fieldtype == "Date" and isinstance(value, str):
-        import re as _re  # noqa: PLC0415
-        from datetime import date as _date  # noqa: PLC0415
+        import re as _re
+        from datetime import date as _date
 
         if _re.match(r"^\d{4}-\d{2}-\d{2}$", value):
             try:
@@ -106,7 +130,7 @@ def _coerce_fixture_value(fieldtype: str, value: object) -> object:
             except ValueError:
                 return None
     if fieldtype == "Datetime" and isinstance(value, str):
-        from datetime import datetime as _datetime  # noqa: PLC0415
+        from datetime import datetime as _datetime
 
         try:
             dt = _datetime.fromisoformat(value.replace("Z", "+00:00"))
@@ -125,12 +149,12 @@ async def _apply_doctype_fixture(
     eng: AsyncEngine,
 ) -> None:
     """Insert fixture records for a regular DocType, skipping duplicates."""
-    from grunt.app import grunt  # noqa: PLC0415
-    from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.app import grunt
+    from grunt.metadata.registry import doctype_registry
 
     try:
         dt = await doctype_registry.get(doctype_name)
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.warning("startup.fixture_doctype_not_found", doctype=doctype_name)
         return
 
@@ -143,7 +167,7 @@ async def _apply_doctype_fixture(
             if await grunt.exists(doctype_name, {"name": name_val}):
                 continue
 
-            from grunt.metadata.field import NON_PHYSICAL_FIELDS  # noqa: PLC0415
+            from grunt.metadata.field import NON_PHYSICAL_FIELDS
 
             payload: dict[str, object] = dict(rec)
             payload["name"] = str(name_val)
@@ -161,8 +185,8 @@ async def _apply_doctype_fixture(
 
             try:
                 await grunt.new_doc(doctype_name, payload)
-            except Exception as _insert_exc:  # noqa: BLE001
-                from sqlalchemy.exc import IntegrityError as _IntegrityError  # noqa: PLC0415
+            except Exception as _insert_exc:
+                from sqlalchemy.exc import IntegrityError as _IntegrityError
 
                 if isinstance(_insert_exc, _IntegrityError):
                     await session.rollback()

@@ -8,10 +8,10 @@ import click
 @asynccontextmanager
 async def _site_session(site: str | None):
     """Async context manager: initialise site, load DocType registry, yield session."""
-    from grunt.document.registry import document_registry  # noqa: PLC0415
-    from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
-    from grunt.site.manager import current_site, site_manager  # noqa: PLC0415
-    from grunt.startup import load_core_doctypes  # noqa: PLC0415
+    from grunt.document.registry import document_registry
+    from grunt.metadata.registry import doctype_registry
+    from grunt.site.manager import current_site, site_manager
+    from grunt.startup import load_core_doctypes
 
     _sites = site_manager.get_sites()
     target_site: str | None = site or (_sites[0] if _sites else None)

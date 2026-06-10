@@ -50,7 +50,7 @@ async def link_search(
 
     # Virtual DocType — delegate to its controller's get_list
     if dt.is_virtual:
-        from grunt.document.virtual import _get_virtual_controller  # noqa: PLC0415
+        from grunt.document.virtual import _get_virtual_controller
 
         ctrl = _get_virtual_controller(doctype, user)
         result = await ctrl.get_list(search=q, page=1, per_page=page_length)

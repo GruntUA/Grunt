@@ -76,7 +76,7 @@ class QueryCache:
         if self._redis_failed or not settings.redis_url:
             return None
         try:
-            import redis.asyncio as aioredis  # noqa: PLC0415
+            import redis.asyncio as aioredis
 
             r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
             raw = await r.get(key)
@@ -86,7 +86,7 @@ class QueryCache:
             if isinstance(raw, bytes):
                 raw = raw.decode()
             return json.loads(raw)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             self._redis_failed = True
             logger.warning("query_cache.redis_get_failed", error=str(exc))
             return None
@@ -95,12 +95,12 @@ class QueryCache:
         if self._redis_failed or not settings.redis_url:
             return
         try:
-            import redis.asyncio as aioredis  # noqa: PLC0415
+            import redis.asyncio as aioredis
 
             r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
             await r.setex(key, self._ttl_seconds, json.dumps(payload, separators=(",", ":")))
             await r.aclose()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             self._redis_failed = True
             logger.warning("query_cache.redis_set_failed", error=str(exc))
 
@@ -137,14 +137,14 @@ class QueryCache:
         if self._redis_failed or not settings.redis_url:
             return
         try:
-            import redis.asyncio as aioredis  # noqa: PLC0415
+            import redis.asyncio as aioredis
 
             r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
             keys = await r.keys(f"{prefix}*")
             if keys:
                 await r.delete(*keys)
             await r.aclose()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             self._redis_failed = True
             logger.warning("query_cache.redis_invalidate_failed", error=str(exc), doctype=doctype)
 

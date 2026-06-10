@@ -16,7 +16,7 @@ class PermissionAPI:
     """Permission and identity helper methods for GruntApp."""
 
     def _require_user(self) -> User:
-        from grunt.context import _user_ctx  # noqa: PLC0415
+        from grunt.context import _user_ctx
 
         u = _user_ctx.get()
         if u is None:
@@ -52,7 +52,7 @@ class PermissionAPI:
         Returns ``(dt, user, hidden_fields)``.  Raises ``403`` when the user
         has no *read* permission on the DocType.
         """
-        from grunt.permissions.rbac import permission_checker  # noqa: PLC0415
+        from grunt.permissions.rbac import permission_checker
 
         dt = await doctype_registry.get(doctype)
         user = self._require_user()
@@ -66,12 +66,12 @@ class PermissionAPI:
         Returns ``(dt, user, session)``.  Raises ``403`` when the user has no
         permission for *action* (``"create"``, ``"write"``, or ``"delete"``).
         """
-        from grunt.permissions.rbac import permission_checker  # noqa: PLC0415
+        from grunt.permissions.rbac import permission_checker
 
         dt = await doctype_registry.get(doctype)
         user = self._require_user()
         await permission_checker.require(user, dt, action)
-        return dt, user, self._require_session()  # type: ignore[attr-defined]
+        return dt, user, self._require_session()
 
     async def has_permission(
         self,
@@ -87,16 +87,16 @@ class PermissionAPI:
             if not await grunt.has_permission("Invoice", "delete"):
                 grunt.throw("You cannot delete invoices")
         """
-        from grunt.permissions.rbac import permission_checker  # noqa: PLC0415
+        from grunt.permissions.rbac import permission_checker
 
         dt = await doctype_registry.get(doctype)
         user = self._require_user()
         doc: dict[str, Any] | None = None
         if doc_id:
-            doc = await self.db.get_value(doctype, doc_id, "*")  # type: ignore[attr-defined]
+            doc = await self.db.get_value(doctype, doc_id, "*")
         return await permission_checker.check(
             user,
             dt,
             action,
-            doc,  # type: ignore[arg-type]
+            doc,
         )

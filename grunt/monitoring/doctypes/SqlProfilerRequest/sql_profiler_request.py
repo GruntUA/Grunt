@@ -22,7 +22,7 @@ class SqlProfilerRequest(VirtualDocType):
         search: str | None = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
-        from grunt.db.profiler import get_recent_requests  # noqa: PLC0415
+        from grunt.db.profiler import get_recent_requests
 
         rows = get_recent_requests(limit=200)
 
@@ -37,9 +37,9 @@ class SqlProfilerRequest(VirtualDocType):
         return response
 
     async def get(self, doc_id: str, **kwargs: Any) -> dict[str, Any]:
-        from fastapi import HTTPException, status  # noqa: PLC0415
+        from fastapi import HTTPException, status
 
-        from grunt.db.profiler import get_recent_requests  # noqa: PLC0415
+        from grunt.db.profiler import get_recent_requests
 
         rows = get_recent_requests(limit=200)
         for row in rows:
@@ -51,17 +51,17 @@ class SqlProfilerRequest(VirtualDocType):
         )
 
     async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        from fastapi import HTTPException, status  # noqa: PLC0415
+        from fastapi import HTTPException, status
 
         raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail="Read-only")
 
     async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        from fastapi import HTTPException, status  # noqa: PLC0415
+        from fastapi import HTTPException, status
 
         raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail="Read-only")
 
     async def delete(self, doc_id: str, **kwargs: Any) -> None:
-        from fastapi import HTTPException, status  # noqa: PLC0415
+        from fastapi import HTTPException, status
 
         raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail="Read-only")
 

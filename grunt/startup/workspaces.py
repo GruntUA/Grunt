@@ -16,9 +16,9 @@ _FIXTURES_DIR = __import__("pathlib").Path(__file__).parent.parent / "fixtures"
 
 async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
     """Create or update the Grunt system workspace from fixtures/grunt_workspace.json."""
-    import json  # noqa: PLC0415
+    import json
 
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     fixture_file = _FIXTURES_DIR / "grunt_workspace.json"
     if not fixture_file.exists():
@@ -122,13 +122,13 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
     ``doctypes/`` directories if not yet in the registry, and creates a workspace
     with the app's DocTypes as sidebar items.
     """
-    import json  # noqa: PLC0415
+    import json
 
-    from grunt.app import grunt  # noqa: PLC0415
-    from grunt.metadata.doctype import DocType  # noqa: PLC0415
-    from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
-    from grunt.site.manager import site_manager  # noqa: PLC0415
-    from grunt.startup.fixtures import _apply_doctype_fixture, _load_app_meta  # noqa: PLC0415
+    from grunt.app import grunt
+    from grunt.metadata.doctype import DocType
+    from grunt.metadata.registry import doctype_registry
+    from grunt.site.manager import site_manager
+    from grunt.startup.fixtures import _apply_doctype_fixture, _load_app_meta
 
     site_file = site_manager.sites_dir / site_name / "grunt.site"
     if not site_file.exists():
@@ -202,7 +202,7 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                                 logger.info(
                                     "startup.app_doctype_updated", app=app_name, doctype=dt_name
                                 )
-                    except Exception as e:  # noqa: BLE001
+                    except Exception as e:
                         logger.warning(
                             "startup.app_doctype_register_failed",
                             app=app_name,
@@ -230,7 +230,7 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                             await _apply_doctype_fixture(fx_doctype, records, session, eng)
 
                         logger.info("startup.fixture_applied", app=app_name, file=fx_file.name)
-                    except Exception as e:  # noqa: BLE001
+                    except Exception as e:
                         logger.warning(
                             "startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e)
                         )
@@ -251,7 +251,7 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                         logger.info(
                             "startup.print_format_registered", app=app_name, name=data.get("name")
                         )
-                    except Exception as e:  # noqa: BLE001
+                    except Exception as e:
                         logger.warning(
                             "startup.print_format_failed",
                             app=app_name,
@@ -272,7 +272,7 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                 install_module_path = app_dir / "install.py"
                 if install_module_path.exists():
                     try:
-                        import importlib.util  # noqa: PLC0415
+                        import importlib.util
 
                         spec = importlib.util.spec_from_file_location(
                             f"{app_name}.install", install_module_path
@@ -283,7 +283,7 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                             if hasattr(install_mod, "after_install"):
                                 await install_mod.after_install(session, site_name)
                                 logger.info("startup.after_install_ok", app=app_name)
-                    except Exception as e:  # noqa: BLE001
+                    except Exception as e:
                         logger.warning("startup.after_install_failed", app=app_name, error=str(e))
 
             logger.info("startup.app_workspace_seeded", app=app_name)
@@ -295,7 +295,7 @@ async def _apply_workspace_fixture(
     app_meta: dict,
 ) -> bool:
     """Upsert AppMenu + WorkspaceSidebarItem rows from fixture data."""
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     applied = False
 
@@ -382,7 +382,7 @@ async def _auto_seed_workspace(
     app_doctypes: list,
 ) -> None:
     """Create/update workspace from registry DocTypes (fallback when no fixture)."""
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     existing = await grunt.get_list(
         "AppMenu",

@@ -18,7 +18,7 @@ router = APIRouter()
 @router.get("/metrics")
 async def metrics(user: User = Depends(current_user)) -> Response:
     """Expose Prometheus metrics. Requires authentication."""
-    from grunt.monitoring.metrics import get_metrics_output  # noqa: PLC0415
+    from grunt.monitoring.metrics import get_metrics_output
 
     body, content_type = get_metrics_output()
     return Response(content=body, media_type=content_type)

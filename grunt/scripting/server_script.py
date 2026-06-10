@@ -71,7 +71,7 @@ class _DBProxy:
         self._session = session
 
     async def _run_with_session(self, action: Callable[[], Awaitable[_T]]) -> _T:
-        from grunt.context import _session_ctx  # noqa: PLC0415
+        from grunt.context import _session_ctx
 
         token = _session_ctx.set(self._session)
         try:
@@ -86,7 +86,7 @@ class _DBProxy:
     async def _async_get_value(
         self, doctype: str, filters: str | dict[str, Any], fieldname: str
     ) -> Any:
-        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.app import GruntDB
 
         return await self._run_with_session(
             lambda: GruntDB().get_value(doctype, filters, fieldname)
@@ -97,7 +97,7 @@ class _DBProxy:
         self._bridge.run(self._async_set_value(doctype, doc_id, fieldname, value))
 
     async def _async_set_value(self, doctype: str, doc_id: str, fieldname: str, value: Any) -> None:
-        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.app import GruntDB
 
         await self._run_with_session(lambda: GruntDB().set_value(doctype, doc_id, fieldname, value))
 
@@ -106,7 +106,7 @@ class _DBProxy:
         return self._bridge.run(self._async_exists(doctype, filters))
 
     async def _async_exists(self, doctype: str, filters: str | dict[str, Any]) -> str | None:
-        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.app import GruntDB
 
         return await self._run_with_session(lambda: GruntDB().exists(doctype, filters))
 
@@ -134,7 +134,7 @@ class _DBProxy:
         order_by: str | None,
         order: str,
     ) -> list[dict[str, Any]]:
-        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.app import GruntDB
 
         return await self._run_with_session(
             lambda: GruntDB().get_all(
@@ -190,7 +190,7 @@ class ScriptContext:
         return self._session
 
     async def _run_with_session(self, action: Callable[[], Awaitable[_T]]) -> _T:
-        from grunt.context import _session_ctx  # noqa: PLC0415
+        from grunt.context import _session_ctx
 
         token = _session_ctx.set(self._get_session())
         try:
@@ -216,7 +216,7 @@ class ScriptContext:
 
     def log(self, *args: Any) -> None:
         """Log a message (visible in script output)."""
-        print(*args)  # noqa: T201 — captured by stdout redirect
+        print(*args)
 
     def get_doc(self, doctype: str, filters_or_id: str | dict[str, Any]) -> dict[str, Any] | None:
         """Fetch a single document by ID/name or filters.
@@ -233,7 +233,7 @@ class ScriptContext:
     async def _async_get_doc(
         self, doctype: str, filters_or_id: str | dict[str, Any]
     ) -> dict[str, Any] | None:
-        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.app import GruntDB
 
         async def _action() -> dict[str, Any] | None:
             db = GruntDB()
@@ -272,7 +272,7 @@ class ScriptContext:
         fields: list[str] | None,
         limit: int,
     ) -> list[dict[str, Any]]:
-        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.app import GruntDB
 
         return await self._run_with_session(
             lambda: GruntDB().get_all(
@@ -295,7 +295,7 @@ class ScriptContext:
         return self._bridge.run(self._async_new_doc(doctype, data))
 
     async def _async_new_doc(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
-        from grunt.app import grunt as _grunt  # noqa: PLC0415
+        from grunt.app import grunt as _grunt
 
         return await self._run_with_session(lambda: _grunt.new_doc(doctype, data))
 
@@ -313,9 +313,9 @@ class ScriptContext:
     async def _async_save_doc(
         self, doctype: str, id_or_name: str, data: dict[str, Any]
     ) -> dict[str, Any]:
-        from datetime import datetime  # noqa: PLC0415
+        from datetime import datetime
 
-        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.app import GruntDB
 
         async def _action() -> dict[str, Any]:
             update_data = dict(data)
@@ -339,7 +339,7 @@ class ScriptContext:
         self._bridge.run(self._async_delete_doc(doctype, id_or_name))
 
     async def _async_delete_doc(self, doctype: str, id_or_name: str) -> None:
-        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.app import GruntDB
 
         async def _action() -> None:
             deleted = await GruntDB().delete(doctype, {"id": id_or_name})
@@ -360,7 +360,7 @@ class ScriptContext:
         return self._bridge.run(self._async_count(doctype, filters))
 
     async def _async_count(self, doctype: str, filters: dict[str, Any] | None) -> int:
-        from grunt.app import GruntDB  # noqa: PLC0415
+        from grunt.app import GruntDB
 
         return await self._run_with_session(lambda: GruntDB().count(doctype, filters=filters))
 
@@ -390,7 +390,7 @@ class ScriptContext:
         doctype: str | None,
         doc_id: str | None,
     ) -> list[str]:
-        from grunt.publish import notify as _notify  # noqa: PLC0415
+        from grunt.publish import notify as _notify
 
         return await _notify(
             users=users,
@@ -428,8 +428,8 @@ class ServerScriptRunner:
         self, session: AsyncSession, doctype: str, event: str
     ) -> list[dict[str, Any]]:
         """Load enabled server scripts for a specific DocType event."""
-        from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.context import _session_ctx  # noqa: PLC0415
+        from grunt.app import GruntDB
+        from grunt.context import _session_ctx
 
         token = _session_ctx.set(session)
         try:
@@ -455,7 +455,7 @@ class ServerScriptRunner:
 
         # Append file-based scripts
         try:
-            from grunt.scripting.file_scripts import get_file_doctype_scripts  # noqa: PLC0415
+            from grunt.scripting.file_scripts import get_file_doctype_scripts
 
             scripts.extend(get_file_doctype_scripts(doctype, event))
         except ImportError:
@@ -470,8 +470,8 @@ class ServerScriptRunner:
 
     async def load_api_script(self, session: AsyncSession, method: str) -> dict[str, Any] | None:
         """Load an API-type server script by method name."""
-        from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.context import _session_ctx  # noqa: PLC0415
+        from grunt.app import GruntDB
+        from grunt.context import _session_ctx
 
         token = _session_ctx.set(session)
         try:
@@ -494,7 +494,7 @@ class ServerScriptRunner:
 
         # Check file-based scripts
         try:
-            from grunt.scripting.file_scripts import get_file_api_script  # noqa: PLC0415
+            from grunt.scripting.file_scripts import get_file_api_script
 
             return get_file_api_script(method)
         except ImportError:
@@ -502,8 +502,8 @@ class ServerScriptRunner:
 
     async def load_scheduler_scripts(self, session: AsyncSession) -> list[dict[str, Any]]:
         """Load all enabled scheduler-type server scripts."""
-        from grunt.app import GruntDB  # noqa: PLC0415
-        from grunt.context import _session_ctx  # noqa: PLC0415
+        from grunt.app import GruntDB
+        from grunt.context import _session_ctx
 
         token = _session_ctx.set(session)
         try:
@@ -581,7 +581,7 @@ class ServerScriptRunner:
 
         def _run_script() -> None:
             with contextlib.redirect_stdout(stdout_buf):
-                exec(compiled, script_globals)  # noqa: S102
+                exec(compiled, script_globals)
 
         try:
             await asyncio.to_thread(_run_script)

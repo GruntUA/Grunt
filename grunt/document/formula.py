@@ -83,7 +83,7 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
         return row
 
     # Build evaluation namespace
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     async def _count(doctype: str, filters: dict[str, Any] | None = None) -> int:
         return await grunt.count(doctype, filters=filters)
@@ -110,7 +110,7 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
         try:
             # Wrap formula in an async function to allow await of helpers
             code = compile(f"async def __f__(): return {formula}", "<string>", "exec")
-            exec(code, ns)  # noqa: S102
+            exec(code, ns)
             result = await ns["__f__"]()
 
             # Auto-await if the formula returned a coroutine (e.g. from an async helper)
@@ -125,7 +125,7 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
                 if field.fieldtype in _NUMERIC_FIELDTYPES
                 else coerced
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning(
                 "formula.eval_error",
                 doctype=dt.name,

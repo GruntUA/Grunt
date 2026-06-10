@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import structlog
 from fastapi import HTTPException
 from sqlalchemy import func, select, text
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from grunt.auth.doctypes.User.user import User
@@ -25,7 +27,7 @@ class ReportEngine:
         user: User,
         session: AsyncSession,
     ) -> dict[str, Any]:
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         async with grunt.context(session, None, user):
             rows = await grunt.get_list(
@@ -78,7 +80,7 @@ class ReportEngine:
 
         # Security check — allow only SELECT
         try:
-            import sqlparse  # noqa: PLC0415
+            import sqlparse
 
             parsed = sqlparse.parse(query_str)
             for stmt in parsed:
@@ -139,15 +141,15 @@ class ReportEngine:
                 "data": rows,
             }
         """
-        from grunt.app import grunt  # noqa: PLC0415
-        from grunt.db.session import get_engine as _engine_factory  # noqa: PLC0415
+        from grunt.app import grunt
+        from grunt.db.session import get_engine as _engine_factory
 
         script_src = report.get("script", "").strip()
         if not script_src:
             raise HTTPException(400, detail="Скрипт не вказано")
 
         # Inject 'grunt.result' placeholder and 'filters' into the context
-        from grunt.scripting.safe_globals import build_safe_globals  # noqa: PLC0415
+        from grunt.scripting.safe_globals import build_safe_globals
 
         engine = await _engine_factory()
         async with grunt.context(session, engine, user):
@@ -159,7 +161,7 @@ class ReportEngine:
 
             start = time.time()
             try:
-                exec(compile(script_src, "<script_report>", "exec"), extra_globals)  # noqa: S102
+                exec(compile(script_src, "<script_report>", "exec"), extra_globals)
             except HTTPException:
                 raise
             except Exception as exc:
@@ -213,9 +215,9 @@ class ReportEngine:
         Columns without an aggregation are treated as GROUP BY columns when
         any aggregation column is present; otherwise a plain SELECT is used.
         """
-        from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.permissions.rbac import permission_checker  # noqa: PLC0415
+        from grunt.metadata.compiler import compile_doctype_to_table
+        from grunt.metadata.registry import doctype_registry
+        from grunt.permissions.rbac import permission_checker
 
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
@@ -232,8 +234,6 @@ class ReportEngine:
                 for f in dt.fields
                 if getattr(f, "in_list_view", False)
             ]
-
-        from collections.abc import Callable  # noqa: PLC0415, TC003
 
         agg_map: dict[str, Callable[..., Any]] = {
             "count": func.count,
@@ -282,7 +282,7 @@ class ReportEngine:
                 stmt = stmt.where(col == val)
 
         # Row-level security
-        from grunt.permissions.query import apply_permission_filter  # noqa: PLC0415
+        from grunt.permissions.query import apply_permission_filter
 
         stmt = apply_permission_filter(stmt, table, user, dt)
 
@@ -307,10 +307,11 @@ class ReportEngine:
 
     async def export_excel(self, result: dict, report_name: str) -> bytes:
         try:
-            from io import BytesIO  # noqa: PLC0415
+            from io import BytesIO
 
-            import openpyxl  # noqa: PLC0415
-            from openpyxl.styles import Font  # noqa: PLC0415
+            import openpyxl
+            from openpyxl.cell import Cell
+            from openpyxl.styles import Font
         except ImportError as e:
             raise HTTPException(status_code=500, detail="openpyxl не встановлено") from e
 
@@ -335,7 +336,7 @@ class ReportEngine:
         # Auto-width
         for col in ws.columns:
             max_len = max((len(str(cell.value or "")) for cell in col), default=0)
-            ws.column_dimensions[col[0].column_letter].width = min(max_len + 2, 50)
+            ws.column_dimensions[cast(Cell, col[0]).column_letter].width = min(max_len + 2, 50)
 
         buf = BytesIO()
         wb.save(buf)

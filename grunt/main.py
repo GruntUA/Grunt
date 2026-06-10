@@ -2,6 +2,9 @@
 
 from contextlib import asynccontextmanager
 
+# Register core doctypes dir for lazy client script loading + eager server script loading
+from pathlib import Path as _Path
+
 import structlog
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,11 +12,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
-import grunt.auth.doctypes.User.user  # noqa: F401
-
 # Ensure all ORM models are imported so metadata is complete
-import grunt.db.system_tables  # noqa: F401
-import grunt.print.hooks  # noqa: F401
 from grunt.api.messages import ApplicationError
 from grunt.api.v1.router import v1_router
 from grunt.config import settings
@@ -22,14 +21,25 @@ from grunt.errors import GruntError
 from grunt.hooks import register_doc_events
 
 # Register built-in io exporters / importers
-from grunt.io import register_exporter, register_importer  # noqa: E402
-from grunt.io.exporters.csv import CsvExporter  # noqa: E402
-from grunt.io.exporters.xlsx import XlsxExporter  # noqa: E402
-from grunt.io.importers.csv import CsvImporter  # noqa: E402
-from grunt.io.importers.xlsx import XlsxImporter  # noqa: E402
+from grunt.io import register_exporter, register_importer
+from grunt.io.exporters.csv import CsvExporter
+from grunt.io.exporters.xlsx import XlsxExporter
+from grunt.io.importers.csv import CsvImporter
+from grunt.io.importers.xlsx import XlsxImporter
 from grunt.metadata.registry import doctype_registry
+from grunt.middleware.language import LanguageMiddleware
+from grunt.middleware.logging import RequestLoggingMiddleware
+from grunt.middleware.rate_limit import RateLimitMiddleware
+from grunt.middleware.security import SecurityHeadersMiddleware
+from grunt.scripting.file_scripts import (
+    _load_doctype_dir_scripts as _load_dt_scripts,
+)
+from grunt.scripting.file_scripts import (
+    register_client_script_dir as _reg_client_dirs,
+)
 from grunt.site.manager import current_site, site_manager
 from grunt.site.middleware import SiteContextMiddleware
+from grunt.startup.doctypes import _find_doctype_dirs as _grunt_doctype_dirs
 from grunt.tasks.broker import broker
 from grunt.tasks.scheduler import register_scheduler_events, start_scheduler, stop_scheduler
 from grunt.website import make_website_handler, website_registry
@@ -56,15 +66,6 @@ register_doc_events(
     }
 )
 
-# Register core doctypes dir for lazy client script loading + eager server script loading
-from pathlib import Path as _Path  # noqa: E402, I001
-
-from grunt.scripting.file_scripts import (  # noqa: E402, I001
-    _load_doctype_dir_scripts as _load_dt_scripts,
-    register_client_script_dir as _reg_client_dirs,
-)
-
-from grunt.startup.doctypes import _find_doctype_dirs as _grunt_doctype_dirs  # noqa: E402
 
 for _doctypes_dir in _grunt_doctype_dirs():
     _reg_client_dirs("grunt", _doctypes_dir)
@@ -75,10 +76,6 @@ for _doctypes_dir in _grunt_doctype_dirs():
 # Phase 3 modules (imported for side-effects: table registration)
 # workflow, permissions, reports engines are imported on-demand in endpoints
 
-from grunt.middleware.language import LanguageMiddleware  # noqa: E402
-from grunt.middleware.logging import RequestLoggingMiddleware  # noqa: E402
-from grunt.middleware.rate_limit import RateLimitMiddleware  # noqa: E402
-from grunt.middleware.security import SecurityHeadersMiddleware  # noqa: E402
 
 logger = structlog.get_logger()
 
@@ -86,7 +83,7 @@ logger = structlog.get_logger()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # ── Startup ──────────────────────────────────────────────────────
-    from grunt.logging_config import configure_logging  # noqa: PLC0415
+    from grunt.logging_config import configure_logging
 
     configure_logging(
         bench_dir=site_manager.bench_dir,
@@ -98,17 +95,17 @@ async def lifespan(app: FastAPI):
 
     logger.info("grunt.startup", version="0.1.0")
 
-    import importlib  # noqa: PLC0415
+    import importlib
 
     from grunt.startup import (
         apply_doctype_overrides,
         load_core_doctypes,
         load_validators,
-    )  # noqa: PLC0415
+    )
 
     load_validators()
 
-    from grunt.website import make_website_handler, website_registry  # noqa: PLC0415
+    from grunt.website import make_website_handler, website_registry
 
     sites = site_manager.get_sites()
     if not sites:
@@ -123,7 +120,7 @@ async def lifespan(app: FastAPI):
             maker = site_manager.get_session_maker(site)
 
             # Ensure the full-text search index table exists (DDL, not Alembic)
-            from grunt.search.service import search_index_service  # noqa: PLC0415
+            from grunt.search.service import search_index_service
 
             await search_index_service.ensure_table(eng)
 
@@ -138,7 +135,7 @@ async def lifespan(app: FastAPI):
                 from grunt.permissions.sync import (
                     load_all_permissions_from_db,
                     migrate_doctype_meta_permissions,
-                )  # noqa: PLC0415
+                )
 
                 await migrate_doctype_meta_permissions(session)
                 await session.flush()
@@ -151,10 +148,10 @@ async def lifespan(app: FastAPI):
             current_site.reset(token)
 
     # ── Post-startup: discover resources from installed external apps (bench_dir/apps/*) ──
-    import sys  # noqa: PLC0415
+    import sys
 
     from grunt.scripting.file_scripts import (
-        discover_file_scripts as _discover_scripts,  # noqa: PLC0415
+        discover_file_scripts as _discover_scripts,
     )
 
     ext_apps_dir = site_manager.bench_dir / "apps"
@@ -215,13 +212,13 @@ async def lifespan(app: FastAPI):
                                         error=str(e),
                                     )
                         if hasattr(hooks_mod, "io_exporters"):
-                            from grunt.io import register_exporter as _reg_exp  # noqa: PLC0415
+                            from grunt.io import register_exporter as _reg_exp
 
                             for _exp in hooks_mod.io_exporters:
                                 _reg_exp(_exp)
                                 logger.info("io.exporter.registered", id=_exp.id, app=ext_app.name)
                         if hasattr(hooks_mod, "io_importers"):
-                            from grunt.io import register_importer as _reg_imp  # noqa: PLC0415
+                            from grunt.io import register_importer as _reg_imp
 
                             for _imp in hooks_mod.io_importers:
                                 _reg_imp(_imp)
@@ -252,7 +249,7 @@ async def lifespan(app: FastAPI):
                 # Mount app/public/ as static files at /assets/{app}/
                 public_dir = ext_app / "public"
                 if public_dir.is_dir():
-                    from fastapi.staticfiles import StaticFiles  # noqa: PLC0415
+                    from fastapi.staticfiles import StaticFiles
 
                     app.mount(
                         f"/assets/{ext_app.name}",
@@ -274,9 +271,9 @@ async def lifespan(app: FastAPI):
     # Initialize Sentry (optional)
     if settings.sentry_dsn:
         try:
-            import sentry_sdk  # noqa: PLC0415
-            from sentry_sdk.integrations.fastapi import FastApiIntegration  # noqa: PLC0415
-            from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration  # noqa: PLC0415
+            import sentry_sdk
+            from sentry_sdk.integrations.fastapi import FastApiIntegration
+            from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
             sentry_sdk.init(
                 dsn=settings.sentry_dsn,
@@ -329,8 +326,8 @@ app.add_middleware(
 
 # ── Vite Dev Proxy (Development only) ───────────────────────────────────
 if settings.debug:
-    import httpx  # noqa: PLC0415
-    from fastapi.responses import StreamingResponse  # noqa: PLC0415
+    import httpx
+    from fastapi.responses import StreamingResponse
 
     VITE_SERVER_URL = "http://localhost:5173"
 
@@ -476,7 +473,7 @@ async def application_error_handler(request: Request, exc: ApplicationError) -> 
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    import traceback as _tb  # noqa: PLC0415
+    import traceback as _tb
 
     logger.exception("unhandled_error", error=str(exc))
 
@@ -504,7 +501,7 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
 
     # Extract SQL details from SQLAlchemy errors
     try:
-        from sqlalchemy.exc import SQLAlchemyError  # noqa: PLC0415
+        from sqlalchemy.exc import SQLAlchemyError
 
         if isinstance(exc, SQLAlchemyError):
             stmt = getattr(exc, "statement", None)
@@ -536,11 +533,11 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
 @app.get("/{path:path}", include_in_schema=False)
 async def website_catch_all(request: Request):
     # 1. Serve root-level static files (replaces StaticFiles mount at "/")
-    from fastapi.responses import FileResponse  # noqa: PLC0415
+    from fastapi.responses import FileResponse
 
-    from grunt.config import settings  # noqa: PLC0415
-    from grunt.site.manager import site_manager  # noqa: PLC0415
-    from grunt.website.router import render_page_by_route  # noqa: PLC0415
+    from grunt.config import settings
+    from grunt.site.manager import site_manager
+    from grunt.website.router import render_page_by_route
 
     req_path = request.url.path.lstrip("/")
     if req_path:  # ignore "/" itself
@@ -549,7 +546,7 @@ async def website_catch_all(request: Request):
             return FileResponse(str(candidate))
 
     # 2. Try server-side website pages
-    site = request.headers.get("X-Grunt-Site") or "dev2.itmlt.win"
+    site = request.headers.get("X-Grunt-Site")
     maker = site_manager.get_session_maker(site)
 
     async with maker() as session:
@@ -559,9 +556,9 @@ async def website_catch_all(request: Request):
 
     # 3. No server-side page found — fall back to SPA so vue-router handles
     #    the path (covers /403, /app/*, and any other frontend routes).
-    from fastapi.responses import HTMLResponse  # noqa: PLC0415
+    from fastapi.responses import HTMLResponse
 
-    from grunt.website import website_registry  # noqa: PLC0415
+    from grunt.website import website_registry
 
     env = website_registry.get_env("grunt")
     if env is not None:

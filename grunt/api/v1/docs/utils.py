@@ -39,7 +39,7 @@ async def _audit_log(
     changes: dict[str, Any] | None = None,
 ) -> None:
     """Write an ActivityLog entry via grunt.new_doc and broadcast via WebSocket."""
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     try:
         async with grunt.context(session=svc.session, engine=svc.engine, user=user):
@@ -54,7 +54,7 @@ async def _audit_log(
                 },
             )
             try:
-                from grunt.api.v1.ws import manager  # noqa: PLC0415
+                from grunt.api.v1.ws import manager
 
                 created_at = doc.get("created_at")
                 await manager.broadcast(
@@ -71,9 +71,9 @@ async def _audit_log(
                         else str(created_at or ""),
                     },
                 )
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.exception("suppressed_error")
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.warning("audit_log_failed", doctype=doctype, doc_id=doc_id, action=action)
 
 

@@ -18,8 +18,8 @@ def _is_virtual_routed(dt: Any, doctype_name: str) -> bool:
     Це дозволяє DocType мати is_virtual=False (нормальний merge при install),
     але продовжувати маршрутизувати CRUD через DocTypeController.
     """
-    from grunt.document.base import Document  # noqa: PLC0415
-    from grunt.metadata.virtual import VirtualDocType  # noqa: PLC0415
+    from grunt.document.base import Document
+    from grunt.metadata.virtual import VirtualDocType
 
     if dt.is_virtual:
         return True
@@ -29,7 +29,7 @@ def _is_virtual_routed(dt: Any, doctype_name: str) -> bool:
 
 def _get_virtual_controller(doctype_name: str, user: User):
     """Get the VirtualDocType controller instance for a virtual DocType."""
-    from grunt.metadata.virtual import VirtualDocType  # noqa: PLC0415
+    from grunt.metadata.virtual import VirtualDocType
 
     controller_cls = document_registry.get(doctype_name)
     # Check if it's a VirtualDocType subclass
@@ -49,7 +49,7 @@ async def _virtual_list(
     filters: Any,
     search: str | None,
 ) -> DocumentList:
-    from grunt.document.base import DocumentList  # noqa: PLC0415
+    from grunt.document.base import DocumentList
 
     ctrl = _get_virtual_controller(doctype_name, user)
     result = await ctrl.get_list(

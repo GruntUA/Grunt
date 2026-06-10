@@ -286,7 +286,7 @@ def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> N
       - Added to the global ring buffer
       - Logged at WARNING if slow
     """
-    from sqlalchemy import event  # noqa: PLC0415
+    from sqlalchemy import event
 
     sync = engine.sync_engine
 

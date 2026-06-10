@@ -24,9 +24,9 @@ from typing import Any
 
 
 async def _bootstrap(site: str | None) -> dict:
-    from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
-    from grunt.site.manager import current_site, site_manager  # noqa: PLC0415
-    from grunt.startup import load_core_doctypes  # noqa: PLC0415
+    from grunt.metadata.registry import doctype_registry
+    from grunt.site.manager import current_site, site_manager
+    from grunt.startup import load_core_doctypes
 
     sites = site_manager.get_sites()
     target: str | None = site or (sites[0] if sites else None)
@@ -62,7 +62,7 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
         return loop.run_until_complete(coro)
 
     async def _get_doc(doctype: str, name: str) -> dict:
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         async with grunt.system_context(session, engine):
             return await grunt.get_doc(doctype, name)
@@ -73,7 +73,7 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
         fields: list[str] | None = None,
         limit: int = 20,
     ) -> list:
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         async with grunt.system_context(session, engine):
             return await grunt.get_list(
@@ -84,7 +84,7 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
             )
 
     async def _save_doc(doctype: str, data: dict) -> dict:
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         async with grunt.system_context(session, engine):
             doc_id = data.get("name")
@@ -93,7 +93,7 @@ def _make_helpers(loop: asyncio.AbstractEventLoop, session: Any, engine: Any) ->
             return await grunt.new_doc(doctype, data)
 
     async def _delete_doc(doctype: str, name: str) -> None:
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         async with grunt.system_context(session, engine):
             await grunt.delete_doc(doctype, name)
@@ -159,8 +159,8 @@ def start_shell(site: str | None = None) -> None:
 def _start_repl(local_vars: dict, banner: str) -> None:
     """Try IPython first, fall back to stdlib code.interact."""
     try:
-        import IPython  # noqa: PLC0415
-        from traitlets.config import Config  # noqa: PLC0415
+        import IPython
+        from traitlets.config import Config
 
         cfg = Config()
         cfg.InteractiveShell.autoawait = True  # allow `await` at top level

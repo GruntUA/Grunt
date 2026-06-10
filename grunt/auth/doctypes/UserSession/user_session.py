@@ -21,7 +21,7 @@ async def create_session(
     db_session: AsyncSession,
 ) -> str:
     """Create a new UserSession record and return the session_key."""
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     session_key = uuid.uuid4().hex
 
@@ -38,7 +38,7 @@ async def create_session(
                     "is_active": True,
                 },
             )
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.debug("user_session.create_failed", user=user_id)
 
     return session_key
@@ -49,7 +49,7 @@ async def touch_session(
     db_session: AsyncSession,
 ) -> None:
     """Update last_active_at for the given session (best-effort, fire-and-forget)."""
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     try:
         async with grunt.system_context(db_session):
@@ -66,7 +66,7 @@ async def touch_session(
                     "last_active_at",
                     datetime.now(UTC).isoformat(),
                 )
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.exception("suppressed_error")
 
 
@@ -79,7 +79,7 @@ async def terminate_session(
 
     Returns True on success.
     """
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     async with grunt.system_context(db_session):
         sessions = await grunt.get_list(
@@ -104,7 +104,7 @@ async def terminate_all_user_sessions(
     exclude_key: str | None = None,
 ) -> int:
     """Deactivate all active sessions for a user (e.g. on logout / password change)."""
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     async with grunt.system_context(db_session):
         sessions = await grunt.get_list(

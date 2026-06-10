@@ -14,12 +14,12 @@ import structlog
 logger = structlog.get_logger()
 
 
-async def load_all_permissions_from_db(session) -> None:  # noqa: ANN001
+async def load_all_permissions_from_db(session) -> None:
     """Read DocTypePermission table and inject into registry. Called at startup."""
     try:
-        from grunt.app import grunt  # noqa: PLC0415
-        from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import grunt
+        from grunt.metadata.compiler import compile_doctype_to_table
+        from grunt.metadata.registry import doctype_registry
 
         dt = doctype_registry._doctypes.get("DocTypePermission")
         if dt is None:
@@ -42,11 +42,11 @@ async def load_all_permissions_from_db(session) -> None:  # noqa: ANN001
             await _apply_perms_to_doctype(doctype_name, perms)
 
         logger.info("permissions.loaded_from_db", count=len(rows))
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("permissions.load_failed", error=str(exc))
 
 
-async def sync_permissions(doc: dict, session=None, **_kwargs) -> None:  # noqa: ANN001
+async def sync_permissions(doc: dict, session=None, **_kwargs) -> None:
     """Hook: after_save / after_delete of DocTypePermission — refresh in-memory perms."""
     doctype_name = doc.get("doctype_name") or ""
     if not doctype_name:
@@ -55,11 +55,11 @@ async def sync_permissions(doc: dict, session=None, **_kwargs) -> None:  # noqa:
         await _reload_doctype_perms(doctype_name, session)
 
 
-async def _reload_doctype_perms(doctype_name: str, session) -> None:  # noqa: ANN001
+async def _reload_doctype_perms(doctype_name: str, session) -> None:
     try:
-        from grunt.app import grunt  # noqa: PLC0415
-        from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import grunt
+        from grunt.metadata.compiler import compile_doctype_to_table
+        from grunt.metadata.registry import doctype_registry
 
         dt = doctype_registry._doctypes.get("DocTypePermission")
         if dt is None:
@@ -75,13 +75,13 @@ async def _reload_doctype_perms(doctype_name: str, session) -> None:  # noqa: AN
 
         await _apply_perms_to_doctype(doctype_name, rows)
         logger.info("permissions.refreshed", doctype=doctype_name, count=len(rows))
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("permissions.refresh_failed", doctype=doctype_name, error=str(exc))
 
 
 async def _apply_perms_to_doctype(doctype_name: str, perm_rows: list[dict]) -> None:
-    from grunt.metadata.doctype import DocTypePermission  # noqa: PLC0415
-    from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.metadata.doctype import DocTypePermission
+    from grunt.metadata.registry import doctype_registry
 
     target = doctype_registry._doctypes.get(doctype_name)
     if target is None:
@@ -110,15 +110,15 @@ async def _apply_perms_to_doctype(doctype_name: str, perm_rows: list[dict]) -> N
     target.permissions = perms
 
 
-async def migrate_doctype_meta_permissions(session) -> None:  # noqa: ANN001
+async def migrate_doctype_meta_permissions(session) -> None:
     """One-time migration: copy permissions from DocType meta JSON into DocTypePermission table.
 
     Only runs when the DocTypePermission table is empty.
     """
     try:
-        from grunt.app import grunt  # noqa: PLC0415
-        from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import grunt
+        from grunt.metadata.compiler import compile_doctype_to_table
+        from grunt.metadata.registry import doctype_registry
 
         dt = doctype_registry._doctypes.get("DocTypePermission")
         if dt is None:
@@ -139,12 +139,12 @@ async def migrate_doctype_meta_permissions(session) -> None:  # noqa: ANN001
                 # perm may be a DocTypePermission Pydantic model or a plain dict
                 if isinstance(perm, dict):
                     role = perm.get("role", "")
-                    _b = lambda attr, p=perm: bool(p.get(attr, False))  # noqa: E731
+                    _b = lambda attr, p=perm: bool(p.get(attr, False))
                     hf_raw = perm.get("hidden_fields", [])
                     match_val = perm.get("match")
                 else:
                     role = getattr(perm, "role", "")
-                    _b = lambda attr, p=perm: bool(getattr(p, attr, False))  # noqa: E731
+                    _b = lambda attr, p=perm: bool(getattr(p, attr, False))
                     hf_raw = getattr(perm, "hidden_fields", [])
                     match_val = getattr(perm, "match", None)
 
@@ -173,5 +173,5 @@ async def migrate_doctype_meta_permissions(session) -> None:  # noqa: ANN001
             async with grunt.system_context(session):
                 await grunt.bulk_insert("DocTypePermission", rows_to_insert)
             logger.info("permissions.migrated_from_meta", count=len(rows_to_insert))
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("permissions.migration_failed", error=str(exc))

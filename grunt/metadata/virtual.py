@@ -179,7 +179,7 @@ class VirtualDocType:
         per_page: int,
     ) -> dict[str, Any]:
         """Paginate *rows* and wrap in the standard Grunt list response."""
-        import math  # noqa: PLC0415
+        import math
 
         total = len(rows)
         offset = (page - 1) * per_page

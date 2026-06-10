@@ -47,7 +47,7 @@ def get_user() -> User:
     """Get the current user (may be anonymous for scheduler tasks)."""
     user = _user_ctx.get()
     if user is None:
-        from grunt.auth.doctypes.User.user import User as _User  # noqa: PLC0415
+        from grunt.auth.doctypes.User.user import User as _User
 
         return _User(
             doctype="User",
@@ -71,7 +71,7 @@ def get_engine() -> AsyncEngine:
     """Get the current engine."""
     engine = _engine_ctx.get()
     if engine is None:
-        from grunt.site.manager import site_manager  # noqa: PLC0415
+        from grunt.site.manager import site_manager
 
         site = get_site()
         engine = site_manager.get_engine(site)
@@ -88,7 +88,7 @@ def get_site() -> str:
     """Get the current site."""
     site = _site_ctx.get()
     if site is None:
-        from grunt.site.manager import site_manager  # noqa: PLC0415
+        from grunt.site.manager import site_manager
 
         site = site_manager.get_active_site()
         return site

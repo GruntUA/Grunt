@@ -95,8 +95,8 @@ def serve(port, reload, no_frontend):
 @click.command()
 def worker():
     """Запуск воркера фонових завдань (TaskIQ)."""
-    from grunt.site.manager import site_manager  # noqa: PLC0415
-    from grunt.tasks.registry import discover_tasks  # noqa: PLC0415
+    from grunt.site.manager import site_manager
+    from grunt.tasks.registry import discover_tasks
 
     click.echo("Запуск воркера TaskIQ...")
     discover_tasks(site_manager.bench_dir / "apps")

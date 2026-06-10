@@ -11,7 +11,7 @@ class DatetimeField(FieldType):
 
     @classmethod
     def coerce(cls, value):
-        from datetime import datetime  # noqa: PLC0415
+        from datetime import datetime
 
         if value is None or value == "":
             return None

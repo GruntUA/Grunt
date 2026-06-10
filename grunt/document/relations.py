@@ -56,7 +56,7 @@ async def _resolve_link_labels(
     for lf in link_fields:
         try:
             target_dt = await doctype_registry.get(lf.options)
-        except Exception:  # noqa: BLE001
+        except Exception:
             continue
 
         title_field = getattr(target_dt, "title_field", "name") or "name"
@@ -87,7 +87,7 @@ async def _resolve_link_labels(
             async with session.begin_nested():
                 result = await session.execute(q)
                 linked_rows = result.mappings().all()
-        except Exception:  # noqa: BLE001
+        except Exception:
             continue
 
         label_map: dict[str, str] = {}

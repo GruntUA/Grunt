@@ -1,0 +1,86 @@
+{
+  "name": "Address",
+  "label": "Адреса",
+  "module": "geo",
+  "autoname": "hash",
+  "title_field": "full_address",
+  "track_changes": false,
+  "fields": [
+    {
+      "fieldname": "address_type",
+      "label": "Тип адреси",
+      "fieldtype": "Select",
+      "options": "\nРеєстрації\nФактична\nПоштова\nЮридична",
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "country",
+      "label": "Країна",
+      "fieldtype": "Link",
+      "options": "Country",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "region",
+      "label": "Регіон / Область",
+      "fieldtype": "Link",
+      "options": "Region",
+      "in_filter": true
+    },
+    {
+      "fieldname": "city",
+      "label": "Місто (довідник)",
+      "fieldtype": "Link",
+      "options": "City"
+    },
+    {
+      "fieldname": "city_text",
+      "label": "Місто (текст)",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "description": "Введіть назву міста вручну, якщо немає в довіднику"
+    },
+    {
+      "fieldname": "zip_code",
+      "label": "Поштовий індекс",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "street",
+      "label": "Вулиця",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "building",
+      "label": "Будинок",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "apartment",
+      "label": "Квартира / Офіс",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "full_address",
+      "label": "Повна адреса",
+      "fieldtype": "LongText",
+      "read_only": true,
+      "in_list_view": true,
+      "description": "Формується автоматично з полів адреси"
+    },
+    {
+      "fieldname": "notes",
+      "label": "Примітки",
+      "fieldtype": "LongText"
+    }
+  ],
+  "default_view": "list",
+  "search_fields": ["city_text", "street", "zip_code", "full_address"],
+  "permissions": [
+    { "role": "All", "read": true },
+    { "role": "System Manager", "read": true, "write": true, "create": true, "delete": true }
+  ]
+}

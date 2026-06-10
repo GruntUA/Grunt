@@ -25,7 +25,7 @@ _CORE_TEMPLATE_DIR = Path(__file__).parent / "templates"
 
 def _get_template_dirs() -> list[str]:
     """Collect all template directories from installed apps."""
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.site.manager import site_manager
 
     dirs: list[str] = []
     ext_apps_dir = site_manager.bench_dir / "apps"
@@ -98,8 +98,8 @@ async def get_print_format_template(
     Returns:
         Tuple of (template_content, template_type) or None.
     """
-    from grunt.app import GruntDB  # noqa: PLC0415
-    from grunt.context import _session_ctx  # noqa: PLC0415
+    from grunt.app import GruntDB
+    from grunt.context import _session_ctx
 
     token = _session_ctx.set(session)
     try:
@@ -132,7 +132,7 @@ def render_docx(template_path: str, doc: dict[str, Any]) -> bytes:
     """
     import io
 
-    from docxtpl import DocxTemplate  # noqa: PLC0415
+    from docxtpl import DocxTemplate
 
     tpl = DocxTemplate(template_path)
     tpl.render({"doc": doc, "now": datetime.now(UTC)})

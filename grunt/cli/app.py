@@ -23,8 +23,8 @@ def create_app(name: str, no_git: bool, dest: str | None):
 
     NAME — назва додатку (snake_case), наприклад: my_crm
     """
-    from grunt.site.manager import site_manager  # noqa: PLC0415
-    from grunt.utils.boilerplate import make_boilerplate  # noqa: PLC0415
+    from grunt.site.manager import site_manager
+    from grunt.utils.boilerplate import make_boilerplate
 
     dest_path = Path(dest) if dest else site_manager.bench_dir / "apps"
     dest_path.mkdir(parents=True, exist_ok=True)
@@ -33,14 +33,14 @@ def create_app(name: str, no_git: bool, dest: str | None):
 
 async def _do_install(name: str, site: str | None = None) -> None:
     """Встановлює додаток: реєструє в grunt.site, завантажує DocTypes, fixtures, after_install."""
-    import json  # noqa: PLC0415
+    import json
 
-    from grunt.app import grunt  # noqa: PLC0415
-    from grunt.db.base import Base  # noqa: PLC0415
-    from grunt.metadata.compiler import SA_METADATA  # noqa: PLC0415
-    from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
-    from grunt.site.manager import current_site, site_manager  # noqa: PLC0415
-    from grunt.startup import load_core_doctypes, seed_app_workspaces  # noqa: PLC0415
+    from grunt.app import grunt
+    from grunt.db.base import Base
+    from grunt.metadata.compiler import SA_METADATA
+    from grunt.metadata.registry import doctype_registry
+    from grunt.site.manager import current_site, site_manager
+    from grunt.startup import load_core_doctypes, seed_app_workspaces
 
     _sites = site_manager.get_sites()
     target_site = site or (_sites[0] if _sites else None)
@@ -106,9 +106,9 @@ def app_uninstall(name: str, site: str | None):
     """Видалити додаток із сайту (workspace та запис зберігаються)."""
 
     async def _run():
-        import json  # noqa: PLC0415
+        import json
 
-        from grunt.site.manager import site_manager  # noqa: PLC0415
+        from grunt.site.manager import site_manager
 
         _sites = site_manager.get_sites()
         target_site = site or (_sites[0] if _sites else None)
@@ -143,9 +143,9 @@ def app_uninstall(name: str, site: str | None):
 @click.option("--site", default=None, help="Назва сайту")
 def app_list(site: str | None):
     """Показати встановлені додатки."""
-    import json  # noqa: PLC0415
+    import json
 
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.site.manager import site_manager
 
     _sites = site_manager.get_sites()
     target_site: str | None = site or (_sites[0] if _sites else None)
@@ -168,9 +168,9 @@ def app_doctor(name: str | None):
 
     Якщо NAME не вказано — перевіряє всі додатки.
     """
-    import subprocess  # noqa: PLC0415
+    import subprocess
 
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.site.manager import site_manager
 
     apps_dir = site_manager.bench_dir / "apps"
     target_apps = (
@@ -204,7 +204,7 @@ def app_doctor(name: str | None):
         app_json = app_path / "app.json"
         if not app_json.exists():
             click.echo(f"  [!] app.json відсутній. {click.style('Створення...', fg='yellow')}")
-            import json  # noqa: PLC0415
+            import json
 
             basic_meta = {
                 "name": app_name,

@@ -19,7 +19,7 @@ class UserRole(Document):
 
 async def get_user_roles(user_id: str, session: AsyncSession) -> list[str]:
     """Load role names for a user."""
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     async with grunt.system_context(session):
         rows = await grunt.db.get_all(

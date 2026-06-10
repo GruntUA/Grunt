@@ -80,7 +80,7 @@ class ContextAPI:
             async with grunt.system_context(session):
                 await grunt.new_doc("ActivityLog", {...})
         """
-        from grunt.auth.doctypes.User.user import SYSTEM_USER  # noqa: PLC0415
+        from grunt.auth.doctypes.User.user import SYSTEM_USER
 
         async with self.context(session, engine, SYSTEM_USER):
             yield
@@ -113,7 +113,7 @@ class ContextAPI:
             # Fallback: get the engine for the active site.
             # This handles internal service calls (auth, email, etc.) that set
             # the context with engine=None because they run outside GruntRouter.
-            from grunt.site.manager import site_manager  # noqa: PLC0415
+            from grunt.site.manager import site_manager
 
             try:
                 return site_manager.get_engine(site_manager.get_active_site())

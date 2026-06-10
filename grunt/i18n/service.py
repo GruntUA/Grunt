@@ -228,7 +228,7 @@ class TranslationService:
     async def load_overrides_from_db(self, session: Any) -> int:
         """Load translation overrides from Translation DocType table."""
         try:
-            from grunt.app import grunt  # noqa: PLC0415
+            from grunt.app import grunt
 
             async with grunt.context(session):
                 rows = await grunt.db.get_all(
@@ -247,7 +247,7 @@ class TranslationService:
 
             logger.info("i18n.db_overrides_loaded", count=count)
             return count
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.debug("i18n.db_load_skipped", reason="table may not exist yet")
             return 0
 

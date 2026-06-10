@@ -77,7 +77,7 @@ class TreeService:
         table = compile_doctype_to_table(dt)
         title_col = _title_field(dt)
 
-        from grunt.document.registry import document_registry  # noqa: PLC0415
+        from grunt.document.registry import document_registry
 
         controller_filters = filters or {}
         sort_by, sort_order = await self._resolve_sort_config(
@@ -109,7 +109,7 @@ class TreeService:
             )
 
         if parent_id is None:
-            stmt = stmt.where((pf_col == None) | (pf_col == ""))  # noqa: E711
+            stmt = stmt.where((pf_col == None) | (pf_col == ""))
         else:
             stmt = stmt.where(pf_col == parent_id)
 
@@ -161,8 +161,8 @@ class TreeService:
         title_col = _title_field(dt)
         table_name = table.name
 
-        from grunt.document.base import Document  # noqa: PLC0415
-        from grunt.document.registry import document_registry  # noqa: PLC0415
+        from grunt.document.base import Document
+        from grunt.document.registry import document_registry
 
         ctrl_cls = document_registry.get(doctype)
         controller_filters = filters or {}
@@ -227,7 +227,7 @@ class TreeService:
 
         # ── Fast-filter: keep matched nodes + all their ancestors ──────────
         if filters:
-            from grunt.document.query import _apply_filters  # noqa: PLC0415
+            from grunt.document.query import _apply_filters
 
             # Build parent lookup from the flat result set (avoids extra DB round-trip)
             parent_lookup: dict[str, str | None] = {
@@ -346,9 +346,9 @@ class TreeService:
 
         Prevents cycles: new_parent must not be in the node's own subtree.
         """
-        from datetime import UTC, datetime  # noqa: PLC0415
+        from datetime import UTC, datetime
 
-        from sqlalchemy import update as sa_update  # noqa: PLC0415
+        from sqlalchemy import update as sa_update
 
         dt = await doctype_registry.get(doctype)
         parent_field = _require_tree(dt)
@@ -433,7 +433,7 @@ class TreeService:
         if resolved_sort_by is None and fallback_if_missing:
             resolved_sort_by = fallback_field
 
-        from grunt.document.base import Document  # noqa: PLC0415
+        from grunt.document.base import Document
 
         if controller_cls.tree_get_sort_order is not Document.tree_get_sort_order:
             override = await controller_cls.tree_get_sort_order(

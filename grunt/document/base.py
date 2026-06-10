@@ -257,7 +257,7 @@ class Document:
                 if not exists:
                     self.grunt.throw(f"Клієнта '{self.customer}' не знайдено")
         """
-        from grunt.app import grunt as _grunt  # noqa: PLC0415
+        from grunt.app import grunt as _grunt
 
         return _grunt
 
@@ -281,7 +281,7 @@ class Document:
 
     async def insert(self) -> dict[str, Any]:
         """Insert this document into the database and sync local data."""
-        from grunt.app import grunt as _grunt  # noqa: PLC0415
+        from grunt.app import grunt as _grunt
 
         result = await _grunt.new_doc(self.doctype, self.data)
         object.__getattribute__(self, "data").update(result)
@@ -289,7 +289,7 @@ class Document:
 
     async def save(self) -> dict[str, Any]:
         """Save changes to the database and sync local data."""
-        from grunt.app import grunt as _grunt  # noqa: PLC0415
+        from grunt.app import grunt as _grunt
 
         result = await _grunt.save_doc(self.doctype, self.id, self.data)
         object.__getattribute__(self, "data").update(result)
@@ -297,7 +297,7 @@ class Document:
 
     async def delete(self) -> None:
         """Delete this document from the database."""
-        from grunt.app import grunt as _grunt  # noqa: PLC0415
+        from grunt.app import grunt as _grunt
 
         await _grunt.delete_doc(self.doctype, self.id)
 
@@ -451,7 +451,7 @@ class Document:
             await session.commit()
 
         try:
-            from grunt.api.v1.ws import manager  # noqa: PLC0415
+            from grunt.api.v1.ws import manager
 
             doc_id = data.get("name")
             if doc_id:
@@ -467,7 +467,7 @@ class Document:
                     "import_progress",
                     payload,
                 )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("suppressed_error")
 
     # ── Repr ──────────────────────────────────────────────────────────────

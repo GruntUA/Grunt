@@ -21,7 +21,7 @@ class RealtimeAPI:
         push: bool = True,
     ) -> list[str]:
         """Create persistent bell notifications for one or more users."""
-        from grunt.publish import notify as _notify  # noqa: PLC0415
+        from grunt.publish import notify as _notify
 
         return await _notify(
             users=users,
@@ -42,9 +42,9 @@ class RealtimeAPI:
         type: str = "info",
     ) -> None:
         """Send a transient WebSocket message to a specific user (not persisted)."""
-        from grunt.publish import publish as _publish  # noqa: PLC0415
+        from grunt.publish import publish as _publish
 
-        await _publish(user=user, event=event, data=data, message=message, type=type)  # type: ignore[arg-type]
+        await _publish(user=user, event=event, data=data, message=message, type=type)
 
     async def broadcast(
         self,
@@ -55,9 +55,9 @@ class RealtimeAPI:
         type: str = "info",
     ) -> None:
         """Broadcast a transient WebSocket message to all connected users."""
-        from grunt.publish import broadcast as _broadcast  # noqa: PLC0415
+        from grunt.publish import broadcast as _broadcast
 
-        await _broadcast(event=event, data=data, message=message, type=type)  # type: ignore[arg-type]
+        await _broadcast(event=event, data=data, message=message, type=type)
 
     async def msgprint(
         self,

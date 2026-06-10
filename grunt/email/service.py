@@ -132,7 +132,7 @@ class EmailService:
         The ``process_email_queue`` task picks it up and sends via the default
         outgoing EmailAccount (the first account with enable_outgoing=True).
         """
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         # Find the default outgoing account id (best-effort — None if unconfigured)
         email_account_id: str | None = None
@@ -146,7 +146,7 @@ class EmailService:
                 )
             if accounts:
                 email_account_id = str(accounts[0]["name"])
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("suppressed_error")
 
         record_id = str(uuid.uuid4())
@@ -170,7 +170,7 @@ class EmailService:
                         "email_account": email_account_id,
                     },
                 )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.warning("email.queue_doctype_missing")
             return ""
 

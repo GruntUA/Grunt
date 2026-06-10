@@ -111,7 +111,7 @@ async def send_notification_digest(period: str = "daily") -> None:
     period_subj = "Щоденний" if period == "daily" else "Тижневий"
 
     async with maker() as session:
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         sent = 0
         async with grunt.system_context(session):
@@ -166,7 +166,7 @@ async def send_notification_digest(period: str = "daily") -> None:
                         html_body=html_body,
                     )
                     sent += 1
-                except Exception:  # noqa: BLE001
+                except Exception:
                     logger.warning("digest.email_queue_failed", user=user_email)
 
         await session.commit()

@@ -71,7 +71,7 @@ async def notify(
     Returns:
         List of created notification IDs.
     """
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     ids: list[str] = []
     for user_email in users:
@@ -125,7 +125,7 @@ async def publish(
         type: Message type for UI styling: "success", "error", "info", "warning".
         data: Arbitrary payload dict.
     """
-    from grunt.api.v1.ws import manager  # noqa: PLC0415
+    from grunt.api.v1.ws import manager
 
     payload: dict[str, Any] = {
         "event": event,
@@ -139,7 +139,7 @@ async def publish(
 
     try:
         await manager.send_to_user(user, payload)
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.debug("publish.ws_send_failed", user=user, ws_event=event)
 
 
@@ -158,7 +158,7 @@ async def broadcast(
         type: Message type for UI styling.
         data: Arbitrary payload dict.
     """
-    from grunt.api.v1.ws import manager  # noqa: PLC0415
+    from grunt.api.v1.ws import manager
 
     payload: dict[str, Any] = {
         "event": event,
@@ -172,7 +172,7 @@ async def broadcast(
 
     try:
         await manager.broadcast_all_users(payload)
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.debug("publish.broadcast_failed", ws_event=event)
 
 
@@ -200,12 +200,12 @@ async def publish_channel(
         event: Event name for the frontend to handle.
         data: Arbitrary payload dict.
     """
-    from grunt.api.v1.ws import manager  # noqa: PLC0415
+    from grunt.api.v1.ws import manager
 
     full_channel = f"public:{channel}"
     try:
         await manager.broadcast(full_channel, event, data or {})
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.debug("publish.channel_failed", channel=channel, ws_event=event)
 
 

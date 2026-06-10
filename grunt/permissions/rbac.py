@@ -154,7 +154,7 @@ class PermissionChecker:
                 "doc": doc,
             }
             return bool(simple_eval(match_expr, names=names))
-        except Exception:  # noqa: BLE001
+        except Exception:
             return True
 
 

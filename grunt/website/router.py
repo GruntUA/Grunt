@@ -119,8 +119,8 @@ async def render_page(
     session: Any | None = None,
 ) -> HTMLResponse:
     """Load controller context, render Jinja2 template, return HTMLResponse."""
-    from grunt.app import grunt  # noqa: PLC0415
-    from grunt.config import settings  # noqa: PLC0415
+    from grunt.app import grunt
+    from grunt.config import settings
 
     context: dict[str, Any] = {
         "request": request,
@@ -181,7 +181,7 @@ async def render_page_by_route(
     session: Any,
 ) -> HTMLResponse | None:
     """Try to render a page by its route, checking both files and database."""
-    from grunt.app import grunt  # noqa: PLC0415
+    from grunt.app import grunt
 
     path = request.url.path
     # Clean trailing slash for matching
@@ -216,8 +216,8 @@ async def render_page_by_route(
 
 async def render_db_page(doc: Any, request: Request, session: Any) -> HTMLResponse:
     """Render a dynamic page from the database using a generic template."""
-    from grunt.app import grunt  # noqa: PLC0415
-    from grunt.config import settings  # noqa: PLC0415
+    from grunt.app import grunt
+    from grunt.config import settings
 
     context: dict[str, Any] = {
         "request": request,
@@ -268,7 +268,7 @@ async def render_db_page(doc: Any, request: Request, session: Any) -> HTMLRespon
 
 def make_website_handler(page: WebsitePage):
     """Return a FastAPI route handler for the given WebsitePage."""
-    from grunt.db.session import get_session  # noqa: PLC0415
+    from grunt.db.session import get_session
 
     async def _handler(
         request: Request,

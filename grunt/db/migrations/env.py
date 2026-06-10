@@ -9,10 +9,10 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-import grunt.auth.doctypes.User.user as _auth_models  # noqa: F401
+import grunt.auth.doctypes.User.user as _auth_models
 
 # Ensure all ORM models are imported so Base.metadata knows about them
-import grunt.db.system_tables as _system_tables  # noqa: F401
+import grunt.db.system_tables as _system_tables
 
 # ── Grunt imports ────────────────────────────────────────────────────────
 from grunt.config import settings

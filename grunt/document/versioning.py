@@ -50,8 +50,8 @@ class VersionService:
         if not changes:
             return None
 
-        from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.metadata.compiler import compile_doctype_to_table
+        from grunt.metadata.registry import doctype_registry
 
         table = compile_doctype_to_table(doctype_registry._doctypes["DocVersion"])
 
@@ -100,8 +100,8 @@ class VersionService:
         doc_id: str,
     ) -> list[dict[str, Any]]:
         """Get all versions for a document, newest first."""
-        from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.metadata.compiler import compile_doctype_to_table
+        from grunt.metadata.registry import doctype_registry
 
         table = compile_doctype_to_table(doctype_registry._doctypes["DocVersion"])
         stmt = (
@@ -130,8 +130,8 @@ class VersionService:
         version_id: str,
     ) -> dict[str, Any] | None:
         """Get a specific version by ID."""
-        from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.metadata.compiler import compile_doctype_to_table
+        from grunt.metadata.registry import doctype_registry
 
         table = compile_doctype_to_table(doctype_registry._doctypes["DocVersion"])
         stmt = select(table).where(table.c.name == version_id)
@@ -212,7 +212,7 @@ class VersionService:
     @staticmethod
     def _serialize(value: Any) -> Any:
         """Serialize a value for JSON storage."""
-        from datetime import date, datetime  # noqa: PLC0415
+        from datetime import date, datetime
 
         if isinstance(value, (datetime, date)):
             return value.isoformat()

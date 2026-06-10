@@ -199,7 +199,7 @@ class SearchIndexService:
             await session.execute(
                 delete(_search_index_table).where(_search_index_table.c.idx_id == idx_id)
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.warning("search_index.remove_failed", doctype=doctype, doc_id=doc_id)
 
     async def remove_documents(
@@ -213,7 +213,7 @@ class SearchIndexService:
         if not doc_ids:
             return
         try:
-            from itertools import islice  # noqa: PLC0415
+            from itertools import islice
 
             it = iter(doc_ids)
             while chunk := list(islice(it, chunk_size)):
@@ -221,7 +221,7 @@ class SearchIndexService:
                 await session.execute(
                     delete(_search_index_table).where(_search_index_table.c.idx_id.in_(idx_ids))
                 )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.warning("search_index.remove_bulk_failed", doctype=doctype, count=len(doc_ids))
 
     async def search(
@@ -280,7 +280,7 @@ class SearchIndexService:
             rows = (await session.execute(stmt)).fetchall()
             return [dict(r._mapping) for r in rows]
 
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("search_index.search_failed", q=q)
             return []
 
@@ -290,8 +290,8 @@ class SearchIndexService:
         engine: AsyncEngine,
     ) -> int:
         """Rebuild the entire search index from all DocType tables. Returns count."""
-        from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.metadata.compiler import compile_doctype_to_table
+        from grunt.metadata.registry import doctype_registry
 
         # Clear index
         await session.execute(delete(_search_index_table))
@@ -308,7 +308,7 @@ class SearchIndexService:
                     doc = dict(row._mapping)
                     await self.index_document(session, dt.name, dt, doc)
                     count += 1
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.warning("search_index.reindex_doctype_failed", doctype=dt.name)
 
         await session.flush()

@@ -107,7 +107,7 @@ class IncomingWebhookService:
         try:
             if raw_body:
                 payload = json.loads(raw_body)
-        except Exception:  # noqa: BLE001
+        except Exception:
             payload = raw_body.decode(errors="replace")
 
         # ── 4. Dispatch action ─────────────────────────────────────────
@@ -120,7 +120,7 @@ class IncomingWebhookService:
 
             if error_msg:
                 status = "error"
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             status = "error"
             error_msg = f"{type(exc).__name__}: {exc}"
             logger.exception("incoming_webhook.dispatch_error", slug=slug)
@@ -179,7 +179,7 @@ class IncomingWebhookService:
 
         try:
             return hmac.compare_digest(computed, candidate)
-        except Exception:  # noqa: BLE001
+        except Exception:
             return False
 
     # ──────────────────────────────────────────────────────────────────
@@ -193,9 +193,9 @@ class IncomingWebhookService:
         payload: Any,
     ) -> tuple[str, str]:
         """Execute the linked ServerScript.  Returns (action_taken, error)."""
-        from grunt.app import grunt  # noqa: PLC0415
-        from grunt.auth.doctypes.User.user import SYSTEM_USER  # noqa: PLC0415
-        from grunt.scripting.server_script import ServerScriptRunner  # noqa: PLC0415
+        from grunt.app import grunt
+        from grunt.auth.doctypes.User.user import SYSTEM_USER
+        from grunt.scripting.server_script import ServerScriptRunner
 
         server_script_engine = ServerScriptRunner()
 
@@ -230,7 +230,7 @@ class IncomingWebhookService:
         payload: Any,
     ) -> tuple[str, str]:
         """Create a DocType document from the payload using field_mapping."""
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         target_doctype = webhook.get("target_doctype")
         if not target_doctype:
@@ -268,8 +268,8 @@ class IncomingWebhookService:
         session: AsyncSession,
         slug: str,
     ) -> dict[str, Any] | None:
-        from grunt.app import grunt  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import grunt
+        from grunt.metadata.registry import doctype_registry
 
         if not doctype_registry._doctypes.get("IncomingWebhook"):
             return None
@@ -296,8 +296,8 @@ class IncomingWebhookService:
         error: str,
         duration_ms: int,
     ) -> None:
-        from grunt.app import grunt  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.app import grunt
+        from grunt.metadata.registry import doctype_registry
 
         if not doctype_registry._doctypes.get("IncomingWebhookLog"):
             return
@@ -305,7 +305,7 @@ class IncomingWebhookService:
         payload_str = raw_body[:_MAX_PAYLOAD].decode(errors="replace")
         try:
             headers_str = json.dumps(dict(headers), ensure_ascii=False)
-        except Exception:  # noqa: BLE001
+        except Exception:
             headers_str = ""
 
         log_data: dict[str, Any] = {
@@ -323,7 +323,7 @@ class IncomingWebhookService:
         try:
             async with grunt.system_context(session):
                 await grunt.new_doc("IncomingWebhookLog", log_data)
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.warning("incoming_webhook_log.write_failed", slug=slug)
 
 

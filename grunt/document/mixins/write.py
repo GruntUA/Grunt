@@ -53,7 +53,7 @@ PROTECTED_FIELDS = frozenset({"name", "owner", "created_at", "docstatus"})
 
 def _friendly_integrity_error(exc: IntegrityError, dt: Any) -> HTTPException:
     """Convert a DB IntegrityError into a user-friendly 409 HTTPException."""
-    import re  # noqa: PLC0415
+    import re
 
     raw = str(exc.orig or exc)
     # SQLite: "UNIQUE constraint failed: table.column"
@@ -127,7 +127,7 @@ class DocumentWriteMixin:
 
         Returns ``(doc_id, row)``.
         """
-        from grunt.naming import naming_service  # noqa: PLC0415
+        from grunt.naming import naming_service
 
         controller_cls = document_registry.get(dt.name)
         custom_autoname = getattr(controller_cls, "autoname", None)
@@ -275,8 +275,8 @@ class DocumentWriteMixin:
 
     async def _fire_create_services(self, doctype_name: str, dt: Any, row: dict[str, Any]) -> None:
         """Update the search index and fire outgoing webhooks after a successful insert."""
-        from grunt.search.service import search_index_service  # noqa: PLC0415
-        from grunt.webhook.service import webhook_service  # noqa: PLC0415
+        from grunt.search.service import search_index_service
+        from grunt.webhook.service import webhook_service
 
         await search_index_service.index_document(self.session, doctype_name, dt, row)
         await webhook_service.fire(self.session, "after_insert", doctype_name, row)
@@ -748,7 +748,7 @@ class DocumentWriteMixin:
                     )
 
         # 3. Update MultiLink references
-        from grunt.metadata.compiler import MULTI_LINK_TABLE  # noqa: PLC0415
+        from grunt.metadata.compiler import MULTI_LINK_TABLE
 
         await self.session.execute(
             update(MULTI_LINK_TABLE)
@@ -786,13 +786,13 @@ class DocumentWriteMixin:
                         .where(sys_table.c[sys_fieldname] == old_id)
                         .values(**{sys_fieldname: new_id})
                     )
-            except Exception:  # noqa: BLE001
+            except Exception:
                 continue
 
         await self.session.flush()
 
         # 5. Update Search Index (delete old, index new)
-        from grunt.search.service import search_index_service  # noqa: PLC0415
+        from grunt.search.service import search_index_service
 
         await search_index_service.remove_document(self.session, doctype_name, old_id)
         # Re-fetch with new ID for indexing

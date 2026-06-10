@@ -49,14 +49,14 @@ async def current_user(
     # ── 1. API Key ────────────────────────────────────────────────────────
     api_key_header = request.headers.get("X-Api-Key")
     if api_key_header:
-        from grunt.auth.api_key_service import authenticate_api_key  # noqa: PLC0415
+        from grunt.auth.api_key_service import authenticate_api_key
 
         client_ip = request.client.host if request.client else None
         user = await authenticate_api_key(api_key_header, session, client_ip)
         if user is None:
             raise credentials_exception
 
-        from grunt.api.context import set_user  # noqa: PLC0415
+        from grunt.api.context import set_user
 
         set_user(user)
         return user
@@ -96,7 +96,7 @@ async def current_user(
     if not user.is_active:
         raise credentials_exception
 
-    from grunt.api.context import set_user  # noqa: PLC0415
+    from grunt.api.context import set_user
 
     set_user(user)
     return user
@@ -151,20 +151,20 @@ async def grunt_context(
             items = await grunt.get_list("MyDocType", filters={"status": "Active"})
             return {"data": items}
     """
-    from grunt.app import grunt  # noqa: PLC0415
-    from grunt.context import _messages_ctx  # noqa: PLC0415
+    from grunt.app import grunt
+    from grunt.context import _messages_ctx
 
     tokens = grunt.set_context(session, engine, user)
     _messages_ctx.set([])
     try:
         yield
     finally:
-        from grunt.api.context import clear_messages, get_messages  # noqa: PLC0415
+        from grunt.api.context import clear_messages, get_messages
 
         messages = get_messages()
         if messages and user:
             try:
-                from grunt.api.v1.ws import manager  # noqa: PLC0415
+                from grunt.api.v1.ws import manager
 
                 for msg in messages:
                     await manager.send_to_user(user.email, {"event": "msgprint", "data": msg})

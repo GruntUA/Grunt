@@ -21,7 +21,7 @@ async def readiness() -> dict:
 
     # Database
     try:
-        from grunt.site.manager import site_manager  # noqa: PLC0415
+        from grunt.site.manager import site_manager
 
         site_name = site_manager.get_active_site()
         maker = site_manager.get_session_maker(site_name)
@@ -33,10 +33,10 @@ async def readiness() -> dict:
 
     # Redis (optional)
     try:
-        from grunt.config import settings  # noqa: PLC0415
+        from grunt.config import settings
 
         if settings.redis_url:
-            import redis.asyncio as aioredis  # noqa: PLC0415
+            import redis.asyncio as aioredis
 
             r = aioredis.from_url(settings.redis_url, socket_connect_timeout=2)
             await r.ping()

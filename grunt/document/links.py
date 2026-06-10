@@ -38,7 +38,7 @@ class LinkService:
 
         Returns the number of links created.
         """
-        from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.metadata.compiler import compile_doctype_to_table
 
         doclink_dt = await doctype_registry.get("DocLink")
         table = compile_doctype_to_table(doclink_dt)
@@ -67,7 +67,7 @@ class LinkService:
                 continue
 
             link_name = f"{doctype}-{doc_id}-{field.fieldname}"
-            from datetime import datetime  # noqa: PLC0415
+            from datetime import datetime
 
             now = datetime.now(UTC)
             await session.execute(
@@ -103,7 +103,7 @@ class LinkService:
 
         Returns a list of dicts with source_doctype, source_id, link_fieldname.
         """
-        from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.metadata.compiler import compile_doctype_to_table
 
         dt_doc_link = await doctype_registry.get("DocLink")
         table = compile_doctype_to_table(dt_doc_link)
@@ -132,7 +132,7 @@ class LinkService:
         doc_id: str,
     ) -> None:
         """Remove all links from and to a document (on delete)."""
-        from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
+        from grunt.metadata.compiler import compile_doctype_to_table
 
         dt_doc_link = await doctype_registry.get("DocLink")
         table = compile_doctype_to_table(dt_doc_link)

@@ -39,8 +39,8 @@ def msgprint(message: str, title: str = "", msg_type: str = "info") -> None:
         title: Optional title
         msg_type: "success", "info", "warning", "error" (default: "info")
     """
-    from grunt.api.context import add_message  # noqa: PLC0415
-    from grunt.context import _messages_ctx  # noqa: PLC0415
+    from grunt.api.context import add_message
+    from grunt.context import _messages_ctx
 
     if _messages_ctx.get() is None:
         _messages_ctx.set([])
@@ -100,7 +100,7 @@ async def notify(
             doc_id="INV-001"
         )
     """
-    from grunt.publish import notify as _notify  # noqa: PLC0415
+    from grunt.publish import notify as _notify
 
     user = get_user()
     if recipient is None:
@@ -129,8 +129,8 @@ async def notify_all(
         roles: List of role names (default: all active users if None)
         exclude_user: Optionally exclude a user email
     """
-    from grunt.notification.service import NotificationService  # noqa: PLC0415
-    from grunt.publish import notify as _notify  # noqa: PLC0415
+    from grunt.notification.service import NotificationService
+    from grunt.publish import notify as _notify
 
     session = get_session()
     svc = NotificationService()
@@ -138,7 +138,7 @@ async def notify_all(
     if roles:
         emails = await svc._resolve_role_recipients(roles, session)
     else:
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         rows = await grunt.db.get_all(
             "User",

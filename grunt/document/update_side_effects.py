@@ -40,7 +40,7 @@ async def record_update_changes(
     user: User,
 ) -> None:
     """Create a version record and write an ActivityLog diff (best-effort)."""
-    from grunt.document.versioning import version_service  # noqa: PLC0415
+    from grunt.document.versioning import version_service
 
     diff_changes = version_service._compute_diff(existing, result)
 
@@ -59,7 +59,7 @@ async def record_update_changes(
 
     if diff_changes:
         try:
-            from grunt.app import grunt as _g  # noqa: PLC0415
+            from grunt.app import grunt as _g
 
             async with _g.context(session=session, engine=engine, user=user):
                 await _g.new_doc(
@@ -72,7 +72,7 @@ async def record_update_changes(
                         "details": {"changes": diff_changes},
                     },
                 )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.warning("activity_log.update_failed", doctype=doctype_name, doc_id=real_id)
 
 
@@ -84,8 +84,8 @@ async def fire_update_services(
     result: dict[str, Any],
 ) -> None:
     """Update search index and fire outgoing webhooks after successful update."""
-    from grunt.search.service import search_index_service  # noqa: PLC0415
-    from grunt.webhook.service import webhook_service  # noqa: PLC0415
+    from grunt.search.service import search_index_service
+    from grunt.webhook.service import webhook_service
 
     await search_index_service.index_document(session, doctype_name, dt, result)
     await webhook_service.fire(session, "after_update", doctype_name, result)
@@ -99,8 +99,8 @@ async def fire_delete_services(
     existing: dict[str, Any],
 ) -> None:
     """Update external services after delete: search index and outgoing webhooks."""
-    from grunt.search.service import search_index_service  # noqa: PLC0415
-    from grunt.webhook.service import webhook_service  # noqa: PLC0415
+    from grunt.search.service import search_index_service
+    from grunt.webhook.service import webhook_service
 
     await search_index_service.remove_document(session, doctype_name, real_id)
     await webhook_service.fire(session, "after_delete", doctype_name, existing)
@@ -113,7 +113,7 @@ async def fire_bulk_delete_webhooks(
     docs: list[dict[str, Any]],
 ) -> None:
     """Fire outgoing after_delete webhooks for each deleted document."""
-    from grunt.webhook.service import webhook_service  # noqa: PLC0415
+    from grunt.webhook.service import webhook_service
 
     for doc in docs:
         await webhook_service.fire(session, "after_delete", doctype_name, doc)
@@ -129,8 +129,8 @@ async def run_bulk_before_delete_hooks(
     report: ProgressCallback | None = None,
 ) -> list[tuple[dict[str, Any], Any]]:
     """Run per-document before_delete hooks and keep only successful controllers."""
-    from grunt.app import GruntError  # noqa: PLC0415
-    from grunt.document.registry import document_registry  # noqa: PLC0415
+    from grunt.app import GruntError
+    from grunt.document.registry import document_registry
 
     controllers: list[tuple[dict[str, Any], Any]] = []
     for i, doc in enumerate(docs):
@@ -155,7 +155,7 @@ async def run_bulk_after_delete_hooks(
     errors: list[str],
 ) -> None:
     """Run per-document after_delete hooks and fire outgoing webhooks."""
-    from grunt.app import GruntError  # noqa: PLC0415
+    from grunt.app import GruntError
 
     docs_for_webhook: list[dict[str, Any]] = []
     for doc, ctrl in controllers:
@@ -186,7 +186,7 @@ async def run_bulk_delete_writes(
     All IN-clause queries are chunked to stay within SQLite's 999-parameter limit.
     MultiLink and search-index helpers have their own internal chunking.
     """
-    from grunt.search.service import search_index_service  # noqa: PLC0415
+    from grunt.search.service import search_index_service
 
     it = iter(final_ids)
     while chunk := list(islice(it, _IN_CHUNK)):
@@ -204,7 +204,7 @@ async def bulk_delete_virtual(
     user: User,
 ) -> tuple[int, list[str]]:
     """Delete virtual documents one-by-one and aggregate errors."""
-    from grunt.document.virtual import _virtual_delete  # noqa: PLC0415
+    from grunt.document.virtual import _virtual_delete
 
     deleted = 0
     errors: list[str] = []
@@ -212,7 +212,7 @@ async def bulk_delete_virtual(
         try:
             await _virtual_delete(doctype_name, user, doc_id)
             deleted += 1
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             errors.append(f"{doc_id}: {e}")
     return deleted, errors
 
@@ -242,7 +242,7 @@ async def collect_bulk_delete_candidates(
 
     The SELECT is chunked to stay within SQLite's 999-parameter limit.
     """
-    from sqlalchemy import select as sa_select  # noqa: PLC0415
+    from sqlalchemy import select as sa_select
 
     existing_rows: dict[str, dict[str, Any]] = {}
     it = iter(ids)
@@ -283,8 +283,8 @@ async def write_bulk_delete_activity_log(
     if not doc_ids:
         return
 
-    from grunt.metadata.compiler import compile_doctype_to_table  # noqa: PLC0415
-    from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.metadata.compiler import compile_doctype_to_table
+    from grunt.metadata.registry import doctype_registry
 
     _now = now or datetime.now(UTC)
 

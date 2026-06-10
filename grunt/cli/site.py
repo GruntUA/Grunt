@@ -84,7 +84,7 @@ def site_list():
         env_path = sites_dir / name / ".env"
         db_url = ""
         if env_path.exists():
-            import dotenv  # noqa: PLC0415
+            import dotenv
 
             env = dotenv.dotenv_values(env_path)
             db_url = env.get("DATABASE_URL", "sqlite (default)")
@@ -118,7 +118,7 @@ def site_info(name: str):
 
     env_path = site_path / ".env"
     if env_path.exists():
-        import dotenv  # noqa: PLC0415
+        import dotenv
 
         env = dotenv.dotenv_values(env_path)
         click.echo(f"\n  .env ({env_path}):")
@@ -172,8 +172,8 @@ def site_create(
     no_migrate: bool,
 ) -> None:
     """Створити новий сайт."""
-    import re  # noqa: PLC0415
-    import secrets  # noqa: PLC0415
+    import re
+    import secrets
 
     if not re.match(r"^[a-zA-Z0-9._-]+$", name):
         click.echo("Помилка: назва сайту може містити лише літери, цифри, '.', '-', '_'.", err=True)
@@ -244,11 +244,11 @@ def _run_migrate_for_site(site_name: str) -> None:
     """Run DB migration for a single site (reuses db migrate logic inline)."""
 
     async def _migrate() -> None:
-        from grunt.db.base import Base  # noqa: PLC0415
-        from grunt.metadata.compiler import SA_METADATA, sync_table  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.site.manager import site_manager  # noqa: PLC0415
-        from grunt.startup import (  # noqa: PLC0415
+        from grunt.db.base import Base
+        from grunt.metadata.compiler import SA_METADATA, sync_table
+        from grunt.metadata.registry import doctype_registry
+        from grunt.site.manager import site_manager
+        from grunt.startup import (
             apply_doctype_overrides,
             load_core_doctypes,
             populate_system_doctypes,
@@ -275,7 +275,7 @@ def _run_migrate_for_site(site_name: str) -> None:
                 try:
                     if not dt.is_virtual:
                         await sync_table(dt, eng, session=session)
-                except Exception as e:  # noqa: BLE001
+                except Exception as e:
                     click.echo(f"  [warn] {dt.name}: {e}", err=True)
 
             await session.commit()
@@ -294,8 +294,8 @@ def _run_migrate_for_site(site_name: str) -> None:
 
 
 async def _create_admin(site_name: str, email: str, password: str) -> None:
-    from grunt.auth.doctypes.User.user import create_user, get_user_by_email  # noqa: PLC0415
-    from grunt.site.manager import current_site, site_manager  # noqa: PLC0415
+    from grunt.auth.doctypes.User.user import create_user, get_user_by_email
+    from grunt.site.manager import current_site, site_manager
 
     token = current_site.set(site_name)
     try:
@@ -308,7 +308,7 @@ async def _create_admin(site_name: str, email: str, password: str) -> None:
                 await create_user(email, password, "Administrator", session)
                 await session.commit()
                 click.echo("  ✓ Адміністратора створено")
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:
                 click.echo(f"  [warn] Помилка при створенні адміна: {e}", err=True)
     finally:
         current_site.reset(token)

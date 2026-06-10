@@ -9,7 +9,7 @@ from grunt.startup.doctypes import (
     populate_system_doctypes,
     sync_all_doctypes,
 )
-from grunt.startup.fixtures import _load_app_meta
+from grunt.startup.fixtures import _load_app_meta, load_core_fixtures
 from grunt.startup.settings import seed_system_settings
 from grunt.startup.validators import load_validators
 from grunt.startup.workspaces import (
@@ -28,5 +28,6 @@ __all__ = [
     "seed_app_workspaces",
     "_load_app_meta",
     "_auto_seed_workspace",
+    "load_core_fixtures",
     "load_validators",
 ]

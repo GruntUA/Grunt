@@ -1,0 +1,55 @@
+{
+  "name": "Language",
+  "label": "Мова",
+  "module": "geo",
+  "autoname": "field:code",
+  "title_field": "title",
+  "track_changes": false,
+  "fields": [
+    {
+      "fieldname": "code",
+      "label": "Код ISO 639-1",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "bold": true,
+      "description": "Двобуквений код мови (uk, en, de, fr)"
+    },
+    {
+      "fieldname": "title",
+      "label": "Назва (англ.)",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "native_name",
+      "label": "Рідна назва",
+      "fieldtype": "Text",
+      "in_list_view": true,
+      "description": "Назва мови рідною мовою (Українська, English, Deutsch)"
+    },
+    {
+      "fieldname": "script",
+      "label": "Писемність",
+      "fieldtype": "Select",
+      "options": "Latin\nCyrillic\nArabic\nChinese\nDevanagari\nGreek\nHebrew\nJapanese\nKorean\nOther",
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "is_active",
+      "label": "Активна",
+      "fieldtype": "Check",
+      "default": "1",
+      "in_list_view": true,
+      "in_filter": true
+    }
+  ],
+  "default_view": "list",
+  "search_fields": ["code", "title", "native_name"],
+  "permissions": [
+    { "role": "All", "read": true },
+    { "role": "System Manager", "read": true, "write": true, "create": true, "delete": true }
+  ]
+}

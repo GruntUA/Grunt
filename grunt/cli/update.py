@@ -237,7 +237,7 @@ def _run_npm_install_for(app_dir: Path) -> None:
 
 
 def _run_migrations(site: str | None) -> None:
-    from grunt.cli.db import db_migrate  # noqa: PLC0415
+    from grunt.cli.db import db_migrate
 
     ctx = click.Context(db_migrate)
     ctx.invoke(db_migrate, dry_run=False, site=site)

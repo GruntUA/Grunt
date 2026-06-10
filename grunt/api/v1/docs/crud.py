@@ -128,7 +128,7 @@ async def bulk_delete_documents(
     When ``delete_all`` is true, deletion loops in rolling batches until no
     matching records remain — so datasets of any size are supported.
     """
-    from grunt.site.manager import current_site  # noqa: PLC0415
+    from grunt.site.manager import current_site
 
     delete_all: bool = body.get("delete_all", False)
     user_email = user.email

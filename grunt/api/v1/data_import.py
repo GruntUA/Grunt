@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 @grunt.whitelist()
 async def get_import_preview(data_import_id: str) -> dict[str, Any]:
     """Return column headers, preview rows, and auto-suggested field mapping."""
-    from grunt.app import grunt as _grunt  # noqa: PLC0415
+    from grunt.app import grunt as _grunt
 
     di_doc = cast("DataImport", await _grunt.get_doc_instance("DataImport", data_import_id))
     return await di_doc.get_preview()
@@ -38,12 +38,12 @@ async def get_import_status(data_import_id: str) -> dict[str, Any]:
 @grunt.whitelist()
 async def run_import_job(data_import_id: str) -> dict[str, Any]:
     """Start an import job via the background task queue."""
-    import asyncio  # noqa: PLC0415
+    import asyncio
 
-    from taskiq import InMemoryBroker  # noqa: PLC0415
+    from taskiq import InMemoryBroker
 
-    from grunt.data_import.tasks import run_data_import  # noqa: PLC0415
-    from grunt.tasks.broker import broker  # noqa: PLC0415
+    from grunt.data_import.tasks import run_data_import
+    from grunt.tasks.broker import broker
 
     if isinstance(broker, InMemoryBroker):
         # No Redis worker running — execute directly in a background asyncio task

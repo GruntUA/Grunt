@@ -60,7 +60,7 @@ class DocumentRegistry:
 
         Accepts both Document and VirtualDocType subclasses.
         """
-        from grunt.metadata.virtual import VirtualDocType  # noqa: PLC0415
+        from grunt.metadata.virtual import VirtualDocType
 
         def _is_controller(obj) -> bool:
             return inspect.isclass(obj) and (
@@ -107,7 +107,7 @@ class DocumentRegistry:
         Prefers snake_case file names; falls back to PascalCase for backwards compatibility.
         No Python modules are imported.
         """
-        from grunt.startup.doctypes import _find_doctype_dirs  # noqa: PLC0415
+        from grunt.startup.doctypes import _find_doctype_dirs
 
         count = 0
         for doctypes_dir in _find_doctype_dirs():

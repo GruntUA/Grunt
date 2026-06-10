@@ -22,7 +22,7 @@ async def mfa_setup(
     user: User = Depends(current_user),
 ) -> dict:
     """Start MFA setup."""
-    from grunt.auth.mfa import begin_mfa_setup  # noqa: PLC0415
+    from grunt.auth.mfa import begin_mfa_setup
 
     info = await begin_mfa_setup(user)
     return ok(info)
@@ -34,7 +34,7 @@ async def mfa_confirm(
     user: User = Depends(current_user),
 ) -> dict:
     """Confirm MFA setup."""
-    from grunt.auth.mfa import confirm_mfa_setup  # noqa: PLC0415
+    from grunt.auth.mfa import confirm_mfa_setup
 
     backup_codes = await confirm_mfa_setup(user, body.code)
     return ok({"backup_codes": backup_codes})
@@ -46,7 +46,7 @@ async def mfa_verify(
     user: User = Depends(current_user),
 ) -> dict:
     """Verify a TOTP or backup code."""
-    from grunt.auth.mfa import check_mfa_code  # noqa: PLC0415
+    from grunt.auth.mfa import check_mfa_code
 
     await check_mfa_code(user, body.code)
     return ok()
@@ -57,7 +57,7 @@ async def mfa_disable(
     user: User = Depends(current_user),
 ) -> dict:
     """Disable MFA."""
-    from grunt.auth.mfa import disable_mfa  # noqa: PLC0415
+    from grunt.auth.mfa import disable_mfa
 
     await disable_mfa(user)
     return ok(message="MFA вимкнено")

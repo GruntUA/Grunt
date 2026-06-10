@@ -16,7 +16,7 @@ async def render_template(
     autoescape: bool = True,
 ) -> str:
     """Render a Jinja2 template using current Grunt app/session context."""
-    from jinja2 import DictLoader, Environment, FileSystemLoader, select_autoescape  # noqa: PLC0415
+    from jinja2 import DictLoader, Environment, FileSystemLoader, select_autoescape
 
     ctx = context or {}
     file_extensions = (".html", ".txt", ".md", ".xml", ".jinja", ".j2")

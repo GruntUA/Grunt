@@ -163,7 +163,7 @@ async def export_schemas(
 @grunt.whitelist()
 async def list_validators() -> list[dict[str, object]]:
     """Return all registered field validators for the Studio UI."""
-    from grunt.document.validators import list_validators as _list  # noqa: PLC0415
+    from grunt.document.validators import list_validators as _list
 
     return _list()
 
@@ -180,12 +180,12 @@ async def fix_link_uuids(doctype: str | None = None) -> dict[str, Any]:
     Pass *doctype* to limit the repair to a single DocType; omit to fix all.
     Superadmin only.
     """
-    import sqlalchemy as sa  # noqa: PLC0415
+    import sqlalchemy as sa
 
-    from grunt.app import grunt as grunt_app  # noqa: PLC0415
-    from grunt.metadata.compiler import get_table_name  # noqa: PLC0415
-    from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.app import grunt as grunt_app
+    from grunt.metadata.compiler import get_table_name
+    from grunt.metadata.registry import doctype_registry
+    from grunt.site.manager import site_manager
 
     user = grunt_app._require_user()
     if not user.is_superadmin:

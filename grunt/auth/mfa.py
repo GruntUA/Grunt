@@ -32,7 +32,7 @@ _BACKUP_CODE_COUNT = 8
 
 def _require_pyotp():
     try:
-        import pyotp  # noqa: PLC0415
+        import pyotp
 
         return pyotp
     except ImportError as exc:
@@ -64,8 +64,8 @@ def get_qr_code_svg(secret: str, email: str) -> str:
     """
     uri = get_totp_uri(secret, email)
     try:
-        import qrcode  # noqa: PLC0415
-        import qrcode.image.svg  # noqa: PLC0415
+        import qrcode
+        import qrcode.image.svg
 
         factory = qrcode.image.svg.SvgPathImage
         qr = qrcode.make(uri, image_factory=factory)
@@ -194,10 +194,10 @@ async def check_mfa_code(user: User, code: str, session: object | None = None) -
     yet active.  Omit when called from a GruntRouter endpoint where the context
     is already set by middleware.
     """
-    import contextlib  # noqa: PLC0415
+    import contextlib
 
     if session is not None:
-        from grunt.site.manager import site_manager  # noqa: PLC0415
+        from grunt.site.manager import site_manager
 
         eng = site_manager.get_engine(site_manager.get_active_site())
         ctx = grunt_app.system_context(session, eng)

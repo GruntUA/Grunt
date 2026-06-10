@@ -111,12 +111,12 @@ def _register_framework_jobs() -> None:
     _add_scheduled_job("grunt.email.tasks.pull_from_accounts", "*/10 * * * *")  # every 10 min
 
     async def _daily_digest():
-        from grunt.email.tasks import send_notification_digest  # noqa: PLC0415
+        from grunt.email.tasks import send_notification_digest
 
         await send_notification_digest.kiq(period="daily")
 
     async def _weekly_digest():
-        from grunt.email.tasks import send_notification_digest  # noqa: PLC0415
+        from grunt.email.tasks import send_notification_digest
 
         await send_notification_digest.kiq(period="weekly")
 
@@ -138,8 +138,8 @@ def _register_framework_jobs() -> None:
 async def _register_server_script_jobs() -> None:
     """Load all enabled Scheduler-Event server scripts from DB and register as cron jobs."""
     try:
-        from grunt.db.session import async_session_factory  # noqa: PLC0415
-        from grunt.scripting.server_script import ServerScriptRunner  # noqa: PLC0415
+        from grunt.db.session import async_session_factory
+        from grunt.scripting.server_script import ServerScriptRunner
 
         runner = ServerScriptRunner()
         async with async_session_factory() as session:
@@ -159,8 +159,8 @@ async def _register_server_script_jobs() -> None:
 
 def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None:
     """Register a single server script as an APScheduler cron job."""
-    from grunt.db.session import async_session_factory  # noqa: PLC0415
-    from grunt.scripting.server_script import ServerScriptRunner  # noqa: PLC0415
+    from grunt.db.session import async_session_factory
+    from grunt.scripting.server_script import ServerScriptRunner
 
     async def _run() -> None:
         logger.info("scheduler.server_script_run", name=name)
@@ -218,7 +218,7 @@ async def _write_job_log(
 ) -> str | None:
     """Insert a new ScheduledJobLog record. Returns the generated name, or None on failure."""
     try:
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         async with grunt.system_context(session):
             doc = await grunt.new_doc(
@@ -245,7 +245,7 @@ async def _update_job_log(
 ) -> None:
     """Update a ScheduledJobLog record after job completion via Grunt ORM."""
     try:
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         values: dict = {"status": status, "finished_at": datetime.now(UTC)}
         if error_message is not None:

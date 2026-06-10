@@ -53,7 +53,7 @@ class DocTypeController(VirtualDocType):
     """Serves DocType list/get from grunt_meta_doctype (single source of truth)."""
 
     def _session(self):
-        from grunt.app import grunt  # noqa: PLC0415
+        from grunt.app import grunt
 
         return grunt._require_session()
 
@@ -120,9 +120,9 @@ class DocTypeController(VirtualDocType):
     async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         """Create a new DocType."""
         _collapse_status_fields(data)
-        from grunt.app import grunt  # noqa: PLC0415
-        from grunt.metadata.compiler import sync_table  # noqa: PLC0415
-        from grunt.metadata.scaffold import export_doctype_files  # noqa: PLC0415
+        from grunt.app import grunt
+        from grunt.metadata.compiler import sync_table
+        from grunt.metadata.scaffold import export_doctype_files
 
         dt = DocType(**data)
         session = self._session()
@@ -147,9 +147,9 @@ class DocTypeController(VirtualDocType):
     async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         """Update an existing DocType."""
         _collapse_status_fields(data)
-        from grunt.app import grunt  # noqa: PLC0415
-        from grunt.metadata.compiler import sync_table  # noqa: PLC0415
-        from grunt.metadata.scaffold import export_doctype_files  # noqa: PLC0415
+        from grunt.app import grunt
+        from grunt.metadata.compiler import sync_table
+        from grunt.metadata.scaffold import export_doctype_files
 
         dt = DocType(**data)
         session = self._session()

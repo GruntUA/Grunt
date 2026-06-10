@@ -43,10 +43,7 @@ from grunt.api.context import (
     set_user,
     whitelist,
 )
-from grunt.app import GruntDB
-
-db = GruntDB()
-from grunt.api.messages import (  # noqa: E402
+from grunt.api.messages import (
     ApplicationError,
     msgprint,
     msgprint_list,
@@ -55,7 +52,7 @@ from grunt.api.messages import (  # noqa: E402
     queue_email,
     throw,
 )
-from grunt.api.permissions import (  # noqa: E402
+from grunt.api.permissions import (
     can_create,
     can_delete,
     can_read,
@@ -63,7 +60,9 @@ from grunt.api.permissions import (  # noqa: E402
     can_write,
     get_current_user,
 )
+from grunt.app import GruntDB
 
+db = GruntDB()
 __all__ = [
     # Database API
     "db",

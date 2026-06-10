@@ -29,7 +29,7 @@ logger = structlog.get_logger()
 
 def _build_scaffold_context(doctype_name: str, fields: list) -> dict:
     """Build Jinja template context for a new DocType controller."""
-    from grunt.metadata.field import get_python_type, is_physical_fieldtype  # noqa: PLC0415
+    from grunt.metadata.field import get_python_type, is_physical_fieldtype
 
     physical_fields = []
     table_fields = []
@@ -122,7 +122,7 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
     Returns the absolute path to the written JSON file, or ``None`` if export
     was skipped (module directory not found).
     """
-    from grunt.utils.codegen import render_template, sync_controller_types  # noqa: PLC0415
+    from grunt.utils.codegen import render_template, sync_controller_types
 
     app_dir = _find_app_dir(dt.module, app_name=app_name)
     if not app_dir:

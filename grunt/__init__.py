@@ -121,7 +121,7 @@ if TYPE_CHECKING:
 def __getattr__(name: str):
     """Lazy load API exports when first accessed."""
     if name == "log":
-        from grunt.log import log  # noqa: PLC0415
+        from grunt.log import log
 
         return log
 
@@ -173,7 +173,7 @@ def __getattr__(name: str):
         "system_context",
         "bootstrap_context",
     ):
-        from grunt import api  # noqa: PLC0415
+        from grunt import api
 
         # Some methods are on grunt.app.grunt instance, some in grunt.api
         if name in (
@@ -192,7 +192,7 @@ def __getattr__(name: str):
             "system_context",
             "bootstrap_context",
         ):
-            from grunt.app import grunt  # noqa: PLC0415
+            from grunt.app import grunt
 
             return getattr(grunt, name)
 

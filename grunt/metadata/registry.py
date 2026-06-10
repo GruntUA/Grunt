@@ -129,7 +129,7 @@ class DocTypeRegistry:
 
     async def _lazy_load(self, name: str) -> DocType | None:
         """Load a single DocType from the DB and cache it."""
-        from grunt.site.manager import site_manager  # noqa: PLC0415
+        from grunt.site.manager import site_manager
 
         try:
             site_name = site_manager.get_active_site()
@@ -213,7 +213,7 @@ class DocTypeRegistry:
         """Return all registered DocTypes, loading any that are still lazy."""
         if self._known_names:
             # Load remaining lazy DocTypes so the list is complete
-            from grunt.site.manager import site_manager  # noqa: PLC0415
+            from grunt.site.manager import site_manager
 
             try:
                 site_name = site_manager.get_active_site()
@@ -339,7 +339,7 @@ class DocTypeRegistry:
                             .values(module=doctype.module, data=active_dt.model_dump())
                         )
                         await session.flush()
-                    except Exception as _upd_err:  # noqa: BLE001
+                    except Exception as _upd_err:
                         logger.warning(
                             "registry.core_metadata_update_failed",
                             name=doctype.name,

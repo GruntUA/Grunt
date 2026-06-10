@@ -267,7 +267,7 @@ async def sync_table(
 
     table = compile_doctype_to_table(doctype)
 
-    def _sync(connection):  # noqa: ANN001 — runs inside run_sync
+    def _sync(connection):
         insp = inspect(connection)
         if not insp.has_table(table.name):
             SA_METADATA.create_all(connection, tables=[table])

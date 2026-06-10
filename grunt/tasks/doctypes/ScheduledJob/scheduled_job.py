@@ -95,7 +95,7 @@ class ScheduledJobController(VirtualDocType):
                 group_by="job_name",
                 aggregations={"run_count": "count()"},
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             return {}
 
         run_counts = {row["job_name"]: row["run_count"] for row in count_rows}
@@ -140,5 +140,5 @@ def _next_run(cron_expr: str) -> datetime | None:
     try:
         trigger = CronTrigger.from_crontab(cron_expr)
         return trigger.get_next_fire_time(None, datetime.now(UTC))
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None

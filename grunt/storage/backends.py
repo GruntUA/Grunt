@@ -131,7 +131,7 @@ class S3StorageBackend(StorageBackend):
 
     def _session(self):
         try:
-            import aioboto3  # noqa: PLC0415
+            import aioboto3
         except ImportError as e:
             raise ImportError("pip install aioboto3 to use S3 storage backend") from e
         kwargs = {}
@@ -180,7 +180,7 @@ _s3_backend: StorageBackend | None = None
 
 def _resolve_local_upload_dir(site: str) -> str:
     """Return the uploads directory for the given site."""
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.site.manager import site_manager
 
     return str(site_manager.sites_dir / site / "uploads")
 
@@ -189,7 +189,7 @@ def get_storage_backend() -> StorageBackend:
     """Return the storage backend for the current site."""
     global _s3_backend
 
-    from grunt.config import settings  # noqa: PLC0415
+    from grunt.config import settings
 
     if settings.storage_backend == "s3":
         if _s3_backend is None:
@@ -203,7 +203,7 @@ def get_storage_backend() -> StorageBackend:
             logger.info("storage.backend", type="s3", bucket=settings.s3_bucket)
         return _s3_backend
 
-    from grunt.site.manager import current_site  # noqa: PLC0415
+    from grunt.site.manager import current_site
 
     site = current_site.get("")
     upload_dir = settings.upload_dir if not site else _resolve_local_upload_dir(site)

@@ -12,7 +12,7 @@ def _collect_template_dirs() -> list[str]:
     1. ``bench_dir/apps/<app>/*/templates/``  — installed app templates
     2. ``grunt/core/<module>/templates/``     — framework module templates
     """
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.site.manager import site_manager
 
     dirs: list[str] = []
 

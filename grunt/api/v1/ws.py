@@ -47,11 +47,11 @@ class ConnectionManager:
         total = self._total_connections()
         logger.debug("ws.connect", channel=channel, total=total)
         try:
-            from grunt.monitoring.metrics import ws_connections_active  # noqa: PLC0415
+            from grunt.monitoring.metrics import ws_connections_active
 
             if ws_connections_active is not None:
                 ws_connections_active.set(total)
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("suppressed_error")
 
     def disconnect(self, ws: WebSocket, channel: str) -> None:
@@ -60,11 +60,11 @@ class ConnectionManager:
             conns.remove(ws)
         total = self._total_connections()
         try:
-            from grunt.monitoring.metrics import ws_connections_active  # noqa: PLC0415
+            from grunt.monitoring.metrics import ws_connections_active
 
             if ws_connections_active is not None:
                 ws_connections_active.set(total)
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("suppressed_error")
 
     async def _send(self, channel: str, message: str) -> None:
@@ -73,7 +73,7 @@ class ConnectionManager:
         for ws in list(self._connections.get(channel, [])):
             try:
                 await ws.send_text(message)
-            except Exception:  # noqa: BLE001
+            except Exception:
                 dead.append(ws)
         for ws in dead:
             self.disconnect(ws, channel)
@@ -83,16 +83,16 @@ class ConnectionManager:
     async def _redis_publish(self, channel: str, message: str) -> None:
         """Publish a message to a Redis channel (best-effort)."""
         try:
-            from grunt.config import settings  # noqa: PLC0415
+            from grunt.config import settings
 
             if not settings.redis_url:
                 return
-            import redis.asyncio as aioredis  # noqa: PLC0415
+            import redis.asyncio as aioredis
 
             r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
             await r.publish(f"grunt:ws:{channel}", message)
             await r.aclose()
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("suppressed_error")
 
     async def ensure_redis_listener(self) -> None:
@@ -100,26 +100,26 @@ class ConnectionManager:
         if self._redis_listener_started:
             return
         try:
-            from grunt.config import settings  # noqa: PLC0415
+            from grunt.config import settings
 
             if not settings.redis_url:
                 return
-            import asyncio  # noqa: PLC0415
+            import asyncio
 
             self._redis_listener_started = True
             asyncio.create_task(self._redis_listener_loop())
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("suppressed_error")
 
     async def _redis_listener_loop(self) -> None:
         """Subscribe to grunt:ws:* and relay messages to local connections."""
-        import asyncio  # noqa: PLC0415
+        import asyncio
 
         while True:
             try:
-                import redis.asyncio as aioredis  # noqa: PLC0415
+                import redis.asyncio as aioredis
 
-                from grunt.config import settings  # noqa: PLC0415
+                from grunt.config import settings
 
                 r = aioredis.from_url(settings.redis_url)
                 pubsub = r.pubsub()
@@ -140,7 +140,7 @@ class ConnectionManager:
                         await self._handle_broadcast_users(data)
                     else:
                         await self._send(channel, data)
-            except Exception:  # noqa: BLE001
+            except Exception:
                 await asyncio.sleep(2)  # retry after brief pause
 
     # ── Public broadcast API ──────────────────────────────────────────
@@ -250,16 +250,16 @@ async def _authenticate_ws(websocket: WebSocket, token: str | None) -> str | Non
         await websocket.close(code=4001)
         return None
     try:
-        import jwt  # noqa: PLC0415
+        import jwt
 
-        from grunt.config import settings  # noqa: PLC0415
+        from grunt.config import settings
 
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         sub = payload.get("sub")
         if not sub:
             raise ValueError("No subject in token")
         return sub
-    except Exception:  # noqa: BLE001
+    except Exception:
         await websocket.close(code=4001)
         return None
 
@@ -337,7 +337,7 @@ async def ws_document(
     user_email = await _authenticate_ws(websocket, token)
     if not user_email:
         return
-    from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.metadata.registry import doctype_registry
 
     try:
         dt = await doctype_registry.get(doctype)
@@ -388,7 +388,7 @@ async def ws_list(
     user_email = await _authenticate_ws(websocket, token)
     if not user_email:
         return
-    from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+    from grunt.metadata.registry import doctype_registry
 
     try:
         dt = await doctype_registry.get(doctype)

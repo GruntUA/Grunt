@@ -24,7 +24,7 @@ def _find_validator_dirs() -> list[Path]:
     if grunt_validators.is_dir():
         dirs.append(grunt_validators)
 
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.site.manager import site_manager
 
     bench_dir = site_manager.bench_dir
     if bench_dir:
@@ -51,7 +51,7 @@ def _find_validator_dirs() -> list[Path]:
 
 def load_validators() -> int:
     """Discover and register all validators. Returns total count loaded."""
-    from grunt.document.validators import load_from_dir  # noqa: PLC0415
+    from grunt.document.validators import load_from_dir
 
     total = 0
     for validator_dir in _find_validator_dirs():

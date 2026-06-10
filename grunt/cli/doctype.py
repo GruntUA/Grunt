@@ -20,15 +20,15 @@ def doctype_sync(name: str, site: str | None):
     """Синхронізувати DocType: перечитати JSON з диску, оновити БД і схему таблиці."""
 
     async def _run():
-        import json  # noqa: PLC0415
+        import json
 
-        from grunt.metadata.doctype import DocType  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.startup.doctypes import _find_doctype_dirs  # noqa: PLC0415
+        from grunt.metadata.doctype import DocType
+        from grunt.metadata.registry import doctype_registry
+        from grunt.startup.doctypes import _find_doctype_dirs
 
         # Find JSON file across all grunt/*/doctypes/ and app doctypes/
         json_file = None
-        from grunt.site.manager import site_manager  # noqa: PLC0415
+        from grunt.site.manager import site_manager
 
         search_dirs = list(_find_doctype_dirs())
         # Also search installed app doctypes
@@ -61,9 +61,9 @@ def doctype_sync(name: str, site: str | None):
         dt = DocType.model_validate(dt_data)
 
         async with _site_session(site) as (session, eng):
-            from sqlalchemy import select  # noqa: PLC0415
+            from sqlalchemy import select
 
-            from grunt.db.system_tables import GruntMetaDoctype  # noqa: PLC0415
+            from grunt.db.system_tables import GruntMetaDoctype
 
             exists = await session.scalar(
                 select(GruntMetaDoctype.name).where(GruntMetaDoctype.name == dt.name)
@@ -87,7 +87,7 @@ def doctype_list(site: str | None):
     """Показати список всіх DocTypes."""
 
     async def _run():
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.metadata.registry import doctype_registry
 
         async with _site_session(site) as (session, _eng):
             all_dts = await doctype_registry.list_all()
@@ -119,15 +119,15 @@ def doctype_scaffold(name: str, app: str, module: str | None, force: bool):
             ├── {Name}.js            # client script
             └── __init__.py
     """
-    import json  # noqa: PLC0415
+    import json
 
-    from grunt.utils.codegen import build_controller_context, render_template  # noqa: PLC0415
+    from grunt.utils.codegen import build_controller_context, render_template
 
     if not name or name[0].islower():
         click.echo("Помилка: ім'я DocType повинно починатися з великої літери.", err=True)
         raise SystemExit(1)
 
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.site.manager import site_manager
 
     app_path = site_manager.bench_dir / "apps" / app
     if not app_path.exists():
@@ -212,7 +212,7 @@ def doctype_sync_types(name: str, app: str, all_doctypes: bool):
     """
     import json
 
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.site.manager import site_manager
     from grunt.utils.codegen import sync_controller_types
 
     app_path = site_manager.bench_dir / "apps" / app

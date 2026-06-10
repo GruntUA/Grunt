@@ -161,7 +161,7 @@ class NotificationService:
         subject: str,
         message: str,
     ) -> str:
-        import secrets  # noqa: PLC0415
+        import secrets
 
         notif_name = f"notif-{user}-{secrets.token_urlsafe(6)}"
         now = datetime.now(UTC)
@@ -185,10 +185,10 @@ class NotificationService:
             )
         # Send Web Push (best-effort)
         try:
-            from grunt.webpush.service import webpush_service  # noqa: PLC0415
+            from grunt.webpush.service import webpush_service
 
             await webpush_service.send_push(session, user, subject, message)
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("suppressed_error")
 
         return notif_name
@@ -250,7 +250,7 @@ class NotificationService:
         if not role_names:
             return []
         try:
-            from grunt.app import grunt  # noqa: PLC0415
+            from grunt.app import grunt
 
             async with grunt.system_context(session):
                 # Collect user_ids for all requested roles
@@ -279,7 +279,7 @@ class NotificationService:
                     if user_rows and user_rows[0].get("email"):
                         emails.append(user_rows[0]["email"])
                 return emails
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.warning("notification.role_resolution_failed", roles=role_names)
             return []
 
@@ -314,7 +314,7 @@ class NotificationService:
             from simpleeval import simple_eval
 
             return bool(simple_eval(condition, names={"doc": doc, "user": user}))
-        except Exception:  # noqa: BLE001
+        except Exception:
             return True  # Don't block on eval errors
 
     async def _queue_email(
@@ -326,7 +326,7 @@ class NotificationService:
     ) -> None:
         """Queue an email notification via the existing email system."""
         try:
-            from grunt.email.service import email_service  # noqa: PLC0415
+            from grunt.email.service import email_service
 
             await email_service.queue_email(
                 session=session,
@@ -334,7 +334,7 @@ class NotificationService:
                 subject=subject,
                 body=message,
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.warning("notification.email_queue_error", recipient=recipient)
 
     async def _broadcast_ws(
@@ -346,7 +346,7 @@ class NotificationService:
     ) -> None:
         """Send WebSocket notification to connected users."""
         try:
-            from grunt.api.v1.ws import manager  # noqa: PLC0415
+            from grunt.api.v1.ws import manager
 
             for recipient in recipients:
                 await manager.send_to_user(
@@ -360,7 +360,7 @@ class NotificationService:
                         },
                     },
                 )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("suppressed_error")
 
 

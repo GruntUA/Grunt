@@ -32,8 +32,8 @@ class UtilityAPI:
 
             await grunt.enqueue_doc("Report", report_id, "generate", format="pdf")
         """
-        from grunt.site.manager import site_manager  # noqa: PLC0415
-        from grunt.tasks.doc_method import enqueue_doc_method  # noqa: PLC0415
+        from grunt.site.manager import site_manager
+        from grunt.tasks.doc_method import enqueue_doc_method
 
         user = self._require_user()
         await enqueue_doc_method(
@@ -47,8 +47,8 @@ class UtilityAPI:
 
     async def get_meta(self, doctype: str) -> Meta:
         """Return the :class:`~grunt.core.document.meta.Meta` wrapper."""
-        from grunt.document.meta import Meta  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
+        from grunt.document.meta import Meta
+        from grunt.metadata.registry import doctype_registry
 
         dt = await doctype_registry.get(doctype)
         return Meta(dt)
@@ -63,7 +63,7 @@ class UtilityAPI:
 
     def _(self, source: str) -> str:
         """Translate a string using the current request language."""
-        from grunt.i18n import _ as _translate  # noqa: PLC0415
+        from grunt.i18n import _ as _translate
 
         return _translate(source)
 

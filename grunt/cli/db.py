@@ -26,24 +26,25 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
     - Встановлення нових додатків із DocTypes
     - Змін у fixture файлах (00_workspace.json тощо)
     """
-    import asyncio  # noqa: PLC0415
+    import asyncio
 
     async def _run() -> None:
-        from taskiq import InMemoryBroker  # noqa: PLC0415
+        from taskiq import InMemoryBroker
 
-        from grunt.db.base import Base  # noqa: PLC0415
-        from grunt.metadata.compiler import SA_METADATA, sync_table  # noqa: PLC0415
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.site.manager import site_manager  # noqa: PLC0415
-        from grunt.startup import (  # noqa: PLC0415
+        from grunt.db.base import Base
+        from grunt.metadata.compiler import SA_METADATA, sync_table
+        from grunt.metadata.registry import doctype_registry
+        from grunt.site.manager import site_manager
+        from grunt.startup import (
             apply_doctype_overrides,
             load_core_doctypes,
+            load_core_fixtures,
             populate_system_doctypes,
             seed_app_workspaces,
             seed_grunt_workspace,
             seed_system_settings,
         )
-        from grunt.tasks.broker import broker  # noqa: PLC0415
+        from grunt.tasks.broker import broker
 
         broker_started = False
 
@@ -93,7 +94,7 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
                                 await sync_table(dt, eng, session=session)
                                 click.echo(f"    synced: {dt.name}")
                             synced += 1
-                        except Exception as e:  # noqa: BLE001
+                        except Exception as e:
                             click.echo(f"    [error] {dt.name}: {e}", err=True)
 
                     await session.commit()
@@ -107,6 +108,7 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
                     click.echo("  [4/4] Seed fixtures...")
                     async with maker() as session:
                         await seed_system_settings(session, eng)
+                        await load_core_fixtures(session, eng)
                         await seed_grunt_workspace(session, eng)
                         await session.commit()
 
@@ -146,9 +148,9 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
 @click.option("--site", default=None, help="Назва сайту")
 def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | None) -> None:
     """Видалити колонки з таблиць, яких немає в метаданих (DocType)."""
-    import asyncio  # noqa: PLC0415
+    import asyncio
 
-    from grunt.site.manager import site_manager  # noqa: PLC0415
+    from grunt.site.manager import site_manager
 
     async def _run() -> None:
         from grunt.app import grunt
@@ -205,7 +207,7 @@ def db_backup(output, site):
     out_path = output or default_name
 
     async def _run():
-        from grunt.config import settings  # noqa: PLC0415
+        from grunt.config import settings
 
         db_url: str = settings.database_url
 

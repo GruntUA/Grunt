@@ -1,6 +1,6 @@
 """Base SQLAlchemy model with common columns."""
 
-from datetime import datetime  # noqa: TC003
+from datetime import datetime
 
 from sqlalchemy import DateTime, String, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column

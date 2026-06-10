@@ -26,7 +26,7 @@ class BulkDeleteTask:
     """Background task that deletes many documents and streams progress."""
 
     def __init__(self) -> None:
-        from grunt.api.v1.ws import manager  # noqa: PLC0415
+        from grunt.api.v1.ws import manager
 
         self._manager = manager
 
@@ -42,7 +42,7 @@ class BulkDeleteTask:
         engine: Any,
     ) -> None:
         """Delete document IDs and send progress/done events to one user."""
-        from grunt.db.session import async_session_factory  # noqa: PLC0415
+        from grunt.db.session import async_session_factory
 
         total = len(ids)
         progress_cb = self._make_progress_cb(user_email, total)
@@ -92,7 +92,7 @@ class BulkDeleteTask:
         deletes them, until no records remain.  Progress is streamed via
         WebSocket after every batch.
         """
-        from grunt.db.session import async_session_factory  # noqa: PLC0415
+        from grunt.db.session import async_session_factory
 
         total_deleted = 0
         all_errors: list[str] = []
@@ -231,19 +231,19 @@ class BulkDeleteTask:
         3. DELETE FROM grunt_search_index WHERE doctype = doctype
         4. Write one summary ActivityLog entry
         """
-        import uuid  # noqa: PLC0415
-        from datetime import UTC, datetime  # noqa: PLC0415
+        import uuid
+        from datetime import UTC, datetime
 
-        from sqlalchemy import delete as sa_delete  # noqa: PLC0415
+        from sqlalchemy import delete as sa_delete
 
-        from grunt.db.session import async_session_factory  # noqa: PLC0415
-        from grunt.document.query import _apply_filters  # noqa: PLC0415
-        from grunt.metadata.compiler import (  # noqa: PLC0415
+        from grunt.db.session import async_session_factory
+        from grunt.document.query import _apply_filters
+        from grunt.metadata.compiler import (
             MULTI_LINK_TABLE,
             compile_doctype_to_table,
         )
-        from grunt.metadata.registry import doctype_registry  # noqa: PLC0415
-        from grunt.search.service import _search_index_table  # noqa: PLC0415
+        from grunt.metadata.registry import doctype_registry
+        from grunt.search.service import _search_index_table
 
         if not user.is_superadmin:
             await self._manager.send_to_user(
@@ -305,7 +305,7 @@ class BulkDeleteTask:
                             **{k: v for k, v in log_row.items() if k in table_cols}
                         )
                     )
-                except Exception:  # noqa: BLE001
+                except Exception:
                     logger.warning("fast_delete.activity_log_failed", doctype=doctype)
 
                 await session.flush()

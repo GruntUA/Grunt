@@ -123,7 +123,7 @@ async def get_content(file_id: str) -> Response:
     except Exception:
         raise HTTPException(404, "File not found on storage") from None
 
-    from urllib.parse import quote  # noqa: PLC0415
+    from urllib.parse import quote
 
     file_name = doc.get("file_name") or "file"
     # RFC 5987: UTF-8 encoded filename for non-ASCII characters

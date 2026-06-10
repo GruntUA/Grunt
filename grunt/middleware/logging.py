@@ -34,7 +34,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         use_profiler = settings.debug and not path.startswith(_PROFILER_PREFIX)
 
         if use_profiler:
-            from grunt.db.profiler import (  # noqa: PLC0415
+            from grunt.db.profiler import (
                 collect_for_request,
                 finish_request,
                 set_request_db_threshold,
@@ -63,14 +63,14 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         # Record Prometheus metrics (always)
         try:
-            from grunt.monitoring.metrics import record_request  # noqa: PLC0415
+            from grunt.monitoring.metrics import record_request
 
             record_request(request.method, path, response.status_code, duration_ms / 1000)
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("suppressed_error")
 
         if path not in _SKIP_PATHS:
-            from grunt.site.manager import current_site  # noqa: PLC0415
+            from grunt.site.manager import current_site
 
             site = current_site.get(None)
             access_logger = (

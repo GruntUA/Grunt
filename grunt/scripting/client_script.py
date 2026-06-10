@@ -24,8 +24,8 @@ async def get_client_scripts(
 
     Returns a list of dicts with `name` and `script` keys.
     """
-    from grunt.app import GruntDB  # noqa: PLC0415
-    from grunt.context import _session_ctx  # noqa: PLC0415
+    from grunt.app import GruntDB
+    from grunt.context import _session_ctx
 
     token = _session_ctx.set(session)
     try:
@@ -47,7 +47,7 @@ async def get_client_scripts(
 
     # Append file-based client scripts (from app directories)
     try:
-        from grunt.scripting.file_scripts import get_file_client_scripts  # noqa: PLC0415
+        from grunt.scripting.file_scripts import get_file_client_scripts
 
         file_scripts = get_file_client_scripts(doctype)
         logger.info(

@@ -1,0 +1,66 @@
+{
+  "name": "Currency",
+  "label": "Валюта",
+  "module": "geo",
+  "autoname": "field:code",
+  "title_field": "title",
+  "track_changes": false,
+  "fields": [
+    {
+      "fieldname": "code",
+      "label": "Код ISO 4217",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "bold": true,
+      "description": "Трибуквений код валюти (UAH, USD, EUR)"
+    },
+    {
+      "fieldname": "title",
+      "label": "Назва (англ.)",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "title_uk",
+      "label": "Назва (укр.)",
+      "fieldtype": "Text",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "symbol",
+      "label": "Символ",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "description": "Символ валюти: ₴, $, €"
+    },
+    {
+      "fieldname": "numeric_code",
+      "label": "Числовий код",
+      "fieldtype": "Data",
+      "description": "Трицифровий числовий код ISO 4217 (980, 840, 978)"
+    },
+    {
+      "fieldname": "decimal_places",
+      "label": "Знаків після коми",
+      "fieldtype": "Int",
+      "default": "2",
+      "description": "Кількість знаків після коми (0 для JPY, 2 для USD)"
+    },
+    {
+      "fieldname": "is_active",
+      "label": "Активна",
+      "fieldtype": "Check",
+      "default": "1",
+      "in_list_view": true,
+      "in_filter": true
+    }
+  ],
+  "default_view": "list",
+  "search_fields": ["code", "title", "title_uk", "symbol"],
+  "permissions": [
+    { "role": "All", "read": true },
+    { "role": "System Manager", "read": true, "write": true, "create": true, "delete": true }
+  ]
+}
