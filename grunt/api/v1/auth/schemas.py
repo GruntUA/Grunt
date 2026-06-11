@@ -12,7 +12,7 @@ class RegisterRequest(BaseModel):
 
 
 class UserResponse(BaseModel):
-    id: str
+    id: str | None = None
     email: str
     full_name: str
     roles: list[str] = []

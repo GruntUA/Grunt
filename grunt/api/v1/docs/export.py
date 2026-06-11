@@ -184,7 +184,7 @@ async def print_format_preview(
             doc = sample_list[0]
         else:
             # Synthetic empty doc with all field names set to None
-            doc = {f.fieldname: None for f in dt.fields}
+            doc: dict[str, str | None] = {f.fieldname: None for f in dt.fields}
             doc.setdefault("name", "Зразок")
 
     try:

@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Mapping
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import RowMapping
 
 from sqlalchemy import func, select
 
@@ -14,7 +16,7 @@ from grunt.metadata.registry import doctype_registry
 from grunt.metadata.virtual import VirtualDocType
 
 
-def _row_to_doc(row: Mapping[str, Any]) -> dict[str, Any]:
+def _row_to_doc(row: RowMapping) -> dict[str, Any]:
     """Convert grunt_meta_doctype row to DocType model data."""
     data: dict[str, Any] = dict(row.get("data") or {})
     data["name"] = row["name"]

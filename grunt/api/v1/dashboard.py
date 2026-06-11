@@ -65,12 +65,12 @@ async def _compute_widget_data(
 
         agg_expr = f"{agg}({field})" if agg != "count" else "count"
         try:
-            curr_data = await grunt.get_db().aggregate(
+            curr_data = await grunt.db.aggregate(
                 doctype_name, filters=filters if filters else None, aggregations={"val": agg_expr}
             )
             val = curr_data[0].get("val") or 0
             if date_field:
-                prev_data = await grunt.get_db().aggregate(
+                prev_data = await grunt.db.aggregate(
                     doctype_name, filters=prev_filters, aggregations={"val": agg_expr}
                 )
                 prev_val = prev_data[0].get("val") or 0
@@ -93,7 +93,7 @@ async def _compute_widget_data(
                 f"{date_field}__lte": until.isoformat(),
             }
             if group_by:
-                rows = await grunt.get_db().aggregate(
+                rows = await grunt.db.aggregate(
                     doctype_name,
                     filters=filters,
                     group_by=[date_expr, group_by],
@@ -116,7 +116,7 @@ async def _compute_widget_data(
                 }
                 return {"labels": all_labels, "groups": groups}
             else:
-                rows = await grunt.get_db().aggregate(
+                rows = await grunt.db.aggregate(
                     doctype_name,
                     filters=filters,
                     group_by=date_expr,

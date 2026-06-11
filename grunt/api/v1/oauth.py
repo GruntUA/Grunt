@@ -24,6 +24,8 @@ Flow:
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from grunt.api.v1.schemas.response import ok
@@ -41,7 +43,7 @@ _MICROSOFT_CONF_URL = (
 )
 
 
-def _require_authlib():
+def _require_authlib() -> Any:
     try:
         from authlib.integrations.httpx_client import AsyncOAuth2Client
 
@@ -100,12 +102,13 @@ async def oauth_authorize(provider: str) -> dict:
         resp.raise_for_status()
         oidc = resp.json()
 
-    async with oauth_client_cls(
+    client = oauth_client_cls(
         client_id=cfg["client_id"],
         redirect_uri=_callback_url(provider),
         scope=cfg["scope"],
-    ) as client:
-        url, _state = client.create_authorization_url(oidc["authorization_endpoint"])
+    )
+    url, _state = client.create_authorization_url(oidc["authorization_endpoint"])
+    await client.aclose()
 
     return ok({"url": url})
 
@@ -141,12 +144,13 @@ async def oauth_callback(
         oidc = oidc_resp.json()
 
     # Exchange code for tokens and fetch user info
-    async with oauth_client_cls(
+    oa_client = oauth_client_cls(
         client_id=cfg["client_id"],
         client_secret=cfg["client_secret"],
         redirect_uri=_callback_url(provider),
         scope=cfg["scope"],
-    ) as oa_client:
+    )
+    try:
         await oa_client.fetch_token(
             oidc["token_endpoint"],
             code=code,
@@ -155,6 +159,8 @@ async def oauth_callback(
         userinfo = await oa_client.get(oidc["userinfo_endpoint"])
         userinfo.raise_for_status()
         profile = userinfo.json()
+    finally:
+        await oa_client.aclose()
 
     email: str = profile.get("email", "")
     if not email:
@@ -170,9 +176,10 @@ async def oauth_callback(
         import secrets
 
         # Create user with a random unusable password
-        user = await create_user(email, secrets.token_hex(32), full_name, session)
+        user = await create_user(email, secrets.token_hex(32), full_name, "", None, session)
         await session.commit()
 
+    assert user.id is not None
     access_token = create_access_token(user)
     refresh_token = await create_refresh_token(user.id, session)
     await session.commit()

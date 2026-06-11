@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NoReturn
 
 import structlog
 
@@ -10,6 +10,7 @@ from grunt.errors import GruntError
 from grunt.utils.templates import render_template as _render_template
 
 if TYPE_CHECKING:
+    from grunt.auth.doctypes.User.user import User
     from grunt.document.meta import Meta
 
 logger = structlog.get_logger()
@@ -17,6 +18,10 @@ logger = structlog.get_logger()
 
 class UtilityAPI:
     """Utility helpers exposed on the top-level GruntApp facade."""
+
+    if TYPE_CHECKING:
+
+        def _require_user(self) -> User: ...
 
     async def enqueue_doc(
         self,
@@ -53,7 +58,7 @@ class UtilityAPI:
         dt = await doctype_registry.get(doctype)
         return Meta(dt)
 
-    def throw(self, message: str, title: str | None = None) -> None:
+    def throw(self, message: str, title: str | None = None) -> NoReturn:
         """Raise a user-facing :class:`GruntError`."""
         raise GruntError(message, title=title)
 

@@ -291,7 +291,10 @@ class Document:
         """Save changes to the database and sync local data."""
         from grunt.app import grunt as _grunt
 
-        result = await _grunt.save_doc(self.doctype, self.id, self.data)
+        doc_id = self.id
+        if doc_id is None:
+            raise ValueError(f"Cannot save {self.doctype}: document has no name")
+        result = await _grunt.save_doc(self.doctype, doc_id, self.data)
         object.__getattribute__(self, "data").update(result)
         return result
 
@@ -299,7 +302,10 @@ class Document:
         """Delete this document from the database."""
         from grunt.app import grunt as _grunt
 
-        await _grunt.delete_doc(self.doctype, self.id)
+        doc_id = self.id
+        if doc_id is None:
+            raise ValueError(f"Cannot delete {self.doctype}: document has no name")
+        await _grunt.delete_doc(self.doctype, doc_id)
 
     # ── Lifecycle hooks ───────────────────────────────────────────────────
 

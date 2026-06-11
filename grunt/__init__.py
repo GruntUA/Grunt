@@ -30,8 +30,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from contextlib import AbstractAsyncContextManager
-    from typing import Any, TypeVar
+    from typing import Any, NoReturn, TypeVar
 
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
@@ -39,8 +40,15 @@ if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
     _T = TypeVar("_T")
+    _F = TypeVar("_F", bound=Callable)
 
     db: GruntDB
+
+    # ── Decorators / utilities ────────────────────────────────────────────────
+    def whitelist(allow_guest: bool = False) -> Callable[[_F], _F]: ...
+    def throw(message: str, code: str = "ERROR", title: str = "") -> NoReturn: ...
+    async def get_current_user() -> User: ...
+    def get_engine() -> AsyncEngine: ...
 
     # ── Document API ──────────────────────────────────────────────────────────
     async def get_doc(

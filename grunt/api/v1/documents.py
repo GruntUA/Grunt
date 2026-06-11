@@ -42,7 +42,7 @@ async def get_list(
         user,
         page=page,
         per_page=limit,
-        sort_by=order_by,
+        sort_by=order_by or "modified_at",
         sort_order=order,
         filters=filters,
         search=search,

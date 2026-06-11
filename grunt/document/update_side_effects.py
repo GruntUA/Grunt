@@ -204,13 +204,13 @@ async def bulk_delete_virtual(
     user: User,
 ) -> tuple[int, list[str]]:
     """Delete virtual documents one-by-one and aggregate errors."""
-    from grunt.document.virtual import _virtual_delete
+    from grunt.document.virtual import virtual_delete
 
     deleted = 0
     errors: list[str] = []
     for doc_id in ids:
         try:
-            await _virtual_delete(doctype_name, user, doc_id)
+            await virtual_delete(doctype_name, user, doc_id)
             deleted += 1
         except Exception as e:
             errors.append(f"{doc_id}: {e}")

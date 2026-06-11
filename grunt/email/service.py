@@ -63,11 +63,14 @@ class EmailService:
         if not account.get("enable_incoming"):
             return []
 
-        imap_server = account.get("imap_server")
-        imap_port = account.get("imap_port", 993)
-        use_ssl = account.get("use_ssl", True)
-        username = account.get("email_address")  # Often same as address
-        password = account.get("smtp_password")  # Use common password for now
+        imap_server: str | None = account.get("imap_server")
+        imap_port: int = account.get("imap_port", 993)
+        use_ssl: bool = account.get("use_ssl", True)
+        username: str | None = account.get("email_address")
+        password: str | None = account.get("smtp_password")
+
+        if not imap_server or not username or not password:
+            return []
 
         emails: list[dict[str, Any]] = []
 
@@ -77,7 +80,7 @@ class EmailService:
                 if use_ssl
                 else aioimaplib.IMAP4(imap_server, imap_port)
             )
-            await imap.wait_hello()
+            await imap.wait_hello_from_server()
             await imap.login(username, password)
             await imap.select("INBOX")
 

@@ -9,7 +9,7 @@ DocType-driven — defined in core/doctypes/*.json.
 
 from __future__ import annotations
 
-from sqlalchemy import Column, DateTime, Integer, JSON, String, Table, func, text
+from sqlalchemy import JSON, Column, DateTime, Integer, String, Table, func, text
 
 from grunt.db.base import metadata
 

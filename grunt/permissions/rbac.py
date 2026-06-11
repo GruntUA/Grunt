@@ -22,12 +22,15 @@ _PERM_CACHE: dict[tuple, bool] = {}
 _HIDDEN_CACHE: dict[tuple, frozenset] = {}
 
 
-def invalidate_permission_cache(doctype_name: str) -> None:
-    """Evict all cached permission results for a given DocType."""
+def invalidate_permission_cache(doctype_name: str | None = None) -> None:
+    """Evict cached permission results for a given DocType, or all if None."""
     for cache in (_PERM_CACHE, _HIDDEN_CACHE):
-        stale = [k for k in cache if k[2] == doctype_name]
-        for k in stale:
-            cache.pop(k, None)
+        if doctype_name is None:
+            cache.clear()
+        else:
+            stale = [k for k in cache if k[2] == doctype_name]
+            for k in stale:
+                cache.pop(k, None)
 
 
 class PermissionChecker:

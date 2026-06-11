@@ -10,12 +10,8 @@ all other notification channels (in-app, email) continue to work.
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING
 
 import structlog
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -53,7 +49,7 @@ def _generate_vapid_keys() -> tuple[str, str]:
 
 
 class WebPushService:
-    async def get_vapid_public_key(self, session: AsyncSession) -> str | None:
+    async def get_vapid_public_key(self) -> str | None:
         """Return the VAPID public key stored in SystemSettings, or None."""
         from grunt.app import grunt
 
@@ -62,7 +58,7 @@ class WebPushService:
         except Exception:
             return None
 
-    async def ensure_vapid_keys(self, session: AsyncSession) -> str | None:
+    async def ensure_vapid_keys(self) -> str | None:
         """Ensure VAPID keys exist in SystemSettings; generate if missing. Returns public key."""
         import importlib.util
 
@@ -97,7 +93,6 @@ class WebPushService:
 
     async def save_subscription(
         self,
-        session: AsyncSession,
         user: str,
         endpoint: str,
         p256dh: str,
@@ -122,7 +117,7 @@ class WebPushService:
             },
         )
 
-    async def remove_subscription(self, session: AsyncSession, endpoint: str) -> None:
+    async def remove_subscription(self, endpoint: str) -> None:
         """Delete a push subscription by endpoint URL."""
         from grunt.app import grunt
 
@@ -130,7 +125,6 @@ class WebPushService:
 
     async def send_push(
         self,
-        session: AsyncSession,
         user: str,
         subject: str,
         body: str,

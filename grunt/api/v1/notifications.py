@@ -50,7 +50,7 @@ async def mark_all_as_read() -> dict[str, Any]:
     if not user:
         grunt.throw("Authentication required", "AUTH_REQUIRED")
 
-    count = await grunt.bulk_update(
+    count = await grunt.db.bulk_update(
         "Notification",
         filters={"user": user.email, "is_read": False},
         values={"is_read": True},
@@ -72,9 +72,9 @@ async def get_vapid_public_key() -> str | None:
     """Return the VAPID public key needed to subscribe to Web Push."""
     from grunt.webpush.service import webpush_service
 
-    key = await webpush_service.get_vapid_public_key(grunt.get_engine())
+    key = await webpush_service.get_vapid_public_key()
     if not key:
-        key = await webpush_service.ensure_vapid_keys(grunt.get_engine())
+        key = await webpush_service.ensure_vapid_keys()
     return key
 
 
@@ -87,9 +87,7 @@ async def subscribe_push(endpoint: str, p256dh: str, auth: str, user_agent: str 
 
     from grunt.webpush.service import webpush_service
 
-    await webpush_service.save_subscription(
-        grunt.get_engine(), user.email, endpoint, p256dh, auth, user_agent
-    )
+    await webpush_service.save_subscription(user.email, endpoint, p256dh, auth, user_agent)
     return True
 
 
@@ -102,5 +100,5 @@ async def unsubscribe_push(endpoint: str) -> bool:
 
     from grunt.webpush.service import webpush_service
 
-    await webpush_service.remove_subscription(grunt.get_engine(), user.email, endpoint)
+    await webpush_service.remove_subscription(endpoint)
     return True

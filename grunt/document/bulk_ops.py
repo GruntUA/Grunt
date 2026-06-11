@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Sequence
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import structlog
 
@@ -235,6 +235,7 @@ class BulkDeleteTask:
         from datetime import UTC, datetime
 
         from sqlalchemy import delete as sa_delete
+        from sqlalchemy.engine import CursorResult
 
         from grunt.db.session import async_session_factory
         from grunt.document.query import _apply_filters
@@ -268,7 +269,7 @@ class BulkDeleteTask:
                 del_stmt = sa_delete(table)
                 if filters:
                     del_stmt = _apply_filters(del_stmt, table, filters)
-                result = await session.execute(del_stmt)
+                result = cast("CursorResult", await session.execute(del_stmt))
                 deleted: int = result.rowcount or 0
 
                 # ── 2. Delete MultiLinks ─────────────────────────────────

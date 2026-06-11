@@ -85,7 +85,7 @@ async def add_user_role(user_id: str, body: AddRoleRequest) -> dict:
 async def set_user_password(body: SetPasswordRequest) -> dict:
     """Change a user's password (superadmin only)."""
     user = await get_user_by_email(body.email, grunt._require_session())
-    if not user:
+    if not user or not user.id:
         raise HTTPException(status_code=404, detail="Користувача не знайдено")
 
     await grunt.db.set_value("User", user.id, "hashed_password", hash_password(body.password))

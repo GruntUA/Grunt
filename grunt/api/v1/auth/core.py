@@ -67,7 +67,10 @@ async def register(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"User with email '{body.email}' already exists",
         )
-    user = await create_user(body.email, body.password, body.full_name, session)
+    name_parts = body.full_name.split(maxsplit=1)
+    first_name = name_parts[0] if name_parts else ""
+    last_name = name_parts[1] if len(name_parts) > 1 else ""
+    user = await create_user(body.email, body.password, first_name, last_name, None, session)
     return UserResponse(
         id=user.id,
         email=user.email,
@@ -121,6 +124,7 @@ async def login(
             ),
         )
 
+    assert user.id is not None
     access_token = create_access_token(user)
     refresh_token = await create_refresh_token(user.id, session)
 
@@ -167,6 +171,7 @@ async def mfa_login_verify(
         logger.error("auth.mfa_verify_error", error=str(exc))
         raise HTTPException(status_code=401, detail=f"Помилка перевірки: {str(exc)}") from exc
 
+    assert user.id is not None
     access_token = create_access_token(user)
     refresh_token = await create_refresh_token(user.id, session)
 
@@ -229,6 +234,7 @@ async def update_me(
             raise HTTPException(status_code=422, detail="Invalid theme value")
         values["theme"] = body.theme
 
+    assert user.id is not None
     if values:
         async with grunt.system_context(session):
             await grunt.db.set_value("User", user.id, values)
@@ -282,6 +288,7 @@ async def logout(
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Revoke all refresh tokens and terminate all sessions."""
+    assert user.id is not None
     await revoke_refresh_tokens_for_user(user.id, session)
     try:
         from grunt.auth.doctypes.UserSession.user_session import (
@@ -322,6 +329,7 @@ async def revoke_session(
     """Terminate a specific session. Only the owner can revoke their own sessions."""
     from grunt.auth.doctypes.UserSession.user_session import terminate_session
 
+    assert user.id is not None
     terminated = await terminate_session(session_id, user.id, session)
     if not terminated:
         raise HTTPException(status_code=404, detail="Session not found")

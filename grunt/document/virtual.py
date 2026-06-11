@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from grunt.document.registry import document_registry
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from grunt.document.base import DocumentList
 
 
-def _is_virtual_routed(dt: Any, doctype_name: str) -> bool:
+def is_virtual_routed(dt: Any, doctype_name: str) -> bool:
     """True якщо CRUD треба делегувати VirtualDocType-контролеру.
 
     Перевіряє dt.is_virtual АБО наявність зареєстрованого VirtualDocType-контролера.
@@ -32,14 +32,12 @@ def _get_virtual_controller(doctype_name: str, user: User):
     from grunt.metadata.virtual import VirtualDocType
 
     controller_cls = document_registry.get(doctype_name)
-    # Check if it's a VirtualDocType subclass
     if issubclass(controller_cls, VirtualDocType):
-        return controller_cls(doctype_name, user)
-    # Fallback — create a base VirtualDocType (will raise NotImplementedError)
+        return cast("type[VirtualDocType]", controller_cls)(doctype_name, user)
     return VirtualDocType(doctype_name, user)
 
 
-async def _virtual_list(
+async def virtual_list(
     doctype_name: str,
     user: User,
     page: int,
@@ -65,21 +63,21 @@ async def _virtual_list(
     return DocumentList(data=result.get("data", []), meta=result.get("meta", {}))
 
 
-async def _virtual_get(doctype_name: str, user: User, doc_id: str):
+async def virtual_get(doctype_name: str, user: User, doc_id: str):
     ctrl = _get_virtual_controller(doctype_name, user)
     return await ctrl.get(doc_id)
 
 
-async def _virtual_create(doctype_name: str, user: User, data: dict[str, Any]):
+async def virtual_create(doctype_name: str, user: User, data: dict[str, Any]):
     ctrl = _get_virtual_controller(doctype_name, user)
     return await ctrl.create(data)
 
 
-async def _virtual_update(doctype_name: str, user: User, doc_id: str, data: dict[str, Any]):
+async def virtual_update(doctype_name: str, user: User, doc_id: str, data: dict[str, Any]):
     ctrl = _get_virtual_controller(doctype_name, user)
     return await ctrl.update(doc_id, data)
 
 
-async def _virtual_delete(doctype_name: str, user: User, doc_id: str):
+async def virtual_delete(doctype_name: str, user: User, doc_id: str):
     ctrl = _get_virtual_controller(doctype_name, user)
     return await ctrl.delete(doc_id)

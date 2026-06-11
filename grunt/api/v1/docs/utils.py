@@ -101,6 +101,7 @@ def _generate_xlsx_single(dt: Any, doc: dict[str, Any]) -> bytes:
     """Generate a single document XLSX."""
     wb = openpyxl.Workbook()
     ws = wb.active
+    assert ws is not None
     ws.title = dt.label[:31]
 
     header_font = Font(bold=True, color="FFFFFF")

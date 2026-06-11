@@ -38,10 +38,10 @@ from grunt.document.update_side_effects import (
 )
 from grunt.document.validation import _validate_data
 from grunt.document.virtual import (
-    _is_virtual_routed,
-    _virtual_create,
-    _virtual_delete,
-    _virtual_update,
+    is_virtual_routed,
+    virtual_create,
+    virtual_delete,
+    virtual_update,
 )
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
@@ -304,8 +304,8 @@ class DocumentWriteMixin:
     ) -> dict[str, Any]:
         fresh = await doctype_registry._lazy_load(doctype_name)
         dt = fresh if fresh is not None else await doctype_registry.get(doctype_name)
-        if _is_virtual_routed(dt, doctype_name):
-            return await _virtual_create(doctype_name, user, data)
+        if is_virtual_routed(dt, doctype_name):
+            return await virtual_create(doctype_name, user, data)
 
         table = compile_doctype_to_table(dt)
         await self._check_singleton(dt, table)
@@ -477,8 +477,8 @@ class DocumentWriteMixin:
     ) -> dict[str, Any]:
         fresh = await doctype_registry._lazy_load(doctype_name)
         dt = fresh if fresh is not None else await doctype_registry.get(doctype_name)
-        if _is_virtual_routed(dt, doctype_name):
-            return await _virtual_update(doctype_name, user, doc_id, data)
+        if is_virtual_routed(dt, doctype_name):
+            return await virtual_update(doctype_name, user, doc_id, data)
 
         table = compile_doctype_to_table(dt)
         existing = await self.get_document(doctype_name, doc_id, user)
@@ -565,8 +565,8 @@ class DocumentWriteMixin:
         user: User,
     ) -> None:
         dt = await doctype_registry.get(doctype_name)
-        if _is_virtual_routed(dt, doctype_name):
-            await _virtual_delete(doctype_name, user, doc_id)
+        if is_virtual_routed(dt, doctype_name):
+            await virtual_delete(doctype_name, user, doc_id)
             return
 
         table = compile_doctype_to_table(dt)
@@ -628,7 +628,7 @@ class DocumentWriteMixin:
 
         dt = await doctype_registry.get(doctype_name)
 
-        if _is_virtual_routed(dt, doctype_name):
+        if is_virtual_routed(dt, doctype_name):
             return await bulk_delete_virtual(
                 doctype_name=doctype_name,
                 ids=ids,
@@ -704,7 +704,7 @@ class DocumentWriteMixin:
             return await self.get_document(doctype_name, old_id, user)
 
         dt = await doctype_registry.get(doctype_name)
-        if _is_virtual_routed(dt, doctype_name):
+        if is_virtual_routed(dt, doctype_name):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Cannot rename virtual documents",

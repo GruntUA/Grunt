@@ -19,10 +19,7 @@ from grunt.middleware.rate_limit import limiter
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from grunt.api.v1.auth.schemas import (
-        ForgotPasswordRequest,
-        ResetPasswordRequest,
-    )
+    import grunt.api.v1.auth.schemas
 
 router = APIRouter()
 
@@ -42,7 +39,7 @@ def _rate_limit(limit: str):
 @_rate_limit("5/minute")
 async def forgot_password(
     request: Request,
-    body: ForgotPasswordRequest,
+    body: grunt.api.v1.auth.schemas.ForgotPasswordRequest,
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Send a password reset email."""
@@ -91,7 +88,7 @@ async def forgot_password(
 
 @router.post("/reset-password", status_code=status.HTTP_200_OK)
 async def reset_password(
-    body: ResetPasswordRequest,
+    body: grunt.api.v1.auth.schemas.ResetPasswordRequest,
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Reset password using a valid token."""
