@@ -56,7 +56,21 @@ def _friendly_integrity_error(exc: IntegrityError, dt: Any) -> HTTPException:
     import re
 
     raw = str(exc.orig or exc)
-    # SQLite: "UNIQUE constraint failed: table.column"
+
+    # NOT NULL constraint (SQLite: "NOT NULL constraint failed: table.column")
+    m_nn = re.search(r"NOT NULL constraint failed:\s*\S+\.(\w+)", raw, re.IGNORECASE)
+    if m_nn:
+        col_name = m_nn.group(1)
+        label = col_name
+        if dt is not None:
+            label = next(
+                (f.label or f.fieldname for f in dt.fields if f.fieldname == col_name),
+                col_name,
+            )
+        message = f"Поле «{label}» є обов'язковим і не може бути порожнім."
+        return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=message)
+
+    # UNIQUE constraint (SQLite: "UNIQUE constraint failed: table.column")
     # PostgreSQL: 'duplicate key value violates unique constraint "uq_..."'
     col_name: str | None = None
     m = re.search(r"UNIQUE constraint failed:\s*\S+\.(\w+)", raw, re.IGNORECASE)

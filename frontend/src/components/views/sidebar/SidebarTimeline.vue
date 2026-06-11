@@ -6,6 +6,7 @@ import {
   Trash2,
   Loader2,
   Send,
+  User,
 } from '@lucide/vue'
 import { docsApi, type TimelineItem } from '@/core/api/docs'
 import { authAdminApi } from '@/core/api/auth-admin'
@@ -214,7 +215,7 @@ onMounted(loadTimeline)
             class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-left transition-all border-b border-border/40 last:border-0"
             :class="i === mentionIndex ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-foreground'"
             @mousedown.prevent="insertMention(u)">
-            <Avatar icon="pi pi-user" shape="circle" class="!size-7 shrink-0" :class="i === mentionIndex ? 'bg-primary-foreground/20 text-white' : ''" />
+            <Avatar shape="circle" class="!size-7 shrink-0" :class="i === mentionIndex ? 'bg-primary-foreground/20 text-white' : ''"><User class="size-3.5" /></Avatar>
             <div class="flex flex-col min-w-0">
                 <span class="font-bold truncate text-xs">{{ u.full_name || u.email }}</span>
                 <span class="text-[10px] opacity-70 truncate">{{ u.email }}</span>

@@ -211,7 +211,7 @@ def _run_package_update() -> None:
         console.print("  [green]✓[/green] Python пакети оновлені")
 
 
-def _run_npm_install_for(app_dir: Path) -> None:
+def _run_npm_install_for(app_dir: Path, upgrade: bool = False) -> None:
     mise = shutil.which("mise")
     npm_run = (
         [mise, "exec", "--", "npm"]
@@ -220,6 +220,15 @@ def _run_npm_install_for(app_dir: Path) -> None:
     )
     if not npm_run:
         console.print("  [yellow]⚠[/yellow]  npm не знайдено")
+        return
+    if upgrade:
+        console.print(f"  [dim]npm update ({app_dir.name})...[/dim]")
+        result = subprocess.run([*npm_run, "update"], cwd=str(app_dir), check=False)
+        if result.returncode == 0:
+            subprocess.run([*npm_run, "audit", "fix"], cwd=str(app_dir), check=False)
+            console.print("  [green]✓[/green] npm пакети оновлені")
+        else:
+            console.print("  [yellow]⚠[/yellow]  npm update завершився з помилкою")
         return
     console.print(f"  [dim]npm install ({app_dir.name})...[/dim]")
     result = subprocess.run([*npm_run, "install"], cwd=str(app_dir), check=False)
@@ -360,7 +369,7 @@ def update(
         console.print("[bold cyan]npm пакети[/bold cyan]")
         grunt_dir = _grunt_app_dir()
         if grunt_dir.exists():
-            _run_npm_install_for(grunt_dir)
+            _run_npm_install_for(grunt_dir, upgrade=True)
         else:
             console.print("  [dim]Grunt app директорія не знайдена[/dim]")
         console.print()
@@ -436,7 +445,7 @@ def deps(upgrade: bool, python_only: bool, npm_only: bool) -> None:
 
     if run_npm:
         console.print("[bold cyan]npm пакети[/bold cyan]")
-        _run_npm_install_for(_grunt_app_dir())
+        _run_npm_install_for(_grunt_app_dir(), upgrade=upgrade)
         console.print()
 
     console.print("[bold green]✅ Залежності встановлено[/bold green]")

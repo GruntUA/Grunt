@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { MapPin, Loader2 } from '@lucide/vue'
+import { MapPin, Loader2, X, Search, RefreshCw, Printer, Expand } from '@lucide/vue'
 import type { DocType, DocTypeMapView, ScriptMenuItem, ActiveFilter } from '@/types'
 import { useMapExport } from '@/core/composables/useMapExport'
 import { useMapPrint, PRINT_FORMATS } from '@/core/composables/useMapPrint'
@@ -161,15 +161,15 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
             @input="coordError = false"
           />
           <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-            <Button v-if="coordInput" icon="pi pi-times" text rounded size="small" class="!size-6 !text-muted-foreground/40" @click="clearCoordMarker" />
-            <Button icon="pi pi-search" text rounded size="small" class="!size-7 !text-primary/60 group-hover:!text-primary" @click="gotoCoord" />
+            <Button v-if="coordInput" text rounded size="small" class="!size-6 !text-muted-foreground/40" @click="clearCoordMarker"><X class="size-4" /></Button>
+            <Button text rounded size="small" class="!size-7 !text-primary/60 group-hover:!text-primary" @click="gotoCoord"><Search class="size-4" /></Button>
           </div>
         </div>
       </div>
 
       <div class="flex items-center gap-1.5 shrink-0">
-        <Button icon="pi pi-refresh" :loading="isLoading" @click="loadMarkers" rounded text class="!size-9 !text-muted-foreground/60 hover:!text-primary" />
-        <Button icon="pi pi-print" @click="exportPrint" rounded text class="!size-9 !text-muted-foreground/60 hover:!text-primary" />
+        <Button :loading="isLoading" @click="loadMarkers" rounded text class="!size-9 !text-muted-foreground/60 hover:!text-primary"><RefreshCw class="size-4" /></Button>
+        <Button @click="exportPrint" rounded text class="!size-9 !text-muted-foreground/60 hover:!text-primary"><Printer class="size-4" /></Button>
       </div>
     </div>
 
@@ -215,7 +215,7 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
             <!-- Size label bar -->
             <div class="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-2
                         bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg">
-              <i class="pi pi-expand text-[10px]" />
+              <Expand class="size-3" />
               {{ Math.round(printRect.w) }} × {{ Math.round(printRect.h) }} px
             </div>
 

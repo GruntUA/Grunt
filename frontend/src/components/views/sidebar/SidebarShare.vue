@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Share2, X, Loader2, ShieldCheck } from '@lucide/vue'
+import { Share2, X, Loader2, ShieldCheck, User, Shield } from '@lucide/vue'
 import { docsApi } from '@/core/api/docs'
 import { authAdminApi } from '@/core/api/auth-admin'
 import type { DocType, GruntDocument, UserPublic } from '@/types'
@@ -85,7 +85,7 @@ onMounted(loadShared)
         <Chip v-for="s in sharedWith" :key="s.id" 
           class="pl-1 pr-2 py-0.5 text-[11px] font-medium bg-background border border-border/60 shadow-sm"
         >
-            <Avatar icon="pi pi-shield" shape="circle" class="mr-2 !size-5 !text-[10px]" :class="s.permission === 'Write' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'" />
+            <Avatar shape="circle" class="mr-2 !size-5 !text-[10px]" :class="s.permission === 'Write' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'"><Shield class="size-3.5" /></Avatar>
             <span class="mr-2 truncate max-w-[120px]">{{ s.user }}</span>
             <span class="text-[9px] font-bold uppercase tracking-tighter text-muted-foreground/60 mr-2">{{ s.permission }}</span>
             <X class="size-3 cursor-pointer hover:text-destructive transition-colors" @click="removeShare(s)" />
@@ -120,7 +120,7 @@ onMounted(loadShared)
           >
             <template #option="slotProps">
                 <div class="flex items-center gap-2">
-                    <Avatar icon="pi pi-user" shape="circle" class="!size-6" />
+                    <Avatar shape="circle" class="!size-6"><User class="size-3.5" /></Avatar>
                     <div class="flex flex-col">
                         <span class="text-sm font-medium">{{ slotProps.option.full_name || slotProps.option.email }}</span>
                         <span class="text-[10px] text-muted-foreground">{{ slotProps.option.email }}</span>

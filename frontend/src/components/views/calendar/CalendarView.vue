@@ -16,7 +16,7 @@ import {
 import { uk } from 'date-fns/locale'
 import type { DocType } from '@/types'
 import { docsApi } from '@/core/api/docs'
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from '@lucide/vue'
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ExternalLink } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{
@@ -346,10 +346,10 @@ const weekDays = ['Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
               {{ format(day, 'd') }}
             </span>
 
-            <Button icon="pi pi-plus" text rounded size="small" 
-                class="!size-7 opacity-0 group-hover:opacity-100 transition-all !text-muted-foreground/40 hover:!text-primary hover:!bg-primary/5" 
-                @click.stop="onDayClick(day)" 
-            />
+            <Button text rounded size="small"
+                class="!size-7 opacity-0 group-hover:opacity-100 transition-all !text-muted-foreground/40 hover:!text-primary hover:!bg-primary/5"
+                @click.stop="onDayClick(day)"
+            ><Plus class="size-4" /></Button>
           </div>
 
           <!-- Event cards -->
@@ -385,7 +385,7 @@ const weekDays = ['Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
                     <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{{ selectedEvent.doctype }}</span>
                     <h3 class="text-sm font-black text-foreground leading-tight">{{ selectedEvent.title }}</h3>
                 </div>
-                <Button icon="pi pi-external-link" text rounded size="small" @click="navigateToDoc(selectedEvent)" />
+                <Button text rounded size="small" @click="navigateToDoc(selectedEvent)"><ExternalLink class="size-4" /></Button>
             </div>
             
             <div class="flex flex-col gap-1.5 py-2 border-t border-border/40">

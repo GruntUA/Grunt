@@ -4,7 +4,7 @@ import draggable from 'vuedraggable'
 import type { DocType, DocField } from '@/types'
 import { docsApi } from '@/core/api/docs'
 
-import { Plus, Calendar, FileText } from '@lucide/vue'
+import { Plus, Calendar, FileText, Ellipsis } from '@lucide/vue'
 
 const props = defineProps<{
   doctype: DocType
@@ -146,7 +146,7 @@ watch(() => props.columnField, loadCards)
             <Badge :value="cardsByColumn[col]?.length || 0" severity="secondary"
               class="!bg-muted/40 !text-muted-foreground !text-[10px] !font-black !px-2 !h-5 !min-w-6" />
           </div>
-          <Button icon="pi pi-ellipsis-h" text rounded size="small" class="!size-7 !text-muted-foreground/40 hover:!text-foreground" />
+          <Button text rounded size="small" class="!size-7 !text-muted-foreground/40 hover:!text-foreground"><Ellipsis class="size-4" /></Button>
         </div>
 
         <!-- Column Body -->

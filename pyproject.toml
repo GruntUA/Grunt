@@ -60,7 +60,6 @@ mysql = [
 ]
 redis = [
     "redis[hiredis]>=5.0.0",
-    "celery[redis]>=5.3.0",
 ]
 docs = [
     "docxtpl>=0.16.8",

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { UserPlus, X, Loader2 } from '@lucide/vue'
+import { UserPlus, X, Loader2, User } from '@lucide/vue'
 import { docsApi } from '@/core/api/docs'
 import { authAdminApi } from '@/core/api/auth-admin'
 import type { DocType, GruntDocument, UserPublic } from '@/types'
@@ -84,7 +84,7 @@ onMounted(loadAssignees)
         <Chip v-for="a in assignees" :key="a.id" 
           class="pl-1 pr-2 py-0.5 text-[11px] font-medium bg-background border border-border/60 shadow-sm"
         >
-            <Avatar icon="pi pi-user" shape="circle" class="mr-2 !size-5 !text-[10px]" />
+            <Avatar shape="circle" class="mr-2 !size-5 !text-[10px]"><User class="size-3.5" /></Avatar>
             <span class="mr-2 truncate max-w-[120px]">{{ a.assigned_to }}</span>
             <X class="size-3 cursor-pointer hover:text-destructive transition-colors" @click="removeAssignee(a)" />
         </Chip>
@@ -118,7 +118,7 @@ onMounted(loadAssignees)
           >
             <template #option="slotProps">
                 <div class="flex items-center gap-2">
-                    <Avatar icon="pi pi-user" shape="circle" class="!size-6" />
+                    <Avatar shape="circle" class="!size-6"><User class="size-3.5" /></Avatar>
                     <div class="flex flex-col">
                         <span class="text-sm font-medium">{{ slotProps.option.full_name || slotProps.option.email }}</span>
                         <span class="text-[10px] text-muted-foreground">{{ slotProps.option.email }}</span>

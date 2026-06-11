@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from '@/core/composables/useToast'
 import client from '@/core/api/client'
-import { Sparkles, CheckCircle2, ShieldCheck, Mail, Globe } from '@lucide/vue'
+import { Sparkles, CheckCircle2, ShieldCheck, Mail, Globe, ArrowRight, ArrowLeft, Zap } from '@lucide/vue'
 
 const router = useRouter()
 const toast = useToast()
@@ -142,13 +142,10 @@ async function submitSetup() {
                   </div>
 
                   <div class="mt-12 flex justify-end">
-                    <Button 
-                       label="Продовжити" 
-                       icon="pi pi-arrow-right" 
-                       iconPos="right" 
-                       @click="activateCallback('2')" 
+                    <Button
+                       @click="activateCallback('2')"
                        class="!rounded-2xl !px-8 !py-4 !font-bold !text-sm !bg-white !text-black !border-none shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-[1.02] transition-all"
-                    />
+                    >Продовжити<ArrowRight class="size-4 ml-2" /></Button>
                   </div>
                 </div>
               </StepPanel>
@@ -186,11 +183,11 @@ async function submitSetup() {
                   </div>
 
                   <div class="mt-12 flex items-center justify-between">
-                    <button 
-                       @click="activateCallback('1')" 
+                    <button
+                       @click="activateCallback('1')"
                        class="text-zinc-400 hover:text-white font-bold text-sm flex items-center gap-2 transition-colors px-4 py-2"
                     >
-                      <i class="pi pi-arrow-left"></i> Назад
+                      <ArrowLeft class="size-4" /> Назад
                     </button>
                     <Button 
                        label="Завершити" 
@@ -219,13 +216,11 @@ async function submitSetup() {
                     Тисніть кнопку нижче, щоб увійти та розпочати роботу з Grunt.
                   </p>
                   
-                  <Button 
-                    label="Увійти в систему" 
-                    icon="pi pi-bolt"
-                    @click="submitSetup" 
-                    :loading="loading" 
+                  <Button
+                    @click="submitSetup"
+                    :loading="loading"
                     class="!rounded-2xl !px-10 !py-4 !font-black !text-base !bg-white !text-black !border-none shadow-[0_0_25px_rgba(255,255,255,0.2)] hover:shadow-[0_0_40px_rgba(255,255,255,0.5)] hover:scale-[1.05] transition-all w-full md:w-auto"
-                  />
+                  ><Zap class="size-4 mr-2" />Увійти в систему</Button>
                 </div>
               </StepPanel>
 

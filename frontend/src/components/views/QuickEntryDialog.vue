@@ -102,18 +102,34 @@ async function handleSave(openAfter: boolean) {
       router.push(`/${ws}/${props.dt.name}/${savedDoc.id}`)
     }
   } catch (err: unknown) {
-    const e = err as { response?: { status?: number; data?: { detail?: string | string[] } } }
-    if (e?.response?.status === 422) {
-      const detail = e.response?.data?.detail
-      const details: string[] = Array.isArray(detail)
-        ? detail
-        : typeof detail === 'string' ? [detail] : []
+    const e = err as {
+      response?: {
+        status?: number
+        data?: {
+          detail?: string | string[]
+          error?: { message?: string; details?: string[] }
+        }
+      }
+    }
+    const status = e?.response?.status
+    const apiMessage = e?.response?.data?.error?.message
+    const detailRaw = e?.response?.data?.detail
+
+    if (status === 422) {
+      const details: string[] = Array.isArray(detailRaw)
+        ? detailRaw
+        : typeof detailRaw === 'string' ? [detailRaw] : []
+      if (details.length === 0 && apiMessage) details.push(apiMessage)
       let hasFieldErrors = false
       details.forEach((d: string) => {
         const match = d.match(/^([a-z_]+):\s*(.+)$/)
         if (match) { validationErrors.value[match[1]] = match[2]; hasFieldErrors = true }
       })
       toast.error(hasFieldErrors ? t('Check the form for errors') : details.join('; ') || t('Validation error'))
+    } else if (apiMessage) {
+      toast.error(apiMessage)
+    } else if (typeof detailRaw === 'string' && detailRaw.trim()) {
+      toast.error(detailRaw)
     } else {
       toast.error(t('Save error'))
     }

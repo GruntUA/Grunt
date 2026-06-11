@@ -5,7 +5,7 @@ import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/core/composables/useToast'
 import client from '@/core/api/client'
-import { FileText } from '@lucide/vue'
+import { FileText, Search, X, Inbox, RefreshCw } from '@lucide/vue'
 
 const props = defineProps<{ workspaceName?: string }>()
 
@@ -128,15 +128,13 @@ async function reindex() {
         outlined
         size="small"
         :loading="isReindexing"
-        icon="pi pi-refresh"
-        label="Перебудувати індекс"
         @click="reindex"
-      />
+      ><RefreshCw class="size-4 mr-2" />Перебудувати індекс</Button>
     </div>
 
     <!-- ── Search InputText ── -->
     <IconField>
-      <InputIcon class="pi pi-search" />
+      <InputIcon><Search class="size-4" /></InputIcon>
       <InputText
         v-model="inputQ"
         placeholder="Введіть мінімум 2 символи для пошуку..."
@@ -144,7 +142,7 @@ async function reindex() {
         size="large"
         autofocus
       />
-      <InputIcon v-if="inputQ" class="pi pi-times cursor-pointer" @click="inputQ = ''" />
+      <InputIcon v-if="inputQ" class="cursor-pointer" @click="inputQ = ''"><X class="size-4" /></InputIcon>
     </IconField>
 
     <!-- ── Loading ── -->
@@ -155,23 +153,21 @@ async function reindex() {
 
     <!-- ── Too short ── -->
     <div v-else-if="q.length < 2 && !isLoading" class="py-16 flex flex-col items-center gap-3 text-muted-foreground">
-      <i class="pi pi-search text-5xl opacity-20" />
+      <Search class="text-5xl opacity-20" />
       <p class="text-sm">Введіть мінімум 2 символи для пошуку</p>
     </div>
 
     <!-- ── Empty ── -->
     <div v-else-if="q.length >= 2 && !results.length && !isLoading" class="py-16 flex flex-col items-center gap-3">
-      <i class="pi pi-inbox text-5xl text-muted-foreground/30" />
+      <Inbox class="text-5xl text-muted-foreground/30" />
       <p class="text-sm text-muted-foreground">
         Нічого не знайдено для <b>"{{ q }}"</b>
       </p>
       <Button
         v-if="auth.user?.is_superadmin"
         text size="small"
-        label="Спробувати перебудувати індекс"
-        icon="pi pi-refresh"
         @click="reindex"
-      />
+      ><RefreshCw class="size-4 mr-2" />Спробувати перебудувати індекс</Button>
     </div>
 
     <!-- ── Results ── -->

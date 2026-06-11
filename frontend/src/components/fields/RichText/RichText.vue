@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
+import { Extension } from '@tiptap/core'
+import type { EditorState, Transaction } from '@tiptap/pm/state'
+import type { Node as PmNode } from '@tiptap/pm/model'
 import StarterKit from '@tiptap/starter-kit'
+import { TextStyle } from '@tiptap/extension-text-style'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
@@ -17,7 +21,7 @@ import {
   Link as LinkIcon, Link2Off,
   Minus, Image as ImageIcon,
   Table as TableIcon,
-  Upload,
+  Upload, IndentIncrease, IndentDecrease,
 } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { filesApi } from '@/core/api/files'
@@ -35,7 +39,146 @@ const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
 const isEditable = () => !props.disabled && !props.field.read_only
 
-// ── Bubble menu ──────────────────────────────────────────────────────────────
+// ── Font & Indent data ────────────────────────────────────────────────────────
+const FONT_FAMILIES = [
+  { label: 'За замовчуванням', value: '' },
+  { label: 'Arial', value: 'Arial, sans-serif' },
+  { label: 'Georgia', value: 'Georgia, serif' },
+  { label: 'Times New Roman', value: '"Times New Roman", serif' },
+  { label: 'Courier New', value: '"Courier New", monospace' },
+  { label: 'Verdana', value: 'Verdana, sans-serif' },
+]
+
+const FONT_SIZES = [
+  { label: 'Авто', value: '' },
+  { label: '10', value: '10px' },
+  { label: '12', value: '12px' },
+  { label: '14', value: '14px' },
+  { label: '16', value: '16px' },
+  { label: '18', value: '18px' },
+  { label: '20', value: '20px' },
+  { label: '24', value: '24px' },
+  { label: '28', value: '28px' },
+  { label: '36', value: '36px' },
+  { label: '48', value: '48px' },
+]
+
+const currentFontFamily = ref<string>('')
+const currentFontSize = ref<string>('')
+
+function updateFormatState() {
+  if (!editor.value) return
+  const attrs = editor.value.getAttributes('textStyle')
+  currentFontFamily.value = attrs.fontFamily ?? ''
+  currentFontSize.value = attrs.fontSize ?? ''
+}
+
+function applyFontFamily(val: string) {
+  if (!editor.value) return
+  const cur = editor.value.getAttributes('textStyle') ?? {}
+  const attrs = { ...cur, fontFamily: val || null }
+  editor.value.chain().focus().setMark('textStyle', attrs).run()
+  if (!val) editor.value.chain().focus().removeEmptyTextStyle().run()
+  currentFontFamily.value = val
+}
+
+function applyFontSize(val: string) {
+  if (!editor.value) return
+  const cur = editor.value.getAttributes('textStyle') ?? {}
+  const attrs = { ...cur, fontSize: val || null }
+  editor.value.chain().focus().setMark('textStyle', attrs).run()
+  if (!val) editor.value.chain().focus().removeEmptyTextStyle().run()
+  currentFontSize.value = val
+}
+
+// ── Custom TextStyle with fontFamily + fontSize ───────────────────────────────
+const RichTextStyle = TextStyle.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      fontFamily: {
+        default: null,
+        parseHTML: (el: HTMLElement) => el.style.fontFamily?.replace(/['"]+/g, '') || null,
+        renderHTML: (attrs: Record<string, any>) => attrs.fontFamily ? { style: `font-family: ${attrs.fontFamily}` } : {},
+      },
+      fontSize: {
+        default: null,
+        parseHTML: (el: HTMLElement) => el.style.fontSize || null,
+        renderHTML: (attrs: Record<string, any>) => attrs.fontSize ? { style: `font-size: ${attrs.fontSize}` } : {},
+      },
+    }
+  },
+})
+
+// ── Indent extension ──────────────────────────────────────────────────────────
+const INDENT_STEP = 40
+const MAX_INDENT = 7
+const INDENT_TYPES = ['paragraph', 'heading', 'blockquote']
+
+const IndentExt = Extension.create({
+  name: 'indent',
+  addGlobalAttributes() {
+    return [{
+      types: INDENT_TYPES,
+      attributes: {
+        indent: {
+          default: 0,
+          parseHTML: el => {
+            const v = parseInt(el.style.marginLeft || '0')
+            return v ? Math.round(v / INDENT_STEP) : 0
+          },
+          renderHTML: attrs => attrs.indent > 0
+            ? { style: `margin-left: ${attrs.indent * INDENT_STEP}px` }
+            : {},
+        },
+      },
+    }]
+  },
+  addCommands() {
+    return {
+      indent: () => ({ state, dispatch }: { state: EditorState; dispatch: ((tr: Transaction) => void) | undefined }) => {
+        const { selection } = state
+        const tr = state.tr
+        state.doc.nodesBetween(selection.from, selection.to, (node: PmNode, pos: number) => {
+          if (INDENT_TYPES.includes(node.type.name))
+            tr.setNodeMarkup(pos, undefined, {
+              ...node.attrs,
+              indent: Math.min((node.attrs.indent || 0) + 1, MAX_INDENT),
+            })
+        })
+        if (dispatch) dispatch(tr)
+        return true
+      },
+      outdent: () => ({ state, dispatch }: { state: EditorState; dispatch: ((tr: Transaction) => void) | undefined }) => {
+        const { selection } = state
+        const tr = state.tr
+        state.doc.nodesBetween(selection.from, selection.to, (node: PmNode, pos: number) => {
+          if (INDENT_TYPES.includes(node.type.name))
+            tr.setNodeMarkup(pos, undefined, {
+              ...node.attrs,
+              indent: Math.max((node.attrs.indent || 0) - 1, 0),
+            })
+        })
+        if (dispatch) dispatch(tr)
+        return true
+      },
+    } as any
+  },
+  addKeyboardShortcuts() {
+    return {
+      Tab: () => {
+        if (this.editor.isActive('listItem')) return false
+        return (this.editor.commands as any).indent()
+      },
+      'Shift-Tab': () => {
+        if (this.editor.isActive('listItem')) return false
+        return (this.editor.commands as any).outdent()
+      },
+    }
+  },
+})
+
+// ── Bubble menu ───────────────────────────────────────────────────────────────
 const wrapperEl = ref<HTMLElement | null>(null)
 const bubbleVisible = ref(false)
 const bubbleStyle = ref<Record<string, string>>({})
@@ -55,7 +198,7 @@ function updateBubble() {
   } catch { bubbleVisible.value = false }
 }
 
-// ── Link popover ─────────────────────────────────────────────────────────────
+// ── Link popover ──────────────────────────────────────────────────────────────
 const op = ref<any>(null);
 const linkUrl  = ref('')
 
@@ -79,7 +222,7 @@ function removeLink() {
   op.value.hide();
 }
 
-// ── Image ────────────────────────────────────────────────────────────────────
+// ── Image ─────────────────────────────────────────────────────────────────────
 const opImage = ref<any>(null);
 const imageUrl       = ref('')
 const imageUploading = ref(false)
@@ -108,20 +251,22 @@ async function uploadImage(e: Event) {
   }
 }
 
-// ── Editor ───────────────────────────────────────────────────────────────────
+// ── Editor ────────────────────────────────────────────────────────────────────
 const editor = useEditor({
   content: String(props.modelValue ?? ''),
   editable: isEditable(),
   extensions: [
     StarterKit,
+    RichTextStyle,
+    IndentExt,
     Link.configure({ openOnClick: false }),
     Image.configure({ inline: false }),
     TableKit,
     Placeholder.configure({ placeholder: props.placeholder ?? props.field.label ?? '' }),
     CharacterCount.configure(props.maxLength ? { limit: props.maxLength } : {}),
   ],
-  onUpdate: ({ editor: e }) => emit('update:modelValue', e.getHTML()),
-  onSelectionUpdate: () => updateBubble(),
+  onUpdate: ({ editor: e }) => { emit('update:modelValue', e.getHTML()); updateFormatState() },
+  onSelectionUpdate: () => { updateBubble(); updateFormatState() },
   onBlur: () => { bubbleVisible.value = false },
 })
 
@@ -137,16 +282,42 @@ onBeforeUnmount(() => editor.value?.destroy())
 
 const charCount = () => editor.value?.storage.characterCount.characters() ?? 0
 const wordCount = () => editor.value?.storage.characterCount.words() ?? 0
+
+const doIndent  = () => (editor.value?.commands as any)?.indent?.()
+const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 </script>
 
 <template>
   <div class="flex flex-col gap-1.5">
 
-    <!-- ── Toolbar ─────────────────────────────────────────────────────── -->
+    <!-- ── Toolbar ────────────────────────────────────────────────────── -->
     <div
       v-if="editor && isEditable()"
       class="flex items-center gap-0.5 rounded-t-md border border-b-0 border-border bg-muted/50 p-1 flex-wrap text-foreground"
     >
+      <!-- Font family -->
+      <Select
+        :model-value="currentFontFamily"
+        :options="FONT_FAMILIES"
+        option-label="label"
+        option-value="value"
+        size="small"
+        class="h-7 w-36 text-xs"
+        @change="applyFontFamily(($event as any).value)"
+      />
+      <!-- Font size -->
+      <Select
+        :model-value="currentFontSize"
+        :options="FONT_SIZES"
+        option-label="label"
+        option-value="value"
+        size="small"
+        class="h-7 w-[4.5rem] text-xs"
+        @change="applyFontSize(($event as any).value)"
+      />
+
+      <Divider layout="vertical" class="!mx-1 !h-6 !my-0" />
+
       <Button size="small" :severity="editor.isActive('bold') ? 'primary' : 'secondary'" variant="text"
         :disabled="!editor.can().chain().focus().toggleBold().run()"
         @click="editor.chain().focus().toggleBold().run()">
@@ -193,6 +364,15 @@ const wordCount = () => editor.value?.storage.characterCount.words() ?? 0
         @click="editor.chain().focus().toggleBlockquote().run()">
         <Quote class="size-4" />
       </Button>
+
+      <!-- Indent / Outdent -->
+      <Button size="small" severity="secondary" variant="text" @click="doIndent">
+        <IndentIncrease class="size-4" />
+      </Button>
+      <Button size="small" severity="secondary" variant="text" @click="doOutdent">
+        <IndentDecrease class="size-4" />
+      </Button>
+
       <Button size="small" :severity="editor.isActive('codeBlock') ? 'primary' : 'secondary'" variant="text"
         @click="editor.chain().focus().toggleCodeBlock().run()">
         <Code2 class="size-4" />

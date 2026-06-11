@@ -69,12 +69,23 @@ async def export_documents(
     )
 
 
+_AUTOPRINT_SCRIPT = (
+    "<script>"
+    "window.onload=function(){"
+    "window.print();"
+    "window.onafterprint=function(){window.close();};"
+    "};"
+    "</script>"
+)
+
+
 @router.get("/{doctype}/{doc_id}/print")
 async def print_document(
     doctype: str,
     doc_id: str,
     fmt: str = Query("html"),  # html | pdf | xlsx | docx
     print_format: str | None = Query(None),
+    autoprint: bool = Query(False),
 ) -> Response:
     """Generate document in requested format: html, pdf, xlsx, or docx."""
     doc = await grunt.get_doc(doctype, doc_id)
@@ -134,6 +145,8 @@ async def print_document(
             html = render_standard(dt.label, dt.fields, doc)
 
         if fmt == "html":
+            if autoprint:
+                html = html.replace("</body>", f"{_AUTOPRINT_SCRIPT}</body>", 1)
             return Response(content=html, media_type="text/html")
 
         # PDF via WeasyPrint

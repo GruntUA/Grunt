@@ -5,11 +5,13 @@ import { useI18n } from 'vue-i18n'
 import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
 import { getExporters } from '@/core/io'
 import type { ExportContext } from '@/core/io'
-import type { MenuItem } from 'primevue/menuitem'
 import {
   Plus,
   MoreHorizontal,
   RefreshCw,
+  Download,
+  Pencil,
+  BarChart2,
 } from '@lucide/vue'
 
 const props = defineProps<{
@@ -55,14 +57,14 @@ const toggleMenu = (event: Event) => {
 }
 
 const menuItems = computed(() => {
-  const items: MenuItem[] = []
+  const items: any[] = []
 
     // Exporters
     if (!props.isSystemDocType && props.exportCtx) {
         exporters.forEach(exp => {
             items.push({
                 label: exp.label,
-                icon: 'pi pi-download',
+                icon: Download,
                 command: () => exp.export(props.exportCtx!)
             })
         })
@@ -73,7 +75,7 @@ const menuItems = computed(() => {
     if (props.showDevActions) {
         items.push({
             label: t('Edit DocType'),
-            icon: 'pi pi-pencil',
+            icon: Pencil,
             command: () => router.push(`/${props.workspace ?? 'grunt'}/DocType/${props.doctype}`)
         })
         items.push({ separator: true })
@@ -82,11 +84,11 @@ const menuItems = computed(() => {
     // Report builder
     items.push({
         label: t('Create report'),
-        icon: 'pi pi-chart-bar',
-        command: () => router.push({ 
-            name: 'report-builder', 
-            params: { workspaceName: props.workspace ?? 'grunt' }, 
-            query: { doctype: props.doctype } 
+        icon: BarChart2,
+        command: () => router.push({
+            name: 'report-builder',
+            params: { workspaceName: props.workspace ?? 'grunt' },
+            query: { doctype: props.doctype }
         })
     })
 
@@ -129,7 +131,14 @@ const menuItems = computed(() => {
       <Button outlined class="text-foreground hover:bg-muted/80 shadow-sm" @click="toggleMenu">
         <MoreHorizontal class="size-4" />
       </Button>
-      <Menu ref="menu" :model="menuItems" :popup="true" class="w-56" />
+      <Menu ref="menu" :model="menuItems" :popup="true" class="w-56">
+        <template #item="{ item, props: itemProps }">
+          <a v-bind="itemProps.action" class="flex items-center gap-2">
+            <component v-if="item.icon" :is="item.icon" class="size-4" />
+            <span>{{ item.label }}</span>
+          </a>
+        </template>
+      </Menu>
 
       <!-- Custom buttons -->
       <Button

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, nextTick } from 'vue'
+import { FileSpreadsheet } from '@lucide/vue'
 import type { DocField, DocTypeStatusConfig } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
@@ -238,7 +239,7 @@ const pt = {
     <template #empty>
       <div v-if="!isLoading && !hideBody" class="px-3 py-16 text-center">
         <div class="flex flex-col items-center gap-2">
-          <i class="pi pi-file-excel text-muted-foreground/40 text-4xl" />
+          <FileSpreadsheet class="text-muted-foreground/40 text-4xl" />
           <p class="text-sm text-muted-foreground">Записів не знайдено</p>
         </div>
       </div>

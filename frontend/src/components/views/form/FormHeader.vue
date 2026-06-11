@@ -12,6 +12,18 @@ import {
   RefreshCw,
   Share2,
   Copy as CopyIcon,
+  Printer,
+  FileSpreadsheet,
+  FileText,
+  Globe,
+  ExternalLink,
+  Settings,
+  SlidersHorizontal,
+  Copy,
+  Undo,
+  History,
+  Pencil,
+  Trash2,
 } from '@lucide/vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 
@@ -181,23 +193,29 @@ const menuItems = computed(() => {
     if (props.id) {
         items.push({
             label: t('Print'),
-            icon: 'pi pi-print',
+            icon: Printer,
             items: [
                 {
+                    label: t('Print (browser)'),
+                    icon: Printer,
+                    url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=html&autoprint=1&token=${auth.token}`,
+                    target: '_blank'
+                },
+                {
                     label: 'Excel (.xlsx)',
-                    icon: 'pi pi-file-excel',
+                    icon: FileSpreadsheet,
                     url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=xlsx&token=${auth.token}`,
                     target: '_self'
                 },
                 {
                     label: 'PDF',
-                    icon: 'pi pi-file-pdf',
+                    icon: FileText,
                     url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=pdf&token=${auth.token}`,
                     target: '_self'
                 },
                 {
                     label: 'HTML',
-                    icon: 'pi pi-globe',
+                    icon: Globe,
                     url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=html&token=${auth.token}`,
                     target: '_blank'
                 }
@@ -206,21 +224,21 @@ const menuItems = computed(() => {
 
         items.push({
             label: t('Open in new tab'),
-            icon: 'pi pi-external-link',
-          url: router.resolve({
-            name: 'workspace-form',
-            params: { workspaceName, doctype: props.doctype, id: props.id }
-          }).href,
+            icon: ExternalLink,
+            url: router.resolve({
+                name: 'workspace-form',
+                params: { workspaceName, doctype: props.doctype, id: props.id }
+            }).href,
             target: '_blank'
         })
     }
 
     items.push({
         label: t('Edit DocType'),
-        icon: 'pi pi-cog',
+        icon: Settings,
         url: router.resolve({
-          name: 'workspace-form',
-          params: { workspaceName, doctype: 'DocType', id: props.doctype }
+            name: 'workspace-form',
+            params: { workspaceName, doctype: 'DocType', id: props.doctype }
         }).href,
         target: '_blank'
     })
@@ -228,12 +246,12 @@ const menuItems = computed(() => {
     if (props.dt) {
         items.push({
             label: t('Configure print'),
-            icon: 'pi pi-sliders-h',
-          url: router.resolve({
-            name: 'workspace-list',
-            params: { workspaceName, doctype: 'PrintFormat' },
-            query: { 'filter[doctype]': props.doctype }
-          }).href,
+            icon: SlidersHorizontal,
+            url: router.resolve({
+                name: 'workspace-list',
+                params: { workspaceName, doctype: 'PrintFormat' },
+                query: { 'filter[doctype]': props.doctype }
+            }).href,
             target: '_blank'
         })
     }
@@ -243,27 +261,27 @@ const menuItems = computed(() => {
     if (props.id) {
         items.push({
             label: t('Duplicate'),
-            icon: 'pi pi-copy',
+            icon: Copy,
             command: () => emit('duplicate')
         })
 
         if (props.isDirty) {
             items.push({
                 label: t('Discard changes'),
-                icon: 'pi pi-undo',
+                icon: Undo,
                 command: handleUndo
             })
         }
 
         items.push({
             label: t('Activity log'),
-            icon: 'pi pi-history',
+            icon: History,
             command: () => emit('toggleLog')
         })
 
         items.push({
             label: t('Share link'),
-            icon: 'pi pi-share-alt',
+            icon: Share2,
             command: () => {
                 showShareDialog.value = true
                 shareLink.value = null
@@ -276,7 +294,7 @@ const menuItems = computed(() => {
         items.push({ separator: true })
         items.push({
             label: t('Rename'),
-            icon: 'pi pi-pencil',
+            icon: Pencil,
             command: () => {
                 newDocId.value = props.id || ''
                 showRenameDialog.value = true
@@ -285,7 +303,7 @@ const menuItems = computed(() => {
 
         items.push({
             label: t('Delete'),
-            icon: 'pi pi-trash',
+            icon: Trash2,
             class: 'text-destructive',
             command: () => emit('delete')
         })
@@ -392,7 +410,15 @@ const menuItems = computed(() => {
         <Button text class="text-foreground hover:bg-muted/80 h-9 w-9 p-0" @click="toggleMenu">
             <EllipsisVertical class="size-4" />
         </Button>
-        <Menu ref="menu" :model="menuItems" :popup="true" class="w-56" />
+        <Menu ref="menu" :model="menuItems" :popup="true" class="w-56">
+          <template #item="{ item, props: itemProps }">
+            <a v-bind="itemProps.action" class="flex items-center gap-2">
+              <component v-if="item.icon" :is="item.icon" class="size-4" />
+              <span>{{ item.label }}</span>
+              <span v-if="item.items?.length" class="ml-auto">›</span>
+            </a>
+          </template>
+        </Menu>
       </div>
     </div>
 

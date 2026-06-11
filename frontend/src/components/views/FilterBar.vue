@@ -270,8 +270,7 @@ function togglePresets(event: Event) {
               class="h-7 text-[11px] w-32 rounded-lg"
               placeholder="Назва пресету"
               autofocus
-              @keydown.enter="savePreset"
-              @keydown.escape="showSaveName = false"
+              @keydown="(e: KeyboardEvent) => { if (e.key === 'Enter') savePreset(); else if (e.key === 'Escape') showSaveName = false }"
             />
             <Button size="small" class="h-7 px-2.5 text-[11px] shadow-sm" @click="savePreset">OK</Button>
             <button type="button" class="text-muted-foreground hover:text-foreground p-1 transition-colors" @click="showSaveName = false">
