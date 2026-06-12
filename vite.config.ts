@@ -97,7 +97,7 @@ export default defineConfig({
                     if (id.includes('primevue') || id.includes('@primevue')) return 'vendor-primevue'
                     if (isVueVendorModule(id)) return 'vendor-vue'
                     if (id.includes('@tanstack/vue-query')) return 'vendor-query'
-                    if (id.includes('class-variance-authority') || id.includes('/clsx/') || id.includes('tailwind-merge')) return 'vendor-ui'
+                    if (id.includes('/clsx/') || id.includes('tailwind-merge')) return 'vendor-ui'
                     if (id.includes('@lucide/vue')) return 'vendor-icons'
                     if (id.includes('vue-i18n') || id.includes('@intlify')) return 'vendor-i18n'
                     if (id.includes('@codemirror') || id.includes('vue-codemirror') || id.includes('@lezer')) return 'vendor-codemirror'
@@ -107,6 +107,25 @@ export default defineConfig({
                 },
             },
         },
+    },
+    define: {
+        __VUE_I18N_FULL_INSTALL__: 'true',
+        __VUE_I18N_LEGACY_API__: 'false',
+        __INTLIFY_JIT_COMPILATION__: 'false',
+        __INTLIFY_DROP_MESSAGE_COMPILER__: 'false',
+        __INTLIFY_PROD_DEVTOOLS__: 'false',
+    },
+    optimizeDeps: {
+        // vue-i18n must NOT be pre-bundled: the Rolldown-based optimizer in
+        // Vite 8 emits a vue-i18n chunk that calls init_runtime_dom_esm_bundler()
+        // without importing it ("init_runtime_dom_esm_bundler is not defined").
+        // Serving it as plain ESM source avoids the broken chunk.
+        exclude: [
+            'vue-i18n',
+            '@intlify/core-base',
+            '@intlify/shared',
+            '@intlify/message-compiler',
+        ],
     },
     server: {
         port: 5173,

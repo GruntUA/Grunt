@@ -14,6 +14,7 @@ const sidebarStore = useSidebarStore()
 const route = useRoute()
 const contentKey = ref(0)
 const notFound = ref(false)
+const ready = ref(false)
 
 async function loadApp(name: string) {
   notFound.value = false
@@ -24,6 +25,7 @@ async function loadApp(name: string) {
     return
   }
   contentKey.value++
+  ready.value = true
 }
 
 onMounted(() => loadApp(props.workspaceName))
@@ -38,7 +40,7 @@ watch(() => props.workspaceName, async (name) => {
 
 <template>
   <NotFound v-if="notFound" />
-  <div v-else :key="contentKey" class="h-screen overflow-hidden bg-background flex relative">
+  <div v-else-if="ready" :key="contentKey" class="h-screen overflow-hidden bg-background flex relative">
     <!-- Background pattern -->
     <div class="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05] z-0">
       <svg class="h-full w-full" xmlns="http://www.w3.org/2000/svg">

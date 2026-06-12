@@ -145,8 +145,15 @@ export class WebSocketChannel {
     this.isConnected.value = false
 
     if (this.ws) {
-      this.ws.onclose = null
-      this.ws.close()
+      const ws = this.ws
+      ws.onclose = null
+      ws.onmessage = null
+      if (ws.readyState === WebSocket.CONNECTING) {
+        // Closing a CONNECTING socket logs a browser warning — defer until open
+        ws.onopen = () => ws.close()
+      } else {
+        ws.close()
+      }
       this.ws = null
     }
   }
