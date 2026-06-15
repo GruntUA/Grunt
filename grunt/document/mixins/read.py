@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 from grunt.document.formula import evaluate_read_formulas
-from grunt.document.query import _apply_filters, _apply_search
+from grunt.document.query import _apply_filters, _apply_search, _expand_child_of_filters
 from grunt.document.relations import (
     _get_multi_link_fields,
     _load_child_tables,
@@ -126,6 +126,10 @@ class DocumentReadMixin:
             )
         if extra_clause is not None:
             query = query.where(extra_clause)
+
+        # Expand tree-aware child_of operators before applying filters
+        if filters and any(k.endswith("__child_of") for k in filters):
+            filters = await _expand_child_of_filters(self.session, dt, filters)
 
         # Filters
         if filters:

@@ -134,6 +134,14 @@ function emitChange() {
   emit('change', activeFilters.value)
 }
 
+const OP_LABELS: Record<string, string> = {
+  'child_of': '⊇',
+}
+
+function opLabel(op: string): string {
+  return OP_LABELS[op] ?? op
+}
+
 function chipLabel(f: ActiveFilter): string {
   let val: string
   if (f.fieldtype === 'Check') {
@@ -141,7 +149,7 @@ function chipLabel(f: ActiveFilter): string {
   } else {
     val = f.displayValue || f.value
   }
-  return `${f.label} ${f.op} ${val}`
+  return `${f.label} ${opLabel(f.op)} ${val}`
 }
 
 function toggleFilter(event: Event) {
@@ -234,8 +242,9 @@ function togglePresets(event: Event) {
                 :class="pickedOp === op
                   ? 'border-primary bg-primary/10 text-primary shadow-inner'
                   : 'border-border/60 bg-card hover:border-primary/40 text-muted-foreground'"
+                :title="op === 'child_of' ? 'Включаючи всі підрозділи' : undefined"
                 @click="pickedOp = op"
-              >{{ op }}</button>
+              >{{ opLabel(op) }}</button>
             </div>
 
             <!-- Value input -->

@@ -35,6 +35,7 @@ export interface BacklinkItem {
 export const OP_MAP: Record<string, string> = {
   '=': 'eq', '!=': 'ne', 'like': 'ilike',
   '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte',
+  'child_of': 'child_of',
 }
 
 /** Convert ActiveFilter[] to raw backend filter object: { "fieldname__op": "value" } */

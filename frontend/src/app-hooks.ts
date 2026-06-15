@@ -40,7 +40,7 @@ registerFilterConfig('Datetime', { operators: DATE_OPS, filterInput: DatetimeFil
 registerFilterConfig('Time', { operators: DATE_OPS, filterInput: DefaultFilterInput })
 registerFilterConfig('Check', { operators: ['='], filterInput: CheckFilterInput })
 registerFilterConfig('Select', { operators: ['=', '!='], filterInput: SelectFilterInput })
-registerFilterConfig('Link', { operators: ['=', '!='], filterInput: LinkFilterInput })
+registerFilterConfig('Link', { operators: ['=', '!=', 'child_of'], filterInput: LinkFilterInput })
 
 // ── List Cell Renderers ────────────────────────────────────────────────────
 import { registerListCell } from '@/core/listCellRegistry'

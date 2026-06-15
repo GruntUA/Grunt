@@ -20,6 +20,7 @@ interface UseListRouteSyncOptions {
 const OP_MAP: Record<string, string> = {
   '=': 'eq', '!=': 'ne', 'like': 'ilike',
   '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte',
+  'child_of': 'child_of',
 }
 
 const REVERSE_OP_MAP: Record<string, string> = Object.fromEntries(
