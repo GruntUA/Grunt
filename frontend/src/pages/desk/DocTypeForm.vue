@@ -53,7 +53,7 @@ const queryClient = useQueryClient()
 const { startLinkCreate, finishLinkCreate, restoreLinkDraft } = useLinkCreate()
 
 const dt = ref<DocType | null>(null)
-const { document, form, isLoading, isDirty, isSaving, save, remove, rename } = useDocument(props.doctype, props.id)
+const { document, form, isLoading, isDirty, isSaving, save, remove, rename, markClean } = useDocument(props.doctype, props.id)
 
 // ── WebSocket real-time + presence ───────────────────────────────────────────
 const wsUrl = computed(() => props.id ? `/api/v1/ws/${props.doctype}/${props.id}` : null)
@@ -88,6 +88,7 @@ const {
       await saveHandler()
     }
   },
+  markClean,
   lastMessage,
 })
 
@@ -325,9 +326,8 @@ useFetchFrom({
         <!-- Left Column -->
         <div class="min-w-0 flex flex-col gap-4">
           <!-- Dashboard / Connections -->
-          <DocDashboard v-if="id && document && dt" :dt="dt" :document="document" 
-            @create-new="handleCreateNew" 
-            @view-list="handleViewList" 
+          <DocDashboard v-if="id && document && dt" :dt="dt" :document="document" :workspace="props.workspace"
+            @create-new="handleCreateNew"
           />
 
           <!-- Main Form Card -->

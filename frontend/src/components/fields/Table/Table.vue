@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField, DocType } from '@/types'
 import { metaApi, docsApi } from '@/core/api'
-import { Plus, X, Pencil, Trash2, CheckSquare } from '@lucide/vue'
+import { Plus, X, Pencil, Trash2, Copy } from '@lucide/vue'
 import FieldRenderer from '@/core/renderer/FieldRenderer.vue'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
@@ -353,6 +353,18 @@ function clearSelection() {
   emitSelection()
 }
 
+function duplicateSelected() {
+  const keys = selectedRows.value
+  const copies = rows.value
+    .filter((row, i) => keys.has(rowName(row, i)))
+    .map((row) => {
+      const { name: _n, id: _i, ...rest } = row as Record<string, unknown>
+      return rest
+    })
+  push([...rows.value, ...copies])
+  clearSelection()
+}
+
 // Display value for non-editable cells (complex types or disabled mode)
 function cellDisplay(row: Record<string, unknown>, f: DocField): string {
   const val = row[f.fieldname]
@@ -515,7 +527,9 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
       </Column>
 
       <template v-if="groupField" #groupheader="{ data }">
-        <span class="font-semibold text-xs">{{ groupHeaderLabel(data) }}</span>
+        <span
+          :class="groupHeaderLabel(data) ? 'font-semibold text-xs' : 'hidden-group-header'"
+        >{{ groupHeaderLabel(data) }}</span>
       </template>
 
       <template #empty>
@@ -527,16 +541,49 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
     </DataTable>
     </div>
 
-    <!-- Add row -->
-    <Button
-      v-if="!disabled"
-      type="button" text size="small"
-      class="self-start text-primary"
-      @click="addRow"
-    >
-      <Plus class="size-4 mr-1" />
-      {{ t('Add row') }}
-    </Button>
+    <!-- Bottom action bar: Add row + bulk selection actions -->
+    <div class="flex items-center gap-2 flex-wrap min-h-[2rem]">
+      <Button
+        v-if="!disabled"
+        type="button" text size="small"
+        class="text-primary"
+        @click="addRow"
+      >
+        <Plus class="size-4 mr-1" />
+        {{ t('Add row') }}
+      </Button>
+
+      <template v-if="!disabled && selectionCount > 0">
+        <div class="h-4 w-px bg-border" />
+        <span class="text-xs text-muted-foreground">
+          {{ t('Selected:') }} <span class="font-semibold text-foreground tabular-nums ml-0.5">{{ selectionCount }}</span>
+        </span>
+        <Button
+          severity="secondary" text size="small"
+          class="!text-xs gap-1"
+          @click="duplicateSelected"
+        >
+          <Copy class="size-3.5" />
+          {{ t('Duplicate') }}
+        </Button>
+        <Button
+          severity="danger" text size="small"
+          class="!text-xs gap-1"
+          @click="deleteSelected"
+        >
+          <Trash2 class="size-3.5" />
+          {{ t('Delete') }}
+        </Button>
+        <button
+          type="button"
+          class="p-0.5 rounded text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 transition-colors"
+          :title="t('Clear selection')"
+          @click="clearSelection"
+        >
+          <X class="size-3.5" />
+        </button>
+      </template>
+    </div>
 
     <!-- Row edit dialog -->
     <Dialog :visible="editIdx !== null" modal
@@ -574,49 +621,12 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
     @close="quickEntryDt = null"
   />
 
-  <!-- Floating bulk action bar (fixed at bottom of screen) -->
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition-all duration-200 ease-out"
-      enter-from-class="opacity-0 translate-y-4"
-      enter-to-class="opacity-100 translate-y-0"
-      leave-active-class="transition-all duration-150 ease-in"
-      leave-from-class="opacity-100 translate-y-0"
-      leave-to-class="opacity-0 translate-y-4"
-    >
-      <div
-        v-if="!disabled && selectionCount > 0"
-        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 bg-card/80 backdrop-blur-xl rounded-2xl border border-primary/20 shadow-2xl shadow-primary/10 ring-1 ring-primary/20 overflow-hidden min-w-[320px]"
-      >
-        <div class="absolute -right-8 -top-8 size-28 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-        <div class="absolute -left-8 -bottom-8 size-24 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-        <div class="flex items-center gap-2 shrink-0 relative z-10">
-          <CheckSquare class="size-4 text-primary" />
-          <span class="text-sm font-bold text-foreground">
-            {{ t('Selected:') }} <span class="text-primary tabular-nums ml-1">{{ selectionCount }}</span>
-          </span>
-        </div>
-        <div class="h-5 w-px bg-primary/20 relative z-10" />
-        <div class="flex items-center gap-1.5 p-1 bg-background/60 backdrop-blur-sm rounded-xl border border-primary/10 relative z-10">
-          <Button
-            severity="danger" text size="small"
-            class="!px-3 !h-7 !text-xs !font-bold gap-1.5 hover:!bg-destructive/10"
-            @click="deleteSelected"
-          >
-            <Trash2 class="size-3.5" />
-            <span>{{ t('Delete') }}</span>
-          </Button>
-        </div>
-        <button
-          type="button"
-          class="ml-auto p-1 rounded-md text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 transition-colors relative z-10"
-          :title="t('Clear selection')"
-          @click="clearSelection"
-        >
-          <X class="size-4" />
-        </button>
-      </div>
-    </Transition>
-  </Teleport>
   </div>
 </template>
+
+<style scoped>
+/* Hide the group-header <tr> when its label is empty (e.g. "Позавідомча група") */
+:deep(tr:has(.hidden-group-header)) {
+  display: none;
+}
+</style>

@@ -75,6 +75,8 @@ export interface FormProxy {
   get_selected: () => Record<string, string[]>
   reload: () => Promise<void>
   save: () => Promise<void>
+  /** Reset the dirty-state baseline to the current form values (for display-only set_value calls). */
+  mark_clean: () => void
   /** Internal state modified by scripts */
   _display: Record<string, boolean>
   _reqd: Record<string, boolean>
@@ -242,6 +244,7 @@ export function createFormProxy(
     updateButtonType?: (label: string, group: string | null, buttonType: string) => void
     reload?: () => Promise<void>
     save?: () => Promise<void>
+    markClean?: () => void
   } = {},
   isNew: boolean = false,
 ): FormProxy {
@@ -331,6 +334,10 @@ export function createFormProxy(
 
     async save() {
       await callbacks.save?.()
+    },
+
+    mark_clean() {
+      callbacks.markClean?.()
     },
   }
 

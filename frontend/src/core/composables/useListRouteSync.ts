@@ -1,4 +1,4 @@
-import { watch } from 'vue'
+import { watch, nextTick } from 'vue'
 import type { Ref } from 'vue'
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router'
 import type { DocType } from '@/types'
@@ -27,8 +27,16 @@ const REVERSE_OP_MAP: Record<string, string> = Object.fromEntries(
 )
 
 export function useListRouteSync(options: UseListRouteSyncOptions) {
-  // Sync state to URL
+  // Prevents the route.query watcher from calling applyRouteState() when we
+  // ourselves call router.replace (state→URL sync). Without this the loop is:
+  // activeFilters changed → router.replace → route.query changed → applyRouteState
+  // → activeFilters unchanged (same content) → no further loop, but one extra call.
+  let _syncingToUrl = false
+
+  // Sync state → URL
   watch([options.viewMode, options.activeFilters, options.fastFilterValues], () => {
+    _syncingToUrl = true
+
     const query = { ...options.route.query }
 
     // View mode
@@ -55,6 +63,8 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
     }
 
     options.router.replace({ query })
+    // Clear the flag after Vue Router has updated route.query and watchers have fired
+    nextTick(() => { _syncingToUrl = false })
   }, { deep: true })
 
   function applyRouteState() {
@@ -98,7 +108,18 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
     })
 
     if (filters.length > 0) {
-      options.activeFilters.value = filters
+      // Only assign a new array when the filter content actually changed — avoids
+      // triggering the state→URL sync watcher with an identical payload.
+      const same =
+        options.activeFilters.value.length === filters.length &&
+        options.activeFilters.value.every((f, i) =>
+          f.fieldname === filters[i].fieldname &&
+          f.op === filters[i].op &&
+          f.value === filters[i].value,
+        )
+      if (!same) {
+        options.activeFilters.value = filters
+      }
     }
 
     // Parse fast filter values from URL: ff[id]=value
@@ -111,6 +132,17 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
       options.fastFilterValues.value = { ...options.fastFilterValues.value, ...ffValues }
     }
   }
+
+  // Apply URL → state on mount (immediate) and whenever navigation changes the query
+  // from outside this composable (e.g. router.push from a form's dashboard button).
+  watch(
+    () => options.route.query,
+    () => {
+      if (_syncingToUrl) return
+      applyRouteState()
+    },
+    { deep: true, immediate: true },
+  )
 
   function setGroupByInRoute(field: string | null) {
     const query = { ...options.route.query }

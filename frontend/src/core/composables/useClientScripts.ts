@@ -47,6 +47,7 @@ export interface UseClientScriptsOptions {
   refreshField?: (field: string) => void
   reload: () => Promise<void>
   save: () => Promise<void>
+  markClean?: () => void
   /** Reactive ref to the latest WebSocket message on the document channel */
   lastMessage?: Ref<unknown>
 }
@@ -179,6 +180,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
       },
       reload: options.reload,
       save: options.save,
+      markClean: options.markClean,
     },
     options.isNew(),
   )

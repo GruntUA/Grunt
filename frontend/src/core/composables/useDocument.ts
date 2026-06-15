@@ -13,14 +13,22 @@ export function useDocument(doctype: string, id: string | null) {
   })
 
   const form = ref<Record<string, unknown>>({})
+  const savedBaseline = ref<string>(JSON.stringify({}))
 
   watch(document, (doc) => {
-    if (doc) form.value = { ...doc }
+    if (doc) {
+      form.value = { ...doc }
+      savedBaseline.value = JSON.stringify(doc)
+    }
   }, { immediate: true })
 
   const isDirty = computed(() =>
-    JSON.stringify(form.value) !== JSON.stringify(document.value)
+    JSON.stringify(form.value) !== savedBaseline.value
   )
+
+  const markClean = () => {
+    savedBaseline.value = JSON.stringify(form.value)
+  }
 
   const { mutateAsync: save, isPending: isSaving } = useMutation({
     mutationFn: () => id
@@ -29,6 +37,7 @@ export function useDocument(doctype: string, id: string | null) {
     onSuccess: (saved: GruntDocument) => {
       queryClient.setQueryData(['document', doctype, saved.id], saved)
       form.value = { ...saved }
+      savedBaseline.value = JSON.stringify(saved)
       queryClient.invalidateQueries({ queryKey: ['documents', doctype] })
     }
   })
@@ -48,5 +57,5 @@ export function useDocument(doctype: string, id: string | null) {
     }
   })
 
-  return { document, form, isLoading, isDirty, isSaving, save, remove, rename }
+  return { document, form, isLoading, isDirty, isSaving, save, remove, rename, markClean }
 }
