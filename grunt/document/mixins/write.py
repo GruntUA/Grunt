@@ -24,7 +24,10 @@ from grunt.document.relations import (
     _get_multi_link_fields,
     _load_child_tables,
     _save_child_tables,
+    apply_field_values,
+    attach_multi_link_values,
 )
+from grunt.document.serde import audit_fields, serialize_datetimes
 from grunt.document.update_side_effects import (
     bulk_delete_virtual,
     collect_bulk_delete_candidates,
@@ -114,6 +117,11 @@ class DocumentWriteMixin:
     ) -> dict[str, Any]:
         raise NotImplementedError
 
+    async def _resolve_dt(self, doctype_name: str) -> Any:
+        """Return the freshest DocType definition, forcing a lazy reload if needed."""
+        fresh = await doctype_registry._lazy_load(doctype_name)
+        return fresh if fresh is not None else await doctype_registry.get(doctype_name)
+
     # ── Create ────────────────────────────────────────────────────────────
 
     # ── create helpers ────────────────────────────────────────────────────
@@ -151,27 +159,12 @@ class DocumentWriteMixin:
             doc_name = await naming_service.generate(dt.autoname or "", data, self.session)
 
         row: dict[str, Any] = {}
-        standard: dict[str, Any] = {
-            "name": doc_name,
-            "owner": user.email,
-            "created_at": now,
-            "modified_at": now,
-            "modified_by": user.email,
-            "docstatus": 0,
-        }
+        standard: dict[str, Any] = {"name": doc_name, **audit_fields(user.email, now)}
         for k, v in standard.items():
             if k in table.c:
                 row[k] = v
 
-        for field in dt.fields:
-            if not field.is_physical:
-                continue
-            if field.fieldname in data:
-                row[field.fieldname] = field.coerce(data[field.fieldname])
-            elif field.default is not None:
-                row[field.fieldname] = field.coerce(field.default)
-            elif field.fieldtype == "Check":
-                row[field.fieldname] = False
+        apply_field_values(dt.fields, data, row)
 
         if dt.workflow:
             sf = dt.workflow.state_field
@@ -263,9 +256,17 @@ class DocumentWriteMixin:
         doctype_name: str,
         doc_id: str,
         data: dict[str, Any],
+        *,
+        only_present: bool = False,
     ) -> None:
-        """Persist values for MultiLink virtual relation fields."""
+        """Persist values for MultiLink virtual relation fields.
+
+        With ``only_present=True`` fields absent from *data* are left untouched
+        (used on update so unmentioned relations are preserved).
+        """
         for mlf in _get_multi_link_fields(dt):
+            if only_present and mlf.fieldname not in data:
+                continue
             values = data.get(mlf.fieldname)
             if isinstance(values, list):
                 await self._ml.set_values(
@@ -299,11 +300,8 @@ class DocumentWriteMixin:
         self, doctype_name: str, doc_id: str, row: dict[str, Any], dt: Any
     ) -> dict[str, Any]:
         """Serialise datetime values and attach MultiLink field values for the response."""
-        for k, v in row.items():
-            if isinstance(v, datetime):
-                row[k] = v.isoformat()
-        for mlf in _get_multi_link_fields(dt):
-            row[mlf.fieldname] = await self._ml.get_values(doctype_name, doc_id, mlf.fieldname)
+        serialize_datetimes(row)
+        await attach_multi_link_values(self._ml, doctype_name, doc_id, dt, row)
         return row
 
     # ── Create ────────────────────────────────────────────────────────────
@@ -316,8 +314,7 @@ class DocumentWriteMixin:
         *,
         ignore_required: bool = False,
     ) -> dict[str, Any]:
-        fresh = await doctype_registry._lazy_load(doctype_name)
-        dt = fresh if fresh is not None else await doctype_registry.get(doctype_name)
+        dt = await self._resolve_dt(doctype_name)
         if is_virtual_routed(dt, doctype_name):
             return await virtual_create(doctype_name, user, data)
 
@@ -367,20 +364,6 @@ class DocumentWriteMixin:
             update_data["modified_by"] = user.email
         return update_data
 
-    @staticmethod
-    async def _propagate_formulas(
-        dt: Any, merged: dict[str, Any], update_data: dict[str, Any]
-    ) -> None:
-        """Compute formula fields on *merged* then copy changed values back into *update_data*."""
-        await compute_formulas(dt, merged)
-        for field in dt.fields:
-            if (
-                field.formula
-                and field.fieldname in merged
-                and field.fieldname not in PROTECTED_FIELDS
-            ):
-                update_data[field.fieldname] = merged[field.fieldname]
-
     async def _build_update_result(
         self,
         doctype_name: str,
@@ -389,16 +372,9 @@ class DocumentWriteMixin:
         merged: dict[str, Any],
     ) -> dict[str, Any]:
         """Serialise, load child tables, and attach MultiLink fields for the response."""
-        result = dict(merged)
-        for k, v in result.items():
-            if isinstance(v, datetime):
-                result[k] = v.isoformat()
+        result = serialize_datetimes(dict(merged))
         await _load_child_tables(self.session, dt, result)
-        ml_fields = _get_multi_link_fields(dt)
-        if ml_fields:
-            ml_data = await self._ml.get_all_for_doc(doctype_name, real_id)
-            for mlf in ml_fields:
-                result[mlf.fieldname] = ml_data.get(mlf.fieldname, [])
+        await attach_multi_link_values(self._ml, doctype_name, real_id, dt, result)
         return result
 
     async def _run_update_before_hooks(self, doc: Any) -> None:
@@ -421,10 +397,28 @@ class DocumentWriteMixin:
         data: dict[str, Any],
         row: dict[str, Any],
         update_data: dict[str, Any],
+        existing: dict[str, Any],
         user: User,
     ) -> None:
-        """Apply update pipeline: formulas -> update row -> children -> aggregates -> MultiLink."""
-        await self._propagate_formulas(dt, row, update_data)
+        """Apply update pipeline: formulas -> update row -> children -> aggregates -> MultiLink.
+
+        Formulas are computed on *row* (the post-hook merged doc) and then a single
+        pass copies every physical field that differs from *existing* into
+        *update_data*. This captures both lifecycle-hook mutations and freshly
+        computed formula values in one place before the UPDATE is issued.
+        """
+        await compute_formulas(dt, row)
+
+        table_cols = {c.name for c in table.columns}
+        for field in dt.fields:
+            if (
+                not field.is_physical
+                or field.fieldname in PROTECTED_FIELDS
+                or field.fieldname not in table_cols
+            ):
+                continue
+            if row.get(field.fieldname) != existing.get(field.fieldname):
+                update_data[field.fieldname] = row[field.fieldname]
 
         await self.session.execute(
             table.update().where(table.c.name == real_id).values(**update_data)
@@ -433,18 +427,7 @@ class DocumentWriteMixin:
         await _save_child_tables(self.session, dt, real_id, row, user, datetime.now(UTC))
         await self._apply_aggregations(dt, table, real_id, row)
 
-        for mlf in _get_multi_link_fields(dt):
-            if mlf.fieldname not in data:
-                continue
-            values = data[mlf.fieldname]
-            if isinstance(values, list):
-                await self._ml.set_values(
-                    doctype_name,
-                    real_id,
-                    mlf.fieldname,
-                    mlf.options or "",
-                    values,
-                )
+        await self._sync_multi_links(dt, doctype_name, real_id, data, only_present=True)
 
         await self.session.flush()
 
@@ -489,8 +472,7 @@ class DocumentWriteMixin:
         *,
         ignore_required: bool = False,
     ) -> dict[str, Any]:
-        fresh = await doctype_registry._lazy_load(doctype_name)
-        dt = fresh if fresh is not None else await doctype_registry.get(doctype_name)
+        dt = await self._resolve_dt(doctype_name)
         if is_virtual_routed(dt, doctype_name):
             return await virtual_update(doctype_name, user, doc_id, data)
 
@@ -516,21 +498,9 @@ class DocumentWriteMixin:
             doc = controller_cls(doctype_name, merged, user, self.session)
             await self._run_update_before_hooks(doc)
 
-            # Sync hook mutations: any physical field that validate()/before_save()
-            # changed in `merged` must be written to the DB even if the frontend
-            # did not submit it (e.g. read-only computed fields).
-            _table_cols = {c.name for c in table.columns}
-            for _f in dt.fields:
-                if (
-                    not _f.is_physical
-                    or _f.fieldname in PROTECTED_FIELDS
-                    or _f.fieldname not in _table_cols
-                ):
-                    continue
-                _merged_val = merged.get(_f.fieldname)
-                if _merged_val != existing.get(_f.fieldname):
-                    update_data[_f.fieldname] = _merged_val
-
+            # _persist_update_doc computes formulas then performs a single pass that
+            # writes back every physical field differing from `existing` — capturing
+            # both hook mutations (e.g. read-only computed fields) and formula values.
             await self._persist_update_doc(
                 dt,
                 table,
@@ -539,6 +509,7 @@ class DocumentWriteMixin:
                 data,
                 merged,
                 update_data,
+                existing,
                 user,
             )
             logger.info("document.updated", doctype=doctype_name, id=real_id)

@@ -4,7 +4,6 @@ import type { DocType, GruntDocument } from '@/types'
 import { docsApi } from '@/core/api/docs'
 import {
   User,
-  Activity,
   Bookmark,
 } from '@lucide/vue'
 import type { PresenceUser } from '@/core/composables/usePresence'
@@ -15,7 +14,6 @@ import SidebarAssignments from './sidebar/SidebarAssignments.vue'
 import SidebarShare from './sidebar/SidebarShare.vue'
 import SidebarTags from './sidebar/SidebarTags.vue'
 import SidebarBacklinks from './sidebar/SidebarBacklinks.vue'
-import SidebarTimeline from './sidebar/SidebarTimeline.vue'
 
 const props = defineProps<{
   doctype: DocType
@@ -26,9 +24,6 @@ const props = defineProps<{
 
 const attrs = useAttrs()
 defineOptions({ inheritAttrs: false })
-
-// ── Tabs ──────────────────────────────────────────────────────────────────────
-const activeTab = ref<'details' | 'timeline'>('details')
 
 // ── Bookmark ──────────────────────────────────────────────────────────────────
 const bookmark = ref<GruntDocument | null>(null)
@@ -63,50 +58,30 @@ loadBookmark()
 
 <template>
   <aside v-bind="attrs" class="flex flex-col gap-0 w-full">
-    <div class="form-section mb-0! border-0 bg-transparent shadow-none">
-      <Tabs v-model:value="activeTab" class="w-full">
-        <!-- Tab nav as section header -->
-        <TabList scrollable variant="underline" class="w-full h-auto border-b border-border/60 bg-card rounded-t-xl px-2">
-          <Tab value="details" variant="underline" class="flex items-center gap-1.5 px-4 py-3 h-11">
-            <User class="size-3.5" />
-            <span class="text-[11px] font-bold uppercase tracking-wider">Деталі</span>
-          </Tab>
-          <Tab value="timeline" variant="underline" class="flex items-center gap-1.5 px-4 py-3 h-11">
-            <Activity class="size-3.5" />
-            <span class="text-[11px] font-bold uppercase tracking-wider">Активність</span>
-          </Tab>
-        </TabList>
+    <div class="form-section bg-card border border-border/60 rounded-xl shadow-sm overflow-hidden">
+      <div class="form-section-header border-b border-border/60 px-4 py-3">
+        <User class="size-3.5 text-muted-foreground" />
+        <span class="text-[11px] font-bold uppercase tracking-wider">Деталі</span>
+      </div>
+      <div class="form-section-body p-4 flex flex-col gap-5">
+        <SidebarFileInfo :doctype="doctype" :document="document" :users="users" />
 
-        <!-- Content -->
-        <TabPanels class="p-0 bg-card border border-t-0 border-border/60 rounded-b-xl shadow-sm overflow-hidden">
-          <div class="form-section-body p-4!">
-            <TabPanel value="details" class="flex flex-col gap-5 focus:outline-none focus:ring-0">
-              <SidebarFileInfo :doctype="doctype" :document="document" :users="users" />
+        <div class="flex gap-2">
+          <SidebarAssignments :doctype="doctype" :document="document" class="flex-1 mb-0" />
+          <SidebarShare :doctype="doctype" :document="document" class="flex-1 mb-0" />
+          <Button v-tooltip="bookmark ? 'Прибрати із закладок' : 'Додати до закладок'"
+            outlined class="size-9 shrink-0 shadow-sm transition-all active:scale-95"
+            :severity="bookmark ? 'warn' : 'secondary'"
+            :disabled="bookmarkLoading"
+            @click="toggleBookmark"
+          >
+            <Bookmark class="size-4" :fill="bookmark ? 'currentColor' : 'none'" />
+          </Button>
+        </div>
 
-              <!-- Actions -->
-              <div class="flex gap-2">
-                <SidebarAssignments :doctype="doctype" :document="document" class="flex-1 mb-0" />
-                <SidebarShare :doctype="doctype" :document="document" class="flex-1 mb-0" />
-                <Button v-tooltip="bookmark ? 'Прибрати із закладок' : 'Додати до закладок'"
-                  outlined class="size-9 shrink-0 shadow-sm transition-all active:scale-95"
-                  :severity="bookmark ? 'warn' : 'secondary'"
-                  :disabled="bookmarkLoading"
-                  @click="toggleBookmark"
-                >
-                  <Bookmark class="size-4" :fill="bookmark ? 'currentColor' : 'none'" />
-                </Button>
-              </div>
-
-              <SidebarTags :doctype="doctype" :document="document" />
-              <SidebarBacklinks :doctype="doctype" :document="document" :workspace="workspace" />
-            </TabPanel>
-
-            <TabPanel value="timeline" class="px-4! focus:outline-none focus:ring-0">
-              <SidebarTimeline :doctype="doctype" :document="document" />
-            </TabPanel>
-          </div>
-        </TabPanels>
-      </Tabs>
+        <SidebarTags :doctype="doctype" :document="document" />
+        <SidebarBacklinks :doctype="doctype" :document="document" :workspace="workspace" />
+      </div>
     </div>
   </aside>
 </template>

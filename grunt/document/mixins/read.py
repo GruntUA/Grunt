@@ -26,7 +26,9 @@ from grunt.document.relations import (
     _load_child_tables,
     _resolve_link_labels,
     _table_fieldnames,
+    attach_multi_link_values,
 )
+from grunt.document.serde import serialize_datetimes
 from grunt.document.virtual import (
     is_virtual_routed,
     virtual_get,
@@ -93,9 +95,7 @@ class DocumentReadMixin:
             row = result.first()
             data_list = [dict(row._mapping)] if row else []
             for r in data_list:
-                for k, v in r.items():
-                    if isinstance(v, datetime):
-                        r[k] = v.isoformat()
+                serialize_datetimes(r)
             return DocumentList(
                 data=data_list,
                 meta={"total": len(data_list), "page": 1, "per_page": 1, "pages": 1},
@@ -210,9 +210,7 @@ class DocumentReadMixin:
 
         # Serialise datetimes and evaluate read formulas
         for doc_row in rows:
-            for k, v in doc_row.items():
-                if isinstance(v, datetime):
-                    doc_row[k] = v.isoformat()
+            serialize_datetimes(doc_row)
             await evaluate_read_formulas(dt, doc_row)
 
         next_cursor: str | None = None
@@ -257,10 +255,7 @@ class DocumentReadMixin:
                 detail=f"Document '{doc_id}' not found.",
             )
 
-        doc = dict(row._mapping)
-        for k, v in doc.items():
-            if isinstance(v, datetime):
-                doc[k] = v.isoformat()
+        doc = serialize_datetimes(dict(row._mapping))
 
         table_fields = _table_fieldnames(dt)
         ml_fields = {f.fieldname for f in _get_multi_link_fields(dt)}
@@ -278,16 +273,11 @@ class DocumentReadMixin:
 
         # Attach MultiLink values
         if ml_fields:
-            if load_all_relations:
-                ml_data = await self._ml.get_all_for_doc(doctype_name, doc["name"])
-                for fieldname in ml_fields:
-                    doc[fieldname] = ml_data.get(fieldname, [])
-            else:
-                selected_ml = sorted(ml_fields & expand_set)
-                if selected_ml:
-                    ml_data = await self._ml.get_all_for_doc(doctype_name, doc["name"])
-                    for fieldname in selected_ml:
-                        doc[fieldname] = ml_data.get(fieldname, [])
+            selected_ml = None if load_all_relations else (ml_fields & expand_set)
+            if load_all_relations or selected_ml:
+                await attach_multi_link_values(
+                    self._ml, doctype_name, doc["name"], dt, doc, fields=selected_ml
+                )
 
         await evaluate_read_formulas(dt, doc)
 

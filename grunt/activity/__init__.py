@@ -3,6 +3,7 @@ from __future__ import annotations
 import structlog
 
 from grunt.app import grunt
+from grunt.document.versioning import _SKIP_FIELDS
 
 logger = structlog.get_logger()
 
@@ -31,6 +32,12 @@ async def log_activity(event: str, **kwargs) -> None:
     doc_id = doc.get("name") if isinstance(doc, dict) else str(doc)
     user_email = user.email if hasattr(user, "email") else str(user)
 
+    details: dict | None = None
+    if action == "Update":
+        changed = [f for f in (kwargs.get("changed_fields") or []) if f not in _SKIP_FIELDS]
+        if changed:
+            details = {"changed_fields": changed}
+
     try:
         await grunt.new_doc(
             "ActivityLog",
@@ -39,7 +46,7 @@ async def log_activity(event: str, **kwargs) -> None:
                 "doc_id": doc_id,
                 "user": user_email,
                 "action": action,
-                "details": f"Document {action.lower()}d via {event}",
+                "details": details,
             },
         )
     except Exception as e:

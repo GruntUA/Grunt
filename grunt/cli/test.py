@@ -33,7 +33,7 @@ def test(
 
     # If no filters, include base framework tests (skip silently if the dir doesn't exist)
     if not app and not doctype:
-        base_tests = site_manager.bench_dir / "apps" / "grunt" / "backend" / "tests"
+        base_tests = site_manager.bench_dir / "apps" / "grunt" / "tests"
         if base_tests.is_dir():
             test_paths.append(str(base_tests))
 

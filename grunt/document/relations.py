@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import select
 
+from grunt.document.serde import audit_fields, serialize_datetimes
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from grunt.auth.doctypes.User.user import User
@@ -118,6 +120,63 @@ def _get_multi_link_fields(dt: DocType) -> list:
     return [f for f in dt.fields if f.fieldtype == "MultiLink"]
 
 
+async def attach_multi_link_values(
+    ml: Any,
+    doctype_name: str,
+    doc_id: str,
+    dt: DocType,
+    doc: dict[str, Any],
+    *,
+    fields: set[str] | None = None,
+) -> None:
+    """Attach MultiLink list values to *doc* in-place.
+
+    ``fields=None`` attaches every MultiLink field; otherwise only the named
+    subset is attached. All values are fetched in a single query.
+    """
+    ml_fields = _get_multi_link_fields(dt)
+    if fields is not None:
+        ml_fields = [f for f in ml_fields if f.fieldname in fields]
+    if not ml_fields:
+        return
+    ml_data = await ml.get_all_for_doc(doctype_name, doc_id)
+    for f in ml_fields:
+        doc[f.fieldname] = ml_data.get(f.fieldname, [])
+
+
+def apply_field_values(
+    fields: Any,
+    data: dict[str, Any],
+    row: dict[str, Any],
+    *,
+    fill_empty: bool = False,
+) -> None:
+    """Copy coerced physical-field values from *data* into *row* in-place.
+
+    For each physical field, the value is taken from *data* (coerced), falling
+    back to the field default. With ``fill_empty=True`` every physical column is
+    written with a type-appropriate empty value when absent from *data* (used for
+    child rows to avoid NOT NULL violations); otherwise only Check fields get a
+    default ``False``.
+    """
+    for field in fields:
+        if not field.is_physical:
+            continue
+        if field.fieldname in data:
+            row[field.fieldname] = field.coerce(data[field.fieldname])
+        elif field.default is not None:
+            row[field.fieldname] = field.coerce(field.default)
+        elif field.fieldtype == "Check":
+            row[field.fieldname] = False
+        elif fill_empty:
+            if field.fieldtype in ("Int", "Float"):
+                row[field.fieldname] = 0
+            elif field.fieldtype in ("Date", "Datetime", "Time"):
+                row[field.fieldname] = None
+            else:
+                row[field.fieldname] = ""
+
+
 async def _load_child_tables(
     session: AsyncSession,
     dt: DocType,
@@ -143,9 +202,7 @@ async def _load_child_tables(
             )
             rows = [dict(r._mapping) for r in result.all()]
             for row in rows:
-                for k, v in row.items():
-                    if isinstance(v, datetime):
-                        row[k] = v.isoformat()
+                serialize_datetimes(row)
             await _resolve_link_labels(session, child_dt, rows)
             doc[field.fieldname] = rows
         except Exception:
@@ -198,32 +255,10 @@ async def _save_child_tables(
                     "parent_doctype": dt.name,
                     "parent_field": field.fieldname,
                     "idx": child_idx,
-                    "owner": user.email,
-                    "created_at": now,
-                    "modified_at": now,
-                    "modified_by": user.email,
-                    "docstatus": 0,
+                    **audit_fields(user.email, now),
                 }
-                for child_field in child_dt.fields:
-                    if not child_field.is_physical:
-                        continue
-                    if child_field.fieldname in child_data:
-                        row[child_field.fieldname] = child_field.coerce(
-                            child_data[child_field.fieldname]
-                        )
-                    elif child_field.default is not None:
-                        row[child_field.fieldname] = child_field.coerce(child_field.default)
-                    else:
-                        # Always include every column to avoid NOT NULL constraint
-                        # errors. Use a type-appropriate empty value.
-                        if child_field.fieldtype == "Check":
-                            row[child_field.fieldname] = False
-                        elif child_field.fieldtype in ("Int", "Float"):
-                            row[child_field.fieldname] = 0
-                        elif child_field.fieldtype in ("Date", "Datetime", "Time"):
-                            row[child_field.fieldname] = None
-                        else:
-                            row[child_field.fieldname] = ""
+                # Always include every column to avoid NOT NULL constraint errors.
+                apply_field_values(child_dt.fields, child_data, row, fill_empty=True)
                 rows_to_insert.append(row)
             if rows_to_insert:
                 await session.execute(child_table.insert(), rows_to_insert)

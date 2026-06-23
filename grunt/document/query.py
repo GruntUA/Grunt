@@ -54,7 +54,7 @@ def _apply_filters(query: Any, table: Any, filters: dict[str, str]) -> Any:
 
 async def _expand_child_of_filters(
     session: Any,
-    dt: "DocType",
+    dt: DocType,
     filters: dict[str, str],
 ) -> dict[str, str]:
     """Expand ``field__child_of=X`` into ``field__in=X,child1,...`` via BFS.

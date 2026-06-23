@@ -60,7 +60,6 @@ register_doc_events(
         # Log all document lifecycle events to ActivityLog
         "*": {
             "after_insert": ["grunt.activity.log_activity"],
-            "after_update": ["grunt.activity.log_activity"],
             "after_delete": ["grunt.activity.log_activity"],
         },
     }

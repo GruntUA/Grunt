@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
   MessageSquare,
   Activity as ActivityIcon,
@@ -30,9 +30,17 @@ async function loadTimeline() {
   finally { timelineLoading.value = false }
 }
 
+const fieldLabelMap = computed(() => {
+  const map: Record<string, string> = {}
+  for (const f of props.doctype.fields ?? []) {
+    if (f.fieldname && f.label) map[f.fieldname] = f.label
+  }
+  return map
+})
+
 function timelineLabel(item: TimelineItem): string {
   if (item.type === 'comment') return item.content ?? ''
-  const labels: Record<string, string> = {
+  const actionLabels: Record<string, string> = {
     create: 'Створив документ',
     Create: 'Створив документ',
     update: 'Оновив документ',
@@ -43,7 +51,14 @@ function timelineLabel(item: TimelineItem): string {
     restore: 'Відновив версію',
     transition: 'Змінив статус',
   }
-  return labels[item.action ?? ''] ?? item.action ?? ''
+  const base = actionLabels[item.action ?? ''] ?? item.action ?? ''
+  if ((item.action === 'Update' || item.action === 'update') && item.details?.changed_fields) {
+    const fields = (item.details.changed_fields as string[])
+      .map(f => fieldLabelMap.value[f] ?? f)
+      .join(', ')
+    return `${base}: ${fields}`
+  }
+  return base
 }
 
 function fmtDate(d: string | null) {
@@ -155,47 +170,8 @@ onMounted(loadTimeline)
   </div>
 
   <div v-else class="flex flex-col gap-6">
-    <div v-if="timeline.length === 0" class="py-12 text-center text-sm text-muted-foreground/60 italic bg-muted/20 rounded-xl border border-dashed border-border/40">
-      Поки що немає активності
-    </div>
-
-    <!-- PrimeVue Timeline -->
-    <Timeline :value="timeline" class="w-full custom-timeline">
-      <template #marker="slotProps">
-        <span class="flex size-7 items-center justify-center rounded-full shadow-sm ring-1 ring-border/40"
-          :class="slotProps.item.type === 'comment' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'">
-          <MessageSquare v-if="slotProps.item.type === 'comment'" class="size-3" />
-          <ActivityIcon v-else class="size-3" />
-        </span>
-      </template>
-      <template #content="slotProps">
-        <div class="flex flex-col gap-1 mb-6">
-          <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-1.5 min-w-0">
-                <span class="text-xs font-bold text-foreground truncate">{{ slotProps.item.user }}</span>
-                <span v-if="slotProps.item.type === 'activity'" class="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
-                   {{ timelineLabel(slotProps.item) }}
-                </span>
-            </div>
-            <div class="flex items-center gap-1.5 shrink-0">
-                <span class="text-[10px] font-medium text-muted-foreground/60 uppercase">{{ fmtDate(slotProps.item.created_at) }}</span>
-                <button v-if="slotProps.item.type === 'comment' && (slotProps.item.user === auth.user?.email || auth.user?.is_superadmin)"
-                    class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 hover:text-destructive rounded"
-                    @click="deleteComment(slotProps.item)">
-                    <Trash2 class="size-3" />
-                </button>
-            </div>
-          </div>
-          <p v-if="slotProps.item.type === 'comment'"
-            class="text-sm text-foreground bg-muted/40 border border-border/20 rounded-xl px-4 py-2.5 mt-1 whitespace-pre-wrap leading-relaxed shadow-sm">
-            {{ slotProps.item.content }}
-          </p>
-        </div>
-      </template>
-    </Timeline>
-
     <!-- Comment input -->
-    <div class="mt-4 flex flex-col gap-3 group/comment bg-muted/20 p-4 rounded-xl border border-border/40">
+    <div class="flex flex-col gap-3 group/comment bg-muted/20 p-4 rounded-xl border border-border/40">
       <div class="flex items-center gap-2 px-1">
         <MessageSquare class="size-4 text-primary/60" />
         <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Додати коментар</span>
@@ -206,7 +182,7 @@ onMounted(loadTimeline)
           class="w-full !text-sm !shadow-inner !bg-background !border-border/60 focus:!border-primary/50 transition-all resize-none"
           autoResize
           @keydown="onCommentKeydown" @input="onCommentInput" />
-        
+
         <!-- Mentions -->
         <div v-if="mentionDropdown.length"
           class="absolute left-0 right-0 bottom-full mb-2 bg-popover border border-border rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -232,6 +208,43 @@ onMounted(loadTimeline)
           </Button>
       </div>
     </div>
+
+    <div v-if="timeline.length === 0" class="py-12 text-center text-sm text-muted-foreground/60 italic bg-muted/20 rounded-xl border border-dashed border-border/40">
+      Поки що немає активності
+    </div>
+
+    <!-- PrimeVue Timeline -->
+    <Timeline :value="[...timeline].reverse()" class="w-full custom-timeline">
+      <template #marker="slotProps">
+        <span class="flex size-7 items-center justify-center rounded-full shadow-sm ring-1 ring-border/40"
+          :class="slotProps.item.type === 'comment' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'">
+          <MessageSquare v-if="slotProps.item.type === 'comment'" class="size-3" />
+          <ActivityIcon v-else class="size-3" />
+        </span>
+      </template>
+      <template #content="slotProps">
+        <div class="flex flex-col gap-1 mb-6">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-bold text-foreground truncate">{{ slotProps.item.user }}</span>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <span class="text-[10px] font-medium text-muted-foreground/60 uppercase">{{ fmtDate(slotProps.item.created_at) }}</span>
+                <button v-if="slotProps.item.type === 'comment' && (slotProps.item.user === auth.user?.email || auth.user?.is_superadmin)"
+                    class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 hover:text-destructive rounded"
+                    @click="deleteComment(slotProps.item)">
+                    <Trash2 class="size-3" />
+                </button>
+            </div>
+          </div>
+          <span v-if="slotProps.item.type === 'activity'" class="text-[10px] font-medium text-muted-foreground leading-relaxed">
+            {{ timelineLabel(slotProps.item) }}
+          </span>
+          <p v-if="slotProps.item.type === 'comment'"
+            class="text-sm text-foreground bg-muted/40 border border-border/20 rounded-xl px-4 py-2.5 mt-1 whitespace-pre-wrap leading-relaxed shadow-sm">
+            {{ slotProps.item.content }}
+          </p>
+        </div>
+      </template>
+    </Timeline>
   </div>
 </template>
 

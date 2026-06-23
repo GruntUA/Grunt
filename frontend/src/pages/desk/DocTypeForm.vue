@@ -21,13 +21,14 @@ import { useFormShortcuts } from '@/core/composables/useFormShortcuts'
 import { useFetchFrom } from '@/core/composables/useFetchFrom'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { DocType, GruntDocument } from '@/types'
-import { History } from '@lucide/vue'
+import { History, Activity } from '@lucide/vue'
 import ProgressSpinner from 'primevue/progressspinner'
 
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import DocSidebar from '@/components/views/DocSidebar.vue'
 import VersionHistoryPanel from '@/components/views/VersionHistoryPanel.vue'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
+import SidebarTimeline from '@/components/views/sidebar/SidebarTimeline.vue'
 
 // Custom sub-components
 import FormHeader from '@/components/views/form/FormHeader.vue'
@@ -340,6 +341,17 @@ useFetchFrom({
               @table-selection-change="({ fieldname, rowNames }) => setTableSelection(fieldname, rowNames)" />
           </div>
 
+
+          <!-- Activity timeline -->
+          <div v-if="id && document" class="form-section">
+            <div class="form-section-header">
+              <Activity class="size-3.5 text-muted-foreground" />
+              <span class="flex-1 text-left">{{ t('Активність') }}</span>
+            </div>
+            <div class="form-section-body p-4!">
+              <SidebarTimeline :doctype="dt" :document="document as GruntDocument" />
+            </div>
+          </div>
 
           <!-- Version history -->
           <div v-if="id && dt?.track_changes" class="form-section">

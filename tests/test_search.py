@@ -32,12 +32,13 @@ async def create_doc(ctx, doctype: str, data: dict) -> dict:
 
 async def regular_user_ctx(ctx):
     """Register a regular user and return the User object."""
-    from grunt.auth.doctypes.User.User import User
+    from grunt.auth.doctypes.User.user import User
 
     reg_user_data = {
         "email": "regular@example.com",
         "password": "pass123",
-        "full_name": "Regular User",
+        "first_name": "Regular",
+        "last_name": "User",
     }
     await ctx.new_doc("User", reg_user_data)
     await ctx.db._session().commit()

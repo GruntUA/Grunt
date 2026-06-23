@@ -103,9 +103,8 @@ async def test_list_search(ctx, setup_doctype):
 @pytest.mark.asyncio
 async def test_list_pagination(ctx, setup_doctype):
     """get_list?page=2&limit=2 (direct call)."""
-    from grunt.auth.doctypes.User.User import SYSTEM_USER
-
     from grunt.api.v1.documents import get_list, new_doc
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
 
     async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
         for i in range(5):
@@ -123,8 +122,7 @@ async def test_list_pagination(ctx, setup_doctype):
 @pytest.mark.asyncio
 async def test_list_cursor_pagination(ctx, setup_doctype):
     """cursor pagination: next_cursor returned on page 1, used on page 2, no overlap."""
-    from grunt.auth.doctypes.User.User import SYSTEM_USER
-
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
     from grunt.document.service import DocumentService
 
     session = ctx.db._session()
@@ -263,9 +261,8 @@ async def test_get_document(ctx, setup_doctype):
 @pytest.mark.asyncio
 async def test_get_document_expand_multilink(ctx):
     """expand controls MultiLink loading for get_document."""
-    from grunt.auth.doctypes.User.User import SYSTEM_USER
-
     from grunt.api.v1.meta import save_doctype
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
     from grunt.document.service import DocumentService
 
     await save_doctype(
@@ -369,8 +366,7 @@ async def test_delete_document(ctx, setup_doctype):
 @pytest.mark.asyncio
 async def test_bulk_delete_documents_service(ctx, setup_doctype):
     """DocumentService.bulk_delete removes multiple docs and reports missing IDs."""
-    from grunt.auth.doctypes.User.User import SYSTEM_USER
-
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
     from grunt.document.service import DocumentService
 
     a = await ctx.new_doc("TestItem", {"title": "Bulk A"})
@@ -403,9 +399,8 @@ async def test_bulk_delete_documents_service(ctx, setup_doctype):
 @pytest.mark.asyncio
 async def test_list_partial_fields(ctx, setup_doctype):
     """get_list?fields=["title"] (direct call)."""
-    from grunt.auth.doctypes.User.User import SYSTEM_USER
-
     from grunt.api.v1.documents import get_list, new_doc
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
 
     async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
         await new_doc("TestItem", {"title": "Partial", "status": "Active", "count": 42})
@@ -423,9 +418,8 @@ async def test_list_partial_fields(ctx, setup_doctype):
 @pytest.mark.asyncio
 async def test_link_search_returns_compact_items(ctx, setup_doctype):
     """link_search should return compact rows and honor title/search fields."""
-    from grunt.auth.doctypes.User.User import SYSTEM_USER
-
     from grunt.api.v1.docs.link import link_search
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
 
     await ctx.new_doc("TestItem", {"title": "Alpha Item", "status": "Draft"})
     await ctx.new_doc("TestItem", {"title": "Beta Item", "status": "Active"})

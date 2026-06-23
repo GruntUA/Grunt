@@ -14,6 +14,8 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 
+from grunt.document.serde import audit_fields
+
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
@@ -60,7 +62,12 @@ async def record_update_changes(
     if diff_changes:
         try:
             from grunt.app import grunt as _g
+            from grunt.document.versioning import _SKIP_FIELDS
 
+            changed_fields = [
+                item["field"] for item in diff_changes
+                if item["field"] not in _SKIP_FIELDS
+            ]
             async with _g.context(session=session, engine=engine, user=user):
                 await _g.new_doc(
                     "ActivityLog",
@@ -69,7 +76,7 @@ async def record_update_changes(
                         "doc_id": real_id,
                         "action": "Update",
                         "user": user.email,
-                        "details": {"changes": diff_changes},
+                        "details": {"changed_fields": changed_fields} if changed_fields else None,
                     },
                 )
         except Exception:
@@ -302,11 +309,7 @@ async def write_bulk_delete_activity_log(
                 "user": user_email,
                 "action": "Delete",
                 "details": None,
-                "owner": user_email,
-                "created_at": _now,
-                "modified_at": _now,
-                "modified_by": user_email,
-                "docstatus": 0,
+                **audit_fields(user_email, _now),
             }
             return {k: v for k, v in raw.items() if k in table_cols}
 

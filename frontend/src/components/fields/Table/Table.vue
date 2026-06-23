@@ -138,28 +138,32 @@ watch(
   { immediate: true },
 )
 
-// Pre-sort rows by linked DocType sort_order (Department fallback) for stable visual order
+// Sort rows for display: groups appear in the order of their first row in the input array.
+// This preserves backend-controlled order (e.g. DFS hierarchy for staffing table) while
+// still grouping related rows together for DataTable's row grouping feature.
 const displayRows = computed(() => {
   if (!sortField.value) return rowsWithMeta.value
   const sf = sortField.value
-  const sortMap = groupSortMap.value
+
+  // Assign each group a sort index based on first occurrence in input array
+  const groupOrder = new Map<string, number>()
+  rowsWithMeta.value.forEach((row) => {
+    const key = String((row as Record<string, unknown>)[sf] ?? '')
+    if (!groupOrder.has(key)) groupOrder.set(key, groupOrder.size)
+  })
+
   const prepared = rowsWithMeta.value.map((row) => {
     const key = String((row as Record<string, unknown>)[sf] ?? '')
-    const ord = sortMap.has(key) ? sortMap.get(key)! : Number.MAX_SAFE_INTEGER
     return {
       ...row,
-      __group_sort_order: ord,
+      __group_sort_order: groupOrder.get(key) ?? Number.MAX_SAFE_INTEGER,
     }
   })
   const sorted = [...prepared].sort((a, b) => {
-    const aKey = String((a as Record<string, unknown>)[sf] ?? '')
-    const bKey = String((b as Record<string, unknown>)[sf] ?? '')
-    if (sortMap.size > 0) {
-      const aOrd = Number((a as Record<string, unknown>).__group_sort_order ?? Number.MAX_SAFE_INTEGER)
-      const bOrd = Number((b as Record<string, unknown>).__group_sort_order ?? Number.MAX_SAFE_INTEGER)
-      if (aOrd !== bOrd) return aOrd - bOrd
-    }
-    return aKey.localeCompare(bKey)
+    const aOrd = Number((a as Record<string, unknown>).__group_sort_order ?? Number.MAX_SAFE_INTEGER)
+    const bOrd = Number((b as Record<string, unknown>).__group_sort_order ?? Number.MAX_SAFE_INTEGER)
+    if (aOrd !== bOrd) return aOrd - bOrd
+    return Number(a.__row_index ?? 0) - Number(b.__row_index ?? 0)
   })
   return sorted.map((row, idx) => ({
     ...row,
@@ -167,10 +171,9 @@ const displayRows = computed(() => {
   }))
 })
 
-const dataTableSortField = computed(() => {
-  if (!groupField.value) return undefined
-  return groupSortMap.value.size > 0 ? '__group_sort_order' : groupField.value
-})
+const dataTableSortField = computed(() =>
+  groupField.value ? '__group_sort_order' : undefined
+)
 
 const dataTableSortOrder = computed(() =>
   groupField.value ? 1 : undefined,
