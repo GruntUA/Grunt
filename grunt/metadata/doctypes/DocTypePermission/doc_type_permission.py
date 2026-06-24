@@ -1,29 +1,16 @@
-"""DocTypePermission controller and metadata model."""
+"""DocTypePermission controller.
+
+The ``DocTypePermission`` Pydantic model now lives in
+:mod:`grunt.metadata.permission` (re-exported below for backward compatibility)
+so the metadata layer can reference it without importing this controller module.
+"""
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
-
 from grunt.document.base import Document
+from grunt.metadata.permission import DocTypePermission
 
-
-class DocTypePermission(BaseModel):
-    """Pydantic model for DocType permissions inside DocType metadata."""
-
-    model_config = ConfigDict(extra="ignore")
-
-    role: str
-    read: bool = False
-    write: bool = False
-    create: bool = False
-    delete: bool = False
-    submit: bool = False
-    cancel: bool = False
-    report: bool = False
-    # Row-level filter — e.g. "owner == user"
-    match: str | None = None
-    # Fields hidden for this role (field names)
-    hidden_fields: list[str] = []
+__all__ = ["DocTypePermission", "DocTypePermissionController"]
 
 
 class DocTypePermissionController(Document):

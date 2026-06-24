@@ -26,6 +26,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from grunt.config import settings
+from grunt.errors import error_body
 
 if TYPE_CHECKING:
     from starlette.requests import Request
@@ -143,14 +144,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 logger.warning("rate_limit.auth_exceeded", path=path, ip=ip)
                 return JSONResponse(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    content={
-                        "success": False,
-                        "error": {
-                            "code": "RATE_LIMIT_EXCEEDED",
-                            "message": "Забагато запитів. Спробуйте пізніше.",
-                            "details": [],
-                        },
-                    },
+                    content=error_body(
+                        "RATE_LIMIT_EXCEEDED", "Забагато запитів. Спробуйте пізніше."
+                    ),
                     headers={"Retry-After": str(reset_in)},
                 )
 
@@ -187,14 +183,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             )
             return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                content={
-                    "success": False,
-                    "error": {
-                        "code": "RATE_LIMIT_EXCEEDED",
-                        "message": "Забагато запитів. Спробуйте пізніше.",
-                        "details": [],
-                    },
-                },
+                content=error_body(
+                    "RATE_LIMIT_EXCEEDED", "Забагато запитів. Спробуйте пізніше."
+                ),
                 headers={
                     "Retry-After": str(reset_in),
                     "X-RateLimit-Limit": str(limit),

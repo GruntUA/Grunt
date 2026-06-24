@@ -3,11 +3,14 @@ from __future__ import annotations
 import importlib
 import inspect
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import structlog
 
-from grunt.document.base import Document
 from grunt.utils.strings import to_snake_case
+
+if TYPE_CHECKING:
+    from grunt.document.base import Document
 
 logger = structlog.get_logger()
 
@@ -47,6 +50,8 @@ class DocumentRegistry:
 
     def get(self, doctype: str) -> type[Document]:
         """Return the controller for a DocType, importing it on first access."""
+        from grunt.document.base import Document
+
         if doctype not in self._controllers and doctype in self._index:
             self._import_controller(doctype, self._index[doctype])
         return self._controllers.get(doctype, Document)
@@ -60,6 +65,7 @@ class DocumentRegistry:
 
         Accepts both Document and VirtualDocType subclasses.
         """
+        from grunt.document.base import Document
         from grunt.metadata.virtual import VirtualDocType
 
         def _is_controller(obj) -> bool:
@@ -214,6 +220,8 @@ class DocumentRegistry:
 
         Prefer index_* methods over this — they defer the import until needed.
         """
+        from grunt.document.base import Document
+
         try:
             module = importlib.import_module(module_path)
             for _name, obj in inspect.getmembers(module):

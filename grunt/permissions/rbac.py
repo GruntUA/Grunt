@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 import structlog
-from fastapi import HTTPException, status
+
+from grunt.errors import forbidden
+from grunt.permissions.types import PermissionAction
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -38,7 +40,7 @@ class PermissionChecker:
         self,
         user: User,
         doctype: DocType,
-        action: Literal["read", "write", "create", "delete", "submit"],
+        action: PermissionAction,
         doc: dict | None = None,
     ) -> bool:
         if getattr(user, "is_superadmin", False):
@@ -82,22 +84,12 @@ class PermissionChecker:
         self,
         user: User,
         doctype: DocType,
-        action: Literal["read", "write", "create", "delete", "submit"],
+        action: PermissionAction,
         doc: dict | None = None,
     ) -> None:
         allowed = await self.check(user, doctype, action, doc)
         if not allowed:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail={
-                    "success": False,
-                    "error": {
-                        "code": "FORBIDDEN",
-                        "message": "Недостатньо прав",
-                        "details": [],
-                    },
-                },
-            )
+            raise forbidden()
 
     def hidden_fields(
         self,

@@ -9,17 +9,36 @@ from typing import TYPE_CHECKING, Any
 import structlog
 
 from grunt.config import settings
+from grunt.context import require_engine, require_session, require_user
 from grunt.db.profiler import profile
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions.guards import (
+    apply_hidden_fields_to_doc,
+    apply_hidden_fields_to_rows,
+    read_guard,
+    write_guard,
+)
 
 if TYPE_CHECKING:
+    from grunt.cache.query_cache import QueryCache
+    from grunt.db import GruntDB
     from grunt.document.base import Document
 
 logger = structlog.get_logger()
 
 
 class DocumentAPI:
-    """Document CRUD, list/query, and workflow helpers for GruntApp."""
+    """Document CRUD, list/query, and workflow helpers for GruntApp.
+
+    Guard/identity logic is imported as module-level functions from
+    :mod:`grunt.context` and :mod:`grunt.permissions.guards`; the annotations
+    below declare the ``db``/``query_cache`` attributes provided by the composed
+    :class:`~grunt.app.GruntApp` so type checkers can resolve them.
+    """
+
+    if TYPE_CHECKING:
+        db: GruntDB
+        query_cache: QueryCache
 
     def _is_read_only_doctype(self, dt: Any) -> bool:
         """True when DocType has explicit permissions and none allow mutation."""
@@ -47,10 +66,13 @@ class DocumentAPI:
         except Exception as exc:
             logger.warning("query_cache.invalidate_failed", doctype=doctype, error=str(exc))
 
-    def _svc(self):
-        from grunt.document.service import DocumentService
+    def _doc(self):
+        """Build a session/engine-bound host document to run single-doc pipeline methods on."""
+        from grunt.document.base import Document
 
-        return DocumentService(self._require_session(), self._require_engine())
+        doc = Document("", {}, session=require_session(), engine=require_engine())
+        doc._bind()
+        return doc
 
     @profile("grunt.get_doc")
     async def get_doc(
@@ -63,10 +85,10 @@ class DocumentAPI:
         """Fetch a single document by id or name."""
         from grunt.hooks import fire
 
-        dt, user, hidden_fields = await self._read_guard(doctype)
+        dt, user, hidden_fields = await read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, doc_id=id_or_name)
-        doc = await self._svc().get_document(doctype, id_or_name, user, expand=expand)
-        doc = self._apply_hidden_fields_to_doc(doc, hidden_fields)
+        doc = await self._doc().get_document(doctype, id_or_name, user, expand=expand)
+        doc = apply_hidden_fields_to_doc(doc, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, doc=doc)
         return doc
 
@@ -74,11 +96,11 @@ class DocumentAPI:
         """Fetch a document and return it as an instantiated controller."""
         from grunt.document.registry import document_registry
 
-        dt, user, hidden_fields = await self._read_guard(doctype)
-        data = await self._svc().get_document(doctype, id_or_name, user)
-        data = self._apply_hidden_fields_to_doc(data, hidden_fields)
+        dt, user, hidden_fields = await read_guard(doctype)
+        data = await self._doc().get_document(doctype, id_or_name, user)
+        data = apply_hidden_fields_to_doc(data, hidden_fields)
         controller_cls = document_registry.get(doctype)
-        return controller_cls(doctype, data, user, self._require_session())
+        return controller_cls(doctype, data, user, require_session())
 
     async def new_doc(
         self,
@@ -90,16 +112,16 @@ class DocumentAPI:
         """Create a new document and return it."""
         from grunt.hooks import fire
 
-        dt, user, session = await self._write_guard(doctype, "create")
+        dt, user, session = await write_guard(doctype, "create")
         await fire("before_save", doctype=doctype, doc=dict(data), user=user, session=session)
-        created = await self._svc().create_document(
+        created = await self._doc().create_document(
             doctype, data, user, ignore_required=ignore_required
         )
         await fire("after_insert", doctype=doctype, doc=created, user=user, session=session)
         await fire("after_save", doctype=doctype, doc=created, user=user, session=session)
         await self._invalidate_list_cache(doctype)
-        _, _, hidden_fields = await self._read_guard(doctype)
-        return self._apply_hidden_fields_to_doc(created, hidden_fields)
+        _, _, hidden_fields = await read_guard(doctype)
+        return apply_hidden_fields_to_doc(created, hidden_fields)
 
     async def save_doc(
         self,
@@ -112,7 +134,7 @@ class DocumentAPI:
         """Update an existing document and return the updated version."""
         from grunt.hooks import fire
 
-        dt, user, session = await self._write_guard(doctype, "write")
+        dt, user, session = await write_guard(doctype, "write")
         await fire(
             "before_save",
             doctype=doctype,
@@ -120,29 +142,29 @@ class DocumentAPI:
             user=user,
             session=session,
         )
-        updated = await self._svc().update_document(
+        updated = await self._doc().update_document(
             doctype, id_or_name, data, user, ignore_required=ignore_required
         )
         await fire("after_update", doctype=doctype, doc=updated, user=user, session=session)
         await fire("after_save", doctype=doctype, doc=updated, user=user, session=session)
         await self._invalidate_list_cache(doctype)
-        _, _, hidden_fields = await self._read_guard(doctype)
-        return self._apply_hidden_fields_to_doc(updated, hidden_fields)
+        _, _, hidden_fields = await read_guard(doctype)
+        return apply_hidden_fields_to_doc(updated, hidden_fields)
 
     async def delete_doc(self, doctype: str, id_or_name: str) -> None:
         """Delete a document."""
         from grunt.hooks import fire
 
-        dt, user, session = await self._write_guard(doctype, "delete")
+        dt, user, session = await write_guard(doctype, "delete")
 
         snapshot: dict[str, Any] | None = None
         try:
-            snapshot = await self._svc().get_document(doctype, id_or_name, user)
+            snapshot = await self._doc().get_document(doctype, id_or_name, user)
         except Exception:
             snapshot = {"name": id_or_name}
 
         await fire("before_delete", doctype=doctype, doc=snapshot, user=user, session=session)
-        await self._svc().delete_document(doctype, id_or_name, user)
+        await self._doc().delete_document(doctype, id_or_name, user)
         await fire(
             "after_delete",
             doctype=doctype,
@@ -157,7 +179,7 @@ class DocumentAPI:
         """Rename a document and cascade all references."""
         from grunt.hooks import fire
 
-        dt, user, session = await self._write_guard(doctype, "write")
+        dt, user, session = await write_guard(doctype, "write")
         await fire(
             "before_rename",
             doctype=doctype,
@@ -167,7 +189,11 @@ class DocumentAPI:
             session=session,
         )
 
-        res = await self._svc().rename_document(doctype, old_id, new_id, user)
+        from grunt.document import collection
+
+        res = await collection.rename_document(
+            require_session(), require_engine(), doctype, old_id, new_id, user
+        )
 
         await fire(
             "after_rename",
@@ -204,14 +230,17 @@ class DocumentAPI:
         if not ids:
             return 0, []
 
+        from grunt.document import collection
         from grunt.document.update_side_effects import (
             write_bulk_delete_activity_log,
         )
 
-        _dt, user, session = await self._write_guard(doctype, "delete")
-        svc = self._svc()
+        _dt, user, session = await write_guard(doctype, "delete")
+        engine = require_engine()
 
-        deleted, errors = await svc.bulk_delete(doctype, ids, user, progress_cb=progress_cb)
+        deleted, errors = await collection.bulk_delete(
+            session, engine, doctype, ids, user, progress_cb=progress_cb
+        )
 
         if deleted > 0:
             # Compute the IDs that were actually deleted (ids - failed)
@@ -243,7 +272,7 @@ class DocumentAPI:
         """Fetch a list of documents as dictionaries."""
         from grunt.hooks import fire
 
-        dt, user, hidden_fields = await self._read_guard(doctype)
+        dt, user, hidden_fields = await read_guard(doctype)
         await fire(
             "before_read",
             doctype=doctype,
@@ -277,7 +306,10 @@ class DocumentAPI:
             result = await cache.get_list(cache_key)
 
         if result is None:
-            result = await self._svc().list_documents(
+            from grunt.document import collection
+
+            result = await collection.list_documents(
+                require_session(),
                 doctype,
                 user,
                 page=page,
@@ -294,7 +326,7 @@ class DocumentAPI:
             # Protect cached object from accidental in-request mutation.
             result = copy.deepcopy(result)
 
-        self._apply_hidden_fields_to_rows(result, hidden_fields)
+        apply_hidden_fields_to_rows(result, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, data=result)
         return result
 
@@ -321,7 +353,7 @@ class DocumentAPI:
         from grunt.hooks import fire
 
         doctype: str = getattr(model_class, "doctype", model_class.__name__)
-        _, user, hidden_fields = await self._read_guard(doctype)
+        _, user, hidden_fields = await read_guard(doctype)
 
         offset = max(page - 1, 0) * limit
         await fire(
@@ -347,10 +379,10 @@ class DocumentAPI:
             order_by=order_by,
             order=order,
         )
-        self._apply_hidden_fields_to_rows(rows, hidden_fields)
+        apply_hidden_fields_to_rows(rows, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, data=rows, method="get_all")
 
-        session = self._require_session()
+        session = require_session()
         controllers = [
             model_class(doctype=doctype, data=row, user=user, session=session)  # type: ignore[return-value, call-arg]
             for row in rows
@@ -370,8 +402,8 @@ class DocumentAPI:
 
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
-        user = self._require_user()
-        session = self._require_session()
+        user = require_user()
+        session = require_session()
 
         now = datetime.now(UTC)
         rows: list[dict[str, Any]] = []
@@ -408,7 +440,7 @@ class DocumentAPI:
         """Update multiple documents matching ``filters`` in a single query."""
         from datetime import datetime
 
-        user = self._require_user()
+        user = require_user()
 
         update_values = dict(values)
         update_values["modified_at"] = datetime.now(UTC).isoformat()
@@ -443,7 +475,7 @@ class DocumentAPI:
         """
         from grunt.hooks import fire
 
-        _, user, _ = await self._read_guard(doctype)
+        _, user, _ = await read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, filters=filters, method="exists")
         exists = await self.db.exists(doctype, filters)
         await fire(
@@ -469,7 +501,7 @@ class DocumentAPI:
         """
         from grunt.hooks import fire
 
-        _, user, _ = await self._read_guard(doctype)
+        _, user, _ = await read_guard(doctype)
         await fire(
             "before_read",
             doctype=doctype,
@@ -507,7 +539,7 @@ class DocumentAPI:
             # multiple fields at once
             await grunt.set_value("Invoice", invoice_id, {"status": "Paid", "paid_at": now})
         """
-        _, _, _ = await self._write_guard(doctype, "write")
+        _, _, _ = await write_guard(doctype, "write")
         await self.db.set_value(doctype, id_or_name, fieldname, value)
         await self._invalidate_list_cache(doctype)
 
@@ -542,9 +574,9 @@ class DocumentAPI:
             dt,
             doc_id,
             action,
-            self._require_user(),
-            self._require_session(),
-            self._require_engine(),
+            require_user(),
+            require_session(),
+            require_engine(),
         )
 
     async def duplicate(

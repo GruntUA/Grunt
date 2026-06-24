@@ -5,7 +5,14 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING
 
-from grunt.context import _bootstrap_ctx, _engine_ctx, _session_ctx, _user_ctx
+from grunt.context import (
+    _bootstrap_ctx,
+    _engine_ctx,
+    _session_ctx,
+    _user_ctx,
+    require_engine,
+    require_session,
+)
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -100,23 +107,7 @@ class ContextAPI:
             _bootstrap_ctx.reset(token)
 
     def _require_session(self) -> AsyncSession:
-        s = _session_ctx.get()
-        if s is None:
-            raise RuntimeError(
-                "grunt: no active session — are you inside a request context or lifecycle hook?"
-            )
-        return s
+        return require_session()
 
     def _require_engine(self) -> AsyncEngine:
-        e = _engine_ctx.get()
-        if e is None:
-            # Fallback: get the engine for the active site.
-            # This handles internal service calls (auth, email, etc.) that set
-            # the context with engine=None because they run outside GruntRouter.
-            from grunt.site.manager import site_manager
-
-            try:
-                return site_manager.get_engine(site_manager.get_active_site())
-            except Exception:
-                raise RuntimeError("grunt: no active engine.") from None
-        return e
+        return require_engine()

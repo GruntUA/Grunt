@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 from fastapi import HTTPException, status
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
 if TYPE_CHECKING:
@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
     from grunt.document.multi_link import MultiLinkService
 
-from grunt.app import GruntError
 from grunt.document.aggregate import compute_aggregations
 from grunt.document.formula import compute_formulas
 from grunt.document.registry import document_registry
@@ -29,15 +28,10 @@ from grunt.document.relations import (
 )
 from grunt.document.serde import audit_fields, serialize_datetimes
 from grunt.document.update_side_effects import (
-    bulk_delete_virtual,
-    collect_bulk_delete_candidates,
     delete_row_and_links,
     fire_delete_services,
     fire_update_services,
     record_update_changes,
-    run_bulk_after_delete_hooks,
-    run_bulk_before_delete_hooks,
-    run_bulk_delete_writes,
 )
 from grunt.document.validation import _validate_data
 from grunt.document.virtual import (
@@ -46,6 +40,7 @@ from grunt.document.virtual import (
     virtual_delete,
     virtual_update,
 )
+from grunt.errors import GruntError
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
 
@@ -589,200 +584,3 @@ class DocumentWriteMixin:
 
         finally:
             self._reset_grunt_context(_tokens)
-
-    async def bulk_delete(
-        self,
-        doctype_name: str,
-        ids: list[str],
-        user: User,
-        progress_cb: Any | None = None,
-    ) -> tuple[int, list[str]]:
-        """Delete multiple documents efficiently in a single transaction.
-
-        Runs per-document hooks (before/after_delete) but batches all DB
-        writes (DELETE, multi-link cleanup, search index) into one flush.
-
-        ``progress_cb`` is an optional async callable
-        ``(done: int, total: int, errors: int) -> None`` called after each
-        before_delete hook phase and once after the batch commit.
-
-        Returns ``(deleted_count, error_messages)``.
-        """
-        if not ids:
-            return 0, []
-
-        dt = await doctype_registry.get(doctype_name)
-
-        if is_virtual_routed(dt, doctype_name):
-            return await bulk_delete_virtual(
-                doctype_name=doctype_name,
-                ids=ids,
-                user=user,
-            )
-
-        table = compile_doctype_to_table(dt)
-        to_delete, errors = await collect_bulk_delete_candidates(
-            session=self.session,
-            dt=dt,
-            table=table,
-            ids=ids,
-        )
-
-        if not to_delete:
-            return 0, errors
-
-        total = len(ids)
-
-        async def _report(done: int) -> None:
-            if progress_cb is not None:
-                await progress_cb(done, total, len(errors))
-
-        _tokens = self._set_grunt_context(user)
-        try:
-            controllers = await run_bulk_before_delete_hooks(
-                doctype_name=doctype_name,
-                docs=to_delete,
-                user=user,
-                session=self.session,
-                errors=errors,
-                report=_report,
-            )
-        finally:
-            self._reset_grunt_context(_tokens)
-
-        if not controllers:
-            return 0, errors
-
-        final_ids = [str(d["name"]) for d, _ in controllers]
-
-        _tokens = self._set_grunt_context(user)
-        try:
-            await run_bulk_delete_writes(
-                session=self.session,
-                ml=self._ml,
-                table=table,
-                doctype_name=doctype_name,
-                final_ids=final_ids,
-            )
-            await run_bulk_after_delete_hooks(
-                session=self.session,
-                doctype_name=doctype_name,
-                controllers=controllers,
-                errors=errors,
-            )
-        finally:
-            self._reset_grunt_context(_tokens)
-
-        deleted = len(final_ids)
-        await _report(total)
-        return deleted, errors
-
-    async def rename_document(
-        self,
-        doctype_name: str,
-        old_id: str,
-        new_id: str,
-        user: User,
-    ) -> dict[str, Any]:
-        """Update the primary ID of a document and cascade changes to all references."""
-        if old_id == new_id:
-            return await self.get_document(doctype_name, old_id, user)
-
-        dt = await doctype_registry.get(doctype_name)
-        if is_virtual_routed(dt, doctype_name):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot rename virtual documents",
-            )
-
-        table = compile_doctype_to_table(dt)
-
-        # 0. Check if new_id already exists
-        exists_q = select(table.c.name).where(table.c.name == new_id)
-        exists_res = await self.session.execute(exists_q)
-        if exists_res.first():
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Document with name '{new_id}' already exists",
-            )
-
-        # 1. Update main table
-        await self.session.execute(table.update().where(table.c.name == old_id).values(name=new_id))
-
-        # 2. Update references across all DocTypes
-        all_dts = await doctype_registry.list_all()
-        for other_dt in all_dts:
-            # A. Update child tables (Tables)
-            is_child = any(f.fieldtype == "Table" and f.options == other_dt.name for f in dt.fields)
-            if is_child:
-                child_table = compile_doctype_to_table(other_dt)
-                await self.session.execute(
-                    child_table.update()
-                    .where(child_table.c.parent_name == old_id)
-                    .values(parent_name=new_id)
-                )
-
-            # B. Update Link fields referencing our doctype
-            for f in other_dt.fields:
-                if f.fieldtype == "Link" and f.options == doctype_name:
-                    ref_table = compile_doctype_to_table(other_dt)
-                    await self.session.execute(
-                        ref_table.update()
-                        .where(ref_table.c[f.fieldname] == old_id)
-                        .values(**{f.fieldname: new_id})
-                    )
-
-        # 3. Update MultiLink references
-        from grunt.metadata.compiler import MULTI_LINK_TABLE
-
-        await self.session.execute(
-            update(MULTI_LINK_TABLE)
-            .where(
-                MULTI_LINK_TABLE.c.parent_name == old_id,
-                MULTI_LINK_TABLE.c.parent_doctype == doctype_name,
-            )
-            .values(parent_name=new_id)
-        )
-        await self.session.execute(
-            update(MULTI_LINK_TABLE)
-            .where(
-                MULTI_LINK_TABLE.c.link_name == old_id,
-                MULTI_LINK_TABLE.c.link_doctype == doctype_name,
-            )
-            .values(link_name=new_id)
-        )
-
-        # 4. Update system DocTypes
-        system_refs = [
-            ("ActivityLog", "doc_id"),
-            ("DocVersion", "doc_id"),
-            ("File", "doc_id"),
-            ("File", "attached_to_id"),
-            ("Comment", "reference_id"),
-            ("EmailQueue", "doc_id"),
-        ]
-        for sys_dt_name, sys_fieldname in system_refs:
-            try:
-                sys_dt = await doctype_registry.get(sys_dt_name)
-                sys_table = compile_doctype_to_table(sys_dt)
-                if sys_fieldname in sys_table.c:
-                    await self.session.execute(
-                        sys_table.update()
-                        .where(sys_table.c[sys_fieldname] == old_id)
-                        .values(**{sys_fieldname: new_id})
-                    )
-            except Exception:
-                continue
-
-        await self.session.flush()
-
-        # 5. Update Search Index (delete old, index new)
-        from grunt.search.service import search_index_service
-
-        await search_index_service.remove_document(self.session, doctype_name, old_id)
-        # Re-fetch with new ID for indexing
-        new_doc = await self.get_document(doctype_name, new_id, user)
-        await search_index_service.index_document(self.session, doctype_name, dt, new_doc)
-
-        logger.info("document.renamed", doctype=doctype_name, old=old_id, new=new_id)
-        return new_doc

@@ -60,8 +60,11 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 
+from grunt.document.mixins.read import DocumentReadMixin
+from grunt.document.mixins.write import DocumentWriteMixin
+
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
     from grunt.app import GruntApp
     from grunt.auth.doctypes.User.user import User
@@ -69,7 +72,7 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 # Fields that are stored as real instance attributes (not routed into self.data)
-_RESERVED = frozenset({"doctype", "data", "user", "session"})
+_RESERVED = frozenset({"doctype", "data", "user", "session", "engine"})
 
 # System fields managed by the framework — exposed as read-only properties on Document.
 # Controllers must not set these directly; use self.data["field"] = ... if truly needed.
@@ -116,7 +119,7 @@ class DocumentList(list):
         return default
 
 
-class Document:
+class Document(DocumentReadMixin, DocumentWriteMixin):
     """Base class for all DocType controllers.
 
     Subclass this to add custom validation and lifecycle hooks to a DocType.
@@ -153,12 +156,16 @@ class Document:
         data: dict[str, Any],
         user: User | None = None,
         session: AsyncSession | None = None,
+        engine: AsyncEngine | None = None,
     ) -> None:
         # Use object.__setattr__ to bypass our custom __setattr__ for reserved attrs
         object.__setattr__(self, "doctype", doctype)
         object.__setattr__(self, "data", data)
         object.__setattr__(self, "user", user)
         object.__setattr__(self, "session", session)
+        object.__setattr__(self, "engine", engine)
+        # MultiLinkService bound lazily in _bind() once a session is resolved.
+        object.__setattr__(self, "_ml", None)
 
     # ── Attribute routing ─────────────────────────────────────────────────
 
@@ -277,35 +284,121 @@ class Document:
         """Return ``self.data.get(fieldname, default)`` — same as ``dict.get``."""
         return object.__getattribute__(self, "data").get(fieldname, default)
 
+    # ── Context binding ───────────────────────────────────────────────────
+
+    def _bind(self) -> None:
+        """Populate session/engine/user/_ml from explicit attrs or the active grunt context.
+
+        Lets a document be persisted both inside an HTTP request (where the
+        controller is built with session/engine) and from a script/CLI that runs
+        within ``async with grunt.context(...)``.
+        """
+        if (
+            getattr(self, "session", None) is None
+            or getattr(self, "engine", None) is None
+            or getattr(self, "user", None) is None
+        ):
+            import contextlib
+
+            from grunt.app import grunt as _grunt
+
+            if getattr(self, "session", None) is None:
+                with contextlib.suppress(Exception):
+                    object.__setattr__(self, "session", _grunt._require_session())
+            if getattr(self, "engine", None) is None:
+                with contextlib.suppress(Exception):
+                    object.__setattr__(self, "engine", _grunt._require_engine())
+            if getattr(self, "user", None) is None:
+                with contextlib.suppress(Exception):
+                    object.__setattr__(self, "user", _grunt._require_user())
+        if getattr(self, "_ml", None) is None and getattr(self, "session", None) is not None:
+            from grunt.document.multi_link import MultiLinkService
+
+            object.__setattr__(self, "_ml", MultiLinkService(self.session))
+
+    def _set_grunt_context(self, user: User) -> tuple:
+        """Activate the grunt ContextVar context for the current lifecycle scope."""
+        from grunt.app import grunt as _grunt
+
+        return _grunt.set_context(session=self.session, engine=self.engine, user=user)
+
+    @staticmethod
+    def _reset_grunt_context(tokens: tuple) -> None:
+        from grunt.app import grunt as _grunt
+
+        _grunt.reset_context(tokens)
+
     # ── Persistence ───────────────────────────────────────────────────────
 
-    async def insert(self) -> dict[str, Any]:
-        """Insert this document into the database and sync local data."""
-        from grunt.app import grunt as _grunt
+    async def insert(self, *, ignore_required: bool = False) -> dict[str, Any]:
+        """Insert this document into the database and sync local data.
 
-        result = await _grunt.new_doc(self.doctype, self.data)
-        object.__getattribute__(self, "data").update(result)
+        Runs the full create pipeline (validate/before_insert/before_save →
+        INSERT → child tables → aggregations → MultiLink → after hooks) directly
+        on this object. Returns the persisted document dict.
+        """
+        self._bind()
+        result = await self.create_document(
+            self.doctype, self.data, self.user, ignore_required=ignore_required
+        )
+        data = object.__getattribute__(self, "data")
+        data.clear()
+        data.update(result)
         return result
 
-    async def save(self) -> dict[str, Any]:
-        """Save changes to the database and sync local data."""
-        from grunt.app import grunt as _grunt
+    async def save(self, *, ignore_required: bool = False) -> dict[str, Any]:
+        """Save changes to the database and sync local data.
 
+        Runs the full update pipeline (validate/before_save → UPDATE → children →
+        aggregations → MultiLink → after_save) on this object's current state.
+        """
+        self._bind()
         doc_id = self.id
         if doc_id is None:
             raise ValueError(f"Cannot save {self.doctype}: document has no name")
-        result = await _grunt.save_doc(self.doctype, doc_id, self.data)
-        object.__getattribute__(self, "data").update(result)
+        result = await self.update_document(
+            self.doctype, doc_id, self.data, self.user, ignore_required=ignore_required
+        )
+        data = object.__getattribute__(self, "data")
+        data.clear()
+        data.update(result)
         return result
 
     async def delete(self) -> None:
         """Delete this document from the database."""
-        from grunt.app import grunt as _grunt
-
+        self._bind()
         doc_id = self.id
         if doc_id is None:
             raise ValueError(f"Cannot delete {self.doctype}: document has no name")
-        await _grunt.delete_doc(self.doctype, doc_id)
+        await self.delete_document(self.doctype, doc_id, self.user)
+
+    @classmethod
+    async def load(
+        cls,
+        doctype: str,
+        name: str,
+        *,
+        expand: list[str] | None = None,
+        session: AsyncSession | None = None,
+        engine: AsyncEngine | None = None,
+        user: User | None = None,
+    ) -> Document:
+        """Load a document from the DB and return it as its controller instance.
+
+        The returned object is an instance of the registered controller subclass
+        with ``self.data`` populated (child tables, MultiLink, read formulas, and
+        ``on_load`` already applied), ready for ``.save()``/``.delete()``.
+        """
+        from grunt.document.registry import document_registry
+
+        controller_cls = document_registry.get(doctype)
+        inst = controller_cls(doctype, {}, user=user, session=session, engine=engine)
+        inst._bind()
+        loaded = await inst.get_document(doctype, name, inst.user, expand=expand)
+        data = object.__getattribute__(inst, "data")
+        data.clear()
+        data.update(loaded)
+        return inst
 
     # ── Lifecycle hooks ───────────────────────────────────────────────────
 

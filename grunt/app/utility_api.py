@@ -10,7 +10,6 @@ from grunt.errors import GruntError
 from grunt.utils.templates import render_template as _render_template
 
 if TYPE_CHECKING:
-    from grunt.auth.doctypes.User.user import User
     from grunt.document.meta import Meta
 
 logger = structlog.get_logger()
@@ -18,10 +17,6 @@ logger = structlog.get_logger()
 
 class UtilityAPI:
     """Utility helpers exposed on the top-level GruntApp facade."""
-
-    if TYPE_CHECKING:
-
-        def _require_user(self) -> User: ...
 
     async def enqueue_doc(
         self,
@@ -37,10 +32,11 @@ class UtilityAPI:
 
             await grunt.enqueue_doc("Report", report_id, "generate", format="pdf")
         """
+        from grunt.context import require_user
         from grunt.site.manager import site_manager
         from grunt.tasks.doc_method import enqueue_doc_method
 
-        user = self._require_user()
+        user = require_user()
         await enqueue_doc_method(
             site=site_manager.get_active_site(),
             user_email=user.email,

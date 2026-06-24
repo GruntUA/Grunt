@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast, overload
+from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 from sqlalchemy import CursorResult, func, or_, select, update
 
 from grunt.context import _session_ctx
 from grunt.metadata.compiler import compile_doctype_to_table
+from grunt.utils.attr_dict import AttrDict
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -41,25 +42,101 @@ class GruntDB:
             raise RuntimeError("grunt.db: no active session — are you inside a request or hook?")
         return s
 
+    @overload
     async def get_value(
         self,
         doctype: str,
         filters: str | dict[str, Any],
-        fieldname: str,
+        fieldname: list[str],
+        *,
+        as_dict: Literal[False] = ...,
+    ) -> list[Any] | None: ...
+
+    @overload
+    async def get_value(
+        self,
+        doctype: str,
+        filters: str | dict[str, Any],
+        fieldname: str | list[str],
+        *,
+        as_dict: Literal[True],
+    ) -> AttrDict | None: ...
+
+    @overload
+    async def get_value(
+        self,
+        doctype: str,
+        filters: str | dict[str, Any],
+        fieldname: str = ...,
+        *,
+        as_dict: Literal[False] = ...,
+    ) -> Any: ...
+
+    async def get_value(
+        self,
+        doctype: str,
+        filters: str | dict[str, Any],
+        fieldname: str | list[str] = "name",
+        *,
+        as_dict: bool = False,
     ) -> Any:
-        """Return a single field value from the first matching document."""
+        """Return field value(s) from the first document matching *filters*.
+
+        *filters* may be a document name (``str``) or a filter dict. Mirrors
+        Frappe's ``get_value``::
+
+            # single value
+            subject = await grunt.db.get_value("Task", "TASK00002", "subject")
+
+            # multiple values → list (unpackable)
+            subject, desc = await grunt.db.get_value(
+                "Task", "TASK00002", ["subject", "description"]
+            )
+
+            # as attribute-dict
+            task = await grunt.db.get_value(
+                "Task", "TASK00002", ["subject", "description"], as_dict=True
+            )
+            task.subject
+
+            # whole document
+            task = await grunt.db.get_value("Task", "TASK00002", "*")
+
+            # first record matching filters
+            subject, desc = await grunt.db.get_value(
+                "Task", {"status": "Open"}, ["subject", "description"]
+            )
+
+        Returns ``None`` when no document matches (or no requested field exists).
+        """
         dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
-        col = table.c.get(fieldname)
-        if col is None:
+
+        async def _fetch_row(columns: list[Any]) -> Any:
+            stmt = _apply_filters(select(*columns), table, filters).limit(1)
+            return (await self._session().execute(stmt)).first()
+
+        # Whole-document fetch (``"*"``) — always returns an attribute-dict.
+        if fieldname == "*":
+            row = await _fetch_row([table])
+            return AttrDict(row._mapping) if row is not None else None
+
+        single = isinstance(fieldname, str)
+        fields = [fieldname] if single else list(fieldname)
+        present = [f for f in fields if f in table.c]
+        if not present:
             return None
 
-        stmt = select(col)
-        stmt = _apply_filters(stmt, table, filters)
-        stmt = stmt.limit(1)
-        result = await self._session().execute(stmt)
-        row = result.first()
-        return row[0] if row else None
+        row = await _fetch_row([table.c[f] for f in present])
+        if row is None:
+            return None
+        values = dict(zip(present, row, strict=False))
+
+        if as_dict:
+            return AttrDict({f: values.get(f) for f in fields})
+        if single:
+            return values.get(fields[0])
+        return [values.get(f) for f in fields]
 
     async def set_value(
         self,

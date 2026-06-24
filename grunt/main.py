@@ -17,7 +17,7 @@ from grunt.api.messages import ApplicationError
 from grunt.api.v1.router import v1_router
 from grunt.config import settings
 from grunt.document.registry import document_registry
-from grunt.errors import GruntError
+from grunt.errors import GruntError, error_body
 from grunt.hooks import register_doc_events
 
 # Register built-in io exporters / importers
@@ -398,30 +398,27 @@ if main_public_dir.is_dir():
 async def validation_error_handler(request: Request, exc: ValidationError) -> JSONResponse:
     return JSONResponse(
         status_code=422,
-        content={
-            "success": False,
-            "error": {
-                "code": "VALIDATION_ERROR",
-                "message": "Помилка валідації",
-                "details": [str(e["msg"]) for e in exc.errors()],
-            },
-        },
+        content=error_body(
+            "VALIDATION_ERROR",
+            "Помилка валідації",
+            [str(e["msg"]) for e in exc.errors()],
+        ),
     )
 
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
-    detail = exc.detail if isinstance(exc.detail, str) else str(exc.detail)
+    # APIError carries a semantic code + details; plain HTTPException falls back
+    # to HTTP_<status> with any list detail surfaced as details.
+    code = getattr(exc, "code", None) or f"HTTP_{exc.status_code}"
+    message = exc.detail if isinstance(exc.detail, str) else str(exc.detail)
+    details = getattr(exc, "details", None)
+    if details is None:
+        details = exc.detail if isinstance(exc.detail, list) else []
     return JSONResponse(
         status_code=exc.status_code,
-        content={
-            "success": False,
-            "error": {
-                "code": f"HTTP_{exc.status_code}",
-                "message": detail,
-                "details": exc.detail if isinstance(exc.detail, list) else [],
-            },
-        },
+        content=error_body(code, message, details),
+        headers=getattr(exc, "headers", None),
     )
 
 
@@ -437,13 +434,7 @@ async def grunt_error_handler(request: Request, exc: GruntError) -> JSONResponse
     status_code = status_map.get(exc.title or "APPLICATION_ERROR", 422)
     return JSONResponse(
         status_code=status_code,
-        content={
-            "success": False,
-            "error": {
-                "code": exc.title or "APPLICATION_ERROR",
-                "message": str(exc),
-            },
-        },
+        content=error_body(exc.title or "APPLICATION_ERROR", str(exc)),
     )
 
 
