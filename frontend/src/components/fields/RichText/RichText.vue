@@ -256,7 +256,9 @@ const editor = useEditor({
   content: String(props.modelValue ?? ''),
   editable: isEditable(),
   extensions: [
-    StarterKit,
+    StarterKit.configure({
+      link: false,
+    }),
     RichTextStyle,
     IndentExt,
     Link.configure({ openOnClick: false }),

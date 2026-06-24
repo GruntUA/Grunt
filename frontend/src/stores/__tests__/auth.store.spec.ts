@@ -160,6 +160,7 @@ describe('useAuthStore', () => {
   describe('fetchMe', () => {
     it('populates user on success', async () => {
       localStorage.setItem('grunt_token', 'valid-token')
+      localStorage.setItem('grunt_refresh_token', 'valid-refresh-token')
       mockGet.mockResolvedValueOnce({ data: fakeUser })
       const auth = useAuthStore()
       await auth.fetchMe()

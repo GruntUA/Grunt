@@ -34,6 +34,22 @@ export const useAuthStore = defineStore('auth', () => {
   // Singleton promise so router guard and early init share one request
   let _fetchMePromise: Promise<void> | null = null
 
+  function isJwtExpired(jwt: string): boolean {
+    try {
+      const payloadPart = jwt.split('.')[1]
+      if (!payloadPart) return false
+      const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/')
+      const json = atob(base64)
+      const payload = JSON.parse(json)
+      if (typeof payload?.exp !== 'number') return false
+      // Consider a small skew window to avoid racing token expiry.
+      return payload.exp * 1000 <= Date.now() + 5_000
+    } catch {
+      // Non-JWT token format: treat as non-expiring on client side.
+      return false
+    }
+  }
+
   function applyUserTheme(u: User) {
     if (u.theme) useColorMode().setTheme(u.theme)
   }
@@ -88,6 +104,18 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchMe() {
     if (!token.value) return
+    // Token without refresh token cannot be recovered and only causes noisy 401 calls.
+    if (!refreshToken.value) {
+      _logout()
+      return
+    }
+
+    // Refresh first when access token is already expired.
+    if (isJwtExpired(token.value)) {
+      const ok = await refresh()
+      if (!ok || user.value) return
+    }
+
     if (!_fetchMePromise) {
       _fetchMePromise = client.get('/api/v1/method/grunt.auth.doctypes.User.user.whoami')
         .then(({ data }) => {

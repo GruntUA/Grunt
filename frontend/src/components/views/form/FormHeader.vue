@@ -194,33 +194,30 @@ const menuItems = computed(() => {
         items.push({
             label: t('Print'),
             icon: Printer,
-            items: [
-                {
-                    label: t('Print (browser)'),
-                    icon: Printer,
-                    url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=html&autoprint=1&token=${auth.token}`,
-                    target: '_blank'
-                },
-                {
-                    label: 'Excel (.xlsx)',
-                    icon: FileSpreadsheet,
-                    url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=xlsx&token=${auth.token}`,
-                    target: '_self'
-                },
-                {
-                    label: 'PDF',
-                    icon: FileText,
-                    url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=pdf&token=${auth.token}`,
-                    target: '_self'
-                },
-                {
-                    label: 'HTML',
-                    icon: Globe,
-                    url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=html&token=${auth.token}`,
-                    target: '_blank'
-                }
-            ]
+        url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=html&autoprint=1&token=${auth.token}`,
+        target: '_blank'
         })
+
+      items.push({
+        label: 'Excel (.xlsx)',
+        icon: FileSpreadsheet,
+        url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=xlsx&token=${auth.token}`,
+        target: '_self'
+      })
+
+      items.push({
+        label: 'PDF',
+        icon: FileText,
+        url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=pdf&token=${auth.token}`,
+        target: '_self'
+      })
+
+      items.push({
+        label: 'HTML',
+        icon: Globe,
+        url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=html&token=${auth.token}`,
+        target: '_blank'
+      })
 
         items.push({
             label: t('Open in new tab'),
@@ -415,7 +412,6 @@ const menuItems = computed(() => {
             <a v-bind="itemProps.action" class="flex items-center gap-2">
               <component v-if="item.icon" :is="item.icon" class="size-4" />
               <span>{{ item.label }}</span>
-              <span v-if="item.items?.length" class="ml-auto">›</span>
             </a>
           </template>
         </Menu>
