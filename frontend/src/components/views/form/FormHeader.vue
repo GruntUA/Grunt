@@ -202,14 +202,14 @@ const menuItems = computed(() => {
         label: 'Excel (.xlsx)',
         icon: FileSpreadsheet,
         url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=xlsx&token=${auth.token}`,
-        target: '_self'
+        target: '_blank'
       })
 
       items.push({
         label: 'PDF',
         icon: FileText,
         url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=pdf&token=${auth.token}`,
-        target: '_self'
+        target: '_blank'
       })
 
       items.push({
@@ -409,7 +409,7 @@ const menuItems = computed(() => {
         </Button>
         <Menu ref="menu" :model="menuItems" :popup="true" class="w-56">
           <template #item="{ item, props: itemProps }">
-            <a v-bind="itemProps.action" class="flex items-center gap-2">
+            <a v-bind="itemProps.action" :href="item.url" :target="item.target" class="flex items-center gap-2">
               <component v-if="item.icon" :is="item.icon" class="size-4" />
               <span>{{ item.label }}</span>
             </a>

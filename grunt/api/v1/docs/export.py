@@ -161,10 +161,11 @@ async def print_document(
                     "Content-Disposition": f'attachment; filename="{doctype}_{doc_id[:8]}.pdf"'
                 },
             )
-        except ImportError as err:
+        except (ImportError, OSError) as err:
             raise HTTPException(
                 status_code=501,
-                detail="WeasyPrint не встановлено. Використайте fmt=xlsx або fmt=html",
+                detail="PDF-генерація недоступна (WeasyPrint потребує системних бібліотек). "
+                "Використайте fmt=xlsx або fmt=html",
             ) from err
 
     raise HTTPException(

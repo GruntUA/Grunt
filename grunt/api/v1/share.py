@@ -45,9 +45,9 @@ async def get_shared_document(token: str) -> dict[str, Any]:
     doctype_name = share["doctype_name"]
     doc_id = share["doc_id"]
 
-    # Continue as SYSTEM_USER to get the document itself
+    # Fetch without permission guards — this is a guest-accessible share link
     dt = await doctype_registry.get(doctype_name)
-    doc = await grunt.get_doc(doctype_name, doc_id)
+    doc = await grunt.db.get_doc(doctype_name, doc_id)
 
     if not doc:
         grunt.throw("Документ не знайдено", "NOT_FOUND")

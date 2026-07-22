@@ -114,7 +114,7 @@ provide('docContext', { doctype: props.doctype, getId: () => props.id })
 
 // ── Modals & Navigation ──────────────────────────────────────────────────────
 const showDeleteModal = ref(false)
-
+const showActivityLog = ref(true)
 const showVersions = ref(false)
 
 const {
@@ -233,18 +233,6 @@ const {
   toast,
 })
 
-function handleViewList(targetDoctype: string, filters: Record<string, unknown>) {
-  const ws = props.workspace || 'grunt'
-  const query: Record<string, string> = {}
-  for (const [k, v] of Object.entries(filters)) {
-    query[`filter[${k}__eq]`] = String(v)
-  }
-  router.push({
-    path: `/${ws}/${targetDoctype}`,
-    query,
-  })
-}
-
 const {
   docTitle,
   onFormUpdate,
@@ -299,6 +287,7 @@ useFetchFrom({
     <FormHeader :doc-title="docTitle || doctype" :dt="dt" :doctype="doctype" :id="id" :document="form" :is-dirty="isDirty"
       :is-loading="isLoading" :is-saving="isSaving" :script-buttons="scriptButtons"
       @save="handleSave" @delete="showDeleteModal = true" @duplicate="handleDuplicate"
+      @toggleLog="showActivityLog = !showActivityLog"
       @rename="async (newId) => {
         try {
           await rename(newId)
@@ -343,7 +332,7 @@ useFetchFrom({
 
 
           <!-- Activity timeline -->
-          <div v-if="id && document" class="form-section">
+          <div v-if="showActivityLog && id && document" class="form-section">
             <div class="form-section-header">
               <Activity class="size-3.5 text-muted-foreground" />
               <span class="flex-1 text-left">{{ t('Активність') }}</span>

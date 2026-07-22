@@ -183,9 +183,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             )
             return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                content=error_body(
-                    "RATE_LIMIT_EXCEEDED", "Забагато запитів. Спробуйте пізніше."
-                ),
+                content=error_body("RATE_LIMIT_EXCEEDED", "Забагато запитів. Спробуйте пізніше."),
                 headers={
                     "Retry-After": str(reset_in),
                     "X-RateLimit-Limit": str(limit),

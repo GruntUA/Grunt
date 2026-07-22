@@ -536,7 +536,7 @@ async def website_catch_all(request: Request):
             return FileResponse(str(candidate))
 
     # 2. Try server-side website pages
-    site = request.headers.get("X-Grunt-Site")
+    site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
 
     async with maker() as session:

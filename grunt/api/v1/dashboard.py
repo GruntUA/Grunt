@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import json
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -25,6 +26,29 @@ _TIMESPAN_DAYS = {
     "90d": 90,
     "365d": 365,
 }
+
+
+def _widget_filters(widget: Any) -> dict[str, Any]:
+    """Return the widget's static filters as a dict.
+
+    The ``filters`` field is declared as JSON, so it may arrive either already
+    decoded (dict) or as a raw JSON string depending on the storage backend.
+    Anything unparseable is treated as "no filters" rather than failing the
+    whole widget.
+    """
+    raw = widget.get("filters")
+    if not raw:
+        return {}
+    if isinstance(raw, dict):
+        return dict(raw)
+    if isinstance(raw, str):
+        try:
+            parsed = json.loads(raw)
+        except TypeError, ValueError:
+            logger.warning("dashboard.bad_filters", filters=raw)
+            return {}
+        return dict(parsed) if isinstance(parsed, dict) else {}
+    return {}
 
 
 async def _compute_widget_data(
@@ -51,13 +75,14 @@ async def _compute_widget_data(
     since = global_since if global_since is not None else now - timedelta(days=days)
     until = global_until if global_until is not None else now
     widget_type: str = widget.get("widget_type") or "metric"
+    base_filters = _widget_filters(widget)
 
     if widget_type in ("metric", "gauge"):
         agg = widget.get("aggregation") or "count"
         field = widget.get("field") or "*"
         date_field = widget.get("date_field")
-        filters = {}
-        prev_filters = {}
+        filters = dict(base_filters)
+        prev_filters = dict(base_filters)
         if date_field:
             filters[f"{date_field}__gte"] = since.isoformat()
             prev_filters[f"{date_field}__gte"] = (since - timedelta(days=days)).isoformat()
@@ -89,6 +114,7 @@ async def _compute_widget_data(
         date_expr = f"date({date_field})"
         try:
             filters = {
+                **base_filters,
                 f"{date_field}__gte": since.isoformat(),
                 f"{date_field}__lte": until.isoformat(),
             }
@@ -138,6 +164,7 @@ async def _compute_widget_data(
         try:
             rows = await grunt.db.aggregate(
                 doctype_name,
+                filters=base_filters or None,
                 group_by=group_by,
                 aggregations={"cnt": "count"},
                 order_by="cnt",
@@ -154,7 +181,11 @@ async def _compute_widget_data(
     if widget_type == "list":
         try:
             items = await grunt.get_list(
-                doctype_name, order_by="modified_at", order="desc", limit=8
+                doctype_name,
+                filters=base_filters or None,
+                order_by="modified_at",
+                order="desc",
+                limit=8,
             )
             return {"items": items, "title_field": dt.title_field}
         except Exception:
@@ -164,7 +195,7 @@ async def _compute_widget_data(
         try:
             if dt.is_singleton:
                 return {"count": 1}
-            return {"count": await grunt.count(doctype_name)}
+            return {"count": await grunt.count(doctype_name, filters=base_filters or None)}
         except Exception:
             return None
 
@@ -175,6 +206,7 @@ async def _compute_widget_data(
         try:
             group_by_expr = f"date({date_field})"
             filters = {
+                **base_filters,
                 f"{date_field}__gte": since.isoformat(),
                 f"{date_field}__lte": until.isoformat(),
             }
@@ -191,7 +223,7 @@ async def _compute_widget_data(
             return {"entries": []}
         try:
             group_by_expr = f"date({date_field})"
-            filters = {f"{date_field}__gte": since.isoformat()}
+            filters = {**base_filters, f"{date_field}__gte": since.isoformat()}
             rows = await grunt.db.aggregate(
                 doctype_name,
                 filters=filters,
@@ -217,7 +249,7 @@ async def _compute_widget_data(
             ordered_options = []
             if field_def and field_def.options:
                 ordered_options = [o for o in field_def.options.split("\n") if o.strip()]
-            filters = {}
+            filters = dict(base_filters)
             date_field = widget.get("date_field")
             if date_field:
                 filters[f"{date_field}__gte"] = since.isoformat()
@@ -247,7 +279,7 @@ async def _compute_widget_data(
             agg = widget.get("aggregation") or "count"
             value_field = widget.get("field")
             agg_expr = f"{agg}({value_field})" if agg != "count" and value_field else "count"
-            filters = {}
+            filters = dict(base_filters)
             date_field = widget.get("date_field")
             if date_field:
                 filters[f"{date_field}__gte"] = since.isoformat()
@@ -277,7 +309,9 @@ async def _compute_widget_data(
 
     if widget_type == "activity":
         try:
-            filters = {"doctype": doctype_name} if doctype_name else {}
+            filters = dict(base_filters)
+            if doctype_name:
+                filters["doctype"] = doctype_name
             items = await grunt.get_list(
                 "ActivityLog", filters=filters, order_by="created_at", order="desc", limit=20
             )

@@ -210,8 +210,11 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                             error=str(e),
                         )
 
-            # Apply fixtures from all module fixture directories
+            # Apply fixtures from all module fixture directories.
+            # AppMenu fixtures are deferred to the end: they may reference records
+            # created by other fixtures (e.g. home_page -> Page).
             workspace_from_fixture = False
+            deferred_menus: list[tuple[Any, list]] = []
             for module in app_modules:
                 fixtures_dir = app_dir / module / "fixtures"
                 if not fixtures_dir.exists():
@@ -223,17 +226,26 @@ async def seed_app_workspaces(session: AsyncSession, site_name: str) -> None:
                         records = fx.get("records", [])
 
                         if fx_doctype == "AppMenu":
-                            workspace_from_fixture = await _apply_workspace_fixture(
-                                records, app_name, app_meta
-                            )
-                        else:
-                            await _apply_doctype_fixture(fx_doctype, records, session, eng)
+                            deferred_menus.append((fx_file, records))
+                            continue
 
+                        await _apply_doctype_fixture(fx_doctype, records, session, eng)
                         logger.info("startup.fixture_applied", app=app_name, file=fx_file.name)
                     except Exception as e:
                         logger.warning(
                             "startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e)
                         )
+
+            for fx_file, records in deferred_menus:
+                try:
+                    workspace_from_fixture = await _apply_workspace_fixture(
+                        records, app_name, app_meta
+                    )
+                    logger.info("startup.fixture_applied", app=app_name, file=fx_file.name)
+                except Exception as e:
+                    logger.warning(
+                        "startup.fixture_failed", app=app_name, file=fx_file.name, error=str(e)
+                    )
 
             # Auto-register PrintFormats from app's module print_formats directories
             for module in app_modules:
@@ -323,25 +335,27 @@ async def _apply_workspace_fixture(
                         "sequence": rec.get("sequence"),
                         "roles": rec.get("roles"),
                         "is_hidden": rec.get("is_hidden"),
+                        "home_page": rec.get("home_page"),
                     }.items()
                     if v is not None
                 },
             )
         else:
-            ws = await grunt.new_doc(
-                "AppMenu",
-                {
-                    "name": ws_name,
-                    "label": rec.get("label", ws_name),
-                    "app": rec.get("app", app_name),
-                    "icon": rec.get("icon", app_meta.get("icon", "📦")),
-                    "color": rec.get("color", app_meta.get("color", "#2D6A4F")),
-                    "description": rec.get("description", ""),
-                    "sequence": rec.get("sequence", 10),
-                    "is_hidden": rec.get("is_hidden", False),
-                    "roles": rec.get("roles", ""),
-                },
-            )
+            new_ws: dict[str, Any] = {
+                "name": ws_name,
+                "label": rec.get("label", ws_name),
+                "app": rec.get("app", app_name),
+                "icon": rec.get("icon", app_meta.get("icon", "📦")),
+                "color": rec.get("color", app_meta.get("color", "#2D6A4F")),
+                "description": rec.get("description", ""),
+                "sequence": rec.get("sequence", 10),
+                "is_hidden": rec.get("is_hidden", False),
+                "roles": rec.get("roles", ""),
+            }
+            # home_page is a Link — omit rather than send "" when unset
+            if rec.get("home_page"):
+                new_ws["home_page"] = rec["home_page"]
+            ws = await grunt.new_doc("AppMenu", new_ws)
             ws_id = ws["name"]
 
         # Replace sidebar items: bulk-delete old, bulk-insert new

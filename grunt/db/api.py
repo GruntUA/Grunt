@@ -280,6 +280,19 @@ class GruntDB:
         row = result.first()
         return row[0] if row else None
 
+    async def get_doc(self, doctype: str, name: str) -> dict[str, Any] | None:
+        """Return a single document by name, or ``None`` if not found.
+
+        Low-level — no permission guards. Use ``grunt.get_doc`` for
+        authenticated reads with RBAC enforcement.
+        """
+        dt = await _get_registry().get(doctype)
+        table = compile_doctype_to_table(dt)
+        stmt = select(table).where(table.c.name == name).limit(1)
+        result = await self._session().execute(stmt)
+        row = result.first()
+        return dict(row._mapping) if row else None
+
     async def count(
         self,
         doctype: str,

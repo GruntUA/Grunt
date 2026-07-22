@@ -65,8 +65,7 @@ async def record_update_changes(
             from grunt.document.versioning import _SKIP_FIELDS
 
             changed_fields = [
-                item["field"] for item in diff_changes
-                if item["field"] not in _SKIP_FIELDS
+                item["field"] for item in diff_changes if item["field"] not in _SKIP_FIELDS
             ]
             async with _g.context(session=session, engine=engine, user=user):
                 await _g.new_doc(
