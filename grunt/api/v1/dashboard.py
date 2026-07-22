@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import json
+import re
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -28,8 +29,41 @@ _TIMESPAN_DAYS = {
 }
 
 
+_RELATIVE_DATE_RE = re.compile(r"^@(today|now)(?:\s*([+-])\s*(\d+)([dwmy]))?$", re.IGNORECASE)
+
+_RELATIVE_UNIT_DAYS = {"d": 1, "w": 7, "m": 30, "y": 365}
+
+
+def _resolve_relative_date(value: Any) -> Any:
+    """Resolve ``@today`` / ``@now`` tokens into concrete ISO date strings.
+
+    Dashboard filters live in static fixtures, so they cannot hardcode a date
+    without silently rotting. Tokens are resolved at query time instead:
+
+        "@today"        -> 2026-07-22
+        "@today-7d"     -> 2026-07-15
+        "@today+30d"    -> 2026-08-21   (d=days, w=weeks, m=30d, y=365d)
+        "@now"          -> full ISO timestamp
+
+    Non-matching values are returned untouched, so plain dates still work.
+    """
+    if not isinstance(value, str):
+        return value
+    match = _RELATIVE_DATE_RE.match(value.strip())
+    if match is None:
+        return value
+
+    base_token, sign, amount, unit = match.groups()
+    now = datetime.now(UTC)
+    if sign and amount and unit:
+        delta = timedelta(days=int(amount) * _RELATIVE_UNIT_DAYS[unit.lower()])
+        now = now - delta if sign == "-" else now + delta
+
+    return now.isoformat() if base_token.lower() == "now" else now.date().isoformat()
+
+
 def _widget_filters(widget: Any) -> dict[str, Any]:
-    """Return the widget's static filters as a dict.
+    """Return the widget's filters as a dict, with relative dates resolved.
 
     The ``filters`` field is declared as JSON, so it may arrive either already
     decoded (dict) or as a raw JSON string depending on the storage backend.
@@ -39,16 +73,22 @@ def _widget_filters(widget: Any) -> dict[str, Any]:
     raw = widget.get("filters")
     if not raw:
         return {}
+
     if isinstance(raw, dict):
-        return dict(raw)
-    if isinstance(raw, str):
+        parsed: Any = raw
+    elif isinstance(raw, str):
         try:
             parsed = json.loads(raw)
         except TypeError, ValueError:
             logger.warning("dashboard.bad_filters", filters=raw)
             return {}
-        return dict(parsed) if isinstance(parsed, dict) else {}
-    return {}
+    else:
+        return {}
+
+    if not isinstance(parsed, dict):
+        return {}
+
+    return {key: _resolve_relative_date(value) for key, value in parsed.items()}
 
 
 async def _compute_widget_data(
