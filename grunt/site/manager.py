@@ -111,6 +111,32 @@ class SiteManager:
                 sites.append(d.name)
         return sites
 
+    def get_installed_apps(self, site_name: str) -> list[str]:
+        """Return the ``installed_apps`` list from a site's ``grunt.site`` config."""
+        import json
+
+        site_file = self.sites_dir / site_name / "grunt.site"
+        if not site_file.exists():
+            return []
+        try:
+            config = json.loads(site_file.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            logger.error("site_manager.config_read_error", site=site_name, error=str(exc))
+            return []
+        return list(config.get("installed_apps", []))
+
+    def get_all_installed_apps(self) -> set[str]:
+        """Return the union of apps installed across every site in the bench.
+
+        Used at startup to decide which external apps' code should load: an app
+        that is not installed on any site must not have its hooks, controllers,
+        or startup tasks run.
+        """
+        installed: set[str] = set()
+        for site in self.get_sites():
+            installed.update(self.get_installed_apps(site))
+        return installed
+
     def get_site_env(self, site_name: str) -> dict:
         """Read .env for a given site."""
         env_path = self.sites_dir / site_name / ".env"

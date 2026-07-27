@@ -160,10 +160,18 @@ async def lifespan(app: FastAPI):
         if ext_apps_str not in sys.path:
             sys.path.insert(0, ext_apps_str)
 
+        # Only load code from apps that are installed on at least one site. An
+        # app present in apps/ but not installed anywhere must stay dormant —
+        # its hooks, controllers and startup tasks must not run (they would act
+        # on sites that never opted in, a source of noise, bugs and security
+        # exposure).
+        installed_apps = site_manager.get_all_installed_apps()
+
         for ext_app in sorted(ext_apps_dir.iterdir()):
             if (
                 ext_app.is_dir()
                 and ext_app.name not in ("grunt",)
+                and ext_app.name in installed_apps
                 and not ext_app.name.startswith((".", "_"))
             ):
                 # Also add the app directory itself so that `import {app}` resolves
