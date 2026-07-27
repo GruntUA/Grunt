@@ -88,9 +88,7 @@ async def set_user_password(body: SetPasswordRequest) -> dict:
     if not user or not user.id:
         raise HTTPException(status_code=404, detail="Користувача не знайдено")
 
-    await grunt.db.set_value(
-        "User", user.id, "hashed_password", await hash_password(body.password)
-    )
+    await grunt.db.set_value("User", user.id, "hashed_password", await hash_password(body.password))
     return ok()
 
 

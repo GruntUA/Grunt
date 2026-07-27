@@ -338,6 +338,21 @@ async def test_delete_document(ctx, setup_doctype):
 
 
 @pytest.mark.asyncio
+async def test_aggregate_count_without_filters(ctx, setup_doctype):
+    """aggregate count with no filters/group_by must still count table rows.
+
+    Regression: a bare select(func.count()) has no FROM clause, so SQLite
+    returned 1 regardless of row count until select_from(table) was forced.
+    """
+    for i in range(3):
+        await ctx.new_doc("TestItem", {"title": f"Item {i}"})
+    await ctx.db._session().commit()
+
+    rows = await ctx.db.aggregate("TestItem", aggregations={"val": "count"})
+    assert rows[0]["val"] == 3
+
+
+@pytest.mark.asyncio
 async def test_bulk_delete_documents(ctx, setup_doctype):
     """bulk_delete_docs removes multiple docs and reports missing IDs."""
     from grunt.auth.doctypes.User.user import SYSTEM_USER

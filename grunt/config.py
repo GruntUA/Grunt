@@ -98,7 +98,7 @@ class Settings(BaseSettings):
         if not self.debug and self.secret_key == DEFAULT_SECRET_KEY:
             raise ValueError(
                 "secret_key is still the built-in placeholder. Set SECRET_KEY "
-                "(e.g. `python -c \"import secrets; print(secrets.token_urlsafe(64))\"`) "
+                '(e.g. `python -c "import secrets; print(secrets.token_urlsafe(64))"`) '
                 "before running with debug=False."
             )
         return self

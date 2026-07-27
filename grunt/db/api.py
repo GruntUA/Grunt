@@ -384,7 +384,6 @@ class GruntDB:
         """Fetch aggregated data (GROUP BY, SUM, COUNT, etc)."""
         import re
 
-
         dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
 
@@ -444,7 +443,9 @@ class GruntDB:
         if not select_exprs:
             select_exprs = [func.count().label("count")]
 
-        stmt = select(*select_exprs)
+        # Explicit FROM: with no group_by/filter columns referenced, a bare
+        # select(func.count()) has no FROM clause and returns a single row.
+        stmt = select(*select_exprs).select_from(table)
         if filters:
             stmt = _apply_db_filters(stmt, table, filters)
 
