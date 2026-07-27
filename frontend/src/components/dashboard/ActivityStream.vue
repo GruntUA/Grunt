@@ -18,6 +18,7 @@ interface ActivityEntry {
     id: string
     doctype: string
     doc_id: string
+    title?: string
     action: string
     user: string
     details?: any
@@ -128,7 +129,7 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
                                 </span>
                                 документ
                                 <span class="font-bold text-foreground/80 lowercase">{{ item.doctype }}</span>:
-                                <span class="text-primary font-medium">{{ item.doc_id }}</span>
+                                <span class="text-primary font-medium">{{ item.title || item.doc_id }}</span>
                             </p>
 
                             <div class="flex items-center justify-between">

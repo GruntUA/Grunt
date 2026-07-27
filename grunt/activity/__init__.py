@@ -7,7 +7,68 @@ from grunt.document.versioning import _SKIP_FIELDS
 
 logger = structlog.get_logger()
 
-_SKIP_DOCTYPES = frozenset({"ActivityLog", "BackgroundTaskLog", "ErrorLog"})
+# Doctypes that must NEVER be logged anywhere — high-frequency system churn
+# (sessions, queued mail, webhook/profiler/scheduler traffic). Recording these
+# is pure noise in every context, including per-document timelines.
+_SKIP_DOCTYPES = frozenset(
+    {
+        "ActivityLog",
+        "BackgroundTaskLog",
+        "ErrorLog",
+        "UserSession",
+        "Notification",
+        "PushSubscription",
+        "EmailQueue",
+        "ScheduledJobLog",
+        "WebhookLog",
+        "IncomingWebhookLog",
+        "AssignmentLog",
+        "SqlProfilerQuery",
+        "SqlProfilerRequest",
+        "SqlProfilerSpan",
+    }
+)
+
+# Additional doctypes hidden from the GLOBAL activity feed only. These are
+# config/metadata records whose changes are administrative, not day-to-day
+# business activity — but they stay visible in a specific document's timeline.
+FEED_HIDDEN_DOCTYPES = _SKIP_DOCTYPES | frozenset(
+    {
+        "DocType",
+        "DocField",
+        "DocTypePermission",
+        "DocTypeStatusIndicator",
+        "Role",
+        "UserRole",
+        "AppMenu",
+        "WorkspaceSidebarItem",
+        "Page",
+        "PageWidget",
+        "Dashboard",
+        "DashboardWidget",
+        "DashboardChart",
+        "NumberCard",
+        "Report",
+        "PrintFormat",
+        "WebForm",
+        "ClientScript",
+        "ServerScript",
+        "Translation",
+        "SystemSettings",
+        "NamingSeries",
+        "GruntInstalledApp",
+        "DocVersion",
+        "Bookmark",
+        "DocTag",
+        "DocLink",
+    }
+)
+
+
+def is_feed_hidden(doctype: str | None) -> bool:
+    """Whether a doctype should be excluded from the global activity feed."""
+    return doctype in FEED_HIDDEN_DOCTYPES
+
 
 _ACTION_MAP = {
     "after_insert": "Create",

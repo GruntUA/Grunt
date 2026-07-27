@@ -39,7 +39,12 @@ async def _audit_log(
     changes: dict[str, Any] | None = None,
 ) -> None:
     """Write an ActivityLog entry via grunt.new_doc and broadcast via WebSocket."""
+    from grunt.activity import _SKIP_DOCTYPES
     from grunt.app import grunt
+
+    # Never log or broadcast high-frequency system churn (sessions, logs, etc.).
+    if doctype in _SKIP_DOCTYPES:
+        return
 
     try:
         async with grunt.context(session=svc.session, engine=svc.engine, user=user):

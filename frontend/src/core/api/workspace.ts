@@ -43,6 +43,31 @@ export interface SearchResult {
   display_title: string
 }
 
+export interface AssignedTask {
+  id: string
+  description: string | null
+  reference_doctype: string
+  reference_id: string
+  title: string
+  due_date: string | null
+  priority: string | null
+  overdue: boolean
+}
+
+export interface UserNotification {
+  name: string
+  subject: string
+  doctype: string | null
+  doc_id: string | null
+  created_at: string
+}
+
+export interface MyWork {
+  assigned: AssignedTask[]
+  notifications: UserNotification[]
+  counts: { assigned: number; overdue: number; unread: number }
+}
+
 export const workspaceApi = {
   list: async (): Promise<Workspace[]> => {
     const r = await client.get('/api/v1/method/grunt.api.v1.workspace.list_workspaces')
@@ -71,6 +96,16 @@ export const workspaceApi = {
 
   getCounts: async (name: string): Promise<Record<string, number>> => {
     const r = await client.get('/api/v1/method/grunt.api.v1.workspace.get_counts', { params: { name } })
+    return r.data.data
+  },
+
+  getDocumentStats: async (): Promise<{ total: number; doctypes: number }> => {
+    const r = await client.get('/api/v1/method/grunt.api.v1.workspace.get_document_stats')
+    return r.data.data
+  },
+
+  getMyWork: async (): Promise<MyWork> => {
+    const r = await client.get('/api/v1/method/grunt.api.v1.workspace.get_my_work')
     return r.data.data
   },
 

@@ -148,3 +148,151 @@ async def get_counts(name: str) -> dict[str, int]:
     if hasattr(ws, "get_counts"):
         return await ws.get_counts()
     return {}
+
+
+@grunt.whitelist()
+async def get_document_stats() -> dict[str, int]:
+    """Return an honest, deduplicated document total for the home page.
+
+    Unlike summing per-workspace sidebar counts (which double-counts doctypes
+    shared across workspaces and is dominated by log/session churn), this counts
+    each business doctype exactly once and excludes infrastructural doctypes
+    (logs, sessions, versions, queues, config/metadata).
+    """
+    from grunt.activity import FEED_HIDDEN_DOCTYPES
+    from grunt.metadata.registry import doctype_registry
+
+    total = 0
+    counted = 0
+    for dt in await doctype_registry.list_all():
+        if dt.is_child or dt.is_virtual or dt.is_singleton:
+            continue
+        if dt.name in FEED_HIDDEN_DOCTYPES:
+            continue
+        try:
+            total += await grunt.count(dt.name)
+            counted += 1
+        except Exception:
+            # A doctype without a physical table yet — skip it silently.
+            continue
+
+    return {"total": total, "doctypes": counted}
+
+
+async def _resolve_ref_titles(
+    refs: list[tuple[str, str]],
+) -> dict[tuple[str, str], str]:
+    """Resolve (doctype, id) references to display titles, one query per doctype."""
+    from grunt.metadata.registry import doctype_registry
+
+    by_doctype: dict[str, set[str]] = {}
+    for dt_name, doc_id in refs:
+        if dt_name and doc_id:
+            by_doctype.setdefault(dt_name, set()).add(doc_id)
+
+    titles: dict[tuple[str, str], str] = {}
+    for dt_name, ids in by_doctype.items():
+        try:
+            dt = await doctype_registry.get(dt_name)
+        except Exception:
+            continue
+        title_field = dt.title_field
+        if not title_field or title_field == "name":
+            continue
+        try:
+            rows = await grunt.get_list(
+                dt_name,
+                filters={"name__in": list(ids)},
+                fields=["name", title_field],
+                limit=len(ids),
+            )
+        except Exception:
+            continue
+        for r in rows:
+            if r.get(title_field):
+                titles[(dt_name, r["name"])] = r[title_field]
+    return titles
+
+
+@grunt.whitelist()
+async def get_my_work() -> dict[str, Any]:
+    """Return the current user's personal work items for the home page:
+
+    open tasks assigned to them (flagged when overdue) and unread notifications.
+    """
+    from datetime import date
+
+    from grunt.app import grunt as grunt_app
+
+    user = grunt_app._require_user()
+    email = user.email
+    today = date.today().isoformat()
+
+    # Open tasks assigned to me.
+    try:
+        todos = await grunt.get_list(
+            "ToDo",
+            filters={"assigned_to": email, "status": "Open"},
+            fields=[
+                "name",
+                "description",
+                "reference_doctype",
+                "reference_id",
+                "due_date",
+                "priority",
+            ],
+            order_by="due_date",
+            order="asc",
+            limit=50,
+        )
+    except Exception:
+        todos = []
+
+    titles = await _resolve_ref_titles(
+        [(t.get("reference_doctype") or "", t.get("reference_id") or "") for t in todos]
+    )
+
+    assigned: list[dict[str, Any]] = []
+    overdue = 0
+    for t in todos:
+        ref_dt = t.get("reference_doctype") or ""
+        ref_id = t.get("reference_id") or ""
+        due = t.get("due_date")
+        is_overdue = bool(due) and str(due) < today
+        if is_overdue:
+            overdue += 1
+        assigned.append(
+            {
+                "id": t.get("name"),
+                "description": t.get("description"),
+                "reference_doctype": ref_dt,
+                "reference_id": ref_id,
+                "title": titles.get((ref_dt, ref_id)) or ref_id or t.get("description"),
+                "due_date": due,
+                "priority": t.get("priority"),
+                "overdue": is_overdue,
+            }
+        )
+
+    # Unread notifications.
+    try:
+        notifications = await grunt.get_list(
+            "Notification",
+            filters={"user": email, "is_read": False},
+            fields=["name", "subject", "doctype", "doc_id", "created_at"],
+            order_by="created_at",
+            order="desc",
+            limit=20,
+        )
+    except Exception:
+        notifications = []
+
+    return {
+        "assigned": assigned,
+        "notifications": notifications,
+        "counts": {
+            "assigned": len(assigned),
+            "overdue": overdue,
+            "unread": len(notifications),
+        },
+    }

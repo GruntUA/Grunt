@@ -61,8 +61,12 @@ async def record_update_changes(
 
     if diff_changes:
         try:
+            from grunt.activity import _SKIP_DOCTYPES
             from grunt.app import grunt as _g
             from grunt.document.versioning import _SKIP_FIELDS
+
+            if doctype_name in _SKIP_DOCTYPES:
+                return
 
             changed_fields = [
                 item["field"] for item in diff_changes if item["field"] not in _SKIP_FIELDS

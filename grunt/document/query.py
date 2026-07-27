@@ -41,6 +41,9 @@ def _apply_filters(query: Any, table: Any, filters: dict[str, str]) -> Any:
         elif op == "in":
             items = value if isinstance(value, (list, tuple)) else value.split(",")
             query = query.where(col.in_(items))
+        elif op == "nin":
+            items = value if isinstance(value, (list, tuple)) else value.split(",")
+            query = query.where(col.not_in(items))
         elif op in ("ne", "neq"):
             query = query.where(col != value)
         elif op == "isnull":

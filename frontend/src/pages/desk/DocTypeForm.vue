@@ -36,6 +36,14 @@ import FormModals from '@/components/views/form/FormModals.vue'
 import DocDashboard from '@/components/views/form/DocDashboard.vue'
 
 const props = defineProps<{ doctype: string; id: string | null; workspace?: string }>()
+const emit = defineEmits<{
+  // Fired once the existing document is loaded, carrying its resolved display
+  // title (title_field value, not the raw id) for recent-docs tracking.
+  loaded: [payload: { doctype: string; id: string; title: string }]
+  // Fired when an existing document fails to load (e.g. deleted) so callers
+  // can prune stale references such as recent-docs entries.
+  notfound: [payload: { doctype: string; id: string }]
+}>()
 const router = useRouter()
 const route = useRoute()
 
@@ -54,7 +62,7 @@ const queryClient = useQueryClient()
 const { startLinkCreate, finishLinkCreate, restoreLinkDraft } = useLinkCreate()
 
 const dt = ref<DocType | null>(null)
-const { document, form, isLoading, isDirty, isSaving, save, remove, rename, markClean } = useDocument(props.doctype, props.id)
+const { document, form, isLoading, isError, isDirty, isSaving, save, remove, rename, markClean } = useDocument(props.doctype, props.id)
 
 // ── WebSocket real-time + presence ───────────────────────────────────────────
 const wsUrl = computed(() => props.id ? `/api/v1/ws/${props.doctype}/${props.id}` : null)
@@ -257,7 +265,18 @@ if (props.id) {
   const unwatchDoc = watch(document, async (doc) => {
     if (doc) {
       unwatchDoc()
+      // Surface the resolved title for recent-docs tracking before running
+      // on_load scripts (which may mutate fields).
+      emit('loaded', { doctype: props.doctype, id: props.id!, title: docTitle.value })
       await runScriptEvent('on_load')
+    }
+  })
+
+  // Prune stale references when the document can't be loaded (e.g. deleted).
+  const unwatchErr = watch(isError, (failed) => {
+    if (failed) {
+      unwatchErr()
+      emit('notfound', { doctype: props.doctype, id: props.id! })
     }
   })
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
 import DocTypeForm from '@/pages/desk/DocTypeForm.vue'
+import { pushRecent, removeRecent } from '@/core/recentDocs'
 
 const props = defineProps<{
   workspaceName: string
@@ -9,34 +9,22 @@ const props = defineProps<{
   id: string | null
 }>()
 
-// Track recent docs in localStorage
-onMounted(() => {
-  if (!props.id) return
+// Record the recent-docs entry only once the document is loaded, so we store
+// its real title (title_field) instead of the opaque id.
+function onLoaded(payload: { doctype: string; id: string; title: string }) {
+  pushRecent({
+    workspace: props.workspaceName,
+    doctype: payload.doctype,
+    id: payload.id,
+    title: payload.title,
+  })
+}
 
-  try {
-    const key = 'grunt_recent_docs'
-    const saved = localStorage.getItem(key)
-    const recent: Array<{ workspace: string; doctype: string; id: string; title: string; ts: number }> = saved ? JSON.parse(saved) : []
-
-    // Remove existing entry for this doc
-    const filtered = recent.filter(d => d.id !== props.id)
-
-    // Add to front
-    filtered.unshift({
-      workspace: props.workspaceName,
-      doctype: props.doctype,
-      id: props.id,
-      title: props.id,
-      ts: Date.now(),
-    })
-
-    // Keep only last 20
-    localStorage.setItem(key, JSON.stringify(filtered.slice(0, 20)))
-    window.dispatchEvent(new Event('grunt_recent_docs_changed'))
-  } catch {
-    // ignore
-  }
-})
+// A document that fails to load (e.g. deleted) is pruned from history so the
+// recent list never links to a 404.
+function onNotFound(payload: { id: string }) {
+  removeRecent(payload.id)
+}
 </script>
 
 <template>
@@ -46,6 +34,13 @@ onMounted(() => {
       :doctype="doctype"
       :doc-id="id"
     />
-    <DocTypeForm :doctype="doctype" :id="id" :workspace="workspaceName" class="p-0! mt-2!" />
+    <DocTypeForm
+      :doctype="doctype"
+      :id="id"
+      :workspace="workspaceName"
+      class="p-0! mt-2!"
+      @loaded="onLoaded"
+      @notfound="onNotFound"
+    />
   </div>
 </template>

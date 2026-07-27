@@ -34,6 +34,6 @@ async def evaluate_notification_rules_task(
             )
             await session.commit()
     except asyncio.CancelledError:
-        logger.debug("notification.task_cancelled", event=event, doctype=doctype)
+        logger.debug("notification.task_cancelled", trigger_event=event, doctype=doctype)
     except Exception:
         logger.error("notification.task_error", exc_info=True, trigger_event=event, doctype=doctype)

@@ -6,7 +6,7 @@ import type { GruntDocument } from '@/types'
 export function useDocument(doctype: string, id: string | null) {
   const queryClient = useQueryClient()
 
-  const { data: document, isLoading } = useQuery({
+  const { data: document, isLoading, isError } = useQuery({
     queryKey: ['document', doctype, id],
     queryFn: () => docsApi.get(doctype, id!),
     enabled: computed(() => !!id),
@@ -57,5 +57,5 @@ export function useDocument(doctype: string, id: string | null) {
     }
   })
 
-  return { document, form, isLoading, isDirty, isSaving, save, remove, rename, markClean }
+  return { document, form, isLoading, isError, isDirty, isSaving, save, remove, rename, markClean }
 }

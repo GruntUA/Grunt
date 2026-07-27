@@ -7,6 +7,8 @@ import { useUIStore } from '@/stores/ui'
 import { workspaceApi } from '@/core/api/workspace'
 import AppCard from '@/components/desk/AppCard.vue'
 import ActivityStream from '@/components/dashboard/ActivityStream.vue'
+import MyWorkPanel from '@/components/dashboard/MyWorkPanel.vue'
+import { readRecent, looksLikeId, type RecentDoc } from '@/core/recentDocs'
 import { Clock, Search, Zap, LayoutGrid, ArrowRight } from '@lucide/vue'
 
 const auth = useAuthStore()
@@ -15,14 +17,6 @@ const uiStore = useUIStore()
 const router = useRouter()
 
 const allCounts = ref<Record<string, Record<string, number>>>({})
-
-interface RecentDoc {
-  workspace: string
-  doctype: string
-  id: string
-  title: string
-  ts: number
-}
 
 const recentDocs = ref<RecentDoc[]>([])
 
@@ -35,7 +29,11 @@ const greeting = computed(() => {
   return { text: `Доброго вечора, ${name}`, emoji: '🌆' }
 })
 
+// Honest, deduplicated business-document total (excludes logs/sessions/config).
+// Falls back to summing per-workspace counts if the stats call fails.
+const businessDocsTotal = ref<number | null>(null)
 const totalDocsCount = computed(() => {
+  if (businessDocsTotal.value !== null) return businessDocsTotal.value
   let total = 0
   for (const ws of Object.values(allCounts.value)) {
     total += Object.values(ws).reduce((s, v) => s + v, 0)
@@ -62,11 +60,13 @@ onMounted(async () => {
     }
   }
 
+  // Read history, dropping entries whose workspace is no longer installed.
+  recentDocs.value = readRecent(appStore.workspaces.map(w => w.name))
+
   try {
-    const saved = localStorage.getItem('grunt_recent_docs')
-    if (saved) recentDocs.value = JSON.parse(saved)
+    businessDocsTotal.value = (await workspaceApi.getDocumentStats()).total
   } catch {
-    // ignore
+    // keep the per-workspace fallback in totalDocsCount
   }
 })
 
@@ -86,16 +86,19 @@ function findWorkspaceForDoc(doc: RecentDoc) {
 }
 
 // Returns a human-readable display title for a document.
-// Falls back to "DocType · short-id" when title is blank or looks like a UUID.
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+// Falls back to "DocType · short-id" when the title is blank or looks like an
+// opaque id (UUID or hash name).
+function hasRealTitle(doc: RecentDoc): boolean {
+  return !!doc.title && !looksLikeId(doc.title)
+}
 
 function docDisplayTitle(doc: RecentDoc): string {
-  if (doc.title && !UUID_RE.test(doc.title)) return doc.title
+  if (hasRealTitle(doc)) return doc.title
   return `${doc.doctype} · ${doc.id.slice(0, 8)}`
 }
 
 function docInitials(doc: RecentDoc): string {
-  if (doc.title && !UUID_RE.test(doc.title)) return doc.title.slice(0, 2).toUpperCase()
+  if (hasRealTitle(doc)) return doc.title.slice(0, 2).toUpperCase()
   return doc.doctype.slice(0, 2).toUpperCase()
 }
 </script>
@@ -166,6 +169,9 @@ function docInitials(doc: RecentDoc): string {
             </div>
           </div>
         </section>
+
+        <!-- ── MY WORK (personal) ───────────────────────────────────── -->
+        <MyWorkPanel />
 
         <!-- ── WORKSPACE CARDS ──────────────────────────────────────── -->
         <section>
