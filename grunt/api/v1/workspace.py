@@ -150,6 +150,12 @@ async def get_counts(name: str) -> dict[str, int]:
     return {}
 
 
+# Cached because the stat costs one COUNT per business doctype (dozens of
+# queries) while being a purely informational figure on the home page.
+_DOC_STATS_TTL_SECONDS = 60.0
+_doc_stats_cache: dict[str, tuple[float, dict[str, int]]] = {}
+
+
 @grunt.whitelist()
 async def get_document_stats() -> dict[str, int]:
     """Return an honest, deduplicated document total for the home page.
@@ -158,9 +164,25 @@ async def get_document_stats() -> dict[str, int]:
     shared across workspaces and is dominated by log/session churn), this counts
     each business doctype exactly once and excludes infrastructural doctypes
     (logs, sessions, versions, queues, config/metadata).
+
+    Result is cached per site for a minute — an approximate headline number is
+    not worth dozens of COUNT queries on every page load.
     """
+    import time
+
     from grunt.activity import FEED_HIDDEN_DOCTYPES
     from grunt.metadata.registry import doctype_registry
+    from grunt.site.manager import site_manager
+
+    try:
+        site = site_manager.get_active_site()
+    except Exception:
+        site = ""
+
+    now = time.monotonic()
+    cached = _doc_stats_cache.get(site)
+    if cached and now - cached[0] < _DOC_STATS_TTL_SECONDS:
+        return cached[1]
 
     total = 0
     counted = 0
@@ -176,7 +198,9 @@ async def get_document_stats() -> dict[str, int]:
             # A doctype without a physical table yet — skip it silently.
             continue
 
-    return {"total": total, "doctypes": counted}
+    stats = {"total": total, "doctypes": counted}
+    _doc_stats_cache[site] = (now, stats)
+    return stats
 
 
 async def _resolve_ref_titles(

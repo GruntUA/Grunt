@@ -196,7 +196,7 @@ async def consume_password_reset_token(
             "User",
             user_data["name"],
             "hashed_password",
-            hash_password(new_password),
+            await hash_password(new_password),
         )
 
     return True

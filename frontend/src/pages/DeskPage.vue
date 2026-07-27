@@ -52,22 +52,22 @@ onMounted(async () => {
 
   await appStore.loadAll()
 
-  for (const ws of appStore.workspaces) {
-    try {
-      allCounts.value[ws.name] = await workspaceApi.getCounts(ws.name)
-    } catch {
-      allCounts.value[ws.name] = {}
-    }
-  }
-
   // Read history, dropping entries whose workspace is no longer installed.
   recentDocs.value = readRecent(appStore.workspaces.map(w => w.name))
 
-  try {
-    businessDocsTotal.value = (await workspaceApi.getDocumentStats()).total
-  } catch {
-    // keep the per-workspace fallback in totalDocsCount
-  }
+  // Fire all count requests at once instead of walking workspaces serially —
+  // they are independent, so serial awaits only added round-trips.
+  const [counts] = await Promise.all([
+    Promise.all(
+      appStore.workspaces.map(async ws =>
+        [ws.name, await workspaceApi.getCounts(ws.name).catch(() => ({}))] as const
+      )
+    ),
+    workspaceApi.getDocumentStats()
+      .then(s => { businessDocsTotal.value = s.total })
+      .catch(() => { /* keep the per-workspace fallback in totalDocsCount */ }),
+  ])
+  allCounts.value = Object.fromEntries(counts)
 })
 
 function timeAgo(ts: number): string {

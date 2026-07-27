@@ -31,7 +31,9 @@ const router = useRouter()
 const auth = useAuthStore()
 
 // WebSocket for real-time activity
-const ws = useWebSocket('/api/v1/ws/public/site') // Connect to global site channel via public route
+// Authenticated site-wide channel — the activity feed carries user emails and
+// document ids, so it must never ride the unauthenticated /ws/public/* route.
+const ws = useWebSocket('/api/v1/ws/site')
 ws.onEvent('activity', (data: any) => {
     // Add to top and keep max 50
     activities.value = [data, ...activities.value].slice(0, 50)

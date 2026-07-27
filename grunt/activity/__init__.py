@@ -123,8 +123,11 @@ async def _broadcast_activity(
         from grunt.api.v1.ws import manager
 
         created_at = doc.get("created_at")
+        # "site" is the authenticated site-wide channel. Never "public:site" —
+        # that endpoint takes no token, which would stream user emails and
+        # document ids to anyone who knows the URL.
         await manager.broadcast(
-            "public:site",
+            "site",
             "activity",
             {
                 "name": doc.get("name"),

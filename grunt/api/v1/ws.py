@@ -288,6 +288,33 @@ async def ws_user(
         manager.disconnect(websocket, channel)
 
 
+@router.websocket("/ws/site")
+async def ws_site(
+    websocket: WebSocket,
+    token: str | None = Query(default=None),
+) -> None:
+    """Site-wide channel for authenticated users (activity feed, etc.).
+
+    Declared before ``/ws/{doctype}`` so the literal path wins the match.
+    """
+    user_email = await _authenticate_ws(websocket, token)
+    if not user_email:
+        return
+    channel = "site"
+    await manager.connect(websocket, channel)
+    try:
+        while True:
+            raw = await websocket.receive_text()
+            try:
+                msg = json.loads(raw)
+                if msg.get("action") == "ping":
+                    await websocket.send_text('{"event":"pong"}')
+            except json.JSONDecodeError:
+                logger.debug("ws.invalid_json", raw=raw)
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, channel)
+
+
 @router.websocket("/ws/public/{channel:path}")
 async def ws_public(
     websocket: WebSocket,

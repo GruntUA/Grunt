@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+import anyio.to_thread
 import bcrypt
 import structlog
 
@@ -75,16 +76,16 @@ class User(Document):
         # If a plain-text password was passed through the generic API, hash it.
         raw = self.data.get("password")
         if raw:
-            self.hashed_password = hash_password(str(raw))
+            self.hashed_password = await hash_password(str(raw))
             self.data.pop("password", None)
 
-    def set_password(self, plain: str) -> None:
+    async def set_password(self, plain: str) -> None:
         """Hash and store a new password on this document."""
-        self.hashed_password = hash_password(plain)
+        self.hashed_password = await hash_password(plain)
 
-    def check_password(self, plain: str) -> bool:
+    async def check_password(self, plain: str) -> bool:
         """Return True if plain matches the stored hashed password."""
-        return verify_password(plain, self.hashed_password or "")
+        return await verify_password(plain, self.hashed_password or "")
 
     async def setup_mfa(self) -> dict:
         """Whitelisted method: Start MFA setup for the user."""
@@ -122,17 +123,31 @@ SYSTEM_USER = User(
 # ── Password helpers ──────────────────────────────────────────────────────
 
 
-def hash_password(plain: str) -> str:
+def _hash_password_sync(plain: str) -> str:
     return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
 
 
-def verify_password(plain: str, hashed: str | None) -> bool:
-    if not hashed:
-        return False
+def _verify_password_sync(plain: str, hashed: str) -> bool:
     try:
         return bcrypt.checkpw(plain.encode(), hashed.encode())
     except AttributeError, ValueError:
         return False
+
+
+async def hash_password(plain: str) -> str:
+    """Hash a password off the event loop.
+
+    bcrypt is deliberately slow (~100ms+); running it inline would block every
+    other request served by the same worker for that whole time.
+    """
+    return await anyio.to_thread.run_sync(_hash_password_sync, plain)
+
+
+async def verify_password(plain: str, hashed: str | None) -> bool:
+    """Verify a password off the event loop (see :func:`hash_password`)."""
+    if not hashed:
+        return False
+    return await anyio.to_thread.run_sync(_verify_password_sync, plain, hashed)
 
 
 # ── User CRUD ─────────────────────────────────────────────────────────────
@@ -245,7 +260,7 @@ async def authenticate(email: str, password: str, session: AsyncSession) -> User
             raise ValueError("locked")
 
     async with grunt.system_context(session):
-        if not user.hashed_password or not verify_password(password, user.hashed_password):
+        if not user.hashed_password or not await verify_password(password, user.hashed_password):
             new_attempts = (user.login_attempts or 0) + 1
             updates: dict = {"login_attempts": new_attempts}
             if new_attempts >= _MAX_ATTEMPTS:

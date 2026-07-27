@@ -103,7 +103,7 @@ def users_set_password(email, password, site):
 
             async with grunt_app.system_context(session, eng):
                 await grunt.db.set_value(
-                    "User", user.id, {"hashed_password": hash_password(password)}
+                    "User", user.id, {"hashed_password": await hash_password(password)}
                 )
                 await session.commit()
 

@@ -1,10 +1,17 @@
 """Application settings powered by pydantic-settings."""
 
+from __future__ import annotations
+
 import os
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _env_file = os.environ.get("DOTENV_PATH", ".env")
+
+# Placeholder shipped in the repo. Signing JWTs with it means anyone can forge a
+# token for any user, so it must never survive into a non-debug deployment.
+DEFAULT_SECRET_KEY = "change-me-to-a-random-64-char-string"
 
 
 class Settings(BaseSettings):
@@ -17,7 +24,7 @@ class Settings(BaseSettings):
     # Core
     app_name: str = "Ґрунт"
     debug: bool = True
-    secret_key: str = "change-me-to-a-random-64-char-string"
+    secret_key: str = DEFAULT_SECRET_KEY
 
     # Logging
     log_level: str = "INFO"
@@ -80,6 +87,21 @@ class Settings(BaseSettings):
     oauth_microsoft_client_id: str | None = None
     oauth_microsoft_client_secret: str | None = None
     oauth_microsoft_tenant_id: str = "common"  # or specific tenant UUID
+
+    @model_validator(mode="after")
+    def _forbid_default_secret_outside_debug(self) -> Settings:
+        """Refuse to run with the placeholder secret when debug is off.
+
+        Failing loudly at startup is the only reliable guard: with the default
+        key every JWT is forgeable, and that is invisible until exploited.
+        """
+        if not self.debug and self.secret_key == DEFAULT_SECRET_KEY:
+            raise ValueError(
+                "secret_key is still the built-in placeholder. Set SECRET_KEY "
+                "(e.g. `python -c \"import secrets; print(secrets.token_urlsafe(64))\"`) "
+                "before running with debug=False."
+            )
+        return self
 
 
 settings = Settings()

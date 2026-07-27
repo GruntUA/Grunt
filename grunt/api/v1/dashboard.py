@@ -100,21 +100,23 @@ async def _compute_widget_data(
     from grunt.metadata.registry import doctype_registry
 
     doctype_name: str = widget.get("doctype") or ""
-    if not doctype_name:
+    widget_type: str = widget.get("widget_type") or "metric"
+    if not doctype_name and widget_type != "activity":
         return None
 
-    try:
-        dt = await doctype_registry.get(doctype_name)
-    except Exception:
-        logger.warning("dashboard.unknown_doctype", doctype=doctype_name)
-        return None
+    dt = None
+    if doctype_name:
+        try:
+            dt = await doctype_registry.get(doctype_name)
+        except Exception:
+            logger.warning("dashboard.unknown_doctype", doctype=doctype_name, exc_info=True)
+            return None
 
     period_key = widget.get("period") or "last_month"
     days = _TIMESPAN_DAYS.get(period_key, 30)
     now = datetime.now(UTC)
     since = global_since if global_since is not None else now - timedelta(days=days)
     until = global_until if global_until is not None else now
-    widget_type: str = widget.get("widget_type") or "metric"
     base_filters = _widget_filters(widget)
 
     if widget_type in ("metric", "gauge"):
@@ -144,6 +146,12 @@ async def _compute_widget_data(
                 trend = None
             return {"value": val, "trend": trend}
         except Exception:
+            logger.warning(
+                "dashboard.widget_failed",
+                doctype=doctype_name,
+                widget_type=widget_type,
+                exc_info=True,
+            )
             return {"value": 0, "trend": None}
 
     if widget_type in ("chart_area", "chart_bar"):
@@ -195,6 +203,12 @@ async def _compute_widget_data(
                     "values": [r.get("cnt") for r in rows],
                 }
         except Exception:
+            logger.warning(
+                "dashboard.widget_failed",
+                doctype=doctype_name,
+                widget_type=widget_type,
+                exc_info=True,
+            )
             return {"labels": [], "values": []}
 
     if widget_type == "donut":
@@ -216,6 +230,12 @@ async def _compute_widget_data(
                 "values": [r.get("cnt") for r in rows],
             }
         except Exception:
+            logger.warning(
+                "dashboard.widget_failed",
+                doctype=doctype_name,
+                widget_type=widget_type,
+                exc_info=True,
+            )
             return {"labels": [], "values": []}
 
     if widget_type == "list":
@@ -229,6 +249,12 @@ async def _compute_widget_data(
             )
             return {"items": items, "title_field": dt.title_field}
         except Exception:
+            logger.warning(
+                "dashboard.widget_failed",
+                doctype=doctype_name,
+                widget_type=widget_type,
+                exc_info=True,
+            )
             return {"items": [], "title_field": None}
 
     if widget_type == "shortcut":
@@ -237,6 +263,12 @@ async def _compute_widget_data(
                 return {"count": 1}
             return {"count": await grunt.count(doctype_name, filters=base_filters or None)}
         except Exception:
+            logger.warning(
+                "dashboard.widget_failed",
+                doctype=doctype_name,
+                widget_type=widget_type,
+                exc_info=True,
+            )
             return None
 
     if widget_type == "calendar":
@@ -255,6 +287,12 @@ async def _compute_widget_data(
             )
             return {"days": {str(r.get(group_by_expr)): r.get("cnt") for r in rows}}
         except Exception:
+            logger.warning(
+                "dashboard.widget_failed",
+                doctype=doctype_name,
+                widget_type=widget_type,
+                exc_info=True,
+            )
             return {"days": {}}
 
     if widget_type == "heatmap":
@@ -278,6 +316,12 @@ async def _compute_widget_data(
                 ]
             }
         except Exception:
+            logger.warning(
+                "dashboard.widget_failed",
+                doctype=doctype_name,
+                widget_type=widget_type,
+                exc_info=True,
+            )
             return {"entries": []}
 
     if widget_type == "funnel":
@@ -309,6 +353,12 @@ async def _compute_widget_data(
                 ]
             return {"stages": stages}
         except Exception:
+            logger.warning(
+                "dashboard.widget_failed",
+                doctype=doctype_name,
+                widget_type=widget_type,
+                exc_info=True,
+            )
             return {"stages": []}
 
     if widget_type == "table":
@@ -345,18 +395,34 @@ async def _compute_widget_data(
                 "field": value_field,
             }
         except Exception:
+            logger.warning(
+                "dashboard.widget_failed",
+                doctype=doctype_name,
+                widget_type=widget_type,
+                exc_info=True,
+            )
             return {"rows": []}
 
     if widget_type == "activity":
+        from grunt.activity import FEED_HIDDEN_DOCTYPES
+
         try:
             filters = dict(base_filters)
             if doctype_name:
                 filters["doctype"] = doctype_name
+            else:
+                filters["doctype__nin"] = sorted(FEED_HIDDEN_DOCTYPES)
             items = await grunt.get_list(
                 "ActivityLog", filters=filters, order_by="created_at", order="desc", limit=20
             )
             return {"items": items}
         except Exception:
+            logger.warning(
+                "dashboard.widget_failed",
+                doctype=doctype_name,
+                widget_type=widget_type,
+                exc_info=True,
+            )
             return {"items": []}
 
     return None
@@ -445,6 +511,11 @@ async def get_dashboard_data(
                 w_dict, global_since=global_since, global_until=global_until
             )
         except Exception:
+            logger.warning(
+                "dashboard.widget_compute_failed",
+                widget=w_dict.get("name"),
+                exc_info=True,
+            )
             result = None
         return w_dict["name"], result
 

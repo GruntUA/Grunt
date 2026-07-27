@@ -62,6 +62,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
                         "color": data.get("color"),
                         "description": data.get("description"),
                         "sequence": data.get("sequence"),
+                        "home_page": data.get("home_page"),
                     }.items()
                     if v is not None
                 },
@@ -78,6 +79,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
                     "color": data.get("color", ""),
                     "description": data.get("description", ""),
                     "sequence": data.get("sequence", 0),
+                    "home_page": data.get("home_page", ""),
                     "is_hidden": data.get("is_hidden", False),
                     "roles": data.get("roles", ""),
                 },

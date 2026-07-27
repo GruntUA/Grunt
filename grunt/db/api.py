@@ -384,13 +384,15 @@ class GruntDB:
         """Fetch aggregated data (GROUP BY, SUM, COUNT, etc)."""
         import re
 
-        from sqlalchemy import text
 
         dt = await _get_registry().get(doctype)
         table = compile_doctype_to_table(dt)
 
         select_exprs: list[Any] = []
         group_by_exprs: list[Any] = []
+        # label -> expression, so order_by can be resolved to a real construct
+        # instead of being interpolated into raw SQL.
+        labeled: dict[str, Any] = {}
 
         if isinstance(group_by, str):
             group_by = [group_by]
@@ -407,6 +409,7 @@ class GruntDB:
                     expr = table.c[gb].label(gb)
                     select_exprs.append(expr)
                     group_by_exprs.append(table.c[gb])
+                labeled[gb] = expr
 
         if aggregations:
             for label, agg_expr in aggregations.items():
@@ -434,7 +437,9 @@ class GruntDB:
                     else:
                         raise ValueError(f"Unsupported aggregation function: {fn_name}")
 
-                select_exprs.append(col.label(label))
+                labeled_col = col.label(label)
+                select_exprs.append(labeled_col)
+                labeled[label] = labeled_col
 
         if not select_exprs:
             select_exprs = [func.count().label("count")]
@@ -447,7 +452,18 @@ class GruntDB:
             stmt = stmt.group_by(*group_by_exprs)
 
         if order_by:
-            stmt = stmt.order_by(text(f"{order_by} {order.upper()}"))
+            # Resolve to a real construct (selected label or table column).
+            # Never interpolate the caller's string into SQL: order_by reaches
+            # here from app code and scripts, so a raw text() would be an
+            # injection point.
+            key = order_by.strip()
+            expr = labeled.get(key)
+            if expr is None:
+                col = table.c.get(key)
+                if col is None:
+                    raise ValueError(f"Invalid order_by: {order_by!r}")
+                expr = col
+            stmt = stmt.order_by(expr.desc() if str(order).lower() == "desc" else expr.asc())
 
         if limit is not None:
             stmt = stmt.limit(limit)
