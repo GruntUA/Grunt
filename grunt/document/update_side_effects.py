@@ -61,26 +61,20 @@ async def record_update_changes(
 
     if diff_changes:
         try:
-            from grunt.activity import _SKIP_DOCTYPES
+            from grunt.activity import record_activity
             from grunt.app import grunt as _g
             from grunt.document.versioning import _SKIP_FIELDS
-
-            if doctype_name in _SKIP_DOCTYPES:
-                return
 
             changed_fields = [
                 item["field"] for item in diff_changes if item["field"] not in _SKIP_FIELDS
             ]
             async with _g.context(session=session, engine=engine, user=user):
-                await _g.new_doc(
-                    "ActivityLog",
-                    {
-                        "doctype": doctype_name,
-                        "doc_id": real_id,
-                        "action": "Update",
-                        "user": user.email,
-                        "details": {"changed_fields": changed_fields} if changed_fields else None,
-                    },
+                await record_activity(
+                    doctype_name,
+                    real_id,
+                    "Update",
+                    user_email=user.email,
+                    details={"changed_fields": changed_fields} if changed_fields else None,
                 )
         except Exception:
             logger.warning("activity_log.update_failed", doctype=doctype_name, doc_id=real_id)

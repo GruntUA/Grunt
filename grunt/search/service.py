@@ -5,7 +5,7 @@ PostgreSQL.  On MySQL uses native ``FULLTEXT`` matching.  On SQLite (dev)
 falls back to simple ``ILIKE`` search against the stored raw text.
 
 Index is updated on every document save/delete through direct calls from
-DocumentService (no hook overhead, always consistent).
+the document pipeline (no hook overhead, always consistent).
 """
 
 from __future__ import annotations

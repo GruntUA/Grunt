@@ -213,7 +213,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
             continue
 
         col.nullable = True
-        # Defaults are handled at the application level (DocumentService),
+        # Defaults are handled at the application level (the document pipeline),
         # not at the DB column level, to avoid SA compile issues.
 
         columns.append(col)

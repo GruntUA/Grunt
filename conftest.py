@@ -14,12 +14,8 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-# Override engine for docs router
-from grunt.api.v1.docs.utils import get_engine
 from grunt.config import settings
 from grunt.db.base import metadata
-
-# Override engine for meta.py (uses get_engine dependency, already overridden above)
 from grunt.db.session import get_engine as _get_engine_dep
 from grunt.db.session import get_session
 from grunt.main import app
@@ -56,9 +52,6 @@ app.dependency_overrides[get_session] = override_get_session
 
 async def override_get_engine():
     return test_engine
-
-
-app.dependency_overrides[get_engine] = override_get_engine
 
 
 app.dependency_overrides[_get_engine_dep] = override_get_engine

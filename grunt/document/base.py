@@ -167,6 +167,23 @@ class Document(DocumentReadMixin, DocumentWriteMixin):
         # MultiLinkService bound lazily in _bind() once a session is resolved.
         object.__setattr__(self, "_ml", None)
 
+    @classmethod
+    def host(
+        cls,
+        session: AsyncSession | None = None,
+        engine: AsyncEngine | None = None,
+    ) -> Document:
+        """Build an empty, bound host document to run dict-based pipeline methods on.
+
+        Single builder for the ``GruntApp`` facade and REST layer, both
+        of which drive the CRUD pipeline through a throwaway ``Document``. Passing
+        ``session``/``engine`` binds them explicitly; omitting them lets ``_bind``
+        resolve the active grunt context.
+        """
+        doc = cls("", {}, session=session, engine=engine)
+        doc._bind()
+        return doc
+
     # ── Attribute routing ─────────────────────────────────────────────────
 
     def __getattr__(self, name: str) -> Any:

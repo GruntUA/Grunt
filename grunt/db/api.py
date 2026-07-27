@@ -225,7 +225,7 @@ class GruntDB:
             stmt = _apply_db_filters(stmt, table, filters)
 
         if or_filters:
-            or_clauses = _build_clauses(table, or_filters)
+            or_clauses = build_clauses(table, or_filters)
             if or_clauses:
                 stmt = stmt.where(or_(*or_clauses))
 
@@ -468,11 +468,44 @@ def _apply_filters(stmt: Any, table: Any, filters: str | dict[str, Any]) -> Any:
     return stmt
 
 
-_FILTER_OPS = ("__gte", "__lte", "__gt", "__lt", "__like", "__in", "__nin", "__ne", "__isnull")
+# Ordered longest-first so multi-word suffixes (``__lte_or_null``) win over
+# their prefixes. Anchoring on ``__`` also keeps a field literally named
+# ``foo__bar`` (no operator) from being misread as ``foo`` + op ``bar``.
+_FILTER_OPS = (
+    "__lte_or_null",
+    "__isnull",
+    "__like",
+    "__ilike",
+    "__gte",
+    "__lte",
+    "__nin",
+    "__neq",
+    "__gt",
+    "__lt",
+    "__eq",
+    "__in",
+    "__ne",
+)
 
 
-def _build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
-    """Build SQLAlchemy WHERE clauses from a filter dict."""
+def _truthy(value: Any) -> bool:
+    """Interpret filter values that may arrive as bools or query strings."""
+    if isinstance(value, str):
+        return value.strip().lower() not in ("", "false", "0", "no")
+    return bool(value)
+
+
+def _as_list(value: Any) -> list[Any]:
+    """Normalise an ``in``/``nin`` operand from either a list or a CSV string."""
+    return list(value) if isinstance(value, (list, tuple)) else str(value).split(",")
+
+
+def build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
+    """Build SQLAlchemy WHERE clauses from an operator-aware filter dict.
+
+    Single source of truth for filter parsing across the framework — used both
+    by the ``grunt.db`` layer (count/get_all/…) and by document list queries.
+    """
     clauses: list[Any] = []
     for key, value in filters.items():
         op = "eq"
@@ -482,38 +515,41 @@ def _build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
                 fieldname = key[: -len(suffix)]
                 op = suffix[2:]
                 break
+
         col = table.c.get(fieldname)
         if col is None:
             continue
+
         if op == "eq":
             clauses.append(col == value)
+        elif op in ("ne", "neq"):
+            clauses.append(col != value)
         elif op == "gte":
             clauses.append(col >= value)
         elif op == "lte":
             clauses.append(col <= value)
+        elif op == "lte_or_null":
+            clauses.append(or_(col <= value, col.is_(None)))
         elif op == "gt":
             clauses.append(col > value)
         elif op == "lt":
             clauses.append(col < value)
         elif op == "like":
             clauses.append(col.like(f"%{value}%"))
+        elif op == "ilike":
+            clauses.append(col.ilike(f"%{value}%"))
         elif op == "in":
-            clauses.append(col.in_(value))
+            clauses.append(col.in_(_as_list(value)))
         elif op == "nin":
-            clauses.append(col.not_in(value))
-        elif op == "ne":
-            clauses.append(col != value)
+            clauses.append(col.not_in(_as_list(value)))
         elif op == "isnull":
-            if value:
-                clauses.append(col.is_(None))
-            else:
-                clauses.append(col.isnot(None))
+            clauses.append(col.is_(None) if _truthy(value) else col.isnot(None))
     return clauses
 
 
 def _apply_db_filters(stmt: Any, table: Any, filters: dict[str, Any]) -> Any:
     """Apply AND-filters with operator suffixes to a statement."""
-    for clause in _build_clauses(table, filters):
+    for clause in build_clauses(table, filters):
         stmt = stmt.where(clause)
     return stmt
 

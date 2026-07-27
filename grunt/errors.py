@@ -19,7 +19,7 @@ from fastapi import HTTPException
 class GruntError(Exception):
     """User-facing error raised via ``grunt.throw()``.
 
-    Caught by DocumentService and returned as an HTTP 422 response.
+    Caught by the document pipeline and returned as an HTTP 422 response.
     """
 
     def __init__(self, message: str, title: str | None = None) -> None:

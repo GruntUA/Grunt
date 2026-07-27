@@ -123,33 +123,24 @@ async def test_list_pagination(ctx, setup_doctype):
 async def test_list_cursor_pagination(ctx, setup_doctype):
     """cursor pagination: next_cursor returned on page 1, used on page 2, no overlap."""
     from grunt.auth.doctypes.User.user import SYSTEM_USER
-    from grunt.document.service import DocumentService
 
     session = ctx.db._session()
     engine = ctx._require_engine()
-    svc = DocumentService(session, engine)
 
     async with ctx.context(session, engine, SYSTEM_USER):
         for i in range(5):
             await ctx.new_doc("TestItem", {"title": f"Cursor {i}"})
         await session.commit()
 
-        # Page 1 via cursor mode (per_page=2)
-        page1 = await svc.list_documents(
-            "TestItem", SYSTEM_USER, per_page=2, sort_by="modified_at", sort_order="desc"
-        )
+        # Page 1 via cursor mode (limit=2)
+        page1 = await ctx.get_list("TestItem", limit=2, order_by="modified_at", order="desc")
         assert len(page1) == 2
         cursor = page1.meta.get("next_cursor")
         assert cursor is not None, "next_cursor must be set when a full page is returned"
 
         # Page 2 via cursor — must not overlap with page 1
-        page2 = await svc.list_documents(
-            "TestItem",
-            SYSTEM_USER,
-            per_page=2,
-            sort_by="modified_at",
-            sort_order="desc",
-            cursor=cursor,
+        page2 = await ctx.get_list(
+            "TestItem", limit=2, order_by="modified_at", order="desc", cursor=cursor
         )
         assert len(page2) == 2
         ids1 = {r["name"] for r in page1}
@@ -159,13 +150,8 @@ async def test_list_cursor_pagination(ctx, setup_doctype):
         # Page 3 (only 1 remaining) — next_cursor should be None
         cursor2 = page2.meta.get("next_cursor")
         assert cursor2 is not None
-        page3 = await svc.list_documents(
-            "TestItem",
-            SYSTEM_USER,
-            per_page=2,
-            sort_by="modified_at",
-            sort_order="desc",
-            cursor=cursor2,
+        page3 = await ctx.get_list(
+            "TestItem", limit=2, order_by="modified_at", order="desc", cursor=cursor2
         )
         assert len(page3) == 1
         assert page3.meta.get("next_cursor") is None
@@ -263,7 +249,6 @@ async def test_get_document_expand_multilink(ctx):
     """expand controls MultiLink loading for get_document."""
     from grunt.api.v1.meta import save_doctype
     from grunt.auth.doctypes.User.user import SYSTEM_USER
-    from grunt.document.service import DocumentService
 
     await save_doctype(
         doctype_data={
@@ -298,27 +283,16 @@ async def test_get_document_expand_multilink(ctx):
 
     session = ctx.db._session()
     engine = ctx._require_engine()
-    svc = DocumentService(session, engine)
 
     async with ctx.context(session, engine, SYSTEM_USER):
-        full_doc = await svc.get_document("ExpandItem", created["name"], SYSTEM_USER)
+        full_doc = await ctx.get_doc("ExpandItem", created["name"])
         assert "watchers" in full_doc
         assert full_doc["watchers"] == ["system@grunt.local"]
 
-        narrow_doc = await svc.get_document(
-            "ExpandItem",
-            created["name"],
-            SYSTEM_USER,
-            expand=["title"],
-        )
+        narrow_doc = await ctx.get_doc("ExpandItem", created["name"], expand=["title"])
         assert "watchers" not in narrow_doc
 
-        expanded_doc = await svc.get_document(
-            "ExpandItem",
-            created["name"],
-            SYSTEM_USER,
-            expand=["watchers"],
-        )
+        expanded_doc = await ctx.get_doc("ExpandItem", created["name"], expand=["watchers"])
         assert expanded_doc["watchers"] == ["system@grunt.local"]
 
 
@@ -364,22 +338,20 @@ async def test_delete_document(ctx, setup_doctype):
 
 
 @pytest.mark.asyncio
-async def test_bulk_delete_documents_service(ctx, setup_doctype):
-    """DocumentService.bulk_delete removes multiple docs and reports missing IDs."""
+async def test_bulk_delete_documents(ctx, setup_doctype):
+    """bulk_delete_docs removes multiple docs and reports missing IDs."""
     from grunt.auth.doctypes.User.user import SYSTEM_USER
-    from grunt.document.service import DocumentService
 
     a = await ctx.new_doc("TestItem", {"title": "Bulk A"})
     b = await ctx.new_doc("TestItem", {"title": "Bulk B"})
     await ctx.db._session().commit()
 
-    svc = DocumentService(ctx.db._session(), ctx._require_engine())
-    deleted, errors = await svc.bulk_delete(
-        "TestItem",
-        [a["name"], b["name"], "missing-id"],
-        SYSTEM_USER,
-    )
-    await ctx.db._session().commit()
+    async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
+        deleted, errors = await ctx.bulk_delete_docs(
+            "TestItem",
+            [a["name"], b["name"], "missing-id"],
+        )
+        await ctx.db._session().commit()
 
     assert deleted == 2
     assert len(errors) == 1

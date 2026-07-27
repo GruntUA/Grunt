@@ -22,7 +22,7 @@ from grunt.permissions.guards import (
 if TYPE_CHECKING:
     from grunt.cache.query_cache import QueryCache
     from grunt.db import GruntDB
-    from grunt.document.base import Document
+    from grunt.document.base import Document, DocumentList
 
 logger = structlog.get_logger()
 
@@ -70,9 +70,7 @@ class DocumentAPI:
         """Build a session/engine-bound host document to run single-doc pipeline methods on."""
         from grunt.document.base import Document
 
-        doc = Document("", {}, session=require_session(), engine=require_engine())
-        doc._bind()
-        return doc
+        return Document.host(require_session(), require_engine())
 
     @profile("grunt.get_doc")
     async def get_doc(
@@ -268,8 +266,14 @@ class DocumentAPI:
         order_by: str = "modified_at",
         order: str = "desc",
         search: str | None = None,
-    ) -> list[dict[str, Any]]:
-        """Fetch a list of documents as dictionaries."""
+        cursor: str | None = None,
+    ) -> DocumentList:
+        """Fetch a guarded, field-masked page of documents (with pagination meta).
+
+        The single read entry point: applies read_guard, before/after_read hooks
+        and hidden-field masking. Returns a :class:`DocumentList` whose
+        ``to_dict()`` carries pagination metadata.
+        """
         from grunt.hooks import fire
 
         dt, user, hidden_fields = await read_guard(doctype)
@@ -291,7 +295,8 @@ class DocumentAPI:
         cache = getattr(self, "query_cache", None)
         cache_key: str | None = None
 
-        if cache_eligible and cache is not None:
+        # Keyset (cursor) pages are not cached — the cursor already scopes them.
+        if cache_eligible and cache is not None and cursor is None:
             cache_key = cache.build_key(
                 doctype=doctype,
                 user_email=getattr(user, "email", ""),
@@ -319,6 +324,7 @@ class DocumentAPI:
                 filters=filters,
                 search=search,
                 fields=fields,
+                cursor=cursor,
             )
             if cache_key and cache is not None:
                 await cache.set_list(cache_key, result)

@@ -30,23 +30,15 @@ async def get_list(
     search: str | None = None,
 ) -> dict[str, Any]:
     """Get a list of documents with metadata."""
-    from grunt.document.service import DocumentService
-
-    session = grunt_app._require_session()
-    engine = grunt_app._require_engine()
-    svc = DocumentService(session, engine)
-    user = grunt_app._require_user()
-
-    res = await svc.list_documents(
+    res = await grunt_app.get_list(
         doctype,
-        user,
-        page=page,
-        per_page=limit,
-        sort_by=order_by or "modified_at",
-        sort_order=order,
         filters=filters,
-        search=search,
         fields=fields,
+        limit=limit,
+        page=page,
+        order_by=order_by or "modified_at",
+        order=order,
+        search=search,
     )
     return res.to_dict()
 

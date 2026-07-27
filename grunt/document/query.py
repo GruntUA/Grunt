@@ -1,4 +1,4 @@
-"""Query and filter building for DocumentService."""
+"""Query and filter building for document list queries."""
 
 from __future__ import annotations
 
@@ -6,52 +6,19 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import or_, select
 
+from grunt.db.api import build_clauses
+
 if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
 
 
 def _apply_filters(query: Any, table: Any, filters: dict[str, str]) -> Any:
-    """Apply operator-aware dictionary filters to a statement."""
-    for key, value in filters.items():
-        if "__" in key:
-            fieldname, op = key.rsplit("__", 1)
-        else:
-            fieldname, op = key, "eq"
+    """Apply operator-aware dictionary filters to a statement.
 
-        col = table.c.get(fieldname)
-        if col is None:
-            continue
-
-        if op == "eq":
-            query = query.where(col == value)
-        elif op == "gte":
-            query = query.where(col >= value)
-        elif op == "lte":
-            query = query.where(col <= value)
-        elif op == "lte_or_null":
-            query = query.where(or_(col <= value, col.is_(None)))
-        elif op == "gt":
-            query = query.where(col > value)
-        elif op == "lt":
-            query = query.where(col < value)
-        elif op == "like":
-            query = query.where(col.like(f"%{value}%"))
-        elif op == "ilike":
-            query = query.where(col.ilike(f"%{value}%"))
-        elif op == "in":
-            items = value if isinstance(value, (list, tuple)) else value.split(",")
-            query = query.where(col.in_(items))
-        elif op == "nin":
-            items = value if isinstance(value, (list, tuple)) else value.split(",")
-            query = query.where(col.not_in(items))
-        elif op in ("ne", "neq"):
-            query = query.where(col != value)
-        elif op == "isnull":
-            if value.lower() in ("true", "1"):
-                query = query.where(col.is_(None))
-            else:
-                query = query.where(col.isnot(None))
-
+    Delegates clause building to the single shared parser in ``grunt.db.api``.
+    """
+    for clause in build_clauses(table, filters):
+        query = query.where(clause)
     return query
 
 

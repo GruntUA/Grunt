@@ -1,4 +1,4 @@
-"""Virtual DocType delegation for DocumentService."""
+"""Virtual DocType delegation for the document pipeline."""
 
 from __future__ import annotations
 

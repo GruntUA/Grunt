@@ -1,4 +1,4 @@
-"""Mixin classes for DocumentService."""
+"""Write-side mixin for the Document pipeline."""
 
 from __future__ import annotations
 

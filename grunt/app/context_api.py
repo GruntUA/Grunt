@@ -33,8 +33,8 @@ class ContextAPI:
     ) -> tuple:
         """Set the request context (session / engine / user).
 
-        Called automatically by :class:`~grunt.core.document.service.DocumentService`
-        before invoking lifecycle hooks. Returns a tuple of ContextVar tokens that
+        Called automatically before invoking lifecycle hooks. Returns a tuple of
+        ContextVar tokens that
         can be passed to :meth:`reset_context` to restore the previous state.
 
         App developers generally do NOT need to call this directly.

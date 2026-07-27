@@ -4,82 +4,13 @@ from __future__ import annotations
 
 import io
 from datetime import date, datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import openpyxl
 import structlog
-from fastapi import Depends
 from openpyxl.styles import Alignment, Font, PatternFill
 
-from grunt.db.session import get_engine, get_session
-from grunt.document.service import DocumentService
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-    from grunt.auth.doctypes.User.user import User
-
 logger = structlog.get_logger()
-
-
-def get_doc_service(
-    session: AsyncSession = Depends(get_session),
-    eng: AsyncEngine = Depends(get_engine),
-) -> DocumentService:
-    """Dependency to get DocumentService instance."""
-    return DocumentService(session, eng)
-
-
-async def _audit_log(
-    svc: DocumentService,
-    doctype: str,
-    doc_id: str,
-    action: str,
-    user: User,
-    changes: dict[str, Any] | None = None,
-) -> None:
-    """Write an ActivityLog entry via grunt.new_doc and broadcast via WebSocket."""
-    from grunt.activity import _SKIP_DOCTYPES
-    from grunt.app import grunt
-
-    # Never log or broadcast high-frequency system churn (sessions, logs, etc.).
-    if doctype in _SKIP_DOCTYPES:
-        return
-
-    try:
-        async with grunt.context(session=svc.session, engine=svc.engine, user=user):
-            doc = await grunt.new_doc(
-                "ActivityLog",
-                {
-                    "doctype": doctype,
-                    "doc_id": str(doc_id),
-                    "action": action,
-                    "user": user.email,
-                    "details": changes,
-                },
-            )
-            try:
-                from grunt.api.v1.ws import manager
-
-                created_at = doc.get("created_at")
-                await manager.broadcast(
-                    "public:site",
-                    "activity",
-                    {
-                        "name": doc.get("name"),
-                        "doctype": doctype,
-                        "doc_id": str(doc_id),
-                        "action": action,
-                        "user": user.email,
-                        "created_at": created_at.isoformat()
-                        if isinstance(created_at, datetime)
-                        else str(created_at or ""),
-                    },
-                )
-            except Exception:
-                logger.exception("suppressed_error")
-    except Exception:
-        logger.warning("audit_log_failed", doctype=doctype, doc_id=doc_id, action=action)
 
 
 def _fmt(val: object) -> str:

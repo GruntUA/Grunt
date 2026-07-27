@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from datetime import datetime
+from typing import Any
+
 import structlog
 
 from grunt.app import grunt
@@ -77,20 +80,80 @@ _ACTION_MAP = {
 }
 
 
-async def log_activity(event: str, **kwargs) -> None:
-    """Log document lifecycle events to ActivityLog."""
-    doctype = kwargs.get("doctype")
+async def record_activity(
+    doctype: str,
+    doc_id: str,
+    action: str,
+    *,
+    user_email: str,
+    details: dict | None = None,
+    broadcast: bool = True,
+) -> None:
+    """Write one ActivityLog entry and (optionally) broadcast it live.
+
+    The single write path for the activity feed. Must be called within an
+    active grunt context (ambient session/user). Skips system churn centrally.
+    """
     if not doctype or doctype in _SKIP_DOCTYPES:
         return
+    try:
+        doc = await grunt.new_doc(
+            "ActivityLog",
+            {
+                "doctype": doctype,
+                "doc_id": str(doc_id),
+                "user": user_email,
+                "action": action,
+                "details": details,
+            },
+        )
+    except Exception as e:
+        logger.warning("activity.log_failed", error=str(e), doctype=doctype, doc_id=doc_id)
+        return
 
+    if broadcast:
+        await _broadcast_activity(doc, doctype, str(doc_id), action, user_email)
+
+
+async def _broadcast_activity(
+    doc: dict[str, Any], doctype: str, doc_id: str, action: str, user_email: str
+) -> None:
+    """Push a live activity event to the global site WebSocket channel."""
+    try:
+        from grunt.api.v1.ws import manager
+
+        created_at = doc.get("created_at")
+        await manager.broadcast(
+            "public:site",
+            "activity",
+            {
+                "name": doc.get("name"),
+                "doctype": doctype,
+                "doc_id": doc_id,
+                "action": action,
+                "user": user_email,
+                "created_at": created_at.isoformat()
+                if isinstance(created_at, datetime)
+                else str(created_at or ""),
+            },
+        )
+    except Exception:
+        logger.debug("activity.broadcast_failed", doctype=doctype, doc_id=doc_id)
+
+
+async def log_activity(event: str, **kwargs) -> None:
+    """Hook adapter: map a lifecycle event to an ActivityLog entry."""
     action = _ACTION_MAP.get(event)
     doc = kwargs.get("doc") or kwargs.get("doc_id")
     user = kwargs.get("user")
+    doctype = kwargs.get("doctype")
 
-    if not action or not doc or not user:
+    if not action or not doc or not user or not doctype:
         return
 
-    doc_id = doc.get("name") if isinstance(doc, dict) else str(doc)
+    doc_id = str(doc.get("name") or "") if isinstance(doc, dict) else str(doc)
+    if not doc_id:
+        return
     user_email = user.email if hasattr(user, "email") else str(user)
 
     details: dict | None = None
@@ -99,16 +162,4 @@ async def log_activity(event: str, **kwargs) -> None:
         if changed:
             details = {"changed_fields": changed}
 
-    try:
-        await grunt.new_doc(
-            "ActivityLog",
-            {
-                "doctype": doctype,
-                "doc_id": doc_id,
-                "user": user_email,
-                "action": action,
-                "details": details,
-            },
-        )
-    except Exception as e:
-        logger.warning("activity.log_failed", error=str(e), doctype=doctype, doc_id=doc_id)
+    await record_activity(doctype, doc_id, action, user_email=user_email, details=details)

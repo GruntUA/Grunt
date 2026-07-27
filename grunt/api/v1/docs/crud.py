@@ -8,13 +8,11 @@ from typing import Any
 from fastapi import Body, Depends, HTTPException, Query, Request, status
 
 from grunt.api.router import GruntRouter
-from grunt.api.v1.docs.utils import get_doc_service
 from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt as grunt_app
 from grunt.auth.dependencies import current_user
 from grunt.auth.doctypes.User.user import User
 from grunt.document.bulk_ops import BulkDeleteTask
-from grunt.document.service import DocumentService
 
 router = GruntRouter()
 
@@ -31,7 +29,6 @@ async def list_documents(
     fields: str | None = None,
     cursor: str | None = Query(None, description="Opaque cursor for keyset pagination"),
     user: User = Depends(current_user),
-    service: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """List documents for a DocType."""
     # Extract fast_filter[field__op]=value — applied first (lower precedence)
@@ -47,16 +44,15 @@ async def list_documents(
 
     field_list = [f.strip() for f in fields.split(",") if f.strip()] if fields else None
 
-    result = await service.list_documents(
+    result = await grunt_app.get_list(
         doctype,
-        user,
-        page=page,
-        per_page=per_page,
-        sort_by=sort_by,
-        sort_order=sort_order,
         filters=merged_filters if merged_filters else None,
-        search=search,
         fields=field_list,
+        limit=per_page,
+        page=page,
+        order_by=sort_by,
+        order=sort_order,
+        search=search,
         cursor=cursor,
     )
     return ok(**result.to_dict())
@@ -79,11 +75,10 @@ async def get_document(
     doc_id: str,
     expand: str | None = Query(None, description="Comma-separated relation fields to expand"),
     user: User = Depends(current_user),
-    svc: DocumentService = Depends(get_doc_service),
 ) -> dict[str, Any]:
     """Get document data."""
     expand_fields = [f.strip() for f in expand.split(",") if f.strip()] if expand else None
-    doc = await svc.get_document(doctype, doc_id, user, expand=expand_fields)
+    doc = await grunt_app.get_doc(doctype, doc_id, expand=expand_fields)
     return ok(doc)
 
 
