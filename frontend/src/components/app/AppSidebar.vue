@@ -3,7 +3,6 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
-import { useSidebarStore } from '@/stores/sidebar'
 import AppIcon from '@/components/AppIcon.vue'
 import NotificationsPopover from '@/components/layout/NotificationsPopover.vue'
 import PalettePicker from '@/components/layout/PalettePicker.vue'
@@ -19,7 +18,6 @@ import {
 const props = defineProps<{ workspaceName: string }>()
 
 const appStore = useAppStore()
-const sidebarStore = useSidebarStore()
 const auth = useAuthStore()
 const router = useRouter()
 const colorMode = useColorMode()
@@ -96,6 +94,13 @@ function navigatePinnedItem(item: { workspace: string; type: string; link_to: st
     ; (map[item.type] ?? map.DocType)()
 }
 
+// ── Admin shortcuts ───────────────────────────────────────────────────────────
+const adminLinks = [
+  { to: '/grunt/DocTypePermission', icon: Shield, label: 'Права доступу' },
+  { to: '/grunt/ActivityLog', icon: Activity, label: 'Журнал активності' },
+  { to: '/grunt/EmailAccount', icon: Mail, label: 'Пошта' },
+]
+
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 const _onQuickCreate = () => {
   window.dispatchEvent(new CustomEvent('toggle-search'))
@@ -117,250 +122,185 @@ onUnmounted(() => {
 
 watch(() => appStore.active?.name, () => loadPinnedItems())
 watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStore.refreshCounts() })
-
-const isCollapsed = computed(() => sidebarStore.isCollapsed)
 </script>
 
 <template>
-  <div class="h-full flex flex-col bg-card border-r border-sidebar-border transition-all duration-300 relative z-20"
-    :class="isCollapsed ? 'w-[72px]' : 'w-72'">
-    <!-- ── Header: App Switcher ──────────────────────────────────────────── -->
-    <header class="flex flex-col gap-2 pt-1 px-1 pb-3">
-      <!-- Expanded: full button + popup menu -->
-      <template v-if="!isCollapsed">
-        <DropdownMenu>
-          <DropdownMenuTrigger as-child>
-            <button
-              class="group w-full flex items-center justify-between px-1.5 py-2.5 rounded-xl border border-sidebar-border bg-linear-to-br from-card via-card to-primary/5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 relative overflow-hidden">
-              <div
-                class="absolute inset-0 bg-linear-to-tr from-transparent via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-              <div class="flex items-center gap-3.5 min-w-0 relative z-10">
-                <div
-                  class="size-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-inner">
-                  <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-5 text-primary" />
+  <Sidebar collapsible="icon">
+    <SidebarHeader>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <SidebarMenuButton size="lg" :tooltip="appStore.active?.label || 'Workspace'">
+                <div class="bg-primary/10 text-primary flex aspect-square size-8 items-center justify-center rounded-lg">
+                  <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-4" />
                 </div>
-                <div class="flex flex-col items-start min-w-0">
-                  <span class="text-[9px] font-black text-primary/70 uppercase tracking-[0.25em] leading-none mb-1.5">
+                <div class="grid flex-1 text-left leading-tight">
+                  <span class="truncate text-xs font-semibold text-primary/70 uppercase tracking-widest">
                     {{ appStore.active?.name === 'grunt' ? 'СИСТЕМА' : 'ДОДАТОК' }}
                   </span>
-                  <span
-                    class="text-sm font-bold text-foreground truncate w-full group-hover:text-primary transition-colors">
-                    {{ appStore.active?.label }}
-                  </span>
+                  <span class="truncate font-semibold">{{ appStore.active?.label }}</span>
                 </div>
-              </div>
-              <ChevronsUpDown
-                class="size-4 text-muted-foreground/40 group-hover:text-primary transition-all shrink-0 ml-2" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent class="rounded-xl p-1.5 min-w-[200px]">
-            <template v-for="(item, idx) in appSwitcherItems" :key="idx">
-              <DropdownMenuSeparator v-if="item.separator" />
-              <DropdownMenuItem v-else
-                class="gap-2.5 px-3 py-2 rounded-lg"
-                :class="item.isActive ? 'text-primary font-medium bg-primary/5' : ''"
-                @click="item.command?.()">
-                <AppIcon v-if="item.icon" :icon="item.icon" class="size-4 shrink-0 text-muted-foreground" />
-                <ArrowLeft v-else-if="item.key === 'back'" class="size-4 text-muted-foreground shrink-0" />
-                <span class="text-sm truncate">{{ item.label }}</span>
-              </DropdownMenuItem>
-            </template>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </template>
+                <ChevronsUpDown class="ml-auto" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent class="w-(--reka-popper-anchor-width) min-w-56 rounded-lg" align="start" side="bottom">
+              <template v-for="(item, idx) in appSwitcherItems" :key="idx">
+                <DropdownMenuSeparator v-if="item.separator" />
+                <DropdownMenuItem v-else :class="item.isActive ? 'text-primary font-medium bg-primary/5' : ''" @click="item.command?.()">
+                  <AppIcon v-if="item.icon" :icon="item.icon" class="size-4 shrink-0 text-muted-foreground" />
+                  <ArrowLeft v-else-if="item.key === 'back'" class="size-4 text-muted-foreground shrink-0" />
+                  <span class="truncate">{{ item.label }}</span>
+                </DropdownMenuItem>
+              </template>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarHeader>
 
-      <!-- Collapsed: icon only -->
-      <Tooltip v-else>
-        <TooltipTrigger as-child>
-          <button
-            class="h-11 w-11 mx-auto flex items-center justify-center rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-all shadow-sm"
-            @click="goToDesk">
-            <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-5" />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="right">{{ appStore.active?.label || 'Workspace' }}</TooltipContent>
-      </Tooltip>
-    </header>
+    <SidebarContent>
+      <!-- Search -->
+      <SidebarGroup>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Пошук" @click="triggerSearch">
+                <Search />
+                <span>Пошук...</span>
+                <kbd class="ml-auto flex items-center gap-0.5 rounded border border-sidebar-border/50 bg-background/50 px-1.5 text-xs font-semibold text-muted-foreground group-data-[collapsible=icon]:hidden">
+                  <span class="opacity-70">⌘</span>K
+                </kbd>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <NotificationsPopover :workspace="appStore.active?.name" />
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
 
-    <!-- ── Content ─────────────────────────────────────────────────────────── -->
-    <div class="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overflow-x-hidden scrollbar-thin">
+      <!-- Pinned -->
+      <SidebarGroup v-if="pinnedItems.length">
+        <SidebarGroupLabel>Закріплені</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem v-for="item in pinnedItems" :key="`${item.workspace}-${item.type}-${item.link_to}`">
+              <SidebarMenuButton :tooltip="item.label" @click="navigatePinnedItem(item)">
+                <AppIcon :icon="item.icon || 'file'" />
+                <span>{{ item.label }}</span>
+              </SidebarMenuButton>
+              <SidebarMenuAction show-on-hover title="Відкріпити" @click.stop="unpinItem(item)">
+                <X />
+              </SidebarMenuAction>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
 
-      <!-- Search + Notifications + Pinned (expanded only) -->
-      <div v-if="!isCollapsed" class="px-1 py-1 flex flex-col gap-2">
-        <!-- Search -->
-        <button
-          class="w-full flex items-center justify-between px-1.5 py-2 rounded-xl border border-sidebar-border/50 bg-muted/20 hover:bg-muted/40 hover:border-primary/30 hover:shadow-sm transition-all group overflow-hidden relative"
-          @click="triggerSearch">
-          <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div class="flex items-center gap-3 min-w-0 relative z-10">
-            <Search class="size-4 text-muted-foreground group-hover:text-primary transition-all shrink-0" />
-            <span
-              class="text-xs font-semibold text-muted-foreground/80 group-hover:text-foreground transition-colors">Пошук...</span>
-          </div>
-          <kbd
-            class="flex items-center gap-0.5 px-2 py-0.5 rounded-md border border-sidebar-border/50 bg-background/50 text-[9px] font-bold text-muted-foreground relative z-10">
-            <span class="opacity-70 text-[10px]">⌘</span>K
-          </kbd>
-        </button>
+      <!-- Home -->
+      <SidebarGroup>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <RouterLink :to="`/app/${workspaceName}`" custom v-slot="{ navigate }">
+              <SidebarItem
+                :item="{ type: 'DocType', link_to: '', label: 'Огляд', icon: 'layout-dashboard', section: '', sequence: 0, show_count: false, show_new_btn: false, roles: '' }"
+                :workspace-name="workspaceName" @click="navigate" />
+            </RouterLink>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
 
-        <!-- Notifications -->
-        <NotificationsPopover :workspace="appStore.active?.name" />
-
-        <!-- Pinned -->
-        <div v-if="pinnedItems.length" class="space-y-1 mt-2">
-          <p class="px-1 text-[10px] tracking-[0.2em] font-black uppercase text-muted-foreground/50">Закріплені</p>
-          <div v-for="item in pinnedItems" :key="`${item.workspace}-${item.type}-${item.link_to}`"
-            class="flex items-center justify-between text-sm px-1.5 py-1 rounded-xl hover:bg-primary/5 transition group/pinned">
-            <button class="text-left flex-1 flex items-center gap-2 truncate" @click="navigatePinnedItem(item)">
-              <AppIcon :icon="item.icon || 'file'"
-                class="size-3.5 shrink-0 text-muted-foreground group-hover/pinned:text-primary transition-colors" />
-              <span class="truncate text-xs font-medium">{{ item.label }}</span>
-              <span
-                class="text-[9px] text-muted-foreground/60 lowercase ml-1 shrink-0 group-hover/pinned:text-muted-foreground transition-colors">({{
-                item.type }})</span>
-            </button>
-            <button
-              class="ml-2 rounded-md p-1 opacity-0 group-hover/pinned:opacity-100 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-all"
-              @click.stop="unpinItem(item)">
-              <X class="size-3" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Navigation -->
-      <nav class="px-1 flex flex-col gap-1">
-        <!-- Home -->
-        <ul class="flex w-full min-w-0 flex-col gap-1 list-none p-0 m-0">
-          <RouterLink :to="`/app/${workspaceName}`" custom v-slot="{ navigate }">
-            <SidebarItem
-              :item="{ type: 'DocType', link_to: '', label: 'Огляд', icon: 'layout-dashboard', section: '', sequence: 0, show_count: false, show_new_btn: false, roles: '' }"
-              :workspace-name="workspaceName" :collapsed="isCollapsed" @click="navigate" />
-          </RouterLink>
-        </ul>
-
-        <Separator class="!my-3 !mx-2 opacity-50" />
-
-        <!-- Workspace groups -->
-        <template v-for="(group, gi) in appStore.groupedItems" :key="gi">
-          <Separator v-if="group.section === '__divider__'" class="!my-3 !mx-2 opacity-50" />
-          <div v-else class="mb-2">
-            <p v-if="group.section && !isCollapsed"
-              class="text-[9px] font-black tracking-[0.25em] uppercase text-muted-foreground/40 px-3 mt-5 mb-2">
-              {{ group.section }}
-            </p>
-            <ul class="flex w-full min-w-0 flex-col gap-1 list-none p-0 m-0">
+      <!-- Workspace groups -->
+      <template v-for="(group, gi) in appStore.groupedItems" :key="gi">
+        <SidebarSeparator v-if="group.section === '__divider__'" />
+        <SidebarGroup v-else>
+          <SidebarGroupLabel v-if="group.section">{{ group.section }}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
               <SidebarItem v-for="item in group.items" :key="item.link_to + item.sequence" :item="item"
                 :workspace-name="workspaceName" :count="appStore.counts[item.link_to] ?? 0"
-                :color="appStore.active?.color" :collapsed="isCollapsed" />
-            </ul>
-          </div>
-        </template>
+                :color="appStore.active?.color" />
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </template>
 
-        <!-- Admin shortcuts -->
-        <template v-if="!isCollapsed && auth.user?.is_superadmin">
-          <div class="mt-auto pt-4">
-            <p class="text-[9px] font-black tracking-[0.25em] uppercase text-muted-foreground/40 px-3 mb-2">Налаштування
-            </p>
-            <ul class="flex w-full min-w-0 flex-col gap-1 list-none p-0 m-0">
-              <li v-for="link in [
-                { to: '/grunt/DocTypePermission', icon: Shield, label: 'Права доступу' },
-                { to: '/grunt/ActivityLog', icon: Activity, label: 'Журнал активності' },
-                { to: '/grunt/EmailAccount', icon: Mail, label: 'Пошта' },
-              ]" :key="link.to">
-                <RouterLink :to="link.to" custom v-slot="{ isActive, navigate }">
-                  <button
-                    class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all"
-                    :class="isActive ? 'bg-primary/10 text-primary font-bold shadow-sm' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'"
-                    @click="navigate">
-                    <component :is="link.icon" class="size-4 shrink-0" />
+      <!-- Admin shortcuts -->
+      <SidebarGroup v-if="auth.user?.is_superadmin" class="mt-auto">
+        <SidebarGroupLabel>Налаштування</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem v-for="link in adminLinks" :key="link.to">
+              <RouterLink :to="link.to" custom v-slot="{ isActive, href, navigate }">
+                <SidebarMenuButton as-child :is-active="isActive" :tooltip="link.label">
+                  <a :href="href" @click="navigate">
+                    <component :is="link.icon" />
                     <span>{{ link.label }}</span>
-                  </button>
-                </RouterLink>
-              </li>
-              <li>
-                <button
-                  class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all"
-                  @click="router.push(`/app/grunt/AppMenu/${appStore.active?.name}`)">
-                  <Settings2 class="size-4 shrink-0" />
-                  <span>Редагувати меню</span>
-                </button>
-              </li>
-            </ul>
-          </div>
-        </template>
-      </nav>
-    </div>
+                  </a>
+                </SidebarMenuButton>
+              </RouterLink>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Редагувати меню" @click="router.push(`/app/grunt/AppMenu/${appStore.active?.name}`)">
+                <Settings2 />
+                <span>Редагувати меню</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    </SidebarContent>
 
-    <!-- ── Footer: User menu ───────────────────────────────────────────────── -->
-    <footer class="pt-3 px-1 pb-1 border-t border-sidebar-border/50">
-      <DropdownMenu>
-        <DropdownMenuTrigger as-child>
-          <button
-            class="w-full flex items-center gap-3 px-1.5 py-2 rounded-xl hover:bg-primary/5 transition-all group overflow-hidden"
-            :class="isCollapsed ? 'justify-center' : ''" :title="auth.user?.full_name">
-            <Avatar class="size-10 shrink-0 shadow-sm transition-transform group-hover:scale-105">
-              <AvatarImage v-if="auth.user?.avatar" :src="auth.user.avatar" alt="" />
-              <AvatarFallback class="bg-primary text-white text-[14px] font-black">
-                {{ auth.user ? initials(auth.user.full_name) : '?' }}
-              </AvatarFallback>
-            </Avatar>
-            <div v-if="!isCollapsed" class="flex-1 text-left min-w-0">
-              <p
-                class="text-sm font-bold text-foreground truncate leading-tight mb-0.5 group-hover:text-primary transition-colors">
-                {{ auth.user?.full_name }}</p>
-              <p class="text-[11px] text-muted-foreground/70 truncate leading-tight">{{ auth.user?.email }}</p>
-            </div>
-            <ChevronsUpDown v-if="!isCollapsed"
-              class="size-4 text-muted-foreground/30 group-hover:text-primary transition-all shrink-0" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent class="rounded-xl p-1.5 min-w-[220px]">
-          <DropdownMenuLabel class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Тема</DropdownMenuLabel>
-          <DropdownMenuRadioGroup :model-value="colorMode.currentTheme.value" @update:model-value="onThemeChange">
-            <DropdownMenuRadioItem value="light" class="gap-2.5 pl-8 pr-3 py-2 rounded-lg">
-              <Sun class="size-4 text-muted-foreground shrink-0" />
-              <span class="text-sm">Світла</span>
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="dark" class="gap-2.5 pl-8 pr-3 py-2 rounded-lg">
-              <Moon class="size-4 text-muted-foreground shrink-0" />
-              <span class="text-sm">Темна</span>
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="system" class="gap-2.5 pl-8 pr-3 py-2 rounded-lg">
-              <Monitor class="size-4 text-muted-foreground shrink-0" />
-              <span class="text-sm">Системна</span>
-            </DropdownMenuRadioItem>
-          </DropdownMenuRadioGroup>
-          <DropdownMenuSeparator class="my-1 mx-1" />
-          <DropdownMenuLabel class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Акцент</DropdownMenuLabel>
-          <div class="px-1 py-1"><PalettePicker /></div>
-          <DropdownMenuSeparator class="my-1 mx-1" />
-          <DropdownMenuItem class="gap-2.5 px-3 py-2 rounded-lg" @click="handleLogout">
-            <LogOut class="size-4 text-muted-foreground shrink-0" />
-            <span class="text-sm">Вийти</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </footer>
+    <SidebarFooter>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <SidebarMenuButton size="lg" :tooltip="auth.user?.full_name">
+                <Avatar class="size-8 rounded-lg">
+                  <AvatarImage v-if="auth.user?.avatar" :src="auth.user.avatar" alt="" />
+                  <AvatarFallback class="rounded-lg bg-primary text-primary-foreground font-semibold">
+                    {{ auth.user ? initials(auth.user.full_name) : '?' }}
+                  </AvatarFallback>
+                </Avatar>
+                <div class="grid flex-1 text-left leading-tight">
+                  <span class="truncate font-semibold">{{ auth.user?.full_name }}</span>
+                  <span class="truncate text-xs text-muted-foreground">{{ auth.user?.email }}</span>
+                </div>
+                <ChevronsUpDown class="ml-auto" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent class="w-(--reka-popper-anchor-width) min-w-56 rounded-lg" side="bottom" align="end">
+              <DropdownMenuLabel class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Тема</DropdownMenuLabel>
+              <DropdownMenuRadioGroup :model-value="colorMode.currentTheme.value" @update:model-value="onThemeChange">
+                <DropdownMenuRadioItem value="light" class="gap-2.5 pl-8 pr-3 py-2 rounded-lg">
+                  <Sun class="size-4 text-muted-foreground shrink-0" />
+                  <span class="text-sm">Світла</span>
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="dark" class="gap-2.5 pl-8 pr-3 py-2 rounded-lg">
+                  <Moon class="size-4 text-muted-foreground shrink-0" />
+                  <span class="text-sm">Темна</span>
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="system" class="gap-2.5 pl-8 pr-3 py-2 rounded-lg">
+                  <Monitor class="size-4 text-muted-foreground shrink-0" />
+                  <span class="text-sm">Системна</span>
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator class="my-1 mx-1" />
+              <DropdownMenuLabel class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Акцент</DropdownMenuLabel>
+              <div class="px-1 py-1"><PalettePicker /></div>
+              <DropdownMenuSeparator class="my-1 mx-1" />
+              <DropdownMenuItem class="gap-2.5 px-3 py-2 rounded-lg" @click="handleLogout">
+                <LogOut class="size-4 text-muted-foreground shrink-0" />
+                <span class="text-sm">Вийти</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarFooter>
 
-  </div>
+    <SidebarRail />
+  </Sidebar>
 </template>
-
-<style scoped>
-.scrollbar-thin::-webkit-scrollbar {
-  width: 4px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background: rgba(var(--primary), 0.1);
-  border-radius: 10px;
-}
-
-.scrollbar-thin:hover::-webkit-scrollbar-thumb {
-  background: rgba(var(--primary), 0.2);
-}
-</style>

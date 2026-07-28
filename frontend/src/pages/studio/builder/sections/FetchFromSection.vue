@@ -15,7 +15,7 @@ const { field, updateField } = usePropertyEditor()
       class="w-full"
       @update:model-value="updateField('fetch_from', $event || undefined)"
     />
-    <p class="text-[11px] text-muted-foreground leading-relaxed mt-1">
+    <p class="text-xs text-muted-foreground leading-relaxed mt-1">
       Автоматично заповнювати значення з іншого документа при виборі зв'язкового поля (Link). 
       Формат: <code class="bg-muted px-1 rounded">назва_лінк_поля.назва_поля_крапки</code>
     </p>

@@ -83,7 +83,7 @@ const toolbarControlsEvents = computed(() =>
 </script>
 
 <template>
-  <div class="flex flex-col gap-0 bg-muted/30 rounded-xl ring-1 ring-border/40 mb-2">
+  <div class="flex flex-col gap-0 bg-muted/30 rounded-lg ring-1 ring-border/40 mb-2">
     <!-- Main row: search + filters + view-controls + view switcher -->
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-1.5">
 
@@ -137,12 +137,12 @@ const toolbarControlsEvents = computed(() =>
         </div>
 
         <!-- View mode switcher — driven by viewRegistry -->
-        <div class="flex items-center bg-background/50 rounded-lg p-1 shadow-inner ring-1 ring-border/40">
+        <div class="flex items-center bg-background/50 rounded-lg p-1 ring-1 ring-border/40">
           <button
             v-for="(def, i) in availableViews"
             :key="def.type"
             type="button"
-            class="size-8 flex items-center justify-center rounded-md transition-all active:scale-90"
+            class="size-8 flex items-center justify-center rounded-md transition-colors"
             :class="[
               i > 0 ? 'ml-1' : '',
               viewMode === def.type

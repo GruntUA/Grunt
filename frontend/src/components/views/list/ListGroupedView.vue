@@ -48,7 +48,7 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
 <template>
   <div class="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
     <!-- Shared column header -->
-    <div class="bg-card rounded-2xl shadow-sm border border-border/60 overflow-hidden">
+    <div class="bg-card rounded-lg border border-border/60 overflow-hidden">
         <GruntDataTable
           :columns="columns"
           :rows="[]"
@@ -67,13 +67,13 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
     <!-- Groups -->
     <div class="flex flex-col gap-4">
         <div v-for="group in groupedRows" :key="group.key"
-          class="rounded-2xl border border-border/40 overflow-hidden shadow-sm bg-card hover:shadow-lg transition-all duration-300">
+          class="rounded-lg border border-border/40 overflow-hidden bg-card">
           <!-- Group header -->
           <div
             class="w-full flex items-center gap-4 px-6 py-4 bg-muted/20 border-b border-border/5 group cursor-pointer select-none"
             @click="emit('toggleGroup', group.key)">
-            
-            <div class="size-9 flex items-center justify-center rounded-xl bg-background shadow-md border border-border/40 transition-transform duration-500"
+
+            <div class="size-9 flex items-center justify-center rounded-lg bg-background border border-border/40 transition-transform duration-300"
               :class="!collapsedGroups.has(group.key) && 'rotate-90'">
               <ChevronRight class="size-5 text-primary" />
             </div>
@@ -81,17 +81,17 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
             <div class="flex flex-col gap-0.5 min-w-0">
                 <div class="flex items-center gap-2">
                     <Layers class="size-3.5 text-muted-foreground/40" />
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{{ groupByField?.label || 'Група' }}</span>
+                    <span class="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">{{ groupByField?.label || 'Група' }}</span>
                 </div>
-                <h3 class="text-sm font-black text-foreground truncate">{{ groupLabel(group.key) }}</h3>
+                <h3 class="text-sm font-semibold text-foreground truncate">{{ groupLabel(group.key) }}</h3>
             </div>
 
             <div class="ml-auto flex items-center gap-4">
                 <div class="flex -space-x-2">
                     <!-- Placeholder for avatars or summary chips if needed -->
                 </div>
-                <Badge variant="secondary" class="!text-[10px] !font-black !px-3 !py-1 !rounded-full opacity-80">
-                  {{ group.items.length }} 
+                <Badge variant="secondary" class="!text-xs !font-semibold !px-3 !py-1 !rounded-full opacity-80">
+                  {{ group.items.length }}
                 </Badge>
             </div>
           </div>

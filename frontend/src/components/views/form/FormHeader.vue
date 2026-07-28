@@ -310,11 +310,11 @@ const menuItems = computed(() => {
     <!-- Top bar: actions -->
     <div class="flex items-center justify-between gap-4 px-4 py-2.5">
       <div class="min-w-0 flex items-center gap-3">
-        <h1 class="text-xl font-bold text-foreground truncate selection:bg-primary/20">{{ docTitle }}</h1>
-        <Badge v-if="documentStatus" :variant="statusBadgeVariant" class="animate-in fade-in slide-in-from-left-2 duration-300 text-[10px] h-5 px-1.5 shrink-0">
+        <h1 class="text-xl font-semibold text-foreground truncate selection:bg-primary/20">{{ docTitle }}</h1>
+        <Badge v-if="documentStatus" :variant="statusBadgeVariant" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
           {{ documentStatus }}
         </Badge>
-        <Badge v-if="isDirty" variant="secondary" class="animate-in fade-in slide-in-from-left-2 duration-300 text-[10px] h-5 px-1.5 border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-amber-400 shrink-0">
+        <Badge v-if="isDirty" variant="warning" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
           {{ t('Unsaved') }}
         </Badge>
       </div>
@@ -430,86 +430,82 @@ const menuItems = computed(() => {
   </div>
 
   <!-- Share Dialog -->
-  <Teleport to="body">
-    <div v-if="showShareDialog" class="fixed inset-0 z-50 flex items-center justify-center">
-      <div class="fixed inset-0 bg-black/40" @click="showShareDialog = false" />
-      <div class="relative bg-card border border-border rounded-xl shadow-2xl w-full max-w-md mx-4 p-6 overflow-hidden">
-        <div class="flex items-center gap-2 mb-5">
+  <Dialog :open="showShareDialog" @update:open="(v: boolean) => showShareDialog = v">
+    <DialogContent class="max-w-md">
+      <DialogHeader>
+        <div class="flex items-center gap-2">
           <div class="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
             <Share2 class="size-4.5 text-primary" />
           </div>
           <div>
-            <h2 class="text-base font-semibold">{{ t('Share link') }}</h2>
+            <DialogTitle class="text-base font-semibold">{{ t('Share link') }}</DialogTitle>
             <p class="text-xs text-muted-foreground">{{ t('Anyone with the link can view this document') }}</p>
           </div>
         </div>
+      </DialogHeader>
 
-        <template v-if="!shareLink">
-          <div class="mb-4">
-            <label class="text-xs font-medium text-muted-foreground block mb-1.5">{{ t('Expires at') }} ({{ t('optional') }})</label>
-            <input
-              v-model="shareExpires"
-              type="datetime-local"
-              class="w-full h-9 px-3 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-          </div>
-          <div class="flex justify-end gap-2">
-            <Button variant="outline" size="sm" @click="showShareDialog = false">{{ t('Cancel') }}</Button>
-            <Button size="sm" :disabled="shareLoading" @click="createShare">
-              <Loader2 v-if="shareLoading" class="size-3.5 mr-1.5 animate-spin" />
-              {{ t('Generate link') }}
-            </Button>
-          </div>
-        </template>
-
-        <template v-else>
-          <div class="flex gap-2 mb-4">
-            <input
-              :value="shareLink"
-              readonly
-              class="flex-1 h-9 px-3 text-xs rounded-md border border-border bg-muted font-mono focus:outline-none"
-            />
-            <Button variant="outline" size="sm" @click="copyShareLink" class="shrink-0">
-              <CopyIcon class="size-3.5" />
-            </Button>
-          </div>
-          <p class="text-xs text-muted-foreground mb-4">
-            {{ t('Link copied to clipboard when you click the copy button.') }}
-            <a :href="router.resolve({ name: 'workspace-list', params: { workspaceName: props.workspace ?? 'grunt', doctype: 'DocumentShare' } }).href" target="_blank" class="text-primary hover:underline ml-1">{{ t('Manage shares') }} →</a>
-          </p>
-          <div class="flex justify-end gap-2">
-            <Button variant="outline" size="sm" @click="shareLink = null; shareExpires = ''">{{ t('New link') }}</Button>
-            <Button size="sm" @click="showShareDialog = false">{{ t('Done') }}</Button>
-          </div>
-        </template>
-      </div>
-    </div>
-  </Teleport>
-
-  <!-- Rename Dialog -->
-  <Teleport to="body">
-    <div v-if="showRenameDialog" class="fixed inset-0 z-50 flex items-center justify-center">
-      <div class="fixed inset-0 bg-black/40" @click="showRenameDialog = false" />
-      <div class="relative bg-card border border-border rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
-        <div class="flex items-center gap-2 mb-5">
-           <h2 class="text-lg font-semibold">{{ t('Rename document') }}</h2>
-        </div>
-        <div class="mb-4">
-          <label class="text-xs font-medium text-muted-foreground block mb-1.5">{{ t('New ID') }}</label>
+      <template v-if="!shareLink">
+        <div>
+          <label class="text-xs font-medium text-muted-foreground block mb-1.5">{{ t('Expires at') }} ({{ t('optional') }})</label>
           <input
-            v-model="newDocId"
-            class="w-full h-10 px-3 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-            @keyup.enter="handleRename"
+            v-model="shareExpires"
+            type="datetime-local"
+            class="w-full h-9 px-3 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
-        <div class="flex justify-end gap-2">
-          <Button variant="outline" size="sm" @click="showRenameDialog = false">{{ t('Cancel') }}</Button>
-          <Button size="sm" :disabled="isRenaming || !newDocId || newDocId === props.id" @click="handleRename">
-            <Loader2 v-if="isRenaming" class="size-3.5 mr-1.5 animate-spin" />
-            {{ t('Rename') }}
+        <DialogFooter>
+          <Button variant="outline" size="sm" @click="showShareDialog = false">{{ t('Cancel') }}</Button>
+          <Button size="sm" :disabled="shareLoading" @click="createShare">
+            <Loader2 v-if="shareLoading" class="size-3.5 mr-1.5 animate-spin" />
+            {{ t('Generate link') }}
+          </Button>
+        </DialogFooter>
+      </template>
+
+      <template v-else>
+        <div class="flex gap-2">
+          <input
+            :value="shareLink"
+            readonly
+            class="flex-1 h-9 px-3 text-xs rounded-md border border-border bg-muted font-mono focus:outline-none"
+          />
+          <Button variant="outline" size="sm" @click="copyShareLink" class="shrink-0">
+            <CopyIcon class="size-3.5" />
           </Button>
         </div>
+        <p class="text-xs text-muted-foreground">
+          {{ t('Link copied to clipboard when you click the copy button.') }}
+          <a :href="router.resolve({ name: 'workspace-list', params: { workspaceName: props.workspace ?? 'grunt', doctype: 'DocumentShare' } }).href" target="_blank" class="text-primary hover:underline ml-1">{{ t('Manage shares') }} →</a>
+        </p>
+        <DialogFooter>
+          <Button variant="outline" size="sm" @click="shareLink = null; shareExpires = ''">{{ t('New link') }}</Button>
+          <Button size="sm" @click="showShareDialog = false">{{ t('Done') }}</Button>
+        </DialogFooter>
+      </template>
+    </DialogContent>
+  </Dialog>
+
+  <!-- Rename Dialog -->
+  <Dialog :open="showRenameDialog" @update:open="(v: boolean) => showRenameDialog = v">
+    <DialogContent class="max-w-md">
+      <DialogHeader>
+        <DialogTitle class="text-lg font-semibold">{{ t('Rename document') }}</DialogTitle>
+      </DialogHeader>
+      <div>
+        <label class="text-xs font-medium text-muted-foreground block mb-1.5">{{ t('New ID') }}</label>
+        <input
+          v-model="newDocId"
+          class="w-full h-10 px-3 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+          @keyup.enter="handleRename"
+        />
       </div>
-    </div>
-  </Teleport>
+      <DialogFooter>
+        <Button variant="outline" size="sm" @click="showRenameDialog = false">{{ t('Cancel') }}</Button>
+        <Button size="sm" :disabled="isRenaming || !newDocId || newDocId === props.id" @click="handleRename">
+          <Loader2 v-if="isRenaming" class="size-3.5 mr-1.5 animate-spin" />
+          {{ t('Rename') }}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>

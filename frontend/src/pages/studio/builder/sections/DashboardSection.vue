@@ -40,7 +40,7 @@ const { field, updateField } = usePropertyEditor()
         class="w-full"
         @update:model-value="updateField('dashboard_link_field', $event || undefined)"
       />
-      <p class="text-[11px] text-muted-foreground leading-relaxed mt-1">
+      <p class="text-xs text-muted-foreground leading-relaxed mt-1">
         Назва поля у цільовому DocType, яке посилається на цей документ. 
         Використовується для фільтрації списку та автозаповнення при створенні.
       </p>

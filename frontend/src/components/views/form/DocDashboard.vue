@@ -52,7 +52,7 @@ function handleAdd(field: any) {
 <template>
   <div v-if="dashboardFields.length > 0" class="flex flex-wrap gap-2 mb-1">
     <div v-for="f in dashboardFields" :key="f.fieldname"
-      class="inline-flex items-center gap-2.5 bg-background border border-border/80 hover:border-primary/30 rounded-lg px-3 py-1.5 shadow-sm transition-all group">
+      class="inline-flex items-center gap-2.5 bg-background border border-border/80 hover:border-primary/30 rounded-lg px-3 py-1.5 transition-colors group">
 
       <RouterLink
         v-if="getViewListTo(f)"
@@ -60,19 +60,19 @@ function handleAdd(field: any) {
         class="flex items-center gap-2.5 no-underline"
         :title="`Переглянути ${f.label}`"
       >
-        <span class="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-primary transition-colors">
+        <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-primary transition-colors">
           {{ f.label }}
         </span>
-        <Badge variant="secondary" class="rounded-md font-mono text-[10px] h-4.5 px-1.5 min-w-[20px] flex items-center justify-center bg-muted/50 group-hover:bg-primary/10 group-hover:text-primary border-none transition-colors">
+        <Badge variant="secondary" class="rounded-md font-mono text-xs h-4.5 px-1.5 min-w-[20px] flex items-center justify-center bg-muted/50 group-hover:bg-primary/10 group-hover:text-primary border-none transition-colors">
           {{ document[f.fieldname] || 0 }}
         </Badge>
       </RouterLink>
 
       <div v-else class="flex items-center gap-2.5">
-        <span class="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+        <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           {{ f.label }}
         </span>
-        <Badge variant="secondary" class="rounded-md font-mono text-[10px] h-4.5 px-1.5 min-w-[20px] flex items-center justify-center bg-muted/50 border-none">
+        <Badge variant="secondary" class="rounded-md font-mono text-xs h-4.5 px-1.5 min-w-[20px] flex items-center justify-center bg-muted/50 border-none">
           {{ document[f.fieldname] || 0 }}
         </Badge>
       </div>
@@ -89,9 +89,3 @@ function handleAdd(field: any) {
     </div>
   </div>
 </template>
-
-<style scoped>
-.group:hover {
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-}
-</style>

@@ -100,20 +100,20 @@ onUnmounted(() => {
                 </div>
                 <span class="text-sm font-medium truncate">{{ t('Notifications') }}</span>
             </div>
-            <Badge v-if="unreadCount > 0" class="h-5 px-1.5 text-[10px] font-bold tabular-nums">
+            <Badge v-if="unreadCount > 0" class="h-5 px-1.5 text-xs font-semibold tabular-nums">
                 {{ unreadCount }}
             </Badge>
         </button>
 
         <Popover v-model:open="isOpen">
           <PopoverAnchor :reference="anchorEl ?? undefined" />
-          <PopoverContent class="w-auto p-0 shadow-lg rounded-xl border-border/50">
+          <PopoverContent class="w-auto p-0 border-border/50">
             <div class="w-80 flex flex-col overflow-hidden">
                 <!-- Header -->
                 <div class="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
                     <div class="flex items-center gap-2">
-                        <h3 class="font-bold text-sm">{{ t('Notifications') }}</h3>
-                        <Badge v-if="unreadCount > 0" variant="secondary" class="h-5 text-[10px]">{{ unreadCount }} нових
+                        <h3 class="font-semibold text-sm">{{ t('Notifications') }}</h3>
+                        <Badge v-if="unreadCount > 0" variant="secondary" class="h-5 text-xs">{{ unreadCount }} нових
                         </Badge>
                     </div>
                     <Button v-if="unreadCount > 0" variant="ghost" size="sm"
@@ -138,13 +138,13 @@ onUnmounted(() => {
                             @click="handleNotificationClick(n)">
                             <div class="mt-0.5 shrink-0">
                                 <div class="size-8 rounded-full flex items-center justify-center border"
-                                    :class="n.is_read ? 'bg-muted/50 border-border' : 'bg-background border-primary/20 shadow-sm'">
+                                    :class="n.is_read ? 'bg-muted/50 border-border' : 'bg-background border-primary/20'">
                                     <MailOpen v-if="n.is_read" class="size-3.5 text-muted-foreground" />
                                     <Mail v-else class="size-3.5 text-primary" />
                                 </div>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-bold text-foreground leading-tight mb-1"
+                                <p class="text-sm font-semibold text-foreground leading-tight mb-1"
                                     :class="!n.is_read && 'text-primary'">
                                     {{ n.subject }}
                                 </p>
@@ -152,10 +152,10 @@ onUnmounted(() => {
                                     {{ n.message }}
                                 </p>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-[10px] font-medium text-muted-foreground/70">{{
+                                    <span class="text-xs font-medium text-muted-foreground/70">{{
                                         formatDate(n.created_at) }}</span>
                                     <Badge v-if="n.doctype" variant="secondary"
-                                        class="h-4 px-1 text-[9px] uppercase tracking-wider bg-background">{{ n.doctype }}
+                                        class="h-4 px-1 text-xs uppercase tracking-wider bg-background">{{ n.doctype }}
                                     </Badge>
                                 </div>
                             </div>
@@ -171,10 +171,10 @@ onUnmounted(() => {
 
                 <!-- Push subscribe footer -->
                 <div v-if="pushSupported" class="px-4 py-2.5 border-t bg-muted/20 flex items-center justify-between">
-                    <span class="text-[11px] text-muted-foreground">
+                    <span class="text-xs text-muted-foreground">
                         {{ pushSubscribed ? t('Push notifications enabled') : t('Push notifications disabled') }}
                     </span>
-                    <Button variant="ghost" size="sm" class="h-6 px-2 text-[11px]" :disabled="pushLoading" @click="pushSubscribed ? pushUnsubscribe() : pushSubscribe()">
+                    <Button variant="ghost" size="sm" class="h-6 px-2 text-xs" :disabled="pushLoading" @click="pushSubscribed ? pushUnsubscribe() : pushSubscribe()">
                         <BellOff v-if="pushSubscribed" class="size-3 mr-1" />
                         <BellRing v-else class="size-3 mr-1" />
                         {{ pushSubscribed ? t('Disable') : t('Enable') }}

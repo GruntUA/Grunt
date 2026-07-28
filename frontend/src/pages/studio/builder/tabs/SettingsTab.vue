@@ -275,7 +275,7 @@ function removeSearchField(fieldname: string) {
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <div>
             <span class="text-sm font-medium text-foreground">Швидке створення</span>
-            <p class="text-[11px] text-muted-foreground mt-0.5">Відкривати діалог замість повної форми</p>
+            <p class="text-xs text-muted-foreground mt-0.5">Відкривати діалог замість повної форми</p>
           </div>
           <Switch :model-value="!!builder.doctype?.quick_entry"
             @update:model-value="builder.updateDocType({ quick_entry: $event })" />
@@ -348,7 +348,7 @@ function removeSearchField(fieldname: string) {
             <SelectItem v-for="opt in [{ value: '__none__', label: 'Немає' }, ...imageFields.map(f => ({ value: f.fieldname, label: f.label || f.fieldname }))]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
           </SelectContent>
         </Select>
-        <p v-if="imageFields.length === 0" class="text-[11px] text-muted-foreground mt-1">
+        <p v-if="imageFields.length === 0" class="text-xs text-muted-foreground mt-1">
           Додайте поле типу «Image» або «Attach Image» у форму, щоб обрати його тут.
         </p>
       </div>
@@ -388,7 +388,7 @@ function removeSearchField(fieldname: string) {
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <div>
             <span class="text-sm font-medium text-foreground">Віртуальний DocType</span>
-            <p class="text-[11px] text-muted-foreground mt-0.5">Без фізичної таблиці в БД, дані повертає контролер</p>
+            <p class="text-xs text-muted-foreground mt-0.5">Без фізичної таблиці в БД, дані повертає контролер</p>
           </div>
           <Switch :model-value="!!builder.doctype?.is_virtual"
             @update:model-value="builder.updateDocType({ is_virtual: $event })" />
@@ -403,7 +403,7 @@ function removeSearchField(fieldname: string) {
           placeholder="Згенерується після збереження"
           class="w-full"
         />
-        <p class="text-[11px] text-muted-foreground mt-1">Службове поле тільки для перегляду. Назва визначається системою.</p>
+        <p class="text-xs text-muted-foreground mt-1">Службове поле тільки для перегляду. Назва визначається системою.</p>
       </div>
 
       <div class="rounded-md border border-border bg-muted/20 p-3 text-xs text-muted-foreground">

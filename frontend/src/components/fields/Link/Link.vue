@@ -438,7 +438,7 @@ function openLinkedDoc() {
     <div
       v-if="isOpen"
       :style="dropdownStyle"
-      class="bg-popover border border-border rounded-lg shadow-lg overflow-hidden"
+      class="bg-popover border border-border rounded-lg shadow-md overflow-hidden"
     >
       <div v-if="results.length" class="max-h-52 overflow-y-auto py-1">
         <button

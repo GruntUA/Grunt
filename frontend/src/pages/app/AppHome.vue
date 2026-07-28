@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAppStore } from '@/stores/app'
-import { useSidebarStore } from '@/stores/sidebar'
+import { useSidebar } from '@/components/ui/sidebar'
 import { docsApi } from '@/core/api/docs'
 import { getPageData } from '@/core/api/pages'
 import AppIcon from '@/components/AppIcon.vue'
@@ -11,7 +11,7 @@ import type { DashboardWidget } from '@/types'
 
 const props = defineProps<{ workspaceName: string }>()
 const appStore = useAppStore()
-const sidebarStore = useSidebarStore()
+const { toggleSidebar } = useSidebar()
 
 const widgets = ref<DashboardWidget[]>([])
 const widgetData = ref<Record<string, unknown>>({})
@@ -56,7 +56,7 @@ watch(() => props.workspaceName, init)
     <div v-if="appStore.active" class="flex items-center gap-3 mb-6">
       <button
         class="md:hidden size-8 flex items-center justify-center rounded-lg text-muted-foreground/80 hover:text-foreground hover:bg-muted/50 transition-colors shrink-0 -ml-3"
-        @click="sidebarStore.toggleMobile"
+        @click="toggleSidebar"
       >
         <PanelLeft class="size-4" />
       </button>

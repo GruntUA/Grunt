@@ -223,7 +223,7 @@ const flatResults = computed(() => results.value)
 
 <template>
     <Dialog :open="uiStore.isCommandPaletteOpen" @update:open="uiStore.closeCommandPalette">
-        <DialogContent class="max-w-2xl shadow-2xl bg-card border-0 p-0 overflow-hidden rounded-xl" :show-close-button="false">
+        <DialogContent class="max-w-2xl bg-card p-0 overflow-hidden" :show-close-button="false">
             <DialogTitle class="sr-only">{{ t('Search documents, apps or actions...') }}</DialogTitle>
             <div class="relative flex items-center border-b px-4 py-4">
                 <Search class="mr-3 h-5 w-5 shrink-0 opacity-50 text-primary" />
@@ -232,7 +232,7 @@ const flatResults = computed(() => results.value)
                     @keydown="onKeyDown" autofocus />
                 <div class="flex items-center gap-1.5 ml-2">
                     <kbd
-                        class="px-2 py-1 rounded bg-muted border text-[10px] font-bold text-muted-foreground shadow-sm">ESC</kbd>
+                        class="px-2 py-1 rounded bg-muted border text-xs font-semibold text-muted-foreground">ESC</kbd>
                 </div>
             </div>
 
@@ -251,7 +251,7 @@ const flatResults = computed(() => results.value)
                 <div v-if="quickCreateOpen" class="px-4 py-4 border-b">
                     <div class="flex items-center justify-between mb-2">
                         <div>
-                            <p class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quick Create</p>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Quick Create</p>
                             <p class="text-xs text-muted-foreground">{{ t('Select DocType to create a new record') }}
                             </p>
                         </div>
@@ -273,13 +273,13 @@ const flatResults = computed(() => results.value)
                 </div>
 
                 <div v-else-if="search.length === 0" class="py-6 px-4">
-                    <p class="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">{{ t('Quick actions') }}</p>
+                    <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">{{ t('Quick actions') }}</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <button v-for="action in staticActions" :key="action.id"
-                            class="flex items-center gap-3 p-3 rounded-xl border bg-muted/30 hover:bg-primary/5 hover:border-primary/30 transition-all text-left group"
+                            class="flex items-center gap-3 p-3 rounded-lg border bg-muted/30 hover:bg-primary/5 hover:border-primary/30 transition-colors text-left group"
                             @click="action.action">
                             <div
-                                class="size-9 rounded-lg bg-background border flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors shadow-sm">
+                                class="size-9 rounded-lg bg-background border flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
                                 <component :is="action.icon" class="size-5" />
                             </div>
                             <span class="text-sm font-medium">{{ action.title }}</span>
@@ -290,17 +290,17 @@ const flatResults = computed(() => results.value)
                 <template v-else>
                     <div v-for="(items, category) in groupedResults" :key="category" class="mb-4 last:mb-2">
                         <p
-                            class="px-3 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
+                            class="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest opacity-60">
                             {{ category }}
                         </p>
                         <div class="space-y-0.5">
                             <button v-for="item in items" :key="item.id"
-                                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-200 group relative"
-                                :class="flatResults[selectedIndex]?.id === item.id ? 'bg-primary text-primary-foreground shadow-md -translate-y-0.5' : 'hover:bg-accent/50 text-foreground'"
+                                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors group relative"
+                                :class="flatResults[selectedIndex]?.id === item.id ? 'bg-primary text-primary-foreground' : 'hover:bg-accent/50 text-foreground'"
                                 @click="item.action"
                                 @mouseenter="selectedIndex = flatResults.findIndex(r => r.id === item.id)">
 
-                                <div class="size-8 rounded-lg border flex items-center justify-center shrink-0 shadow-sm"
+                                <div class="size-8 rounded-lg border flex items-center justify-center shrink-0"
                                     :class="flatResults[selectedIndex]?.id === item.id ? 'bg-white/20 border-white/20' : 'bg-background border-border/50'">
                                     <component :is="item.icon" class="size-4" />
                                 </div>
@@ -309,19 +309,19 @@ const flatResults = computed(() => results.value)
                                     <div class="flex items-center gap-2">
                                         <span class="font-semibold text-sm truncate">{{ item.title }}</span>
                                         <span v-if="item.doctype"
-                                            class="text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase opacity-70"
+                                            class="text-xs px-1.5 py-0.5 rounded-full font-semibold uppercase opacity-70"
                                             :class="flatResults[selectedIndex]?.id === item.id ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'">
                                             {{ item.doctype_label || item.doctype }}
                                         </span>
                                     </div>
-                                    <p v-if="item.subtitle" class="text-[11px] truncate opacity-80"
+                                    <p v-if="item.subtitle" class="text-xs truncate opacity-80"
                                         :class="flatResults[selectedIndex]?.id === item.id ? 'text-white/80' : 'text-muted-foreground'">
                                         {{ item.subtitle }}
                                     </p>
                                 </div>
 
                                 <div v-if="flatResults[selectedIndex]?.id === item.id"
-                                    class="shrink-0 flex items-center gap-1 text-[10px] font-bold opacity-80">
+                                    class="shrink-0 flex items-center gap-1 text-xs font-semibold opacity-80">
                                     <span>ENTER</span>
                                     <CornerDownLeft class="size-3" />
                                 </div>
@@ -332,24 +332,24 @@ const flatResults = computed(() => results.value)
             </div>
 
             <div
-                class="flex items-center justify-between px-4 py-3 bg-muted/40 border-t text-[10px] text-muted-foreground font-medium">
+                class="flex items-center justify-between px-4 py-3 bg-muted/40 border-t text-xs text-muted-foreground font-medium">
                 <div class="flex items-center gap-4">
                     <span class="flex items-center gap-1.5"><kbd
-                            class="border rounded px-1.5 py-0.5 bg-background shadow-sm text-foreground">↑↓</kbd>
+                            class="border rounded px-1.5 py-0.5 bg-background text-foreground">↑↓</kbd>
                         Навігація</span>
                     <span class="flex items-center gap-1.5"><kbd
-                            class="border rounded px-1.5 py-0.5 bg-background shadow-sm text-foreground">↵</kbd>
+                            class="border rounded px-1.5 py-0.5 bg-background text-foreground">↵</kbd>
                         Вибрати</span>
                 </div>
                 <template v-if="search.length >= 2">
-                    <button class="text-[10px] text-primary hover:underline font-semibold"
+                    <button class="text-xs text-primary hover:underline font-semibold"
                         @click="navigateTo(`/grunt/search?q=${encodeURIComponent(search)}`)">
                         Всі результати →
                     </button>
                 </template>
                 <div v-else class="flex items-center gap-1.5 opacity-60">
                     <Command class="size-3" />
-                    <span class="font-bold">K</span>
+                    <span class="font-semibold">K</span>
                 </div>
             </div>
         </DialogContent>
@@ -366,7 +366,7 @@ const flatResults = computed(() => results.value)
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
+    background: var(--border);
     border-radius: 20px;
 }
 </style>

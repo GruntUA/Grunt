@@ -52,14 +52,14 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
 
 <template>
   <div v-if="isVisible" :data-fieldname="field.fieldname"
-    class="flex flex-col gap-1.5 relative w-full p-1.5 -m-1.5 rounded-lg transition-all duration-300"
+    class="flex flex-col gap-1.5 relative w-full p-1.5 -m-1.5 rounded-lg transition-colors"
     :class="{
-      'bg-destructive/[0.03] ring-1 ring-destructive/20 shadow-[0_0_8px_rgba(var(--destructive),0.05)]': displayError,
+      'bg-destructive/[0.03] ring-1 ring-destructive/20': displayError,
       'hover:bg-muted/30': !displayError
     }">
     <label v-if="!hasOwnLabel" class="text-sm font-medium text-foreground/90 flex items-center gap-1">
       {{ field.label }}
-      <span v-if="field.required" class="text-destructive font-bold">*</span>
+      <span v-if="field.required" class="text-destructive font-semibold">*</span>
     </label>
 
     <component
@@ -74,7 +74,7 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
       @selection-change="(rowNames: string[]) => emit('table-selection-change', field.fieldname, rowNames)"
     />
 
-    <p v-if="field.description" class="text-[11px] text-muted-foreground leading-snug">
+    <p v-if="field.description" class="text-xs text-muted-foreground leading-snug">
       {{ field.description }}
     </p>
 
@@ -83,7 +83,7 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
     </p>
 
     <span v-if="isDev && altPressed"
-      class="absolute -top-2 right-1 z-50 rounded bg-violet-600 px-1.5 py-0.5 text-[10px] font-mono text-white shadow-sm pointer-events-none select-none">
+      class="absolute -top-2 right-1 z-50 rounded bg-foreground px-1.5 py-0.5 text-xs font-mono text-background pointer-events-none select-none">
       {{ field.fieldname }}
     </span>
   </div>

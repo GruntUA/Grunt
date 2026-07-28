@@ -108,7 +108,6 @@ const stateNames = computed(() => workflow.value.states.map(s => s.name).filter(
 const selectedStepId = ref<string | null>(null)
 const showInactive = ref(false)
 const stepFilter = ref('')
-const showAddMenu = ref(false)
 
 const selectedStep = computed(() =>
   selectedStepId.value
@@ -145,7 +144,6 @@ const visibleSteps = computed(() => {
 const inactiveSteps = computed(() => (workflow.value.steps ?? []).filter(s => !s.is_active))
 
 function addStep(type: WorkflowStepType) {
-  showAddMenu.value = false
   const step = builder.addWorkflowStep({ step_type: type })
   if (step) selectedStepId.value = step.id
 }
@@ -184,13 +182,6 @@ function addNextStep(stepId: string, targetId: string) {
 function stepSeq(step: WorkflowStep) {
   const all = [...(workflow.value.steps ?? [])].sort((a, b) => a.sequence - b.sequence)
   return all.findIndex(s => s.id === step.id) + 1
-}
-
-// Next-step select dropdown per row
-const openNextStepMenu = ref<string | null>(null)
-
-function toggleNextStepMenu(id: string) {
-  openNextStepMenu.value = openNextStepMenu.value === id ? null : id
 }
 </script>
 
@@ -238,22 +229,22 @@ function toggleNextStepMenu(id: string) {
           <!-- Steps toolbar -->
           <div class="flex items-center gap-3 px-4 py-2.5 border-b bg-background shrink-0">
             <!-- Add step button with dropdown -->
-            <div class="relative">
-              <Button size="sm" class="gap-1.5" @click="showAddMenu = !showAddMenu">
-                <Plus class="w-3.5 h-3.5" /> Додати крок
-                <ChevronDown class="w-3 h-3" />
-              </Button>
-              <div v-if="showAddMenu"
-                class="absolute top-full left-0 mt-1 w-48 bg-card border rounded-xl shadow-lg z-30 overflow-hidden py-1">
-                <button
+            <DropdownMenu>
+              <DropdownMenuTrigger as-child>
+                <Button size="sm" class="gap-1.5">
+                  <Plus class="w-3.5 h-3.5" /> Додати крок
+                  <ChevronDown class="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent class="w-48" align="start">
+                <DropdownMenuItem
                   v-for="t in STEP_TYPES" :key="t.value"
-                  class="w-full px-3 py-2 text-sm text-left hover:bg-muted flex items-center gap-2"
                   @click="addStep(t.value)">
                   <span class="w-2 h-2 rounded-full flex-shrink-0" :style="{ background: t.color }" />
                   {{ t.label }}
-                </button>
-              </div>
-            </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <!-- Show inactive toggle -->
             <label class="flex items-center gap-2 text-sm cursor-pointer select-none ml-2">
@@ -297,7 +288,7 @@ function toggleNextStepMenu(id: string) {
                   <span class="w-2 h-2 rounded-full flex-shrink-0" :style="{ background: stepTypeColor(step.step_type) }" />
                   <span class="text-xs font-medium">{{ stepSeq(step) }} {{ stepTypeLabel(step.step_type) }}</span>
                 </div>
-                <div v-if="step.variable" class="text-[11px] text-muted-foreground italic ml-3.5 mt-0.5">{{ step.variable }}</div>
+                <div v-if="step.variable" class="text-xs text-muted-foreground italic ml-3.5 mt-0.5">{{ step.variable }}</div>
               </div>
 
               <!-- Title -->
@@ -313,7 +304,7 @@ function toggleNextStepMenu(id: string) {
                 <div
                   v-for="ns in stepNextStepObjects(step)"
                   :key="ns.id"
-                  class="flex items-center gap-0.5 pl-2 pr-1 py-0.5 rounded-full text-[11px] font-medium text-white"
+                  class="flex items-center gap-0.5 pl-2 pr-1 py-0.5 rounded-full text-xs font-medium text-white"
                   :style="{ background: stepTypeColor(ns.step_type) }">
                   {{ stepSeq(ns) }} {{ ns.title || ns.name }}
                   <button class="ml-0.5 opacity-70 hover:opacity-100" @click.stop="removeNextStep(step, ns.id)">
@@ -322,26 +313,26 @@ function toggleNextStepMenu(id: string) {
                 </div>
 
                 <!-- Add next step -->
-                <div class="relative">
-                  <button
-                    class="w-5 h-5 rounded-full border border-dashed border-muted-foreground/40 text-muted-foreground/40 hover:border-primary hover:text-primary flex items-center justify-center transition-colors"
-                    @click.stop="toggleNextStepMenu(step.id)">
-                    <Plus class="w-3 h-3" />
-                  </button>
-                  <div v-if="openNextStepMenu === step.id"
-                    class="absolute top-full left-0 mt-1 w-52 bg-card border rounded-xl shadow-lg z-30 overflow-hidden py-1 max-h-48 overflow-y-auto">
+                <DropdownMenu>
+                  <DropdownMenuTrigger as-child>
                     <button
+                      class="w-5 h-5 rounded-full border border-dashed border-muted-foreground/40 text-muted-foreground/40 hover:border-primary hover:text-primary flex items-center justify-center transition-colors"
+                      @click.stop>
+                      <Plus class="w-3 h-3" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent class="w-52 max-h-48 overflow-y-auto" align="start">
+                    <DropdownMenuItem
                       v-for="target in (workflow.steps ?? []).filter(s => s.id !== step.id && !step.next_steps.includes(s.id))"
                       :key="target.id"
-                      class="w-full px-3 py-1.5 text-sm text-left hover:bg-muted flex items-center gap-2"
-                      @click.stop="addNextStep(step.id, target.id); openNextStepMenu = null">
+                      @click.stop="addNextStep(step.id, target.id)">
                       <span class="w-2 h-2 rounded-full flex-shrink-0" :style="{ background: stepTypeColor(target.step_type) }" />
                       {{ stepSeq(target) }} {{ target.title || target.name }}
-                    </button>
+                    </DropdownMenuItem>
                     <p v-if="!(workflow.steps ?? []).filter(s => s.id !== step.id && !step.next_steps.includes(s.id)).length"
                       class="px-3 py-2 text-xs text-muted-foreground">Немає доступних кроків</p>
-                  </div>
-                </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
 
@@ -365,7 +356,7 @@ function toggleNextStepMenu(id: string) {
                     <span class="w-2 h-2 rounded-full flex-shrink-0" :style="{ background: stepTypeColor(step.step_type) }" />
                     <span class="text-xs font-medium">{{ stepSeq(step) }} {{ stepTypeLabel(step.step_type) }}</span>
                   </div>
-                  <div v-if="step.variable" class="text-[11px] text-muted-foreground italic ml-3.5 mt-0.5">{{ step.variable }}</div>
+                  <div v-if="step.variable" class="text-xs text-muted-foreground italic ml-3.5 mt-0.5">{{ step.variable }}</div>
                 </div>
                 <div class="text-sm truncate pr-2 text-muted-foreground italic">{{ step.title || '—' }}</div>
                 <div class="flex justify-center" @click.stop>
@@ -373,7 +364,7 @@ function toggleNextStepMenu(id: string) {
                 </div>
                 <div class="flex items-center gap-1 text-amber-600 text-xs">
                   <span v-for="ns in stepNextStepObjects(step)" :key="ns.id"
-                    class="px-2 py-0.5 rounded-full text-[11px] font-medium text-white"
+                    class="px-2 py-0.5 rounded-full text-xs font-medium text-white"
                     :style="{ background: stepTypeColor(ns.step_type) }">
                     {{ stepSeq(ns) }} {{ ns.title || ns.name }}
                   </span>
@@ -453,7 +444,7 @@ function toggleNextStepMenu(id: string) {
                 <div
                   v-for="ns in stepNextStepObjects(selectedStep)"
                   :key="ns.id"
-                  class="flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full text-[11px] font-medium text-white"
+                  class="flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full text-xs font-medium text-white"
                   :style="{ background: stepTypeColor(ns.step_type) }">
                   {{ ns.title || ns.name }}
                   <button @click="removeNextStep(selectedStep, ns.id)"><X class="w-3 h-3" /></button>

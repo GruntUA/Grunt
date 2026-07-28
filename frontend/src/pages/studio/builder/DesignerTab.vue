@@ -53,7 +53,7 @@ onMounted(async () => {
         <FieldPalette />
       </div>
       <div class="flex-1 overflow-hidden bg-muted/5 flex flex-col relative">
-        <div class="absolute top-0 right-0 z-10 px-2 py-1 text-[10px] text-blue-500 font-mono opacity-50">
+        <div class="absolute top-0 right-0 z-10 px-2 py-1 text-xs text-muted-foreground font-mono opacity-50">
           DESIGNER TAB ACTIVE
         </div>
         <BuilderCanvas class="flex-1" />

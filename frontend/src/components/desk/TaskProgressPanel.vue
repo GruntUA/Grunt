@@ -35,8 +35,8 @@ function formatCount(count: number, total: number): string {
     >
       <div
         v-if="visible"
-        class="fixed bottom-6 right-6 z-40 w-80 rounded-2xl border border-border/60
-               bg-background/95 backdrop-blur-xl shadow-2xl shadow-black/15 overflow-hidden"
+        class="fixed bottom-6 right-6 z-40 w-80 rounded-lg border border-border/60
+               bg-popover shadow-md overflow-hidden"
       >
         <!-- Header -->
         <div class="flex items-center gap-2 px-4 py-2.5 border-b border-border/40 bg-muted/20">
@@ -44,9 +44,9 @@ function formatCount(count: number, total: number): string {
             v-if="tracker.hasActive.value"
             class="size-4 rounded-full border-2 border-primary/30 border-t-primary animate-spin shrink-0"
           />
-          <CheckCircle2 v-else class="size-4 text-green-500 shrink-0" />
+          <CheckCircle2 v-else class="size-4 text-success shrink-0" />
 
-          <span class="text-xs font-bold text-foreground flex-1">
+          <span class="text-xs font-semibold text-foreground flex-1">
             {{ tracker.hasActive.value ? 'Виконуються задачі' : 'Задачі завершено' }}
           </span>
 
@@ -101,7 +101,7 @@ function formatCount(count: number, total: number): string {
                       :is="statusIcon(task.status)"
                       class="size-3.5"
                       :class="{
-                        'text-green-500': task.status === 'done',
+                        'text-success': task.status === 'done',
                         'text-destructive': task.status === 'error',
                       }"
                     />
@@ -112,7 +112,7 @@ function formatCount(count: number, total: number): string {
                     <p class="text-xs font-semibold text-foreground truncate leading-tight">
                       {{ task.title }}
                     </p>
-                    <p v-if="task.description" class="text-[10px] text-muted-foreground truncate mt-0.5">
+                    <p v-if="task.description" class="text-xs text-muted-foreground truncate mt-0.5">
                       {{ task.description }}
                     </p>
                   </div>
@@ -138,21 +138,21 @@ function formatCount(count: number, total: number): string {
                     task.status === 'error'
                       ? 'bg-destructive'
                       : task.status === 'done'
-                      ? 'bg-green-500'
+                      ? 'bg-success'
                       : 'bg-primary',
                   ]"
                 />
 
                 <!-- Count + percent -->
                 <div class="flex items-center justify-between mt-1.5">
-                  <span class="text-[10px] text-muted-foreground tabular-nums">
+                  <span class="text-xs text-muted-foreground tabular-nums">
                     {{ formatCount(task.count, task.total) }}
                   </span>
                   <span
-                    class="text-[10px] font-bold tabular-nums"
+                    class="text-xs font-semibold tabular-nums"
                     :class="{
                       'text-primary': task.status === 'active',
-                      'text-green-500': task.status === 'done',
+                      'text-success': task.status === 'done',
                       'text-destructive': task.status === 'error',
                     }"
                   >

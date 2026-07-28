@@ -104,11 +104,11 @@ const menuItems = computed(() => {
 <template>
   <div class="flex flex-row items-center justify-between gap-4 mb-1 animate-in fade-in slide-in-from-top-2 duration-500 min-h-[40px]">
     <div class="flex items-center gap-3 overflow-hidden">
-      <h2 class="text-xl font-bold tracking-tight text-foreground selection:bg-primary/20 truncate">
+      <h2 class="text-xl font-semibold tracking-tight text-foreground selection:bg-primary/20 truncate">
         {{ dt?.label ?? doctype }}
       </h2>
       <div class="hidden sm:flex items-center">
-        <span v-if="meta" class="px-2 py-0.5 rounded-md bg-muted/50 text-[10px] font-bold tracking-wider tabular-nums text-muted-foreground/80 border border-border/40">
+        <span v-if="meta" class="px-2 py-0.5 rounded-md bg-muted/50 text-xs font-semibold tracking-wider tabular-nums text-muted-foreground/80 border border-border/40">
           {{ meta.total }}
         </span>
         <span v-else class="w-8 h-4 bg-muted/50 animate-pulse rounded-md"></span>
@@ -116,14 +116,14 @@ const menuItems = computed(() => {
     </div>
     <div class="flex items-center gap-2.5">
       <!-- Refresh button -->
-      <Button variant="outline" class="text-foreground transition-all active:scale-95 shadow-sm" :title="t('Refresh')" @click="emit('refresh')">
+      <Button variant="outline" class="text-foreground" :title="t('Refresh')" @click="emit('refresh')">
         <RefreshCw class="size-4" :class="{ 'animate-spin': isFetching }" />
       </Button>
 
       <!-- Actions menu -->
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
-          <Button variant="outline" class="text-foreground hover:bg-muted/80 shadow-sm">
+          <Button variant="outline" class="text-foreground hover:bg-muted/80">
             <MoreHorizontal class="size-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -143,14 +143,14 @@ const menuItems = computed(() => {
         v-for="btn in listButtons"
         :key="btn.label" size="sm"
         :variant="btn.severity || 'outline'"
-        class="hidden sm:inline-flex shadow-sm hover:shadow-md transition-all active:scale-95"
+        class="hidden sm:inline-flex"
         @click="btn.action()"
       >
         {{ btn.label }}
       </Button>
 
       <!-- New button -->
-      <Button size="sm" class="px-4 shadow-md hover:shadow-lg transition-all active:scale-95 gap-1.5" @click="handleNew" :title="`${t('Add')} (Ctrl+N)`">
+      <Button size="sm" class="px-4 gap-1.5" @click="handleNew" :title="`${t('Add')} (Ctrl+N)`">
         <Plus class="size-4" />
         <span>{{ isSystemDocType ? 'New DocType' : t('Add') }}</span>
       </Button>

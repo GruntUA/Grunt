@@ -41,11 +41,11 @@ watchEffect(() => {
       </span>
 
       <span v-if="field.formula"
-        class="text-[10px] font-mono text-amber-600 bg-amber-50 border border-amber-200 px-1 py-px rounded shrink-0">ƒx</span>
+        class="text-xs font-mono text-amber-600 bg-amber-50 border border-amber-200 px-1 py-px rounded shrink-0">ƒx</span>
       <span v-if="field.aggregate_function"
-        class="text-[10px] font-mono text-blue-600 bg-blue-50 border border-blue-200 px-1 py-px rounded shrink-0">∑</span>
+        class="text-xs font-mono text-blue-600 bg-blue-50 border border-blue-200 px-1 py-px rounded shrink-0">∑</span>
 
-      <span class="text-[10px] text-muted-foreground/60 shrink-0">{{ field.fieldtype }}</span>
+      <span class="text-xs text-muted-foreground/60 shrink-0">{{ field.fieldtype }}</span>
 
       <button
         type="button"
@@ -62,7 +62,7 @@ watchEffect(() => {
         :model-value="field.default"
         :disabled="true"
       />
-      <p class="mt-1.5 text-[10px] text-muted-foreground/40 font-mono">{{ field.fieldname }}</p>
+      <p class="mt-1.5 text-xs text-muted-foreground/40 font-mono">{{ field.fieldname }}</p>
     </div>
   </div>
 </template>

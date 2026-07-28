@@ -2,9 +2,8 @@
 import { computed } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useDocTypeStore } from '@/stores/doctype'
-import { useSidebarStore } from '@/stores/sidebar'
 import AppIcon from '@/components/AppIcon.vue'
-import { ChevronRight, PanelLeft, PanelLeftClose, PanelLeftOpen } from '@lucide/vue'
+import { ChevronRight } from '@lucide/vue'
 
 const props = defineProps<{
   workspaceName: string
@@ -14,7 +13,6 @@ const props = defineProps<{
 
 const appStore = useAppStore()
 const dtStore = useDocTypeStore()
-const sidebarStore = useSidebarStore()
 
 const workspaceLabel = computed(() => appStore.active?.label ?? props.workspaceName)
 const workspaceIcon = computed(() => appStore.active?.icon ?? '')
@@ -55,27 +53,11 @@ const items = computed(() => {
   return result
 })
 
-const isCollapsed = computed(() => sidebarStore.isCollapsed)
 </script>
 
 <template>
   <div class="flex items-center gap-3 mb-2 px-0 py-0 md:bg-transparent md:border-none">
-    <!-- Desktop Sidebar Collapse Trigger -->
-    <button
-      class="hidden md:flex size-9 items-center justify-center rounded-xl text-muted-foreground/60 hover:text-primary hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-all shrink-0"
-      @click="sidebarStore.toggleCollapse"
-    >
-      <PanelLeftClose v-if="!isCollapsed" class="size-4.5" />
-      <PanelLeftOpen v-else class="size-4.5" />
-    </button>
-
-    <!-- Custom Mobile Sidebar Trigger -->
-    <button
-      class="md:hidden size-9 flex items-center justify-center rounded-xl text-muted-foreground/60 hover:text-primary hover:bg-primary/10 transition-all shrink-0 shadow-sm border border-transparent hover:border-primary/20"
-      @click="sidebarStore.toggleMobile"
-    >
-      <PanelLeft class="size-4.5" />
-    </button>
+    <SidebarTrigger class="shrink-0" />
 
     <Breadcrumb class="hidden sm:flex">
       <BreadcrumbList class="flex-nowrap gap-0">
@@ -85,12 +67,12 @@ const isCollapsed = computed(() => sidebarStore.isCollapsed)
           </BreadcrumbSeparator>
           <BreadcrumbItem>
             <BreadcrumbLink v-if="item.route" as-child>
-              <router-link :to="item.route" class="flex items-center gap-2 font-semibold text-[13px] hover:text-primary transition-colors">
+              <router-link :to="item.route" class="flex items-center gap-2 font-semibold text-sm hover:text-primary transition-colors">
                 <AppIcon v-if="item.icon" :icon="item.icon" class="size-4 shrink-0 text-muted-foreground/60" />
                 <span class="truncate max-w-[200px]">{{ item.label }}</span>
               </router-link>
             </BreadcrumbLink>
-            <span v-else class="font-black text-foreground text-[13px] truncate max-w-[300px] opacity-90">{{ item.label }}</span>
+            <span v-else class="font-semibold text-foreground text-sm truncate max-w-[300px]">{{ item.label }}</span>
           </BreadcrumbItem>
         </template>
       </BreadcrumbList>
@@ -100,7 +82,7 @@ const isCollapsed = computed(() => sidebarStore.isCollapsed)
     <Breadcrumb class="flex sm:hidden">
       <BreadcrumbList>
         <BreadcrumbItem>
-          <span class="font-black text-foreground text-[14px] truncate max-w-[200px]">{{ items[items.length - 1].label }}</span>
+          <span class="font-semibold text-foreground text-sm truncate max-w-[200px]">{{ items[items.length - 1].label }}</span>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>

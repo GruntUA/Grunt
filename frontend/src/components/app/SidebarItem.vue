@@ -10,7 +10,6 @@ const props = defineProps<{
   workspaceName: string
   count?: number
   color?: string
-  collapsed?: boolean
 }>()
 
 const router = useRouter()
@@ -94,50 +93,26 @@ const displayCount = computed(() => {
 </script>
 
 <template>
-  <li class="relative list-none group/item">
-    <a
-      :href="itemHref"
-      class="w-full flex items-center gap-2.5 px-2 py-2.5 rounded-xl transition-all duration-300 group relative overflow-hidden"
-      :class="[
-        isActive
-          ? 'bg-primary/10 text-primary font-bold shadow-sm'
-          : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
-        collapsed ? 'justify-center px-1' : ''
-      ]"
-      :target="item.type === 'URL' ? '_blank' : undefined"
-      :rel="item.type === 'URL' ? 'noopener noreferrer' : undefined"
-      @click="navigate"
-    >
-      <AppIcon :icon="item.icon || 'file'" class="size-4 shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" />
+  <SidebarMenuItem>
+    <SidebarMenuButton as-child :is-active="isActive" :tooltip="item.label">
+      <a
+        :href="itemHref"
+        :target="item.type === 'URL' ? '_blank' : undefined"
+        :rel="item.type === 'URL' ? 'noopener noreferrer' : undefined"
+        @click="navigate"
+      >
+        <AppIcon :icon="item.icon || 'file'" />
+        <span>{{ item.label }}</span>
+      </a>
+    </SidebarMenuButton>
 
-      <template v-if="!collapsed">
-        <span class="flex-1 truncate text-[13px] text-left leading-none">{{ item.label }}</span>
+    <SidebarMenuBadge v-if="displayCount">{{ displayCount }}</SidebarMenuBadge>
 
-        <!-- Hover actions -->
-        <div class="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-all duration-300">
-          <button
-            class="flex size-7 items-center justify-center rounded-lg hover:bg-primary/20 text-muted-foreground/50 hover:text-primary transition-all"
-            @click.stop="togglePin"
-          >
-            <component :is="pinned ? Star : StarOff" class="size-3.5" :class="pinned ? 'fill-current text-primary' : ''" />
-          </button>
-          <button
-            v-if="item.show_new_btn"
-            class="flex size-7 items-center justify-center rounded-lg hover:bg-primary/20 text-muted-foreground/50 hover:text-primary transition-all"
-            @click.stop="createNew"
-          >
-            <Plus class="size-4" />
-          </button>
-        </div>
-
-        <Badge v-if="displayCount"
-          variant="secondary"
-          class="ml-2 !text-[10px] !h-4.5 !min-w-4.5 !px-1.5 !font-bold !rounded-full !shadow-inner"
-        >{{ displayCount }}</Badge>
-      </template>
-
-      <!-- Indicator line for active state -->
-      <div v-if="isActive" class="absolute left-0 top-1/4 bottom-1/4 w-1 bg-primary rounded-r-full" />
-    </a>
-  </li>
+    <SidebarMenuAction show-on-hover :title="pinned ? 'Відкріпити' : 'Закріпити'" @click.stop="togglePin">
+      <component :is="pinned ? Star : StarOff" :class="pinned ? 'fill-current text-primary' : ''" />
+    </SidebarMenuAction>
+    <SidebarMenuAction v-if="item.show_new_btn" show-on-hover class="right-7" title="Створити новий" @click.stop="createNew">
+      <Plus />
+    </SidebarMenuAction>
+  </SidebarMenuItem>
 </template>

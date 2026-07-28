@@ -99,7 +99,7 @@ onMounted(() => {
 
     <Popover v-model:open="isOpen">
       <PopoverAnchor :reference="anchorEl ?? undefined" />
-      <PopoverContent class="w-auto p-0 shadow-lg rounded-xl border-border/50">
+      <PopoverContent class="w-auto p-0 border-border/50">
         <div class="w-80 flex flex-col overflow-hidden">
             <!-- Search -->
             <div class="flex items-center gap-2 px-3 py-2.5 border-b border-border/60">

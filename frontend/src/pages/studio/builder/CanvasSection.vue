@@ -132,7 +132,7 @@ function selectSection() {
           v-for="n in 4"
           :key="n"
           type="button"
-          class="w-5 h-5 text-[10px] rounded flex items-center justify-center transition-colors"
+          class="w-5 h-5 text-xs rounded flex items-center justify-center transition-colors"
           :class="section.columns.length === n
             ? 'bg-primary text-white'
             : 'text-muted-foreground/70 hover:bg-border'"

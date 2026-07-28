@@ -3,7 +3,7 @@ import { onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useBuilderStore } from '@/stores/builder'
-import { useSidebarStore } from '@/stores/sidebar'
+import { useSidebar } from '@/components/ui/sidebar'
 import { grunt } from '@/core/grunt'
 import { Loader2, FileJson, PanelLeft } from '@lucide/vue'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -20,7 +20,7 @@ const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const builder = useBuilderStore()
-const sidebarStore = useSidebarStore()
+const { toggleSidebar } = useSidebar()
 
 const backWorkspace = props.workspaceName ?? (route.params.workspaceName as string | undefined) ?? 'grunt'
 
@@ -71,7 +71,7 @@ async function handleSave() {
       <div class="flex items-center gap-2 px-4 py-1 border-b bg-card">
         <button
           class="md:hidden size-8 flex items-center justify-center rounded-lg text-muted-foreground/80 hover:text-foreground hover:bg-muted/50 transition-colors shrink-0 -ml-2"
-          @click="sidebarStore.toggleMobile"
+          @click="toggleSidebar"
         >
           <PanelLeft class="size-4" />
         </button>

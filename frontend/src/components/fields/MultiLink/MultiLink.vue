@@ -255,7 +255,7 @@ function highlight(text: string): string {
     <!-- Dropdown -->
     <div
       v-if="isOpen && !disabled && !field.read_only"
-      class="absolute top-full mt-1 left-0 right-0 bg-popover border border-border rounded-lg shadow-lg z-50 overflow-hidden"
+      class="absolute top-full mt-1 left-0 right-0 bg-popover border border-border rounded-lg shadow-md z-50 overflow-hidden"
     >
       <template v-if="filteredResults.length">
         <div class="max-h-52 overflow-y-auto py-1">

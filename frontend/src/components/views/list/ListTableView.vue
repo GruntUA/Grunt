@@ -104,11 +104,11 @@ watch(() => sentinelEl.value, setupObserver)
 
     <!-- Total count — always visible above the table -->
     <div v-if="meta" class="flex items-center gap-2 mb-2 px-1">
-      <span class="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-widest">Всього:</span>
-      <Badge variant="secondary" class="!text-[10px] !font-black !px-2 !py-0.5 shadow-sm">
+      <span class="text-xs font-semibold text-muted-foreground/60 uppercase tracking-widest">Всього:</span>
+      <Badge variant="secondary" class="!text-xs !font-semibold !px-2 !py-0.5">
         {{ meta.total }}
       </Badge>
-      <span v-if="rows.length < meta.total" class="text-[11px] text-muted-foreground/50">
+      <span v-if="rows.length < meta.total" class="text-xs text-muted-foreground/50">
         (завантажено {{ rows.length }})
       </span>
     </div>
@@ -137,7 +137,7 @@ watch(() => sentinelEl.value, setupObserver)
 
       <!-- Ungrouped List View -->
       <template v-else>
-        <div class="bg-card rounded-xl shadow-md ring-1 ring-border/60 overflow-hidden">
+        <div class="bg-card rounded-lg ring-1 ring-border/60 overflow-hidden">
           <GruntDataTable
             :columns="columns"
             :rows="rows"

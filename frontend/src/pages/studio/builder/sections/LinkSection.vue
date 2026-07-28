@@ -35,6 +35,6 @@ onMounted(async () => {
       class="w-full !text-sm !font-mono"
       @update:model-value="(v: string | number) => updateField('link_filters', String(v).trim() || null)"
     />
-    <p class="text-[11px] text-muted-foreground">JSON об'єкт або <code class="bg-muted px-1 rounded">eval: {"field": doc.field}</code></p>
+    <p class="text-xs text-muted-foreground">JSON об'єкт або <code class="bg-muted px-1 rounded">eval: {"field": doc.field}</code></p>
   </div>
 </template>

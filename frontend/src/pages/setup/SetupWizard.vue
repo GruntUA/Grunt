@@ -26,7 +26,7 @@ async function submitSetup() {
       app_name: setupData.value.app_name,
       language: setupData.value.language,
     })
-    
+
     toast.success('Ласкаво просимо до Grunt', 'Систему ініціалізовано!')
     router.push('/')
   } catch (err: any) {
@@ -38,97 +38,81 @@ async function submitSetup() {
 </script>
 
 <template>
-  <div class="min-h-screen relative flex items-center justify-center overflow-hidden bg-[#0A0A0B]">
-    
-    <!-- Ultra-premium ambient blob background -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-      <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px] mix-blend-screen animate-pulse duration-1000"></div>
-      <div class="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-violet-600/20 rounded-full blur-[150px] mix-blend-screen animate-pulse duration-[4s]"></div>
-      <div class="absolute top-[20%] right-[20%] w-[30%] h-[30%] bg-emerald-500/10 rounded-full blur-[100px] mix-blend-screen"></div>
-      
-      <!-- subtle noise texture -->
-      <div class="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
-    </div>
+  <div class="min-h-screen flex items-center justify-center bg-muted/20 p-4">
+    <Card class="w-full max-w-3xl overflow-hidden p-0">
+      <div class="flex flex-col md:flex-row min-h-[550px]">
 
-    <!-- Centered Glassmorphism Container -->
-    <div class="relative z-10 w-full max-w-5xl p-4 sm:p-8">
-      
-      <div class="backdrop-blur-2xl bg-zinc-900/40 border border-white/10 rounded-[2.5rem] shadow-2xl shadow-black/50 overflow-hidden flex flex-col md:flex-row min-h-[600px] ring-1 ring-white/5">
-        
-        <!-- Left Side: Branding & Info (inside the glass card) -->
-        <div class="w-full md:w-5/12 bg-zinc-950/50 p-10 flex flex-col relative overflow-hidden border-r border-white/5">
-          <div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none"></div>
-
-          <div class="relative z-10 flex items-center gap-3">
-            <div class="size-10 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-lg shadow-primary/20">
-              <Sparkles class="size-5 text-white" />
+        <!-- Left Side: Branding & step indicator -->
+        <div class="w-full md:w-5/12 bg-muted/30 p-8 flex flex-col border-r border-border">
+          <div class="flex items-center gap-3">
+            <div class="size-10 rounded-lg bg-primary flex items-center justify-center">
+              <Sparkles class="size-5 text-primary-foreground" />
             </div>
-            <span class="text-xl font-black tracking-tight text-white">Grunt Framework</span>
+            <span class="text-lg font-semibold tracking-tight text-foreground">Grunt Framework</span>
           </div>
 
-          <div class="relative z-10 mt-16 mb-auto">
-            <h1 class="text-4xl font-black leading-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-white/90 to-white/60">
+          <div class="mt-16 mb-auto">
+            <h1 class="text-2xl font-semibold text-foreground mb-3">
               Ініціалізація
             </h1>
-            <p class="text-zinc-400 font-medium leading-relaxed mb-12">
+            <p class="text-muted-foreground leading-relaxed mb-10">
               Налаштуйте ключові параметри системи для впевненого старту.
             </p>
 
             <div class="space-y-6">
-              <div class="flex items-center gap-4 text-sm font-medium transition-all duration-300" 
-                   :class="activeStep === '1' ? 'text-white' : 'text-zinc-500'">
-                <div class="size-10 rounded-full flex items-center justify-center border transition-all duration-300"
-                     :class="activeStep === '1' ? 'bg-primary/20 border-primary/50 text-primary shadow-[0_0_15px_rgba(var(--primary),0.3)]' : 'bg-white/5 border-white/10'">
+              <div class="flex items-center gap-4 text-sm"
+                   :class="activeStep === '1' ? 'text-foreground' : 'text-muted-foreground'">
+                <div class="size-10 rounded-full flex items-center justify-center"
+                     :class="activeStep === '1' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'">
                   <Globe class="size-5" />
                 </div>
                 <div>
-                  <div class="font-bold">Базові дані</div>
-                  <div class="text-xs opacity-70">Назва та локалізація</div>
+                  <div class="font-medium">Базові дані</div>
+                  <div class="text-xs text-muted-foreground">Назва та локалізація</div>
                 </div>
               </div>
 
-              <div class="flex items-center gap-4 text-sm font-medium transition-all duration-300"
-                   :class="activeStep === '2' ? 'text-white' : 'text-zinc-500'">
-                <div class="size-10 rounded-full flex items-center justify-center border transition-all duration-300"
-                     :class="activeStep === '2' ? 'bg-violet-500/20 border-violet-500/50 text-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.3)]' : 'bg-white/5 border-white/10'">
+              <div class="flex items-center gap-4 text-sm"
+                   :class="activeStep === '2' ? 'text-foreground' : 'text-muted-foreground'">
+                <div class="size-10 rounded-full flex items-center justify-center"
+                     :class="activeStep === '2' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'">
                    <ShieldCheck class="size-5" />
                 </div>
                 <div>
-                  <div class="font-bold">Адміністратор</div>
-                  <div class="text-xs opacity-70">Захист головного акаунту</div>
+                  <div class="font-medium">Адміністратор</div>
+                  <div class="text-xs text-muted-foreground">Захист головного акаунту</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Right Side: Forms (inside the glass card) -->
-        <div class="w-full md:w-7/12 p-8 md:p-14 relative flex items-center">
-          
+        <!-- Right Side: Forms -->
+        <div class="w-full md:w-7/12 p-8 md:p-12 flex items-center">
+
           <div class="w-full">
 
               <!-- STEP 1 -->
               <template v-if="activeStep === '1'">
-                <div class="animate-in fade-in zoom-in-95 duration-500">
+                <div class="animate-in fade-in duration-300">
                   <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-white mb-2">Як назвемо проект?</h2>
-                    <p class="text-zinc-400 text-sm">Ця назва буде відображатися на головному екрані та в листах.</p>
+                    <h2 class="text-xl font-semibold text-foreground mb-2">Як назвемо проект?</h2>
+                    <p class="text-muted-foreground text-sm">Ця назва буде відображатися на головному екрані та в листах.</p>
                   </div>
-                  
+
                   <div class="space-y-6">
-                    <div class="group">
-                      <label class="text-xs font-bold text-zinc-300 uppercase tracking-widest mb-2 block ml-1 group-focus-within:text-primary transition-colors">Назва системи</label>
-                      <Input 
-                         v-model="setupData.app_name" 
-                         placeholder="Наприклад: My ERP" 
-                         class="w-full !bg-black/40 !border-white/10 !text-white !py-4 !px-5 !rounded-2xl hover:!border-white/20 focus:!border-primary/50 focus:!ring-1 focus:!ring-primary/50 transition-all font-medium text-lg placeholder:text-zinc-600 shadow-inner" 
+                    <div class="flex flex-col gap-1.5">
+                      <label class="text-sm font-medium text-foreground">Назва системи</label>
+                      <Input
+                         v-model="setupData.app_name"
+                         placeholder="Наприклад: My ERP"
                       />
                     </div>
-                    
-                    <div class="group">
-                      <label class="text-xs font-bold text-zinc-300 uppercase tracking-widest mb-2 block ml-1 group-focus-within:text-primary transition-colors">Мова інтерфейсу</label>
+
+                    <div class="flex flex-col gap-1.5">
+                      <label class="text-sm font-medium text-foreground">Мова інтерфейсу</label>
                       <Select v-model="setupData.language">
-                        <SelectTrigger class="w-full h-auto !bg-black/40 !border-white/10 !text-white !rounded-2xl !py-3 !px-5 hover:!border-white/20 focus:!border-primary/50 transition-all shadow-inner font-medium text-lg [&_svg]:!text-zinc-400">
+                        <SelectTrigger class="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -139,81 +123,67 @@ async function submitSetup() {
                     </div>
                   </div>
 
-                  <div class="mt-12 flex justify-end">
-                    <Button @click="activeStep = '2'" class="!rounded-2xl !px-8 !py-4 !font-bold !text-sm !bg-white !text-black !border-none shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-[1.02] transition-all">Продовжити<ArrowRight class="size-4 ml-2" /></Button>
+                  <div class="mt-10 flex justify-end">
+                    <Button @click="activeStep = '2'">Продовжити<ArrowRight class="size-4 ml-2" /></Button>
                   </div>
                 </div>
               </template>
 
               <!-- STEP 2 -->
               <template v-if="activeStep === '2'">
-                <div class="animate-in fade-in slide-in-from-right-8 duration-500">
+                <div class="animate-in fade-in duration-300">
                   <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-white mb-2">Доступ адміністратора</h2>
-                    <p class="text-zinc-400 text-sm">Встановіть надійний пароль для головного акаунту.</p>
+                    <h2 class="text-xl font-semibold text-foreground mb-2">Доступ адміністратора</h2>
+                    <p class="text-muted-foreground text-sm">Встановіть надійний пароль для головного акаунту.</p>
                   </div>
-                  
+
                   <div class="space-y-6">
-                    <div class="group opacity-60">
-                      <label class="text-xs font-bold text-zinc-300 uppercase tracking-widest mb-2 block ml-1 flex items-center gap-2">
-                        <Mail class="size-3" /> Email
+                    <div class="flex flex-col gap-1.5">
+                      <label class="text-sm font-medium text-foreground flex items-center gap-2">
+                        <Mail class="size-3.5" /> Email
                       </label>
-                      <Input 
-                         v-model="setupData.admin_email" 
-                         disabled 
-                         class="w-full !bg-black/50 !border-white/5 !text-zinc-400 !py-4 !px-5 !rounded-2xl cursor-not-allowed font-medium text-lg" 
+                      <Input
+                         v-model="setupData.admin_email"
+                         disabled
                       />
                     </div>
 
-                    <div class="group">
-                      <label class="text-xs font-bold text-zinc-300 uppercase tracking-widest mb-2 block ml-1 group-focus-within:text-violet-400 transition-colors">Пароль доступу</label>
-                      <Input 
-                         type="password" 
-                         v-model="setupData.admin_password" 
-                         placeholder="Мінімум 8 символів" 
-                         class="w-full !bg-black/40 !border-white/10 !text-white !py-4 !px-5 !rounded-2xl hover:!border-white/20 focus:!border-violet-500/50 focus:!ring-1 focus:!ring-violet-500/50 transition-all font-mono text-lg placeholder:text-zinc-600 shadow-inner" 
+                    <div class="flex flex-col gap-1.5">
+                      <label class="text-sm font-medium text-foreground">Пароль доступу</label>
+                      <Input
+                         type="password"
+                         v-model="setupData.admin_password"
+                         placeholder="Мінімум 8 символів"
                          autofocus
                       />
                     </div>
                   </div>
 
-                  <div class="mt-12 flex items-center justify-between">
-                    <button
-                       @click="activeStep = '1'"
-                       class="text-zinc-400 hover:text-white font-bold text-sm flex items-center gap-2 transition-colors px-4 py-2"
-                    >
-                      <ArrowLeft class="size-4" /> Назад
-                    </button>
-                    <Button
-                       @click="activeStep = '3'"
-                       class="!rounded-2xl !px-10 !py-4 !font-bold !text-sm !bg-gradient-to-r !from-violet-600 !to-primary !text-white !border-none shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] hover:scale-[1.02] transition-all"
-                    >Завершити</Button>
+                  <div class="mt-10 flex items-center justify-between">
+                    <Button variant="ghost" @click="activeStep = '1'">
+                      <ArrowLeft class="size-4 mr-2" /> Назад
+                    </Button>
+                    <Button @click="activeStep = '3'">Завершити</Button>
                   </div>
                 </div>
               </template>
 
-              <!-- STEP 3 (Completion & Loader) -->
+              <!-- STEP 3 (Completion) -->
               <template v-if="activeStep === '3'">
-                <div class="animate-in zoom-in-95 duration-700 fade-in text-center py-10">
-                  <div class="relative w-32 h-32 mx-auto mb-8">
-                    <!-- Glassy ring backdrops -->
-                    <div class="absolute inset-0 rounded-full border border-white/10 bg-white/5 backdrop-blur-md animate-pulse"></div>
-                    <div class="absolute inset-2 rounded-full border-[3px] border-transparent border-t-primary border-r-violet-500 animate-spin duration-[2s]"></div>
-                    <!-- Icon center -->
-                    <div class="absolute inset-6 flex items-center justify-center bg-gradient-to-br from-primary to-violet-600 rounded-full shadow-2xl shadow-primary/40 text-white">
-                       <CheckCircle2 class="size-10" />
-                    </div>
+                <div class="animate-in fade-in duration-300 text-center py-10">
+                  <div class="size-20 rounded-full bg-success/10 text-success flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle2 class="size-10" />
                   </div>
-                  
-                  <h2 class="text-3xl font-black text-white mb-3">Систему готово!</h2>
-                  <p class="text-zinc-400 text-sm mb-12 max-w-[280px] mx-auto leading-relaxed">
+
+                  <h2 class="text-2xl font-semibold text-foreground mb-3">Систему готово!</h2>
+                  <p class="text-muted-foreground text-sm mb-10 max-w-[280px] mx-auto leading-relaxed">
                     Тисніть кнопку нижче, щоб увійти та розпочати роботу з Grunt.
                   </p>
-                  
+
                   <Button
                     @click="submitSetup"
                     :disabled="loading"
-                    class="!rounded-2xl !px-10 !py-4 !font-black !text-base !bg-white !text-black !border-none shadow-[0_0_25px_rgba(255,255,255,0.2)] hover:shadow-[0_0_40px_rgba(255,255,255,0.5)] hover:scale-[1.05] transition-all w-full md:w-auto"
+                    class="w-full md:w-auto"
                   ><Spinner v-if="loading" class="size-4 mr-2" /><Zap v-else class="size-4 mr-2" />Увійти в систему</Button>
                 </div>
               </template>
@@ -222,7 +192,6 @@ async function submitSetup() {
 
         </div>
       </div>
-      
-    </div>
+    </Card>
   </div>
 </template>
