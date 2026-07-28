@@ -130,22 +130,17 @@ function formatCount(count: number, total: number): string {
                 </div>
 
                 <!-- Progress bar -->
-                <ProgressBar
-                  :value="task.percent"
-                  :pt="{
-                    root: { class: 'h-1.5 rounded-full bg-muted/60 overflow-hidden' },
-                    value: {
-                      class: [
-                        'h-full rounded-full transition-all duration-500',
-                        task.status === 'error'
-                          ? 'bg-destructive'
-                          : task.status === 'done'
-                          ? 'bg-green-500'
-                          : 'bg-primary',
-                      ].join(' '),
-                    },
-                  }"
-                  :show-value="false"
+                <Progress
+                  :model-value="task.percent"
+                  class="h-1.5 rounded-full bg-muted/60"
+                  :indicator-class="[
+                    'rounded-full transition-all duration-500',
+                    task.status === 'error'
+                      ? 'bg-destructive'
+                      : task.status === 'done'
+                      ? 'bg-green-500'
+                      : 'bg-primary',
+                  ]"
                 />
 
                 <!-- Count + percent -->

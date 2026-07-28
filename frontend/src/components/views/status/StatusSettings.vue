@@ -114,28 +114,27 @@ function removeIndicator(index: number) {
           class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/15 text-green-700 dark:text-green-400"
         >Увімкнено</span>
       </div>
-      <ToggleSwitch :model-value="hasStatus" @update:model-value="toggleStatus" />
+      <Switch :model-value="hasStatus" @update:model-value="toggleStatus" />
     </div>
     <div v-if="builder.doctype.status_config" class="p-4 space-y-4">
       <!-- Status field selector -->
       <div class="flex flex-col gap-1.5">
         <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле статусу *</label>
-        <Select
-          :model-value="statusField"
-          :options="statusCandidateFields.map((f) => ({ value: f.fieldname, label: `${f.label} (${f.fieldtype})` }))"
-          option-label="label"
-          option-value="value"
-          placeholder="Оберіть поле"
-          class="h-8 text-xs"
-          @update:model-value="updateStatusField"
-        />
+        <Select :model-value="statusField" @update:model-value="updateStatusField">
+          <SelectTrigger class="h-8 text-xs">
+            <SelectValue placeholder="Оберіть поле" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in statusCandidateFields.map((f) => ({ value: f.fieldname, label: `${f.label} (${f.fieldtype})` }))" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <!-- Indicators list -->
       <div class="space-y-2">
         <div class="flex items-center justify-between">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Індикатори</label>
-          <Button outlined size="small" class="h-7 px-2.5 text-xs gap-1" @click="addIndicator">
+          <Button variant="outline" size="sm" class="h-7 px-2.5 text-xs gap-1" @click="addIndicator">
             <Plus class="size-3" />
             Додати
           </Button>
@@ -150,26 +149,28 @@ function removeIndicator(index: number) {
             class="size-3.5 rounded-full shrink-0 ring-1 ring-black/10"
             :class="statusColorDotClass[ind.color] || statusColorDotClass.secondary"
           />
-          <InputText
+          <Input
             :model-value="ind.value"
             placeholder="Значення"
             class="h-7 text-xs flex-1 min-w-0"
             @update:model-value="updateIndicator(idx, { value: String($event) })"
           />
-          <Select
-            :model-value="ind.color"
-            :options="[...statusColors]"
-            class="h-7 text-xs w-32 shrink-0"
-            @update:model-value="updateIndicator(idx, { color: String($event) })"
-          />
-          <InputText
+          <Select :model-value="ind.color" @update:model-value="updateIndicator(idx, { color: String($event) })">
+            <SelectTrigger class="h-7 text-xs w-32 shrink-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="opt in [...statusColors]" :key="opt" :value="opt">{{ opt }}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input
             :model-value="ind.icon ?? ''"
             placeholder="Іконка"
             class="h-7 text-xs w-24 shrink-0"
             title="Назва іконки Lucide (опціонально)"
             @update:model-value="updateIndicator(idx, { icon: String($event) || null })"
           />
-          <InputText
+          <Input
             :model-value="ind.label ?? ''"
             placeholder="Мітка"
             class="h-7 text-xs w-24 shrink-0"

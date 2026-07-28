@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { DocField } from '@/types'
-import Select from 'primevue/select'
+import { Select as ShadcnSelect } from '@/components/ui/select'
 
 const props = defineProps<{
   field: DocField
@@ -20,12 +20,16 @@ const parsedOptions = computed(() =>
 </script>
 
 <template>
-  <Select
+  <ShadcnSelect
     :model-value="String(modelValue ?? '')"
-    :options="parsedOptions"
     :disabled="disabled || field.read_only"
-    placeholder="— оберіть —"
-    class="w-full"
     @update:model-value="emit('update:modelValue', $event)"
-  />
+  >
+    <SelectTrigger class="w-full">
+      <SelectValue placeholder="— оберіть —" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem v-for="opt in parsedOptions" :key="opt" :value="opt">{{ opt }}</SelectItem>
+    </SelectContent>
+  </ShadcnSelect>
 </template>

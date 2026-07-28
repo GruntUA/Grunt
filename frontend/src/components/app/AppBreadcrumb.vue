@@ -77,31 +77,32 @@ const isCollapsed = computed(() => sidebarStore.isCollapsed)
       <PanelLeft class="size-4.5" />
     </button>
 
-    <Breadcrumb :model="items" class="bg-transparent! border-none! p-0! hidden sm:flex">
-      <template #separator>
-        <ChevronRight class="size-3.5 text-muted-foreground/30 mx-1" />
-      </template>
-      <template #item="{ item, props: ip }">
-        <router-link
-          v-if="item.route"
-          v-slot="rp"
-          :to="item.route"
-          custom
-        >
-          <a v-bind="ip.action" :href="rp.href" class="flex items-center gap-2 font-semibold text-[13px] hover:text-primary transition-colors" @click="rp.navigate">
-            <AppIcon v-if="item.icon" :icon="item.icon" class="size-4 shrink-0 text-muted-foreground/60" />
-            <span class="truncate max-w-[200px]">{{ item.label }}</span>
-          </a>
-        </router-link>
-        <span v-else class="font-black text-foreground text-[13px] truncate max-w-[300px] opacity-90">{{ item.label }}</span>
-      </template>
+    <Breadcrumb class="hidden sm:flex">
+      <BreadcrumbList class="flex-nowrap gap-0">
+        <template v-for="(item, idx) in items" :key="idx">
+          <BreadcrumbSeparator v-if="idx > 0" class="mx-1">
+            <ChevronRight class="size-3.5 text-muted-foreground/30" />
+          </BreadcrumbSeparator>
+          <BreadcrumbItem>
+            <BreadcrumbLink v-if="item.route" as-child>
+              <router-link :to="item.route" class="flex items-center gap-2 font-semibold text-[13px] hover:text-primary transition-colors">
+                <AppIcon v-if="item.icon" :icon="item.icon" class="size-4 shrink-0 text-muted-foreground/60" />
+                <span class="truncate max-w-[200px]">{{ item.label }}</span>
+              </router-link>
+            </BreadcrumbLink>
+            <span v-else class="font-black text-foreground text-[13px] truncate max-w-[300px] opacity-90">{{ item.label }}</span>
+          </BreadcrumbItem>
+        </template>
+      </BreadcrumbList>
     </Breadcrumb>
-    
+
     <!-- Mobile breadcrumb fallback -->
-    <Breadcrumb :model="items.slice(-1)" class="!bg-transparent !border-none !p-0 flex sm:hidden">
-      <template #item="{ item }">
-        <span class="font-black text-foreground text-[14px] truncate max-w-[200px]">{{ item.label }}</span>
-      </template>
+    <Breadcrumb class="flex sm:hidden">
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <span class="font-black text-foreground text-[14px] truncate max-w-[200px]">{{ items[items.length - 1].label }}</span>
+        </BreadcrumbItem>
+      </BreadcrumbList>
     </Breadcrumb>
   </div>
 </template>

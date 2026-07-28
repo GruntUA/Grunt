@@ -34,7 +34,7 @@ onMounted(load)
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-16">
-      <ProgressSpinner class="size-10!" />
+      <Spinner class="size-10!" />
     </div>
 
     <div v-else-if="reports.length === 0" class="text-center py-16 text-muted-foreground/70">

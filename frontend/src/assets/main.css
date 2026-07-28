@@ -74,6 +74,12 @@
   --animate-accordion-up: accordion-up 0.2s ease-out;
   --animate-collapsible-down: collapsible-down 0.2s ease-out;
   --animate-collapsible-up: collapsible-up 0.2s ease-in;
+  --animate-progress-indeterminate: progress-indeterminate 1.4s ease-in-out infinite;
+
+  @keyframes progress-indeterminate {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(250%); }
+  }
 
   @keyframes accordion-down {
     from { height: 0; }
@@ -108,9 +114,9 @@
     --popover:            oklch(1 0 0);
     --popover-foreground: oklch(0.232 0.024 166.2);
 
-    /* Primary — Synced with PrimeVue */
-    --primary:            var(--p-primary-color);
-    --primary-foreground: var(--p-primary-contrast-color);
+    /* Primary — synced with core/composables/useTheme.ts (PalettePicker) */
+    --primary:            var(--primary-color-override);
+    --primary-foreground: var(--primary-contrast-override);
 
     /* Secondary & muted */
     --secondary:             oklch(0.958 0.008 164.9);
@@ -137,17 +143,17 @@
     /* Borders & inputs */
     --border: oklch(0.899 0.014 164.7);
     --input:  oklch(0.899 0.014 164.7);
-    --ring:   var(--p-primary-color);
+    --ring:   var(--primary-color-override);
 
     /* Sidebar — light emerald tint */
     --sidebar:                      oklch(0.980 0.005 172.4);
     --sidebar-foreground:           oklch(0.232 0.024 166.2);
-    --sidebar-primary:              var(--p-primary-color);
-    --sidebar-primary-foreground:   var(--p-primary-contrast-color);
+    --sidebar-primary:              var(--primary-color-override);
+    --sidebar-primary-foreground:   var(--primary-contrast-override);
     --sidebar-accent:               oklch(0.944 0.010 164.9);
     --sidebar-accent-foreground:    oklch(0.294 0.034 165.7);
     --sidebar-border:               oklch(0.923 0.014 164.7);
-    --sidebar-ring:                 var(--p-primary-color);
+    --sidebar-ring:                 var(--primary-color-override);
 
     /* Chart palette — emerald family */
     --chart-1: oklch(0.690 0.148 162.4);
@@ -167,8 +173,8 @@
     --popover:            oklch(0.202 0.013 172.5);
     --popover-foreground: oklch(0.964 0.005 165.0);
 
-    --primary:            var(--p-primary-color);
-    --primary-foreground: var(--p-primary-contrast-color);
+    --primary:            var(--primary-color-override);
+    --primary-foreground: var(--primary-contrast-override);
 
     --secondary:            oklch(0.281 0.017 172.7);
     --secondary-foreground: oklch(0.928 0.010 164.9);
@@ -190,16 +196,16 @@
 
     --border: oklch(0.314 0.020 172.6);
     --input:  oklch(0.314 0.020 172.6);
-    --ring:   var(--p-primary-color);
+    --ring:   var(--primary-color-override);
 
     --sidebar:                    oklch(0.189 0.012 172.6);
     --sidebar-foreground:         oklch(0.928 0.010 164.9);
-    --sidebar-primary:            var(--p-primary-color);
-    --sidebar-primary-foreground: var(--p-primary-contrast-color);
+    --sidebar-primary:            var(--primary-color-override);
+    --sidebar-primary-foreground: var(--primary-contrast-override);
     --sidebar-accent:             oklch(0.258 0.015 172.7);
     --sidebar-accent-foreground:  oklch(0.928 0.010 164.9);
     --sidebar-border:             oklch(0.270 0.016 172.7);
-    --sidebar-ring:               var(--p-primary-color);
+    --sidebar-ring:               var(--primary-color-override);
   }
 
   * {

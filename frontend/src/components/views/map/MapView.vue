@@ -152,7 +152,7 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
       <!-- Coordinate jump input -->
       <div class="flex items-center gap-2 flex-1 max-w-sm relative">
         <div class="relative w-full group">
-          <InputText
+          <Input
             v-model="coordInput"
             placeholder="46.8441, 35.4025"
             class="!h-10 !w-full !rounded-xl !pl-3 !pr-10 !text-xs !bg-background/40 hover:!bg-background !border-border/40 focus:!ring-1 focus:!ring-primary/20 transition-all shadow-inner-sm"
@@ -161,15 +161,15 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
             @input="coordError = false"
           />
           <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-            <Button v-if="coordInput" text rounded size="small" class="!size-6 !text-muted-foreground/40" @click="clearCoordMarker"><X class="size-4" /></Button>
-            <Button text rounded size="small" class="!size-7 !text-primary/60 group-hover:!text-primary" @click="gotoCoord"><Search class="size-4" /></Button>
+            <Button variant="ghost" v-if="coordInput" size="sm" class="!size-6 !text-muted-foreground/40 rounded-full" @click="clearCoordMarker"><X class="size-4" /></Button>
+            <Button variant="ghost" size="sm" class="!size-7 !text-primary/60 group-hover:!text-primary rounded-full" @click="gotoCoord"><Search class="size-4" /></Button>
           </div>
         </div>
       </div>
 
       <div class="flex items-center gap-1.5 shrink-0">
-        <Button :loading="isLoading" @click="loadMarkers" rounded text class="!size-9 !text-muted-foreground/60 hover:!text-primary"><RefreshCw class="size-4" /></Button>
-        <Button @click="exportPrint" rounded text class="!size-9 !text-muted-foreground/60 hover:!text-primary"><Printer class="size-4" /></Button>
+        <Button variant="ghost" :disabled="isLoading" @click="loadMarkers" class="!size-9 !text-muted-foreground/60 hover:!text-primary rounded-full"><RefreshCw class="size-4" :class="{ 'animate-spin': isLoading }" /></Button>
+        <Button variant="ghost" @click="exportPrint" class="!size-9 !text-muted-foreground/60 hover:!text-primary rounded-full"><Printer class="size-4" /></Button>
       </div>
     </div>
 
@@ -198,8 +198,8 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
               </button>
             </div>
             <div class="w-px h-6 bg-background/20 mx-1" />
-            <Button label="Надрукувати" size="small" severity="primary" @click="confirmPrint" class="!rounded-xl !px-4 !h-8 !text-[11px] !font-bold" />
-            <Button label="Скасувати" size="small" text @click="cancelPrint" class="!text-background !rounded-xl !h-8 !text-[11px]" />
+            <Button size="sm" @click="confirmPrint" class="!rounded-xl !px-4 !h-8 !text-[11px] !font-bold">Надрукувати</Button>
+            <Button variant="ghost" size="sm" @click="cancelPrint" class="!text-background !rounded-xl !h-8 !text-[11px]">Скасувати</Button>
           </div>
 
           <!-- Selection rectangle -->

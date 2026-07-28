@@ -46,13 +46,8 @@ const dateObj = computed<Date | null>({
       :disabled="isDisabled"
       :invalid="error"
       show-time
-      hour-format="24"
-      date-format="dd.mm.yy"
       :placeholder="field.placeholder || 'ДД.ММ.РРРР ГГ:ХХ'"
-      show-icon
-      icon-display="input"
       class="w-full"
-      fluid
     />
   </div>
 </template>

@@ -39,7 +39,7 @@ function updateListView(patch: Record<string, unknown>) {
       <div class="flex flex-col gap-2">
         <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Видимі колонки</label>
         <div class="flex flex-wrap gap-1.5">
-          <Badge v-for="fname in listViewFields" :key="fname" severity="secondary" class="gap-1 text-xs">
+          <Badge v-for="fname in listViewFields" :key="fname" variant="secondary" class="gap-1 text-xs">
             {{ dataFields.find((f) => f.fieldname === fname)?.label ?? fname }}
             <button type="button" class="ml-0.5 hover:text-destructive" @click="removeListField(fname)">
               <X class="size-3" />
@@ -47,48 +47,47 @@ function updateListView(patch: Record<string, unknown>) {
           </Badge>
           <span v-if="listViewFields.length === 0" class="text-xs text-muted-foreground italic">Не обрано — покаже name</span>
         </div>
-        <Select
-          v-if="availableListFields.length > 0"
-          :options="availableListFields.map((f) => ({ value: f.fieldname, label: f.label }))"
-          option-label="label"
-          option-value="value"
-          placeholder="Додати колонку..."
-          class="w-48 h-8 text-xs"
-          @update:model-value="addListField"
-        />
+        <Select v-if="availableListFields.length > 0" @update:model-value="addListField">
+          <SelectTrigger class="w-48 h-8 text-xs">
+            <SelectValue placeholder="Додати колонку..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in availableListFields.map((f) => ({ value: f.fieldname, label: f.label }))" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <!-- Sort -->
       <div class="grid grid-cols-2 gap-3">
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Сортування за</label>
-          <Select
-            :model-value="listView.sort_by"
-            :options="[
+          <Select :model-value="listView.sort_by" @update:model-value="updateListView({ sort_by: $event })">
+            <SelectTrigger class="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="opt in [
               { value: 'name', label: 'name' },
               { value: 'created_at', label: 'created_at' },
               { value: 'modified_at', label: 'modified_at' },
               ...dataFields.map((f) => ({ value: f.fieldname, label: f.label })),
-            ]"
-            option-label="label"
-            option-value="value"
-            class="h-8 text-xs"
-            @update:model-value="updateListView({ sort_by: $event })"
-          />
+            ]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Порядок</label>
-          <Select
-            :model-value="listView.sort_order"
-            :options="[
+          <Select :model-value="listView.sort_order" @update:model-value="updateListView({ sort_order: $event })">
+            <SelectTrigger class="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="opt in [
               { value: 'asc', label: 'За зростанням' },
               { value: 'desc', label: 'За спаданням' },
-            ]"
-            option-label="label"
-            option-value="value"
-            class="h-8 text-xs"
-            @update:model-value="updateListView({ sort_order: $event })"
-          />
+            ]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>

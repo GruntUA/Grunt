@@ -49,7 +49,7 @@ const modifiedAt = computed(() => {
       
       <div class="flex flex-col gap-4">
           <div class="flex items-start gap-3">
-            <Avatar shape="circle" class="!size-8 !bg-primary/10 !text-primary shrink-0"><User class="size-3.5" /></Avatar>
+            <Avatar class="!size-8 shrink-0"><AvatarFallback class="!bg-primary/10 !text-primary"><User class="size-3.5" /></AvatarFallback></Avatar>
             <div class="flex flex-col min-w-0">
               <span class="text-sm font-bold text-foreground truncate">{{ document.owner }}</span>
               <span class="text-[10px] font-medium text-muted-foreground">Автор документа</span>

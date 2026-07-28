@@ -222,9 +222,9 @@ const flatResults = computed(() => results.value)
 </script>
 
 <template>
-    <Dialog :visible="uiStore.isCommandPaletteOpen" modal :show-header="false"
-        :pt="{ root: { class: 'max-w-2xl shadow-2xl bg-card border-0' }, content: { class: 'p-0 overflow-hidden rounded-xl' } }"
-        @update:visible="uiStore.closeCommandPalette">
+    <Dialog :open="uiStore.isCommandPaletteOpen" @update:open="uiStore.closeCommandPalette">
+        <DialogContent class="max-w-2xl shadow-2xl bg-card border-0 p-0 overflow-hidden rounded-xl" :show-close-button="false">
+            <DialogTitle class="sr-only">{{ t('Search documents, apps or actions...') }}</DialogTitle>
             <div class="relative flex items-center border-b px-4 py-4">
                 <Search class="mr-3 h-5 w-5 shrink-0 opacity-50 text-primary" />
                 <input v-model="search" :placeholder="t('Search documents, apps or actions...')"
@@ -352,6 +352,7 @@ const flatResults = computed(() => results.value)
                     <span class="font-bold">K</span>
                 </div>
             </div>
+        </DialogContent>
     </Dialog>
 </template>
 

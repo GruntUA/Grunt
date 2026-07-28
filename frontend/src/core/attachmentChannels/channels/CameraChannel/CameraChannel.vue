@@ -109,7 +109,7 @@ onUnmounted(stopStream)
           <Camera class="size-4 mr-2" />
           Зробити фото
         </Button>
-        <Button type="button" outlined @click="stopStream">
+        <Button variant="outline" type="button" @click="stopStream">
           <X class="size-4 mr-2" />
           Скасувати
         </Button>

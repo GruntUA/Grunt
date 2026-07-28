@@ -2,7 +2,7 @@
 import { shallowRef, watchEffect } from 'vue'
 import type { Component } from 'vue'
 import type { DocField } from '@/types'
-import Button from 'primevue/button'
+import { Button as ShadcnButton } from '@/components/ui/button'
 
 const props = defineProps<{
   field: DocField
@@ -22,20 +22,6 @@ watchEffect(async () => {
   iconComponent.value = lib[pascal] ?? null
 })
 
-const severity = (): string | undefined => {
-  const v = props.field.options
-  if (v === 'secondary') return 'secondary'
-  if (v === 'destructive') return 'danger'
-  return undefined
-}
-
-const variant = (): "outlined" | "text" | "link" | undefined => {
-  const v = props.field.options
-  if (v === 'outline') return 'outlined'
-  if (v === 'ghost') return 'text'
-  return undefined
-}
-
 function onClick() {
   emit('update:modelValue', Date.now())
 }
@@ -43,16 +29,9 @@ function onClick() {
 
 <template>
   <div class="py-1">
-    <Button
-      type="button"
-      :severity="severity()"
-      :variant="variant()"
-      :disabled="disabled || field.read_only"
-      class="w-full sm:w-auto gap-2"
-      @click="onClick"
-    >
+    <ShadcnButton :variant="field.options as any" type="button" :disabled="disabled || field.read_only" class="w-full sm:w-auto gap-2" @click="onClick">
       <component :is="iconComponent" v-if="iconComponent" class="size-4 shrink-0" />
       {{ field.label }}
-    </Button>
+    </ShadcnButton>
   </div>
 </template>

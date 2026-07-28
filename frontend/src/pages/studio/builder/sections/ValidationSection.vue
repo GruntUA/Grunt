@@ -26,35 +26,35 @@ const hasValidators = computed(() => validatorOptions.value.length > 1)
 </script>
 
 <template>
-  <Divider class="!mb-3" />
+  <Separator class="!mb-3" />
   <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Validation</p>
   <div class="flex flex-col gap-3 mb-4">
     <div v-if="['Text', 'LongText'].includes(field.fieldtype)" class="flex flex-col gap-1.5">
       <label class="text-sm font-medium">Max Length</label>
-      <InputNumber
-        :model-value="field.max_length"
+      <Input
+        type="number"
+        :model-value="field.max_length ?? ''"
         placeholder="255"
         class="w-full"
-        @update:model-value="updateField('max_length', $event || undefined)"
+        @update:model-value="(v: string | number) => updateField('max_length', v === '' ? undefined : Number(v))"
       />
     </div>
 
     <div v-if="hasValidators" class="flex flex-col gap-1.5">
       <label class="text-sm font-medium">Validator</label>
-      <Select
-        :model-value="field.validator ?? ''"
-        :options="validatorOptions"
-        option-label="label"
-        option-value="value"
-        placeholder="— не обрано —"
-        class="w-full"
-        @update:model-value="updateField('validator', $event || undefined)"
-      />
+      <Select :model-value="field.validator ?? ''" @update:model-value="updateField('validator', $event || undefined)">
+        <SelectTrigger class="w-full">
+          <SelectValue placeholder="— не обрано —" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="opt in validatorOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
 
     <div class="flex flex-col gap-1.5">
       <label class="text-sm font-medium">Regex</label>
-      <InputText
+      <Input
         :model-value="field.regex ?? ''"
         placeholder="^[A-Z].*"
         class="w-full"

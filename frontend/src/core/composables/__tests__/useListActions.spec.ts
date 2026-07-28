@@ -51,7 +51,7 @@ describe('useListActions', () => {
     ])
 
     vi.mocked(docsApi.list).mockResolvedValue({
-      data: [{ id: 1 }, { id: 2 }],
+      data: [{ name: '1' }, { name: '2' }],
       meta: {},
     } as never)
 

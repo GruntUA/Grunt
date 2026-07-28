@@ -101,19 +101,14 @@ async function submitUpdate() {
 
         <!-- Actions -->
         <div class="flex items-center gap-1">
-          <Button
-            text size="small"
-            class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 hover:!bg-muted/60"
-            :disabled="!updatableFields.length"
-            @click="openUpdateModal"
-          >
+          <Button variant="ghost" size="sm" class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 hover:!bg-muted/60" :disabled="!updatableFields.length" @click="openUpdateModal">
             <Pencil class="size-3" />
             Редагувати
           </Button>
 
           <Button
-            severity="danger" text size="small"
-            class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 hover:!bg-destructive/10"
+            variant="ghost" size="sm"
+            class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 text-destructive hover:text-destructive hover:!bg-destructive/10"
             @click="showDeleteModal = true"
           >
             <Trash2 class="size-3" />
@@ -123,8 +118,8 @@ async function submitUpdate() {
           <!-- Fast delete — superadmin only, only when all records selected -->
           <Button
             v-if="isSuperadmin && allSelected"
-            severity="danger" text size="small"
-            class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 hover:!bg-destructive/10 opacity-80"
+            variant="ghost" size="sm"
+            class="!px-2.5 !h-7 !text-xs !font-semibold gap-1.5 text-destructive hover:text-destructive hover:!bg-destructive/10 opacity-80"
             @click="showFastDeleteModal = true"
           >
             <Zap class="size-3" />
@@ -147,17 +142,16 @@ async function submitUpdate() {
   </Teleport>
 
   <!-- Delete confirmation -->
-  <Dialog v-model:visible="showDeleteModal" modal
-    class="max-w-sm w-full mx-4"
-    :pt="{ content: { class: 'p-0 px-6 pb-6 pt-1' } }">
-    <template #header>
+  <Dialog v-model:open="showDeleteModal">
+    <DialogContent class="max-w-sm w-full mx-4 p-0 px-6 pb-6 pt-1">
+    <DialogHeader>
       <div class="flex items-center gap-3">
         <div class="size-10 rounded-full bg-destructive/10 flex items-center justify-center border border-destructive/20">
           <AlertCircle class="size-5 text-destructive" />
         </div>
-        <span class="font-black text-lg">{{ t('Confirm Deletion') }}</span>
+        <DialogTitle class="font-black text-lg">{{ t('Confirm Deletion') }}</DialogTitle>
       </div>
-    </template>
+    </DialogHeader>
 
     <div class="py-2">
       <p class="text-sm text-muted-foreground leading-relaxed">
@@ -166,26 +160,26 @@ async function submitUpdate() {
       </p>
     </div>
 
-    <template #footer>
+    <DialogFooter>
       <div class="flex gap-2 w-full pt-2">
-        <Button severity="secondary" outlined class="flex-1" @click="showDeleteModal = false">{{ t('Cancel') }}</Button>
-        <Button severity="danger" class="flex-1" @click="showDeleteModal = false; emit('delete')">{{ t('Delete') }}</Button>
+        <Button variant="outline" class="flex-1" @click="showDeleteModal = false">{{ t('Cancel') }}</Button>
+        <Button variant="destructive" class="flex-1" @click="showDeleteModal = false; emit('delete')">{{ t('Delete') }}</Button>
       </div>
-    </template>
+    </DialogFooter>
+    </DialogContent>
   </Dialog>
 
   <!-- Fast delete confirmation (superadmin) -->
-  <Dialog v-model:visible="showFastDeleteModal" modal
-    class="max-w-sm w-full mx-4"
-    :pt="{ content: { class: 'p-0 px-6 pb-6 pt-1' } }">
-    <template #header>
+  <Dialog v-model:open="showFastDeleteModal">
+    <DialogContent class="max-w-sm w-full mx-4 p-0 px-6 pb-6 pt-1">
+    <DialogHeader>
       <div class="flex items-center gap-3">
         <div class="size-10 rounded-full bg-destructive/10 flex items-center justify-center border border-destructive/20">
           <Zap class="size-5 text-destructive" />
         </div>
-        <span class="font-black text-lg">Швидке видалення</span>
+        <DialogTitle class="font-black text-lg">Швидке видалення</DialogTitle>
       </div>
-    </template>
+    </DialogHeader>
 
     <div class="py-2 flex flex-col gap-3">
       <p class="text-sm text-muted-foreground leading-relaxed">
@@ -200,47 +194,45 @@ async function submitUpdate() {
       </div>
     </div>
 
-    <template #footer>
+    <DialogFooter>
       <div class="flex gap-2 w-full pt-2">
-        <Button severity="secondary" outlined class="flex-1" @click="showFastDeleteModal = false">Скасувати</Button>
-        <Button severity="danger" class="flex-1" @click="showFastDeleteModal = false; emit('fastDelete')">
+        <Button variant="outline" class="flex-1" @click="showFastDeleteModal = false">Скасувати</Button>
+        <Button variant="destructive" class="flex-1" @click="showFastDeleteModal = false; emit('fastDelete')">
           <Zap class="size-4 mr-1" />
           Видалити
         </Button>
       </div>
-    </template>
+    </DialogFooter>
+    </DialogContent>
   </Dialog>
 
   <!-- Bulk update dialog -->
-  <Dialog v-model:visible="showUpdateModal" modal
-    header="Масове редагування"
-    class="max-w-sm w-full mx-4"
-    :pt="{ content: { class: 'p-0 px-6 pb-6 pt-1' } }">
-    <template #header>
+  <Dialog v-model:open="showUpdateModal">
+    <DialogContent class="max-w-sm w-full mx-4 p-0 px-6 pb-6 pt-1">
+    <DialogHeader>
       <div class="flex items-center gap-3">
         <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
           <Pencil class="size-5 text-primary" />
         </div>
-        <span class="font-black text-lg">{{ t('Bulk Update') }}</span>
+        <DialogTitle class="font-black text-lg">{{ t('Bulk Update') }}</DialogTitle>
       </div>
-    </template>
+    </DialogHeader>
 
     <div class="flex flex-col gap-5 py-2">
       <div class="flex flex-col gap-2">
         <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Оберіть поле</label>
-        <Select
-          v-model="updateField"
-          :options="updatableFields"
-          option-label="label"
-          option-value="fieldname"
-          :placeholder="t('Select field...')"
-          class="w-full"
-          fluid
-        />
+        <Select v-model="updateField">
+          <SelectTrigger class="w-full">
+            <SelectValue :placeholder="t('Select field...')" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in updatableFields" :key="opt.fieldname" :value="opt.fieldname">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div class="flex flex-col gap-2">
         <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Нове значення</label>
-        <InputText v-model="updateValue" :placeholder="t('Enter value...')"
+        <Input v-model="updateValue" :placeholder="t('Enter value...')"
           class="w-full"
           fluid
           @keydown.enter="submitUpdate" />
@@ -253,14 +245,15 @@ async function submitUpdate() {
       </div>
     </div>
 
-    <template #footer>
+    <DialogFooter>
       <div class="flex gap-2 w-full pt-2">
-        <Button outlined severity="secondary" class="flex-1" @click="showUpdateModal = false">{{ t('Cancel') }}</Button>
+        <Button variant="outline" class="flex-1" @click="showUpdateModal = false">{{ t('Cancel') }}</Button>
         <Button class="flex-1" :disabled="!updateField || updateSaving" @click="submitUpdate">
           <Loader2 v-if="updateSaving" class="size-4 animate-spin mr-2" />
           <span>{{ t('Apply') }}</span>
         </Button>
       </div>
-    </template>
+    </DialogFooter>
+    </DialogContent>
   </Dialog>
 </template>

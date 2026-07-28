@@ -32,7 +32,7 @@ onMounted(async () => {
     <p class="text-destructive text-sm">{{ error }}</p>
   </div>
   <div v-else-if="!component" class="flex justify-center py-16">
-    <ProgressSpinner class="size-10!" />
+    <Spinner class="size-10!" />
   </div>
   <component :is="component" v-else />
 </template>

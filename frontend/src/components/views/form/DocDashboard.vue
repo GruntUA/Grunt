@@ -63,7 +63,7 @@ function handleAdd(field: any) {
         <span class="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider group-hover:text-primary transition-colors">
           {{ f.label }}
         </span>
-        <Badge severity="secondary" class="rounded-md font-mono text-[10px] h-4.5 px-1.5 min-w-[20px] flex items-center justify-center bg-muted/50 group-hover:bg-primary/10 group-hover:text-primary border-none transition-colors">
+        <Badge variant="secondary" class="rounded-md font-mono text-[10px] h-4.5 px-1.5 min-w-[20px] flex items-center justify-center bg-muted/50 group-hover:bg-primary/10 group-hover:text-primary border-none transition-colors">
           {{ document[f.fieldname] || 0 }}
         </Badge>
       </RouterLink>
@@ -72,7 +72,7 @@ function handleAdd(field: any) {
         <span class="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
           {{ f.label }}
         </span>
-        <Badge severity="secondary" class="rounded-md font-mono text-[10px] h-4.5 px-1.5 min-w-[20px] flex items-center justify-center bg-muted/50 border-none">
+        <Badge variant="secondary" class="rounded-md font-mono text-[10px] h-4.5 px-1.5 min-w-[20px] flex items-center justify-center bg-muted/50 border-none">
           {{ document[f.fieldname] || 0 }}
         </Badge>
       </div>

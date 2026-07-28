@@ -105,11 +105,10 @@ async function submitSetup() {
         <!-- Right Side: Forms (inside the glass card) -->
         <div class="w-full md:w-7/12 p-8 md:p-14 relative flex items-center">
           
-          <Stepper v-model:value="activeStep" class="w-full" :pt="{ nav: { class: 'hidden' } }">
-            <StepPanels class="!p-0 !bg-transparent">
-              
+          <div class="w-full">
+
               <!-- STEP 1 -->
-              <StepPanel v-slot="{ activateCallback }" value="1">
+              <template v-if="activeStep === '1'">
                 <div class="animate-in fade-in zoom-in-95 duration-500">
                   <div class="mb-8">
                     <h2 class="text-2xl font-bold text-white mb-2">Як назвемо проект?</h2>
@@ -119,7 +118,7 @@ async function submitSetup() {
                   <div class="space-y-6">
                     <div class="group">
                       <label class="text-xs font-bold text-zinc-300 uppercase tracking-widest mb-2 block ml-1 group-focus-within:text-primary transition-colors">Назва системи</label>
-                      <InputText 
+                      <Input 
                          v-model="setupData.app_name" 
                          placeholder="Наприклад: My ERP" 
                          class="w-full !bg-black/40 !border-white/10 !text-white !py-4 !px-5 !rounded-2xl hover:!border-white/20 focus:!border-primary/50 focus:!ring-1 focus:!ring-primary/50 transition-all font-medium text-lg placeholder:text-zinc-600 shadow-inner" 
@@ -128,30 +127,26 @@ async function submitSetup() {
                     
                     <div class="group">
                       <label class="text-xs font-bold text-zinc-300 uppercase tracking-widest mb-2 block ml-1 group-focus-within:text-primary transition-colors">Мова інтерфейсу</label>
-                      <Dropdown 
-                         v-model="setupData.language" 
-                         :options="['uk-UA', 'en-US']" 
-                         class="w-full !bg-black/40 !border-white/10 !text-white !rounded-2xl hover:!border-white/20 focus:!border-primary/50 transition-all shadow-inner" 
-                         :pt="{ 
-                            root: { class: '!py-1' },
-                            input: { class: 'font-medium text-lg !text-white' }, 
-                            trigger: { class: '!text-zinc-400' } 
-                         }"
-                      />
+                      <Select v-model="setupData.language">
+                        <SelectTrigger class="w-full h-auto !bg-black/40 !border-white/10 !text-white !rounded-2xl !py-3 !px-5 hover:!border-white/20 focus:!border-primary/50 transition-all shadow-inner font-medium text-lg [&_svg]:!text-zinc-400">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="uk-UA">uk-UA</SelectItem>
+                          <SelectItem value="en-US">en-US</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
                   <div class="mt-12 flex justify-end">
-                    <Button
-                       @click="activateCallback('2')"
-                       class="!rounded-2xl !px-8 !py-4 !font-bold !text-sm !bg-white !text-black !border-none shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-[1.02] transition-all"
-                    >Продовжити<ArrowRight class="size-4 ml-2" /></Button>
+                    <Button @click="activeStep = '2'" class="!rounded-2xl !px-8 !py-4 !font-bold !text-sm !bg-white !text-black !border-none shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-[1.02] transition-all">Продовжити<ArrowRight class="size-4 ml-2" /></Button>
                   </div>
                 </div>
-              </StepPanel>
+              </template>
 
               <!-- STEP 2 -->
-              <StepPanel v-slot="{ activateCallback }" value="2">
+              <template v-if="activeStep === '2'">
                 <div class="animate-in fade-in slide-in-from-right-8 duration-500">
                   <div class="mb-8">
                     <h2 class="text-2xl font-bold text-white mb-2">Доступ адміністратора</h2>
@@ -163,7 +158,7 @@ async function submitSetup() {
                       <label class="text-xs font-bold text-zinc-300 uppercase tracking-widest mb-2 block ml-1 flex items-center gap-2">
                         <Mail class="size-3" /> Email
                       </label>
-                      <InputText 
+                      <Input 
                          v-model="setupData.admin_email" 
                          disabled 
                          class="w-full !bg-black/50 !border-white/5 !text-zinc-400 !py-4 !px-5 !rounded-2xl cursor-not-allowed font-medium text-lg" 
@@ -172,7 +167,7 @@ async function submitSetup() {
 
                     <div class="group">
                       <label class="text-xs font-bold text-zinc-300 uppercase tracking-widest mb-2 block ml-1 group-focus-within:text-violet-400 transition-colors">Пароль доступу</label>
-                      <InputText 
+                      <Input 
                          type="password" 
                          v-model="setupData.admin_password" 
                          placeholder="Мінімум 8 символів" 
@@ -184,22 +179,21 @@ async function submitSetup() {
 
                   <div class="mt-12 flex items-center justify-between">
                     <button
-                       @click="activateCallback('1')"
+                       @click="activeStep = '1'"
                        class="text-zinc-400 hover:text-white font-bold text-sm flex items-center gap-2 transition-colors px-4 py-2"
                     >
                       <ArrowLeft class="size-4" /> Назад
                     </button>
-                    <Button 
-                       label="Завершити" 
-                       @click="activateCallback('3')" 
+                    <Button
+                       @click="activeStep = '3'"
                        class="!rounded-2xl !px-10 !py-4 !font-bold !text-sm !bg-gradient-to-r !from-violet-600 !to-primary !text-white !border-none shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] hover:scale-[1.02] transition-all"
-                    />
+                    >Завершити</Button>
                   </div>
                 </div>
-              </StepPanel>
+              </template>
 
               <!-- STEP 3 (Completion & Loader) -->
-              <StepPanel value="3">
+              <template v-if="activeStep === '3'">
                 <div class="animate-in zoom-in-95 duration-700 fade-in text-center py-10">
                   <div class="relative w-32 h-32 mx-auto mb-8">
                     <!-- Glassy ring backdrops -->
@@ -218,14 +212,13 @@ async function submitSetup() {
                   
                   <Button
                     @click="submitSetup"
-                    :loading="loading"
+                    :disabled="loading"
                     class="!rounded-2xl !px-10 !py-4 !font-black !text-base !bg-white !text-black !border-none shadow-[0_0_25px_rgba(255,255,255,0.2)] hover:shadow-[0_0_40px_rgba(255,255,255,0.5)] hover:scale-[1.05] transition-all w-full md:w-auto"
-                  ><Zap class="size-4 mr-2" />Увійти в систему</Button>
+                  ><Spinner v-if="loading" class="size-4 mr-2" /><Zap v-else class="size-4 mr-2" />Увійти в систему</Button>
                 </div>
-              </StepPanel>
+              </template>
 
-            </StepPanels>
-          </Stepper>
+          </div>
 
         </div>
       </div>

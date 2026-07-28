@@ -20,7 +20,8 @@ const router = useRouter()
 const toast = useToast()
 const notifications = ref<NotificationItem[]>([])
 const unreadCount = ref(0)
-const op = ref()
+const isOpen = ref(false)
+const anchorEl = ref<HTMLElement | null>(null)
 
 // WebSocket for real-time notifications
 const ws = useWebSocket('/api/v1/ws/user')
@@ -55,7 +56,7 @@ function handleNotificationClick(n: NotificationItem) {
     }
 
     if (n.doctype && n.doc_id) {
-        op.value.hide()
+        isOpen.value = false
         const ws = props.workspace || 'grunt'
         router.push(`/${ws}/${n.doctype}/${n.doc_id}`)
     }
@@ -68,7 +69,8 @@ function formatDate(val: string) {
 }
 
 function toggle(event: Event) {
-    op.value.toggle(event)
+    anchorEl.value = event.currentTarget as HTMLElement
+    isOpen.value = !isOpen.value
 }
 
 onMounted(() => {
@@ -103,16 +105,18 @@ onUnmounted(() => {
             </Badge>
         </button>
 
-        <Popover ref="op" class="!p-0 !shadow-lg !rounded-xl !border-border/50">
+        <Popover v-model:open="isOpen">
+          <PopoverAnchor :reference="anchorEl ?? undefined" />
+          <PopoverContent class="w-auto p-0 shadow-lg rounded-xl border-border/50">
             <div class="w-80 flex flex-col overflow-hidden">
                 <!-- Header -->
                 <div class="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
                     <div class="flex items-center gap-2">
                         <h3 class="font-bold text-sm">{{ t('Notifications') }}</h3>
-                        <Badge v-if="unreadCount > 0" severity="secondary" class="h-5 text-[10px]">{{ unreadCount }} нових
+                        <Badge v-if="unreadCount > 0" variant="secondary" class="h-5 text-[10px]">{{ unreadCount }} нових
                         </Badge>
                     </div>
-                    <Button v-if="unreadCount > 0" variant="text" severity="secondary" size="small"
+                    <Button v-if="unreadCount > 0" variant="ghost" size="sm"
                         class="h-6 w-6 !p-0" @click="markAllAsRead"
                         :title="t('Mark all as read')">
                         <Check class="size-3.5" />
@@ -120,7 +124,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- List -->
-                <ScrollPanel class="h-[300px] w-full">
+                <div class="h-[300px] w-full overflow-y-auto">
                     <div v-if="notifications.length === 0"
                         class="flex flex-col items-center justify-center h-40 text-center px-4">
                         <Bell class="size-10 text-muted-foreground/20 mb-3" />
@@ -150,7 +154,7 @@ onUnmounted(() => {
                                 <div class="flex items-center justify-between">
                                     <span class="text-[10px] font-medium text-muted-foreground/70">{{
                                         formatDate(n.created_at) }}</span>
-                                    <Badge v-if="n.doctype" severity="contrast"
+                                    <Badge v-if="n.doctype" variant="secondary"
                                         class="h-4 px-1 text-[9px] uppercase tracking-wider bg-background">{{ n.doctype }}
                                     </Badge>
                                 </div>
@@ -163,24 +167,21 @@ onUnmounted(() => {
                             </button>
                         </div>
                     </div>
-                </ScrollPanel>
+                </div>
 
                 <!-- Push subscribe footer -->
                 <div v-if="pushSupported" class="px-4 py-2.5 border-t bg-muted/20 flex items-center justify-between">
                     <span class="text-[11px] text-muted-foreground">
                         {{ pushSubscribed ? t('Push notifications enabled') : t('Push notifications disabled') }}
                     </span>
-                    <Button variant="text" size="small"
-                        class="h-6 px-2 text-[11px]"
-                        :disabled="pushLoading"
-                        @click="pushSubscribed ? pushUnsubscribe() : pushSubscribe()"
-                    >
+                    <Button variant="ghost" size="sm" class="h-6 px-2 text-[11px]" :disabled="pushLoading" @click="pushSubscribed ? pushUnsubscribe() : pushSubscribe()">
                         <BellOff v-if="pushSubscribed" class="size-3 mr-1" />
                         <BellRing v-else class="size-3 mr-1" />
                         {{ pushSubscribed ? t('Disable') : t('Enable') }}
                     </Button>
                 </div>
             </div>
+          </PopoverContent>
         </Popover>
     </div>
 </template>

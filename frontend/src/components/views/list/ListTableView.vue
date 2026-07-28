@@ -105,7 +105,7 @@ watch(() => sentinelEl.value, setupObserver)
     <!-- Total count — always visible above the table -->
     <div v-if="meta" class="flex items-center gap-2 mb-2 px-1">
       <span class="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-widest">Всього:</span>
-      <Badge severity="secondary" class="!text-[10px] !font-black !px-2 !py-0.5 shadow-sm">
+      <Badge variant="secondary" class="!text-[10px] !font-black !px-2 !py-0.5 shadow-sm">
         {{ meta.total }}
       </Badge>
       <span v-if="rows.length < meta.total" class="text-[11px] text-muted-foreground/50">

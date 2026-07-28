@@ -47,20 +47,23 @@ async function handleSubmit() {
           <p class="text-sm text-muted-foreground">
             Якщо акаунт з <strong>{{ email }}</strong> існує, ми надіслали посилання для зміни пароля.
           </p>
-          <Button variant="text" class="mt-2" label="Повернутись до входу" @click="router.push('/login')" />
+          <Button variant="ghost" class="mt-2" @click="router.push('/login')">Повернутись до входу</Button>
         </div>
 
         <form v-else class="flex flex-col gap-5" @submit.prevent="handleSubmit">
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium">Email <span class="text-destructive">*</span></label>
-            <InputText v-model="email" type="email" placeholder="you@example.com" required class="h-11 w-full" />
+            <Input v-model="email" type="email" placeholder="you@example.com" required class="h-11 w-full" />
           </div>
 
           <p v-if="error" class="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
             {{ error }}
           </p>
 
-          <Button type="submit" :loading="loading" class="w-full h-11 mt-1 text-[15px] font-medium" label="Надіслати посилання" />
+          <Button type="submit" :disabled="loading" class="w-full h-11 mt-1 text-[15px] font-medium">
+            <Spinner v-if="loading" class="size-4 mr-2" />
+            Надіслати посилання
+          </Button>
 
           <button
             type="button"

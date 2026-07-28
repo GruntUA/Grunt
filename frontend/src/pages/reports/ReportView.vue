@@ -66,7 +66,7 @@ function openBuilder() {
                     {{ report?.report_name || reportName }}
                 </h2>
                 <div class="flex items-center gap-2 mt-1">
-                    <Badge severity="contrast" class="font-normal">{{ report?.report_type }}</Badge>
+                    <Badge variant="secondary" class="font-normal">{{ report?.report_type }}</Badge>
                     <p class="text-muted-foreground text-sm" v-if="meta">
                         {{ meta.rows }} записів • {{ meta.time_ms }}мс
                     </p>
@@ -74,15 +74,15 @@ function openBuilder() {
             </div>
             
             <div class="flex items-center gap-2">
-                <Button outlined size="small" @click="fetchReport" :disabled="loading">
+                <Button variant="outline" size="sm" @click="fetchReport" :disabled="loading">
                     <RefreshCw class="size-4 mr-2" :class="{ 'animate-spin': loading }" />
                     Оновити
                 </Button>
-                <Button outlined size="small" as="a" :href="`/api/v1/reports/${reportName}/export/xlsx?token=${auth.token}`" download>
+                <Button variant="outline" size="sm" as="a" :href="`/api/v1/reports/${reportName}/export/xlsx?token=${auth.token}`" download>
                     <Download class="size-4 mr-2" />
                     XLSX
                 </Button>
-                <Button size="small" @click="openBuilder" v-if="auth.user?.is_superadmin">
+                <Button size="sm" @click="openBuilder" v-if="auth.user?.is_superadmin">
                     <Settings2 class="size-4 mr-2" />
                     Конструктор
                 </Button>

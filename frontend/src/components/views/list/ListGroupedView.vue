@@ -90,7 +90,7 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
                 <div class="flex -space-x-2">
                     <!-- Placeholder for avatars or summary chips if needed -->
                 </div>
-                <Badge severity="secondary" class="!text-[10px] !font-black !px-3 !py-1 !rounded-full opacity-80">
+                <Badge variant="secondary" class="!text-[10px] !font-black !px-3 !py-1 !rounded-full opacity-80">
                   {{ group.items.length }} 
                 </Badge>
             </div>

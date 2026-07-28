@@ -36,17 +36,27 @@ const emit = defineEmits(['update:groupBy', 'sort'])
 
 defineOptions({ inheritAttrs: false })
 
-const opColumns = ref()
-const opGrouping = ref()
-const opSorting = ref()
+const isColumnsOpen = ref(false)
+const columnsAnchorEl = ref<HTMLElement | null>(null)
+const isGroupingOpen = ref(false)
+const groupingAnchorEl = ref<HTMLElement | null>(null)
+const isSortingOpen = ref(false)
+const sortingAnchorEl = ref<HTMLElement | null>(null)
 
-const toggleColumns = (event: Event) => opColumns.value.toggle(event)
-const toggleGrouping = (event: Event) => opGrouping.value.toggle(event)
+const toggleColumns = (event: Event) => {
+  columnsAnchorEl.value = event.currentTarget as HTMLElement
+  isColumnsOpen.value = !isColumnsOpen.value
+}
+const toggleGrouping = (event: Event) => {
+  groupingAnchorEl.value = event.currentTarget as HTMLElement
+  isGroupingOpen.value = !isGroupingOpen.value
+}
 
 const sortSearch = ref('')
 const toggleSorting = (event: Event) => {
   sortSearch.value = ''
-  opSorting.value.toggle(event)
+  sortingAnchorEl.value = event.currentTarget as HTMLElement
+  isSortingOpen.value = !isSortingOpen.value
 }
 
 function onColReorder(e: { oldIndex: number; newIndex: number }) {
@@ -83,24 +93,21 @@ const activeSortLabel = computed(() =>
 <template>
 <div class="contents">
   <!-- Columns -->
-  <Button
-    text size="small"
-    class="h-9 px-2.5 gap-2 font-medium transition-all"
-    :class="columns.isCustomized.value ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'"
-    @click="toggleColumns"
-  >
+  <Button variant="ghost" size="sm" class="h-9 px-2.5 gap-2 font-medium transition-all" :class="columns.isCustomized.value ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'" @click="toggleColumns">
     <Columns3 class="size-4" />
     <span class="hidden lg:inline">Стовпці</span>
     <Badge
       v-if="columns.isCustomized.value"
-      severity="secondary"
+      variant="secondary"
       class="bg-primary/20 text-primary hover:bg-primary/20 size-5 p-0 flex items-center justify-center text-[10px]"
     >
       {{ columns.visibleColumns.value.length }}
     </Badge>
   </Button>
 
-  <Popover ref="opColumns">
+  <Popover v-model:open="isColumnsOpen">
+    <PopoverAnchor :reference="columnsAnchorEl ?? undefined" />
+    <PopoverContent class="w-auto p-0">
     <div class="w-64 p-1">
       <div class="px-2 py-1.5 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
         <span>Стовпці</span>
@@ -144,27 +151,24 @@ const activeSortLabel = computed(() =>
         </div>
       </div>
     </div>
+    </PopoverContent>
   </Popover>
 
   <!-- Group by -->
-  <Button
-    v-if="groupableFields.length"
-    text size="small"
-    class="h-9 px-2.5 gap-2 font-medium transition-all"
-    :class="groupBy ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'"
-    @click="toggleGrouping"
-  >
+  <Button variant="ghost" v-if="groupableFields.length" size="sm" class="h-9 px-2.5 gap-2 font-medium transition-all" :class="groupBy ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'" @click="toggleGrouping">
     <Rows3 class="size-4" />
     <span class="hidden lg:inline">{{ groupBy ? groupByField?.label : 'Групування' }}</span>
   </Button>
 
-  <Popover ref="opGrouping">
+  <Popover v-model:open="isGroupingOpen">
+    <PopoverAnchor :reference="groupingAnchorEl ?? undefined" />
+    <PopoverContent class="w-auto p-0">
     <div class="w-56 p-1">
       <div class="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">Групувати за</div>
       <div class="h-px bg-border/40 my-1" />
       <div
         class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group transition-colors"
-        @click="emit('update:groupBy', null); opGrouping.hide()"
+        @click="emit('update:groupBy', null); isGroupingOpen = false"
       >
         <div class="size-4 flex items-center justify-center">
           <Check class="size-3.5 text-primary" :class="groupBy === null ? 'opacity-100' : 'opacity-0'" />
@@ -176,7 +180,7 @@ const activeSortLabel = computed(() =>
         v-for="f in groupableFields"
         :key="f.fieldname"
         class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group transition-colors"
-        @click="emit('update:groupBy', f.fieldname); opGrouping.hide()"
+        @click="emit('update:groupBy', f.fieldname); isGroupingOpen = false"
       >
         <div class="size-4 flex items-center justify-center">
           <Check class="size-3.5 text-primary" :class="groupBy === f.fieldname ? 'opacity-100' : 'opacity-0'" />
@@ -184,20 +188,18 @@ const activeSortLabel = computed(() =>
         <span class="text-sm font-medium">{{ f.label }}</span>
       </div>
     </div>
+    </PopoverContent>
   </Popover>
 
   <!-- Sort -->
-  <Button
-    text size="small"
-    class="h-9 px-2.5 gap-2 font-medium transition-all"
-    :class="sortKey ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'"
-    @click="toggleSorting"
-  >
+  <Button variant="ghost" size="sm" class="h-9 px-2.5 gap-2 font-medium transition-all" :class="sortKey ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'" @click="toggleSorting">
     <ArrowUpDown class="size-4" />
     <span class="hidden lg:inline">{{ activeSortLabel ?? 'Сортування' }}</span>
   </Button>
 
-  <Popover ref="opSorting">
+  <Popover v-model:open="isSortingOpen">
+    <PopoverAnchor :reference="sortingAnchorEl ?? undefined" />
+    <PopoverContent class="w-auto p-0">
     <div class="w-64 p-1">
       <div class="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">Сортувати за</div>
       <div class="h-px bg-border/40 my-1" />
@@ -214,7 +216,7 @@ const activeSortLabel = computed(() =>
       <div class="h-px bg-border/40 my-1" />
       <div
         class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-        @click="emit('sort', ''); opSorting.hide()"
+        @click="emit('sort', ''); isSortingOpen = false"
       >
         <div class="size-4 flex items-center justify-center">
           <Check class="size-3.5 text-primary" :class="!sortKey ? 'opacity-100' : 'opacity-0'" />
@@ -228,7 +230,7 @@ const activeSortLabel = computed(() =>
           v-for="opt in filteredSortOptions"
           :key="opt.key"
           class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-          @click="emit('sort', opt.key); opSorting.hide()"
+          @click="emit('sort', opt.key); isSortingOpen = false"
         >
           <div class="size-4 flex items-center justify-center">
             <Check class="size-3.5 text-primary" :class="sortKey === opt.key ? 'opacity-100' : 'opacity-0'" />
@@ -242,6 +244,7 @@ const activeSortLabel = computed(() =>
         </div>
       </div>
     </div>
+    </PopoverContent>
   </Popover>
 </div>
 </template>

@@ -125,29 +125,30 @@ async function reindex() {
       </div>
       <Button
         v-if="auth.user?.is_superadmin"
-        outlined
-        size="small"
-        :loading="isReindexing"
+        variant="outline"
+        size="sm"
+        :disabled="isReindexing"
         @click="reindex"
-      ><RefreshCw class="size-4 mr-2" />Перебудувати індекс</Button>
+      ><RefreshCw class="size-4 mr-2" :class="{ 'animate-spin': isReindexing }" />Перебудувати індекс</Button>
     </div>
 
-    <!-- ── Search InputText ── -->
-    <IconField>
-      <InputIcon><Search class="size-4" /></InputIcon>
-      <InputText
+    <!-- ── Search Input ── -->
+    <div class="relative">
+      <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+      <Input
         v-model="inputQ"
         placeholder="Введіть мінімум 2 символи для пошуку..."
-        class="w-full"
-        size="large"
+        class="w-full h-11 pl-9 pr-9"
         autofocus
       />
-      <InputIcon v-if="inputQ" class="cursor-pointer" @click="inputQ = ''"><X class="size-4" /></InputIcon>
-    </IconField>
+      <X v-if="inputQ" class="absolute right-3 top-1/2 -translate-y-1/2 size-4 cursor-pointer text-muted-foreground hover:text-foreground transition-colors" @click="inputQ = ''" />
+    </div>
 
     <!-- ── Loading ── -->
     <div v-if="isLoading" class="flex flex-col gap-2">
-      <ProgressBar mode="indeterminate" style="height: 3px" />
+      <div class="h-[3px] w-full overflow-hidden rounded-full bg-primary/20">
+        <div class="h-full w-1/3 rounded-full bg-primary animate-progress-indeterminate" />
+      </div>
       <p class="text-sm text-muted-foreground text-center">Шукаємо...</p>
     </div>
 
@@ -163,11 +164,7 @@ async function reindex() {
       <p class="text-sm text-muted-foreground">
         Нічого не знайдено для <b>"{{ q }}"</b>
       </p>
-      <Button
-        v-if="auth.user?.is_superadmin"
-        text size="small"
-        @click="reindex"
-      ><RefreshCw class="size-4 mr-2" />Спробувати перебудувати індекс</Button>
+      <Button variant="ghost" v-if="auth.user?.is_superadmin" size="sm" @click="reindex"><RefreshCw class="size-4 mr-2" />Спробувати перебудувати індекс</Button>
     </div>
 
     <!-- ── Results ── -->
@@ -179,18 +176,18 @@ async function reindex() {
           {{ results.length }} {{ results.length === 1 ? 'результат' : 'результатів' }}
         </span>
 
-        <Chip
-          label="Всі"
+        <Badge
+          variant="outline"
           :class="activeDoctype === null ? 'bg-primary text-white font-semibold' : 'cursor-pointer'"
           @click="activeDoctype = null"
-        />
-        <Chip
+        >Всі</Badge>
+        <Badge
           v-for="chip in doctypeChips"
           :key="chip.doctype"
-          :label="`${chip.doctype} (${chip.count})`"
+          variant="outline"
           :class="activeDoctype === chip.doctype ? 'bg-primary text-white font-semibold' : 'cursor-pointer'"
           @click="activeDoctype = activeDoctype === chip.doctype ? null : chip.doctype"
-        />
+        >{{ chip.doctype }} ({{ chip.count }})</Badge>
       </div>
 
       <!-- Results grouped by DocType -->
@@ -200,42 +197,41 @@ async function reindex() {
           <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">
             {{ group.doctype }}
           </span>
-          <Tag :value="String(group.items.length)" severity="secondary" />
+          <Badge variant="secondary">{{ group.items.length }}</Badge>
         </div>
 
-        <DataTable
-          :value="group.items"
-          :row-hover="true"
-          size="small"
-          @row-click="(e: any) => navigateToDoc(e.data)"
-          class="cursor-pointer rounded-lg overflow-hidden border border-border"
-          :pt="{
-            table: { class: 'w-full' },
-            bodyRow: { class: 'hover:bg-muted/40 transition-colors cursor-pointer' },
-          }"
-        >
-          <Column header="Назва" class="font-medium">
-            <template #body="{ data }">
-              <div class="flex items-center gap-2 py-0.5">
-                <div class="size-7 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
-                  <FileText class="size-3.5 text-primary" />
+        <Table class="rounded-lg overflow-hidden border border-border">
+          <TableHeader>
+            <TableRow>
+              <TableHead class="font-medium">Назва</TableHead>
+              <TableHead class="hidden sm:table-cell">Модуль</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow
+              v-for="item in group.items" :key="item.idx_id"
+              class="cursor-pointer hover:bg-muted/40 transition-colors"
+              @click="navigateToDoc(item)"
+            >
+              <TableCell>
+                <div class="flex items-center gap-2 py-0.5">
+                  <div class="size-7 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+                    <FileText class="size-3.5 text-primary" />
+                  </div>
+                  <div>
+                    <p class="text-sm font-semibold text-foreground">{{ item.display_title || item.name }}</p>
+                    <p v-if="item.display_title && item.display_title !== item.name" class="text-xs text-muted-foreground">
+                      {{ item.name }}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p class="text-sm font-semibold text-foreground">{{ data.display_title || data.name }}</p>
-                  <p v-if="data.display_title && data.display_title !== data.name" class="text-xs text-muted-foreground">
-                    {{ data.name }}
-                  </p>
-                </div>
-              </div>
-            </template>
-          </Column>
-
-          <Column header="Модуль" class="hidden sm:table-cell">
-            <template #body="{ data }">
-              <Tag v-if="data.module" :value="data.module" severity="secondary" />
-            </template>
-          </Column>
-        </DataTable>
+              </TableCell>
+              <TableCell class="hidden sm:table-cell">
+                <Badge v-if="item.module" variant="secondary">{{ item.module }}</Badge>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </div>
 
     </template>

@@ -24,7 +24,7 @@ const tableFields = computed(() =>
 </script>
 
 <template>
-  <Divider class="!mb-3" />
+  <Separator class="!mb-3" />
   <div class="flex items-center justify-between mb-3">
     <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Aggregation</p>
     <span
@@ -35,32 +35,30 @@ const tableFields = computed(() =>
   <div class="flex flex-col gap-3 mb-4">
     <div class="flex flex-col gap-1.5">
       <label class="text-sm font-medium">Функція</label>
-      <Select
-        :model-value="field.aggregate_function ?? '__none__'"
-        :options="AGGREGATE_FUNCTIONS"
-        option-label="label"
-        option-value="value"
-        class="w-full"
-        @update:model-value="updateField('aggregate_function', $event === '__none__' ? null : $event)"
-      />
+      <Select :model-value="field.aggregate_function ?? '__none__'" @update:model-value="updateField('aggregate_function', $event === '__none__' ? null : $event)">
+        <SelectTrigger class="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="opt in AGGREGATE_FUNCTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
     <template v-if="field.aggregate_function">
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium">Таблиця (TABLE поле)</label>
-        <Select
-          :model-value="field.aggregate_table ?? ''"
-          :options="tableFields"
-          option-label="label"
-          option-value="value"
-          placeholder="— оберіть TABLE поле —"
-          empty-message="Немає TABLE полів у цьому DocType"
-          class="w-full"
-          @update:model-value="updateField('aggregate_table', $event || null)"
-        />
+        <Select :model-value="field.aggregate_table ?? ''" empty-message="Немає TABLE полів у цьому DocType" @update:model-value="updateField('aggregate_table', $event || null)">
+          <SelectTrigger class="w-full">
+            <SelectValue placeholder="— оберіть TABLE поле —" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in tableFields" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div v-if="field.aggregate_function !== 'count'" class="flex flex-col gap-1.5">
         <label class="text-sm font-medium">Поле дочірнього DocType</label>
-        <InputText
+        <Input
           :model-value="field.aggregate_field ?? ''"
           placeholder="напр. amount"
           class="w-full"

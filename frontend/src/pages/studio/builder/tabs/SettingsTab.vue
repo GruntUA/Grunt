@@ -194,27 +194,25 @@ function removeSearchField(fieldname: string) {
 
       <div class="flex flex-col gap-1.5 mb-4">
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Назва</label>
-        <InputText :model-value="builder.doctype?.label ?? ''" class="w-full" @update:model-value="onLabelChange(String($event))" />
+        <Input :model-value="builder.doctype?.label ?? ''" class="w-full" @update:model-value="onLabelChange(String($event))" />
       </div>
 
       <div class="flex flex-col gap-1.5 mb-4">
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Системна назва</label>
-        <InputText :model-value="builder.doctype?.name ?? ''" :disabled="!builder.isNew" placeholder="PascalCase" class="w-full"
+        <Input :model-value="builder.doctype?.name ?? ''" :disabled="!builder.isNew" placeholder="PascalCase" class="w-full"
           @update:model-value="builder.isNew && builder.updateDocType({ name: String($event) })" />
       </div>
 
       <div class="flex flex-col gap-1.5 mb-4">
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Додаток</label>
-        <Select
-          :model-value="pendingAppName ?? '__none__'"
-          :options="[{ value: '__none__', label: 'Немає додатку' }, ...apps.map(a => ({ value: a.name, label: a.title }))]"
-          option-label="label"
-          option-value="value"
-          :placeholder="isLoadingApps ? 'Завантажує...' : 'Оберіть додаток'"
-          :disabled="isLoadingApps"
-          class="w-full"
-          @update:model-value="setApp(String($event) === '__none__' ? null : (String($event) || null))"
-        />
+        <Select :model-value="pendingAppName ?? '__none__'" @update:model-value="setApp(String($event) === '__none__' ? null : (String($event) || null))" :disabled="isLoadingApps">
+          <SelectTrigger class="w-full">
+            <SelectValue :placeholder="isLoadingApps ? 'Завантажує...' : 'Оберіть додаток'" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in [{ value: '__none__', label: 'Немає додатку' }, ...apps.map(a => ({ value: a.name, label: a.title }))]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <!-- Module selector — shown only when an app is selected -->
@@ -222,20 +220,20 @@ function removeSearchField(fieldname: string) {
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Модуль</label>
 
         <!-- App has modules → show select -->
-        <Select
-          v-if="selectedApp && selectedApp.modules.length > 0"
-          :model-value="builder.doctype?.module || ''"
-          :options="selectedApp.modules"
-          placeholder="Оберіть модуль"
-          class="w-full"
-          @update:model-value="setModule(String($event))"
-        />
+        <Select :model-value="builder.doctype?.module || ''" v-if="selectedApp && selectedApp.modules.length > 0" @update:model-value="setModule(String($event))">
+          <SelectTrigger class="w-full">
+            <SelectValue placeholder="Оберіть модуль" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in selectedApp.modules" :key="opt" :value="opt">{{ opt }}</SelectItem>
+          </SelectContent>
+        </Select>
 
         <!-- App has no modules → create form -->
         <div v-else class="space-y-2">
           <p class="text-sm text-muted-foreground">У цьому додатку немає модулів. Введіть назву нового модуля:</p>
           <div class="flex gap-2">
-            <InputText v-model="newModuleName" placeholder="Назва модуля" class="flex-1" @keydown.enter="createModule" />
+            <Input v-model="newModuleName" placeholder="Назва модуля" class="flex-1" @keydown.enter="createModule" />
             <Button type="button" :disabled="!newModuleName.trim() || isCreatingModule" @click="createModule">
               {{ isCreatingModule ? 'Створення...' : 'Створити' }}
             </Button>
@@ -246,31 +244,31 @@ function removeSearchField(fieldname: string) {
       <div class="grid grid-cols-2 gap-4">
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <span class="text-sm font-medium text-foreground">Сінглтон</span>
-          <ToggleSwitch :model-value="!!builder.doctype?.is_singleton"
+          <Switch :model-value="!!builder.doctype?.is_singleton"
             @update:model-value="builder.updateDocType({ is_singleton: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <span class="text-sm font-medium text-foreground">Подання</span>
-          <ToggleSwitch :model-value="!!builder.doctype?.is_submittable"
+          <Switch :model-value="!!builder.doctype?.is_submittable"
             @update:model-value="builder.updateDocType({ is_submittable: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <span class="text-sm font-medium text-foreground">Дочірній</span>
-          <ToggleSwitch :model-value="!!builder.doctype?.is_child"
+          <Switch :model-value="!!builder.doctype?.is_child"
             @update:model-value="builder.updateDocType({ is_child: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <span class="text-sm font-medium text-foreground">Ієрархія (дерево)</span>
-          <ToggleSwitch :model-value="!!builder.doctype?.is_tree"
+          <Switch :model-value="!!builder.doctype?.is_tree"
             @update:model-value="builder.updateDocType({ is_tree: $event })" />
         </div>
 
         <div class="flex items-center justify-between rounded-md border border-border p-3">
           <span class="text-sm font-medium text-foreground">Відстеження змін</span>
-          <ToggleSwitch :model-value="!!builder.doctype?.track_changes"
+          <Switch :model-value="!!builder.doctype?.track_changes"
             @update:model-value="builder.updateDocType({ track_changes: $event })" />
         </div>
 
@@ -279,13 +277,13 @@ function removeSearchField(fieldname: string) {
             <span class="text-sm font-medium text-foreground">Швидке створення</span>
             <p class="text-[11px] text-muted-foreground mt-0.5">Відкривати діалог замість повної форми</p>
           </div>
-          <ToggleSwitch :model-value="!!builder.doctype?.quick_entry"
+          <Switch :model-value="!!builder.doctype?.quick_entry"
             @update:model-value="builder.updateDocType({ quick_entry: $event })" />
         </div>
       </div>
     </section>
 
-    <Divider class="!my-6" />
+    <Separator class="!my-6" />
 
     <!-- Збереження та ідентифікація -->
     <section>
@@ -293,74 +291,70 @@ function removeSearchField(fieldname: string) {
 
       <div class="flex flex-col gap-1.5 mb-4">
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Стратегія автоіменування</label>
-        <Select
-          :model-value="autonameStrategy"
-          :options="[
+        <Select :model-value="autonameStrategy" @update:model-value="setAutonameStrategy">
+          <SelectTrigger class="w-full">
+            <SelectValue placeholder="Оберіть стратегію" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in [
             { value: '__auto__', label: 'Авто' },
             { value: 'autoincrement', label: 'Авто-інкремент' },
             { value: 'field:', label: 'На основі поля' },
             { value: 'format:', label: 'Шаблон' },
             { value: 'hash', label: 'Хеш' },
             { value: 'prompt', label: 'Запит у користувача' },
-          ]"
-          option-label="label"
-          option-value="value"
-          placeholder="Оберіть стратегію"
-          class="w-full"
-          @update:model-value="setAutonameStrategy"
-        />
+          ]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div v-if="autonameStrategy === 'field:'" class="flex flex-col gap-1.5 mb-4">
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Поле для імені</label>
-        <Select
-          :model-value="autonameValue"
-          :options="dataFields.map(f => ({ value: f.fieldname, label: f.label || f.fieldname }))"
-          option-label="label"
-          option-value="value"
-          placeholder="Оберіть поле"
-          class="w-full"
-          @update:model-value="setAutonameValue"
-        />
+        <Select :model-value="autonameValue" @update:model-value="setAutonameValue">
+          <SelectTrigger class="w-full">
+            <SelectValue placeholder="Оберіть поле" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in dataFields.map(f => ({ value: f.fieldname, label: f.label || f.fieldname }))" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div v-if="autonameStrategy === 'format:'" class="flex flex-col gap-1.5 mb-4">
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Шаблон</label>
-        <InputText :model-value="autonameValue" placeholder="CONTR-.YYYY.-.####" class="w-full"
+        <Input :model-value="autonameValue" placeholder="CONTR-.YYYY.-.####" class="w-full"
           @update:model-value="setAutonameValue($event as any)" />
       </div>
 
       <div class="flex flex-col gap-1.5 mb-4">
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Поле заголовка</label>
-        <Select
-          :model-value="builder.doctype?.title_field || '__name__'"
-          :options="[{ value: '__name__', label: 'name' }, ...dataFields.map(f => ({ value: f.fieldname, label: f.label || f.fieldname }))]"
-          option-label="label"
-          option-value="value"
-          placeholder="Оберіть поле"
-          class="w-full"
-          @update:model-value="builder.updateDocType({ title_field: String($event) === '__name__' ? undefined : String($event) })"
-        />
+        <Select :model-value="builder.doctype?.title_field || '__name__'" @update:model-value="builder.updateDocType({ title_field: String($event) === '__name__' ? undefined : String($event) })">
+          <SelectTrigger class="w-full">
+            <SelectValue placeholder="Оберіть поле" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in [{ value: '__name__', label: 'name' }, ...dataFields.map(f => ({ value: f.fieldname, label: f.label || f.fieldname }))]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div class="flex flex-col gap-1.5 mb-4">
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Поле фото</label>
-        <Select
-          :model-value="builder.doctype?.image_field || '__none__'"
-          :options="[{ value: '__none__', label: 'Немає' }, ...imageFields.map(f => ({ value: f.fieldname, label: f.label || f.fieldname }))]"
-          option-label="label"
-          option-value="value"
-          placeholder="Оберіть поле"
-          class="w-full"
-          @update:model-value="builder.updateDocType({ image_field: String($event) === '__none__' ? null : String($event) })"
-        />
+        <Select :model-value="builder.doctype?.image_field || '__none__'" @update:model-value="builder.updateDocType({ image_field: String($event) === '__none__' ? null : String($event) })">
+          <SelectTrigger class="w-full">
+            <SelectValue placeholder="Оберіть поле" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in [{ value: '__none__', label: 'Немає' }, ...imageFields.map(f => ({ value: f.fieldname, label: f.label || f.fieldname }))]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
         <p v-if="imageFields.length === 0" class="text-[11px] text-muted-foreground mt-1">
           Додайте поле типу «Image» або «Attach Image» у форму, щоб обрати його тут.
         </p>
       </div>
     </section>
 
-    <Divider class="!my-6" />
+    <Separator class="!my-6" />
 
     <!-- Відображення -->
     <section>
@@ -368,24 +362,23 @@ function removeSearchField(fieldname: string) {
 
       <div class="flex flex-col gap-1.5 mb-4">
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Вигляд за замовчуванням</label>
-        <Select
-          :model-value="builder.doctype?.default_view ?? 'list'"
-          :options="[
+        <Select :model-value="builder.doctype?.default_view ?? 'list'" @update:model-value="builder.updateDocType({ default_view: String($event) === 'list' ? null : String($event) as 'kanban' | 'calendar' | 'tree' })">
+          <SelectTrigger class="w-full">
+            <SelectValue placeholder="Оберіть вигляд" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in [
             { value: 'list', label: 'Список' },
             { value: 'kanban', label: 'Канбан' },
             { value: 'calendar', label: 'Календар' },
             { value: 'tree', label: 'Дерево' },
-          ]"
-          option-label="label"
-          option-value="value"
-          placeholder="Оберіть вигляд"
-          class="w-full"
-          @update:model-value="builder.updateDocType({ default_view: String($event) === 'list' ? null : String($event) as 'kanban' | 'calendar' | 'tree' })"
-        />
+          ]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </section>
 
-    <Divider class="!my-6" />
+    <Separator class="!my-6" />
 
     <!-- Керованість та безпека (advanced) -->
     <section>
@@ -397,14 +390,14 @@ function removeSearchField(fieldname: string) {
             <span class="text-sm font-medium text-foreground">Віртуальний DocType</span>
             <p class="text-[11px] text-muted-foreground mt-0.5">Без фізичної таблиці в БД, дані повертає контролер</p>
           </div>
-          <ToggleSwitch :model-value="!!builder.doctype?.is_virtual"
+          <Switch :model-value="!!builder.doctype?.is_virtual"
             @update:model-value="builder.updateDocType({ is_virtual: $event })" />
         </div>
       </div>
 
       <div class="flex flex-col gap-1.5 mb-4">
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Фізична таблиця</label>
-        <InputText
+        <Input
           :model-value="builder.doctype?.table_name ?? ''"
           disabled
           placeholder="Згенерується після збереження"
@@ -418,7 +411,7 @@ function removeSearchField(fieldname: string) {
       </div>
     </section>
 
-    <Divider class="!my-6" />
+    <Separator class="!my-6" />
 
     <!-- Пошук (Search) -->
     <section>
@@ -428,7 +421,7 @@ function removeSearchField(fieldname: string) {
         <label class="text-sm font-medium text-muted-foreground uppercase tracking-wide">Поля пошуку</label>
 
         <div v-if="searchFields.length" class="mb-2 flex flex-wrap gap-2">
-          <Badge v-for="sf in searchFields" :key="sf" severity="secondary" class="flex items-center gap-1">
+          <Badge v-for="sf in searchFields" :key="sf" variant="secondary" class="flex items-center gap-1">
             {{ sf }}
             <button type="button" class="ml-1 hover:text-destructive" @click="removeSearchField(sf)">
               <X class="h-3 w-3" />
@@ -436,15 +429,14 @@ function removeSearchField(fieldname: string) {
           </Badge>
         </div>
 
-        <Select
-          :model-value="searchFieldSelect"
-          :options="availableSearchFields.map(f => ({ value: f.fieldname, label: f.label || f.fieldname }))"
-          option-label="label"
-          option-value="value"
-          placeholder="Додати поле для пошуку"
-          class="w-full"
-          @update:model-value="addSearchField($event as string)"
-        />
+        <Select :model-value="searchFieldSelect" @update:model-value="addSearchField($event as string)">
+          <SelectTrigger class="w-full">
+            <SelectValue placeholder="Додати поле для пошуку" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in availableSearchFields.map(f => ({ value: f.fieldname, label: f.label || f.fieldname }))" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </section>
   </div>

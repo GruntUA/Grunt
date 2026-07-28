@@ -52,7 +52,7 @@ onMounted(loadUsers)
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-16">
-      <ProgressSpinner class="size-10!" />
+      <Spinner class="size-10!" />
     </div>
 
     <div v-else class="flex flex-col gap-4">
@@ -61,7 +61,7 @@ onMounted(loadUsers)
           <div>
             <p class="font-medium text-foreground">{{ user.full_name }}</p>
             <p class="text-sm text-muted-foreground">{{ user.email }}</p>
-            <Badge v-if="user.is_superadmin" severity="warn" value="Superadmin" class="mt-1" />
+            <Badge v-if="user.is_superadmin" variant="warning" class="mt-1">Superadmin</Badge>
           </div>
           <div class="flex-1">
             <p class="text-xs text-muted-foreground/70 mb-1.5">Ролі:</p>
@@ -75,15 +75,15 @@ onMounted(loadUsers)
             </div>
             <!-- Add role form for this user -->
             <div v-if="selectedUserId === user.id" class="flex gap-2">
-              <InputText v-model="newRole" placeholder="Назва ролі"
+              <Input v-model="newRole" placeholder="Назва ролі"
                 class="h-9 text-sm"
                 @keydown.enter="addRole(user.id)" />
-              <Button size="small" :disabled="isSubmitting" @click="addRole(user.id)">
+              <Button size="sm" :disabled="isSubmitting" @click="addRole(user.id)">
                 <Loader2 v-if="isSubmitting" class="size-4 animate-spin" />Додати
               </Button>
-              <Button size="small" text @click="selectedUserId = ''">Скасувати</Button>
+              <Button variant="ghost" size="sm" @click="selectedUserId = ''">Скасувати</Button>
             </div>
-            <Button v-else size="small" text @click="selectedUserId = user.id; newRole = ''">+ Роль</Button>
+            <Button variant="ghost" v-else size="sm" @click="selectedUserId = user.id; newRole = ''">+ Роль</Button>
           </div>
         </div>
       </div>

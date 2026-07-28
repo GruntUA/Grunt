@@ -20,39 +20,31 @@ const emit = defineEmits<{
 <template>
   <div>
     <!-- Delete confirmation -->
-    <Dialog
-      :visible="showDelete"
-      :modal="true"
-      :closable="false"
-      :style="{ width: '400px' }"
-      @update:visible="emit('update:showDelete', $event)"
-    >
-      <template #header>
-        <span class="font-semibold text-base">{{ t('Delete document?') }}</span>
-      </template>
-      <p class="text-sm text-muted-foreground">Цю дію не можна скасувати. Всі пов'язані дані будуть видалені назавжди.</p>
-      <template #footer>
-        <Button severity="secondary" text @click="emit('update:showDelete', false)">{{ t('Cancel') }}</Button>
-        <Button severity="danger" @click="emit('confirmDelete')">{{ t('Delete') }}</Button>
-      </template>
+    <Dialog :open="showDelete" @update:open="emit('update:showDelete', $event)">
+      <DialogContent class="w-[400px]" :show-close-button="false">
+        <DialogHeader>
+          <DialogTitle class="text-base">{{ t('Delete document?') }}</DialogTitle>
+        </DialogHeader>
+        <p class="text-sm text-muted-foreground">Цю дію не можна скасувати. Всі пов'язані дані будуть видалені назавжди.</p>
+        <DialogFooter>
+          <Button variant="ghost" @click="emit('update:showDelete', false)">{{ t('Cancel') }}</Button>
+          <Button variant="destructive" @click="emit('confirmDelete')">{{ t('Delete') }}</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
 
     <!-- Unsaved leave confirmation -->
-    <Dialog
-      :visible="showLeave"
-      :modal="true"
-      :closable="false"
-      :style="{ width: '400px' }"
-      @update:visible="emit('update:showLeave', $event)"
-    >
-      <template #header>
-        <span class="font-semibold text-base">{{ t('Unsaved changes') }}</span>
-      </template>
-      <p class="text-sm text-muted-foreground">Ви внесли зміни, які буде втрачено, якщо ви покинете сторінку. Покинути без збереження?</p>
-      <template #footer>
-        <Button severity="secondary" text @click="emit('cancelLeave')">{{ t('Stay') }}</Button>
-        <Button severity="danger" @click="emit('confirmLeave')">{{ t('Leave') }}</Button>
-      </template>
+    <Dialog :open="showLeave" @update:open="emit('update:showLeave', $event)">
+      <DialogContent class="w-[400px]" :show-close-button="false">
+        <DialogHeader>
+          <DialogTitle class="text-base">{{ t('Unsaved changes') }}</DialogTitle>
+        </DialogHeader>
+        <p class="text-sm text-muted-foreground">Ви внесли зміни, які буде втрачено, якщо ви покинете сторінку. Покинути без збереження?</p>
+        <DialogFooter>
+          <Button variant="ghost" @click="emit('cancelLeave')">{{ t('Stay') }}</Button>
+          <Button variant="destructive" @click="emit('confirmLeave')">{{ t('Leave') }}</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   </div>
 </template>

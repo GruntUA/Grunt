@@ -16,7 +16,7 @@ const current = () => field.value.options ?? 'default'
 </script>
 
 <template>
-  <Divider class="!mb-3" />
+  <Separator class="!mb-3" />
   <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Button</p>
 
   <!-- Style -->

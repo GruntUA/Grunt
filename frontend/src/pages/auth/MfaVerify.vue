@@ -72,7 +72,7 @@ async function handleVerify() {
         <form class="flex flex-col gap-6" @submit.prevent="handleVerify">
           <div class="flex flex-col gap-2 text-center">
             <label class="text-xs font-bold text-muted-foreground uppercase tracking-widest">Код доступу</label>
-            <InputText v-model="code" type="text" inputmode="numeric" autocomplete="one-time-code"
+            <Input v-model="code" type="text" inputmode="numeric" autocomplete="one-time-code"
               placeholder="000 000" maxlength="8" required autofocus
               class="h-16 text-center text-3xl font-mono tracking-[0.3em] !border-2 focus:!ring-primary/20 bg-background/50" />
           </div>
@@ -82,16 +82,14 @@ async function handleVerify() {
             {{ error }}
           </div>
 
-          <Button type="submit" :loading="loading" :disabled="code.length < 6"
+          <Button type="submit" :disabled="loading || code.length < 6"
             class="w-full h-14 text-lg font-bold shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform">
-            <template #icon>
-                <ArrowRight v-if="!loading" class="ml-2 h-5 w-5 order-last" />
-            </template>
             <span>Підтвердити вхід</span>
+            <Spinner v-if="loading" class="ml-2 h-5 w-5 order-last" />
+            <ArrowRight v-else class="ml-2 h-5 w-5 order-last" />
           </Button>
 
-          <Button variant="text" type="button" class="h-10 text-muted-foreground hover:text-foreground text-xs"
-            @click="router.push('/login')">
+          <Button variant="ghost" type="button" class="h-10 text-muted-foreground hover:text-foreground text-xs" @click="router.push('/login')">
             <ArrowLeft class="mr-2 h-3 w-3" />
             Повернутися до входу
           </Button>

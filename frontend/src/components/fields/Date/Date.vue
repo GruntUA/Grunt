@@ -43,12 +43,8 @@ const dateObj = computed<Date | null>({
       v-model="dateObj"
       :disabled="isDisabled"
       :invalid="error"
-      date-format="dd.mm.yy"
       :placeholder="field.placeholder || 'ДД.ММ.РРРР'"
-      show-icon
-      icon-display="input"
       class="w-full"
-      fluid
     />
   </div>
 </template>

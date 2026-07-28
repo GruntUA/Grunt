@@ -51,7 +51,8 @@ function getComponent(name: string): Component | null {
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
-const op = ref()
+const isOpen = ref(false)
+const anchorEl = ref<HTMLElement | null>(null)
 const search = ref('')
 
 const currentName = computed(() => String(props.modelValue ?? ''))
@@ -65,14 +66,15 @@ const filtered = computed(() => {
 
 async function toggle(event: Event) {
   if (props.disabled || props.field.read_only) return
-  const target = event.currentTarget
+  const target = event.currentTarget as HTMLElement
   await ensureLoaded()
-  op.value.toggle({ currentTarget: target })
+  anchorEl.value = target
+  isOpen.value = !isOpen.value
 }
 
 function select(pascalName: string) {
   emit('update:modelValue', toKebab(pascalName))
-  op.value.hide()
+  isOpen.value = false
   search.value = ''
 }
 
@@ -89,18 +91,15 @@ onMounted(() => {
 <template>
   <div class="flex items-center gap-2">
     <!-- Trigger button -->
-    <Button
-        type="button" outlined
-        class="h-9 gap-2 min-w-[140px] justify-start font-normal"
-        :disabled="disabled || field.read_only"
-        @click="toggle"
-    >
+    <Button variant="outline" type="button" class="h-9 gap-2 min-w-[140px] justify-start font-normal" :disabled="disabled || field.read_only" @click="toggle">
         <component :is="currentComponent" v-if="currentComponent" class="size-4 shrink-0" />
         <span v-if="currentName" class="text-sm truncate">{{ currentName }}</span>
         <span v-else class="text-sm text-muted-foreground">Обрати іконку…</span>
     </Button>
 
-    <Popover ref="op" class="!p-0 !shadow-lg !rounded-xl !border-border/50">
+    <Popover v-model:open="isOpen">
+      <PopoverAnchor :reference="anchorEl ?? undefined" />
+      <PopoverContent class="w-auto p-0 shadow-lg rounded-xl border-border/50">
         <div class="w-80 flex flex-col overflow-hidden">
             <!-- Search -->
             <div class="flex items-center gap-2 px-3 py-2.5 border-b border-border/60">
@@ -119,7 +118,7 @@ onMounted(() => {
             <!-- Grid -->
             <div class="h-64 overflow-y-auto p-2">
                 <div v-if="!allNames.length" class="flex items-center justify-center h-full text-sm text-muted-foreground">
-                    <ProgressSpinner class="!size-6" />
+                    <Spinner class="!size-6" />
                 </div>
                 <div v-else-if="!filtered.length" class="flex items-center justify-center h-full text-sm text-muted-foreground">
                     Не знайдено
@@ -147,6 +146,7 @@ onMounted(() => {
                 </p>
             </div>
         </div>
+      </PopoverContent>
     </Popover>
 
     <!-- Clear button -->

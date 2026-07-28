@@ -11,7 +11,8 @@ import {
   addMonths,
   subMonths,
   parseISO,
-  isToday
+  isToday,
+  parse
 } from 'date-fns'
 import { uk } from 'date-fns/locale'
 import type { DocType } from '@/types'
@@ -58,7 +59,8 @@ const draggedEvent = ref<CalendarEvent | null>(null)
 const dragOverDay = ref<string | null>(null)
 
 // Popover for event details
-const op = ref()
+const isOpen = ref(false)
+const anchorEl = ref<HTMLElement | null>(null)
 const selectedEvent = ref<CalendarEvent | null>(null)
 
 function normalizeBirthdayDate(rawDate: string, targetYear: number) {
@@ -207,9 +209,10 @@ function navigateToDoc(event: CalendarEvent) {
   router.push(props.workspace ? `/${props.workspace}/${event.doctype}/${id}` : `/${event.doctype}/${id}`)
 }
 
-function showEventDetails(event: CalendarEvent, target: any) {
+function showEventDetails(event: CalendarEvent, target: EventTarget | null) {
     selectedEvent.value = event
-    op.value.toggle(target)
+    anchorEl.value = target as HTMLElement | null
+    isOpen.value = !isOpen.value
 }
 
 // DRAG AND DROP
@@ -276,7 +279,7 @@ function onDayClick(day: Date) {
   })
 }
 
-const weekDays = ['Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
+const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
 </script>
 
 <template>
@@ -292,13 +295,13 @@ const weekDays = ['Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
         </div>
         
         <div class="flex items-center p-1 bg-background rounded-xl border border-border/40 shadow-sm">
-            <Button text size="small" class="!px-3 !h-8" @click="prevMonth">
+            <Button variant="ghost" size="sm" class="!px-3 !h-8" @click="prevMonth">
                 <ChevronLeft class="size-4" />
             </Button>
-            <Button text size="small" class="!px-4 !h-8 !text-xs font-bold uppercase tracking-wider !text-muted-foreground hover:!text-primary" @click="setToday">
+            <Button variant="ghost" size="sm" class="!px-4 !h-8 !text-xs font-bold uppercase tracking-wider !text-muted-foreground hover:!text-primary" @click="setToday">
                 Сьогодні
             </Button>
-            <Button text size="small" class="!px-3 !h-8" @click="nextMonth">
+            <Button variant="ghost" size="sm" class="!px-3 !h-8" @click="nextMonth">
                 <ChevronRight class="size-4" />
             </Button>
         </div>
@@ -306,13 +309,18 @@ const weekDays = ['Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
 
       <div class="flex items-center gap-4">
         <!-- Month Picker -->
-        <DatePicker v-model="currentMonth" view="month" dateFormat="mm/yy" :showIcon="true" iconDisplay="input" class="!w-48 !h-10" />
+        <input
+          type="month"
+          :value="format(currentMonth, 'yyyy-MM')"
+          class="!w-48 !h-10 rounded-md border border-input bg-transparent px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          @change="currentMonth = parse(($event.target as HTMLInputElement).value, 'yyyy-MM', new Date())"
+        >
         
         <div class="flex items-center gap-2">
             <div v-if="isRescheduling" class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary animate-pulse bg-primary/10 px-2 py-1 rounded-full">
                 Оновлення...
             </div>
-            <ProgressSpinner v-if="isLoading" class="!size-6" strokeWidth="6" />
+            <Spinner v-if="isLoading" class="!size-6" strokeWidth="6" />
         </div>
       </div>
     </div>
@@ -346,10 +354,7 @@ const weekDays = ['Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
               {{ format(day, 'd') }}
             </span>
 
-            <Button text rounded size="small"
-                class="!size-7 opacity-0 group-hover:opacity-100 transition-all !text-muted-foreground/40 hover:!text-primary hover:!bg-primary/5"
-                @click.stop="onDayClick(day)"
-            ><Plus class="size-4" /></Button>
+            <Button variant="ghost" size="sm" class="!size-7 opacity-0 group-hover:opacity-100 transition-all !text-muted-foreground/40 hover:!text-primary hover:!bg-primary/5 rounded-full" @click.stop="onDayClick(day)"><Plus class="size-4" /></Button>
           </div>
 
           <!-- Event cards -->
@@ -361,7 +366,7 @@ const weekDays = ['Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
                   ? 'bg-background border-border hover:border-primary/40 text-foreground'
                   : 'bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted/50'
               ]"
-              :style="event.color ? { borderLeft: `3px solid ${event.color}` } : { borderLeft: `3px solid var(--p-primary-500)` }"
+              :style="event.color ? { borderLeft: `3px solid ${event.color}` } : { borderLeft: `3px solid var(--primary)` }"
               @click="navigateToDoc(event)" 
               @dragstart="onDragStart($event, event)" 
               @dragend="onDragEnd"
@@ -378,14 +383,16 @@ const weekDays = ['Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
     </div>
 
     <!-- Event Detail Popover -->
-    <Popover ref="op">
+    <Popover v-model:open="isOpen">
+      <PopoverAnchor :reference="anchorEl ?? undefined" />
+      <PopoverContent class="w-auto p-0">
         <div v-if="selectedEvent" class="w-64 p-3 flex flex-col gap-3">
             <div class="flex items-start justify-between">
                 <div class="flex flex-col">
                     <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{{ selectedEvent.doctype }}</span>
                     <h3 class="text-sm font-black text-foreground leading-tight">{{ selectedEvent.title }}</h3>
                 </div>
-                <Button text rounded size="small" @click="navigateToDoc(selectedEvent)"><ExternalLink class="size-4" /></Button>
+                <Button variant="ghost" size="sm" @click="navigateToDoc(selectedEvent)" class="rounded-full"><ExternalLink class="size-4" /></Button>
             </div>
             
             <div class="flex flex-col gap-1.5 py-2 border-t border-border/40">
@@ -395,8 +402,9 @@ const weekDays = ['Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
                 </div>
             </div>
 
-            <Button label="Відкрити" fluid size="small" @click="navigateToDoc(selectedEvent)" />
+            <Button size="sm" class="w-full" @click="navigateToDoc(selectedEvent)">Відкрити</Button>
         </div>
+      </PopoverContent>
     </Popover>
   </div>
 </template>
@@ -408,13 +416,13 @@ const weekDays = ['Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--p-content-border-color);
+  background: var(--border);
   border-radius: 10px;
   border: 1px solid transparent;
   background-clip: padding-box;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: var(--p-primary-500);
+  background-color: var(--primary);
 }
 </style>

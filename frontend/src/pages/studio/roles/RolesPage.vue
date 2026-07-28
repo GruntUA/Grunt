@@ -52,7 +52,7 @@ onMounted(async () => {
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-16">
-      <ProgressSpinner class="size-10!" />
+      <Spinner class="size-10!" />
     </div>
 
     <div v-else class="flex gap-6">
@@ -71,13 +71,13 @@ onMounted(async () => {
         </div>
         <!-- Create role -->
         <div class="flex flex-col gap-2">
-          <InputText
+          <Input
             v-model="newRoleName"
             placeholder="Нова роль..."
             class="w-full text-sm h-9"
             @keydown.enter="createRole"
           />
-          <Button size="small" :disabled="isCreating" @click="createRole"><Loader2 v-if="isCreating" class="size-4 animate-spin" />Додати роль</Button>
+          <Button size="sm" :disabled="isCreating" @click="createRole"><Loader2 v-if="isCreating" class="size-4 animate-spin" />Додати роль</Button>
         </div>
       </div>
 

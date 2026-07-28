@@ -16,7 +16,6 @@ const id = useId()
 <template>
   <div class="flex items-center gap-2">
     <Checkbox
-      binary
       :id="id"
       :model-value="!!modelValue"
       :disabled="disabled || field.read_only"

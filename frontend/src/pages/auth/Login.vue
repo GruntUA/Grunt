@@ -79,15 +79,15 @@ async function handleLogin() {
             </div>
 
             <div class="[.oauth-enabled_&]:flex items-center gap-4 hidden">
-                <Divider />
+                <Separator />
                 <span class="text-xs text-muted-foreground whitespace-nowrap">або продовжити з</span>
-                <Divider />
+                <Separator />
             </div>
 
             <!-- Email -->
             <div class="flex flex-col gap-1.5">
               <label for="email" class="text-sm font-medium">Email</label>
-              <InputText id="email" v-model="email" type="email" autocomplete="username" placeholder="admin@grunt.local" required class="w-full" />
+              <Input id="email" v-model="email" type="email" autocomplete="username" placeholder="admin@grunt.local" required class="w-full" />
             </div>
 
             <!-- Password -->
@@ -101,7 +101,7 @@ async function handleLogin() {
                   Забули пароль?
                 </router-link>
               </div>
-              <InputText id="password" v-model="password" type="password" autocomplete="current-password" placeholder="••••••••" required class="w-full" />
+              <Input id="password" v-model="password" type="password" autocomplete="current-password" placeholder="••••••••" required class="w-full" />
             </div>
 
             <!-- Error -->
@@ -111,7 +111,10 @@ async function handleLogin() {
 
             <!-- Submit -->
             <div class="flex flex-col gap-3">
-              <Button type="submit" :loading="loading" class="w-full" label="Увійти" />
+              <Button type="submit" :disabled="loading" class="w-full">
+                <Spinner v-if="loading" class="size-4 mr-2" />
+                Увійти
+              </Button>
               <p class="text-center text-sm text-muted-foreground">
                 Немає акаунту?
                 <router-link to="/register" class="text-primary hover:underline font-medium">Зареєструватись</router-link>

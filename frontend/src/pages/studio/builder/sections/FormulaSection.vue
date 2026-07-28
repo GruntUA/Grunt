@@ -5,7 +5,7 @@ const { field, updateField } = usePropertyEditor()
 </script>
 
 <template>
-  <Divider class="!mb-3" />
+  <Separator class="!mb-3" />
   <div class="flex items-center justify-between mb-3">
     <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Formula</p>
     <span
@@ -21,8 +21,7 @@ const { field, updateField } = usePropertyEditor()
         rows="2"
         placeholder="qty * unit_price"
         class="w-full !text-sm !font-mono"
-        autoResize
-        @input="updateField('formula', ($event.target as HTMLTextAreaElement).value.trim() || null)"
+        @update:model-value="(v: string | number) => updateField('formula', String(v).trim() || null)"
       />
       <p class="text-[11px] text-muted-foreground leading-relaxed">
         Обчислюється при кожному збереженні. Доступні всі поля документа як змінні.<br>
@@ -32,7 +31,7 @@ const { field, updateField } = usePropertyEditor()
       </p>
     </div>
     <div v-if="field.formula" class="flex items-center gap-2 pt-1 pl-0.5">
-      <Checkbox binary :model-value="!!field.read_only" @update:model-value="updateField('read_only', $event)" />
+      <Checkbox :model-value="!!field.read_only" @update:model-value="updateField('read_only', $event)" />
       <label class="text-sm text-muted-foreground cursor-pointer font-medium">Read Only (рекомендовано)</label>
     </div>
   </div>

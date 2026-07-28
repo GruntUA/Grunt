@@ -13,15 +13,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Divider class="!mb-3" />
+  <Separator class="!mb-3" />
   <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Linked DocType</p>
   <div class="mb-4">
-    <Select
+    <Combobox
       :model-value="field.options ?? ''"
       :options="doctypeList.map(d => d.name)"
       placeholder="— оберіть —"
-      filter
-      empty-filter-message="Нічого не знайдено"
+      empty-message="Нічого не знайдено"
       class="w-full"
       @update:model-value="updateField('options', $event)"
     />
@@ -34,8 +33,7 @@ onMounted(async () => {
       rows="2"
       placeholder='{"status": "Active"} або eval: {"company": doc.company}'
       class="w-full !text-sm !font-mono"
-      autoResize
-      @input="updateField('link_filters', ($event.target as HTMLTextAreaElement).value.trim() || null)"
+      @update:model-value="(v: string | number) => updateField('link_filters', String(v).trim() || null)"
     />
     <p class="text-[11px] text-muted-foreground">JSON об'єкт або <code class="bg-muted px-1 rounded">eval: {"field": doc.field}</code></p>
   </div>

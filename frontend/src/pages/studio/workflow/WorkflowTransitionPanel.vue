@@ -24,27 +24,29 @@ function update(key: keyof WorkflowTransition, val: unknown) {
     <div class="flex flex-col gap-3">
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium text-foreground">Дія (назва кнопки) *</label>
-        <InputText :model-value="transition.action" class="w-full" @update:model-value="update('action', $event)" />
+        <Input :model-value="transition.action" class="w-full" @update:model-value="update('action', $event)" />
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium text-foreground">Зі стану *</label>
-        <Select
-          :model-value="transition.from_state"
-          :options="stateOptionsList"
-          placeholder="— оберіть —"
-          class="w-full"
-          @update:model-value="update('from_state', $event)"
-        />
+        <Select :model-value="transition.from_state" @update:model-value="update('from_state', $event)">
+          <SelectTrigger class="w-full">
+            <SelectValue placeholder="— оберіть —" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in stateOptionsList" :key="opt" :value="opt">{{ opt }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium text-foreground">До стану *</label>
-        <Select
-          :model-value="transition.to_state"
-          :options="stateOptionsList"
-          placeholder="— оберіть —"
-          class="w-full"
-          @update:model-value="update('to_state', $event)"
-        />
+        <Select :model-value="transition.to_state" @update:model-value="update('to_state', $event)">
+          <SelectTrigger class="w-full">
+            <SelectValue placeholder="— оберіть —" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in stateOptionsList" :key="opt" :value="opt">{{ opt }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium text-foreground">Дозволені ролі</label>
@@ -53,14 +55,14 @@ function update(key: keyof WorkflowTransition, val: unknown) {
           rows="3"
           placeholder="Кожна роль з нового рядка"
           class="w-full text-sm"
-          @update:model-value="update('allowed_roles', ($event ?? '').split('\n').map(r => r.trim()).filter(Boolean))"
+          @update:model-value="update('allowed_roles', String($event ?? '').split('\n').map(r => r.trim()).filter(Boolean))"
         />
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium text-foreground">Умова (Python)</label>
-        <InputText :model-value="transition.condition ?? ''" placeholder="doc.amount > 0" class="w-full" @update:model-value="update('condition', $event || null)" />
+        <Input :model-value="transition.condition ?? ''" placeholder="doc.amount > 0" class="w-full" @update:model-value="update('condition', $event || null)" />
       </div>
-      <Button severity="danger" size="small" class="mt-2" @click="emit('remove')">Видалити перехід</Button>
+      <Button variant="destructive" size="sm" class="mt-2" @click="emit('remove')">Видалити перехід</Button>
     </div>
   </div>
 </template>

@@ -199,13 +199,15 @@ function updateBubble() {
 }
 
 // ── Link popover ──────────────────────────────────────────────────────────────
-const op = ref<any>(null);
+const isLinkOpen = ref(false)
+const linkAnchorEl = ref<HTMLElement | null>(null)
 const linkUrl  = ref('')
 
-function openLinkPopover(event: any) {
+function openLinkPopover(event: Event) {
   if (!editor.value) return
   linkUrl.value = editor.value.getAttributes('link').href ?? ''
-  op.value.toggle(event);
+  linkAnchorEl.value = event.currentTarget as HTMLElement
+  isLinkOpen.value = !isLinkOpen.value
 }
 
 function applyLink() {
@@ -214,28 +216,30 @@ function applyLink() {
   url
     ? editor.value.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
     : editor.value.chain().focus().extendMarkRange('link').unsetLink().run()
-  op.value.hide();
+  isLinkOpen.value = false
 }
 
 function removeLink() {
   editor.value?.chain().focus().extendMarkRange('link').unsetLink().run()
-  op.value.hide();
+  isLinkOpen.value = false
 }
 
 // ── Image ─────────────────────────────────────────────────────────────────────
-const opImage = ref<any>(null);
+const isImageOpen = ref(false)
+const imageAnchorEl = ref<HTMLElement | null>(null)
 const imageUrl       = ref('')
 const imageUploading = ref(false)
 
-function openImagePopover(event: any) {
-    opImage.value.toggle(event);
+function openImagePopover(event: Event) {
+    imageAnchorEl.value = event.currentTarget as HTMLElement
+    isImageOpen.value = !isImageOpen.value
 }
 
 function insertImageUrl() {
   const url = imageUrl.value.trim()
   if (url) editor.value?.chain().focus().setImage({ src: url }).run()
   imageUrl.value = ''
-  opImage.value.hide();
+  isImageOpen.value = false
 }
 
 async function uploadImage(e: Event) {
@@ -245,7 +249,7 @@ async function uploadImage(e: Event) {
   try {
     const item = await filesApi.upload(file)
     editor.value?.chain().focus().setImage({ src: item.url, alt: item.filename }).run()
-    opImage.value.hide();
+    isImageOpen.value = false
   } finally {
     imageUploading.value = false
   }
@@ -298,123 +302,126 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
       class="flex items-center gap-0.5 rounded-t-md border border-b-0 border-border bg-muted/50 p-1 flex-wrap text-foreground"
     >
       <!-- Font family -->
-      <Select
-        :model-value="currentFontFamily"
-        :options="FONT_FAMILIES"
-        option-label="label"
-        option-value="value"
-        size="small"
-        class="h-7 w-36 text-xs"
-        @change="applyFontFamily(($event as any).value)"
-      />
+      <Select :model-value="currentFontFamily" @update:model-value="(v: unknown) => applyFontFamily(String(v))">
+        <SelectTrigger class="h-7 w-36 text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="opt in FONT_FAMILIES" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+        </SelectContent>
+      </Select>
       <!-- Font size -->
-      <Select
-        :model-value="currentFontSize"
-        :options="FONT_SIZES"
-        option-label="label"
-        option-value="value"
-        size="small"
-        class="h-7 w-[4.5rem] text-xs"
-        @change="applyFontSize(($event as any).value)"
-      />
+      <Select :model-value="currentFontSize" @update:model-value="(v: unknown) => applyFontSize(String(v))">
+        <SelectTrigger class="h-7 w-[4.5rem] text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="opt in FONT_SIZES" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+        </SelectContent>
+      </Select>
 
-      <Divider layout="vertical" class="!mx-1 !h-6 !my-0" />
+      <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
 
-      <Button size="small" :severity="editor.isActive('bold') ? 'primary' : 'secondary'" variant="text"
+      <Button size="sm" variant="ghost" :class="editor.isActive('bold') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         :disabled="!editor.can().chain().focus().toggleBold().run()"
         @click="editor.chain().focus().toggleBold().run()">
         <Bold class="size-4" />
       </Button>
-      <Button size="small" :severity="editor.isActive('italic') ? 'primary' : 'secondary'" variant="text"
+      <Button size="sm" variant="ghost" :class="editor.isActive('italic') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         :disabled="!editor.can().chain().focus().toggleItalic().run()"
         @click="editor.chain().focus().toggleItalic().run()">
         <Italic class="size-4" />
       </Button>
-      <Button size="small" :severity="editor.isActive('strike') ? 'primary' : 'secondary'" variant="text"
+      <Button size="sm" variant="ghost" :class="editor.isActive('strike') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         :disabled="!editor.can().chain().focus().toggleStrike().run()"
         @click="editor.chain().focus().toggleStrike().run()">
         <Strikethrough class="size-4" />
       </Button>
-      <Button size="small" :severity="editor.isActive('code') ? 'primary' : 'secondary'" variant="text"
+      <Button size="sm" variant="ghost" :class="editor.isActive('code') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         :disabled="!editor.can().chain().focus().toggleCode().run()"
         @click="editor.chain().focus().toggleCode().run()">
         <Code class="size-4" />
       </Button>
 
-      <Divider layout="vertical" class="!mx-1 !h-6 !my-0" />
+      <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
 
-      <Button size="small" :severity="editor.isActive('heading', { level: 2 }) ? 'primary' : 'secondary'" variant="text"
+      <Button size="sm" variant="ghost" :class="editor.isActive('heading', { level: 2 }) ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.chain().focus().toggleHeading({ level: 2 }).run()">
         <Heading2 class="size-4" />
       </Button>
-      <Button size="small" :severity="editor.isActive('heading', { level: 3 }) ? 'primary' : 'secondary'" variant="text"
+      <Button size="sm" variant="ghost" :class="editor.isActive('heading', { level: 3 }) ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.chain().focus().toggleHeading({ level: 3 }).run()">
         <Heading3 class="size-4" />
       </Button>
 
-      <Divider layout="vertical" class="!mx-1 !h-6 !my-0" />
+      <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
 
-      <Button size="small" :severity="editor.isActive('bulletList') ? 'primary' : 'secondary'" variant="text"
+      <Button size="sm" variant="ghost" :class="editor.isActive('bulletList') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.chain().focus().toggleBulletList().run()">
         <List class="size-4" />
       </Button>
-      <Button size="small" :severity="editor.isActive('orderedList') ? 'primary' : 'secondary'" variant="text"
+      <Button size="sm" variant="ghost" :class="editor.isActive('orderedList') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.chain().focus().toggleOrderedList().run()">
         <ListOrdered class="size-4" />
       </Button>
-      <Button size="small" :severity="editor.isActive('blockquote') ? 'primary' : 'secondary'" variant="text"
+      <Button size="sm" variant="ghost" :class="editor.isActive('blockquote') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.chain().focus().toggleBlockquote().run()">
         <Quote class="size-4" />
       </Button>
 
       <!-- Indent / Outdent -->
-      <Button size="small" severity="secondary" variant="text" @click="doIndent">
+      <Button size="sm" variant="ghost" @click="doIndent">
         <IndentIncrease class="size-4" />
       </Button>
-      <Button size="small" severity="secondary" variant="text" @click="doOutdent">
+      <Button size="sm" variant="ghost" @click="doOutdent">
         <IndentDecrease class="size-4" />
       </Button>
 
-      <Button size="small" :severity="editor.isActive('codeBlock') ? 'primary' : 'secondary'" variant="text"
+      <Button size="sm" variant="ghost" :class="editor.isActive('codeBlock') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.chain().focus().toggleCodeBlock().run()">
         <Code2 class="size-4" />
       </Button>
-      <Button size="small" severity="secondary" variant="text"
+      <Button size="sm" variant="ghost"
         @click="editor.chain().focus().setHorizontalRule().run()">
         <Minus class="size-4" />
       </Button>
 
-      <Divider layout="vertical" class="!mx-1 !h-6 !my-0" />
+      <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
 
       <!-- Link -->
-      <Button size="small" :severity="editor.isActive('link') ? 'primary' : 'secondary'" variant="text" @click="openLinkPopover">
+      <Button size="sm" variant="ghost" :class="editor.isActive('link') ? 'text-primary bg-accent' : 'text-muted-foreground'" @click="openLinkPopover">
         <LinkIcon class="size-4" />
       </Button>
-      <Popover ref="op">
+      <Popover v-model:open="isLinkOpen">
+        <PopoverAnchor :reference="linkAnchorEl ?? undefined" />
+        <PopoverContent class="w-auto p-0">
           <div class="w-72 p-1">
               <p class="text-xs font-medium text-muted-foreground mb-2">Посилання</p>
               <div class="flex gap-2">
-                <InputText v-model="linkUrl" placeholder="https://…" class="h-8 text-sm flex-1"
+                <Input v-model="linkUrl" placeholder="https://…" class="h-8 text-sm flex-1"
                   @keydown.enter.prevent="applyLink" />
-                <Button size="small" class="h-8 px-3" @click="applyLink">OK</Button>
-                <Button v-if="editor.isActive('link')" severity="danger" size="small" variant="text" class="h-8 px-2" @click="removeLink">
+                <Button size="sm" class="h-8 px-3" @click="applyLink">OK</Button>
+                <Button v-if="editor.isActive('link')" variant="ghost" size="sm" class="h-8 px-2 text-destructive hover:text-destructive" @click="removeLink">
                   <Link2Off class="size-4" />
                 </Button>
               </div>
           </div>
+        </PopoverContent>
       </Popover>
 
       <!-- Image -->
-      <Button size="small" severity="secondary" variant="text" @click="openImagePopover">
+      <Button size="sm" variant="ghost" @click="openImagePopover">
         <ImageIcon class="size-4" />
       </Button>
-      <Popover ref="opImage">
+      <Popover v-model:open="isImageOpen">
+        <PopoverAnchor :reference="imageAnchorEl ?? undefined" />
+        <PopoverContent class="w-auto p-0">
           <div class="w-72 p-1">
               <p class="text-xs font-medium text-muted-foreground mb-2">Зображення</p>
               <div class="flex gap-2 mb-2">
-                <InputText v-model="imageUrl" placeholder="https://…" class="h-8 text-sm flex-1"
+                <Input v-model="imageUrl" placeholder="https://…" class="h-8 text-sm flex-1"
                   @keydown.enter.prevent="insertImageUrl" />
-                <Button size="small" class="h-8 px-3" @click="insertImageUrl">OK</Button>
+                <Button size="sm" class="h-8 px-3" @click="insertImageUrl">OK</Button>
               </div>
               <label class="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors p-2 hover:bg-muted rounded">
                 <Upload class="size-3.5" />
@@ -422,10 +429,11 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
                 <input type="file" accept="image/*" class="hidden" :disabled="imageUploading" @change="uploadImage" />
               </label>
           </div>
+        </PopoverContent>
       </Popover>
 
       <!-- Table -->
-      <Button size="small" :severity="editor.isActive('table') ? 'primary' : 'secondary'" variant="text"
+      <Button size="sm" variant="ghost" :class="editor.isActive('table') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.isActive('table')
           ? editor.chain().focus().deleteTable().run()
           : editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()">
@@ -434,12 +442,12 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 
       <div class="flex-1" />
 
-      <Button size="small" severity="secondary" variant="text"
+      <Button size="sm" variant="ghost"
         :disabled="!editor.can().chain().focus().undo().run()"
         @click="editor.chain().focus().undo().run()">
         <Undo class="size-4" />
       </Button>
-      <Button size="small" severity="secondary" variant="text"
+      <Button size="sm" variant="ghost"
         :disabled="!editor.can().chain().focus().redo().run()"
         @click="editor.chain().focus().redo().run()">
         <Redo class="size-4" />
@@ -463,20 +471,20 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
           :style="bubbleStyle"
           class="absolute z-20 flex items-center gap-0.5 rounded-md border border-border bg-background/95 backdrop-blur-sm shadow-md p-1 text-foreground pointer-events-auto"
         >
-          <Button size="small" :severity="editor!.isActive('bold') ? 'primary' : 'secondary'" variant="text"
+          <Button size="sm" variant="ghost" :class="editor!.isActive('bold') ? 'text-primary bg-accent' : 'text-muted-foreground'"
             @click="editor!.chain().focus().toggleBold().run()">
             <Bold class="size-3.5" />
           </Button>
-          <Button size="small" :severity="editor!.isActive('italic') ? 'primary' : 'secondary'" variant="text"
+          <Button size="sm" variant="ghost" :class="editor!.isActive('italic') ? 'text-primary bg-accent' : 'text-muted-foreground'"
             @click="editor!.chain().focus().toggleItalic().run()">
             <Italic class="size-3.5" />
           </Button>
-          <Button size="small" :severity="editor!.isActive('strike') ? 'primary' : 'secondary'" variant="text"
+          <Button size="sm" variant="ghost" :class="editor!.isActive('strike') ? 'text-primary bg-accent' : 'text-muted-foreground'"
             @click="editor!.chain().focus().toggleStrike().run()">
             <Strikethrough class="size-3.5" />
           </Button>
-          <Divider layout="vertical" class="!mx-0.5 !h-5 !my-0" />
-          <Button size="small" :severity="editor!.isActive('link') ? 'primary' : 'secondary'" variant="text" @click="openLinkPopover">
+          <Separator orientation="vertical" class="!mx-0.5 !h-5 !my-0" />
+          <Button size="sm" variant="ghost" :class="editor!.isActive('link') ? 'text-primary bg-accent' : 'text-muted-foreground'" @click="openLinkPopover">
             <LinkIcon class="size-3.5" />
           </Button>
         </div>
@@ -508,7 +516,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 /* Placeholder */
 .richtext-content .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
-  color: var(--p-text-muted-color);
+  color: var(--muted-foreground);
   pointer-events: none;
   float: left;
   height: 0;
@@ -544,7 +552,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 .richtext-content .tiptap h6 { font-size: 1rem; }
 
 .richtext-content .tiptap code {
-  background-color: var(--p-content-background);
+  background-color: var(--muted);
   border-radius: 0.3rem;
   font-size: 0.85em;
   padding: 0.2em 0.4em;
@@ -567,18 +575,18 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 }
 
 .richtext-content .tiptap blockquote {
-  border-left: 3px solid var(--p-content-border-color);
+  border-left: 3px solid var(--border);
   margin: 0.75rem 0;
   padding-left: 1rem;
-  color: var(--p-text-muted-color);
+  color: var(--muted-foreground);
 }
 .richtext-content .tiptap hr {
   border: none;
-  border-top: 1px solid var(--p-content-border-color);
+  border-top: 1px solid var(--border);
   margin: 1.25rem 0;
 }
 .richtext-content .tiptap a {
-  color: var(--p-primary-color);
+  color: var(--primary);
   text-decoration: underline;
   cursor: pointer;
 }
@@ -589,7 +597,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
   margin: 0.5rem 0;
 }
 .richtext-content .tiptap img.ProseMirror-selectednode {
-  outline: 2px solid var(--p-primary-color);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
@@ -602,21 +610,21 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 }
 .richtext-content .tiptap td,
 .richtext-content .tiptap th {
-  border: 1px solid var(--p-content-border-color);
+  border: 1px solid var(--border);
   padding: 0.4rem 0.6rem;
   vertical-align: top;
   min-width: 80px;
   position: relative;
 }
 .richtext-content .tiptap th {
-  background-color: var(--p-content-background);
+  background-color: var(--muted);
   font-weight: 600;
 }
 .richtext-content .tiptap .selectedCell::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--p-primary-color);
+  background: var(--primary);
   opacity: 0.1;
   pointer-events: none;
 }
@@ -625,7 +633,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
   right: -2px;
   top: 0; bottom: 0;
   width: 4px;
-  background-color: var(--p-primary-color);
+  background-color: var(--primary);
   cursor: col-resize;
   pointer-events: all;
 }

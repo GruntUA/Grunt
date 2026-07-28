@@ -207,38 +207,37 @@ onMounted(async () => {
 
       <div class="flex items-center gap-2">
         <!-- DocType selector -->
-        <Select
-          v-model="doctype"
-          :options="allDoctypes"
-          option-label="label"
-          option-value="name"
-          placeholder="Тип документа..."
-          class="w-52"
-        />
+        <Select v-model="doctype">
+          <SelectTrigger class="w-52">
+            <SelectValue placeholder="Тип документа..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in allDoctypes" :key="opt.name" :value="opt.name">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
 
         <!-- Sample doc selector -->
-        <Select
-          v-if="sampleDocs.length"
-          v-model="sampleDocId"
-          :options="sampleDocs.map(d => ({ value: String(d.id), label: String(d.name ?? d.id) }))"
-          option-label="label"
-          option-value="value"
-          placeholder="Зразок..."
-          class="w-40"
-        />
+        <Select v-model="sampleDocId" v-if="sampleDocs.length">
+          <SelectTrigger class="w-40">
+            <SelectValue placeholder="Зразок..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in sampleDocs.map(d => ({ value: String(d.id), label: String(d.name ?? d.id) }))" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <Button outlined size="small" class="h-8 text-foreground" @click="resetToDefault">
+        <Button variant="outline" size="sm" class="h-8 text-foreground" @click="resetToDefault">
           <RefreshCw class="size-3.5 mr-1.5" />
           Скинути
         </Button>
 
-        <Button outlined size="small" class="h-8 text-foreground" @click="showPreview = !showPreview">
+        <Button variant="outline" size="sm" class="h-8 text-foreground" @click="showPreview = !showPreview">
           <EyeOff v-if="showPreview" class="size-3.5 mr-1.5" />
           <Eye v-else class="size-3.5 mr-1.5" />
           {{ showPreview ? 'Сховати' : 'Показати' }} preview
         </Button>
 
-        <Button size="small" class="h-8" :disabled="isSaving" @click="save">
+        <Button size="sm" class="h-8" :disabled="isSaving" @click="save">
           <Loader2 v-if="isSaving" class="size-3.5 animate-spin mr-1.5" />
           <Save v-else class="size-3.5 mr-1.5" />
           Зберегти

@@ -119,7 +119,7 @@ function goHome() {
           <X class="w-4 h-4 text-muted-foreground" />
         </button>
       </div>
-      <ScrollPanel class="max-h-72">
+      <div class="max-h-72 overflow-y-auto">
         <div class="px-3 pb-4 space-y-0.5">
           <button
             v-for="item in overflowItems"
@@ -134,7 +134,7 @@ function goHome() {
             <span class="flex-1 text-left truncate">{{ item.label }}</span>
           </button>
         </div>
-      </ScrollPanel>
+      </div>
     </div>
   </Transition>
 

@@ -16,7 +16,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <InputText
+  <Input
     :model-value="modelValue"
     class="h-8 text-xs mb-3 w-full"
     :placeholder="op === 'like' ? 'частина тексту...' : 'Значення'"

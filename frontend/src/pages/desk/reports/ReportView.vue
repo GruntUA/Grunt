@@ -83,13 +83,13 @@ onMounted(load)
         </p>
       </div>
       <div class="flex gap-2">
-        <Button severity="secondary" :disabled="isRunning" @click="runReport"><Loader2 v-if="isRunning" class="size-4 animate-spin" />Оновити</Button>
-        <Button severity="secondary" @click="downloadXlsx">Excel ↓</Button>
+        <Button variant="secondary" :disabled="isRunning" @click="runReport"><Loader2 v-if="isRunning" class="size-4 animate-spin" />Оновити</Button>
+        <Button variant="secondary" @click="downloadXlsx">Excel ↓</Button>
       </div>
     </div>
 
     <div v-if="isLoading" class="flex justify-center py-16">
-      <ProgressSpinner class="size-10!" />
+      <Spinner class="size-10!" />
     </div>
 
     <template v-else>
@@ -99,9 +99,18 @@ onMounted(load)
       </div>
 
       <!-- Table -->
-      <DataTable v-if="result && result.data.length > 0" :value="tableRows" size="small" stripedRows class="border border-border/50 rounded-lg overflow-hidden">
-        <Column v-for="col in tableColumns" :key="col.key" :field="col.key" :header="col.label" />
-      </DataTable>
+      <Table v-if="result && result.data.length > 0" class="border border-border/50 rounded-lg overflow-hidden">
+        <TableHeader>
+          <TableRow>
+            <TableHead v-for="col in tableColumns" :key="col.key">{{ col.label }}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow v-for="(row, ri) in tableRows" :key="ri" class="odd:bg-muted/20">
+            <TableCell v-for="col in tableColumns" :key="col.key">{{ row[col.key] }}</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
       <div v-else-if="result" class="text-center py-10 text-muted-foreground text-sm">
         Немає даних
       </div>

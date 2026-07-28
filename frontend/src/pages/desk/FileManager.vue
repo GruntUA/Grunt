@@ -92,12 +92,12 @@ function onSearchInput() {
             <div class="flex items-center gap-3 w-full md:w-auto md:flex-1 md:justify-end">
                 <div class="relative w-full md:max-w-xs xl:max-w-md">
                     <Search class="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                    <InputText v-model="searchQuery" placeholder="Введіть назву файла..." class="pl-9 h-9 w-full"
+                    <Input v-model="searchQuery" placeholder="Введіть назву файла..." class="pl-9 h-9 w-full"
                         @input="onSearchInput" />
                 </div>
                 <div class="relative overflow-hidden group shrink-0">
                     <Button :disabled="uploading" class="h-9 whitespace-nowrap px-4">
-                        <ProgressSpinner v-if="uploading" class="size-4! mr-2" strokeWidth="8" />
+                        <Spinner v-if="uploading" class="size-4! mr-2" strokeWidth="8" />
                         <UploadCloud v-else class="size-4 mr-2" />
                         Завантажити
                     </Button>
@@ -121,7 +121,7 @@ function onSearchInput() {
             </div>
 
             <div v-if="loading" class="flex-1 flex items-center justify-center">
-                <ProgressSpinner class="size-10!" />
+                <Spinner class="size-10!" />
             </div>
 
             <div v-else-if="files.length === 0"
@@ -176,7 +176,7 @@ function onSearchInput() {
                             file.filename }}</p>
                         <div
                             class="flex items-center justify-between text-[10px] uppercase font-bold text-muted-foreground">
-                            <Badge severity="contrast"
+                            <Badge variant="secondary"
                                 class="text-[9px] px-1 bg-muted/30 border-transparent truncate max-w-[60px]">
                                 {{ file.content_type.split('/')[1] || 'FILE' }}
                             </Badge>

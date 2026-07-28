@@ -231,14 +231,14 @@ function getTransitionMid(t: WorkflowTransition) {
         </div>
       </div>
       <div class="flex gap-2">
-        <Button severity="secondary" size="small" @click="addState">+ Стан</Button>
-        <Button severity="secondary" size="small" @click="addTransition">+ Перехід</Button>
-        <Button size="small" :disabled="isSaving" @click="save"><Loader2 v-if="isSaving" class="size-4 animate-spin" />Зберегти</Button>
+        <Button variant="secondary" size="sm" @click="addState">+ Стан</Button>
+        <Button variant="secondary" size="sm" @click="addTransition">+ Перехід</Button>
+        <Button size="sm" :disabled="isSaving" @click="save"><Loader2 v-if="isSaving" class="size-4 animate-spin" />Зберегти</Button>
       </div>
     </div>
 
     <div v-if="isLoading" class="flex-1 flex items-center justify-center">
-      <ProgressSpinner class="size-10!" />
+      <Spinner class="size-10!" />
     </div>
 
     <div v-else class="flex flex-1 overflow-hidden">
@@ -252,7 +252,7 @@ function getTransitionMid(t: WorkflowTransition) {
         <p v-if="jsonError" class="text-sm text-destructive">{{ jsonError }}</p>
         <div class="flex gap-2">
           <Button @click="applyJson">Застосувати</Button>
-          <Button severity="secondary" @click="syncJsonText">Скинути</Button>
+          <Button variant="secondary" @click="syncJsonText">Скинути</Button>
         </div>
       </div>
 

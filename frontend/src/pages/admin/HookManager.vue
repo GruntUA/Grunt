@@ -75,7 +75,7 @@ onMounted(fetchHooks)
             <div class="flex items-center gap-4">
                 <div class="relative flex-1">
                     <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                    <InputText v-model="searchQuery" placeholder="Пошук за подією, обробником або DocType..."
+                    <Input v-model="searchQuery" placeholder="Пошук за подією, обробником або DocType..."
                         class="pl-10 h-11 bg-card w-full shadow-inner border-border/60" />
                 </div>
                 <div class="flex gap-2 p-1 bg-muted rounded-lg shadow-inner">
@@ -99,9 +99,9 @@ onMounted(fetchHooks)
                     <div class="col-span-1 text-right">Пріор.</div>
                 </div>
 
-                <ScrollPanel class="flex-1">
+                <div class="flex-1 overflow-y-auto">
                     <div v-if="loading" class="flex flex-col items-center justify-center h-[400px] gap-4">
-                        <ProgressSpinner class="size-10!" />
+                        <Spinner class="size-10!" />
                         <span class="text-sm font-medium text-muted-foreground">Завантаження конфігурації...</span>
                     </div>
 
@@ -121,7 +121,7 @@ onMounted(fetchHooks)
                                 <span class="text-xs font-semibold">{{ h.displaySource }}</span>
                             </div>
                             <div class="col-span-2">
-                                <Badge severity="contrast" class="font-mono text-[10px] py-0 px-2 tracking-tighter"
+                                <Badge variant="secondary" class="font-mono text-[10px] py-0 px-2 tracking-tighter"
                                     :class="h.doctype === '*' ? 'bg-muted text-muted-foreground' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'">
                                     {{ h.doctype }}</Badge>
                             </div>
@@ -143,7 +143,7 @@ onMounted(fetchHooks)
                             </div>
                         </div>
                     </div>
-                </ScrollPanel>
+                </div>
 
                 <div
                     class="px-6 py-3 border-t bg-muted/10 flex items-center justify-between text-[11px] text-muted-foreground font-medium">

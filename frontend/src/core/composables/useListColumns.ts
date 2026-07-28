@@ -25,7 +25,7 @@ export function useListColumns(doctype: string, fields: () => DocField[], titleF
   // Default visible = in_list_view fields
   const defaultKeys = computed<string[]>(() => {
     let cols = fields().filter(f => f.in_list_view && !f.hidden).map(f => f.fieldname)
-    if (!cols.length) cols = ['id']
+    if (!cols.length) cols = ['name']
 
     const tf = titleField?.()
     if (tf && cols.includes(tf)) {

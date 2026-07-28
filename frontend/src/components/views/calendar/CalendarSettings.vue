@@ -105,51 +105,50 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
           class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/15 text-amber-700 dark:text-amber-400"
         >Увімкнено</span>
       </div>
-      <ToggleSwitch :model-value="hasCalendar" @update:model-value="toggleCalendar" />
+      <Switch :model-value="hasCalendar" @update:model-value="toggleCalendar" />
     </div>
     <div v-if="builder.doctype.calendar_view" class="p-4 space-y-4">
       <div class="grid grid-cols-2 gap-3">
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле дати (Початок) *</label>
-          <Select
-            :model-value="builder.doctype.calendar_view.field"
-            :options="allDateFields.map((f) => ({ value: f.fieldname, label: f.label }))"
-            option-label="label"
-            option-value="value"
-            placeholder="Оберіть поле дати"
-            class="h-8 text-xs"
-            @update:model-value="updateCalendar({ field: $event })"
-          />
+          <Select :model-value="builder.doctype.calendar_view.field" @update:model-value="updateCalendar({ field: $event })">
+            <SelectTrigger class="h-8 text-xs">
+              <SelectValue placeholder="Оберіть поле дати" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="opt in allDateFields.map((f) => ({ value: f.fieldname, label: f.label }))" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле дати (Завершення)</label>
-          <Select
-            :model-value="builder.doctype.calendar_view.end_field ?? '__none__'"
-            :options="[{ value: '__none__', label: '— немає (один день) —' }, ...allDateFields.map((f) => ({ value: f.fieldname, label: f.label }))]"
-            option-label="label"
-            option-value="value"
-            class="h-8 text-xs"
-            @update:model-value="updateCalendar({ end_field: $event === '__none__' ? undefined : $event })"
-          />
+          <Select :model-value="builder.doctype.calendar_view.end_field ?? '__none__'" @update:model-value="updateCalendar({ end_field: $event === '__none__' ? undefined : $event })">
+            <SelectTrigger class="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="opt in [{ value: '__none__', label: '— немає (один день) —' }, ...allDateFields.map((f) => ({ value: f.fieldname, label: f.label }))]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       <div class="flex flex-col gap-1.5">
         <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле заголовка</label>
-        <Select
-          :model-value="builder.doctype.calendar_view.title_field"
-          :options="[{ value: 'name', label: 'name' }, ...dataFields.map((f) => ({ value: f.fieldname, label: f.label }))]"
-          option-label="label"
-          option-value="value"
-          class="h-8 text-xs"
-          @update:model-value="updateCalendar({ title_field: $event })"
-        />
+        <Select :model-value="builder.doctype.calendar_view.title_field" @update:model-value="updateCalendar({ title_field: $event })">
+          <SelectTrigger class="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in [{ value: 'name', label: 'name' }, ...dataFields.map((f) => ({ value: f.fieldname, label: f.label }))]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div class="space-y-3 pt-1">
         <div class="flex items-center justify-between">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Додаткові джерела</label>
-          <Button outlined size="small" class="h-7 px-2.5 text-xs gap-1" @click="addCalendarSource">
+          <Button variant="outline" size="sm" class="h-7 px-2.5 text-xs gap-1" @click="addCalendarSource">
             <Plus class="size-3" />
             Додати
           </Button>
@@ -170,7 +169,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
           <div class="grid grid-cols-2 gap-3">
             <div class="flex flex-col gap-1">
               <label class="text-[11px] font-medium text-muted-foreground">DocType</label>
-              <InputText
+              <Input
                 :model-value="source.doctype"
                 placeholder="Наприклад: Task"
                 class="h-7 text-xs w-full"
@@ -179,25 +178,25 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
             </div>
             <div class="flex flex-col gap-1">
               <label class="text-[11px] font-medium text-muted-foreground">Тип події</label>
-              <Select
-                :model-value="source.event_type ?? 'default'"
-                :options="[
-                  { value: 'default', label: 'Звичайна подія' },
-                  { value: 'birthday', label: 'День народження' },
-                ]"
-                option-label="label"
-                option-value="value"
-                class="h-7 text-xs"
-                @update:model-value="updateCalendarSource(idx, {
+              <Select :model-value="source.event_type ?? 'default'" @update:model-value="updateCalendarSource(idx, {
                   event_type: $event,
                   recurring: $event === 'birthday' ? true : (source.recurring ?? false),
                   show_age: $event === 'birthday' ? true : (source.show_age ?? false),
-                })"
-              />
+                })">
+                <SelectTrigger class="h-7 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="opt in [
+                  { value: 'default', label: 'Звичайна подія' },
+                  { value: 'birthday', label: 'День народження' },
+                ]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div class="flex flex-col gap-1">
               <label class="text-[11px] font-medium text-muted-foreground">Поле дати (start)</label>
-              <InputText
+              <Input
                 :model-value="source.date_field"
                 placeholder="fieldname"
                 class="h-7 text-xs w-full"
@@ -206,7 +205,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
             </div>
             <div class="flex flex-col gap-1">
               <label class="text-[11px] font-medium text-muted-foreground">Поле дати (end)</label>
-              <InputText
+              <Input
                 :model-value="source.end_date_field ?? ''"
                 placeholder="опціонально"
                 class="h-7 text-xs w-full"
@@ -215,7 +214,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
             </div>
             <div class="flex flex-col gap-1">
               <label class="text-[11px] font-medium text-muted-foreground">Поле заголовка</label>
-              <InputText
+              <Input
                 :model-value="source.label_field ?? 'name'"
                 placeholder="Наприклад: full_name"
                 class="h-7 text-xs w-full"
@@ -224,7 +223,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
             </div>
             <div class="flex flex-col gap-1">
               <label class="text-[11px] font-medium text-muted-foreground">Колір</label>
-              <InputText
+              <Input
                 :model-value="source.color ?? ''"
                 placeholder="#hex"
                 class="h-7 text-xs w-full"
@@ -233,29 +232,29 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
             </div>
             <div class="flex flex-col gap-1">
               <label class="text-[11px] font-medium text-muted-foreground">Щорічне повторення</label>
-              <Select
-                :model-value="source.recurring ? 'yes' : 'no'"
-                :options="[{ value: 'yes', label: 'Так' }, { value: 'no', label: 'Ні' }]"
-                option-label="label"
-                option-value="value"
-                class="h-7 text-xs"
-                @update:model-value="updateCalendarSource(idx, { recurring: $event === 'yes' })"
-              />
+              <Select :model-value="source.recurring ? 'yes' : 'no'" @update:model-value="updateCalendarSource(idx, { recurring: $event === 'yes' })">
+                <SelectTrigger class="h-7 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="opt in [{ value: 'yes', label: 'Так' }, { value: 'no', label: 'Ні' }]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div v-if="source.event_type === 'birthday'" class="flex flex-col gap-1">
               <label class="text-[11px] font-medium text-muted-foreground">Показувати вік</label>
-              <Select
-                :model-value="source.show_age ? 'yes' : 'no'"
-                :options="[{ value: 'yes', label: 'Так' }, { value: 'no', label: 'Ні' }]"
-                option-label="label"
-                option-value="value"
-                class="h-7 text-xs"
-                @update:model-value="updateCalendarSource(idx, { show_age: $event === 'yes' })"
-              />
+              <Select :model-value="source.show_age ? 'yes' : 'no'" @update:model-value="updateCalendarSource(idx, { show_age: $event === 'yes' })">
+                <SelectTrigger class="h-7 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="opt in [{ value: 'yes', label: 'Так' }, { value: 'no', label: 'Ні' }]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div v-if="source.event_type === 'birthday'" class="flex flex-col gap-1">
               <label class="text-[11px] font-medium text-muted-foreground">Нагадати за (днів)</label>
-              <InputText
+              <Input
                 :model-value="String(source.remind_before_days ?? 1)"
                 placeholder="1"
                 class="h-7 text-xs w-full"
@@ -264,7 +263,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
             </div>
             <div class="flex flex-col gap-1 col-span-2">
               <label class="text-[11px] font-medium text-muted-foreground">Фільтри (JSON)</label>
-              <InputText
+              <Input
                 :model-value="sourceFiltersText(source)"
                 placeholder='Наприклад: {"status":"Активний"}'
                 class="h-7 text-xs w-full"

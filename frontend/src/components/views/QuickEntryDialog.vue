@@ -144,30 +144,24 @@ const isVisible = ref(true)
 </script>
 
 <template>
-  <Dialog 
-    v-model:visible="isVisible" 
-    modal 
-    @hide="emit('close')"
-    class="max-w-4xl w-[90vw]"
-    :pt="{
-        header: { class: 'px-8 py-4 border-b border-border/40' },
-        content: { class: 'p-0' },
-        footer: { class: 'px-8 py-3 border-t border-border/40 bg-muted/20 flex items-center' }
-    }"
+  <Dialog
+    :open="isVisible"
+    @update:open="(v: boolean) => { isVisible = v; if (!v) emit('close') }"
   >
-    <template #header>
+    <DialogContent class="max-w-4xl w-[90vw] p-0">
+    <DialogHeader class="px-8 py-4 border-b border-border/40">
         <div class="flex items-center gap-3">
             <div class="size-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
                 <Plus class="size-4 text-primary" />
             </div>
             <div class="flex flex-col">
                 <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 leading-none mb-0.5">Швидке додавання</span>
-                <h2 class="text-base font-bold text-foreground tracking-tight">
+                <DialogTitle class="text-base font-bold text-foreground tracking-tight">
                     Новий {{ dt.label }}
-                </h2>
+                </DialogTitle>
             </div>
         </div>
-    </template>
+    </DialogHeader>
 
     <div class="p-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
       <FormRenderer
@@ -179,29 +173,30 @@ const isVisible = ref(true)
       />
     </div>
 
-    <template #footer>
+    <DialogFooter class="px-8 py-3 border-t border-border/40 bg-muted/20 flex items-center">
       <div class="flex items-center justify-end gap-2 w-full">
-          <Button text size="small" :disabled="isSaving" @click="emit('close')">
+          <Button variant="ghost" size="sm" :disabled="isSaving" @click="emit('close')">
             {{ t('Cancel') }}
           </Button>
 
           <!-- List mode: two action buttons -->
           <template v-if="mode === 'list'">
-            <Button outlined size="small" :disabled="isSaving" @click="handleSave(false)" class="font-medium">
+            <Button variant="outline" size="sm" :disabled="isSaving" @click="handleSave(false)" class="font-medium">
               {{ t('Save and close') }}
             </Button>
-            <Button size="small" :disabled="isSaving" @click="handleSave(true)" class="font-medium">
+            <Button size="sm" :disabled="isSaving" @click="handleSave(true)" class="font-medium">
               <ExternalLink class="size-3.5 mr-1.5" />
               {{ t('Save and open') }}
             </Button>
           </template>
 
           <!-- Link mode: single save button -->
-          <Button v-else size="small" :disabled="isSaving" @click="handleSave(false)" class="font-medium">
+          <Button v-else size="sm" :disabled="isSaving" @click="handleSave(false)" class="font-medium">
             {{ t('Save') }}
           </Button>
       </div>
-    </template>
+    </DialogFooter>
+    </DialogContent>
   </Dialog>
 </template>
 
@@ -209,7 +204,7 @@ const isVisible = ref(true)
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--p-content-border-color);
+  background: var(--border);
   border-radius: 10px;
 }
 </style>

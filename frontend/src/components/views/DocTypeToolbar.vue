@@ -116,12 +116,7 @@ const toolbarControlsEvents = computed(() =>
           class="!mb-0"
           @change="emit('update:activeFilters', $event)"
         />
-        <Button
-          v-if="inlineSearch || activeFilters.length"
-          text size="small"
-          class="h-8 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          @click="emit('reset')"
-        >
+        <Button variant="ghost" v-if="inlineSearch || activeFilters.length" size="sm" class="h-8 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50" @click="emit('reset')">
           <X class="size-4 mr-1" />
           {{ t('Reset') }}
         </Button>

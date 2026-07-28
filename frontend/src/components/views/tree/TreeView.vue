@@ -257,10 +257,10 @@ const totalCount = computed(() => {
     <!-- Primary actions row -->
     <div class="flex items-center justify-end mb-3 gap-2 flex-wrap">
       <div class="flex items-center gap-2 shrink-0">
-        <Button text :title="t('Refresh')" @click="loadTree">
+        <Button variant="ghost" :title="t('Refresh')" @click="loadTree">
           <RefreshCw class="size-4" :class="{ 'animate-spin': loading }" />
         </Button>
-        <Button size="small" @click="createRoot">
+        <Button size="sm" @click="createRoot">
           <Plus class="size-4 mr-1.5" />
           Новий кореневий
         </Button>
@@ -269,11 +269,11 @@ const totalCount = computed(() => {
 
     <!-- Secondary tree controls -->
     <div class="flex items-center gap-2 mb-4 flex-wrap">
-      <Button text size="small" @click="expandAll()">
+      <Button variant="ghost" size="sm" @click="expandAll()">
         <ChevronDown class="size-3.5 mr-1" />
         Розгорнути все
       </Button>
-      <Button text size="small" @click="collapseAll">
+      <Button variant="ghost" size="sm" @click="collapseAll">
         <ChevronRight class="size-3.5 mr-1" />
         Згорнути все
       </Button>
@@ -286,21 +286,21 @@ const totalCount = computed(() => {
           {{ sortFieldLabel[field] ?? field }}
         </option>
       </select>
-      <Button text size="small" @click="toggleSortOrder" :title="t('Sort order')">
+      <Button variant="ghost" size="sm" @click="toggleSortOrder" :title="t('Sort order')">
         {{ sortOrder === 'asc' ? 'A-Z' : 'Z-A' }}
       </Button>
     </div>
 
     <!-- Loading -->
     <div v-if="loading && !treeNodes.length" class="flex justify-center py-16">
-      <ProgressSpinner class="size-10!" />
+      <Spinner class="size-10!" />
     </div>
 
     <!-- Error -->
     <div v-else-if="error" class="flex items-center gap-3 p-4 rounded-lg bg-destructive/10 text-destructive text-sm">
       <AlertCircle class="size-4 shrink-0" />
       {{ error }}
-      <Button text size="small" class="ml-auto" @click="loadTree">{{ t('Retry') }}</Button>
+      <Button variant="ghost" size="sm" class="ml-auto" @click="loadTree">{{ t('Retry') }}</Button>
     </div>
 
     <!-- Empty -->
@@ -308,7 +308,7 @@ const totalCount = computed(() => {
       class="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
       <FolderOpen class="size-12 opacity-30" />
       <p class="text-sm">Записів поки немає</p>
-      <Button size="small" @click="createRoot">
+      <Button size="sm" @click="createRoot">
         <Plus class="size-4 mr-1.5" />
         Створити перший
       </Button>

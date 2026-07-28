@@ -18,9 +18,11 @@ interface FilterPreset { name: string; filters: ActiveFilter[] }
 const { t } = useI18n()
 const activeFilters = ref<ActiveFilter[]>(props.initialFilters ?? [])
 
-// PrimeVue Overlay refs
-const opFilter = ref()
-const opPresets = ref()
+// Filter / presets popovers
+const isFilterOpen = ref(false)
+const filterAnchorEl = ref<HTMLElement | null>(null)
+const isPresetsOpen = ref(false)
+const presetsAnchorEl = ref<HTMLElement | null>(null)
 
 const pickedField = ref<DocField | null>(null)
 const pickedOp = ref('=')
@@ -61,7 +63,7 @@ function savePreset() {
 function applyPreset(preset: FilterPreset) {
   activeFilters.value = [...preset.filters]
   emitChange()
-  opPresets.value?.hide()
+  isPresetsOpen.value = false
 }
 
 function deletePreset(name: string) {
@@ -93,7 +95,8 @@ function startEdit(i: number, event: Event) {
   pickedOp.value = f.op
   pickedValue.value = f.value
   pickedDisplayValue.value = f.displayValue ?? ''
-  opFilter.value?.show(event)
+  filterAnchorEl.value = event.currentTarget as HTMLElement
+  isFilterOpen.value = true
 }
 
 function resetPopover() {
@@ -121,7 +124,7 @@ function applyFilter() {
     activeFilters.value.push(entry)
   }
 
-  opFilter.value?.hide()
+  isFilterOpen.value = false
   emitChange()
 }
 
@@ -153,11 +156,15 @@ function chipLabel(f: ActiveFilter): string {
 }
 
 function toggleFilter(event: Event) {
-    opFilter.value?.toggle(event)
+    if (isFilterOpen.value) { isFilterOpen.value = false; return }
+    filterAnchorEl.value = event.currentTarget as HTMLElement
+    isFilterOpen.value = true
 }
 
 function togglePresets(event: Event) {
-    opPresets.value?.toggle(event)
+    if (isPresetsOpen.value) { isPresetsOpen.value = false; return }
+    presetsAnchorEl.value = event.currentTarget as HTMLElement
+    isPresetsOpen.value = true
 }
 </script>
 
@@ -167,7 +174,7 @@ function togglePresets(event: Event) {
     <Badge
       v-for="(f, i) in activeFilters"
       :key="i"
-      severity="secondary"
+      variant="secondary"
       class="gap-0 pr-1 max-w-[240px] group/chip pl-0 overflow-hidden shadow-sm border-border/40"
     >
       <button
@@ -189,15 +196,14 @@ function togglePresets(event: Event) {
     </Badge>
 
     <!-- Filter Popover -->
-    <Button text size="small"
-      class="h-7 text-[11px] border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all font-medium"
-      @click="toggleFilter"
-    >
+    <Button variant="ghost" size="sm" class="h-7 text-[11px] border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all font-medium" @click="toggleFilter">
       <Filter class="size-3 mr-1" />
       {{ t('Filter') }}
     </Button>
 
-    <Popover ref="opFilter" @hide="resetPopover">
+    <Popover :open="isFilterOpen" @update:open="(v: boolean) => { isFilterOpen = v; if (!v) resetPopover() }">
+      <PopoverAnchor :reference="filterAnchorEl ?? undefined" />
+      <PopoverContent class="w-auto p-0">
       <div class="w-80 p-1">
         <!-- Step 1: pick field -->
         <template v-if="!pickedField">
@@ -261,12 +267,13 @@ function togglePresets(event: Event) {
                 />
             </div>
 
-            <Button size="small" class="w-full h-10 shadow-lg shadow-primary/10" :disabled="!pickedValue" @click="applyFilter">
+            <Button size="sm" class="w-full h-10 shadow-lg shadow-primary/10" :disabled="!pickedValue" @click="applyFilter">
                 {{ editingIndex !== null ? 'Зберегти зміни' : t('Apply') }}
             </Button>
           </div>
         </template>
       </div>
+      </PopoverContent>
     </Popover>
 
     <!-- Presets -->
@@ -274,33 +281,33 @@ function togglePresets(event: Event) {
       <template v-if="activeFilters.length">
         <template v-if="showSaveName">
           <div class="flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-300">
-            <InputText
+            <Input
               v-model="presetNameInput"
               class="h-7 text-[11px] w-32 rounded-lg"
               placeholder="Назва пресету"
               autofocus
               @keydown="(e: KeyboardEvent) => { if (e.key === 'Enter') savePreset(); else if (e.key === 'Escape') showSaveName = false }"
             />
-            <Button size="small" class="h-7 px-2.5 text-[11px] shadow-sm" @click="savePreset">OK</Button>
+            <Button size="sm" class="h-7 px-2.5 text-[11px] shadow-sm" @click="savePreset">OK</Button>
             <button type="button" class="text-muted-foreground hover:text-foreground p-1 transition-colors" @click="showSaveName = false">
               <X class="size-3.5" />
             </button>
           </div>
         </template>
-        <Button v-else text size="small" class="h-7 text-[11px] text-muted-foreground hover:text-foreground font-medium transition-all" @click="showSaveName = true">
+        <Button variant="ghost" v-else size="sm" class="h-7 text-[11px] text-muted-foreground hover:text-foreground font-medium transition-all" @click="showSaveName = true">
           <Bookmark class="size-3 mr-1" />
           {{ t('Save') }}
         </Button>
       </template>
 
-      <Button v-if="savedPresets.length" text size="small" 
-        class="h-7 text-[11px] text-muted-foreground hover:text-foreground font-medium transition-all"
-        @click="togglePresets">
+      <Button variant="ghost" v-if="savedPresets.length" size="sm" class="h-7 text-[11px] text-muted-foreground hover:text-foreground font-medium transition-all" @click="togglePresets">
         Пресети
         <ChevronDown class="size-3 ml-1" />
       </Button>
 
-      <Popover ref="opPresets">
+      <Popover v-model:open="isPresetsOpen">
+        <PopoverAnchor :reference="presetsAnchorEl ?? undefined" />
+        <PopoverContent class="w-auto p-0">
         <div class="w-60 p-1">
           <div class="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">Збережені фільтри</div>
           <div class="h-px bg-border/40 my-1" />
@@ -318,6 +325,7 @@ function togglePresets(event: Event) {
             </button>
           </div>
         </div>
+        </PopoverContent>
       </Popover>
     </template>
   </div>

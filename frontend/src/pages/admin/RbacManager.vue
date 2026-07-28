@@ -145,7 +145,7 @@ onMounted(async () => {
                 </div>
                 <div class="relative">
                     <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <InputText v-model="searchDt" placeholder="Пошук DocType…"
+                    <Input v-model="searchDt" placeholder="Пошук DocType…"
                         class="w-full h-9 pl-9 pr-3 text-sm" />
                 </div>
             </div>
@@ -174,7 +174,7 @@ onMounted(async () => {
 
             <!-- Loading -->
             <div v-else-if="loading" class="flex-1 flex items-center justify-center">
-                <ProgressSpinner class="size-10!" />
+                <Spinner class="size-10!" />
             </div>
 
             <!-- Matrix -->
@@ -190,14 +190,14 @@ onMounted(async () => {
                     <div class="flex items-center gap-2">
                         <!-- Add role quick-add -->
                         <template v-if="unaddedRoles.length">
-                            <Select
-                                :options="unaddedRoles"
-                                optionLabel="name"
-                                optionValue="name"
-                                placeholder="+ Додати роль"
-                                class="h-9 text-sm"
-                                @change="(e) => { addRole(e.value) }"
-                            />
+                            <Select @update:model-value="(v: unknown) => addRole(String(v))">
+                                <SelectTrigger class="h-9 text-sm">
+                                    <SelectValue placeholder="+ Додати роль" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="opt in unaddedRoles" :key="opt.name" :value="opt.name">{{ opt.name }}</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </template>
 
                         <div v-if="saveError" class="flex items-center gap-1 text-destructive text-xs">
@@ -207,10 +207,8 @@ onMounted(async () => {
                             <Check class="w-3.5 h-3.5" />Збережено
                         </div>
 
-                        <Button
-                            class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-                            :disabled="saving" @click="save">
-                            <ProgressSpinner v-if="saving" class="size-4! mr-1" strokeWidth="8" />
+                        <Button class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors" :disabled="saving" @click="save">
+                            <Spinner v-if="saving" class="size-4! mr-1" strokeWidth="8" />
                             <Save v-else class="w-4 h-4" />
                             Зберегти
                         </Button>

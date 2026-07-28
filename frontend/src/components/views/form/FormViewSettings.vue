@@ -24,22 +24,22 @@ function updateFormView(patch: Record<string, unknown>) {
       <div class="grid grid-cols-2 gap-3">
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Розкладка</label>
-          <Select
-            :model-value="formView.layout"
-            :options="[
+          <Select :model-value="formView.layout" @update:model-value="updateFormView({ layout: $event })">
+            <SelectTrigger class="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="opt in [
               { value: 'standard', label: 'Стандартна' },
               { value: 'compact', label: 'Компактна' },
               { value: 'wide', label: 'Широка' },
-            ]"
-            option-label="label"
-            option-value="value"
-            class="h-8 text-xs"
-            @update:model-value="updateFormView({ layout: $event })"
-          />
+            ]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Формат друку</label>
-          <InputText
+          <Input
             :model-value="formView.print_format ?? ''"
             placeholder="Назва шаблону"
             class="h-8 text-xs w-full"

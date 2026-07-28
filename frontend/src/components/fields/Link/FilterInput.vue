@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch } from 'vue'
 import { X, Loader2 } from '@lucide/vue'
 import type { DocField } from '@/types'
 import type { LinkSearchItem } from '@/core/api/docs'
 import { docsApi, metaApi } from '@/core/api'
-import TreeSelect from 'primevue/treeselect'
-import type { TreeNode } from 'primevue/treenode'
+import type { TreeNode } from '@/components/ui/tree-select'
 
 const props = defineProps<{
   field: DocField
@@ -49,9 +48,7 @@ function transformNodes(nodes: any[]): TreeNode[] {
   return nodes.map(node => ({
     key: node.id,
     label: node[titleField.value] || node.name || node.id,
-    data: node,
     children: node.children?.length ? transformNodes(node.children) : undefined,
-    leaf: !node.children?.length,
   }))
 }
 
@@ -68,34 +65,26 @@ async function loadTree() {
   }
 }
 
-const treeSelection = computed<Record<string, boolean> | null>({
-  get() {
-    if (!props.modelValue) return null
-    return { [props.modelValue]: true }
-  },
-  set(val) {
-    if (!val || Object.keys(val).length === 0) {
-      emit('update:modelValue', '')
-      emit('update:displayValue', '')
-    } else {
-      const id = Object.keys(val)[0]
-      emit('update:modelValue', id)
-      // Resolve display label for filter tag
-      const findTitle = (nodes: TreeNode[]): string | null => {
-        for (const n of nodes) {
-          if (n.key === id) return n.label ?? null
-          if (n.children) {
-            const found = findTitle(n.children)
-            if (found) return found
-          }
-        }
-        return null
+function onTreeSelect(id: string | null) {
+  if (!id) {
+    emit('update:modelValue', '')
+    emit('update:displayValue', '')
+    return
+  }
+  emit('update:modelValue', id)
+  // Resolve display label for filter tag
+  function findTitle(nodes: TreeNode[]): string | null {
+    for (const n of nodes) {
+      if (n.key === id) return n.label ?? null
+      if (n.children) {
+        const found = findTitle(n.children)
+        if (found) return found
       }
-      const title = findTitle(treeNodes.value) || id
-      emit('update:displayValue', title)
     }
-  },
-})
+    return null
+  }
+  emit('update:displayValue', findTitle(treeNodes.value) || id)
+}
 
 // Sync query when parent sets displayValue (e.g. when editing an existing filter)
 watch(() => props.displayValue, (v) => {
@@ -148,22 +137,19 @@ function clear() {
     <!-- Tree mode -->
     <div v-if="isTree" class="relative">
       <TreeSelect
-        v-model="treeSelection"
+        :model-value="modelValue || null"
         :options="treeNodes"
         :loading="treeLoading"
-        selection-mode="single"
-        filter
-        show-clear
         :placeholder="`Оберіть ${field.options}...`"
         class="w-full text-xs"
-        @clear="clear"
+        @update:model-value="onTreeSelect"
       />
     </div>
 
     <!-- Regular mode -->
     <template v-else>
       <div class="relative">
-        <InputText
+        <Input
           v-model="linkQuery"
           class="h-8 text-xs pr-7 w-full"
           :placeholder="`Пошук ${field.options}...`"

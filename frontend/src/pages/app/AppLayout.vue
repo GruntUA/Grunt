@@ -6,7 +6,6 @@ import { useSidebarStore } from '@/stores/sidebar'
 import AppSidebar from '@/components/app/AppSidebar.vue'
 import MobileBottomNav from '@/components/mobile/MobileBottomNav.vue'
 import NotFound from '@/pages/errors/NotFound.vue'
-import Drawer from 'primevue/drawer'
 
 const props = defineProps<{ workspaceName: string }>()
 const appStore = useAppStore()
@@ -60,21 +59,15 @@ watch(() => props.workspaceName, async (name) => {
       <AppSidebar :workspace-name="workspaceName" />
     </div>
 
-    <!-- Sidebar: Mobile (Drawer) -->
-    <Drawer
-      v-model:visible="sidebarStore.isMobileVisible"
-      position="left"
-      class="!w-[280px] !p-0"
-      :showCloseIcon="false"
-      :pt="{
-        content: { class: '!p-0' },
-        header: { class: '!p-0' }
-      }"
-    >
-      <div class="h-full w-full">
-        <AppSidebar :workspace-name="workspaceName" />
-      </div>
-    </Drawer>
+    <!-- Sidebar: Mobile (Sheet) -->
+    <Sheet v-model:open="sidebarStore.isMobileVisible">
+      <SheetContent side="left" class="!w-[280px] !max-w-[280px] !p-0" :show-close-button="false">
+        <SheetTitle class="sr-only">Меню</SheetTitle>
+        <div class="h-full w-full">
+          <AppSidebar :workspace-name="workspaceName" />
+        </div>
+      </SheetContent>
+    </Sheet>
 
     <!-- Main Content -->
     <main

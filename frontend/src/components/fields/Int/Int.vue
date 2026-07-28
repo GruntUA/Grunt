@@ -12,13 +12,14 @@ const emit = defineEmits<{ 'update:modelValue': [value: number | null] }>()
 </script>
 
 <template>
-  <InputNumber
-    :model-value="modelValue"
+  <Input
+    type="number"
+    step="1"
+    :model-value="modelValue ?? ''"
     :placeholder="field.placeholder ?? '0'"
     :required="field.required"
     :disabled="disabled || field.read_only"
     class="w-full"
-    fluid
-    @update:model-value="emit('update:modelValue', $event)"
+    @update:model-value="(v: string | number) => emit('update:modelValue', v === '' ? null : Number(v))"
   />
 </template>

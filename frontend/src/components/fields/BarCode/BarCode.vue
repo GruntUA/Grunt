@@ -191,7 +191,7 @@ onUnmounted(stopScan)
     <!-- Text input + action buttons -->
     <div class="flex gap-2">
       <div class="relative flex-1">
-        <InputText
+        <Input
           :model-value="String(modelValue ?? '')"
           :placeholder="field.placeholder ?? t('Scan or enter manually')"
           :required="field.required"
@@ -206,34 +206,17 @@ onUnmounted(stopScan)
       </div>
 
       <!-- Camera scan button -->
-      <Button
-        v-if="!scanning"
-        type="button" outlined
-        :disabled="disabled || field.read_only"
-        :title="t('Scan with camera')"
-        @click="startScan"
-      >
+      <Button variant="outline" v-if="!scanning" type="button" :disabled="disabled || field.read_only" :title="t('Scan with camera')" @click="startScan">
         <ScanLine class="w-4 h-4" />
       </Button>
 
       <!-- Stop scan -->
-      <Button
-        v-if="scanning"
-        type="button" outlined
-        :title="t('Stop')"
-        @click="stopScan"
-      >
+      <Button variant="outline" v-if="scanning" type="button" :title="t('Stop')" @click="stopScan">
         <X class="w-4 h-4" />
       </Button>
 
       <!-- File upload -->
-      <Button
-        v-if="!scanning"
-        type="button" outlined
-        :disabled="disabled || field.read_only"
-        :title="t('Upload image with barcode')"
-        @click="fileInputRef?.click()"
-      >
+      <Button variant="outline" v-if="!scanning" type="button" :disabled="disabled || field.read_only" :title="t('Upload image with barcode')" @click="fileInputRef?.click()">
         <Upload class="w-4 h-4" />
       </Button>
       <input ref="fileInputRef" type="file" accept="image/*" class="hidden" @change="onFileChange" />

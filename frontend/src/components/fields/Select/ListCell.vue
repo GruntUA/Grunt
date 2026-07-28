@@ -46,21 +46,21 @@ const COLOR_CLASSES: Record<string, string> = {
   pink: 'border-pink-500/30 bg-pink-500/10 text-pink-700 dark:text-pink-300',
 }
 
-const COLOR_SEVERITY: Record<string, string | undefined> = {
+const COLOR_VARIANT: Record<string, string | undefined> = {
   default: undefined,
   secondary: 'secondary',
   success: 'success',
   info: 'info',
-  warn: 'warn',
-  danger: 'danger',
-  contrast: 'contrast',
+  warn: 'warning',
+  danger: 'destructive',
+  contrast: 'outline',
   // Legacy aliases
   gray: 'secondary',
   blue: 'info',
   green: 'success',
-  yellow: 'warn',
-  orange: 'warn',
-  red: 'danger',
+  yellow: 'warning',
+  orange: 'warning',
+  red: 'destructive',
   purple: undefined,
   pink: undefined,
 }
@@ -74,20 +74,20 @@ const badge = computed(() => {
     if (ind) {
       return {
         colorClass: COLOR_CLASSES[ind.color] ?? '',
-        severity: COLOR_SEVERITY[ind.color],
+        variant: COLOR_VARIANT[ind.color],
         label: ind.label ?? val,
         icon: ind.icon ?? null,
       }
     }
   }
-  return { colorClass: '', severity: undefined, label: val, icon: null }
+  return { colorClass: '', variant: undefined, label: val, icon: null }
 })
 </script>
 
 <template>
   <Badge
     v-if="badge"
-    :severity="badge.severity"
+    :variant="badge.variant"
     :class="['font-normal whitespace-nowrap inline-flex items-center gap-1.5', badge.colorClass]"
   >
     <component

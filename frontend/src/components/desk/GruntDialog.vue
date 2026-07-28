@@ -51,16 +51,16 @@ function onOpenChange(v: boolean) {
 </script>
 
 <template>
-  <Dialog v-model:visible="state.open" modal
-    :pt="{ root: { class: 'sm:max-w-md' }, content: { class: 'p-0 px-6 pb-4 pt-2' } }"
-    @hide="onOpenChange(false)">
-    <template #header>
-      <span v-if="state.title" class="font-semibold flex items-center gap-2">
+  <Dialog :open="state.open" @update:open="(v: boolean) => { state.open = v; if (!v) onOpenChange(false) }">
+    <DialogContent class="sm:max-w-md p-0 px-6 pb-4 pt-2">
+    <DialogHeader v-if="state.title">
+      <DialogTitle class="font-semibold flex items-center gap-2">
         <span v-if="state.indicator" class="inline-block w-2.5 h-2.5 rounded-full shrink-0"
           :style="{ backgroundColor: state.indicator }" />
         {{ state.title }}
-      </span>
-    </template>
+      </DialogTitle>
+    </DialogHeader>
+    <DialogTitle v-else class="sr-only">Діалог</DialogTitle>
 
     <!-- Content -->
     <div>
@@ -75,7 +75,7 @@ function onOpenChange(v: boolean) {
             <div v-for="field in state.fields" :key="field.fieldname" class="space-y-2">
                 <label :for="field.fieldname" class="text-sm font-medium">{{ field.label }}</label>
                 <div v-if="field.fieldtype === 'HTML'" v-html="field.default" class="rounded border p-2 bg-muted/30" />
-                <InputText v-else :id="field.fieldname" v-model="promptValue" :placeholder="field.placeholder"
+                <Input v-else :id="field.fieldname" v-model="promptValue" :placeholder="field.placeholder"
                     :type="field.fieldtype === 'Int' || field.fieldtype === 'Float' ? 'number' : 'text'"
                     class="w-full"
                     @keydown.enter="onConfirm" />
@@ -92,7 +92,7 @@ function onOpenChange(v: boolean) {
                 </template>
                 <template v-else-if="field.fieldtype === 'Check'">
                     <div class="flex items-center space-x-2 py-1">
-                        <Checkbox binary :input-id="field.fieldname" v-model="formValues[field.fieldname]" />
+                        <Checkbox :id="field.fieldname" v-model="formValues[field.fieldname]" />
                         <label :for="field.fieldname" class="cursor-pointer text-sm">{{ field.label }}</label>
                     </div>
                 </template>
@@ -134,7 +134,7 @@ function onOpenChange(v: boolean) {
                 <template v-else>
                     <label :for="field.fieldname" class="text-sm font-medium">{{ field.label }}</label>
                     <p v-if="field.description" class="text-xs text-muted-foreground -mt-1">{{ field.description }}</p>
-                    <InputText :id="field.fieldname" v-model="formValues[field.fieldname]" :placeholder="field.placeholder"
+                    <Input :id="field.fieldname" v-model="formValues[field.fieldname]" :placeholder="field.placeholder"
                         :type="field.fieldtype === 'Int' || field.fieldtype === 'Float' ? 'number' : 'text'"
                         class="w-full"
                         @keydown.enter="onConfirm" />
@@ -156,22 +156,23 @@ function onOpenChange(v: boolean) {
     </div>
 
     <!-- Unified Footer -->
-    <template #footer v-if="state.type !== 'progress'">
+    <DialogFooter v-if="state.type !== 'progress'">
         <template v-if="state.type === 'msgprint'">
             <Button @click="close()">OK</Button>
         </template>
         <template v-else-if="state.type === 'confirm'">
-            <Button outlined @click="onCancel">Скасувати</Button>
+            <Button variant="outline" @click="onCancel">Скасувати</Button>
             <Button @click="onConfirm">Підтвердити</Button>
         </template>
         <template v-else-if="state.type === 'prompt'">
-            <Button outlined @click="onCancel">Скасувати</Button>
+            <Button variant="outline" @click="onCancel">Скасувати</Button>
             <Button @click="onConfirm">OK</Button>
         </template>
         <template v-else-if="state.type === 'dialog'">
-            <Button outlined @click="onCancel">Скасувати</Button>
+            <Button variant="outline" @click="onCancel">Скасувати</Button>
             <Button @click="onConfirm">{{ state.primaryLabel }}</Button>
         </template>
-    </template>
+    </DialogFooter>
+    </DialogContent>
   </Dialog>
 </template>

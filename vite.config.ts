@@ -4,7 +4,90 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import fs from 'fs'
 import Components from 'unplugin-vue-components/vite'
-import { PrimeVueResolver } from '@primevue/auto-import-resolver'
+
+// shadcn-vue primitives — tag names auto-resolve to frontend/src/components/ui/*.
+const SHADCN_UI_COMPONENTS: Record<string, string> = {
+    Button: 'button',
+    Input: 'input',
+    Checkbox: 'checkbox',
+    Switch: 'switch',
+    Separator: 'separator',
+    Badge: 'badge',
+    Skeleton: 'skeleton',
+    Avatar: 'avatar',
+    AvatarImage: 'avatar',
+    AvatarFallback: 'avatar',
+    Spinner: 'spinner',
+    Popover: 'popover',
+    PopoverAnchor: 'popover',
+    PopoverContent: 'popover',
+    PopoverTrigger: 'popover',
+    Dialog: 'dialog',
+    DialogContent: 'dialog',
+    DialogHeader: 'dialog',
+    DialogTitle: 'dialog',
+    DialogFooter: 'dialog',
+    DialogClose: 'dialog',
+    Progress: 'progress',
+    Breadcrumb: 'breadcrumb',
+    BreadcrumbList: 'breadcrumb',
+    BreadcrumbItem: 'breadcrumb',
+    BreadcrumbLink: 'breadcrumb',
+    BreadcrumbPage: 'breadcrumb',
+    BreadcrumbSeparator: 'breadcrumb',
+    BreadcrumbEllipsis: 'breadcrumb',
+    Sheet: 'sheet',
+    SheetContent: 'sheet',
+    SheetHeader: 'sheet',
+    SheetTitle: 'sheet',
+    SheetFooter: 'sheet',
+    SheetClose: 'sheet',
+    Select: 'select',
+    SelectContent: 'select',
+    SelectGroup: 'select',
+    SelectItem: 'select',
+    SelectLabel: 'select',
+    SelectSeparator: 'select',
+    SelectTrigger: 'select',
+    SelectValue: 'select',
+    Combobox: 'combobox',
+    MultiSelect: 'multi-select',
+    DropdownMenu: 'dropdown-menu',
+    DropdownMenuTrigger: 'dropdown-menu',
+    DropdownMenuContent: 'dropdown-menu',
+    DropdownMenuItem: 'dropdown-menu',
+    DropdownMenuSeparator: 'dropdown-menu',
+    DropdownMenuLabel: 'dropdown-menu',
+    DropdownMenuGroup: 'dropdown-menu',
+    DropdownMenuRadioGroup: 'dropdown-menu',
+    DropdownMenuRadioItem: 'dropdown-menu',
+    DropdownMenuCheckboxItem: 'dropdown-menu',
+    Tabs: 'tabs',
+    TabsList: 'tabs',
+    TabsTrigger: 'tabs',
+    TabsContent: 'tabs',
+    DatePicker: 'date-picker',
+    TreeSelect: 'tree-select',
+    Textarea: 'textarea',
+    Table: 'table',
+    TableHeader: 'table',
+    TableBody: 'table',
+    TableRow: 'table',
+    TableHead: 'table',
+    TableCell: 'table',
+    Tooltip: 'tooltip',
+    TooltipTrigger: 'tooltip',
+    TooltipContent: 'tooltip',
+}
+
+function ShadcnUiResolver() {
+    return (name: string) => {
+        const dir = SHADCN_UI_COMPONENTS[name]
+        if (dir) {
+            return { name, from: `@/components/ui/${dir}` }
+        }
+    }
+}
 
 // Discover external app frontend directories (bench/apps/*/www/)
 function discoverAppAliases() {
@@ -80,7 +163,7 @@ export default defineConfig({
         tailwindcss(),
         Components({
             resolvers: [
-                PrimeVueResolver()
+                ShadcnUiResolver(),
             ]
         })
     ],
@@ -94,7 +177,6 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 manualChunks(id) {
-                    if (id.includes('primevue') || id.includes('@primevue')) return 'vendor-primevue'
                     if (isVueVendorModule(id)) return 'vendor-vue'
                     if (id.includes('@tanstack/vue-query')) return 'vendor-query'
                     if (id.includes('/clsx/') || id.includes('tailwind-merge')) return 'vendor-ui'

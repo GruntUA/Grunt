@@ -54,22 +54,22 @@ export interface UseClientScriptsOptions {
 
 export function useClientScripts(doctype: string, options: UseClientScriptsOptions) {
     const SEVERITY_MAP: Record<string, string | undefined> = {
-  primary: 'primary',
+  primary: 'default',
       default: undefined,
       secondary: 'secondary',
       success: 'success',
       info: 'info',
-      warn: 'warn',
-      warning: 'warn',
-      danger: 'danger',
-      error: 'danger',
-      contrast: 'contrast',
+      warn: 'warning',
+      warning: 'warning',
+      danger: 'destructive',
+      error: 'destructive',
+      contrast: 'secondary',
       gray: 'secondary',
       blue: 'info',
       green: 'success',
-      yellow: 'warn',
-      orange: 'warn',
-      red: 'danger',
+      yellow: 'warning',
+      orange: 'warning',
+      red: 'destructive',
     }
 
     const COLOR_CLASS_MAP: Record<string, string> = {

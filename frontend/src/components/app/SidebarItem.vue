@@ -131,10 +131,9 @@ const displayCount = computed(() => {
         </div>
 
         <Badge v-if="displayCount"
-          :value="displayCount"
-          severity="secondary"
+          variant="secondary"
           class="ml-2 !text-[10px] !h-4.5 !min-w-4.5 !px-1.5 !font-bold !rounded-full !shadow-inner"
-        />
+        >{{ displayCount }}</Badge>
       </template>
 
       <!-- Indicator line for active state -->

@@ -79,7 +79,7 @@ function formatSize(bytes: number) {
   <div class="flex flex-col h-full">
     <!-- Search -->
     <div class="p-3 border-b border-border">
-      <InputText v-model="search" placeholder="Пошук файлів..." class="h-8 text-sm w-full" />
+      <Input v-model="search" placeholder="Пошук файлів..." class="h-8 text-sm w-full" />
     </div>
 
     <!-- Grid -->
@@ -119,7 +119,7 @@ function formatSize(bytes: number) {
 
       <!-- Sentinel + loader -->
       <div ref="sentinel" class="h-8 mt-2 flex justify-center">
-        <ProgressSpinner v-if="isLoading" class="!size-5" />
+        <Spinner v-if="isLoading" class="!size-5" />
       </div>
     </div>
   </div>

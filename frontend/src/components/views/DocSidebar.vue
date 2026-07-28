@@ -69,14 +69,19 @@ loadBookmark()
         <div class="flex gap-2">
           <SidebarAssignments :doctype="doctype" :document="document" class="flex-1 mb-0" />
           <SidebarShare :doctype="doctype" :document="document" class="flex-1 mb-0" />
-          <Button v-tooltip="bookmark ? 'Прибрати із закладок' : 'Додати до закладок'"
-            outlined class="size-9 shrink-0 shadow-sm transition-all active:scale-95"
-            :severity="bookmark ? 'warn' : 'secondary'"
-            :disabled="bookmarkLoading"
-            @click="toggleBookmark"
-          >
-            <Bookmark class="size-4" :fill="bookmark ? 'currentColor' : 'none'" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <Button
+                variant="outline"
+                :class="['size-9 shrink-0 shadow-sm transition-all active:scale-95', bookmark ? 'text-warning border-warning/40' : '']"
+                :disabled="bookmarkLoading"
+                @click="toggleBookmark"
+              >
+                <Bookmark class="size-4" :fill="bookmark ? 'currentColor' : 'none'" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{{ bookmark ? 'Прибрати із закладок' : 'Додати до закладок' }}</TooltipContent>
+          </Tooltip>
         </div>
 
         <SidebarTags :doctype="doctype" :document="document" />

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, nextTick } from 'vue'
-import { FileSpreadsheet } from '@lucide/vue'
+import { FileSpreadsheet, ChevronUp, ChevronDown } from '@lucide/vue'
 import type { DocField, DocTypeStatusConfig } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
@@ -35,35 +35,6 @@ function getRowDocId(row: Record<string, unknown>): string | null {
   if (raw === null || raw === undefined) return null
   const normalized = String(raw)
   return normalized.length > 0 ? normalized : null
-}
-
-// ── Selection bridge ───────────────────────────────────────────────────────
-const selection = computed({
-  get: () => props.allSelected ? props.rows : props.rows.filter((r) => {
-    const docId = getRowDocId(r)
-    return docId ? props.selectedIds.includes(docId) : false
-  }),
-  set: (_val: Record<string, unknown>[]) => {
-    // This is tricky because emit select is per-id. 
-    // Usually, we'd just want to emit the whole set, but the framework expects individual selects.
-    // For now, we'll keep using our manual selection logic but triggered by PrimeVue events
-  }
-})
-
-function onRowSelect(e: any) {
-  const docId = getRowDocId(e.data)
-  if (!docId) return
-  emit('select', docId)
-}
-
-function onRowUnselect(e: any) {
-  const docId = getRowDocId(e.data)
-  if (!docId) return
-  emit('select', docId) // Our emit just toggles
-}
-
-function onSelectAll() {
-  emit('selectAll')
 }
 
 // ── Inline editing ────────────────────────────────────────────────────────
@@ -106,8 +77,6 @@ function getFieldType(key: string): string {
   return fieldMap.value[key]?.fieldtype ?? 'Text'
 }
 
-const sortOrderValue = computed(() => props.sortOrder === 'desc' ? -1 : 1)
-
 function rowHref(row: Record<string, unknown>): string | null {
   if (!props.rowLinkBase) return null
   const id = getRowDocId(row)
@@ -122,139 +91,113 @@ function onRowAnchorClick(event: MouseEvent, row: Record<string, unknown>) {
   emit('rowClick', row)
 }
 
-
-// Mapping for PT (Pass Through) to match our design system
-const pt = {
-    root: { class: 'border-0' },
-    header: { class: 'hidden' }, // We use custom header usually or none
-    thead: { class: props.hideHeader ? 'hidden' : '' },
-    headerRow: { class: 'bg-muted/30 backdrop-blur-sm' },
-    headerCell: (slotProps: any) => ({ 
-        class: [
-            'px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] border-b border-border/40 text-left transition-all duration-200',
-            slotProps.context.sorted ? 'text-primary' : 'text-muted-foreground/50 hover:text-foreground/80'
-        ]
-    }),
-    bodyRow: (slotProps: any) => {
-        const isActive = props.activeIndex === slotProps.index;
-        return {
-            class: [
-                'transition-all duration-300 cursor-pointer border-b border-border/20 last:border-0 hover:bg-primary/[0.04]',
-                { 'bg-primary/[0.05] hover:bg-primary/[0.08]': slotProps.selected },
-                { 'ring-inset ring-2 ring-primary/60 scale-[1.002] z-20 relative shadow-lg bg-background': isActive }
-            ]
-        }
-    },
-    bodyCell: { class: 'px-6 py-4 text-sm border-b border-border/10' },
-    loadingOverlay: { class: 'bg-card/50 backdrop-blur-sm' }
+function isAllSelected(): boolean {
+  return !!(props.allSelected || (props.rows.length > 0 && props.selectedIds.length === props.rows.length))
 }
 </script>
 
 <template>
-  <DataTable
-    :value="rows"
-    :loading="isLoading && !rows.length"
-    data-key="id"
-    :selection="selection"
-    @row-select="onRowSelect"
-    @row-unselect="onRowUnselect"
-    @select-all-change="onSelectAll"
-    @row-click="(e: { data: any }) => emit('rowClick', e.data)"
-    :sort-field="sortKey"
-    :sort-order="sortOrderValue"
-    @sort="(e: any) => emit('sort', String(e.sortField))"
-    responsive-layout="scroll"
-    :pt="pt"
-    class="w-full text-sm"
-  >
-    <!-- Skeleton Loading -->
-    <template #loading>
-       <div class="flex flex-col gap-2">
-           <Skeleton v-for="i in 8" :key="i" height="3rem" />
-       </div>
-    </template>
+  <Table class="w-full text-sm">
+    <TableHeader v-if="!hideHeader" class="bg-muted/30 backdrop-blur-sm">
+      <TableRow class="hover:bg-transparent border-0">
+        <TableHead style="width: 3rem" class="px-6 py-4 border-b border-border/40">
+          <div class="flex items-center justify-center w-full">
+            <Checkbox :model-value="isAllSelected()" @update:model-value="emit('selectAll')" />
+          </div>
+        </TableHead>
+        <TableHead
+          v-for="col in columns" :key="col.key"
+          class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] border-b border-border/40 text-left transition-all duration-200"
+          :class="sortKey === col.key ? 'text-primary' : 'text-muted-foreground/50 hover:text-foreground/80'"
+          :role="col.sortable ? 'button' : undefined"
+          @click="col.sortable && emit('sort', col.key)"
+        >
+          <span class="inline-flex items-center gap-1" :class="col.sortable && 'cursor-pointer select-none'">
+            {{ col.label }}
+            <template v-if="col.sortable && sortKey === col.key">
+              <ChevronUp v-if="sortOrder === 'asc'" class="size-3" />
+              <ChevronDown v-else class="size-3" />
+            </template>
+          </span>
+        </TableHead>
+      </TableRow>
+    </TableHeader>
 
-    <!-- Selection Column -->
-    <Column header-style="width: 3rem" class="relative">
-        <template #header>
-            <div class="flex items-center justify-center w-full">
-                <Checkbox binary 
-                  :model-value="props.allSelected || (props.rows.length > 0 && props.selectedIds.length === props.rows.length)" 
-                  @change="emit('selectAll')" />
-            </div>
-        </template>
-        <template #body="slotProps">
-            <div v-if="props.selectedIds.includes(getRowDocId(slotProps.data) ?? '')"
-              class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full pointer-events-none" />
-            <Checkbox binary 
-              :model-value="props.selectedIds.includes(getRowDocId(slotProps.data) ?? '')" 
-              @change="() => { const docId = getRowDocId(slotProps.data); if (docId) emit('select', docId) }" />
-        </template>
-    </Column>
-
-    <!-- Data Columns -->
-    <Column v-for="(col, ci) in columns" :key="col.key"
-      :field="col.key"
-      :header="col.label"
-      :sortable="col.sortable"
-      class="max-w-xs wrap-break-word"
-    >
-      <template #body="slotProps">
-        <div @dblclick.stop="ci > 0 && startEdit(slotProps.data, col.key, getFieldType(col.key))">
-          <!-- Inline edit input -->
-          <template v-if="isEditing(getRowDocId(slotProps.data) ?? '', col.key)">
-            <input ref="inlineInput" v-model="inlineEdit!.value"
-              class="w-full rounded-md border border-primary px-2 py-1 text-sm bg-background shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow"
-              @blur="commitEdit" @keydown.enter.prevent="commitEdit" @keydown.escape.prevent="cancelEdit"
-              @click.stop />
-          </template>
-
-          <!-- Field-type cell renderer (registry) -->
-          <template v-else>
-            <a
-              v-if="rowHref(slotProps.data)"
-              :href="rowHref(slotProps.data)!"
-              class="block"
-              :class="{ 'font-semibold text-primary hover:underline': ci === 0 && !['Image', 'Attach', 'Check'].includes(getFieldType(col.key)) }"
-              @click.stop="onRowAnchorClick($event, slotProps.data)"
-            >
-              <component :is="getListCell(getFieldType(col.key)) ?? DefaultListCell" :value="slotProps.data[col.key]" :row="slotProps.data"
-                :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
-                :status-config="statusConfig" />
-            </a>
-            <div
-              v-else
-              :class="{ 'font-semibold text-primary hover:underline': ci === 0 && !['Image', 'Attach', 'Check'].includes(getFieldType(col.key)) }"
-            >
-              <component :is="getListCell(getFieldType(col.key)) ?? DefaultListCell" :value="slotProps.data[col.key]" :row="slotProps.data"
-                :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
-                :status-config="statusConfig" />
-            </div>
-          </template>
-        </div>
+    <TableBody v-if="!hideBody">
+      <!-- Skeleton loading -->
+      <template v-if="isLoading && !rows.length">
+        <TableRow v-for="i in 8" :key="i" class="border-b border-border/20 last:border-0">
+          <TableCell :colspan="columns.length + 1" class="px-6 py-4">
+            <Skeleton class="h-[1.5rem]" />
+          </TableCell>
+        </TableRow>
       </template>
-    </Column>
 
-    <!-- Empty state (hidden when used as header-only table) -->
-    <template #empty>
-      <div v-if="!isLoading && !hideBody" class="px-3 py-16 text-center">
-        <div class="flex flex-col items-center gap-2">
-          <FileSpreadsheet class="text-muted-foreground/40 text-4xl" />
-          <p class="text-sm text-muted-foreground">Записів не знайдено</p>
-        </div>
-      </div>
-    </template>
-  </DataTable>
+      <!-- Empty state -->
+      <TableRow v-else-if="!isLoading && !rows.length">
+        <TableCell :colspan="columns.length + 1" class="px-3 py-16 text-center border-0">
+          <div class="flex flex-col items-center gap-2">
+            <FileSpreadsheet class="text-muted-foreground/40 text-4xl" />
+            <p class="text-sm text-muted-foreground">Записів не знайдено</p>
+          </div>
+        </TableCell>
+      </TableRow>
+
+      <!-- Rows -->
+      <TableRow
+        v-for="(row, ri) in rows" :key="getRowDocId(row) ?? ri"
+        class="transition-all duration-300 cursor-pointer border-b border-border/20 last:border-0 hover:bg-primary/[0.04]"
+        :class="[
+          { 'bg-primary/[0.05] hover:bg-primary/[0.08]': selectedIds.includes(getRowDocId(row) ?? '') },
+          { 'ring-inset ring-2 ring-primary/60 scale-[1.002] z-20 relative shadow-lg bg-background': activeIndex === ri },
+        ]"
+        @click="emit('rowClick', row)"
+      >
+        <TableCell class="relative px-6 py-4 text-sm border-b border-border/10">
+          <div v-if="selectedIds.includes(getRowDocId(row) ?? '')"
+            class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full pointer-events-none" />
+          <Checkbox
+            :model-value="selectedIds.includes(getRowDocId(row) ?? '')"
+            @update:model-value="() => { const docId = getRowDocId(row); if (docId) emit('select', docId) }"
+            @click.stop
+          />
+        </TableCell>
+
+        <TableCell v-for="(col, ci) in columns" :key="col.key" class="px-6 py-4 text-sm border-b border-border/10 max-w-xs whitespace-normal wrap-break-word">
+          <div @dblclick.stop="ci > 0 && startEdit(row, col.key, getFieldType(col.key))">
+            <!-- Inline edit input -->
+            <template v-if="isEditing(getRowDocId(row) ?? '', col.key)">
+              <input ref="inlineInput" v-model="inlineEdit!.value"
+                class="w-full rounded-md border border-primary px-2 py-1 text-sm bg-background shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow"
+                @blur="commitEdit" @keydown.enter.prevent="commitEdit" @keydown.escape.prevent="cancelEdit"
+                @click.stop />
+            </template>
+
+            <!-- Field-type cell renderer (registry) -->
+            <template v-else>
+              <a
+                v-if="rowHref(row)"
+                :href="rowHref(row)!"
+                class="block"
+                :class="{ 'font-semibold text-primary hover:underline': ci === 0 && !['Image', 'Attach', 'Check'].includes(getFieldType(col.key)) }"
+                @click.stop="onRowAnchorClick($event, row)"
+              >
+                <component :is="getListCell(getFieldType(col.key)) ?? DefaultListCell" :value="row[col.key]" :row="row"
+                  :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
+                  :status-config="statusConfig" />
+              </a>
+              <div
+                v-else
+                :class="{ 'font-semibold text-primary hover:underline': ci === 0 && !['Image', 'Attach', 'Check'].includes(getFieldType(col.key)) }"
+              >
+                <component :is="getListCell(getFieldType(col.key)) ?? DefaultListCell" :value="row[col.key]" :row="row"
+                  :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
+                  :status-config="statusConfig" />
+              </div>
+            </template>
+          </div>
+        </TableCell>
+      </TableRow>
+    </TableBody>
+  </Table>
 </template>
-
-<style scoped>
-:deep(.p-datatable-header-cell),
-:deep(.p-datatable-column-sortable),
-:deep(.p-datatable-column-sorted),
-:deep(.p-datatable-header-cell.p-datatable-column-sorted),
-:deep(.p-datatable-header-cell.p-datatable-column-sorted:hover) {
-    background: transparent !important;
-    background-color: transparent !important;
-    box-shadow: none !important;
-}
-</style>

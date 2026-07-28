@@ -143,10 +143,10 @@ watch(() => props.columnField, loadCards)
             <h3 class="font-black text-[11px] text-foreground/70 truncate uppercase tracking-[0.15em]">
               {{ columnLabel(col) }}
             </h3>
-            <Badge :value="cardsByColumn[col]?.length || 0" severity="secondary"
-              class="!bg-muted/40 !text-muted-foreground !text-[10px] !font-black !px-2 !h-5 !min-w-6" />
+            <Badge variant="secondary"
+              class="!bg-muted/40 !text-muted-foreground !text-[10px] !font-black !px-2 !h-5 !min-w-6">{{ cardsByColumn[col]?.length || 0 }}</Badge>
           </div>
-          <Button text rounded size="small" class="!size-7 !text-muted-foreground/40 hover:!text-foreground"><Ellipsis class="size-4" /></Button>
+          <Button variant="ghost" size="sm" class="!size-7 !text-muted-foreground/40 hover:!text-foreground rounded-full"><Ellipsis class="size-4" /></Button>
         </div>
 
         <!-- Column Body -->
@@ -157,7 +157,7 @@ watch(() => props.columnField, loadCards)
             <div class="relative group/input">
               <Plus
                 class="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/30 group-hover/input:text-primary transition-colors z-10" />
-              <InputText v-model="quickAddInputs[col]" placeholder="Швидке додавання..."
+              <Input v-model="quickAddInputs[col]" placeholder="Швидке додавання..."
                 class="!w-full !pl-10 !h-10 !text-xs !bg-background/40 hover:!bg-background !border-none !shadow-none focus:!ring-1 focus:!ring-primary/20 !rounded-2xl transition-all"
                 @keyup.enter="quickAdd(col)" />
             </div>
@@ -188,8 +188,9 @@ watch(() => props.columnField, loadCards)
                 <div class="flex items-center justify-between mt-6 relative z-10">
                   <div class="flex items-center gap-2">
                     <div v-if="card.owner" class="flex items-center gap-2 group-hover:bg-primary/5 px-2 py-1 rounded-full transition-colors" title="Власник">
-                      <Avatar :label="card.owner.charAt(0).toUpperCase()" shape="circle" size="normal"
-                        class="!size-5 !text-[8px] !bg-primary/10 !text-primary !border !border-primary/20" />
+                      <Avatar class="!size-5 !border !border-primary/20">
+                        <AvatarFallback class="!text-[8px] !bg-primary/10 !text-primary">{{ card.owner.charAt(0).toUpperCase() }}</AvatarFallback>
+                      </Avatar>
                       <span class="text-[10px] text-muted-foreground font-semibold truncate max-w-[80px]">
                         {{ card.owner.split('@')[0] }}
                       </span>

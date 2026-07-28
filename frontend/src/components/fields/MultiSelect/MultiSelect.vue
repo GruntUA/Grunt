@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { DocField } from '@/types'
-import MultiSelect from 'primevue/multiselect'
+import { MultiSelect as ShadcnMultiSelect } from '@/components/ui/multi-select'
 
 const props = defineProps<{
   field: DocField
@@ -29,13 +29,10 @@ const selectedValues = computed<string[]>(() => {
 </script>
 
 <template>
-  <MultiSelect
+  <ShadcnMultiSelect
     :model-value="selectedValues"
     :options="parsedOptions"
-    display="chip"
-    filter
     :disabled="disabled || field.read_only"
-    :invalid="!!error"
     placeholder="— оберіть —"
     class="w-full"
     @update:model-value="emit('update:modelValue', $event)"

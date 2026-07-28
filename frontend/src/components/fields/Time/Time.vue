@@ -12,7 +12,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 </script>
 
 <template>
-  <InputText
+  <Input
     :model-value="String(modelValue ?? '')"
     :placeholder="field.placeholder ?? field.label"
     :required="field.required"

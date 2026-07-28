@@ -25,7 +25,7 @@ const router = useRouter()
       </p>
       <div class="flex gap-3 justify-center flex-wrap">
         <slot name="actions">
-          <Button v-if="showBackButton" outlined @click="router.back()">Go back</Button>
+          <Button variant="outline" v-if="showBackButton" @click="router.back()">Go back</Button>
           <Button v-if="showHomeButton" @click="router.push('/')">Go home</Button>
         </slot>
       </div>

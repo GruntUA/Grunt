@@ -16,7 +16,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <InputText
+  <Input
     :model-value="modelValue"
     type="date"
     class="h-8 text-xs mb-3 w-full"

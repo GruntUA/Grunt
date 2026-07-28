@@ -63,32 +63,28 @@ onMounted(loadTags)
     </span>
     
     <div v-if="tags.length > 0" class="flex flex-wrap gap-2">
-      <Chip v-for="t in tags" :key="t.id" 
+      <Badge v-for="t in tags" :key="t.id" 
         class="pl-2 pr-2 py-0.5 text-[11px] font-semibold bg-background border border-border/60 shadow-sm"
       >
         <span class="mr-2">{{ t.tag }}</span>
         <X class="size-3 cursor-pointer hover:text-destructive transition-colors shrink-0" @click="removeTag(t)" />
-      </Chip>
+      </Badge>
     </div>
 
     <!-- Add tag input -->
     <div class="flex gap-1.5 mt-1">
-      <InputGroup class="h-8 shadow-sm">
-        <InputText 
-            v-model="tagInput" 
+      <div class="inline-flex h-8 shadow-sm w-full">
+        <Input
+            v-model="tagInput"
             placeholder="Додати тег..."
-            class="!text-xs h-full"
-            @keydown="onTagKeydown" 
+            class="!text-xs h-full rounded-r-none flex-1"
+            @keydown="onTagKeydown"
         />
-        <Button 
-            class="h-full px-2"
-            :disabled="!tagInput.trim() || tagAdding" 
-            @click="addTag"
-        >
+        <Button class="h-full px-2 rounded-l-none border-l-0" :disabled="!tagInput.trim() || tagAdding" @click="addTag">
           <Loader2 v-if="tagAdding" class="size-3.5 animate-spin" />
           <Plus v-else class="size-3.5" />
         </Button>
-      </InputGroup>
+      </div>
     </div>
   </div>
 </template>

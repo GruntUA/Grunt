@@ -41,7 +41,7 @@ function confirm() {
   <div class="p-4 flex flex-col gap-3">
     <p class="text-sm text-muted-foreground">Вкажіть пряме посилання на файл у інтернеті.</p>
 
-    <InputText
+    <Input
       v-model="urlInput"
       placeholder="https://example.com/file.pdf"
       class="w-full"
@@ -58,6 +58,6 @@ function confirm() {
       URL не схожий на зображення
     </div>
 
-    <Button type="button" :disabled="!urlInput.trim()" @click="confirm" label="Підтвердити" />
+    <Button type="button" :disabled="!urlInput.trim()" @click="confirm">Підтвердити</Button>
   </div>
 </template>

@@ -469,8 +469,11 @@ const printPage = () => window.print()
   </Teleport>
 
   <!-- ── Embed dialog ───────────────────────────────────────────────────────── -->
-  <Dialog v-model:visible="showEmbedModal" header="Вбудувати дашборд" modal
-    :pt="{ root: { class: 'sm:max-w-[500px]' }, content: { class: 'p-0 px-6 pb-6 pt-2' } }">
+  <Dialog v-model:open="showEmbedModal">
+    <DialogContent class="sm:max-w-[500px] p-0 px-6 pb-6 pt-2">
+    <DialogHeader>
+      <DialogTitle>Вбудувати дашборд</DialogTitle>
+    </DialogHeader>
     <div class="space-y-4">
         <div class="space-y-1.5">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Пряме посилання</label>
@@ -493,6 +496,7 @@ const printPage = () => window.print()
           />
         </div>
       </div>
+    </DialogContent>
   </Dialog>
 </div>
 </template>

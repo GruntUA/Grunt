@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
@@ -48,12 +48,6 @@ function handleNew() {
   } else {
     router.push(props.workspace ? `/${props.workspace}/${props.doctype}/new` : `/${props.doctype}/new`)
   }
-}
-
-// PrimeVue Menu
-const menu = ref()
-const toggleMenu = (event: Event) => {
-    menu.value.toggle(event)
 }
 
 const menuItems = computed(() => {
@@ -122,29 +116,33 @@ const menuItems = computed(() => {
     </div>
     <div class="flex items-center gap-2.5">
       <!-- Refresh button -->
-      <Button outlined class="text-foreground transition-all active:scale-95 shadow-sm" :title="t('Refresh')"
-        @click="emit('refresh')">
+      <Button variant="outline" class="text-foreground transition-all active:scale-95 shadow-sm" :title="t('Refresh')" @click="emit('refresh')">
         <RefreshCw class="size-4" :class="{ 'animate-spin': isFetching }" />
       </Button>
 
       <!-- Actions menu -->
-      <Button outlined class="text-foreground hover:bg-muted/80 shadow-sm" @click="toggleMenu">
-        <MoreHorizontal class="size-4" />
-      </Button>
-      <Menu ref="menu" :model="menuItems" :popup="true" class="w-56">
-        <template #item="{ item, props: itemProps }">
-          <a v-bind="itemProps.action" class="flex items-center gap-2">
-            <component v-if="item.icon" :is="item.icon" class="size-4" />
-            <span>{{ item.label }}</span>
-          </a>
-        </template>
-      </Menu>
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <Button variant="outline" class="text-foreground hover:bg-muted/80 shadow-sm">
+            <MoreHorizontal class="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent class="w-56" align="end">
+          <template v-for="(item, idx) in menuItems" :key="idx">
+            <DropdownMenuSeparator v-if="item.separator" />
+            <DropdownMenuItem v-else @click="item.command?.()">
+              <component v-if="item.icon" :is="item.icon" class="size-4" />
+              <span>{{ item.label }}</span>
+            </DropdownMenuItem>
+          </template>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <!-- Custom buttons -->
       <Button
         v-for="btn in listButtons"
-        :key="btn.label" outlined size="small"
-        :severity="btn.severity"
+        :key="btn.label" size="sm"
+        :variant="btn.severity || 'outline'"
         class="hidden sm:inline-flex shadow-sm hover:shadow-md transition-all active:scale-95"
         @click="btn.action()"
       >
@@ -152,7 +150,7 @@ const menuItems = computed(() => {
       </Button>
 
       <!-- New button -->
-      <Button size="small" class="px-4 shadow-md hover:shadow-lg transition-all active:scale-95 gap-1.5" @click="handleNew" :title="`${t('Add')} (Ctrl+N)`">
+      <Button size="sm" class="px-4 shadow-md hover:shadow-lg transition-all active:scale-95 gap-1.5" @click="handleNew" :title="`${t('Add')} (Ctrl+N)`">
         <Plus class="size-4" />
         <span>{{ isSystemDocType ? 'New DocType' : t('Add') }}</span>
       </Button>

@@ -370,8 +370,9 @@ watch(() => props.doctype, async (newDoctype) => {
       @close="showQuickEntry = false" @saved="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })" />
 
     <!-- Bulk delete progress dialog -->
-    <Dialog v-if="deleteProgress" :visible="deleteProgress.active" modal :closable="false" :show-header="false"
-      :pt="{ root: { class: 'max-w-sm' }, content: { class: 'p-6' } }">
+    <Dialog v-if="deleteProgress" :open="deleteProgress.active">
+      <DialogContent class="max-w-sm p-6" :show-close-button="false">
+      <DialogTitle class="sr-only">Видалення записів</DialogTitle>
       <div class="flex flex-col gap-4 py-2">
         <div class="flex items-center gap-3">
           <div class="size-5 shrink-0 rounded-full border-2 border-destructive/20 border-t-destructive animate-spin" />
@@ -397,6 +398,7 @@ watch(() => props.doctype, async (newDoctype) => {
           Помилок: {{ deleteProgress.errors }}
         </p>
       </div>
+      </DialogContent>
     </Dialog>
   </div>
 </template>

@@ -1,11 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { VueQueryPlugin } from '@tanstack/vue-query'
-import PrimeVue from 'primevue/config'
-import Aura from '@primevue/themes/aura'
-import ToastService from 'primevue/toastservice'
-import ConfirmationService from 'primevue/confirmationservice'
-import Tooltip from 'primevue/tooltip'
 import App from './App.vue'
 import router from './router'
 import i18n from './plugins/i18n'
@@ -14,6 +9,7 @@ import { useAuthStore } from '@/stores/auth'
 import '@/app-hooks'
 
 import './assets/main.css'
+import 'vue-sonner/style.css'
 import 'default-passive-events'
 // Expose globally for client scripts (JS controllers)
 window.grunt = grunt
@@ -22,30 +18,6 @@ window.frappe = grunt // Frappe-compatible alias
 const pinia = createPinia()
 const app = createApp(App)
 app.use(pinia)
-app.use(PrimeVue, {
-  theme: {
-    preset: Aura,
-    options: {
-      darkModeSelector: '.dark',
-    },
-  },
-  pt: {
-    // Global overrides for all Buttons
-    button: {
-      root: ({ props }: any) => ({
-        class: props?.size === 'small' ? 'h-8 text-sm' : undefined
-      })
-    },
-    // Unified table style
-    datatable: {
-      root: { class: 'rounded-lg border border-surface-200 dark:border-surface-700' },
-    },
-  },
-  ptOptions: { mergeSections: true, mergeProps: true },
-})
-app.use(ToastService)
-app.use(ConfirmationService)
-app.directive('tooltip', Tooltip)
 // Start auth request immediately — router guard will await the same promise
 useAuthStore().prefetchMe()
 app.use(router)

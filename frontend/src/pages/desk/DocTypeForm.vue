@@ -22,7 +22,6 @@ import { useFetchFrom } from '@/core/composables/useFetchFrom'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { DocType, GruntDocument } from '@/types'
 import { History, Activity } from '@lucide/vue'
-import ProgressSpinner from 'primevue/progressspinner'
 
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import DocSidebar from '@/components/views/DocSidebar.vue'
@@ -327,7 +326,7 @@ useFetchFrom({
 
     <!-- Loading -->
     <div v-if="isLoading || !dt" class="flex justify-center py-24">
-      <ProgressSpinner class="!size-10" />
+      <Spinner class="!size-10" />
     </div>
 
     <template v-else>

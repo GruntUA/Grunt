@@ -71,7 +71,7 @@ async function handleRegister() {
             <!-- Full Name -->
             <div class="flex flex-col gap-1.5">
               <label for="full-name" class="text-sm font-medium">Повне ім'я</label>
-              <InputText
+              <Input
                 id="full-name"
                 v-model="fullName"
                 type="text"
@@ -85,7 +85,7 @@ async function handleRegister() {
             <!-- Email -->
             <div class="flex flex-col gap-1.5">
               <label for="email" class="text-sm font-medium">Email</label>
-              <InputText
+              <Input
                 id="email"
                 v-model="email"
                 type="email"
@@ -99,7 +99,7 @@ async function handleRegister() {
             <!-- Password -->
             <div class="flex flex-col gap-1.5">
               <label for="password" class="text-sm font-medium">Пароль</label>
-              <InputText
+              <Input
                 id="password"
                 v-model="password"
                 type="password"
@@ -113,7 +113,7 @@ async function handleRegister() {
             <!-- Confirm Password -->
             <div class="flex flex-col gap-1.5">
               <label for="password-confirm" class="text-sm font-medium">Повторіть пароль</label>
-              <InputText
+              <Input
                 id="password-confirm"
                 v-model="passwordConfirm"
                 type="password"
@@ -131,7 +131,10 @@ async function handleRegister() {
 
             <!-- Submit -->
             <div class="flex flex-col gap-3">
-              <Button type="submit" :loading="loading" class="w-full" label="Зареєструватись" />
+              <Button type="submit" :disabled="loading" class="w-full">
+                <Spinner v-if="loading" class="size-4 mr-2" />
+                Зареєструватись
+              </Button>
               <p class="text-center text-sm text-muted-foreground">
                 Вже маєте акаунт?
                 <router-link to="/login" class="text-primary hover:underline font-medium">Увійти</router-link>

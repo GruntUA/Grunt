@@ -80,12 +80,7 @@ onMounted(loadTransitions)
     <span class="text-sm text-muted-foreground">Стан:</span>
     <Badge :class="stateBadge.colorClass">{{ stateBadge.label }}</Badge>
     <div class="flex gap-2 ml-2">
-      <Button
-        v-for="t in transitions"
-        :key="t.action" severity="secondary" size="small"
-        :disabled="isLoading"
-        @click="apply(t.action)"
-      >
+      <Button variant="secondary" v-for="t in transitions" :key="t.action" size="sm" :disabled="isLoading" @click="apply(t.action)">
         <Loader2 v-if="isLoading" class="size-4 animate-spin" />
         {{ t.action }}
       </Button>

@@ -6,7 +6,7 @@ const { field, updateField } = usePropertyEditor()
 </script>
 
 <template>
-  <Divider class="!mb-3" />
+  <Separator class="!mb-3" />
   <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Icon</p>
   <div class="mb-4">
     <IconPicker

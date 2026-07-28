@@ -68,19 +68,19 @@ async function handleSubmit() {
         <div v-if="done" class="text-center py-4 flex flex-col items-center gap-3">
           <p class="text-sm text-foreground font-medium">Пароль оновлено!</p>
           <p class="text-sm text-muted-foreground mb-2">Тепер ви можете увійти з новим паролем.</p>
-          <Button class="w-full h-11" label="Перейти до входу" @click="router.push('/login')" />
+          <Button class="w-full h-11" @click="router.push('/login')">Перейти до входу</Button>
         </div>
 
         <form v-else class="flex flex-col gap-5" @submit.prevent="handleSubmit">
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium">Новий пароль <span class="text-destructive">*</span></label>
-            <InputText v-model="newPassword" type="password" autocomplete="new-password"
+            <Input v-model="newPassword" type="password" autocomplete="new-password"
               placeholder="••••••••" required class="h-11 w-full" />
           </div>
 
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-medium">Підтвердіть пароль <span class="text-destructive">*</span></label>
-            <InputText v-model="confirmPassword" type="password" autocomplete="new-password"
+            <Input v-model="confirmPassword" type="password" autocomplete="new-password"
               placeholder="••••••••" required class="h-11 w-full" />
           </div>
 
@@ -90,11 +90,12 @@ async function handleSubmit() {
 
           <Button
             type="submit"
-            :loading="loading"
-            :disabled="!token"
+            :disabled="loading || !token"
             class="w-full h-11 mt-1 text-[15px] font-medium"
-            label="Встановити новий пароль"
-          />
+          >
+            <Spinner v-if="loading" class="size-4 mr-2" />
+            Встановити новий пароль
+          </Button>
         </form>
       </div>
     </div>

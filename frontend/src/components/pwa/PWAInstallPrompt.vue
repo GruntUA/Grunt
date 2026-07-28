@@ -98,7 +98,7 @@ function dismiss() {
         <p class="text-xs text-muted-foreground mt-0.5">Додати на головний екран для швидкого доступу</p>
       </div>
       <div class="flex items-center gap-1.5 shrink-0">
-        <Button size="small" @click="install">Так</Button>
+        <Button size="sm" @click="install">Так</Button>
         <button class="p-1.5 rounded-md hover:bg-muted transition-colors" @click="dismiss">
           <X class="w-4 h-4 text-muted-foreground" />
         </button>

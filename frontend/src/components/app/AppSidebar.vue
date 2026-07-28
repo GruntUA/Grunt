@@ -13,7 +13,7 @@ import type { Theme } from '@/core/composables/useColorMode'
 import {
   ArrowLeft, ChevronsUpDown, Sun, Moon, Monitor,
   Settings2, Search, Shield, Activity,
-  Mail, X, LogOut, Check,
+  Mail, X, LogOut,
 } from '@lucide/vue'
 
 const props = defineProps<{ workspaceName: string }>()
@@ -26,12 +26,16 @@ const colorMode = useColorMode()
 
 const pinnedItems = ref<{ workspace: string; type: string; link_to: string; label: string; icon: string }[]>([])
 
-// ── PrimeVue Menu refs ────────────────────────────────────────────────────────
-const appSwitcherRef = ref()
-const userMenuRef = ref()
-
 // ── App Switcher items ────────────────────────────────────────────────────────
-const appSwitcherItems = computed(() => [
+interface AppSwitcherItem {
+  key?: string
+  label?: string
+  icon?: string
+  isActive?: boolean
+  command?: () => void
+  separator?: boolean
+}
+const appSwitcherItems = computed<AppSwitcherItem[]>(() => [
   ...appStore.workspaces.map(ws => ({
     key: ws.name,
     label: ws.label,
@@ -42,21 +46,6 @@ const appSwitcherItems = computed(() => [
   { separator: true },
   { key: 'back', label: 'На головну', command: goToDesk },
 ])
-
-// ── User dropdown items ───────────────────────────────────────────────────────
-const userMenuItems = computed(() => [
-  { key: '__theme_label', label: 'Тема', disabled: true },
-  { key: 'light', label: 'Світла', command: () => onThemeChange('light') },
-  { key: 'dark', label: 'Темна', command: () => onThemeChange('dark') },
-  { key: 'system', label: 'Системна', command: () => onThemeChange('system') },
-  { separator: true },
-  { key: '__palette_label', label: 'Акцент', disabled: true },
-  { key: 'palette' },
-  { separator: true },
-  { key: 'logout', label: 'Вийти', command: handleLogout },
-])
-
-const THEME_ICONS: Record<string, any> = { light: Sun, dark: Moon, system: Monitor }
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 function goToDesk() { router.push('/app') }
@@ -139,51 +128,58 @@ const isCollapsed = computed(() => sidebarStore.isCollapsed)
     <header class="flex flex-col gap-2 pt-1 px-1 pb-3">
       <!-- Expanded: full button + popup menu -->
       <template v-if="!isCollapsed">
-        <Menu ref="appSwitcherRef" :model="appSwitcherItems" popup
-          :pt="{ root: { class: 'rounded-xl shadow-xl p-1.5 min-w-[200px]' } }">
-          <template #item="{ item, props: mp }">
-            <hr v-if="item.separator" class="border-border my-1 mx-1" />
-            <a v-else v-bind="mp.action"
-              class="flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-muted"
-              :class="item.isActive ? 'text-primary font-medium bg-primary/5' : ''">
-              <AppIcon v-if="item.icon" :icon="item.icon" class="size-4 shrink-0 text-muted-foreground" />
-              <ArrowLeft v-else-if="item.key === 'back'" class="size-4 text-muted-foreground shrink-0" />
-              <span class="text-sm truncate">{{ item.label }}</span>
-            </a>
-          </template>
-        </Menu>
-
-        <button
-          class="group w-full flex items-center justify-between px-1.5 py-2.5 rounded-xl border border-sidebar-border bg-linear-to-br from-card via-card to-primary/5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 relative overflow-hidden"
-          @click="(e) => appSwitcherRef?.toggle(e)">
-          <div
-            class="absolute inset-0 bg-linear-to-tr from-transparent via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-          <div class="flex items-center gap-3.5 min-w-0 relative z-10">
-            <div
-              class="size-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-inner">
-              <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-5 text-primary" />
-            </div>
-            <div class="flex flex-col items-start min-w-0">
-              <span class="text-[9px] font-black text-primary/70 uppercase tracking-[0.25em] leading-none mb-1.5">
-                {{ appStore.active?.name === 'grunt' ? 'СИСТЕМА' : 'ДОДАТОК' }}
-              </span>
-              <span
-                class="text-sm font-bold text-foreground truncate w-full group-hover:text-primary transition-colors">
-                {{ appStore.active?.label }}
-              </span>
-            </div>
-          </div>
-          <ChevronsUpDown
-            class="size-4 text-muted-foreground/40 group-hover:text-primary transition-all shrink-0 ml-2" />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <button
+              class="group w-full flex items-center justify-between px-1.5 py-2.5 rounded-xl border border-sidebar-border bg-linear-to-br from-card via-card to-primary/5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 relative overflow-hidden">
+              <div
+                class="absolute inset-0 bg-linear-to-tr from-transparent via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              <div class="flex items-center gap-3.5 min-w-0 relative z-10">
+                <div
+                  class="size-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-inner">
+                  <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-5 text-primary" />
+                </div>
+                <div class="flex flex-col items-start min-w-0">
+                  <span class="text-[9px] font-black text-primary/70 uppercase tracking-[0.25em] leading-none mb-1.5">
+                    {{ appStore.active?.name === 'grunt' ? 'СИСТЕМА' : 'ДОДАТОК' }}
+                  </span>
+                  <span
+                    class="text-sm font-bold text-foreground truncate w-full group-hover:text-primary transition-colors">
+                    {{ appStore.active?.label }}
+                  </span>
+                </div>
+              </div>
+              <ChevronsUpDown
+                class="size-4 text-muted-foreground/40 group-hover:text-primary transition-all shrink-0 ml-2" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent class="rounded-xl p-1.5 min-w-[200px]">
+            <template v-for="(item, idx) in appSwitcherItems" :key="idx">
+              <DropdownMenuSeparator v-if="item.separator" />
+              <DropdownMenuItem v-else
+                class="gap-2.5 px-3 py-2 rounded-lg"
+                :class="item.isActive ? 'text-primary font-medium bg-primary/5' : ''"
+                @click="item.command?.()">
+                <AppIcon v-if="item.icon" :icon="item.icon" class="size-4 shrink-0 text-muted-foreground" />
+                <ArrowLeft v-else-if="item.key === 'back'" class="size-4 text-muted-foreground shrink-0" />
+                <span class="text-sm truncate">{{ item.label }}</span>
+              </DropdownMenuItem>
+            </template>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </template>
 
       <!-- Collapsed: icon only -->
-      <button v-else
-        class="h-11 w-11 mx-auto flex items-center justify-center rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-all shadow-sm"
-        @click="goToDesk" v-tooltip.right="appStore.active?.label || 'Workspace'">
-        <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-5" />
-      </button>
+      <Tooltip v-else>
+        <TooltipTrigger as-child>
+          <button
+            class="h-11 w-11 mx-auto flex items-center justify-center rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-all shadow-sm"
+            @click="goToDesk">
+            <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-5" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="right">{{ appStore.active?.label || 'Workspace' }}</TooltipContent>
+      </Tooltip>
     </header>
 
     <!-- ── Content ─────────────────────────────────────────────────────────── -->
@@ -243,11 +239,11 @@ const isCollapsed = computed(() => sidebarStore.isCollapsed)
           </RouterLink>
         </ul>
 
-        <Divider class="!my-3 !mx-2 opacity-50" />
+        <Separator class="!my-3 !mx-2 opacity-50" />
 
         <!-- Workspace groups -->
         <template v-for="(group, gi) in appStore.groupedItems" :key="gi">
-          <Divider v-if="group.section === '__divider__'" class="!my-3 !mx-2 opacity-50" />
+          <Separator v-if="group.section === '__divider__'" class="!my-3 !mx-2 opacity-50" />
           <div v-else class="mb-2">
             <p v-if="group.section && !isCollapsed"
               class="text-[9px] font-black tracking-[0.25em] uppercase text-muted-foreground/40 px-3 mt-5 mb-2">
@@ -298,45 +294,53 @@ const isCollapsed = computed(() => sidebarStore.isCollapsed)
 
     <!-- ── Footer: User menu ───────────────────────────────────────────────── -->
     <footer class="pt-3 px-1 pb-1 border-t border-sidebar-border/50">
-      <Menu ref="userMenuRef" :model="userMenuItems" popup
-        :pt="{ root: { class: 'rounded-xl shadow-xl p-1.5 min-w-[220px]' } }">
-        <template #item="{ item, props: mp }">
-          <hr v-if="item.separator" class="border-border my-1 mx-1" />
-          <span v-else-if="item.disabled"
-            class="block px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            {{ item.label }}
-          </span>
-          <!-- Palette Picker special item -->
-          <PalettePicker v-else-if="item.key === 'palette'" />
-
-          <a v-else v-bind="mp.action"
-            class="flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-muted">
-            <component :is="THEME_ICONS[item.key!]" v-if="item.key && THEME_ICONS[item.key]"
-              class="size-4 text-muted-foreground shrink-0" />
-            <LogOut v-else-if="item.key === 'logout'" class="size-4 text-muted-foreground shrink-0" />
-            <span class="text-sm flex-1">{{ item.label }}</span>
-            <Check v-if="item.key && THEME_ICONS[item.key] && colorMode.currentTheme.value === item.key"
-              class="size-3.5 text-primary shrink-0" />
-          </a>
-        </template>
-      </Menu>
-
-      <button
-        class="w-full flex items-center gap-3 px-1.5 py-2 rounded-xl hover:bg-primary/5 transition-all group overflow-hidden"
-        :class="isCollapsed ? 'justify-center' : ''" :title="auth.user?.full_name"
-        @click="(e) => userMenuRef?.toggle(e)">
-        <Avatar :image="auth.user?.avatar || undefined" :label="auth.user ? initials(auth.user.full_name) : '?'"
-          shape="circle"
-          class="size-10! bg-primary! text-white! text-[14px]! font-black! shrink-0 shadow-sm transition-transform group-hover:scale-105" />
-        <div v-if="!isCollapsed" class="flex-1 text-left min-w-0">
-          <p
-            class="text-sm font-bold text-foreground truncate leading-tight mb-0.5 group-hover:text-primary transition-colors">
-            {{ auth.user?.full_name }}</p>
-          <p class="text-[11px] text-muted-foreground/70 truncate leading-tight">{{ auth.user?.email }}</p>
-        </div>
-        <ChevronsUpDown v-if="!isCollapsed"
-          class="size-4 text-muted-foreground/30 group-hover:text-primary transition-all shrink-0" />
-      </button>
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <button
+            class="w-full flex items-center gap-3 px-1.5 py-2 rounded-xl hover:bg-primary/5 transition-all group overflow-hidden"
+            :class="isCollapsed ? 'justify-center' : ''" :title="auth.user?.full_name">
+            <Avatar class="size-10 shrink-0 shadow-sm transition-transform group-hover:scale-105">
+              <AvatarImage v-if="auth.user?.avatar" :src="auth.user.avatar" alt="" />
+              <AvatarFallback class="bg-primary text-white text-[14px] font-black">
+                {{ auth.user ? initials(auth.user.full_name) : '?' }}
+              </AvatarFallback>
+            </Avatar>
+            <div v-if="!isCollapsed" class="flex-1 text-left min-w-0">
+              <p
+                class="text-sm font-bold text-foreground truncate leading-tight mb-0.5 group-hover:text-primary transition-colors">
+                {{ auth.user?.full_name }}</p>
+              <p class="text-[11px] text-muted-foreground/70 truncate leading-tight">{{ auth.user?.email }}</p>
+            </div>
+            <ChevronsUpDown v-if="!isCollapsed"
+              class="size-4 text-muted-foreground/30 group-hover:text-primary transition-all shrink-0" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent class="rounded-xl p-1.5 min-w-[220px]">
+          <DropdownMenuLabel class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Тема</DropdownMenuLabel>
+          <DropdownMenuRadioGroup :model-value="colorMode.currentTheme.value" @update:model-value="onThemeChange">
+            <DropdownMenuRadioItem value="light" class="gap-2.5 pl-8 pr-3 py-2 rounded-lg">
+              <Sun class="size-4 text-muted-foreground shrink-0" />
+              <span class="text-sm">Світла</span>
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="dark" class="gap-2.5 pl-8 pr-3 py-2 rounded-lg">
+              <Moon class="size-4 text-muted-foreground shrink-0" />
+              <span class="text-sm">Темна</span>
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="system" class="gap-2.5 pl-8 pr-3 py-2 rounded-lg">
+              <Monitor class="size-4 text-muted-foreground shrink-0" />
+              <span class="text-sm">Системна</span>
+            </DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+          <DropdownMenuSeparator class="my-1 mx-1" />
+          <DropdownMenuLabel class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Акцент</DropdownMenuLabel>
+          <div class="px-1 py-1"><PalettePicker /></div>
+          <DropdownMenuSeparator class="my-1 mx-1" />
+          <DropdownMenuItem class="gap-2.5 px-3 py-2 rounded-lg" @click="handleLogout">
+            <LogOut class="size-4 text-muted-foreground shrink-0" />
+            <span class="text-sm">Вийти</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </footer>
 
   </div>

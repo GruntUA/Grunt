@@ -75,12 +75,7 @@ function locate() {
         @paste="parsePaste"
       />
     </div>
-    <Button
-      v-if="!disabled && !field.read_only"
-      type="button" outlined size="small"
-      :disabled="isLocating"
-      @click="locate"
-    >
+    <Button variant="outline" v-if="!disabled && !field.read_only" type="button" size="sm" :disabled="isLocating" @click="locate">
       <MapPin class="size-4 mr-1" />
       {{ isLocating ? '...' : 'Моє місце' }}
     </Button>

@@ -6,6 +6,7 @@ import type { LayoutSection, LayoutTab } from '@/core/composables/useFormLayout'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { initials } from '@/core/composables/usePresence'
 import { ChevronDown } from '@lucide/vue'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import FieldRenderer from './FieldRenderer.vue'
 import DesignerTab from '../../pages/studio/builder/DesignerTab.vue'
 import ViewsTab from '../../pages/studio/builder/tabs/ViewsTab.vue'
@@ -103,19 +104,17 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
 </script>
 
 <template>
-  <Tabs v-if="hasTabs" v-model:value="currentTab" class="w-full overflow-hidden">
+  <Tabs v-if="hasTabs" v-model="currentTab" class="w-full overflow-hidden">
     <!-- Tab navigation -->
     <div class="relative mb-4">
-      <TabList
-        variant="underline"
-        class="h-auto border-b border-border px-2 overflow-x-auto scrollbar-none sticky top-0 z-10 bg-background/95 backdrop-blur"
+      <TabsList
+        class="h-auto w-full justify-start rounded-none border-b border-border bg-transparent px-2 overflow-x-auto scrollbar-none sticky top-0 z-10 bg-background/95 backdrop-blur"
       >
-        <Tab
+        <TabsTrigger
           v-for="(tab, ti) in layout"
           :key="ti"
           :value="tab.label || 'Main'"
-          variant="underline"
-          class="flex items-center gap-1.5 px-3 h-9 whitespace-nowrap rounded-t-md transition-colors duration-150 data-[state=active]:bg-muted/60 hover:bg-muted/30"
+          class="flex items-center gap-1.5 px-3 h-9 whitespace-nowrap rounded-t-md rounded-b-none border-0 shadow-none transition-colors duration-150 data-[state=active]:bg-muted/60 data-[state=active]:border-b-2 data-[state=active]:border-primary hover:bg-muted/30"
         >
           <component
             v-if="tab._field?.icon && getTabIcon(tab._field?.icon)"
@@ -123,16 +122,15 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
             class="size-3.5 shrink-0"
           />
           <span class="text-[13px] font-semibold tracking-wide">{{ tab.label || 'Main' }}</span>
-        </Tab>
-      </TabList>
+        </TabsTrigger>
+      </TabsList>
       <div class="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background/95 to-transparent" />
       <div class="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background/95 to-transparent" />
     </div>
 
     <!-- Sections -->
-    <TabPanels>
-      <TabPanel v-for="(tab, ti) in layout" :key="ti" :value="tab.label || 'Main'"
-        class="mt-0 flex flex-col gap-4 focus-visible:ring-0">
+    <TabsContent v-for="(tab, ti) in layout" :key="ti" :value="tab.label || 'Main'"
+      class="mt-0 flex flex-col gap-4 focus-visible:ring-0">
         <!-- Support for custom tab components (e.g. Studio Designer) -->
         <template v-if="hasCustomTabComponent(tab._field?.experimental_component)">
           <component :is="getCustomTabComponent(tab._field?.experimental_component)" :doctype="doctype"
@@ -179,8 +177,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
             </Transition>
           </div>
         </template>
-      </TabPanel>
-    </TabPanels>
+    </TabsContent>
   </Tabs>
 
   <!-- Non-tabbed layout fallback (or single tab with no label) -->

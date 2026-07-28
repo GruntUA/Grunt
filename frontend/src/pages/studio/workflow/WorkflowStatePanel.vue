@@ -18,11 +18,11 @@ function update(key: keyof WorkflowState, val: unknown) {
     <div class="flex flex-col gap-3">
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium text-foreground">Ім'я *</label>
-        <InputText :model-value="state.name" class="w-full" @update:model-value="update('name', $event)" />
+        <Input :model-value="state.name" class="w-full" @update:model-value="update('name', $event)" />
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium text-foreground">Позначка</label>
-        <InputText :model-value="state.label" class="w-full" @update:model-value="update('label', $event)" />
+        <Input :model-value="state.label" class="w-full" @update:model-value="update('label', $event)" />
       </div>
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium text-foreground">Колір</label>
@@ -35,23 +35,21 @@ function update(key: keyof WorkflowState, val: unknown) {
       </div>
       <div class="flex items-center gap-2">
         <Checkbox
-          binary
           :model-value="!!state.is_initial"
-          :input-id="'init-' + state.name"
+          :id="'init-' + state.name"
           @update:model-value="update('is_initial', $event)"
         />
         <label :for="'init-' + state.name" class="text-sm cursor-pointer">Початковий</label>
       </div>
       <div class="flex items-center gap-2">
         <Checkbox
-          binary
           :model-value="!!state.is_final"
-          :input-id="'final-' + state.name"
+          :id="'final-' + state.name"
           @update:model-value="update('is_final', $event)"
         />
         <label :for="'final-' + state.name" class="text-sm cursor-pointer">Фінальний</label>
       </div>
-      <Button severity="danger" size="small" class="mt-2" @click="emit('remove')">Видалити стан</Button>
+      <Button variant="destructive" size="sm" class="mt-2" @click="emit('remove')">Видалити стан</Button>
     </div>
   </div>
 </template>

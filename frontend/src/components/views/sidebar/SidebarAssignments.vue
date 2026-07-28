@@ -37,14 +37,15 @@ function getAssignEmail(): string {
 const users = ref<UserPublic[]>([])
 const filteredUsers = ref<UserPublic[]>([])
 
-async function searchUsers(event: any) {
+async function searchUsers(query: string) {
     if (users.value.length === 0) {
         try { users.value = await authAdminApi.listUsers() } catch { return }
     }
-    const query = event.query.toLowerCase()
-    filteredUsers.value = users.value.filter(u => 
-        u.email.toLowerCase().includes(query) || 
-        (u.full_name && u.full_name.toLowerCase().includes(query))
+    if (!query) { filteredUsers.value = []; return }
+    const q = query.toLowerCase()
+    filteredUsers.value = users.value.filter(u =>
+        u.email.toLowerCase().includes(q) ||
+        (u.full_name && u.full_name.toLowerCase().includes(q))
     )
 }
 
@@ -73,71 +74,76 @@ onMounted(loadAssignees)
 
 <template>
   <div class="flex flex-col gap-3 mb-0">
-    <Button v-tooltip="t('Assign responsible person')" outlined size="small" class="w-full text-foreground shadow-sm transition-all active:scale-[0.98]" @click="showAssignDialog = true">
-      <UserPlus class="size-3.5 mr-2" />
-      <span class="text-xs font-semibold">{{ t('Assign') }}</span>
-    </Button>
+    <Tooltip>
+      <TooltipTrigger as-child>
+        <Button variant="outline" size="sm" class="w-full text-foreground shadow-sm transition-all active:scale-[0.98]" @click="showAssignDialog = true">
+          <UserPlus class="size-3.5 mr-2" />
+          <span class="text-xs font-semibold">{{ t('Assign') }}</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{{ t('Assign responsible person') }}</TooltipContent>
+    </Tooltip>
 
     <div v-if="assignees.length > 0" class="flex flex-col gap-2 p-3 bg-muted/30 rounded-xl border border-border/40">
       <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">{{ t('Assignees') }}</span>
       <div class="flex flex-wrap gap-2">
-        <Chip v-for="a in assignees" :key="a.id" 
+        <Badge v-for="a in assignees" :key="a.id" 
           class="pl-1 pr-2 py-0.5 text-[11px] font-medium bg-background border border-border/60 shadow-sm"
         >
-            <Avatar shape="circle" class="mr-2 !size-5 !text-[10px]"><User class="size-3.5" /></Avatar>
+            <Avatar class="mr-2 !size-5"><AvatarFallback class="!text-[10px]"><User class="size-3.5" /></AvatarFallback></Avatar>
             <span class="mr-2 truncate max-w-[120px]">{{ a.assigned_to }}</span>
             <X class="size-3 cursor-pointer hover:text-destructive transition-colors" @click="removeAssignee(a)" />
-        </Chip>
+        </Badge>
       </div>
     </div>
 
     <!-- Assign dialog -->
-    <Dialog v-model:visible="showAssignDialog" modal
-      header="Призначити відповідального"
-      class="max-w-sm w-full mx-4"
-      :pt="{ content: { class: 'p-0 px-6 pb-6 pt-1' } }">
-      <template #header>
-        <span class="flex items-center gap-2 font-bold text-lg">
+    <Dialog v-model:open="showAssignDialog">
+      <DialogContent class="max-w-sm w-full mx-4 p-0 px-6 pb-6 pt-1">
+      <DialogHeader>
+        <DialogTitle class="flex items-center gap-2 font-bold text-lg">
           <UserPlus class="size-5 text-primary" />
           {{ t('Assign responsible') }}
-        </span>
-      </template>
-      
+        </DialogTitle>
+      </DialogHeader>
+
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
           <label class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email або логін</label>
-          <AutoComplete 
-            v-model="assignUser" 
-            :suggestions="filteredUsers" 
-            optionLabel="email"
-            optionValue="email"
-            @complete="searchUsers"
-            placeholder="Пошук користувача..." 
+          <Input
+            v-model="assignUser"
+            placeholder="Пошук користувача..."
             class="w-full"
-            fluid
-          >
-            <template #option="slotProps">
-                <div class="flex items-center gap-2">
-                    <Avatar shape="circle" class="!size-6"><User class="size-3.5" /></Avatar>
-                    <div class="flex flex-col">
-                        <span class="text-sm font-medium">{{ slotProps.option.full_name || slotProps.option.email }}</span>
-                        <span class="text-[10px] text-muted-foreground">{{ slotProps.option.email }}</span>
-                    </div>
-                </div>
-            </template>
-          </AutoComplete>
+            @input="searchUsers(assignUser)"
+          />
+          <div v-if="filteredUsers.length" class="border border-border rounded-md overflow-hidden max-h-40 overflow-y-auto divide-y divide-border/60">
+            <button
+              v-for="u in filteredUsers"
+              :key="u.email"
+              type="button"
+              class="w-full px-3 py-2 text-left hover:bg-primary/5 transition-colors flex items-center gap-2"
+              @click="assignUser = u.email; filteredUsers = []"
+            >
+              <Avatar class="!size-6"><AvatarFallback><User class="size-3.5" /></AvatarFallback></Avatar>
+              <div class="flex flex-col min-w-0">
+                <span class="text-sm font-medium truncate">{{ u.full_name || u.email }}</span>
+                <span class="text-[10px] text-muted-foreground truncate">{{ u.email }}</span>
+              </div>
+            </button>
+          </div>
         </div>
       </div>
 
-      <template #footer>
+      <DialogFooter>
         <div class="flex gap-2 w-full pt-2">
-            <Button outlined severity="secondary" class="flex-1" @click="showAssignDialog = false">{{ t('Cancel') }}</Button>
+            <Button variant="outline" class="flex-1" @click="showAssignDialog = false">{{ t('Cancel') }}</Button>
             <Button class="flex-1" :disabled="!getAssignEmail().trim() || assignSaving" @click="submitAssign">
                 <Loader2 v-if="assignSaving" class="size-4 animate-spin mr-2" />
                 <span v-else>{{ t('Assign') }}</span>
             </Button>
         </div>
-      </template>
+      </DialogFooter>
+      </DialogContent>
     </Dialog>
   </div>
 </template>

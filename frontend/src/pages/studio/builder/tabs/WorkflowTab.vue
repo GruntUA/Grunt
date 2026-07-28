@@ -199,12 +199,12 @@ function toggleNextStepMenu(id: string) {
     <!-- Toolbar -->
     <div class="flex items-center gap-3 px-4 py-2 border-b border-border bg-muted/30 shrink-0 flex-wrap">
       <div class="flex items-center gap-2">
-        <ToggleSwitch :model-value="hasWorkflow" @update:model-value="toggleWorkflow" />
+        <Switch :model-value="hasWorkflow" @update:model-value="toggleWorkflow" />
         <span class="text-sm font-medium">Workflow</span>
       </div>
 
       <template v-if="hasWorkflow">
-        <Divider layout="vertical" class="!mx-1 !h-5 !my-0" />
+        <Separator orientation="vertical" class="!mx-1 !h-5 !my-0" />
 
         <!-- View toggle -->
         <div class="flex rounded-lg border border-border overflow-hidden text-xs">
@@ -221,8 +221,8 @@ function toggleNextStepMenu(id: string) {
         </div>
 
         <template v-if="view === 'graph'">
-          <Button outlined size="small" @click="addState">+ Стан</Button>
-          <Button outlined size="small" :disabled="workflow.states.length < 2" @click="addTransition">+ Перехід</Button>
+          <Button variant="outline" size="sm" @click="addState">+ Стан</Button>
+          <Button variant="outline" size="sm" :disabled="workflow.states.length < 2" @click="addTransition">+ Перехід</Button>
         </template>
       </template>
     </div>
@@ -239,7 +239,7 @@ function toggleNextStepMenu(id: string) {
           <div class="flex items-center gap-3 px-4 py-2.5 border-b bg-background shrink-0">
             <!-- Add step button with dropdown -->
             <div class="relative">
-              <Button size="small" class="gap-1.5" @click="showAddMenu = !showAddMenu">
+              <Button size="sm" class="gap-1.5" @click="showAddMenu = !showAddMenu">
                 <Plus class="w-3.5 h-3.5" /> Додати крок
                 <ChevronDown class="w-3 h-3" />
               </Button>
@@ -257,13 +257,13 @@ function toggleNextStepMenu(id: string) {
 
             <!-- Show inactive toggle -->
             <label class="flex items-center gap-2 text-sm cursor-pointer select-none ml-2">
-              <ToggleSwitch v-model="showInactive" />
+              <Switch v-model="showInactive" />
               Показувати неактивні
             </label>
 
             <!-- Filter -->
             <div class="ml-auto">
-              <InputText v-model="stepFilter" placeholder="Фільтр…" class="h-8 w-44 text-sm" />
+              <Input v-model="stepFilter" placeholder="Фільтр…" class="h-8 w-44 text-sm" />
             </div>
           </div>
 
@@ -305,7 +305,7 @@ function toggleNextStepMenu(id: string) {
 
               <!-- Active checkbox -->
               <div class="flex justify-center" @click.stop>
-                <Checkbox binary :model-value="step.is_active" @update:model-value="toggleStepActive(step.id, $event)" />
+                <Checkbox :model-value="step.is_active" @update:model-value="toggleStepActive(step.id, $event)" />
               </div>
 
               <!-- Next steps -->
@@ -369,7 +369,7 @@ function toggleNextStepMenu(id: string) {
                 </div>
                 <div class="text-sm truncate pr-2 text-muted-foreground italic">{{ step.title || '—' }}</div>
                 <div class="flex justify-center" @click.stop>
-                  <Checkbox binary :model-value="step.is_active" @update:model-value="toggleStepActive(step.id, $event)" />
+                  <Checkbox :model-value="step.is_active" @update:model-value="toggleStepActive(step.id, $event)" />
                 </div>
                 <div class="flex items-center gap-1 text-amber-600 text-xs">
                   <span v-for="ns in stepNextStepObjects(step)" :key="ns.id"
@@ -422,27 +422,27 @@ function toggleNextStepMenu(id: string) {
             <!-- Name -->
             <div class="flex flex-col gap-1.5">
               <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Ім'я (slug)</label>
-              <InputText :model-value="selectedStep.name" class="h-8 text-sm w-full"
+              <Input :model-value="selectedStep.name" class="h-8 text-sm w-full"
                 @update:model-value="updateSelectedStep({ name: $event as string })" />
             </div>
 
             <!-- Title -->
             <div class="flex flex-col gap-1.5">
               <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Заголовок</label>
-              <InputText :model-value="selectedStep.title" class="h-8 text-sm w-full" placeholder="Відображуваний заголовок"
+              <Input :model-value="selectedStep.title" class="h-8 text-sm w-full" placeholder="Відображуваний заголовок"
                 @update:model-value="updateSelectedStep({ title: $event as string })" />
             </div>
 
             <!-- Variable -->
             <div class="flex flex-col gap-1.5">
               <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Змінна</label>
-              <InputText :model-value="selectedStep.variable ?? ''" class="h-8 text-sm font-mono w-full" placeholder="req.vars.my_field"
+              <Input :model-value="selectedStep.variable ?? ''" class="h-8 text-sm font-mono w-full" placeholder="req.vars.my_field"
                 @update:model-value="updateSelectedStep({ variable: ($event as string) || null })" />
             </div>
 
             <!-- Active -->
             <div class="flex items-center gap-2">
-              <ToggleSwitch :model-value="selectedStep.is_active" @update:model-value="updateSelectedStep({ is_active: $event })" />
+              <Switch :model-value="selectedStep.is_active" @update:model-value="updateSelectedStep({ is_active: $event })" />
               <label class="text-sm font-medium">Активний</label>
             </div>
 
@@ -471,8 +471,8 @@ function toggleNextStepMenu(id: string) {
               </select>
             </div>
 
-            <Divider />
-            <Button severity="danger" size="small" class="w-full" @click="removeStep(selectedStep.id)">
+            <Separator />
+            <Button variant="destructive" size="sm" class="w-full" @click="removeStep(selectedStep.id)">
               <Trash2 class="size-4 mr-1" /> Видалити крок
             </Button>
           </div>
@@ -512,11 +512,11 @@ function toggleNextStepMenu(id: string) {
           <div class="flex flex-col gap-3">
             <div class="flex flex-col gap-1.5">
               <label class="text-sm font-medium">Ім'я *</label>
-              <InputText :model-value="selectedState.name" class="w-full" @update:model-value="updateState(selectedStateIndex, 'name', $event)" />
+              <Input :model-value="selectedState.name" class="w-full" @update:model-value="updateState(selectedStateIndex, 'name', $event)" />
             </div>
             <div class="flex flex-col gap-1.5">
               <label class="text-sm font-medium">Позначка</label>
-              <InputText :model-value="selectedState.label" class="w-full" @update:model-value="updateState(selectedStateIndex, 'label', $event)" />
+              <Input :model-value="selectedState.label" class="w-full" @update:model-value="updateState(selectedStateIndex, 'label', $event)" />
             </div>
             <div class="flex flex-col gap-1.5">
               <label class="text-sm font-medium">Колір</label>
@@ -525,15 +525,15 @@ function toggleNextStepMenu(id: string) {
                 @input="updateState(selectedStateIndex, 'color', ($event.target as HTMLInputElement).value)" />
             </div>
             <div class="flex items-center gap-2">
-              <Checkbox binary :model-value="!!selectedState.is_initial" @update:model-value="updateState(selectedStateIndex, 'is_initial', $event)" />
+              <Checkbox :model-value="!!selectedState.is_initial" @update:model-value="updateState(selectedStateIndex, 'is_initial', $event)" />
               <label class="text-sm font-medium">Початковий</label>
             </div>
             <div class="flex items-center gap-2">
-              <Checkbox binary :model-value="!!selectedState.is_final" @update:model-value="updateState(selectedStateIndex, 'is_final', $event)" />
+              <Checkbox :model-value="!!selectedState.is_final" @update:model-value="updateState(selectedStateIndex, 'is_final', $event)" />
               <label class="text-sm font-medium">Фінальний</label>
             </div>
-            <Divider />
-            <Button severity="danger" size="small" @click="removeState(selectedStateIndex)">
+            <Separator />
+            <Button variant="destructive" size="sm" @click="removeState(selectedStateIndex)">
               <Trash2 class="size-4 mr-1" /> Видалити стан
             </Button>
           </div>
@@ -545,27 +545,29 @@ function toggleNextStepMenu(id: string) {
           <div class="flex flex-col gap-3">
             <div class="flex flex-col gap-1.5">
               <label class="text-sm font-medium">Дія (кнопка) *</label>
-              <InputText :model-value="selectedTransition.action" class="w-full" @update:model-value="updateTransition(selectedTransitionIndex, 'action', $event)" />
+              <Input :model-value="selectedTransition.action" class="w-full" @update:model-value="updateTransition(selectedTransitionIndex, 'action', $event)" />
             </div>
             <div class="flex flex-col gap-1.5">
               <label class="text-sm font-medium">Зі стану *</label>
-              <Select
-                :model-value="selectedTransition.from_state"
-                :options="stateNames"
-                placeholder="— оберіть —"
-                class="w-full"
-                @update:model-value="updateTransition(selectedTransitionIndex, 'from_state', $event)"
-              />
+              <Select :model-value="selectedTransition.from_state" @update:model-value="updateTransition(selectedTransitionIndex, 'from_state', $event)">
+                <SelectTrigger class="w-full">
+                  <SelectValue placeholder="— оберіть —" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="opt in stateNames" :key="opt" :value="opt">{{ opt }}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div class="flex flex-col gap-1.5">
               <label class="text-sm font-medium">До стану *</label>
-              <Select
-                :model-value="selectedTransition.to_state"
-                :options="stateNames"
-                placeholder="— оберіть —"
-                class="w-full"
-                @update:model-value="updateTransition(selectedTransitionIndex, 'to_state', $event)"
-              />
+              <Select :model-value="selectedTransition.to_state" @update:model-value="updateTransition(selectedTransitionIndex, 'to_state', $event)">
+                <SelectTrigger class="w-full">
+                  <SelectValue placeholder="— оберіть —" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="opt in stateNames" :key="opt" :value="opt">{{ opt }}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div class="flex flex-col gap-1.5">
               <label class="text-sm font-medium">Дозволені ролі</label>
@@ -573,16 +575,16 @@ function toggleNextStepMenu(id: string) {
                 :model-value="(selectedTransition.allowed_roles ?? []).join('\n')"
                 rows="3" placeholder="Кожна роль з нового рядка"
                 class="w-full text-sm"
-                @update:model-value="updateTransition(selectedTransitionIndex, 'allowed_roles', ($event ?? '').split('\n').map((r: string) => r.trim()).filter(Boolean))"
+                @update:model-value="updateTransition(selectedTransitionIndex, 'allowed_roles', String($event ?? '').split('\n').map((r: string) => r.trim()).filter(Boolean))"
               />
             </div>
             <div class="flex flex-col gap-1.5">
               <label class="text-sm font-medium">Умова (Python)</label>
-              <InputText :model-value="selectedTransition.condition ?? ''" placeholder="doc.amount > 0" class="w-full"
+              <Input :model-value="selectedTransition.condition ?? ''" placeholder="doc.amount > 0" class="w-full"
                 @update:model-value="updateTransition(selectedTransitionIndex, 'condition', $event || null)" />
             </div>
-            <Divider />
-            <Button severity="danger" size="small" @click="removeTransition(selectedTransitionIndex)">
+            <Separator />
+            <Button variant="destructive" size="sm" @click="removeTransition(selectedTransitionIndex)">
               <Trash2 class="size-4 mr-1" /> Видалити перехід
             </Button>
           </div>

@@ -23,7 +23,7 @@ const values = computed<string[]>(() => {
     <Badge
       v-for="val in values"
       :key="val"
-      severity="secondary"
+      variant="secondary"
       class="font-normal whitespace-nowrap"
     >{{ val }}</Badge>
   </div>

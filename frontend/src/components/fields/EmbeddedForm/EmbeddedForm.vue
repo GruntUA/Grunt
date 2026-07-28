@@ -60,7 +60,7 @@ function update(fieldname: string, val: unknown) {
 
 <template>
   <div v-if="loading" class="flex items-center gap-2 py-2 text-sm text-muted-foreground">
-    <ProgressSpinner class="!size-4" />
+    <Spinner class="!size-4" />
     <span>Завантаження специфікації…</span>
   </div>
 

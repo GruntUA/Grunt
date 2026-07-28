@@ -104,12 +104,12 @@ function formatDate(val: unknown, type: string): string {
     <div v-else-if="isLoading && !rows.length"
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
       <div v-for="i in 8" :key="i" class="rounded-[2.5rem] border border-border/20 bg-card/50 p-0 overflow-hidden shadow-sm">
-        <Skeleton height="12rem" class="!rounded-none" />
+        <Skeleton class="h-[12rem] !rounded-none" />
         <div class="p-6 space-y-4">
-            <Skeleton width="85%" height="1.5rem" class="rounded-lg" />
-            <Skeleton width="45%" height="0.8rem" class="rounded-md" />
+            <Skeleton class="w-[85%] h-[1.5rem] rounded-lg" />
+            <Skeleton class="w-[45%] h-[0.8rem] rounded-md" />
             <div class="pt-4 border-t border-border/10 space-y-3">
-              <Skeleton v-for="j in 2" :key="j" width="100%" height="0.6rem" class="rounded-full" />
+              <Skeleton v-for="j in 2" :key="j" class="w-full h-[0.6rem] rounded-full" />
             </div>
         </div>
       </div>
@@ -186,7 +186,7 @@ function formatDate(val: unknown, type: string): string {
                     {{ formatDate(row[col.key], getFieldType(col.key)) }}
                   </template>
                   <template v-else-if="getFieldType(col.key) === 'Check'">
-                      <Badge :severity="row[col.key] ? 'success' : 'secondary'" class="!text-[9px] !px-2 !py-0.5 !rounded-lg !font-black">
+                      <Badge :variant="row[col.key] ? 'success' : 'secondary'" class="!text-[9px] !px-2 !py-0.5 !rounded-lg !font-black">
                           {{ row[col.key] ? 'ТАК' : 'НІ' }}
                       </Badge>
                   </template>

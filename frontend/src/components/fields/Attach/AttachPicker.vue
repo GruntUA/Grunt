@@ -35,12 +35,11 @@ function onSelect(result: AttachmentResult) {
 </script>
 
 <template>
-  <Dialog :visible="open" modal
-    :pt="{ root: { class: 'max-w-2xl' }, content: { class: 'p-0 overflow-hidden' } }"
-    @update:visible="emit('update:open', $event)">
-    <template #header>
-      <span class="font-semibold">{{ imageOnly ? 'Прикріпити зображення' : 'Прикріпити файл' }}</span>
-    </template>
+  <Dialog :open="open" @update:open="emit('update:open', $event)">
+    <DialogContent class="max-w-2xl p-0 overflow-hidden">
+    <DialogHeader class="px-4 pt-4">
+      <DialogTitle class="font-semibold">{{ imageOnly ? 'Прикріпити зображення' : 'Прикріпити файл' }}</DialogTitle>
+    </DialogHeader>
     <div class="flex min-h-[400px]">
         <!-- Sidebar -->
         <nav class="w-40 shrink-0 border-r border-border flex flex-col gap-0.5 p-2">
@@ -74,5 +73,6 @@ function onSelect(result: AttachmentResult) {
           </div>
         </div>
       </div>
+    </DialogContent>
   </Dialog>
 </template>

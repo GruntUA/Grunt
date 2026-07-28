@@ -30,6 +30,8 @@ async function loadTimeline() {
   finally { timelineLoading.value = false }
 }
 
+const reversedTimeline = computed(() => [...timeline.value].reverse())
+
 const fieldLabelMap = computed(() => {
   const map: Record<string, string> = {}
   for (const f of props.doctype.fields ?? []) {
@@ -180,7 +182,6 @@ onMounted(loadTimeline)
         <Textarea v-model="commentInput" rows="3"
           placeholder="Напишіть коментар... @ для згадки"
           class="w-full !text-sm !shadow-inner !bg-background !border-border/60 focus:!border-primary/50 transition-all resize-none"
-          autoResize
           @keydown="onCommentKeydown" @input="onCommentInput" />
 
         <!-- Mentions -->
@@ -191,7 +192,9 @@ onMounted(loadTimeline)
             class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-left transition-all border-b border-border/40 last:border-0"
             :class="i === mentionIndex ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-foreground'"
             @mousedown.prevent="insertMention(u)">
-            <Avatar shape="circle" class="!size-7 shrink-0" :class="i === mentionIndex ? 'bg-primary-foreground/20 text-white' : ''"><User class="size-3.5" /></Avatar>
+            <Avatar class="!size-7 shrink-0">
+              <AvatarFallback :class="i === mentionIndex ? 'bg-primary-foreground/20 text-white' : ''"><User class="size-3.5" /></AvatarFallback>
+            </Avatar>
             <div class="flex flex-col min-w-0">
                 <span class="font-bold truncate text-xs">{{ u.full_name || u.email }}</span>
                 <span class="text-[10px] opacity-70 truncate">{{ u.email }}</span>
@@ -201,7 +204,7 @@ onMounted(loadTimeline)
       </div>
       <div class="flex items-center justify-between px-1">
           <span class="text-[10px] text-muted-foreground/60 italic">Ctrl+Enter щоб надіслати</span>
-          <Button size="small" :disabled="!commentInput.trim() || commentSending" @click="sendComment" class="px-5 shadow-lg shadow-primary/10">
+          <Button size="sm" :disabled="!commentInput.trim() || commentSending" @click="sendComment" class="px-5 shadow-lg shadow-primary/10">
             <Loader2 v-if="commentSending" class="size-3.5 animate-spin mr-2" />
             <Send v-else class="size-3.5 mr-2" />
             <span class="font-bold">Надіслати</span>
@@ -213,46 +216,38 @@ onMounted(loadTimeline)
       Поки що немає активності
     </div>
 
-    <!-- PrimeVue Timeline -->
-    <Timeline :value="[...timeline].reverse()" class="w-full custom-timeline">
-      <template #marker="slotProps">
-        <span class="flex size-7 items-center justify-center rounded-full shadow-sm ring-1 ring-border/40"
-          :class="slotProps.item.type === 'comment' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'">
-          <MessageSquare v-if="slotProps.item.type === 'comment'" class="size-3" />
-          <ActivityIcon v-else class="size-3" />
-        </span>
-      </template>
-      <template #content="slotProps">
-        <div class="flex flex-col gap-1 mb-6">
+    <!-- Timeline -->
+    <div class="w-full">
+      <div v-for="(item, idx) in reversedTimeline" :key="idx" class="flex gap-2 group">
+        <div class="flex flex-col items-center shrink-0">
+          <span class="flex size-7 items-center justify-center rounded-full shadow-sm ring-1 ring-border/40"
+            :class="item.type === 'comment' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'">
+            <MessageSquare v-if="item.type === 'comment'" class="size-3" />
+            <ActivityIcon v-else class="size-3" />
+          </span>
+          <div v-if="idx < reversedTimeline.length - 1" class="w-px flex-1 bg-border/40 my-1" />
+        </div>
+        <div class="flex flex-col gap-1 mb-6 pl-2 min-w-0 flex-1">
           <div class="flex items-center justify-between gap-2">
-            <span class="text-xs font-bold text-foreground truncate">{{ slotProps.item.user }}</span>
+            <span class="text-xs font-bold text-foreground truncate">{{ item.user }}</span>
             <div class="flex items-center gap-1.5 shrink-0">
-                <span class="text-[10px] font-medium text-muted-foreground/60 uppercase">{{ fmtDate(slotProps.item.created_at) }}</span>
-                <button v-if="slotProps.item.type === 'comment' && (slotProps.item.user === auth.user?.email || auth.user?.is_superadmin)"
+                <span class="text-[10px] font-medium text-muted-foreground/60 uppercase">{{ fmtDate(item.created_at) }}</span>
+                <button v-if="item.type === 'comment' && (item.user === auth.user?.email || auth.user?.is_superadmin)"
                     class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 hover:text-destructive rounded"
-                    @click="deleteComment(slotProps.item)">
+                    @click="deleteComment(item)">
                     <Trash2 class="size-3" />
                 </button>
             </div>
           </div>
-          <span v-if="slotProps.item.type === 'activity'" class="text-[10px] font-medium text-muted-foreground leading-relaxed">
-            {{ timelineLabel(slotProps.item) }}
+          <span v-if="item.type === 'activity'" class="text-[10px] font-medium text-muted-foreground leading-relaxed">
+            {{ timelineLabel(item) }}
           </span>
-          <p v-if="slotProps.item.type === 'comment'"
+          <p v-if="item.type === 'comment'"
             class="text-sm text-foreground bg-muted/40 border border-border/20 rounded-xl px-4 py-2.5 mt-1 whitespace-pre-wrap leading-relaxed shadow-sm">
-            {{ slotProps.item.content }}
+            {{ item.content }}
           </p>
         </div>
-      </template>
-    </Timeline>
+      </div>
+    </div>
   </div>
 </template>
-
-<style>
-.custom-timeline .p-timeline-event-opposite {
-    display: none !important;
-}
-.custom-timeline .p-timeline-event-content {
-    padding-left: 1rem !important;
-}
-</style>

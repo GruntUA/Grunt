@@ -5,11 +5,11 @@ const { field, updateField } = usePropertyEditor()
 </script>
 
 <template>
-  <Divider class="!mb-3" />
+  <Separator class="!mb-3" />
   <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Fetch From</p>
   <div class="flex flex-col gap-1.5 mb-4">
     <label class="text-sm font-medium">Отримувати з (Fetch From)</label>
-    <InputText
+    <Input
       :model-value="field.fetch_from ?? ''"
       placeholder="напр. link_field.source_field"
       class="w-full"

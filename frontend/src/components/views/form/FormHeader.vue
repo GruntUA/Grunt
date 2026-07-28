@@ -24,6 +24,7 @@ import {
   History,
   Pencil,
   Trash2,
+  ChevronDown,
 } from '@lucide/vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 
@@ -134,12 +135,6 @@ function handleUndo() {
   router.go(0)
 }
 
-// PrimeVue Context Menu
-const menu = ref()
-const toggleMenu = (event: Event) => {
-    menu.value.toggle(event)
-}
-
 function toSplitButtonItem(btn: ScriptButton) {
   return {
     label: btn.label,
@@ -175,14 +170,14 @@ const documentStatus = computed(() => {
   return props.document?.status ?? null
 })
 
-const statusBadgeSeverity = computed(() => {
+const statusBadgeVariant = computed(() => {
   const status = documentStatus.value
   if (!status) return 'secondary'
   const lower = String(status).toLowerCase()
   if (['active', 'enabled', 'published'].includes(lower)) return 'success'
   if (['inactive', 'disabled', 'draft'].includes(lower)) return 'info'
   if (['archived', 'deleted'].includes(lower)) return 'warning'
-  if (['error', 'failed'].includes(lower)) return 'danger'
+  if (['error', 'failed'].includes(lower)) return 'destructive'
   return 'secondary'
 })
 
@@ -316,10 +311,10 @@ const menuItems = computed(() => {
     <div class="flex items-center justify-between gap-4 px-4 py-2.5">
       <div class="min-w-0 flex items-center gap-3">
         <h1 class="text-xl font-bold text-foreground truncate selection:bg-primary/20">{{ docTitle }}</h1>
-        <Badge v-if="documentStatus" :severity="statusBadgeSeverity" class="animate-in fade-in slide-in-from-left-2 duration-300 text-[10px] h-5 px-1.5 shrink-0">
+        <Badge v-if="documentStatus" :variant="statusBadgeVariant" class="animate-in fade-in slide-in-from-left-2 duration-300 text-[10px] h-5 px-1.5 shrink-0">
           {{ documentStatus }}
         </Badge>
-        <Badge v-if="isDirty" severity="contrast" class="animate-in fade-in slide-in-from-left-2 duration-300 text-[10px] h-5 px-1.5 border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-amber-400 shrink-0">
+        <Badge v-if="isDirty" variant="secondary" class="animate-in fade-in slide-in-from-left-2 duration-300 text-[10px] h-5 px-1.5 border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-amber-400 shrink-0">
           {{ t('Unsaved') }}
         </Badge>
       </div>
@@ -328,9 +323,8 @@ const menuItems = computed(() => {
         <Button
           v-for="btn in ungroupedScriptButtons"
           :key="`script-${btn.label}`"
-          outlined
-          size="small"
-          :severity="btn.severity"
+          size="sm"
+          :variant="btn.severity || 'outline'"
           @click="btn.action"
           :class="['hidden sm:inline-flex gap-1.5', btn.className]"
         >
@@ -345,9 +339,8 @@ const menuItems = computed(() => {
         <template v-for="grp in groupedScriptButtons" :key="`script-group-${grp.name}`">
           <Button
             v-if="grp.secondary.length === 0"
-            outlined
-            size="small"
-            :severity="grp.primary.severity"
+            size="sm"
+            :variant="grp.primary.severity || 'outline'"
             @click="grp.primary.action"
             :class="['hidden sm:inline-flex gap-1.5', grp.primary.className]"
             :title="grp.name"
@@ -359,62 +352,74 @@ const menuItems = computed(() => {
             />
             {{ grp.primary.label }}
           </Button>
-          <SplitButton
-            v-else
-            outlined
-            size="small"
-            :label="grp.primary.label"
-            :model="grp.model"
-            :severity="grp.primary.severity"
-            :class="['hidden sm:inline-flex', grp.primary.className]"
-            :buttonProps="{ 'aria-label': grp.primary.label }"
-            :menuButtonProps="{ 'aria-label': `${grp.name} options` }"
-            @click="grp.primary.action"
-          >
-            <span class="inline-flex items-center gap-1.5">
+          <div v-else class="hidden sm:inline-flex" :class="grp.primary.className">
+            <Button
+              size="sm"
+              :variant="grp.primary.severity || 'outline'"
+              class="rounded-r-none"
+              :aria-label="grp.primary.label"
+              :title="grp.name"
+              @click="grp.primary.action"
+            >
               <component
                 :is="getIconComponent(grp.primary.icon)"
                 v-if="grp.primary.icon"
                 class="size-3.5"
               />
               {{ grp.primary.label }}
-            </span>
-            <template #item="{ item }">
-              <span class="inline-flex items-center gap-2 px-3 py-2 cursor-pointer">
-                <component
-                  :is="getIconComponent(item.icon)"
-                  v-if="item.icon"
-                  class="size-3.5"
-                />
-                {{ item.label }}
-              </span>
-            </template>
-          </SplitButton>
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger as-child>
+                <Button size="sm" :variant="grp.primary.severity || 'outline'" class="rounded-l-none border-l-0 px-2" :aria-label="`${grp.name} options`">
+                  <ChevronDown class="size-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem v-for="item in grp.model" :key="item.label" @click="item.command">
+                  <component
+                    :is="getIconComponent(item.icon)"
+                    v-if="item.icon"
+                    class="size-3.5"
+                  />
+                  {{ item.label }}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </template>
 
-        <Button v-if="id" outlined class="text-foreground" :title="t('Refresh')"
-          :disabled="isDirty || isLoading"
-          @click="handleRefresh">
+        <Button variant="outline" v-if="id" class="text-foreground" :title="t('Refresh')" :disabled="isDirty || isLoading" @click="handleRefresh">
           <RefreshCw class="size-4" :class="{ 'animate-spin': isLoading }" />
         </Button>
 
-        <Button :disabled="isSaving" size="small" @click="emit('save')" class="shadow-sm hover:shadow-md transition-shadow" :title="`${t('Save')} (Ctrl+S)`">
+        <Button :disabled="isSaving" size="sm" @click="emit('save')" :title="`${t('Save')} (Ctrl+S)`">
           <Loader2 v-if="isSaving" class="size-4 animate-spin mr-1.5" />
           {{ t('Save') }}
         </Button>
 
         <!-- Context menu -->
-        <Button text class="text-foreground hover:bg-muted/80 h-9 w-9 p-0" @click="toggleMenu">
-            <EllipsisVertical class="size-4" />
-        </Button>
-        <Menu ref="menu" :model="menuItems" :popup="true" class="w-56">
-          <template #item="{ item, props: itemProps }">
-            <a v-bind="itemProps.action" :href="item.url" :target="item.target" class="flex items-center gap-2">
-              <component v-if="item.icon" :is="item.icon" class="size-4" />
-              <span>{{ item.label }}</span>
-            </a>
-          </template>
-        </Menu>
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <Button variant="ghost" class="text-foreground hover:bg-muted/80 h-9 w-9 p-0">
+                <EllipsisVertical class="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent class="w-56" align="end">
+            <template v-for="(item, idx) in menuItems" :key="idx">
+              <DropdownMenuSeparator v-if="item.separator" />
+              <DropdownMenuItem v-else-if="item.url" as-child>
+                <a :href="item.url" :target="item.target" class="flex items-center gap-2">
+                  <component v-if="item.icon" :is="item.icon" class="size-4" />
+                  <span>{{ item.label }}</span>
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem v-else :variant="item.class === 'text-destructive' ? 'destructive' : 'default'" @click="item.command?.()">
+                <component v-if="item.icon" :is="item.icon" class="size-4" />
+                <span>{{ item.label }}</span>
+              </DropdownMenuItem>
+            </template>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
 
@@ -449,8 +454,8 @@ const menuItems = computed(() => {
             />
           </div>
           <div class="flex justify-end gap-2">
-            <Button outlined size="small" @click="showShareDialog = false">{{ t('Cancel') }}</Button>
-            <Button size="small" :disabled="shareLoading" @click="createShare">
+            <Button variant="outline" size="sm" @click="showShareDialog = false">{{ t('Cancel') }}</Button>
+            <Button size="sm" :disabled="shareLoading" @click="createShare">
               <Loader2 v-if="shareLoading" class="size-3.5 mr-1.5 animate-spin" />
               {{ t('Generate link') }}
             </Button>
@@ -464,7 +469,7 @@ const menuItems = computed(() => {
               readonly
               class="flex-1 h-9 px-3 text-xs rounded-md border border-border bg-muted font-mono focus:outline-none"
             />
-            <Button outlined size="small" @click="copyShareLink" class="shrink-0">
+            <Button variant="outline" size="sm" @click="copyShareLink" class="shrink-0">
               <CopyIcon class="size-3.5" />
             </Button>
           </div>
@@ -473,8 +478,8 @@ const menuItems = computed(() => {
             <a :href="router.resolve({ name: 'workspace-list', params: { workspaceName: props.workspace ?? 'grunt', doctype: 'DocumentShare' } }).href" target="_blank" class="text-primary hover:underline ml-1">{{ t('Manage shares') }} →</a>
           </p>
           <div class="flex justify-end gap-2">
-            <Button outlined size="small" @click="shareLink = null; shareExpires = ''">{{ t('New link') }}</Button>
-            <Button size="small" @click="showShareDialog = false">{{ t('Done') }}</Button>
+            <Button variant="outline" size="sm" @click="shareLink = null; shareExpires = ''">{{ t('New link') }}</Button>
+            <Button size="sm" @click="showShareDialog = false">{{ t('Done') }}</Button>
           </div>
         </template>
       </div>
@@ -498,8 +503,8 @@ const menuItems = computed(() => {
           />
         </div>
         <div class="flex justify-end gap-2">
-          <Button outlined size="small" @click="showRenameDialog = false">{{ t('Cancel') }}</Button>
-          <Button size="small" :disabled="isRenaming || !newDocId || newDocId === props.id" @click="handleRename">
+          <Button variant="outline" size="sm" @click="showRenameDialog = false">{{ t('Cancel') }}</Button>
+          <Button size="sm" :disabled="isRenaming || !newDocId || newDocId === props.id" @click="handleRename">
             <Loader2 v-if="isRenaming" class="size-3.5 mr-1.5 animate-spin" />
             {{ t('Rename') }}
           </Button>

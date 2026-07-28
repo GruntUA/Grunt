@@ -16,15 +16,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Divider class="!mb-3" />
+  <Separator class="!mb-3" />
   <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Child DocType</p>
   <div class="mb-4">
-    <Select
+    <Combobox
       :model-value="field.options ?? ''"
       :options="childDoctypes.map(d => d.name)"
       placeholder="— оберіть —"
-      filter
-      empty-filter-message="Нічого не знайдено"
+      empty-message="Нічого не знайдено"
       class="w-full"
       @update:model-value="updateField('options', $event)"
     />
