@@ -146,12 +146,18 @@ class DocumentWriteMixin:
         """
         from grunt.naming import naming_service
 
-        controller_cls = document_registry.get(dt.name)
-        custom_autoname = getattr(controller_cls, "autoname", None)
-        if custom_autoname is not None and callable(custom_autoname):
-            doc_name = await custom_autoname(data, self.session)
+        # An explicit caller-supplied name always wins over autoname —
+        # fixtures and imports rely on stable names regardless of the
+        # DocType's naming scheme. Uniqueness is enforced by the PK.
+        if data.get("name"):
+            doc_name = str(data["name"])
         else:
-            doc_name = await naming_service.generate(dt.autoname or "", data, self.session)
+            controller_cls = document_registry.get(dt.name)
+            custom_autoname = getattr(controller_cls, "autoname", None)
+            if custom_autoname is not None and callable(custom_autoname):
+                doc_name = await custom_autoname(data, self.session)
+            else:
+                doc_name = await naming_service.generate(dt.autoname or "", data, self.session)
 
         row: dict[str, Any] = {}
         standard: dict[str, Any] = {"name": doc_name, **audit_fields(user.email, now)}

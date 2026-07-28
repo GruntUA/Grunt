@@ -220,6 +220,16 @@ router.beforeEach(async (to) => {
   }
 
   const auth = useAuthStore()
+
+  // Already-authenticated visitor hits the login page directly (e.g. via a
+  // bookmark or /login link) — send them straight to the desk instead of
+  // showing the form again. isLoggedIn only checks token presence; fetchMe
+  // confirms the token is still valid server-side (and clears it on 401/403).
+  if (to.name === 'login' && auth.isLoggedIn) {
+    if (!auth.user) await auth.fetchMe()
+    if (auth.isLoggedIn) return { name: 'desk' }
+  }
+
   if (to.meta.public) return true
   if (!auth.isLoggedIn) return { name: 'login' }
   if (!auth.user) await auth.fetchMe()

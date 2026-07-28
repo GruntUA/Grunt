@@ -338,6 +338,22 @@ async def test_delete_document(ctx, setup_doctype):
 
 
 @pytest.mark.asyncio
+async def test_explicit_name_wins_over_autoname(ctx, setup_doctype):
+    """new_doc with explicit ``name`` keeps it even when autoname is hash.
+
+    Regression: fixtures with explicit names silently got hash names
+    (autoname empty → hash fallback ignored data["name"]), so every
+    re-apply created a duplicate under a new hash.
+    """
+    doc = await ctx.new_doc("TestItem", {"name": "fixed-name", "title": "Named"})
+    await ctx.db._session().commit()
+    assert doc["name"] == "fixed-name"
+
+    fetched = await ctx.get_doc("TestItem", "fixed-name")
+    assert fetched["title"] == "Named"
+
+
+@pytest.mark.asyncio
 async def test_aggregate_count_without_filters(ctx, setup_doctype):
     """aggregate count with no filters/group_by must still count table rows.
 
