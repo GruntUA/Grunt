@@ -310,7 +310,7 @@ const printPage = () => window.print()
 
     <!-- Skeleton -->
     <div v-if="loading" class="grid grid-cols-4 gap-4">
-      <div v-for="i in 6" :key="i" class="h-36 bg-muted animate-pulse rounded-xl" />
+      <div v-for="i in 6" :key="i" class="h-36 bg-muted animate-pulse rounded-lg" />
     </div>
 
     <!-- Empty: no dashboard -->
@@ -319,7 +319,7 @@ const printPage = () => window.print()
       <LayoutDashboard class="w-12 h-12 mb-3 opacity-30" />
       <p class="text-sm mb-4">Дашборд ще не створено</p>
       <button
-        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
+        class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
         @click="createDashboard">
         <Plus class="w-4 h-4" /> Створити Дашборд
       </button>
@@ -331,7 +331,7 @@ const printPage = () => window.print()
       <LayoutDashboard class="w-12 h-12 mb-3 opacity-30" />
       <p class="text-sm mb-4">Дашборд порожній</p>
       <button
-        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
+        class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
         @click="enterEdit">
         <Pencil class="w-4 h-4" /> Налаштувати
       </button>
@@ -384,7 +384,7 @@ const printPage = () => window.print()
         <!-- ── Left: widget palette ──────────────────────────────────────────── -->
         <div class="w-52 shrink-0 border-r border-border bg-muted/20 overflow-y-auto">
           <div class="px-3 py-3">
-            <p class="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2 px-1">
+            <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2 px-1">
               Типи віджетів
             </p>
             <div class="space-y-0.5">
@@ -409,7 +409,7 @@ const printPage = () => window.print()
         >
           <!-- Empty canvas hint -->
           <div v-if="dashboard && dashboard.widgets.length === 0"
-            class="flex flex-col items-center justify-center py-20 border-2 border-dashed border-primary/20 rounded-2xl bg-primary/5 text-center">
+            class="flex flex-col items-center justify-center py-20 border-2 border-dashed border-primary/20 rounded-lg bg-primary/5 text-center">
             <div class="text-4xl mb-3">👈</div>
             <h3 class="text-base font-semibold text-primary mb-1">Оберіть тип віджета</h3>
             <p class="text-sm text-muted-foreground max-w-xs">Натисніть на будь-який тип у лівій панелі — він з'явиться тут</p>
@@ -426,7 +426,7 @@ const printPage = () => window.print()
             <template #item="{ element }">
               <div
                 :class="[
-                  'relative rounded-xl border-2 transition-all cursor-pointer group',
+                  'relative rounded-lg border-2 transition-all cursor-pointer group',
                   selectedWidgetId === element.id
                     ? 'border-primary shadow-md'
                     : 'border-transparent hover:border-primary/30',

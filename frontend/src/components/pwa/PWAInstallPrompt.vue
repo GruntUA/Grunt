@@ -88,9 +88,9 @@ function dismiss() {
   >
     <div
       v-if="state === 'available'"
-      class="fixed bottom-4 inset-x-4 z-[150] flex items-center gap-3 p-4 bg-card border border-border/60 rounded-2xl shadow-xl shadow-black/10 max-w-sm mx-auto"
+      class="fixed bottom-4 inset-x-4 z-[150] flex items-center gap-3 p-4 bg-card border border-border/60 rounded-lg shadow-md max-w-sm mx-auto"
     >
-      <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+      <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
         <Download class="w-5 h-5 text-primary" />
       </div>
       <div class="flex-1 min-w-0">
@@ -117,7 +117,7 @@ function dismiss() {
   >
     <div
       v-if="state === 'ios-hint'"
-      class="fixed bottom-4 inset-x-4 z-[150] p-4 bg-card border border-border/60 rounded-2xl shadow-xl shadow-black/10 max-w-sm mx-auto"
+      class="fixed bottom-4 inset-x-4 z-[150] p-4 bg-card border border-border/60 rounded-lg shadow-md max-w-sm mx-auto"
     >
       <div class="flex items-start justify-between mb-3">
         <p class="text-sm font-semibold text-foreground">Встановити на iPhone / iPad</p>

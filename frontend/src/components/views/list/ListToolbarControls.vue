@@ -99,7 +99,7 @@ const activeSortLabel = computed(() =>
     <Badge
       v-if="columns.isCustomized.value"
       variant="secondary"
-      class="bg-primary/20 text-primary hover:bg-primary/20 size-5 p-0 flex items-center justify-center text-[10px]"
+      class="bg-primary/20 text-primary hover:bg-primary/20 size-5 p-0 flex items-center justify-center text-xs"
     >
       {{ columns.visibleColumns.value.length }}
     </Badge>
@@ -109,7 +109,7 @@ const activeSortLabel = computed(() =>
     <PopoverAnchor :reference="columnsAnchorEl ?? undefined" />
     <PopoverContent class="w-auto p-0">
     <div class="w-64 p-1">
-      <div class="px-2 py-1.5 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
+      <div class="px-2 py-1.5 flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
         <span>Стовпці</span>
         <span class="tabular-nums opacity-60">
           {{ columns.visibleColumns.value.length }}/{{ columns.allAvailableColumns.value.length }}
@@ -164,7 +164,7 @@ const activeSortLabel = computed(() =>
     <PopoverAnchor :reference="groupingAnchorEl ?? undefined" />
     <PopoverContent class="w-auto p-0">
     <div class="w-56 p-1">
-      <div class="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">Групувати за</div>
+      <div class="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Групувати за</div>
       <div class="h-px bg-border/40 my-1" />
       <div
         class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group transition-colors"
@@ -201,7 +201,7 @@ const activeSortLabel = computed(() =>
     <PopoverAnchor :reference="sortingAnchorEl ?? undefined" />
     <PopoverContent class="w-auto p-0">
     <div class="w-64 p-1">
-      <div class="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">Сортувати за</div>
+      <div class="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Сортувати за</div>
       <div class="h-px bg-border/40 my-1" />
       <div class="px-1 pb-1">
         <div class="relative group">

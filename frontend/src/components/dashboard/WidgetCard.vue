@@ -61,7 +61,7 @@ const minH = computed(() => {
 
 <template>
   <div :class="[colSpanClass, minH,
-    'group relative bg-card border rounded-xl shadow-sm overflow-hidden',
+    'group relative bg-card border rounded-lg shadow-sm overflow-hidden',
     editMode ? 'ring-2 ring-primary/20 cursor-grab active:cursor-grabbing' : '',
   ]">
     <!-- Edit overlay buttons -->

@@ -50,21 +50,17 @@ async function handleSubmit() {
 
 <template>
   <div class="min-h-screen flex items-center justify-center bg-muted/30 relative overflow-hidden">
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-      <div class="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-      <div class="absolute -bottom-32 -left-32 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl" />
-    </div>
 
     <div class="relative w-full max-w-[420px] mx-4">
       <div class="text-center mb-8 flex flex-col items-center">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground mb-4 shadow-lg shadow-primary/20">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-primary text-primary-foreground mb-4 shadow-sm">
           <Sprout class="w-7 h-7" />
         </div>
-        <h1 class="text-2xl font-bold text-foreground tracking-tight">Новий пароль</h1>
+        <h1 class="text-2xl font-semibold text-foreground tracking-tight">Новий пароль</h1>
         <p class="text-sm text-muted-foreground mt-1">Оберіть надійний пароль</p>
       </div>
 
-      <div class="bg-card rounded-xl shadow-xl border border-border p-8">
+      <div class="bg-card rounded-lg shadow-sm border border-border p-8">
         <div v-if="done" class="text-center py-4 flex flex-col items-center gap-3">
           <p class="text-sm text-foreground font-medium">Пароль оновлено!</p>
           <p class="text-sm text-muted-foreground mb-2">Тепер ви можете увійти з новим паролем.</p>
@@ -91,7 +87,7 @@ async function handleSubmit() {
           <Button
             type="submit"
             :disabled="loading || !token"
-            class="w-full h-11 mt-1 text-[15px] font-medium"
+            class="w-full h-11 mt-1 text-sm font-medium"
           >
             <Spinner v-if="loading" class="size-4 mr-2" />
             Встановити новий пароль

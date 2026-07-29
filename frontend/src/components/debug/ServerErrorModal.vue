@@ -38,28 +38,16 @@ function copyAll() {
 </script>
 
 <template>
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition-opacity duration-150"
-      enter-from-class="opacity-0"
-      leave-active-class="transition-opacity duration-150"
-      leave-to-class="opacity-0"
+  <Dialog :open="state.open" @update:open="(v: boolean) => { if (!v) close() }">
+    <DialogContent
+      :show-close-button="false"
+      class="w-full max-w-3xl max-h-[90vh] flex flex-col rounded-lg overflow-hidden shadow-md border border-red-900/40 bg-[#1a0a0a] p-0 gap-0"
     >
-      <div
-        v-if="state.open"
-        class="fixed inset-0 z-[99999] flex items-end justify-center sm:items-center p-4"
-        @click.self="close"
-      >
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="close" />
-
-        <!-- Panel -->
-        <div class="relative z-10 w-full max-w-3xl max-h-[90vh] flex flex-col rounded-xl overflow-hidden shadow-2xl border border-red-900/40 bg-[#1a0a0a]">
           <!-- Header -->
           <div class="flex items-start gap-3 px-5 py-4 border-b border-red-900/30 bg-[#1f0c0c]">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-bold bg-red-900/60 text-red-300 border border-red-800/50">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-semibold bg-red-900/60 text-red-300 border border-red-800/50">
                   {{ state.status }}
                 </span>
                 <span class="text-xs text-red-400/70 font-mono">Internal Server Error</span>
@@ -138,11 +126,9 @@ function copyAll() {
           </div>
 
           <!-- Footer hint -->
-          <div class="px-5 py-2.5 border-t border-red-900/30 bg-[#1f0c0c] text-[11px] text-red-400/40 font-mono">
+          <div class="px-5 py-2.5 border-t border-red-900/30 bg-[#1f0c0c] text-xs text-red-400/40 font-mono">
             Показується лише в режимі debug · Натисни поза вікном або ESC щоб закрити
           </div>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
+    </DialogContent>
+  </Dialog>
 </template>

@@ -90,11 +90,11 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
 </script>
 
 <template>
-    <div class="flex flex-col h-full bg-card border rounded-xl overflow-hidden shadow-sm">
+    <div class="flex flex-col h-full bg-card border rounded-lg overflow-hidden shadow-sm">
         <div class="px-4 py-3 border-b flex items-center justify-between bg-muted/20">
             <div class="flex items-center gap-2">
                 <Clock class="size-4 text-muted-foreground" />
-                <h3 class="font-bold text-sm">Стрічка активності</h3>
+                <h3 class="font-semibold text-sm">Стрічка активності</h3>
             </div>
             <button @click="fetchActivity" class="text-xs text-primary hover:underline font-medium">Оновити</button>
         </div>
@@ -119,8 +119,8 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
 
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs font-bold text-foreground">{{ item.user }}</span>
-                                <span class="text-[10px] text-muted-foreground tabular-nums">{{
+                                <span class="text-xs font-semibold text-foreground">{{ item.user }}</span>
+                                <span class="text-xs text-muted-foreground tabular-nums">{{
                                     formatTime(item.created_at) }}</span>
                             </div>
 
@@ -130,16 +130,16 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
                                         'Оновив(ла)' : item.action }}
                                 </span>
                                 документ
-                                <span class="font-bold text-foreground/80 lowercase">{{ item.doctype }}</span>:
+                                <span class="font-semibold text-foreground/80 lowercase">{{ item.doctype }}</span>:
                                 <span class="text-primary font-medium">{{ item.title || item.doc_id }}</span>
                             </p>
 
                             <div class="flex items-center justify-between">
                                 <span
-                                    class="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono uppercase">{{
+                                    class="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono uppercase">{{
                                         formatDate(item.created_at) }}</span>
                                 <button @click="goToDoc(item)"
-                                    class="text-[10px] flex items-center gap-1 text-primary opacity-0 group-hover:opacity-100 transition-opacity font-bold uppercase tracking-wider">
+                                    class="text-xs flex items-center gap-1 text-primary opacity-0 group-hover:opacity-100 transition-opacity font-semibold uppercase tracking-wider">
                                     Переглянути
                                     <ExternalLink class="size-3" />
                                 </button>

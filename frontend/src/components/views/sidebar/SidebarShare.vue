@@ -77,7 +77,7 @@ onMounted(loadShared)
   <div class="flex flex-col gap-3 mb-0">
     <Tooltip>
       <TooltipTrigger as-child>
-        <Button variant="outline" size="sm" class="w-full text-foreground shadow-sm transition-all active:scale-[0.98]" @click="showShareDialog = true">
+        <Button variant="outline" size="sm" class="w-full text-foreground shadow-sm transition-colors" @click="showShareDialog = true">
           <Share2 class="size-3.5 mr-2" />
           <span class="text-xs font-semibold">{{ t('Share') }}</span>
         </Button>
@@ -85,17 +85,17 @@ onMounted(loadShared)
       <TooltipContent>{{ t('Share document') }}</TooltipContent>
     </Tooltip>
 
-    <div v-if="sharedWith.length > 0" class="flex flex-col gap-2 p-3 bg-muted/30 rounded-xl border border-border/40">
-      <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">{{ t('Access') }}</span>
+    <div v-if="sharedWith.length > 0" class="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/40">
+      <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">{{ t('Access') }}</span>
       <div class="flex flex-wrap gap-2">
-        <Badge v-for="s in sharedWith" :key="s.id" 
-          class="pl-1 pr-2 py-0.5 text-[11px] font-medium bg-background border border-border/60 shadow-sm"
+        <Badge v-for="s in sharedWith" :key="s.id"
+          class="pl-1 pr-2 py-0.5 text-xs font-medium bg-background border border-border/60 shadow-sm"
         >
             <Avatar class="mr-2 !size-5">
-              <AvatarFallback class="!text-[10px]" :class="s.permission === 'Write' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'"><Shield class="size-3.5" /></AvatarFallback>
+              <AvatarFallback class="!text-xs" :class="s.permission === 'Write' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'"><Shield class="size-3.5" /></AvatarFallback>
             </Avatar>
             <span class="mr-2 truncate max-w-[120px]">{{ s.user }}</span>
-            <span class="text-[9px] font-bold uppercase tracking-tighter text-muted-foreground/60 mr-2">{{ s.permission }}</span>
+            <span class="text-xs font-semibold uppercase tracking-tighter text-muted-foreground/60 mr-2">{{ s.permission }}</span>
             <X class="size-3 cursor-pointer hover:text-destructive transition-colors" @click="removeShare(s)" />
         </Badge>
       </div>
@@ -105,7 +105,7 @@ onMounted(loadShared)
     <Dialog v-model:open="showShareDialog">
       <DialogContent class="max-w-sm w-full mx-4 p-0 px-6 pb-6 pt-1">
       <DialogHeader>
-        <DialogTitle class="flex items-center gap-2 font-bold text-lg">
+        <DialogTitle class="flex items-center gap-2 font-semibold text-lg">
           <Share2 class="size-5 text-primary" />
           {{ t('Share document') }}
         </DialogTitle>
@@ -113,7 +113,7 @@ onMounted(loadShared)
 
       <div class="flex flex-col gap-5 py-2">
         <div class="flex flex-col gap-2">
-          <label class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email або логін</label>
+          <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email або логін</label>
           <Input
             v-model="shareUser"
             placeholder="Пошук користувача..."
@@ -131,14 +131,14 @@ onMounted(loadShared)
               <Avatar class="!size-6"><AvatarFallback><User class="size-3.5" /></AvatarFallback></Avatar>
               <div class="flex flex-col min-w-0">
                 <span class="text-sm font-medium truncate">{{ u.full_name || u.email }}</span>
-                <span class="text-[10px] text-muted-foreground truncate">{{ u.email }}</span>
+                <span class="text-xs text-muted-foreground truncate">{{ u.email }}</span>
               </div>
             </button>
           </div>
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Рівень доступу</label>
+          <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Рівень доступу</label>
           <Select v-model="sharePermission">
             <SelectTrigger class="w-full">
               <SelectValue />

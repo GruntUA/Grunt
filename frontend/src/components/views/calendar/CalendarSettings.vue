@@ -102,7 +102,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
         <h3 class="text-sm font-semibold text-foreground">Відображення: Календар</h3>
         <span
           v-if="hasCalendar"
-          class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/15 text-amber-700 dark:text-amber-400"
+          class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-700 dark:text-amber-400"
         >Увімкнено</span>
       </div>
       <Switch :model-value="hasCalendar" @update:model-value="toggleCalendar" />
@@ -168,7 +168,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
 
           <div class="grid grid-cols-2 gap-3">
             <div class="flex flex-col gap-1">
-              <label class="text-[11px] font-medium text-muted-foreground">DocType</label>
+              <label class="text-xs font-medium text-muted-foreground">DocType</label>
               <Input
                 :model-value="source.doctype"
                 placeholder="Наприклад: Task"
@@ -177,7 +177,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
               />
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-[11px] font-medium text-muted-foreground">Тип події</label>
+              <label class="text-xs font-medium text-muted-foreground">Тип події</label>
               <Select :model-value="source.event_type ?? 'default'" @update:model-value="updateCalendarSource(idx, {
                   event_type: $event,
                   recurring: $event === 'birthday' ? true : (source.recurring ?? false),
@@ -195,7 +195,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
               </Select>
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-[11px] font-medium text-muted-foreground">Поле дати (start)</label>
+              <label class="text-xs font-medium text-muted-foreground">Поле дати (start)</label>
               <Input
                 :model-value="source.date_field"
                 placeholder="fieldname"
@@ -204,7 +204,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
               />
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-[11px] font-medium text-muted-foreground">Поле дати (end)</label>
+              <label class="text-xs font-medium text-muted-foreground">Поле дати (end)</label>
               <Input
                 :model-value="source.end_date_field ?? ''"
                 placeholder="опціонально"
@@ -213,7 +213,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
               />
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-[11px] font-medium text-muted-foreground">Поле заголовка</label>
+              <label class="text-xs font-medium text-muted-foreground">Поле заголовка</label>
               <Input
                 :model-value="source.label_field ?? 'name'"
                 placeholder="Наприклад: full_name"
@@ -222,7 +222,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
               />
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-[11px] font-medium text-muted-foreground">Колір</label>
+              <label class="text-xs font-medium text-muted-foreground">Колір</label>
               <Input
                 :model-value="source.color ?? ''"
                 placeholder="#hex"
@@ -231,7 +231,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
               />
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-[11px] font-medium text-muted-foreground">Щорічне повторення</label>
+              <label class="text-xs font-medium text-muted-foreground">Щорічне повторення</label>
               <Select :model-value="source.recurring ? 'yes' : 'no'" @update:model-value="updateCalendarSource(idx, { recurring: $event === 'yes' })">
                 <SelectTrigger class="h-7 text-xs">
                   <SelectValue />
@@ -242,7 +242,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
               </Select>
             </div>
             <div v-if="source.event_type === 'birthday'" class="flex flex-col gap-1">
-              <label class="text-[11px] font-medium text-muted-foreground">Показувати вік</label>
+              <label class="text-xs font-medium text-muted-foreground">Показувати вік</label>
               <Select :model-value="source.show_age ? 'yes' : 'no'" @update:model-value="updateCalendarSource(idx, { show_age: $event === 'yes' })">
                 <SelectTrigger class="h-7 text-xs">
                   <SelectValue />
@@ -253,7 +253,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
               </Select>
             </div>
             <div v-if="source.event_type === 'birthday'" class="flex flex-col gap-1">
-              <label class="text-[11px] font-medium text-muted-foreground">Нагадати за (днів)</label>
+              <label class="text-xs font-medium text-muted-foreground">Нагадати за (днів)</label>
               <Input
                 :model-value="String(source.remind_before_days ?? 1)"
                 placeholder="1"
@@ -262,7 +262,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
               />
             </div>
             <div class="flex flex-col gap-1 col-span-2">
-              <label class="text-[11px] font-medium text-muted-foreground">Фільтри (JSON)</label>
+              <label class="text-xs font-medium text-muted-foreground">Фільтри (JSON)</label>
               <Input
                 :model-value="sourceFiltersText(source)"
                 placeholder='Наприклад: {"status":"Активний"}'
@@ -271,7 +271,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
               />
             </div>
           </div>
-          <p v-if="source.event_type === 'birthday'" class="text-[10px] text-muted-foreground">
+          <p v-if="source.event_type === 'birthday'" class="text-xs text-muted-foreground">
             Для співробітників: date_field = birth_date, label_field = full_name, recurring = Так, remind_before_days = 1.
           </p>
         </div>

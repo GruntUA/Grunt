@@ -57,7 +57,7 @@ const trendNeutral = computed(() => trend.value === null || trend.value === 0)
 
     <!-- Value -->
     <template v-else>
-      <p class="text-3xl font-bold tabular-nums tracking-tight">{{ formattedValue }}</p>
+      <p class="text-3xl font-semibold tabular-nums tracking-tight">{{ formattedValue }}</p>
 
       <!-- Trend badge -->
       <div v-if="trend !== null" class="flex items-center gap-1 text-xs">

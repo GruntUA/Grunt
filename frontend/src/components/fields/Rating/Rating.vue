@@ -41,8 +41,8 @@ function setValue(star: number) {
       v-for="i in maxStars"
       :key="i"
       type="button"
-      class="focus:outline-none transition-transform"
-      :class="disabled || field.read_only ? 'pointer-events-none' : 'hover:scale-110 active:scale-95'"
+      class="focus:outline-none"
+      :class="disabled || field.read_only ? 'pointer-events-none' : ''"
       @mouseenter="!disabled && !field.read_only && (hoverStar = i)"
       @click="setValue(i)"
     >

@@ -469,7 +469,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
         <div
           v-if="bubbleVisible && isEditable()"
           :style="bubbleStyle"
-          class="absolute z-20 flex items-center gap-0.5 rounded-md border border-border bg-background/95 backdrop-blur-sm shadow-md p-1 text-foreground pointer-events-auto"
+          class="absolute z-20 flex items-center gap-0.5 rounded-md border border-border bg-background/95 shadow-md p-1 text-foreground pointer-events-auto"
         >
           <Button size="sm" variant="ghost" :class="editor!.isActive('bold') ? 'text-primary bg-accent' : 'text-muted-foreground'"
             @click="editor!.chain().focus().toggleBold().run()">
@@ -559,8 +559,8 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
   font-family: ui-monospace, monospace;
 }
 .richtext-content .tiptap pre {
-  background: #0f172a;
-  color: #f8fafc;
+  background: var(--foreground);
+  color: var(--background);
   border-radius: 0.5rem;
   margin: 0.75rem 0;
   padding: 0.75rem 1rem;

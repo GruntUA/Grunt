@@ -98,7 +98,7 @@ function isAllSelected(): boolean {
 
 <template>
   <Table class="w-full text-sm">
-    <TableHeader v-if="!hideHeader" class="bg-muted/30 backdrop-blur-sm">
+    <TableHeader v-if="!hideHeader" class="bg-muted/30">
       <TableRow class="hover:bg-transparent border-0">
         <TableHead style="width: 3rem" class="px-6 py-4 border-b border-border/40">
           <div class="flex items-center justify-center w-full">
@@ -107,7 +107,7 @@ function isAllSelected(): boolean {
         </TableHead>
         <TableHead
           v-for="col in columns" :key="col.key"
-          class="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] border-b border-border/40 text-left transition-all duration-200"
+          class="px-6 py-4 text-xs font-semibold uppercase tracking-[0.2em] border-b border-border/40 text-left transition-all duration-200"
           :class="sortKey === col.key ? 'text-primary' : 'text-muted-foreground/50 hover:text-foreground/80'"
           :role="col.sortable ? 'button' : undefined"
           @click="col.sortable && emit('sort', col.key)"
@@ -149,7 +149,7 @@ function isAllSelected(): boolean {
         class="transition-all duration-300 cursor-pointer border-b border-border/20 last:border-0 hover:bg-primary/[0.04]"
         :class="[
           { 'bg-primary/[0.05] hover:bg-primary/[0.08]': selectedIds.includes(getRowDocId(row) ?? '') },
-          { 'ring-inset ring-2 ring-primary/60 scale-[1.002] z-20 relative shadow-lg bg-background': activeIndex === ri },
+          { 'ring-inset ring-2 ring-primary/60 z-20 relative bg-background': activeIndex === ri },
         ]"
         @click="emit('rowClick', row)"
       >

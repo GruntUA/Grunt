@@ -73,15 +73,15 @@ async function submitUpdate() {
     >
       <div v-if="count > 0 || allSelected"
         class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3
-               px-4 py-2.5 rounded-2xl border border-primary/25
-               bg-background/90 backdrop-blur-xl shadow-xl shadow-black/10">
+               px-4 py-2.5 rounded-lg border border-primary/25
+               bg-background/90 shadow-md">
 
         <!-- Count -->
         <div class="flex items-center gap-2 shrink-0">
           <div class="size-5 rounded-full bg-primary/20 flex items-center justify-center">
             <CheckCircle class="size-3 text-primary" />
           </div>
-          <span class="text-sm font-bold text-foreground tabular-nums">
+          <span class="text-sm font-semibold text-foreground tabular-nums">
             {{ allSelected ? `всі ${total ?? count}` : count }}
           </span>
           <span class="text-xs text-muted-foreground">вибрано</span>
@@ -149,13 +149,13 @@ async function submitUpdate() {
         <div class="size-10 rounded-full bg-destructive/10 flex items-center justify-center border border-destructive/20">
           <AlertCircle class="size-5 text-destructive" />
         </div>
-        <DialogTitle class="font-black text-lg">{{ t('Confirm Deletion') }}</DialogTitle>
+        <DialogTitle class="font-semibold text-lg">{{ t('Confirm Deletion') }}</DialogTitle>
       </div>
     </DialogHeader>
 
     <div class="py-2">
       <p class="text-sm text-muted-foreground leading-relaxed">
-        Ви збираєтесь видалити <span class="font-bold text-foreground">{{ displayCount }}</span> записів.
+        Ви збираєтесь видалити <span class="font-semibold text-foreground">{{ displayCount }}</span> записів.
         Цю дію неможливо буде скасувати. Ви впевнені?
       </p>
     </div>
@@ -177,16 +177,16 @@ async function submitUpdate() {
         <div class="size-10 rounded-full bg-destructive/10 flex items-center justify-center border border-destructive/20">
           <Zap class="size-5 text-destructive" />
         </div>
-        <DialogTitle class="font-black text-lg">Швидке видалення</DialogTitle>
+        <DialogTitle class="font-semibold text-lg">Швидке видалення</DialogTitle>
       </div>
     </DialogHeader>
 
     <div class="py-2 flex flex-col gap-3">
       <p class="text-sm text-muted-foreground leading-relaxed">
-        Видалити <span class="font-bold text-foreground">{{ displayCount }}</span> записів напряму через SQL
+        Видалити <span class="font-semibold text-foreground">{{ displayCount }}</span> записів напряму через SQL
         — без lifecycle хуків, ActivityLog per-record.
       </p>
-      <div class="p-3 bg-destructive/5 border border-destructive/20 rounded-xl">
+      <div class="p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
         <p class="text-xs text-destructive font-semibold">
           ⚡ Це незворотна операція. Хуки <code>before_delete</code> / <code>after_delete</code> не виконуються.
           Використовуй лише для масового очищення тестових або імпортованих даних.
@@ -214,13 +214,13 @@ async function submitUpdate() {
         <div class="size-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
           <Pencil class="size-5 text-primary" />
         </div>
-        <DialogTitle class="font-black text-lg">{{ t('Bulk Update') }}</DialogTitle>
+        <DialogTitle class="font-semibold text-lg">{{ t('Bulk Update') }}</DialogTitle>
       </div>
     </DialogHeader>
 
     <div class="flex flex-col gap-5 py-2">
       <div class="flex flex-col gap-2">
-        <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Оберіть поле</label>
+        <label class="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Оберіть поле</label>
         <Select v-model="updateField">
           <SelectTrigger class="w-full">
             <SelectValue :placeholder="t('Select field...')" />
@@ -231,16 +231,16 @@ async function submitUpdate() {
         </Select>
       </div>
       <div class="flex flex-col gap-2">
-        <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Нове значення</label>
+        <label class="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Нове значення</label>
         <Input v-model="updateValue" :placeholder="t('Enter value...')"
           class="w-full"
           fluid
           @keydown.enter="submitUpdate" />
       </div>
 
-      <div class="p-3 bg-muted/30 rounded-xl border border-border/40">
-        <p class="text-[10px] text-muted-foreground leading-tight italic">
-          Це оновить поле для всіх <span class="font-bold text-foreground">{{ displayCount }}</span> виділених записів.
+      <div class="p-3 bg-muted/30 rounded-lg border border-border/40">
+        <p class="text-xs text-muted-foreground leading-tight italic">
+          Це оновить поле для всіх <span class="font-semibold text-foreground">{{ displayCount }}</span> виділених записів.
         </p>
       </div>
     </div>

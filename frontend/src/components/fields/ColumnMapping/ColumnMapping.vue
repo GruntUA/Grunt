@@ -137,7 +137,7 @@ const requiredMissing = computed(() => {
 
       <!-- Required fields warning -->
       <div v-if="requiredMissing.length > 0"
-        class="flex items-start gap-2 text-xs text-amber-600 dark:text-amber-400 py-2 px-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+        class="flex items-start gap-2 text-xs text-warning py-2 px-3 bg-warning/10 rounded-lg border border-warning/20">
         <AlertCircle class="size-3.5 shrink-0 mt-0.5" />
         <span>Обов'язкові поля без маппінгу: <strong>{{ requiredMissing.map(f => f.label).join(', ') }}</strong></span>
       </div>
@@ -148,7 +148,7 @@ const requiredMissing = computed(() => {
             <tr>
               <th class="px-3 py-2 text-left font-medium text-muted-foreground w-[40%]">Колонка файлу</th>
               <th class="px-3 py-2 text-left font-medium text-muted-foreground">Поле системи</th>
-              <th class="px-3 py-2 text-left font-medium text-muted-foreground text-[11px] hidden lg:table-cell">
+              <th class="px-3 py-2 text-left font-medium text-muted-foreground text-xs hidden lg:table-cell">
                 Приклад даних
               </th>
             </tr>

@@ -69,14 +69,14 @@ onMounted(async () => {
     <!-- Stat tiles -->
     <div class="grid grid-cols-3 gap-3 mb-4">
       <div v-for="tile in tiles" :key="tile.key"
-        class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-card/60 border border-border/40 backdrop-blur-sm">
-        <div class="size-9 rounded-xl flex items-center justify-center shrink-0"
+        class="flex items-center gap-3 px-4 py-3 rounded-lg bg-card/60 border border-border/40">
+        <div class="size-9 rounded-lg flex items-center justify-center shrink-0"
           :style="{ backgroundColor: tile.color + '18', color: tile.color }">
           <component :is="tile.icon" class="size-4" />
         </div>
         <div class="min-w-0">
-          <p class="text-lg font-black text-foreground tabular-nums leading-none">{{ tile.value }}</p>
-          <p class="text-[11px] text-muted-foreground/60 font-medium truncate">{{ tile.label }}</p>
+          <p class="text-lg font-semibold text-foreground tabular-nums leading-none">{{ tile.value }}</p>
+          <p class="text-xs text-muted-foreground/60 font-medium truncate">{{ tile.label }}</p>
         </div>
       </div>
     </div>
@@ -84,26 +84,26 @@ onMounted(async () => {
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <!-- Assigned tasks -->
       <div v-if="data && data.assigned.length"
-        class="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm overflow-hidden">
+        class="rounded-lg border border-border/40 bg-card/60 overflow-hidden">
         <div class="px-4 py-2.5 border-b border-border/20 flex items-center gap-2">
           <CheckSquare class="size-3.5 text-indigo-500/70" />
-          <span class="text-xs font-black uppercase tracking-widest text-foreground/70">Мої задачі</span>
+          <span class="text-xs font-semibold uppercase tracking-widest text-foreground/70">Мої задачі</span>
         </div>
         <button v-for="t in data.assigned.slice(0, 6)" :key="t.id"
           class="group w-full flex items-center gap-3 px-4 py-2.5 border-b border-border/10 last:border-0 hover:bg-primary/[0.03] transition-colors text-left"
           @click="openTask(t)">
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">
+            <p class="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
               {{ t.title }}
             </p>
-            <span class="text-[10px] text-muted-foreground/50 font-mono">{{ t.reference_doctype }}</span>
+            <span class="text-xs text-muted-foreground/50 font-mono">{{ t.reference_doctype }}</span>
           </div>
           <span v-if="t.overdue"
-            class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-red-500/10 text-red-600 shrink-0">
+            class="text-xs font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-red-500/10 text-red-600 shrink-0">
             прострочено
           </span>
           <span v-else-if="t.due_date"
-            class="text-[10px] text-muted-foreground/50 font-mono tabular-nums shrink-0">{{ formatDue(t.due_date) }}</span>
+            class="text-xs text-muted-foreground/50 font-mono tabular-nums shrink-0">{{ formatDue(t.due_date) }}</span>
           <ArrowRight
             class="size-3.5 text-muted-foreground/20 group-hover:text-primary/50 transition-colors shrink-0" />
         </button>
@@ -111,10 +111,10 @@ onMounted(async () => {
 
       <!-- Unread notifications -->
       <div v-if="data && data.notifications.length"
-        class="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm overflow-hidden">
+        class="rounded-lg border border-border/40 bg-card/60 overflow-hidden">
         <div class="px-4 py-2.5 border-b border-border/20 flex items-center gap-2">
           <Bell class="size-3.5 text-blue-500/70" />
-          <span class="text-xs font-black uppercase tracking-widest text-foreground/70">Сповіщення</span>
+          <span class="text-xs font-semibold uppercase tracking-widest text-foreground/70">Сповіщення</span>
         </div>
         <button v-for="n in data.notifications.slice(0, 6)" :key="n.name"
           class="group w-full flex items-center gap-3 px-4 py-2.5 border-b border-border/10 last:border-0 hover:bg-primary/[0.03] transition-colors text-left"
@@ -131,7 +131,7 @@ onMounted(async () => {
 
       <!-- Empty column filler when only one list has content -->
       <div v-if="data && (data.assigned.length === 0) !== (data.notifications.length === 0)"
-        class="hidden lg:flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/30 text-center p-6">
+        class="hidden lg:flex flex-col items-center justify-center rounded-lg border border-dashed border-border/30 text-center p-6">
         <Inbox class="size-6 text-muted-foreground/30 mb-2" />
         <p class="text-xs text-muted-foreground/50">
           {{ data.assigned.length === 0 ? 'Немає призначених задач' : 'Немає нових сповіщень' }}

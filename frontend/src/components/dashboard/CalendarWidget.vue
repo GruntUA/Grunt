@@ -70,7 +70,7 @@ function dotColor(count: number): string {
     <template v-else>
       <!-- Weekday headers -->
       <div class="grid grid-cols-7 mb-1 shrink-0">
-        <div v-for="d in DAYS_UK" :key="d" class="text-center text-[10px] font-bold text-muted-foreground/60 uppercase">
+        <div v-for="d in DAYS_UK" :key="d" class="text-center text-xs font-semibold text-muted-foreground/60 uppercase">
           {{ d }}
         </div>
       </div>
@@ -81,7 +81,7 @@ function dotColor(count: number): string {
           class="flex flex-col items-center justify-center rounded-md text-xs aspect-square"
           :class="cell?.isToday ? 'bg-primary/10 ring-1 ring-primary/40' : (cell ? 'hover:bg-muted/50' : '')">
           <template v-if="cell">
-            <span class="leading-none" :class="cell.isToday ? 'font-bold text-primary' : 'text-foreground/70'">
+            <span class="leading-none" :class="cell.isToday ? 'font-semibold text-primary' : 'text-foreground/70'">
               {{ cell.day }}
             </span>
             <div v-if="cell.count > 0" :class="['mt-0.5 size-1 rounded-full', dotColor(cell.count)]" />
@@ -91,10 +91,10 @@ function dotColor(count: number): string {
 
       <!-- Legend -->
       <div class="flex items-center justify-end gap-3 mt-2 shrink-0">
-        <div class="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <div class="flex items-center gap-1 text-xs text-muted-foreground">
           <div class="size-2 rounded-full bg-primary/40" /> мало
         </div>
-        <div class="flex items-center gap-1 text-[10px] text-muted-foreground">
+        <div class="flex items-center gap-1 text-xs text-muted-foreground">
           <div class="size-2 rounded-full bg-primary" /> багато
         </div>
       </div>

@@ -21,7 +21,7 @@ const current = () => field.value.options ?? 'default'
 
   <!-- Style -->
   <div class="mb-4 flex flex-col gap-2">
-    <label class="text-xs font-bold text-muted-foreground uppercase tracking-widest">Style</label>
+    <label class="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Style</label>
     <div class="flex flex-wrap gap-1.5">
       <button
         v-for="v in VARIANTS"
@@ -40,7 +40,7 @@ const current = () => field.value.options ?? 'default'
 
   <!-- Icon -->
   <div class="mb-4 flex flex-col gap-2">
-    <label class="text-xs font-bold text-muted-foreground uppercase tracking-widest">Icon</label>
+    <label class="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Icon</label>
     <IconPicker
       :field="field"
       :model-value="field.icon ?? null"

@@ -223,7 +223,7 @@ onUnmounted(stopScan)
     </div>
 
     <!-- Camera viewfinder -->
-    <div v-if="scanning" class="relative rounded-xl overflow-hidden bg-black aspect-video max-h-64">
+    <div v-if="scanning" class="relative rounded-lg overflow-hidden bg-black aspect-video max-h-64">
       <video ref="videoRef" class="w-full h-full object-cover" muted playsinline />
       <div class="absolute inset-0 pointer-events-none">
         <div class="absolute inset-x-8 top-1/2 h-0.5 bg-primary/70 animate-pulse rounded-full" />
@@ -232,7 +232,7 @@ onUnmounted(stopScan)
         <div class="absolute bottom-3 left-3 w-8 h-8 border-b-2 border-l-2 border-primary rounded-bl" />
         <div class="absolute bottom-3 right-3 w-8 h-8 border-b-2 border-r-2 border-primary rounded-br" />
       </div>
-      <p class="absolute bottom-2 inset-x-0 text-center text-[11px] text-white/70">
+      <p class="absolute bottom-2 inset-x-0 text-center text-xs text-white/70">
         Наведіть камеру на штрих-код або QR-код
       </p>
     </div>

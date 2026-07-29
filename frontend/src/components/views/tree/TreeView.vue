@@ -386,7 +386,7 @@ const TreeNodeRow: any = defineComponent({
           onClick: (e: Event) => { e.stopPropagation(); emit('navigate', node) },
         }, props.getTitle(node)),
         descendants > 0 && h('span', {
-          class: 'text-[11px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium shrink-0',
+          class: 'text-xs px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium shrink-0',
         }, String(descendants)),
         h('button', {
           class: 'opacity-0 group-hover:opacity-100 transition-opacity shrink-0 p-1 rounded hover:bg-primary/10 hover:text-primary text-muted-foreground',

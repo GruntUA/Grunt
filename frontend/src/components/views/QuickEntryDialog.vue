@@ -155,8 +155,8 @@ const isVisible = ref(true)
                 <Plus class="size-4 text-primary" />
             </div>
             <div class="flex flex-col">
-                <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 leading-none mb-0.5">Швидке додавання</span>
-                <DialogTitle class="text-base font-bold text-foreground tracking-tight">
+                <span class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground/60 leading-none mb-0.5">Швидке додавання</span>
+                <DialogTitle class="text-base font-semibold text-foreground tracking-tight">
                     Новий {{ dt.label }}
                 </DialogTitle>
             </div>

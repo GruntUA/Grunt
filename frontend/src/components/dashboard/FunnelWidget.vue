@@ -51,12 +51,12 @@ function widthPct(count: number): number {
           class="flex items-center justify-between w-full px-3 py-1.5 rounded-md text-white text-xs font-medium transition-all"
           :style="{ backgroundColor: color, opacity: 1 - i * (0.12) }">
           <span class="truncate">{{ stage.label }}</span>
-          <span class="ml-2 tabular-nums font-bold shrink-0">{{ stage.count }}</span>
+          <span class="ml-2 tabular-nums font-semibold shrink-0">{{ stage.count }}</span>
         </div>
       </div>
 
       <!-- Conversion hint -->
-      <div v-if="stages.length >= 2" class="text-center text-[10px] text-muted-foreground mt-1">
+      <div v-if="stages.length >= 2" class="text-center text-xs text-muted-foreground mt-1">
         {{ t('Conversion:') }} {{ stages[0].count > 0 ? Math.round(stages[stages.length - 1].count / stages[0].count * 100) : 0 }}%
       </div>
     </div>

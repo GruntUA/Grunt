@@ -141,7 +141,7 @@ onMounted(async () => {
             <div class="px-4 py-4 border-b">
                 <div class="flex items-center gap-2 mb-3">
                     <Shield class="w-5 h-5 text-primary" />
-                    <h2 class="font-bold text-sm">Права доступу</h2>
+                    <h2 class="font-semibold text-sm">Права доступу</h2>
                 </div>
                 <div class="relative">
                     <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -182,7 +182,7 @@ onMounted(async () => {
                 <!-- Toolbar -->
                 <div class="px-6 py-4 border-b flex items-center justify-between gap-4 shrink-0">
                     <div>
-                        <h3 class="text-base font-bold">{{ selectedDocType }}</h3>
+                        <h3 class="text-base font-semibold">{{ selectedDocType }}</h3>
                         <p class="text-xs text-muted-foreground mt-0.5">{{ permissions.length }} роль(ей) налаштовано
                         </p>
                     </div>
@@ -235,12 +235,12 @@ onMounted(async () => {
                         <thead>
                             <tr>
                                 <th
-                                    class="text-left px-4 py-2.5 bg-muted/40 rounded-tl-xl font-semibold text-xs text-muted-foreground uppercase tracking-wider">
+                                    class="text-left px-4 py-2.5 bg-muted/40 rounded-tl-lg font-semibold text-xs text-muted-foreground uppercase tracking-wider">
                                     Роль</th>
                                 <th v-for="a in ACTIONS" :key="a.key"
                                     class="text-center py-2.5 bg-muted/40 font-semibold text-xs uppercase tracking-wider"
                                     :class="a.color">{{ a.label }}</th>
-                                <th class="bg-muted/40 rounded-tr-xl w-10" />
+                                <th class="bg-muted/40 rounded-tr-lg w-10" />
                             </tr>
                         </thead>
 
@@ -258,10 +258,10 @@ onMounted(async () => {
                                         </span>
                                         <!-- Quick fill all -->
                                         <button
-                                            class="opacity-0 group-hover:opacity-100 px-1.5 py-0.5 rounded text-[10px] bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all"
+                                            class="opacity-0 group-hover:opacity-100 px-1.5 py-0.5 rounded text-xs bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all"
                                             title="Надати всі права" @click="toggleAll(perm, true)">Все</button>
                                         <button
-                                            class="opacity-0 group-hover:opacity-100 px-1.5 py-0.5 rounded text-[10px] bg-muted text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
+                                            class="opacity-0 group-hover:opacity-100 px-1.5 py-0.5 rounded text-xs bg-muted text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
                                             title="Прибрати всі права" @click="toggleAll(perm, false)">Нічого</button>
                                     </div>
                                 </td>

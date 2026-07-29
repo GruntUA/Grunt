@@ -173,10 +173,10 @@ onMounted(loadTimeline)
 
   <div v-else class="flex flex-col gap-6">
     <!-- Comment input -->
-    <div class="flex flex-col gap-3 group/comment bg-muted/20 p-4 rounded-xl border border-border/40">
+    <div class="flex flex-col gap-3 group/comment bg-muted/20 p-4 rounded-lg border border-border/40">
       <div class="flex items-center gap-2 px-1">
         <MessageSquare class="size-4 text-primary/60" />
-        <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Додати коментар</span>
+        <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Додати коментар</span>
       </div>
       <div class="relative">
         <Textarea v-model="commentInput" rows="3"
@@ -186,8 +186,8 @@ onMounted(loadTimeline)
 
         <!-- Mentions -->
         <div v-if="mentionDropdown.length"
-          class="absolute left-0 right-0 bottom-full mb-2 bg-popover border border-border rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <div class="px-3 py-2 bg-muted/50 border-b border-border text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Згадати користувача</div>
+          class="absolute left-0 right-0 bottom-full mb-2 bg-popover border border-border rounded-lg shadow-md overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div class="px-3 py-2 bg-muted/50 border-b border-border text-xs font-semibold uppercase tracking-widest text-muted-foreground/80">Згадати користувача</div>
           <button v-for="(u, i) in mentionDropdown" :key="u.id"
             class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-left transition-all border-b border-border/40 last:border-0"
             :class="i === mentionIndex ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-foreground'"
@@ -196,23 +196,23 @@ onMounted(loadTimeline)
               <AvatarFallback :class="i === mentionIndex ? 'bg-primary-foreground/20 text-white' : ''"><User class="size-3.5" /></AvatarFallback>
             </Avatar>
             <div class="flex flex-col min-w-0">
-                <span class="font-bold truncate text-xs">{{ u.full_name || u.email }}</span>
-                <span class="text-[10px] opacity-70 truncate">{{ u.email }}</span>
+                <span class="font-semibold truncate text-xs">{{ u.full_name || u.email }}</span>
+                <span class="text-xs opacity-70 truncate">{{ u.email }}</span>
             </div>
           </button>
         </div>
       </div>
       <div class="flex items-center justify-between px-1">
-          <span class="text-[10px] text-muted-foreground/60 italic">Ctrl+Enter щоб надіслати</span>
-          <Button size="sm" :disabled="!commentInput.trim() || commentSending" @click="sendComment" class="px-5 shadow-lg shadow-primary/10">
+          <span class="text-xs text-muted-foreground/60 italic">Ctrl+Enter щоб надіслати</span>
+          <Button size="sm" :disabled="!commentInput.trim() || commentSending" @click="sendComment" class="px-5">
             <Loader2 v-if="commentSending" class="size-3.5 animate-spin mr-2" />
             <Send v-else class="size-3.5 mr-2" />
-            <span class="font-bold">Надіслати</span>
+            <span class="font-semibold">Надіслати</span>
           </Button>
       </div>
     </div>
 
-    <div v-if="timeline.length === 0" class="py-12 text-center text-sm text-muted-foreground/60 italic bg-muted/20 rounded-xl border border-dashed border-border/40">
+    <div v-if="timeline.length === 0" class="py-12 text-center text-sm text-muted-foreground/60 italic bg-muted/20 rounded-lg border border-dashed border-border/40">
       Поки що немає активності
     </div>
 
@@ -229,9 +229,9 @@ onMounted(loadTimeline)
         </div>
         <div class="flex flex-col gap-1 mb-6 pl-2 min-w-0 flex-1">
           <div class="flex items-center justify-between gap-2">
-            <span class="text-xs font-bold text-foreground truncate">{{ item.user }}</span>
+            <span class="text-xs font-semibold text-foreground truncate">{{ item.user }}</span>
             <div class="flex items-center gap-1.5 shrink-0">
-                <span class="text-[10px] font-medium text-muted-foreground/60 uppercase">{{ fmtDate(item.created_at) }}</span>
+                <span class="text-xs font-medium text-muted-foreground/60 uppercase">{{ fmtDate(item.created_at) }}</span>
                 <button v-if="item.type === 'comment' && (item.user === auth.user?.email || auth.user?.is_superadmin)"
                     class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 hover:text-destructive rounded"
                     @click="deleteComment(item)">
@@ -239,11 +239,11 @@ onMounted(loadTimeline)
                 </button>
             </div>
           </div>
-          <span v-if="item.type === 'activity'" class="text-[10px] font-medium text-muted-foreground leading-relaxed">
+          <span v-if="item.type === 'activity'" class="text-xs font-medium text-muted-foreground leading-relaxed">
             {{ timelineLabel(item) }}
           </span>
           <p v-if="item.type === 'comment'"
-            class="text-sm text-foreground bg-muted/40 border border-border/20 rounded-xl px-4 py-2.5 mt-1 whitespace-pre-wrap leading-relaxed shadow-sm">
+            class="text-sm text-foreground bg-muted/40 border border-border/20 rounded-lg px-4 py-2.5 mt-1 whitespace-pre-wrap leading-relaxed shadow-sm">
             {{ item.content }}
           </p>
         </div>

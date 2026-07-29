@@ -44,18 +44,18 @@ function onJump() {
   <div class="flex items-center justify-between w-full py-2 px-1">
     <!-- Summary info -->
     <div class="hidden md:flex items-center gap-2">
-        <span class="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">Всього:</span>
-        <Badge variant="secondary" class="!text-[10px] !font-black !px-2 !py-0.5 shadow-sm">
+        <span class="text-xs font-semibold text-muted-foreground/60 uppercase tracking-widest">Всього:</span>
+        <Badge variant="secondary" class="!text-xs !font-semibold !px-2 !py-0.5 shadow-sm">
             {{ total }}
         </Badge>
     </div>
 
     <!-- Paginator -->
     <div class="flex-1 flex justify-center md:justify-end items-center gap-1">
-        <Button variant="ghost" size="icon-sm" class="!size-9 !rounded-xl" :disabled="page <= 1" @click="goTo(1)">
+        <Button variant="ghost" size="icon-sm" class="!size-9 !rounded-lg" :disabled="page <= 1" @click="goTo(1)">
           <ChevronsLeft class="size-4" />
         </Button>
-        <Button variant="ghost" size="icon-sm" class="!size-9 !rounded-xl" :disabled="page <= 1" @click="goTo(page - 1)">
+        <Button variant="ghost" size="icon-sm" class="!size-9 !rounded-lg" :disabled="page <= 1" @click="goTo(page - 1)">
           <ChevronLeft class="size-4" />
         </Button>
 
@@ -65,16 +65,16 @@ function onJump() {
             v-else
             size="icon-sm"
             :variant="p === page ? 'default' : 'ghost'"
-            class="!size-9 !rounded-xl !text-xs !font-bold"
-            :class="p === page ? '!shadow-lg !shadow-primary/20' : '!bg-muted/30 !text-muted-foreground hover:!bg-muted/50'"
+            class="!size-9 !rounded-lg !text-xs !font-semibold"
+            :class="p === page ? '!shadow-md' : '!bg-muted/30 !text-muted-foreground hover:!bg-muted/50'"
             @click="goTo(p)"
           >{{ p }}</Button>
         </template>
 
-        <Button variant="ghost" size="icon-sm" class="!size-9 !rounded-xl" :disabled="page >= pages" @click="goTo(page + 1)">
+        <Button variant="ghost" size="icon-sm" class="!size-9 !rounded-lg" :disabled="page >= pages" @click="goTo(page + 1)">
           <ChevronRight class="size-4" />
         </Button>
-        <Button variant="ghost" size="icon-sm" class="!size-9 !rounded-xl" :disabled="page >= pages" @click="goTo(pages)">
+        <Button variant="ghost" size="icon-sm" class="!size-9 !rounded-lg" :disabled="page >= pages" @click="goTo(pages)">
           <ChevronsRight class="size-4" />
         </Button>
 
@@ -84,14 +84,14 @@ function onJump() {
           min="1"
           :max="pages"
           placeholder="#"
-          class="!h-9 !w-16 !text-xs !font-bold !text-center"
+          class="!h-9 !w-16 !text-xs !font-semibold !text-center"
           @keydown.enter="onJump"
         />
     </div>
 
     <!-- Mobile view summary -->
     <div class="md:hidden ml-4">
-        <p class="text-[10px] font-black text-muted-foreground uppercase opacity-60">
+        <p class="text-xs font-semibold text-muted-foreground uppercase opacity-60">
             {{ page }} / {{ pages }}
         </p>
     </div>

@@ -86,14 +86,14 @@ const trendPos = computed(() => (trend.value ?? 0) > 0)
 
       <!-- Value overlay centered below the arc -->
       <div class="flex flex-col items-center gap-0.5 mt-1">
-        <p class="text-2xl font-bold tabular-nums tracking-tight" :style="{ color: accent }">
+        <p class="text-2xl font-semibold tabular-nums tracking-tight" :style="{ color: accent }">
           {{ formattedValue }}
         </p>
-        <p class="text-[10px] text-muted-foreground tabular-nums">
+        <p class="text-xs text-muted-foreground tabular-nums">
           {{ minVal }} – {{ maxVal }}
         </p>
         <!-- Trend indicator -->
-        <p v-if="trend !== null" class="text-[10px] font-medium"
+        <p v-if="trend !== null" class="text-xs font-medium"
           :class="trend === 0 ? 'text-muted-foreground' : trendPos ? 'text-emerald-600' : 'text-red-500'">
           {{ trendPos ? '+' : '' }}{{ trend }}%
         </p>

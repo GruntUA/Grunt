@@ -58,10 +58,10 @@ loadBookmark()
 
 <template>
   <aside v-bind="attrs" class="flex flex-col gap-0 w-full">
-    <div class="form-section bg-card border border-border/60 rounded-xl shadow-sm overflow-hidden">
+    <div class="form-section bg-card border border-border/60 rounded-lg shadow-sm overflow-hidden">
       <div class="form-section-header border-b border-border/60 px-4 py-3">
         <User class="size-3.5 text-muted-foreground" />
-        <span class="text-[11px] font-bold uppercase tracking-wider">Деталі</span>
+        <span class="text-xs font-semibold uppercase tracking-wider">Деталі</span>
       </div>
       <div class="form-section-body p-4 flex flex-col gap-5">
         <SidebarFileInfo :doctype="doctype" :document="document" :users="users" />
@@ -73,7 +73,7 @@ loadBookmark()
             <TooltipTrigger as-child>
               <Button
                 variant="outline"
-                :class="['size-9 shrink-0 shadow-sm transition-all active:scale-95', bookmark ? 'text-warning border-warning/40' : '']"
+                :class="['size-9 shrink-0 shadow-sm transition-colors', bookmark ? 'text-warning border-warning/40' : '']"
                 :disabled="bookmarkLoading"
                 @click="toggleBookmark"
               >

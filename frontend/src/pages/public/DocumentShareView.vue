@@ -86,9 +86,9 @@ function formatVal(fieldtype: string, val: string | null): string {
     <!-- Document -->
     <div v-else-if="data" class="max-w-3xl mx-auto py-10 px-4">
       <!-- Doc header -->
-      <div class="bg-card border border-border rounded-xl shadow-sm px-6 py-5 mb-6">
+      <div class="bg-card border border-border rounded-lg shadow-sm px-6 py-5 mb-6">
         <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">{{ data.doctype_label }}</p>
-        <h1 class="text-2xl font-bold text-foreground">{{ data.doc.name ?? data.doc_id }}</h1>
+        <h1 class="text-2xl font-semibold text-foreground">{{ data.doc.name ?? data.doc_id }}</h1>
         <div v-if="data.expires_at" class="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
           <Clock class="size-3" />
           Дійсно до {{ new Date(data.expires_at).toLocaleString('uk-UA') }}
@@ -96,7 +96,7 @@ function formatVal(fieldtype: string, val: string | null): string {
       </div>
 
       <!-- Fields -->
-      <div class="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+      <div class="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-border/60">
           <h2 class="text-sm font-semibold text-foreground">Дані документа</h2>
         </div>

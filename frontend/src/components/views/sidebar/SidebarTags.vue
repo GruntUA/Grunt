@@ -56,15 +56,15 @@ onMounted(loadTags)
 </script>
 
 <template>
-  <div class="flex flex-col gap-3 mb-0 p-3 bg-muted/30 rounded-xl border border-border/40">
-    <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5 px-0.5">
+  <div class="flex flex-col gap-3 mb-0 p-3 bg-muted/30 rounded-lg border border-border/40">
+    <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5 px-0.5">
       <Tag class="size-3" />
       Теги
     </span>
-    
+
     <div v-if="tags.length > 0" class="flex flex-wrap gap-2">
-      <Badge v-for="t in tags" :key="t.id" 
-        class="pl-2 pr-2 py-0.5 text-[11px] font-semibold bg-background border border-border/60 shadow-sm"
+      <Badge v-for="t in tags" :key="t.id"
+        class="pl-2 pr-2 py-0.5 text-xs font-semibold bg-background border border-border/60 shadow-sm"
       >
         <span class="mr-2">{{ t.tag }}</span>
         <X class="size-3 cursor-pointer hover:text-destructive transition-colors shrink-0" @click="removeTag(t)" />

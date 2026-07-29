@@ -53,6 +53,7 @@ declare module 'vue' {
     Separator: typeof import('@/components/ui/separator')['Separator']
     Sheet: typeof import('@/components/ui/sheet')['Sheet']
     SheetContent: typeof import('@/components/ui/sheet')['SheetContent']
+    SheetHeader: typeof import('@/components/ui/sheet')['SheetHeader']
     SheetTitle: typeof import('@/components/ui/sheet')['SheetTitle']
     Sidebar: typeof import('@/components/ui/sidebar')['Sidebar']
     SidebarContent: typeof import('@/components/ui/sidebar')['SidebarContent']

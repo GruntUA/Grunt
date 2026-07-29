@@ -87,7 +87,7 @@ async function handleSave() {
                     {{ item.label }}
                   </router-link>
                 </BreadcrumbLink>
-                <span v-else class="text-xs font-bold text-foreground opacity-90 truncate max-w-[300px]">{{ item.label }}</span>
+                <span v-else class="text-xs font-semibold text-foreground opacity-90 truncate max-w-[300px]">{{ item.label }}</span>
               </BreadcrumbItem>
             </template>
           </BreadcrumbList>
@@ -123,19 +123,19 @@ async function handleSave() {
 
       <div class="bg-card border-b px-2">
         <TabsList class="h-auto">
-          <TabsTrigger value="form" class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider">
+          <TabsTrigger value="form" class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider">
             {{ t('Form') }}
           </TabsTrigger>
-          <TabsTrigger value="settings" class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider">
+          <TabsTrigger value="settings" class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider">
             {{ t('Settings') }}
           </TabsTrigger>
-          <TabsTrigger value="permissions" class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider">
+          <TabsTrigger value="permissions" class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider">
             {{ t('Permissions') }}
           </TabsTrigger>
-          <TabsTrigger value="workflow" class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider">
+          <TabsTrigger value="workflow" class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider">
             Workflow
           </TabsTrigger>
-          <TabsTrigger value="views" class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider">
+          <TabsTrigger value="views" class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider">
             {{ t('Views') }}
           </TabsTrigger>
         </TabsList>

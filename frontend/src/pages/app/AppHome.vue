@@ -71,7 +71,7 @@ watch(() => props.workspaceName, init)
 
     <!-- Loading skeleton -->
     <div v-if="loading" class="grid grid-cols-4 gap-4">
-      <div v-for="i in 4" :key="i" class="h-32 bg-muted animate-pulse rounded-xl" />
+      <div v-for="i in 4" :key="i" class="h-32 bg-muted animate-pulse rounded-lg" />
     </div>
 
     <!-- Widgets grid -->

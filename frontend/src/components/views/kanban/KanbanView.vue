@@ -131,7 +131,7 @@ watch(() => props.columnField, loadCards)
 </script>
 
 <template>
-  <div class="flex h-full gap-6 overflow-x-auto pb-6 px-4 custom-scrollbar bg-card/10 backdrop-blur-sm pt-4">
+  <div class="flex h-full gap-6 overflow-x-auto pb-6 px-4 custom-scrollbar bg-card pt-4">
     <!-- Columns -->
     <template v-if="!isLoading">
       <div v-for="col in columns" :key="col" class="flex-shrink-0 w-[320px] flex flex-col group/column h-full">
@@ -140,25 +140,25 @@ watch(() => props.columnField, loadCards)
           <div class="flex items-center gap-3 overflow-hidden">
             <div class="size-2.5 rounded-full shrink-0 shadow-sm border border-white/20"
               :class="getColumnStyles(col).dot" />
-            <h3 class="font-black text-[11px] text-foreground/70 truncate uppercase tracking-[0.15em]">
+            <h3 class="font-semibold text-xs text-foreground/70 truncate uppercase tracking-[0.15em]">
               {{ columnLabel(col) }}
             </h3>
             <Badge variant="secondary"
-              class="!bg-muted/40 !text-muted-foreground !text-[10px] !font-black !px-2 !h-5 !min-w-6">{{ cardsByColumn[col]?.length || 0 }}</Badge>
+              class="!bg-muted/40 !text-muted-foreground !text-xs !font-semibold !px-2 !h-5 !min-w-6">{{ cardsByColumn[col]?.length || 0 }}</Badge>
           </div>
           <Button variant="ghost" size="sm" class="!size-7 !text-muted-foreground/40 hover:!text-foreground rounded-full"><Ellipsis class="size-4" /></Button>
         </div>
 
         <!-- Column Body -->
         <div
-          class="flex-1 rounded-[2rem] border bg-muted/10 border-border/40 group-hover/column:border-primary/20 group-hover/column:bg-muted/20 transition-all flex flex-col min-h-0 overflow-hidden shadow-inner-sm">
+          class="flex-1 rounded-lg border bg-muted/10 border-border/40 group-hover/column:border-primary/20 group-hover/column:bg-muted/20 transition-all flex flex-col min-h-0 overflow-hidden">
           <!-- Quick Add -->
           <div class="p-3 border-b border-border/10">
             <div class="relative group/input">
               <Plus
                 class="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/30 group-hover/input:text-primary transition-colors z-10" />
               <Input v-model="quickAddInputs[col]" placeholder="Швидке додавання..."
-                class="!w-full !pl-10 !h-10 !text-xs !bg-background/40 hover:!bg-background !border-none !shadow-none focus:!ring-1 focus:!ring-primary/20 !rounded-2xl transition-all"
+                class="!w-full !pl-10 !h-10 !text-xs !bg-background/40 hover:!bg-background !border-none !shadow-none focus:!ring-1 focus:!ring-primary/20 transition-all"
                 @keyup.enter="quickAdd(col)" />
             </div>
           </div>
@@ -169,15 +169,12 @@ watch(() => props.columnField, loadCards)
             drag-class="rotate-2" @change="onMove(col, $event)">
             <template #item="{ element: card }">
               <div
-                class="bg-card hover:bg-card/80 border border-border/50 hover:border-primary/30 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-[1.25rem] p-5 cursor-grab active:cursor-grabbing group shadow-sm relative overflow-hidden"
+                class="bg-card hover:bg-card/80 border border-border/50 hover:border-primary/30 transition-colors duration-300 rounded-lg p-5 cursor-grab active:cursor-grabbing group shadow-sm relative overflow-hidden"
                 @click="$router.push(`/grunt/${doctype.name}/${card.id || card.name}`)">
-                
-                <!-- Card Glow Backdrop -->
-                <div class="absolute -right-4 -top-4 size-16 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
 
                 <!-- Card Title -->
                 <div class="flex items-start justify-between gap-3 relative z-10">
-                  <p class="text-sm font-bold text-foreground leading-snug line-clamp-2">
+                  <p class="text-sm font-semibold text-foreground leading-snug line-clamp-2">
                     {{ card[doctype.title_field || 'name'] || card.id }}
                   </p>
                   <FileText
@@ -189,15 +186,15 @@ watch(() => props.columnField, loadCards)
                   <div class="flex items-center gap-2">
                     <div v-if="card.owner" class="flex items-center gap-2 group-hover:bg-primary/5 px-2 py-1 rounded-full transition-colors" title="Власник">
                       <Avatar class="!size-5 !border !border-primary/20">
-                        <AvatarFallback class="!text-[8px] !bg-primary/10 !text-primary">{{ card.owner.charAt(0).toUpperCase() }}</AvatarFallback>
+                        <AvatarFallback class="!text-xs !bg-primary/10 !text-primary">{{ card.owner.charAt(0).toUpperCase() }}</AvatarFallback>
                       </Avatar>
-                      <span class="text-[10px] text-muted-foreground font-semibold truncate max-w-[80px]">
+                      <span class="text-xs text-muted-foreground font-semibold truncate max-w-[80px]">
                         {{ card.owner.split('@')[0] }}
                       </span>
                     </div>
                   </div>
                   <div
-                    class="flex items-center gap-2 text-[10px] text-muted-foreground/50 font-black uppercase tracking-wider bg-muted/30 px-2.5 py-1 rounded-lg border border-border/10">
+                    class="flex items-center gap-2 text-xs text-muted-foreground/50 font-semibold uppercase tracking-wider bg-muted/30 px-2.5 py-1 rounded-lg border border-border/10">
                     <Calendar class="size-3" />
                     {{ formatDate(card.modified_at) }}
                   </div>
@@ -216,9 +213,9 @@ watch(() => props.columnField, loadCards)
     <template v-else>
       <div v-for="i in 3" :key="i" class="flex-shrink-0 w-[320px] flex flex-col space-y-6 pt-10 px-2">
         <Skeleton class="h-6 w-32 ml-4 rounded-full" />
-        <div class="flex-1 bg-muted/40 rounded-[2rem] p-4 space-y-4 border border-border/20">
-          <Skeleton class="h-10 w-full rounded-2xl" />
-          <Skeleton v-for="j in 3" :key="j" class="h-40 w-full rounded-[1.25rem]" />
+        <div class="flex-1 bg-muted/40 rounded-lg p-4 space-y-4 border border-border/20">
+          <Skeleton class="h-10 w-full rounded-lg" />
+          <Skeleton v-for="j in 3" :key="j" class="h-40 w-full rounded-lg" />
         </div>
       </div>
     </template>
@@ -233,12 +230,12 @@ watch(() => props.columnField, loadCards)
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--muted);
   border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--border);
   /* More visible by default */
   border-radius: 10px;
   border: 2px solid transparent;
@@ -247,14 +244,14 @@ watch(() => props.columnField, loadCards)
 }
 
 .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-  background: rgba(var(--primary), 0.3);
+  background: color-mix(in srgb, var(--primary) 30%, transparent);
   /* Change to primary color on hover */
   background-clip: content-box;
 }
 
 .ghost-class {
-  border: 2px dashed rgb(var(--primary));
-  background: rgba(var(--primary), 0.05);
+  border: 2px dashed var(--primary);
+  background: color-mix(in srgb, var(--primary) 5%, transparent);
   opacity: 0.5 !important;
 }
 </style>

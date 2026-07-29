@@ -32,18 +32,18 @@ const modifiedAt = computed(() => {
   <div class="flex flex-col gap-5">
     <!-- Document image -->
     <div v-if="doctype.image_field" class="flex justify-center -mt-1">
-      <div v-if="imageUrl" class="size-32 rounded-2xl overflow-hidden ring-4 ring-background shadow-xl border border-border/40">
+      <div v-if="imageUrl" class="size-32 rounded-lg overflow-hidden ring-4 ring-background shadow-sm border border-border/40">
         <img :src="imageUrl" :alt="document.name" class="size-full object-cover" />
       </div>
-      <div v-else class="size-32 rounded-2xl bg-muted/30 border border-dashed border-border flex items-center justify-center">
+      <div v-else class="size-32 rounded-lg bg-muted/30 border border-dashed border-border flex items-center justify-center">
         <ImageIcon class="size-10 text-muted-foreground/30" />
       </div>
     </div>
 
     <!-- Meta information -->
-    <div class="flex flex-col gap-4 p-4 bg-muted/30 rounded-xl border border-border/40">
+    <div class="flex flex-col gap-4 p-4 bg-muted/30 rounded-lg border border-border/40">
       <div class="flex items-center justify-between mb-1">
-        <span class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Інформація</span>
+        <span class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Інформація</span>
         <PresenceAvatars v-if="users" :users="users" :max="3" />
       </div>
       
@@ -51,8 +51,8 @@ const modifiedAt = computed(() => {
           <div class="flex items-start gap-3">
             <Avatar class="!size-8 shrink-0"><AvatarFallback class="!bg-primary/10 !text-primary"><User class="size-3.5" /></AvatarFallback></Avatar>
             <div class="flex flex-col min-w-0">
-              <span class="text-sm font-bold text-foreground truncate">{{ document.owner }}</span>
-              <span class="text-[10px] font-medium text-muted-foreground">Автор документа</span>
+              <span class="text-sm font-semibold text-foreground truncate">{{ document.owner }}</span>
+              <span class="text-xs font-medium text-muted-foreground">Автор документа</span>
             </div>
           </div>
 
@@ -62,7 +62,7 @@ const modifiedAt = computed(() => {
             </div>
             <div class="flex flex-col min-w-0">
               <span class="text-sm font-medium text-foreground truncate">{{ createdAt }}</span>
-              <span class="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">Створено</span>
+              <span class="text-xs font-medium text-muted-foreground uppercase tracking-tighter">Створено</span>
             </div>
           </div>
 
@@ -72,7 +72,7 @@ const modifiedAt = computed(() => {
             </div>
             <div class="flex flex-col min-w-0">
               <span class="text-sm font-medium text-foreground truncate">{{ document.modified_by || document.owner }}</span>
-              <span class="text-[10px] font-medium text-muted-foreground uppercase tracking-tighter">Остання зміна · {{ modifiedAt }}</span>
+              <span class="text-xs font-medium text-muted-foreground uppercase tracking-tighter">Остання зміна · {{ modifiedAt }}</span>
             </div>
           </div>
       </div>

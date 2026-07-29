@@ -55,7 +55,7 @@ async function handleLogin() {
       </a>
 
       <!-- Card -->
-      <div class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm">
+      <Card>
         <div class="flex flex-col items-center gap-1.5 px-6 text-center">
           <h3 class="font-semibold text-xl">З поверненням</h3>
           <p class="text-muted-foreground text-sm">Увійдіть у свій акаунт</p>
@@ -122,7 +122,7 @@ async function handleLogin() {
             </div>
           </form>
         </div>
-      </div>
+      </Card>
 
       <p class="px-6 text-center text-xs text-muted-foreground leading-relaxed">
         Натискаючи «Увійти», ви погоджуєтесь з нашими

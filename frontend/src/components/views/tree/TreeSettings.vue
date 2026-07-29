@@ -34,7 +34,7 @@ const titleFields = computed(() =>
         <h3 class="text-sm font-semibold text-foreground">Відображення: Дерево</h3>
         <span
           v-if="hasTree"
-          class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/15 text-violet-700 dark:text-violet-400"
+          class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-violet-500/15 text-violet-700 dark:text-violet-400"
         >Увімкнено</span>
       </div>
       <Switch :model-value="hasTree" @update:model-value="toggleTree" />
@@ -51,7 +51,7 @@ const titleFields = computed(() =>
               <SelectItem v-for="opt in linkFields.map((f) => ({ value: f.fieldname, label: f.label }))" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
             </SelectContent>
           </Select>
-          <p class="text-[11px] text-muted-foreground">Link поле що вказує на цей самий DocType (ієрархія вузлів)</p>
+          <p class="text-xs text-muted-foreground">Link поле що вказує на цей самий DocType (ієрархія вузлів)</p>
         </div>
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Поле назви вузла</label>

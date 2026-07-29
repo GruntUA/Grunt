@@ -90,12 +90,12 @@ function formatDate(val: unknown, type: string): string {
 <template>
   <div class="gallery-view-container min-h-64 px-1">
     <!-- Empty state -->
-    <div v-if="!isLoading && !rows.length" class="flex flex-col items-center justify-center py-32 text-center bg-card/10 backdrop-blur-sm rounded-[3rem] border border-dashed border-border/40 space-y-6">
-      <div class="size-20 rounded-[2rem] bg-primary/5 flex items-center justify-center shadow-inner-sm">
+    <div v-if="!isLoading && !rows.length" class="flex flex-col items-center justify-center py-32 text-center bg-card rounded-lg border border-dashed border-border/40 space-y-6">
+      <div class="size-20 rounded-lg bg-primary/5 flex items-center justify-center">
           <FileX class="size-10 text-primary/40" />
       </div>
       <div class="space-y-2">
-        <h3 class="text-xl font-black text-foreground">Записів не знайдено</h3>
+        <h3 class="text-xl font-semibold text-foreground">Записів не знайдено</h3>
         <p class="text-sm text-muted-foreground max-w-xs mx-auto font-medium">Спробуйте змінити фільтри або додати новий документ у цю категорію</p>
       </div>
     </div>
@@ -103,7 +103,7 @@ function formatDate(val: unknown, type: string): string {
     <!-- Skeleton -->
     <div v-else-if="isLoading && !rows.length"
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
-      <div v-for="i in 8" :key="i" class="rounded-[2.5rem] border border-border/20 bg-card/50 p-0 overflow-hidden shadow-sm">
+      <div v-for="i in 8" :key="i" class="rounded-lg border border-border/20 bg-card/50 p-0 overflow-hidden shadow-sm">
         <Skeleton class="h-[12rem] !rounded-none" />
         <div class="p-6 space-y-4">
             <Skeleton class="w-[85%] h-[1.5rem] rounded-lg" />
@@ -120,7 +120,7 @@ function formatDate(val: unknown, type: string): string {
       <div
         v-for="row in rows"
         :key="String(row.id)"
-        class="relative rounded-[2.5rem] border bg-card/60 backdrop-blur-sm cursor-pointer transition-all duration-500 overflow-hidden group/card shadow-sm hover:shadow-2xl hover:-translate-y-2"
+        class="relative rounded-lg border bg-card cursor-pointer transition-colors duration-300 overflow-hidden group/card shadow-sm"
         :class="selection?.isSelected(String(row.id))
           ? 'border-primary ring-4 ring-primary/10 bg-primary/5'
           : 'border-border/40 hover:border-primary/30'"
@@ -134,10 +134,10 @@ function formatDate(val: unknown, type: string): string {
           @click="onCheckboxClick($event, row)"
         >
             <div
-                class="size-7 rounded-xl border-2 flex items-center justify-center transition-all shadow-lg"
+                class="size-7 rounded-lg border-2 flex items-center justify-center transition-colors shadow-sm"
                 :class="selection.isSelected(String(row.id))
                     ? 'bg-primary border-primary text-primary-foreground'
-                    : 'bg-background/90 backdrop-blur-md border-white/20 hover:border-primary/60 hover:bg-background'"
+                    : 'bg-background/90 border-border hover:border-primary/60 hover:bg-background'"
             >
                 <Check v-if="selection.isSelected(String(row.id))" class="size-4 stroke-[4px]" />
             </div>
@@ -151,17 +151,14 @@ function formatDate(val: unknown, type: string): string {
             class="w-full h-full object-cover transition-transform duration-1000 group-hover/card:scale-110"
             :alt="formatCell(titleCol ? row[titleCol.key] : '')"
           />
-          <div v-else class="flex flex-col items-center gap-3 transition-transform duration-500 group-hover/card:scale-110">
-              <div class="size-16 rounded-[1.5rem] bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center border border-primary/10 group-hover/card:border-primary/30 transition-colors">
+          <div v-else class="flex flex-col items-center gap-3">
+              <div class="size-16 rounded-lg bg-primary/5 flex items-center justify-center border border-primary/10 group-hover/card:border-primary/30 transition-colors">
                 <ImageIcon class="size-8 text-primary/30 group-hover/card:text-primary/50 transition-colors" />
               </div>
-              <span class="text-3xl font-black text-primary/5 opacity-40 group-hover/card:opacity-60 transition-opacity select-none tracking-widest">
+              <span class="text-3xl font-semibold text-primary/5 opacity-40 group-hover/card:opacity-60 transition-opacity select-none tracking-widest">
                 {{ titleCol ? String(formatCell(row[titleCol.key])).slice(0, 1).toUpperCase() : '?' }}
               </span>
           </div>
-          
-          <!-- Glossy Glow -->
-          <div class="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-white/10 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500" />
         </div>
 
         <!-- Card content -->
@@ -169,10 +166,10 @@ function formatDate(val: unknown, type: string): string {
           <!-- Title Section -->
           <div v-if="titleCol" class="space-y-1">
               <div class="flex items-center justify-between">
-                <span class="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 leading-none">ID: {{ row.id }}</span>
+                <span class="text-xs font-medium uppercase tracking-widest text-muted-foreground/40 leading-none">ID: {{ row.id }}</span>
                 <div class="size-1.5 rounded-full bg-primary/20 group-hover/card:bg-primary transition-colors duration-500" />
               </div>
-              <p class="font-black text-base text-foreground/90 leading-tight line-clamp-2 group-hover/card:text-primary transition-colors duration-300">
+              <p class="font-semibold text-base text-foreground/90 leading-tight line-clamp-2 group-hover/card:text-primary transition-colors duration-300">
                 {{ formatCell(row[titleCol.key]) }}
               </p>
           </div>
@@ -180,13 +177,13 @@ function formatDate(val: unknown, type: string): string {
           <!-- Metadata Grid -->
           <div class="grid gap-2 pt-4 border-t border-border/10 group-hover/card:border-primary/10 transition-colors">
               <div v-for="col in bodyColumns" :key="col.key" class="flex items-center justify-between gap-4 min-w-0">
-                <span class="text-[9px] font-bold text-muted-foreground/50 shrink-0 uppercase tracking-widest">{{ col.label }}</span>
-                <span class="text-xs font-bold text-foreground/70 truncate">
+                <span class="text-xs font-medium text-muted-foreground/50 shrink-0 uppercase tracking-widest">{{ col.label }}</span>
+                <span class="text-xs font-medium text-foreground/70 truncate">
                   <template v-if="getFieldType(col.key) === 'Date' || getFieldType(col.key) === 'Datetime'">
                     {{ formatDate(row[col.key], getFieldType(col.key)) }}
                   </template>
                   <template v-else-if="getFieldType(col.key) === 'Check'">
-                      <Badge :variant="row[col.key] ? 'success' : 'secondary'" class="!text-[9px] !px-2 !py-0.5 !rounded-lg !font-black">
+                      <Badge :variant="row[col.key] ? 'success' : 'secondary'" class="!text-xs !px-2 !py-0.5 !rounded-lg !font-semibold">
                           {{ row[col.key] ? 'ТАК' : 'НІ' }}
                       </Badge>
                   </template>

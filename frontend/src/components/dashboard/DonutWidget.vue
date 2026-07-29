@@ -28,7 +28,7 @@ const chartData = computed(() => ({
     data: props.data?.values ?? [],
     backgroundColor: PALETTE,
     borderWidth: 2,
-    borderColor: 'hsl(var(--card))',
+    borderColor: getComputedStyle(document.documentElement).getPropertyValue('--card').trim() || '#ffffff',
     hoverOffset: 6,
   }],
 }))

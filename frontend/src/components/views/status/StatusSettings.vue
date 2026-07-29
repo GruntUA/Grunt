@@ -111,7 +111,7 @@ function removeIndicator(index: number) {
         <h3 class="text-sm font-semibold text-foreground">Відображення: Статуси</h3>
         <span
           v-if="hasStatus"
-          class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/15 text-green-700 dark:text-green-400"
+          class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/15 text-green-700 dark:text-green-400"
         >Увімкнено</span>
       </div>
       <Switch :model-value="hasStatus" @update:model-value="toggleStatus" />

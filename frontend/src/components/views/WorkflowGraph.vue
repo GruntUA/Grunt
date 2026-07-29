@@ -49,15 +49,15 @@ function getNodeStyle(state: WorkflowState, isSelected: boolean) {
   const scheme = getColorScheme(state.color || 'gray')
   return {
     background: scheme.bg,
-    border: `2px solid ${isSelected ? 'hsl(var(--primary))' : scheme.border}`,
-    borderRadius: '10px',
+    border: `2px solid ${isSelected ? 'var(--primary)' : scheme.border}`,
+    borderRadius: '8px',
     color: scheme.text,
     fontWeight: '500',
     fontSize: '13px',
     padding: '8px 16px',
     minWidth: '100px',
     textAlign: 'center' as const,
-    boxShadow: isSelected ? '0 0 0 2px hsl(var(--primary) / 0.3)' : 'none',
+    boxShadow: isSelected ? `0 0 0 2px color-mix(in srgb, var(--primary) 30%, transparent)` : 'none',
   }
 }
 
@@ -121,16 +121,16 @@ function buildEdges(): Edge[] {
       animated: isSelected,
       markerEnd: { type: MarkerType.ArrowClosed, color: '#9ca3af' },
       style: {
-        stroke: isSelected ? 'hsl(var(--primary))' : '#9ca3af',
+        stroke: isSelected ? 'var(--primary)' : '#9ca3af',
         strokeWidth: isSelected ? 2.5 : 1.5,
       },
       labelStyle: {
         fontSize: '11px',
         fontWeight: isSelected ? '600' : '400',
-        fill: isSelected ? 'hsl(var(--primary))' : '#6b7280',
+        fill: isSelected ? 'var(--primary)' : '#6b7280',
       },
       labelBgStyle: {
-        fill: 'hsl(var(--background))',
+        fill: 'var(--background)',
         fillOpacity: 0.85,
       },
       data: { index: idx },
@@ -229,6 +229,6 @@ function onConnect(connection: Connection) {
 
 .workflow-flow .vue-flow__controls {
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--foreground) 10%, transparent);
 }
 </style>

@@ -123,7 +123,7 @@ function docInitials(doc: RecentDoc): string {
               <!-- Greeting -->
               <div class="flex items-center gap-3 mb-1">
                 <span class="text-4xl">{{ greeting.emoji }}</span>
-                <h1 class="text-3xl md:text-4xl font-black text-foreground tracking-tight leading-none">
+                <h1 class="text-3xl md:text-4xl font-semibold text-foreground tracking-tight leading-none">
                   {{ greeting.text }}
                 </h1>
               </div>
@@ -136,11 +136,9 @@ function docInitials(doc: RecentDoc): string {
           <!-- Search bar -->
           <div class="relative group cursor-pointer" @click="uiStore.openCommandPalette">
             <div
-              class="absolute inset-0 rounded-2xl bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
-            <div
-              class="relative flex items-center gap-4 px-5 py-4 bg-card/80 backdrop-blur-md border border-border/50 rounded-2xl shadow-sm transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-lg group-hover:shadow-primary/5">
+              class="relative flex items-center gap-4 px-5 py-4 bg-card/80 border border-border/50 rounded-lg shadow-sm transition-colors duration-300 group-hover:border-primary/40 group-hover:shadow-md">
               <div
-                class="size-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 transition-colors group-hover:bg-primary/20">
+                class="size-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 transition-colors group-hover:bg-primary/20">
                 <Search class="size-4 text-primary/70 group-hover:text-primary transition-colors" />
               </div>
               <span class="text-sm text-muted-foreground/50 flex-1 font-medium">
@@ -148,9 +146,9 @@ function docInitials(doc: RecentDoc): string {
               </span>
               <div class="hidden sm:flex items-center gap-1 shrink-0">
                 <kbd
-                  class="px-2 py-1 rounded-lg bg-muted/60 text-[10px] font-black text-muted-foreground border border-border/40 shadow-sm">⌘</kbd>
+                  class="px-2 py-1 rounded-lg bg-muted/60 text-xs font-semibold text-muted-foreground border border-border/40 shadow-sm">⌘</kbd>
                 <kbd
-                  class="px-2 py-1 rounded-lg bg-muted/60 text-[10px] font-black text-muted-foreground border border-border/40 shadow-sm">K</kbd>
+                  class="px-2 py-1 rounded-lg bg-muted/60 text-xs font-semibold text-muted-foreground border border-border/40 shadow-sm">K</kbd>
               </div>
             </div>
           </div>
@@ -158,10 +156,10 @@ function docInitials(doc: RecentDoc): string {
           <!-- Quick stats -->
           <div class="mt-5 flex items-center gap-3 flex-wrap">
             <div v-for="stat in quickStats" :key="stat.label"
-              class="flex items-center gap-2 px-4 py-2 rounded-xl bg-card/50 border border-border/30 backdrop-blur-sm">
+              class="flex items-center gap-2 px-4 py-2 rounded-lg bg-card/50 border border-border/30">
               <div class="size-2 rounded-full" :style="{ backgroundColor: stat.color }" />
               <span class="text-xs text-muted-foreground/60 font-medium">{{ stat.label }}:</span>
-              <span class="text-xs font-black text-foreground tabular-nums">{{ stat.value }}</span>
+              <span class="text-xs font-semibold text-foreground tabular-nums">{{ stat.value }}</span>
             </div>
             <div class="flex items-center gap-1.5 text-xs text-muted-foreground/40">
               <Zap class="size-3" />
@@ -180,7 +178,7 @@ function docInitials(doc: RecentDoc): string {
               <div class="size-7 rounded-lg bg-primary/10 flex items-center justify-center">
                 <LayoutGrid class="size-3.5 text-primary/70" />
               </div>
-              <h2 class="text-sm font-black text-foreground/70 uppercase tracking-widest">Ваші додатки</h2>
+              <h2 class="text-sm font-semibold text-foreground/70 uppercase tracking-widest">Ваші додатки</h2>
             </div>
             <span class="text-xs text-muted-foreground/40 font-medium">{{ appStore.workspaces.length }}
               встановлено</span>
@@ -188,13 +186,13 @@ function docInitials(doc: RecentDoc): string {
 
           <!-- Loading skeleton -->
           <div v-if="appStore.loading" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            <div v-for="i in 4" :key="i" class="h-52 rounded-3xl bg-card/50 border border-border/30 animate-pulse" />
+            <div v-for="i in 4" :key="i" class="h-52 rounded-lg bg-card/50 border border-border/30 animate-pulse" />
           </div>
 
           <!-- Empty state -->
           <div v-else-if="appStore.workspaces.length === 0 && !auth.user?.is_superadmin"
-            class="flex flex-col items-center justify-center py-20 rounded-3xl border border-dashed border-border/40 text-center space-y-3">
-            <div class="size-16 rounded-2xl bg-muted/20 flex items-center justify-center text-3xl">📦</div>
+            class="flex flex-col items-center justify-center py-20 rounded-lg border border-dashed border-border/40 text-center space-y-3">
+            <div class="size-16 rounded-lg bg-muted/20 flex items-center justify-center text-3xl">📦</div>
             <p class="text-sm text-muted-foreground">Немає встановлених додатків</p>
           </div>
 
@@ -214,27 +212,27 @@ function docInitials(doc: RecentDoc): string {
                 <div class="size-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
                   <Clock class="size-3.5 text-amber-500/70" />
                 </div>
-                <h2 class="text-sm font-black text-foreground/70 uppercase tracking-widest">Нещодавні</h2>
+                <h2 class="text-sm font-semibold text-foreground/70 uppercase tracking-widest">Нещодавні</h2>
               </div>
             </div>
 
             <!-- Empty state -->
             <div v-if="recentDocs.length === 0"
-              class="flex flex-col items-center justify-center py-14 rounded-2xl border border-dashed border-border/40 text-center space-y-2">
-              <div class="size-12 rounded-xl bg-muted/20 flex items-center justify-center text-2xl">🕐</div>
+              class="flex flex-col items-center justify-center py-14 rounded-lg border border-dashed border-border/40 text-center space-y-2">
+              <div class="size-12 rounded-lg bg-muted/20 flex items-center justify-center text-2xl">🕐</div>
               <p class="text-sm text-muted-foreground">Відкритих документів ще немає</p>
               <p class="text-xs text-muted-foreground/50">Перейдіть до будь-якого запису, і він з'явиться тут</p>
             </div>
 
-            <div v-else class="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm overflow-hidden shadow-sm">
+            <div v-else class="rounded-lg border border-border/40 bg-card/60 overflow-hidden shadow-sm">
               <div v-for="doc in recentDocs.slice(0, 8)" :key="doc.id"
                 class="group flex items-center gap-3 px-4 py-3 border-b border-border/20 last:border-0 hover:bg-primary/[0.03] cursor-pointer transition-all duration-200"
                 @click="router.push(`/${doc.workspace}/${doc.doctype}/${doc.id}`)">
                 <!-- Avatar -->
                 <div
-                  class="size-8 rounded-xl flex items-center justify-center text-[11px] font-black shrink-0 transition-transform duration-200 group-hover:scale-110"
+                  class="size-8 rounded-lg flex items-center justify-center text-xs font-semibold shrink-0"
                   :style="{
-                    backgroundColor: (findWorkspaceForDoc(doc)?.color ?? '#6366f1') + '20',
+                    backgroundColor: `color-mix(in srgb, ${findWorkspaceForDoc(doc)?.color ?? '#6366f1'} 20%, transparent)`,
                     color: findWorkspaceForDoc(doc)?.color ?? '#6366f1'
                   }">
                   {{ docInitials(doc) }}
@@ -243,24 +241,24 @@ function docInitials(doc: RecentDoc): string {
                 <!-- Info -->
                 <div class="flex-1 min-w-0">
                   <p
-                    class="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors duration-200">
+                    class="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors duration-200">
                     {{ docDisplayTitle(doc) }}
                   </p>
                   <div class="flex items-center gap-1.5 mt-0.5">
                     <span v-if="findWorkspaceForDoc(doc)"
-                      class="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md" :style="{
-                        backgroundColor: (findWorkspaceForDoc(doc)?.color ?? '#666') + '15',
+                      class="text-xs font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded-md" :style="{
+                        backgroundColor: `color-mix(in srgb, ${findWorkspaceForDoc(doc)?.color ?? '#666'} 15%, transparent)`,
                         color: findWorkspaceForDoc(doc)?.color ?? '#666'
                       }">{{ findWorkspaceForDoc(doc)?.label }}</span>
-                    <span class="text-[10px] text-muted-foreground/40 font-mono">{{ doc.doctype }}</span>
+                    <span class="text-xs text-muted-foreground/40 font-mono">{{ doc.doctype }}</span>
                   </div>
                 </div>
 
                 <!-- Time + arrow -->
                 <div class="flex items-center gap-2 shrink-0">
-                  <span class="text-[10px] text-muted-foreground/40 font-mono tabular-nums">{{ timeAgo(doc.ts) }}</span>
+                  <span class="text-xs text-muted-foreground/40 font-mono tabular-nums">{{ timeAgo(doc.ts) }}</span>
                   <ArrowRight
-                    class="size-3.5 text-muted-foreground/20 -translate-x-1 group-hover:translate-x-0 group-hover:text-primary/50 transition-all duration-200" />
+                    class="size-3.5 text-muted-foreground/20 group-hover:text-primary/50 transition-colors duration-200" />
                 </div>
               </div>
             </div>

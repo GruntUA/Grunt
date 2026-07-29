@@ -38,7 +38,7 @@ const colorOrSelectFields = computed(() =>
         <h3 class="text-sm font-semibold text-foreground">Відображення: Канбан</h3>
         <span
           v-if="hasKanban"
-          class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/15 text-blue-700 dark:text-blue-400"
+          class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/15 text-blue-700 dark:text-blue-400"
         >Увімкнено</span>
       </div>
       <Switch :model-value="hasKanban" @update:model-value="toggleKanban" />

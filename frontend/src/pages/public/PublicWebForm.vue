@@ -103,12 +103,12 @@ function getSelectOptions(field: WebFormField): string[] {
   return (field.options ?? '').split('\n').filter(Boolean)
 }
 
-const inputClass = 'w-full h-10 px-3 rounded-lg border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors'
+const inputClass = 'w-full h-10 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors'
 const errorInputClass = 'border-destructive focus:ring-destructive/30'
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-start justify-center py-12 px-4">
+  <div class="min-h-screen bg-muted flex items-start justify-center py-12 px-4">
     <div class="w-full max-w-xl">
 
       <!-- Loading -->
@@ -117,13 +117,13 @@ const errorInputClass = 'border-destructive focus:ring-destructive/30'
       </div>
 
       <!-- Load error -->
-      <div v-else-if="loadError" class="bg-white rounded-2xl shadow-sm border p-10 text-center">
+      <div v-else-if="loadError" class="bg-background rounded-lg shadow-sm border p-10 text-center">
         <AlertCircle class="size-10 text-destructive mx-auto mb-3" />
         <p class="text-lg font-semibold">{{ loadError }}</p>
       </div>
 
       <!-- Success state -->
-      <div v-else-if="submitted" class="bg-white rounded-2xl shadow-sm border p-10 text-center">
+      <div v-else-if="submitted" class="bg-background rounded-lg shadow-sm border p-10 text-center">
         <CheckCircle2 class="size-12 text-emerald-500 mx-auto mb-4" />
         <h2 class="text-xl font-semibold mb-2">Дякуємо!</h2>
         <p class="text-muted-foreground text-sm">
@@ -132,10 +132,10 @@ const errorInputClass = 'border-destructive focus:ring-destructive/30'
       </div>
 
       <!-- Form -->
-      <div v-else-if="formDef" class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+      <div v-else-if="formDef" class="bg-background rounded-lg shadow-sm border overflow-hidden">
         <!-- Header -->
-        <div class="px-8 py-7 border-b bg-gradient-to-r from-primary/5 to-transparent">
-          <h1 class="text-2xl font-bold text-foreground">{{ formDef.title }}</h1>
+        <div class="px-8 py-7 border-b bg-primary/5">
+          <h1 class="text-2xl font-semibold text-foreground">{{ formDef.title }}</h1>
           <p v-if="formDef.introduction" class="mt-2 text-sm text-muted-foreground leading-relaxed">
             {{ formDef.introduction }}
           </p>
@@ -148,7 +148,7 @@ const errorInputClass = 'border-destructive focus:ring-destructive/30'
 
             <!-- Section break -->
             <div v-if="field.fieldtype === 'Section'" class="pt-2">
-              <p v-if="field.label" class="text-xs font-bold uppercase tracking-widest text-muted-foreground border-b pb-2">
+              <p v-if="field.label" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground border-b pb-2">
                 {{ field.label }}
               </p>
               <hr v-else class="border-border" />
@@ -277,7 +277,7 @@ const errorInputClass = 'border-destructive focus:ring-destructive/30'
             <button
               type="submit"
               :disabled="submitting"
-              class="w-full h-11 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:pointer-events-none flex items-center justify-center gap-2"
+              class="w-full h-11 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:pointer-events-none flex items-center justify-center gap-2"
             >
               <Loader2 v-if="submitting" class="size-4 animate-spin" />
               {{ formDef.submit_label || 'Надіслати' }}

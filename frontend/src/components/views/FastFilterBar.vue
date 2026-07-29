@@ -72,7 +72,7 @@ function onInput(ff: FastFilter, value: string) {
           class="h-7 rounded-md border border-border/60 bg-background px-2 text-xs text-foreground shadow-sm
                  focus-visible:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30
                transition-all"
-             :class="props.variant === 'quick' ? 'h-9 w-[160px] rounded-xl bg-muted/30 placeholder:text-muted-foreground/80' : 'w-[140px]'"
+             :class="props.variant === 'quick' ? 'h-9 w-[160px] rounded-lg bg-muted/30 placeholder:text-muted-foreground/80' : 'w-[140px]'"
              :placeholder="props.variant === 'quick' ? getLabel(ff) : ''"
         />
 
@@ -85,7 +85,7 @@ function onInput(ff: FastFilter, value: string) {
           class="h-7 rounded-md border border-border/60 bg-background px-2 text-xs text-foreground shadow-sm
                  focus-visible:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30
                  transition-all"
-          :class="props.variant === 'quick' ? 'h-9 min-w-[160px] rounded-xl bg-muted/30' : ''"
+          :class="props.variant === 'quick' ? 'h-9 min-w-[160px] rounded-lg bg-muted/30' : ''"
         >
           <option value="">{{ props.variant === 'quick' ? getLabel(ff) : '— Будь-який —' }}</option>
           <option v-for="opt in getSelectOptions(ff)" :key="opt" :value="opt">{{ opt }}</option>
@@ -101,7 +101,7 @@ function onInput(ff: FastFilter, value: string) {
           class="h-7 rounded-md border border-border/60 bg-background px-2 text-xs text-foreground shadow-sm
                  focus-visible:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30
                transition-all"
-             :class="props.variant === 'quick' ? 'h-9 w-[140px] rounded-xl bg-muted/30 placeholder:text-muted-foreground/80' : 'w-[100px]'"
+             :class="props.variant === 'quick' ? 'h-9 w-[140px] rounded-lg bg-muted/30 placeholder:text-muted-foreground/80' : 'w-[100px]'"
              :placeholder="props.variant === 'quick' ? getLabel(ff) : ''"
         />
 
@@ -126,7 +126,7 @@ function onInput(ff: FastFilter, value: string) {
           class="h-7 rounded-md border border-border/60 bg-background px-2 text-xs text-foreground shadow-sm
                  focus-visible:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30
                transition-all"
-             :class="props.variant === 'quick' ? 'h-9 w-[160px] rounded-xl bg-muted/30 placeholder:text-muted-foreground/80' : 'w-[160px]'"
+             :class="props.variant === 'quick' ? 'h-9 w-[160px] rounded-lg bg-muted/30 placeholder:text-muted-foreground/80' : 'w-[160px]'"
              :placeholder="props.variant === 'quick' ? getLabel(ff) : '...'"
         />
 

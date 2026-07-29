@@ -144,11 +144,11 @@ const displayFields = computed(() => {
                 <div class="flex items-center gap-2">
                     <FileBarChart class="size-5 text-primary" />
                     <Input v-model="reportTitle" placeholder="Назва звіту"
-                        class="font-bold !border-none !ring-0 !shadow-none !px-0 !h-8 text-lg !bg-transparent flex-1" />
+                        class="font-semibold !border-none !ring-0 !shadow-none !px-0 !h-8 text-lg !bg-transparent flex-1" />
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Тип
+                    <label class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Тип
                         документа</label>
                     <Select v-model="selectedDoctype">
                       <SelectTrigger class="w-full">
@@ -171,14 +171,14 @@ const displayFields = computed(() => {
                     <!-- Selected Columns -->
                     <div class="space-y-3">
                         <div class="flex items-center justify-between">
-                            <h4 class="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
+                            <h4 class="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                                 <TableIcon class="size-3.5" />
                                 Вибрані стовпці ({{ columns.length }})
                             </h4>
                         </div>
 
                         <div v-if="columns.length === 0"
-                            class="border-2 border-dashed rounded-xl p-8 text-center text-xs text-muted-foreground bg-muted/20">
+                            class="border-2 border-dashed rounded-lg p-8 text-center text-xs text-muted-foreground bg-muted/20">
                             Додайте поля зі списку нижче
                         </div>
 
@@ -187,7 +187,7 @@ const displayFields = computed(() => {
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2 min-w-0">
                                     <Badge
-                                        class="h-5 px-1.5 text-[9px] font-bold uppercase opacity-50 shrink-0">{{
+                                        class="h-5 px-1.5 text-xs font-semibold uppercase opacity-50 shrink-0">{{
                                             col.fieldtype }}</Badge>
                                     <span class="text-sm font-semibold truncate">{{ col.label }}</span>
                                 </div>
@@ -199,7 +199,7 @@ const displayFields = computed(() => {
 
                             <div class="flex items-center gap-2">
                                 <Select v-model="col.aggregation">
-                                  <SelectTrigger class="h-7 text-[11px] w-full">
+                                  <SelectTrigger class="h-7 text-xs w-full">
                                     <SelectValue placeholder="Агрегація" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -212,7 +212,7 @@ const displayFields = computed(() => {
 
                     <!-- Available Fields -->
                     <div v-if="selectedDoctype" class="space-y-3">
-                        <h4 class="text-xs font-bold uppercase text-muted-foreground flex items-center gap-1.5">
+                        <h4 class="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                             <Plus class="size-3.5" />
                             Доступні поля
                         </h4>
@@ -228,7 +228,7 @@ const displayFields = computed(() => {
                                 :class="{ 'opacity-50 cursor-not-allowed': columns.some(c => c.fieldname === f.fieldname) }">
                                 <div class="flex flex-col min-w-0">
                                     <span class="font-medium truncate">{{ f.label }}</span>
-                                    <span class="text-[10px] text-muted-foreground">{{ f.fieldname }}</span>
+                                    <span class="text-xs text-muted-foreground">{{ f.fieldname }}</span>
                                 </div>
                                 <Plus class="size-4 opacity-0 group-hover:opacity-100 text-primary transition-all" />
                             </button>
@@ -239,14 +239,14 @@ const displayFields = computed(() => {
 
             <!-- Sidebar Footer -->
             <div class="p-4 border-t flex flex-col gap-2 bg-muted/10">
-                <Button variant="secondary" :disabled="previewLoading || !selectedDoctype || columns.length === 0" @click="runPreview" class="w-full h-10 font-bold">
+                <Button variant="secondary" :disabled="previewLoading || !selectedDoctype || columns.length === 0" @click="runPreview" class="w-full h-10 font-semibold">
                     <Play v-if="!previewLoading" class="size-4 mr-2" />
                     <Spinner v-else class="!size-4 !mr-2" />
                     Переглянути
                 </Button>
                 <div class="flex gap-2">
                     <Button :disabled="loading || columns.length === 0" @click="saveReport"
-                        class="flex-1 h-10 font-bold">
+                        class="flex-1 h-10 font-semibold">
                         <Save class="size-4 mr-2" />
                         Зберегти
                     </Button>
@@ -262,27 +262,27 @@ const displayFields = computed(() => {
                 <div class="flex items-center gap-2 text-sm text-muted-foreground/80 font-medium">
                     <span>Звіти</span>
                     <ChevronRight class="size-3 opacity-50" />
-                    <span class="text-foreground font-bold">{{ reportTitle }}</span>
+                    <span class="text-foreground font-semibold">{{ reportTitle }}</span>
                 </div>
             </header>
 
             <div class="flex-1 px-8 pb-8 overflow-hidden flex flex-col">
                 <div v-if="previewCols.length === 0 && !previewLoading"
-                    class="flex-1 flex flex-col items-center justify-center p-12 text-center rounded-3xl border-2 border-dashed bg-card/30">
+                    class="flex-1 flex flex-col items-center justify-center p-12 text-center rounded-lg border-2 border-dashed bg-card/30">
                     <div class="size-16 rounded-full bg-primary/5 flex items-center justify-center mb-4">
                         <Layout class="size-8 text-primary/40" />
                     </div>
-                    <h3 class="text-xl font-bold mb-2">Налаштуйте звіт</h3>
+                    <h3 class="text-xl font-semibold mb-2">Налаштуйте звіт</h3>
                     <p class="text-muted-foreground max-w-sm mb-6">Оберіть DocType та додайте стовпці у боковій панелі,
                         щоб побачити результат.</p>
                     <Button variant="outline" @click="selectedDoctype = doctypes[0]?.name" v-if="!selectedDoctype">Обрати перший доступний DocType</Button>
                 </div>
 
-                <div v-else class="flex-1 bg-card rounded-2xl border shadow-xl overflow-hidden flex flex-col">
+                <div v-else class="flex-1 bg-card rounded-lg border shadow-sm overflow-hidden flex flex-col">
                     <!-- Table Toolbar -->
                     <div class="p-4 border-b flex items-center justify-between bg-muted/20 shrink-0">
                         <div
-                            class="flex items-center gap-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                            class="flex items-center gap-4 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                             <span class="flex items-center gap-1.5">
                                 <TableIcon class="size-3.5" /> Результат
                             </span>
@@ -292,17 +292,17 @@ const displayFields = computed(() => {
                         <div v-if="previewLoading" class="flex items-center gap-2">
                             <Spinner class="!size-4" />
                             <span
-                                class="text-[10px] font-bold text-primary italic uppercase anima">Завантаження...</span>
+                                class="text-xs font-semibold text-primary italic uppercase anima">Завантаження...</span>
                         </div>
                     </div>
 
                     <!-- Results Table -->
                     <div class="flex-1 overflow-auto">
                         <table class="w-full text-sm">
-                            <thead class="sticky top-0 bg-background/95 backdrop-blur-md z-10">
+                            <thead class="sticky top-0 bg-background/95 z-10">
                                 <tr class="border-b shadow-sm">
                                     <th v-for="col in previewCols" :key="col.fieldname"
-                                        class="px-4 py-3 text-left font-bold text-muted-foreground uppercase tracking-wider text-[11px] whitespace-nowrap">
+                                        class="px-4 py-3 text-left font-semibold text-muted-foreground uppercase tracking-wider text-xs whitespace-nowrap">
                                         {{ col.label }}
                                     </th>
                                 </tr>
@@ -332,11 +332,6 @@ const displayFields = computed(() => {
 </template>
 
 <style scoped>
-/* Glassy effect for selected rows */
-tr.bg-primary\/5 {
-    background: linear-gradient(to right, rgba(var(--primary), 0.08), rgba(var(--primary), 0.03));
-}
-
 /* Hide scrollbar but keep functionality */
 .scrollbar-none::-webkit-scrollbar {
   display: none;

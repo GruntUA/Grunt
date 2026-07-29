@@ -120,7 +120,7 @@ async function reindex() {
     <!-- ── Header ── -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-foreground">Глобальний пошук</h1>
+        <h1 class="text-2xl font-semibold text-foreground">Глобальний пошук</h1>
         <p class="text-sm text-muted-foreground mt-0.5">Пошук по всіх документах системи</p>
       </div>
       <Button
@@ -194,7 +194,7 @@ async function reindex() {
       <div v-for="group in groups" :key="group.doctype" class="flex flex-col gap-2">
         <div class="flex items-center gap-2 mt-2">
           <FileText class="size-4 text-muted-foreground" />
-          <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {{ group.doctype }}
           </span>
           <Badge variant="secondary">{{ group.items.length }}</Badge>

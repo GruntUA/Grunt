@@ -253,11 +253,11 @@ onMounted(async () => {
         <div v-if="selectedDtFields.length" class="px-3 py-2 border-b bg-muted/30 flex flex-wrap gap-1.5 shrink-0">
           <span class="text-xs text-muted-foreground font-medium self-center mr-1">Змінні:</span>
           <button v-for="f in selectedDtFields.slice(0, 12)" :key="f.fieldname"
-            class="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-mono"
+            class="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-mono"
             @click="insertVariable(f.fieldname)">
             {{ f.fieldname }}
           </button>
-          <span v-if="selectedDtFields.length > 12" class="text-[10px] text-muted-foreground self-center">
+          <span v-if="selectedDtFields.length > 12" class="text-xs text-muted-foreground self-center">
             +{{ selectedDtFields.length - 12 }} ще
           </span>
         </div>

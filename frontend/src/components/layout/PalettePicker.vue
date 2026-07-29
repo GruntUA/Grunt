@@ -18,7 +18,7 @@ async function selectColor(colorName: string) {
       <button
         v-for="color in availableColors"
         :key="color.value"
-        class="group relative flex size-8 items-center justify-center rounded-full transition-all hover:scale-110 active:scale-95 shadow-sm"
+        class="group relative flex size-8 items-center justify-center rounded-full transition-colors shadow-sm"
         :style="{ backgroundColor: color.color }"
         :title="color.name"
         @click="selectColor(color.value)"

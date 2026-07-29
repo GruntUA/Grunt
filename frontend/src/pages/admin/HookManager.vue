@@ -61,11 +61,11 @@ onMounted(fetchHooks)
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div
-                        class="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
+                        class="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shadow-sm">
                         <Zap class="size-6" />
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold tracking-tight">Менеджер хуків</h1>
+                        <h1 class="text-2xl font-semibold tracking-tight">Менеджер хуків</h1>
                         <p class="text-sm text-muted-foreground">Перегляд та управління подіями системи</p>
                     </div>
                 </div>
@@ -80,7 +80,7 @@ onMounted(fetchHooks)
                 </div>
                 <div class="flex gap-2 p-1 bg-muted rounded-lg shadow-inner">
                     <button v-for="s in ['all', 'Python', 'Database']" :key="s" @click="filterSource = s"
-                        class="px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all"
+                        class="px-4 py-1.5 text-xs font-semibold uppercase tracking-wider rounded-md transition-all"
                         :class="filterSource === s ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'">
                         {{ s === 'all' ? 'Всі' : s === 'Python' ? 'Python' : 'Scripts' }}
                     </button>
@@ -89,9 +89,9 @@ onMounted(fetchHooks)
         </div>
 
         <div class="flex-1 overflow-hidden p-8">
-            <div class="bg-card border border-border/60 rounded-2xl shadow-xl overflow-hidden h-full flex flex-col">
+            <div class="bg-card border border-border/60 rounded-lg shadow-sm overflow-hidden h-full flex flex-col">
                 <div
-                    class="grid grid-cols-12 gap-4 px-6 py-4 border-b bg-muted/30 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    class="grid grid-cols-12 gap-4 px-6 py-4 border-b bg-muted/30 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                     <div class="col-span-2">Джерело</div>
                     <div class="col-span-2">DocType</div>
                     <div class="col-span-3">Подія</div>
@@ -108,7 +108,7 @@ onMounted(fetchHooks)
                     <div v-else-if="filteredHooks.length === 0"
                         class="flex flex-col items-center justify-center h-[400px] text-center">
                         <AlertCircle class="size-12 text-muted-foreground/20 mb-4" />
-                        <h3 class="text-lg font-bold text-foreground/70">Хуків не знайдено</h3>
+                        <h3 class="text-lg font-semibold text-foreground/70">Хуків не знайдено</h3>
                         <p class="text-sm text-muted-foreground">Спробуйте змінити параметри пошуку</p>
                     </div>
 
@@ -121,12 +121,12 @@ onMounted(fetchHooks)
                                 <span class="text-xs font-semibold">{{ h.displaySource }}</span>
                             </div>
                             <div class="col-span-2">
-                                <Badge variant="secondary" class="font-mono text-[10px] py-0 px-2 tracking-tighter"
+                                <Badge variant="secondary" class="font-mono text-xs py-0 px-2 tracking-tighter"
                                     :class="h.doctype === '*' ? 'bg-muted text-muted-foreground' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'">
                                     {{ h.doctype }}</Badge>
                             </div>
                             <div class="col-span-3">
-                                <span class="text-sm font-bold text-foreground/90">{{ h.event }}</span>
+                                <span class="text-sm font-semibold text-foreground/90">{{ h.event }}</span>
                             </div>
                             <div class="col-span-4 flex items-center justify-between pr-4">
                                 <span class="text-sm text-muted-foreground font-mono truncate max-w-[280px]"
@@ -146,7 +146,7 @@ onMounted(fetchHooks)
                 </div>
 
                 <div
-                    class="px-6 py-3 border-t bg-muted/10 flex items-center justify-between text-[11px] text-muted-foreground font-medium">
+                    class="px-6 py-3 border-t bg-muted/10 flex items-center justify-between text-xs text-muted-foreground font-medium">
                     <div class="flex items-center gap-4">
                         <span class="flex items-center gap-1.5">
                             <CheckCircle2 class="size-3.5 text-emerald-500" /> Систему активовано

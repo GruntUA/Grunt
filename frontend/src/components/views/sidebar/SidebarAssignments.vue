@@ -76,7 +76,7 @@ onMounted(loadAssignees)
   <div class="flex flex-col gap-3 mb-0">
     <Tooltip>
       <TooltipTrigger as-child>
-        <Button variant="outline" size="sm" class="w-full text-foreground shadow-sm transition-all active:scale-[0.98]" @click="showAssignDialog = true">
+        <Button variant="outline" size="sm" class="w-full text-foreground shadow-sm transition-colors" @click="showAssignDialog = true">
           <UserPlus class="size-3.5 mr-2" />
           <span class="text-xs font-semibold">{{ t('Assign') }}</span>
         </Button>
@@ -84,13 +84,13 @@ onMounted(loadAssignees)
       <TooltipContent>{{ t('Assign responsible person') }}</TooltipContent>
     </Tooltip>
 
-    <div v-if="assignees.length > 0" class="flex flex-col gap-2 p-3 bg-muted/30 rounded-xl border border-border/40">
-      <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">{{ t('Assignees') }}</span>
+    <div v-if="assignees.length > 0" class="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/40">
+      <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">{{ t('Assignees') }}</span>
       <div class="flex flex-wrap gap-2">
-        <Badge v-for="a in assignees" :key="a.id" 
-          class="pl-1 pr-2 py-0.5 text-[11px] font-medium bg-background border border-border/60 shadow-sm"
+        <Badge v-for="a in assignees" :key="a.id"
+          class="pl-1 pr-2 py-0.5 text-xs font-medium bg-background border border-border/60 shadow-sm"
         >
-            <Avatar class="mr-2 !size-5"><AvatarFallback class="!text-[10px]"><User class="size-3.5" /></AvatarFallback></Avatar>
+            <Avatar class="mr-2 !size-5"><AvatarFallback class="!text-xs"><User class="size-3.5" /></AvatarFallback></Avatar>
             <span class="mr-2 truncate max-w-[120px]">{{ a.assigned_to }}</span>
             <X class="size-3 cursor-pointer hover:text-destructive transition-colors" @click="removeAssignee(a)" />
         </Badge>
@@ -101,7 +101,7 @@ onMounted(loadAssignees)
     <Dialog v-model:open="showAssignDialog">
       <DialogContent class="max-w-sm w-full mx-4 p-0 px-6 pb-6 pt-1">
       <DialogHeader>
-        <DialogTitle class="flex items-center gap-2 font-bold text-lg">
+        <DialogTitle class="flex items-center gap-2 font-semibold text-lg">
           <UserPlus class="size-5 text-primary" />
           {{ t('Assign responsible') }}
         </DialogTitle>
@@ -109,7 +109,7 @@ onMounted(loadAssignees)
 
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
-          <label class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email або логін</label>
+          <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email або логін</label>
           <Input
             v-model="assignUser"
             placeholder="Пошук користувача..."
@@ -127,7 +127,7 @@ onMounted(loadAssignees)
               <Avatar class="!size-6"><AvatarFallback><User class="size-3.5" /></AvatarFallback></Avatar>
               <div class="flex flex-col min-w-0">
                 <span class="text-sm font-medium truncate">{{ u.full_name || u.email }}</span>
-                <span class="text-[10px] text-muted-foreground truncate">{{ u.email }}</span>
+                <span class="text-xs text-muted-foreground truncate">{{ u.email }}</span>
               </div>
             </button>
           </div>

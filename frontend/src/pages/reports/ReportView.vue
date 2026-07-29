@@ -61,7 +61,7 @@ function openBuilder() {
         <!-- Header -->
         <div class="flex items-end justify-between gap-4">
             <div>
-                <h2 class="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                <h2 class="text-2xl font-semibold tracking-tight text-foreground flex items-center gap-2">
                     <FileBarChart2 class="size-6 text-primary" />
                     {{ report?.report_name || reportName }}
                 </h2>
@@ -92,17 +92,17 @@ function openBuilder() {
         <!-- Filters (Placeholder) -->
         <div v-if="report?.filters_config" class="p-4 rounded-lg border bg-card/50">
             <!-- Filter logic here -->
-            <p class="text-xs text-muted-foreground uppercase font-bold tracking-wider">Фільтри</p>
+            <p class="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Фільтри</p>
             <div class="mt-2 text-sm text-muted-foreground italic">Конфігурація фільтрів ще не реалізована</div>
         </div>
 
         <!-- Table -->
-        <div class="border rounded-xl overflow-hidden shadow-sm bg-card">
+        <div class="border rounded-lg overflow-hidden shadow-sm bg-card">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b bg-muted/30">
-                            <th v-for="col in columns" :key="col.fieldname" class="px-4 py-3 text-left font-bold text-muted-foreground uppercase tracking-wider text-[11px]">
+                            <th v-for="col in columns" :key="col.fieldname" class="px-4 py-3 text-left font-semibold text-muted-foreground uppercase tracking-wider text-xs">
                                 {{ col.label }}
                             </th>
                         </tr>

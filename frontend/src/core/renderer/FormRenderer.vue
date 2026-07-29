@@ -108,7 +108,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
     <!-- Tab navigation -->
     <div class="relative mb-4">
       <TabsList
-        class="h-auto w-full justify-start rounded-none border-b border-border bg-transparent px-2 overflow-x-auto scrollbar-none sticky top-0 z-10 bg-background/95 backdrop-blur"
+        class="h-auto w-full justify-start rounded-none border-b border-border bg-transparent px-2 overflow-x-auto scrollbar-none sticky top-0 z-10 bg-background/95"
       >
         <TabsTrigger
           v-for="(tab, ti) in layout"
@@ -121,11 +121,11 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
             :is="getTabIcon(tab._field?.icon)"
             class="size-3.5 shrink-0"
           />
-          <span class="text-[13px] font-semibold tracking-wide">{{ tab.label || 'Main' }}</span>
+          <span class="text-sm font-semibold tracking-wide">{{ tab.label || 'Main' }}</span>
         </TabsTrigger>
       </TabsList>
-      <div class="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background/95 to-transparent" />
-      <div class="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background/95 to-transparent" />
+      <div class="pointer-events-none absolute inset-y-0 left-0 w-8 bg-background/95" style="mask-image: linear-gradient(to right, black, transparent)" />
+      <div class="pointer-events-none absolute inset-y-0 right-0 w-8 bg-background/95" style="mask-image: linear-gradient(to left, black, transparent)" />
     </div>
 
     <!-- Sections -->
@@ -158,7 +158,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
 
                     <!-- Field lock badge -->
                     <div v-if="fieldLocks?.[f.fieldname]"
-                      class="mb-1 flex items-center gap-1 self-start rounded-full px-2 py-0.5 text-[10px] font-bold text-white shadow-sm ring-2 ring-background"
+                      class="mb-1 flex items-center gap-1 self-start rounded-full px-2 py-0.5 text-xs font-semibold text-white shadow-sm ring-2 ring-background"
                       :style="{ backgroundColor: fieldLocks[f.fieldname].color }">
                       <span class="opacity-80">{{ initials(fieldLocks[f.fieldname].full_name) }}</span>
                       <span>editing...</span>
@@ -205,7 +205,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
                 class="relative group" @focusin="emit('field-focus', f.fieldname)"
                 @focusout="emit('field-blur', f.fieldname)">
                 <div v-if="fieldLocks?.[f.fieldname]"
-                  class="mb-1 flex items-center gap-1 self-start rounded-full px-2 py-0.5 text-[10px] font-bold text-white shadow-sm ring-2 ring-background"
+                  class="mb-1 flex items-center gap-1 self-start rounded-full px-2 py-0.5 text-xs font-semibold text-white shadow-sm ring-2 ring-background"
                   :style="{ backgroundColor: fieldLocks[f.fieldname].color }">
                   <span class="opacity-80">{{ initials(fieldLocks[f.fieldname].full_name) }}</span>
                   <span>editing...</span>

@@ -283,7 +283,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
 </script>
 
 <template>
-  <div class="flex flex-col h-full bg-card border border-border/60 rounded-xl overflow-hidden shadow-lg transition-all duration-500">
+  <div class="flex flex-col h-full bg-card border border-border/60 rounded-lg overflow-hidden transition-all duration-500">
     <!-- Toolbar -->
     <div class="flex items-center justify-between p-4 border-b border-border/40 bg-muted/20">
       <div class="flex items-center gap-4">
@@ -291,14 +291,14 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
             <div class="size-9 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
                 <CalendarIcon class="size-5 text-primary" />
             </div>
-            <h2 class="text-xl font-bold text-foreground tracking-tight">{{ monthLabel }}</h2>
+            <h2 class="text-xl font-semibold text-foreground tracking-tight">{{ monthLabel }}</h2>
         </div>
         
-        <div class="flex items-center p-1 bg-background rounded-xl border border-border/40 shadow-sm">
+        <div class="flex items-center p-1 bg-background rounded-lg border border-border/40 shadow-sm">
             <Button variant="ghost" size="sm" class="!px-3 !h-8" @click="prevMonth">
                 <ChevronLeft class="size-4" />
             </Button>
-            <Button variant="ghost" size="sm" class="!px-4 !h-8 !text-xs font-bold uppercase tracking-wider !text-muted-foreground hover:!text-primary" @click="setToday">
+            <Button variant="ghost" size="sm" class="!px-4 !h-8 !text-xs font-semibold uppercase tracking-wider !text-muted-foreground hover:!text-primary" @click="setToday">
                 Сьогодні
             </Button>
             <Button variant="ghost" size="sm" class="!px-3 !h-8" @click="nextMonth">
@@ -317,7 +317,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
         >
         
         <div class="flex items-center gap-2">
-            <div v-if="isRescheduling" class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary animate-pulse bg-primary/10 px-2 py-1 rounded-full">
+            <div v-if="isRescheduling" class="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-primary animate-pulse bg-primary/10 px-2 py-1 rounded-full">
                 Оновлення...
             </div>
             <Spinner v-if="isLoading" class="!size-6" strokeWidth="6" />
@@ -330,7 +330,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
       <!-- Weekday headers -->
       <div class="grid grid-cols-7 border-b border-border/40 bg-muted/5">
         <div v-for="day in weekDays" :key="day"
-          class="py-3 text-center text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">
+          class="py-3 text-center text-xs font-semibold text-muted-foreground/60 uppercase tracking-[0.2em]">
           {{ day }}
         </div>
       </div>
@@ -346,9 +346,9 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
           
           <!-- Day header -->
           <div class="flex justify-between items-center mb-1">
-            <span class="text-xs font-black size-8 flex items-center justify-center rounded-xl transition-all" :class="[
+            <span class="text-xs font-semibold size-8 flex items-center justify-center rounded-lg transition-colors" :class="[
               isToday(day)
-                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-110'
+                ? 'bg-primary text-primary-foreground'
                 : isSameMonth(day, currentMonth) ? 'text-foreground/80 hover:bg-muted/50' : 'text-muted-foreground/20'
             ]">
               {{ format(day, 'd') }}
@@ -360,7 +360,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
           <!-- Event cards -->
           <div class="flex flex-col gap-1.5 overflow-y-auto max-h-48 scrollbar-hide py-0.5">
             <div v-for="event in getEventsForDay(day)" :key="event.doctype + event.id" draggable="true"
-              class="group/event relative text-[11px] font-bold leading-tight pl-2.5 pr-2 py-2 rounded-xl border shadow-sm truncate cursor-pointer transition-all hover:translate-y-[-1px] hover:shadow-md active:scale-95 active:opacity-70"
+              class="group/event relative text-xs font-medium leading-tight pl-2.5 pr-2 py-2 rounded-lg border shadow-sm truncate cursor-pointer transition-colors active:opacity-70"
               :class="[
                 event.doctype === doctype.name
                   ? 'bg-background border-border hover:border-primary/40 text-foreground'
@@ -389,8 +389,8 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
         <div v-if="selectedEvent" class="w-64 p-3 flex flex-col gap-3">
             <div class="flex items-start justify-between">
                 <div class="flex flex-col">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{{ selectedEvent.doctype }}</span>
-                    <h3 class="text-sm font-black text-foreground leading-tight">{{ selectedEvent.title }}</h3>
+                    <span class="text-xs font-medium uppercase tracking-wider text-muted-foreground">{{ selectedEvent.doctype }}</span>
+                    <h3 class="text-sm font-semibold text-foreground leading-tight">{{ selectedEvent.title }}</h3>
                 </div>
                 <Button variant="ghost" size="sm" @click="navigateToDoc(selectedEvent)" class="rounded-full"><ExternalLink class="size-4" /></Button>
             </div>

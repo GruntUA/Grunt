@@ -467,7 +467,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
             <button
               v-for="c in COLORS" :key="c.value"
               :title="c.label"
-              :class="['w-5 h-5 rounded-full border-2 transition-transform hover:scale-110', tile.color === c.value ? 'border-foreground scale-110' : 'border-transparent']"
+              :class="['w-5 h-5 rounded-full border-2 transition-colors', tile.color === c.value ? 'border-foreground scale-110' : 'border-transparent']"
               :style="{ background: c.bg }"
               @click="updateTile(i, 'color', c.value)"
             />
@@ -611,7 +611,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
           <button
             v-for="c in COLORS" :key="c.value"
             :title="c.label"
-            :class="['w-7 h-7 rounded-full border-2 transition-transform hover:scale-110', draft.color === c.value ? 'border-foreground scale-110' : 'border-transparent']"
+            :class="['w-7 h-7 rounded-full border-2 transition-colors', draft.color === c.value ? 'border-foreground scale-110' : 'border-transparent']"
             :style="{ background: c.bg }"
             @click="draft.color = c.value; apply()"
           />

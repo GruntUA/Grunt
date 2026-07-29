@@ -10,7 +10,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
-import { MoreHorizontal, Home, X } from '@lucide/vue'
+import { MoreHorizontal, Home } from '@lucide/vue'
 
 
 const props = defineProps<{ workspaceName: string }>()
@@ -60,7 +60,7 @@ function goHome() {
 <template>
   <!-- Only visible on mobile -->
   <nav
-    class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card/95 backdrop-blur-md border-t border-border/60 safe-b"
+    class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card/95 border-t border-border/60 safe-b"
     style="padding-bottom: env(safe-area-inset-bottom)"
   >
     <div class="flex items-stretch h-14">
@@ -71,7 +71,7 @@ function goHome() {
         @click="goHome"
       >
         <Home class="w-5 h-5" />
-        <span class="text-[10px] font-medium leading-none">Головна</span>
+        <span class="text-xs font-medium leading-none">Головна</span>
       </button>
 
       <!-- Top workspace items -->
@@ -83,7 +83,7 @@ function goHome() {
         @click="navigate(item)"
       >
         <AppIcon :icon="item.icon || 'file'" class="size-5" />
-        <span class="text-[10px] font-medium leading-none truncate max-w-[52px]">{{ item.label }}</span>
+        <span class="text-xs font-medium leading-none truncate max-w-[52px]">{{ item.label }}</span>
       </button>
 
       <!-- More button (when overflow items exist) -->
@@ -93,38 +93,23 @@ function goHome() {
         @click="showOverflow = true"
       >
         <MoreHorizontal class="w-5 h-5" />
-        <span class="text-[10px] font-medium leading-none">Ще</span>
+        <span class="text-xs font-medium leading-none">Ще</span>
       </button>
     </div>
   </nav>
 
   <!-- Overflow sheet -->
-  <Transition
-    enter-active-class="transition-all duration-300 ease-out"
-    enter-from-class="translate-y-full"
-    enter-to-class="translate-y-0"
-    leave-active-class="transition-all duration-200 ease-in"
-    leave-from-class="translate-y-0"
-    leave-to-class="translate-y-full"
-  >
-    <div
-      v-if="showOverflow"
-      class="md:hidden fixed inset-x-0 bottom-0 z-50 bg-card rounded-t-2xl shadow-2xl border-t border-border/60"
-      style="padding-bottom: env(safe-area-inset-bottom)"
-    >
-      <!-- Handle -->
-      <div class="flex items-center justify-between px-5 pt-4 pb-2">
-        <h3 class="text-sm font-semibold text-foreground">Всі розділи</h3>
-        <button class="p-1 rounded-md hover:bg-muted transition-colors" @click="showOverflow = false">
-          <X class="w-4 h-4 text-muted-foreground" />
-        </button>
-      </div>
+  <Sheet :open="showOverflow" @update:open="(v: boolean) => (showOverflow = v)">
+    <SheetContent side="bottom" class="md:hidden p-0 rounded-t-lg" style="padding-bottom: env(safe-area-inset-bottom)">
+      <SheetHeader class="flex-row items-center justify-between px-5 pt-4 pb-2 gap-0 space-y-0">
+        <SheetTitle class="text-sm">Всі розділи</SheetTitle>
+      </SheetHeader>
       <div class="max-h-72 overflow-y-auto">
         <div class="px-3 pb-4 space-y-0.5">
           <button
             v-for="item in overflowItems"
             :key="item.link_to"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
             :class="isActive(item.link_to)
               ? 'bg-primary/10 text-primary font-medium'
               : 'text-foreground hover:bg-muted'"
@@ -135,13 +120,6 @@ function goHome() {
           </button>
         </div>
       </div>
-    </div>
-  </Transition>
-
-  <!-- Backdrop for overflow sheet -->
-  <div
-    v-if="showOverflow"
-    class="md:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
-    @click="showOverflow = false"
-  />
+    </SheetContent>
+  </Sheet>
 </template>

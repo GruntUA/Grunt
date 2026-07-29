@@ -306,19 +306,13 @@ function fmtDate(d: string | null) {
       </div>
 
       <!-- Account Form Dialog -->
-      <Teleport to="body">
-        <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0"
-          leave-active-class="transition-opacity duration-150" leave-to-class="opacity-0">
-          <div v-if="showForm" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-            <div class="bg-background rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-              <div class="flex items-center justify-between p-5 border-b">
-                <h2 class="text-base font-semibold">
-                  {{ editingId ? 'Редагувати' : 'Новий' }} обліковий запис
-                </h2>
-                <button class="text-muted-foreground hover:text-foreground" @click="closeForm">✕</button>
-              </div>
+      <Dialog :open="showForm" @update:open="(v: boolean) => { if (!v) closeForm() }">
+        <DialogContent class="max-w-lg max-h-[90vh] overflow-y-auto p-0">
+          <DialogHeader class="p-5 border-b">
+            <DialogTitle>{{ editingId ? 'Редагувати' : 'Новий' }} обліковий запис</DialogTitle>
+          </DialogHeader>
 
-              <div class="p-5 space-y-4">
+          <div class="p-5 space-y-4">
                 <!-- Email address -->
                 <div>
                   <label class="block text-sm font-medium mb-1">Email адреса *</label>
@@ -424,20 +418,18 @@ function fmtDate(d: string | null) {
                 </div>
               </div>
 
-              <div class="flex justify-end gap-2 p-5 border-t">
-                <button class="text-sm px-4 py-2 border rounded-md hover:bg-muted transition-colors" @click="closeForm">
-                  Скасувати
-                </button>
-                <button :disabled="formSaving || !form.email_address"
-                  class="text-sm px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                  @click="saveAccount">
-                  {{ formSaving ? 'Збереження…' : editingId ? 'Зберегти' : 'Створити' }}
-                </button>
-              </div>
-            </div>
-          </div>
-        </Transition>
-      </Teleport>
+          <DialogFooter class="p-5 border-t">
+            <button class="text-sm px-4 py-2 border rounded-md hover:bg-muted transition-colors" @click="closeForm">
+              Скасувати
+            </button>
+            <button :disabled="formSaving || !form.email_address"
+              class="text-sm px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              @click="saveAccount">
+              {{ formSaving ? 'Збереження…' : editingId ? 'Зберегти' : 'Створити' }}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </template>
 
     <!-- ── QUEUE TAB ──────────────────────────────────────────────────── -->

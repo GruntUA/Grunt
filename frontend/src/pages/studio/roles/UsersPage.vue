@@ -69,7 +69,7 @@ onMounted(loadUsers)
               <span v-for="role in user.roles" :key="role"
                 class="inline-flex items-center gap-1 text-xs bg-accent text-primary px-2 py-0.5 rounded-full">
                 {{ role }}
-                <button class="hover:text-destructive font-bold" @click="removeRole(user.id, role)">&times;</button>
+                <button class="hover:text-destructive font-semibold" @click="removeRole(user.id, role)">&times;</button>
               </span>
               <span v-if="user.roles.length === 0" class="text-xs text-muted-foreground/70">Немає ролей</span>
             </div>

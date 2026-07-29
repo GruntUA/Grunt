@@ -129,21 +129,21 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
 </script>
 
 <template>
-  <div class="flex flex-col h-[calc(100vh-14rem)] rounded-3xl overflow-hidden shadow-2xl ring-1 ring-border/40 bg-card/30 backdrop-blur-md">
+  <div class="flex flex-col h-[calc(100vh-14rem)] rounded-lg overflow-hidden border ring-1 ring-border/40 bg-card">
     <!-- Toolbar -->
     <div class="flex items-center justify-between px-5 py-3 bg-card/50 border-b border-border/40 shrink-0 gap-4">
       <div class="flex items-center gap-3 text-sm text-muted-foreground shrink-0">
-        <div class="size-8 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+        <div class="size-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
           <MapPin class="size-4 text-primary" />
         </div>
         <div class="flex flex-col">
-          <span v-if="isLoading" class="flex items-center gap-2 font-bold text-foreground/80">
+          <span v-if="isLoading" class="flex items-center gap-2 font-semibold text-foreground/80">
             <Loader2 class="size-3.5 animate-spin text-primary" /> Завантаження...
           </span>
-          <span v-else class="font-bold text-foreground/80 lowercase">
+          <span v-else class="font-semibold text-foreground/80 lowercase">
             {{ markerCount }} мітк{{ markerCount === 1 ? 'а' : markerCount < 5 ? 'и' : '' }}
           </span>
-          <span v-if="skippedCount && !isLoading" class="text-[10px] text-muted-foreground/60 font-medium">
+          <span v-if="skippedCount && !isLoading" class="text-xs text-muted-foreground/60 font-medium">
             {{ skippedCount }} без координат
           </span>
         </div>
@@ -155,7 +155,7 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
           <Input
             v-model="coordInput"
             placeholder="46.8441, 35.4025"
-            class="!h-10 !w-full !rounded-xl !pl-3 !pr-10 !text-xs !bg-background/40 hover:!bg-background !border-border/40 focus:!ring-1 focus:!ring-primary/20 transition-all shadow-inner-sm"
+            class="!h-10 !w-full !pl-3 !pr-10 !text-xs !bg-background/40 hover:!bg-background !border-border/40 focus:!ring-1 focus:!ring-primary/20 transition-all"
             :class="{ '!border-destructive/50': coordError }"
             @keydown.enter="gotoCoord"
             @input="coordError = false"
@@ -180,16 +180,16 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
       <!-- ── Print area selector ── -->
       <template v-if="isPrintMode">
         <!-- Dark overlay with "hole" via box-shadow on the rect -->
-        <div class="absolute inset-0 z-[2000] select-none backdrop-blur-[2px]" @mousedown.self.prevent>
+        <div class="absolute inset-0 z-[2000] select-none" @mousedown.self.prevent>
 
           <!-- Format selector bar -->
           <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10
                       flex items-center gap-3 px-4 py-2
-                      bg-foreground/90 text-background text-xs rounded-2xl shadow-2xl backdrop-blur-xl border border-white/10">
-            <span class="opacity-60 font-bold uppercase tracking-wider text-[10px]">Формат:</span>
-            <div class="flex bg-background/10 p-1 rounded-xl gap-1">
+                      bg-foreground/90 text-background text-xs rounded-lg shadow-md border border-white/10">
+            <span class="opacity-60 font-semibold uppercase tracking-wider text-xs">Формат:</span>
+            <div class="flex bg-background/10 p-1 rounded-lg gap-1">
               <button v-for="(fmt, key) in PRINT_FORMATS" :key="key"
-                      class="px-3 py-1 rounded-lg transition-all text-[10px] font-bold uppercase tracking-wide"
+                      class="px-3 py-1 rounded-lg transition-all text-xs font-semibold uppercase tracking-wide"
                       :class="printFormat === key
                         ? 'bg-background text-foreground shadow-sm'
                         : 'opacity-50 hover:opacity-100 hover:bg-background/5'"
@@ -198,8 +198,8 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
               </button>
             </div>
             <div class="w-px h-6 bg-background/20 mx-1" />
-            <Button size="sm" @click="confirmPrint" class="!rounded-xl !px-4 !h-8 !text-[11px] !font-bold">Надрукувати</Button>
-            <Button variant="ghost" size="sm" @click="cancelPrint" class="!text-background !rounded-xl !h-8 !text-[11px]">Скасувати</Button>
+            <Button size="sm" @click="confirmPrint" class="!text-xs !font-semibold">Надрукувати</Button>
+            <Button variant="ghost" size="sm" @click="cancelPrint" class="!text-background !text-xs">Скасувати</Button>
           </div>
 
           <!-- Selection rectangle -->
@@ -214,7 +214,7 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
 
             <!-- Size label bar -->
             <div class="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-2
-                        bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg">
+                        bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm">
               <Expand class="size-3" />
               {{ Math.round(printRect.w) }} × {{ Math.round(printRect.h) }} px
             </div>

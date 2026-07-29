@@ -184,7 +184,7 @@ function togglePresets(event: Event) {
         @click="startEdit(i, $event)"
       >
         <Pencil class="size-2.5 shrink-0 opacity-0 group-hover/chip:opacity-60 transition-opacity text-primary" />
-        <span class="truncate text-[11px] font-medium">{{ chipLabel(f) }}</span>
+        <span class="truncate text-xs font-medium">{{ chipLabel(f) }}</span>
       </button>
       <button
         type="button"
@@ -196,7 +196,7 @@ function togglePresets(event: Event) {
     </Badge>
 
     <!-- Filter Popover -->
-    <Button variant="ghost" size="sm" class="h-7 text-[11px] border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all font-medium" @click="toggleFilter">
+    <Button variant="ghost" size="sm" class="h-7 text-xs border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all font-medium" @click="toggleFilter">
       <Filter class="size-3 mr-1" />
       {{ t('Filter') }}
     </Button>
@@ -207,7 +207,7 @@ function togglePresets(event: Event) {
       <div class="w-80 p-1">
         <!-- Step 1: pick field -->
         <template v-if="!pickedField">
-          <p class="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 mb-1">
+          <p class="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 mb-1">
             {{ editingIndex !== null ? 'Змінити поле фільтру' : 'Поле для фільтрації' }}
           </p>
           <div class="flex flex-wrap gap-1 max-h-48 overflow-y-auto p-1 scrollbar-none">
@@ -233,8 +233,8 @@ function togglePresets(event: Event) {
             >
               <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <span class="text-sm font-bold text-foreground truncate">{{ pickedField.label }}</span>
-            <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 ml-auto">{{ pickedField.fieldtype }}</span>
+            <span class="text-sm font-semibold text-foreground truncate">{{ pickedField.label }}</span>
+            <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 ml-auto">{{ pickedField.fieldtype }}</span>
           </div>
 
           <div class="space-y-4 p-1">
@@ -244,9 +244,9 @@ function togglePresets(event: Event) {
                 v-for="op in getFilterConfig(pickedField.fieldtype).operators"
                 :key="op"
                 type="button"
-                class="px-2.5 py-1.5 text-[11px] rounded-lg border transition-all font-bold font-mono shadow-sm"
+                class="px-2.5 py-1.5 text-xs rounded-lg border transition-all font-semibold font-mono shadow-sm"
                 :class="pickedOp === op
-                  ? 'border-primary bg-primary/10 text-primary shadow-inner'
+                  ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border/60 bg-card hover:border-primary/40 text-muted-foreground'"
                 :title="op === 'child_of' ? 'Включаючи всі підрозділи' : undefined"
                 @click="pickedOp = op"
@@ -254,7 +254,7 @@ function togglePresets(event: Event) {
             </div>
 
             <!-- Value input -->
-            <div class="bg-muted/10 p-2 rounded-xl border border-border/40 shadow-inner">
+            <div class="bg-muted/10 p-2 rounded-lg border border-border/40">
                 <component
                     :is="getFilterConfig(pickedField.fieldtype).filterInput"
                     :field="pickedField"
@@ -267,7 +267,7 @@ function togglePresets(event: Event) {
                 />
             </div>
 
-            <Button size="sm" class="w-full h-10 shadow-lg shadow-primary/10" :disabled="!pickedValue" @click="applyFilter">
+            <Button size="sm" class="w-full h-10 shadow-md" :disabled="!pickedValue" @click="applyFilter">
                 {{ editingIndex !== null ? 'Зберегти зміни' : t('Apply') }}
             </Button>
           </div>
@@ -283,24 +283,24 @@ function togglePresets(event: Event) {
           <div class="flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-300">
             <Input
               v-model="presetNameInput"
-              class="h-7 text-[11px] w-32 rounded-lg"
+              class="h-7 text-xs w-32 rounded-lg"
               placeholder="Назва пресету"
               autofocus
               @keydown="(e: KeyboardEvent) => { if (e.key === 'Enter') savePreset(); else if (e.key === 'Escape') showSaveName = false }"
             />
-            <Button size="sm" class="h-7 px-2.5 text-[11px] shadow-sm" @click="savePreset">OK</Button>
+            <Button size="sm" class="h-7 px-2.5 text-xs shadow-sm" @click="savePreset">OK</Button>
             <button type="button" class="text-muted-foreground hover:text-foreground p-1 transition-colors" @click="showSaveName = false">
               <X class="size-3.5" />
             </button>
           </div>
         </template>
-        <Button variant="ghost" v-else size="sm" class="h-7 text-[11px] text-muted-foreground hover:text-foreground font-medium transition-all" @click="showSaveName = true">
+        <Button variant="ghost" v-else size="sm" class="h-7 text-xs text-muted-foreground hover:text-foreground font-medium transition-all" @click="showSaveName = true">
           <Bookmark class="size-3 mr-1" />
           {{ t('Save') }}
         </Button>
       </template>
 
-      <Button variant="ghost" v-if="savedPresets.length" size="sm" class="h-7 text-[11px] text-muted-foreground hover:text-foreground font-medium transition-all" @click="togglePresets">
+      <Button variant="ghost" v-if="savedPresets.length" size="sm" class="h-7 text-xs text-muted-foreground hover:text-foreground font-medium transition-all" @click="togglePresets">
         Пресети
         <ChevronDown class="size-3 ml-1" />
       </Button>
@@ -309,7 +309,7 @@ function togglePresets(event: Event) {
         <PopoverAnchor :reference="presetsAnchorEl ?? undefined" />
         <PopoverContent class="w-auto p-0">
         <div class="w-60 p-1">
-          <div class="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">Збережені фільтри</div>
+          <div class="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Збережені фільтри</div>
           <div class="h-px bg-border/40 my-1" />
           
           <div v-for="preset in savedPresets" :key="preset.name"
