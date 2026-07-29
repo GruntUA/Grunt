@@ -67,7 +67,7 @@ const items = computed(() => {
           </BreadcrumbSeparator>
           <BreadcrumbItem>
             <BreadcrumbLink v-if="item.route" as-child>
-              <router-link :to="item.route" class="flex items-center gap-2 font-semibold text-sm hover:text-primary transition-colors">
+              <router-link :to="item.route" class="flex items-center gap-2 font-semibold text-sm">
                 <AppIcon v-if="item.icon" :icon="item.icon" class="size-4 shrink-0 text-muted-foreground/60" />
                 <span class="truncate max-w-[200px]">{{ item.label }}</span>
               </router-link>

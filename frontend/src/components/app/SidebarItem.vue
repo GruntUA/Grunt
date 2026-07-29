@@ -4,13 +4,19 @@ import { useRouter, useRoute } from 'vue-router'
 import type { WorkspaceLink } from '@/core/api/workspace'
 import { Plus, Star, StarOff } from '@lucide/vue'
 import AppIcon from '@/components/AppIcon.vue'
+import { cn } from '@/lib/utils'
 
 const props = defineProps<{
   item: WorkspaceLink
   workspaceName: string
   count?: number
   color?: string
+  /** Render as a SidebarMenuSubItem (nested inside a Collapsible group) instead of a top-level SidebarMenuItem. */
+  nested?: boolean
 }>()
+
+/** Hover-reveal icon button classes shared by pin/create actions in nested mode (SidebarMenuAction's own classes assume a top-level `group/menu-item`, which SidebarMenuSubItem doesn't provide). */
+const nestedActionClass = 'text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground absolute top-1/2 -translate-y-1/2 flex aspect-square w-5 items-center justify-center rounded-md p-0 outline-hidden transition-transform focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 opacity-0 group-hover/menu-sub-item:opacity-100 group-focus-within/menu-sub-item:opacity-100 md:opacity-0'
 
 const router = useRouter()
 const route = useRoute()
@@ -93,7 +99,32 @@ const displayCount = computed(() => {
 </script>
 
 <template>
-  <SidebarMenuItem>
+  <SidebarMenuSubItem v-if="nested">
+    <SidebarMenuSubButton as-child :is-active="isActive">
+      <a
+        :href="itemHref"
+        :target="item.type === 'URL' ? '_blank' : undefined"
+        :rel="item.type === 'URL' ? 'noopener noreferrer' : undefined"
+        @click="navigate"
+      >
+        <AppIcon :icon="item.icon || 'file'" />
+        <span>{{ item.label }}</span>
+      </a>
+    </SidebarMenuSubButton>
+
+    <span v-if="displayCount" class="text-sidebar-foreground pointer-events-none absolute top-1/2 right-1 flex h-5 min-w-5 -translate-y-1/2 items-center justify-center rounded-md px-1 text-xs font-medium tabular-nums select-none">
+      {{ displayCount }}
+    </span>
+
+    <button type="button" :class="cn(nestedActionClass, 'right-1')" :title="pinned ? 'Відкріпити' : 'Закріпити'" @click.stop="togglePin">
+      <component :is="pinned ? Star : StarOff" :class="pinned ? 'fill-current' : ''" />
+    </button>
+    <button v-if="item.show_new_btn" type="button" :class="cn(nestedActionClass, 'right-7')" title="Створити новий" @click.stop="createNew">
+      <Plus />
+    </button>
+  </SidebarMenuSubItem>
+
+  <SidebarMenuItem v-else>
     <SidebarMenuButton as-child :is-active="isActive" :tooltip="item.label">
       <a
         :href="itemHref"
@@ -109,7 +140,7 @@ const displayCount = computed(() => {
     <SidebarMenuBadge v-if="displayCount">{{ displayCount }}</SidebarMenuBadge>
 
     <SidebarMenuAction show-on-hover :title="pinned ? 'Відкріпити' : 'Закріпити'" @click.stop="togglePin">
-      <component :is="pinned ? Star : StarOff" :class="pinned ? 'fill-current text-primary' : ''" />
+      <component :is="pinned ? Star : StarOff" :class="pinned ? 'fill-current' : ''" />
     </SidebarMenuAction>
     <SidebarMenuAction v-if="item.show_new_btn" show-on-hover class="right-7" title="Створити новий" @click.stop="createNew">
       <Plus />
