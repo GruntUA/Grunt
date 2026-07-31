@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import {
   Search,
-  Columns3,
-  Rows3,
+  SlidersHorizontal,
   Check,
-  ArrowUpDown,
   ArrowUp,
   ArrowDown,
 } from '@lucide/vue'
@@ -36,28 +34,19 @@ const emit = defineEmits(['update:groupBy', 'sort'])
 
 defineOptions({ inheritAttrs: false })
 
-const isColumnsOpen = ref(false)
-const columnsAnchorEl = ref<HTMLElement | null>(null)
-const isGroupingOpen = ref(false)
-const groupingAnchorEl = ref<HTMLElement | null>(null)
-const isSortingOpen = ref(false)
-const sortingAnchorEl = ref<HTMLElement | null>(null)
+const isOpen = ref(false)
+const anchorEl = ref<HTMLElement | null>(null)
+const activeTab = ref('columns')
 
-const toggleColumns = (event: Event) => {
-  columnsAnchorEl.value = event.currentTarget as HTMLElement
-  isColumnsOpen.value = !isColumnsOpen.value
-}
-const toggleGrouping = (event: Event) => {
-  groupingAnchorEl.value = event.currentTarget as HTMLElement
-  isGroupingOpen.value = !isGroupingOpen.value
+const isCustomized = computed(() => props.columns.isCustomized.value || !!props.groupBy || !!props.sortKey)
+
+const toggle = (event: Event) => {
+  anchorEl.value = event.currentTarget as HTMLElement
+  isOpen.value = !isOpen.value
 }
 
 const sortSearch = ref('')
-const toggleSorting = (event: Event) => {
-  sortSearch.value = ''
-  sortingAnchorEl.value = event.currentTarget as HTMLElement
-  isSortingOpen.value = !isSortingOpen.value
-}
+watch(isOpen, (v) => { if (v) sortSearch.value = '' })
 
 function onColReorder(e: { oldIndex: number; newIndex: number }) {
   props.columns.reorderCols(e.oldIndex, e.newIndex)
@@ -82,168 +71,130 @@ const filteredSortOptions = computed(() => {
   if (!q) return allSortOptions.value
   return allSortOptions.value.filter((o) => o.label.toLowerCase().includes(q))
 })
-
-const activeSortLabel = computed(() =>
-  props.sortKey
-    ? (allSortOptions.value.find((o) => o.key === props.sortKey)?.label ?? props.sortKey)
-    : null
-)
 </script>
 
 <template>
 <div class="contents">
-  <!-- Columns -->
-  <Button variant="ghost" size="sm" class="h-9 px-2.5 gap-2 font-medium transition-all" :class="columns.isCustomized.value ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'" @click="toggleColumns">
-    <Columns3 class="size-4" />
-    <span class="hidden lg:inline">Стовпці</span>
-    <Badge
-      v-if="columns.isCustomized.value"
-      variant="secondary"
-      class="bg-primary/20 text-primary hover:bg-primary/20 size-5 p-0 flex items-center justify-center text-xs"
-    >
-      {{ columns.visibleColumns.value.length }}
-    </Badge>
-  </Button>
+  <Tooltip>
+    <TooltipTrigger as-child>
+      <Button variant="ghost" size="icon" :class="isCustomized ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'" @click="toggle">
+        <SlidersHorizontal class="size-4" />
+      </Button>
+    </TooltipTrigger>
+    <TooltipContent>Стовпці, групування, сортування</TooltipContent>
+  </Tooltip>
 
-  <Popover v-model:open="isColumnsOpen">
-    <PopoverAnchor :reference="columnsAnchorEl ?? undefined" />
-    <PopoverContent class="w-auto p-0">
-    <div class="w-64 p-1">
-      <div class="px-2 py-1.5 flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
-        <span>Стовпці</span>
-        <span class="tabular-nums opacity-60">
-          {{ columns.visibleColumns.value.length }}/{{ columns.allAvailableColumns.value.length }}
-        </span>
-      </div>
-      <div class="h-px bg-border/40 my-1" />
-      <div class="max-h-[320px] overflow-y-auto overflow-x-hidden scrollbar-none py-1">
-        <draggable
-          :model-value="columns.visibleColumns.value"
-          item-key="key"
-          handle=".drag-handle"
-          class="space-y-0.5"
-          @end="onColReorder"
-        >
-          <template #item="{ element: col }">
+  <Popover v-model:open="isOpen">
+    <PopoverAnchor :reference="anchorEl ?? undefined" />
+    <PopoverContent class="w-72 p-0">
+      <Tabs v-model="activeTab" class="gap-0">
+        <div class="p-1">
+          <TabsList class="w-full">
+            <TabsTrigger value="columns" class="flex-1">Стовпці</TabsTrigger>
+            <TabsTrigger v-if="groupableFields.length" value="group" class="flex-1">Групування</TabsTrigger>
+            <TabsTrigger value="sort" class="flex-1">Сортування</TabsTrigger>
+          </TabsList>
+        </div>
+
+        <!-- Columns -->
+        <TabsContent value="columns" class="p-1">
+          <div class="px-2 py-1.5 flex items-center justify-between text-xs font-medium text-muted-foreground">
+            <span>Видимі стовпці</span>
+            <span class="tabular-nums">
+              {{ columns.visibleColumns.value.length }}/{{ columns.allAvailableColumns.value.length }}
+            </span>
+          </div>
+          <div class="max-h-[280px] overflow-y-auto overflow-x-hidden scrollbar-none py-1">
+            <draggable
+              :model-value="columns.visibleColumns.value"
+              item-key="key"
+              handle=".drag-handle"
+              class="space-y-0.5"
+              @end="onColReorder"
+            >
+              <template #item="{ element: col }">
+                <div
+                  class="flex items-center gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                  @click="columns.toggleCol(col.key)"
+                >
+                  <span class="drag-handle cursor-grab text-muted-foreground select-none">⠿</span>
+                  <Check class="size-4 shrink-0" />
+                  <span class="flex-1 truncate text-sm">{{ col.label }}</span>
+                </div>
+              </template>
+            </draggable>
             <div
-              class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group transition-colors"
+              v-for="col in columns.allAvailableColumns.value.filter((c) => !columns.isVisible(c.key))"
+              :key="col.key"
+              class="flex items-center gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
               @click="columns.toggleCol(col.key)"
             >
-              <span class="drag-handle cursor-grab text-muted-foreground/30 hover:text-muted-foreground select-none">⠿</span>
-              <div class="size-4 flex items-center justify-center">
-                <Check class="size-3.5 text-primary" />
-              </div>
-              <span class="flex-1 truncate text-sm font-medium">{{ col.label }}</span>
+              <span class="size-4" />
+              <Check class="size-4 shrink-0 invisible" />
+              <span class="flex-1 truncate text-sm text-muted-foreground">{{ col.label }}</span>
             </div>
-          </template>
-        </draggable>
-        <div
-          v-for="col in columns.allAvailableColumns.value.filter((c) => !columns.isVisible(c.key))"
-          :key="col.key"
-          class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group transition-colors"
-          @click="columns.toggleCol(col.key)"
-        >
-          <span class="size-4" />
-          <div class="size-4 flex items-center justify-center opacity-0 group-hover:opacity-30">
-            <Check class="size-3.5" />
           </div>
-          <span class="flex-1 truncate text-sm text-muted-foreground">{{ col.label }}</span>
-        </div>
-      </div>
-    </div>
-    </PopoverContent>
-  </Popover>
+        </TabsContent>
 
-  <!-- Group by -->
-  <Button variant="ghost" v-if="groupableFields.length" size="sm" class="h-9 px-2.5 gap-2 font-medium transition-all" :class="groupBy ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'" @click="toggleGrouping">
-    <Rows3 class="size-4" />
-    <span class="hidden lg:inline">{{ groupBy ? groupByField?.label : 'Групування' }}</span>
-  </Button>
-
-  <Popover v-model:open="isGroupingOpen">
-    <PopoverAnchor :reference="groupingAnchorEl ?? undefined" />
-    <PopoverContent class="w-auto p-0">
-    <div class="w-56 p-1">
-      <div class="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Групувати за</div>
-      <div class="h-px bg-border/40 my-1" />
-      <div
-        class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group transition-colors"
-        @click="emit('update:groupBy', null); isGroupingOpen = false"
-      >
-        <div class="size-4 flex items-center justify-center">
-          <Check class="size-3.5 text-primary" :class="groupBy === null ? 'opacity-100' : 'opacity-0'" />
-        </div>
-        <span class="text-sm font-medium">Без групування</span>
-      </div>
-      <div class="h-px bg-border/40 my-1" />
-      <div
-        v-for="f in groupableFields"
-        :key="f.fieldname"
-        class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group transition-colors"
-        @click="emit('update:groupBy', f.fieldname); isGroupingOpen = false"
-      >
-        <div class="size-4 flex items-center justify-center">
-          <Check class="size-3.5 text-primary" :class="groupBy === f.fieldname ? 'opacity-100' : 'opacity-0'" />
-        </div>
-        <span class="text-sm font-medium">{{ f.label }}</span>
-      </div>
-    </div>
-    </PopoverContent>
-  </Popover>
-
-  <!-- Sort -->
-  <Button variant="ghost" size="sm" class="h-9 px-2.5 gap-2 font-medium transition-all" :class="sortKey ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'" @click="toggleSorting">
-    <ArrowUpDown class="size-4" />
-    <span class="hidden lg:inline">{{ activeSortLabel ?? 'Сортування' }}</span>
-  </Button>
-
-  <Popover v-model:open="isSortingOpen">
-    <PopoverAnchor :reference="sortingAnchorEl ?? undefined" />
-    <PopoverContent class="w-auto p-0">
-    <div class="w-64 p-1">
-      <div class="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Сортувати за</div>
-      <div class="h-px bg-border/40 my-1" />
-      <div class="px-1 pb-1">
-        <div class="relative group">
-          <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
-          <input
-            v-model="sortSearch"
-            class="w-full rounded-md border border-border/60 bg-muted/40 px-2 py-1.5 pl-8 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30 transition-all"
-            placeholder="Пошук поля..."
-          />
-        </div>
-      </div>
-      <div class="h-px bg-border/40 my-1" />
-      <div
-        class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-        @click="emit('sort', ''); isSortingOpen = false"
-      >
-        <div class="size-4 flex items-center justify-center">
-          <Check class="size-3.5 text-primary" :class="!sortKey ? 'opacity-100' : 'opacity-0'" />
-        </div>
-        <span class="text-sm font-medium">За замовчуванням</span>
-      </div>
-      <div class="h-px bg-border/40 my-1" />
-      <div v-if="!filteredSortOptions.length" class="px-2 py-3 text-sm text-center text-muted-foreground/60">Нічого не знайдено</div>
-      <div class="max-h-[min(60vh,20rem)] overflow-y-auto pr-1">
-        <div
-          v-for="opt in filteredSortOptions"
-          :key="opt.key"
-          class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-          @click="emit('sort', opt.key); isSortingOpen = false"
-        >
-          <div class="size-4 flex items-center justify-center">
-            <Check class="size-3.5 text-primary" :class="sortKey === opt.key ? 'opacity-100' : 'opacity-0'" />
+        <!-- Group by -->
+        <TabsContent v-if="groupableFields.length" value="group" class="p-1">
+          <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">Групувати за</div>
+          <div
+            class="flex items-center gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
+            @click="emit('update:groupBy', null)"
+          >
+            <Check class="size-4 shrink-0" :class="{ invisible: groupBy }" />
+            <span class="text-sm">Без групування</span>
           </div>
-          <span class="flex-1 text-sm" :class="sortKey === opt.key ? 'font-semibold text-foreground' : ''">{{ opt.label }}</span>
-          <component
-            :is="sortOrder === 'asc' ? ArrowUp : ArrowDown"
-            v-if="sortKey === opt.key"
-            class="size-3.5 text-primary shrink-0"
-          />
-        </div>
-      </div>
-    </div>
+          <Separator class="my-1" />
+          <div class="max-h-[240px] overflow-y-auto scrollbar-none">
+            <div
+              v-for="f in groupableFields"
+              :key="f.fieldname"
+              class="flex items-center gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
+              @click="emit('update:groupBy', f.fieldname)"
+            >
+              <Check class="size-4 shrink-0" :class="{ invisible: groupBy !== f.fieldname }" />
+              <span class="text-sm">{{ f.label }}</span>
+            </div>
+          </div>
+        </TabsContent>
+
+        <!-- Sort -->
+        <TabsContent value="sort" class="p-1">
+          <div class="px-1 pb-1 pt-1">
+            <div class="relative">
+              <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+              <Input v-model="sortSearch" class="h-8 pl-8 text-sm" placeholder="Пошук поля..." />
+            </div>
+          </div>
+          <div
+            class="flex items-center gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
+            @click="emit('sort', '')"
+          >
+            <Check class="size-4 shrink-0" :class="{ invisible: sortKey }" />
+            <span class="text-sm">За замовчуванням</span>
+          </div>
+          <Separator class="my-1" />
+          <div v-if="!filteredSortOptions.length" class="px-2 py-3 text-sm text-center text-muted-foreground">Нічого не знайдено</div>
+          <div class="max-h-[220px] overflow-y-auto pr-1">
+            <div
+              v-for="opt in filteredSortOptions"
+              :key="opt.key"
+              class="flex items-center gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
+              @click="emit('sort', opt.key)"
+            >
+              <Check class="size-4 shrink-0" :class="{ invisible: sortKey !== opt.key }" />
+              <span class="flex-1 text-sm" :class="sortKey === opt.key ? 'font-medium' : ''">{{ opt.label }}</span>
+              <component
+                :is="sortOrder === 'asc' ? ArrowUp : ArrowDown"
+                v-if="sortKey === opt.key"
+                class="size-3.5 shrink-0"
+              />
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </PopoverContent>
   </Popover>
 </div>

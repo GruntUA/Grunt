@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { X } from '@lucide/vue'
 import type { DocField, DocType, FastFilter } from '@/types'
 
 const props = defineProps<{
@@ -63,91 +64,79 @@ function onInput(ff: FastFilter, value: string) {
         </label>
 
         <!-- Date input -->
-        <input
+        <Input
           v-if="ff.input_type === 'date'"
           :id="`ff-${ff.id}`"
           type="date"
-          :value="getValue(ff)"
-          @input="onInput(ff, ($event.target as HTMLInputElement).value)"
-          class="h-7 rounded-md border border-border/60 bg-background px-2 text-xs text-foreground shadow-sm
-                 focus-visible:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30
-               transition-all"
-             :class="props.variant === 'quick' ? 'h-9 w-[160px] rounded-lg bg-muted/30 placeholder:text-muted-foreground/80' : 'w-[140px]'"
-             :placeholder="props.variant === 'quick' ? getLabel(ff) : ''"
+          :model-value="getValue(ff)"
+          @update:model-value="(v: string | number) => onInput(ff, String(v))"
+          class="h-7 text-xs"
+          :class="props.variant === 'quick' ? 'h-9 w-[160px]' : 'w-[140px]'"
+          :placeholder="props.variant === 'quick' ? getLabel(ff) : ''"
         />
 
         <!-- Select input -->
-        <select
+        <Select
           v-else-if="ff.input_type === 'select'"
-          :id="`ff-${ff.id}`"
-          :value="getValue(ff)"
-          @change="onInput(ff, ($event.target as HTMLSelectElement).value)"
-          class="h-7 rounded-md border border-border/60 bg-background px-2 text-xs text-foreground shadow-sm
-                 focus-visible:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30
-                 transition-all"
-          :class="props.variant === 'quick' ? 'h-9 min-w-[160px] rounded-lg bg-muted/30' : ''"
+          :model-value="getValue(ff) || '__any__'"
+          @update:model-value="(v: unknown) => onInput(ff, v === '__any__' ? '' : String(v ?? ''))"
         >
-          <option value="">{{ props.variant === 'quick' ? getLabel(ff) : '— Будь-який —' }}</option>
-          <option v-for="opt in getSelectOptions(ff)" :key="opt" :value="opt">{{ opt }}</option>
-        </select>
+          <SelectTrigger :id="`ff-${ff.id}`" size="sm" class="h-7 text-xs" :class="props.variant === 'quick' ? 'h-9 min-w-[160px]' : ''">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__any__">{{ props.variant === 'quick' ? getLabel(ff) : '— Будь-який —' }}</SelectItem>
+            <SelectItem v-for="opt in getSelectOptions(ff)" :key="opt" :value="opt">{{ opt }}</SelectItem>
+          </SelectContent>
+        </Select>
 
         <!-- Number input -->
-        <input
+        <Input
           v-else-if="ff.input_type === 'number'"
           :id="`ff-${ff.id}`"
           type="number"
-          :value="getValue(ff)"
-          @input="onInput(ff, ($event.target as HTMLInputElement).value)"
-          class="h-7 rounded-md border border-border/60 bg-background px-2 text-xs text-foreground shadow-sm
-                 focus-visible:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30
-               transition-all"
-             :class="props.variant === 'quick' ? 'h-9 w-[140px] rounded-lg bg-muted/30 placeholder:text-muted-foreground/80' : 'w-[100px]'"
-             :placeholder="props.variant === 'quick' ? getLabel(ff) : ''"
+          :model-value="getValue(ff)"
+          @update:model-value="(v: string | number) => onInput(ff, String(v))"
+          class="h-7 text-xs"
+          :class="props.variant === 'quick' ? 'h-9 w-[140px]' : 'w-[100px]'"
+          :placeholder="props.variant === 'quick' ? getLabel(ff) : ''"
         />
 
         <!-- Checkbox -->
-        <input
+        <Checkbox
           v-else-if="ff.input_type === 'check'"
           :id="`ff-${ff.id}`"
-          type="checkbox"
-          :checked="getValue(ff) === '1'"
-          @change="onInput(ff, ($event.target as HTMLInputElement).checked ? '1' : '0')"
-          class="rounded border-border/60 accent-primary"
-          :class="props.variant === 'quick' ? 'size-5' : 'size-4'"
+          :model-value="getValue(ff) === '1'"
+          @update:model-value="(v: boolean | 'indeterminate') => onInput(ff, v === true ? '1' : '0')"
         />
 
         <!-- Text / link / fallback -->
-        <input
+        <Input
           v-else
           :id="`ff-${ff.id}`"
           type="text"
-          :value="getValue(ff)"
-          @input="onInput(ff, ($event.target as HTMLInputElement).value)"
-          class="h-7 rounded-md border border-border/60 bg-background px-2 text-xs text-foreground shadow-sm
-                 focus-visible:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30
-               transition-all"
-             :class="props.variant === 'quick' ? 'h-9 w-[160px] rounded-lg bg-muted/30 placeholder:text-muted-foreground/80' : 'w-[160px]'"
-             :placeholder="props.variant === 'quick' ? getLabel(ff) : '...'"
+          :model-value="getValue(ff)"
+          @update:model-value="(v: string | number) => onInput(ff, String(v))"
+          class="h-7 text-xs"
+          :class="props.variant === 'quick' ? 'h-9 w-[160px]' : 'w-[160px]'"
+          :placeholder="props.variant === 'quick' ? getLabel(ff) : '...'"
         />
 
         <!-- Clear button -->
-        <button
+        <Button
           v-if="getValue(ff)"
-          type="button"
-          class="text-muted-foreground hover:text-foreground transition-colors"
+          variant="ghost" size="icon" class="size-5"
           @click="onInput(ff, '')"
           :title="`Очистити «${getLabel(ff)}»`"
         >
-          <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M18 6 6 18M6 6l12 12"/>
-          </svg>
-        </button>
+          <X class="size-3" />
+        </Button>
       </div>
 
       <!-- Separator between filters -->
-      <div
+      <Separator
         v-if="props.variant !== 'quick' && activeDefs.indexOf(ff) < activeDefs.length - 1"
-        class="h-4 w-px bg-border/40"
+        orientation="vertical" class="h-4"
       />
     </template>
   </div>

@@ -108,22 +108,20 @@ const menuItems = computed(() => {
         {{ dt?.label ?? doctype }}
       </h2>
       <div class="hidden sm:flex items-center">
-        <span v-if="meta" class="px-2 py-0.5 rounded-md bg-muted/50 text-xs font-semibold tracking-wider tabular-nums text-muted-foreground/80 border border-border/40">
-          {{ meta.total }}
-        </span>
-        <span v-else class="w-8 h-4 bg-muted/50 animate-pulse rounded-md"></span>
+        <Badge v-if="meta" variant="secondary" class="tabular-nums">{{ meta.total }}</Badge>
+        <Skeleton v-else class="w-8 h-4" />
       </div>
     </div>
     <div class="flex items-center gap-2.5">
       <!-- Refresh button -->
-      <Button variant="outline" class="text-foreground" :title="t('Refresh')" @click="emit('refresh')">
+      <Button variant="outline" :title="t('Refresh')" @click="emit('refresh')">
         <RefreshCw class="size-4" :class="{ 'animate-spin': isFetching }" />
       </Button>
 
       <!-- Actions menu -->
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
-          <Button variant="outline" class="text-foreground hover:bg-muted/80">
+          <Button variant="outline">
             <MoreHorizontal class="size-4" />
           </Button>
         </DropdownMenuTrigger>

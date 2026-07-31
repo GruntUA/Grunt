@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, nextTick } from 'vue'
-import { FileSpreadsheet, ChevronUp, ChevronDown } from '@lucide/vue'
+import { FileSpreadsheet, ChevronUp, ChevronDown, ArrowUpDown } from '@lucide/vue'
 import type { DocField, DocTypeStatusConfig } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
@@ -40,7 +40,7 @@ function getRowDocId(row: Record<string, unknown>): string | null {
 // ── Inline editing ────────────────────────────────────────────────────────
 interface InlineEdit { rowId: string; field: string; value: string }
 const inlineEdit = ref<InlineEdit | null>(null)
-const inlineInput = ref<HTMLInputElement | null>(null)
+const inlineInput = ref<{ focus: () => void } | null>(null)
 
 const INLINE_SKIP = new Set(['Check', 'Select', 'Date', 'Datetime', 'Image', 'Attach', 'RichText', 'JSON', 'Code', 'Signature', 'Link', 'Rating', 'Icon'])
 
@@ -100,23 +100,24 @@ function isAllSelected(): boolean {
   <Table class="w-full text-sm">
     <TableHeader v-if="!hideHeader" class="bg-muted/30">
       <TableRow class="hover:bg-transparent border-0">
-        <TableHead style="width: 3rem" class="px-6 py-4 border-b border-border/40">
+        <TableHead style="width: 3rem" class="px-3 py-2.5 border-b border-border/40">
           <div class="flex items-center justify-center w-full">
             <Checkbox :model-value="isAllSelected()" @update:model-value="emit('selectAll')" />
           </div>
         </TableHead>
         <TableHead
           v-for="col in columns" :key="col.key"
-          class="px-6 py-4 text-xs font-semibold uppercase tracking-[0.2em] border-b border-border/40 text-left transition-all duration-200"
-          :class="sortKey === col.key ? 'text-primary' : 'text-muted-foreground/50 hover:text-foreground/80'"
+          class="px-3 py-2.5 text-xs font-semibold uppercase tracking-widest border-b border-border/40 text-left transition-colors"
+          :class="sortKey === col.key ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80'"
           :role="col.sortable ? 'button' : undefined"
           @click="col.sortable && emit('sort', col.key)"
         >
           <span class="inline-flex items-center gap-1" :class="col.sortable && 'cursor-pointer select-none'">
             {{ col.label }}
-            <template v-if="col.sortable && sortKey === col.key">
-              <ChevronUp v-if="sortOrder === 'asc'" class="size-3" />
-              <ChevronDown v-else class="size-3" />
+            <template v-if="col.sortable">
+              <ChevronUp v-if="sortKey === col.key && sortOrder === 'asc'" class="size-3" />
+              <ChevronDown v-else-if="sortKey === col.key" class="size-3" />
+              <ArrowUpDown v-else class="size-3 opacity-40" />
             </template>
           </span>
         </TableHead>
@@ -127,7 +128,7 @@ function isAllSelected(): boolean {
       <!-- Skeleton loading -->
       <template v-if="isLoading && !rows.length">
         <TableRow v-for="i in 8" :key="i" class="border-b border-border/20 last:border-0">
-          <TableCell :colspan="columns.length + 1" class="px-6 py-4">
+          <TableCell :colspan="columns.length + 1" class="px-3 py-2.5">
             <Skeleton class="h-[1.5rem]" />
           </TableCell>
         </TableRow>
@@ -146,14 +147,14 @@ function isAllSelected(): boolean {
       <!-- Rows -->
       <TableRow
         v-for="(row, ri) in rows" :key="getRowDocId(row) ?? ri"
-        class="transition-all duration-300 cursor-pointer border-b border-border/20 last:border-0 hover:bg-primary/[0.04]"
+        class="cursor-pointer border-b border-border/20 last:border-0 transition-colors hover:bg-primary/5"
         :class="[
-          { 'bg-primary/[0.05] hover:bg-primary/[0.08]': selectedIds.includes(getRowDocId(row) ?? '') },
+          { 'bg-primary/5 hover:bg-primary/10': selectedIds.includes(getRowDocId(row) ?? '') },
           { 'ring-inset ring-2 ring-primary/60 z-20 relative bg-background': activeIndex === ri },
         ]"
         @click="emit('rowClick', row)"
       >
-        <TableCell class="relative px-6 py-4 text-sm border-b border-border/10">
+        <TableCell class="relative px-3 py-2.5 text-sm border-b border-border/10">
           <div v-if="selectedIds.includes(getRowDocId(row) ?? '')"
             class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full pointer-events-none" />
           <Checkbox
@@ -163,12 +164,11 @@ function isAllSelected(): boolean {
           />
         </TableCell>
 
-        <TableCell v-for="(col, ci) in columns" :key="col.key" class="px-6 py-4 text-sm border-b border-border/10 max-w-xs whitespace-normal wrap-break-word">
+        <TableCell v-for="(col, ci) in columns" :key="col.key" class="px-3 py-2.5 text-sm border-b border-border/10 max-w-xs whitespace-normal wrap-break-word">
           <div @dblclick.stop="ci > 0 && startEdit(row, col.key, getFieldType(col.key))">
             <!-- Inline edit input -->
             <template v-if="isEditing(getRowDocId(row) ?? '', col.key)">
-              <input ref="inlineInput" v-model="inlineEdit!.value"
-                class="w-full rounded-md border border-primary px-2 py-1 text-sm bg-background shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow"
+              <Input ref="inlineInput" v-model="inlineEdit!.value" class="h-8 border-primary"
                 @blur="commitEdit" @keydown.enter.prevent="commitEdit" @keydown.escape.prevent="cancelEdit"
                 @click.stop />
             </template>

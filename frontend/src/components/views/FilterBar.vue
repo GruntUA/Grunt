@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField, ActiveFilter } from '@/types'
-import { Filter, X, Bookmark, ChevronDown, Trash2, Pencil } from '@lucide/vue'
+import { Filter, X, Bookmark, ChevronDown, ChevronLeft, Trash2, Pencil } from '@lucide/vue'
 import { getFilterConfig } from '@/core/filterRegistry'
 
 const props = defineProps<{
@@ -175,15 +175,15 @@ function togglePresets(event: Event) {
       v-for="(f, i) in activeFilters"
       :key="i"
       variant="secondary"
-      class="gap-0 pr-1 max-w-[240px] group/chip pl-0 overflow-hidden shadow-sm border-border/40"
+      class="gap-0 pr-1 max-w-[240px] group/chip pl-0 overflow-hidden"
     >
       <button
         type="button"
-        class="flex items-center gap-1.5 pl-2 pr-1.5 py-0.5 hover:bg-primary/10 rounded-l-full transition-colors min-w-0"
+        class="flex items-center gap-1.5 pl-2 pr-1.5 py-0.5 hover:bg-accent rounded-l-full transition-colors min-w-0"
         :title="'Редагувати фільтр'"
         @click="startEdit(i, $event)"
       >
-        <Pencil class="size-2.5 shrink-0 opacity-0 group-hover/chip:opacity-60 transition-opacity text-primary" />
+        <Pencil class="size-2.5 shrink-0 opacity-0 group-hover/chip:opacity-60 transition-opacity" />
         <span class="truncate text-xs font-medium">{{ chipLabel(f) }}</span>
       </button>
       <button
@@ -196,7 +196,7 @@ function togglePresets(event: Event) {
     </Badge>
 
     <!-- Filter Popover -->
-    <Button variant="ghost" size="sm" class="h-7 text-xs border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all font-medium" @click="toggleFilter">
+    <Button variant="outline" size="sm" class="h-7 border-dashed text-xs" @click="toggleFilter">
       <Filter class="size-3 mr-1" />
       {{ t('Filter') }}
     </Button>
@@ -211,13 +211,12 @@ function togglePresets(event: Event) {
             {{ editingIndex !== null ? 'Змінити поле фільтру' : 'Поле для фільтрації' }}
           </p>
           <div class="flex flex-wrap gap-1 max-h-48 overflow-y-auto p-1 scrollbar-none">
-            <button
+            <Button
               v-for="f in filterableFields"
               :key="f.fieldname"
-              type="button"
-              class="px-2.5 py-1.5 text-xs rounded-lg border border-border/60 bg-muted/20 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all font-medium"
+              type="button" variant="outline" size="sm"
               @click="pickField(f)"
-            >{{ f.label }}</button>
+            >{{ f.label }}</Button>
           </div>
           <p v-if="!filterableFields.length" class="text-xs text-muted-foreground mt-2 italic px-2">Немає полів з in_filter</p>
         </template>
@@ -226,32 +225,28 @@ function togglePresets(event: Event) {
         <template v-else>
           <!-- Header -->
           <div class="flex items-center gap-2 mb-3 bg-muted/30 p-2 rounded-lg border border-border/40">
-            <button
-              type="button"
-              class="size-6 p-0 border-none bg-transparent flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            <Button
+              variant="ghost" size="icon" class="size-6"
               @click="pickedField = null; pickedValue = ''; pickedDisplayValue = ''"
             >
-              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
+              <ChevronLeft />
+            </Button>
             <span class="text-sm font-semibold text-foreground truncate">{{ pickedField.label }}</span>
             <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 ml-auto">{{ pickedField.fieldtype }}</span>
           </div>
 
           <div class="space-y-4 p-1">
             <!-- Operator row -->
-            <div class="flex gap-1.5 flex-wrap">
-              <button
+            <ToggleGroup
+              type="single" variant="outline" size="sm" class="flex-wrap justify-start"
+              :model-value="pickedOp" @update:model-value="(v: unknown) => v && (pickedOp = v as string)"
+            >
+              <ToggleGroupItem
                 v-for="op in getFilterConfig(pickedField.fieldtype).operators"
-                :key="op"
-                type="button"
-                class="px-2.5 py-1.5 text-xs rounded-lg border transition-all font-semibold font-mono shadow-sm"
-                :class="pickedOp === op
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border/60 bg-card hover:border-primary/40 text-muted-foreground'"
+                :key="op" :value="op" class="font-mono"
                 :title="op === 'child_of' ? 'Включаючи всі підрозділи' : undefined"
-                @click="pickedOp = op"
-              >{{ opLabel(op) }}</button>
-            </div>
+              >{{ opLabel(op) }}</ToggleGroupItem>
+            </ToggleGroup>
 
             <!-- Value input -->
             <div class="bg-muted/10 p-2 rounded-lg border border-border/40">
@@ -267,7 +262,7 @@ function togglePresets(event: Event) {
                 />
             </div>
 
-            <Button size="sm" class="w-full h-10 shadow-md" :disabled="!pickedValue" @click="applyFilter">
+            <Button size="sm" class="w-full" :disabled="!pickedValue" @click="applyFilter">
                 {{ editingIndex !== null ? 'Зберегти зміни' : t('Apply') }}
             </Button>
           </div>
@@ -283,48 +278,45 @@ function togglePresets(event: Event) {
           <div class="flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-300">
             <Input
               v-model="presetNameInput"
-              class="h-7 text-xs w-32 rounded-lg"
+              class="h-7 text-xs w-32"
               placeholder="Назва пресету"
               autofocus
               @keydown="(e: KeyboardEvent) => { if (e.key === 'Enter') savePreset(); else if (e.key === 'Escape') showSaveName = false }"
             />
-            <Button size="sm" class="h-7 px-2.5 text-xs shadow-sm" @click="savePreset">OK</Button>
-            <button type="button" class="text-muted-foreground hover:text-foreground p-1 transition-colors" @click="showSaveName = false">
+            <Button size="sm" class="h-7 px-2.5 text-xs" @click="savePreset">OK</Button>
+            <Button variant="ghost" size="icon" class="size-7" @click="showSaveName = false">
               <X class="size-3.5" />
-            </button>
+            </Button>
           </div>
         </template>
-        <Button variant="ghost" v-else size="sm" class="h-7 text-xs text-muted-foreground hover:text-foreground font-medium transition-all" @click="showSaveName = true">
+        <Button variant="ghost" v-else size="sm" class="h-7 text-xs text-muted-foreground hover:text-foreground" @click="showSaveName = true">
           <Bookmark class="size-3 mr-1" />
           {{ t('Save') }}
         </Button>
       </template>
 
-      <Button variant="ghost" v-if="savedPresets.length" size="sm" class="h-7 text-xs text-muted-foreground hover:text-foreground font-medium transition-all" @click="togglePresets">
+      <Button variant="ghost" v-if="savedPresets.length" size="sm" class="h-7 text-xs text-muted-foreground hover:text-foreground" @click="togglePresets">
         Пресети
         <ChevronDown class="size-3 ml-1" />
       </Button>
 
       <Popover v-model:open="isPresetsOpen">
         <PopoverAnchor :reference="presetsAnchorEl ?? undefined" />
-        <PopoverContent class="w-auto p-0">
-        <div class="w-60 p-1">
-          <div class="px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Збережені фільтри</div>
-          <div class="h-px bg-border/40 my-1" />
-          
+        <PopoverContent class="w-60 p-1">
+          <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">Збережені фільтри</div>
+          <Separator class="my-1" />
+
           <div v-for="preset in savedPresets" :key="preset.name"
-            class="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer group/item transition-all"
+            class="flex items-center justify-between gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer group/item"
             @click="applyPreset(preset)">
-            <span class="text-xs font-semibold truncate flex-1">{{ preset.name }}</span>
-            <button
-              type="button"
-              class="size-6 flex items-center justify-center rounded-md opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all shadow-sm"
+            <span class="text-xs font-medium truncate flex-1">{{ preset.name }}</span>
+            <Button
+              variant="ghost" size="icon" class="size-6 opacity-0 group-hover/item:opacity-100 hover:text-destructive"
               @click.stop="deletePreset(preset.name)"
             >
               <Trash2 class="size-3.5" />
-            </button>
+            </Button>
           </div>
-        </div>
         </PopoverContent>
       </Popover>
     </template>

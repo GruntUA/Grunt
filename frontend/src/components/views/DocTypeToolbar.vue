@@ -83,20 +83,15 @@ const toolbarControlsEvents = computed(() =>
 </script>
 
 <template>
-  <div class="flex flex-col gap-0 bg-muted/30 rounded-lg ring-1 ring-border/40 mb-2">
+  <div class="flex flex-col gap-0 mb-2">
     <!-- Main row: search + filters + view-controls + view switcher -->
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-1.5">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
 
       <!-- Left: search + fast filters + active filters + reset -->
       <div class="flex flex-1 items-center gap-2">
-        <div class="relative flex-1 max-w-[320px] group">
-          <Search
-            class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
-          <input
-            v-model="localSearch"
-            class="flex h-9 w-full rounded-lg border border-border/60 bg-background px-3 py-1 pl-9 text-sm text-foreground shadow-sm transition-all placeholder:text-muted-foreground/70 focus-visible:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30"
-            :placeholder="t('Search...')"
-          />
+        <div class="relative w-full max-w-[260px]">
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input v-model="localSearch" class="h-8 pl-9" :placeholder="t('Search...')" />
         </div>
         <FastFilterBar
           v-if="dt && fastFilterDefs.length && ['list', 'tree'].includes(viewMode)"
@@ -123,38 +118,25 @@ const toolbarControlsEvents = computed(() =>
       </div>
 
       <!-- Right: view toolbar controls + view switcher -->
-      <div class="flex items-center gap-2 px-1">
+      <div class="flex items-center gap-2">
 
         <!-- Active view's toolbar controls (columns, grouping, sort, etc.) -->
-        <div
-          v-if="toolbarControlsComponent"
-          class="flex items-center gap-2 pr-1 border-r border-border/60 mr-1"
-        >
-          <component
-            :is="toolbarControlsComponent"
-            v-bind="{ ...toolbarControlsProps, ...toolbarControlsEvents }"
-          />
-        </div>
+        <template v-if="toolbarControlsComponent">
+          <div class="flex items-center gap-2">
+            <component
+              :is="toolbarControlsComponent"
+              v-bind="{ ...toolbarControlsProps, ...toolbarControlsEvents }"
+            />
+          </div>
+          <Separator orientation="vertical" class="data-[orientation=vertical]:h-6" />
+        </template>
 
         <!-- View mode switcher — driven by viewRegistry -->
-        <div class="flex items-center bg-background/50 rounded-lg p-1 ring-1 ring-border/40">
-          <button
-            v-for="(def, i) in availableViews"
-            :key="def.type"
-            type="button"
-            class="size-8 flex items-center justify-center rounded-md transition-colors"
-            :class="[
-              i > 0 ? 'ml-1' : '',
-              viewMode === def.type
-                ? 'bg-background shadow-sm text-primary ring-1 ring-border/60'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
-            ]"
-            :title="def.label"
-            @click="emit('update:viewMode', def.type)"
-          >
-            <component :is="def.icon" class="size-4" />
-          </button>
-        </div>
+        <ToggleGroup type="single" variant="outline" size="sm" :model-value="viewMode" @update:model-value="(v: unknown) => v && emit('update:viewMode', v as string)">
+          <ToggleGroupItem v-for="def in availableViews" :key="def.type" :value="def.type" :title="def.label" :aria-label="def.label">
+            <component :is="def.icon" />
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
     </div>
 
@@ -166,7 +148,7 @@ const toolbarControlsEvents = computed(() =>
       :scope="['tree'].includes(viewMode) ? 'tree' : 'list'"
       :model-value="fastFilterValues"
       variant="default"
-      class="border-t border-border/30 px-2"
+      class="border-t border-border/30 pt-2"
       @update:model-value="emit('update:fastFilterValues', $event)"
     />
   </div>

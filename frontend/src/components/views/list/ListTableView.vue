@@ -102,17 +102,6 @@ watch(() => sentinelEl.value, setupObserver)
       @update="(field, value) => emit('update', field, value)"
     />
 
-    <!-- Total count — always visible above the table -->
-    <div v-if="meta" class="flex items-center gap-2 mb-2 px-1">
-      <span class="text-xs font-semibold text-muted-foreground/60 uppercase tracking-widest">Всього:</span>
-      <Badge variant="secondary" class="!text-xs !font-semibold !px-2 !py-0.5">
-        {{ meta.total }}
-      </Badge>
-      <span v-if="rows.length < meta.total" class="text-xs text-muted-foreground/50">
-        (завантажено {{ rows.length }})
-      </span>
-    </div>
-
     <!-- List Content -->
     <div>
       <!-- Grouped View -->

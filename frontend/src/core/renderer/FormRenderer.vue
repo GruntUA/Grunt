@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { computed, shallowRef, type Component } from 'vue'
+import { computed, onMounted, onUnmounted, ref, type Component } from 'vue'
 import type { DocField, DocType } from '@/types'
 import { parseLayout } from '@/core/composables/useFormLayout'
 import type { LayoutSection, LayoutTab } from '@/core/composables/useFormLayout'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { initials } from '@/core/composables/usePresence'
-import { ChevronDown } from '@lucide/vue'
+import { ChevronDown, ChevronLeft, ChevronRight } from '@lucide/vue'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import AppIcon from '@/components/AppIcon.vue'
 import FieldRenderer from './FieldRenderer.vue'
 import DesignerTab from '../../pages/studio/builder/DesignerTab.vue'
 import ViewsTab from '../../pages/studio/builder/tabs/ViewsTab.vue'
@@ -40,17 +41,36 @@ const currentTab = computed({
   set: (val) => emit('update:activeTab', val)
 })
 
-const lucideIcons = shallowRef<Record<string, Component>>({})
-let _iconsLoaded = false
-function getTabIcon(name: string | undefined): Component | null {
-  if (!name) return null
-  if (!_iconsLoaded) {
-    _iconsLoaded = true
-    import('@lucide/vue').then((lib) => { lucideIcons.value = lib as unknown as Record<string, Component> })
-  }
-  const pascal = name.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('')
-  return (lucideIcons.value[pascal] ?? null) as Component | null
+// Reka-ui focuses the active TabsTrigger on mount, which can silently auto-scroll
+// the (overflow-x-auto but visually scrollbar-less) tab strip past the first tabs
+// when there are enough of them to overflow. Force it back to the start, and
+// surface scroll-arrow buttons whenever the tabs don't all fit.
+const tabsListRef = ref<{ $el: HTMLElement } | null>(null)
+const canScrollLeft = ref(false)
+const canScrollRight = ref(false)
+let tabsResizeObserver: ResizeObserver | null = null
+
+function updateTabScrollState() {
+  const el = tabsListRef.value?.$el
+  if (!el) return
+  canScrollLeft.value = el.scrollLeft > 0
+  canScrollRight.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 1
 }
+
+function scrollTabsBy(delta: number) {
+  tabsListRef.value?.$el.scrollBy({ left: delta, behavior: 'smooth' })
+}
+
+onMounted(() => {
+  const el = tabsListRef.value?.$el
+  if (!el) return
+  el.scrollTo({ left: 0 })
+  updateTabScrollState()
+  tabsResizeObserver = new ResizeObserver(updateTabScrollState)
+  tabsResizeObserver.observe(el)
+})
+
+onUnmounted(() => tabsResizeObserver?.disconnect())
 
 const customTabComponents: Record<string, Component> = {
   DesignerTab,
@@ -64,7 +84,6 @@ function getCustomTabComponent(name: string | undefined): Component | null {
 function hasCustomTabComponent(name: string | undefined): boolean {
   return !!(name && customTabComponents[name])
 }
-
 
 function update(fieldname: string, val: unknown) {
   emit('update:modelValue', { ...props.modelValue, [fieldname]: val })
@@ -104,128 +123,75 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
 </script>
 
 <template>
-  <Tabs v-if="hasTabs" v-model="currentTab" class="w-full overflow-hidden">
-    <!-- Tab navigation -->
-    <div class="relative mb-4">
-      <TabsList
-        class="h-auto w-full justify-start rounded-none border-b border-border bg-transparent px-2 overflow-x-auto scrollbar-none sticky top-0 z-10 bg-background/95"
-      >
-        <TabsTrigger
-          v-for="(tab, ti) in layout"
-          :key="ti"
-          :value="tab.label || 'Main'"
-          class="flex items-center gap-1.5 px-3 h-9 whitespace-nowrap rounded-t-md rounded-b-none border-0 shadow-none transition-colors duration-150 data-[state=active]:bg-muted/60 data-[state=active]:border-b-2 data-[state=active]:border-primary hover:bg-muted/30"
-        >
-          <component
-            v-if="tab._field?.icon && getTabIcon(tab._field?.icon)"
-            :is="getTabIcon(tab._field?.icon)"
-            class="size-3.5 shrink-0"
-          />
-          <span class="text-sm font-semibold tracking-wide">{{ tab.label || 'Main' }}</span>
+  <Tabs v-model="currentTab" class="w-full overflow-hidden">
+    <!-- Tab navigation (hidden when there's nothing worth switching between) -->
+    <div v-if="hasTabs" class="flex items-center gap-1 mb-4">
+      <Button v-if="canScrollLeft" variant="ghost" size="icon" class="size-7 shrink-0" @click="scrollTabsBy(-160)">
+        <ChevronLeft class="size-4" />
+      </Button>
+      <TabsList ref="tabsListRef" class="flex-1 min-w-0 justify-start overflow-x-auto scrollbar-none" @scroll="updateTabScrollState">
+        <TabsTrigger v-for="(tab, ti) in layout" :key="ti" :value="tab.label || 'Main'" class="flex-none px-3">
+          <AppIcon v-if="tab._field?.icon" :icon="tab._field.icon" class="size-3.5 shrink-0" />
+          <span>{{ tab.label || 'Main' }}</span>
         </TabsTrigger>
       </TabsList>
-      <div class="pointer-events-none absolute inset-y-0 left-0 w-8 bg-background/95" style="mask-image: linear-gradient(to right, black, transparent)" />
-      <div class="pointer-events-none absolute inset-y-0 right-0 w-8 bg-background/95" style="mask-image: linear-gradient(to left, black, transparent)" />
+      <Button v-if="canScrollRight" variant="ghost" size="icon" class="size-7 shrink-0" @click="scrollTabsBy(160)">
+        <ChevronRight class="size-4" />
+      </Button>
     </div>
 
     <!-- Sections -->
     <TabsContent v-for="(tab, ti) in layout" :key="ti" :value="tab.label || 'Main'"
       class="mt-0 flex flex-col gap-4 focus-visible:ring-0">
-        <!-- Support for custom tab components (e.g. Studio Designer) -->
-        <template v-if="hasCustomTabComponent(tab._field?.experimental_component)">
-          <component :is="getCustomTabComponent(tab._field?.experimental_component)" :doctype="doctype"
-            :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" />
-        </template>
-        <template v-else>
-          <div v-for="(section, si) in getVisibleSections(tab)" :key="si" :class="[section.label ? 'form-section' : '', 'mb-3 last:mb-0']">
+      <!-- Support for custom tab components (e.g. Studio Designer) -->
+      <template v-if="hasCustomTabComponent(tab._field?.experimental_component)">
+        <component :is="getCustomTabComponent(tab._field?.experimental_component)" :doctype="doctype"
+          :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" />
+      </template>
+      <template v-else>
+        <div v-for="(section, si) in getVisibleSections(tab)" :key="si"
+          :class="[section.label ? 'form-section' : '', 'mb-3 last:mb-0']">
 
-            <!-- Section header (Frappe-style card header) -->
-            <div v-if="section.label" class="form-section-header"
-              :class="{ 'cursor-pointer select-none': section.collapsible }" @click="toggleSection(section)">
-              <ChevronDown v-if="section.collapsible" class="size-3.5 text-muted-foreground transition-transform duration-200"
-                :class="{ '-rotate-90': section.collapsed }" />
-              <span>{{ section.label }}</span>
-            </div>
+          <!-- Section header (Frappe-style card header) -->
+          <div v-if="section.label" class="form-section-header"
+            :class="{ 'cursor-pointer select-none': section.collapsible }" @click="toggleSection(section)">
+            <ChevronDown v-if="section.collapsible"
+              class="size-3.5 text-muted-foreground transition-transform duration-200"
+              :class="{ '-rotate-90': section.collapsed }" />
+            <span>{{ section.label }}</span>
+          </div>
 
-            <!-- Fields layout -->
-            <Transition name="section">
-              <div v-if="!section.collapsed" :class="section.label ? 'form-section-body' : ''"
-                class="grid grid-cols-1 gap-y-5 md:gap-x-5"
-                :style="section.columns.length > 1 ? `grid-template-columns: repeat(${Math.min(section.columns.length, 4)}, minmax(0, 1fr))` : ''">
-                <div v-for="(col, ci) in section.columns" :key="ci" class="flex-1 flex flex-col gap-3 min-w-0">
-                  <div v-for="f in col" v-show="overrides?.[f.fieldname] !== false" :key="f.fieldname" class="relative group"
-                    @focusin="emit('field-focus', f.fieldname)" @focusout="emit('field-blur', f.fieldname)">
+          <!-- Fields layout -->
+          <Transition name="section">
+            <div v-if="!section.collapsed" :class="section.label ? 'form-section-body' : ''"
+              class="grid grid-cols-1 gap-y-5 md:gap-x-5"
+              :style="section.columns.length > 1 ? `grid-template-columns: repeat(${Math.min(section.columns.length, 4)}, minmax(0, 1fr))` : ''">
+              <div v-for="(col, ci) in section.columns" :key="ci" class="flex-1 flex flex-col gap-3 min-w-0">
+                <div v-for="f in col" v-show="overrides?.[f.fieldname] !== false" :key="f.fieldname"
+                  class="relative group" @focusin="emit('field-focus', f.fieldname)"
+                  @focusout="emit('field-blur', f.fieldname)">
 
-                    <!-- Field lock badge -->
-                    <div v-if="fieldLocks?.[f.fieldname]"
-                      class="mb-1 flex items-center gap-1 self-start rounded-full px-2 py-0.5 text-xs font-semibold text-white shadow-sm ring-2 ring-background"
-                      :style="{ backgroundColor: fieldLocks[f.fieldname].color }">
-                      <span class="opacity-80">{{ initials(fieldLocks[f.fieldname].full_name) }}</span>
-                      <span>editing...</span>
-                    </div>
-
-                    <FieldRenderer
-                      :field="mergedField(f)"
-                      :model-value="modelValue[f.fieldname]"
-                      :disabled="disabled || f.read_only || !!fieldLocks?.[f.fieldname]" :error="errors?.[f.fieldname]"
-                      :doc-values="modelValue" @update:model-value="update(f.fieldname, $event)"
-                      @create-new="(doctype, preset, fieldname) => emit('create-new', doctype, preset, fieldname)"
-                      @table-selection-change="(fieldname, rowNames) => emit('table-selection-change', { fieldname, rowNames })" />
+                  <!-- Field lock badge -->
+                  <div v-if="fieldLocks?.[f.fieldname]"
+                    class="mb-1 flex items-center gap-1 self-start rounded-full px-2 py-0.5 text-xs font-semibold text-white shadow-sm ring-2 ring-background"
+                    :style="{ backgroundColor: fieldLocks[f.fieldname].color }">
+                    <span class="opacity-80">{{ initials(fieldLocks[f.fieldname].full_name) }}</span>
+                    <span>editing...</span>
                   </div>
+
+                  <FieldRenderer :field="mergedField(f)" :model-value="modelValue[f.fieldname]"
+                    :disabled="disabled || f.read_only || !!fieldLocks?.[f.fieldname]" :error="errors?.[f.fieldname]"
+                    :doc-values="modelValue" @update:model-value="update(f.fieldname, $event)"
+                    @create-new="(doctype, preset, fieldname) => emit('create-new', doctype, preset, fieldname)"
+                    @table-selection-change="(fieldname, rowNames) => emit('table-selection-change', { fieldname, rowNames })" />
                 </div>
               </div>
-            </Transition>
-          </div>
-        </template>
+            </div>
+          </Transition>
+        </div>
+      </template>
     </TabsContent>
   </Tabs>
-
-  <!-- Non-tabbed layout fallback (or single tab with no label) -->
-  <template v-else v-for="(tab, ti) in layout" :key="ti">
-    <div class="flex flex-col gap-4">
-      <div v-for="(section, si) in getVisibleSections(tab)" :key="si"
-        :class="[section.label ? 'form-section' : '', 'mb-3 last:mb-0']">
-        <!-- ... same content as inside TabPanel above ... -->
-        <div v-if="section.label" class="form-section-header"
-          :class="{ 'cursor-pointer select-none': section.collapsible }"
-          @click="toggleSection(section)">
-          <ChevronDown v-if="section.collapsible"
-            class="size-3.5 text-muted-foreground transition-transform duration-200"
-            :class="{ '-rotate-90': section.collapsed }" />
-          <span>{{ section.label }}</span>
-        </div>
-
-        <Transition name="section">
-          <div v-if="!section.collapsed"
-            :class="section.label ? 'form-section-body' : ''"
-            class="grid grid-cols-1 gap-y-5 md:gap-x-5"
-            :style="section.columns.length > 1 ? `grid-template-columns: repeat(${Math.min(section.columns.length, 4)}, minmax(0, 1fr))` : ''">
-            <div v-for="(col, ci) in section.columns" :key="ci" class="flex-1 flex flex-col gap-3 min-w-0">
-              <div v-for="f in col" v-show="overrides?.[f.fieldname] !== false" :key="f.fieldname"
-                class="relative group" @focusin="emit('field-focus', f.fieldname)"
-                @focusout="emit('field-blur', f.fieldname)">
-                <div v-if="fieldLocks?.[f.fieldname]"
-                  class="mb-1 flex items-center gap-1 self-start rounded-full px-2 py-0.5 text-xs font-semibold text-white shadow-sm ring-2 ring-background"
-                  :style="{ backgroundColor: fieldLocks[f.fieldname].color }">
-                  <span class="opacity-80">{{ initials(fieldLocks[f.fieldname].full_name) }}</span>
-                  <span>editing...</span>
-                </div>
-                <FieldRenderer
-                  :field="mergedField(f)"
-                  :model-value="modelValue[f.fieldname]"
-                  :disabled="disabled || f.read_only || !!fieldLocks?.[f.fieldname]" :error="errors?.[f.fieldname]"
-                  :doc-values="modelValue"
-                  @update:model-value="update(f.fieldname, $event)"
-                  @create-new="(doctype, preset, fieldname) => emit('create-new', doctype, preset, fieldname)"
-                  @table-selection-change="(fieldname, rowNames) => emit('table-selection-change', { fieldname, rowNames })"
-                />
-              </div>
-            </div>
-          </div>
-        </Transition>
-      </div>
-    </div>
-  </template>
 </template>
 
 <style scoped>
@@ -251,6 +217,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
