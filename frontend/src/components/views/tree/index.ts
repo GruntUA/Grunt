@@ -25,6 +25,7 @@ const def: ViewDefinition = {
     fastFilterDefs: ctx.fastFilterDefs,
     fastFilterValues: ctx.fastFilterValues,
     activeFilters: ctx.activeFilters,
+    refreshKey: ctx.refreshKey,
   }),
 
   mountEvents: (ctx) => ({

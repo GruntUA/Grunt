@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { WorkspaceLink } from '@/core/api/workspace'
-import { Plus, Star, StarOff } from '@lucide/vue'
+import { Plus } from '@lucide/vue'
 import AppIcon from '@/components/AppIcon.vue'
 import { cn } from '@/lib/utils'
 
@@ -59,39 +59,6 @@ function createNew(e: Event) {
   router.push(`/${props.workspaceName}/${props.item.link_to}/new`)
 }
 
-function getPinKey(): string {
-  return `${props.workspaceName}:${props.item.type}:${props.item.link_to}`
-}
-
-const pinUpdateSignal = ref(0)
-
-const pinned = computed(() => {
-  pinUpdateSignal.value
-  try {
-    const list = JSON.parse(localStorage.getItem('grunt_sidebar_pinned') || '[]') as string[]
-    return list.includes(getPinKey())
-  } catch { return false }
-})
-
-function syncPinned() { pinUpdateSignal.value++ }
-
-onMounted(() => window.addEventListener('grunt_sidebar_pinned_changed', syncPinned))
-onUnmounted(() => window.removeEventListener('grunt_sidebar_pinned_changed', syncPinned))
-
-function togglePin(e: Event) {
-  e.stopPropagation()
-  try {
-    const key = getPinKey()
-    const list = JSON.parse(localStorage.getItem('grunt_sidebar_pinned') || '[]') as string[]
-    const idx = list.indexOf(key)
-    if (idx >= 0) list.splice(idx, 1)
-    else list.unshift(key)
-    localStorage.setItem('grunt_sidebar_pinned', JSON.stringify(list.slice(0, 20)))
-    window.dispatchEvent(new Event('grunt_sidebar_pinned_changed'))
-    syncPinned()
-  } catch { /* ignore */ }
-}
-
 const displayCount = computed(() => {
   if (!props.count || props.count <= 0) return ''
   return props.count > 99 ? '99+' : String(props.count)
@@ -116,9 +83,6 @@ const displayCount = computed(() => {
       {{ displayCount }}
     </span>
 
-    <button type="button" :class="cn(nestedActionClass, 'right-1')" :title="pinned ? 'Відкріпити' : 'Закріпити'" @click.stop="togglePin">
-      <component :is="pinned ? Star : StarOff" :class="pinned ? 'fill-current' : ''" />
-    </button>
     <button v-if="item.show_new_btn" type="button" :class="cn(nestedActionClass, 'right-7')" title="Створити новий" @click.stop="createNew">
       <Plus />
     </button>
@@ -139,9 +103,6 @@ const displayCount = computed(() => {
 
     <SidebarMenuBadge v-if="displayCount">{{ displayCount }}</SidebarMenuBadge>
 
-    <SidebarMenuAction show-on-hover :title="pinned ? 'Відкріпити' : 'Закріпити'" @click.stop="togglePin">
-      <component :is="pinned ? Star : StarOff" :class="pinned ? 'fill-current' : ''" />
-    </SidebarMenuAction>
     <SidebarMenuAction v-if="item.show_new_btn" show-on-hover class="right-7" title="Створити новий" @click.stop="createNew">
       <Plus />
     </SidebarMenuAction>

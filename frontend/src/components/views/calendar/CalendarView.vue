@@ -24,6 +24,7 @@ const props = defineProps<{
   doctype: DocType
   dateField: string
   workspace?: string
+  refreshKey?: number
 }>()
 
 const router = useRouter()
@@ -203,6 +204,8 @@ function fmtDate(d: string | null) {
 
 onMounted(loadDocuments)
 watch(currentMonth, loadDocuments)
+// Bumped by the shared header's Refresh button (calendar events aren't on the shared query cache).
+watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) loadDocuments() })
 
 function navigateToDoc(event: CalendarEvent) {
   const id = String(event.id)

@@ -17,6 +17,7 @@ const def: ViewDefinition = {
   mountProps: (ctx) => ({
     doctype: ctx.dt,
     columnField: ctx.resolvedField?.fieldname ?? '',
+    refreshKey: ctx.refreshKey,
   }),
 }
 

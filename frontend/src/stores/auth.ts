@@ -11,7 +11,6 @@ interface User {
   is_superadmin: boolean
   mfa_enabled?: boolean
   theme?: Theme
-  primary_color?: string
   avatar?: string
 }
 
@@ -74,9 +73,6 @@ export const useAuthStore = defineStore('auth', () => {
       _setTokens(data.access_token, data.refresh_token)
       user.value = data.user
       applyUserTheme(data.user)
-      if (data.user.primary_color) {
-        localStorage.setItem('grunt_primary_color', data.user.primary_color)
-      }
     }
     return {
       mfa_required: !!data.mfa_required,
@@ -122,9 +118,6 @@ export const useAuthStore = defineStore('auth', () => {
           const u = data.data ?? data
           user.value = u
           applyUserTheme(u)
-          if (u.primary_color) {
-            localStorage.setItem('grunt_primary_color', u.primary_color)
-          }
         })
         .catch((err: any) => {
           // Only log out on auth errors (401/403), not on network/server errors
@@ -147,12 +140,6 @@ export const useAuthStore = defineStore('auth', () => {
     await client.patch('/api/v1/auth/me', { theme })
   }
 
-  async function setPrimaryColor(color: string) {
-    if (user.value) user.value.primary_color = color
-    localStorage.setItem('grunt_primary_color', color)
-    await client.patch('/api/v1/auth/me', { primary_color: color })
-  }
-
   function _logout() {
     token.value = null
     refreshToken.value = null
@@ -170,5 +157,5 @@ export const useAuthStore = defineStore('auth', () => {
     _logout()
   }
 
-  return { token, refreshToken, user, isLoggedIn, login, logout, refresh, fetchMe, prefetchMe, setTheme, setPrimaryColor }
+  return { token, refreshToken, user, isLoggedIn, login, logout, refresh, fetchMe, prefetchMe, setTheme }
 })

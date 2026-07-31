@@ -58,6 +58,10 @@ const { onUserEvent, offUserEvent } = useNotifications()
 // ── State ────────────────────────────────────────────────────────────────────
 const dt = ref<DocType | null>(null)
 const page = ref(1)
+// Bumped by the header's Refresh button — views with their own local fetch
+// (tree/calendar/kanban) watch this to refetch; query-based views already
+// refetch automatically from invalidateQueries below and ignore it.
+const refreshKey = ref(0)
 const { viewMode, sortKey, sortOrder, groupBy, activeFilters, fastFilterValues } = useListViewState(props.doctype)
 const { inlineSearch, debouncedSearch } = useListSearch(page)
 
@@ -294,7 +298,7 @@ watch(() => props.doctype, async (newDoctype) => {
     <ListHeader :doctype="doctype" :dt="dt" :workspace="workspace" :meta="meta" :is-fetching="isFetching"
       :is-system-doc-type="doctype === 'DocType'" :show-dev-actions="!!(isDev && auth.user?.is_superadmin)"
       :list-buttons="listButtons" :list-menu-items="listMenuItems" :export-ctx="exportCtx"
-      @refresh="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })"
+      @refresh="queryClient.invalidateQueries({ queryKey: ['documents', doctype] }); refreshKey++"
       @create-quick="showQuickEntry = true" />
 
     <!-- Toolbar -->
@@ -352,6 +356,7 @@ watch(() => props.doctype, async (newDoctype) => {
       :fetch-next-page="fetchNextPage"
       :has-next-page="hasNextPage"
       :is-fetching-next-page="isFetchingNextPage"
+      :refresh-key="refreshKey"
       @sort="onSort"
       @row-click="navigateToDoc"
       @inline-update="inlineUpdate"

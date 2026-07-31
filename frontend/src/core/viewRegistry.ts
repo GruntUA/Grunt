@@ -122,6 +122,13 @@ export interface ViewContext {
   emit: ViewEmit
   /** Whether the current user is a superadmin (for privileged actions like fast delete). */
   isSuperadmin?: boolean
+  /**
+   * Bumped by the header's Refresh button. Views that fetch their own data
+   * (tree, calendar, kanban — anything outside the shared `['documents', doctype]`
+   * query) should watch this and refetch; views on the shared query already
+   * refetch automatically when it's invalidated and don't need to read this.
+   */
+  refreshKey: number
 }
 
 // ── ViewDefinition ─────────────────────────────────────────────────────────────

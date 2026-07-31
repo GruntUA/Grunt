@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
 import NotificationsPopover from '@/components/layout/NotificationsPopover.vue'
-import PalettePicker from '@/components/layout/PalettePicker.vue'
 import SidebarItem from './SidebarItem.vue'
 import { useColorMode } from '@/core/composables/useColorMode'
 import type { Theme } from '@/core/composables/useColorMode'
@@ -13,7 +12,7 @@ import { useSidebar } from '@/components/ui/sidebar'
 import {
   ArrowLeft, Check, ChevronDown, ChevronRight, ChevronsUpDown, Sun, Moon, Monitor,
   Settings2, Search, Shield, Activity,
-  Mail, X, LogOut,
+  Mail, LogOut,
 } from '@lucide/vue'
 
 const props = defineProps<{ workspaceName: string }>()
@@ -24,56 +23,12 @@ const router = useRouter()
 const colorMode = useColorMode()
 const { isMobile } = useSidebar()
 
-const pinnedItems = ref<{ workspace: string; type: string; link_to: string; label: string; icon: string }[]>([])
-
 // ── Actions ───────────────────────────────────────────────────────────────────
 function goToDesk() { router.push('/app') }
 function triggerSearch() { window.dispatchEvent(new CustomEvent('toggle-search')) }
 function initials(name: string) { return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() }
 async function onThemeChange(theme: string) { await auth.setTheme(theme as Theme) }
 async function handleLogout() { await auth.logout(); router.push('/login') }
-
-// ── Pinned items ──────────────────────────────────────────────────────────────
-function loadPinnedItems() {
-  try {
-    const saved = localStorage.getItem('grunt_sidebar_pinned')
-    if (!saved) { pinnedItems.value = []; return }
-    pinnedItems.value = (JSON.parse(saved) as string[])
-      .map(id => {
-        const [workspace, type, link_to] = id.split(':')
-        if (!workspace || !type || !link_to) return null
-        const found = appStore.active?.items.find(i => i.type === type && i.link_to === link_to)
-        return { workspace, type, link_to, label: found?.label || link_to, icon: found?.icon || '📌' }
-      })
-      .filter((i): i is NonNullable<typeof i> => !!i)
-      .slice(0, 10)
-  } catch { pinnedItems.value = [] }
-}
-
-function unpinItem(item: { workspace: string; type: string; link_to: string }) {
-  try {
-    const saved = localStorage.getItem('grunt_sidebar_pinned')
-    if (!saved) return
-    const list = JSON.parse(saved) as string[]
-    const idx = list.indexOf(`${item.workspace}:${item.type}:${item.link_to}`)
-    if (idx >= 0) {
-      list.splice(idx, 1)
-      localStorage.setItem('grunt_sidebar_pinned', JSON.stringify(list))
-      window.dispatchEvent(new Event('grunt_sidebar_pinned_changed'))
-      loadPinnedItems()
-    }
-  } catch { /* ignore */ }
-}
-
-function navigatePinnedItem(item: { workspace: string; type: string; link_to: string }) {
-  const map: Record<string, () => void> = {
-    DocType: () => router.push(`/${item.workspace}/${item.link_to}`),
-    Report: () => router.push(`/${item.workspace}/report/${item.link_to}`),
-    Dashboard: () => router.push(`/${item.workspace}/dashboard/${item.link_to}`),
-    URL: () => window.open(item.link_to, '_blank'),
-  }
-    ; (map[item.type] ?? map.DocType)()
-}
 
 // ── Admin shortcuts ───────────────────────────────────────────────────────────
 const adminLinks = [
@@ -89,19 +44,15 @@ const _onQuickCreate = () => {
 }
 
 onMounted(() => {
-  loadPinnedItems()
-  window.addEventListener('grunt_sidebar_pinned_changed', loadPinnedItems)
   window.addEventListener('grunt_recent_docs_changed', () => appStore.refreshCounts())
   window.addEventListener('open-quick-create', _onQuickCreate)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('grunt_sidebar_pinned_changed', loadPinnedItems)
   window.removeEventListener('grunt_recent_docs_changed', () => appStore.refreshCounts())
   window.removeEventListener('open-quick-create', _onQuickCreate)
 })
 
-watch(() => appStore.active?.name, () => loadPinnedItems())
 watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStore.refreshCounts() })
 </script>
 
@@ -166,24 +117,6 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
     </SidebarHeader>
 
     <SidebarContent>
-      <!-- Pinned -->
-      <SidebarGroup v-if="pinnedItems.length" class="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel>Закріплені</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            <SidebarMenuItem v-for="item in pinnedItems" :key="`${item.workspace}-${item.type}-${item.link_to}`">
-              <SidebarMenuButton :tooltip="item.label" @click="navigatePinnedItem(item)">
-                <AppIcon :icon="item.icon || 'file'" />
-                <span>{{ item.label }}</span>
-              </SidebarMenuButton>
-              <SidebarMenuAction show-on-hover title="Відкріпити" @click.stop="unpinItem(item)">
-                <X />
-              </SidebarMenuAction>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
-
       <!-- Workspace groups -->
       <template v-for="(group, gi) in appStore.groupedItems" :key="gi">
         <SidebarSeparator v-if="group.section === '__divider__'" />
@@ -298,9 +231,6 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
                   <span>Системна</span>
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel class="text-xs text-muted-foreground">Акцент</DropdownMenuLabel>
-              <div class="px-1 py-1"><PalettePicker /></div>
               <DropdownMenuSeparator />
               <DropdownMenuItem class="gap-2 p-2" @click="handleLogout">
                 <LogOut class="size-4 shrink-0" />

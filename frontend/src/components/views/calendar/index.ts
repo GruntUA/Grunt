@@ -26,6 +26,7 @@ const def: ViewDefinition = {
     doctype: ctx.dt,
     dateField: ctx.resolvedField?.fieldname ?? '',
     workspace: ctx.workspace,
+    refreshKey: ctx.refreshKey,
   }),
 }
 

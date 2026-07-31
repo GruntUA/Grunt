@@ -9,6 +9,7 @@ import { Plus, Calendar, FileText, Ellipsis } from '@lucide/vue'
 const props = defineProps<{
   doctype: DocType
   columnField: string
+  refreshKey?: number
 }>()
 
 const columnFieldDef = computed<DocField | undefined>(() =>
@@ -128,6 +129,8 @@ function formatDate(val: any) {
 onMounted(loadCards)
 watch(() => props.doctype.name, loadCards)
 watch(() => props.columnField, loadCards)
+// Bumped by the shared header's Refresh button (kanban cards aren't on the shared query cache).
+watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) loadCards() })
 </script>
 
 <template>

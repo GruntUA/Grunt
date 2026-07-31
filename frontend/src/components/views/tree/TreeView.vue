@@ -3,7 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { docsApi } from '@/core/api/docs'
-import { ChevronRight, ChevronDown, Plus, FolderOpen, AlertCircle, RefreshCw } from '@lucide/vue'
+import { ChevronRight, ChevronDown, Plus, FolderOpen, AlertCircle } from '@lucide/vue'
 import type { DocType, FastFilter, ActiveFilter } from '@/types'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import { useFastFilters } from '@/core/composables/useFastFilters'
@@ -15,6 +15,7 @@ const props = defineProps<{
   fastFilterDefs?: FastFilter[]
   fastFilterValues?: Record<string, string>
   activeFilters?: ActiveFilter[]
+  refreshKey?: number
 }>()
 
 const emit = defineEmits<{
@@ -159,6 +160,8 @@ watch(rawFastFilters, () => loadTree(), { deep: true })
 watch(_activeFilters, () => loadTree(), { deep: true })
 watch(sortBy, () => loadTree())
 watch(sortOrder, () => loadTree())
+// Bumped by the shared header's Refresh button (tree data isn't on the shared query cache).
+watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) loadTree() })
 onMounted(loadTree)
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -254,20 +257,7 @@ const totalCount = computed(() => {
 
 <template>
   <div>
-    <!-- Primary actions row -->
-    <div class="flex items-center justify-end mb-3 gap-2 flex-wrap">
-      <div class="flex items-center gap-2 shrink-0">
-        <Button variant="ghost" :title="t('Refresh')" @click="loadTree">
-          <RefreshCw class="size-4" :class="{ 'animate-spin': loading }" />
-        </Button>
-        <Button size="sm" @click="createRoot">
-          <Plus class="size-4 mr-1.5" />
-          Новий кореневий
-        </Button>
-      </div>
-    </div>
-
-    <!-- Secondary tree controls -->
+    <!-- Tree controls -->
     <div class="flex items-center gap-2 mb-4 flex-wrap">
       <Button variant="ghost" size="sm" @click="expandAll()">
         <ChevronDown class="size-3.5 mr-1" />

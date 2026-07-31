@@ -8,10 +8,14 @@ import type { Component } from 'vue'
  *  - a kebab-case Lucide name  → "file-text"  → resolves to <FileText />
  *  - an emoji / other string   → "📁"         → renders as <span>
  */
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   icon: string | Component | undefined
   class?: string
-}>()
+  /** Render unresolvable strings as literal text (e.g. emoji). Set false to silently render nothing instead — for spots where a broken/legacy icon value shouldn't show up as clutter. */
+  textFallback?: boolean
+}>(), {
+  textFallback: true,
+})
 
 type IconMap = Record<string, Component>
 const lucide = shallowRef<IconMap>({})
@@ -24,6 +28,9 @@ function ensureLucide() {
 }
 
 const KEBAB_RE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/
+// Matches genuine emoji/pictographs ("📌", "🏠") — not legacy icon identifiers
+// ("octicon octicon-shield-lock") that fail to resolve and shouldn't render as clutter.
+const EMOJI_RE = /\p{Extended_Pictographic}/u
 
 const resolved = computed<Component | null>(() => {
   const ic = props.icon
@@ -36,8 +43,9 @@ const resolved = computed<Component | null>(() => {
 })
 
 const textIcon = computed<string | null>(() => {
-  if (resolved.value) return null
-  return typeof props.icon === 'string' ? props.icon : null
+  if (resolved.value || !props.textFallback) return null
+  if (typeof props.icon !== 'string') return null
+  return EMOJI_RE.test(props.icon) ? props.icon : null
 })
 </script>
 

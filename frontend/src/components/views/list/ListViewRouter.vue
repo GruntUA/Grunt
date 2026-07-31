@@ -40,6 +40,7 @@ const props = defineProps<{
   fastFilterDefs: FastFilter[]
   fastFilterValues: Record<string, string>
   isSuperadmin?: boolean
+  refreshKey: number
 }>()
 
 const emit = defineEmits<{
@@ -103,6 +104,7 @@ const ctx = computed((): ViewContext => ({
   fastFilterValues: props.fastFilterValues,
   resolvedField: resolvedField.value,
   isSuperadmin: props.isSuperadmin,
+  refreshKey: props.refreshKey,
   emit: {
     sort: (key) => emit('sort', key),
     rowClick: (row) => emit('row-click', row),
