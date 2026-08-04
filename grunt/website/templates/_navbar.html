@@ -28,12 +28,22 @@
                 {% endfor %}
             {% endif %}
 
-            {% if session and session.user %}
+            <span id="gr-nav-auth" style="display: none;">
                 <a href="/app" class="btn btn-primary" style="padding: 0.5rem 1rem;">Увійти в систему</a>
-            {% else %}
+            </span>
+            <span id="gr-nav-guest" style="display: none; align-items: center; gap: 2rem;">
                 <a href="/login" style="text-decoration: none; color: var(--text-muted); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;" onmouseover="this.style.color='var(--text-main)'" onmouseout="this.style.color='var(--text-muted)'">Вхід</a>
                 <a href="/signup" class="btn btn-primary" style="padding: 0.5rem 1rem;">Реєстрація</a>
-            {% endif %}
+            </span>
         </nav>
     </div>
 </header>
+<script>
+    // JWT lives only in localStorage (not a cookie), so SSR can't know the auth
+    // state at render time — decide client-side, same key the SPA auth store uses.
+    (function () {
+        var authed = !!localStorage.getItem('grunt_token');
+        var el = document.getElementById(authed ? 'gr-nav-auth' : 'gr-nav-guest');
+        el.style.display = authed ? 'inline-block' : 'inline-flex';
+    })();
+</script>

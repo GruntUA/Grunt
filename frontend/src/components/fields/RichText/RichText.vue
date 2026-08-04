@@ -40,8 +40,13 @@ const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 const isEditable = () => !props.disabled && !props.field.read_only
 
 // ── Font & Indent data ────────────────────────────────────────────────────────
+// Reka-ui's Select reserves the empty string for "no selection" internally, so
+// SelectItem can't use value="" for the placeholder/default entry — a sentinel
+// stands in for it and gets translated back to "" at the apply/read boundary.
+const FONT_DEFAULT = '__default__'
+
 const FONT_FAMILIES = [
-  { label: 'За замовчуванням', value: '' },
+  { label: 'За замовчуванням', value: FONT_DEFAULT },
   { label: 'Arial', value: 'Arial, sans-serif' },
   { label: 'Georgia', value: 'Georgia, serif' },
   { label: 'Times New Roman', value: '"Times New Roman", serif' },
@@ -50,7 +55,7 @@ const FONT_FAMILIES = [
 ]
 
 const FONT_SIZES = [
-  { label: 'Авто', value: '' },
+  { label: 'Авто', value: FONT_DEFAULT },
   { label: '10', value: '10px' },
   { label: '12', value: '12px' },
   { label: '14', value: '14px' },
@@ -63,31 +68,33 @@ const FONT_SIZES = [
   { label: '48', value: '48px' },
 ]
 
-const currentFontFamily = ref<string>('')
-const currentFontSize = ref<string>('')
+const currentFontFamily = ref<string>(FONT_DEFAULT)
+const currentFontSize = ref<string>(FONT_DEFAULT)
 
 function updateFormatState() {
   if (!editor.value) return
   const attrs = editor.value.getAttributes('textStyle')
-  currentFontFamily.value = attrs.fontFamily ?? ''
-  currentFontSize.value = attrs.fontSize ?? ''
+  currentFontFamily.value = attrs.fontFamily || FONT_DEFAULT
+  currentFontSize.value = attrs.fontSize || FONT_DEFAULT
 }
 
 function applyFontFamily(val: string) {
   if (!editor.value) return
+  const resolved = val === FONT_DEFAULT ? '' : val
   const cur = editor.value.getAttributes('textStyle') ?? {}
-  const attrs = { ...cur, fontFamily: val || null }
+  const attrs = { ...cur, fontFamily: resolved || null }
   editor.value.chain().focus().setMark('textStyle', attrs).run()
-  if (!val) editor.value.chain().focus().removeEmptyTextStyle().run()
+  if (!resolved) editor.value.chain().focus().removeEmptyTextStyle().run()
   currentFontFamily.value = val
 }
 
 function applyFontSize(val: string) {
   if (!editor.value) return
+  const resolved = val === FONT_DEFAULT ? '' : val
   const cur = editor.value.getAttributes('textStyle') ?? {}
-  const attrs = { ...cur, fontSize: val || null }
+  const attrs = { ...cur, fontSize: resolved || null }
   editor.value.chain().focus().setMark('textStyle', attrs).run()
-  if (!val) editor.value.chain().focus().removeEmptyTextStyle().run()
+  if (!resolved) editor.value.chain().focus().removeEmptyTextStyle().run()
   currentFontSize.value = val
 }
 

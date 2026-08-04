@@ -1,0 +1,41 @@
+{
+  "name": "WebsiteNavItem",
+  "label": "Пункт меню сайту",
+  "module": "site",
+  "is_child": true,
+  "title_field": "label",
+  "fields": [
+    {
+      "fieldname": "label",
+      "label": "Назва",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "url",
+      "label": "URL",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "is_external",
+      "label": "Зовнішнє посилання",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "group",
+      "label": "Група (для підвалу)",
+      "fieldtype": "Text",
+      "description": "Використовується лише в підвалі сайту для групування посилань під заголовком"
+    },
+    {
+      "fieldname": "sequence",
+      "label": "Порядок",
+      "fieldtype": "Int",
+      "default": 0
+    }
+  ]
+}

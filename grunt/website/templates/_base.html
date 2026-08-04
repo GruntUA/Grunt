@@ -6,7 +6,8 @@
     <title>{% block title %}{{ title or "Ґрунт" }}{% endblock %}</title>
     
     <!-- SEO -->
-    {% if description %}<meta name="description" content="{{ description }}">{% endif %}
+    {% set meta_description = description or (website_settings and website_settings.default_meta_description) %}
+    {% if meta_description %}<meta name="description" content="{{ meta_description }}">{% endif %}
     <meta name="robots" content="index, follow">
     
     <!-- Fonts -->

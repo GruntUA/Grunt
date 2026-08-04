@@ -42,7 +42,7 @@ from grunt.site.middleware import SiteContextMiddleware
 from grunt.startup.doctypes import _find_doctype_dirs as _grunt_doctype_dirs
 from grunt.tasks.broker import broker
 from grunt.tasks.scheduler import register_scheduler_events, start_scheduler, stop_scheduler
-from grunt.website import make_website_handler, website_registry
+from grunt.website import make_website_handler, robots_txt, sitemap_xml, website_registry
 
 document_registry.discover_core_controllers()
 register_exporter(XlsxExporter())
@@ -388,6 +388,9 @@ for page in website_registry.discover_app(core_website_dir, "grunt", is_main_app
         include_in_schema=False,
         tags=["website"],
     )
+
+app.add_api_route("/sitemap.xml", sitemap_xml, methods=["GET"], include_in_schema=False, tags=["website"])
+app.add_api_route("/robots.txt", robots_txt, methods=["GET"], include_in_schema=False, tags=["website"])
 
 # ── Static Assets ──
 main_public_dir = _Path(__file__).parent.parent / "public"

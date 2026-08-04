@@ -1,0 +1,115 @@
+{
+  "name": "PageWidget",
+  "label": "Віджет сторінки",
+  "module": "site",
+  "is_child": true,
+  "title_field": "title",
+  "fields": [
+    {
+      "fieldname": "widget_type",
+      "label": "Тип",
+      "fieldtype": "Select",
+      "options": "metric\ngauge\nchart_area\nchart_bar\ndonut\nlist\nshortcut\nshortcuts_grid\ntext\nclock\nactivity\ncalendar\nheatmap\nfunnel\ntable",
+      "required": true,
+      "in_list_view": true,
+      "default": "metric"
+    },
+    {
+      "fieldname": "title",
+      "label": "Заголовок",
+      "fieldtype": "Text",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "doctype",
+      "label": "DocType",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "aggregation",
+      "label": "Агрегація",
+      "fieldtype": "Select",
+      "options": "count\nsum\navg\nmin\nmax",
+      "default": "count"
+    },
+    {
+      "fieldname": "field",
+      "label": "Поле",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "group_by",
+      "label": "Групувати за",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "date_field",
+      "label": "Поле дати",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "period",
+      "label": "Період",
+      "fieldtype": "Select",
+      "options": "7d\n30d\n90d\n365d",
+      "default": "30d"
+    },
+    {
+      "fieldname": "filters",
+      "label": "Фільтри",
+      "fieldtype": "JSON"
+    },
+    {
+      "fieldname": "min_value",
+      "label": "Мін. значення",
+      "fieldtype": "Int",
+      "default": 0
+    },
+    {
+      "fieldname": "max_value",
+      "label": "Макс. значення",
+      "fieldtype": "Int",
+      "default": 100
+    },
+    {
+      "fieldname": "cols",
+      "label": "Ширина (1-4)",
+      "fieldtype": "Int",
+      "default": 1
+    },
+    {
+      "fieldname": "color",
+      "label": "Колір",
+      "fieldtype": "Select",
+      "options": "primary\nblue\namber\nred\nviolet\ncyan",
+      "default": "primary"
+    },
+    {
+      "fieldname": "icon",
+      "label": "Іконка (lucide)",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "sequence",
+      "label": "Порядок",
+      "fieldtype": "Int",
+      "default": 0
+    },
+    {
+      "fieldname": "link_type",
+      "label": "Тип посилання",
+      "fieldtype": "Select",
+      "options": "DocType\nReport\nPage\nURL"
+    },
+    {
+      "fieldname": "description",
+      "label": "Опис / Підзаголовок",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "content",
+      "label": "Вміст",
+      "fieldtype": "LongText"
+    }
+  ]
+}

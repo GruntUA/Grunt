@@ -11,7 +11,7 @@ from typing import Any
 
 import structlog
 from fastapi import Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, select_autoescape
 
 logger = structlog.get_logger()
@@ -132,39 +132,42 @@ async def render_page(
         "dev_mode": settings.debug,
     }
 
-    try:
-        # Fetch global website settings (Singleton)
-        ws = await grunt.get_doc("WebsiteSettings", "WebsiteSettings")
-        context["website_settings"] = ws
-    except Exception:
-        context["website_settings"] = None
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
 
-    if page.py_file:
+    async with grunt.context(session, user=SYSTEM_USER):
         try:
-            spec = importlib.util.spec_from_file_location("_www_controller", page.py_file)
-            if spec and spec.loader:
-                mod = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(mod)  # type: ignore[arg-type]
+            # Fetch global website settings (Singleton)
+            ws = await grunt.get_doc("WebsiteSettings", "WebsiteSettings")
+            context["website_settings"] = ws
+        except Exception:
+            context["website_settings"] = None
 
-                # Handle POST logic if present
-                if request.method == "POST" and hasattr(mod, "handle_post"):
-                    result = mod.handle_post(context)
-                    if inspect.isawaitable(result):
-                        result = await result
-                    # If handle_post returns a response, return it immediately (e.g. redirect)
-                    if isinstance(result, HTMLResponse):
-                        return result
-                    if isinstance(result, dict):
-                        context.update(result)
+        if page.py_file:
+            try:
+                spec = importlib.util.spec_from_file_location("_www_controller", page.py_file)
+                if spec and spec.loader:
+                    mod = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(mod)  # type: ignore[arg-type]
 
-                if hasattr(mod, "get_context"):
-                    result = mod.get_context(context)
-                    if inspect.isawaitable(result):
-                        result = await result
-                    if isinstance(result, dict):
-                        context.update(result)
-        except Exception as e:
-            logger.warning("website.controller.error", file=str(page.py_file), error=str(e))
+                    # Handle POST logic if present
+                    if request.method == "POST" and hasattr(mod, "handle_post"):
+                        result = mod.handle_post(context)
+                        if inspect.isawaitable(result):
+                            result = await result
+                        # If handle_post returns a response, return it immediately (e.g. redirect)
+                        if isinstance(result, HTMLResponse):
+                            return result
+                        if isinstance(result, dict):
+                            context.update(result)
+
+                    if hasattr(mod, "get_context"):
+                        result = mod.get_context(context)
+                        if inspect.isawaitable(result):
+                            result = await result
+                        if isinstance(result, dict):
+                            context.update(result)
+            except Exception as e:
+                logger.warning("website.controller.error", file=str(page.py_file), error=str(e))
 
     env = website_registry.get_env(page.app)
     if env is None:
@@ -195,15 +198,19 @@ async def render_page_by_route(
             return await render_page(page, request, session=session)
 
     # 2. Try database-based pages (WebPage)
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
+
     try:
-        pages = await grunt.db.get_all(
-            "WebPage",
-            filters={"route": path, "published": 1},
-            limit=1,
-        )
-        if pages:
+        async with grunt.context(session, user=SYSTEM_USER):
+            pages = await grunt.db.get_all(
+                "WebPage",
+                filters={"route": path, "published": 1},
+                limit=1,
+            )
+            if not pages:
+                return None
             doc = await grunt.get_doc("WebPage", pages[0]["name"])
-            return await render_db_page(doc, request, session=session)
+        return await render_db_page(doc, request, session=session)
     except HTTPException as exc:
         if exc.status_code == 404 and "DocType 'WebPage' not found" in str(exc.detail):
             return None
@@ -214,7 +221,7 @@ async def render_page_by_route(
     return None
 
 
-async def render_db_page(doc: Any, request: Request, session: Any) -> HTMLResponse:
+async def render_db_page(doc: dict[str, Any], request: Request, session: Any) -> HTMLResponse:
     """Render a dynamic page from the database using a generic template."""
     from grunt.app import grunt
     from grunt.config import settings
@@ -222,46 +229,27 @@ async def render_db_page(doc: Any, request: Request, session: Any) -> HTMLRespon
     context: dict[str, Any] = {
         "request": request,
         "doc": doc,
-        "title": doc.title,
-        "description": doc.meta_description or "",
-        "content": doc.content,
+        "title": doc["title"],
+        "description": doc.get("meta_description") or "",
+        "content": doc.get("content"),
         "dev_mode": settings.debug,
     }
 
-    try:
-        ws = await grunt.get_doc("WebsiteSettings", "WebsiteSettings")
-        context["website_settings"] = ws
-    except Exception:
-        context["website_settings"] = None
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
+
+    async with grunt.context(session, user=SYSTEM_USER):
+        try:
+            ws = await grunt.get_doc("WebsiteSettings", "WebsiteSettings")
+            context["website_settings"] = ws
+        except Exception:
+            context["website_settings"] = None
 
     # Use main app env for generic templates
     env = website_registry.get_env("grunt")
     if env is None:
         raise ValueError("No Jinja2 environment found")
 
-    try:
-        template = env.get_template("web_page.html")
-    except Exception:
-        # Fallback to a very basic render if no template found
-        template = env.from_string("""
-            {% extends "_base.html" %}
-            {% block content %}
-            <div class="container py-5">
-                <article>
-                    <header class="mb-5">
-                        <h1 class="display-4" style="font-family: 'Outfit'; font-weight: 700;">
-                        {{ doc.title }}
-                        </h1>
-                    </header>
-                    <div class="cms-content"
-                         style="font-size: 1.125rem; line-height: 1.75; color: var(--text-main);">
-                        {{ doc.content | safe }}
-                    </div>
-                </article>
-            </div>
-            {% endblock %}
-        """)
-
+    template = env.get_template("web_page.html")
     html = await template.render_async(**context)
     return HTMLResponse(content=html)
 
@@ -279,3 +267,42 @@ def make_website_handler(page: WebsitePage):
     safe = page.url_pattern.replace("/", "_").replace("{", "").replace("}", "")
     _handler.__name__ = f"website_{page.app}{safe}"
     return _handler
+
+
+async def sitemap_xml(request: Request) -> Response:
+    """Generate /sitemap.xml from file-based www pages and published WebPage docs."""
+    from grunt.app import grunt
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
+    from grunt.site.manager import site_manager
+
+    base = str(request.base_url).rstrip("/")
+
+    urls = [base + page.url_pattern for page in website_registry.pages if "{" not in page.url_pattern]
+
+    site = site_manager.get_active_site()
+    maker = site_manager.get_session_maker(site)
+    async with maker() as session:
+        async with grunt.context(session, user=SYSTEM_USER):
+            pages = await grunt.db.get_all(
+                "WebPage",
+                filters={"published": 1},
+                fields=["route"],
+                limit=None,
+            )
+    urls.extend(base + p["route"] for p in pages)
+
+    entries = "".join(f"  <url><loc>{url}</loc></url>\n" for url in urls)
+    body = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        f"{entries}"
+        "</urlset>"
+    )
+    return Response(content=body, media_type="application/xml")
+
+
+async def robots_txt(request: Request) -> PlainTextResponse:
+    """Generate /robots.txt pointing crawlers at the sitemap."""
+    base = str(request.base_url).rstrip("/")
+    body = f"User-agent: *\nAllow: /\nDisallow: /app/\nSitemap: {base}/sitemap.xml\n"
+    return PlainTextResponse(content=body)

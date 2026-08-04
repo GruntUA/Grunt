@@ -1,0 +1,96 @@
+{
+  "name": "WebsiteSettings",
+  "label": "Налаштування сайту",
+  "module": "site",
+  "is_singleton": true,
+  "icon": "Globe",
+  "fields": [
+    {
+      "fieldname": "sec_brand",
+      "label": "Бренд",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "col_b1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "site_name",
+      "label": "Назва сайту",
+      "fieldtype": "Text",
+      "default": "Ґрунт",
+      "columns": 12
+    },
+    {
+      "fieldname": "brand_logo",
+      "label": "Логотип",
+      "fieldtype": "Image",
+      "columns": 12
+    },
+    {
+      "fieldname": "col_b2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "home_route",
+      "label": "Маршрут головної сторінки",
+      "fieldtype": "Text",
+      "description": "Route опублікованої WebPage, що використовується як домашня (файлова www/index.html завжди має пріоритет)",
+      "columns": 12
+    },
+    {
+      "fieldname": "sec_nav",
+      "label": "Навігація",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "navbar_items",
+      "label": "Пункти верхнього меню",
+      "fieldtype": "Table",
+      "options": "WebsiteNavItem"
+    },
+    {
+      "fieldname": "sec_footer",
+      "label": "Підвал сайту",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "copyright_text",
+      "label": "Текст копірайту",
+      "fieldtype": "Text",
+      "default": "© 2026"
+    },
+    {
+      "fieldname": "footer_items",
+      "label": "Посилання в підвалі",
+      "fieldtype": "Table",
+      "options": "WebsiteNavItem",
+      "description": "Поле 'Група' визначає заголовок колонки в підвалі"
+    },
+    {
+      "fieldname": "sec_seo",
+      "label": "SEO за замовчуванням",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "col_s1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "default_meta_description",
+      "label": "Meta-опис за замовчуванням",
+      "fieldtype": "Text",
+      "columns": 12
+    },
+    {
+      "fieldname": "col_s2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "default_og_image",
+      "label": "Зображення для соцмереж за замовчуванням",
+      "fieldtype": "Image",
+      "columns": 12
+    }
+  ]
+}

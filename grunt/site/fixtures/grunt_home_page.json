@@ -1,0 +1,129 @@
+{
+  "doctype": "Page",
+  "records": [
+    {
+      "name": "grunt-home",
+      "label": "Ґрунт — огляд системи",
+      "description": "Стан системи, активність користувачів та адміністрування",
+      "is_published": true,
+      "widgets": [
+        {
+          "widget_type": "metric",
+          "title": "Активні користувачі",
+          "description": "Облікові записи з доступом",
+          "doctype": "User",
+          "aggregation": "count",
+          "filters": { "is_active": true },
+          "cols": 1,
+          "color": "primary",
+          "icon": "Users",
+          "sequence": 10
+        },
+        {
+          "widget_type": "metric",
+          "title": "Дій за 7 днів",
+          "description": "Порівняно з попереднім тижнем",
+          "doctype": "ActivityLog",
+          "aggregation": "count",
+          "date_field": "created_at",
+          "period": "7d",
+          "cols": 1,
+          "color": "blue",
+          "icon": "Activity",
+          "sequence": 20
+        },
+        {
+          "widget_type": "metric",
+          "title": "Помилки фонових задач",
+          "description": "За останні 7 днів",
+          "doctype": "BackgroundTaskLog",
+          "aggregation": "count",
+          "filters": { "status": "Error" },
+          "date_field": "started_at",
+          "period": "7d",
+          "cols": 1,
+          "color": "red",
+          "icon": "TriangleAlert",
+          "sequence": 30
+        },
+        {
+          "widget_type": "metric",
+          "title": "Email у черзі",
+          "description": "Очікують надсилання",
+          "doctype": "EmailQueue",
+          "aggregation": "count",
+          "filters": { "status": "Pending" },
+          "cols": 1,
+          "color": "amber",
+          "icon": "Mail",
+          "sequence": 40
+        },
+        {
+          "widget_type": "chart_area",
+          "title": "Активність у системі",
+          "doctype": "ActivityLog",
+          "date_field": "created_at",
+          "period": "30d",
+          "cols": 2,
+          "color": "blue",
+          "sequence": 50
+        },
+        {
+          "widget_type": "donut",
+          "title": "Дії за типом",
+          "doctype": "ActivityLog",
+          "group_by": "action",
+          "cols": 1,
+          "color": "violet",
+          "sequence": 60
+        },
+        {
+          "widget_type": "donut",
+          "title": "Фонові задачі за статусом",
+          "doctype": "BackgroundTaskLog",
+          "group_by": "status",
+          "cols": 1,
+          "color": "cyan",
+          "sequence": 70
+        },
+        {
+          "widget_type": "activity",
+          "title": "Остання активність",
+          "cols": 2,
+          "color": "primary",
+          "sequence": 80
+        },
+        {
+          "widget_type": "table",
+          "title": "Найактивніші DocTypes (30 днів)",
+          "doctype": "ActivityLog",
+          "group_by": "doctype",
+          "aggregation": "count",
+          "date_field": "created_at",
+          "period": "30d",
+          "cols": 2,
+          "color": "blue",
+          "sequence": 90
+        },
+        {
+          "widget_type": "heatmap",
+          "title": "Активність за рік",
+          "doctype": "ActivityLog",
+          "date_field": "created_at",
+          "period": "365d",
+          "cols": 4,
+          "color": "primary",
+          "sequence": 100
+        },
+        {
+          "widget_type": "shortcuts_grid",
+          "title": "Швидкі переходи",
+          "cols": 4,
+          "color": "primary",
+          "sequence": 110,
+          "content": "[{\"title\":\"DocTypes\",\"icon\":\"Package\",\"link_type\":\"DocType\",\"link_to\":\"DocType\",\"color\":\"violet\"},{\"title\":\"Користувачі\",\"icon\":\"Users\",\"link_type\":\"DocType\",\"link_to\":\"User\",\"color\":\"blue\"},{\"title\":\"Ролі\",\"icon\":\"Shield\",\"link_type\":\"DocType\",\"link_to\":\"Role\",\"color\":\"primary\"},{\"title\":\"Дозволи\",\"icon\":\"Lock\",\"link_type\":\"DocType\",\"link_to\":\"DocTypePermission\",\"color\":\"amber\"},{\"title\":\"Системні налаштування\",\"icon\":\"Settings\",\"link_type\":\"DocType\",\"link_to\":\"SystemSettings\",\"color\":\"cyan\"},{\"title\":\"Фонові задачі\",\"icon\":\"Clock\",\"link_type\":\"DocType\",\"link_to\":\"BackgroundTaskLog\",\"color\":\"red\"},{\"title\":\"Лог активності\",\"icon\":\"ClipboardList\",\"link_type\":\"DocType\",\"link_to\":\"ActivityLog\",\"color\":\"blue\"},{\"title\":\"Заплановані завдання\",\"icon\":\"Calendar\",\"link_type\":\"DocType\",\"link_to\":\"ScheduledJob\",\"color\":\"violet\"}]"
+        }
+      ]
+    }
+  ]
+}

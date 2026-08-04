@@ -1,0 +1,65 @@
+{
+  "name": "WebPage",
+  "label": "Веб-сторінка",
+  "module": "site",
+  "table_name": "grunt_web_page",
+  "title_field": "title",
+  "icon": "Globe",
+  "fields": [
+    {
+      "fieldname": "title",
+      "label": "Заголовок",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "route",
+      "label": "URL маршрут",
+      "fieldtype": "Text",
+      "required": true,
+      "unique": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "published",
+      "label": "Опубліковано",
+      "fieldtype": "Check",
+      "default": false,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "content",
+      "label": "Вміст",
+      "fieldtype": "RichText"
+    },
+    {
+      "fieldname": "meta_description",
+      "label": "Meta-опис (SEO)",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "og_image",
+      "label": "Зображення для соцмереж (OG)",
+      "fieldtype": "Image"
+    },
+    {
+      "fieldname": "show_in_navbar",
+      "label": "Показувати в навігації",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "menu_title",
+      "label": "Назва в меню",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "blocks",
+      "label": "Блоки контенту",
+      "fieldtype": "Table",
+      "options": "WebPageBlock"
+    }
+  ]
+}

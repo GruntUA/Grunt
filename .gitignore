@@ -39,7 +39,9 @@ node_modules/
 frontend/dist/
 .nuxt/
 *.local
-site/
+
+# ──── Runtime site data ─────────────────────
+/sites/
 
 # ──── Testing ──────────────────────────────
 .coverage

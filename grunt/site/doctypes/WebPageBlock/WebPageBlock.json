@@ -1,0 +1,65 @@
+{
+  "name": "WebPageBlock",
+  "label": "Блок контенту сторінки",
+  "module": "site",
+  "is_child": true,
+  "title_field": "title",
+  "fields": [
+    {
+      "fieldname": "block_type",
+      "label": "Тип блоку",
+      "fieldtype": "Select",
+      "options": "hero\nrich_text\nimage\ncta_banner\ncolumns\nhtml_embed\nform_embed",
+      "required": true,
+      "in_list_view": true,
+      "default": "rich_text"
+    },
+    {
+      "fieldname": "title",
+      "label": "Заголовок",
+      "fieldtype": "Text",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "subtitle",
+      "label": "Підзаголовок",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "body",
+      "label": "Текст",
+      "fieldtype": "RichText"
+    },
+    {
+      "fieldname": "image",
+      "label": "Зображення",
+      "fieldtype": "Image"
+    },
+    {
+      "fieldname": "link_url",
+      "label": "URL посилання",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "link_label",
+      "label": "Текст кнопки",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "embed_html",
+      "label": "HTML-код (для html_embed)",
+      "fieldtype": "LongText"
+    },
+    {
+      "fieldname": "form_route",
+      "label": "Маршрут веб-форми (для form_embed)",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "sequence",
+      "label": "Порядок",
+      "fieldtype": "Int",
+      "default": 0
+    }
+  ]
+}
