@@ -1,49 +1,6 @@
 {% macro render_block(block) %}
-{% if block.block_type == "hero" %}
-    <section class="wp-block wp-hero">
-        {% if block.title %}<h1>{{ block.title }}</h1>{% endif %}
-        {% if block.subtitle %}<p class="wp-hero-subtitle">{{ block.subtitle }}</p>{% endif %}
-        {% if block.link_url %}
-            <a href="{{ block.link_url }}" class="btn btn-primary">{{ block.link_label or block.link_url }}</a>
-        {% endif %}
-    </section>
-
-{% elif block.block_type == "rich_text" %}
-    <section class="wp-block wp-rich-text container">
-        {% if block.title %}<h2>{{ block.title }}</h2>{% endif %}
-        <div class="cms-content">{{ block.body | safe }}</div>
-    </section>
-
-{% elif block.block_type == "image" %}
-    <section class="wp-block wp-image container">
-        {% if block.image %}<img src="{{ block.image }}" alt="{{ block.title or '' }}" style="max-width: 100%;">{% endif %}
-        {% if block.title %}<p class="wp-image-caption">{{ block.title }}</p>{% endif %}
-    </section>
-
-{% elif block.block_type == "cta_banner" %}
-    <section class="wp-block wp-cta container" style="text-align: center; padding: 4rem 0;">
-        {% if block.title %}<h2>{{ block.title }}</h2>{% endif %}
-        {% if block.subtitle %}<p class="wp-hero-subtitle">{{ block.subtitle }}</p>{% endif %}
-        {% if block.link_url %}
-            <a href="{{ block.link_url }}" class="btn btn-primary" style="padding: 1rem 2rem;">{{ block.link_label or block.link_url }}</a>
-        {% endif %}
-    </section>
-
-{% elif block.block_type == "columns" %}
-    <section class="wp-block wp-columns container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem;">
-        {% if block.title %}<h3>{{ block.title }}</h3>{% endif %}
-        <div class="cms-content">{{ block.body | safe }}</div>
-    </section>
-
-{% elif block.block_type == "html_embed" %}
-    <section class="wp-block wp-embed container">
-        {{ block.embed_html | safe }}
-    </section>
-
-{% elif block.block_type == "form_embed" %}
-    <section class="wp-block wp-form-embed container" style="text-align: center; padding: 2rem 0;">
-        {% if block.title %}<h2>{{ block.title }}</h2>{% endif %}
-        <iframe src="/form/{{ block.form_route }}" style="width: 100%; max-width: 640px; height: 600px; border: none;"></iframe>
-    </section>
+{% set template = block_template(block.block_type) %}
+{% if template %}
+    {% include template %}
 {% endif %}
 {% endmacro %}

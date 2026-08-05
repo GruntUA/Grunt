@@ -1,0 +1,7 @@
+<section class="wp-block wp-hero">
+    {% if block.title %}<h1>{{ block.title }}</h1>{% endif %}
+    {% if block.settings.subtitle %}<p class="wp-hero-subtitle">{{ block.settings.subtitle }}</p>{% endif %}
+    {% if block.settings.link_url %}
+        <a href="{{ block.settings.link_url }}" class="btn btn-primary">{{ block.settings.link_label or block.settings.link_url }}</a>
+    {% endif %}
+</section>

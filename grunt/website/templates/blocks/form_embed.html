@@ -1,0 +1,4 @@
+<section class="wp-block wp-form-embed container" style="text-align: center; padding: 2rem 0;">
+    {% if block.title %}<h2>{{ block.title }}</h2>{% endif %}
+    <iframe src="/form/{{ block.settings.form_route }}" style="width: 100%; max-width: 640px; height: 600px; border: none;"></iframe>
+</section>

@@ -1,0 +1,4 @@
+<section class="wp-block wp-columns container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem;">
+    {% if block.title %}<h3>{{ block.title }}</h3>{% endif %}
+    <div class="cms-content">{{ block.settings.body | safe }}</div>
+</section>

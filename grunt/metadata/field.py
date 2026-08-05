@@ -218,6 +218,19 @@ class DocField(BaseModel):
 
     # Type-specific options
     options: str | None = None
+    # Name of a registry source (see grunt.metadata.dynamic_options) whose
+    # registered values replace `options` at schema-serve time — lets Select
+    # fields draw their choices from a plugin-extensible registry instead of
+    # a static JSON list.
+    options_source: str | None = None
+    # Name of a schema registry source (see grunt.metadata.dynamic_options)
+    # whose registered field-lists are attached at schema-serve time as
+    # `dynamic_schemas`. `dynamic_schema_key` names the sibling field in the
+    # same row/document whose value selects which variant applies — lets a
+    # JSON field (typically hidden) render a different form per row instead
+    # of a fixed set of columns shared by every variant.
+    dynamic_schema_source: str | None = None
+    dynamic_schema_key: str | None = None
     default: Any = None
     description: str | None = None
     placeholder: str | None = None

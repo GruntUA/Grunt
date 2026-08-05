@@ -63,11 +63,15 @@ class WebsiteRegistry:
         if _GRUNT_WWW_TEMPLATES_DIR.is_dir():
             loaders.append(FileSystemLoader(str(_GRUNT_WWW_TEMPLATES_DIR)))
 
-        self._envs[app_name] = Environment(
+        env = Environment(
             loader=ChoiceLoader(loaders),
             autoescape=select_autoescape(["html"]),
             enable_async=True,
         )
+        from grunt.website.block_types import get_block_template
+
+        env.globals["block_template"] = get_block_template
+        self._envs[app_name] = env
 
         discovered: list[WebsitePage] = []
         for html_file in sorted(www_dir.rglob("*.html")):
@@ -103,6 +107,21 @@ class WebsiteRegistry:
 
     def get_env(self, app_name: str) -> Environment | None:
         return self._envs.get(app_name)
+
+    def add_template_source(self, app_name: str, path: Path) -> None:
+        """Append *path* as a template search directory for *app_name*'s env.
+
+        Lets an installed app contribute templates (e.g. custom block-type
+        renderers) that resolve inside another app's environment — used by
+        external apps that register `website_block_types` in hooks.py but
+        render through the shared "grunt" env.
+        """
+        env = self._envs.get(app_name)
+        if env is None or not path.is_dir():
+            return
+        loader = env.loader
+        if isinstance(loader, ChoiceLoader):
+            loader.loaders.append(FileSystemLoader(str(path)))
 
     @property
     def pages(self) -> list[WebsitePage]:

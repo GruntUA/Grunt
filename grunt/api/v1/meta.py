@@ -9,10 +9,30 @@ import structlog
 import grunt
 from grunt.metadata.compiler import DuplicateDataError, get_table_name, sync_table
 from grunt.metadata.doctype import DocType
+from grunt.metadata.dynamic_options import get_schemas, resolve_field_options
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_doctype_files
 
 logger = structlog.get_logger()
+
+
+def _dump_doctype(dt: DocType) -> dict[str, Any]:
+    """Serialize a DocType, resolving registry-backed options and field schemas.
+
+    Fields with `options_source` set draw their choices from the dynamic
+    options registry instead of the static `options` string. Fields with
+    `dynamic_schema_source` set get every registered {key: fields} variant
+    attached as `dynamic_schemas`, so the frontend can render the variant
+    matching a sibling field's value (e.g. WebPageBlock.settings picking its
+    form based on block_type) without a second round-trip.
+    """
+    data = dt.model_dump()
+    for field, fdata in zip(dt.fields, data["fields"], strict=True):
+        if field.options_source:
+            fdata["options"] = resolve_field_options(field)
+        if field.dynamic_schema_source:
+            fdata["dynamic_schemas"] = get_schemas(field.dynamic_schema_source)
+    return data
 
 
 async def _get_app_name_for_module(module: str) -> str | None:
@@ -31,7 +51,7 @@ async def get_doctype(name: str) -> dict[str, Any]:
     fresh = await doctype_registry._lazy_load(name)
     if fresh is None:
         fresh = await doctype_registry.get(name)
-    return fresh.model_dump()
+    return _dump_doctype(fresh)
 
 
 @grunt.whitelist()
@@ -79,7 +99,7 @@ async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     app_name = await _get_app_name_for_module(dt.module or "")
     export_doctype_files(dt, app_name=app_name)
 
-    return dt.model_dump()
+    return _dump_doctype(dt)
 
 
 @grunt.whitelist()
@@ -157,7 +177,7 @@ async def export_schemas(
     if module:
         all_dts = [dt for dt in all_dts if dt.module == module]
 
-    return {dt.name: dt.model_dump() for dt in all_dts}
+    return {dt.name: _dump_doctype(dt) for dt in all_dts}
 
 
 @grunt.whitelist()

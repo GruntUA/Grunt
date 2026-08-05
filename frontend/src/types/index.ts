@@ -34,6 +34,17 @@ export interface DocField {
   in_quick_filter?: boolean
   // Type-specific
   options?: string
+  // Name of a backend registry source whose values replace `options` — see
+  // grunt.metadata.dynamic_options. Already resolved into `options` by the
+  // time the schema reaches the frontend; kept here for completeness.
+  options_source?: string | null
+  // Name of a backend schema registry source (grunt.metadata.dynamic_options)
+  // whose {key: fields} variants are resolved into `dynamic_schemas` at
+  // schema-serve time. `dynamic_schema_key` names the sibling field in the
+  // same row whose value selects which variant applies.
+  dynamic_schema_source?: string | null
+  dynamic_schema_key?: string | null
+  dynamic_schemas?: Record<string, DocField[]>
   default?: unknown
   description?: string
   placeholder?: string

@@ -86,6 +86,22 @@ const allFields = computed(() =>
   (childDocType.value?.fields ?? []).filter((f) => !LAYOUT_TYPES.has(f.fieldtype) && !f.hidden),
 )
 
+// A field with dynamic_schema_source (e.g. WebPageBlock.settings) renders a
+// different sub-form per row instead of a fixed set of columns — the active
+// variant is picked live from `dynamic_schemas` by the sibling field named
+// in `dynamic_schema_key` (e.g. block_type), read from the row being edited.
+const dynamicSchemaField = computed(() =>
+  (childDocType.value?.fields ?? []).find((f) => f.dynamic_schema_source),
+)
+
+const activeDynamicFields = computed((): DocField[] => {
+  const f = dynamicSchemaField.value
+  if (!f || !f.dynamic_schema_key) return []
+  const variantKey = editDraft.value[f.dynamic_schema_key] as string | undefined
+  if (!variantKey) return []
+  return f.dynamic_schemas?.[variantKey] ?? []
+})
+
 const tableColumns = computed(() => {
   const listView = allFields.value.filter((f) => {
     if (!f.in_list_view) return false
@@ -285,6 +301,13 @@ function saveEditor() {
 
 function updateDraft(fieldname: string, val: unknown) {
   editDraft.value = { ...editDraft.value, [fieldname]: val }
+}
+
+function updateSettingsDraft(fieldname: string, val: unknown) {
+  const source = dynamicSchemaField.value?.fieldname
+  if (!source) return
+  const current = (editDraft.value[source] as Record<string, unknown>) ?? {}
+  editDraft.value = { ...editDraft.value, [source]: { ...current, [fieldname]: val } }
 }
 
 // ── Cell helpers ──────────────────────────────────────────────────────────────
@@ -722,6 +745,16 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
           :disabled="disabled"
           :docValues="editDraft"
           @update:modelValue="updateDraft(f.fieldname, $event)"
+          @create-new="handleCreateNew"
+        />
+        <FieldRenderer
+          v-for="f in activeDynamicFields"
+          :key="f.fieldname"
+          :field="f"
+          :modelValue="(editDraft[dynamicSchemaField!.fieldname] as Record<string, unknown> | undefined)?.[f.fieldname]"
+          :disabled="disabled"
+          :docValues="editDraft"
+          @update:modelValue="updateSettingsDraft(f.fieldname, $event)"
           @create-new="handleCreateNew"
         />
       </div>

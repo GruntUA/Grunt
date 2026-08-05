@@ -230,6 +230,17 @@ async def lifespan(app: FastAPI):
                             for _imp in hooks_mod.io_importers:
                                 _reg_imp(_imp)
                                 logger.info("io.importer.registered", id=_imp.id, app=ext_app.name)
+                        if hasattr(hooks_mod, "website_block_types"):
+                            from grunt.website.block_types import register_block_type
+
+                            website_registry.add_template_source("grunt", ext_app / "www")
+                            for _bt in hooks_mod.website_block_types:
+                                register_block_type(_bt["name"], _bt["template"], _bt.get("fields"))
+                                logger.info(
+                                    "website.block_type.registered",
+                                    name=_bt["name"],
+                                    app=ext_app.name,
+                                )
                     except Exception as e:
                         logger.warning("hooks.load_error", module=hooks_import, error=str(e))
 

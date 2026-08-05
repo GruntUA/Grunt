@@ -299,6 +299,7 @@ class DocTypeRegistry:
                 _structural = {
                     "fieldtype",
                     "options",
+                    "options_source",
                     "label",
                     "default",
                     "read_only",
