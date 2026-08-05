@@ -1,0 +1,45 @@
+<section class="wp-block wp-feature-grid container">
+    {% if block.title %}<h2 style="text-align: center; margin-bottom: 3rem;">{{ block.title }}</h2>{% endif %}
+    <style>
+        .wp-feature-grid .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 2rem;
+        }
+        .wp-feature-grid .feature-card {
+            padding: 2.5rem;
+            border-radius: var(--radius-lg);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .wp-feature-grid .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        .wp-feature-grid .feature-icon {
+            width: 3.5rem;
+            height: 3.5rem;
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+    <div class="features">
+        {% for i in [1, 2, 3] %}
+            {% set icon = block.settings["feature" ~ i ~ "_icon"] %}
+            {% set title = block.settings["feature" ~ i ~ "_title"] %}
+            {% set text = block.settings["feature" ~ i ~ "_text"] %}
+            {% if title or text %}
+                <div class="feature-card glass">
+                    {% if icon %}<div class="feature-icon">{{ icon }}</div>{% endif %}
+                    {% if title %}<h3>{{ title }}</h3>{% endif %}
+                    {% if text %}<p style="color: var(--text-muted); margin-top: 0.75rem;">{{ text }}</p>{% endif %}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</section>

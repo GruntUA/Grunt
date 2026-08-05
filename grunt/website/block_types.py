@@ -63,3 +63,16 @@ register_block_type(
     "blocks/form_embed.html",
     [{"fieldname": "form_route", "label": "Маршрут веб-форми", "fieldtype": "Text"}],
 )
+register_block_type(
+    "feature_grid",
+    "blocks/feature_grid.html",
+    [
+        {"fieldname": f"feature{i}_{sub}", "label": label, "fieldtype": fieldtype}
+        for i in (1, 2, 3)
+        for sub, label, fieldtype in (
+            ("icon", f"Іконка {i} (emoji)", "Text"),
+            ("title", f"Заголовок {i}", "Text"),
+            ("text", f"Опис {i}", "Text"),
+        )
+    ],
+)
