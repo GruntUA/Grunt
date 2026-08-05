@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import draggable from 'vuedraggable'
 import type { DocField, DocType } from '@/types'
 import { metaApi, docsApi } from '@/core/api'
-import { Plus, X, Pencil, Trash2, Copy, GripVertical } from '@lucide/vue'
+import { Plus, X, Pencil, Trash2, Copy, ChevronDown } from '@lucide/vue'
 import { Table as ShadcnTable } from '@/components/ui/table'
 import FieldRenderer from '@/core/renderer/FieldRenderer.vue'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
@@ -115,6 +115,24 @@ const tableColumns = computed(() => {
   return allFields.value.filter((f) => INLINE_TYPES.has(f.fieldtype))
 })
 
+// User-hidden columns (view-only, not persisted) — toggled via the "Columns" dropdown.
+const hiddenColumns = ref<Set<string>>(new Set())
+
+const displayedColumns = computed(() =>
+  tableColumns.value.filter((f) => !hiddenColumns.value.has(f.fieldname)),
+)
+
+function toggleColumn(fieldname: string) {
+  const next = new Set(hiddenColumns.value)
+  if (next.has(fieldname)) {
+    next.delete(fieldname)
+  } else {
+    if (tableColumns.value.length - next.size <= 1) return
+    next.add(fieldname)
+  }
+  hiddenColumns.value = next
+}
+
 const hasComplexFields = computed(() =>
   allFields.value.some((f) => !INLINE_TYPES.has(f.fieldtype)),
 )
@@ -200,7 +218,7 @@ const displayRows = computed<RowWithMeta[]>(() => {
 const canReorder = computed(() => !props.disabled && !groupField.value)
 
 const totalColCount = computed(() =>
-  (canReorder.value ? 1 : 0) + 1 /* select */ + 1 /* № */ + tableColumns.value.length + 1 /* actions */,
+  1 /* select */ + 1 /* № */ + displayedColumns.value.length + 1 /* actions */,
 )
 
 function isNewGroup(row: Record<string, unknown>, idx: number): boolean {
@@ -317,7 +335,7 @@ function selectOptions(f: DocField): string[] {
 }
 
 function onCellKeydown(e: KeyboardEvent, rowIdx: number, colIdx: number) {
-  if (e.key === 'Enter' && rowIdx === rows.value.length - 1 && colIdx === tableColumns.value.length - 1) {
+  if (e.key === 'Enter' && rowIdx === rows.value.length - 1 && colIdx === displayedColumns.value.length - 1) {
     e.preventDefault()
     addRow()
   }
@@ -345,6 +363,10 @@ function rowClass(data: Record<string, unknown>): string {
   return isSubtotalRow(data)
     ? 'bg-muted/40 border-t border-border font-semibold'
     : ''
+}
+
+function rowSelected(row: RowWithMeta): boolean {
+  return !isSubtotalRow(row) && selectedRows.value.has(String(row.__row_key))
 }
 
 function toggleRowSelection(row: Record<string, unknown>) {
@@ -432,17 +454,39 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
 <template>
   <div>
   <div class="flex flex-col gap-2">
+    <div v-if="tableColumns.length > 1" class="flex justify-end">
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <Button variant="outline" size="sm" type="button" class="!text-xs gap-1">
+            {{ t('Columns') }}
+            <ChevronDown class="size-3.5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuCheckboxItem
+            v-for="f in tableColumns" :key="f.fieldname"
+            :model-value="!hiddenColumns.has(f.fieldname)"
+            @update:model-value="toggleColumn(f.fieldname)"
+            @select.prevent
+          >
+            {{ f.label }}
+          </DropdownMenuCheckboxItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
     <div class="border border-border rounded-lg overflow-x-auto text-xs">
     <ShadcnTable class="max-h-[480px]">
       <TableHeader>
         <TableRow class="hover:bg-transparent">
-          <TableHead v-if="canReorder" style="width: 2rem" />
-          <TableHead style="width: 2.5rem" class="text-center" />
-          <TableHead style="width: 3rem" class="text-center text-muted-foreground select-none">№</TableHead>
-          <TableHead v-for="f in tableColumns" :key="f.fieldname" :style="colStyle(f)">
+          <TableHead style="width: 2.5rem" class="text-center py-2.5" />
+          <TableHead style="width: 3rem" class="text-center text-muted-foreground select-none py-2.5">№</TableHead>
+          <TableHead
+            v-for="f in displayedColumns" :key="f.fieldname" :style="colStyle(f)"
+            class="px-3 py-2.5"
+          >
             {{ f.label }}<span v-if="f.required" class="text-destructive ml-0.5">*</span>
           </TableHead>
-          <TableHead style="width: 5rem" />
+          <TableHead style="width: 5rem" class="py-2.5" />
         </TableRow>
       </TableHeader>
 
@@ -467,35 +511,35 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
         class="[&_tr:last-child]:border-0"
       >
         <template #item="{ element: row }">
-          <TableRow :class="rowClass(row)">
-            <TableCell class="text-center">
-              <GripVertical class="row-drag-handle size-3.5 cursor-grab text-muted-foreground/50 mx-auto" />
-            </TableCell>
+          <TableRow :class="rowClass(row)" :data-state="rowSelected(row) ? 'selected' : undefined">
             <TableCell class="text-center" @click.stop>
               <Checkbox v-if="!isSubtotalRow(row)" :model-value="selectedRows.has(String(row.__row_key))" @update:model-value="toggleRowSelection(row)" />
             </TableCell>
-            <TableCell class="text-center text-xs text-muted-foreground select-none">
+            <TableCell
+              class="text-center text-xs text-muted-foreground select-none"
+              :class="!isSubtotalRow(row) && 'row-drag-handle cursor-grab active:cursor-grabbing'"
+            >
               <span v-if="!isSubtotalRow(row)">{{ Number(row.__display_index ?? (Number(row.__row_index) + 1)) }}</span>
             </TableCell>
 
-            <TableCell v-for="(f, colIdx) in tableColumns" :key="f.fieldname">
+            <TableCell v-for="(f, colIdx) in displayedColumns" :key="f.fieldname" class="p-0">
               <!-- Subtotal row: bold, "Разом:" in title column, sums in numeric columns -->
               <template v-if="isSubtotalRow(row)">
-                <span class="block px-2 py-1 text-xs font-semibold text-foreground">
+                <span class="block px-3 py-2.5 text-xs font-semibold text-foreground">
                   {{ subtotalCellDisplay(row, f) }}
                 </span>
               </template>
 
               <template v-else-if="disabled || f.read_only || !INLINE_TYPES.has(f.fieldtype)">
                 <span
-                  :class="['block px-2 py-1 text-xs break-words whitespace-pre-wrap', !cellDisplay(row, f) && 'text-muted-foreground/40']"
+                  :class="['block px-3 py-2.5 text-xs break-words whitespace-pre-wrap', !cellDisplay(row, f) && 'text-muted-foreground/40']"
                 >
                   {{ cellDisplay(row, f) || '—' }}
                 </span>
               </template>
 
               <template v-else-if="f.fieldtype === 'Check'">
-                <div class="flex justify-center">
+                <div class="flex justify-center py-2.5">
                   <input
                     type="checkbox"
                     :checked="Boolean(row[f.fieldname])"
@@ -508,7 +552,7 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
               <template v-else-if="f.fieldtype === 'Select'">
                 <select
                   :value="String(row[f.fieldname] ?? '')"
-                  class="w-full px-2 py-1 text-xs border border-transparent rounded-md bg-transparent hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+                  class="w-full px-3 py-2.5 text-xs border border-transparent rounded-md bg-transparent hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
                   @change="updateCell(Number(row.__row_index), f.fieldname, ($event.target as HTMLSelectElement).value)"
                   @keydown="onCellKeydown($event, Number(row.__row_index), colIdx)"
                 >
@@ -522,7 +566,7 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
                   type="number"
                   :value="row[f.fieldname] ?? ''"
                   :step="f.fieldtype === 'Float' ? 'any' : '1'"
-                  class="w-full px-2 py-1 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+                  class="w-full px-3 py-2.5 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
                   @input="updateCell(Number(row.__row_index), f.fieldname, Number(($event.target as HTMLInputElement).value))"
                   @keydown="onCellKeydown($event, Number(row.__row_index), colIdx)"
                 >
@@ -532,7 +576,7 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
                 <input
                   :type="f.fieldtype === 'Date' ? 'date' : f.fieldtype === 'Datetime' ? 'datetime-local' : 'time'"
                   :value="String(row[f.fieldname] ?? '')"
-                  class="w-full px-2 py-1 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+                  class="w-full px-3 py-2.5 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
                   @input="updateCell(Number(row.__row_index), f.fieldname, ($event.target as HTMLInputElement).value)"
                   @keydown="onCellKeydown($event, Number(row.__row_index), colIdx)"
                 >
@@ -542,7 +586,7 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
                 <input
                   type="text"
                   :value="String(row[f.fieldname] ?? '')"
-                  class="w-full px-2 py-1 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+                  class="w-full px-3 py-2.5 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
                   @input="updateCell(Number(row.__row_index), f.fieldname, ($event.target as HTMLInputElement).value)"
                   @keydown="onCellKeydown($event, Number(row.__row_index), colIdx)"
                 >
@@ -585,7 +629,7 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
             >{{ groupHeaderLabel(row) }}</TableCell>
           </TableRow>
 
-          <TableRow :class="rowClass(row)">
+          <TableRow :class="rowClass(row)" :data-state="rowSelected(row) ? 'selected' : undefined">
             <TableCell class="text-center" @click.stop>
               <Checkbox v-if="!isSubtotalRow(row)" :model-value="selectedRows.has(String(row.__row_key))" @update:model-value="toggleRowSelection(row)" />
             </TableCell>
@@ -593,23 +637,23 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
               <span v-if="!isSubtotalRow(row)">{{ Number(row.__display_index ?? (Number(row.__row_index) + 1)) }}</span>
             </TableCell>
 
-            <TableCell v-for="(f, colIdx) in tableColumns" :key="f.fieldname">
+            <TableCell v-for="(f, colIdx) in displayedColumns" :key="f.fieldname" class="p-0">
               <template v-if="isSubtotalRow(row)">
-                <span class="block px-2 py-1 text-xs font-semibold text-foreground">
+                <span class="block px-3 py-2.5 text-xs font-semibold text-foreground">
                   {{ subtotalCellDisplay(row, f) }}
                 </span>
               </template>
 
               <template v-else-if="disabled || f.read_only || !INLINE_TYPES.has(f.fieldtype)">
                 <span
-                  :class="['block px-2 py-1 text-xs break-words whitespace-pre-wrap', !cellDisplay(row, f) && 'text-muted-foreground/40']"
+                  :class="['block px-3 py-2.5 text-xs break-words whitespace-pre-wrap', !cellDisplay(row, f) && 'text-muted-foreground/40']"
                 >
                   {{ cellDisplay(row, f) || '—' }}
                 </span>
               </template>
 
               <template v-else-if="f.fieldtype === 'Check'">
-                <div class="flex justify-center">
+                <div class="flex justify-center py-2.5">
                   <input
                     type="checkbox"
                     :checked="Boolean(row[f.fieldname])"
@@ -622,7 +666,7 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
               <template v-else-if="f.fieldtype === 'Select'">
                 <select
                   :value="String(row[f.fieldname] ?? '')"
-                  class="w-full px-2 py-1 text-xs border border-transparent rounded-md bg-transparent hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+                  class="w-full px-3 py-2.5 text-xs border border-transparent rounded-md bg-transparent hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
                   @change="updateCell(Number(row.__row_index), f.fieldname, ($event.target as HTMLSelectElement).value)"
                   @keydown="onCellKeydown($event, Number(row.__row_index), colIdx)"
                 >
@@ -636,7 +680,7 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
                   type="number"
                   :value="row[f.fieldname] ?? ''"
                   :step="f.fieldtype === 'Float' ? 'any' : '1'"
-                  class="w-full px-2 py-1 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+                  class="w-full px-3 py-2.5 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
                   @input="updateCell(Number(row.__row_index), f.fieldname, Number(($event.target as HTMLInputElement).value))"
                   @keydown="onCellKeydown($event, Number(row.__row_index), colIdx)"
                 >
@@ -646,7 +690,7 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
                 <input
                   :type="f.fieldtype === 'Date' ? 'date' : f.fieldtype === 'Datetime' ? 'datetime-local' : 'time'"
                   :value="String(row[f.fieldname] ?? '')"
-                  class="w-full px-2 py-1 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+                  class="w-full px-3 py-2.5 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
                   @input="updateCell(Number(row.__row_index), f.fieldname, ($event.target as HTMLInputElement).value)"
                   @keydown="onCellKeydown($event, Number(row.__row_index), colIdx)"
                 >
@@ -656,7 +700,7 @@ function subtotalCellDisplay(row: Record<string, unknown>, f: DocField): string 
                 <input
                   type="text"
                   :value="String(row[f.fieldname] ?? '')"
-                  class="w-full px-2 py-1 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
+                  class="w-full px-3 py-2.5 text-xs border border-transparent rounded-md hover:border-border focus:border-ring focus:ring-1 focus:ring-ring focus:outline-none"
                   @input="updateCell(Number(row.__row_index), f.fieldname, ($event.target as HTMLInputElement).value)"
                   @keydown="onCellKeydown($event, Number(row.__row_index), colIdx)"
                 >

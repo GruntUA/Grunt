@@ -34,6 +34,7 @@ declare module 'vue' {
     DialogHeader: typeof import('@/components/ui/dialog')['DialogHeader']
     DialogTitle: typeof import('@/components/ui/dialog')['DialogTitle']
     DropdownMenu: typeof import('@/components/ui/dropdown-menu')['DropdownMenu']
+    DropdownMenuCheckboxItem: typeof import('@/components/ui/dropdown-menu')['DropdownMenuCheckboxItem']
     DropdownMenuContent: typeof import('@/components/ui/dropdown-menu')['DropdownMenuContent']
     DropdownMenuItem: typeof import('@/components/ui/dropdown-menu')['DropdownMenuItem']
     DropdownMenuLabel: typeof import('@/components/ui/dropdown-menu')['DropdownMenuLabel']
