@@ -94,6 +94,10 @@ function onRowAnchorClick(event: MouseEvent, row: Record<string, unknown>) {
 function isAllSelected(): boolean {
   return !!(props.allSelected || (props.rows.length > 0 && props.selectedIds.length === props.rows.length))
 }
+
+function isRowSelected(row: Record<string, unknown>): boolean {
+  return !!props.allSelected || props.selectedIds.includes(getRowDocId(row) ?? '')
+}
 </script>
 
 <template>
@@ -149,17 +153,17 @@ function isAllSelected(): boolean {
         v-for="(row, ri) in rows" :key="getRowDocId(row) ?? ri"
         class="cursor-pointer border-b border-border/20 last:border-0 transition-colors hover:bg-primary/5"
         :class="[
-          { 'bg-primary/5 hover:bg-primary/10': selectedIds.includes(getRowDocId(row) ?? '') },
+          { 'bg-primary/5 hover:bg-primary/10': isRowSelected(row) },
           { 'ring-inset ring-2 ring-primary/60 z-20 relative bg-background': activeIndex === ri },
         ]"
         @click="emit('rowClick', row)"
       >
         <TableCell class="relative px-3 py-2.5 text-sm border-b border-border/10">
-          <div v-if="selectedIds.includes(getRowDocId(row) ?? '')"
+          <div v-if="isRowSelected(row)"
             class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full pointer-events-none" />
           <div class="flex items-center justify-center w-full">
             <Checkbox
-              :model-value="selectedIds.includes(getRowDocId(row) ?? '')"
+              :model-value="isRowSelected(row)"
               @update:model-value="() => { const docId = getRowDocId(row); if (docId) emit('select', docId) }"
               @click.stop
             />
