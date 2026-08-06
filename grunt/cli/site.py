@@ -252,9 +252,9 @@ def _run_migrate_for_site(site_name: str) -> None:
             apply_doctype_overrides,
             load_core_doctypes,
             populate_system_doctypes,
-            seed_app_workspaces,
             seed_grunt_workspace,
             seed_system_settings,
+            sync_installed_apps,
         )
 
         eng = site_manager.get_engine(site_name)
@@ -286,7 +286,7 @@ def _run_migrate_for_site(site_name: str) -> None:
             await session.commit()
 
         async with maker() as session:
-            await seed_app_workspaces(session, site_name)
+            await sync_installed_apps(session, site_name)
             await session.commit()
 
     asyncio.run(_migrate())

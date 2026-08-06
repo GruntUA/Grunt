@@ -40,7 +40,7 @@ async def _do_install(name: str, site: str | None = None) -> None:
     from grunt.metadata.compiler import SA_METADATA
     from grunt.metadata.registry import doctype_registry
     from grunt.site.manager import current_site, site_manager
-    from grunt.startup import load_core_doctypes, seed_app_workspaces
+    from grunt.startup import load_core_doctypes, sync_installed_apps
 
     _sites = site_manager.get_sites()
     target_site = site or (_sites[0] if _sites else None)
@@ -81,7 +81,7 @@ async def _do_install(name: str, site: str | None = None) -> None:
             await load_core_doctypes(session, eng)
             await doctype_registry.load_all(session)
             async with grunt.system_context(session, eng):
-                await seed_app_workspaces(session, target_site)
+                await sync_installed_apps(session, target_site)
             await session.commit()
     finally:
         current_site.reset(token)

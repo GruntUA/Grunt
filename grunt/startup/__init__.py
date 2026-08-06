@@ -3,6 +3,7 @@
 Called once during application lifespan startup.
 """
 
+from grunt.startup.app_install import sync_installed_apps
 from grunt.startup.doctypes import (
     apply_doctype_overrides,
     load_core_doctypes,
@@ -12,11 +13,7 @@ from grunt.startup.doctypes import (
 from grunt.startup.fixtures import _load_app_meta, load_core_fixtures
 from grunt.startup.settings import seed_system_settings
 from grunt.startup.validators import load_validators
-from grunt.startup.workspaces import (
-    _auto_seed_workspace,
-    seed_app_workspaces,
-    seed_grunt_workspace,
-)
+from grunt.startup.workspaces import _auto_seed_workspace, seed_grunt_workspace
 
 __all__ = [
     "apply_doctype_overrides",
@@ -25,7 +22,7 @@ __all__ = [
     "sync_all_doctypes",
     "seed_system_settings",
     "seed_grunt_workspace",
-    "seed_app_workspaces",
+    "sync_installed_apps",
     "_load_app_meta",
     "_auto_seed_workspace",
     "load_core_fixtures",

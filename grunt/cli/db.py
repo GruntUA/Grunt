@@ -40,9 +40,9 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
             load_core_doctypes,
             load_core_fixtures,
             populate_system_doctypes,
-            seed_app_workspaces,
             seed_grunt_workspace,
             seed_system_settings,
+            sync_installed_apps,
         )
         from grunt.tasks.broker import broker
 
@@ -113,7 +113,7 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
                         await session.commit()
 
                     async with maker() as session:
-                        await seed_app_workspaces(session, site_name)
+                        await sync_installed_apps(session, site_name)
                         await session.commit()
 
                     click.echo("  Fixtures applied.")
