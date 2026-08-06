@@ -132,6 +132,9 @@ def _register_framework_jobs() -> None:
         id="grunt.digest.weekly",
         replace_existing=True,
     )
+
+    _add_scheduled_job("grunt.tasks.log_cleanup.purge_old_logs", "0 3 * * *")  # daily at 03:00
+
     logger.info("scheduler.framework_jobs_registered")
 
 
