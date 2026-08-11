@@ -17,6 +17,14 @@ import {
   Check,
   Filter,
 } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
+import type { ButtonVariants } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+
+// Client scripts set `severity` as a free-form string; trust it as a Button variant.
+function scriptButtonVariant(severity?: string): ButtonVariants['variant'] {
+  return (severity as ButtonVariants['variant']) || 'outline'
+}
 
 const props = defineProps<{
   doctype: string
@@ -174,7 +182,7 @@ const menuItems = computed(() => {
       <Button
         v-for="btn in listButtons"
         :key="btn.label" size="sm"
-        :variant="btn.severity || 'outline'"
+        :variant="scriptButtonVariant(btn.severity)"
         class="hidden sm:inline-flex"
         @click="btn.action()"
       >

@@ -5,6 +5,8 @@ import type { DocField } from '@/types'
 import type { LinkSearchItem } from '@/core/api/docs'
 import { docsApi, metaApi } from '@/core/api'
 import type { TreeNode } from '@/components/ui/tree-select'
+import { Input } from '@/components/ui/input'
+import { TreeSelect } from '@/components/ui/tree-select'
 
 const props = defineProps<{
   field: DocField

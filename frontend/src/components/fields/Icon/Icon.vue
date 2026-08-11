@@ -3,6 +3,9 @@ import { ref, computed, shallowRef, onMounted } from 'vue'
 import type { Component } from 'vue'
 import type { DocField } from '@/types'
 import { Search, X } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import { Spinner } from '@/components/ui/spinner'
 
 const props = defineProps<{
   field: DocField

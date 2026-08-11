@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { getAttachChannels } from '@/core/attachmentChannels/registry'
 import type { AttachmentResult } from '@/core/attachmentChannels/types'
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const props = defineProps<{
   open: boolean

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
+import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
 
 const { field, updateField } = usePropertyEditor()
 </script>

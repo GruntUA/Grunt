@@ -2,6 +2,10 @@
 import { computed } from 'vue'
 import { CalendarDays, Plus, X } from '@lucide/vue'
 import { useBuilderFields } from '@/core/composables/useBuilderFields'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 
 const { builder, dataFields, allDateFields } = useBuilderFields()
 

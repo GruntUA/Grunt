@@ -9,7 +9,11 @@ import { Table as ShadcnTable } from '@/components/ui/table'
 import FieldRenderer from '@/core/renderer/FieldRenderer.vue'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
-
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 interface RowWithMeta extends Record<string, unknown> {
   __row_key: string
   __row_index: number

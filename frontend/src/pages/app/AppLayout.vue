@@ -6,6 +6,7 @@ import AppSidebar from '@/components/app/AppSidebar.vue'
 import MobileBottomNav from '@/components/mobile/MobileBottomNav.vue'
 import NotFound from '@/pages/errors/NotFound.vue'
 import { SidebarProvider } from '@/components/ui/sidebar'
+import { SidebarInset } from '@/components/ui/sidebar'
 
 const props = defineProps<{ workspaceName: string }>()
 const appStore = useAppStore()

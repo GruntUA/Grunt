@@ -21,6 +21,7 @@ import {
     Activity,
 } from '@lucide/vue'
 import { onKeyStroke } from '@vueuse/core'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 
 const { t } = useI18n()
 const router = useRouter()

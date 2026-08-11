@@ -3,7 +3,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { Trash2 } from '@lucide/vue'
 import client from '@/core/api/client'
-
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { MultiSelect } from '@/components/ui/multi-select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 const physicalFieldTypes = new Set([
   'Text', 'LongText', 'Int', 'Float', 'Check', 'Date', 'Datetime',
   'Time', 'Link', 'MultiLink', 'Attach', 'Image', 'Select',
@@ -76,42 +81,42 @@ function addRole() {
             <TableCell class="text-center">
               <Checkbox
                 :model-value="!!perm.read"
-                @update:model-value="builder.updatePermission(index, { read: $event })"
+                @update:model-value="builder.updatePermission(index, { read: $event === true })"
               />
             </TableCell>
 
             <TableCell class="text-center">
               <Checkbox
                 :model-value="!!perm.write"
-                @update:model-value="builder.updatePermission(index, { write: $event })"
+                @update:model-value="builder.updatePermission(index, { write: $event === true })"
               />
             </TableCell>
 
             <TableCell class="text-center">
               <Checkbox
                 :model-value="!!perm.create"
-                @update:model-value="builder.updatePermission(index, { create: $event })"
+                @update:model-value="builder.updatePermission(index, { create: $event === true })"
               />
             </TableCell>
 
             <TableCell class="text-center">
               <Checkbox
                 :model-value="!!perm.delete"
-                @update:model-value="builder.updatePermission(index, { delete: $event })"
+                @update:model-value="builder.updatePermission(index, { delete: $event === true })"
               />
             </TableCell>
 
             <TableCell v-if="builder.doctype?.is_submittable" class="text-center">
               <Checkbox
                 :model-value="!!perm.submit"
-                @update:model-value="builder.updatePermission(index, { submit: $event })"
+                @update:model-value="builder.updatePermission(index, { submit: $event === true })"
               />
             </TableCell>
 
             <TableCell class="text-center">
               <Checkbox
                 :model-value="!!perm.report"
-                @update:model-value="builder.updatePermission(index, { report: $event })"
+                @update:model-value="builder.updatePermission(index, { report: $event === true })"
               />
             </TableCell>
 

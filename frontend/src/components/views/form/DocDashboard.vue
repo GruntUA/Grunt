@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Plus } from '@lucide/vue'
 import type { DocType } from '@/types'
+import { Badge } from '@/components/ui/badge'
 
 const props = defineProps<{
   dt: DocType

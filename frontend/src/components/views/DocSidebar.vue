@@ -14,6 +14,8 @@ import SidebarAssignments from './sidebar/SidebarAssignments.vue'
 import SidebarShare from './sidebar/SidebarShare.vue'
 import SidebarTags from './sidebar/SidebarTags.vue'
 import SidebarBacklinks from './sidebar/SidebarBacklinks.vue'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 const props = defineProps<{
   doctype: DocType

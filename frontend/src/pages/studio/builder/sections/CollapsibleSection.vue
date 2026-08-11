@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const { field, updateField } = usePropertyEditor()
 </script>

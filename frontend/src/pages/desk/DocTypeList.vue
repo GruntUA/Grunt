@@ -37,7 +37,7 @@ import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
 import QuickFilterSettingsDialog from '@/components/views/list/QuickFilterSettingsDialog.vue'
 import DocTypeToolbar from '@/components/views/DocTypeToolbar.vue'
 import ListViewRouter from '@/components/views/list/ListViewRouter.vue'
-
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 const props = defineProps<{ doctype: string; workspace?: string }>()
 const doctype = computed(() => props.doctype)
 const workspace = computed(() => props.workspace ?? 'grunt')

@@ -4,6 +4,7 @@ import type { DocField, DocType } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 import GruntDataTable from '@/components/views/GruntDataTable.vue'
+import { Badge } from '@/components/ui/badge'
 
 interface SelectionState {
   selectedIds: string[]

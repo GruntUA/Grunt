@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import type { WorkflowState } from '@/types'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
 
 const props = defineProps<{ state: WorkflowState }>()
 const emit = defineEmits<{

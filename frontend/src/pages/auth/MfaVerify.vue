@@ -5,6 +5,9 @@ import { ShieldCheck, ArrowRight, ArrowLeft } from '@lucide/vue'
 import { authApi } from '@/core/api'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/core/composables/useToast'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Spinner } from '@/components/ui/spinner'
 
 const router = useRouter()
 const route = useRoute()

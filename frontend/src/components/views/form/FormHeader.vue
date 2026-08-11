@@ -27,7 +27,12 @@ import {
   ChevronDown,
 } from '@lucide/vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import type { ButtonVariants } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 const props = defineProps<{
   dt: DocType | null
   doctype: string
@@ -79,6 +84,11 @@ function getIconComponent(name?: string | null): Component | null {
   if (!raw) return null
   const pascal = raw.split('-').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join('')
   return (lucideIcons.value[pascal] ?? null) as Component | null
+}
+
+// Client scripts set `severity` as a free-form string; trust it as a Button variant.
+function scriptButtonVariant(severity?: string): ButtonVariants['variant'] {
+  return (severity as ButtonVariants['variant']) || 'outline'
 }
 
 async function createShare() {
@@ -324,7 +334,7 @@ const menuItems = computed(() => {
           v-for="btn in ungroupedScriptButtons"
           :key="`script-${btn.label}`"
           size="sm"
-          :variant="btn.severity || 'outline'"
+          :variant="scriptButtonVariant(btn.severity)"
           @click="btn.action"
           :class="['hidden sm:inline-flex gap-1.5', btn.className]"
         >
@@ -340,7 +350,7 @@ const menuItems = computed(() => {
           <Button
             v-if="grp.secondary.length === 0"
             size="sm"
-            :variant="grp.primary.severity || 'outline'"
+            :variant="scriptButtonVariant(grp.primary.severity)"
             @click="grp.primary.action"
             :class="['hidden sm:inline-flex gap-1.5', grp.primary.className]"
             :title="grp.name"
@@ -355,7 +365,7 @@ const menuItems = computed(() => {
           <div v-else class="hidden sm:inline-flex" :class="grp.primary.className">
             <Button
               size="sm"
-              :variant="grp.primary.severity || 'outline'"
+              :variant="scriptButtonVariant(grp.primary.severity)"
               class="rounded-r-none"
               :aria-label="grp.primary.label"
               :title="grp.name"
@@ -370,7 +380,7 @@ const menuItems = computed(() => {
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
-                <Button size="sm" :variant="grp.primary.severity || 'outline'" class="rounded-l-none border-l-0 px-2" :aria-label="`${grp.name} options`">
+                <Button size="sm" :variant="scriptButtonVariant(grp.primary.severity)" class="rounded-l-none border-l-0 px-2" :aria-label="`${grp.name} options`">
                   <ChevronDown class="size-3.5" />
                 </Button>
               </DropdownMenuTrigger>

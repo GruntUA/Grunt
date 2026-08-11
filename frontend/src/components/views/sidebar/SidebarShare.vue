@@ -5,6 +5,13 @@ import { Share2, X, Loader2, ShieldCheck, User, Shield } from '@lucide/vue'
 import { docsApi } from '@/core/api/docs'
 import { authAdminApi } from '@/core/api/auth-admin'
 import type { DocType, GruntDocument, UserPublic } from '@/types'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 const PERMISSION_OPTIONS = [
   { value: 'Read', label: 'Читання' },

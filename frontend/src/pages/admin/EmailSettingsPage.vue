@@ -7,7 +7,8 @@ import {
   XCircle, Clock, ChevronLeft, ChevronRight,
   Wifi, WifiOff, Eye, EyeOff,
 } from '@lucide/vue'
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DialogFooter } from '@/components/ui/dialog'
 const { success: toastSuccess, error: toastError } = useToast()
 
 // ── Tabs ─────────────────────────────────────────────────────────────────────

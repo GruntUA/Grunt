@@ -5,7 +5,11 @@ import type { DocField, DocTypeStatusConfig } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
 import DefaultListCell from '@/components/fields/Default/ListCell.vue'
-
+import { Checkbox } from '@/components/ui/checkbox'
+import { Table, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
+import { TableBody, TableCell } from '@/components/ui/table'
 const props = defineProps<{
   columns: ListColumn[]
   rows: Record<string, unknown>[]

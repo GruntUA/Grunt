@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { ChevronDown } from '@lucide/vue'
 import { cn } from '@/lib/utils'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 
 const props = withDefaults(defineProps<{
   modelValue: string

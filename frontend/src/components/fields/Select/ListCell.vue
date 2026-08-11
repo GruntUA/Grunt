@@ -2,6 +2,8 @@
 import { computed, shallowRef } from 'vue'
 import type { Component } from 'vue'
 import type { DocField, DocTypeStatusConfig } from '@/types'
+import { Badge } from '@/components/ui/badge'
+import type { BadgeVariants } from '@/components/ui/badge'
 
 const props = defineProps<{
   value: unknown
@@ -46,7 +48,7 @@ const COLOR_CLASSES: Record<string, string> = {
   pink: 'border-pink-500/30 bg-pink-500/10 text-pink-700 dark:text-pink-300',
 }
 
-const COLOR_VARIANT: Record<string, string | undefined> = {
+const COLOR_VARIANT: Record<string, BadgeVariants['variant']> = {
   default: undefined,
   secondary: 'secondary',
   success: 'success',

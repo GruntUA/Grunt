@@ -8,6 +8,8 @@ import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 import client from '@/core/api/client'
 import { Loader2, Save, Eye, EyeOff, RefreshCw, ChevronLeft, FileText } from '@lucide/vue'
 import type { GruntDocument } from '@/types'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const props = defineProps<{
   id: string

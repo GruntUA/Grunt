@@ -7,6 +7,8 @@ import { ChevronRight, ChevronDown, Plus, FolderOpen, AlertCircle } from '@lucid
 import type { DocType, FastFilter, ActiveFilter } from '@/types'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import { useFastFilters } from '@/core/composables/useFastFilters'
+import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 
 const props = defineProps<{
   doctype: DocType

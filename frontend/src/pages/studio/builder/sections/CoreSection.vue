@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
+import { Input } from '@/components/ui/input'
 
 const { field, updateField } = usePropertyEditor()
 const LAYOUT_TYPES = getLayoutTypeSet()

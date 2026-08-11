@@ -10,7 +10,12 @@ import {
 import draggable from 'vuedraggable'
 import type { DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
-
+import { Button } from '@/components/ui/button'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
 interface ListColumnsState {
   allAvailableColumns: { value: ListColumn[] }
   visibleColumns: { value: ListColumn[] }

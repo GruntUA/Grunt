@@ -5,7 +5,11 @@ import type { DocType, DocField } from '@/types'
 import { docsApi } from '@/core/api/docs'
 
 import { Plus, Calendar, FileText, Ellipsis } from '@lucide/vue'
-
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 const props = defineProps<{
   doctype: DocType
   columnField: string

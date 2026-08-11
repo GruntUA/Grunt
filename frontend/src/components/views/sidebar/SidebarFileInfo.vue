@@ -4,6 +4,7 @@ import { User, Clock, ImageIcon } from '@lucide/vue'
 import PresenceAvatars from '@/components/ui/PresenceAvatars.vue'
 import type { DocType, GruntDocument } from '@/types'
 import type { PresenceUser } from '@/core/composables/usePresence'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 const props = defineProps<{
   doctype: DocType

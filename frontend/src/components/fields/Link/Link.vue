@@ -7,6 +7,8 @@ import { docsApi, metaApi } from '@/core/api'
 import type { LinkSearchItem } from '@/core/api/docs'
 import { Search, X, Loader2, Plus, ArrowUpRight } from '@lucide/vue'
 import type { TreeNode } from '@/components/ui/tree-select'
+import { TreeSelect } from '@/components/ui/tree-select'
+import { cn } from '@/lib/utils'
 
 const props = defineProps<{
   field: DocField
@@ -375,7 +377,7 @@ function openLinkedDoc() {
       :loading="treeLoading"
       :disabled="disabled || field.read_only"
       :placeholder="field.placeholder ?? `Оберіть ${field.options ?? ''}...`"
-      :class="['w-full', error ? 'border-destructive' : '']"
+      :class="cn('w-full', error && 'border-destructive')"
       @update:model-value="onTreeSelect"
     />
     <button

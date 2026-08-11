@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { FileText } from '@lucide/vue'
 import { useBuilderStore } from '@/stores/builder'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const builder = useBuilderStore()
 

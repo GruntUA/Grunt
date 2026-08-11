@@ -3,6 +3,12 @@ import { computed, ref, watch, onMounted } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { appsApi, type GruntApp } from '@/core/api'
 import { X } from '@lucide/vue'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
 
 const builder = useBuilderStore()
 

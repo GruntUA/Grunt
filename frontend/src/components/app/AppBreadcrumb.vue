@@ -4,7 +4,9 @@ import { useAppStore } from '@/stores/app'
 import { useDocTypeStore } from '@/stores/doctype'
 import AppIcon from '@/components/AppIcon.vue'
 import { ChevronRight } from '@lucide/vue'
-
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { SidebarTrigger } from '@/components/ui/sidebar'
+import { Badge } from '@/components/ui/badge'
 const props = defineProps<{
   workspaceName: string
   doctype?: string

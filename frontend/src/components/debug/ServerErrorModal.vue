@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useServerError } from '@/core/composables/useServerError'
 import { X, Copy, ChevronDown } from '@lucide/vue'
 import { ref } from 'vue'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 
 const { state, close } = useServerError()
 

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { DocField } from '@/types'
 import { Select as ShadcnSelect } from '@/components/ui/select'
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const props = defineProps<{
   field: DocField

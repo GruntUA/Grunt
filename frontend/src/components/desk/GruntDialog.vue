@@ -2,7 +2,11 @@
 import { ref, watch } from 'vue'
 import { useDialog } from '@/core/composables/useDialog'
 import LinkField from '@/components/fields/Link/Link.vue'
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { DialogFooter } from '@/components/ui/dialog'
 const { state, close } = useDialog()
 const promptValue = ref('')
 const formValues = ref<Record<string, any>>({})

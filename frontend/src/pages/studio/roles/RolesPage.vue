@@ -3,6 +3,9 @@ import { ref, onMounted } from 'vue'
 import { authAdminApi } from '@/core/api/auth-admin'
 import { useDocTypeStore } from '@/stores/doctype'
 import { Loader2 } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Spinner } from '@/components/ui/spinner'
 
 interface RoleInfo {
   name: string

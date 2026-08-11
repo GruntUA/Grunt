@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { CheckCircle2, AlertCircle, ChevronDown, ChevronUp, X, Settings2 } from '@lucide/vue'
 import { useTaskTracker } from '@/core/composables/useTaskTracker'
+import { Progress } from '@/components/ui/progress'
 
 const tracker = useTaskTracker()
 const collapsed = ref(false)

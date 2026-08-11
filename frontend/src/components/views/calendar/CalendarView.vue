@@ -19,6 +19,9 @@ import type { DocType } from '@/types'
 import { docsApi } from '@/core/api/docs'
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ExternalLink } from '@lucide/vue'
 import { useRouter } from 'vue-router'
+import { Button } from '@/components/ui/button'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import { Spinner } from '@/components/ui/spinner'
 
 const props = defineProps<{
   doctype: DocType

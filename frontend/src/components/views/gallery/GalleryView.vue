@@ -5,7 +5,8 @@ import type { DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 
 import { FileX, Check, ImageIcon } from '@lucide/vue'
-
+import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/ui/badge'
 const props = defineProps<{
   rows: Record<string, unknown>[]
   columns: ListColumn[]

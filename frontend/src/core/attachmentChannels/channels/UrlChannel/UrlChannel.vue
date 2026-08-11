@@ -2,6 +2,8 @@
 import { ref, computed } from 'vue'
 import type { AttachmentResult } from '@/core/attachmentChannels/types'
 import { AlertCircle } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 const props = defineProps<{ imageOnly: boolean }>()
 const emit = defineEmits<{ select: [result: AttachmentResult] }>()

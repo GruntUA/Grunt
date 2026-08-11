@@ -9,6 +9,8 @@ import { useToast } from '@/core/composables/useToast'
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
 import { ExternalLink, Plus } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const props = defineProps<{
   dt: DocType

@@ -3,6 +3,9 @@ import { ref, onMounted } from 'vue'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { metaApi } from '@/core/api'
 import type { DocTypeSummary } from '@/types'
+import { Combobox } from '@/components/ui/combobox'
+import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
 
 const { field, updateField } = usePropertyEditor()
 const doctypeList = ref<DocTypeSummary[]>([])

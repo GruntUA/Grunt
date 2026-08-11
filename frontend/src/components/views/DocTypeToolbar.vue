@@ -6,6 +6,7 @@ import type { ActiveFilter, DocType, FastFilter } from '@/types'
 import FilterBar from '@/components/views/FilterBar.vue'
 import FastFilterBar from '@/components/views/FastFilterBar.vue'
 import { getViewDef, type ToolbarContext } from '@/core/viewRegistry'
+import { Input } from '@/components/ui/input'
 
 const props = defineProps<{
   dt: DocType | null

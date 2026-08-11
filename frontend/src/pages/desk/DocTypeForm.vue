@@ -33,6 +33,7 @@ import SidebarTimeline from '@/components/views/sidebar/SidebarTimeline.vue'
 import FormHeader from '@/components/views/form/FormHeader.vue'
 import FormModals from '@/components/views/form/FormModals.vue'
 import DocDashboard from '@/components/views/form/DocDashboard.vue'
+import { Spinner } from '@/components/ui/spinner'
 
 const props = defineProps<{ doctype: string; id: string | null; workspace?: string }>()
 const emit = defineEmits<{

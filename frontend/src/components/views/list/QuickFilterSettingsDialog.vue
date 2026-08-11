@@ -4,6 +4,10 @@ import { useI18n } from 'vue-i18n'
 import { Search } from '@lucide/vue'
 import type { DocType } from '@/types'
 import { SUPPORTED_FIELD_TYPES } from '@/core/quickFilters'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 
 const props = defineProps<{
   open: boolean

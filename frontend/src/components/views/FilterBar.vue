@@ -4,7 +4,13 @@ import { useI18n } from 'vue-i18n'
 import { Filter, X, Bookmark, Plus } from '@lucide/vue'
 import type { DocField, ActiveFilter } from '@/types'
 import { getFilterConfig } from '@/core/filterRegistry'
-
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { ButtonGroup } from '@/components/ui/button-group'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
 const props = defineProps<{
   fields: DocField[]
   doctype?: string

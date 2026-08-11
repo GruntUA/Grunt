@@ -2,6 +2,11 @@
 import { computed } from 'vue'
 import { X } from '@lucide/vue'
 import type { DocField, DocType, FastFilter } from '@/types'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 
 const props = defineProps<{
   defs: FastFilter[]

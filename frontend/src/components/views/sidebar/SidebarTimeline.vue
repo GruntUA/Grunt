@@ -12,6 +12,9 @@ import { docsApi, type TimelineItem } from '@/core/api/docs'
 import { authAdminApi } from '@/core/api/auth-admin'
 import { useAuthStore } from '@/stores/auth'
 import type { DocType, GruntDocument, UserPublic } from '@/types'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 
 const props = defineProps<{
   doctype: DocType

@@ -9,6 +9,8 @@ import { useMapPopupFields } from '@/core/composables/useMapPopupFields'
 import { useMapCoordinateJump } from '@/core/composables/useMapCoordinateJump'
 import { useMapMarkers } from '@/core/composables/useMapMarkers'
 import { useMapLifecycle } from '@/core/composables/useMapLifecycle'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 // ── Props ────────────────────────────────────────────────────────────────────
 const props = defineProps<{

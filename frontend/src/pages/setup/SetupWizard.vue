@@ -4,7 +4,11 @@ import { useRouter } from 'vue-router'
 import { useToast } from '@/core/composables/useToast'
 import client from '@/core/api/client'
 import { Sparkles, CheckCircle2, ShieldCheck, Mail, Globe, ArrowRight, ArrowLeft, Zap } from '@lucide/vue'
-
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Spinner } from '@/components/ui/spinner'
 const router = useRouter()
 const toast = useToast()
 

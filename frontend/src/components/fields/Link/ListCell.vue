@@ -3,6 +3,7 @@ import { shallowRef } from 'vue'
 import type { Component } from 'vue'
 import type { DocField, DocTypeStatusConfig } from '@/types'
 import { initials } from '@/core/composables/usePresence'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 defineProps<{
   value: unknown

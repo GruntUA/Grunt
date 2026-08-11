@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const builder = useBuilderStore()
 const previewData = ref<Record<string, unknown>>({})

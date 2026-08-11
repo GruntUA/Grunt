@@ -3,6 +3,7 @@ import { ref, onMounted, shallowRef, defineAsyncComponent } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePageStore } from '@/stores/pages'
 import { resolvePageComponent } from '@/core/pages/registry'
+import { Spinner } from '@/components/ui/spinner'
 
 const route = useRoute()
 const pageStore = usePageStore()

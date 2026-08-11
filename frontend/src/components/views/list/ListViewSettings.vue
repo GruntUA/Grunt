@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { LayoutList, X } from '@lucide/vue'
 import { useBuilderFields } from '@/core/composables/useBuilderFields'
+import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const { builder, dataFields } = useBuilderFields()
 

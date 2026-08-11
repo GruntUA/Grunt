@@ -5,6 +5,12 @@ import { UserPlus, X, Loader2, User } from '@lucide/vue'
 import { docsApi } from '@/core/api/docs'
 import { authAdminApi } from '@/core/api/auth-admin'
 import type { DocType, GruntDocument, UserPublic } from '@/types'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 const props = defineProps<{
   doctype: DocType

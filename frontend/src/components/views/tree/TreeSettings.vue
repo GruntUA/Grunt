@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { GitBranch } from '@lucide/vue'
 import { useBuilderFields } from '@/core/composables/useBuilderFields'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 
 const { builder, dataFields, linkFields } = useBuilderFields()
 

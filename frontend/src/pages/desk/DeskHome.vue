@@ -13,6 +13,7 @@ import {
   Sparkles,
   Command
 } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
 
 interface ActivityEntry {
   id: string

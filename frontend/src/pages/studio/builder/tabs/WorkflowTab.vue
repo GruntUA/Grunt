@@ -4,7 +4,14 @@ import { useBuilderStore } from '@/stores/builder'
 import type { WorkflowState, WorkflowTransition, WorkflowStep, WorkflowStepType } from '@/types'
 import { Trash2, Plus, GitBranch, List, ChevronDown, GripVertical, X } from '@lucide/vue'
 import WorkflowGraph from '@/components/views/WorkflowGraph.vue'
-
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 const builder = useBuilderStore()
 
 const hasWorkflow = computed(() => !!builder.doctype?.workflow)
@@ -296,7 +303,7 @@ function stepSeq(step: WorkflowStep) {
 
               <!-- Active checkbox -->
               <div class="flex justify-center" @click.stop>
-                <Checkbox :model-value="step.is_active" @update:model-value="toggleStepActive(step.id, $event)" />
+                <Checkbox :model-value="step.is_active" @update:model-value="toggleStepActive(step.id, $event === true)" />
               </div>
 
               <!-- Next steps -->
@@ -360,7 +367,7 @@ function stepSeq(step: WorkflowStep) {
                 </div>
                 <div class="text-sm truncate pr-2 text-muted-foreground italic">{{ step.title || '—' }}</div>
                 <div class="flex justify-center" @click.stop>
-                  <Checkbox :model-value="step.is_active" @update:model-value="toggleStepActive(step.id, $event)" />
+                  <Checkbox :model-value="step.is_active" @update:model-value="toggleStepActive(step.id, $event === true)" />
                 </div>
                 <div class="flex items-center gap-1 text-amber-600 text-xs">
                   <span v-for="ns in stepNextStepObjects(step)" :key="ns.id"

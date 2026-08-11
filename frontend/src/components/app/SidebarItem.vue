@@ -5,6 +5,7 @@ import type { WorkspaceLink } from '@/core/api/workspace'
 import { Plus } from '@lucide/vue'
 import AppIcon from '@/components/AppIcon.vue'
 import { cn } from '@/lib/utils'
+import { SidebarMenuAction, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSubButton, SidebarMenuSubItem } from '@/components/ui/sidebar'
 
 const props = defineProps<{
   item: WorkspaceLink

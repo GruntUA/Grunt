@@ -10,6 +10,7 @@
  */
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Download, X, Share, PlusSquare } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
 
 // ── State ──────────────────────────────────────────────────────────────────
 

@@ -4,6 +4,8 @@ import type { DocType } from '@/types'
 import { docsApi } from '@/core/api/docs'
 import type { WorkflowTransitionItem } from '@/core/api/docs'
 import { Loader2 } from '@lucide/vue'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 
 const props = defineProps<{
   doctype: DocType

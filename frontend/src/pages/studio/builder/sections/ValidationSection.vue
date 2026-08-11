@@ -2,6 +2,9 @@
 import { ref, onMounted, computed } from 'vue'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { metaApi, type ValidatorInfo } from '@/core/api/meta'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 
 const { field, updateField } = usePropertyEditor()
 

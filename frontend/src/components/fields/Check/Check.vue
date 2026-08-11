@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DocField } from '@/types'
 import { useId } from 'vue'
+import { Checkbox } from '@/components/ui/checkbox'
 
 defineProps<{
   field: DocField

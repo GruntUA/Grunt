@@ -2,7 +2,9 @@
 import { ref, computed } from 'vue'
 import { ChevronDown } from '@lucide/vue'
 import { cn } from '@/lib/utils'
-
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 interface OptionObj { [key: string]: unknown }
 
 const props = withDefaults(defineProps<{

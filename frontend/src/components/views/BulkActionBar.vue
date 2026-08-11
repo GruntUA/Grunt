@@ -4,6 +4,10 @@ import { useI18n } from 'vue-i18n'
 import { Trash2, Pencil, Loader2, CheckCircle, AlertCircle, X, Zap } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const props = defineProps<{
   count: number

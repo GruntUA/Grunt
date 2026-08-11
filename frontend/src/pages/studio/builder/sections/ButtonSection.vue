@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import IconPicker from '@/components/fields/Icon/Icon.vue'
+import { Separator } from '@/components/ui/separator'
 
 const { field, updateField } = usePropertyEditor()
 

@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { reportsApi } from '@/core/api/reports'
 import type { ReportSummary } from '@/types'
+import { Spinner } from '@/components/ui/spinner'
 
 const router = useRouter()
 const reports = ref<ReportSummary[]>([])

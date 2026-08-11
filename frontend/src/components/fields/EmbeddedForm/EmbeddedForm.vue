@@ -4,6 +4,7 @@ import type { DocField, DocType } from '@/types'
 import { metaApi } from '@/core/api'
 import FieldRenderer from '@/core/renderer/FieldRenderer.vue'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
+import { Spinner } from '@/components/ui/spinner'
 
 const props = defineProps<{
   field: DocField

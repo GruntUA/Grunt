@@ -25,6 +25,11 @@ import {
 } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { filesApi } from '@/core/api/files'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 
 const props = defineProps<{
   field: DocField

@@ -2,6 +2,9 @@
 import { computed } from 'vue'
 import { useBuilderStore } from '@/stores/builder'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 
 const { field, updateField } = usePropertyEditor()
 const builder = useBuilderStore()

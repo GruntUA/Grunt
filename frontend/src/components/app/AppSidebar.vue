@@ -14,7 +14,12 @@ import {
   Settings2, Search, Shield, Activity,
   Mail, LogOut,
 } from '@lucide/vue'
-
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarSeparator } from '@/components/ui/sidebar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu'
+import { SidebarFooter, SidebarRail } from '@/components/ui/sidebar'
 const props = defineProps<{ workspaceName: string }>()
 
 const appStore = useAppStore()
@@ -27,7 +32,7 @@ const { isMobile } = useSidebar()
 function goToDesk() { router.push('/app') }
 function triggerSearch() { window.dispatchEvent(new CustomEvent('toggle-search')) }
 function initials(name: string) { return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() }
-async function onThemeChange(theme: string) { await auth.setTheme(theme as Theme) }
+async function onThemeChange(theme: unknown) { await auth.setTheme(theme as Theme) }
 async function handleLogout() { await auth.logout(); router.push('/login') }
 
 // ── Admin shortcuts ───────────────────────────────────────────────────────────

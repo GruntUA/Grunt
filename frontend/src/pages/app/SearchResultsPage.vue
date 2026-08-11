@@ -6,6 +6,10 @@ import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/core/composables/useToast'
 import client from '@/core/api/client'
 import { FileText, Search, X, Inbox, RefreshCw } from '@lucide/vue'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 const props = defineProps<{ workspaceName?: string }>()
 

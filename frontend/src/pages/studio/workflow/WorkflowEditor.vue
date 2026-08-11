@@ -8,6 +8,8 @@ import type { DocType, WorkflowDef, WorkflowState, WorkflowTransition } from '@/
 import { Loader2 } from '@lucide/vue'
 import WorkflowStatePanel from './WorkflowStatePanel.vue'
 import WorkflowTransitionPanel from './WorkflowTransitionPanel.vue'
+import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 
 const route = useRoute()
 const dtStore = useDocTypeStore()

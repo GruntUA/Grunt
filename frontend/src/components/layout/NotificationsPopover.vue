@@ -10,6 +10,9 @@ const { isSupported: pushSupported, isSubscribed: pushSubscribed, isLoading: pus
 import { type NotificationItem, notificationsApi } from '@/core/api/notifications'
 import { useWebSocket } from '@/core/composables/useWebSocket'
 import { useToast } from '@/core/composables/useToast'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 
 const props = defineProps<{
     workspace?: string

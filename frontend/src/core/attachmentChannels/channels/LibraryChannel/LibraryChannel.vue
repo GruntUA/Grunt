@@ -4,6 +4,8 @@ import type { AttachmentResult } from '@/core/attachmentChannels/types'
 import { filesApi, type FileItem } from '@/core/api/files'
 import { useDebounce } from '@/core/composables/useDebounce'
 import { File as FileIcon } from '@lucide/vue'
+import { Input } from '@/components/ui/input'
+import { Spinner } from '@/components/ui/spinner'
 
 const props = defineProps<{ imageOnly: boolean }>()
 const emit = defineEmits<{ select: [result: AttachmentResult] }>()

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { DocField } from '@/types'
+import { Badge } from '@/components/ui/badge'
 
 const props = defineProps<{
   value: unknown

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { Spinner } from '@/components/ui/spinner'
 import TreeSelectNode from './TreeSelectNode.vue'
 import type { TreeNode } from './types'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 
 const props = withDefaults(defineProps<{
   modelValue: string | null

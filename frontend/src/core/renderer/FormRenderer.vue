@@ -11,6 +11,7 @@ import AppIcon from '@/components/AppIcon.vue'
 import FieldRenderer from './FieldRenderer.vue'
 import DesignerTab from '../../pages/studio/builder/DesignerTab.vue'
 import ViewsTab from '../../pages/studio/builder/tabs/ViewsTab.vue'
+import { Button } from '@/components/ui/button'
 
 const props = defineProps<{
   doctype: DocType

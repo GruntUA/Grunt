@@ -14,7 +14,9 @@ import SettingsTab from './tabs/SettingsTab.vue'
 import PermissionsTab from './tabs/PermissionsTab.vue'
 import WorkflowTab from './tabs/WorkflowTab.vue'
 import ViewsTab from './tabs/ViewsTab.vue'
-
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 const props = defineProps<{ doctype: string; workspaceName?: string }>()
 const { t } = useI18n()
 const router = useRouter()
