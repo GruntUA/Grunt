@@ -17,7 +17,8 @@ import { useListSearch } from '@/core/composables/useListSearch'
 import { useGrouping } from '@/core/composables/useGrouping'
 import { useListClientScripts } from '@/core/composables/useListClientScripts'
 import { useFastFilters } from '@/core/composables/useFastFilters'
-import { buildQuickFiltersFromFields, mergeFastFilters } from '@/core/quickFilters'
+import { buildQuickFiltersFromFields, mergeFastFilters, applyFieldSelection } from '@/core/quickFilters'
+import { useQuickFilterPrefs } from '@/core/composables/useQuickFilterPrefs'
 import { useDebounce } from '@/core/composables/useDebounce'
 import { useBulkDeleteProgress } from '@/core/composables/useBulkDeleteProgress'
 import { useListSelection } from '@/core/composables/useListSelection'
@@ -32,6 +33,7 @@ import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 
 // Custom sub-components
 import ListHeader from '@/components/views/list/ListHeader.vue'
+import QuickFilterSettingsDialog from '@/components/views/list/QuickFilterSettingsDialog.vue'
 import DocTypeToolbar from '@/components/views/DocTypeToolbar.vue'
 import ListViewRouter from '@/components/views/list/ListViewRouter.vue'
 
@@ -65,10 +67,17 @@ const { viewMode, sortKey, sortOrder, groupBy, activeFilters, fastFilterValues }
 const { inlineSearch, debouncedSearch } = useListSearch(page)
 
 // ── Fast filters ─────────────────────────────────────────────────────────────
+const quickFilterPrefs = useQuickFilterPrefs(props.doctype)
+const showQuickFilterDialog = ref(false)
+
 const fastFilterDefs = computed<FastFilter[]>(() => {
   const explicitDefs = dt.value?.list_view?.fast_filters ?? []
   const generatedDefs = buildQuickFiltersFromFields(dt.value?.fields ?? [])
-  const merged = mergeFastFilters(explicitDefs, generatedDefs)
+  const adminDefaults = mergeFastFilters(explicitDefs, generatedDefs)
+  const personalFields = quickFilterPrefs.selectedFields.value
+  const merged = personalFields === null
+    ? adminDefaults
+    : applyFieldSelection(personalFields, adminDefaults, dt.value?.fields ?? [])
 
   const fallbackAsOfField = dt.value?.fields.find(
     f => f.fieldname === 'valid_from' && ['Date', 'Datetime'].includes(f.fieldtype),
@@ -278,16 +287,19 @@ watch(() => props.doctype, async (newDoctype) => {
   applyRouteState()
   await runListClientSetup()
 }, { immediate: true })
+
 </script>
 
 <template>
-  <div class="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
+  <div class="flex flex-1 flex-col gap-3 p-4 sm:p-5 lg:p-6 animate-in fade-in duration-500">
     <!-- Header -->
     <ListHeader :doctype="doctype" :dt="dt" :workspace="workspace" :meta="meta" :is-fetching="isFetching"
       :is-system-doc-type="doctype === 'DocType'" :show-dev-actions="!!(isDev && auth.user?.is_superadmin)"
       :list-buttons="listButtons" :list-menu-items="listMenuItems" :export-ctx="exportCtx"
+      v-model:view-mode="viewMode"
       @refresh="queryClient.invalidateQueries({ queryKey: ['documents', doctype] }); refreshKey++"
-      @create-quick="showQuickEntry = true" />
+      @create-quick="showQuickEntry = true"
+      @customize-quick-filters="showQuickFilterDialog = true" />
 
     <!-- Toolbar -->
     <DocTypeToolbar
@@ -392,5 +404,14 @@ watch(() => props.doctype, async (newDoctype) => {
       </div>
       </DialogContent>
     </Dialog>
+
+    <QuickFilterSettingsDialog
+      v-if="dt"
+      v-model:open="showQuickFilterDialog"
+      :dt="dt"
+      :current-fields="fastFilterDefs.map((ff) => ff.field)"
+      @save="quickFilterPrefs.setSelection($event)"
+      @reset="quickFilterPrefs.reset()"
+    />
   </div>
 </template>

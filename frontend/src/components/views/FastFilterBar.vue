@@ -71,7 +71,7 @@ function onInput(ff: FastFilter, value: string) {
           :model-value="getValue(ff)"
           @update:model-value="(v: string | number) => onInput(ff, String(v))"
           class="h-7 text-xs"
-          :class="props.variant === 'quick' ? 'h-9 w-[160px]' : 'w-[140px]'"
+          :class="props.variant === 'quick' ? 'w-[150px]' : 'w-[140px]'"
           :placeholder="props.variant === 'quick' ? getLabel(ff) : ''"
         />
 
@@ -81,7 +81,7 @@ function onInput(ff: FastFilter, value: string) {
           :model-value="getValue(ff) || '__any__'"
           @update:model-value="(v: unknown) => onInput(ff, v === '__any__' ? '' : String(v ?? ''))"
         >
-          <SelectTrigger :id="`ff-${ff.id}`" size="sm" class="h-7 text-xs" :class="props.variant === 'quick' ? 'h-9 min-w-[160px]' : ''">
+          <SelectTrigger :id="`ff-${ff.id}`" size="sm" class="h-7 text-xs" :class="props.variant === 'quick' ? 'min-w-[150px]' : ''">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -98,7 +98,7 @@ function onInput(ff: FastFilter, value: string) {
           :model-value="getValue(ff)"
           @update:model-value="(v: string | number) => onInput(ff, String(v))"
           class="h-7 text-xs"
-          :class="props.variant === 'quick' ? 'h-9 w-[140px]' : 'w-[100px]'"
+          :class="props.variant === 'quick' ? 'w-[130px]' : 'w-[100px]'"
           :placeholder="props.variant === 'quick' ? getLabel(ff) : ''"
         />
 
@@ -118,7 +118,7 @@ function onInput(ff: FastFilter, value: string) {
           :model-value="getValue(ff)"
           @update:model-value="(v: string | number) => onInput(ff, String(v))"
           class="h-7 text-xs"
-          :class="props.variant === 'quick' ? 'h-9 w-[160px]' : 'w-[160px]'"
+          :class="props.variant === 'quick' ? 'w-[150px]' : 'w-[160px]'"
           :placeholder="props.variant === 'quick' ? getLabel(ff) : '...'"
         />
 

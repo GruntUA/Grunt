@@ -1,6 +1,6 @@
 import type { DocField, FastFilter } from '@/types'
 
-const SUPPORTED_FIELD_TYPES = new Set([
+export const SUPPORTED_FIELD_TYPES = new Set([
   'Text', 'Data', 'LongText',
   'Date', 'Datetime', 'Time',
   'Select', 'Check',
@@ -34,18 +34,35 @@ function inferOperator(field: DocField): string {
   return 'eq'
 }
 
+export function buildFastFilterForField(field: DocField): FastFilter {
+  return {
+    id: `qf_${field.fieldname}`,
+    field: field.fieldname,
+    operator: inferOperator(field),
+    label: field.label || field.fieldname,
+    input_type: inferInputType(field),
+    on_change: { mode: 'local', debounce_ms: 300 },
+    enabled_in: ['list', 'tree'],
+  }
+}
+
 export function buildQuickFiltersFromFields(fields: DocField[]): FastFilter[] {
   return fields
     .filter(f => !!f.in_quick_filter && SUPPORTED_FIELD_TYPES.has(f.fieldtype) && !!f.fieldname)
-    .map((field) => ({
-      id: `qf_${field.fieldname}`,
-      field: field.fieldname,
-      operator: inferOperator(field),
-      label: field.label || field.fieldname,
-      input_type: inferInputType(field),
-      on_change: { mode: 'local', debounce_ms: 300 },
-      enabled_in: ['list', 'tree'],
-    }))
+    .map(buildFastFilterForField)
+}
+
+/** Apply a personal field-selection override on top of the doctype's admin-defined defaults. */
+export function applyFieldSelection(
+  selectedFieldnames: string[],
+  adminDefaults: FastFilter[],
+  fields: DocField[],
+): FastFilter[] {
+  const byField = new Map(adminDefaults.map(ff => [ff.field, ff]))
+  const fieldByName = new Map(fields.map(f => [f.fieldname, f]))
+  return selectedFieldnames
+    .map(fieldname => byField.get(fieldname) ?? (fieldByName.has(fieldname) ? buildFastFilterForField(fieldByName.get(fieldname)!) : null))
+    .filter((ff): ff is FastFilter => ff !== null)
 }
 
 export function mergeFastFilters(explicitDefs: FastFilter[], generatedDefs: FastFilter[]): FastFilter[] {

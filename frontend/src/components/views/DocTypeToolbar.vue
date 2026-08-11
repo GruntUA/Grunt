@@ -5,7 +5,7 @@ import { Search, X } from '@lucide/vue'
 import type { ActiveFilter, DocType, FastFilter } from '@/types'
 import FilterBar from '@/components/views/FilterBar.vue'
 import FastFilterBar from '@/components/views/FastFilterBar.vue'
-import { getRegisteredViews, getViewDef, type ToolbarContext } from '@/core/viewRegistry'
+import { getViewDef, type ToolbarContext } from '@/core/viewRegistry'
 
 const props = defineProps<{
   dt: DocType | null
@@ -34,16 +34,6 @@ const { t } = useI18n()
 const localSearch = ref(props.inlineSearch)
 watch(() => props.inlineSearch, (v) => { localSearch.value = v })
 watch(localSearch, (v) => { emit('update:inlineSearch', v) })
-
-// ── Available view buttons ────────────────────────────────────────────────────
-
-const availableViews = computed(() =>
-  getRegisteredViews().filter((def) => {
-    if (!def.resolveField) return true
-    if (!props.dt) return false
-    return def.resolveField(props.dt) !== null
-  })
-)
 
 // ── Active view's toolbar controls ───────────────────────────────────────────
 
@@ -83,7 +73,7 @@ const toolbarControlsEvents = computed(() =>
 </script>
 
 <template>
-  <div class="flex flex-col gap-0 mb-2">
+  <div class="flex flex-col gap-0">
     <!-- Main row: search + filters + view-controls + view switcher -->
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
 
@@ -117,26 +107,13 @@ const toolbarControlsEvents = computed(() =>
         </Button>
       </div>
 
-      <!-- Right: view toolbar controls + view switcher -->
-      <div class="flex items-center gap-2">
-
-        <!-- Active view's toolbar controls (columns, grouping, sort, etc.) -->
-        <template v-if="toolbarControlsComponent">
-          <div class="flex items-center gap-2">
-            <component
-              :is="toolbarControlsComponent"
-              v-bind="{ ...toolbarControlsProps, ...toolbarControlsEvents }"
-            />
-          </div>
-          <Separator orientation="vertical" class="data-[orientation=vertical]:h-6" />
-        </template>
-
-        <!-- View mode switcher — driven by viewRegistry -->
-        <ToggleGroup type="single" variant="outline" size="sm" :model-value="viewMode" @update:model-value="(v: unknown) => v && emit('update:viewMode', v as string)">
-          <ToggleGroupItem v-for="def in availableViews" :key="def.type" :value="def.type" :title="def.label" :aria-label="def.label">
-            <component :is="def.icon" />
-          </ToggleGroupItem>
-        </ToggleGroup>
+      <!-- Right: active view's toolbar controls (columns, grouping, sort, etc.) -->
+      <!-- View mode switcher itself lives in ListHeader.vue (Frappe-style "View ▾" dropdown) -->
+      <div v-if="toolbarControlsComponent" class="flex items-center gap-2">
+        <component
+          :is="toolbarControlsComponent"
+          v-bind="{ ...toolbarControlsProps, ...toolbarControlsEvents }"
+        />
       </div>
     </div>
 

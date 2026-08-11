@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
 import { getExporters } from '@/core/io'
 import type { ExportContext } from '@/core/io'
+import { getRegisteredViews, getViewDef } from '@/core/viewRegistry'
 import {
   Plus,
   MoreHorizontal,
@@ -12,6 +13,9 @@ import {
   Download,
   Pencil,
   BarChart2,
+  ChevronDown,
+  Check,
+  Filter,
 } from '@lucide/vue'
 
 const props = defineProps<{
@@ -25,6 +29,7 @@ const props = defineProps<{
   listButtons: ScriptButton[]
   listMenuItems: ScriptMenuItem[]
   exportCtx: ExportContext | null
+  viewMode: string
 }>()
 
 const exporters = getExporters()
@@ -32,7 +37,21 @@ const exporters = getExporters()
 const emit = defineEmits<{
   (e: 'refresh'): void
   (e: 'create-quick'): void
+  (e: 'update:viewMode', val: string): void
+  (e: 'customize-quick-filters'): void
 }>()
+
+// ── View switcher (Frappe-style "List View ▾" dropdown) ─────────────────────
+
+const availableViews = computed(() =>
+  getRegisteredViews().filter((def) => {
+    if (!def.resolveField) return true
+    if (!props.dt) return false
+    return def.resolveField(props.dt) !== null
+  })
+)
+
+const currentView = computed(() => getViewDef(props.viewMode) ?? availableViews.value[0])
 
 const { t } = useI18n()
 const router = useRouter()
@@ -71,6 +90,11 @@ const menuItems = computed(() => {
             label: t('Edit DocType'),
             icon: Pencil,
             command: () => router.push(`/${props.workspace ?? 'grunt'}/DocType/${props.doctype}`)
+        })
+        items.push({
+            label: t('Customize Quick Filters'),
+            icon: Filter,
+            command: () => emit('customize-quick-filters')
         })
         items.push({ separator: true })
     }
@@ -113,28 +137,48 @@ const menuItems = computed(() => {
       </div>
     </div>
     <div class="flex items-center gap-2.5">
-      <!-- Refresh button -->
-      <Button variant="outline" :title="t('Refresh')" @click="emit('refresh')">
-        <RefreshCw class="size-4" :class="{ 'animate-spin': isFetching }" />
-      </Button>
-
-      <!-- Actions menu -->
-      <DropdownMenu>
-        <DropdownMenuTrigger as-child>
-          <Button variant="outline">
-            <MoreHorizontal class="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent class="w-56" align="end">
-          <template v-for="(item, idx) in menuItems" :key="idx">
-            <DropdownMenuSeparator v-if="item.separator" />
-            <DropdownMenuItem v-else @click="item.command?.()">
-              <component v-if="item.icon" :is="item.icon" class="size-4" />
-              <span>{{ item.label }}</span>
+      <div class="flex items-center gap-1">
+        <!-- View switcher -->
+        <DropdownMenu v-if="availableViews.length > 1">
+          <DropdownMenuTrigger as-child>
+            <Button variant="outline" size="sm" class="gap-1.5">
+              <component :is="currentView?.icon" v-if="currentView" class="size-4" />
+              {{ currentView?.label }}
+              <ChevronDown class="size-3.5 opacity-60" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem v-for="def in availableViews" :key="def.type" @click="emit('update:viewMode', def.type)">
+              <component :is="def.icon" class="size-4" />
+              <span>{{ def.label }}</span>
+              <Check v-if="def.type === viewMode" class="ml-auto size-4" />
             </DropdownMenuItem>
-          </template>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <!-- Refresh button -->
+        <Button variant="outline" size="icon-sm" :title="t('Refresh')" @click="emit('refresh')">
+          <RefreshCw class="size-4" :class="{ 'animate-spin': isFetching }" />
+        </Button>
+
+        <!-- Actions menu -->
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <Button variant="outline" size="icon-sm">
+              <MoreHorizontal class="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent class="w-56" align="end">
+            <template v-for="(item, idx) in menuItems" :key="idx">
+              <DropdownMenuSeparator v-if="item.separator" />
+              <DropdownMenuItem v-else @click="item.command?.()">
+                <component v-if="item.icon" :is="item.icon" class="size-4" />
+                <span>{{ item.label }}</span>
+              </DropdownMenuItem>
+            </template>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <!-- Custom buttons -->
       <Button
