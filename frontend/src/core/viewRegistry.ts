@@ -102,7 +102,6 @@ export interface ViewContext {
   // Sorting
   sortKey: string | null
   sortOrder: 'asc' | 'desc'
-  activeIndex: number
   // Infinite scroll / pagination
   fetchNextPage?: () => void
   hasNextPage?: boolean

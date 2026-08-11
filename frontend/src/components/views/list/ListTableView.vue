@@ -32,7 +32,6 @@ const props = defineProps<{
   isLoading: boolean
   sortKey: string | null
   sortOrder: 'asc' | 'desc'
-  activeIndex: number
   fetchNextPage?: () => void
   hasNextPage?: boolean
   isFetchingNextPage?: boolean
@@ -138,7 +137,6 @@ watch(() => sentinelEl.value, setupObserver)
             :selected-ids="selection.selectedIds"
             :all-selected="selection.allSelected"
             :status-config="dt?.status_config"
-            :active-index="activeIndex"
             @sort="(key) => emit('sort', key)"
             @select="(id) => selection.toggle(id)"
             @select-all="selection.toggleAll(rows.map((r) => rowDocId(r)).filter(Boolean))"

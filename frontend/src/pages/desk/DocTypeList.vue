@@ -3,7 +3,6 @@ import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
 import { docsApi } from '@/core/api/docs'
-import { useListViewKeyboard } from '@/core/composables/useListViewKeyboard'
 import { useInfiniteDocTypeListData } from '@/core/composables/useInfiniteDocTypeListData'
 import { useListRouteSync } from '@/core/composables/useListRouteSync'
 import { useListActions } from '@/core/composables/useListActions'
@@ -270,17 +269,6 @@ function navigateToDoc(row: Record<string, unknown>) {
   router.push(`/${ws}/${props.doctype}/${encodeURIComponent(String(docId))}`)
 }
 
-// ── Keyboard Shortcuts ───────────────────────────────────────────────────────
-const { activeIndex } = useListViewKeyboard({
-  rows: computed(() => rows.value),
-  selectedIds,
-  allSelected,
-  toggleSelection,
-  onOpenDoc: navigateToDoc,
-  onBulkDelete: bulkDelete,
-  onConfirmDelete: (title, subtitle) => dialog.confirm(title, subtitle),
-})
-
 watch(() => props.doctype, async (newDoctype) => {
   dt.value = await dtStore.get(newDoctype)
   if (dt.value?.is_singleton) {
@@ -347,7 +335,6 @@ watch(() => props.doctype, async (newDoctype) => {
       :group-by-field="groupByField"
       :sort-key="sortKey"
       :sort-order="sortOrder"
-      :active-index="activeIndex"
 :search="debouncedSearch || undefined"
       :active-filters="activeFilters"
       :fast-filter-defs="fastFilterDefs"

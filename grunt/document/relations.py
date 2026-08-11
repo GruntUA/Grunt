@@ -83,6 +83,16 @@ async def _resolve_link_labels(
         for fname in extra_to_fetch:
             cols_to_fetch.append(target_table.c[fname])
 
+        # image_field is doctype-specific (e.g. "photo" on Employee) — always
+        # surfaced to the caller as a fixed "image" key regardless of the
+        # target's own field name, so list-cell renderers have one contract.
+        image_field = getattr(target_dt, "image_field", None)
+        has_image = bool(
+            image_field and image_field in linked_field_names and image_field in target_table.c
+        )
+        if has_image and image_field not in {c.key for c in cols_to_fetch}:
+            cols_to_fetch.append(target_table.c[image_field])
+
         q = select(*cols_to_fetch).where(target_table.c.name.in_(raw_ids))
 
         try:
@@ -93,6 +103,7 @@ async def _resolve_link_labels(
             continue
 
         label_map: dict[str, str] = {}
+        image_map: dict[str, Any] = {}
         extra_maps: dict[str, dict[str, Any]] = {fname: {} for fname in extra_to_fetch}
         for lr in linked_rows:
             label = str(lr.get(title_field) or lr.get("name") or "")
@@ -102,8 +113,13 @@ async def _resolve_link_labels(
                     val = lr.get(fname)
                     if val is not None:
                         extra_maps[fname][key] = val
+                if has_image:
+                    img_val = lr.get(image_field)
+                    if img_val:
+                        image_map[key] = img_val
 
         label_key = f"{lf.fieldname}__label"
+        image_key = f"{lf.fieldname}__image"
         for row in rows:
             raw = row.get(lf.fieldname)
             if raw not in (None, ""):
@@ -113,6 +129,12 @@ async def _resolve_link_labels(
                     val = extra_maps[fname].get(raw_str)
                     if val is not None:
                         row[f"{lf.fieldname}__{fname}"] = val
+                if has_image:
+                    # Always set the key (even "") when the target doctype
+                    # supports avatars, so the frontend can render an
+                    # initials-fallback circle for records with no image yet
+                    # — distinct from Link fields with no avatar concept at all.
+                    row[image_key] = image_map.get(raw_str, "")
 
 
 def _get_multi_link_fields(dt: DocType) -> list:

@@ -64,8 +64,8 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <SidebarMenuButton class="w-fit px-1.5 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                <div class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-5 items-center justify-center rounded-md">
-                  <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-3" />
+                <div class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-7 items-center justify-center rounded-md">
+                  <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-4" />
                 </div>
                 <span class="truncate font-semibold">{{ appStore.active?.label }}</span>
                 <ChevronDown class="opacity-50" />

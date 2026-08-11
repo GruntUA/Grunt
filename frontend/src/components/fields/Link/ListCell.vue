@@ -2,6 +2,7 @@
 import { shallowRef } from 'vue'
 import type { Component } from 'vue'
 import type { DocField, DocTypeStatusConfig } from '@/types'
+import { initials } from '@/core/composables/usePresence'
 
 defineProps<{
   value: unknown
@@ -36,11 +37,17 @@ function formatCell(val: unknown): string {
 <template>
   <span
     v-if="value !== null && value !== undefined && value !== ''"
-    class="inline-flex items-center gap-1.5 text-foreground/90 font-medium"
+    class="inline-flex items-center gap-2 text-foreground/90 font-medium"
   >
+    <Avatar v-if="(field.fieldname + '__image') in row" class="size-6 shrink-0">
+      <AvatarImage v-if="row[field.fieldname + '__image']" :src="row[field.fieldname + '__image'] as string" alt="" />
+      <AvatarFallback class="text-xs">
+        {{ initials((row[field.fieldname + '__label'] as string) || formatCell(value)) }}
+      </AvatarFallback>
+    </Avatar>
     <component
       :is="getIconComponent(String(row[field.fieldname + '__icon'] ?? ''))"
-      v-if="row[field.fieldname + '__icon']"
+      v-else-if="row[field.fieldname + '__icon']"
       class="size-3.5 shrink-0 text-muted-foreground"
     />
     {{ (row[field.fieldname + '__label'] as string) || formatCell(value) }}

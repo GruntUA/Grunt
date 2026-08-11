@@ -60,7 +60,7 @@ function navigate(tile: ShortcutItem) {
         <div :class="['p-1.5 rounded-md', colorMap[tile.color ?? 'primary'] ?? colorMap.primary]">
           <component :is="iconFor(tile.icon)" class="w-3.5 h-3.5" />
         </div>
-        <span class="text-xs font-medium leading-tight">{{ tile.title }}</span>
+        <span class="text-xs font-medium leading-tight text-foreground">{{ tile.title }}</span>
       </button>
       <div v-if="tiles.length === 0"
         class="col-span-2 flex items-center justify-center text-muted-foreground text-xs py-4">

@@ -282,7 +282,7 @@ const flatResults = computed(() => results.value)
                                 class="size-9 rounded-lg bg-background border flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
                                 <component :is="action.icon" class="size-5" />
                             </div>
-                            <span class="text-sm font-medium">{{ action.title }}</span>
+                            <span class="text-sm font-medium text-foreground">{{ action.title }}</span>
                         </button>
                     </div>
                 </div>

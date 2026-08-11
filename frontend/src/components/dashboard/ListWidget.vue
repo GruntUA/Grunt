@@ -60,7 +60,7 @@ function open(item: Record<string, unknown>) {
                hover:bg-muted/50 cursor-pointer transition-colors text-sm"
         @click="open(item)"
       >
-        <span class="font-medium truncate max-w-[70%]">{{ getTitle(item) }}</span>
+        <span class="font-medium truncate max-w-[70%] text-foreground">{{ getTitle(item) }}</span>
         <span class="text-muted-foreground text-xs tabular-nums shrink-0">
           {{ formatDate(item.modified_at) }}
         </span>

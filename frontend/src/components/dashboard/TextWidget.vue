@@ -7,7 +7,7 @@ defineProps<{ widget: DashboardWidget }>()
 <template>
   <div class="flex flex-col h-full overflow-hidden">
     <div v-if="widget.title" class="px-5 pt-4 pb-1 shrink-0">
-      <p class="text-sm font-semibold">{{ widget.title }}</p>
+      <p class="text-sm font-semibold text-foreground">{{ widget.title }}</p>
       <p v-if="widget.description" class="text-xs text-muted-foreground">{{ widget.description }}</p>
     </div>
     <!-- eslint-disable-next-line vue/no-v-html -->

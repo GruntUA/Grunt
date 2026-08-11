@@ -23,7 +23,6 @@ const def: ViewDefinition = {
     isLoading: ctx.isLoading && !ctx.hasData,
     sortKey: ctx.sortKey,
     sortOrder: ctx.sortOrder,
-    activeIndex: ctx.activeIndex,
     fetchNextPage: ctx.fetchNextPage,
     hasNextPage: ctx.hasNextPage,
     isFetchingNextPage: ctx.isFetchingNextPage,

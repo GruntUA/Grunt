@@ -19,7 +19,6 @@ const props = defineProps<{
   statusConfig?: DocTypeStatusConfig | null
   hideHeader?: boolean
   hideBody?: boolean
-  activeIndex?: number
 }>()
 
 const emit = defineEmits<{
@@ -102,7 +101,7 @@ function isRowSelected(row: Record<string, unknown>): boolean {
 
 <template>
   <Table class="w-full text-sm">
-    <TableHeader v-if="!hideHeader" class="bg-muted/30">
+    <TableHeader v-if="!hideHeader">
       <TableRow class="hover:bg-transparent border-0">
         <TableHead style="width: 3rem" class="px-3 py-2.5 border-b border-border/40">
           <div class="flex items-center justify-center w-full">
@@ -152,10 +151,7 @@ function isRowSelected(row: Record<string, unknown>): boolean {
       <TableRow
         v-for="(row, ri) in rows" :key="getRowDocId(row) ?? ri"
         class="cursor-pointer border-b border-border/20 last:border-0 transition-colors hover:bg-primary/5"
-        :class="[
-          { 'bg-primary/5 hover:bg-primary/10': isRowSelected(row) },
-          { 'ring-inset ring-2 ring-primary/60 z-20 relative bg-background': activeIndex === ri },
-        ]"
+        :class="{ 'bg-primary/5 hover:bg-primary/10': isRowSelected(row) }"
         @click="emit('rowClick', row)"
       >
         <TableCell class="relative px-3 py-2.5 text-sm border-b border-border/10">

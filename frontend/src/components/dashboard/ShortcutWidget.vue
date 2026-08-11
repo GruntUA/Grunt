@@ -55,12 +55,12 @@ function navigate() {
         <component :is="iconComponent" class="w-4 h-4" />
       </div>
       <span v-if="data?.count != null"
-        class="text-xs font-semibold px-2 py-0.5 rounded-full bg-muted tabular-nums">
+        class="text-xs font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground tabular-nums">
         {{ data.count }}
       </span>
     </div>
     <div class="flex flex-col gap-0.5">
-      <span class="font-semibold text-sm">{{ widget.title }}</span>
+      <span class="font-semibold text-sm text-foreground">{{ widget.title }}</span>
       <span v-if="widget.description" class="text-xs text-muted-foreground line-clamp-2">
         {{ widget.description }}
       </span>

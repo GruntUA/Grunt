@@ -31,7 +31,6 @@ const props = defineProps<{
   groupByField: DocField | null
   sortKey: string | null
   sortOrder: 'asc' | 'desc'
-  activeIndex: number
   fetchNextPage?: () => void
   hasNextPage?: boolean
   isFetchingNextPage?: boolean
@@ -94,7 +93,6 @@ const ctx = computed((): ViewContext => ({
   groupByField: props.groupByField,
   sortKey: props.sortKey,
   sortOrder: props.sortOrder,
-  activeIndex: props.activeIndex,
   fetchNextPage: props.fetchNextPage,
   hasNextPage: props.hasNextPage,
   isFetchingNextPage: props.isFetchingNextPage,
