@@ -4,6 +4,7 @@ import { VueQueryPlugin } from '@tanstack/vue-query'
 import App from './App.vue'
 import router from './router'
 import i18n from './plugins/i18n'
+import { vueQueryOptions } from './plugins/vueQuery'
 import { grunt } from '@/core/grunt'
 import { useAuthStore } from '@/stores/auth'
 import '@/app-hooks'
@@ -21,17 +22,7 @@ app.use(pinia)
 useAuthStore().prefetchMe()
 app.use(router)
 app.use(i18n)
-app.use(VueQueryPlugin, {
-  queryClientConfig: {
-    defaultOptions: {
-      queries: {
-        staleTime: 60_000,
-        retry: 2,
-        retryDelay: 1_000,
-      },
-    },
-  },
-})
+app.use(VueQueryPlugin, vueQueryOptions)
 app.mount('#app')
 
 // Register push notification service worker (production only — avoid breaking Vite HMR in dev)

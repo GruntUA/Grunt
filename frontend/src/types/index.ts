@@ -12,6 +12,15 @@ export type CoreFieldType =
 /** Open type — allows custom field types registered by any app */
 export type FieldType = string
 
+/** Standard props contract for runtime field components */
+export interface BaseFieldProps {
+  field: DocField
+  modelValue: unknown
+  disabled?: boolean
+  error?: string
+  doc?: Record<string, unknown>
+}
+
 export interface IndexHint {
   field: string
   reason: string

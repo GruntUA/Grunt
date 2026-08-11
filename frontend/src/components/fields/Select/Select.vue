@@ -1,15 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { DocField } from '@/types'
+import type { BaseFieldProps } from '@/types'
 import { Select as ShadcnSelect } from '@/components/ui/select'
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-const props = defineProps<{
-  field: DocField
-  modelValue: unknown
-  disabled?: boolean
-  error?: string
-}>()
+const props = defineProps<BaseFieldProps>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 

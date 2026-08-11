@@ -1,13 +1,8 @@
 <script setup lang="ts">
-import type { DocField } from '@/types'
+import type { BaseFieldProps } from '@/types'
 import { Input } from '@/components/ui/input'
 
-defineProps<{
-  field: DocField
-  modelValue: unknown
-  disabled?: boolean
-  error?: string
-}>()
+defineProps<BaseFieldProps>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 </script>
