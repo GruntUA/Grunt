@@ -33,6 +33,7 @@ import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 
 // Custom sub-components
 import ListHeader from '@/components/views/list/ListHeader.vue'
+import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
 import QuickFilterSettingsDialog from '@/components/views/list/QuickFilterSettingsDialog.vue'
 import DocTypeToolbar from '@/components/views/DocTypeToolbar.vue'
 import ListViewRouter from '@/components/views/list/ListViewRouter.vue'
@@ -292,14 +293,17 @@ watch(() => props.doctype, async (newDoctype) => {
 
 <template>
   <div class="flex flex-1 flex-col gap-3 p-4 sm:p-5 lg:p-6 animate-in fade-in duration-500">
-    <!-- Header -->
-    <ListHeader :doctype="doctype" :dt="dt" :workspace="workspace" :meta="meta" :is-fetching="isFetching"
-      :is-system-doc-type="doctype === 'DocType'" :show-dev-actions="!!(isDev && auth.user?.is_superadmin)"
-      :list-buttons="listButtons" :list-menu-items="listMenuItems" :export-ctx="exportCtx"
-      v-model:view-mode="viewMode"
-      @refresh="queryClient.invalidateQueries({ queryKey: ['documents', doctype] }); refreshKey++"
-      @create-quick="showQuickEntry = true"
-      @customize-quick-filters="showQuickFilterDialog = true" />
+    <AppBreadcrumb :workspace-name="workspace ?? 'grunt'" :doctype="doctype" :count="meta?.total ?? null">
+      <template #actions>
+        <ListHeader :doctype="doctype" :dt="dt" :workspace="workspace" :is-fetching="isFetching"
+          :is-system-doc-type="doctype === 'DocType'" :show-dev-actions="!!(isDev && auth.user?.is_superadmin)"
+          :list-buttons="listButtons" :list-menu-items="listMenuItems" :export-ctx="exportCtx"
+          v-model:view-mode="viewMode"
+          @refresh="queryClient.invalidateQueries({ queryKey: ['documents', doctype] }); refreshKey++"
+          @create-quick="showQuickEntry = true"
+          @customize-quick-filters="showQuickFilterDialog = true" />
+      </template>
+    </AppBreadcrumb>
 
     <!-- Toolbar -->
     <DocTypeToolbar

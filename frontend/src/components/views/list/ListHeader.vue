@@ -22,7 +22,6 @@ const props = defineProps<{
   doctype: string
   dt: DocType | null
   workspace?: string
-  meta?: { total: number }
   isFetching: boolean
   isSystemDocType: boolean
   showDevActions: boolean
@@ -126,16 +125,7 @@ const menuItems = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-row items-center justify-between gap-4 mb-1 animate-in fade-in slide-in-from-top-2 duration-500 min-h-[40px]">
-    <div class="flex items-center gap-3 overflow-hidden">
-      <h2 class="text-xl font-semibold tracking-tight text-foreground selection:bg-primary/20 truncate">
-        {{ dt?.label ?? doctype }}
-      </h2>
-      <div class="hidden sm:flex items-center">
-        <Badge v-if="meta" variant="secondary" class="tabular-nums">{{ meta.total }}</Badge>
-        <Skeleton v-else class="w-8 h-4" />
-      </div>
-    </div>
+  <div class="flex flex-row items-center justify-end gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
     <div class="flex items-center gap-2.5">
       <div class="flex items-center gap-1">
         <!-- View switcher -->

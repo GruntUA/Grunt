@@ -9,6 +9,8 @@ const props = defineProps<{
   workspaceName: string
   doctype?: string
   docId?: string | null
+  /** Record count shown next to the last breadcrumb item (e.g. list page total). */
+  count?: number | null
 }>()
 
 const appStore = useAppStore()
@@ -56,7 +58,8 @@ const items = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-center gap-3 mb-2 px-0 py-0 md:bg-transparent md:border-none">
+  <div class="flex items-center justify-between gap-4 mb-2 px-0 py-0 md:bg-transparent md:border-none">
+    <div class="flex items-center gap-3 overflow-hidden">
     <SidebarTrigger class="shrink-0" />
 
     <Breadcrumb class="hidden sm:flex">
@@ -86,5 +89,14 @@ const items = computed(() => {
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
+
+    <Badge v-if="count !== null && count !== undefined" variant="secondary" class="tabular-nums shrink-0">
+      {{ count }}
+    </Badge>
+    </div>
+
+    <div v-if="$slots.actions" class="flex items-center shrink-0">
+      <slot name="actions" />
+    </div>
   </div>
 </template>
