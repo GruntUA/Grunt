@@ -38,7 +38,7 @@ const dateObj = computed<Date | null>({
     <DatePicker
       v-model="dateObj"
       :disabled="isDisabled"
-      :invalid="error"
+      :invalid="!!error"
       :placeholder="field.placeholder || 'ДД.ММ.РРРР'"
       class="w-full"
     />

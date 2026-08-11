@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { defineAsyncComponent, computed } from 'vue'
-import { getFieldDef, FallbackFieldLoader } from '@/core/fieldRegistry'
+import { computed } from 'vue'
+import { getAsyncFieldComponent } from '@/core/fieldRegistry'
 import { useDevMode } from '@/core/composables/useDevMode'
 import { validateFieldValue } from '@/core/validators'
 import type { DocField } from '@/types'
@@ -43,9 +43,7 @@ const validatorError = computed(() => {
 
 const displayError = computed(() => props.error || validatorError.value || null)
 
-const component = computed(() =>
-  defineAsyncComponent(getFieldDef(props.field.fieldtype)?.component ?? FallbackFieldLoader)
-)
+const component = computed(() => getAsyncFieldComponent(props.field.fieldtype))
 
 const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype))
 </script>

@@ -23,7 +23,7 @@
  *   - PropertiesPanel (designer)
  */
 
-import type { Component } from 'vue'
+import { defineAsyncComponent, type Component } from 'vue'
 
 export type PropSection =
   | 'core'
@@ -139,6 +139,19 @@ export function getFieldConfig(type: string): { label: string; sections: PropSec
 /** Fallback component loader for unrecognised field types. */
 export const FallbackFieldLoader = (): Promise<Component> =>
   import('@/components/fields/Text/Text.vue').then((m) => m.default as Component)
+
+const _asyncComponentCache = new Map<string, Component>()
+
+/** Get or create a cached defineAsyncComponent instance for a field type. */
+export function getAsyncFieldComponent(type: string): Component {
+  let comp = _asyncComponentCache.get(type)
+  if (!comp) {
+    const loader = getFieldDef(type)?.component ?? FallbackFieldLoader
+    comp = defineAsyncComponent(loader)
+    _asyncComponentCache.set(type, comp)
+  }
+  return comp
+}
 
 
 // ── Core field registrations ─────────────────────────────────────────────────

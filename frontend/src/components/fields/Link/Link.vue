@@ -19,6 +19,7 @@ const emit = defineEmits<{
   'create-new': [doctype: string, preset: string]
 }>()
 
+const linkField = useLinkField(props, emit)
 const {
   t,
   query,
@@ -26,7 +27,6 @@ const {
   isOpen,
   isLoading,
   activeIdx,
-  containerRef,
   dropdownStyle,
   isTree,
   treeNodes,
@@ -45,7 +45,7 @@ const {
   createNew,
   highlight,
   openLinkedDoc,
-} = useLinkField(props, emit)
+} = linkField
 </script>
 
 <template>
@@ -72,7 +72,7 @@ const {
   </div>
 
   <!-- Regular mode: custom input + dropdown -->
-  <div v-else ref="containerRef" class="relative">
+  <div v-else :ref="(el) => { linkField.containerRef.value = el as HTMLElement | null }" class="relative">
     <div class="relative">
       <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
 

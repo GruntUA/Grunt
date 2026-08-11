@@ -144,6 +144,9 @@
     --border: oklch(0.92 0.004 286.32);
     --input:  oklch(0.92 0.004 286.32);
     --ring:   oklch(0.705 0.015 286.067);
+    --field-bg: transparent;
+    --field-hover-bg: oklch(0.967 0.001 286.375 / 50%);
+    --field-disabled-bg: oklch(0.967 0.001 286.375 / 60%);
 
     /* Sidebar */
     --sidebar:                      oklch(0.985 0 0);

@@ -1,26 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, provide, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useDocTypeStore } from '@/stores/doctype'
-import { useDocument } from '@/core/composables/useDocument'
-import { useToast } from '@/core/composables/useToast'
-import { useWebSocket } from '@/core/composables/useWebSocket'
-import { usePresence } from '@/core/composables/usePresence'
-import { useClientScripts } from '@/core/composables/useClientScripts'
-import { useLinkCreate } from '@/core/composables/useLinkCreate'
-import { useFormValidation } from '@/core/composables/useFormValidation'
-import { useFormDocWatcher } from '@/core/composables/useFormDocWatcher'
-import { useFormNavigation } from '@/core/composables/useFormNavigation'
-import { useFormSave } from '@/core/composables/useFormSave'
-import { useFormInitialization } from '@/core/composables/useFormInitialization'
-import { useFormActions } from '@/core/composables/useFormActions'
-import { useFormLinkCreation } from '@/core/composables/useFormLinkCreation'
-import { useFormDocumentView } from '@/core/composables/useFormDocumentView'
-import { useFormShortcuts } from '@/core/composables/useFormShortcuts'
-import { useFetchFrom } from '@/core/composables/useFetchFrom'
 import { useQueryClient } from '@tanstack/vue-query'
-import type { DocType, GruntDocument } from '@/types'
+import { useToast } from '@/core/composables/useToast'
+import { useFormController } from '@/core/composables/useFormController'
+import type { GruntDocument } from '@/types'
 import { History, Activity } from '@lucide/vue'
 
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
@@ -29,7 +14,6 @@ import VersionHistoryPanel from '@/components/views/VersionHistoryPanel.vue'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import SidebarTimeline from '@/components/views/sidebar/SidebarTimeline.vue'
 
-// Custom sub-components
 import FormHeader from '@/components/views/form/FormHeader.vue'
 import FormModals from '@/components/views/form/FormModals.vue'
 import DocDashboard from '@/components/views/form/DocDashboard.vue'
@@ -37,267 +21,60 @@ import { Spinner } from '@/components/ui/spinner'
 
 const props = defineProps<{ doctype: string; id: string | null; workspace?: string }>()
 const emit = defineEmits<{
-  // Fired once the existing document is loaded, carrying its resolved display
-  // title (title_field value, not the raw id) for recent-docs tracking.
   loaded: [payload: { doctype: string; id: string; title: string }]
-  // Fired when an existing document fails to load (e.g. deleted) so callers
-  // can prune stale references such as recent-docs entries.
   notfound: [payload: { doctype: string; id: string }]
 }>()
+
 const router = useRouter()
-const route = useRoute()
-
-const activeTab = computed({
-  get: () => route.query.tab as string || '',
-  set: (val) => {
-    router.replace({ 
-      query: { ...route.query, tab: val || undefined } 
-    })
-  }
-})
-const dtStore = useDocTypeStore()
 const toast = useToast()
-const { t } = useI18n()
 const queryClient = useQueryClient()
-const { startLinkCreate, finishLinkCreate, restoreLinkDraft } = useLinkCreate()
+const { t } = useI18n()
 
-const dt = ref<DocType | null>(null)
-const { document, form, isLoading, isError, isDirty, isSaving, save, remove, rename, markClean } = useDocument(props.doctype, props.id)
+// Local UI-only state not owned by the form controller
+const showActivityLog = ref(true)
 
-// ── WebSocket real-time + presence ───────────────────────────────────────────
-const wsUrl = computed(() => props.id ? `/api/v1/ws/${props.doctype}/${props.id}` : null)
-const docWs = useWebSocket(wsUrl)
-const { lastMessage } = docWs
-const { users: presenceUsers, fieldLocks, focusField, blurField } = usePresence(docWs)
-
-// ── Validation + Save ─────────────────────────────────────────────────────────
-let saveHandler: (() => Promise<void>) | null = null
-
-// ── Client scripts ──────────────────────────────────────────────────────────
 const {
-  buttons: scriptButtons,
+  dt,
+  form,
+  document,
+  docTitle,
+  activeTab,
+  isLoading,
+  isDirty,
+  isSaving,
+  validationErrors,
+  scriptButtons,
   displayOverrides,
   reqdOverrides,
   dfPropOverrides,
-  runEvent: runScriptEvent,
-  getLinkFilters,
-  setTableSelection,
-} = useClientScripts(props.doctype, {
-  getDoc: () => form.value,
-  getFields: () => (dt.value?.fields ?? []) as Record<string, unknown>[],
-  isNew: () => !props.id,
-  setValue: (field, value) => { form.value[field] = value },
-  reload: async () => {
-    if (props.id) {
-      await queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })
-    }
-  },
-  save: async () => {
-    if (saveHandler) {
-      await saveHandler()
-    }
-  },
-  markClean,
-  lastMessage,
-})
-
-const {
-  validationErrors,
-  focusFirstError,
-  validateForm,
-} = useFormValidation({
-  doctype: props.doctype,
-  dt,
-  form,
-  displayOverrides,
-  reqdOverrides,
-  toast,
-  activeTab,
-})
-
-// Provide link filter resolver to all descendant Link fields via inject
-provide('getLinkFilters', getLinkFilters)
-// Provide document context so Attach/Image fields can set attached_to_* on upload
-provide('docContext', { doctype: props.doctype, getId: () => props.id })
-
-// ── Modals & Navigation ──────────────────────────────────────────────────────
-const showDeleteModal = ref(false)
-const showActivityLog = ref(true)
-const showVersions = ref(false)
-
-const {
+  presenceUsers,
+  fieldLocks,
+  focusField,
+  blurField,
+  showDeleteModal,
+  showLeaveModal,
+  showVersions,
   quickEntryDt,
   quickEntryPreset,
-  isQuickEntryOpen,
+  handleSave,
+  handleDelete,
+  handleDuplicate,
+  onVersionRestored,
+  onFormUpdate,
   handleCreateNew,
   onQuickEntrySaved,
   closeQuickEntry,
-} = useFormLinkCreation({
-  doctype: props.doctype,
-  id: props.id,
-  workspace: props.workspace,
-  form,
-  markAllowLeave: () => markAllowLeave(),
-  loadDocType: (doctype: string) => dtStore.get(doctype),
-  startLinkCreate: ({ linkedDoctype, preset, fieldname, parentDoctype, parentId, formSnapshot, workspace }) => {
-    startLinkCreate(
-      linkedDoctype,
-      preset,
-      fieldname,
-      parentDoctype,
-      parentId,
-      formSnapshot,
-      workspace,
-    )
-  },
-  navigateToNew: (linkedDoctype: string, preset: Record<string, unknown>) => {
-    const ws = props.workspace || 'grunt'
-    const query: Record<string, string> = {}
-    for (const [k, v] of Object.entries(preset)) {
-      query[k] = String(v)
-    }
-    router.push({ path: `/${ws}/${linkedDoctype}/new`, query })
-  },
-})
-
-const {
-  showLeaveModal,
-  markAllowLeave,
   confirmLeave,
   cancelLeave,
-  goToList,
-} = useFormNavigation({
-  router,
-  doctype: props.doctype,
-  workspace: props.workspace,
-  isDirty,
-  showDeleteModal,
-  showVersions,
-  isQuickEntryOpen,
-})
-
-useFormDocWatcher({
-  lastMessage,
-  isDirty,
-  doctype: props.doctype,
-  id: props.id,
-  queryClient,
-  toast,
-})
-
-const { handleSave } = useFormSave({
-  doctype: props.doctype,
-  id: props.id,
-  workspace: props.workspace,
-  dt,
-  form,
-  validationErrors,
-  save,
-  runScriptEvent,
-  validateForm,
-  focusFirstError,
-  markAllowLeave,
-  finishLinkCreate,
-  queryClient,
-  dtStore,
-  router,
-  toast,
-})
-saveHandler = handleSave
-
-const { initialize } = useFormInitialization({
-  doctype: props.doctype,
-  id: props.id,
-  dt,
-  form,
-  loadDocType: async (doctype: string) => {
-    // Always refresh the main form DocType metadata to pick up recent schema changes.
-    if (doctype === props.doctype) dtStore.invalidate(doctype)
-    return dtStore.get(doctype)
+  rename,
+  setTableSelection,
+} = useFormController(
+  { doctype: props.doctype, id: props.id, workspace: props.workspace },
+  {
+    onLoaded: (payload) => emit('loaded', payload),
+    onNotFound: (payload) => emit('notfound', payload),
   },
-  restoreLinkDraft,
-  info: (message: string) => {
-    toast.info(message)
-  },
-  runOnLoad: () => runScriptEvent('on_load'),
-})
-
-const {
-  onVersionRestored,
-  handleDelete,
-  handleDuplicate,
-} = useFormActions({
-  doctype: props.doctype,
-  id: props.id,
-  workspace: props.workspace,
-  form,
-  showDeleteModal,
-  showVersions,
-  remove,
-  goToList,
-  markAllowLeave,
-  router,
-  queryClient,
-  toast,
-})
-
-const {
-  docTitle,
-  onFormUpdate,
-} = useFormDocumentView({
-  id: props.id,
-  dt,
-  document: computed(() => (document.value as Record<string, unknown> | null)),
-  form,
-  runOnChange: (field) => {
-    void runScriptEvent('on_change', field)
-  },
-})
-
-onMounted(async () => {
-  await initialize()
-})
-
-// Re-run on_load once document data arrives from server.
-// initialize() fires on_load before the async fetch completes, so
-// frm.doc fields are empty. This watcher catches the "fresh load" case.
-if (props.id) {
-  const unwatchDoc = watch(document, async (doc) => {
-    if (doc) {
-      unwatchDoc()
-      // Surface the resolved title for recent-docs tracking before running
-      // on_load scripts (which may mutate fields).
-      emit('loaded', { doctype: props.doctype, id: props.id!, title: docTitle.value })
-      await runScriptEvent('on_load')
-    }
-  })
-
-  // Prune stale references when the document can't be loaded (e.g. deleted).
-  const unwatchErr = watch(isError, (failed) => {
-    if (failed) {
-      unwatchErr()
-      emit('notfound', { doctype: props.doctype, id: props.id! })
-    }
-  })
-}
-
-useFormShortcuts({
-  onSave: () => {
-    void handleSave()
-  },
-  onPrint: () => {
-    window.print()
-  },
-})
-
-useFetchFrom({
-  doctype: dt,
-  modelValue: form,
-  updateField: (fieldname, value) => {
-    form.value[fieldname] = value
-  },
-})
-
+)
 </script>
 
 <template>
