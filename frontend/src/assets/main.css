@@ -236,13 +236,30 @@
   /* Ensure form elements always use theme colors */
   input,
   textarea,
-  select {
+  select,
+  button {
     color: var(--foreground);
   }
 
   input::placeholder,
   textarea::placeholder {
     color: var(--muted-foreground);
+  }
+
+  /* Fix disabled text color in WebKit/Blink for dark mode */
+  input:disabled,
+  textarea:disabled,
+  select:disabled,
+  button:disabled,
+  [disabled],
+  [aria-disabled="true"] {
+    -webkit-text-fill-color: currentColor;
+  }
+
+  /* Ensure native select options inherit dark theme colors */
+  select option {
+    background-color: var(--card);
+    color: var(--card-foreground);
   }
 
   /* Fix autofill background (Chrome sets its own background) */

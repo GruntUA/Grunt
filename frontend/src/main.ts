@@ -10,7 +10,6 @@ import '@/app-hooks'
 
 import './assets/main.css'
 import 'vue-sonner/style.css'
-import 'default-passive-events'
 // Expose globally for client scripts (JS controllers)
 window.grunt = grunt
 window.frappe = grunt // Frappe-compatible alias
