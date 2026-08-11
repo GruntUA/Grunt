@@ -18,7 +18,7 @@ const emit = defineEmits<{
 <template>
   <Input
     :model-value="modelValue"
-    class="h-8 text-xs mb-3 w-full"
+    class="h-8 text-xs w-full"
     :placeholder="op === 'like' ? 'частина тексту...' : 'Значення'"
     @update:model-value="emit('update:modelValue', String($event))"
     @keydown.enter="emit('submit')"

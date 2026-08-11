@@ -199,7 +199,6 @@ export interface ToolbarEmit {
   updateGroupBy(val: string | null): void
   /** Emitted by view toolbar controls that need sorting (e.g. list). */
   sort(key: string): void
-  reset(): void
 }
 
 /**

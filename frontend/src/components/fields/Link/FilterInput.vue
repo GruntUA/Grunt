@@ -133,7 +133,7 @@ function clear() {
 </script>
 
 <template>
-  <div class="mb-3 space-y-1.5">
+  <div class="space-y-1.5">
     <!-- Tree mode -->
     <div v-if="isTree" class="relative">
       <TreeSelect

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
 
 const props = defineProps<{
@@ -15,6 +16,8 @@ const emit = defineEmits<{
   'submit': []
 }>()
 
+const { t } = useI18n()
+
 const options = computed(() => {
   if (!props.field.options) return []
   return typeof props.field.options === 'string'
@@ -24,16 +27,12 @@ const options = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-wrap gap-1 max-h-32 overflow-y-auto mb-3">
-    <button
-      v-for="opt in options"
-      :key="opt"
-      type="button"
-      class="px-2 py-1 text-xs rounded-md border transition-colors"
-      :class="modelValue === opt
-        ? 'border-primary bg-primary/10 text-primary font-semibold'
-        : 'border-border hover:border-primary/40'"
-      @click="emit('update:modelValue', opt)"
-    >{{ opt }}</button>
-  </div>
+  <Select :model-value="modelValue" @update:model-value="(v: unknown) => emit('update:modelValue', String(v))">
+    <SelectTrigger size="sm" class="h-8 text-xs w-full">
+      <SelectValue :placeholder="t('Select value')" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem v-for="opt in options" :key="opt" :value="opt">{{ opt }}</SelectItem>
+    </SelectContent>
+  </Select>
 </template>

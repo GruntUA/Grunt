@@ -19,7 +19,7 @@ const emit = defineEmits<{
   <Input
     :model-value="modelValue"
     type="datetime-local"
-    class="h-8 text-xs mb-3 w-full"
+    class="h-8 text-xs w-full"
     @update:model-value="emit('update:modelValue', String($event))"
     @keydown.enter="emit('submit')"
   />

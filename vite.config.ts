@@ -8,6 +8,9 @@ import Components from 'unplugin-vue-components/vite'
 // shadcn-vue primitives — tag names auto-resolve to frontend/src/components/ui/*.
 const SHADCN_UI_COMPONENTS: Record<string, string> = {
     Button: 'button',
+    ButtonGroup: 'button-group',
+    ButtonGroupSeparator: 'button-group',
+    ButtonGroupText: 'button-group',
     Input: 'input',
     Checkbox: 'checkbox',
     Switch: 'switch',

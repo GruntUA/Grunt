@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Search, X } from '@lucide/vue'
+import { Search } from '@lucide/vue'
 import type { ActiveFilter, DocType, FastFilter } from '@/types'
 import FilterBar from '@/components/views/FilterBar.vue'
 import FastFilterBar from '@/components/views/FastFilterBar.vue'
@@ -26,7 +26,6 @@ const emit = defineEmits<{
   'update:fastFilterValues': [val: Record<string, string>]
   'update:groupBy': [val: string | null]
   sort: [key: string]
-  reset: []
 }>()
 
 const { t } = useI18n()
@@ -60,7 +59,6 @@ const toolbarCtx = computed((): ToolbarContext => ({
     updateFastFilterValues: (val) => emit('update:fastFilterValues', val),
     updateGroupBy: (val) => emit('update:groupBy', val),
     sort: (key) => emit('sort', key),
-    reset: () => emit('reset'),
   },
 }))
 
@@ -101,10 +99,6 @@ const toolbarControlsEvents = computed(() =>
           class="!mb-0"
           @change="emit('update:activeFilters', $event)"
         />
-        <Button variant="ghost" v-if="inlineSearch || activeFilters.length" size="sm" class="h-8 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50" @click="emit('reset')">
-          <X class="size-4 mr-1" />
-          {{ t('Reset') }}
-        </Button>
       </div>
 
       <!-- Right: active view's toolbar controls (columns, grouping, sort, etc.) -->

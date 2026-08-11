@@ -16,7 +16,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="flex gap-2 mb-3">
+  <div class="flex gap-2">
     <button
       type="button"
       class="flex-1 py-1.5 text-xs rounded border transition-colors"
