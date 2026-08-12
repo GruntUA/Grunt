@@ -58,7 +58,10 @@ async def _resolve_link_labels(
     for lf in link_fields:
         try:
             target_dt = await doctype_registry.get(lf.options)
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "link_labels.target_doctype_error", doctype=lf.options, error=str(exc)
+            )
             continue
 
         title_field = getattr(target_dt, "title_field", "name") or "name"
@@ -99,7 +102,10 @@ async def _resolve_link_labels(
             async with session.begin_nested():
                 result = await session.execute(q)
                 linked_rows = result.mappings().all()
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "link_labels.fetch_error", doctype=lf.options, field=lf.fieldname, error=str(exc)
+            )
             continue
 
         label_map: dict[str, str] = {}
@@ -254,40 +260,34 @@ async def _save_child_tables(
         child_rows = data[field.fieldname]
         if not isinstance(child_rows, list):
             child_rows = []
-        try:
-            child_dt = await doctype_registry.get(field.options)
-            child_table = compile_doctype_to_table(child_dt)
-            # Delete existing rows for this parent
-            await session.execute(
-                child_table.delete().where(child_table.c.parent_name == parent_id)
-            )
-            # Build all rows then insert in one batch
-            rows_to_insert: list[dict[str, Any]] = []
-            for idx, child_data in enumerate(child_rows):
-                if not isinstance(child_data, dict):
-                    continue
-                # Always use the array position as the canonical idx so that
-                # drag-and-drop reordering on the client is faithfully persisted.
-                # The client-side `idx` field is intentionally ignored here because
-                # it may carry stale values from a previous save.
-                child_idx = idx
-                row: dict[str, Any] = {
-                    "name": f"{parent_id}-{field.fieldname}-{child_idx}",
-                    "parent_name": parent_id,
-                    "parent_doctype": dt.name,
-                    "parent_field": field.fieldname,
-                    "idx": child_idx,
-                    **audit_fields(user.email, now),
-                }
-                # Always include every column to avoid NOT NULL constraint errors.
-                apply_field_values(child_dt.fields, child_data, row, fill_empty=True)
-                rows_to_insert.append(row)
-            if rows_to_insert:
-                await session.execute(child_table.insert(), rows_to_insert)
-        except Exception:
-            logger.exception(
-                "child_table.save_error",
-                doctype=dt.name,
-                field=field.fieldname,
-                parent_id=parent_id,
-            )
+
+        # Not best-effort: persisting the document is not actually complete
+        # until its child rows are, so a failure here must propagate and roll
+        # back the transaction rather than report a false success.
+        child_dt = await doctype_registry.get(field.options)
+        child_table = compile_doctype_to_table(child_dt)
+        # Delete existing rows for this parent
+        await session.execute(child_table.delete().where(child_table.c.parent_name == parent_id))
+        # Build all rows then insert in one batch
+        rows_to_insert: list[dict[str, Any]] = []
+        for idx, child_data in enumerate(child_rows):
+            if not isinstance(child_data, dict):
+                continue
+            # Always use the array position as the canonical idx so that
+            # drag-and-drop reordering on the client is faithfully persisted.
+            # The client-side `idx` field is intentionally ignored here because
+            # it may carry stale values from a previous save.
+            child_idx = idx
+            row: dict[str, Any] = {
+                "name": f"{parent_id}-{field.fieldname}-{child_idx}",
+                "parent_name": parent_id,
+                "parent_doctype": dt.name,
+                "parent_field": field.fieldname,
+                "idx": child_idx,
+                **audit_fields(user.email, now),
+            }
+            # Always include every column to avoid NOT NULL constraint errors.
+            apply_field_values(child_dt.fields, child_data, row, fill_empty=True)
+            rows_to_insert.append(row)
+        if rows_to_insert:
+            await session.execute(child_table.insert(), rows_to_insert)

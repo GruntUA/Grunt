@@ -236,6 +236,47 @@ async def test_tree_children_sort_by_query_params(ctx, tree_doctype):
 
 
 @pytest.mark.asyncio
+async def test_tree_ancestors_ordered_root_first_excludes_self(ctx, tree_doctype):
+    """get_ancestors returns the path from root down to the direct parent.
+
+    Regression: get_ancestors was rewritten from a hand-built recursive
+    ``WITH RECURSIVE`` string to a SQLAlchemy Core recursive CTE
+    (``Select.cte(recursive=True)``) — this pins down ordering (root first,
+    direct parent last) and that the queried node itself is excluded.
+    """
+    from grunt.document.tree import tree_service
+
+    session = ctx.db._session()
+    root_a = tree_doctype["root_a"]
+    child_a1 = tree_doctype["child_a1"]
+
+    grandchild = await ctx.new_doc(
+        "TreeCategory",
+        {"title": "Grandchild-A1a", "status": "Active", "parent_category": child_a1["name"]},
+    )
+    await ctx.db._session().commit()
+
+    ancestors = await tree_service.get_ancestors(session, "TreeCategory", grandchild["name"])
+
+    assert [a["title"] for a in ancestors] == ["Root-A", "Child-A1"]
+    assert all(a["name"] != grandchild["name"] for a in ancestors)
+    assert all(a["name"] != root_a["name"] or a["title"] == "Root-A" for a in ancestors)
+
+
+@pytest.mark.asyncio
+async def test_tree_ancestors_root_node_returns_empty(ctx, tree_doctype):
+    """A root node has no ancestors."""
+    from grunt.document.tree import tree_service
+
+    session = ctx.db._session()
+    root_a = tree_doctype["root_a"]
+
+    ancestors = await tree_service.get_ancestors(session, "TreeCategory", root_a["name"])
+
+    assert ancestors == []
+
+
+@pytest.mark.asyncio
 async def test_tree_sort_override_via_document_controller(ctx, tree_doctype):
     """Third-party controllers can override tree sorting via Document virtual methods."""
     from typing import Any

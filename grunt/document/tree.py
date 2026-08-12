@@ -3,8 +3,9 @@
 Uses an **adjacency-list** model: each document has a nullable self-referential
 Link field (``parent_field`` defined in ``DocType.tree_view``).
 
-Recursive queries (subtree, path to root) use SQL ``WITH RECURSIVE`` —
-supported by SQLite ≥ 3.8.3 and all PostgreSQL / MySQL 8 versions.
+Recursive queries (subtree, path to root) use a SQLAlchemy Core recursive CTE
+(``Select.cte(recursive=True)``) — supported by SQLite ≥ 3.8.3 and all
+PostgreSQL / MySQL 8 versions.
 
 Public API
 ----------
@@ -23,12 +24,11 @@ Public API
 
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING, Any
 
 import structlog
 from fastapi import HTTPException, status
-from sqlalchemy import select, text
+from sqlalchemy import literal, select
 
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
@@ -39,19 +39,6 @@ if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
 logger = structlog.get_logger()
-
-_IDENTIFIER_RE = re.compile(r"^[a-zA-Z0-9_]+$")
-
-
-def _check_id(s: str) -> str:
-    """Return *s* unchanged if it is a safe SQL identifier, else raise.
-
-    Guards every identifier interpolated into the raw ``WITH RECURSIVE`` SQL
-    below — table/column names can't be bound as query parameters.
-    """
-    if not _IDENTIFIER_RE.match(s):
-        raise ValueError(f"Invalid identifier: {s}")
-    return s
 
 
 def _require_tree(dt: Any) -> str:
@@ -173,7 +160,6 @@ class TreeService:
         parent_field = _require_tree(dt)
         table = compile_doctype_to_table(dt)
         title_col = _title_field(dt)
-        table_name = table.name
 
         from grunt.document.base import Document
         from grunt.document.registry import document_registry
@@ -200,37 +186,23 @@ class TreeService:
             sort_by=sort_by,
         )
         col_names = [c.key for c in select_cols]
+        pf_col = table.c[parent_field]
 
-        table_name = _check_id(table.name)
-        pf = _check_id(parent_field)
+        anchor = select(*select_cols, literal(0).label("_depth"))
+        anchor = anchor.where(
+            pf_col.is_(None) | (pf_col == "") if root_id is None else pf_col == root_id
+        )
+        tree_cte = anchor.cte("tree", recursive=True)
 
-        if root_id is None:
-            # Start from root nodes
-            anchor_where = f'("{pf}" IS NULL OR "{pf}" = \'\')'
-            anchor_param: dict[str, Any] = {}
-        else:
-            anchor_where = f'"{pf}" = :root_id'
-            anchor_param = {"root_id": root_id}
+        recursive_step = (
+            select(*(table.c[c] for c in col_names), (tree_cte.c._depth + 1).label("_depth"))
+            .join(tree_cte, table.c[parent_field] == tree_cte.c.name)
+            .where(tree_cte.c._depth < max_depth)
+        )
+        tree_cte = tree_cte.union_all(recursive_step)
 
-        col_list = ", ".join(f't."{_check_id(c)}"' for c in col_names)
-        cte_cols = ", ".join(f'"{_check_id(c)}"' for c in col_names)
-
-        sql = text(f"""
-            WITH RECURSIVE tree AS (
-                SELECT {col_list}, 0 AS _depth
-                FROM "{table_name}" t
-                WHERE {anchor_where}
-              UNION ALL
-                SELECT {col_list}, tree._depth + 1
-                FROM "{table_name}" t
-                JOIN tree ON t."{pf}" = tree.name
-                WHERE tree._depth < :max_depth
-            )
-            SELECT {cte_cols}, _depth FROM tree
-        """)
-
-        result = await session.execute(sql, {**anchor_param, "max_depth": max_depth})
-        all_rows = [dict(zip([*col_names, "_depth"], r, strict=False)) for r in result.fetchall()]
+        result = await session.execute(select(tree_cte))
+        all_rows = [dict(r._mapping) for r in result.fetchall()]
 
         # ── Fast-filter: keep matched nodes + all their ancestors ──────────
         if filters:
@@ -303,32 +275,30 @@ class TreeService:
         parent_field = _require_tree(dt)
         table = compile_doctype_to_table(dt)
         title_col = _title_field(dt)
-        table_name = table.name
 
         select_cols = self._build_select_cols(table, fields, title_col, parent_field)
         col_names = [c.key for c in select_cols]
-        table_name = _check_id(table.name)
-        col_list = ", ".join(f't."{_check_id(c)}"' for c in col_names)
-        cte_cols = ", ".join(f'"{_check_id(c)}"' for c in col_names)
-        pf = _check_id(parent_field)
 
-        sql = text(f"""
-            WITH RECURSIVE ancestors AS (
-                SELECT {col_list}, 0 AS _depth
-                FROM "{table_name}" t
-                WHERE t.name = :node_id
-              UNION ALL
-                SELECT {col_list}, ancestors._depth + 1
-                FROM "{table_name}" t
-                JOIN ancestors ON t.name = ancestors."{pf}"
-                WHERE ancestors."{pf}" IS NOT NULL
-                  AND ancestors."{pf}" != ''
+        anchor = select(*select_cols, literal(0).label("_depth")).where(table.c.name == node_id)
+        ancestors_cte = anchor.cte("ancestors", recursive=True)
+
+        recursive_step = (
+            select(*(table.c[c] for c in col_names), (ancestors_cte.c._depth + 1).label("_depth"))
+            .join(ancestors_cte, table.c.name == ancestors_cte.c[parent_field])
+            .where(
+                ancestors_cte.c[parent_field].is_not(None),
+                ancestors_cte.c[parent_field] != "",
             )
-            SELECT {cte_cols} FROM ancestors WHERE name != :node_id ORDER BY _depth DESC
-        """)
+        )
+        ancestors_cte = ancestors_cte.union_all(recursive_step)
 
-        result = await session.execute(sql, {"node_id": node_id})
-        return [dict(zip(col_names, r, strict=False)) for r in result.fetchall()]
+        stmt = (
+            select(*(ancestors_cte.c[c] for c in col_names))
+            .where(ancestors_cte.c.name != node_id)
+            .order_by(ancestors_cte.c._depth.desc())
+        )
+        result = await session.execute(stmt)
+        return [dict(r._mapping) for r in result.fetchall()]
 
     # ──────────────────────────────────────────────────────────────────
     # Write

@@ -486,7 +486,13 @@ async def rename_document(
                     .where(sys_table.c[sys_fieldname] == old_id)
                     .values(**{sys_fieldname: new_id})
                 )
-        except Exception:
+        except Exception as exc:
+            logger.warning(
+                "document.rename_system_ref_failed",
+                doctype=sys_dt_name,
+                field=sys_fieldname,
+                error=str(exc),
+            )
             continue
 
     await session.flush()

@@ -117,14 +117,43 @@ delete міг оперувати застарілим визначенням Doc
 `pytest tests/` — 214/214 зелений, `ruff check` на торкнутих файлах чистий
 (2 лінт-warnings у `main.py:403-404` — pre-existing, не з цього рефакторингу).
 
-## Фаза 5 — Єдина політика обробки помилок
+## Фаза 5 — Єдина політика обробки помилок ✅ DONE (2026-08-12)
 
-`except Exception` — усюди по-різному (`.exception`, `.warning`, мовчазний
-`pass`). Правило: best-effort побічні ефекти → `.warning()`, не переривають
-транзакцію; обов'язкові кроки → `raise`. Застосувати послідовно в `relations.py`,
-`collection.py`, `main.py`. Заразом: `tree.py` будує SQL вручну через
-`text(f"...")` із саморобною валідацією ідентифікаторів → перевести на
-`Table.cte(recursive=True)`.
+Аудит `except Exception` у `relations.py`/`collection.py`/`main.py`: більшість
+уже відповідала правилу "best-effort → `.warning()`/`.exception()`, не
+перериває; обов'язкове → `raise`" (`main.py` — усі перевірені блоки коректні,
+не чіпав). Знайдено й виправлено 3 реальних відхилення:
+
+- `relations.py:_resolve_link_labels` — два `except Exception: continue` БЕЗ
+  жодного логу (втрата зв'язку "чому лейбл не резолвився" повністю мовчки) →
+  додано `logger.warning(...)` перед `continue` в обох місцях.
+- `collection.py:rename_document` (каскад system-doctype посилань:
+  ActivityLog/DocVersion/File/Comment/EmailQueue) — `except Exception: continue`
+  без логу → додано `.warning()` з doctype/field контекстом. Раніше після
+  rename частина історичних посилань могла тихо лишитись зі старим id без
+  жодного сліду в логах.
+- `relations.py:_save_child_tables` — **найважливіше знайдене**: `except
+  Exception: logger.exception(...)` навколо запису child-table рядків
+  ковтав помилку і повертав керування так, ніби все ок — `create_document`/
+  `update_document` рапортували успіх користувачу, а дочірні рядки могли бути
+  видалені (DELETE вже виконався) і НЕ вставлені (INSERT впав), тобто мовчазна
+  втрата даних. Це не best-effort побічний ефект, а обов'язковий крок
+  збереження документа → try/except прибрано, виняток тепер пробивається до
+  викликача (транзакція відкочується, клієнт отримує реальну помилку замість
+  фальшивого success). Регресійний тест:
+  `tests/unit/test_document_relations.py::test_save_child_tables_propagates_child_doctype_lookup_failure`.
+
+`tree.py` — обидва ручні `WITH RECURSIVE` через `text(f"...")` (`get_tree`,
+`get_ancestors`) переведено на SQLAlchemy Core `Select.cte(recursive=True)`.
+Прибрано весь клас "чи провалідований кожен інтерпольований ідентифікатор" —
+разом з ним видалено сам `_check_id`/`_IDENTIFIER_RE` (Фаза 3), бо вони стали
+непотрібні: більше немає рядків, куди підставляються table/column names.
+Регресійні тести (раніше `get_ancestors` не мав жодного тесту):
+`tests/test_tree_api.py::test_tree_ancestors_ordered_root_first_excludes_self`,
+`::test_tree_ancestors_root_node_returns_empty`.
+
+`pytest tests/` — 217/217 зелений (214 + 3 нові), `ruff check` на торкнутих
+файлах чистий.
 
 ## Фаза 6 — Межі модулів (найбільша, окремо і в кінці)
 
