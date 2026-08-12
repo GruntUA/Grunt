@@ -217,9 +217,11 @@ class DocTypeRegistry:
         Lookup order (all O(1)):
         1. Exact match in loaded doctypes.
         2. Case-insensitive match in loaded doctypes via ``_lower_index``.
-        3. Singular/plural heuristic via ``_lower_index`` (e.g. "customer" → "Customer").
-        4. Case-insensitive match in lazy ``_known_names`` via ``_known_lower``,
+        3. Case-insensitive match in lazy ``_known_names`` via ``_known_lower``,
            then load from DB.
+
+        Deliberately no singular/plural guessing — a DocType is matched by its
+        real name only, never by a heuristically inferred one.
         """
         # 1. Exact match — O(1)
         dt = self._doctypes.get(name)
@@ -233,22 +235,8 @@ class DocTypeRegistry:
         if canonical:
             return self._doctypes[canonical]
 
-        # 3. Singular/plural heuristic against loaded doctypes — O(1)
-        if name_lower.endswith("s"):
-            canonical = self._lower_index.get(name_lower[:-1])
-        else:
-            canonical = self._lower_index.get(name_lower + "s")
-        if canonical:
-            return self._doctypes[canonical]
-
-        # 4. Resolve against lazy known-names index — O(1)
-        candidate = (
-            name
-            if name in self._known_names
-            else self._known_lower.get(name_lower)
-            or (self._known_lower.get(name_lower[:-1]) if name_lower.endswith("s") else None)
-            or (self._known_lower.get(name_lower + "s"))
-        )
+        # 3. Resolve against lazy known-names index — O(1)
+        candidate = name if name in self._known_names else self._known_lower.get(name_lower)
 
         if candidate:
             dt = await self._lazy_load(candidate)

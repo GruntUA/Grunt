@@ -70,7 +70,7 @@ class DocumentAPI:
         """Build a session/engine-bound host document to run single-doc pipeline methods on."""
         from grunt.document.base import Document
 
-        return Document.host(require_session(), require_engine())
+        return Document.bare(require_session(), require_engine())
 
     @profile("grunt.get_doc")
     async def get_doc(

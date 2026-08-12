@@ -167,12 +167,12 @@ class Document(DocumentWriteMixin):
         object.__setattr__(self, "_ml", None)
 
     @classmethod
-    def host(
+    def bare(
         cls,
         session: AsyncSession | None = None,
         engine: AsyncEngine | None = None,
     ) -> Document:
-        """Build an empty, bound host document to run dict-based pipeline methods on.
+        """Build an empty, bound throwaway document to run dict-based pipeline methods on.
 
         Single builder for the ``GruntApp`` facade and REST layer, both
         of which drive the CRUD pipeline through a throwaway ``Document``. Passing
@@ -308,6 +308,16 @@ class Document(DocumentWriteMixin):
         Lets a document be persisted both inside an HTTP request (where the
         controller is built with session/engine) and from a script/CLI that runs
         within ``async with grunt.context(...)``.
+
+        The ambient ``ContextVar`` fallback below exists for callers that have
+        no session/engine/user to pass explicitly (scripts, CLI, background
+        tasks). Prefer constructing with explicit ``session``/``engine``/``user``
+        wherever they're available — including in tests, where relying on
+        ambient context means pushing values into ``ContextVar``s instead of
+        passing them in directly. Each of the three resolves independently and
+        silently no-ops on failure, so a ``Document()`` built with no arguments
+        can end up only partially bound (e.g. session set, user not) with no
+        error until the missing piece is actually used.
         """
         if (
             getattr(self, "session", None) is None
