@@ -338,6 +338,50 @@ async def test_delete_document(ctx, setup_doctype):
 
 
 @pytest.mark.asyncio
+async def test_direct_insert_fires_same_hooks_as_facade(ctx, setup_doctype):
+    """Document.insert()/.save()/.delete() must fire hooks.fire events, not just grunt_app.*.
+
+    Regression: hooks.fire() used to live only in the app/document_api.py facade,
+    so a controller or background task calling doc.insert()/.save()/.delete()
+    directly silently skipped notifications/assignment rules/backlink sync/
+    activity log. hooks.fire() now lives inside create_document/update_document/
+    delete_document (grunt/document/mixins/write.py) so every entry point gets
+    the same guarantees.
+    """
+    from grunt import hooks
+    from grunt.document.base import Document
+
+    fired: list[str] = []
+
+    async def _capture(**kwargs):
+        fired.append(kwargs["event"])
+
+    for event in ("after_insert", "after_update", "after_delete"):
+        hooks.on_doc("TestItem", event)(_capture)
+
+    try:
+        doc = Document("TestItem", {"title": "Direct pipeline"})
+        await doc.insert()
+        await ctx.db._session().commit()
+
+        doc.title = "Direct pipeline updated"
+        await doc.save()
+        await ctx.db._session().commit()
+
+        await doc.delete()
+        await ctx.db._session().commit()
+    finally:
+        for event in ("after_insert", "after_update", "after_delete"):
+            hooks.DOC_EVENT_REGISTRY["TestItem"][event] = [
+                h
+                for h in hooks.DOC_EVENT_REGISTRY["TestItem"][event]
+                if h["handler"] is not _capture
+            ]
+
+    assert fired == ["after_insert", "after_update", "after_delete"]
+
+
+@pytest.mark.asyncio
 async def test_explicit_name_wins_over_autoname(ctx, setup_doctype):
     """new_doc with explicit ``name`` keeps it even when autoname is hash.
 

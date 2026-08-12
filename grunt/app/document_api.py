@@ -107,16 +107,16 @@ class DocumentAPI:
         *,
         ignore_required: bool = False,
     ) -> dict[str, Any]:
-        """Create a new document and return it."""
-        from grunt.hooks import fire
+        """Create a new document and return it.
 
-        dt, user, session = await write_guard(doctype, "create")
-        await fire("before_save", doctype=doctype, doc=dict(data), user=user, session=session)
+        Lifecycle hooks (notifications, assignment rules, backlink sync, activity
+        log) fire inside ``create_document`` itself, so they run identically here
+        and via ``Document.insert()`` — see ``DocumentWriteMixin.create_document``.
+        """
+        _dt, user, _session = await write_guard(doctype, "create")
         created = await self._doc().create_document(
             doctype, data, user, ignore_required=ignore_required
         )
-        await fire("after_insert", doctype=doctype, doc=created, user=user, session=session)
-        await fire("after_save", doctype=doctype, doc=created, user=user, session=session)
         await self._invalidate_list_cache(doctype)
         _, _, hidden_fields = await read_guard(doctype)
         return apply_hidden_fields_to_doc(created, hidden_fields)
@@ -129,48 +129,25 @@ class DocumentAPI:
         *,
         ignore_required: bool = False,
     ) -> dict[str, Any]:
-        """Update an existing document and return the updated version."""
-        from grunt.hooks import fire
+        """Update an existing document and return the updated version.
 
-        dt, user, session = await write_guard(doctype, "write")
-        await fire(
-            "before_save",
-            doctype=doctype,
-            doc={"id": id_or_name, **data},
-            user=user,
-            session=session,
-        )
+        See :meth:`new_doc` — lifecycle hooks fire inside ``update_document``.
+        """
+        _dt, user, _session = await write_guard(doctype, "write")
         updated = await self._doc().update_document(
             doctype, id_or_name, data, user, ignore_required=ignore_required
         )
-        await fire("after_update", doctype=doctype, doc=updated, user=user, session=session)
-        await fire("after_save", doctype=doctype, doc=updated, user=user, session=session)
         await self._invalidate_list_cache(doctype)
         _, _, hidden_fields = await read_guard(doctype)
         return apply_hidden_fields_to_doc(updated, hidden_fields)
 
     async def delete_doc(self, doctype: str, id_or_name: str) -> None:
-        """Delete a document."""
-        from grunt.hooks import fire
+        """Delete a document.
 
-        dt, user, session = await write_guard(doctype, "delete")
-
-        snapshot: dict[str, Any] | None = None
-        try:
-            snapshot = await self._doc().get_document(doctype, id_or_name, user)
-        except Exception:
-            snapshot = {"name": id_or_name}
-
-        await fire("before_delete", doctype=doctype, doc=snapshot, user=user, session=session)
+        See :meth:`new_doc` — lifecycle hooks fire inside ``delete_document``.
+        """
+        _dt, user, _session = await write_guard(doctype, "delete")
         await self._doc().delete_document(doctype, id_or_name, user)
-        await fire(
-            "after_delete",
-            doctype=doctype,
-            doc_id=snapshot.get("name", id_or_name),
-            doc=snapshot,
-            user=user,
-            session=session,
-        )
         await self._invalidate_list_cache(doctype)
 
     async def rename_doc(self, doctype: str, old_id: str, new_id: str) -> dict[str, Any]:

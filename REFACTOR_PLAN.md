@@ -1,0 +1,110 @@
+# План рефакторингу ядра Grunt
+
+Мета: код ядра (`grunt/`) має виглядати написаним професійним архітектором — прості,
+однозначні шляхи виконання, без дублювання, без прихованої магії. Правимо ядро прямо
+й мінімально, без турботи про зворотну сумісність (фреймворк в активній розробці).
+
+Джерело: архітектурний аудит `document/`, `db/`, `metadata/`, `main.py`, `hooks.py`,
+`app/document_api.py`, `permissions/` (2026-08-12).
+
+Порядок виконання: 0 → 1 → 2/3 паралельно → 4 → 5 → 7 → 6 останньою.
+Після кожної фази — повний `pytest tests/` (зачіпається сам CRUD-пайплайн).
+
+## Фаза 0 — Один вхід, одні гарантії ✅ DONE (2026-08-12)
+
+Проблема: `app/document_api.py` (фасад `grunt_app.*`) викликав `hooks.fire(...)`
+навколо CRUD, а `Document.insert()/save()/delete()` (`document/base.py`) — ні,
+бо обидва йшли через `create_document/update_document/delete_document`
+(`document/mixins/write.py`), які самі хуків не викликали. Наслідок: notification
+rules, assignment rules, backlink sync, ActivityLog для create — усе спрацьовувало
+лише через фасад, і мовчки НЕ спрацьовувало при прямому `doc.save()`/`doc.insert()`
+з контролера чи фонового завдання.
+
+Зроблено: `hooks.fire()` перенесено всередину `create_document/update_document/
+delete_document` у `write.py` — тепер це єдине джерело істини для side-effects,
+а фасад лише делегує. Асиметрія ActivityLog для create (раніше залежала від
+викликаного лише через фасад wildcard-хука `log_activity`) вирішилась автоматично,
+бо `after_insert` тепер завжди викликається з пайплайну.
+
+Регресійний тест: `tests/test_docs_api.py::test_direct_insert_fires_same_hooks_as_facade`
+(реєструє `hooks.on_doc` і перевіряє, що прямий `Document.insert()/.save()/.delete()`
+викликає ті самі хуки, що й `grunt_app.new_doc/save_doc/delete_doc`). Повний
+`pytest tests/` — 214/214 зелений.
+
+Свідомо не чіпали: `collection.bulk_delete` — це окремий, задокументований
+оптимізований batch-шлях (1 DELETE замість N), який навмисно не йде через
+`hooks.fire` (notification/assignment/backlink sync) заради швидкості на великих
+обсягах. Це не той самий клас бага — трейд-офф явний і задокументований у docstring.
+
+## Фаза 1 — Зняти MRO-залежність mixins ✅ DONE (2026-08-12)
+
+Було: `DocumentWriteMixin.get_document()` — заглушка, що кидає
+`NotImplementedError`; реальна реалізація — в `DocumentReadMixin`. Працювало лише
+завдяки порядку в `class Document(DocumentReadMixin, DocumentWriteMixin)`.
+
+Зроблено: `DocumentWriteMixin` тепер явно успадковує `DocumentReadMixin`
+(`class DocumentWriteMixin(DocumentReadMixin)`), заглушку-дублікат видалено —
+`get_document` успадковується напряму. `Document` тепер має один базовий клас
+(`class Document(DocumentWriteMixin)`), MRO фіксований і однозначний, порядок
+базових класів більше нізвідки не читається. `session`/`_ml` типи-анотації теж
+успадковуються, дублікат прибрано з `write.py`.
+
+Заразом узгоджено свіжість метаданих: `delete_document()` тепер теж викликає
+`self._resolve_dt()` (форсований lazy-reload), як і create/update — раніше
+delete міг оперувати застарілим визначенням DocType в multi-worker деплої.
+
+`pytest tests/` — 214/214 зелений, `ruff check` чистий.
+
+## Фаза 2 — Декомпозиція god-функцій
+
+- `collection.list_documents()` (~165 рядків) → `_select_columns`, `_build_where`,
+  `_resolve_sort`, `_paginate`, `_finalize_rows` (за зразком вже наявної
+  декомпозиції в `write.py`).
+- `metadata/registry.py:_inject_core()` (~140 рядків, два хардкод-списки атрибутів)
+  → інтроспекція полів моделі замість ручного allow-list.
+- `hooks.py:fire()` (~120 рядків, 6 підсистем побічних ефектів) →
+  задокументувати як явну шину або розбити на іменовані стадії.
+
+## Фаза 3 — Прибрати дублювання
+
+- WHERE-побудова в `collection.list_documents()` дублюється для запиту й count.
+- 6 майже ідентичних `_run_{create,update,delete}_{before,after}_hooks` у
+  `write.py` → один `_run_hooks(doc, hook_names)`.
+- `_check_id` продубльований двічі в `tree.py` → на рівень модуля.
+- `_friendly_integrity_error` (regex-парсер помилок SQLite/Postgres) живе серед
+  CRUD-логіки в `write.py` → винести в `db/errors.py`.
+
+## Фаза 4 — Видалити мертве/backward-compat
+
+- `metadata/field.py` — старий function-based реєстр типів полів поряд з новим
+  класовим `FieldType`.
+- `db/api.py` — `_db_proxy`/module `__getattr__`, "Backward-compatible module proxy".
+- `document/registry.py` — три "Backwards-compatible aliases"; `main.py` досі
+  використовує старі імена.
+
+## Фаза 5 — Єдина політика обробки помилок
+
+`except Exception` — усюди по-різному (`.exception`, `.warning`, мовчазний
+`pass`). Правило: best-effort побічні ефекти → `.warning()`, не переривають
+транзакцію; обов'язкові кроки → `raise`. Застосувати послідовно в `relations.py`,
+`collection.py`, `main.py`. Заразом: `tree.py` будує SQL вручну через
+`text(f"...")` із саморобною валідацією ідентифікаторів → перевести на
+`Table.cte(recursive=True)`.
+
+## Фаза 6 — Межі модулів (найбільша, окремо і в кінці)
+
+Пізні імпорти "щоб обійти циклічну залежність" — норма в `db/api.py`,
+`document/base.py`, `relations.py`, `write.py`, `collection.py`, `tree.py`.
+Симптом циклічної залежності `grunt.document` ↔ `grunt.db` ↔ `grunt.metadata` ↔
+`grunt.app`. Виділити спільні примітиви в нижчий модуль без зворотних
+залежностей.
+
+## Фаза 7 — Дрібне (низький ризик, можна паралельно)
+
+- `Document.__getattr__` тихо повертає `None` на невідоме поле — одруківка в
+  назві поля мовчки ковтається. Попередження в debug-режимі.
+- `DocTypeRegistry.get()` — наївна евристика однини/множини, продубльована в
+  двох гілках, здатна мовчки резолвити не той DocType.
+- Перейменування: `dt` → `doctype_def`; `Document.host()` → `Document.bare()`.
+- Ambient `ContextVar` замість явного передавання залежностей — для нового коду
+  explicit passing, ambient-fallback лишити як legacy-шлях на вихід.

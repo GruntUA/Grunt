@@ -11,13 +11,13 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+    from sqlalchemy.ext.asyncio import AsyncEngine
 
     from grunt.auth.doctypes.User.user import User
-    from grunt.document.multi_link import MultiLinkService
 
 from grunt.document.aggregate import compute_aggregations
 from grunt.document.formula import compute_formulas
+from grunt.document.mixins.read import DocumentReadMixin
 from grunt.document.registry import document_registry
 from grunt.document.relations import (
     _get_multi_link_fields,
@@ -41,6 +41,7 @@ from grunt.document.virtual import (
     virtual_update,
 )
 from grunt.errors import GruntError
+from grunt.hooks import fire
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
 
@@ -92,10 +93,17 @@ def _friendly_integrity_error(exc: IntegrityError, dt: Any) -> HTTPException:
     return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=message)
 
 
-class DocumentWriteMixin:
-    session: AsyncSession
+class DocumentWriteMixin(DocumentReadMixin):
+    """Write half of the Document pipeline.
+
+    Extends :class:`DocumentReadMixin` because every write operation needs to
+    read the current row first (``get_document`` — for update's ``existing``,
+    delete's pre-delete snapshot, etc.). Inheriting directly means there is one
+    fixed method resolution order, not an implicit one that depends on the
+    order ``Document`` lists its base classes in.
+    """
+
     engine: AsyncEngine
-    _ml: MultiLinkService
 
     def _set_grunt_context(self, user: User) -> tuple:  # type: ignore[empty-body]
         ...
@@ -103,19 +111,22 @@ class DocumentWriteMixin:
     @staticmethod
     def _reset_grunt_context(tokens: tuple) -> None: ...
 
-    async def get_document(
-        self,
-        doctype_name: str,
-        doc_id: str,
-        user: User,
-        expand: list[str] | None = None,
-    ) -> dict[str, Any]:
-        raise NotImplementedError
-
     async def _resolve_dt(self, doctype_name: str) -> Any:
         """Return the freshest DocType definition, forcing a lazy reload if needed."""
         fresh = await doctype_registry._lazy_load(doctype_name)
         return fresh if fresh is not None else await doctype_registry.get(doctype_name)
+
+    async def _fire_write_hooks(
+        self,
+        primary_event: str,
+        secondary_event: str,
+        doctype_name: str,
+        doc: dict[str, Any],
+        user: User,
+    ) -> None:
+        """Fire the two hook events that follow a successful create/update."""
+        await fire(primary_event, doctype=doctype_name, doc=doc, user=user, session=self.session)
+        await fire(secondary_event, doctype=doctype_name, doc=doc, user=user, session=self.session)
 
     # ── Create ────────────────────────────────────────────────────────────
 
@@ -315,9 +326,22 @@ class DocumentWriteMixin:
         *,
         ignore_required: bool = False,
     ) -> dict[str, Any]:
+        """Run the full create pipeline: hooks -> validate -> insert -> hooks.
+
+        This is the single entry point for creating a document — both the
+        ``grunt_app.new_doc`` facade and ``Document.insert()`` call through here,
+        so global/DocType hooks (notifications, assignment rules, backlink sync,
+        activity log) fire identically regardless of the caller.
+        """
+        await fire(
+            "before_save", doctype=doctype_name, doc=dict(data), user=user, session=self.session
+        )
+
         dt = await self._resolve_dt(doctype_name)
         if is_virtual_routed(dt, doctype_name):
-            return await virtual_create(doctype_name, user, data)
+            created = await virtual_create(doctype_name, user, data)
+            await self._fire_write_hooks("after_insert", "after_save", doctype_name, created, user)
+            return created
 
         table = compile_doctype_to_table(dt)
         await self._check_singleton(dt, table)
@@ -338,7 +362,9 @@ class DocumentWriteMixin:
         finally:
             self._reset_grunt_context(_tokens)
 
-        return await self._serialize_doc_out(doctype_name, doc_id, row, dt)
+        created = await self._serialize_doc_out(doctype_name, doc_id, row, dt)
+        await self._fire_write_hooks("after_insert", "after_save", doctype_name, created, user)
+        return created
 
     # ── update helpers ────────────────────────────────────────────────────
 
@@ -473,9 +499,23 @@ class DocumentWriteMixin:
         *,
         ignore_required: bool = False,
     ) -> dict[str, Any]:
+        """Run the full update pipeline: hooks -> validate -> update -> hooks.
+
+        Single entry point for updating a document — see :meth:`create_document`.
+        """
+        await fire(
+            "before_save",
+            doctype=doctype_name,
+            doc={"id": doc_id, **data},
+            user=user,
+            session=self.session,
+        )
+
         dt = await self._resolve_dt(doctype_name)
         if is_virtual_routed(dt, doctype_name):
-            return await virtual_update(doctype_name, user, doc_id, data)
+            updated = await virtual_update(doctype_name, user, doc_id, data)
+            await self._fire_write_hooks("after_update", "after_save", doctype_name, updated, user)
+            return updated
 
         table = compile_doctype_to_table(dt)
         existing = await self.get_document(doctype_name, doc_id, user)
@@ -536,6 +576,7 @@ class DocumentWriteMixin:
                 dt=dt,
                 result=result,
             )
+            await self._fire_write_hooks("after_update", "after_save", doctype_name, result, user)
             return result
         except IntegrityError as exc:
             raise _friendly_integrity_error(exc, dt) from exc
@@ -550,9 +591,25 @@ class DocumentWriteMixin:
         doc_id: str,
         user: User,
     ) -> None:
-        dt = await doctype_registry.get(doctype_name)
+        """Run the full delete pipeline: hooks -> delete -> hooks.
+
+        Single entry point for deleting a document — see :meth:`create_document`.
+        """
+        dt = await self._resolve_dt(doctype_name)
         if is_virtual_routed(dt, doctype_name):
+            doc = {"name": doc_id}
+            await fire(
+                "before_delete", doctype=doctype_name, doc=doc, user=user, session=self.session
+            )
             await virtual_delete(doctype_name, user, doc_id)
+            await fire(
+                "after_delete",
+                doctype=doctype_name,
+                doc_id=doc_id,
+                doc=doc,
+                user=user,
+                session=self.session,
+            )
             return
 
         table = compile_doctype_to_table(dt)
@@ -566,6 +623,10 @@ class DocumentWriteMixin:
             )
 
         real_id = existing["name"]
+
+        await fire(
+            "before_delete", doctype=doctype_name, doc=existing, user=user, session=self.session
+        )
 
         # Custom Controller Hooks
         _tokens = self._set_grunt_context(user)
@@ -590,3 +651,12 @@ class DocumentWriteMixin:
 
         finally:
             self._reset_grunt_context(_tokens)
+
+        await fire(
+            "after_delete",
+            doctype=doctype_name,
+            doc_id=real_id,
+            doc=existing,
+            user=user,
+            session=self.session,
+        )

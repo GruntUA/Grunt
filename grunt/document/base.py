@@ -60,7 +60,6 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 
-from grunt.document.mixins.read import DocumentReadMixin
 from grunt.document.mixins.write import DocumentWriteMixin
 
 if TYPE_CHECKING:
@@ -119,7 +118,7 @@ class DocumentList(list):
         return default
 
 
-class Document(DocumentReadMixin, DocumentWriteMixin):
+class Document(DocumentWriteMixin):
     """Base class for all DocType controllers.
 
     Subclass this to add custom validation and lifecycle hooks to a DocType.
