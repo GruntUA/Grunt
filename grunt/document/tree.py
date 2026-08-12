@@ -31,6 +31,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import literal, select
 
 from grunt.document.base import Document
+from grunt.document.meta import Meta
 from grunt.document.registry import document_registry
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
@@ -390,9 +391,9 @@ class TreeService:
         fallback_if_missing: bool,
         controller_cls: type,
     ) -> tuple[str | None, str]:
-        tree_view = getattr(dt, "tree_view", None)
-        default_sort_by = getattr(tree_view, "sort_by", None) if tree_view else None
-        default_sort_order = getattr(tree_view, "sort_order", "asc") if tree_view else "asc"
+        tree_view = Meta(dt).get_tree_view()
+        default_sort_by = tree_view.sort_by if tree_view else None
+        default_sort_order = tree_view.sort_order if tree_view else "asc"
 
         resolved_sort_by = explicit_sort_by or default_sort_by
         resolved_sort_order = self._normalize_sort_order(explicit_sort_order or default_sort_order)

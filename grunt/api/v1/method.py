@@ -30,7 +30,9 @@ def _process_params(params: dict[str, str]) -> dict[str, Any]:
                 args[key] = json.loads(val)
                 continue
             except Exception:
-                logger.exception("suppressed_error")
+                # Looked JSON-ish but wasn't — fall through and keep it as a
+                # plain string below. Routine, not an error: debug, not exception.
+                logger.debug("method.param_not_json", key=key)
 
         if val.isdigit():
             args[key] = int(val)
@@ -176,7 +178,9 @@ async def run_method_post(
             form_data = await request.form()
             args.update(dict(form_data))
         except Exception:
-            logger.exception("suppressed_error")
+            # No JSON body and no form body — routine for GET-like whitelisted
+            # calls made via POST with no payload, not an error: debug, not exception.
+            logger.debug("method.no_body_or_form", path=path)
 
     result = await _invoke_with_context(method, args, request, session, engine, token)
     if isinstance(result, Response):

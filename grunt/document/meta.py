@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from grunt.metadata.doctype import DocType
+    from grunt.metadata.doctype import DocType, DocTypeTreeView
     from grunt.metadata.field import DocField
 
 # Fieldtypes whose values are treated as numbers in formula/expression contexts.
@@ -43,6 +43,7 @@ class Meta:
     _aggregate_fields: list[DocField] | None = None
     _list_view_fields: list[DocField] | None = None
     _numeric_fieldnames: set[str] | None = None
+    _searchable_fields: list[DocField] | None = None
 
     def __init__(self, doctype_obj: DocType) -> None:
         self.doc = doctype_obj
@@ -116,6 +117,10 @@ class Meta:
         image_field = self.doc.image_field
         return image_field if image_field and self.has_field(image_field) else None
 
+    def get_tree_view(self) -> DocTypeTreeView | None:
+        """Return the tree_view config, or None if this DocType isn't a tree."""
+        return self.doc.tree_view
+
     def get_search_fields(self) -> list[str]:
         """Return the search fields."""
         if self._search_fields is None:
@@ -123,6 +128,17 @@ class Meta:
             if "name" not in self._search_fields:
                 self._search_fields.insert(0, "name")
         return self._search_fields
+
+    def get_searchable_fields(self) -> list[DocField]:
+        """Return fields whose fieldtype is included in full-text search indexing.
+
+        Not to be confused with :meth:`get_search_fields`, which is the
+        DocType's declared ``search_fields`` list (fieldnames shown as a
+        result subtitle) rather than a fieldtype-based indexing filter.
+        """
+        if self._searchable_fields is None:
+            self._searchable_fields = [f for f in self.doc.fields if f.is_searchable]
+        return self._searchable_fields
 
     def get_valid_columns(self) -> list[str]:
         """Return all valid physical database columns."""

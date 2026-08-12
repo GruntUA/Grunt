@@ -81,9 +81,9 @@ def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
         parts.append(str(title))
 
     # All other text-ish fields
-    for field in dt.fields:
-        if not field.is_searchable:
-            continue
+    from grunt.document.meta import Meta
+
+    for field in Meta(dt).get_searchable_fields():
         val = doc.get(field.fieldname)
         if val is None or val is False or val == "":
             continue

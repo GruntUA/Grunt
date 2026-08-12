@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import structlog
 from fastapi import HTTPException, Response, UploadFile
 
 from grunt.api.context import whitelist
@@ -11,8 +10,6 @@ from grunt.config import settings
 from grunt.context import _user_ctx
 from grunt.document.base import Document
 from grunt.storage import get_storage_backend
-
-logger = structlog.get_logger()
 
 _IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"}
 
@@ -30,12 +27,17 @@ class File(Document):
     thumbnail_url: str | None
 
     async def before_delete(self) -> None:
+        """Delete the physical file before the DB row.
+
+        Not best-effort: if the storage backend fails, the File document must
+        not be deleted either — otherwise the row disappears while the
+        physical file silently survives as an orphan with no record pointing
+        to it. Letting the exception propagate aborts the whole delete
+        pipeline (see ``DocumentWriteMixin.delete_document``).
+        """
         if self.path:
             storage = get_storage_backend()
-            try:
-                await storage.delete(self.path)
-            except Exception:
-                logger.exception("suppressed_error")
+            await storage.delete(self.path)
 
 
 @whitelist()

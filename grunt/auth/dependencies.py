@@ -163,13 +163,13 @@ async def grunt_context(
 
         messages = get_messages()
         if messages and user:
-            try:
-                from grunt.api.v1.ws import manager
+            from grunt.api.v1.ws import manager
 
-                for msg in messages:
+            for msg in messages:
+                try:
                     await manager.send_to_user(user.email, {"event": "msgprint", "data": msg})
-            except Exception:
-                logger.exception("suppressed_error")
+                except Exception:
+                    logger.warning("auth.msgprint_send_error", user=user.email)
         clear_messages()
         grunt.reset_context(tokens)
 

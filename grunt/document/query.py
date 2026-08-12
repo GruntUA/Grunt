@@ -60,7 +60,9 @@ async def _expand_child_of_filters(
             result[f"{fieldname}__eq"] = value
             continue
 
-        tree_view = getattr(linked_dt, "tree_view", None)
+        from grunt.document.meta import Meta
+
+        tree_view = Meta(linked_dt).get_tree_view()
         parent_field: str = (
             tree_view.parent_field if tree_view and tree_view.parent_field else "parent"
         )

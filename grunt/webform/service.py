@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 import structlog
 
 from grunt.app import grunt
-from grunt.metadata.field import NON_PHYSICAL_FIELDS
+from grunt.document.meta import Meta
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
@@ -63,9 +63,7 @@ class WebFormService:
         field_names = {f["fieldname"] for f in form["fields"]} if form["fields"] else set()
 
         result = []
-        for field in dt.fields:
-            if field.fieldtype in NON_PHYSICAL_FIELDS:
-                continue
+        for field in Meta(dt).get_physical_fields():
             if field_names and field.fieldname not in field_names:
                 continue
             result.append(
@@ -153,9 +151,7 @@ class WebFormService:
         errors: list[str] = []
         validated: dict[str, Any] = {}
 
-        for field in dt.fields:
-            if field.fieldtype in NON_PHYSICAL_FIELDS:
-                continue
+        for field in Meta(dt).get_physical_fields():
             if allowed_fields and field.fieldname not in allowed_fields:
                 continue
 

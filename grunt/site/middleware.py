@@ -65,7 +65,7 @@ class SiteContextMiddleware(BaseHTTPMiddleware):
                     except Exception:
                         logger.exception("suppressed_error")
             except Exception:
-                pass
+                logger.warning("site.fallback_resolve_failed", host=host_header)
 
         # 4. Set site context var (or leave unset if still unknown).
         token = current_site.set(site) if site else None

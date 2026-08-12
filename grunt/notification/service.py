@@ -345,10 +345,10 @@ class NotificationService:
         recipients: list[str],
     ) -> None:
         """Send WebSocket notification to connected users."""
-        try:
-            from grunt.api.v1.ws import manager
+        from grunt.api.v1.ws import manager
 
-            for recipient in recipients:
+        for recipient in recipients:
+            try:
                 await manager.send_to_user(
                     recipient,
                     {
@@ -360,8 +360,8 @@ class NotificationService:
                         },
                     },
                 )
-        except Exception:
-            logger.exception("suppressed_error")
+            except Exception:
+                logger.warning("notification.ws_send_error", recipient=recipient)
 
 
 notification_service = NotificationService()
