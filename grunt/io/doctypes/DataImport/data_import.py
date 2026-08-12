@@ -5,6 +5,7 @@ from typing import Any
 import structlog
 
 from grunt.document.base import Document
+from grunt.document.meta import Meta
 from grunt.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()
@@ -41,8 +42,7 @@ class DataImport(Document):
                     "fieldtype": f.fieldtype,
                     "required": f.required,
                 }
-                for f in dt.fields
-                if f.is_physical
+                for f in Meta(dt).get_physical_fields()
             ],
         }
 
@@ -75,7 +75,7 @@ class DataImport(Document):
 
         # Load required fields for dry-run validation
         dt = await doctype_registry.get(self.doctype_name)
-        required_fields = {f.fieldname for f in dt.fields if f.required and f.is_physical}
+        required_fields = {f.fieldname for f in Meta(dt).get_required_fields()}
         mapped_dt_fields = set(mapping.values())
 
         total = len(rows)
@@ -248,7 +248,7 @@ class DataImport(Document):
             raise ValueError(f"Невідомий формат експорту: {fmt}")
 
         dt = await doctype_registry.get(doctype)
-        exportable = [f for f in dt.fields if f.is_physical]
+        exportable = Meta(dt).get_physical_fields()
         if fields:
             exportable = [f for f in exportable if f.fieldname in fields]
 
@@ -277,7 +277,7 @@ class DataImport(Document):
             raise ValueError(f"Невідомий формат: {fmt}")
 
         dt = await doctype_registry.get(doctype)
-        exportable = [f for f in dt.fields if f.is_physical]
+        exportable = Meta(dt).get_physical_fields()
         content = await exporter.export(doctype, [], exportable)
         filename = f"{doctype.lower()}_template.{exporter.file_extension}"
         return content, filename

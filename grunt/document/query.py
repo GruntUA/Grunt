@@ -39,7 +39,9 @@ async def _expand_child_of_filters(
 
         fieldname = key[: -len("__child_of")]
 
-        field = next((f for f in dt.fields if f.fieldname == fieldname), None)
+        from grunt.document.meta import Meta
+
+        field = Meta(dt).get_field(fieldname)
         if not field or not getattr(field, "options", None):
             result[f"{fieldname}__eq"] = value
             continue

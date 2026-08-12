@@ -19,6 +19,7 @@ from sqlalchemy import func, select, update
 
 from grunt.document.base import Document, DocumentList
 from grunt.document.formula import evaluate_read_formulas
+from grunt.document.meta import Meta
 from grunt.document.query import _apply_filters, _apply_search, _expand_child_of_filters
 from grunt.document.registry import document_registry
 from grunt.document.relations import _resolve_link_labels
@@ -419,9 +420,10 @@ async def rename_document(
 
     # 2. Update references across all DocTypes
     all_dts = await doctype_registry.list_all()
+    dt_meta = Meta(dt)
     for other_dt in all_dts:
         # A. Update child tables (Tables)
-        is_child = any(f.fieldtype == "Table" and f.options == other_dt.name for f in dt.fields)
+        is_child = any(f.options == other_dt.name for f in dt_meta.get_child_table_fields())
         if is_child:
             child_table = compile_doctype_to_table(other_dt)
             await session.execute(
@@ -431,7 +433,7 @@ async def rename_document(
             )
 
         # B. Update Link fields referencing our doctype
-        for f in other_dt.fields:
+        for f in Meta(other_dt).get_link_fields():
             if f.fieldtype == "Link" and f.options == doctype_name:
                 ref_table = compile_doctype_to_table(other_dt)
                 await session.execute(

@@ -16,12 +16,8 @@ if TYPE_CHECKING:
 
 
 from grunt.document.formula import evaluate_read_formulas
-from grunt.document.relations import (
-    _get_multi_link_fields,
-    _load_child_tables,
-    _table_fieldnames,
-    attach_multi_link_values,
-)
+from grunt.document.meta import Meta
+from grunt.document.relations import _load_child_tables, attach_multi_link_values
 from grunt.document.serde import serialize_datetimes
 from grunt.document.virtual import is_virtual_routed, virtual_get
 from grunt.metadata.compiler import compile_doctype_to_table
@@ -59,8 +55,9 @@ class DocumentReadMixin:
 
         doc = serialize_datetimes(dict(row._mapping))
 
-        table_fields = _table_fieldnames(dt)
-        ml_fields = {f.fieldname for f in _get_multi_link_fields(dt)}
+        meta = Meta(dt)
+        table_fields = meta.get_table_fieldnames()
+        ml_fields = {f.fieldname for f in meta.get_multilink_fields()}
 
         expand_set = {x for x in (expand or []) if x}
         load_all_relations = expand is None or "*" in expand_set

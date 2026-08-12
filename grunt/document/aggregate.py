@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Any
 import structlog
 from sqlalchemy import func, select
 
+from grunt.document.meta import Meta
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
 
@@ -43,7 +44,8 @@ async def compute_aggregations(
 
     Returns an empty dict if no aggregate fields are defined.
     """
-    agg_fields = [f for f in dt.fields if f.aggregate_function]
+    meta = Meta(dt)
+    agg_fields = meta.get_aggregate_fields()
     if not agg_fields:
         return {}
 
@@ -65,11 +67,8 @@ async def compute_aggregations(
             continue
 
         # Find the TABLE field in the parent DocType to get child doctype name
-        table_field = next(
-            (f for f in dt.fields if f.fieldname == table_fieldname and f.fieldtype == "Table"),
-            None,
-        )
-        if table_field is None or not table_field.options:
+        table_field = meta.get_field(table_fieldname)
+        if table_field is None or table_field.fieldtype != "Table" or not table_field.options:
             logger.warning(
                 "aggregate.table_field_not_found",
                 doctype=dt.name,

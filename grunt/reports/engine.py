@@ -230,10 +230,11 @@ class ReportEngine:
 
         # If no column definitions, fall back to in_list_view fields
         if not col_defs:
+            from grunt.document.meta import Meta
+
             col_defs = [
                 {"fieldname": f.fieldname, "label": f.label}
-                for f in dt.fields
-                if getattr(f, "in_list_view", False)
+                for f in Meta(dt).get_list_view_fields()
             ]
 
         agg_map: dict[str, Callable[..., Any]] = {

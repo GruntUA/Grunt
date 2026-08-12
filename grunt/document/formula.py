@@ -30,6 +30,8 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 
+from grunt.document.meta import NUMERIC_FIELDTYPES, Meta
+
 if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
 
@@ -63,9 +65,6 @@ _SAFE_BUILTINS: dict[str, Any] = {
 }
 
 
-_NUMERIC_FIELDTYPES = frozenset({"Int", "Float", "Currency", "Percent"})
-
-
 async def compute_formulas(dt: DocType, row: dict[str, Any]) -> dict[str, Any]:
     """Evaluate all formula fields in *row* and return the updated dict."""
     return await _evaluate_formulas(dt, row, "formula")
@@ -78,7 +77,8 @@ async def evaluate_read_formulas(dt: DocType, row: dict[str, Any]) -> dict[str, 
 
 async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dict[str, Any]:
     """Generic formula evaluator for a specific attribute (formula or read_formula)."""
-    formula_fields = [f for f in dt.fields if getattr(f, attr, None)]
+    meta = Meta(dt)
+    formula_fields = meta.get_formula_fields(attr)
     if not formula_fields:
         return row
 
@@ -99,7 +99,7 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
         "sum_docs": _sum,  # renamed to avoid conflict with built-in sum
         "grunt": grunt,
     }
-    numeric_fields = {f.fieldname for f in dt.fields if f.fieldtype in _NUMERIC_FIELDTYPES}
+    numeric_fields = meta.get_numeric_fieldnames()
     for k, v in row.items():
         ns[k] = _to_number_if_possible(v) if k in numeric_fields else v
 
@@ -122,7 +122,7 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
             row[field.fieldname] = coerced
             ns[field.fieldname] = (
                 _to_number_if_possible(coerced)
-                if field.fieldtype in _NUMERIC_FIELDTYPES
+                if field.fieldtype in NUMERIC_FIELDTYPES
                 else coerced
             )
         except Exception as exc:

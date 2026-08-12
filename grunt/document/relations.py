@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 import structlog
 from sqlalchemy import select
 
+from grunt.document.meta import Meta
 from grunt.document.serde import audit_fields, serialize_datetimes
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
@@ -64,6 +65,7 @@ async def _resolve_link_labels(
             )
             continue
 
+        target_meta = Meta(target_dt)
         title_field = getattr(target_dt, "title_field", "name") or "name"
         target_table = compile_doctype_to_table(target_dt)
 
@@ -77,11 +79,10 @@ async def _resolve_link_labels(
         if title_field != "name" and title_field in target_table.c:
             cols_to_fetch.append(target_table.c[title_field])
 
-        linked_field_names = {f.fieldname for f in target_dt.fields}
         extra_to_fetch = [
             fname
             for fname in _EXTRA_INJECT
-            if fname in linked_field_names and fname in target_table.c
+            if target_meta.has_field(fname) and fname in target_table.c
         ]
         for fname in extra_to_fetch:
             cols_to_fetch.append(target_table.c[fname])
@@ -91,7 +92,7 @@ async def _resolve_link_labels(
         # target's own field name, so list-cell renderers have one contract.
         image_field = getattr(target_dt, "image_field", None)
         has_image = bool(
-            image_field and image_field in linked_field_names and image_field in target_table.c
+            image_field and target_meta.has_field(image_field) and image_field in target_table.c
         )
         if has_image and image_field not in {c.key for c in cols_to_fetch}:
             cols_to_fetch.append(target_table.c[image_field])
@@ -143,11 +144,6 @@ async def _resolve_link_labels(
                     row[image_key] = image_map.get(raw_str, "")
 
 
-def _get_multi_link_fields(dt: DocType) -> list:
-    """Return MultiLink fields from a DocType."""
-    return [f for f in dt.fields if f.fieldtype == "MultiLink"]
-
-
 async def attach_multi_link_values(
     ml: Any,
     doctype_name: str,
@@ -162,7 +158,7 @@ async def attach_multi_link_values(
     ``fields=None`` attaches every MultiLink field; otherwise only the named
     subset is attached. All values are fetched in a single query.
     """
-    ml_fields = _get_multi_link_fields(dt)
+    ml_fields = Meta(dt).get_multilink_fields()
     if fields is not None:
         ml_fields = [f for f in ml_fields if f.fieldname in fields]
     if not ml_fields:
@@ -212,15 +208,13 @@ async def _load_child_tables(
     include_fields: set[str] | None = None,
 ) -> None:
     """Attach child table rows to *doc* in-place for all TABLE fields."""
-    for field in dt.fields:
-        if field.fieldtype != "Table" or not field.options:
-            continue
+    for field in Meta(dt).get_child_table_fields():
         if include_fields is not None and field.fieldname not in include_fields:
             continue
         try:
             child_dt = await doctype_registry.get(field.options)
             child_table = compile_doctype_to_table(child_dt)
-            data_fields = {f.fieldname for f in child_dt.fields if f.is_physical}
+            data_fields = {f.fieldname for f in Meta(child_dt).get_physical_fields()}
             keep = {"name", "idx"} | data_fields
             cols = [c for c in child_table.c if c.key not in _CHILD_SKIP_COLS and c.key in keep]
             result = await session.execute(
@@ -238,11 +232,6 @@ async def _load_child_tables(
             doc[field.fieldname] = []
 
 
-def _table_fieldnames(dt: DocType) -> set[str]:
-    """Return all child-table fieldnames for a DocType."""
-    return {f.fieldname for f in dt.fields if f.fieldtype == "Table" and bool(f.options)}
-
-
 async def _save_child_tables(
     session: AsyncSession,
     dt: DocType,
@@ -252,9 +241,7 @@ async def _save_child_tables(
     now: datetime,
 ) -> None:
     """Replace child table rows for all TABLE fields present in *data*."""
-    for field in dt.fields:
-        if field.fieldtype != "Table" or not field.options:
-            continue
+    for field in Meta(dt).get_child_table_fields():
         if field.fieldname not in data:
             continue
         child_rows = data[field.fieldname]

@@ -18,10 +18,10 @@ if TYPE_CHECKING:
 from grunt.db.errors import friendly_integrity_error
 from grunt.document.aggregate import compute_aggregations
 from grunt.document.formula import compute_formulas
+from grunt.document.meta import Meta
 from grunt.document.mixins.read import DocumentReadMixin
 from grunt.document.registry import document_registry
 from grunt.document.relations import (
-    _get_multi_link_fields,
     _load_child_tables,
     _save_child_tables,
     apply_field_values,
@@ -238,7 +238,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         With ``only_present=True`` fields absent from *data* are left untouched
         (used on update so unmentioned relations are preserved).
         """
-        for mlf in _get_multi_link_fields(dt):
+        for mlf in Meta(dt).get_multilink_fields():
             if only_present and mlf.fieldname not in data:
                 continue
             values = data.get(mlf.fieldname)
@@ -329,9 +329,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         """Return the dict of fields to write into the DB (stripped + coerced)."""
         table_columns = {c.name for c in table.columns}
         update_data: dict[str, Any] = {}
-        for field in dt.fields:
-            if not field.is_physical:
-                continue
+        for field in Meta(dt).get_physical_fields():
             if field.fieldname not in table_columns:
                 continue
             if field.fieldname in data and field.fieldname not in PROTECTED_FIELDS:
@@ -377,12 +375,8 @@ class DocumentWriteMixin(DocumentReadMixin):
         await compute_formulas(dt, row)
 
         table_cols = {c.name for c in table.columns}
-        for field in dt.fields:
-            if (
-                not field.is_physical
-                or field.fieldname in PROTECTED_FIELDS
-                or field.fieldname not in table_cols
-            ):
+        for field in Meta(dt).get_physical_fields():
+            if field.fieldname in PROTECTED_FIELDS or field.fieldname not in table_cols:
                 continue
             if row.get(field.fieldname) != existing.get(field.fieldname):
                 update_data[field.fieldname] = row[field.fieldname]
@@ -439,8 +433,8 @@ class DocumentWriteMixin(DocumentReadMixin):
         merged = {**existing, **update_data}
         # Inject submitted child-table rows into merged so lifecycle hooks see the
         # incoming data (not the old DB rows) and their mutations are persisted.
-        for _f in dt.fields:
-            if _f.fieldtype == "Table" and _f.fieldname in data:
+        for _f in Meta(dt).get_child_table_fields():
+            if _f.fieldname in data:
                 merged[_f.fieldname] = data[_f.fieldname]
 
         _tokens = self._set_grunt_context(user)

@@ -11,6 +11,12 @@ if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
     from grunt.metadata.field import DocField
 
+# Fieldtypes whose values are treated as numbers in formula/expression contexts.
+NUMERIC_FIELDTYPES: frozenset[str] = frozenset({"Int", "Float", "Currency", "Percent"})
+
+# Layout-only fieldtypes that carry no value (used to build "visible" field lists).
+_LAYOUT_FIELDTYPES: frozenset[str] = frozenset({"Section", "Column", "Tab"})
+
 
 class Meta:
     """Wrapper class for DocType metadata.
@@ -25,6 +31,15 @@ class Meta:
     _data_fields: list[DocField] | None = None
     _valid_columns: list[str] | None = None
     _search_fields: list[str] | None = None
+    _physical_fields: list[DocField] | None = None
+    _visible_fields: list[DocField] | None = None
+    _required_fields: list[DocField] | None = None
+    _multilink_fields: list[DocField] | None = None
+    _child_table_fields: list[DocField] | None = None
+    _table_fieldnames: set[str] | None = None
+    _aggregate_fields: list[DocField] | None = None
+    _list_view_fields: list[DocField] | None = None
+    _numeric_fieldnames: set[str] | None = None
 
     def __init__(self, doctype_obj: DocType) -> None:
         self.doc = doctype_obj
@@ -50,9 +65,9 @@ class Meta:
         return fieldname in self._fields_by_name
 
     def get_label(self, fieldname: str) -> str:
-        """Return label of the given fieldname or fieldname if not found."""
+        """Return label of the given fieldname, falling back to fieldname itself."""
         f = self._fields_by_name.get(fieldname)
-        return f.label if f else fieldname
+        return (f.label or fieldname) if f else fieldname
 
     def get_link_fields(self) -> list[DocField]:
         """Return all Link and Dynamic Link fields."""
@@ -111,6 +126,80 @@ class Meta:
                     cols.append(df.fieldname)
             self._valid_columns = cols
         return self._valid_columns
+
+    def get_physical_fields(self) -> list[DocField]:
+        """Return fields that map to a real database column."""
+        if self._physical_fields is None:
+            self._physical_fields = [f for f in self.doc.fields if f.is_physical]
+        return self._physical_fields
+
+    def get_required_fields(self) -> list[DocField]:
+        """Return physical fields marked as required."""
+        if self._required_fields is None:
+            self._required_fields = [f for f in self.get_physical_fields() if f.required]
+        return self._required_fields
+
+    def get_visible_fields(self) -> list[DocField]:
+        """Return fields that are not layout-only (Section/Column/Tab) and not hidden."""
+        if self._visible_fields is None:
+            self._visible_fields = [
+                f for f in self.doc.fields if f.fieldtype not in _LAYOUT_FIELDTYPES and not f.hidden
+            ]
+        return self._visible_fields
+
+    def get_multilink_fields(self) -> list[DocField]:
+        """Return all MultiLink fields."""
+        if self._multilink_fields is None:
+            self._multilink_fields = [f for f in self.doc.fields if f.fieldtype == "MultiLink"]
+        return self._multilink_fields
+
+    def get_child_table_fields(self) -> list[DocField]:
+        """Return Table fields that point at a child DocType (options set).
+
+        Unlike :meth:`get_table_fields`, this excludes "Table MultiSelect"
+        fields, which don't carry child-row semantics (parent linkage, idx, ...).
+        """
+        if self._child_table_fields is None:
+            self._child_table_fields = [
+                f for f in self.doc.fields if f.fieldtype == "Table" and f.options
+            ]
+        return self._child_table_fields
+
+    def get_table_fieldnames(self) -> set[str]:
+        """Return fieldnames of all child-table (Table) fields."""
+        if self._table_fieldnames is None:
+            self._table_fieldnames = {f.fieldname for f in self.get_child_table_fields()}
+        return self._table_fieldnames
+
+    def get_aggregate_fields(self) -> list[DocField]:
+        """Return fields that summarise a child table via aggregate_function."""
+        if self._aggregate_fields is None:
+            self._aggregate_fields = [f for f in self.doc.fields if f.aggregate_function]
+        return self._aggregate_fields
+
+    def get_formula_fields(self, attr: str = "formula") -> list[DocField]:
+        """Return fields with a non-empty formula expression under *attr*.
+
+        ``attr`` is ``"formula"`` (computed on save) or ``"read_formula"``
+        (computed on read, for virtual fields).
+        """
+        return [f for f in self.doc.fields if getattr(f, attr, None)]
+
+    def get_numeric_fieldnames(self) -> set[str]:
+        """Return fieldnames whose values are numeric (Int/Float/Currency/Percent)."""
+        if self._numeric_fieldnames is None:
+            self._numeric_fieldnames = {
+                f.fieldname for f in self.doc.fields if f.fieldtype in NUMERIC_FIELDTYPES
+            }
+        return self._numeric_fieldnames
+
+    def get_list_view_fields(self) -> list[DocField]:
+        """Return fields flagged ``in_list_view`` (default report/list columns)."""
+        if self._list_view_fields is None:
+            self._list_view_fields = [
+                f for f in self.doc.fields if getattr(f, "in_list_view", False)
+            ]
+        return self._list_view_fields
 
     async def trim_table(self, engine: Any, dry_run: bool = False, quiet: bool = False) -> None:
         """Drop columns from this DocType's database table that are not defined in metadata.

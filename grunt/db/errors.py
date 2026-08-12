@@ -17,7 +17,9 @@ _UNIQUE_POSTGRES_RE = re.compile(r'"uq_[^"]+?_(\w+)"')
 def _field_label(dt: Any, col_name: str) -> str:
     if dt is None:
         return col_name
-    return next((f.label or f.fieldname for f in dt.fields if f.fieldname == col_name), col_name)
+    from grunt.document.meta import Meta
+
+    return Meta(dt).get_label(col_name)
 
 
 def friendly_integrity_error(exc: IntegrityError, dt: Any) -> HTTPException:

@@ -59,11 +59,11 @@ async def get_shared_document(token: str) -> dict[str, Any]:
     except Exception:
         logger.exception("suppressed_error")
 
-    layout_types = {"Section", "Column", "Tab"}
+    from grunt.document.meta import Meta
+
     visible_fields = [
         {"fieldname": f.fieldname, "label": f.label, "fieldtype": f.fieldtype}
-        for f in dt.fields
-        if f.fieldtype not in layout_types and not f.hidden
+        for f in Meta(dt).get_visible_fields()
     ]
 
     return {

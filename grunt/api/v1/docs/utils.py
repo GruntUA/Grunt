@@ -10,6 +10,8 @@ import openpyxl
 import structlog
 from openpyxl.styles import Alignment, Font, PatternFill
 
+from grunt.document.meta import Meta
+
 logger = structlog.get_logger()
 
 
@@ -28,9 +30,7 @@ def _fmt(val: object) -> str:
 
 def _non_layout_fields(dt: Any) -> list[Any]:
     """Return fields that are not layout-only (Section, Column, Tab)."""
-    return [
-        f for f in dt.fields if f.fieldtype not in ("Section", "Column", "Tab") and not f.hidden
-    ]
+    return Meta(dt).get_visible_fields()
 
 
 def _generate_xlsx_single(dt: Any, doc: dict[str, Any]) -> bytes:

@@ -329,7 +329,9 @@ async def _compute_widget_data(
         if not group_by:
             return {"stages": []}
         try:
-            field_def = next((f for f in dt.fields if f.fieldname == group_by), None)
+            from grunt.document.meta import Meta
+
+            field_def = Meta(dt).get_field(group_by)
             ordered_options = []
             if field_def and field_def.options:
                 ordered_options = [o for o in field_def.options.split("\n") if o.strip()]
