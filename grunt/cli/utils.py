@@ -26,7 +26,7 @@ async def _site_session(site: str | None):
         async with maker() as session:
             await doctype_registry.load_all(session)
             await load_core_doctypes(session, eng)
-            document_registry.discover_core_controllers()
+            document_registry.index_core_controllers()
             yield session, eng
     finally:
         current_site.reset(token)

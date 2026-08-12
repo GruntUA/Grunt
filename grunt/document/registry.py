@@ -134,38 +134,6 @@ class DocumentRegistry:
 
         logger.debug("document.core_indexed", count=count)
 
-    def index_app_controllers(self, apps_path: str | Path) -> None:
-        """Index controllers in ``grunt_apps/{app}/{module}/doctypes/{Name}/{Name}.py``."""
-        apps_path = Path(apps_path)
-        if not apps_path.exists():
-            return
-
-        count = 0
-        for app_dir in apps_path.iterdir():
-            if not app_dir.is_dir() or app_dir.name.startswith("."):
-                continue
-            for doctypes_dir in app_dir.glob("*/doctypes"):
-                if not doctypes_dir.is_dir():
-                    continue
-                module_name = doctypes_dir.parent.name
-                for dt_dir in sorted(doctypes_dir.iterdir()):
-                    if not dt_dir.is_dir() or dt_dir.name.startswith((".", "_")):
-                        continue
-                    py_file = dt_dir / f"{dt_dir.name}.py"
-                    if not py_file.exists():
-                        py_file = dt_dir / f"{to_snake_case(dt_dir.name)}.py"
-                    if py_file.exists():
-                        module_path = (
-                            f"grunt_apps.{app_dir.name}.{module_name}"
-                            f".doctypes.{dt_dir.name}.{py_file.stem}"
-                        )
-                        self._index[dt_dir.name] = module_path
-                        pascal = "".join(w.capitalize() for w in dt_dir.name.split("_"))
-                        self._index[pascal] = module_path
-                        count += 1
-
-        logger.debug("document.app_indexed", apps=str(apps_path), count=count)
-
     def index_external_app_controllers(self, app_dir: str | Path) -> None:
         """Index controllers from a single external app (bench/apps/{app}/)."""
         app_dir = Path(app_dir)
@@ -198,42 +166,5 @@ class DocumentRegistry:
                     count += 1
 
         logger.debug("document.ext_app_indexed", app=app_name, count=count)
-
-    # ── Backwards-compatible aliases ──────────────────────────────────────────
-
-    def discover_core_controllers(self) -> None:
-        """Alias for index_core_controllers() — kept for backwards compatibility."""
-        self.index_core_controllers()
-
-    def discover_controllers(self, apps_path: str | Path) -> None:
-        """Alias for index_app_controllers() — kept for backwards compatibility."""
-        self.index_app_controllers(apps_path)
-
-    def discover_controllers_from_app(self, app_dir: str | Path) -> None:
-        """Alias for index_external_app_controllers() — kept for backwards compatibility."""
-        self.index_external_app_controllers(app_dir)
-
-    # ── Internal (kept for compatibility with _load_controller callers) ───────
-
-    def _load_controller(self, py_file: Path, module_path: str) -> None:
-        """Eagerly import a module and register any Document subclass.
-
-        Prefer index_* methods over this — they defer the import until needed.
-        """
-        from grunt.document.base import Document
-
-        try:
-            module = importlib.import_module(module_path)
-            for _name, obj in inspect.getmembers(module):
-                if (
-                    inspect.isclass(obj)
-                    and issubclass(obj, Document)
-                    and obj is not Document
-                    and obj.__module__ == module.__name__
-                ):
-                    self.register(_name, obj)
-        except ImportError as e:
-            logger.warning("document.discovery_failed", module=module_path, error=str(e))
-
 
 document_registry = DocumentRegistry()

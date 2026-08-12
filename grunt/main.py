@@ -44,7 +44,7 @@ from grunt.tasks.broker import broker
 from grunt.tasks.scheduler import register_scheduler_events, start_scheduler, stop_scheduler
 from grunt.website import make_website_handler, robots_txt, sitemap_xml, website_registry
 
-document_registry.discover_core_controllers()
+document_registry.index_core_controllers()
 register_exporter(XlsxExporter())
 register_exporter(CsvExporter())
 register_importer(CsvImporter())
@@ -183,7 +183,7 @@ async def lifespan(app: FastAPI):
                     sys.path.insert(0, ext_app_str)
 
                 _discover_scripts(ext_app.parent, app_filter=ext_app.name)
-                document_registry.discover_controllers_from_app(ext_app)
+                document_registry.index_external_app_controllers(ext_app)
 
                 # Load hooks from external app modules: {app}/{module}/hooks.py
                 for hooks_file in ext_app.glob("*/hooks.py"):

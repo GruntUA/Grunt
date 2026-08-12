@@ -92,13 +92,30 @@ delete міг оперувати застарілим визначенням Doc
 `pytest tests/` — 214/214 зелений після кожної правки; `ruff check` на всіх
 торкнутих файлах чистий.
 
-## Фаза 4 — Видалити мертве/backward-compat
+## Фаза 4 — Видалити мертве/backward-compat ✅ DONE (2026-08-12)
 
-- `metadata/field.py` — старий function-based реєстр типів полів поряд з новим
-  класовим `FieldType`.
-- `db/api.py` — `_db_proxy`/module `__getattr__`, "Backward-compatible module proxy".
-- `document/registry.py` — три "Backwards-compatible aliases"; `main.py` досі
-  використовує старі імена.
+- `metadata/field.py:register_field_type()` — легасі function-based API без
+  жодного викликача (перевірено по всій кодовій базі, включно з усіма ~30
+  реальними field-type плагінами під `frontend/src/components/fields/*/*.py` —
+  усі вже на новому `FieldType`+`register_field_type_class`). Видалено.
+  `_SA_TYPE_MAP`/`_FIELD_META`/`_PYTHON_TYPE_MAP` **не чіпали** — коментар
+  називав їх "legacy", але вони насправді активно використовуються
+  (`to_sa_column`, `is_physical_fieldtype`, `get_python_type`); коментар
+  виправлено, щоб не вводив в оману.
+- `db/api.py` — видалено дубльований `_db_proxy`/module `__getattr__`
+  ("Backward-compatible module proxy"). Виявилось, що це **копія** того самого
+  патерну, який вже легітимно живе в `grunt/db/__init__.py` (і там реально
+  використовується для `grunt.db.get_all(...)`-стилю). Копія в `api.py` була
+  недосяжна — ніщо не робить `import grunt.db.api as x; x.<unknown>`.
+- `document/registry.py` — три "Backwards-compatible aliases" видалено;
+  `main.py`/`cli/utils.py` переведено на прямі `index_core_controllers()` /
+  `index_external_app_controllers()`. Заразом видалено `index_app_controllers()`
+  (конвенція `grunt_apps/{app}/...`, яку викликав лише мертвий `discover_controllers`
+  алias — самої директорії `grunt_apps/` в проєкті не існує) та невикористаний
+  `_load_controller`.
+
+`pytest tests/` — 214/214 зелений, `ruff check` на торкнутих файлах чистий
+(2 лінт-warnings у `main.py:403-404` — pre-existing, не з цього рефакторингу).
 
 ## Фаза 5 — Єдина політика обробки помилок
 

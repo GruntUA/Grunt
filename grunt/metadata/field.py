@@ -53,7 +53,10 @@ class FieldType:
 # Class-based registry (primary)
 _FIELD_TYPE_REGISTRY: dict[str, type[FieldType]] = {}
 
-# Legacy flat maps (kept for DocField.to_sa_column and external consumers)
+# Flat indices derived from _FIELD_TYPE_REGISTRY, kept in sync by
+# register_field_type_class(). Populated alongside the class registry so
+# to_sa_column()/is_physical_fieldtype()/get_python_type() stay O(1) lookups
+# instead of re-deriving from the class each call.
 _SA_TYPE_MAP: dict[str, Any] = {}
 _FIELD_META: dict[str, dict[str, Any]] = {}
 _PYTHON_TYPE_MAP: dict[str, str] = {}
@@ -77,31 +80,6 @@ def get_field_type_class(fieldtype: str) -> type[FieldType]:
     Falls back to the base :class:`FieldType` for unknown / plugin types.
     """
     return _FIELD_TYPE_REGISTRY.get(fieldtype, FieldType)
-
-
-def register_field_type(
-    name: str,
-    factory: Any | None,
-    *,
-    searchable: bool = True,
-    empty_as_null: bool = False,
-    python_type: str = "Any | None",
-) -> None:
-    """Register a field type via the legacy function-based API.
-
-    Kept for backward compatibility with external plugins.  Prefer subclassing
-    :class:`FieldType` and calling :func:`register_field_type_class` directly.
-    """
-    attrs: dict[str, Any] = {
-        "name": name,
-        "searchable": searchable,
-        "empty_as_null": empty_as_null,
-        "python_type": python_type,
-    }
-    if factory is not None:
-        attrs["sa_factory"] = staticmethod(factory)
-    cls = type(f"{name}FieldType", (FieldType,), attrs)
-    register_field_type_class(cls)
 
 
 def get_python_type(fieldtype: str) -> str:
