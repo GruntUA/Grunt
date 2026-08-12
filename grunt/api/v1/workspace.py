@@ -202,42 +202,6 @@ async def get_document_stats() -> dict[str, int]:
     _doc_stats_cache[site] = (now, stats)
     return stats
 
-
-async def _resolve_ref_titles(
-    refs: list[tuple[str, str]],
-) -> dict[tuple[str, str], str]:
-    """Resolve (doctype, id) references to display titles, one query per doctype."""
-    from grunt.metadata.registry import doctype_registry
-
-    by_doctype: dict[str, set[str]] = {}
-    for dt_name, doc_id in refs:
-        if dt_name and doc_id:
-            by_doctype.setdefault(dt_name, set()).add(doc_id)
-
-    titles: dict[tuple[str, str], str] = {}
-    for dt_name, ids in by_doctype.items():
-        try:
-            dt = await doctype_registry.get(dt_name)
-        except Exception:
-            continue
-        title_field = dt.title_field
-        if not title_field or title_field == "name":
-            continue
-        try:
-            rows = await grunt.get_list(
-                dt_name,
-                filters={"name__in": list(ids)},
-                fields=["name", title_field],
-                limit=len(ids),
-            )
-        except Exception:
-            continue
-        for r in rows:
-            if r.get(title_field):
-                titles[(dt_name, r["name"])] = r[title_field]
-    return titles
-
-
 @grunt.whitelist()
 async def get_my_work() -> dict[str, Any]:
     """Return the current user's personal work items for the home page:
@@ -272,7 +236,9 @@ async def get_my_work() -> dict[str, Any]:
     except Exception:
         todos = []
 
-    titles = await _resolve_ref_titles(
+    from grunt.document.titles import resolve_reference_titles
+
+    titles = await resolve_reference_titles(
         [(t.get("reference_doctype") or "", t.get("reference_id") or "") for t in todos]
     )
 

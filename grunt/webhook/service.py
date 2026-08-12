@@ -71,6 +71,11 @@ class WebhookService:
                     if not simple_eval(wh["condition"], names={"doc": doc}):
                         continue
                 except Exception:
+                    logger.warning(
+                        "webhook.condition_eval_error",
+                        webhook=str(wh.get("name") or ""),
+                        condition=wh["condition"],
+                    )
                     continue
 
             await self._send_and_log(

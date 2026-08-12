@@ -123,42 +123,19 @@ async def list_activity(
 async def _attach_titles(entries: list[dict[str, Any]]) -> None:
     """Resolve a human-readable ``title`` for each entry's referenced document.
 
-    Groups lookups by doctype (one query per doctype, not per row) and falls
-    back to the raw ``doc_id`` for deleted docs or doctypes without a title
-    field. Mutates ``entries`` in place, adding a ``title`` key.
+    Falls back to the raw ``doc_id`` for deleted docs or doctypes without a
+    title field. Mutates ``entries`` in place, adding a ``title`` key.
     """
-    from grunt.metadata.registry import doctype_registry
+    from grunt.document.titles import resolve_reference_titles
 
-    # Collect the doc_ids we need per doctype.
-    by_doctype: dict[str, set[str]] = {}
-    for e in entries:
-        dt_name = e.get("doctype")
-        doc_ref = e.get("doc_id")
-        if dt_name and doc_ref:
-            by_doctype.setdefault(dt_name, set()).add(doc_ref)
-
-    # doctype -> {doc_id: title}
-    resolved: dict[str, dict[str, str]] = {}
-    for dt_name, ids in by_doctype.items():
-        try:
-            dt = await doctype_registry.get(dt_name)
-        except Exception:
-            continue
-        title_field = dt.title_field
-        if not title_field or title_field == "name":
-            continue
-        try:
-            rows = await grunt.get_list(
-                dt_name,
-                filters={"name__in": list(ids)},
-                fields=["name", title_field],
-                limit=len(ids),
-            )
-        except Exception:
-            continue
-        resolved[dt_name] = {r["name"]: r[title_field] for r in rows if r.get(title_field)}
+    refs = [
+        (e["doctype"], e["doc_id"])
+        for e in entries
+        if e.get("doctype") and e.get("doc_id")
+    ]
+    titles = await resolve_reference_titles(refs)
 
     for e in entries:
         dt_name = e.get("doctype") or ""
         doc_ref = e.get("doc_id") or ""
-        e["title"] = resolved.get(dt_name, {}).get(doc_ref) or doc_ref
+        e["title"] = titles.get((dt_name, doc_ref)) or doc_ref
