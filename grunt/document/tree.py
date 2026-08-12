@@ -23,6 +23,7 @@ Public API
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -38,6 +39,19 @@ if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
 logger = structlog.get_logger()
+
+_IDENTIFIER_RE = re.compile(r"^[a-zA-Z0-9_]+$")
+
+
+def _check_id(s: str) -> str:
+    """Return *s* unchanged if it is a safe SQL identifier, else raise.
+
+    Guards every identifier interpolated into the raw ``WITH RECURSIVE`` SQL
+    below — table/column names can't be bound as query parameters.
+    """
+    if not _IDENTIFIER_RE.match(s):
+        raise ValueError(f"Invalid identifier: {s}")
+    return s
 
 
 def _require_tree(dt: Any) -> str:
@@ -187,13 +201,6 @@ class TreeService:
         )
         col_names = [c.key for c in select_cols]
 
-        import re
-
-        def _check_id(s: str) -> str:
-            if not re.match(r"^[a-zA-Z0-9_]+$", s):
-                raise ValueError(f"Invalid identifier: {s}")
-            return s
-
         table_name = _check_id(table.name)
         pf = _check_id(parent_field)
 
@@ -300,13 +307,6 @@ class TreeService:
 
         select_cols = self._build_select_cols(table, fields, title_col, parent_field)
         col_names = [c.key for c in select_cols]
-        import re
-
-        def _check_id(s: str) -> str:
-            if not re.match(r"^[a-zA-Z0-9_]+$", s):
-                raise ValueError(f"Invalid identifier: {s}")
-            return s
-
         table_name = _check_id(table.name)
         col_list = ", ".join(f't."{_check_id(c)}"' for c in col_names)
         cte_cols = ", ".join(f'"{_check_id(c)}"' for c in col_names)

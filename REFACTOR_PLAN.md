@@ -55,24 +55,42 @@ delete міг оперувати застарілим визначенням Doc
 
 `pytest tests/` — 214/214 зелений, `ruff check` чистий.
 
-## Фаза 2 — Декомпозиція god-функцій
+## Фаза 2 — Декомпозиція god-функцій ✅ DONE (2026-08-12)
 
-- `collection.list_documents()` (~165 рядків) → `_select_columns`, `_build_where`,
-  `_resolve_sort`, `_paginate`, `_finalize_rows` (за зразком вже наявної
-  декомпозиції в `write.py`).
-- `metadata/registry.py:_inject_core()` (~140 рядків, два хардкод-списки атрибутів)
-  → інтроспекція полів моделі замість ручного allow-list.
-- `hooks.py:fire()` (~120 рядків, 6 підсистем побічних ефектів) →
-  задокументувати як явну шину або розбити на іменовані стадії.
+- `collection.list_documents()` (~165 рядків) розкладено на `_list_singleton`,
+  `_select_columns`, `_resolve_list_filter_extra`, `_apply_where`,
+  `_resolve_sort`, `_apply_pagination`, `_finalize_rows`, `_build_next_cursor` —
+  за зразком декомпозиції в `write.py`.
+- `metadata/registry.py:_inject_core()` (~140 → ~85 рядків): два хардкод-списки
+  атрибутів винесено в документовані модульні константи
+  `_CORE_SYNCED_DOCTYPE_ATTRS`/`_CORE_SYNCED_FIELD_ATTRS` з явним поясненням "це
+  allow-list core-authoritative властивостей; усе інше — Studio/user
+  customization, ніколи не перезаписується" + коментар "додав нову властивість —
+  додай і сюди". **Свідомо НЕ перейшли на інтроспекцію моделі** — це змінило б
+  поведінку (почало б силоміць перезаписувати workflow/permissions/list_view з
+  JSON при кожному завантаженні, стираючи Studio-кастомізації користувачів); без
+  підтвердження бізнес-наміру команди це надто ризиковано для "мінімальної"
+  правки. Merge-логіку розбито на `_merge_core_fields`,
+  `_sync_core_doctype_attrs`, `_sync_core_field_attrs`, `_reorder_core_fields`.
+- `hooks.py:fire()` — докстрінг тепер явно перелічує всі 6 підсистем побічних
+  ефектів (global/doctype хуки, server scripts, backlink sync, notification
+  rules, assignment rules) з умовами спрацювання; код-структуру не чіпали
+  (кожна стадія вже читається як окремий блок з власним try/except).
 
-## Фаза 3 — Прибрати дублювання
+## Фаза 3 — Прибрати дублювання ✅ DONE (2026-08-12)
 
-- WHERE-побудова в `collection.list_documents()` дублюється для запиту й count.
+- WHERE-побудова в `collection.list_documents()` дублювалась для запиту й count
+  → єдиний `_apply_where()`, використаний в обох.
 - 6 майже ідентичних `_run_{create,update,delete}_{before,after}_hooks` у
-  `write.py` → один `_run_hooks(doc, hook_names)`.
-- `_check_id` продубльований двічі в `tree.py` → на рівень модуля.
-- `_friendly_integrity_error` (regex-парсер помилок SQLite/Postgres) живе серед
-  CRUD-логіки в `write.py` → винести в `db/errors.py`.
+  `write.py` → один `_run_lifecycle_hooks(doc, *hook_names)`.
+- `_check_id` продубльований двічі в `tree.py` → винесено на рівень модуля
+  (`_IDENTIFIER_RE` + `_check_id`).
+- `_friendly_integrity_error` (regex-парсер помилок SQLite/Postgres) жив серед
+  CRUD-логіки в `write.py` → винесено в новий `grunt/db/errors.py`
+  (`friendly_integrity_error`), regex-и скомпільовано на рівні модуля.
+
+`pytest tests/` — 214/214 зелений після кожної правки; `ruff check` на всіх
+торкнутих файлах чистий.
 
 ## Фаза 4 — Видалити мертве/backward-compat
 

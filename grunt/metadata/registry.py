@@ -25,6 +25,7 @@ from sqlalchemy.exc import IntegrityError
 from grunt.db.system_tables import GruntMetaDoctype
 from grunt.metadata.compiler import invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
+from grunt.metadata.field import DocField
 from grunt.permissions.rbac import invalidate_permission_cache
 
 if TYPE_CHECKING:
@@ -34,6 +35,56 @@ logger = structlog.get_logger()
 
 _FIELDNAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 _MAX_FIELDNAME_LEN = 64
+
+# Top-level DocType properties that _inject_core() always overwrites from the
+# bundled core JSON on every load. Anything NOT listed here (workflow,
+# permissions, list_view, autoname, ...) is treated as a Studio/user
+# customization: the JSON only seeds it on first run and never touches it again.
+# Adding a new core-authoritative property to DocType? Add it here too.
+_CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
+    {
+        "is_child",
+        "is_singleton",
+        "is_virtual",
+        "is_tree",
+        "is_log",
+        "is_submittable",
+        "title_field",
+        "tree_view",
+        "search_fields",
+        "label",
+        "module",
+        "app",
+    }
+)
+
+# Per-field properties that _inject_core() always overwrites from the bundled
+# core JSON — same rationale as _CORE_SYNCED_DOCTYPE_ATTRS, at field level.
+_CORE_SYNCED_FIELD_ATTRS = frozenset(
+    {
+        "fieldtype",
+        "options",
+        "options_source",
+        "label",
+        "default",
+        "read_only",
+        "required",
+        "hidden",
+        "in_list_view",
+        "in_filter",
+        "description",
+        "depends_on",
+        "bold",
+        "in_quick_entry",
+        "in_quick_filter",
+        "is_virtual",
+        "read_formula",
+        "show_in_dashboard",
+        "dashboard_doctype",
+        "dashboard_link_field",
+        "validator",
+    }
+)
 
 
 class DocTypeRegistry:
@@ -227,6 +278,46 @@ class DocTypeRegistry:
 
     # ── Write ────────────────────────────────────────────────────────────
 
+    @staticmethod
+    def _merge_core_fields(active_dt: DocType, doctype: DocType) -> list[DocField]:
+        """Return fields present in the bundled JSON but missing from the stored definition."""
+        stored_fieldnames = {f.fieldname for f in active_dt.fields}
+        return [f for f in doctype.fields if f.fieldname not in stored_fieldnames]
+
+    @staticmethod
+    def _sync_core_doctype_attrs(active_dt: DocType, doctype: DocType) -> None:
+        """Overwrite ``active_dt``'s always-synced top-level attrs from the JSON source.
+
+        Only ``_CORE_SYNCED_DOCTYPE_ATTRS`` is touched — everything else (workflow,
+        permissions, list_view, ...) is a Studio/user customization and is left as-is.
+        """
+        for attr in _CORE_SYNCED_DOCTYPE_ATTRS:
+            json_val = getattr(doctype, attr, None)
+            if json_val is not None and getattr(active_dt, attr, None) != json_val:
+                setattr(active_dt, attr, json_val)
+
+    @staticmethod
+    def _sync_core_field_attrs(active_dt: DocType, doctype: DocType) -> None:
+        """Overwrite each stored field's always-synced attrs from its JSON counterpart.
+
+        Only ``_CORE_SYNCED_FIELD_ATTRS`` is touched, same rationale as
+        :meth:`_sync_core_doctype_attrs`.
+        """
+        stored_fields = {f.fieldname: f for f in active_dt.fields}
+        for json_field in doctype.fields:
+            stored_field = stored_fields.get(json_field.fieldname)
+            if stored_field is None:
+                continue
+            for attr in _CORE_SYNCED_FIELD_ATTRS:
+                if getattr(stored_field, attr, None) != getattr(json_field, attr, None):
+                    setattr(stored_field, attr, getattr(json_field, attr, None))
+
+    @staticmethod
+    def _reorder_core_fields(active_dt: DocType, doctype: DocType) -> None:
+        """Position JSON-defined fields per JSON order; locally-added fields sort last."""
+        json_order = {f.fieldname: i for i, f in enumerate(doctype.fields)}
+        active_dt.fields.sort(key=lambda f: json_order.get(f.fieldname, 9999))
+
     async def _inject_core(
         self,
         doctype: DocType,
@@ -264,8 +355,7 @@ class DocTypeRegistry:
                     )
             else:
                 # Merge logic
-                stored_fieldnames = {f.fieldname: f for f in active_dt.fields}
-                new_fields = [f for f in doctype.fields if f.fieldname not in stored_fieldnames]
+                new_fields = self._merge_core_fields(active_dt, doctype)
                 if new_fields:
                     active_dt.fields.extend(new_fields)
                     if sync_db:
@@ -274,63 +364,10 @@ class DocTypeRegistry:
                             name=doctype.name,
                             added=[f.fieldname for f in new_fields],
                         )
-                # Sync top-level structural properties from JSON
-                _top_structural = {
-                    "is_child",
-                    "is_singleton",
-                    "is_virtual",
-                    "is_tree",
-                    "is_log",
-                    "is_submittable",
-                    "title_field",
-                    "tree_view",
-                    "search_fields",
-                    "label",
-                    "module",
-                    "app",
-                }
-                for attr in _top_structural:
-                    json_val = getattr(doctype, attr, None)
-                    if json_val is not None and getattr(active_dt, attr, None) != json_val:
-                        setattr(active_dt, attr, json_val)
 
-                # Sync field-level structural properties from JSON
-                # (fieldtype, options, label, default, etc.)
-                _structural = {
-                    "fieldtype",
-                    "options",
-                    "options_source",
-                    "label",
-                    "default",
-                    "read_only",
-                    "required",
-                    "hidden",
-                    "in_list_view",
-                    "in_filter",
-                    "description",
-                    "depends_on",
-                    "bold",
-                    "in_quick_entry",
-                    "in_quick_filter",
-                    "is_virtual",
-                    "read_formula",
-                    "show_in_dashboard",
-                    "dashboard_doctype",
-                    "dashboard_link_field",
-                    "validator",
-                }
-                for json_field in doctype.fields:
-                    stored_field = stored_fieldnames.get(json_field.fieldname)
-                    if stored_field is None:
-                        continue
-                    for attr in _structural:
-                        if getattr(stored_field, attr, None) != getattr(json_field, attr, None):
-                            setattr(stored_field, attr, getattr(json_field, attr, None))
-
-                # Sync field order: position JSON-defined fields according to JSON order,
-                # followed by any custom fields that were added locally.
-                json_order = {f.fieldname: i for i, f in enumerate(doctype.fields)}
-                active_dt.fields.sort(key=lambda f: json_order.get(f.fieldname, 9999))
+                self._sync_core_doctype_attrs(active_dt, doctype)
+                self._sync_core_field_attrs(active_dt, doctype)
+                self._reorder_core_fields(active_dt, doctype)
 
                 if sync_db:
                     try:

@@ -42,6 +42,8 @@ logger = structlog.get_logger()
 
 _CURSOR_SEP = "||"  # separator unlikely to appear in sort values
 
+_TEXT_SQL_TYPES = frozenset({"TEXT", "VARCHAR", "CHAR", "CLOB", "STRING", "NVARCHAR", "NCHAR"})
+
 
 def _encode_cursor(sort_val: Any, doc_id: str) -> str:
     """Encode (sort_value, id) into a safe opaque cursor string."""
@@ -58,6 +60,165 @@ def _decode_cursor(cursor: str) -> tuple[str, str]:
 
 
 # ── List ──────────────────────────────────────────────────────────────────
+
+
+async def _list_singleton(session: AsyncSession, table: Any) -> DocumentList:
+    """Return the (at most one) row of a singleton DocType, ignoring pagination."""
+    from grunt.document.base import DocumentList
+
+    result = await session.execute(select(table).limit(1))
+    row = result.first()
+    data_list = [dict(row._mapping)] if row else []
+    for r in data_list:
+        serialize_datetimes(r)
+    return DocumentList(
+        data=data_list,
+        meta={"total": len(data_list), "page": 1, "per_page": 1, "pages": 1},
+    )
+
+
+def _select_columns(table: Any, fields: list[str] | None) -> list[Any]:
+    """Return the SQLAlchemy column list for a list query.
+
+    Always includes ``name``/``modified_at``/``docstatus`` even when *fields*
+    is a restricted subset — callers (list views, sorting) rely on them.
+    """
+    if not fields:
+        return [table]
+    required = {"name", "modified_at", "docstatus"}
+    requested = required | set(fields)
+    return [table.c[c] for c in requested if c in table.c]
+
+
+async def _resolve_list_filter_extra(
+    session: AsyncSession,
+    doctype_name: str,
+    filters: dict[str, str] | None,
+    table: Any,
+) -> Any | None:
+    """Return the controller's ``list_filter_extra`` WHERE clause, if overridden."""
+    from grunt.document.base import Document
+    from grunt.document.registry import document_registry
+
+    controller_cls = document_registry.get(doctype_name)
+    if controller_cls.list_filter_extra is Document.list_filter_extra:
+        return None
+    return await controller_cls.list_filter_extra(session, filters or {}, table)
+
+
+def _apply_where(
+    query: Any,
+    table: Any,
+    dt: Any,
+    filters: dict[str, str] | None,
+    search: str | None,
+    extra_clause: Any | None,
+) -> Any:
+    """Apply the controller clause, filters, and search to a query.
+
+    Shared by the data query and the COUNT query so the two can never drift
+    out of sync with each other.
+    """
+    if extra_clause is not None:
+        query = query.where(extra_clause)
+    if filters:
+        query = _apply_filters(query, table, filters)
+    if search:
+        query = _apply_search(query, table, dt, search)
+    return query
+
+
+def _resolve_sort(
+    session: AsyncSession, table: Any, sort_by: str, sort_order: str
+) -> tuple[Any, Any]:
+    """Return ``(sort_col, order_by_expr)`` for the requested sort field.
+
+    Text-typed columns get a dialect-aware collation (``text_sort_expr``) so
+    sorting is locale-correct; other types sort on the raw column.
+    """
+    sort_col = table.c.get(sort_by, table.c.modified_at)
+    col_type = str(sort_col.type).upper()
+    if any(t in col_type for t in _TEXT_SQL_TYPES):
+        from grunt.site.manager import text_sort_expr
+
+        dialect_name = session.bind.dialect.name if session.bind else "sqlite"
+        sort_expr = text_sort_expr(sort_col, dialect_name)
+    else:
+        sort_expr = sort_col
+    order_by_expr = sort_expr.asc() if sort_order == "asc" else sort_expr.desc()
+    return sort_col, order_by_expr
+
+
+def _apply_pagination(
+    query: Any,
+    table: Any,
+    sort_col: Any,
+    sort_order: str,
+    cursor: str | None,
+    page: int,
+    per_page: int,
+) -> Any:
+    """Apply cursor (keyset) or offset pagination to *query*.
+
+    Cursor mode avoids a slow OFFSET scan on large tables; an invalid cursor
+    is logged and ignored (falls back to an unfiltered first page).
+    """
+    if cursor:
+        try:
+            sort_str, cursor_id = _decode_cursor(cursor)
+            try:
+                cursor_val: Any = datetime.fromisoformat(sort_str)
+            except ValueError:
+                cursor_val = sort_str
+
+            from sqlalchemy import and_, or_
+
+            if sort_order == "asc":
+                keyset = or_(
+                    sort_col > cursor_val,
+                    and_(sort_col == cursor_val, table.c.name > cursor_id),
+                )
+            else:
+                keyset = or_(
+                    sort_col < cursor_val,
+                    and_(sort_col == cursor_val, table.c.name < cursor_id),
+                )
+            query = query.where(keyset)
+        except Exception:
+            logger.warning("list_documents.invalid_cursor", cursor=cursor)
+
+    query = query.limit(per_page)
+    if not cursor:
+        query = query.offset((page - 1) * per_page)
+    return query
+
+
+async def _finalize_rows(
+    session: AsyncSession, dt: Any, doctype_name: str, rows: list[dict[Any, Any]]
+) -> None:
+    """Resolve Link labels, serialise datetimes, and evaluate read formulas in place."""
+    try:
+        await _resolve_link_labels(session, dt, rows)
+    except Exception as exc:
+        logger.warning(
+            "list_documents.link_labels_failed", doctype=doctype_name, error=str(exc)
+        )
+
+    for doc_row in rows:
+        serialize_datetimes(doc_row)
+        await evaluate_read_formulas(dt, doc_row)
+
+
+def _build_next_cursor(rows: list[dict[Any, Any]], per_page: int, sort_by: str) -> str | None:
+    """Return an opaque cursor for the page after *rows*, or ``None`` if this was the last page."""
+    if not rows or len(rows) != per_page:
+        return None
+    last = rows[-1]
+    sort_raw = last.get(sort_by)
+    last_id = str(last.get("name", ""))
+    if sort_raw is not None and last_id:
+        return _encode_cursor(sort_raw, last_id)
+    return None
 
 
 async def list_documents(
@@ -84,137 +245,40 @@ async def list_documents(
 
     table = compile_doctype_to_table(dt)
 
-    from grunt.document.base import DocumentList
-
     # Singleton — return at most 1 row, ignore pagination
     if dt.is_singleton:
-        result = await session.execute(select(table).limit(1))
-        row = result.first()
-        data_list = [dict(row._mapping)] if row else []
-        for r in data_list:
-            serialize_datetimes(r)
-        return DocumentList(
-            data=data_list,
-            meta={"total": len(data_list), "page": 1, "per_page": 1, "pages": 1},
-        )
+        return await _list_singleton(session, table)
 
-    # Select columns
-    cols: list[Any]
-    if fields:
-        required = {"name", "modified_at", "docstatus"}
-        requested = required | set(fields)
-        cols = [table.c[c] for c in requested if c in table.c]
-    else:
-        cols = [table]
-
-    query = select(*cols)
+    query = select(*_select_columns(table, fields))
 
     # Controller hook: list_filter_extra — DocType controllers may inject
     # extra WHERE clauses (e.g. temporal guards, visibility rules) without
     # modifying the framework core.
-    from grunt.document.base import Document
-    from grunt.document.registry import document_registry
-
-    controller_cls = document_registry.get(doctype_name)
-    extra_clause = None
-    if controller_cls.list_filter_extra is not Document.list_filter_extra:
-        extra_clause = await controller_cls.list_filter_extra(session, filters or {}, table)
-    if extra_clause is not None:
-        query = query.where(extra_clause)
+    extra_clause = await _resolve_list_filter_extra(session, doctype_name, filters, table)
 
     # Expand tree-aware child_of operators before applying filters
     if filters and any(k.endswith("__child_of") for k in filters):
         filters = await _expand_child_of_filters(session, dt, filters)
 
-    # Filters
-    if filters:
-        query = _apply_filters(query, table, filters)
+    query = _apply_where(query, table, dt, filters, search, extra_clause)
 
-    # Search
-    if search:
-        query = _apply_search(query, table, dt, search)
-
-    # Count
-    count_q = select(func.count()).select_from(table)
-    if extra_clause is not None:
-        count_q = count_q.where(extra_clause)
-    if filters:
-        count_q = _apply_filters(count_q, table, filters)
-    if search:
-        count_q = _apply_search(count_q, table, dt, search)
+    count_q = _apply_where(
+        select(func.count()).select_from(table), table, dt, filters, search, extra_clause
+    )
     count_result = await session.execute(count_q)
     total = count_result.scalar() or 0
 
-    # Sort
-    sort_col = table.c.get(sort_by, table.c.modified_at)
-    text_types = {"TEXT", "VARCHAR", "CHAR", "CLOB", "STRING", "NVARCHAR", "NCHAR"}
-    col_type = str(sort_col.type).upper()
-    is_text = any(t in col_type for t in text_types)
-    if is_text:
-        from grunt.site.manager import text_sort_expr
-
-        dialect_name = session.bind.dialect.name if session.bind else "sqlite"
-        sort_expr = text_sort_expr(sort_col, dialect_name)
-    else:
-        sort_expr = sort_col
-    if sort_order == "asc":
-        query = query.order_by(sort_expr.asc())
-    else:
-        query = query.order_by(sort_expr.desc())
-
-    # Pagination — cursor mode avoids slow OFFSET on large tables
-    if cursor:
-        try:
-            sort_str, cursor_id = _decode_cursor(cursor)
-            # Try to parse as datetime; fall back to raw string
-            try:
-                cursor_val: Any = datetime.fromisoformat(sort_str)
-            except ValueError:
-                cursor_val = sort_str
-
-            from sqlalchemy import and_, or_
-
-            if sort_order == "asc":
-                keyset = or_(
-                    sort_col > cursor_val,
-                    and_(sort_col == cursor_val, table.c.name > cursor_id),
-                )
-            else:
-                keyset = or_(
-                    sort_col < cursor_val,
-                    and_(sort_col == cursor_val, table.c.name < cursor_id),
-                )
-            query = query.where(keyset)
-        except Exception:
-            logger.warning("list_documents.invalid_cursor", cursor=cursor)
-
-    query = query.limit(per_page)
-    if not cursor:
-        query = query.offset((page - 1) * per_page)
+    sort_col, order_by_expr = _resolve_sort(session, table, sort_by, sort_order)
+    query = query.order_by(order_by_expr)
+    query = _apply_pagination(query, table, sort_col, sort_order, cursor, page, per_page)
 
     result = await session.execute(query)
     rows: list[dict[Any, Any]] = [dict(r._mapping) for r in result]
 
-    # Resolve Link field labels (inject fieldname__label into each row)
-    try:
-        await _resolve_link_labels(session, dt, rows)
-    except Exception as _lbl_err:
-        logger.warning(
-            "list_documents.link_labels_failed", doctype=doctype_name, error=str(_lbl_err)
-        )
+    await _finalize_rows(session, dt, doctype_name, rows)
+    next_cursor = _build_next_cursor(rows, per_page, sort_by)
 
-    # Serialise datetimes and evaluate read formulas
-    for doc_row in rows:
-        serialize_datetimes(doc_row)
-        await evaluate_read_formulas(dt, doc_row)
-
-    next_cursor: str | None = None
-    if rows and len(rows) == per_page:
-        last = rows[-1]
-        sort_raw = last.get(sort_by)
-        last_id = str(last.get("name", ""))
-        if sort_raw is not None and last_id:
-            next_cursor = _encode_cursor(sort_raw, last_id)
+    from grunt.document.base import DocumentList
 
     return DocumentList(
         data=rows,

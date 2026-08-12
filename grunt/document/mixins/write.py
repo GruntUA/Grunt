@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
     from grunt.auth.doctypes.User.user import User
 
+from grunt.db.errors import friendly_integrity_error
 from grunt.document.aggregate import compute_aggregations
 from grunt.document.formula import compute_formulas
 from grunt.document.mixins.read import DocumentReadMixin
@@ -50,49 +51,6 @@ logger = structlog.get_logger()
 PROTECTED_FIELDS = frozenset({"name", "owner", "created_at", "docstatus"})
 
 
-def _friendly_integrity_error(exc: IntegrityError, dt: Any) -> HTTPException:
-    """Convert a DB IntegrityError into a user-friendly 409 HTTPException."""
-    import re
-
-    raw = str(exc.orig or exc)
-
-    # NOT NULL constraint (SQLite: "NOT NULL constraint failed: table.column")
-    m_nn = re.search(r"NOT NULL constraint failed:\s*\S+\.(\w+)", raw, re.IGNORECASE)
-    if m_nn:
-        col_name = m_nn.group(1)
-        label = col_name
-        if dt is not None:
-            label = next(
-                (f.label or f.fieldname for f in dt.fields if f.fieldname == col_name),
-                col_name,
-            )
-        message = f"Поле «{label}» є обов'язковим і не може бути порожнім."
-        return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=message)
-
-    # UNIQUE constraint (SQLite: "UNIQUE constraint failed: table.column")
-    # PostgreSQL: 'duplicate key value violates unique constraint "uq_..."'
-    col_name: str | None = None
-    m = re.search(r"UNIQUE constraint failed:\s*\S+\.(\w+)", raw, re.IGNORECASE)
-    if m:
-        col_name = m.group(1)
-    else:
-        # PostgreSQL via constraint name: uq_{table}_{fieldname}
-        m2 = re.search(r'"uq_[^"]+?_(\w+)"', raw)
-        if m2:
-            col_name = m2.group(1)
-
-    if col_name and dt is not None:
-        label = next(
-            (f.label or f.fieldname for f in dt.fields if f.fieldname == col_name),
-            col_name,
-        )
-        message = f"Значення поля «{label}» вже існує в системі. Введіть унікальне значення."
-    else:
-        message = "Запис з таким значенням вже існує. Введіть унікальне значення."
-
-    return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=message)
-
-
 class DocumentWriteMixin(DocumentReadMixin):
     """Write half of the Document pipeline.
 
@@ -115,6 +73,22 @@ class DocumentWriteMixin(DocumentReadMixin):
         """Return the freshest DocType definition, forcing a lazy reload if needed."""
         fresh = await doctype_registry._lazy_load(doctype_name)
         return fresh if fresh is not None else await doctype_registry.get(doctype_name)
+
+    async def _run_lifecycle_hooks(self, doc: Any, *hook_names: str) -> None:
+        """Call the named controller lifecycle hooks on *doc*, in order.
+
+        A ``GruntError`` raised by any hook is normalized to a 422 response —
+        this is the one place that translates "controller rejected the save"
+        into an HTTP error, shared by create/update/delete.
+        """
+        try:
+            for hook_name in hook_names:
+                await getattr(doc, hook_name)()
+        except GruntError as e:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=str(e),
+            ) from e
 
     async def _fire_write_hooks(
         self,
@@ -204,7 +178,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         controller_cls = document_registry.get(doctype_name)
         doc = controller_cls(doctype_name, row, user, self.session)
 
-        await self._run_create_before_hooks(doc)
+        await self._run_lifecycle_hooks(doc, "validate", "before_insert", "before_save")
         await compute_formulas(dt, row)
         await self._insert_row(table, row)
         await self._save_children(dt, doc_id, data, user, now)
@@ -212,19 +186,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         await self._sync_multi_links(dt, doctype_name, doc_id, data)
 
         logger.info("document.created", doctype=doctype_name, id=doc_id)
-        await self._run_create_after_hooks(doc)
-
-    async def _run_create_before_hooks(self, doc: Any) -> None:
-        """Run validate/before_insert/before_save hooks and normalize hook errors."""
-        try:
-            await doc.validate()
-            await doc.before_insert()
-            await doc.before_save()
-        except GruntError as e:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail=str(e),
-            ) from e
+        await self._run_lifecycle_hooks(doc, "after_insert", "after_save")
 
     async def _insert_row(self, table: Any, row: dict[str, Any]) -> None:
         """Insert main document row and flush to materialize DB state before child writes."""
@@ -289,17 +251,6 @@ class DocumentWriteMixin(DocumentReadMixin):
                     values,
                 )
 
-    async def _run_create_after_hooks(self, doc: Any) -> None:
-        """Run after_insert/after_save hooks and normalize hook errors."""
-        try:
-            await doc.after_insert()
-            await doc.after_save()
-        except GruntError as e:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail=str(e),
-            ) from e
-
     async def _fire_create_services(self, doctype_name: str, dt: Any, row: dict[str, Any]) -> None:
         """Update the search index and fire outgoing webhooks after a successful insert."""
         from grunt.search.service import search_index_service
@@ -358,7 +309,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             await self._persist_new_doc(dt, table, doctype_name, doc_id, data, row, user, now)
             await self._fire_create_services(doctype_name, dt, row)
         except IntegrityError as exc:
-            raise _friendly_integrity_error(exc, dt) from exc
+            raise friendly_integrity_error(exc, dt) from exc
         finally:
             self._reset_grunt_context(_tokens)
 
@@ -404,17 +355,6 @@ class DocumentWriteMixin(DocumentReadMixin):
         await attach_multi_link_values(self._ml, doctype_name, real_id, dt, result)
         return result
 
-    async def _run_update_before_hooks(self, doc: Any) -> None:
-        """Run validate/before_save hooks and normalize hook errors."""
-        try:
-            await doc.validate()
-            await doc.before_save()
-        except GruntError as e:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail=str(e),
-            ) from e
-
     async def _persist_update_doc(
         self,
         dt: Any,
@@ -457,36 +397,6 @@ class DocumentWriteMixin(DocumentReadMixin):
         await self._sync_multi_links(dt, doctype_name, real_id, data, only_present=True)
 
         await self.session.flush()
-
-    async def _run_update_after_hooks(self, doc: Any) -> None:
-        """Run after_save hooks and normalize hook errors."""
-        try:
-            await doc.after_save()
-        except GruntError as e:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail=str(e),
-            ) from e
-
-    async def _run_delete_before_hooks(self, doc: Any) -> None:
-        """Run before_delete hook and normalize hook errors."""
-        try:
-            await doc.before_delete()
-        except GruntError as e:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail=str(e),
-            ) from e
-
-    async def _run_delete_after_hooks(self, doc: Any) -> None:
-        """Run after_delete hook and normalize hook errors."""
-        try:
-            await doc.after_delete()
-        except GruntError as e:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail=str(e),
-            ) from e
 
     # ── Update ────────────────────────────────────────────────────────────
 
@@ -537,7 +447,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         try:
             controller_cls = document_registry.get(doctype_name)
             doc = controller_cls(doctype_name, merged, user, self.session)
-            await self._run_update_before_hooks(doc)
+            await self._run_lifecycle_hooks(doc, "validate", "before_save")
 
             # _persist_update_doc computes formulas then performs a single pass that
             # writes back every physical field differing from `existing` — capturing
@@ -568,7 +478,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             )
 
             doc.data = result
-            await self._run_update_after_hooks(doc)
+            await self._run_lifecycle_hooks(doc, "after_save")
 
             await fire_update_services(
                 session=self.session,
@@ -579,7 +489,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             await self._fire_write_hooks("after_update", "after_save", doctype_name, result, user)
             return result
         except IntegrityError as exc:
-            raise _friendly_integrity_error(exc, dt) from exc
+            raise friendly_integrity_error(exc, dt) from exc
         finally:
             self._reset_grunt_context(_tokens)
 
@@ -633,7 +543,7 @@ class DocumentWriteMixin(DocumentReadMixin):
         try:
             controller_cls = document_registry.get(doctype_name)
             doc = controller_cls(doctype_name, existing, user, self.session)
-            await self._run_delete_before_hooks(doc)
+            await self._run_lifecycle_hooks(doc, "before_delete")
             await delete_row_and_links(
                 session=self.session,
                 ml=self._ml,
@@ -647,7 +557,7 @@ class DocumentWriteMixin(DocumentReadMixin):
                 real_id=real_id,
                 existing=existing,
             )
-            await self._run_delete_after_hooks(doc)
+            await self._run_lifecycle_hooks(doc, "after_delete")
 
         finally:
             self._reset_grunt_context(_tokens)

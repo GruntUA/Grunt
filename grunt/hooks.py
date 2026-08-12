@@ -105,10 +105,28 @@ _SERVER_SCRIPT_EVENTS = frozenset(
 
 
 async def fire(event: str, **kwargs: Any) -> None:
-    """Fire all registered hooks for an event.
+    """Fire an event through every side-effect subsystem the framework wires up.
 
-    If `doctype` is present in kwargs, it also fires DocType-specific hooks.
-    Also evaluates notification rules for qualifying events.
+    This is the shared bus behind the whole CRUD pipeline
+    (:class:`~grunt.document.mixins.write.DocumentWriteMixin`) — a single
+    ``fire("after_save", ...)`` call fans out to, in order:
+
+    1. Global hooks registered via :func:`on`.
+    2. DocType-specific hooks registered via :func:`on_doc` (wildcard ``"*"`` first).
+    3. Server Scripts of type "DocType Event" (``before_insert``, ``after_insert``,
+       ``before_save``, ``after_save``, ``before_delete``, ``after_delete``,
+       ``validate``, ``on_transition`` only).
+    4. Backlink sync/cleanup (``after_save``/``after_insert`` sync links,
+       ``after_delete`` removes them).
+    5. Notification rule evaluation, offloaded to a background worker
+       (``after_insert``/``after_save``/``after_update``/``on_transition`` only,
+       excluding log DocTypes).
+    6. Assignment rule evaluation (``after_save``/``after_insert`` only).
+
+    Each stage is independently best-effort: an exception in one subsystem is
+    logged and does not stop the rest from running. No-ops entirely during
+    bootstrap (``_bootstrap_ctx``) so fixture/migration loading never triggers
+    notifications or server scripts.
     """
     if _bootstrap_ctx.get():
         logger.debug("hook.skipped", reason="bootstrap", hook_event=event)
