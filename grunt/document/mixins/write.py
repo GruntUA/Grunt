@@ -43,7 +43,6 @@ from grunt.document.virtual import (
 )
 from grunt.errors import GruntError
 from grunt.hooks import fire
-from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()
@@ -294,7 +293,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             await self._fire_write_hooks("after_insert", "after_save", doctype_name, created, user)
             return created
 
-        table = compile_doctype_to_table(dt)
+        table = Meta(dt).table
         await self._check_singleton(dt, table)
 
         errors = _validate_data(dt, data, ignore_required=ignore_required)
@@ -421,7 +420,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             await self._fire_write_hooks("after_update", "after_save", doctype_name, updated, user)
             return updated
 
-        table = compile_doctype_to_table(dt)
+        table = Meta(dt).table
         existing = await self.get_document(doctype_name, doc_id, user)
 
         errors = _validate_data(dt, data, partial=True, ignore_required=ignore_required)
@@ -516,7 +515,7 @@ class DocumentWriteMixin(DocumentReadMixin):
             )
             return
 
-        table = compile_doctype_to_table(dt)
+        table = Meta(dt).table
 
         existing = await self.get_document(doctype_name, doc_id, user)
 

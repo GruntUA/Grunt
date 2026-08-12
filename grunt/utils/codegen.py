@@ -14,6 +14,7 @@ from typing import Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from grunt.document.base import SYS_FIELDS
+from grunt.document.meta import LAYOUT_FIELDTYPES
 from grunt.metadata.field import get_python_type
 from grunt.utils.strings import to_snake_case
 
@@ -24,7 +25,7 @@ from grunt.utils.strings import to_snake_case
 _BEGIN_MARKER = "# begin: auto-generated types"
 _END_MARKER = "# end: auto-generated types"
 
-_NON_PHYSICAL = {"Section", "Column", "Tab", "Empty"}
+_NON_PHYSICAL = LAYOUT_FIELDTYPES | {"Empty"}
 
 
 # ---------------------------------------------------------------------------

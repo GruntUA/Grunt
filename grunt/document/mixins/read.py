@@ -20,7 +20,6 @@ from grunt.document.meta import Meta
 from grunt.document.relations import _load_child_tables, attach_multi_link_values
 from grunt.document.serde import serialize_datetimes
 from grunt.document.virtual import is_virtual_routed, virtual_get
-from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()
@@ -43,7 +42,8 @@ class DocumentReadMixin:
         if is_virtual_routed(dt, doctype_name):
             return await virtual_get(doctype_name, user, doc_id)
 
-        table = compile_doctype_to_table(dt)
+        meta = Meta(dt)
+        table = meta.table
 
         result = await self.session.execute(select(table).where(table.c.name == doc_id))
         row = result.first()
@@ -55,7 +55,6 @@ class DocumentReadMixin:
 
         doc = serialize_datetimes(dict(row._mapping))
 
-        meta = Meta(dt)
         table_fields = meta.get_table_fieldnames()
         ml_fields = {f.fieldname for f in meta.get_multilink_fields()}
 

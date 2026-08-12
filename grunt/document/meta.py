@@ -14,8 +14,11 @@ if TYPE_CHECKING:
 # Fieldtypes whose values are treated as numbers in formula/expression contexts.
 NUMERIC_FIELDTYPES: frozenset[str] = frozenset({"Int", "Float", "Currency", "Percent"})
 
-# Layout-only fieldtypes that carry no value (used to build "visible" field lists).
-_LAYOUT_FIELDTYPES: frozenset[str] = frozenset({"Section", "Column", "Tab"})
+# Layout-only fieldtypes that carry no value. This is the base set shared by
+# every "skip non-data fields" filter in the codebase (Meta, TS codegen, print
+# fallback rendering); each caller unions in whatever else it needs to exclude
+# so the fieldtypes actually in common don't drift out of sync between them.
+LAYOUT_FIELDTYPES: frozenset[str] = frozenset({"Section", "Column", "Tab"})
 
 
 class Meta:
@@ -56,6 +59,18 @@ class Meta:
 
         return self.doc.table_name or get_table_name(self.doc.module, self.doc.name)
 
+    @property
+    def table(self) -> Any:
+        """Return this DocType's compiled :class:`sqlalchemy.Table`.
+
+        Delegates to :func:`compile_doctype_to_table`, which memoizes by
+        DocType name — cheap to call repeatedly, kept here for callers that
+        already hold a :class:`Meta` and shouldn't need a second import.
+        """
+        from grunt.metadata.compiler import compile_doctype_to_table
+
+        return compile_doctype_to_table(self.doc)
+
     def get_field(self, fieldname: str) -> DocField | None:
         """Return DocField object if exists, else None."""
         return self._fields_by_name.get(fieldname)
@@ -88,13 +103,18 @@ class Meta:
     def get_data_fields(self) -> list[DocField]:
         """Return data fields (fields that store values)."""
         if self._data_fields is None:
-            ui_fieldtypes = {"Section", "Column", "HTML", "Tab", "Tab Break", "Button"}
+            ui_fieldtypes = LAYOUT_FIELDTYPES | {"HTML", "Tab Break", "Button"}
             self._data_fields = [f for f in self.doc.fields if f.fieldtype not in ui_fieldtypes]
         return self._data_fields
 
     def get_title_field(self) -> str:
         """Return the title field of this doctype."""
         return self.doc.title_field or "name"
+
+    def get_image_field(self) -> str | None:
+        """Return the configured image/avatar field, if it names a real field."""
+        image_field = self.doc.image_field
+        return image_field if image_field and self.has_field(image_field) else None
 
     def get_search_fields(self) -> list[str]:
         """Return the search fields."""
@@ -143,7 +163,7 @@ class Meta:
         """Return fields that are not layout-only (Section/Column/Tab) and not hidden."""
         if self._visible_fields is None:
             self._visible_fields = [
-                f for f in self.doc.fields if f.fieldtype not in _LAYOUT_FIELDTYPES and not f.hidden
+                f for f in self.doc.fields if f.fieldtype not in LAYOUT_FIELDTYPES and not f.hidden
             ]
         return self._visible_fields
 

@@ -9,7 +9,6 @@ from sqlalchemy import select
 
 from grunt.document.meta import Meta
 from grunt.document.serde import audit_fields, serialize_datetimes
-from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
@@ -66,8 +65,8 @@ async def _resolve_link_labels(
             continue
 
         target_meta = Meta(target_dt)
-        title_field = getattr(target_dt, "title_field", "name") or "name"
-        target_table = compile_doctype_to_table(target_dt)
+        title_field = target_meta.get_title_field()
+        target_table = target_meta.table
 
         raw_ids: set[str] = {
             str(row[lf.fieldname]) for row in rows if row.get(lf.fieldname) not in (None, "")
@@ -90,10 +89,8 @@ async def _resolve_link_labels(
         # image_field is doctype-specific (e.g. "photo" on Employee) — always
         # surfaced to the caller as a fixed "image" key regardless of the
         # target's own field name, so list-cell renderers have one contract.
-        image_field = getattr(target_dt, "image_field", None)
-        has_image = bool(
-            image_field and target_meta.has_field(image_field) and image_field in target_table.c
-        )
+        image_field = target_meta.get_image_field()
+        has_image = bool(image_field and image_field in target_table.c)
         if has_image and image_field not in {c.key for c in cols_to_fetch}:
             cols_to_fetch.append(target_table.c[image_field])
 
@@ -213,8 +210,9 @@ async def _load_child_tables(
             continue
         try:
             child_dt = await doctype_registry.get(field.options)
-            child_table = compile_doctype_to_table(child_dt)
-            data_fields = {f.fieldname for f in Meta(child_dt).get_physical_fields()}
+            child_meta = Meta(child_dt)
+            child_table = child_meta.table
+            data_fields = {f.fieldname for f in child_meta.get_physical_fields()}
             keep = {"name", "idx"} | data_fields
             cols = [c for c in child_table.c if c.key not in _CHILD_SKIP_COLS and c.key in keep]
             result = await session.execute(
@@ -252,7 +250,7 @@ async def _save_child_tables(
         # until its child rows are, so a failure here must propagate and roll
         # back the transaction rather than report a false success.
         child_dt = await doctype_registry.get(field.options)
-        child_table = compile_doctype_to_table(child_dt)
+        child_table = Meta(child_dt).table
         # Delete existing rows for this parent
         await session.execute(child_table.delete().where(child_table.c.parent_name == parent_id))
         # Build all rows then insert in one batch

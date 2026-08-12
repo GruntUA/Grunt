@@ -144,9 +144,11 @@ def render_docx(template_path: str, doc: dict[str, Any]) -> bytes:
 
 def _render_fallback(doctype_label: str, fields: list[Any], doc: dict[str, Any]) -> str:
     """Minimal HTML fallback when no template file exists."""
+    from grunt.document.meta import LAYOUT_FIELDTYPES
+
     rows = ""
     for field in fields:
-        if field.fieldtype in ("Section", "Column", "Tab", "Table"):
+        if field.fieldtype in LAYOUT_FIELDTYPES or field.fieldtype == "Table":
             continue
         if field.hidden:
             continue

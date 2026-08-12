@@ -32,7 +32,6 @@ from grunt.document.update_side_effects import (
     run_bulk_delete_writes,
 )
 from grunt.document.virtual import is_virtual_routed, virtual_list
-from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
@@ -240,7 +239,7 @@ async def list_documents(
             doctype_name, user, page, per_page, sort_by, sort_order, filters, search
         )
 
-    table = compile_doctype_to_table(dt)
+    table = Meta(dt).table
 
     # Singleton — return at most 1 row, ignore pagination
     if dt.is_singleton:
@@ -321,7 +320,7 @@ async def bulk_delete(
     if is_virtual_routed(dt, doctype_name):
         return await bulk_delete_virtual(doctype_name=doctype_name, ids=ids, user=user)
 
-    table = compile_doctype_to_table(dt)
+    table = Meta(dt).table
     ml = MultiLinkService(session)
     to_delete, errors = await collect_bulk_delete_candidates(
         session=session, dt=dt, table=table, ids=ids
@@ -404,7 +403,8 @@ async def rename_document(
             detail="Cannot rename virtual documents",
         )
 
-    table = compile_doctype_to_table(dt)
+    dt_meta = Meta(dt)
+    table = dt_meta.table
 
     # 0. Check if new_id already exists
     exists_q = select(table.c.name).where(table.c.name == new_id)
@@ -420,12 +420,12 @@ async def rename_document(
 
     # 2. Update references across all DocTypes
     all_dts = await doctype_registry.list_all()
-    dt_meta = Meta(dt)
     for other_dt in all_dts:
+        other_meta = Meta(other_dt)
         # A. Update child tables (Tables)
         is_child = any(f.options == other_dt.name for f in dt_meta.get_child_table_fields())
         if is_child:
-            child_table = compile_doctype_to_table(other_dt)
+            child_table = other_meta.table
             await session.execute(
                 child_table.update()
                 .where(child_table.c.parent_name == old_id)
@@ -433,9 +433,9 @@ async def rename_document(
             )
 
         # B. Update Link fields referencing our doctype
-        for f in Meta(other_dt).get_link_fields():
+        for f in other_meta.get_link_fields():
             if f.fieldtype == "Link" and f.options == doctype_name:
-                ref_table = compile_doctype_to_table(other_dt)
+                ref_table = other_meta.table
                 await session.execute(
                     ref_table.update()
                     .where(ref_table.c[f.fieldname] == old_id)
@@ -474,7 +474,7 @@ async def rename_document(
     for sys_dt_name, sys_fieldname in system_refs:
         try:
             sys_dt = await doctype_registry.get(sys_dt_name)
-            sys_table = compile_doctype_to_table(sys_dt)
+            sys_table = Meta(sys_dt).table
             if sys_fieldname in sys_table.c:
                 await session.execute(
                     sys_table.update()
