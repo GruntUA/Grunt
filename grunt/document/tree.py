@@ -30,6 +30,8 @@ import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import literal, select
 
+from grunt.document.base import Document
+from grunt.document.registry import document_registry
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
 
@@ -77,8 +79,6 @@ class TreeService:
         parent_field = _require_tree(dt)
         table = compile_doctype_to_table(dt)
         title_col = _title_field(dt)
-
-        from grunt.document.registry import document_registry
 
         controller_filters = filters or {}
         sort_by, sort_order = await self._resolve_sort_config(
@@ -160,9 +160,6 @@ class TreeService:
         parent_field = _require_tree(dt)
         table = compile_doctype_to_table(dt)
         title_col = _title_field(dt)
-
-        from grunt.document.base import Document
-        from grunt.document.registry import document_registry
 
         ctrl_cls = document_registry.get(doctype)
         controller_filters = filters or {}
@@ -402,8 +399,6 @@ class TreeService:
 
         if resolved_sort_by is None and fallback_if_missing:
             resolved_sort_by = fallback_field
-
-        from grunt.document.base import Document
 
         if controller_cls.tree_get_sort_order is not Document.tree_get_sort_order:
             override = await controller_cls.tree_get_sort_order(

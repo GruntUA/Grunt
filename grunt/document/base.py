@@ -56,10 +56,12 @@ Accessing document data::
 
 from __future__ import annotations
 
+import contextlib
 from typing import TYPE_CHECKING, Any
 
 import structlog
 
+from grunt.context import require_engine, require_session, require_user
 from grunt.document.mixins.write import DocumentWriteMixin
 
 if TYPE_CHECKING:
@@ -324,19 +326,15 @@ class Document(DocumentWriteMixin):
             or getattr(self, "engine", None) is None
             or getattr(self, "user", None) is None
         ):
-            import contextlib
-
-            from grunt.app import grunt as _grunt
-
             if getattr(self, "session", None) is None:
                 with contextlib.suppress(Exception):
-                    object.__setattr__(self, "session", _grunt._require_session())
+                    object.__setattr__(self, "session", require_session())
             if getattr(self, "engine", None) is None:
                 with contextlib.suppress(Exception):
-                    object.__setattr__(self, "engine", _grunt._require_engine())
+                    object.__setattr__(self, "engine", require_engine())
             if getattr(self, "user", None) is None:
                 with contextlib.suppress(Exception):
-                    object.__setattr__(self, "user", _grunt._require_user())
+                    object.__setattr__(self, "user", require_user())
         if getattr(self, "_ml", None) is None and getattr(self, "session", None) is not None:
             from grunt.document.multi_link import MultiLinkService
 

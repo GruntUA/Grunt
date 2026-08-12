@@ -155,13 +155,56 @@ delete міг оперувати застарілим визначенням Doc
 `pytest tests/` — 217/217 зелений (214 + 3 нові), `ruff check` на торкнутих
 файлах чистий.
 
-## Фаза 6 — Межі модулів (найбільша, окремо і в кінці)
+## Фаза 6 — Межі модулів ✅ DONE, з ревізією вихідної тези (2026-08-12)
 
-Пізні імпорти "щоб обійти циклічну залежність" — норма в `db/api.py`,
-`document/base.py`, `relations.py`, `write.py`, `collection.py`, `tree.py`.
-Симптом циклічної залежності `grunt.document` ↔ `grunt.db` ↔ `grunt.metadata` ↔
-`grunt.app`. Виділити спільні примітиви в нижчий модуль без зворотних
-залежностей.
+Вихідна теза плану ("десятки пізніх імпортів = погані межі модулів") на
+перевірку виявилась перебільшеною. Перевіряв **емпірично** — тимчасово
+робив кожен підозрілий lazy-імпорт top-level і запускав `import grunt.main`
+(реальний entrypoint), а не гадав по коду. Результат:
+
+**Реально виправлено (2 справжні проблеми):**
+- `db/api.py:_get_registry()` — докстрінг стверджував "циклічна залежність
+  grunt.db ↔ grunt.metadata.registry", але емпірично цикл **не підтвердився**
+  (застарілий коментар, ймовірно з часів до видалення `DocumentService`).
+  `doctype_registry` тепер звичайний top-level імпорт, `_get_registry()`
+  видалено, усі 13 викликів спрощено.
+- `document/base.py:_bind()` — імпортував увесь `grunt.app.grunt` заради
+  трьох тонких pass-through методів (`_require_session/_require_engine/_require_user`),
+  хоча справжня реалізація вже лежить у `grunt.context` (підтверджено
+  прецедентом: `app/permission_api.py` явно документує, що `_require_user`
+  лишається тонкою обгорткою навколо `grunt.context.require_user` саме тому,
+  що зовнішній код досі викликає `grunt._require_user()`). Тепер `_bind()`
+  імпортує `require_session/require_engine/require_user` напряму з
+  `grunt.context` — один із двох справжніх циклів `document.base ↔ grunt.app`
+  усунено.
+- `document/collection.py` і `document/tree.py` — 9 inline lazy-імпортів
+  `Document`/`DocumentList`/`document_registry` емпірично підтверджені
+  безпечними → переведено в top-level.
+
+**Підтверджено як СПРАВЖНІ цикли — свідомо лишено lazy (спроба top-level
+ламає `import grunt.main` з `ImportError: circular import`):**
+- `document/base.py` — властивість `.grunt` та `_set_grunt_context`/
+  `_reset_grunt_context` (`grunt.app` composes `DocumentAPI`, яка сама працює
+  з `Document`-інстансами — двобічна залежність, не усувається без переносу
+  `GruntApp`-синглтона в нижчий шар; не виправдана поточними доказами).
+- `document/base.py ↔ document/registry.py` — `DocumentRegistry` мусить
+  розпізнавати `issubclass(obj, Document)`, а `Document`/mixins користуються
+  `document_registry` для резолву контролерів. Структурний, глибокий цикл
+  (`base → mixins.write → mixins.read → virtual → registry → base`);
+  усунення вимагало б виділення "marker base class" без залежності від
+  registry — велика окрема архітектурна робота, не робив без окремого рішення.
+
+**Спростовано як не-проблема:** переважна більшість "пізніх імпортів" із
+початкового аудиту (~80) — це або (a) імпорти лише під `if TYPE_CHECKING:`
+(ніколи не виконуються в рантаймі, взагалі не стосуються циклів — хибне
+спрацювання grep), або (b) свідоме відкладене підвантаження важких/опційних
+підсистем (`webhook`, `search`, `notification`, `assignment`, `versioning`) —
+навмисний і корисний патерн, не архітектурний борг. Не чіпав жодного з них —
+форсування у top-level нічого не покращило б, лише обважнило старт модуля.
+
+`pytest tests/` — 217/217 зелений після кожної правки, `import grunt.main`
+перевірявся емпірично на кожному кроці, `ruff check` на торкнутих файлах
+чистий.
 
 ## Фаза 7 — Дрібне ✅ DONE, з обґрунтованими відмовами (2026-08-12)
 

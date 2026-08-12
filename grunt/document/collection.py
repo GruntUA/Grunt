@@ -17,8 +17,10 @@ import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import func, select, update
 
+from grunt.document.base import Document, DocumentList
 from grunt.document.formula import evaluate_read_formulas
 from grunt.document.query import _apply_filters, _apply_search, _expand_child_of_filters
+from grunt.document.registry import document_registry
 from grunt.document.relations import _resolve_link_labels
 from grunt.document.serde import serialize_datetimes
 from grunt.document.update_side_effects import (
@@ -36,7 +38,6 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
     from grunt.auth.doctypes.User.user import User
-    from grunt.document.base import DocumentList
 
 logger = structlog.get_logger()
 
@@ -64,8 +65,6 @@ def _decode_cursor(cursor: str) -> tuple[str, str]:
 
 async def _list_singleton(session: AsyncSession, table: Any) -> DocumentList:
     """Return the (at most one) row of a singleton DocType, ignoring pagination."""
-    from grunt.document.base import DocumentList
-
     result = await session.execute(select(table).limit(1))
     row = result.first()
     data_list = [dict(row._mapping)] if row else []
@@ -97,9 +96,6 @@ async def _resolve_list_filter_extra(
     table: Any,
 ) -> Any | None:
     """Return the controller's ``list_filter_extra`` WHERE clause, if overridden."""
-    from grunt.document.base import Document
-    from grunt.document.registry import document_registry
-
     controller_cls = document_registry.get(doctype_name)
     if controller_cls.list_filter_extra is Document.list_filter_extra:
         return None
@@ -278,8 +274,6 @@ async def list_documents(
     await _finalize_rows(session, dt, doctype_name, rows)
     next_cursor = _build_next_cursor(rows, per_page, sort_by)
 
-    from grunt.document.base import DocumentList
-
     return DocumentList(
         data=rows,
         meta={
@@ -394,7 +388,6 @@ async def rename_document(
     user: User,
 ) -> dict[str, Any]:
     """Update the primary ID of a document and cascade changes to all references."""
-    from grunt.document.base import Document
 
     async def _load(doc_id: str) -> dict[str, Any]:
         doc = await Document.load(doctype_name, doc_id, session=session, engine=engine, user=user)
