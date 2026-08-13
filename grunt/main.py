@@ -400,8 +400,12 @@ for page in website_registry.discover_app(core_website_dir, "grunt", is_main_app
         tags=["website"],
     )
 
-app.add_api_route("/sitemap.xml", sitemap_xml, methods=["GET"], include_in_schema=False, tags=["website"])
-app.add_api_route("/robots.txt", robots_txt, methods=["GET"], include_in_schema=False, tags=["website"])
+app.add_api_route(
+    "/sitemap.xml", sitemap_xml, methods=["GET"], include_in_schema=False, tags=["website"]
+)
+app.add_api_route(
+    "/robots.txt", robots_txt, methods=["GET"], include_in_schema=False, tags=["website"]
+)
 
 # ── Static Assets ──
 main_public_dir = _Path(__file__).parent.parent / "public"

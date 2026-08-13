@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-import structlog
-logger = structlog.get_logger()
 from typing import TYPE_CHECKING
 
+import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from grunt.site.manager import current_site, site_manager
 
 if TYPE_CHECKING:
     from fastapi import Request
+
+logger = structlog.get_logger()
 
 
 class SiteContextMiddleware(BaseHTTPMiddleware):

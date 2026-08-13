@@ -296,18 +296,19 @@ async def sitemap_xml(request: Request) -> Response:
 
     base = str(request.base_url).rstrip("/")
 
-    urls = [base + page.url_pattern for page in website_registry.pages if "{" not in page.url_pattern]
+    urls = [
+        base + page.url_pattern for page in website_registry.pages if "{" not in page.url_pattern
+    ]
 
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
-    async with maker() as session:
-        async with grunt.context(session, user=SYSTEM_USER):
-            pages = await grunt.db.get_all(
-                "WebPage",
-                filters={"published": 1},
-                fields=["route"],
-                limit=None,
-            )
+    async with maker() as session, grunt.context(session, user=SYSTEM_USER):
+        pages = await grunt.db.get_all(
+            "WebPage",
+            filters={"published": 1},
+            fields=["route"],
+            limit=None,
+        )
     urls.extend(base + p["route"] for p in pages)
 
     entries = "".join(f"  <url><loc>{url}</loc></url>\n" for url in urls)

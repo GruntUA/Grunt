@@ -104,7 +104,7 @@ class AppMenu(Document):
         from grunt.document.registry import document_registry  # noqa: PLC0415
         from grunt.metadata.virtual import VirtualDocType  # noqa: PLC0415
         try:
-            ctrl_cls = cast(type[VirtualDocType], document_registry.get(doctype))
+            ctrl_cls = cast('type[VirtualDocType]', document_registry.get(doctype))
             ctrl = ctrl_cls(doctype, user=self.user)
             if hasattr(ctrl, "get_count"):
                 return await ctrl.get_count(filters=filters)
