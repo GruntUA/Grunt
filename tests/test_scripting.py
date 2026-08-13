@@ -5,31 +5,6 @@ import pytest
 from grunt.scripting.safe_globals import build_safe_globals, validate_script
 from grunt.scripting.server_script import ScriptResult, ServerScriptRunner
 
-try:
-    _ = validate_script  # type: ignore[name-defined]
-except NameError:  # pragma: no cover - fallback stub for static analysis/tests
-
-    def validate_script(source: str):
-        """Fallback stub for validate_script to avoid NameError in tests.
-
-        This minimalist implementation only distinguishes obviously unsafe
-        constructs used in the tests from simple valid scripts.
-        """
-        errors = []
-        # Very naive checks mirroring what the tests expect.
-        if "def foo(" in source and "pass" in source:
-            errors.append("SyntaxError: invalid syntax")
-        if "import " in source or "from " in source:
-            errors.append("import not allowed")
-        if "subprocess" in source:
-            errors.append("subprocess not allowed")
-        if "eval(" in source:
-            errors.append("eval not allowed")
-        if "open(" in source:
-            errors.append("open not allowed")
-        return errors
-
-
 # ── Safe globals tests ───────────────────────────────────────────────────
 
 
@@ -63,6 +38,12 @@ class TestBuildSafeGlobals:
 
 
 class TestValidateScript:
+    """validate_script() is now a real AST-level check (RestrictedPython),
+    tied to exactly what execute() runs — see safe_globals.py's module
+    docstring and tests/unit/test_scripting_sandbox.py for why the previous
+    text-substring blocklist it replaced wasn't a real security boundary.
+    """
+
     def test_valid_script(self):
         errors = validate_script("x = 1 + 2\nresult = x * 3")
         assert errors == []
@@ -72,25 +53,30 @@ class TestValidateScript:
         assert len(errors) == 1
         assert "SyntaxError" in errors[0]
 
-    def test_import_blocked(self):
-        errors = validate_script("import os")
-        assert any("import" in e for e in errors)
+    def test_dunder_attribute_access_blocked(self):
+        """The actual security boundary: no identifier/attribute may start
+        with "_" — this is what makes __class__/__subclasses__-style
+        sandbox escapes fail to compile at all (see test_scripting_sandbox.py).
+        """
+        errors = validate_script("x = ().__class__")
+        assert errors
+        assert any("__class__" in e for e in errors)
 
-    def test_from_import_blocked(self):
-        errors = validate_script("from os import path")
-        assert any("import" in e or "from" in e for e in errors)
+    def test_import_not_a_validation_error(self):
+        """`import os` is not itself unsafe syntax — RestrictedPython lets it
+        compile — the actual protection is that `__import__` is never in the
+        builtins execute() runs with, so it fails at *runtime* instead (see
+        TestServerScriptExecute.test_blocked_script_rejected below).
+        """
+        assert validate_script("import os") == []
 
-    def test_subprocess_blocked(self):
-        errors = validate_script("subprocess.call(['ls'])")
-        assert any("subprocess" in e for e in errors)
-
-    def test_eval_blocked(self):
+    def test_eval_call_blocked(self):
+        """RestrictedPython special-cases eval()/exec() calls specifically —
+        blocked at validation time, same as before, just for a real reason.
+        """
         errors = validate_script("eval('1+1')")
-        assert any("eval" in e for e in errors)
-
-    def test_open_blocked(self):
-        errors = validate_script("f = open('/etc/passwd')")
-        assert any("open" in e for e in errors)
+        assert errors
+        assert any("eval" in e.lower() for e in errors)
 
 
 # ── ServerScriptRunner.execute tests ─────────────────────────────────────
@@ -120,6 +106,17 @@ class TestServerScriptExecute:
         result = await self.runner.execute('print("hello world")')
         assert result.success is True
         assert "hello world" in result.output
+
+    @pytest.mark.asyncio
+    async def test_grunt_log_captured(self):
+        """grunt.log() is a host method calling real print(), separate from
+        the script's own print() (routed through RestrictedPython's _print_
+        collector, never touching sys.stdout) — both must land in `output`.
+        """
+        result = await self.runner.execute('grunt.log("from grunt.log")\nprint("from print")')
+        assert result.success is True
+        assert "from grunt.log" in result.output
+        assert "from print" in result.output
 
     @pytest.mark.asyncio
     async def test_script_throw(self):

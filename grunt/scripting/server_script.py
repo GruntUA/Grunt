@@ -34,7 +34,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 import structlog
 
-from grunt.scripting.safe_globals import build_safe_globals, validate_script
+from grunt.scripting.safe_globals import build_safe_globals, compile_script, validate_script
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -49,6 +49,35 @@ _T = TypeVar("_T")
 _MAX_OUTPUT = 10_000
 # Maximum script execution time hint (seconds) — enforced externally if needed
 MAX_EXEC_SECONDS = 5
+
+
+class _BufferPrintCollector:
+    """RestrictedPython `_print_` collector that writes into an external buffer.
+
+    A script's own `print(...)` statements are compiled to call this (they
+    never touch real `sys.stdout`), while `grunt.log(...)` calls real
+    `print()` from host code (`ScriptContext.log`, outside the restricted
+    compile) — caught separately by `contextlib.redirect_stdout`. Writing
+    both into the *same* StringIO keeps script output and grunt.log() output
+    in one combined, correctly ordered stream instead of two disjoint ones.
+    """
+
+    def __init__(self, buf: io.StringIO, _getattr_: Any = None) -> None:
+        self._buf = buf
+        self._getattr_ = _getattr_
+
+    def write(self, text: str) -> None:
+        self._buf.write(text)
+
+    def __call__(self) -> str:
+        return self._buf.getvalue()
+
+    def _call_print(self, *objects: Any, **kwargs: Any) -> None:
+        if kwargs.get("file") is None:
+            kwargs["file"] = self
+        elif self._getattr_ is not None:
+            self._getattr_(kwargs["file"], "write")
+        print(*objects, **kwargs)
 
 
 class _SyncBridge:
@@ -168,6 +197,13 @@ class ScriptContext:
 
     Provides document access, DB operations, session info, and output helpers.
     """
+
+    # Opts this object out of RestrictedPython's full_write_guard wrapping
+    # (see Guards._full_write_guard) so restricted scripts can do
+    # `grunt.response = {...}` / `grunt.flags[...] = ...` — otherwise every
+    # attribute assignment on a host object requires it to implement
+    # __guarded_setattr__, which plain Python classes don't have.
+    _guarded_writes = True
 
     def __init__(
         self,
@@ -548,7 +584,9 @@ class ServerScriptRunner:
         Returns:
             ScriptResult with success status, captured output, and response data.
         """
-        # Validate (skip for trusted file-based scripts)
+        # Friendlier pre-check for untrusted scripts — trusted (file-based)
+        # scripts skip straight to the real compile below, which enforces
+        # the exact same restrictions either way (see safe_globals.py).
         if not trusted:
             errors = validate_script(source)
             if errors:
@@ -556,6 +594,11 @@ class ServerScriptRunner:
                     success=False,
                     error="; ".join(errors),
                 )
+
+        compile_result = compile_script(source)
+        if compile_result.errors:
+            return ScriptResult(success=False, error="; ".join(compile_result.errors))
+        compiled = compile_result.code
 
         # Build execution context with sync-async bridge
         loop = asyncio.get_running_loop()
@@ -567,17 +610,20 @@ class ServerScriptRunner:
             user_roles=user_roles,
             is_superadmin=is_superadmin,
         )
+        stdout_buf = io.StringIO()
         script_globals = build_safe_globals(
             extra={
                 "doc": doc or {},
                 "grunt": ctx,
+                # Script's own print(...) statements are routed here by
+                # RestrictedPython instead of through the _print_ default
+                # (PrintCollector) — see _BufferPrintCollector docstring.
+                "_print_": lambda _getattr_=None: _BufferPrintCollector(
+                    stdout_buf, _getattr_=_getattr_
+                ),
                 **(extra_context or {}),
             }
         )
-
-        # Capture stdout
-        stdout_buf = io.StringIO()
-        compiled = compile(source, "<server_script>", "exec")
 
         def _run_script() -> None:
             with contextlib.redirect_stdout(stdout_buf):
@@ -586,10 +632,9 @@ class ServerScriptRunner:
         try:
             await asyncio.to_thread(_run_script)
 
-            output = stdout_buf.getvalue()[:_MAX_OUTPUT]
             return ScriptResult(
                 success=True,
-                output=output,
+                output=stdout_buf.getvalue()[:_MAX_OUTPUT],
                 response=ctx.response,
             )
 

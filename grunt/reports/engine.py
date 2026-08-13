@@ -150,7 +150,17 @@ class ReportEngine:
             raise HTTPException(400, detail="Скрипт не вказано")
 
         # Inject 'grunt.result' placeholder and 'filters' into the context
-        from grunt.scripting.safe_globals import build_safe_globals
+        from grunt.scripting.safe_globals import build_safe_globals, compile_script
+
+        # Not plain compile()+exec(): see safe_globals.py's module docstring
+        # — a restricted __builtins__ dict alone doesn't stop attribute
+        # traversal (e.g. str.__mro__[-1].__subclasses__()) from reaching
+        # subprocess.Popen and similar regardless of what's in __builtins__.
+        # compile_script() (RestrictedPython) is the actual sandbox; this
+        # exec() must only ever run code it produced.
+        compiled = compile_script(script_src)
+        if compiled.errors:
+            raise HTTPException(400, detail="; ".join(compiled.errors))
 
         engine = await _engine_factory()
         async with grunt.context(session, engine, user):
@@ -162,7 +172,7 @@ class ReportEngine:
 
             start = time.time()
             try:
-                exec(compile(script_src, "<script_report>", "exec"), extra_globals)
+                exec(compiled.code, extra_globals)
             except HTTPException:
                 raise
             except Exception as exc:
