@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import structlog
 from sqlalchemy import Table, false, or_
 
+from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
 
 if TYPE_CHECKING:
@@ -31,20 +32,14 @@ def apply_permission_filter(
     treated as unrestricted — the opposite default would let a rule nobody
     could actually enforce quietly expose every row instead of none.
     """
-    if getattr(user, "is_superadmin", False):
+    access = RoleAccess(doctype, user)
+    if access.is_unrestricted:
         return query
 
-    if not doctype.permissions:
-        return query
-
-    user_roles = set(getattr(user, "roles", []) or [])
     conditions = []
     has_unrestricted = False
 
-    for perm in doctype.permissions:
-        role = perm.role if hasattr(perm, "role") else ""
-        if role not in user_roles and role != "All":
-            continue
+    for perm in access.matching_permissions():
         read_ok = perm.read if hasattr(perm, "read") else False
         if not read_ok:
             continue

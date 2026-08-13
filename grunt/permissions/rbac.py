@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from grunt.errors import forbidden
+from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
 from grunt.permissions.types import PermissionAction
 
@@ -40,29 +41,28 @@ class PermissionChecker:
         action: PermissionAction,
         doc: dict | None = None,
     ) -> bool:
-        if getattr(user, "is_superadmin", False):
+        access = RoleAccess(doctype, user)
+        if access.is_unrestricted:
             return True
-
-        if not doctype.permissions:
-            return True  # No permissions defined = open (dev mode)
-
-        user_roles = frozenset(getattr(user, "roles", []) or [])
 
         # Cache only when doc is None (list/count); match-expression checks are doc-specific.
         # Include id(doctype.permissions) so that different DocType objects with the same
         # name but different permission lists (common in tests) get separate cache entries.
         cache_key: tuple | None = None
         if doc is None:
-            cache_key = (user.email, user_roles, doctype.name, id(doctype.permissions), action)
+            cache_key = (
+                user.email,
+                access.user_roles,
+                doctype.name,
+                id(doctype.permissions),
+                action,
+            )
             cached = _PERM_CACHE.get(cache_key)
             if cached is not None:
                 return cached
 
         result = False
-        for perm in doctype.permissions:
-            role = perm.role if hasattr(perm, "role") else ""
-            if role not in user_roles and role != "All":
-                continue
+        for perm in access.matching_permissions():
             perm_val = getattr(perm, action, False)
             if not perm_val:
                 continue
@@ -104,16 +104,13 @@ class PermissionChecker:
         *most permissive* (first matching) rule is used — i.e., if any matching
         rule exposes a field, it is visible.
         """
-        if getattr(user, "is_superadmin", False):
+        access = RoleAccess(doctype, user)
+        if access.is_unrestricted:
             return frozenset()
-        if not doctype.permissions:
-            return frozenset()
-
-        user_roles = frozenset(getattr(user, "roles", []) or [])
 
         # id(doctype.permissions) distinguishes DocType objects with the same name
         # but different permission lists (see check() for the same pattern).
-        cache_key = (user.email, user_roles, doctype.name, id(doctype.permissions))
+        cache_key = (user.email, access.user_roles, doctype.name, id(doctype.permissions))
         cached_hidden = _HIDDEN_CACHE.get(cache_key)
         if cached_hidden is not None:
             return cached_hidden
@@ -121,10 +118,7 @@ class PermissionChecker:
         hidden: set[str] = set()
         matched = False
 
-        for perm in doctype.permissions:
-            role = perm.role if hasattr(perm, "role") else ""
-            if role not in user_roles and role != "All":
-                continue
+        for perm in access.matching_permissions():
             read_ok = getattr(perm, "read", False)
             if not read_ok:
                 continue
