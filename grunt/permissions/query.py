@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING
 
 import structlog
 from sqlalchemy import Table, false, or_
+
+from grunt.permissions.match import PermissionMatch
 
 if TYPE_CHECKING:
     from sqlalchemy.sql import Select
@@ -15,15 +16,6 @@ if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
 
 logger = structlog.get_logger()
-
-# "<field> == <value>" / "<field> != <value>", value is either the bare word
-# `user` (→ current user's email) or a single/double-quoted string literal.
-# Deliberately narrow — a full boolean-expression-to-SQL compiler is a much
-# larger, riskier undertaking; this covers the documented use cases
-# ("owner == user", "status == 'draft'") for any field, not just those two.
-_MATCH_RE = re.compile(
-    r"^(?P<field>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?P<op>==|!=)\s*(?P<value>.+)$"
-)
 
 
 def apply_permission_filter(
@@ -62,7 +54,7 @@ def apply_permission_filter(
             has_unrestricted = True
             break
 
-        condition = _parse_match_to_sqlalchemy(match_expr, table, user)
+        condition = PermissionMatch(match_expr).to_sql(table, user)
         if condition is not None:
             conditions.append(condition)
         else:
@@ -78,29 +70,3 @@ def apply_permission_filter(
         return query.where(false())
 
     return query.where(or_(*conditions))
-
-
-def _parse_match_to_sqlalchemy(match_expr: str, table: Table, user: User):
-    """Parse a simple ``field == value`` / ``field != value`` match expression.
-
-    Returns ``None`` when the expression isn't in this narrow supported form
-    (arbitrary boolean logic, non-string/non-`user` literals, unknown field)
-    — the caller treats that as "can't enforce this rule", not "unrestricted".
-    """
-    m = _MATCH_RE.match(match_expr.strip())
-    if not m:
-        return None
-
-    field, op, raw_value = m.group("field"), m.group("op"), m.group("value").strip()
-    if not hasattr(table.c, field):
-        return None
-
-    if raw_value == "user":
-        value: str = user.email
-    elif len(raw_value) >= 2 and raw_value[0] == raw_value[-1] and raw_value[0] in "'\"":
-        value = raw_value[1:-1]
-    else:
-        return None  # numbers, bare names, etc. — outside the supported form
-
-    col = table.c[field]
-    return col == value if op == "==" else col != value
