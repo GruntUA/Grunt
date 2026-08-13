@@ -66,5 +66,14 @@
       "options": "python",
       "depends_on": "eval:doc.report_type==='Script'"
     }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

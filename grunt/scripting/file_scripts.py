@@ -31,6 +31,8 @@ from typing import Any
 
 import structlog
 
+from grunt.utils.strings import to_snake_case
+
 logger = structlog.get_logger()
 
 # ── Registries ────────────────────────────────────────────────────────────
@@ -112,13 +114,21 @@ def _load_doctype_dir_scripts(dt_dir: Path, app_name: str) -> None:
     - Any other ``.py`` files → server scripts with metadata headers
     """
     doctype = dt_dir.name
+    # Controller files are named either {snake_case}.py (preferred) or
+    # {PascalCase}.py (legacy fallback) — see
+    # DocumentRegistry.index_core_controllers, the actual controller loader
+    # this must agree with. Comparing only against `doctype` (PascalCase)
+    # missed every real controller (grunt/*/doctypes/*/*.py is snake_case in
+    # practice), so controllers were being loaded a second time here as
+    # bogus "API (auto)" server scripts.
+    _controller_stems = {doctype, to_snake_case(doctype)}
 
     # Server scripts: any .py file in the directory (except __init__.py)
     for py_file in sorted(dt_dir.glob("*.py")):
         if py_file.name.startswith("__"):
             continue
-        # Skip the controller file (same name as DocType) — handled by document registry
-        if py_file.stem == doctype:
+        # Skip the controller file — handled by document registry, not here.
+        if py_file.stem in _controller_stems:
             continue
         source = py_file.read_text(encoding="utf-8")
         meta = _parse_script_meta(source)
