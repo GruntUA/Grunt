@@ -143,7 +143,16 @@ def render_docx(template_path: str, doc: dict[str, Any]) -> bytes:
 
 
 def _render_fallback(doctype_label: str, fields: list[Any], doc: dict[str, Any]) -> str:
-    """Minimal HTML fallback when no template file exists."""
+    """Minimal HTML fallback when no template file exists.
+
+    Built by hand (not through Jinja, which autoescapes) because there's no
+    template to render — every interpolated value is therefore document data
+    or a label and MUST be escaped explicitly, or a field value containing
+    HTML/script becomes a stored XSS in the print/HTML view every viewer of
+    that document opens.
+    """
+    from html import escape
+
     from grunt.document.meta import LAYOUT_FIELDTYPES
 
     rows = ""
@@ -155,7 +164,7 @@ def _render_fallback(doctype_label: str, fields: list[Any], doc: dict[str, Any])
         val = doc.get(field.fieldname, "")
         if val is None:
             val = ""
-        rows += f"<tr><th>{field.label}</th><td>{val}</td></tr>\n"
+        rows += f"<tr><th>{escape(field.label)}</th><td>{escape(str(val))}</td></tr>\n"
 
     return f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8">
@@ -164,7 +173,7 @@ table{{width:100%;border-collapse:collapse}}
 th{{text-align:left;padding:6px;background:#f0f4f0;width:35%}}
 td{{padding:6px;border-bottom:1px solid #eee}}</style>
 </head><body>
-<h1>{doctype_label}</h1>
-<p>{doc.get("name", "")}</p>
+<h1>{escape(doctype_label)}</h1>
+<p>{escape(str(doc.get("name", "")))}</p>
 <table>{rows}</table>
 </body></html>"""

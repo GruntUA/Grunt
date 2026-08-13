@@ -17,10 +17,28 @@ from grunt.metadata.registry import doctype_registry
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
+    from grunt.auth.doctypes.User.user import User
+
 logger = structlog.get_logger()
 
 # Guest user identifier for anonymous submissions
 GUEST_USER = "guest@grunt.local"
+
+
+def _guest_user() -> User:
+    """Synthetic, non-superadmin identity for anonymous webform submissions."""
+    from grunt.auth.doctypes.User.user import User as _User
+
+    return _User(
+        doctype="User",
+        data={
+            "email": GUEST_USER,
+            "full_name": "Guest",
+            "roles": ["Guest"],
+            "is_superadmin": False,
+            "is_active": True,
+        },
+    )
 
 
 class WebFormService:
@@ -119,10 +137,25 @@ class WebFormService:
         allowed_fields = {f["fieldname"] for f in form["fields"]} if form["fields"] else None
         validated = self._validate_submission(dt, data, allowed_fields)
 
-        owner = user_email or GUEST_USER
-
-        async with grunt.context(session, user=None):
-            doc = await grunt.new_doc(form["doctype"], {**validated, "owner": owner})
+        if user_email:
+            # Authenticated submitter — the ambient request context is
+            # already scoped to this user by the API layer; new_doc's
+            # audit_fields will set owner=user_email from it.
+            doc = await grunt.new_doc(form["doctype"], validated)
+            owner = user_email
+        else:
+            # Anonymous — run the create as a synthetic Guest identity.
+            # `grunt.context(session, user=None)` would make write_guard's
+            # require_user() raise (no create is possible with no user at
+            # all), and running as SYSTEM_USER would bypass the target
+            # DocType's create-permission rules entirely — silently letting
+            # any DocType accept guest writes regardless of how it's
+            # actually configured. A real (if minimal) Guest user keeps
+            # permission checks meaningful: the target DocType must have an
+            # explicit `role: "Guest"` (or "All") create permission.
+            async with grunt.context(session, user=_guest_user()):
+                doc = await grunt.new_doc(form["doctype"], validated)
+            owner = GUEST_USER
 
         doc_id = doc["name"]
 

@@ -109,12 +109,17 @@ def _apply_where(
     filters: dict[str, str] | None,
     search: str | None,
     extra_clause: Any | None,
+    user: Any,
 ) -> Any:
-    """Apply the controller clause, filters, and search to a query.
+    """Apply row-level permissions, the controller clause, filters, and search.
 
     Shared by the data query and the COUNT query so the two can never drift
-    out of sync with each other.
+    out of sync with each other — including which rows count() reports as
+    the pagination total.
     """
+    from grunt.permissions.query import apply_permission_filter
+
+    query = apply_permission_filter(query, table, user, dt)
     if extra_clause is not None:
         query = query.where(extra_clause)
     if filters:
@@ -256,10 +261,10 @@ async def list_documents(
     if filters and any(k.endswith("__child_of") for k in filters):
         filters = await _expand_child_of_filters(session, dt, filters)
 
-    query = _apply_where(query, table, dt, filters, search, extra_clause)
+    query = _apply_where(query, table, dt, filters, search, extra_clause, user)
 
     count_q = _apply_where(
-        select(func.count()).select_from(table), table, dt, filters, search, extra_clause
+        select(func.count()).select_from(table), table, dt, filters, search, extra_clause, user
     )
     count_result = await session.execute(count_q)
     total = count_result.scalar() or 0

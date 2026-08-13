@@ -218,3 +218,32 @@ class TestRenderFallback:
         doc = {"name": "X"}
         html = _render_fallback("Test", fields, doc)
         assert "<td></td>" in html
+
+    def test_field_value_html_is_escaped(self):
+        """Regression: a field value is document data, not markup — a value
+        containing HTML/script must render as inert text, not be injected
+        into the page (stored XSS via any field, e.g. a "notes" or "title").
+        """
+        fields = [_make_field(fieldname="notes", label="Notes")]
+        doc = {"name": "X", "notes": "<script>alert(1)</script>"}
+        html = _render_fallback("Test", fields, doc)
+        assert "<script>alert(1)</script>" not in html
+        assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
+
+    def test_field_label_html_is_escaped(self):
+        fields = [_make_field(fieldname="f", label="<img src=x onerror=alert(1)>")]
+        doc = {"name": "X", "f": "value"}
+        html = _render_fallback("Test", fields, doc)
+        assert "<img src=x onerror=alert(1)>" not in html
+
+    def test_doc_name_html_is_escaped(self):
+        fields = [_make_field(fieldname="f", label="F")]
+        doc = {"name": "<script>alert(2)</script>", "f": "value"}
+        html = _render_fallback("Test", fields, doc)
+        assert "<script>alert(2)</script>" not in html
+
+    def test_doctype_label_html_is_escaped(self):
+        fields = [_make_field(fieldname="f", label="F")]
+        doc = {"name": "X", "f": "value"}
+        html = _render_fallback("<script>alert(3)</script>", fields, doc)
+        assert "<script>alert(3)</script>" not in html

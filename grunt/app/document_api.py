@@ -82,10 +82,12 @@ class DocumentAPI:
     ) -> dict[str, Any]:
         """Fetch a single document by id or name."""
         from grunt.hooks import fire
+        from grunt.permissions.rbac import permission_checker
 
         dt, user, hidden_fields = await read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, doc_id=id_or_name)
         doc = await self._doc().get_document(doctype, id_or_name, user, expand=expand)
+        await permission_checker.require(user, dt, "read", doc)
         doc = apply_hidden_fields_to_doc(doc, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, doc=doc)
         return doc
@@ -93,9 +95,11 @@ class DocumentAPI:
     async def get_doc_instance(self, doctype: str, id_or_name: str) -> Document:
         """Fetch a document and return it as an instantiated controller."""
         from grunt.document.registry import document_registry
+        from grunt.permissions.rbac import permission_checker
 
         dt, user, hidden_fields = await read_guard(doctype)
         data = await self._doc().get_document(doctype, id_or_name, user)
+        await permission_checker.require(user, dt, "read", data)
         data = apply_hidden_fields_to_doc(data, hidden_fields)
         controller_cls = document_registry.get(doctype)
         return controller_cls(doctype, data, user, require_session())

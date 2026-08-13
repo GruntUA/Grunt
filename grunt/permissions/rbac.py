@@ -71,7 +71,7 @@ class PermissionChecker:
                 continue
             # Check match expression
             match_expr = perm.match if hasattr(perm, "match") else None
-            if match_expr and doc and not self._eval_match(match_expr, user, doc):
+            if match_expr and doc and not self._eval_match(match_expr, user, doc, doctype.name):
                 continue
             result = True
             break
@@ -139,7 +139,7 @@ class PermissionChecker:
         _HIDDEN_CACHE[cache_key] = result
         return result
 
-    def _eval_match(self, match_expr: str, user: User, doc: dict) -> bool:
+    def _eval_match(self, match_expr: str, user: User, doc: dict, doctype_name: str = "") -> bool:
         try:
             from simpleeval import simple_eval
 
@@ -150,7 +150,14 @@ class PermissionChecker:
             }
             return bool(simple_eval(match_expr, names=names))
         except Exception:
-            return True
+            # Fail CLOSED: an unevaluable match expression (typo, unsupported
+            # syntax, ...) must deny the row, not silently grant it — the
+            # opposite default would turn a broken permission rule into an
+            # open one. Logged so a misconfigured rule is visible to admins.
+            logger.warning(
+                "rbac.match_eval_error", doctype=doctype_name, match=match_expr
+            )
+            return False
 
 
 permission_checker = PermissionChecker()

@@ -4,13 +4,18 @@ from types import SimpleNamespace
 
 import pytest
 
+from grunt.metadata.field import DocField
 from grunt.webform.service import WebFormError, WebFormService
 
 
 def _make_field(
     fieldname, fieldtype="Text", label=None, required=False, options=None, default=None
 ):
-    return SimpleNamespace(
+    # A real DocField (not a bare SimpleNamespace) so computed properties the
+    # service relies on — is_physical, is_searchable, coerce() — behave
+    # exactly as they do for a genuine DocType, not a hand-picked subset of
+    # attributes that happens to match today's call sites.
+    return DocField(
         fieldname=fieldname,
         fieldtype=fieldtype,
         label=label or fieldname.replace("_", " ").title(),
