@@ -5,6 +5,20 @@ docs CRUD, including setting `is_superadmin: true` on their own User record
 (instant self-service privilege escalation to full superadmin) or reading
 another user's hashed_password/mfa_secret/refresh_token/reset_token.
 
+DocTypePermission/DocType/DocField/DocTypeStatusIndicator had the exact same
+gap and it was worse: DocTypePermission carries an after_save/after_delete
+hook (grunt/permissions/sync.py:sync_permissions, registered in main.py)
+that immediately overwrites a target doctype's in-memory `permissions` with
+whatever rows exist in the table for it — live, no restart, no hot-reload
+trigger needed. Proven end-to-end: an unprivileged user calling
+`grunt.new_doc("DocTypePermission", {"doctype_name": "User", "role": "All",
+"write": true, ...})` made `permission_checker.check(attacker, User_dt,
+"write")` flip to True in the same request. DocType itself is reachable the
+same way and would take effect on the next hot-reload
+(`doctype_registry.list_all()` in `_apply_hot_reload_if_triggered`),
+bypassing the `is_superadmin` gate that `api/v1/meta.py:save_doctype` puts
+on the *intended* schema-editing path.
+
 These tests load the *actual* shipped DocType JSON (not a hand-built
 fixture) and exercise `permission_checker` directly — deliberately not
 through the full grunt.save_doc/get_doc facade, which for create/update/
@@ -38,6 +52,17 @@ _DOCTYPE_JSON = {
     "SystemSettings": _GRUNT_ROOT / "site/doctypes/SystemSettings/SystemSettings.json",
     "EmailAccount": _GRUNT_ROOT / "email/doctypes/EmailAccount/EmailAccount.json",
     "OutgoingWebhook": _GRUNT_ROOT / "webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json",
+    "DocTypePermission": _GRUNT_ROOT / "metadata/doctypes/DocTypePermission/DocTypePermission.json",
+    "DocType": _GRUNT_ROOT / "metadata/doctypes/DocType/DocType.json",
+    "DocField": _GRUNT_ROOT / "metadata/doctypes/DocField/DocField.json",
+    "DocTypeStatusIndicator": (
+        _GRUNT_ROOT / "metadata/doctypes/DocTypeStatusIndicator/DocTypeStatusIndicator.json"
+    ),
+    "ClientScript": _GRUNT_ROOT / "scripting/doctypes/ClientScript/ClientScript.json",
+    "GruntInstalledApp": (
+        _GRUNT_ROOT / "startup/doctypes/GruntInstalledApp/GruntInstalledApp.json"
+    ),
+    "WebsiteSettings": _GRUNT_ROOT / "site/doctypes/WebsiteSettings/WebsiteSettings.json",
 }
 
 
@@ -105,4 +130,18 @@ async def test_self_promotion_to_superadmin_denied_by_permission_check():
     dt = _load("User")
     attacker = _plain_user("victim@example.com")
     allowed = await permission_checker.check(attacker, dt, "write")
+    assert allowed is False
+
+
+@pytest.mark.asyncio
+async def test_self_grant_via_doctype_permission_denied_by_permission_check():
+    """The exact exploit: a plain user has no `create` on DocTypePermission,
+    so grunt.new_doc("DocTypePermission", {"doctype_name": "User", "role":
+    "All", "write": true, ...}) — which used to silently succeed and, via
+    the after_save sync hook, immediately grant every user write access to
+    User — is refused before a row is ever written.
+    """
+    dt = _load("DocTypePermission")
+    attacker = _plain_user("attacker@example.com")
+    allowed = await permission_checker.check(attacker, dt, "create")
     assert allowed is False

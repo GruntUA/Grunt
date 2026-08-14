@@ -98,5 +98,14 @@
       "fieldtype": "Text",
       "description": "Умова відображення (Python/JS)"
     }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

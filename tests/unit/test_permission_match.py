@@ -87,3 +87,19 @@ class TestEvaluate:
     def test_empty_expression_denies(self, expr):
         m = PermissionMatch(expr)
         assert not m.evaluate({"owner": "alice@example.com"}, _user("alice@example.com"))
+
+    def test_field_named_user_is_not_shadowed_by_current_user_token(self):
+        """Regression: a field literally named `user` (the natural field
+        name for "who this row belongs to" on DocTypes like PushSubscription/
+        Notification) used to collide with the reserved `user` name meaning
+        "current user's email" in evaluate()'s simpleeval namespace — the
+        doc's own `user` field was never consulted, so "user == user" was
+        always True regardless of the document's actual owner.
+        """
+        m = PermissionMatch("user == user")
+        assert m.evaluate({"user": "alice@example.com"}, _user("alice@example.com"))
+        assert not m.evaluate({"user": "bob@example.com"}, _user("alice@example.com"))
+
+    def test_narrow_form_denies_when_field_missing_from_doc(self):
+        m = PermissionMatch("status == 'Open'")
+        assert not m.evaluate({"owner": "alice@example.com"}, _user("alice@example.com"))

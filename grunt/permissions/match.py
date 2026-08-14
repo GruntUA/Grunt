@@ -89,6 +89,10 @@ class PermissionMatch:
         opposite default would turn a broken permission rule into an open
         one. Logged so a misconfigured rule is visible to admins.
         """
+        narrow = self._evaluate_narrow(doc, user, doctype_name=doctype_name)
+        if narrow is not None:
+            return narrow
+
         try:
             from simpleeval import simple_eval
 
@@ -103,3 +107,47 @@ class PermissionMatch:
                 "permissions.match_eval_error", doctype=doctype_name, match=self.expr
             )
             return False
+
+    def _evaluate_narrow(
+        self, doc: dict, user: User, *, doctype_name: str = ""
+    ) -> bool | None:
+        """Fast path for the same narrow ``field (==|!=) (user|'literal')``
+        form ``to_sql`` handles, evaluated the same structural way: *field*
+        always names a document field, *value* is resolved from the
+        (`user`|literal) grammar — never from a shared namespace.
+
+        Without this, the fallback ``simpleeval`` path below injects `user`
+        as a bare name meaning "current user's email" into the *same*
+        namespace document fields are read from. A match expression on a
+        field that happens to be named ``user`` (e.g. ``"user == user"``,
+        the natural way to write "this row's `user` field is me" for a
+        DocType whose owning-user field is literally called `user`) would
+        silently evaluate as `user.email == user.email` — always True,
+        regardless of the document's actual `user` field — since the doc's
+        own `user` value is never consulted at all. That's not a rejected
+        expression (which fails closed via the `except` below); it's a
+        *wrong* answer with no error, which is worse.
+
+        Returns None (defer to the general simpleeval path) for anything
+        outside this narrow grammar, e.g. boolean logic or comparisons
+        against fields other than the literal/`user` forms.
+        """
+        if self._parsed is None:
+            return None
+        field, op, raw_value = self._parsed
+
+        if raw_value == "user":
+            value: str = user.email
+        elif len(raw_value) >= 2 and raw_value[0] == raw_value[-1] and raw_value[0] in "'\"":
+            value = raw_value[1:-1]
+        else:
+            return None  # numeric/bare-name literals etc. — outside this form
+
+        if field not in doc:
+            logger.warning(
+                "permissions.match_eval_error", doctype=doctype_name, match=self.expr
+            )
+            return False
+
+        actual = doc.get(field)
+        return actual == value if op == "==" else actual != value

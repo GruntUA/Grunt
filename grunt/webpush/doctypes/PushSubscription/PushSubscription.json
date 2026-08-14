@@ -35,5 +35,15 @@
       "label": "User Agent",
       "fieldtype": "Text"
     }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true,
+      "match": "user == user"
+    }
   ]
 }

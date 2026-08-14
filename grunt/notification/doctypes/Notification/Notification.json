@@ -47,5 +47,14 @@
       "in_filter": true,
       "index": true
     }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true,
+      "write": true,
+      "delete": true,
+      "match": "user == user"
+    }
   ]
 }

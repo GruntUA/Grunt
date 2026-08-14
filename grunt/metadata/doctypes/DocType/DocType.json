@@ -316,5 +316,14 @@
       "experimental_component": "DesignerTab",
       "icon": "LayoutTemplate"
     }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

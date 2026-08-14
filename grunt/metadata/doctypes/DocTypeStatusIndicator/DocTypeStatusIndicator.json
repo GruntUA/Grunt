@@ -40,5 +40,14 @@
       "fieldtype": "Text",
       "description": "Відображувана назва; якщо порожньо — використовується значення поля"
     }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

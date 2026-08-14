@@ -92,5 +92,14 @@
       "fieldtype": "Image",
       "columns": 12
     }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }
