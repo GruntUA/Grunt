@@ -7,6 +7,7 @@ import io
 from typing import TYPE_CHECKING, Any
 
 from grunt.io.exporters.registry import Exporter
+from grunt.io.exporters.sanitize import escape_formula
 
 if TYPE_CHECKING:
     from grunt.metadata.field import DocField
@@ -17,9 +18,9 @@ def _fmt(value: Any) -> str:
         return ""
     if isinstance(value, dict):
         if "lat" in value and "lng" in value:
-            return f"{value['lat']}, {value['lng']}"
-        return str(value)
-    return str(value)
+            return escape_formula(f"{value['lat']}, {value['lng']}")
+        return escape_formula(str(value))
+    return escape_formula(str(value))
 
 
 class CsvExporter(Exporter):

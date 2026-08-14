@@ -18,5 +18,14 @@
       "label": "Опис",
       "fieldtype": "LongText"
     }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

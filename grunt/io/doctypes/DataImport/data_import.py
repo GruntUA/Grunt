@@ -181,11 +181,17 @@ class DataImport(Document):
             logger.exception("suppressed_error")
 
     async def _resolve_file_path(self) -> Path:
-        """Resolve the attached file reference to an absolute Path."""
-        path = Path(self.file)
-        if path.exists():
-            return path
+        """Resolve the attached file reference to an absolute Path.
 
+        Only resolves through a real `File` document + the storage
+        backend — `self.file` is a plain string field an authenticated
+        user (anyone with create rights on DataImport) fully controls.
+        Treating it as a raw filesystem path (as this used to, via
+        `Path(self.file).exists()`) is a path-traversal / arbitrary local
+        file read: `{"file": "/etc/passwd"}` (or any other server-local
+        path readable by the app process) would be "imported" and its
+        contents surfaced back through get_preview()'s headers/rows.
+        """
         file_id: str | None = None
 
         if self.file.startswith("/api/v1/files/"):

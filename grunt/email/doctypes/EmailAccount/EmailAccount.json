@@ -74,5 +74,14 @@
       "default": true,
       "depends_on": "eval:doc.enable_incoming"
     }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

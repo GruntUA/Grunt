@@ -10,6 +10,7 @@ import openpyxl
 from openpyxl.styles import Alignment, Font, PatternFill
 
 from grunt.io.exporters.registry import Exporter
+from grunt.io.exporters.sanitize import escape_formula
 
 if TYPE_CHECKING:
     from grunt.metadata.field import DocField
@@ -34,9 +35,9 @@ def _fmt(value: Any) -> Any:
     if isinstance(value, dict):
         # e.g. Geolocation {"lat": ..., "lng": ...}
         if "lat" in value and "lng" in value:
-            return f"{value['lat']}, {value['lng']}"
-        return str(value)
-    return str(value)
+            return escape_formula(f"{value['lat']}, {value['lng']}")
+        return escape_formula(str(value))
+    return escape_formula(str(value))
 
 
 class XlsxExporter(Exporter):

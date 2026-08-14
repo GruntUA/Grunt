@@ -340,9 +340,14 @@ class ReportEngine:
             cell.font = Font(bold=True)
 
         # Data rows
+        from grunt.io.exporters.sanitize import escape_formula
+
         for ri, row in enumerate(data, 2):
             for ci, col in enumerate(columns, 1):
-                ws.cell(row=ri, column=ci, value=row.get(col["fieldname"]))
+                cell_value = row.get(col["fieldname"])
+                if isinstance(cell_value, str):
+                    cell_value = escape_formula(cell_value)
+                ws.cell(row=ri, column=ci, value=cell_value)
 
         # Auto-width
         for col in ws.columns:

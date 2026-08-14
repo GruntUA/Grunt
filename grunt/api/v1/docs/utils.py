@@ -11,6 +11,7 @@ import structlog
 from openpyxl.styles import Alignment, Font, PatternFill
 
 from grunt.document.meta import Meta
+from grunt.io.exporters.sanitize import escape_formula
 
 logger = structlog.get_logger()
 
@@ -25,7 +26,7 @@ def _fmt(val: object) -> str:
         return val.strftime("%d.%m.%Y %H:%M")
     if isinstance(val, date):
         return val.strftime("%d.%m.%Y")
-    return str(val)
+    return escape_formula(str(val))
 
 
 def _non_layout_fields(dt: Any) -> list[Any]:
@@ -68,11 +69,22 @@ def _generate_xlsx_single(dt: Any, doc: dict[str, Any]) -> bytes:
 
 
 def _generate_html_single(dt: Any, doc: dict[str, Any]) -> str:
-    """Generate a single document HTML (standard layout)."""
+    """Generate a single document HTML (standard layout).
+
+    Hand-built (not Jinja, which autoescapes) — every interpolated value is
+    document data or a label and MUST be escaped explicitly, same reasoning
+    as print/renderer.py's _render_fallback (a field value containing HTML
+    is document data, not markup, and this doesn't get autoescape for free).
+    """
+    from html import escape
+
     rows = ""
     for field in _non_layout_fields(dt):
         val = _fmt(doc.get(field.fieldname))
-        rows += f"<tr><th>{field.label}</th><td>{val}</td></tr>\n"
+        rows += f"<tr><th>{escape(field.label)}</th><td>{escape(val)}</td></tr>\n"
+
+    created = escape(_fmt(doc.get("created_at")))
+    owner = escape(str(doc.get("owner", "")))
 
     return f"""<!DOCTYPE html>
 <html>
@@ -88,8 +100,8 @@ def _generate_html_single(dt: Any, doc: dict[str, Any]) -> str:
 </style>
 </head>
 <body>
-  <h1>{dt.label}</h1>
+  <h1>{escape(dt.label)}</h1>
   <table>{rows}</table>
-  <div class="meta">Створено: {_fmt(doc.get("created_at"))} | Автор: {doc.get("owner", "")}</div>
+  <div class="meta">Створено: {created} | Автор: {owner}</div>
 </body>
 </html>"""

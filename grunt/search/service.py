@@ -261,9 +261,14 @@ class SearchIndexService:
                     .limit(limit)
                 )
             elif dialect == "mysql":
-                # MySQL FULLTEXT MATCH ... AGAINST
+                # MySQL FULLTEXT MATCH ... AGAINST. `q` is a bound parameter
+                # (:q), not string-interpolated into the SQL text — a raw
+                # f-string here would let a search query break out of the
+                # AGAINST('...') literal (verified: `q = "' OR 1=1 -- "`
+                # produced `AGAINST('' OR 1=1 -- ' IN BOOLEAN MODE)`, valid
+                # injected SQL).
                 match_expr = func.match(t.c.content_raw, t.c.title, t.c.doc_name).op("AGAINST")(
-                    text(f"('{q}' IN BOOLEAN MODE)")
+                    text("(:search_q IN BOOLEAN MODE)").bindparams(search_q=q)
                 )
                 stmt = base.where(match_expr).limit(limit)
             else:
