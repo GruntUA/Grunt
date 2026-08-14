@@ -423,6 +423,15 @@ class DocumentWriteMixin(DocumentReadMixin):
         table = Meta(dt).table
         existing = await self.get_document(doctype_name, doc_id, user)
 
+        # write_guard() (the facade's pre-check) only verifies doctype-level
+        # access — it calls permission_checker with doc=None, so a
+        # `match`-restricted write permission (e.g. "owner == user") is never
+        # evaluated there. `existing` is already fetched for the diff logic
+        # below, so this row-level check is free — no extra DB round trip.
+        from grunt.permissions.rbac import permission_checker
+
+        await permission_checker.require(user, dt, "write", existing)
+
         errors = _validate_data(dt, data, partial=True, ignore_required=ignore_required)
         if errors:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
@@ -518,6 +527,13 @@ class DocumentWriteMixin(DocumentReadMixin):
         table = Meta(dt).table
 
         existing = await self.get_document(doctype_name, doc_id, user)
+
+        # Same reasoning as update_document: write_guard()'s pre-check can't
+        # see `match`-restricted delete permissions (doc=None there); this
+        # reuses the `existing` fetch already needed below, so it's free.
+        from grunt.permissions.rbac import permission_checker
+
+        await permission_checker.require(user, dt, "delete", existing)
 
         if dt.is_submittable and existing.get("docstatus") == 1:
             raise HTTPException(

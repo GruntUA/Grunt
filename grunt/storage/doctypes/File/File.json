@@ -81,5 +81,18 @@
       "fieldtype": "DynamicLink",
       "options": "attached_to_doctype"
     }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true,
+      "create": true
+    },
+    {
+      "role": "All",
+      "write": true,
+      "delete": true,
+      "match": "owner == user"
+    }
   ]
 }

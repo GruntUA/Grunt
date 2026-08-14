@@ -186,12 +186,15 @@ async def get_list(
 
 @whitelist()
 async def remove(file_id: str) -> bool:
-    """Whitelisted method: Delete a file."""
-    doc = await grunt.db.get_values("File", file_id, ["path"])
-    if not doc:
-        raise HTTPException(404, "File not found")
+    """Whitelisted method: Delete a file.
 
-    storage = get_storage_backend()
-    await storage.delete(doc.get("path") or "")
+    Deletes only through grunt.delete_doc(), not a manual storage.delete()
+    here first — that used to run unconditionally via grunt.db (which
+    bypasses permission checks) *before* delete_doc()'s own guard had a
+    chance to reject the request, so a non-owner could destroy someone
+    else's file's actual content even though the DB row deletion would
+    correctly be denied. File.before_delete() already deletes the physical
+    file as a required (non-best-effort) step of the guarded pipeline.
+    """
     await grunt.delete_doc("File", file_id)
     return True
