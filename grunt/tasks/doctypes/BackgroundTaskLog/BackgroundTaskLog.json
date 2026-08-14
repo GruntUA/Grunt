@@ -56,5 +56,11 @@
       "label": "Аргументи",
       "fieldtype": "JSON"
     }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true
+    }
   ]
 }

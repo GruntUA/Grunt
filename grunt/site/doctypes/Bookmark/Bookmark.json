@@ -21,5 +21,15 @@
       "label": "Назва",
       "fieldtype": "Text"
     }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true,
+      "match": "owner == user"
+    }
   ]
 }

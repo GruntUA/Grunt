@@ -41,5 +41,11 @@
       "fieldtype": "Text",
       "required": true
     }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true
+    }
   ]
 }

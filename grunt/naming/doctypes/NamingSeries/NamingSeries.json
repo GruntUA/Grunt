@@ -17,5 +17,14 @@
       "default": "0"
     }
   ],
-  "autoname": "field:prefix"
+  "autoname": "field:prefix",
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
 }

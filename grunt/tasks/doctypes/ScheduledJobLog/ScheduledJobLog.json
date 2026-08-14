@@ -47,5 +47,11 @@
       "label": "Cron вираз",
       "fieldtype": "Data"
     }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true
+    }
   ]
 }

@@ -49,5 +49,20 @@
       "fieldtype": "Date",
       "in_list_view": true
     }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true,
+      "write": true,
+      "match": "assigned_to == user"
+    },
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

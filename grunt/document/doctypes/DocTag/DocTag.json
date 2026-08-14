@@ -27,5 +27,18 @@
       "in_list_view": true,
       "in_filter": true
     }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true,
+      "create": true
+    },
+    {
+      "role": "All",
+      "write": true,
+      "delete": true,
+      "match": "owner == user"
+    }
   ]
 }

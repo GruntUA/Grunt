@@ -67,5 +67,17 @@
       "fieldtype": "Table",
       "options": "WorkspaceSidebarItem"
     }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true
+    },
+    {
+      "role": "System Manager",
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }
