@@ -40,5 +40,14 @@
       "label": "Зміни",
       "fieldtype": "JSON"
     }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

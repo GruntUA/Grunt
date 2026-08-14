@@ -41,6 +41,8 @@ _DOCTYPE_JSON = {
     "Notification": _GRUNT_ROOT / "notification/doctypes/Notification/Notification.json",
 }
 
+_USER_SESSION_JSON = _GRUNT_ROOT / "auth/doctypes/UserSession/UserSession.json"
+
 
 def _load(doctype_name: str) -> DocType:
     data = json.loads(_DOCTYPE_JSON[doctype_name].read_text(encoding="utf-8"))
@@ -77,3 +79,30 @@ async def test_other_user_cannot_access_row(doctype_name):
     assert await permission_checker.check(attacker, dt, "read", someone_elses_row) is False
     assert await permission_checker.check(attacker, dt, "write", someone_elses_row) is False
     assert await permission_checker.check(attacker, dt, "delete", someone_elses_row) is False
+
+
+def _load_user_session() -> DocType:
+    data = json.loads(_USER_SESSION_JSON.read_text(encoding="utf-8"))
+    return DocType.model_validate(data)
+
+
+def test_user_session_has_permissions_defined():
+    assert _load_user_session().permissions
+
+
+@pytest.mark.asyncio
+async def test_user_session_owner_can_read_and_deactivate_own_session():
+    dt = _load_user_session()
+    owner = _user("owner@example.com")
+    own_row = {"user": "owner@example.com"}
+    assert await permission_checker.check(owner, dt, "read", own_row) is True
+    assert await permission_checker.check(owner, dt, "write", own_row) is True
+
+
+@pytest.mark.asyncio
+async def test_user_session_other_user_cannot_read_or_touch_it():
+    dt = _load_user_session()
+    attacker = _user("attacker@example.com")
+    someone_elses_row = {"user": "victim@example.com"}
+    assert await permission_checker.check(attacker, dt, "read", someone_elses_row) is False
+    assert await permission_checker.check(attacker, dt, "write", someone_elses_row) is False

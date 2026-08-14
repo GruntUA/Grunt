@@ -93,20 +93,28 @@ async def record_activity(
 
     The single write path for the activity feed. Must be called within an
     active grunt context (ambient session/user). Skips system churn centrally.
+
+    Writes as SYSTEM_USER, not the ambient caller: `create` on ActivityLog
+    is restricted to System Manager (write/delete always were, to keep the
+    audit trail tamper-proof) precisely so a regular user can't forge an
+    entry via the generic docs CRUD — attributing an action to someone else,
+    or inventing one that never happened. This is the *only* legitimate
+    write path, so it must work regardless of the acting user's own role.
     """
     if not doctype or doctype in _SKIP_DOCTYPES:
         return
     try:
-        doc = await grunt.new_doc(
-            "ActivityLog",
-            {
-                "doctype": doctype,
-                "doc_id": str(doc_id),
-                "user": user_email,
-                "action": action,
-                "details": details,
-            },
-        )
+        async with grunt.system_context(grunt._require_session()):
+            doc = await grunt.new_doc(
+                "ActivityLog",
+                {
+                    "doctype": doctype,
+                    "doc_id": str(doc_id),
+                    "user": user_email,
+                    "action": action,
+                    "details": details,
+                },
+            )
     except Exception as e:
         logger.warning("activity.log_failed", error=str(e), doctype=doctype, doc_id=doc_id)
         return

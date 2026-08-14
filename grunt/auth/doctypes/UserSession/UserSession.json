@@ -46,5 +46,13 @@
       "in_list_view": true,
       "in_filter": true
     }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true,
+      "write": true,
+      "match": "user == user"
+    }
   ]
 }

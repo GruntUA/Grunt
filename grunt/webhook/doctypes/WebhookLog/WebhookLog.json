@@ -59,5 +59,14 @@
       "fieldtype": "Check",
       "in_filter": true
     }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

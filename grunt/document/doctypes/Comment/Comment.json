@@ -29,5 +29,18 @@
       "options": "Comment\nInfo\nWarning\nError",
       "default": "Comment"
     }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true,
+      "create": true
+    },
+    {
+      "role": "All",
+      "write": true,
+      "delete": true,
+      "match": "owner == user"
+    }
   ]
 }

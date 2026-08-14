@@ -63,16 +63,18 @@ async def restore_document_version(
 
     result = await grunt.save_doc(doctype, doc_id, update_fields)
 
-    # Add audit log
-    await grunt.new_doc(
-        "ActivityLog",
-        {
-            "doctype": doctype,
-            "doc_id": doc_id,
-            "action": "restore",
-            "user": grunt.session.user,
-            "details": f'{{"to_version": "{target["version"]}"}}',
-        },
+    # Add audit log — via the shared write path (grunt.activity.record_activity),
+    # not a raw grunt.new_doc("ActivityLog", ...) call: ActivityLog.create is
+    # restricted to System Manager to keep the audit trail tamper-proof, and
+    # record_activity is the one path that's allowed to write as any user.
+    from grunt.activity import record_activity
+
+    await record_activity(
+        doctype,
+        doc_id,
+        "restore",
+        user_email=grunt.session.user,
+        details={"to_version": target["version"]},
     )
 
     return ok(result, restored_to_version=target["version"])

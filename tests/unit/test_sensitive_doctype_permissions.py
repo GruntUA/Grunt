@@ -63,6 +63,12 @@ _DOCTYPE_JSON = {
         _GRUNT_ROOT / "startup/doctypes/GruntInstalledApp/GruntInstalledApp.json"
     ),
     "WebsiteSettings": _GRUNT_ROOT / "site/doctypes/WebsiteSettings/WebsiteSettings.json",
+    "DocVersion": _GRUNT_ROOT / "document/doctypes/DocVersion/DocVersion.json",
+    "EmailQueue": _GRUNT_ROOT / "email/doctypes/EmailQueue/EmailQueue.json",
+    "NotificationRule": (
+        _GRUNT_ROOT / "notification/doctypes/NotificationRule/NotificationRule.json"
+    ),
+    "WebhookLog": _GRUNT_ROOT / "webhook/doctypes/WebhookLog/WebhookLog.json",
 }
 
 

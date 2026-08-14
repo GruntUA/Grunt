@@ -47,5 +47,17 @@
       "label": "Деталі",
       "fieldtype": "JSON"
     }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "read": true
+    },
+    {
+      "role": "System Manager",
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }
