@@ -119,7 +119,8 @@ async def rotate_refresh_token(
 
         user_id = user_data["name"]
 
-    user = await get_user_by_id(user_id, session)
+    async with grunt.context(session):
+        user = await get_user_by_id(user_id)
     if user is None:
         return None
 

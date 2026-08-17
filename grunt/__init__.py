@@ -30,7 +30,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Awaitable, Callable
     from contextlib import AbstractAsyncContextManager
     from typing import Any, NoReturn, TypeVar
 
@@ -38,6 +38,7 @@ if TYPE_CHECKING:
 
     from grunt.app import GruntDB
     from grunt.auth.doctypes.User.user import User
+    from grunt.document.base import Document
 
     _T = TypeVar("_T")
     _F = TypeVar("_F", bound=Callable)
@@ -45,18 +46,33 @@ if TYPE_CHECKING:
     db: GruntDB
 
     # ── Decorators / utilities ────────────────────────────────────────────────
-    def whitelist(allow_guest: bool = False) -> Callable[[_F], _F]: ...
+    def whitelist(
+        allow_guest: bool = False,
+        *,
+        roles: list[str] | None = None,
+        require: Callable[[User], bool | Awaitable[bool]] | None = None,
+    ) -> Callable[[_F], _F]: ...
     def throw(message: str, code: str = "ERROR", title: str = "") -> NoReturn: ...
     async def get_current_user() -> User: ...
     def get_engine() -> AsyncEngine: ...
 
     # ── Document API ──────────────────────────────────────────────────────────
-    async def get_doc(
-        doctype: str,
+    # Not `@overload` (this stub is never executed — see __getattr__ below — and
+    # `@overload` outside a .pyi file requires a real dispatching implementation).
+    # Pass a doctype name for a dict result, or a Document subclass for a typed
+    # controller instance — see the real overloads on GruntApp.get_doc.
+    async def get_doc[D: Document](
+        doctype: str | type[D],
         id_or_name: str,
         *,
         expand: list[str] | None = None,
-    ) -> dict[str, Any]: ...
+    ) -> dict[str, Any] | D: ...
+    async def find_doc[D: Document](
+        doctype: str | type[D],
+        id_or_name: str,
+        *,
+        expand: list[str] | None = None,
+    ) -> dict[str, Any] | D | None: ...
     async def new_doc(
         doctype: str,
         data: dict[str, Any],
@@ -167,6 +183,7 @@ def __getattr__(name: str):
         "clear_context",
         "whitelist",
         "get_doc",
+        "find_doc",
         "get_list",
         "new_doc",
         "save_doc",
@@ -186,6 +203,7 @@ def __getattr__(name: str):
         # Some methods are on grunt.app.grunt instance, some in grunt.api
         if name in (
             "get_doc",
+            "find_doc",
             "get_list",
             "new_doc",
             "save_doc",

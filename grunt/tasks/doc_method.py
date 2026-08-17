@@ -30,7 +30,8 @@ async def _run_doc_method(
     engine = site_manager.get_engine(site)
 
     async with maker() as session:
-        user = await get_user_by_email(user_email, session)
+        async with grunt.context(session):
+            user = await get_user_by_email(user_email)
         if user is None:
             logger.error(
                 "enqueue_doc.user_not_found", email=user_email, doctype=doctype, doc_id=doc_id

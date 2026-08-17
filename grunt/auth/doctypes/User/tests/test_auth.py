@@ -61,7 +61,7 @@ async def test_first_user_is_superadmin(ctx):
         )
         await ctx.db._session().commit()
 
-        u1 = await get_user_by_email("first@grunt.example.com", ctx.db._session())
+        u1 = await get_user_by_email("first@grunt.example.com")
         assert u1.is_superadmin is True
 
         # Second user
@@ -73,7 +73,7 @@ async def test_first_user_is_superadmin(ctx):
         )
         await ctx.db._session().commit()
 
-        u2 = await get_user_by_email("second@grunt.example.com", ctx.db._session())
+        u2 = await get_user_by_email("second@grunt.example.com")
         assert u2.is_superadmin is False
 
 
@@ -89,11 +89,11 @@ async def test_wrong_password_returns_401(ctx):
             "Wrong",
             "Password",
             None,
-            ctx.db._session(),
         )
         await ctx.db._session().commit()
 
-    result = await authenticate("user@grunt.example.com", "wrong", ctx.db._session())
+    async with ctx.context(ctx.db._session(), ctx._require_engine()):
+        result = await authenticate("user@grunt.example.com", "wrong")
     assert result is None
 
 

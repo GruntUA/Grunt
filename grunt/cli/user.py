@@ -20,6 +20,7 @@ def users_create(email, password, full_name, site):
     """Створити нового користувача."""
 
     async def _run():
+        from grunt.app import grunt
         from grunt.auth.doctypes.User.user import create_user, get_user_by_email
 
         name_parts = full_name.strip().split()
@@ -36,17 +37,11 @@ def users_create(email, password, full_name, site):
             middle_name = " ".join(name_parts[1:-1])
 
         async with _site_session(site) as (session, _eng):
-            if await get_user_by_email(email, session) is not None:
-                click.echo(f"Помилка: користувач '{email}' вже існує.", err=True)
-                raise SystemExit(1)
-            user = await create_user(
-                email,
-                password,
-                first_name,
-                last_name,
-                middle_name,
-                session,
-            )
+            async with grunt.context(session, _eng):
+                if await get_user_by_email(email) is not None:
+                    click.echo(f"Помилка: користувач '{email}' вже існує.", err=True)
+                    raise SystemExit(1)
+                user = await create_user(email, password, first_name, last_name, middle_name)
             await session.commit()
 
         label = "superadmin" if user.is_superadmin else "user"
@@ -61,10 +56,14 @@ def users_list(site):
     """Показати список всіх користувачів."""
 
     async def _run():
+        from grunt.app import grunt
         from grunt.auth.doctypes.User.user import list_users
 
-        async with _site_session(site) as (session, _eng):
-            users = await list_users(session)
+        async with (
+            _site_session(site) as (session, _eng),
+            grunt.context(session, _eng),
+        ):
+            users = await list_users()
 
         if not users:
             click.echo("Користувачів немає.")
@@ -89,23 +88,24 @@ def users_set_password(email, password, site):
 
     async def _run():
         import grunt
-        from grunt.app import grunt as grunt_app
         from grunt.auth.doctypes.User.user import (
             get_user_by_email,
             hash_password,
         )
 
-        async with _site_session(site) as (session, eng):
-            user = await get_user_by_email(email, session)
+        async with (
+            _site_session(site) as (session, eng),
+            grunt.context(session, eng),
+        ):
+            user = await get_user_by_email(email)
             if user is None:
                 click.echo(f"Помилка: користувача '{email}' не знайдено.", err=True)
                 raise SystemExit(1)
 
-            async with grunt_app.system_context(session, eng):
-                await grunt.db.set_value(
-                    "User", user.id, {"hashed_password": await hash_password(password)}
-                )
-                await session.commit()
+            await grunt.db.set_value(
+                "User", user.id, {"hashed_password": await hash_password(password)}
+            )
+            await session.commit()
 
         click.echo(f"Пароль змінено для {email}.")
 

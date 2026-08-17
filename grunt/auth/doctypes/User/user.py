@@ -7,7 +7,7 @@ The auth layer (JWT tokens, refresh tokens) remains in ``grunt.core.auth.service
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import anyio.to_thread
 import bcrypt
@@ -15,10 +15,7 @@ import structlog
 
 import grunt
 from grunt.document.base import Document
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
+from grunt.document.schema import Schema
 
 logger = structlog.get_logger()
 
@@ -106,6 +103,12 @@ class User(Document):
         await disable_mfa(self)
 
 
+class UserPublic(Schema):
+    """Fields safe to return from whoami/register/list_users_api."""
+
+    fields = ("name", "email", "full_name", "roles", "is_superadmin")
+
+
 # Convenience system-user singleton for internal tasks.
 SYSTEM_USER = User(
     doctype="User",
@@ -153,50 +156,48 @@ async def verify_password(plain: str, hashed: str | None) -> bool:
 # ── User CRUD ─────────────────────────────────────────────────────────────
 
 
-async def get_user_by_email(
-    email: str,
-    session: AsyncSession,
-) -> User | None:
-    from grunt.app import grunt
+async def get_user_by_email(email: str) -> User | None:
+    """Look up a user by email. Runs as SYSTEM_USER — needed pre-login, when
+    no real user is in context yet."""
+    from grunt.auth.doctypes.UserRole.user_role import get_user_roles
+    from grunt.context import require_session
 
+    session = require_session()
     async with grunt.system_context(session):
-        from grunt.auth.doctypes.UserRole.user_role import get_user_roles
-
-        rows = await grunt.db.get_all("User", filters={"email": email}, limit=1)
-        if not rows:
+        user = await User.objects.filter(email=email).first()
+        if user is None:
             return None
-        row = rows[0]
-        roles = await get_user_roles(row["name"], session)
-        return User(doctype="User", data={**row, "roles": roles})
+        user.data["roles"] = await get_user_roles(user.name, session)
+        return user
 
 
-async def get_user_by_id(user_id: str, session: AsyncSession) -> User | None:
-    from grunt.app import grunt
+async def get_user_by_id(user_id: str) -> User | None:
+    """Look up a user by id. Runs as SYSTEM_USER — see :func:`get_user_by_email`."""
+    from grunt.auth.doctypes.UserRole.user_role import get_user_roles
+    from grunt.context import require_session
 
+    session = require_session()
     async with grunt.system_context(session):
-        from grunt.auth.doctypes.UserRole.user_role import get_user_roles
-
-        rows = await grunt.db.get_all("User", filters={"name": user_id}, limit=1)
-        if not rows:
+        user = await User.objects.filter(name=user_id).first()
+        if user is None:
             return None
-        row = rows[0]
-        roles = await get_user_roles(row["name"], session)
-        return User(doctype="User", data={**row, "roles": roles})
+        user.data["roles"] = await get_user_roles(user.name, session)
+        return user
 
 
-async def list_users(session: AsyncSession) -> list[User]:
-    from grunt.app import grunt
+async def list_users() -> list[User]:
+    """List all users. Runs as SYSTEM_USER — callers (CLI, admin API) gate access
+    themselves before calling this."""
+    from grunt.auth.doctypes.UserRole.user_role import get_user_roles
+    from grunt.context import require_session
     from grunt.site.manager import site_manager
 
-    _engine = site_manager.get_engine(site_manager.get_active_site())
-    async with grunt.system_context(session, _engine):
-        from grunt.auth.doctypes.UserRole.user_role import get_user_roles
-
-        rows = await grunt.db.get_all("User", limit=10_000)
-        users = []
-        for row in rows:
-            roles = await get_user_roles(row["name"], session)
-            users.append(User(doctype="User", data={**row, "roles": roles}))
+    session = require_session()
+    engine = site_manager.get_engine(site_manager.get_active_site())
+    async with grunt.system_context(session, engine):
+        users = await User.objects.limit(10_000).all()
+        for user in users:
+            user.data["roles"] = await get_user_roles(user.name, session)
         return users
 
 
@@ -206,46 +207,40 @@ async def create_user(
     first_name: str,
     last_name: str,
     middle_name: str | None,
-    session: AsyncSession,
 ) -> User:
     """Create a new user. The first user automatically becomes superadmin."""
-    from grunt.app import grunt
+    from grunt.context import require_session
     from grunt.site.manager import site_manager
 
-    _engine = site_manager.get_engine(site_manager.get_active_site())
-    async with grunt.system_context(session, _engine):
-        user_count = await grunt.db.count("User")
-        is_superadmin = user_count == 0
-
-        await grunt.new_doc(
-            "User",
-            {
-                "email": email,
-                "first_name": first_name,
-                "last_name": last_name,
-                "middle_name": middle_name,
-                "password": password,
-                "is_superadmin": is_superadmin,
-                "is_active": True,
-            },
+    session = require_session()
+    engine = site_manager.get_engine(site_manager.get_active_site())
+    async with grunt.system_context(session, engine):
+        is_superadmin = await User.objects.count() == 0
+        await User.objects.create(
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            middle_name=middle_name,
+            password=password,
+            is_superadmin=is_superadmin,
+            is_active=True,
         )
-
         logger.info("user.created", email=email, superadmin=is_superadmin)
 
-        user = await get_user_by_email(email, session)
-        assert user is not None
-        return user
+    user = await get_user_by_email(email)
+    assert user is not None
+    return user
 
 
-async def authenticate(email: str, password: str, session: AsyncSession) -> User | None:
+async def authenticate(email: str, password: str) -> User | None:
     """Return user if credentials are valid, else None.
 
     Tracks failed attempts and locks the account after _MAX_ATTEMPTS failures.
     Raises ``ValueError("locked")`` when the account is temporarily locked.
     """
-    from grunt.app import grunt
+    from grunt.context import require_session
 
-    user = await get_user_by_email(email, session)
+    user = await get_user_by_email(email)
     if user is None:
         return None
 
@@ -259,7 +254,7 @@ async def authenticate(email: str, password: str, session: AsyncSession) -> User
         if locked_until_utc > now:
             raise ValueError("locked")
 
-    async with grunt.system_context(session):
+    async with grunt.system_context(require_session()):
         if not user.hashed_password or not await verify_password(password, user.hashed_password):
             new_attempts = (user.login_attempts or 0) + 1
             updates: dict = {"login_attempts": new_attempts}
@@ -283,88 +278,37 @@ async def register(
     middle_name: str | None = None,
 ) -> dict[str, Any]:
     """Register a new user."""
-    from grunt.app import grunt as grunt_app
-
-    session = grunt_app._require_session()
-
-    existing = await get_user_by_email(email, session)
+    existing = await get_user_by_email(email)
     if existing is not None:
-        grunt_app.throw(f"User with email '{email}' already exists", "CONFLICT")
+        grunt.throw(f"User with email '{email}' already exists", "CONFLICT")
 
-    user = await create_user(
-        email,
-        password,
-        first_name or "",
-        last_name or "",
-        middle_name,
-        session,
-    )
-    return {
-        "name": user.name,
-        "email": user.email,
-        "full_name": user.full_name,
-        "roles": user.roles,
-        "is_superadmin": user.is_superadmin,
-    }
+    user = await create_user(email, password, first_name or "", last_name or "", middle_name)
+    return UserPublic.dump(user)
 
 
 @grunt.whitelist()
 async def whoami() -> dict[str, Any]:
     """Return the currently authenticated user."""
-    from grunt.app import grunt as grunt_app
-
-    user = grunt_app._require_user()
-    return {
-        "name": user.name,
-        "email": user.email,
-        "full_name": user.full_name,
-        "roles": user.roles,
-        "is_superadmin": user.is_superadmin,
-        "mfa_enabled": bool(user.mfa_enabled),
-    }
+    user = await grunt.get_current_user()
+    return {**UserPublic.dump(user), "mfa_enabled": bool(user.mfa_enabled)}
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def list_users_api() -> list[dict[str, Any]]:
-    """List all users. Superadmin only."""
-    from grunt.app import grunt as grunt_app
-
-    user = grunt_app._require_user()
-    if not user.is_superadmin:
-        grunt_app.throw("Unauthorized", "PERMISSION_DENIED")
-
-    users = await list_users(grunt_app._require_session())
-    return [
-        {
-            "name": u.name,
-            "email": u.email,
-            "full_name": u.full_name,
-            "roles": u.roles,
-            "is_superadmin": u.is_superadmin,
-        }
-        for u in users
-    ]
+    """List all users. Superadmin only (enforced by the whitelist gate)."""
+    return UserPublic.dump_many(await list_users())
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def add_role(user_id: str, role_name: str) -> dict[str, Any]:
-    """Assign a role to a user. Superadmin only."""
-    from grunt.app import grunt as grunt_app
+    """Assign a role to a user. Superadmin only (enforced by the whitelist gate)."""
+    await grunt.get_doc(User, user_id)  # raises 404 if the user doesn't exist
 
-    user = grunt_app._require_user()
-    if not user.is_superadmin:
-        grunt_app.throw("Unauthorized", "PERMISSION_DENIED")
-
-    target_user = await get_user_by_id(user_id, grunt_app._require_session())
-    if not target_user:
-        grunt_app.throw("Користувача не знайдено", "NOT_FOUND")
-
-    # Check if role exists, create if not
-    existing_role = await grunt_app.get_list("Role", filters={"role_name": role_name}, limit=1)
+    existing_role = await grunt.get_list("Role", filters={"role_name": role_name}, limit=1)
     if not existing_role:
-        await grunt_app.new_doc("Role", {"role_name": role_name})
+        await grunt.new_doc("Role", {"role_name": role_name})
 
-    existing_assignment = await grunt_app.get_list(
+    existing_assignment = await grunt.get_list(
         "UserRole",
         filters={"user_id": user_id, "role_name": role_name},
         limit=1,
@@ -372,55 +316,43 @@ async def add_role(user_id: str, role_name: str) -> dict[str, Any]:
     if existing_assignment:
         return {"user_id": user_id, "role": role_name, "message": "Роль вже призначено"}
 
-    await grunt_app.new_doc("UserRole", {"user_id": user_id, "role_name": role_name})
+    await grunt.new_doc("UserRole", {"user_id": user_id, "role_name": role_name})
     return {"user_id": user_id, "role": role_name}
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def remove_role(user_id: str, role_name: str) -> bool:
-    """Remove a role from a user. Superadmin only."""
-    from grunt.app import grunt as grunt_app
-
-    user = grunt_app._require_user()
-    if not user.is_superadmin:
-        grunt_app.throw("Unauthorized", "PERMISSION_DENIED")
-
-    rows = await grunt_app.get_list(
+    """Remove a role from a user. Superadmin only (enforced by the whitelist gate)."""
+    rows = await grunt.get_list(
         "UserRole",
         filters={"user_id": user_id, "role_name": role_name},
         fields=["name"],
         limit=1,
     )
     if not rows:
-        grunt_app.throw("Роль не знайдено у користувача", "NOT_FOUND")
+        grunt.throw("Роль не знайдено у користувача", "NOT_FOUND")
 
-    await grunt_app.delete_doc("UserRole", rows[0]["name"])
+    await grunt.delete_doc("UserRole", rows[0]["name"])
     return True
 
 
 @grunt.whitelist()
 async def setup_mfa() -> dict[str, Any]:
     """Whitelisted method: Start MFA setup for the current user."""
-    from grunt.app import grunt as grunt_app
-
-    current = grunt_app._require_user()
-    session = grunt_app._require_session()
-    user = await get_user_by_id(current.id, session)
+    current = await grunt.get_current_user()
+    user = await get_user_by_id(current.id)
     if not user:
-        grunt_app.throw("User not found")
+        grunt.throw("User not found")
     return await user.setup_mfa()
 
 
 @grunt.whitelist()
 async def confirm_mfa(code: str) -> dict[str, Any]:
     """Whitelisted method: Confirm MFA setup for the current user."""
-    from grunt.app import grunt as grunt_app
-
-    current = grunt_app._require_user()
-    session = grunt_app._require_session()
-    user = await get_user_by_id(current.id, session)
+    current = await grunt.get_current_user()
+    user = await get_user_by_id(current.id)
     if not user:
-        grunt_app.throw("User not found")
+        grunt.throw("User not found")
     backup_codes = await user.confirm_mfa(code)
     return {"backup_codes": backup_codes}
 
@@ -428,12 +360,9 @@ async def confirm_mfa(code: str) -> dict[str, Any]:
 @grunt.whitelist()
 async def disable_mfa() -> bool:
     """Whitelisted method: Disable MFA for the current user."""
-    from grunt.app import grunt as grunt_app
-
-    current = grunt_app._require_user()
-    session = grunt_app._require_session()
-    user = await get_user_by_id(current.id, session)
+    current = await grunt.get_current_user()
+    user = await get_user_by_id(current.id)
     if not user:
-        grunt_app.throw("User not found")
+        grunt.throw("User not found")
     await user.disable_mfa()
     return True

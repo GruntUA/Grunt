@@ -116,7 +116,10 @@ async def optional_user(
             return None
     except jwt.PyJWTError:
         return None
-    user = await get_user_by_email(email, session)
+    from grunt.app import grunt
+
+    async with grunt.context(session):
+        user = await get_user_by_email(email)
     if user is None or not user.is_active:
         return None
     return user

@@ -124,7 +124,8 @@ async def authenticate_api_key(
             return None
 
     # Load user
-    user = await get_user_by_id(matched_row["user_id"], session)
+    async with grunt.context(session):
+        user = await get_user_by_id(matched_row["user_id"])
     if user is None or not user.is_active:
         return None
 

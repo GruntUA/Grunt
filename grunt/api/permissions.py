@@ -38,6 +38,14 @@ async def get_current_user() -> User:
 async def _check_doctype_permission(doctype: str, permission: str) -> bool:
     """Check if user has a specific permission for a DocType.
 
+    Deliberately independent of ``permission_checker``/``RoleAccess``
+    (``permissions/rbac.py``) — that checker requires a *registered* DocType
+    object and is meant for the guarded CRUD pipeline (``grunt.get_doc``/
+    ``get_list``/``save_doc``). This one works against any doctype name by
+    scanning ``DocTypePermission`` rows directly, for lightweight checks
+    (``grunt.can_read(...)``) that shouldn't require the target to be a fully
+    loaded DocType.
+
     Args:
         doctype: e.g., "Invoice"
         permission: e.g., "read", "write", "create", "delete", "submit"

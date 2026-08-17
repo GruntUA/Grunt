@@ -57,7 +57,7 @@ Accessing document data::
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import structlog
 
@@ -120,6 +120,21 @@ class DocumentList(list):
         return default
 
 
+class _ObjectsDescriptor:
+    """Class-level descriptor backing ``Document.objects`` — see ``QuerySet``.
+
+    Only ever bound via class access (``User.objects``, not ``user.objects``);
+    it does not go through ``Document.__getattr__`` (that only fires on
+    *instance* attribute lookup misses), so there's no risk of colliding with
+    a real ``objects`` field on a doctype.
+    """
+
+    def __get__(self, instance: Any, owner: type[Document]) -> Any:
+        from grunt.document.queryset import QuerySet
+
+        return QuerySet(owner)
+
+
 class Document(DocumentWriteMixin):
     """Base class for all DocType controllers.
 
@@ -150,6 +165,8 @@ class Document(DocumentWriteMixin):
     * ``before_delete()`` — called before the row is deleted.
     * ``after_delete()`` — called after deletion.
     """
+
+    objects: ClassVar[_ObjectsDescriptor] = _ObjectsDescriptor()
 
     def __init__(
         self,

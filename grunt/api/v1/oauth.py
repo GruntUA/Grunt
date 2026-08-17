@@ -26,14 +26,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import HTTPException
 
+from grunt.api.router import GruntRouter
 from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
-from grunt.auth.dependencies import grunt_context_optional
 from grunt.config import settings
 
-router = APIRouter(prefix="", tags=["oauth"])
+router = GruntRouter(prefix="", tags=["oauth"], optional_auth=True)
 
 # ── Provider registry ─────────────────────────────────────────────────────────
 
@@ -114,11 +114,7 @@ async def oauth_authorize(provider: str) -> dict:
 
 
 @router.get("/{provider}/callback")
-async def oauth_callback(
-    provider: str,
-    code: str,
-    _: None = Depends(grunt_context_optional),
-) -> dict:
+async def oauth_callback(provider: str, code: str) -> dict:
     """Exchange the authorization code for Grunt tokens.
 
     Returns the same ``TokenResponse`` shape as ``POST /auth/token``.
@@ -171,12 +167,12 @@ async def oauth_callback(
     session = grunt._require_session()
 
     # Find or create the local user
-    user = await get_user_by_email(email, session)
+    user = await get_user_by_email(email)
     if user is None:
         import secrets
 
         # Create user with a random unusable password
-        user = await create_user(email, secrets.token_hex(32), full_name, "", None, session)
+        user = await create_user(email, secrets.token_hex(32), full_name, "", None)
         await session.commit()
 
     assert user.id is not None

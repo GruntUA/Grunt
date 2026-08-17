@@ -99,9 +99,8 @@ class AssignmentService:
                     fields=["user_id"],
                     limit=500,
                 )
-                session = grunt._require_session()
                 for ur in ur_rows:
-                    u = await get_user_by_id(ur["user_id"], session)
+                    u = await get_user_by_id(ur["user_id"])
                     if u and u.is_active:
                         will_assign_to.append(u.email)
 
@@ -226,7 +225,8 @@ class AssignmentService:
                 return
 
             for user_id in user_ids:
-                user = await get_user_by_id(user_id, session)
+                async with grunt.context(session):
+                    user = await get_user_by_id(user_id)
                 if not user or not user.is_active:
                     continue
 

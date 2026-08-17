@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import copy
 from datetime import UTC
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, overload
 
 import structlog
 
@@ -72,17 +72,46 @@ class DocumentAPI:
 
         return Document.bare(require_session(), require_engine())
 
-    @profile("grunt.get_doc")
+    @overload
     async def get_doc(
         self,
         doctype: str,
         id_or_name: str,
         *,
         expand: list[str] | None = None,
-    ) -> dict[str, Any]:
-        """Fetch a single document by id or name."""
+    ) -> dict[str, Any]: ...
+
+    @overload
+    async def get_doc[D: Document](
+        self,
+        doctype: type[D],
+        id_or_name: str,
+        *,
+        expand: list[str] | None = None,
+    ) -> D: ...
+
+    @profile("grunt.get_doc")
+    async def get_doc(self, doctype, id_or_name, *, expand=None):
+        """Fetch a single document by id or name.
+
+        Pass a doctype name for the untyped dict result, or a ``Document``
+        subclass for a typed controller instance (mirrors ``grunt.get_all``)::
+
+            order = await grunt.get_doc(Order, order_id)    # typed -> Order
+            order = await grunt.get_doc("Order", order_id)  # dict
+        """
         from grunt.hooks import fire
         from grunt.permissions.rbac import permission_checker
+
+        if isinstance(doctype, type):
+            name: str = getattr(doctype, "doctype", doctype.__name__)
+            dt, user, hidden_fields = await read_guard(name)
+            await fire("before_read", doctype=name, user=user, doc_id=id_or_name)
+            data = await self._doc().get_document(name, id_or_name, user, expand=expand)
+            await permission_checker.require(user, dt, "read", data)
+            data = apply_hidden_fields_to_doc(data, hidden_fields)
+            await fire("after_read", doctype=name, user=user, doc=data)
+            return doctype(doctype=name, data=data, user=user, session=require_session())
 
         dt, user, hidden_fields = await read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, doc_id=id_or_name)
@@ -91,6 +120,35 @@ class DocumentAPI:
         doc = apply_hidden_fields_to_doc(doc, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, doc=doc)
         return doc
+
+    @overload
+    async def find_doc(
+        self,
+        doctype: str,
+        id_or_name: str,
+        *,
+        expand: list[str] | None = None,
+    ) -> dict[str, Any] | None: ...
+
+    @overload
+    async def find_doc[D: Document](
+        self,
+        doctype: type[D],
+        id_or_name: str,
+        *,
+        expand: list[str] | None = None,
+    ) -> D | None: ...
+
+    async def find_doc(self, doctype, id_or_name, *, expand=None):
+        """Like :meth:`get_doc`, but returns ``None`` instead of raising 404."""
+        from fastapi import HTTPException
+
+        try:
+            return await self.get_doc(doctype, id_or_name, expand=expand)
+        except HTTPException as exc:
+            if exc.status_code == 404:
+                return None
+            raise
 
     async def get_doc_instance(self, doctype: str, id_or_name: str) -> Document:
         """Fetch a document and return it as an instantiated controller."""

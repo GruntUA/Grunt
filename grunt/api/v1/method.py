@@ -115,6 +115,9 @@ async def _invoke_with_context(
     # Activate context
     async with grunt_app.context(session, engine, user):
         # Validate required parameters
+        # (@grunt.whitelist(roles=..., require=...) enforcement happens inside
+        # `method` itself now — see grunt.api.context.whitelist — so it applies
+        # uniformly whether `method` is called via this dispatcher or directly.)
         import inspect
 
         sig = inspect.signature(method)

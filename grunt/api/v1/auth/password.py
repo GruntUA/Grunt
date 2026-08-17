@@ -5,8 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
 
+from grunt.api.router import GruntRouter
 from grunt.api.v1.schemas.response import ok
 from grunt.auth.doctypes.User.user import get_user_by_email
 from grunt.auth.service import (
@@ -21,7 +22,7 @@ if TYPE_CHECKING:
 
     import grunt.api.v1.auth.schemas
 
-router = APIRouter()
+router = GruntRouter(optional_auth=True)
 
 
 def _rate_limit(limit: str):
@@ -43,8 +44,10 @@ async def forgot_password(
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Send a password reset email."""
+    from grunt.app import grunt
+
     log = structlog.get_logger()
-    user = await get_user_by_email(body.email, session)
+    user = await get_user_by_email(body.email)
     if user is None:
         return ok()
 
@@ -58,7 +61,6 @@ async def forgot_password(
     reset_url = f"{settings.app_url}/reset-password?token={token}"
 
     try:
-        from grunt.app import grunt
         from grunt.email.service import email_service
 
         html_body = await grunt.render_template(

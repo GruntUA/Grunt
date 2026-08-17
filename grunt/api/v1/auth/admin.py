@@ -28,7 +28,7 @@ router = GruntRouter(dependencies=[Depends(superadmin_user)])
 @router.get("/users", response_model=list[UserResponse])
 async def list_users() -> list[UserResponse]:
     """List all users."""
-    users = await service_list_users(grunt._require_session())
+    users = await service_list_users()
     return [
         UserResponse(
             id=u.id,
@@ -62,7 +62,7 @@ async def create_role(body: AddRoleRequest) -> dict:
 @router.post("/users/{user_id}/roles")
 async def add_user_role(user_id: str, body: AddRoleRequest) -> dict:
     """Assign a role to a user."""
-    target_user = await get_user_by_id(user_id, grunt._require_session())
+    target_user = await get_user_by_id(user_id)
     if not target_user:
         raise HTTPException(status_code=404, detail="Користувача не знайдено")
 
@@ -84,7 +84,7 @@ async def add_user_role(user_id: str, body: AddRoleRequest) -> dict:
 @router.post("/users/set-password")
 async def set_user_password(body: SetPasswordRequest) -> dict:
     """Change a user's password (superadmin only)."""
-    user = await get_user_by_email(body.email, grunt._require_session())
+    user = await get_user_by_email(body.email)
     if not user or not user.id:
         raise HTTPException(status_code=404, detail="Користувача не знайдено")
 

@@ -5,9 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 
+from grunt.api.router import GruntRouter
 from grunt.api.v1.auth.schemas import (
     MfaLoginRequest,
     RefreshRequest,
@@ -41,7 +42,7 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-router = APIRouter()
+router = GruntRouter(optional_auth=True)
 
 
 def _rate_limit(limit: str):
@@ -56,12 +57,9 @@ def _rate_limit(limit: str):
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register(
-    body: RegisterRequest,
-    session: AsyncSession = Depends(get_session),
-) -> UserResponse:
+async def register(body: RegisterRequest) -> UserResponse:
     """Register a new user."""
-    existing = await get_user_by_email(body.email, session)
+    existing = await get_user_by_email(body.email)
     if existing is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -70,7 +68,7 @@ async def register(
     name_parts = body.full_name.split(maxsplit=1)
     first_name = name_parts[0] if name_parts else ""
     last_name = name_parts[1] if len(name_parts) > 1 else ""
-    user = await create_user(body.email, body.password, first_name, last_name, None, session)
+    user = await create_user(body.email, body.password, first_name, last_name, None)
     return UserResponse(
         id=user.id,
         email=user.email,
@@ -92,7 +90,7 @@ async def login(
 ) -> TokenResponse:
     """OAuth2 password grant."""
     try:
-        user = await authenticate(form_data.username, form_data.password, session)
+        user = await authenticate(form_data.username, form_data.password)
     except ValueError as exc:
         if str(exc) == "locked":
             raise HTTPException(
@@ -157,7 +155,7 @@ async def mfa_login_verify(
     if not payload:
         raise HTTPException(status_code=401, detail="Невалідний або прострочений MFA токен")
 
-    user = await get_user_by_id(payload["uid"], session)
+    user = await get_user_by_id(payload["uid"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="Користувача не знайдено")
 
@@ -239,7 +237,7 @@ async def update_me(
         async with grunt.system_context(session):
             await grunt.db.set_value("User", user.id, values)
 
-    updated = await get_user_by_id(user.id, session)
+    updated = await get_user_by_id(user.id)
     if updated is None:
         raise HTTPException(status_code=404, detail="User not found")
     return UserResponse(

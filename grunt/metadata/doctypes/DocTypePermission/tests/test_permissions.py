@@ -135,12 +135,12 @@ async def test_list_users_requires_superadmin(ctx):
         doctype="User", data={"email": reg_user_doc["email"], "is_superadmin": False}
     )
 
-    from grunt.errors import GruntError
+    from grunt.errors import APIError
 
     async with grunt.context(ctx.db._session(), ctx._require_engine(), reg_user_obj):
-        with pytest.raises(GruntError) as excinfo:
+        with pytest.raises(APIError) as excinfo:
             await list_users_api()
-        assert "Unauthorized" in str(excinfo.value)
+        assert excinfo.value.status_code == 403
 
 
 @pytest.mark.asyncio

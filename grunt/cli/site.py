@@ -294,6 +294,7 @@ def _run_migrate_for_site(site_name: str) -> None:
 
 
 async def _create_admin(site_name: str, email: str, password: str) -> None:
+    from grunt.app import grunt
     from grunt.auth.doctypes.User.user import create_user, get_user_by_email
     from grunt.site.manager import current_site, site_manager
 
@@ -302,10 +303,11 @@ async def _create_admin(site_name: str, email: str, password: str) -> None:
         maker = site_manager.get_session_maker(site_name)
         async with maker() as session:
             try:
-                if await get_user_by_email(email, session) is not None:
-                    click.echo("  [info] Адмін вже існує — пропускаємо")
-                    return
-                await create_user(email, password, "Administrator", session)
+                async with grunt.context(session):
+                    if await get_user_by_email(email) is not None:
+                        click.echo("  [info] Адмін вже існує — пропускаємо")
+                        return
+                    await create_user(email, password, "Administrator", "", None)
                 await session.commit()
                 click.echo("  ✓ Адміністратора створено")
             except Exception as e:
