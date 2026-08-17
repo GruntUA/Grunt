@@ -69,6 +69,9 @@ _DOCTYPE_JSON = {
         _GRUNT_ROOT / "notification/doctypes/NotificationRule/NotificationRule.json"
     ),
     "WebhookLog": _GRUNT_ROOT / "webhook/doctypes/WebhookLog/WebhookLog.json",
+    "WebForm": _GRUNT_ROOT / "site/doctypes/WebForm/WebForm.json",
+    "NamingSeries": _GRUNT_ROOT / "naming/doctypes/NamingSeries/NamingSeries.json",
+    "Translation": _GRUNT_ROOT / "i18n/doctypes/Translation/Translation.json",
 }
 
 
