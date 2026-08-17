@@ -6,12 +6,16 @@ implementations in permissions/query.py and permissions/rbac.py.
 
 from __future__ import annotations
 
-from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import pytest
 from sqlalchemy import Column, MetaData, String, Table
 
 from grunt.permissions.match import PermissionMatch
+from tests.support import make_user
+
+if TYPE_CHECKING:
+    from grunt.auth.doctypes.User.user import User
 
 _META = MetaData()
 _TABLE = Table(
@@ -23,8 +27,8 @@ _TABLE = Table(
 )
 
 
-def _user(email: str) -> SimpleNamespace:
-    return SimpleNamespace(email=email, roles=[], is_superadmin=False)
+def _user(email: str) -> User:
+    return make_user(email)
 
 
 class TestToSql:

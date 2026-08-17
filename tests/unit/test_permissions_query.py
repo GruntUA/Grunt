@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import pytest
 from sqlalchemy import Column, MetaData, String, Table, select
 
 from grunt.metadata.doctype import DocType, DocTypePermission
 from grunt.permissions.query import apply_permission_filter
+from tests.support import make_user
+
+if TYPE_CHECKING:
+    from grunt.auth.doctypes.User.user import User
 
 _META = MetaData()
 _TABLE = Table(
@@ -20,8 +24,8 @@ _TABLE = Table(
 )
 
 
-def _user(email: str, roles: list[str], is_superadmin: bool = False) -> SimpleNamespace:
-    return SimpleNamespace(email=email, roles=roles, is_superadmin=is_superadmin)
+def _user(email: str, roles: list[str], is_superadmin: bool = False) -> User:
+    return make_user(email, roles=roles, is_superadmin=is_superadmin)
 
 
 def _doctype(perms: list[dict]) -> DocType:

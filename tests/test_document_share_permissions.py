@@ -19,10 +19,10 @@ row is created via create_share() or the generic docs CRUD directly.
 
 from __future__ import annotations
 
-from types import SimpleNamespace
-
 import pytest
 from fastapi import HTTPException
+
+from tests.support import make_user
 
 SECRET_DOCTYPE = {
     "name": "ShareTestSecret",
@@ -51,10 +51,6 @@ async def setup_secret_doctype(ctx):
     await ctx.db._session().commit()
 
 
-def _user(email: str, roles: list[str] | None = None) -> SimpleNamespace:
-    return SimpleNamespace(email=email, roles=roles or [], is_superadmin=False)
-
-
 @pytest.mark.asyncio
 async def test_cannot_share_a_document_you_cannot_read(
     ctx, setup_secret_doctype, db_session, engine
@@ -65,7 +61,7 @@ async def test_cannot_share_a_document_you_cannot_read(
     await ctx.set_value("ShareTestSecret", secret_id, "owner", "owner@example.com")
     await ctx.db._session().commit()
 
-    async with grunt.context(db_session, engine, _user("attacker@example.com")):
+    async with grunt.context(db_session, engine, make_user("attacker@example.com")):
         with pytest.raises(HTTPException) as exc_info:
             await grunt.new_doc(
                 "DocumentShare",
@@ -86,7 +82,7 @@ async def test_owner_can_share_their_own_document(ctx, setup_secret_doctype, db_
     await ctx.set_value("ShareTestSecret", secret_id, "owner", "owner@example.com")
     await ctx.db._session().commit()
 
-    async with grunt.context(db_session, engine, _user("owner@example.com", roles=["Owner"])):
+    async with grunt.context(db_session, engine, make_user("owner@example.com", roles=["Owner"])):
         share = await grunt.new_doc(
             "DocumentShare",
             {

@@ -18,10 +18,15 @@ opt-in grunt.has_permission() helper:
 
 from __future__ import annotations
 
-from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import pytest
 from fastapi import HTTPException
+
+from tests.support import make_user
+
+if TYPE_CHECKING:
+    from grunt.auth.doctypes.User.user import User
 
 TICKET_DOCTYPE = {
     "name": "PermTestTicket",
@@ -50,8 +55,8 @@ async def setup_ticket_doctype(ctx):
     await ctx.db._session().commit()
 
 
-def _employee(email: str) -> SimpleNamespace:
-    return SimpleNamespace(email=email, roles=["Employee"], is_superadmin=False)
+def _employee(email: str) -> User:
+    return make_user(email, roles=["Employee"])
 
 
 @pytest.mark.asyncio

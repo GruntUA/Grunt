@@ -8,14 +8,18 @@ roles" — the same two facts, computed three different ways.
 
 from __future__ import annotations
 
-from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 from grunt.metadata.doctype import DocType, DocTypePermission
 from grunt.permissions.access import RoleAccess
+from tests.support import make_user
+
+if TYPE_CHECKING:
+    from grunt.auth.doctypes.User.user import User
 
 
-def _user(roles: list[str], is_superadmin: bool = False) -> SimpleNamespace:
-    return SimpleNamespace(email="user@example.com", roles=roles, is_superadmin=is_superadmin)
+def _user(roles: list[str], is_superadmin: bool = False) -> User:
+    return make_user("user@example.com", roles=roles, is_superadmin=is_superadmin)
 
 
 def _doctype(perms: list[dict]) -> DocType:

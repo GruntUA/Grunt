@@ -19,12 +19,16 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import pytest
 
 from grunt.metadata.doctype import DocType
 from grunt.permissions.rbac import permission_checker
+from tests.support import make_user
+
+if TYPE_CHECKING:
+    from grunt.auth.doctypes.User.user import User
 
 _ACTIVITY_LOG_JSON = (
     Path(__file__).resolve().parents[2] / "grunt/activity/doctypes/ActivityLog/ActivityLog.json"
@@ -36,12 +40,12 @@ def _load() -> DocType:
     return DocType.model_validate(data)
 
 
-def _plain_user(email: str = "plain@example.com") -> SimpleNamespace:
-    return SimpleNamespace(email=email, roles=[], is_superadmin=False)
+def _plain_user(email: str = "plain@example.com") -> User:
+    return make_user(email)
 
 
-def _system_manager(email: str = "admin@example.com") -> SimpleNamespace:
-    return SimpleNamespace(email=email, roles=["System Manager"], is_superadmin=False)
+def _system_manager(email: str = "admin@example.com") -> User:
+    return make_user(email, roles=["System Manager"])
 
 
 def test_activity_log_has_permissions_defined():

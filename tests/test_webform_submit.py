@@ -10,10 +10,10 @@ apply) and authenticated submissions under the caller's real context.
 
 from __future__ import annotations
 
-from types import SimpleNamespace
-
 import pytest
 from fastapi import HTTPException
+
+from tests.support import make_user
 
 TARGET_OPEN = {
     "name": "WebFormTargetOpen",
@@ -127,9 +127,7 @@ async def test_submit_authenticated_sets_real_owner(ctx, db_session, engine):
     await ctx.db._session().commit()
     await _create_webform(ctx, "WebFormTargetOpen", "open-form-auth")
 
-    alice = SimpleNamespace(
-        email="alice@example.com", roles=["Employee"], is_superadmin=False
-    )
+    alice = make_user("alice@example.com", roles=["Employee"])
     async with grunt.context(db_session, engine, alice):
         result = await web_form_service.submit(
             session=db_session,

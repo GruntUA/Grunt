@@ -26,12 +26,16 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import pytest
 
 from grunt.metadata.doctype import DocType
 from grunt.permissions.rbac import permission_checker
+from tests.support import make_user
+
+if TYPE_CHECKING:
+    from grunt.auth.doctypes.User.user import User
 
 _GRUNT_ROOT = Path(__file__).resolve().parents[2] / "grunt"
 
@@ -50,12 +54,12 @@ def _load(doctype_name: str) -> DocType:
     return DocType.model_validate(data)
 
 
-def _plain_user() -> SimpleNamespace:
-    return SimpleNamespace(email="plain@example.com", roles=[], is_superadmin=False)
+def _plain_user() -> User:
+    return make_user("plain@example.com")
 
 
-def _system_manager() -> SimpleNamespace:
-    return SimpleNamespace(email="admin@example.com", roles=["System Manager"], is_superadmin=False)
+def _system_manager() -> User:
+    return make_user("admin@example.com", roles=["System Manager"])
 
 
 @pytest.mark.parametrize("doctype_name", list(_DOCTYPE_JSON))
