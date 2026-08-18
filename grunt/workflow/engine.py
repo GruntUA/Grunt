@@ -89,15 +89,12 @@ class WorkflowEngine:
         state_field = doctype.workflow.state_field
         await grunt.db.set_value(doctype.name, doc_id, state_field, transition.to_state)
 
-        # Re-read updated document (set_value already flushed)
-        updated_doc = await grunt.get_doc(doctype.name, doc_id)
-
-        # Run controller after_save (so apps can react to state changes)
-        from grunt.document.registry import document_registry
-
+        # Re-read updated document (set_value already flushed) as a bound controller
+        # so apps can react to state changes via after_save() — .as_dict() below
+        # reuses this same fetch for the hooks/return value, no second DB round-trip.
+        controller = await grunt.get_doc_instance(doctype.name, doc_id)
+        updated_doc = controller.as_dict()
         try:
-            controller_cls = document_registry.get(doctype.name)
-            controller = controller_cls(doctype.name, updated_doc, user, session)
             await controller.after_save()
         except Exception:
             logger.exception("workflow.controller_after_save_error", doctype=doctype.name)

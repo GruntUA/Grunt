@@ -41,7 +41,7 @@ async def _run_doc_method(
         async with grunt.context(session, engine, user):
             try:
                 logger.info("enqueue_doc.started", doctype=doctype, doc_id=doc_id, method=method)
-                doc = await grunt.get_doc(doctype, doc_id)
+                doc = await grunt.get_doc_instance(doctype, doc_id)
                 handler = getattr(doc, method, None)
                 if handler is None:
                     raise AttributeError(f"{doctype} controller has no method '{method}'")

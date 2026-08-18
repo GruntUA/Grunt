@@ -204,7 +204,7 @@ class IncomingWebhookService:
             return "run_server_script", "server_script not configured"
 
         async with grunt.system_context(session):
-            script_doc = await grunt.get_doc("ServerScript", script_id)
+            script_doc = await grunt.find_doc("ServerScript", script_id)
 
         if not script_doc:
             return "run_server_script", f"ServerScript '{script_id}' not found"

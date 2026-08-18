@@ -2,12 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from grunt.document.base import Document
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class UserRole(Document):
@@ -17,11 +12,12 @@ class UserRole(Document):
     role_name: str
 
 
-async def get_user_roles(user_id: str, session: AsyncSession) -> list[str]:
-    """Load role names for a user."""
+async def get_user_roles(user_id: str) -> list[str]:
+    """Load role names for a user. Caller must already have an active grunt context."""
     from grunt.app import grunt
+    from grunt.context import require_session
 
-    async with grunt.system_context(session):
+    async with grunt.system_context(require_session()):
         rows = await grunt.db.get_all(
             "UserRole",
             filters={"user_id": user_id},

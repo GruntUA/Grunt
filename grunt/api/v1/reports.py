@@ -42,12 +42,9 @@ async def get_report(name: str) -> dict[str, Any]:
     return report
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def save_report(report_data: dict[str, Any]) -> dict[str, Any]:
     """Create or update a report. Admin only."""
-    if not grunt_app._require_user().is_superadmin:
-        grunt_app.throw("Admin only", "PERMISSION_DENIED")
-
     name = report_data.get("report_name")
     if not name:
         grunt_app.throw("report_name є обов'язковим", "VALIDATION_ERROR")
@@ -63,12 +60,9 @@ async def save_report(report_data: dict[str, Any]) -> dict[str, Any]:
     return {"name": doc["name"], "report_name": name}
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def delete_report(name: str) -> bool:
     """Delete a report by name. Admin only."""
-    if not grunt_app._require_user().is_superadmin:
-        grunt_app.throw("Admin only", "PERMISSION_DENIED")
-
     existing = await grunt_app.db.get_values("Report", {"report_name": name}, ["name"])
     if not existing:
         grunt_app.throw(f"Звіт '{name}' не знайдено", "NOT_FOUND")

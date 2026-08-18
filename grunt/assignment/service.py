@@ -82,8 +82,7 @@ class AssignmentService:
         )
         from grunt.auth.doctypes.User.user import get_user_by_id
 
-        raw = await grunt.get_doc("AssignmentRule", rule_id)
-        rule = AssignmentRule("AssignmentRule", raw)
+        rule = await grunt.get_doc(AssignmentRule, rule_id)
 
         matched = rule.match(test_doc)
         filters = rule.parsed_filters()

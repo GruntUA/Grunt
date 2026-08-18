@@ -167,7 +167,7 @@ async def get_user_by_email(email: str) -> User | None:
         user = await User.objects.filter(email=email).first()
         if user is None:
             return None
-        user.data["roles"] = await get_user_roles(user.name, session)
+        user.data["roles"] = await get_user_roles(user.name)
         return user
 
 
@@ -181,7 +181,7 @@ async def get_user_by_id(user_id: str) -> User | None:
         user = await User.objects.filter(name=user_id).first()
         if user is None:
             return None
-        user.data["roles"] = await get_user_roles(user.name, session)
+        user.data["roles"] = await get_user_roles(user.name)
         return user
 
 
@@ -197,7 +197,7 @@ async def list_users() -> list[User]:
     async with grunt.system_context(session, engine):
         users = await User.objects.limit(10_000).all()
         for user in users:
-            user.data["roles"] = await get_user_roles(user.name, session)
+            user.data["roles"] = await get_user_roles(user.name)
         return users
 
 

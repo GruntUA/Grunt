@@ -127,7 +127,7 @@ async def login(
     refresh_token = await create_refresh_token(user.id, session)
 
     # Track login session
-    await _track_session(request, user.id, session)
+    await _track_session(request, user.id)
 
     return TokenResponse(
         access_token=access_token,
@@ -173,7 +173,7 @@ async def mfa_login_verify(
     access_token = create_access_token(user)
     refresh_token = await create_refresh_token(user.id, session)
 
-    await _track_session(request, user.id, session)
+    await _track_session(request, user.id)
 
     return TokenResponse(
         access_token=access_token,
@@ -190,14 +190,14 @@ async def mfa_login_verify(
     )
 
 
-async def _track_session(request: Request, user_id: str, session: AsyncSession):
+async def _track_session(request: Request, user_id: str):
     """Best-effort session tracking."""
     try:
         from grunt.auth.doctypes.UserSession.user_session import create_session
 
         ip = request.client.host if request.client else None
         ua = request.headers.get("user-agent")
-        await create_session(user_id, ip, ua, session)
+        await create_session(user_id, ip, ua)
     except Exception:
         logger.exception("suppressed_error")
 
@@ -293,7 +293,7 @@ async def logout(
             terminate_all_user_sessions,
         )
 
-        await terminate_all_user_sessions(user.id, session)
+        await terminate_all_user_sessions(user.id)
     except Exception:
         logger.exception("suppressed_error")
     return ok()
@@ -322,13 +322,12 @@ async def list_sessions(
 async def revoke_session(
     session_id: str,
     user: User = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Terminate a specific session. Only the owner can revoke their own sessions."""
     from grunt.auth.doctypes.UserSession.user_session import terminate_session
 
     assert user.id is not None
-    terminated = await terminate_session(session_id, user.id, session)
+    terminated = await terminate_session(session_id, user.id)
     if not terminated:
         raise HTTPException(status_code=404, detail="Session not found")
     return ok()

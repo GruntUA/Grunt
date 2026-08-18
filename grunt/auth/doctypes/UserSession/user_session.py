@@ -4,12 +4,8 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
 
 import structlog
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -18,15 +14,15 @@ async def create_session(
     user_id: str,
     ip_address: str | None,
     user_agent: str | None,
-    db_session: AsyncSession,
 ) -> str:
     """Create a new UserSession record and return the session_key."""
     from grunt.app import grunt
+    from grunt.context import require_session
 
     session_key = uuid.uuid4().hex
 
     try:
-        async with grunt.system_context(db_session):
+        async with grunt.system_context(require_session()):
             await grunt.new_doc(
                 "UserSession",
                 {
@@ -44,15 +40,13 @@ async def create_session(
     return session_key
 
 
-async def touch_session(
-    session_key: str,
-    db_session: AsyncSession,
-) -> None:
+async def touch_session(session_key: str) -> None:
     """Update last_active_at for the given session (best-effort, fire-and-forget)."""
     from grunt.app import grunt
+    from grunt.context import require_session
 
     try:
-        async with grunt.system_context(db_session):
+        async with grunt.system_context(require_session()):
             sessions = await grunt.get_list(
                 "UserSession",
                 filters={"session_key": session_key, "is_active": True},
@@ -70,18 +64,15 @@ async def touch_session(
         logger.exception("suppressed_error")
 
 
-async def terminate_session(
-    session_id: str,
-    requesting_user: str,
-    db_session: AsyncSession,
-) -> bool:
+async def terminate_session(session_id: str, requesting_user: str) -> bool:
     """Deactivate a session. Only the owning user or superadmin may do this.
 
     Returns True on success.
     """
     from grunt.app import grunt
+    from grunt.context import require_session
 
-    async with grunt.system_context(db_session):
+    async with grunt.system_context(require_session()):
         sessions = await grunt.get_list(
             "UserSession",
             filters={"name": session_id},
@@ -98,15 +89,12 @@ async def terminate_session(
         return True
 
 
-async def terminate_all_user_sessions(
-    user_id: str,
-    db_session: AsyncSession,
-    exclude_key: str | None = None,
-) -> int:
+async def terminate_all_user_sessions(user_id: str, exclude_key: str | None = None) -> int:
     """Deactivate all active sessions for a user (e.g. on logout / password change)."""
     from grunt.app import grunt
+    from grunt.context import require_session
 
-    async with grunt.system_context(db_session):
+    async with grunt.system_context(require_session()):
         sessions = await grunt.get_list(
             "UserSession",
             filters={"user": user_id, "is_active": True},

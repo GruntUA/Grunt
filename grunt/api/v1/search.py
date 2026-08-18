@@ -62,16 +62,11 @@ async def global_search(
     return results
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def rebuild_index() -> dict[str, Any]:
     """Rebuild the entire search index from scratch. Superadmin only."""
     from grunt.app import grunt as grunt_app
     from grunt.search.service import search_index_service
-
-    # Manual permission check for superadmin
-    user = grunt_app._require_user()
-    if not user.is_superadmin:
-        grunt.throw("Not authorized", "PERMISSION_DENIED")
 
     session = grunt_app._require_session()
     count = await search_index_service.reindex_all(session, grunt_app._require_engine())

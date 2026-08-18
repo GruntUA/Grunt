@@ -73,14 +73,10 @@ async def list_doctypes(module: str | None = None) -> list[dict[str, Any]]:
     ]
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     """Create or update a DocType. Admin only."""
     from grunt.app import grunt as grunt_app
-
-    user = grunt_app._require_user()
-    if not user.is_superadmin:
-        grunt.throw("Admin only", "PERMISSION_DENIED")
 
     dt = DocType(**doctype_data)
     session = grunt_app._require_session()
@@ -102,27 +98,19 @@ async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     return _dump_doctype(dt)
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def delete_doctype(name: str) -> bool:
     """Delete a DocType definition. Admin only."""
     from grunt.app import grunt as grunt_app
-
-    user = grunt_app._require_user()
-    if not user.is_superadmin:
-        grunt.throw("Admin only", "PERMISSION_DENIED")
 
     await doctype_registry.delete(name, grunt_app._require_session())
     return True
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def sync_doctype(name: str) -> dict[str, Any]:
     """Force sync a DocType's physical table. Admin only."""
     from grunt.app import grunt as grunt_app
-
-    user = grunt_app._require_user()
-    if not user.is_superadmin:
-        grunt.throw("Admin only", "PERMISSION_DENIED")
 
     dt = await doctype_registry.get(name)
     session = grunt_app._require_session()
@@ -188,7 +176,7 @@ async def list_validators() -> list[dict[str, object]]:
     return _list()
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def fix_link_uuids(doctype: str | None = None) -> dict[str, Any]:
     """Repair Link field values that still contain old UUID strings.
 
@@ -202,14 +190,9 @@ async def fix_link_uuids(doctype: str | None = None) -> dict[str, Any]:
     """
     import sqlalchemy as sa
 
-    from grunt.app import grunt as grunt_app
     from grunt.metadata.compiler import get_table_name
     from grunt.metadata.registry import doctype_registry
     from grunt.site.manager import site_manager
-
-    user = grunt_app._require_user()
-    if not user.is_superadmin:
-        grunt.throw("Not authorized", "PERMISSION_DENIED")
 
     engine = site_manager.get_engine(site_manager.get_active_site())
     all_dts = await doctype_registry.list_all()
@@ -288,15 +271,9 @@ async def fix_link_uuids(doctype: str | None = None) -> dict[str, Any]:
     return {"total_rows_fixed": updated_total, "details": report}
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def clear_cache() -> bool:
     """Clear metadata cache. Admin only."""
-    from grunt.app import grunt as grunt_app
-
-    user = grunt_app._require_user()
-    if not user.is_superadmin:
-        grunt.throw("Admin only", "PERMISSION_DENIED")
-
     doctype_registry.clear_cache()
     # Also invalidate permission cache
     from grunt.permissions.rbac import invalidate_permission_cache

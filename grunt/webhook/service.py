@@ -100,7 +100,7 @@ class WebhookService:
         from grunt.app import grunt
 
         async with grunt.system_context(session):
-            wh_data = await grunt.get_doc("OutgoingWebhook", webhook_id)
+            wh_data = await grunt.find_doc("OutgoingWebhook", webhook_id)
 
         if not wh_data:
             return {"success": False, "error": "Вебхук не знайдено"}

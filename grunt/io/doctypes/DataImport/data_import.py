@@ -204,7 +204,7 @@ class DataImport(Document):
             file_id = ids[0] if ids else None
 
         if file_id:
-            doc = await self.grunt.get_doc("File", file_id)
+            doc = await self.grunt.find_doc("File", file_id)
             if doc:
                 from grunt.storage.backends import get_storage_backend
 

@@ -73,20 +73,18 @@ async def upload(
     is_image = content_type in _IMAGE_TYPES
 
     # Create the File document first to get the auto-generated name.
-    doc_data: dict[str, Any] = {
-        "file_name": file.filename,
-        "file_url": "",  # placeholder; updated below with the real name
-        "path": path,
-        "content_type": content_type,
-        "file_size": len(content),
-        "uploaded_by": grunt.session.user,
-        "is_public": True,
-        "attached_to_doctype": attached_to_doctype or None,
-        "attached_to_id": attached_to_id or None,
-    }
-
-    file_doc = await grunt.new_doc("File", doc_data)
-    file_id = str(file_doc["name"])
+    file_doc = await File.objects.create(
+        file_name=file.filename,
+        file_url="",  # placeholder; updated below with the real name
+        path=path,
+        content_type=content_type,
+        file_size=len(content),
+        uploaded_by=grunt.session.user,
+        is_public=True,
+        attached_to_doctype=attached_to_doctype or None,
+        attached_to_id=attached_to_id or None,
+    )
+    file_id = str(file_doc.name)
 
     # Build URL using the document name and persist it.
     file_url = f"/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={file_id}"
@@ -98,9 +96,9 @@ async def upload(
     return {
         "id": file_id,
         "url": file_url,
-        "filename": file_doc.get("file_name"),
-        "content_type": file_doc.get("content_type"),
-        "size_bytes": file_doc.get("file_size"),
+        "filename": file_doc.file_name,
+        "content_type": file_doc.content_type,
+        "size_bytes": file_doc.file_size,
     }
 
 
@@ -148,35 +146,21 @@ async def get_list(
     order: str = "desc",
 ) -> dict[str, Any]:
     """Whitelisted method: List files."""
-    records = await grunt.get_list(
-        "File",
-        filters=filters,
-        fields=[
-            "name",
-            "file_name",
-            "file_url",
-            "content_type",
-            "file_size",
-            "created_at",
-            "uploaded_by",
-        ],
-        order_by=order_by,
-        order=order,
-        limit=limit,
-        page=page,
-    )
-    total = await grunt.count("File", filters=filters)
+    query = File.objects.filter(**(filters or {}))
+    query = query.order_by(f"-{order_by}" if order == "desc" else order_by)
+    records = await query.limit(limit).page(page).all()
+    total = await query.count()
 
     return {
         "items": [
             {
-                "name": str(r["name"]),
-                "url": r.get("file_url"),
-                "filename": r.get("file_name"),
-                "content_type": r.get("content_type"),
-                "size_bytes": r.get("file_size"),
-                "created_at": str(r["created_at"]) if r.get("created_at") else None,
-                "uploaded_by": r.get("uploaded_by"),
+                "name": str(r.name),
+                "url": r.file_url,
+                "filename": r.file_name,
+                "content_type": r.content_type,
+                "size_bytes": r.file_size,
+                "created_at": str(r.created_at) if r.created_at else None,
+                "uploaded_by": r.uploaded_by,
             }
             for r in records
         ],

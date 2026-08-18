@@ -19,15 +19,10 @@ async def list_events() -> list[str]:
     return list(HOOK_REGISTRY.keys())
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def get_hooks() -> list[dict[str, Any]]:
     """Return all registered hooks (Global, DocType, and Database). Admin only."""
-    from grunt.app import grunt as grunt_app
     from grunt.hooks import DOC_EVENT_REGISTRY, HOOK_REGISTRY
-
-    user = grunt_app._require_user()
-    if not user.is_superadmin:
-        grunt.throw("Admin only", "PERMISSION_DENIED")
 
     hooks = []
 

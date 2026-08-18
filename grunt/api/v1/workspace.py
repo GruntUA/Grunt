@@ -7,7 +7,7 @@ from typing import Any
 import structlog
 
 import grunt
-from grunt.document.registry import document_registry
+from grunt.site.doctypes.AppMenu.app_menu import AppMenu
 
 logger = structlog.get_logger()
 
@@ -66,17 +66,14 @@ def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
     }
 
 
-async def _get_ws_controller(name: str) -> Any:
-    doc_data = await grunt.get_doc("AppMenu", name)
-    if not doc_data:
-        grunt.throw(f"Workspace '{name}' не знайдено", "NOT_FOUND")
+async def _get_ws_controller(name: str) -> AppMenu:
+    # Precisely-typed overloads live on the GruntApp instance (grunt.app.grunt) —
+    # the top-level `grunt` package facade's stub can't use `@overload` (mypy
+    # requires a real implementation for that in a non-stub .py file), so it
+    # falls back to a looser `dict[str, Any] | D` union that doesn't narrow here.
+    from grunt.app import grunt as grunt_app
 
-    ws_cls = document_registry.get("AppMenu")
-    if ws_cls:
-        from grunt.app import grunt as grunt_app
-
-        return ws_cls("AppMenu", doc_data, grunt_app._require_user(), grunt_app._require_session())
-    return doc_data
+    return await grunt_app.get_doc(AppMenu, name)
 
 
 @grunt.whitelist()
@@ -103,20 +100,13 @@ async def list_workspaces() -> list[dict[str, Any]]:
 @grunt.whitelist()
 async def get_workspace(name: str) -> dict[str, Any]:
     """Get a single workspace with filtered items."""
-    ws_data = await grunt.get_doc("AppMenu", name)
-    if not ws_data:
-        grunt.throw("Not found", "NOT_FOUND")
+    ws_data = await _get_ws_controller(name)
     return _workspace_to_dict(ws_data)
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
     """Create or update a workspace. Admin only."""
-    from grunt.app import grunt as grunt_app
-
-    if not grunt_app._require_user().is_superadmin:
-        grunt.throw("Not authorized", "PERMISSION_DENIED")
-
     data = workspace_data.copy()
     if "items" in data:
         data["sidebar_items"] = data.pop("items")
@@ -130,13 +120,9 @@ async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
     return _workspace_to_dict(ws_data)
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def delete_workspace(name: str) -> bool:
     """Delete a workspace. Admin only."""
-    from grunt.app import grunt as grunt_app
-
-    if not grunt_app._require_user().is_superadmin:
-        grunt.throw("Not authorized", "PERMISSION_DENIED")
     await grunt.delete_doc("AppMenu", name)
     return True
 

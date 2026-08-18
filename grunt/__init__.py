@@ -73,6 +73,11 @@ if TYPE_CHECKING:
         *,
         expand: list[str] | None = None,
     ) -> dict[str, Any] | D | None: ...
+    async def get_doc_instance(doctype: str, id_or_name: str) -> Document:
+        """Registry-based fetch for when the doctype is only known at runtime
+        (e.g. a workflow/task operating on a caller-supplied doctype name) —
+        prefer `get_doc(SomeClass, id)` when the class is known statically."""
+        ...
     async def new_doc(
         doctype: str,
         data: dict[str, Any],
@@ -184,6 +189,7 @@ def __getattr__(name: str):
         "whitelist",
         "get_doc",
         "find_doc",
+        "get_doc_instance",
         "get_list",
         "new_doc",
         "save_doc",
@@ -204,6 +210,7 @@ def __getattr__(name: str):
         if name in (
             "get_doc",
             "find_doc",
+            "get_doc_instance",
             "get_list",
             "new_doc",
             "save_doc",

@@ -68,34 +68,33 @@ def verify_mfa_token(token: str) -> dict | None:
 # ── Refresh tokens ────────────────────────────────────────────────────────
 
 
-async def create_refresh_token(user_id: str, session: AsyncSession) -> str:
+async def create_refresh_token(user_id: str) -> str:
     """Issue a 7-day refresh token for a user."""
     from grunt.app import grunt
+    from grunt.context import require_session
 
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
     expires_at = datetime.now(UTC) + timedelta(days=7)
 
-    async with grunt.system_context(session):
+    async with grunt.system_context(require_session()):
         await grunt.db.set_value("User", user_id, "refresh_token", token)
         await grunt.db.set_value("User", user_id, "refresh_token_expires_at", expires_at)
 
     return token
 
 
-async def rotate_refresh_token(
-    token: str,
-    session: AsyncSession,
-) -> tuple[str, User] | None:
+async def rotate_refresh_token(token: str) -> tuple[str, User] | None:
     """Validate a refresh token, revoke it, and issue a new one.
 
     Returns (new_refresh_token, user) on success, None if invalid/expired.
     """
     from grunt.app import grunt
     from grunt.auth.doctypes.User.user import get_user_by_id
+    from grunt.context import require_session
 
     now = datetime.now(UTC)
 
-    async with grunt.system_context(session):
+    async with grunt.system_context(require_session()):
         users = await grunt.get_list(
             "User",
             filters={"refresh_token": token},
@@ -119,20 +118,21 @@ async def rotate_refresh_token(
 
         user_id = user_data["name"]
 
-    async with grunt.context(session):
+    async with grunt.context(require_session()):
         user = await get_user_by_id(user_id)
     if user is None:
         return None
 
-    new_token = await create_refresh_token(user.id, session)
+    new_token = await create_refresh_token(user.id)
     return new_token, user
 
 
-async def revoke_refresh_tokens_for_user(user_id: str, session: AsyncSession) -> None:
+async def revoke_refresh_tokens_for_user(user_id: str) -> None:
     """Revoke all active refresh tokens for a user (e.g., on logout)."""
     from grunt.app import grunt
+    from grunt.context import require_session
 
-    async with grunt.system_context(session):
+    async with grunt.system_context(require_session()):
         await grunt.db.set_value("User", user_id, "refresh_token", None)
         await grunt.db.set_value("User", user_id, "refresh_token_expires_at", None)
 

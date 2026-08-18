@@ -38,31 +38,22 @@ async def receive_incoming_webhook(
     return {"success": True, **result}
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def test_outgoing_webhook(webhook_id: str) -> dict[str, Any]:
     """Send a test payload for an outgoing webhook."""
     from grunt.app import grunt as grunt_app
-
-    user = grunt_app._require_user()
-    if not user.is_superadmin:
-        grunt.throw("Only superadmins can test webhooks", "PERMISSION_DENIED")
-
     from grunt.webhook.service import webhook_service
 
+    user = await grunt.get_current_user()
     result = await webhook_service.test_delivery(
         grunt_app._require_session(), webhook_id, user.email
     )
     return result
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def list_incoming_logs(webhook_id: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
     """List recent delivery logs for an incoming webhook."""
-    from grunt.app import grunt as grunt_app
-
-    if not grunt_app._require_user().is_superadmin:
-        grunt.throw("Admin only", "PERMISSION_DENIED")
-
     logs = await grunt.get_list(
         "IncomingWebhookLog",
         filters={"webhook": webhook_id},

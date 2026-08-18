@@ -36,15 +36,9 @@ async def list_pages() -> list[dict[str, Any]]:
     )
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def register_page(page_data: dict[str, Any]) -> dict[str, Any]:
     """Register or update a custom page from an app. Admin only."""
-    from grunt.app import grunt as grunt_app
-
-    user = grunt_app._require_user()
-    if not user.is_superadmin:
-        grunt.throw("Not authorized", "PERMISSION_DENIED")
-
     route = (page_data.get("route") or "").strip()
     if not route:
         grunt.throw("route є обов'язковим", "VALIDATION_ERROR")
@@ -61,15 +55,9 @@ async def register_page(page_data: dict[str, Any]) -> dict[str, Any]:
     return {"route": route, "title": doc.get("title", route)}
 
 
-@grunt.whitelist()
+@grunt.whitelist(roles=["superadmin"])
 async def delete_page(route: str) -> bool:
     """Remove a custom page registration. Admin only."""
-    from grunt.app import grunt as grunt_app
-
-    user = grunt_app._require_user()
-    if not user.is_superadmin:
-        grunt.throw("Not authorized", "PERMISSION_DENIED")
-
     if not route.startswith("/"):
         route = f"/{route}"
     existing = await grunt.get_list("Page", filters={"route": route}, limit=1)

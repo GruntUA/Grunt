@@ -439,10 +439,10 @@ async def get_page_data(
     """Return computed data for all widgets of a Page document."""
     from grunt.app import grunt as grunt_app
 
-    try:
-        dashboard = dict(await grunt.get_doc("Page", name))
-    except Exception:
+    page_doc = await grunt.find_doc("Page", name)
+    if page_doc is None:
         grunt.throw("Сторінку не знайдено", "NOT_FOUND")
+    dashboard = dict(page_doc)
 
     user = grunt_app._require_user()
     if not user.is_superadmin and not dashboard.get("is_published"):
@@ -484,10 +484,10 @@ async def get_dashboard_data(
     """Return computed data for all widgets of a Dashboard document."""
     from grunt.app import grunt as grunt_app
 
-    try:
-        dashboard = dict(await grunt.get_doc("Dashboard", name))
-    except Exception:
+    dashboard_doc = await grunt.find_doc("Dashboard", name)
+    if dashboard_doc is None:
         grunt.throw("Дашборд не знайдено", "NOT_FOUND")
+    dashboard = dict(dashboard_doc)
 
     user = grunt_app._require_user()
     if not user.is_superadmin and not dashboard.get("is_published"):
