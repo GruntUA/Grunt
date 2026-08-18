@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import structlog
 
 import grunt
 from grunt.app import grunt as grunt_app
 from grunt.document.base import Document
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -31,9 +28,10 @@ class AssignmentLog(Document):
         status: str,
         error_message: str | None = None,
         filters_matched: bool = True,
-        session: AsyncSession | None = None,
     ) -> None:
         """Зберегти запис про призначення в AssignmentLog.
+
+        Caller must already have an active grunt context — see AssignmentService.
 
         Args:
             rule_id: ID правила AssignmentRule (або None).
@@ -44,10 +42,8 @@ class AssignmentLog(Document):
             status: "Success" або "Error".
             error_message: Опис помилки (якщо status == "Error").
             filters_matched: Чи збіглися фільтри правила.
-            session: Async DB session.
         """
-        if not session:
-            return
+        from grunt.context import require_session
 
         log_doc: dict[str, Any] = {
             "rule_id": rule_id,
@@ -61,7 +57,7 @@ class AssignmentLog(Document):
         }
 
         try:
-            async with grunt_app.system_context(session):
+            async with grunt_app.system_context(require_session()):
                 await grunt_app.bulk_insert("AssignmentLog", [log_doc])
         except Exception as exc:
             logger.exception("assignment.log_error", exc_info=exc)

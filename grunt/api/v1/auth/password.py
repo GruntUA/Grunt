@@ -54,7 +54,7 @@ async def forgot_password(
     if not user.id:
         return ok()
 
-    token = await create_password_reset_token(user.id, session)
+    token = await create_password_reset_token(user.id)
 
     from grunt.config import settings
 
@@ -91,13 +91,12 @@ async def forgot_password(
 @router.post("/reset-password", status_code=status.HTTP_200_OK)
 async def reset_password(
     body: grunt.api.v1.auth.schemas.ResetPasswordRequest,
-    session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Reset password using a valid token."""
     if len(body.new_password) < 8:
         raise HTTPException(status_code=422, detail="Password must be at least 8 characters")
 
-    reset_ok = await consume_password_reset_token(body.token, body.new_password, session)
+    reset_ok = await consume_password_reset_token(body.token, body.new_password)
     if not reset_ok:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -86,7 +86,6 @@ async def register(body: RegisterRequest) -> UserResponse:
 async def login(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(OAuth2PasswordRequestForm),
-    session: AsyncSession = Depends(get_session),
 ) -> TokenResponse:
     """OAuth2 password grant."""
     try:
@@ -124,7 +123,7 @@ async def login(
 
     assert user.id is not None
     access_token = create_access_token(user)
-    refresh_token = await create_refresh_token(user.id, session)
+    refresh_token = await create_refresh_token(user.id)
 
     # Track login session
     await _track_session(request, user.id)
@@ -171,7 +170,7 @@ async def mfa_login_verify(
 
     assert user.id is not None
     access_token = create_access_token(user)
-    refresh_token = await create_refresh_token(user.id, session)
+    refresh_token = await create_refresh_token(user.id)
 
     await _track_session(request, user.id)
 
@@ -221,10 +220,10 @@ async def me(user: User = Depends(current_user)) -> UserResponse:
 async def update_me(
     body: UpdateMeRequest,
     user: User = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
 ) -> UserResponse:
     """Update current user preferences."""
     from grunt.app import grunt
+    from grunt.context import require_session
 
     values: dict = {}
     if body.theme is not None:
@@ -234,7 +233,7 @@ async def update_me(
 
     assert user.id is not None
     if values:
-        async with grunt.system_context(session):
+        async with grunt.system_context(require_session()):
             await grunt.db.set_value("User", user.id, values)
 
     updated = await get_user_by_id(user.id)
@@ -253,12 +252,9 @@ async def update_me(
 
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh(
-    body: RefreshRequest,
-    session: AsyncSession = Depends(get_session),
-) -> TokenResponse:
+async def refresh(body: RefreshRequest) -> TokenResponse:
     """Exchange a valid refresh token."""
-    result = await rotate_refresh_token(body.refresh_token, session)
+    result = await rotate_refresh_token(body.refresh_token)
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -281,13 +277,10 @@ async def refresh(
 
 
 @router.post("/logout")
-async def logout(
-    user: User = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
-) -> dict:
+async def logout(user: User = Depends(current_user)) -> dict:
     """Revoke all refresh tokens and terminate all sessions."""
     assert user.id is not None
-    await revoke_refresh_tokens_for_user(user.id, session)
+    await revoke_refresh_tokens_for_user(user.id)
     try:
         from grunt.auth.doctypes.UserSession.user_session import (
             terminate_all_user_sessions,
@@ -300,14 +293,12 @@ async def logout(
 
 
 @router.get("/sessions")
-async def list_sessions(
-    user: User = Depends(current_user),
-    session: AsyncSession = Depends(get_session),
-) -> dict:
+async def list_sessions(user: User = Depends(current_user)) -> dict:
     """Return all active sessions for the current user."""
     from grunt.app import grunt
+    from grunt.context import require_session
 
-    async with grunt.system_context(session):
+    async with grunt.system_context(require_session()):
         sessions = await grunt.get_list(
             "UserSession",
             filters={"user": user.id, "is_active": True},

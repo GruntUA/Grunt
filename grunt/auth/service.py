@@ -16,8 +16,6 @@ import structlog
 from grunt.config import settings
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from grunt.auth.doctypes.User.user import User
 
 logger = structlog.get_logger()
@@ -140,37 +138,30 @@ async def revoke_refresh_tokens_for_user(user_id: str) -> None:
 # ── Password reset tokens ─────────────────────────────────────────────────
 
 
-async def create_password_reset_token(
-    user_id: str,
-    session: AsyncSession,
-) -> str:
+async def create_password_reset_token(user_id: str) -> str:
     """Create a 1-hour password reset token. Invalidates prior unused tokens."""
     from grunt.app import grunt
+    from grunt.context import require_session
 
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
     expires_at = datetime.now(UTC) + timedelta(hours=1)
 
-    async with grunt.system_context(session):
+    async with grunt.system_context(require_session()):
         await grunt.db.set_value("User", user_id, "reset_token", token)
         await grunt.db.set_value("User", user_id, "reset_token_expires_at", expires_at)
 
     return token
 
 
-async def consume_password_reset_token(
-    token: str,
-    new_password: str,
-    session: AsyncSession,
-) -> bool:
+async def consume_password_reset_token(token: str, new_password: str) -> bool:
     """Verify token and update the user's password. Returns True on success."""
     from grunt.app import grunt
     from grunt.auth.doctypes.User.user import hash_password
-    from grunt.site.manager import site_manager
+    from grunt.context import require_session
 
     now = datetime.now(UTC)
 
-    _engine = site_manager.get_engine(site_manager.get_active_site())
-    async with grunt.system_context(session, _engine):
+    async with grunt.system_context(require_session()):
         users = await grunt.get_list(
             "User",
             filters={"reset_token": token},

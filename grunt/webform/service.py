@@ -15,8 +15,6 @@ from grunt.document.meta import Meta
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from grunt.auth.doctypes.User.user import User
 
 logger = structlog.get_logger()
@@ -44,9 +42,11 @@ def _guest_user() -> User:
 class WebFormService:
     """Manages web form loading, validation, and submission."""
 
-    async def get_form(self, session: AsyncSession, route: str) -> dict[str, Any] | None:
+    async def get_form(self, route: str) -> dict[str, Any] | None:
         """Load a published web form by its route slug."""
-        async with grunt.context(session):
+        from grunt.context import require_session
+
+        async with grunt.context(require_session()):
             rows = await grunt.db.get_all(
                 "WebForm",
                 filters={"route": route, "is_published": True},
@@ -68,12 +68,12 @@ class WebFormService:
 
         return rows[0] if rows else None
 
-    async def get_form_fields(self, session: AsyncSession, route: str) -> list[dict[str, Any]]:
+    async def get_form_fields(self, route: str) -> list[dict[str, Any]]:
         """Return the full field definitions for a web form (with DocType metadata).
 
         Merges the web form's selected fields with DocType field definitions.
         """
-        form = await self.get_form(session, route)
+        form = await self.get_form(route)
         if not form:
             return []
 
@@ -99,7 +99,6 @@ class WebFormService:
 
     async def submit(
         self,
-        session: AsyncSession,
         route: str,
         data: dict[str, Any],
         user_email: str | None = None,
@@ -107,7 +106,6 @@ class WebFormService:
         """Process a web form submission.
 
         Args:
-            session: DB session.
             route: Web form route.
             data: Submitted form data.
             user_email: Authenticated user email, or None for guest.
@@ -118,7 +116,9 @@ class WebFormService:
         Raises:
             WebFormError on validation or submission failure.
         """
-        form = await self.get_form(session, route)
+        from grunt.context import require_session
+
+        form = await self.get_form(route)
         if not form:
             raise WebFormError("Форму не знайдено")
 
@@ -129,7 +129,7 @@ class WebFormService:
 
         # Check max submissions
         if form.get("max_submissions", 0) > 0:
-            count = await self._count_submissions(session, form["doctype"])
+            count = await self._count_submissions(form["doctype"])
             if count >= form["max_submissions"]:
                 raise WebFormError("Досягнуто максимальну кількість відповідей")
 
@@ -153,7 +153,7 @@ class WebFormService:
             # actually configured. A real (if minimal) Guest user keeps
             # permission checks meaningful: the target DocType must have an
             # explicit `role: "Guest"` (or "All") create permission.
-            async with grunt.context(session, user=_guest_user()):
+            async with grunt.context(require_session(), user=_guest_user()):
                 doc = await grunt.new_doc(form["doctype"], validated)
             owner = GUEST_USER
 
@@ -202,9 +202,11 @@ class WebFormService:
 
         return validated
 
-    async def _count_submissions(self, session: AsyncSession, doctype: str) -> int:
+    async def _count_submissions(self, doctype: str) -> int:
         """Count existing documents in the target table."""
-        async with grunt.context(session):
+        from grunt.context import require_session
+
+        async with grunt.context(require_session()):
             return await grunt.db.count(doctype)
 
 

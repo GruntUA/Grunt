@@ -2,25 +2,18 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import HTTPException, Request
 
 import grunt
-from grunt.db.session import get_session
+from grunt.api.router import GruntRouter
 
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-router = APIRouter()
+router = GruntRouter(optional_auth=True)
 
 
 @router.post("/incoming/{slug}")
-async def receive_incoming_webhook(
-    slug: str,
-    request: Request,
-    session: AsyncSession = Depends(get_session),
-) -> dict[str, Any]:
+async def receive_incoming_webhook(slug: str, request: Request) -> dict[str, Any]:
     """Public receiver endpoint. Kept as router for stable external URL."""
     from grunt.webhook.incoming_service import incoming_webhook_service
 
@@ -28,7 +21,6 @@ async def receive_incoming_webhook(
     headers = {k.lower(): v for k, v in request.headers.items()}
 
     result = await incoming_webhook_service.receive(
-        session=session,
         slug=slug,
         raw_body=body,
         headers=headers,

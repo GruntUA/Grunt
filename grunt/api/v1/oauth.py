@@ -177,7 +177,7 @@ async def oauth_callback(provider: str, code: str) -> dict:
 
     assert user.id is not None
     access_token = create_access_token(user)
-    refresh_token = await create_refresh_token(user.id, session)
+    refresh_token = await create_refresh_token(user.id)
     await session.commit()
 
     return ok(

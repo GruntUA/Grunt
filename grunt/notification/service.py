@@ -106,18 +106,19 @@ class NotificationService:
 
     async def get_notifications(
         self,
-        session: AsyncSession,
         user: str,
         unread_only: bool = False,
         limit: int = 20,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
         """Get notifications for a user."""
+        from grunt.context import require_session
+
         filters: dict[str, Any] = {"user": user}
         if unread_only:
             filters["is_read"] = False
 
-        async with grunt.system_context(session):
+        async with grunt.system_context(require_session()):
             rows = await grunt.db.get_all(
                 "Notification",
                 filters=filters,
@@ -136,14 +137,18 @@ class NotificationService:
             for row in rows
         ]
 
-    async def mark_read(self, session: AsyncSession, notification_id: str) -> None:
+    async def mark_read(self, notification_id: str) -> None:
         """Mark a single notification as read."""
-        async with grunt.system_context(session):
+        from grunt.context import require_session
+
+        async with grunt.system_context(require_session()):
             await grunt.db.set_value("Notification", notification_id, "is_read", True)
 
-    async def mark_all_read(self, session: AsyncSession, user: str) -> int:
+    async def mark_all_read(self, user: str) -> int:
         """Mark all notifications as read for a user. Returns count of affected."""
-        async with grunt.system_context(session):
+        from grunt.context import require_session
+
+        async with grunt.system_context(require_session()):
             return await grunt.bulk_update(
                 "Notification",
                 {"user": user, "is_read": False},

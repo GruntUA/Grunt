@@ -237,7 +237,6 @@ async def fire(event: str, **kwargs: Any) -> None:
             await assignment_service.evaluate_and_assign(
                 doctype=doctype,
                 doc=kwargs["doc"],
-                session=kwargs["session"],
             )
         except Exception:
             logger.exception("assignment.evaluate_error", hook_event=event, doctype=doctype)

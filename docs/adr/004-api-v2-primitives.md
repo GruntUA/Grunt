@@ -284,6 +284,68 @@ regression-тестів у `test_mass_migration_bugfixes.py`, що напрям�
 баг-фікси), `mypy grunt --ignore-missing-imports` — 56 помилок (було 58, жодної
 нової — усі в нечіпаних файлах).
 
-**Далі — знову опортуністично**: 28 session-параметрів (готовий інвентар з
-дослідження, не займались — кожен вимагає per-caller верифікації контексту) і решта
-`get_doc`/`get_list` сайтів, де немає жодного з трьох знайдених патернів.
+**Далі — знову опортуністично**: решта `get_doc`/`get_list` сайтів, де немає жодного
+з трьох знайдених патернів.
+
+---
+
+## Доповнення 2: session-параметри (2026-08-18, той самий день)
+
+Користувач попросив зробити й відкладений раніше 28-пунктовий інвентар
+session-параметрів, а не чекати опортуністичного заходу.
+
+**Зроблено — 32 функції в ~12 файлах**, кожна після перевірки РЕАЛЬНОГО caller'а
+(не лише статичного патерна "бере session → одразу відкриває system_context"):
+`UserRole.get_user_roles`; `UserSession` (усі 4 — `create_session`, `touch_session`,
+`terminate_session`, `terminate_all_user_sessions`); `auth/service.py` (5 —
+`create_refresh_token`, `rotate_refresh_token`, `revoke_refresh_tokens_for_user`,
+`create_password_reset_token`, `consume_password_reset_token`); `webform/service.py`
+(увесь клас — `get_form`, `get_form_fields`, `submit`, `_count_submissions` —
+розширено з 2 запланованих до всіх 4, бо `session` наскрізно тік через увесь клас і
+часткова зміна дала б непослідовний API); `notification/service.py` (3 мертві,
+ніде не викликані методи — `get_notifications`/`mark_read`/`mark_all_read`);
+`assignment/service.py` + `AssignmentLog.create` (увесь ланцюжок, 8 методів —
+корінь виклику, `hooks.py`, вже мав ambient-контекст, бо хуки виконуються всередині
+`write_guard`-перевіреного request-контексту); `webhook/incoming_service.py` (увесь
+клас, 5 методів) + переведення `api/v1/webhooks.py`'s публічного `/incoming/{slug}`
+роутера на `GruntRouter(optional_auth=True)` (був голий `APIRouter()`, як `core.py`
+до Доповнення 1); `api/v1/auth/core.py: update_me`/`list_sessions` (бонус, поза
+початковим списком).
+
+**Реальний баг знайдений і виправлений у процесі**: `AssignmentLog.create` мав
+`session: AsyncSession | None = None` з `if not session: return` — тихий no-op guard.
+Обидва реальні виклики (з `_assign_to_user`/`_assign_to_role`) вже не передавали
+`session=` після рефакторингу решти ланцюжка → записи про призначення перестали б
+писатись УЗАГАЛІ, мовчки. Виправлено разом з рештою ланцюжка.
+
+**Свідомо НЕ займались — 5 функцій/груп, кожна з конкретною причиною**:
+- `tasks/scheduler.py` (`_write_job_log`/`_update_job_log`) — викликаються з
+  APScheduler-задачі через власний `async_session_factory()`, без жодного
+  `grunt.context(...)` навколо. Ambient-контексту просто немає.
+- `notification/service.py` (`evaluate_rules`, `_create_notification`,
+  `_resolve_role_recipients`, `_queue_email`, `_broadcast_ws`) — `evaluate_rules`
+  викликається з `evaluate_notification_rules_task` (offloaded у background task
+  саме для ізоляції від request-сесії) з власною свіжою сесією, теж без ambient-
+  контексту. `_resolve_role_recipients` має другий caller (`api/messages.py`) із
+  ambient-контекстом, але оскільки перший — ні, лишили обидва як є, щоб не
+  розходились.
+- `startup/settings.py`/`workspaces.py`/`fixtures.py` — bootstrap/migration-код
+  (`grunt migrate`, `grunt site create`), той самий патерн: власний
+  `session`+`engine` явно, без ambient-контексту.
+- `auth/api_key_service.py: authenticate_api_key` — резолвиться як частина
+  `current_user()`-залежності, тобто ДО того, як `grunt_context` встигає
+  активувати ambient-контекст (той самий chicken-and-egg, що й `optional_user`
+  у Доповненні 1).
+- `website/router.py` — 2 місця з get_doc (не session-параметр), лишені в
+  Доповненні 1 з тієї ж причини (навмисно широкий except для best-effort
+  рендерингу).
+
+Спільна нитка через усі "не займались" випадки: **background/bootstrap-код, що
+свідомо створює власну сесію ізольовано від request-контексту** — це не той самий
+"забули прибрати параметр" патерн, що в `user.py`, а архітектурна межа, яку не
+варто стирати.
+
+Результат: `ruff check grunt/` чистий, `pytest tests/ grunt/` — 825/825 (без нових
+тестів у цьому доповненні — усі зміни покриті наявними `test_webform_submit.py`,
+`grunt/auth/doctypes/User/tests/test_auth.py`, `test_assignment.py` через реальні
+HTTP/whitelisted виклики), `mypy` — 56 помилок (без змін від Доповнення 1).

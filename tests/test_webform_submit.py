@@ -65,7 +65,7 @@ async def test_submit_anonymous_open_doctype(ctx):
     await _create_webform(ctx, "WebFormTargetOpen", "open-form")
 
     result = await web_form_service.submit(
-        session=ctx.db._session(), route="open-form", data={"title": "Hello"}, user_email=None
+        route="open-form", data={"title": "Hello"}, user_email=None
     )
     assert result["id"]
 
@@ -87,7 +87,6 @@ async def test_submit_anonymous_denied_without_guest_permission(ctx):
 
     with pytest.raises(HTTPException) as exc_info:
         await web_form_service.submit(
-            session=ctx.db._session(),
             route="guarded-form",
             data={"title": "Hello"},
             user_email=None,
@@ -106,7 +105,6 @@ async def test_submit_anonymous_allowed_with_guest_permission(ctx):
     await _create_webform(ctx, "WebFormTargetGuestOk", "guest-ok-form")
 
     result = await web_form_service.submit(
-        session=ctx.db._session(),
         route="guest-ok-form",
         data={"title": "Hello"},
         user_email=None,
@@ -130,7 +128,6 @@ async def test_submit_authenticated_sets_real_owner(ctx, db_session, engine):
     alice = make_user("alice@example.com", roles=["Employee"])
     async with grunt.context(db_session, engine, alice):
         result = await web_form_service.submit(
-            session=db_session,
             route="open-form-auth",
             data={"title": "Hello"},
             user_email="alice@example.com",

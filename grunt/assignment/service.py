@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import structlog
 
 from grunt.app import grunt
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -18,22 +15,23 @@ logger = structlog.get_logger()
 class AssignmentService:
     """Оркестратор правил автоматичного призначення документів."""
 
-    async def evaluate_and_assign(
-        self, doctype: str, doc: dict[str, Any], session: AsyncSession
-    ) -> None:
+    async def evaluate_and_assign(self, doctype: str, doc: dict[str, Any]) -> None:
         """Перевірити всі enabled правила для DocType та застосувати відповідні.
+
+        Caller must already have an active grunt context — called synchronously
+        from document lifecycle hooks (see hooks.py), which run inside the
+        request's own write_guard-verified context.
 
         Args:
             doctype: Назва DocType документа (напр. "Invoice").
             doc: Дані документа {id, name, status, ...}.
-            session: Async DB session.
         """
         try:
-            rules = await self._get_enabled_rules(doctype, session)
+            rules = await self._get_enabled_rules(doctype)
             if not rules:
                 return
 
-            await self.apply_matching_rules(doctype, rules, doc, session)
+            await self.apply_matching_rules(doctype, rules, doc)
 
         except Exception as exc:
             logger.exception("assignment.evaluate_error", doctype=doctype, exc_info=exc)
@@ -43,7 +41,6 @@ class AssignmentService:
         doctype: str,
         rules: list[dict[str, Any]],
         doc: dict[str, Any],
-        session: AsyncSession,
     ) -> None:
         """Apply all matching assignment rules for a document."""
         from grunt.assignment.doctypes.AssignmentRule.assignment_rule import (
@@ -54,14 +51,13 @@ class AssignmentService:
             rule = AssignmentRule("AssignmentRule", rule_data)
             if not rule.match(doc):
                 continue
-            await self.apply_rule(doctype, rule_data, doc, session)
+            await self.apply_rule(doctype, rule_data, doc)
 
     async def apply_rule(
         self,
         doctype: str,
         rule_data: dict[str, Any],
         doc: dict[str, Any],
-        session: AsyncSession,
     ) -> None:
         """Apply one assignment rule and persist ToDo/log entries."""
         assign_to_user = rule_data.get("assign_to_user")
@@ -69,11 +65,11 @@ class AssignmentService:
         rule_id = rule_data.get("name")
 
         if assign_to_user:
-            await self._assign_to_user(doctype, doc, str(assign_to_user), session, rule_id)
+            await self._assign_to_user(doctype, doc, str(assign_to_user), rule_id)
             return
 
         if assign_to_role:
-            await self._assign_to_role(doctype, doc, str(assign_to_role), session, rule_id)
+            await self._assign_to_role(doctype, doc, str(assign_to_role), rule_id)
 
     async def preview_rule(self, rule_id: str, test_doc: dict[str, Any]) -> dict[str, Any]:
         """Evaluate a rule against a sample document and return preview details."""
@@ -123,10 +119,12 @@ class AssignmentService:
     # Приватні допоміжні методи оркестратора
     # ------------------------------------------------------------------
 
-    async def _get_enabled_rules(self, doctype: str, session: AsyncSession) -> list[dict]:
+    async def _get_enabled_rules(self, doctype: str) -> list[dict]:
         """Завантажити всі enabled правила для DocType з БД."""
+        from grunt.context import require_session
+
         try:
-            async with grunt.context(session):
+            async with grunt.context(require_session()):
                 rows = await grunt.db.get_all(
                     "AssignmentRule",
                     filters={"doctype_target": doctype, "enabled": True},
@@ -167,7 +165,6 @@ class AssignmentService:
         doctype: str,
         doc: dict[str, Any],
         user_email: str,
-        session: AsyncSession,
         rule_id: str | None,
     ) -> None:
         from grunt.assignment.doctypes.AssignmentLog.assignment_log import (
@@ -175,7 +172,7 @@ class AssignmentService:
         )
 
         try:
-            await self._create_todo(doctype, doc, user_email, session)
+            await self._create_todo(doctype, doc, user_email)
             await AssignmentLog.create(
                 rule_id=rule_id,
                 doctype_affected=doctype,
@@ -183,7 +180,6 @@ class AssignmentService:
                 assigned_to=user_email,
                 assignment_method="user",
                 status="Success",
-                session=session,
             )
             logger.info(
                 "assignment.assigned_user", doctype=doctype, doc_id=doc.get("name"), user=user_email
@@ -201,16 +197,16 @@ class AssignmentService:
         doctype: str,
         doc: dict[str, Any],
         role: str,
-        session: AsyncSession,
         rule_id: str | None,
     ) -> None:
         from grunt.assignment.doctypes.AssignmentLog.assignment_log import (
             AssignmentLog,
         )
         from grunt.auth.doctypes.User.user import get_user_by_id
+        from grunt.context import require_session
 
         try:
-            async with grunt.system_context(session):
+            async with grunt.system_context(require_session()):
                 ur_rows = await grunt.db.get_all(
                     "UserRole",
                     filters={"role_name": role},
@@ -224,12 +220,11 @@ class AssignmentService:
                 return
 
             for user_id in user_ids:
-                async with grunt.context(session):
-                    user = await get_user_by_id(user_id)
+                user = await get_user_by_id(user_id)
                 if not user or not user.is_active:
                     continue
 
-                await self._create_todo(doctype, doc, user.email, session)
+                await self._create_todo(doctype, doc, user.email)
                 await AssignmentLog.create(
                     rule_id=rule_id,
                     doctype_affected=doctype,
@@ -237,7 +232,6 @@ class AssignmentService:
                     assigned_to=user.email,
                     assignment_method="role",
                     status="Success",
-                    session=session,
                 )
 
             logger.info(
@@ -252,13 +246,9 @@ class AssignmentService:
                 "assignment.assign_role_error", doctype=doctype, role=role, exc_info=exc
             )
 
-    async def _create_todo(
-        self,
-        doctype: str,
-        doc: dict[str, Any],
-        owner_email: str,
-        session: AsyncSession,
-    ) -> None:
+    async def _create_todo(self, doctype: str, doc: dict[str, Any], owner_email: str) -> None:
+        from grunt.context import require_session
+
         todo_doc = {
             "title": f"{doctype}: {doc.get('name', doc.get('id', 'Document'))}",
             "reference_type": doctype,
@@ -268,7 +258,7 @@ class AssignmentService:
             "status": "Open",
         }
 
-        async with grunt.system_context(session):
+        async with grunt.system_context(require_session()):
             await grunt.bulk_insert("ToDo", [todo_doc])
 
     # ------------------------------------------------------------------

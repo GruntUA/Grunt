@@ -43,14 +43,13 @@ class TestAssignmentIntegration:
     """Integration tests with async operations."""
 
     @pytest.mark.asyncio
-    async def test_evaluate_and_assign_no_rules(self, ctx, db_session):
+    async def test_evaluate_and_assign_no_rules(self, ctx):
         """When no rules exist, nothing happens."""
         from grunt.assignment import assignment_service
 
         await assignment_service.evaluate_and_assign(
             doctype="Invoice",
             doc={"id": "1", "status": "Draft"},
-            session=db_session,
         )
 
 

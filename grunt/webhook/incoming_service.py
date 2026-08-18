@@ -29,12 +29,9 @@ import hashlib
 import hmac
 import json
 import time
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import structlog
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -48,12 +45,16 @@ class IncomingWebhookService:
 
     async def receive(
         self,
-        session: AsyncSession,
         slug: str,
         raw_body: bytes,
         headers: dict[str, str],
     ) -> dict[str, Any]:
         """Process an incoming webhook request.
+
+        Caller must already have an active grunt context (session only —
+        this always runs as SYSTEM_USER internally, whatever the ambient
+        user is or isn't, since it's driven by an unauthenticated external
+        caller).
 
         Returns a response dict with ``accepted`` flag and optional ``detail``.
         Never raises — all errors are logged and a safe response is returned.
@@ -61,7 +62,7 @@ class IncomingWebhookService:
         start = time.monotonic()
 
         # ── 1. Load webhook config ─────────────────────────────────────
-        webhook = await self._load_webhook(session, slug)
+        webhook = await self._load_webhook(slug)
         if webhook is None:
             return {"accepted": False, "detail": "Not found"}
 
@@ -90,7 +91,6 @@ class IncomingWebhookService:
             if not self._verify_signature(raw_body, secret, sig_type, provided_sig):
                 logger.warning("incoming_webhook.signature_rejected", slug=slug)
                 await self._write_log(
-                    session,
                     webhook_id=webhook_id,
                     slug=slug,
                     status="error",
@@ -113,9 +113,9 @@ class IncomingWebhookService:
         # ── 4. Dispatch action ─────────────────────────────────────────
         try:
             if action == "run_server_script":
-                action_taken, error_msg = await self._run_server_script(session, webhook, payload)
+                action_taken, error_msg = await self._run_server_script(webhook, payload)
             elif action == "create_document":
-                action_taken, error_msg = await self._create_document(session, webhook, payload)
+                action_taken, error_msg = await self._create_document(webhook, payload)
             # log_only: nothing extra to do
 
             if error_msg:
@@ -129,7 +129,6 @@ class IncomingWebhookService:
 
         # ── 5. Write log ───────────────────────────────────────────────
         await self._write_log(
-            session,
             webhook_id=webhook_id,
             slug=slug,
             status=status,
@@ -188,13 +187,13 @@ class IncomingWebhookService:
 
     async def _run_server_script(
         self,
-        session: AsyncSession,
         webhook: dict[str, Any],
         payload: Any,
     ) -> tuple[str, str]:
         """Execute the linked ServerScript.  Returns (action_taken, error)."""
         from grunt.app import grunt
         from grunt.auth.doctypes.User.user import SYSTEM_USER
+        from grunt.context import require_session
         from grunt.scripting.server_script import ServerScriptRunner
 
         server_script_engine = ServerScriptRunner()
@@ -203,6 +202,7 @@ class IncomingWebhookService:
         if not script_id:
             return "run_server_script", "server_script not configured"
 
+        session = require_session()
         async with grunt.system_context(session):
             script_doc = await grunt.find_doc("ServerScript", script_id)
 
@@ -225,12 +225,12 @@ class IncomingWebhookService:
 
     async def _create_document(
         self,
-        session: AsyncSession,
         webhook: dict[str, Any],
         payload: Any,
     ) -> tuple[str, str]:
         """Create a DocType document from the payload using field_mapping."""
         from grunt.app import grunt
+        from grunt.context import require_session
 
         target_doctype = webhook.get("target_doctype")
         if not target_doctype:
@@ -254,7 +254,7 @@ class IncomingWebhookService:
             else:
                 doc_data[field] = _resolve_path(payload_dict, str(path))
 
-        async with grunt.system_context(session):
+        async with grunt.system_context(require_session()):
             doc = await grunt.new_doc(target_doctype, doc_data)
 
         return f"create_document:{target_doctype}:{doc.get('id', '')}", ""
@@ -263,18 +263,15 @@ class IncomingWebhookService:
     # Helpers
     # ──────────────────────────────────────────────────────────────────
 
-    async def _load_webhook(
-        self,
-        session: AsyncSession,
-        slug: str,
-    ) -> dict[str, Any] | None:
+    async def _load_webhook(self, slug: str) -> dict[str, Any] | None:
         from grunt.app import grunt
+        from grunt.context import require_session
         from grunt.metadata.registry import doctype_registry
 
         if not doctype_registry._doctypes.get("IncomingWebhook"):
             return None
 
-        async with grunt.system_context(session):
+        async with grunt.system_context(require_session()):
             rows = await grunt.db.get_all(
                 "IncomingWebhook",
                 filters={"slug": slug},
@@ -285,7 +282,6 @@ class IncomingWebhookService:
 
     async def _write_log(
         self,
-        session: AsyncSession,
         *,
         webhook_id: str,
         slug: str,
@@ -297,6 +293,7 @@ class IncomingWebhookService:
         duration_ms: int,
     ) -> None:
         from grunt.app import grunt
+        from grunt.context import require_session
         from grunt.metadata.registry import doctype_registry
 
         if not doctype_registry._doctypes.get("IncomingWebhookLog"):
@@ -321,7 +318,7 @@ class IncomingWebhookService:
             log_data["webhook"] = webhook_id
 
         try:
-            async with grunt.system_context(session):
+            async with grunt.system_context(require_session()):
                 await grunt.new_doc("IncomingWebhookLog", log_data)
         except Exception:
             logger.warning("incoming_webhook_log.write_failed", slug=slug)
