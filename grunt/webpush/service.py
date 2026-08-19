@@ -117,11 +117,11 @@ class WebPushService:
             },
         )
 
-    async def remove_subscription(self, endpoint: str) -> None:
-        """Delete a push subscription by endpoint URL."""
+    async def remove_subscription(self, endpoint: str, user: str) -> None:
+        """Delete a push subscription by endpoint URL — only if it belongs to `user`."""
         from grunt.app import grunt
 
-        await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint})
+        await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint, "user": user})
 
     async def send_push(
         self,

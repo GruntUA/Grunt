@@ -1,7 +1,7 @@
 """API Key management endpoints.
 
 POST   /api/v1/auth/api-keys          — create a new key (returns secret once)
-GET    /api/v1/auth/api-keys          — list current user's keys (no secrets)
+GET    /api/v1/auth/api-keys          — list keys: own, or all for superadmins (no secrets)
 DELETE /api/v1/auth/api-keys/{key_id} — revoke a key
 PATCH  /api/v1/auth/api-keys/{key_id} — update label / is_active / expires_at
 """
@@ -96,10 +96,12 @@ async def create_api_key(
 async def list_api_keys(
     user: User = Depends(current_user),
 ) -> dict[str, Any]:
-    """List all API keys for the current user (secrets are never returned)."""
-    filters: dict[str, Any] = {"user_id": user.id}
+    """List API keys (secrets are never returned).
+
+    Superadmins see every key; everyone else sees only their own.
+    """
+    filters: dict[str, Any] = {}
     if not user.is_superadmin:
-        # Non-superadmins can only see their own keys
         filters["user_id"] = user.id
 
     keys = await grunt.get_list(

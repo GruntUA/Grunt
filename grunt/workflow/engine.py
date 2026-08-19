@@ -85,9 +85,13 @@ class WorkflowEngine:
                 detail="Документ не має налаштованого Workflow",
             )
 
-        # Apply
+        # Apply — guarded `grunt.set_value` (not `grunt.db.set_value`), so this
+        # still enforces the doctype's own write permission even when the
+        # transition itself declares no `allowed_roles` (a reader with no
+        # write access must not be able to move the document through its
+        # workflow just because they can read it).
         state_field = doctype.workflow.state_field
-        await grunt.db.set_value(doctype.name, doc_id, state_field, transition.to_state)
+        await grunt.set_value(doctype.name, doc_id, state_field, transition.to_state)
 
         # Re-read updated document (set_value already flushed) as a bound controller
         # so apps can react to state changes via after_save() — .as_dict() below

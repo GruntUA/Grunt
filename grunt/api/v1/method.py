@@ -81,9 +81,9 @@ def get_whitelisted_method(method_path: str) -> Any:
     is_whitelisted = getattr(method, "_whitelisted", False)
     if not is_whitelisted:
         logger.warning("method.not_whitelisted", method_path=method_path)
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=f"Method {method_path} is not whitelisted"
-        )
+        from grunt.errors import forbidden
+
+        raise forbidden(f"Method {method_path} is not whitelisted")
 
     return method
 

@@ -20,9 +20,39 @@ Fetch a single document by id or name.
 
 Enforces `read` permission and triggers read hooks (`before_read`, `after_read`).
 
+Pass a doctype name for a plain dict, or a `Document` subclass for a typed
+controller instance — same fields as the class declares, with autocomplete:
+
 ```python
-invoice = await grunt.get_doc("Invoice", "INV-0001")
+invoice = await grunt.get_doc("Invoice", "INV-0001")   # dict
 print(invoice["amount"])
+
+invoice = await grunt.get_doc(Invoice, "INV-0001")      # typed Invoice instance
+print(invoice.amount)
+```
+
+### `grunt.find_doc(doctype, id_or_name)`
+
+Same as `get_doc`, but returns `None` instead of raising a 404 when the
+document doesn't exist. Use this whenever "not found" is an expected outcome
+you're about to branch on, not an error to propagate:
+
+```python
+existing = await grunt.find_doc("Customer", {"email": email})
+if existing is None:
+    ...
+```
+
+### `grunt.get_doc_instance(doctype, id_or_name)`
+
+Like the typed form of `get_doc`, but for when the doctype is only known as a
+string at runtime (e.g. a workflow or task operating on a caller-supplied
+doctype name, not a fixed class) — resolves the controller class from the
+doctype registry and returns a bound instance:
+
+```python
+doc = await grunt.get_doc_instance(doctype_name, doc_id)
+await doc.after_save()
 ```
 
 ### `grunt.new_doc(doctype, data)`
@@ -65,6 +95,36 @@ open_orders = await grunt.get_list(
     order="desc",
 )
 ```
+
+### `SomeController.objects` — typed query builder
+
+Every `Document` subclass gets a fluent, chainable query builder — a typed
+alternative to `get_list`/`db.get_all` for controller and script code:
+
+```python
+from grunt.auth.doctypes.User.user import User
+
+active_admins = await (
+    User.objects
+        .filter(is_active=True, is_superadmin=True)
+        .order_by("-created_at")
+        .limit(20)
+        .all()
+)
+
+user = await User.objects.filter(email=email).first()   # None if no match
+total = await User.objects.filter(is_active=True).count()
+taken = await User.objects.filter(email=email).exists()
+
+created = await User.objects.create(email=email, first_name="A", last_name="B")
+user, was_created = await User.objects.get_or_create(
+    email=email, defaults={"first_name": "A", "last_name": "B"},
+)
+```
+
+Filter keys accept the same operator suffixes as `get_list`/`db.get_all`:
+`__gt`, `__gte`, `__lt`, `__lte`, `__in`, `__nin`, `__like`, `__ilike`,
+`__isnull`, `__ne`.
 
 ### `grunt.count(doctype, *, filters)`
 
@@ -140,6 +200,71 @@ Low-level direct DB access: no permission checks and no lifecycle/read hooks.
 
 ---
 
+## Whitelisted methods (`@grunt.whitelist`)
+
+Any module-level `async def` becomes a callable HTTP RPC endpoint
+(`/api/v1/method/<dotted.path>`) when decorated:
+
+```python
+@grunt.whitelist()
+async def approve_order(order_id: str) -> dict:
+    return await grunt.save_doc("Order", order_id, {"status": "Approved"})
+```
+
+- `allow_guest=True` — skip authentication; the method runs with `user=None`.
+- `roles=[...]` — require the caller to be superadmin or hold at least one of
+  the listed roles. Enforced on every call — through the HTTP dispatcher *and*
+  when called directly from other Python code (a hook, a script, a test) —
+  there's no call path that skips it:
+
+  ```python
+  @grunt.whitelist(roles=["superadmin"])
+  async def delete_workspace(name: str) -> bool:
+      await grunt.delete_doc("AppMenu", name)
+      return True
+  ```
+
+- `require=predicate` — for checks that aren't a static role list. Receives
+  the current user, returns (or awaits to) a bool:
+
+  ```python
+  @grunt.whitelist(require=lambda user: user.is_superadmin or user.id == target_id)
+  async def reset_own_or_admin(target_id: str) -> None: ...
+  ```
+
+`roles=`/`require=` raise `403` before the method body runs. They're for a
+genuine *static* gate — permission that depends on the specific document
+being acted on (ownership, a flag on the target record) still belongs in the
+method body, via `grunt.can_read`/`can_write`/`can_delete`/... or the
+permission checks `get_doc`/`save_doc`/`delete_doc` already enforce.
+
+### Response schemas (`Schema`)
+
+Declare once which fields of a document a whitelisted method exposes, instead
+of rebuilding the same dict literal in every endpoint:
+
+```python
+from grunt.document.schema import Schema
+
+class UserPublic(Schema):
+    fields = ("name", "email", "full_name", "roles", "is_superadmin")
+
+@grunt.whitelist()
+async def whoami() -> dict:
+    user = await grunt.get_current_user()
+    return UserPublic.dump(user)
+
+@grunt.whitelist(roles=["superadmin"])
+async def list_users_api() -> list[dict]:
+    return UserPublic.dump_many(await User.objects.limit(1000).all())
+```
+
+`Schema` is a straight identity mapping (output key == field name) — it
+doesn't rename or alias fields. If a response needs different key names than
+the underlying document, build that dict by hand.
+
+---
+
 ## Notifications & real-time
 
 ### `grunt.notify(users, subject, message, doctype, doc_id, push)`
@@ -184,6 +309,61 @@ grunt.session.roles         # list of role names
 grunt.session.is_superadmin # bool
 grunt.session.has_role("Manager", "Accountant")  # bool
 ```
+
+---
+
+## Context outside a request
+
+Inside a controller method, hook, or whitelisted call, `grunt.get_doc` /
+`grunt.db` / `User.objects` / etc. already know which session, engine, and
+user to use — it's set up for you before your code ever runs. Writing a CLI
+command or a background task means setting that context up yourself first:
+
+```python
+async with grunt.context(session, engine, user):
+    await grunt.get_doc("Invoice", invoice_id)
+
+# No specific user — run as the internal system identity (bypasses
+# per-user permission checks, same as an "All"/no-permissions doctype):
+async with grunt.system_context(session):
+    await grunt.new_doc("ActivityLog", {...})
+```
+
+A helper that's always called from *somewhere* with an already-active context
+(the common case — most functions called from a controller or a whitelisted
+method) shouldn't take `session` as its own parameter at all. Read it via
+`require_session()` instead of threading it through every call:
+
+```python
+from grunt.context import require_session
+
+async def get_user_by_email(email: str) -> User | None:
+    async with grunt.system_context(require_session()):
+        return await User.objects.filter(email=email).first()
+```
+
+Reserve an explicit `session` parameter for code that's genuinely called
+*without* an active context: a background task with its own freshly-created
+session (`async_session_factory()`), a scheduler job, or site bootstrap/
+migration code — none of these have anything to read `require_session()` from.
+
+### Public REST routers — `GruntRouter`
+
+Routes defined via `GruntRouter()` (instead of a plain FastAPI `APIRouter()`)
+get `grunt.context` activated automatically for the whole request — no manual
+`async with grunt.context(...)` needed inside the route body:
+
+```python
+from grunt.api.router import GruntRouter
+
+router = GruntRouter()                      # requires an authenticated user
+router = GruntRouter(optional_auth=True)    # guests allowed; context still set up
+```
+
+Routes that still need a *real* user even on an `optional_auth=True` router
+keep their own `Depends(current_user)` — `optional_auth` only controls
+whether the router activates context for guests, not whether a given route
+requires one.
 
 ---
 

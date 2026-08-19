@@ -131,6 +131,70 @@ async def test_workflow_invalid_transition_rejected(ctx):
     assert excinfo.value.status_code == 400
 
 
+GUARDED_WORKFLOW_DOCTYPE = {
+    "name": "GuardedContract",
+    "label": "Guarded Contract",
+    "module": "crm",
+    "fields": [
+        {"fieldname": "title", "label": "Назва", "fieldtype": "Text"},
+    ],
+    "permissions": [
+        {"role": "ContractReader", "read": True},
+        {"role": "ContractApprover", "read": True, "write": True},
+    ],
+    "workflow": {
+        "state_field": "status",
+        "states": [
+            {"name": "Draft", "label": "Чернетка", "is_initial": True},
+            {"name": "Submitted", "label": "Надіслано"},
+        ],
+        "transitions": [
+            # No allowed_roles — the workflow-level gate alone would let
+            # anyone who can read the doc apply this transition.
+            {
+                "action": "Submit",
+                "from_state": "Draft",
+                "to_state": "Submitted",
+                "allowed_roles": [],
+            },
+        ],
+    },
+}
+
+
+@pytest.mark.asyncio
+async def test_apply_transition_requires_write_permission(ctx, db_session, engine):
+    """Regression: apply_transition() used to mutate the document's state via
+    the unguarded grunt.db.set_value() — a user with only READ access (and no
+    allowed_roles configured on the transition itself) could still push the
+    document through its workflow. Now uses the guarded grunt.set_value(),
+    which enforces the doctype's own write permission.
+    """
+    from fastapi import HTTPException
+
+    from grunt.api.v1.meta import save_doctype
+    from grunt.app import grunt
+    from tests.support import make_user
+
+    await save_doctype(doctype_data={**GUARDED_WORKFLOW_DOCTYPE, "__is_new": True})
+    await ctx.db._session().commit()
+
+    doc = await ctx.new_doc("GuardedContract", {"title": "Test", "status": "Draft"})
+    doc_id = doc["name"]
+    await ctx.db._session().commit()
+
+    reader = make_user("reader@grunt.example.com", roles=["ContractReader"])
+    async with grunt.context(db_session, engine, reader):
+        with pytest.raises(HTTPException) as excinfo:
+            await grunt.submit("GuardedContract", doc_id, "Submit")
+    assert excinfo.value.status_code == 403
+
+    approver = make_user("approver@grunt.example.com", roles=["ContractApprover"])
+    async with grunt.context(db_session, engine, approver):
+        updated = await grunt.submit("GuardedContract", doc_id, "Submit")
+    assert updated["status"] == "Submitted"
+
+
 @pytest.mark.asyncio
 async def test_workflow_multi_step(ctx):
     """Full workflow: Draft → Submitted → Approved."""

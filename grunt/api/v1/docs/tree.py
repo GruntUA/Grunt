@@ -23,6 +23,7 @@ from grunt.auth.doctypes.User.user import User
 from grunt.document.tree import tree_service
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions.guards import read_guard, write_guard
 
 router = GruntRouter(prefix="", tags=["docs", "tree"])
 
@@ -161,6 +162,7 @@ async def get_tree(
           ]
         }
     """
+    await read_guard(doctype)
     parsed_fields = [f.strip() for f in fields.split(",")] if fields else None
     session = grunt._require_session()
 
@@ -208,6 +210,7 @@ async def get_children(
 
     Each node includes a ``has_children`` boolean for rendering expand arrows.
     """
+    await read_guard(doctype)
     parsed_fields = [f.strip() for f in fields.split(",")] if fields else None
     session = grunt._require_session()
     merged_tree_filters: dict[str, str] = {}
@@ -242,6 +245,7 @@ async def get_ancestors(
 
     Ordered from root → direct parent (closest ancestor last).
     """
+    await read_guard(doctype)
     parsed_fields = [f.strip() for f in fields.split(",")] if fields else None
     session = grunt._require_session()
     ancestors = await tree_service.get_ancestors(
@@ -272,6 +276,7 @@ async def move_node(
 
     Returns the updated document.  Raises 409 if the move would create a cycle.
     """
+    await write_guard(doctype, "write")
     session = grunt._require_session()
     doc = await tree_service.move_node(
         session,

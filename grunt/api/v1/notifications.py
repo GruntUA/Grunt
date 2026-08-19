@@ -38,9 +38,17 @@ async def list_notifications(
 
 @grunt.whitelist()
 async def mark_as_read(notification_id: str) -> bool:
-    """Mark a notification as read."""
-    await grunt.db.set_value("Notification", notification_id, "is_read", True)
-    return True
+    """Mark a notification as read — only if it belongs to the current user."""
+    user = await grunt.get_current_user()
+    if not user:
+        grunt.throw("Authentication required", "AUTH_REQUIRED")
+
+    count = await grunt.db.bulk_update(
+        "Notification",
+        filters={"name": notification_id, "user": user.email},
+        values={"is_read": True},
+    )
+    return count > 0
 
 
 @grunt.whitelist()
@@ -100,5 +108,5 @@ async def unsubscribe_push(endpoint: str) -> bool:
 
     from grunt.webpush.service import webpush_service
 
-    await webpush_service.remove_subscription(endpoint)
+    await webpush_service.remove_subscription(endpoint, user.email)
     return True
