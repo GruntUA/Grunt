@@ -26,31 +26,37 @@ def doctype_sync(name: str, site: str | None):
         from grunt.metadata.registry import doctype_registry
         from grunt.startup.doctypes import _find_doctype_dirs
 
-        # Find JSON file across all grunt/*/doctypes/ and app doctypes/
+        # Find JSON file across all grunt/*/doctypes/ and app doctypes/, tracking
+        # which app owns each search dir so we can both stamp DocType.app (core
+        # doctype JSON never sets it — only the startup path did, until now) and
+        # refuse to silently push one app's definition over another's.
         json_file = None
+        owning_app = "grunt"
         from grunt.site.manager import site_manager
 
-        search_dirs = list(_find_doctype_dirs())
+        search_dirs: list[tuple[Path, str]] = [(d, "grunt") for d in _find_doctype_dirs()]
         # Also search installed app doctypes
         if site_manager.bench_dir:
             for app_dir in sorted((site_manager.bench_dir / "apps").iterdir()):
                 dt_dir = app_dir / app_dir.name / "doctypes"
                 if dt_dir.is_dir():
-                    search_dirs.append(dt_dir)
+                    search_dirs.append((dt_dir, app_dir.name))
                 dt_dir2 = app_dir / "doctypes"
                 if dt_dir2.is_dir():
-                    search_dirs.append(dt_dir2)
+                    search_dirs.append((dt_dir2, app_dir.name))
 
-        for dt_dir in search_dirs:
+        for dt_dir, app_name in search_dirs:
             candidate = dt_dir / name / f"{name}.json"
             if candidate.exists():
                 json_file = candidate
+                owning_app = app_name
                 break
             # Fallback: snake_case filename
             snake = to_snake_case(name)
             candidate2 = dt_dir / name / f"{snake}.json"
             if candidate2.exists():
                 json_file = candidate2
+                owning_app = app_name
                 break
 
         if json_file is None:
@@ -59,6 +65,8 @@ def doctype_sync(name: str, site: str | None):
 
         dt_data = json.loads(json_file.read_text(encoding="utf-8"))
         dt = DocType.model_validate(dt_data)
+        if not dt.app:
+            dt.app = owning_app
 
         async with _site_session(site) as (session, eng):
             from sqlalchemy import select
@@ -69,6 +77,18 @@ def doctype_sync(name: str, site: str | None):
                 select(GruntMetaDoctype.c.name).where(GruntMetaDoctype.c.name == dt.name)
             )
             if exists:
+                existing_data = await session.scalar(
+                    select(GruntMetaDoctype.c.data).where(GruntMetaDoctype.c.name == dt.name)
+                )
+                existing_app = (existing_data or {}).get("app")
+                if existing_app and existing_app != owning_app:
+                    click.echo(
+                        f"Помилка: DocType '{name}' належить застосунку '{existing_app}', "
+                        f"а знайдений файл — застосунку '{owning_app}' "
+                        f"({json_file}). Синхронізацію скасовано.",
+                        err=True,
+                    )
+                    raise SystemExit(1)
                 await doctype_registry.update(dt, session, eng)
                 action = "оновлено"
             else:
