@@ -98,6 +98,19 @@ async def sync_installed_apps(session: AsyncSession, site_name: str) -> None:
                             )
                         else:
                             existing_dt = doctype_registry._doctypes[dt_name]
+                            if existing_dt.app and existing_dt.app != app_name:
+                                # Name collision with a doctype owned by a different
+                                # app (or grunt core) — updating here would silently
+                                # overwrite it, and whichever app's sync runs last
+                                # would "win" on every migrate. Refuse instead: the
+                                # colliding app must rename its doctype.
+                                logger.error(
+                                    "startup.app_doctype_name_collision",
+                                    app=app_name,
+                                    doctype=dt_name,
+                                    owned_by=existing_dt.app,
+                                )
+                                continue
                             if existing_dt.model_dump(mode="json") != dt_obj.model_dump(
                                 mode="json"
                             ):

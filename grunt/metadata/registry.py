@@ -179,20 +179,42 @@ class DocTypeRegistry:
         logger.info("registry.loaded", count=len(self._doctypes))
 
     async def _lazy_load(self, name: str) -> DocType | None:
-        """Load a single DocType from the DB and cache it."""
-        from grunt.site.manager import site_manager
+        """Load a single DocType from the DB and cache it.
 
-        try:
-            site_name = site_manager.get_active_site()
-            maker = site_manager.get_session_maker(site_name)
-        except Exception:
-            return None
+        Prefers the ambient request/test session (whatever ``grunt.context()``
+        currently has bound) over site_manager's own per-site session.
+        site_manager resolves "the current site" via a process-global fallback
+        (``sites/currentsite.txt`` when no ContextVar is set) — correct for a
+        real, single-site request, but wrong the moment more than one site's
+        database is reachable from the same process (e.g. a dev box that also
+        runs the test suite): an ambient session already means "this call is
+        happening against a specific, known database", so reuse it instead of
+        letting site_manager guess. Only falls back to site_manager when
+        nothing is bound — background tasks/schedulers with their own raw
+        session still work exactly as before.
+        """
+        from grunt.context import _session_ctx
 
-        async with maker() as session:
-            result = await session.execute(
+        active_session = _session_ctx.get()
+        if active_session is not None:
+            result = await active_session.execute(
                 select(GruntMetaDoctype).where(GruntMetaDoctype.c.name == name)
             )
             row = result.mappings().one_or_none()
+        else:
+            from grunt.site.manager import site_manager
+
+            try:
+                site_name = site_manager.get_active_site()
+                maker = site_manager.get_session_maker(site_name)
+            except Exception:
+                return None
+
+            async with maker() as session:
+                result = await session.execute(
+                    select(GruntMetaDoctype).where(GruntMetaDoctype.c.name == name)
+                )
+                row = result.mappings().one_or_none()
 
         if row is None:
             return None
@@ -342,6 +364,23 @@ class DocTypeRegistry:
                         .values(module=doctype.module, data=doctype.model_dump())
                     )
             else:
+                # `permissions` is deliberately excluded from
+                # _CORE_SYNCED_DOCTYPE_ATTRS (a Studio customisation, seeded
+                # once and never overwritten automatically) — but that means
+                # a permissions change committed to the JSON source silently
+                # sits inert on every existing site until someone remembers
+                # to run `grunt doctype sync <Name>`. Surface the drift
+                # loudly instead of leaving it to be discovered by a random
+                # test failure or an access-control gap nobody noticed.
+                if [p.model_dump() for p in doctype.permissions] != [
+                    p.model_dump() for p in active_dt.permissions
+                ]:
+                    logger.warning(
+                        "registry.core_permissions_drifted",
+                        name=doctype.name,
+                        hint=f"run `grunt doctype sync {doctype.name}` to apply",
+                    )
+
                 # Merge logic
                 new_fields = self._merge_core_fields(active_dt, doctype)
                 if new_fields:
