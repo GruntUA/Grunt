@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-from sqlalchemy import Column, MetaData, String, Table, select
-
-from grunt.metadata.doctype import DocType, DocTypePermission
+from grunt.metadata.doctype import DocType
+from grunt.metadata.permission import DocTypePermission
 from grunt.permissions.query import apply_permission_filter
+from sqlalchemy import Column, MetaData, String, Table, false, select
 from tests.support import make_user
 
 if TYPE_CHECKING:
@@ -45,11 +45,16 @@ def test_superadmin_unfiltered():
     assert query.whereclause is None
 
 
-def test_no_permissions_defined_unfiltered():
-    dt = DocType(name="Open", label="Open", module="test", fields=[])
+def test_no_permissions_defined_denies_all_rows():
+    """Deny-by-default: no permission rows means no role matched, so the
+    query is filtered to zero rows rather than left unfiltered."""
+    dt = DocType(name="Closed", label="Closed", module="test", fields=[])
     user = _user("bob@example.com", ["Employee"])
     query = apply_permission_filter(select(_TABLE), _TABLE, user, dt)
-    assert query.whereclause is None
+    expected = select(_TABLE).where(false()).whereclause
+    assert query.whereclause is not None
+    assert expected is not None
+    assert query.whereclause.compare(expected)
 
 
 def test_rule_without_match_is_unrestricted():

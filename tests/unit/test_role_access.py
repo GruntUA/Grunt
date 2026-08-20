@@ -39,10 +39,13 @@ def test_superadmin_is_unrestricted():
     assert access.matching_permissions() == []
 
 
-def test_no_permissions_defined_is_unrestricted():
-    dt = DocType(name="Open", label="Open", module="test", fields=[])
+def test_no_permissions_defined_is_restricted():
+    """Deny-by-default: no permission rows means nobody has been granted
+    access yet, not "open to anyone logged in". Only superadmin bypasses."""
+    dt = DocType(name="Closed", label="Closed", module="test", fields=[])
     access = RoleAccess(dt, _user(["Employee"]))
-    assert access.is_unrestricted
+    assert not access.is_unrestricted
+    assert access.matching_permissions() == []
 
 
 def test_matching_role_returned():

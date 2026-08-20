@@ -2,10 +2,10 @@
 
 `PermissionChecker.check()`/`.hidden_fields()` (rbac.py) and
 `apply_permission_filter()` (query.py) each independently re-derived the same
-two things: whether access checks apply at all (superadmin, or no
-permissions defined = open/dev mode), and which `DocTypePermission` rows a
-user's roles actually match. Wrapping that here means the three call sites
-can't drift the way `PermissionMatch`'s two evaluation modes already had.
+two things: whether access checks apply at all (superadmin bypasses
+everything), and which `DocTypePermission` rows a user's roles actually
+match. Wrapping that here means the three call sites can't drift the way
+`PermissionMatch`'s two evaluation modes already had.
 """
 
 from __future__ import annotations
@@ -29,11 +29,13 @@ class RoleAccess:
     def is_unrestricted(self) -> bool:
         """True when access checks should be skipped entirely.
 
-        Either the user is superadmin, or the DocType has no permission rows
-        at all — the framework's "no permissions defined = open (dev mode)"
-        convention.
+        Only superadmin bypasses. A DocType with no permission rows at all is
+        closed to everyone else — "no permissions defined" means nobody has
+        been granted access yet, not "open to anyone logged in". A doctype
+        that should genuinely be world-readable needs an explicit
+        `{"role": "All", ...}` permission row (see `matching_permissions()`).
         """
-        return bool(getattr(self.user, "is_superadmin", False)) or not self.doctype.permissions
+        return bool(getattr(self.user, "is_superadmin", False))
 
     def matching_permissions(self) -> list[DocTypePermission]:
         """Permission rows whose role applies to this user (own roles, or "All").

@@ -20,6 +20,7 @@ TARGET_OPEN = {
     "label": "Web Form Target Open",
     "module": "core",
     "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Text"}],
+    "permissions": [{"role": "All", "read": True, "write": True, "create": True}],
 }
 
 TARGET_GUARDED = {
@@ -56,7 +57,7 @@ async def _create_webform(ctx, target_doctype_name: str, route: str):
 
 @pytest.mark.asyncio
 async def test_submit_anonymous_open_doctype(ctx):
-    """No permissions defined on the target = open (dev mode) — guest can submit."""
+    """Target grants create to role "All" — guest can submit."""
     from grunt.api.v1.meta import save_doctype
     from grunt.webform import web_form_service
 

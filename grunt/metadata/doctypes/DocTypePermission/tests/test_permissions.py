@@ -4,22 +4,14 @@ from __future__ import annotations
 
 import pytest
 
-from grunt.metadata.doctype import DocType, DocTypePermission
+from grunt.metadata.doctype import DocType
+from grunt.metadata.permission import DocTypePermission
 from grunt.permissions.rbac import permission_checker
+from tests.support import make_user
 
 # No TYPE_CHECKING needed for httpx in direct tests
 
 # ── Unit tests for PermissionChecker ─────────────────────────────────────
-
-
-class MockUser:
-    email = "user@example.com"
-    is_superadmin = False
-    roles: list[str] = []
-
-    def __init__(self, roles=None, is_superadmin=False):
-        self.roles = roles or []
-        self.is_superadmin = is_superadmin
 
 
 def _make_doctype_with_perms(perms: list[dict]) -> DocType:
@@ -35,23 +27,24 @@ def _make_doctype_with_perms(perms: list[dict]) -> DocType:
 @pytest.mark.asyncio
 async def test_superadmin_always_allowed():
     """Superadmin bypasses all permission checks."""
-    user = MockUser(is_superadmin=True)
+    user = make_user("user@example.com", is_superadmin=True)
     dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
     assert await permission_checker.check(user, dt, "read")
 
 
 @pytest.mark.asyncio
-async def test_no_permissions_means_open():
-    """DocType with no permissions is open to all."""
-    user = MockUser()
-    dt = DocType(name="Open", label="Open", module="x", fields=[])
-    assert await permission_checker.check(user, dt, "read")
+async def test_no_permissions_means_closed():
+    """DocType with no permissions is closed to everyone but superadmin —
+    deny-by-default: no rows means nobody has been granted access yet."""
+    user = make_user("user@example.com")
+    dt = DocType(name="Closed", label="Closed", module="x", fields=[])
+    assert not await permission_checker.check(user, dt, "read")
 
 
 @pytest.mark.asyncio
 async def test_role_read_allowed():
     """User with correct role can read."""
-    user = MockUser(roles=["Manager"])
+    user = make_user("user@example.com", roles=["Manager"])
     dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
     assert await permission_checker.check(user, dt, "read")
 
@@ -59,7 +52,7 @@ async def test_role_read_allowed():
 @pytest.mark.asyncio
 async def test_wrong_role_denied():
     """User without required role is denied."""
-    user = MockUser(roles=["Viewer"])
+    user = make_user("user@example.com", roles=["Viewer"])
     dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
     assert not await permission_checker.check(user, dt, "read")
 
@@ -67,7 +60,7 @@ async def test_wrong_role_denied():
 @pytest.mark.asyncio
 async def test_all_role_always_matches():
     """'All' role matches any user."""
-    user = MockUser(roles=[])
+    user = make_user("user@example.com", roles=[])
     dt = _make_doctype_with_perms([{"role": "All", "read": True}])
     assert await permission_checker.check(user, dt, "read")
 
@@ -75,7 +68,7 @@ async def test_all_role_always_matches():
 @pytest.mark.asyncio
 async def test_match_owner_eq_user():
     """Row-level match 'owner == user' works."""
-    user = MockUser(roles=["Employee"])
+    user = make_user("user@example.com", roles=["Employee"])
     dt = _make_doctype_with_perms([{"role": "Employee", "read": True, "match": "owner == user"}])
     doc_own = {"owner": "user@example.com"}
     doc_other = {"owner": "other@example.com"}
@@ -89,7 +82,7 @@ async def test_match_eval_error_denies():
     (fail closed), not silently grant it. Previously any exception inside
     _eval_match (typo'd field, unsupported syntax, ...) returned True.
     """
-    user = MockUser(roles=["Employee"])
+    user = make_user("user@example.com", roles=["Employee"])
     dt = _make_doctype_with_perms(
         [{"role": "Employee", "read": True, "match": "doc.this_field_does_not_exist"}]
     )
@@ -102,7 +95,7 @@ async def test_require_raises_on_deny():
     """require() raises HTTPException when denied."""
     from fastapi import HTTPException
 
-    user = MockUser(roles=[])
+    user = make_user("user@example.com", roles=[])
     dt = _make_doctype_with_perms([{"role": "Admin", "read": True}])
     with pytest.raises(HTTPException) as exc_info:
         await permission_checker.require(user, dt, "read")

@@ -58,6 +58,7 @@ SIMPLE_DOCTYPE = {
     "title_field": "title",
     "search_fields": ["title"],
     "autoname": "prompt",
+    "permissions": [{"role": "All", "read": True, "write": True, "create": True, "delete": True}],
 }
 
 
@@ -390,7 +391,7 @@ async def test_child_doctype_excluded_from_search(ctx):
 
 @pytest.mark.asyncio
 async def test_search_open_doctype_accessible_to_regular_user(ctx):
-    """DocType without permissions config is open — regular user can find docs."""
+    """DocType with an explicit "All" read permission is open — regular user can find docs."""
     from grunt.api.v1.search import global_search
     from grunt.app import grunt
 
