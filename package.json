@@ -56,6 +56,7 @@
     "default-passive-events": "^4.0.0",
     "leaflet": "^1.9.4",
     "leaflet.browser.print": "^2.0.2",
+    "mammoth": "^1.12.1",
     "pinia": "^3.0.4",
     "reka-ui": "^2.10.3",
     "sql-formatter": "^15.7.3",

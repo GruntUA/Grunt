@@ -11,6 +11,7 @@ import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
 import { TableKit } from '@tiptap/extension-table'
+import mammoth from 'mammoth'
 
 import {
   Bold, Italic, Strikethrough,
@@ -22,9 +23,11 @@ import {
   Minus, Image as ImageIcon,
   Table as TableIcon,
   Upload, IndentIncrease, IndentDecrease,
+  FileUp, Loader2,
 } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { filesApi } from '@/core/api/files'
+import { useToast } from '@/core/composables/useToast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
@@ -43,6 +46,8 @@ const props = defineProps<{
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
 const isEditable = () => !props.disabled && !props.field.read_only
+const isDocumentStyle = props.field.options === 'document'
+const toast = useToast()
 
 // ── Font & Indent data ────────────────────────────────────────────────────────
 // Reka-ui's Select reserves the empty string for "no selection" internally, so
@@ -50,8 +55,7 @@ const isEditable = () => !props.disabled && !props.field.read_only
 // stands in for it and gets translated back to "" at the apply/read boundary.
 const FONT_DEFAULT = '__default__'
 
-const FONT_FAMILIES = [
-  { label: 'За замовчуванням', value: FONT_DEFAULT },
+const STATIC_FONT_FAMILIES = [
   { label: 'Arial', value: 'Arial, sans-serif' },
   { label: 'Georgia', value: 'Georgia, serif' },
   { label: 'Times New Roman', value: '"Times New Roman", serif' },
@@ -59,8 +63,7 @@ const FONT_FAMILIES = [
   { label: 'Verdana', value: 'Verdana, sans-serif' },
 ]
 
-const FONT_SIZES = [
-  { label: 'Авто', value: FONT_DEFAULT },
+const STATIC_FONT_SIZES = [
   { label: '10', value: '10px' },
   { label: '12', value: '12px' },
   { label: '14', value: '14px' },
@@ -76,11 +79,46 @@ const FONT_SIZES = [
 const currentFontFamily = ref<string>(FONT_DEFAULT)
 const currentFontSize = ref<string>(FONT_DEFAULT)
 
+const FONT_FAMILIES = [
+  { label: 'За замовчуванням', value: FONT_DEFAULT },
+  ...STATIC_FONT_FAMILIES,
+]
+
+const FONT_SIZES = [
+  { label: 'Авто', value: FONT_DEFAULT },
+  ...STATIC_FONT_SIZES,
+]
+
+function nodeAtCursor(): HTMLElement | null {
+  if (!editor.value) return null
+  try {
+    const { node, offset } = editor.value.view.domAtPos(editor.value.state.selection.from)
+    const el = node.nodeType === Node.TEXT_NODE ? node.parentElement : (node.childNodes[offset] as Node | undefined) ?? node
+    return (el && el.nodeType === Node.ELEMENT_NODE ? el as HTMLElement : (el as ChildNode)?.parentElement) ?? null
+  } catch {
+    return null
+  }
+}
+
 function updateFormatState() {
   if (!editor.value) return
   const attrs = editor.value.getAttributes('textStyle')
-  currentFontFamily.value = attrs.fontFamily || FONT_DEFAULT
-  currentFontSize.value = attrs.fontSize || FONT_DEFAULT
+
+  const el = nodeAtCursor()
+  let effFamily = ''
+  let effSize = ''
+  if (el) {
+    const cs = getComputedStyle(el)
+    effFamily = cs.fontFamily.split(',')[0]?.trim().replace(/^["']|["']$/g, '') || ''
+    effSize = String(Math.round(parseFloat(cs.fontSize) || 0))
+  }
+  // Reflect the effective font in the selects when it matches one of the
+  // presets (e.g. Times New Roman inherited from .richtext-document), even
+  // without an explicit textStyle mark — so the dropdown shows what's applied.
+  const matchedFamily = STATIC_FONT_FAMILIES.find(f => f.label.toLowerCase() === effFamily.toLowerCase())
+  const matchedSize = STATIC_FONT_SIZES.find(f => f.label === effSize)
+  currentFontFamily.value = attrs.fontFamily || matchedFamily?.value || FONT_DEFAULT
+  currentFontSize.value = attrs.fontSize || matchedSize?.value || FONT_DEFAULT
 }
 
 function applyFontFamily(val: string) {
@@ -267,6 +305,33 @@ async function uploadImage(e: Event) {
   }
 }
 
+// ── Word (.docx) import ──────────────────────────────────────────────────────
+const docxInputEl = ref<HTMLInputElement | null>(null)
+const docxImporting = ref(false)
+
+function triggerDocxImport() {
+  if (!docxImporting.value) docxInputEl.value?.click()
+}
+
+async function importDocx(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  docxImporting.value = true
+  try {
+    const arrayBuffer = await file.arrayBuffer()
+    const { value: html, messages } = await mammoth.convertToHtml({ arrayBuffer })
+    editor.value?.chain().focus().insertContent(html).run()
+    const errors = messages.filter(m => m.type === 'error')
+    if (errors.length) toast.warning(errors.map(m => m.message).join('; '), 'Імпортовано з попередженнями')
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : String(err), 'Не вдалося імпортувати документ')
+  } finally {
+    docxImporting.value = false
+    input.value = ''
+  }
+}
+
 // ── Editor ────────────────────────────────────────────────────────────────────
 const editor = useEditor({
   content: String(props.modelValue ?? ''),
@@ -444,6 +509,16 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
         </PopoverContent>
       </Popover>
 
+      <!-- Import from Word -->
+      <Button size="sm" variant="ghost" title="Імпорт з Word (.docx)" :disabled="docxImporting"
+        class="text-muted-foreground" @click="triggerDocxImport">
+        <Loader2 v-if="docxImporting" class="size-4 animate-spin" />
+        <FileUp v-else class="size-4" />
+      </Button>
+      <input ref="docxInputEl" type="file" accept=".docx" class="hidden" @change="importDocx" />
+
+      <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
+
       <!-- Table -->
       <Button size="sm" variant="ghost" :class="editor.isActive('table') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.isActive('table')
@@ -502,7 +577,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
         </div>
       </Transition>
 
-      <EditorContent :editor="editor" class="richtext-content p-3 text-sm text-foreground" />
+      <EditorContent :editor="editor" class="richtext-content p-3 text-sm text-foreground" :class="isDocumentStyle ? 'richtext-document' : ''" />
     </div>
 
     <!-- ── Footer ─────────────────────────────────────────────────────── -->
@@ -535,6 +610,22 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 }
 
 .richtext-content .tiptap p { margin: 0.25rem 0; }
+
+/* Document style: mirrors official-letter print formatting (first-line indent,
+   justified text) so editing looks like the printed result. Opt-in via
+   field.options === 'document'. */
+.richtext-content.richtext-document .tiptap {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1rem;
+}
+.richtext-content.richtext-document .tiptap p {
+  text-align: justify;
+  text-indent: 1.25cm;
+  margin: 0;
+}
+.richtext-content.richtext-document .tiptap p.is-editor-empty:first-child::before {
+  text-indent: 0;
+}
 
 .richtext-content .tiptap ul,
 .richtext-content .tiptap ol {
@@ -622,7 +713,11 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 }
 .richtext-content .tiptap td,
 .richtext-content .tiptap th {
-  border: 1px solid var(--border);
+  /* Dashed, not solid: this is an editing guide for cell boundaries, not
+     ink — print formats don't style <table> at all, so a table imported
+     from a borderless Word layout (e.g. a signature block) still prints
+     without a border even though it shows a guide here while editing. */
+  border: 1px dashed var(--border);
   padding: 0.4rem 0.6rem;
   vertical-align: top;
   min-width: 80px;
