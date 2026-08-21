@@ -19,15 +19,30 @@ from grunt.api.context import (
     set_user,
 )
 from grunt.api.messages import ApplicationError, msgprint, throw
-from grunt.api.permissions import (
-    can_delete,
-    can_read,
-    can_write,
-    get_current_user,
-)
+from grunt.api.permissions import get_current_user
 from grunt.app import GruntDB, grunt
+from grunt.metadata.permission import DocTypePermission
 
 db = GruntDB()
+
+
+def _dt(name: str, permissions: list[DocTypePermission] | None = None) -> Mock:
+    """A stand-in DocType with just the attributes permission_checker.check() reads.
+
+    Plain ``Mock(name=..., permissions=...)`` doesn't work here — ``name`` is a
+    reserved Mock constructor kwarg (sets the mock's repr, not a ``.name``
+    attribute), so it has to be assigned after construction instead.
+    """
+    dt = Mock()
+    dt.name = name
+    dt.permissions = permissions if permissions is not None else []
+    return dt
+
+
+def _registry_returning(dt: Mock):
+    """Patch doctype_registry.get() to resolve any doctype name to *dt*."""
+    return patch("grunt.app.doctype_registry.get", new_callable=AsyncMock, return_value=dt)
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # FIXTURES
@@ -386,43 +401,26 @@ class TestMessages:
 
 
 class TestPermissions:
-    """Test permission checking functions."""
+    """Test grunt.has_permission() — DocType-level and document-level (doc_id) checks."""
 
     @pytest.mark.asyncio
-    async def test_can_read_superadmin(self, setup_context):
-        """Test that superadmin can always read."""
-        set_user(Mock(is_superadmin=True))
-        result = await can_read("Invoice", "INV-001")
-        assert result is True
+    async def test_superadmin_always_allowed(self, setup_context):
+        """Superadmin bypasses permission rows entirely — no registry lookup needed."""
+        set_user(Mock(is_superadmin=True, roles=[]))
+        dt = _dt("Invoice")
+        with _registry_returning(dt):
+            assert await grunt.has_permission("Invoice", "read") is True
+            assert await grunt.has_permission("Invoice", "write") is True
+            assert await grunt.has_permission("Invoice", "delete") is True
 
     @pytest.mark.asyncio
-    async def test_can_read_regular_user_no_permission(self, setup_context, mock_user):
-        """Test that regular user without matching permission rows is denied."""
+    async def test_regular_user_no_permission_rows_denied(self, setup_context, mock_user):
+        """A DocType with no permission rows at all is closed to non-superadmins."""
         set_user(mock_user)
-
-        # No permission rows returned for this doctype
-        with patch.object(GruntDB, "get_all", new_callable=AsyncMock, return_value=[]):
-            result = await can_read("Invoice", "INV-001")
-            assert result is False
-
-    @pytest.mark.asyncio
-    async def test_can_write_superadmin(self, setup_context):
-        """Test that superadmin can always write."""
-        set_user(Mock(is_superadmin=True))
-        result = await can_write("Invoice", "INV-001")
-        assert result is True
-
-    @pytest.mark.asyncio
-    async def test_can_delete_only_superadmin(self, setup_context, mock_user):
-        """Test that only superadmin can delete."""
-        set_user(mock_user)
-        with patch.object(GruntDB, "get_all", new_callable=AsyncMock, return_value=[]):
-            result = await can_delete("Invoice", "INV-001")
-        assert result is False
-
-        set_user(Mock(is_superadmin=True))
-        result = await can_delete("Invoice", "INV-001")
-        assert result is True
+        dt = _dt("Invoice", [])
+        with _registry_returning(dt):
+            assert await grunt.has_permission("Invoice", "read") is False
+            assert await grunt.has_permission("Invoice", "delete") is False
 
     @pytest.mark.asyncio
     async def test_get_current_user(self, setup_context, mock_user):
@@ -432,103 +430,61 @@ class TestPermissions:
         assert user == mock_user
 
     @pytest.mark.asyncio
-    async def test_doctype_permission_simple_logic(self, setup_context):
-        """Test permission check logic with simplification (without full DB mocking)."""
-        # Test that can_delete only allows superadmin
-        user = Mock()
-        user.email = "regular@example.com"
-        user.full_name = "Regular User"
-        user.roles = ["User"]
-        user.is_superadmin = False
+    async def test_permission_row_wrong_role_denied(self, setup_context):
+        """A permission row exists, but not for the user's role."""
+        user = Mock(email="guest@example.com", roles=["Guest"], is_superadmin=False)
         set_user(user)
-
-        with patch.object(GruntDB, "get_all", new_callable=AsyncMock, return_value=[]):
-            result = await can_delete("Invoice", "INV-001")
-        assert result is False
-
-        # Superadmin should be able to delete
-        admin = Mock()
-        admin.email = "admin@example.com"
-        admin.full_name = "Admin"
-        admin.roles = ["Admin"]
-        admin.is_superadmin = True
-        set_user(admin)
-
-        result = await can_delete("Invoice", "INV-001")
-        assert result is True
+        dt = _dt("Invoice", [DocTypePermission(role="Admin", read=True)])
+        with _registry_returning(dt):
+            assert await grunt.has_permission("Invoice", "read") is False
 
     @pytest.mark.asyncio
-    async def test_doctype_permission_no_permission(self, setup_context, mock_session):
-        """Test that user without permission is denied."""
-        # Setup user with a role that has no matching permission row
-        user = Mock()
-        user.email = "guest@example.com"
-        user.full_name = "Guest User"
-        user.roles = ["Guest"]
-        user.is_superadmin = False
+    async def test_permission_row_matches_role_but_action_false_denied(self, setup_context):
+        """A permission row matches the role, but doesn't grant this action."""
+        user = Mock(email="guest@example.com", roles=["Guest"], is_superadmin=False)
         set_user(user)
+        dt = _dt("Invoice", [DocTypePermission(role="Guest", read=False)])
+        with _registry_returning(dt):
+            assert await grunt.has_permission("Invoice", "read") is False
 
-        # No permission rows returned for this doctype
-        with patch.object(GruntDB, "get_all", new_callable=AsyncMock, return_value=[]):
-            result = await can_read("Invoice", "INV-001")
-            assert result is False
+    @pytest.mark.asyncio
+    async def test_permission_row_matches_role_and_action_allowed(self, setup_context):
+        user = Mock(email="user@example.com", roles=["User"], is_superadmin=False)
+        set_user(user)
+        dt = _dt("Invoice", [DocTypePermission(role="User", write=True)])
+        with _registry_returning(dt):
+            assert await grunt.has_permission("Invoice", "write") is True
 
-        # Permission row exists but not for the user's role
-        with patch.object(
-            GruntDB,
-            "get_all",
-            new_callable=AsyncMock,
-            return_value=[{"role": "Admin", "read": True}],
+    @pytest.mark.asyncio
+    async def test_user_with_no_roles_denied(self, setup_context):
+        """A user with no roles doesn't match any role-scoped permission row."""
+        user = Mock(email="nouser@example.com", roles=[], is_superadmin=False)
+        set_user(user)
+        dt = _dt("Invoice", [DocTypePermission(role="User", read=True)])
+        with _registry_returning(dt):
+            assert await grunt.has_permission("Invoice", "read") is False
+
+    @pytest.mark.asyncio
+    async def test_doc_id_evaluates_match_expression(self, setup_context):
+        """Passing doc_id fetches the document and evaluates the row's match expr.
+
+        Regression for api/permissions.py used to accept (and ignore) doc_id —
+        this is what makes it actually restrict access to the caller's own doc.
+        """
+        owner = Mock(email="owner@example.com", roles=["User"], is_superadmin=False)
+        attacker = Mock(email="attacker@example.com", roles=["User"], is_superadmin=False)
+        dt = _dt("Contract", [DocTypePermission(role="User", read=True, match="owner == user")])
+        doc = {"name": "CONTRACT-1", "owner": "owner@example.com"}
+
+        with (
+            _registry_returning(dt),
+            patch.object(GruntDB, "get_value", new_callable=AsyncMock, return_value=doc),
         ):
-            result = await can_read("Invoice", "INV-001")
-            assert result is False
+            set_user(owner)
+            assert await grunt.has_permission("Contract", "read", "CONTRACT-1") is True
 
-        # Permission row matches role but read=False
-        with patch.object(
-            GruntDB,
-            "get_all",
-            new_callable=AsyncMock,
-            return_value=[{"role": "Guest", "read": False}],
-        ):
-            result = await can_read("Invoice", "INV-001")
-            assert result is False
-
-    @pytest.mark.asyncio
-    async def test_system_user_always_allowed(self, setup_context, mock_session):
-        """Test that system user is always allowed."""
-        # System user should bypass permission checks
-        user = Mock()
-        user.email = "system"
-        user.full_name = "System"
-        user.roles = []
-        user.is_superadmin = False
-        set_user(user)
-
-        # Don't mock the session - system user should return True immediately
-        result = await can_read("Invoice", "INV-001")
-        assert result is True
-
-        result = await can_write("Invoice", "INV-001")
-        assert result is True
-
-    @pytest.mark.asyncio
-    async def test_user_with_no_roles(self, setup_context, mock_session):
-        """Test that user with no roles is denied."""
-        # User with empty roles should be denied
-        mock_result = AsyncMock()
-        mock_result.fetchall.return_value = []
-        mock_session.execute = AsyncMock(return_value=mock_result)
-
-        user = Mock()
-        user.email = "nouser@example.com"
-        user.full_name = "No Roles User"
-        user.roles = []  # No roles
-        user.is_superadmin = False
-        set_user(user)
-
-        # Should be denied
-        result = await can_read("Invoice", "INV-001")
-        assert result is False
+            set_user(attacker)
+            assert await grunt.has_permission("Contract", "read", "CONTRACT-1") is False
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -563,18 +519,14 @@ class TestIntegration:
         set_user(mock_user)
 
         # User with matching write permission row → allowed
-        with patch.object(
-            GruntDB,
-            "get_all",
-            new_callable=AsyncMock,
-            return_value=[{"role": "User", "write": True}],
-        ):
-            can_edit = await can_write("Invoice", "INV-001")
+        dt = _dt("Invoice", [DocTypePermission(role="User", write=True)])
+        with _registry_returning(dt):
+            can_edit = await grunt.has_permission("Invoice", "write")
             assert can_edit is True
 
         # User with no permission rows → denied, throw() raises
-        with patch.object(GruntDB, "get_all", new_callable=AsyncMock, return_value=[]):
-            can_edit = await can_write("Invoice", "INV-001")
+        with _registry_returning(_dt("Invoice", [])):
+            can_edit = await grunt.has_permission("Invoice", "write")
             assert can_edit is False
             with pytest.raises(ApplicationError):
                 if not can_edit:

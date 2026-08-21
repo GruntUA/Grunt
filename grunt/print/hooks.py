@@ -53,22 +53,20 @@ async def save_print_format_to_app(doc: dict[str, Any], **kwargs: Any) -> None:
     safe_name = str(doc.get("name")).replace("/", "_").replace(" ", "_").lower()
     ext = "html" if doc.get("template_type") == "html" else "docx"
 
-    # We save as JSON metadata + the actual template file?
-    # Or just as a fixture?
-    # User said "в теці обраного додатку".
-    # Creating a dedicated folder for each print format might be better if
-    # we have multiple files (html + css).
-    # But for now, one file is fine.
-
     file_path = pf_dir / f"{safe_name}.{ext}"
 
     try:
         content = doc.get("template", "")
         if ext == "docx":
-            # For DOCX, the template might be bytes or a file reference?
-            # Actually, PrintFormat template for docx is usually a path or bytes.
-            # Base DocumentStore handles this.
-            pass
+            # No PrintFormat editor produces docx templates yet (only html is
+            # wired up in PrintFormatBuilder.vue), so there's no real docx
+            # content/path convention to copy from here. Skip the template
+            # file rather than silently claim success below.
+            logger.warning(
+                "print.save_to_app_skipped_docx",
+                name=doc.get("name"),
+                reason="docx app-export not implemented",
+            )
         else:
             file_path.write_text(content, encoding="utf-8")
 

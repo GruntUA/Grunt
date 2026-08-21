@@ -65,7 +65,7 @@ async def touch_session(session_key: str) -> None:
 
 
 async def terminate_session(session_id: str, requesting_user: str) -> bool:
-    """Deactivate a session. Only the owning user or superadmin may do this.
+    """Deactivate a session. Only the owning user may terminate their own session.
 
     Returns True on success.
     """

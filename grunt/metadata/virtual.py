@@ -99,7 +99,14 @@ class VirtualDocType:
         """Filter *rows* using the standard Grunt filter syntax.
 
         Supported operators (appended to fieldname with ``__``):
-            eq (default), gt, gte, lt, lte, lte_or_null, like, ilike, in, isnull
+            eq (default), ne, neq, gt, gte, lt, lte, lte_or_null, like, ilike,
+            in, nin, isnull
+
+        Same operator set as ``grunt.db.api.build_clauses`` (the SQL-backed
+        equivalent for physical DocTypes) — an unrecognised operator raises
+        rather than silently falling back to ``eq``, so a typo or a future
+        operator added to one side without the other fails loudly instead of
+        quietly returning the wrong rows.
         """
         for key, val in filters.items():
             if "__" in key:
@@ -107,12 +114,17 @@ class VirtualDocType:
             else:
                 field, op = key, "eq"
 
+            if op not in self._SUPPORTED_FILTER_OPS:
+                raise ValueError(f"Unsupported filter operator: {op!r}")
+
             result: list[dict] = []
             for r in rows:
                 raw = r.get(field)
                 try:
                     if op == "eq":
                         match = str(raw) == str(val)
+                    elif op in ("ne", "neq"):
+                        match = str(raw) != str(val)
                     elif op in ("like", "ilike"):
                         match = str(val).lower().strip("%") in str(raw).lower()
                     elif op in ("gt", "gte", "lt", "lte"):
@@ -132,24 +144,42 @@ class VirtualDocType:
                         else:
                             try:
                                 match = float(raw) <= float(val or 0)
-                            except TypeError, ValueError:
+                            except (TypeError, ValueError):
                                 match = str(raw) <= str(val)
                     elif op == "in":
                         match = str(raw) in [v.strip() for v in str(val).split(",")]
-                    elif op == "isnull":
+                    elif op == "nin":
+                        match = str(raw) not in [v.strip() for v in str(val).split(",")]
+                    else:  # isnull
                         match = (
                             (raw is None)
                             if str(val).lower() in ("true", "1")
                             else (raw is not None)
                         )
-                    else:
-                        match = str(raw) == str(val)
-                except TypeError, ValueError:
+                except (TypeError, ValueError):
                     match = False
                 if match:
                     result.append(r)
             rows = result
         return rows
+
+    _SUPPORTED_FILTER_OPS = frozenset(
+        {
+            "eq",
+            "ne",
+            "neq",
+            "gt",
+            "gte",
+            "lt",
+            "lte",
+            "lte_or_null",
+            "like",
+            "ilike",
+            "in",
+            "nin",
+            "isnull",
+        }
+    )
 
     def apply_sort(self, rows: list[dict], sort_by: str, sort_order: str) -> list[dict]:
         """Sort *rows* by *sort_by* field.  Nones are always placed last."""

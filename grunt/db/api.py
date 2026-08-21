@@ -512,8 +512,11 @@ def _as_list(value: Any) -> list[Any]:
 def build_clauses(table: Any, filters: dict[str, Any]) -> list[Any]:
     """Build SQLAlchemy WHERE clauses from an operator-aware filter dict.
 
-    Single source of truth for filter parsing across the framework — used both
-    by the ``grunt.db`` layer (count/get_all/…) and by document list queries.
+    Single source of truth for filter parsing across *physical* DocTypes — used
+    both by the ``grunt.db`` layer (count/get_all/…) and by document list
+    queries. Virtual DocTypes filtering in-memory rows use the equivalent
+    ``VirtualDocType.apply_filters`` (``grunt.metadata.virtual``) instead,
+    which intentionally mirrors the same operator set.
     """
     clauses: list[Any] = []
     for key, value in filters.items():

@@ -22,25 +22,6 @@ class MultiLinkService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get_values(
-        self,
-        parent_doctype: str,
-        parent_id: str,
-        parent_field: str,
-    ) -> list[str]:
-        """Return ordered list of linked names for a single MultiLink field."""
-        t = MULTI_LINK_TABLE
-        result = await self.session.execute(
-            select(t.c.link_name)
-            .where(
-                t.c.parent_doctype == parent_doctype,
-                t.c.parent_name == parent_id,
-                t.c.parent_field == parent_field,
-            )
-            .order_by(t.c.idx)
-        )
-        return [row[0] for row in result.fetchall()]
-
     async def get_all_for_doc(
         self,
         parent_doctype: str,
@@ -53,31 +34,6 @@ class MultiLinkService:
             .where(
                 t.c.parent_doctype == parent_doctype,
                 t.c.parent_name == parent_id,
-            )
-            .order_by(t.c.parent_field, t.c.idx)
-        )
-        out: dict[str, list[str]] = {}
-        for field, name in result.fetchall():
-            out.setdefault(field, []).append(name)
-        return out
-
-    async def get_for_doc_fields(
-        self,
-        parent_doctype: str,
-        parent_id: str,
-        fields: list[str],
-    ) -> dict[str, list[str]]:
-        """Return MultiLink values only for selected field names."""
-        if not fields:
-            return {}
-
-        t = MULTI_LINK_TABLE
-        result = await self.session.execute(
-            select(t.c.parent_field, t.c.link_name)
-            .where(
-                t.c.parent_doctype == parent_doctype,
-                t.c.parent_name == parent_id,
-                t.c.parent_field.in_(fields),
             )
             .order_by(t.c.parent_field, t.c.idx)
         )

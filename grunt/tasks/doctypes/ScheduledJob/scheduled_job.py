@@ -56,25 +56,31 @@ class ScheduledJobController(VirtualDocType):
         return _build_job(rows[0], stats.get(doc_id, {}))
 
     async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        """Create new scheduled job via ServerScript."""
-        return {
-            "name": data.get("name", "new_job"),
-            "enabled": data.get("enabled", True),
-            "cron_expression": data.get("cron_expression", ""),
-            "status": "Pending",
-        }
+        """Not supported — ServerScript.script has no field on this view.
+
+        ScheduledJob only exposes job_id/cron_expression/enabled; the underlying
+        ServerScript row also requires a `script` body, which this view never
+        collects. Create the ServerScript directly (script_type="Scheduler Event").
+        """
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+            detail="Create a ServerScript with script_type='Scheduler Event' instead",
+        )
 
     async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
-        """Update scheduled job via ServerScript."""
-        return {
-            "name": doc_id,
-            "enabled": data.get("enabled", True),
-            "cron_expression": data.get("cron_expression", ""),
-            "status": "Pending",
-        }
+        """Not supported — see create()."""
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+            detail="Edit the underlying ServerScript instead",
+        )
 
     async def delete(self, doc_id: str, **kwargs: Any) -> None:
-        """Delete scheduled job (deletes ServerScript)."""
+        """Delete scheduled job by deleting the underlying ServerScript."""
+        await grunt.delete_doc("ServerScript", doc_id)
 
     async def _load_job_stats(self, job_names: list[str]) -> dict[str, dict[str, Any]]:
         """Load last execution stats and run counts from ScheduledJobLog."""

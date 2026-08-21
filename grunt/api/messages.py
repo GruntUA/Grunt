@@ -11,11 +11,7 @@ Example:
     await notify("New Request", "From client ABC", doctype="Request", doc_id="REQ-001")
 """
 
-import structlog
-
 from grunt.api.context import get_session, get_user
-
-logger = structlog.get_logger()
 
 
 class ApplicationError(Exception):
@@ -159,42 +155,28 @@ async def queue_email(
     recipient: str,
     subject: str,
     body: str,
-    doctype: str = "",
-    doc_id: str = "",
-) -> None:
+) -> str:
     """Queue an email for delivery.
 
-    Queues the email in EmailQueue for async delivery.
+    Inserts a Pending row into EmailQueue; the ``process_email_queue`` scheduled
+    task picks it up and sends it via the default outgoing EmailAccount.
 
     Args:
         recipient: Recipient email address
         subject: Email subject
         body: Email body (HTML supported)
-        doctype: Optional document type (for linking)
-        doc_id: Optional document ID (for linking)
+
+    Returns:
+        The EmailQueue record id, or "" if EmailQueue has no configured account.
 
     Example:
         await queue_email(
             "test@example.com",
             "Invoice INV-001",
             "<h1>Invoice</h1><p>Amount: 1000 UAH</p>",
-            doctype="Invoice",
-            doc_id="INV-001"
         )
     """
-    get_session()
+    from grunt.email.service import email_service
 
-    logger.info(
-        "email.queued",
-        recipient=recipient,
-        subject=subject,
-        doctype=doctype,
-        doc_id=doc_id,
-    )
-
-    # TODO: Create EmailQueue record
-    # from grunt.metadata.registry import doctype_registry
-    # from grunt.metadata.compiler import compile_doctype_to_table
-    # table = compile_doctype_to_table(doctype_registry._doctypes["EmailQueue"])
-    # await session.execute(table.insert().values(...))
-    # await session.flush()
+    session = get_session()
+    return await email_service.queue_email(session, recipient, subject, body)

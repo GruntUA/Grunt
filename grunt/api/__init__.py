@@ -5,7 +5,7 @@ needing to import and manage session/user/engine manually.
 
 Usage in your app:
 
-    from grunt import db, msgprint, throw, notify, get_current_user, can_read
+    from grunt import db, msgprint, throw, notify, get_current_user
 
     class MyDocType:
         async def before_save(self):
@@ -20,7 +20,7 @@ Usage in your app:
                 throw("Contract not found")
 
             # Check permissions
-            if not await can_read("Contact", self.doc.contact_id):
+            if not await grunt.has_permission("Contact", "read", self.doc.contact_id):
                 throw("No permission to access this contact")
 
             # Save changes
@@ -52,14 +52,7 @@ from grunt.api.messages import (
     queue_email,
     throw,
 )
-from grunt.api.permissions import (
-    can_create,
-    can_delete,
-    can_read,
-    can_submit,
-    can_write,
-    get_current_user,
-)
+from grunt.api.permissions import get_current_user
 from grunt.app import GruntDB
 
 db = GruntDB()
@@ -76,11 +69,6 @@ __all__ = [
     "queue_email",
     "ApplicationError",
     # Permissions
-    "can_read",
-    "can_write",
-    "can_submit",
-    "can_delete",
-    "can_create",
     "get_current_user",
     # Context (internal)
     "set_session",

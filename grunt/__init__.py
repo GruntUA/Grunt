@@ -1,10 +1,10 @@
 """Ґрунт — Python Framework for Building CMS, ERP, and Business Apps.
 
 Primary imports for app developers:
-    from grunt import db, msgprint, throw, notify, can_read, can_write
+    from grunt import db, msgprint, throw, notify
 
 Example usage in a DocType controller:
-    from grunt import db, msgprint, get_current_user, can_read
+    from grunt import db, msgprint, get_current_user
     from grunt.app import grunt
 
     class Invoice:
@@ -18,7 +18,7 @@ Example usage in a DocType controller:
 
             # Check permissions
             current_user = await get_current_user()
-            if not await can_write("Contract", self.doc.contract_id):
+            if not await grunt.has_permission("Contract", "write", self.doc.contract_id):
                 throw("Read-only access")
 
             # Notify user
@@ -164,11 +164,6 @@ def __getattr__(name: str):
         "notify_all",
         "queue_email",
         "ApplicationError",
-        "can_read",
-        "can_write",
-        "can_submit",
-        "can_delete",
-        "can_create",
         "get_current_user",
         "add_comment",
         "get_comments",
