@@ -22,7 +22,10 @@ const recentDocs = ref<RecentDoc[]>([])
 
 const greeting = computed(() => {
   const hour = new Date().getHours()
-  const name = auth.user?.full_name?.split(' ')[0] ?? 'користувач'
+  // full_name is "Прізвище Ім'я [По-батькові]" (see User.before_save on the
+  // backend) — the first name is the second word, not the first.
+  const parts = auth.user?.full_name?.split(' ') ?? []
+  const name = parts[1] ?? parts[0] ?? 'користувач'
   if (hour < 5) return { text: `Добраніч, ${name}`, emoji: '🌙' }
   if (hour < 12) return { text: `Доброго ранку, ${name}`, emoji: '☀️' }
   if (hour < 18) return { text: `Доброго дня, ${name}`, emoji: '🌤️' }

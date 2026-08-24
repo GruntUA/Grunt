@@ -55,6 +55,13 @@ const timeGreeting = computed(() => {
   return 'Доброго вечора'
 })
 
+// full_name is "Прізвище Ім'я [По-батькові]" (see User.before_save on the
+// backend) — the first name is the second word, not the first.
+const firstName = computed(() => {
+  const parts = auth.user?.full_name?.split(' ') ?? []
+  return parts[1] ?? parts[0] ?? 'користувач'
+})
+
 function actionConfig(action: string) {
   const map: Record<string, { label: string; color: string }> = {
     create: { label: 'створив', color: 'bg-emerald-500/10 text-emerald-600' },
@@ -75,7 +82,7 @@ function actionConfig(action: string) {
           <span>Система активована</span>
         </div>
         <h1 class="text-4xl font-extrabold tracking-tight text-foreground lg:text-5xl">
-          {{ timeGreeting }}, {{ auth.user?.full_name?.split(' ')[0] ?? 'користувач' }}
+          {{ timeGreeting }}, {{ firstName }}
         </h1>
         <p class="text-muted-foreground text-lg font-medium">
           Ваш персональний центр управління Grunt. Оберіть робочий простір для початку.
