@@ -200,6 +200,105 @@ Low-level direct DB access: no permission checks and no lifecycle/read hooks.
 
 ---
 
+## REST API standard — two transports, not one
+
+The HTTP surface has exactly two sanctioned shapes. Every new endpoint must be
+one or the other — never a bespoke third pattern.
+
+**1. REST `/api/v1/docs/{doctype}(/{id})`** — the 5 base CRUD verbs, and
+*nothing else*:
+
+```
+GET    /api/v1/docs/{doctype}             list
+GET    /api/v1/docs/{doctype}/{id}        get one
+POST   /api/v1/docs/{doctype}             create
+PUT    /api/v1/docs/{doctype}/{id}        update
+DELETE /api/v1/docs/{doctype}/{id}        delete → 204 No Content, empty body
+```
+
+Implemented once, generically, in `grunt/api/v1/docs/crud.py` — it already
+works for any registered DocType, no per-doctype code needed.
+
+**2. RPC `/api/v1/method/{dotted.path}`** — everything else: any action that
+isn't one of the 5 verbs above, any sub-resource of a document (comments,
+bookmarks, versions, tree structure, workflow transitions, link-field search,
+export/print, bulk operations, cross-doctype search, reports...), and any
+operation that doesn't map to a single resource at all. See "Whitelisted
+methods" below — the dotted path is the Python import path to the function
+(or `module.Class.method` for a class method/staticmethod — the dispatcher
+supports both).
+
+Do **not** invent action verbs in a `/docs/{doctype}/...` path
+(`/docs/{doctype}/some-action`) — that used to happen (`link_search`,
+`bulk-delete`, `tree/move/{id}`...) and it's why this rule exists now. If an
+operation isn't pure CRUD on one document, it's a whitelisted method, full
+stop. The dispatcher only exposes `GET`/`POST` — a formerly-PATCH/DELETE
+action becomes a `POST` whitelisted method.
+
+Generic (any-doctype) document operations that aren't tied to one specific
+DocType's own controller live as `@staticmethod`s on the base `Document`
+controller (`grunt/document/mixins/*_rpc.py`, mixed into
+`grunt.document.base.Document`) rather than in the `grunt/api/` tree —
+`grunt.document.base.Document.get_tree`,
+`grunt.document.base.Document.link_search`,
+`grunt.document.base.Document.print`, etc. An operation specific to one
+DocType (e.g. running a saved `Report`) belongs in *that* DocType's own
+controller file instead — `grunt.reports.doctypes.Report.report.run`,
+following the same pattern as `grunt.activity.doctypes.ActivityLog
+.activity_log.list_activity`.
+
+Name the method for what it does, without repeating context the class/module
+already supplies: `Document.get_tree`/`Document.move_tree_node` (not
+`Document.get`/`Document.move` — too generic once flattened onto one class,
+and `get` would collide with `Document.get(fieldname)`), `Document
+.link_search` (not `Document.search` — same reason), `Document
+.apply_workflow_transition` (not `Document.apply_transition` — ambiguous
+outside the workflow context). Drop a qualifier only when nothing is lost by
+dropping it — `Document.get_versions`/`get_activity_log`/`get_timeline`,
+`Document.get_comments`/`add_comment`, `Document.get_backlinks`.
+
+### List/query parameter conventions (REST list endpoints)
+
+- **Pagination**: `page` (1-based) + `per_page` — never `limit`/`page_length`.
+- **Filtering**: `filter[field__op]=value` / `fast_filter[field__op]=value`
+  (`fast_filter` is lower precedence, `filter` overrides it for the same
+  key) — parsed by `grunt.api.v1.docs.utils.parse_query_filters`. RPC methods
+  take the equivalent as one `filters: dict[str, Any] | None` kwarg (a JSON
+  object) instead of bracket-style query keys — Python identifiers can't
+  contain `[`/`]`, and the method dispatcher already JSON-decodes any
+  query/body value that looks like an object.
+- **Search**: `search` (never `q`).
+- **Sort**: `sort_by` + `sort_order`, the latter always constrained to
+  `^(asc|desc)$`.
+
+### Response envelope
+
+Every JSON response — success or error — uses the helpers in
+`grunt/api/v1/schemas/response.py`:
+
+```python
+from grunt.api.v1.schemas.response import ok, ok_list
+
+return ok(doc)                              # {"success": true, "data": doc}
+return ok_list(items, total=n, page=p, per_page=pp)   # + "meta": {...}
+return ok(message="Done")                   # {"success": true, "message": "Done"}
+```
+
+Errors go through `grunt.errors.error_body`/`APIError` —
+`{"success": false, "error": {"code", "message", "details"}}`. Never return a
+bare Pydantic model or a hand-built dict — both `/api/v1/docs/*` and
+`/api/v1/method/*` follow this envelope contract (for method calls the wrapper
+is applied by the dispatcher), no exceptions. The dispatcher
+already does this wrapping automatically for whitelisted methods (`return`
+the raw value, not `ok(...)`) — see below.
+
+The one deliberate exception: binary/streaming responses (CSV/XLSX export,
+PDF/HTML print) return a raw `Response`/`StreamingResponse`, unwrapped — the
+method dispatcher forwards any `Response` instance verbatim instead of
+JSON-wrapping it.
+
+---
+
 ## Whitelisted methods (`@grunt.whitelist`)
 
 Any module-level `async def` becomes a callable HTTP RPC endpoint

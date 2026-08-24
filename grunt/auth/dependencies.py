@@ -21,8 +21,13 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 logger = structlog.get_logger()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
-_oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/api/v1/method/grunt.auth.doctypes.User.user.login_api"
+)
+_oauth2_scheme_optional = OAuth2PasswordBearer(
+    tokenUrl="/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+    auto_error=False,
+)
 
 
 async def current_user(

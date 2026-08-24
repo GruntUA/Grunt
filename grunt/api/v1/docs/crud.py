@@ -5,8 +5,9 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from fastapi import Body, Depends, HTTPException, Query, Request, status
+from fastapi import Body, Depends, Query, Request, status
 
+import grunt
 from grunt.api.router import GruntRouter
 from grunt.api.v1.docs.utils import parse_query_filters
 from grunt.api.v1.schemas.response import ok
@@ -25,7 +26,7 @@ async def list_documents(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=10000),
     sort_by: str = "modified_at",
-    sort_order: str = "desc",
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     search: str | None = None,
     fields: str | None = None,
     cursor: str | None = Query(None, description="Opaque cursor for keyset pagination"),
@@ -60,7 +61,7 @@ async def create_document(
     return ok(doc)
 
 
-@router.get("/{doctype}/{doc_id:path}")
+@router.get("/{doctype}/{doc_id}")
 async def get_document(
     doctype: str,
     doc_id: str,
@@ -73,7 +74,7 @@ async def get_document(
     return ok(doc)
 
 
-@router.put("/{doctype}/{doc_id:path}")
+@router.put("/{doctype}/{doc_id}")
 async def update_document(
     doctype: str,
     doc_id: str,
@@ -85,49 +86,51 @@ async def update_document(
     return ok(doc)
 
 
-@router.delete("/{doctype}/{doc_id:path}")
+@router.delete("/{doctype}/{doc_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_document(
     doctype: str,
     doc_id: str,
     user: User = Depends(current_user),
-) -> dict[str, Any]:
+) -> None:
     """Delete a document."""
     await grunt_app.delete_doc(doctype, doc_id)
-    return ok(message="Документ видалено")
 
 
-@router.post("/{doctype}/bulk-delete", status_code=status.HTTP_202_ACCEPTED)
-async def bulk_delete_documents(
+@grunt.whitelist()
+async def rename(doctype: str, doc_id: str, new_name: str) -> dict[str, Any]:
+    """Rename a document (change its id). RPC: grunt.api.v1.docs.crud.rename"""
+    return await grunt_app.rename_doc(doctype, doc_id, new_name)
+
+
+@grunt.whitelist()
+async def bulk_delete(
     doctype: str,
-    body: dict[str, Any] = Body(...),
-    user: User = Depends(current_user),
+    ids: list[str] | None = None,
+    delete_all: bool = False,
+    filters: dict[str, Any] | None = None,
+    search: str | None = None,
+    fast: bool = False,
 ) -> dict[str, Any]:
     """Delete multiple documents by IDs, or all documents matching filters.
+
+    RPC: grunt.api.v1.docs.crud.bulk_delete
 
     Deletion runs as a background task; progress is pushed via WebSocket
     (event ``bulk_delete_progress`` / ``bulk_delete_done``) to the requesting user.
 
-    Body variants:
-      { "ids": ["id1", "id2"] }          — delete by explicit IDs
-      { "delete_all": true, "filters": {"status__eq": "Draft"} }  — delete all matching
-
-    When ``delete_all`` is true, deletion loops in rolling batches until no
-    matching records remain — so datasets of any size are supported.
+    Either pass ``ids`` (delete by explicit IDs) or ``delete_all=true`` with
+    optional ``filters``/``search`` (delete all matching, in rolling batches
+    so datasets of any size are supported).
     """
     from grunt.site.manager import current_site
 
-    delete_all: bool = body.get("delete_all", False)
+    user = grunt.get_user()
     user_email = user.email
     engine = grunt_app._require_engine()
     task = BulkDeleteTask()
     active_site = current_site.get()
 
     if delete_all:
-        raw_filters: dict[str, str] = body.get("filters", {}) or {}
-        search: str | None = body.get("search") or None
-        fast: bool = body.get("fast", False)
-        filters = raw_filters if raw_filters else None
-
         if fast:
             # ── Fast path: direct SQL DELETE, superadmin only ─────────────
             async def _run_fast() -> None:
@@ -142,7 +145,7 @@ async def bulk_delete_documents(
                 )
 
             asyncio.create_task(_run_fast())
-            return ok({"started": True, "total": None, "fast": True})
+            return {"started": True, "total": None, "fast": True}
 
         async def _run_all() -> None:
             if active_site:
@@ -157,14 +160,11 @@ async def bulk_delete_documents(
             )
 
         asyncio.create_task(_run_all())
-        return ok({"started": True, "total": None})
+        return {"started": True, "total": None}
 
     # ── Explicit IDs path ─────────────────────────────────────────────────
-    ids: list[str] = body.get("ids", [])
     if not ids:
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_CONTENT, detail="ids or delete_all is required"
-        )
+        grunt_app.throw("ids or delete_all is required")
 
     total = len(ids)
 
@@ -180,24 +180,21 @@ async def bulk_delete_documents(
         )
 
     asyncio.create_task(_run())
-    return ok({"started": True, "total": total})
+    return {"started": True, "total": total}
 
 
-@router.post("/{doctype}/bulk-update")
-async def bulk_update_documents(
-    doctype: str,
-    body: dict[str, Any] = Body(...),
-    user: User = Depends(current_user),
+@grunt.whitelist()
+async def bulk_update(
+    doctype: str, ids: list[str], field: str, value: Any = None
 ) -> dict[str, Any]:
-    """Update a single field on multiple documents."""
-    ids: list[str] = body.get("ids", [])
-    field: str | None = body.get("field")
-    value: Any = body.get("value")
+    """Update a single field on multiple documents.
 
+    RPC: grunt.api.v1.docs.crud.bulk_update
+    """
     if not ids:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="ids is required")
+        grunt_app.throw("ids is required")
     if not field:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="field is required")
+        grunt_app.throw("field is required")
 
     updated = 0
     errors: list[str] = []
@@ -208,4 +205,4 @@ async def bulk_update_documents(
         except Exception as e:
             errors.append(f"{doc_id}: {e}")
 
-    return ok({"updated": updated, "errors": errors})
+    return {"updated": updated, "errors": errors}

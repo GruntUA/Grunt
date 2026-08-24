@@ -629,25 +629,22 @@ async def test_list_partial_fields(ctx, setup_doctype):
 
 @pytest.mark.asyncio
 async def test_link_search_returns_compact_items(ctx, setup_doctype):
-    """link_search should return compact rows and honor title/search fields."""
-    from grunt.api.v1.docs.link import link_search
+    """Document.link_search should return compact rows and honor title/search fields."""
     from grunt.auth.doctypes.User.user import SYSTEM_USER
+    from grunt.document.base import Document
 
     await ctx.new_doc("TestItem", {"title": "Alpha Item", "status": "Draft"})
     await ctx.new_doc("TestItem", {"title": "Beta Item", "status": "Active"})
     await ctx.db._session().commit()
 
     async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
-        body = await link_search(
+        items = await Document.link_search(
             "TestItem",
-            q="Alpha",
-            filters='{"status": "Draft"}',
-            page_length=10,
-            user=SYSTEM_USER,
+            search="Alpha",
+            filters={"status": "Draft"},
+            per_page=10,
         )
 
-    assert body["success"] is True
-    items = body["data"]
     assert len(items) == 1
     assert items[0]["title"] == "Alpha Item"
     assert items[0]["subtitle"] == items[0]["name"]

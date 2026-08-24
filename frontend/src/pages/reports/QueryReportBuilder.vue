@@ -3,6 +3,7 @@ import { ref, watch, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/core/api/client'
 import { metaApi } from '@/core/api/meta'
+import { reportsApi } from '@/core/api/reports'
 import {
     Plus, Search, Save, Play, Trash2, ChevronRight,
     Layout, Table as TableIcon, FileBarChart
@@ -29,6 +30,9 @@ const selectedDoctype = ref('')
 const fields = ref<any[]>([])
 const reportTitle = ref(props.reportName || 'Новий звіт')
 
+/** Internal doctype id (`name`) of the report being edited — resolved from
+ *  `reportsApi.get()` by `report_name`, needed for the PUT call on save. */
+const reportId = ref<string | null>(null)
 const columns = ref<any[]>([]) // { fieldname, label, aggregation, fieldtype }
 const previewData = ref<any[]>([])
 const previewCols = ref<any[]>([])
@@ -53,10 +57,10 @@ onMounted(async () => {
     }
 
     if (props.reportName && props.reportName !== 'new') {
-        const repRes = await api.get(`/api/v1/reports/${props.reportName}`)
-        const rep = repRes.data.data
-        selectedDoctype.value = rep.doctype
-        columns.value = JSON.parse(rep.columns || '[]')
+        const rep = await reportsApi.get(props.reportName)
+        reportId.value = rep.id
+        selectedDoctype.value = rep.doctype ?? ''
+        columns.value = rep.columns ?? []
         reportTitle.value = rep.report_name
     }
 })
@@ -90,14 +94,14 @@ async function runPreview() {
 
     previewLoading.value = true
     try {
-        const res = await api.post('/api/v1/reports/run-preview', {
+        const res = await api.post('/api/v1/method/grunt.reports.doctypes.Report.report.preview', {
             doctype: selectedDoctype.value,
             columns: columns.value,
             filters: {}
         })
-        previewData.value = res.data.data
-        previewCols.value = res.data.columns
-        previewMeta.value = res.data.meta
+        previewData.value = res.data.data.data
+        previewCols.value = res.data.data.columns
+        previewMeta.value = res.data.data.meta
     } finally {
         previewLoading.value = false
     }
@@ -115,14 +119,14 @@ async function saveReport() {
             report_name: reportTitle.value,
             doctype: selectedDoctype.value,
             report_type: 'List',
-            columns: JSON.stringify(columns.value),
-            filters_config: '{}'
+            columns: columns.value,
+            filters_config: [] as unknown[]
         }
 
-        if (props.reportName && props.reportName !== 'new') {
-            await api.put(`/api/v1/reports/${props.reportName}`, payload)
+        if (reportId.value) {
+            await reportsApi.update(reportId.value, payload)
         } else {
-            await api.post('/api/v1/reports/', payload)
+            await reportsApi.create(payload)
         }
 
         router.push({ name: 'workspace-report', params: { workspaceName: props.workspaceName, reportName: reportTitle.value } })

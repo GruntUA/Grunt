@@ -115,7 +115,8 @@ async def oauth_authorize(provider: str) -> dict:
 async def oauth_callback(provider: str, code: str) -> dict:
     """Exchange the authorization code for Grunt tokens.
 
-    Returns the same ``TokenResponse`` shape as ``POST /auth/token``.
+    Returns the same token payload shape as
+    ``grunt.auth.doctypes.User.user.login_api``.
     """
     oauth_client_cls = _require_authlib()
     cfg = _get_provider_config(provider)

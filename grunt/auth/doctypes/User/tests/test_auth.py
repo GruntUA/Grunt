@@ -27,11 +27,11 @@ async def test_register_login_me(ctx, client: AsyncClient):
 
     # Login (Keep HTTP to verify JWT generation)
     resp = await client.post(
-        "/api/v1/auth/token",
-        data={"username": "admin@grunt.example.com", "password": "secret"},
+        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        json={"email": "admin@grunt.example.com", "password": "secret"},
     )
     assert resp.status_code == 200
-    token = resp.json()["access_token"]
+    token = resp.json()["data"]["access_token"]
     assert token
 
     # whoami via whitelisted method directly
@@ -62,6 +62,7 @@ async def test_first_user_is_superadmin(ctx):
         await ctx.db._session().commit()
 
         u1 = await get_user_by_email("first@grunt.example.com")
+        assert u1 is not None
         assert u1.is_superadmin is True
 
         # Second user
@@ -74,6 +75,7 @@ async def test_first_user_is_superadmin(ctx):
         await ctx.db._session().commit()
 
         u2 = await get_user_by_email("second@grunt.example.com")
+        assert u2 is not None
         assert u2.is_superadmin is False
 
 

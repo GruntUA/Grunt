@@ -18,8 +18,7 @@ const typeIcon: Record<string, string> = {
 async function load() {
   isLoading.value = true
   try {
-    const r = await reportsApi.list()
-    reports.value = r.data ?? []
+    reports.value = await reportsApi.list()
   } finally {
     isLoading.value = false
   }

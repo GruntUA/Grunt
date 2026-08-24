@@ -30,7 +30,6 @@ import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import literal, select
 
-from grunt.document.base import Document
 from grunt.document.meta import Meta
 from grunt.document.registry import document_registry
 from grunt.metadata.compiler import compile_doctype_to_table
@@ -199,6 +198,8 @@ class TreeService:
 
         ``root_id=None`` returns the entire forest (all root nodes + their subtrees).
         """
+        from grunt.document.base import Document
+
         dt = await doctype_registry.get(doctype)
         parent_field = _require_tree(dt)
         table = compile_doctype_to_table(dt)
@@ -281,6 +282,7 @@ class TreeService:
         tree stays connected/readable instead of showing orphaned matches.
         """
         from grunt.db.api import _apply_filters
+        from grunt.document.base import Document
 
         # Build parent lookup from the flat result set (avoids extra DB round-trip)
         parent_lookup: dict[str, str | None] = {
@@ -451,6 +453,8 @@ class TreeService:
         fallback_if_missing: bool,
         controller_cls: type,
     ) -> tuple[str | None, str]:
+        from grunt.document.base import Document
+
         tree_view = Meta(dt).get_tree_view()
         default_sort_by = tree_view.sort_by if tree_view else None
         default_sort_order = tree_view.sort_order if tree_view else "asc"

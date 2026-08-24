@@ -44,6 +44,11 @@ const fakeTokenResponse = {
   user: fakeUser,
 }
 
+/** Wrap a payload in the standard {success, data} envelope, as the real API returns. */
+function envelope<T>(data: T) {
+  return { success: true, data }
+}
+
 // ── Tests ──────────────────────────────────────────────────────────────────
 
 describe('useAuthStore', () => {
@@ -71,7 +76,7 @@ describe('useAuthStore', () => {
 
   describe('login', () => {
     it('sets token and user on success', async () => {
-      mockPost.mockResolvedValueOnce({ data: fakeTokenResponse })
+      mockPost.mockResolvedValueOnce({ data: envelope(fakeTokenResponse) })
       const auth = useAuthStore()
       await auth.login('admin@grunt.local', 'password')
       expect(auth.isLoggedIn).toBe(true)
@@ -81,7 +86,7 @@ describe('useAuthStore', () => {
     })
 
     it('persists tokens to localStorage', async () => {
-      mockPost.mockResolvedValueOnce({ data: fakeTokenResponse })
+      mockPost.mockResolvedValueOnce({ data: envelope(fakeTokenResponse) })
       const auth = useAuthStore()
       await auth.login('admin@grunt.local', 'password')
       expect(localStorage.getItem('grunt_token')).toBe('fake-access-token')
@@ -89,13 +94,12 @@ describe('useAuthStore', () => {
     })
 
     it('sends form-encoded body', async () => {
-      mockPost.mockResolvedValueOnce({ data: fakeTokenResponse })
+      mockPost.mockResolvedValueOnce({ data: envelope(fakeTokenResponse) })
       const auth = useAuthStore()
       await auth.login('user@test.com', 'pass123')
       expect(mockPost).toHaveBeenCalledWith(
-        '/api/v1/auth/token',
-        expect.any(URLSearchParams),
-        expect.objectContaining({ headers: expect.any(Object) }),
+        '/api/v1/method/grunt.auth.doctypes.User.user.login_api',
+        { email: 'user@test.com', password: 'pass123' },
       )
     })
 
@@ -109,7 +113,7 @@ describe('useAuthStore', () => {
 
   describe('logout', () => {
     it('clears state and localStorage', async () => {
-      mockPost.mockResolvedValueOnce({ data: fakeTokenResponse })
+      mockPost.mockResolvedValueOnce({ data: envelope(fakeTokenResponse) })
       const auth = useAuthStore()
       await auth.login('admin@grunt.local', 'password')
       mockPost.mockResolvedValueOnce({ data: { success: true } }) // logout endpoint
@@ -121,7 +125,7 @@ describe('useAuthStore', () => {
     })
 
     it('clears state even if logout API fails', async () => {
-      mockPost.mockResolvedValueOnce({ data: fakeTokenResponse })
+      mockPost.mockResolvedValueOnce({ data: envelope(fakeTokenResponse) })
       const auth = useAuthStore()
       await auth.login('admin@grunt.local', 'password')
       mockPost.mockRejectedValueOnce(new Error('Network error'))
@@ -133,7 +137,9 @@ describe('useAuthStore', () => {
   describe('refresh', () => {
     it('returns true and updates tokens on success', async () => {
       localStorage.setItem('grunt_refresh_token', 'old-refresh')
-      mockPost.mockResolvedValueOnce({ data: { ...fakeTokenResponse, access_token: 'new-access', refresh_token: 'new-refresh' } })
+      mockPost.mockResolvedValueOnce({
+        data: envelope({ ...fakeTokenResponse, access_token: 'new-access', refresh_token: 'new-refresh' }),
+      })
       const auth = useAuthStore()
       const ok = await auth.refresh()
       expect(ok).toBe(true)

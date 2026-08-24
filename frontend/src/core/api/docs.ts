@@ -76,12 +76,12 @@ export interface LinkSearchItem {
 export const docsApi = {
   linkSearch: async (
     doctype: string,
-    q: string,
+    search: string,
     filters: Record<string, string | string[]> = {},
-    pageLength = 10,
+    perPage = 10,
   ): Promise<LinkSearchItem[]> => {
-    const r = await client.get(`/api/v1/docs/${doctype}/link_search`, {
-      params: { q, filters: JSON.stringify(filters), page_length: pageLength },
+    const r = await client.get('/api/v1/method/grunt.document.base.Document.link_search', {
+      params: { doctype, search, filters: JSON.stringify(filters), per_page: perPage },
     })
     return r.data.data ?? []
   },
@@ -151,19 +151,26 @@ export const docsApi = {
     options?: { deleteAll?: boolean; rawFilters?: Record<string, string>; search?: string; fast?: boolean }
   ): Promise<{ started: boolean; total: number }> => {
     const body = options?.deleteAll
-      ? { delete_all: true, filters: options.rawFilters ?? {}, search: options.search ?? null, fast: options.fast ?? false }
-      : { ids }
-    return client.post(`/api/v1/docs/${doctype}/bulk-delete`, body).then(r => r.data.data)
+      ? { doctype, delete_all: true, filters: options.rawFilters ?? {}, search: options.search ?? null, fast: options.fast ?? false }
+      : { doctype, ids }
+    return client.post('/api/v1/method/grunt.api.v1.docs.crud.bulk_delete', body)
+      .then(r => r.data.data)
   },
 
   getTransitions: (doctype: string, id: string): Promise<{ data: WorkflowTransitionItem[] }> =>
-    client.get(`/api/v1/docs/${doctype}/${id}/transitions`).then(r => r.data),
+    client.get('/api/v1/method/grunt.document.base.Document.get_workflow_transitions', {
+      params: { doctype, doc_id: id },
+    }).then(r => r.data),
 
   applyTransition: (doctype: string, id: string, action: string): Promise<{ success: boolean; data: GruntDocument }> =>
-    client.post(`/api/v1/docs/${doctype}/${id}/transition`, { action }).then(r => r.data),
+    client.post('/api/v1/method/grunt.document.base.Document.apply_workflow_transition', {
+      doctype, doc_id: id, action,
+    }).then(r => r.data),
 
   getLinks: (doctype: string, id: string): Promise<BacklinkItem[]> =>
-    client.get(`/api/v1/docs/${doctype}/${id}/links`).then(r => r.data.data ?? []),
+    client.get('/api/v1/method/grunt.document.base.Document.get_backlinks', {
+      params: { doctype, doc_id: id },
+    }).then(r => r.data.data ?? []),
 
   getTree: async (
     doctype: string,
@@ -175,19 +182,21 @@ export const docsApi = {
       sort_order?: 'asc' | 'desc'
     },
   ): Promise<any[]> => {
-    const queryParams: Record<string, string> = {}
+    // fast_filter[...] takes lower precedence than an explicit filter[...] for
+    // the same key — merge fast filters first so filters can override them.
+    const merged: Record<string, string> = { ...(params?.fastFilters ?? {}) }
+    for (const f of params?.filters ?? []) {
+      const backendOp = OP_MAP[f.op] ?? 'eq'
+      merged[`${f.fieldname}__${backendOp}`] = f.value
+    }
+    const queryParams: Record<string, string> = { doctype }
     if (params?.as_of) queryParams.as_of = params.as_of
     if (params?.sort_by) queryParams.sort_by = params.sort_by
     if (params?.sort_order) queryParams.sort_order = params.sort_order
-    for (const [k, v] of Object.entries(params?.fastFilters ?? {})) {
-      queryParams[`fast_filter[${k}]`] = v
-    }
-    for (const f of params?.filters ?? []) {
-      const backendOp = OP_MAP[f.op] ?? 'eq'
-      queryParams[`filter[${f.fieldname}__${backendOp}]`] = f.value
-    }
-    const r = await client.get(`/api/v1/docs/${doctype}/tree`, {
-      params: Object.keys(queryParams).length ? queryParams : undefined,
+    if (Object.keys(merged).length) queryParams.filters = JSON.stringify(merged)
+
+    const r = await client.get('/api/v1/method/grunt.document.base.Document.get_tree', {
+      params: queryParams,
     })
     return r.data.data ?? []
   },
@@ -243,36 +252,53 @@ export const docsApi = {
   // ── Comments ────────────────────────────────────────────────────────────
 
   getComments: (doctype: string, id: string): Promise<CommentItem[]> =>
-    client.get(`/api/v1/docs/${doctype}/${id}/comments`).then(r => r.data.data ?? []),
+    client.get('/api/v1/method/grunt.document.base.Document.get_comments', {
+      params: { doctype, doc_id: id },
+    }).then(r => r.data.data ?? []),
 
   addComment: (doctype: string, id: string, content: string): Promise<CommentItem> =>
-    client.post(`/api/v1/docs/${doctype}/${id}/comments`, { content }).then(r => r.data.data),
+    client.post('/api/v1/method/grunt.document.base.Document.add_comment', {
+      doctype, doc_id: id, content,
+    }).then(r => r.data.data),
 
   deleteComment: (doctype: string, id: string, commentId: string): Promise<void> =>
-    client.delete(`/api/v1/docs/${doctype}/${id}/comments/${commentId}`).then(() => undefined),
+    client.post('/api/v1/method/grunt.document.base.Document.delete_comment', {
+      doctype, doc_id: id, comment_id: commentId,
+    }).then(() => undefined),
 
   // ── Bookmarks ────────────────────────────────────────────────────────────
 
   getBookmark: (doctype: string, id: string): Promise<GruntDocument | null> =>
-    client.get(`/api/v1/docs/${doctype}/${id}/bookmark`).then(r => r.data.data ?? null),
+    client.get('/api/v1/method/grunt.document.base.Document.get_bookmark', {
+      params: { doctype, doc_id: id },
+    }).then(r => r.data.data ?? null),
 
   addBookmark: (doctype: string, id: string, title?: string): Promise<GruntDocument> =>
-    client.post(`/api/v1/docs/${doctype}/${id}/bookmark`, { title: title ?? '' }).then(r => r.data.data),
+    client.post('/api/v1/method/grunt.document.base.Document.add_bookmark', {
+      doctype, doc_id: id, title: title ?? '',
+    }).then(r => r.data.data),
 
   removeBookmark: (doctype: string, id: string): Promise<void> =>
-    client.delete(`/api/v1/docs/${doctype}/${id}/bookmark`).then(() => undefined),
+    client.post('/api/v1/method/grunt.document.base.Document.remove_bookmark', {
+      doctype, doc_id: id,
+    }).then(() => undefined),
 
   // ── Timeline ─────────────────────────────────────────────────────────────
 
   getTimeline: (doctype: string, id: string): Promise<TimelineItem[]> =>
-    client.get(`/api/v1/docs/${doctype}/${id}/timeline`).then(r => r.data.data ?? []),
+    client.get('/api/v1/method/grunt.document.base.Document.get_timeline', {
+      params: { doctype, doc_id: id },
+    }).then(r => r.data.data ?? []),
 
   // ── Bulk update ──────────────────────────────────────────────────────────
 
   rename: <T extends GruntDocument = GruntDocument>(doctype: string, id: string, newId: string): Promise<T> =>
-    client.post(`/api/v1/docs/${doctype}/${id}/rename`, { new_name: newId })
-      .then(r => r.data.data as T),
+    client.post('/api/v1/method/grunt.api.v1.docs.crud.rename', {
+      doctype, doc_id: id, new_name: newId,
+    }).then(r => r.data.data as T),
 
   bulkUpdate: (doctype: string, ids: string[], field: string, value: unknown): Promise<{ updated: number; errors: string[] }> =>
-    client.post(`/api/v1/docs/${doctype}/bulk-update`, { ids, field, value }).then(r => r.data.data),
+    client.post('/api/v1/method/grunt.api.v1.docs.crud.bulk_update', {
+      doctype, ids, field, value,
+    }).then(r => r.data.data),
 }

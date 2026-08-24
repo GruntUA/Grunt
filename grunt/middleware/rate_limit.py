@@ -40,9 +40,9 @@ _EXEMPT_PREFIXES = ("/api/docs", "/api/redoc", "/openapi.json", "/health")
 # Strict per-IP overrides for sensitive auth endpoints (limit/minute).
 # These apply before the standard per-user/per-tier logic.
 _AUTH_STRICT_PATHS: dict[str, int] = {
-    "/api/v1/auth/token": 20,
-    "/api/v1/auth/register": 10,
-    "/api/v1/auth/forgot-password": 5,
+    "/api/v1/method/grunt.auth.doctypes.User.user.login_api": 20,
+    "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api": 10,
+    "/api/v1/method/grunt.auth.doctypes.User.user.forgot_password_api": 5,
 }
 
 

@@ -28,7 +28,7 @@ const newRole = ref('')
 
 onMounted(async () => {
   try {
-    const { data } = await client.get('/api/v1/auth/roles')
+    const { data } = await client.get('/api/v1/method/grunt.auth.doctypes.User.user.list_roles_api')
     availableRoles.value = (data.data ?? []).map((r: { name: string }) => r.name)
   } catch {
     availableRoles.value = ['Administrator', 'All']

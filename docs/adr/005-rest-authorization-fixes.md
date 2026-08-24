@@ -154,7 +154,7 @@ if not user.is_superadmin:
 | 2. Notifications — без ownership | `api/v1/notifications.py`, `webpush/service.py` | Авторизація | 3 нових |
 | 3. Share create — вже було виправлено | — (хибна тривога) | — | наявні 2 пройшли |
 | 4. Workflow — обхід write_guard | `workflow/engine.py` | Авторизація | 1 новий |
-| 5. API keys listing — мертвий код | `api/v1/auth/api_keys.py` | Баг (не безпека) | 2 нових |
+| 5. API keys listing — мертвий код | `auth/doctypes/ApiKey/api_key.py` (раніше в REST auth-пакеті) | Баг (не безпека) | 2 нових |
 | 6. method.py — консистентність | `api/v1/method.py` | Стиль | — |
 
 Результат: `ruff check grunt/` чистий, `pytest tests/ grunt/` — **837/837**

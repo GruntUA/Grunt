@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
+from typing import Any
 
 import structlog
+
+import grunt
 
 logger = structlog.get_logger()
 
@@ -107,3 +110,27 @@ async def terminate_all_user_sessions(user_id: str, exclude_key: str | None = No
             await grunt.db.set_value("UserSession", s["name"], "is_active", False)
             count += 1
         return count
+
+
+@grunt.whitelist()
+async def list_my_sessions() -> list[dict[str, Any]]:
+    """Return active sessions for the current authenticated user."""
+    current = await grunt.get_current_user()
+    return await grunt.get_list(
+        "UserSession",
+        filters={"user": current.id, "is_active": True},
+        fields=["name", "ip_address", "user_agent", "last_active_at", "creation"],
+        order_by="last_active_at desc",
+    )
+
+
+@grunt.whitelist()
+async def revoke_my_session(session_id: str) -> bool:
+    """Terminate one active session owned by the current user."""
+    current = await grunt.get_current_user()
+    assert current.id is not None
+
+    terminated = await terminate_session(session_id, current.id)
+    if not terminated:
+        grunt.throw("Session not found", "NOT_FOUND")
+    return True

@@ -1,64 +1,163 @@
-"""Tests for the Reports module (migrated to whitelisted methods)."""
+"""Tests for the Reports module.
+
+Plain CRUD (list/get/create/update/delete) on the ``Report`` doctype is
+covered end-to-end through the generic ``/api/v1/docs/Report`` REST routes —
+these tests exercise real permission enforcement (superadmin-only
+write/create/delete, any-authenticated-user read) rather than calling
+Python functions directly under a superadmin-bypassing context.
+
+Report *execution* (``run``/``preview``) and the xlsx export
+(``export_xlsx``) are RPC-only — those are still exercised as direct
+function calls under the ``ctx`` fixture (SYSTEM_USER), matching the
+pre-existing style for that part of the module.
+"""
 
 from __future__ import annotations
 
 import pytest
+from httpx import AsyncClient
 
-# Direct API tests don't need AsyncClient
 
-# ── Tests ────────────────────────────────────────────────────────────────
+async def _register_regular_user(client: AsyncClient, email: str) -> dict[str, str]:
+    """Register a second (non-superadmin) user and return its auth headers.
+
+    The first user ever registered on a site becomes superadmin; any
+    subsequent registration is a plain user (see grunt/auth/doctypes/User/user.py).
+    """
+    r_reg = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
+        json={"email": email, "password": "secret", "full_name": "Regular User"},
+    )
+    assert r_reg.status_code in (200, 201, 409)
+
+    resp = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        json={"email": email, "password": "secret"},
+    )
+    assert resp.status_code == 200, f"Auth failed: {resp.text}"
+    token = resp.json()["data"]["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+# ── Generic docs CRUD: permissions ──────────────────────────────────────
 
 
 @pytest.mark.asyncio
-@pytest.mark.asyncio
-async def test_create_and_list_report(ctx):
-    """Create a report and list it."""
-    from grunt.api.v1.reports import list_reports, save_report
-
+async def test_report_crud_full_cycle_as_superadmin(client: AsyncClient, auth_headers):
+    """Superadmin can list/create/get/update/delete a Report via generic docs CRUD."""
     # Create
-    await save_report(
-        report_data={
+    r_create = await client.post(
+        "/api/v1/docs/Report",
+        json={
             "report_name": "Users Report",
             "report_type": "Query",
             "query": "SELECT 1 as num",
-        }
+        },
+        headers=auth_headers,
     )
-    await ctx.db._session().commit()
+    assert r_create.status_code == 201, r_create.text
+    report_id = r_create.json()["data"]["name"]
 
     # List
-    reports = await list_reports()
-    assert any(r["report_name"] == "Users Report" for r in reports)
+    r_list = await client.get("/api/v1/docs/Report", headers=auth_headers)
+    assert r_list.status_code == 200
+    assert any(r["report_name"] == "Users Report" for r in r_list.json()["data"])
+
+    # Get one
+    r_get = await client.get(f"/api/v1/docs/Report/{report_id}", headers=auth_headers)
+    assert r_get.status_code == 200
+    assert r_get.json()["data"]["report_name"] == "Users Report"
+
+    # Update
+    r_update = await client.put(
+        f"/api/v1/docs/Report/{report_id}",
+        json={"report_type": "Script", "script": "result = {'columns': [], 'data': []}"},
+        headers=auth_headers,
+    )
+    assert r_update.status_code == 200, r_update.text
+    assert r_update.json()["data"]["report_type"] == "Script"
+
+    # Delete
+    r_delete = await client.delete(f"/api/v1/docs/Report/{report_id}", headers=auth_headers)
+    assert r_delete.status_code == 204
+
+    r_get_after = await client.get(f"/api/v1/docs/Report/{report_id}", headers=auth_headers)
+    assert r_get_after.status_code == 404
 
 
 @pytest.mark.asyncio
-async def test_get_report(ctx):
-    """Get a single report by name."""
-    from grunt.api.v1.reports import get_report, save_report
-
-    await save_report(
-        report_data={
-            "report_name": "My Report",
-            "report_type": "Query",
-            "query": "SELECT 42 as answer",
-        }
+async def test_report_read_allowed_for_any_authenticated_user(client: AsyncClient, auth_headers):
+    """Any authenticated user can read reports, not just superadmin/System Manager."""
+    r_create = await client.post(
+        "/api/v1/docs/Report",
+        json={"report_name": "Readable Report", "report_type": "Query", "query": "SELECT 1"},
+        headers=auth_headers,
     )
-    await ctx.db._session().commit()
+    assert r_create.status_code == 201, r_create.text
 
-    data = await get_report(name="My Report")
-    assert data["report_name"] == "My Report"
+    regular_headers = await _register_regular_user(client, "regular-reader@grunt.example.com")
+
+    r_list = await client.get("/api/v1/docs/Report", headers=regular_headers)
+    assert r_list.status_code == 200
+    assert any(r["report_name"] == "Readable Report" for r in r_list.json()["data"])
+
+
+@pytest.mark.asyncio
+async def test_report_write_forbidden_for_regular_user(client: AsyncClient, auth_headers):
+    """A regular (non-superadmin) user cannot create, update, or delete reports.
+
+    Regression guard for the Report.json permissions weakening this test suite
+    was written to catch: the doctype's permissions must not grant write to
+    any role broader than superadmin (see Report.json — only {"role": "All",
+    "read": true} is defined, so write/create/delete fall through to
+    "nobody but superadmin").
+    """
+    # Seed one report as superadmin so there's something to attack via update/delete.
+    r_create = await client.post(
+        "/api/v1/docs/Report",
+        json={"report_name": "Protected Report", "report_type": "Query", "query": "SELECT 1"},
+        headers=auth_headers,
+    )
+    assert r_create.status_code == 201, r_create.text
+    report_id = r_create.json()["data"]["name"]
+
+    regular_headers = await _register_regular_user(client, "regular-writer@grunt.example.com")
+
+    r_create_denied = await client.post(
+        "/api/v1/docs/Report",
+        json={"report_name": "Hacked Report", "report_type": "Query", "query": "SELECT 1"},
+        headers=regular_headers,
+    )
+    assert r_create_denied.status_code == 403
+
+    r_update_denied = await client.put(
+        f"/api/v1/docs/Report/{report_id}",
+        json={"report_type": "Script"},
+        headers=regular_headers,
+    )
+    assert r_update_denied.status_code == 403
+
+    r_delete_denied = await client.delete(
+        f"/api/v1/docs/Report/{report_id}", headers=regular_headers
+    )
+    assert r_delete_denied.status_code == 403
+
+
+# ── run_report / run_preview (RPC-only, unaffected by the CRUD migration) ──
 
 
 @pytest.mark.asyncio
 async def test_run_query_report(ctx):
     """Run a SELECT query report."""
-    from grunt.api.v1.reports import run_report, save_report
+    from grunt.reports.doctypes.Report.report import run as run_report
 
-    await save_report(
-        report_data={
+    await ctx.new_doc(
+        "Report",
+        {
             "report_name": "Select Report",
             "report_type": "Query",
             "query": "SELECT 42 as answer",
-        }
+        },
     )
     await ctx.db._session().commit()
 
@@ -71,14 +170,15 @@ async def test_run_report_forbids_delete(ctx):
     """DELETE SQL is blocked in query reports."""
     from fastapi import HTTPException
 
-    from grunt.api.v1.reports import run_report, save_report
+    from grunt.reports.doctypes.Report.report import run as run_report
 
-    await save_report(
-        report_data={
+    await ctx.new_doc(
+        "Report",
+        {
             "report_name": "Bad Report",
             "report_type": "Query",
             "query": "DELETE FROM grunt_auth_user",
-        }
+        },
     )
     await ctx.db._session().commit()
 
@@ -87,69 +187,41 @@ async def test_run_report_forbids_delete(ctx):
 
     with pytest.raises((HTTPException, ApplicationError, GruntError)):
         await run_report(name="Bad Report", filters={})
-    # Business logic error should be caught
+
+
+# ── export_report_xlsx ──────────────────────────────────────────────────
 
 
 @pytest.mark.asyncio
-async def test_delete_report(ctx):
-    """Delete a report."""
+async def test_export_report_xlsx_returns_valid_workbook(ctx):
+    """export_xlsx runs the report and returns a real xlsx file."""
+    import io
 
-    from grunt.api.v1.reports import delete_report, get_report, save_report
+    import openpyxl
+    from fastapi.responses import Response
 
-    await save_report(
-        report_data={"report_name": "Delete Me", "report_type": "Query", "query": "SELECT 1"}
+    from grunt.reports.doctypes.Report.report import export_xlsx as export_report_xlsx
+
+    await ctx.new_doc(
+        "Report",
+        {
+            "report_name": "Xlsx Report",
+            "report_type": "Query",
+            "query": "SELECT 42 as answer",
+        },
     )
     await ctx.db._session().commit()
 
-    await delete_report(name="Delete Me")
-    await ctx.db._session().commit()
+    response = await export_report_xlsx(name="Xlsx Report", filters={})
 
-    from grunt.errors import GruntError
-
-    with pytest.raises(GruntError) as excinfo:
-        await get_report(name="Delete Me")
-    assert "не знайдено" in str(excinfo.value)
-
-
-@pytest.mark.asyncio
-async def test_duplicate_report_rejected(ctx):
-    """Creating a report with duplicate name returns 409."""
-
-    from grunt.api.v1.reports import save_report
-
-    payload = {"report_name": "Dup", "report_type": "Query", "query": "SELECT 1"}
-    await save_report(report_data=payload)
-    await ctx.db._session().commit()
-
-    # Second call with __is_new: True
-    from grunt.errors import GruntError
-
-    with pytest.raises(GruntError) as excinfo:
-        await save_report(report_data={**payload, "__is_new": True})
-    assert "вже існує" in str(excinfo.value)
-
-
-@pytest.mark.asyncio
-async def test_apps_crud(ctx):
-    """Apps CRUD directly."""
-    from grunt.startup.doctypes.GruntInstalledApp.grunt_installed_app import (
-        delete_app,
-        list_apps,
-        register_app,
+    assert isinstance(response, Response)
+    assert response.media_type == (
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+    assert "Xlsx Report" in response.headers["content-disposition"]
 
-    # Create (register_app)
-    await register_app(name="crm", title="CRM App", version="1.0.0")
-    await ctx.db._session().commit()
-
-    # List (list_apps)
-    apps = await list_apps()
-    assert any(a["name"] == "crm" for a in apps)
-
-    # Delete (delete_app)
-    await delete_app(name="crm")
-    await ctx.db._session().commit()
-
-    # Verify deleted
-    apps = await list_apps()
-    assert not any(a["name"] == "crm" for a in apps)
+    wb = openpyxl.load_workbook(io.BytesIO(response.body))
+    ws = wb.active
+    assert ws is not None
+    assert ws.cell(row=1, column=1).value == "answer"
+    assert ws.cell(row=2, column=1).value == 42

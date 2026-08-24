@@ -7,24 +7,24 @@ export interface MfaSetupInfo {
 
 export const authApi = {
     async setupMfa(): Promise<MfaSetupInfo> {
-        const { data } = await client.post('/api/v1/auth/mfa/setup')
+        const { data } = await client.post('/api/v1/method/grunt.auth.doctypes.User.user.setup_mfa')
         return data.data
     },
 
     async confirmMfa(code: string): Promise<string[]> {
-        const { data } = await client.post('/api/v1/auth/mfa/confirm', { code })
+        const { data } = await client.post('/api/v1/method/grunt.auth.doctypes.User.user.confirm_mfa', { code })
         return data.data.backup_codes
     },
 
     async disableMfa(): Promise<void> {
-        await client.delete('/api/v1/auth/mfa/disable')
+        await client.post('/api/v1/method/grunt.auth.doctypes.User.user.disable_mfa')
     },
 
     async verifyMfaLogin(mfaToken: string, code: string) {
-        const { data } = await client.post('/api/v1/auth/mfa-login', {
+        const { data } = await client.post('/api/v1/method/grunt.auth.doctypes.User.user.mfa_login_api', {
             mfa_token: mfaToken,
             code
         })
-        return data
+        return data.data
     }
 }

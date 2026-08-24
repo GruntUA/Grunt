@@ -2,20 +2,24 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter
 from sqlalchemy import text
+
+from grunt.api.v1.schemas.response import ok
 
 router = APIRouter()
 
 
 @router.get("/health", tags=["health"])
-async def liveness() -> dict:
+async def liveness() -> dict[str, Any]:
     """Liveness probe — returns ok if the process is running."""
-    return {"status": "ok"}
+    return ok({"status": "ok"})
 
 
 @router.get("/ready", tags=["health"])
-async def readiness() -> dict:
+async def readiness() -> dict[str, Any]:
     """Readiness probe — verifies DB connectivity and Redis availability."""
     checks: dict[str, str] = {}
 
@@ -47,5 +51,5 @@ async def readiness() -> dict:
     except Exception as exc:
         checks["redis"] = f"error: {exc}"
 
-    status = "ok" if all(v in ("ok", "not_configured") for v in checks.values()) else "degraded"
-    return {"status": status, "checks": checks}
+    overall = "ok" if all(v in ("ok", "not_configured") for v in checks.values()) else "degraded"
+    return ok({"status": overall, "checks": checks})

@@ -69,11 +69,8 @@
   ],
   "permissions": [
     {
-      "role": "System Manager",
-      "read": true,
-      "write": true,
-      "create": true,
-      "delete": true
+      "role": "All",
+      "read": true
     }
   ]
 }

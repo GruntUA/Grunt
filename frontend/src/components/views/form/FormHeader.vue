@@ -199,28 +199,28 @@ const menuItems = computed(() => {
         items.push({
             label: t('Print'),
             icon: Printer,
-        url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=html&autoprint=1&token=${auth.token}`,
+        url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=html&autoprint=1&token=${auth.token}`,
         target: '_blank'
         })
 
       items.push({
         label: 'Excel (.xlsx)',
         icon: FileSpreadsheet,
-        url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=xlsx&token=${auth.token}`,
+        url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=xlsx&token=${auth.token}`,
         target: '_blank'
       })
 
       items.push({
         label: 'PDF',
         icon: FileText,
-        url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=pdf&token=${auth.token}`,
+        url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=pdf&token=${auth.token}`,
         target: '_blank'
       })
 
       items.push({
         label: 'HTML',
         icon: Globe,
-        url: `/api/v1/docs/${props.doctype}/${props.id}/print?fmt=html&token=${auth.token}`,
+        url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=html&token=${auth.token}`,
         target: '_blank'
       })
 

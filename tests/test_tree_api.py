@@ -363,55 +363,39 @@ async def guarded_tree_doctype(ctx):
     return {"root": root, "child": child}
 
 
-def _empty_request():
-    from starlette.requests import Request
-
-    return Request(scope={"type": "http", "query_string": b"", "headers": []})
-
-
 @pytest.mark.asyncio
 async def test_get_tree_denies_user_without_role(ctx, guarded_tree_doctype):
     from fastapi import HTTPException
 
-    from grunt.api.v1.docs.tree import get_tree
+    from grunt.document.base import Document
 
     outsider = make_user("outsider@grunt.example.com")
     async with ctx.context(ctx.db._session(), ctx._require_engine(), outsider):
         with pytest.raises(HTTPException) as excinfo:
-            await get_tree("GuardedTreeCategory", _empty_request(), _user=outsider)
+            await Document.get_tree("GuardedTreeCategory")
     assert excinfo.value.status_code == 403
 
 
 @pytest.mark.asyncio
 async def test_get_tree_allows_user_with_role(ctx, guarded_tree_doctype):
-    from grunt.api.v1.docs.tree import get_tree
+    from grunt.document.base import Document
 
     manager = make_user("tree-manager@grunt.example.com", roles=["TreeManager"])
     async with ctx.context(ctx.db._session(), ctx._require_engine(), manager):
-        result = await get_tree(
-            "GuardedTreeCategory",
-            _empty_request(),
-            root_id=None,
-            max_depth=10,
-            fields=None,
-            as_of=None,
-            sort_by=None,
-            sort_order="asc",
-            _user=manager,
-        )
-    assert _root_titles(result["data"]) == ["Root"]
+        result = await Document.get_tree("GuardedTreeCategory")
+    assert _root_titles(result) == ["Root"]
 
 
 @pytest.mark.asyncio
 async def test_get_children_denies_user_without_role(ctx, guarded_tree_doctype):
     from fastapi import HTTPException
 
-    from grunt.api.v1.docs.tree import get_children
+    from grunt.document.base import Document
 
     outsider = make_user("outsider2@grunt.example.com")
     async with ctx.context(ctx.db._session(), ctx._require_engine(), outsider):
         with pytest.raises(HTTPException) as excinfo:
-            await get_children("GuardedTreeCategory", _empty_request(), _user=outsider)
+            await Document.get_tree_children("GuardedTreeCategory")
     assert excinfo.value.status_code == 403
 
 
@@ -419,13 +403,13 @@ async def test_get_children_denies_user_without_role(ctx, guarded_tree_doctype):
 async def test_get_ancestors_denies_user_without_role(ctx, guarded_tree_doctype):
     from fastapi import HTTPException
 
-    from grunt.api.v1.docs.tree import get_ancestors
+    from grunt.document.base import Document
 
     outsider = make_user("outsider3@grunt.example.com")
     child_name = guarded_tree_doctype["child"]["name"]
     async with ctx.context(ctx.db._session(), ctx._require_engine(), outsider):
         with pytest.raises(HTTPException) as excinfo:
-            await get_ancestors("GuardedTreeCategory", child_name, _user=outsider)
+            await Document.get_tree_ancestors("GuardedTreeCategory", child_name)
     assert excinfo.value.status_code == 403
 
 
@@ -433,32 +417,24 @@ async def test_get_ancestors_denies_user_without_role(ctx, guarded_tree_doctype)
 async def test_move_node_denies_user_without_write_role(ctx, guarded_tree_doctype):
     from fastapi import HTTPException
 
-    from grunt.api.v1.docs.tree import MoveNodeBody, move_node
+    from grunt.document.base import Document
 
     outsider = make_user("outsider4@grunt.example.com")
     child_name = guarded_tree_doctype["child"]["name"]
     async with ctx.context(ctx.db._session(), ctx._require_engine(), outsider):
         with pytest.raises(HTTPException) as excinfo:
-            await move_node(
-                "GuardedTreeCategory",
-                child_name,
-                MoveNodeBody(new_parent_id=None),
-                user=outsider,
-            )
+            await Document.move_tree_node("GuardedTreeCategory", child_name, new_parent_id=None)
     assert excinfo.value.status_code == 403
 
 
 @pytest.mark.asyncio
 async def test_move_node_allows_user_with_write_role(ctx, guarded_tree_doctype):
-    from grunt.api.v1.docs.tree import MoveNodeBody, move_node
+    from grunt.document.base import Document
 
     manager = make_user("tree-manager2@grunt.example.com", roles=["TreeManager"])
     child_name = guarded_tree_doctype["child"]["name"]
     async with ctx.context(ctx.db._session(), ctx._require_engine(), manager):
-        result = await move_node(
-            "GuardedTreeCategory",
-            child_name,
-            MoveNodeBody(new_parent_id=None),
-            user=manager,
+        result = await Document.move_tree_node(
+            "GuardedTreeCategory", child_name, new_parent_id=None
         )
-    assert result["data"]["parent_category"] is None
+    assert result["parent_category"] is None

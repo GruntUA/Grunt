@@ -2,7 +2,6 @@
 
 from fastapi import APIRouter
 
-from grunt.api.v1.auth import router as auth_router
 from grunt.api.v1.dashboard_data import router as dashboard_data_router
 from grunt.api.v1.docs import router as docs_router
 from grunt.api.v1.health import router as health_router
@@ -16,7 +15,6 @@ v1_router = APIRouter()
 
 # System endpoints
 v1_router.include_router(health_router, tags=["health"])
-v1_router.include_router(auth_router, prefix="/auth", tags=["auth"])
 v1_router.include_router(ws_router, tags=["websocket"])
 v1_router.include_router(metrics_router, tags=["monitoring"])
 

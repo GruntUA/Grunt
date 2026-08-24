@@ -13,12 +13,12 @@ function on_load(frm) {
   if (!frm.is_new) {
     // Top bar override for change password
     frm.add_button("Змінити пароль", async () => {
-      const email = frm.get_value("email");
+      const user_id = frm.doc.name;
       const password = window.prompt("Новий пароль:");
       if (!password) return;
       await grunt.call({
-        method: "grunt.api.v1.auth.set_user_password",
-        args: { email, password },
+        method: "grunt.auth.doctypes.User.user.set_user_password_api",
+        args: { user_id, new_password: password },
       });
       grunt.msgprint("Пароль успішно змінено");
     });
@@ -39,11 +39,11 @@ async function on_change(frm, fieldname) {
   if (fieldname === "mfa_setup_button") {
     if (frm.doc.mfa_enabled) {
       if (!confirm("Ви впевнені, що хочете вимкнути двофакторну автентифікацію?")) return;
-      await grunt.call({ method: "grunt.api.v1.user.disable_mfa" });
+      await grunt.call({ method: "grunt.auth.doctypes.User.user.disable_mfa" });
       await frm.reload();
       grunt.msgprint("MFA вимкнено");
     } else {
-      const info = await grunt.call({ method: "grunt.api.v1.user.setup_mfa" });
+      const info = await grunt.call({ method: "grunt.auth.doctypes.User.user.setup_mfa" });
       if (info.qr_svg) {
         const values = await grunt.form({
           title: "Налаштування MFA",
@@ -69,7 +69,7 @@ async function on_change(frm, fieldname) {
 
         try {
           const res = await grunt.call({
-            method: "grunt.api.v1.user.confirm_mfa",
+            method: "grunt.auth.doctypes.User.user.confirm_mfa",
             args: { code: values.code }
           });
           await frm.reload();

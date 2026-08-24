@@ -62,6 +62,13 @@ from typing import TYPE_CHECKING, Any, ClassVar
 import structlog
 
 from grunt.context import require_engine, require_session, require_user
+from grunt.document.mixins.collaboration_rpc import DocumentCollaborationRPCMixin
+from grunt.document.mixins.export_rpc import DocumentExportRPCMixin
+from grunt.document.mixins.history_rpc import DocumentHistoryRPCMixin
+from grunt.document.mixins.link_rpc import DocumentLinkRPCMixin
+from grunt.document.mixins.meta_rpc import DocumentMetaRPCMixin
+from grunt.document.mixins.tree_rpc import DocumentTreeRPCMixin
+from grunt.document.mixins.workflow_rpc import DocumentWorkflowRPCMixin
 from grunt.document.mixins.write import DocumentWriteMixin
 
 if TYPE_CHECKING:
@@ -145,7 +152,16 @@ class _ObjectsDescriptor:
         return QuerySet(owner)
 
 
-class Document(DocumentWriteMixin):
+class Document(
+    DocumentWriteMixin,
+    DocumentTreeRPCMixin,
+    DocumentLinkRPCMixin,
+    DocumentExportRPCMixin,
+    DocumentHistoryRPCMixin,
+    DocumentCollaborationRPCMixin,
+    DocumentWorkflowRPCMixin,
+    DocumentMetaRPCMixin,
+):
     """Base class for all DocType controllers.
 
     Subclass this to add custom validation and lifecycle hooks to a DocType.

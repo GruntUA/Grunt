@@ -30,7 +30,9 @@ const expanded = ref<string | null>(null)
 async function load() {
   loading.value = true
   try {
-    const r = await api.get(`/api/v1/docs/${props.doctype}/${props.docId}/versions`)
+    const r = await api.get('/api/v1/method/grunt.document.base.Document.get_versions', {
+      params: { doctype: props.doctype, doc_id: props.docId },
+    })
     versions.value = r.data?.data ?? []
   } catch {
     versions.value = []
@@ -45,7 +47,9 @@ async function restore(versionId: string) {
   if (!confirm(t('Restore document to this version?'))) return
   restoring.value = versionId
   try {
-    await api.post(`/api/v1/docs/${props.doctype}/${props.docId}/restore/${versionId}`)
+    await api.post('/api/v1/method/grunt.document.base.Document.restore_version', {
+      doctype: props.doctype, doc_id: props.docId, version_id: versionId,
+    })
     emit('restored')
     await load()
   } catch {

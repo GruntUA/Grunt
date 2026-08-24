@@ -152,7 +152,8 @@ grunt.system_context(session): ...` додано **лише** щоб `require_se
 зміни (усталена ідіома файлу для фонових операцій) — не чіпалось за межами того, що
 сам додав.
 
-Побічний наслідок: `api/v1/auth/core.py`, `oauth.py`, `password.py` використовували
+Побічний наслідок (на той момент): `auth/core.py` (пакет пізніше видалений),
+`oauth.py`, `password.py` використовували
 голий `APIRouter()` — жодного grunt-контексту не було взагалі, обгортки довелось
 додавати вручну на кожному виклику. Замість цього `GruntRouter` отримав
 `optional_auth: bool = False` — при `True` роутер сам активує ambient-контекст через
@@ -309,7 +310,7 @@ session-параметрів, а не чекати опортуністично�
 `write_guard`-перевіреного request-контексту); `webhook/incoming_service.py` (увесь
 клас, 5 методів) + переведення `api/v1/webhooks.py`'s публічного `/incoming/{slug}`
 роутера на `GruntRouter(optional_auth=True)` (був голий `APIRouter()`, як `core.py`
-до Доповнення 1); `api/v1/auth/core.py: update_me`/`list_sessions` (бонус, поза
+до Доповнення 1); `auth/core.py: update_me`/`list_sessions` (бонус, поза
 початковим списком).
 
 **Реальний баг знайдений і виправлений у процесі**: `AssignmentLog.create` мав

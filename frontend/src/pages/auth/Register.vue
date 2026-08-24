@@ -33,7 +33,7 @@ async function handleRegister() {
 
   loading.value = true
   try {
-    await client.post('/api/v1/auth/register', {
+    await client.post('/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api', {
       email: email.value,
       password: password.value,
       full_name: fullName.value,

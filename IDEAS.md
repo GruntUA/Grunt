@@ -98,7 +98,7 @@
 | 8.2 | ✅ | **Audit Log Diff UI** | Сторінка `ActivityLog` показує не просто "Update", а конкретно які поля змінилися і з якого на яке значення (diff). |
 | 8.3 | 💡 | **Data Retention Rules** | DocType `RetentionPolicy`: автоматичне видалення/архівування документів старших N днів. Запускається через Scheduled Job. |
 | 8.4 | 💡 | **IP Allowlist** | Обмеження входу за IP-адресою для окремих ролей. Конфігурується в `Role` або `SystemSettings`. |
-| 8.5 | ✅ | **Session management** | Реалізовано: `UserSession` DocType (таблиця `grunt_core_user_session`), сесія створюється при логіні, завершується при logout. API: `GET/DELETE /api/v1/auth/sessions`. Frontend: `/profile` — сторінка з картками сесій (IP, браузер, ОС, остання активність, завершення). Посилання у DeskTopBar. |
+| 8.5 | ✅ | **Session management** | Реалізовано: `UserSession` DocType (таблиця `grunt_core_user_session`), сесія створюється при логіні, завершується при logout. API: whitelisted methods `grunt.auth.doctypes.UserSession.user_session.list_my_sessions` / `revoke_my_session` через `/api/v1/method/*`. Frontend: `/profile` — сторінка з картками сесій (IP, браузер, ОС, остання активність, завершення). Посилання у DeskTopBar. |
 
 ---
 

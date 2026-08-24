@@ -34,10 +34,12 @@ const loadingActivity = ref(false)
 async function loadActivity() {
   loadingActivity.value = true
   try {
-    const r = await client.get('/api/v1/docs/_activity/recent', { params: { limit: 12 } })
-    recentActivity.value = (r.data?.data ?? []) as ActivityEntry[]
+    const r = await client.get('/api/v1/method/grunt.activity.doctypes.ActivityLog.activity_log.list_activity', {
+      params: { per_page: 12 },
+    })
+    recentActivity.value = (r.data?.data?.items ?? []) as ActivityEntry[]
   } catch {
-    // endpoint may not be implemented
+    recentActivity.value = []
   } finally {
     loadingActivity.value = false
   }

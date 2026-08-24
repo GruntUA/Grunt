@@ -65,10 +65,11 @@ export const useAuthStore = defineStore('auth', () => {
     mfa_token?: string
     expected_code?: string
   }> {
-    const form = new URLSearchParams({ username: email, password })
-    const { data } = await client.post('/api/v1/auth/token', form, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    const { data: body } = await client.post('/api/v1/method/grunt.auth.doctypes.User.user.login_api', {
+      email,
+      password,
     })
+    const data = body.data
     if (!data.mfa_required) {
       _setTokens(data.access_token, data.refresh_token)
       user.value = data.user
@@ -85,7 +86,10 @@ export const useAuthStore = defineStore('auth', () => {
     const rt = refreshToken.value
     if (!rt) return false
     try {
-      const { data } = await client.post('/api/v1/auth/refresh', { refresh_token: rt })
+      const { data: body } = await client.post('/api/v1/method/grunt.auth.doctypes.User.user.refresh_api', {
+        refresh_token: rt,
+      })
+      const data = body.data
       _setTokens(data.access_token, data.refresh_token)
       user.value = data.user
       return true
@@ -137,7 +141,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function setTheme(theme: Theme) {
     useColorMode().setTheme(theme)
     if (user.value) user.value.theme = theme
-    await client.patch('/api/v1/auth/me', { theme })
+    await client.post('/api/v1/method/grunt.auth.doctypes.User.user.update_me_api', { theme })
   }
 
   function _logout() {
@@ -150,7 +154,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout() {
     try {
-      await client.post('/api/v1/auth/logout')
+      await client.post('/api/v1/method/grunt.auth.doctypes.User.user.logout_api')
     } catch {
       // best-effort
     }

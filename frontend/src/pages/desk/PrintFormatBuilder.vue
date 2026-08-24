@@ -102,8 +102,8 @@ async function refreshPreview() {
   isPreviewLoading.value = true
   try {
     const res = await client.post(
-      `/api/v1/docs/${doctype.value}/print-preview`,
-      { template: template.value, doc_id: sampleDocId.value || undefined },
+      `/api/v1/method/grunt.document.base.Document.preview`,
+      { doctype: doctype.value, template: template.value, doc_id: sampleDocId.value || undefined },
       { responseType: 'text' }
     )
     previewHtml.value = res.data as string

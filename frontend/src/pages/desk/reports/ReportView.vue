@@ -5,12 +5,10 @@ import { reportsApi } from '@/core/api/reports'
 import type { ReportDetail, ReportResult, ReportColumn } from '@/types'
 import { Loader2 } from '@lucide/vue'
 
-import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
-const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const reportName = route.params.name as string
@@ -24,8 +22,7 @@ const filters = ref<Record<string, string>>({})
 async function load() {
   isLoading.value = true
   try {
-    const r = await reportsApi.get(reportName)
-    report.value = r.data
+    report.value = await reportsApi.get(reportName)
     // Auto-run on load
     await runReport()
   } finally {
@@ -36,12 +33,7 @@ async function load() {
 async function runReport() {
   isRunning.value = true
   try {
-    const r = await reportsApi.run(reportName, filters.value)
-    result.value = {
-      columns: r.columns,
-      data: r.data,
-      meta: r.meta,
-    }
+    result.value = await reportsApi.run(reportName, filters.value)
   } catch (e) {
     result.value = null
   } finally {
@@ -61,8 +53,7 @@ const tableRows = computed(() =>
 )
 
 function downloadXlsx() {
-  const url = reportsApi.exportXlsxUrl(reportName)
-  window.open(`${url}?token=${auth.token}`, '_blank')
+  window.open(reportsApi.exportXlsxUrl(reportName), '_blank')
 }
 
 onMounted(load)

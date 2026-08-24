@@ -23,7 +23,7 @@ def _fake_user(email: str, name: str, *, is_superadmin: bool = False):
 
 @pytest.mark.asyncio
 async def test_regular_user_sees_only_own_keys(ctx, db_session, engine):
-    from grunt.api.v1.auth.api_keys import list_api_keys
+    from grunt.auth.doctypes.ApiKey.api_key import list_api_keys
     from grunt.app import grunt
 
     alice = _fake_user("alice@grunt.example.com", "alice-id")
@@ -54,13 +54,13 @@ async def test_regular_user_sees_only_own_keys(ctx, db_session, engine):
 
     async with grunt.context(db_session, engine, alice):
         result = await list_api_keys(user=alice)
-    labels = {k["label"] for k in result["data"]}
+    labels = {k["label"] for k in result}
     assert labels == {"Alice's key"}
 
 
 @pytest.mark.asyncio
 async def test_superadmin_sees_all_keys(ctx, db_session, engine):
-    from grunt.api.v1.auth.api_keys import list_api_keys
+    from grunt.auth.doctypes.ApiKey.api_key import list_api_keys
     from grunt.app import grunt
 
     alice = _fake_user("alice2@grunt.example.com", "alice2-id")
@@ -92,5 +92,5 @@ async def test_superadmin_sees_all_keys(ctx, db_session, engine):
 
     async with grunt.context(db_session, engine, admin):
         result = await list_api_keys(user=admin)
-    labels = {k["label"] for k in result["data"]}
+    labels = {k["label"] for k in result}
     assert {"Alice2's key", "Bob2's key"} <= labels

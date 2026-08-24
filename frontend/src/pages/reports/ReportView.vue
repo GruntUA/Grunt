@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/core/api/client'
+import { reportsApi } from '@/core/api/reports'
 import { useAuthStore } from '@/stores/auth'
 import { Download, RefreshCw, Settings2, FileBarChart2, FileX } from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
@@ -27,16 +27,13 @@ async function fetchReport() {
     loading.value = true
     try {
         // 1. Fetch metadata
-        const metaRes = await api.get(`/api/v1/reports/${props.reportName}`)
-        report.value = metaRes.data.data
-        
+        report.value = await reportsApi.get(props.reportName)
+
         // 2. Run report
-        const runRes = await api.post(`/api/v1/reports/${props.reportName}/run`, {
-            filters: filters.value
-        })
-        data.value = runRes.data.data
-        columns.value = runRes.data.columns
-        meta.value = runRes.data.meta
+        const runRes = await reportsApi.run(props.reportName, filters.value)
+        data.value = runRes.data
+        columns.value = runRes.columns
+        meta.value = runRes.meta
     } finally {
         loading.value = false
     }
@@ -80,7 +77,7 @@ function openBuilder() {
                     <RefreshCw class="size-4 mr-2" :class="{ 'animate-spin': loading }" />
                     Оновити
                 </Button>
-                <Button variant="outline" size="sm" as="a" :href="`/api/v1/reports/${reportName}/export/xlsx?token=${auth.token}`" download>
+                <Button variant="outline" size="sm" as="a" :href="reportsApi.exportXlsxUrl(reportName)" download>
                     <Download class="size-4 mr-2" />
                     XLSX
                 </Button>

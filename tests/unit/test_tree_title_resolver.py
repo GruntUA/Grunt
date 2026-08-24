@@ -63,8 +63,8 @@ async def test_get_tree_calls_registered_resolver_and_applies_titles(
     register_tree_title_resolver("ResolverTestTree", _fake_resolver)
 
     resp = await client.get(
-        "/api/v1/docs/ResolverTestTree/tree",
-        params={"as_of": "2024-01-15"},
+        "/api/v1/method/grunt.document.base.Document.get_tree",
+        params={"doctype": "ResolverTestTree", "as_of": "2024-01-15"},
         headers=auth_headers,
     )
     assert resp.status_code == 200
@@ -86,7 +86,11 @@ async def test_get_tree_without_as_of_does_not_call_resolver(
 
     register_tree_title_resolver("ResolverTestTree", _fake_resolver)
 
-    resp = await client.get("/api/v1/docs/ResolverTestTree/tree", headers=auth_headers)
+    resp = await client.get(
+        "/api/v1/method/grunt.document.base.Document.get_tree",
+        params={"doctype": "ResolverTestTree"},
+        headers=auth_headers,
+    )
     assert resp.status_code == 200
     nodes = resp.json()["data"]
     assert "display_title" not in nodes[0]
@@ -99,8 +103,8 @@ async def test_get_tree_without_registered_resolver_ignores_as_of(
 ):
     """No resolver registered for this doctype — as_of is accepted but a no-op."""
     resp = await client.get(
-        "/api/v1/docs/ResolverTestTree/tree",
-        params={"as_of": "2024-01-15"},
+        "/api/v1/method/grunt.document.base.Document.get_tree",
+        params={"doctype": "ResolverTestTree", "as_of": "2024-01-15"},
         headers=auth_headers,
     )
     assert resp.status_code == 200
