@@ -37,11 +37,53 @@ from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from grunt.auth.doctypes.User.user import User
 
 logger = structlog.get_logger()
+
+# doctype -> async fn(session, nodes, as_of_date) -> {node_id: display_title}
+#
+# Lets an app attach point-in-time display labels to its own tree DocType
+# (e.g. "what was this node called on 2024-01-01") without the framework's
+# generic Tree API needing to know that app's DocTypes or business terms —
+# apps register via grunt.document.tree.register_tree_title_resolver(...) in
+# their own hooks.py, loaded by main.py alongside doc_events/scheduler_events.
+TREE_TITLE_RESOLVERS: dict[str, Callable[..., Awaitable[dict[str, str]]]] = {}
+
+
+def register_tree_title_resolver(
+    doctype: str, resolver: Callable[..., Awaitable[dict[str, str]]]
+) -> None:
+    """Register *resolver* to compute historical display titles for *doctype* trees.
+
+    ``resolver(session, nodes, as_of_date) -> {node_id: display_title}`` is
+    called by the ``/{doctype}/tree`` API endpoint whenever the request
+    includes ``?as_of=<date>``.
+    """
+    TREE_TITLE_RESOLVERS[doctype] = resolver
+
+
+def flatten_tree_node_ids(nodes: list[dict[str, Any]]) -> list[str]:
+    """Collect every node ``name`` in a nested ``{children: [...]}`` tree.
+
+    For title resolvers to look up rows for every node in the (sub)tree
+    ``get_tree`` returned, regardless of depth.
+    """
+    ids: list[str] = []
+    stack = list(nodes)
+    while stack:
+        node = stack.pop()
+        node_id = node.get("name")
+        if isinstance(node_id, str) and node_id:
+            ids.append(node_id)
+        children = node.get("children") or []
+        if isinstance(children, list):
+            stack.extend(children)
+    return ids
 
 
 def _require_tree(dt: Any) -> str:
@@ -202,48 +244,10 @@ class TreeService:
         result = await session.execute(select(tree_cte))
         all_rows = [dict(r._mapping) for r in result.fetchall()]
 
-        # ── Fast-filter: keep matched nodes + all their ancestors ──────────
         if filters:
-            from grunt.document.query import _apply_filters
-
-            # Build parent lookup from the flat result set (avoids extra DB round-trip)
-            parent_lookup: dict[str, str | None] = {
-                r["name"]: r.get(parent_field) or None for r in all_rows
-            }
-
-            # Resolve matching IDs by running the filters against the DB table,
-            # scoped only to the nodes already present in this subtree.
-            tree_ids = [r["name"] for r in all_rows]
-            filtered_q = select(table.c.name)
-            filtered_q = _apply_filters(filtered_q, table, filters)
-
-            # Controller hook: list_filter_extra — allows DocType controllers
-            # (e.g. in app code) to inject extra WHERE clauses without touching
-            # the framework core.
-            if ctrl_cls.list_filter_extra is not Document.list_filter_extra:
-                extra_clause = await ctrl_cls.list_filter_extra(session, filters, table)
-                if extra_clause is not None:
-                    filtered_q = filtered_q.where(extra_clause)
-
-            preserve_ancestors = True
-            if ctrl_cls.tree_preserve_ancestors is not Document.tree_preserve_ancestors:
-                preserve_ancestors = await ctrl_cls.tree_preserve_ancestors(session, filters, table)
-
-            filtered_q = filtered_q.where(table.c.name.in_(tree_ids))
-            filtered_result = await session.execute(filtered_q)
-            matched_ids: set[str] = {str(r[0]) for r in filtered_result.fetchall()}
-
-            # Collect ancestor IDs for each matched node so the tree stays readable
-            keep_ids: set[str] = set(matched_ids)
-            if preserve_ancestors:
-                for mid in matched_ids:
-                    current = parent_lookup.get(mid)
-                    while current:
-                        keep_ids.add(current)
-                        current = parent_lookup.get(current)
-
-            all_rows = [r for r in all_rows if r["name"] in keep_ids]
-        # ──────────────────────────────────────────────────────────────────
+            all_rows = await self._apply_fast_filter(
+                session, table, ctrl_cls, all_rows, parent_field, filters
+            )
 
         if sort_by:
             all_rows = self._sort_flat_rows(all_rows, sort_by, sort_order)
@@ -259,6 +263,62 @@ class TreeService:
                 sort_order=sort_order,
             )
         return nested
+
+    async def _apply_fast_filter(
+        self,
+        session: AsyncSession,
+        table: Any,
+        ctrl_cls: Any,
+        all_rows: list[dict[str, Any]],
+        parent_field: str,
+        filters: dict[str, str],
+    ) -> list[dict[str, Any]]:
+        """Keep only nodes matching *filters*, plus their ancestors, from *all_rows*.
+
+        Runs the filter against the DB scoped to the ids already fetched into
+        this subtree (avoids a second full recursive-CTE round-trip), then
+        walks an in-memory parent lookup to keep ancestors so the returned
+        tree stays connected/readable instead of showing orphaned matches.
+        """
+        from grunt.document.query import _apply_filters
+
+        # Build parent lookup from the flat result set (avoids extra DB round-trip)
+        parent_lookup: dict[str, str | None] = {
+            r["name"]: r.get(parent_field) or None for r in all_rows
+        }
+
+        # Resolve matching IDs by running the filters against the DB table,
+        # scoped only to the nodes already present in this subtree.
+        tree_ids = [r["name"] for r in all_rows]
+        filtered_q = select(table.c.name)
+        filtered_q = _apply_filters(filtered_q, table, filters)
+
+        # Controller hook: list_filter_extra — allows DocType controllers
+        # (e.g. in app code) to inject extra WHERE clauses without touching
+        # the framework core.
+        if ctrl_cls.list_filter_extra is not Document.list_filter_extra:
+            extra_clause = await ctrl_cls.list_filter_extra(session, filters, table)
+            if extra_clause is not None:
+                filtered_q = filtered_q.where(extra_clause)
+
+        preserve_ancestors = True
+        if ctrl_cls.tree_preserve_ancestors is not Document.tree_preserve_ancestors:
+            preserve_ancestors = await ctrl_cls.tree_preserve_ancestors(session, filters, table)
+
+        filtered_q = filtered_q.where(table.c.name.in_(tree_ids))
+        filtered_result = await session.execute(filtered_q)
+        matched_ids: set[str] = {str(r[0]) for r in filtered_result.fetchall()}
+
+        # Collect ancestor IDs for each matched node so the tree stays readable
+        keep_ids: set[str] = set(matched_ids)
+        if preserve_ancestors:
+            for mid in matched_ids:
+                current = parent_lookup.get(mid)
+                while current:
+                    keep_ids.add(current)
+                    current = parent_lookup.get(current)
+
+        return [r for r in all_rows if r["name"] in keep_ids]
 
     async def get_ancestors(
         self,

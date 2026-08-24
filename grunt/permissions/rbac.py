@@ -41,6 +41,17 @@ class PermissionChecker:
         action: PermissionAction,
         doc: dict | None = None,
     ) -> bool:
+        """Check whether *user* may perform *action* on *doctype* (optionally *doc*).
+
+        ``doc=None`` has two effects, not one: it means "no specific document to
+        check" (so any ``match`` expression on a matching permission row is
+        skipped — a list/count-style check), *and* it makes the result eligible
+        for the per-(user, doctype, action) cache below, since without a doc
+        there's nothing document-specific that could make the answer vary.
+        Passing a ``doc`` disables caching for that call (match evaluation is
+        necessarily per-document) — there's no separate flag for this, the two
+        behaviors are intentionally tied to the same argument.
+        """
         access = RoleAccess(doctype, user)
         if access.is_unrestricted:
             return True

@@ -264,16 +264,12 @@ async def _authenticate_ws(websocket: WebSocket, token: str | None) -> str | Non
         return None
 
 
-@router.websocket("/ws/user")
-async def ws_user(
-    websocket: WebSocket,
-    token: str | None = Query(default=None),
-) -> None:
-    """Per-user channel for notifications and realtime messages."""
-    user_email = await _authenticate_ws(websocket, token)
-    if not user_email:
-        return
-    channel = f"user:{user_email}"
+async def _run_simple_channel(websocket: WebSocket, channel: str) -> None:
+    """Connect, relay ping/pong until disconnect — shared by ws_user/ws_site/ws_public.
+
+    All three are the same channel lifecycle; they differ only in how
+    *channel* is computed (and whether that requires authenticating first).
+    """
     await manager.connect(websocket, channel)
     try:
         while True:
@@ -286,6 +282,18 @@ async def ws_user(
                 logger.debug("ws.invalid_json", raw=raw)
     except WebSocketDisconnect:
         manager.disconnect(websocket, channel)
+
+
+@router.websocket("/ws/user")
+async def ws_user(
+    websocket: WebSocket,
+    token: str | None = Query(default=None),
+) -> None:
+    """Per-user channel for notifications and realtime messages."""
+    user_email = await _authenticate_ws(websocket, token)
+    if not user_email:
+        return
+    await _run_simple_channel(websocket, f"user:{user_email}")
 
 
 @router.websocket("/ws/site")
@@ -300,19 +308,7 @@ async def ws_site(
     user_email = await _authenticate_ws(websocket, token)
     if not user_email:
         return
-    channel = "site"
-    await manager.connect(websocket, channel)
-    try:
-        while True:
-            raw = await websocket.receive_text()
-            try:
-                msg = json.loads(raw)
-                if msg.get("action") == "ping":
-                    await websocket.send_text('{"event":"pong"}')
-            except json.JSONDecodeError:
-                logger.debug("ws.invalid_json", raw=raw)
-    except WebSocketDisconnect:
-        manager.disconnect(websocket, channel)
+    await _run_simple_channel(websocket, "site")
 
 
 @router.websocket("/ws/public/{channel:path}")
@@ -321,19 +317,7 @@ async def ws_public(
     channel: str,
 ) -> None:
     """Public (unauthenticated) channel for displays and kiosks."""
-    full_channel = f"public:{channel}"
-    await manager.connect(websocket, full_channel)
-    try:
-        while True:
-            raw = await websocket.receive_text()
-            try:
-                msg = json.loads(raw)
-                if msg.get("action") == "ping":
-                    await websocket.send_text('{"event":"pong"}')
-            except json.JSONDecodeError:
-                logger.debug("ws.invalid_json", raw=raw)
-    except WebSocketDisconnect:
-        manager.disconnect(websocket, full_channel)
+    await _run_simple_channel(websocket, f"public:{channel}")
 
 
 @router.websocket("/ws/{doctype}/{doc_id}")

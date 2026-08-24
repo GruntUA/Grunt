@@ -8,6 +8,7 @@ from typing import Any
 from fastapi import Body, Depends, HTTPException, Query, Request, status
 
 from grunt.api.router import GruntRouter
+from grunt.api.v1.docs.utils import parse_query_filters
 from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt as grunt_app
 from grunt.auth.dependencies import current_user
@@ -31,17 +32,7 @@ async def list_documents(
     user: User = Depends(current_user),
 ) -> dict[str, Any]:
     """List documents for a DocType."""
-    # Extract fast_filter[field__op]=value — applied first (lower precedence)
-    merged_filters: dict[str, str] = {}
-    for key, value in request.query_params.items():
-        if key.startswith("fast_filter[") and key.endswith("]"):
-            merged_filters[key[12:-1]] = value
-
-    # Extract filter[field__op]=value — explicit user filters override fast filters
-    for key, value in request.query_params.items():
-        if key.startswith("filter[") and key.endswith("]"):
-            merged_filters[key[7:-1]] = value
-
+    merged_filters = parse_query_filters(request)
     field_list = [f.strip() for f in fields.split(",") if f.strip()] if fields else None
 
     result = await grunt_app.get_list(

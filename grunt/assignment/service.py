@@ -261,22 +261,4 @@ class AssignmentService:
         async with grunt.system_context(require_session()):
             await grunt.bulk_insert("ToDo", [todo_doc])
 
-    # ------------------------------------------------------------------
-    # Зворотна сумісність: _match_filters залишається для існуючих тестів
-    # ------------------------------------------------------------------
-
-    def _match_filters(self, doc: dict[str, Any], filters: dict) -> bool:
-        """[Deprecated] Використовуй AssignmentRule.match() замість цього.
-
-        Залишено для зворотної сумісності з тестами.
-        Делегує до AssignmentRule.match().
-        """
-        from grunt.assignment.doctypes.AssignmentRule.assignment_rule import (
-            AssignmentRule,
-        )
-
-        rule = AssignmentRule("AssignmentRule", {"filters": filters})
-        return rule.match(doc)
-
-
 assignment_service = AssignmentService()

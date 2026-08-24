@@ -31,6 +31,15 @@ class WorkflowTransition(BaseModel):
 
 
 class WorkflowStep(BaseModel):
+    """A node in the Studio workflow graph editor — UI-only, not executed.
+
+    ``workflow/engine.py`` runs purely on ``DocTypeWorkflow.states``/
+    ``transitions``/``state_field``; it never reads ``steps`` or ``positions``.
+    Those two exist only so Studio's graph builder (a visual editor distinct
+    from the states/transitions list) can save/restore node layout — don't
+    expect editing ``steps`` to change runtime workflow behaviour.
+    """
+
     id: str
     name: str
     title: str = ""
@@ -45,10 +54,15 @@ class WorkflowStep(BaseModel):
 
 
 class DocTypeWorkflow(BaseModel):
+    """states/transitions/state_field drive execution (workflow/engine.py).
+
+    steps/positions are Studio graph-editor state only — see WorkflowStep.
+    """
+
     states: list[WorkflowState]
     transitions: list[WorkflowTransition]
     state_field: str = "status"  # field that stores current state
-    steps: list[WorkflowStep] = []
+    steps: list[WorkflowStep] = []  # Studio graph editor nodes — UI only, not executed
     positions: dict[str, dict[str, float]] = {}  # graph editor node positions {state_name: {x, y}}
 
 

@@ -34,10 +34,6 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
-# Backward-compatibility shim — auth modules import `limiter` and check `if limiter is not None`.
-# We always return None so the decorator becomes a no-op (limits enforced by the middleware).
-limiter = None
-
 # Paths that are always exempt from rate limiting (public assets, health checks)
 _EXEMPT_PREFIXES = ("/api/docs", "/api/redoc", "/openapi.json", "/health")
 

@@ -192,6 +192,7 @@ class WorkflowEngine:
             )
             return bool(result)
         except Exception:
+            logger.warning("workflow.condition_eval_failed", condition=condition, user=user)
             return True  # Don't block on error
 
 

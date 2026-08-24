@@ -99,6 +99,95 @@ def app_install(name: str, site: str | None):
     asyncio.run(_do_install(name, site))
 
 
+async def _plan_app_uninstall(session, app_doctypes: list) -> list:
+    """Compile each app DocType's table and count its rows.
+
+    Returns ``[(doctype_name, table, row_count | None)]`` — count is None
+    when the table doesn't exist (or can't be counted), used later to skip
+    the DROP TABLE step for it.
+    """
+    from sqlalchemy import func, select
+
+    from grunt.metadata.compiler import compile_doctype_to_table
+
+    plan = []
+    for dt in app_doctypes:
+        table = compile_doctype_to_table(dt)
+        try:
+            cnt = (await session.execute(select(func.count()).select_from(table))).scalar() or 0
+        except Exception:
+            cnt = None
+        plan.append((dt.name, table, cnt))
+    return plan
+
+
+def _print_uninstall_plan(
+    target_site: str,
+    plan: list,
+    *,
+    name: str,
+    has_workspace: bool,
+    has_installed_row: bool,
+) -> None:
+    click.echo(f"Сайт: {target_site}. Буде видалено:")
+    for dt_name, table, cnt in plan:
+        rows = "таблиці немає" if cnt is None else f"{cnt} рядків"
+        click.echo(f"  • DocType {dt_name} ({getattr(table, 'name', '?')}: {rows})")
+    if has_workspace:
+        click.echo(f"  • Workspace '{name}' із пунктами меню")
+    if has_installed_row:
+        click.echo(f"  • Запис GruntInstalledApp '{name}'")
+
+
+async def _run_before_uninstall_hook(session, target_site: str, name: str) -> None:
+    """Call apps/<name>/install.py:before_uninstall(session, site), if defined."""
+    from grunt.site.manager import site_manager
+    from grunt.utils.app_helpers import load_app_hook_module
+
+    install_mod = load_app_hook_module(site_manager.bench_dir / "apps" / name, name)
+    if install_mod is not None and hasattr(install_mod, "before_uninstall"):
+        await install_mod.before_uninstall(session, target_site)
+
+
+async def _delete_naming_series_counters(session, app_doctypes: list) -> None:
+    """Clear NamingSeries prefix counters derived from this app's autoname doctypes."""
+    from grunt.metadata.compiler import compile_doctype_to_table
+    from grunt.metadata.registry import doctype_registry
+
+    ns_table = compile_doctype_to_table(await doctype_registry.get("NamingSeries"))
+    for dt in app_doctypes:
+        autoname = (dt.autoname or "").strip()
+        if not autoname or autoname.startswith("field:"):
+            continue
+        head = autoname.removeprefix("format:").split(".", 1)[0]
+        if head:
+            await session.execute(ns_table.delete().where(ns_table.c.prefix.like(f"{head}%")))
+
+
+async def _delete_workspace_and_registration(
+    *, name: str, has_workspace: bool, has_installed_row: bool
+) -> None:
+    from grunt.app import grunt
+
+    if has_workspace:
+        await grunt.db.delete("WorkspaceSidebarItem", {"parent_name": name})
+        await grunt.delete_doc("AppMenu", name)
+    if has_installed_row:
+        await grunt.delete_doc("GruntInstalledApp", name)
+
+
+async def _drop_app_tables(eng, plan: list) -> None:
+    """DROP TABLE for each planned table, on a separate connection/transaction.
+
+    Run after the main session commits — doing DDL on the same SQLite
+    connection while it still holds the delete transaction's lock fails.
+    """
+    async with eng.begin() as conn:
+        for _dt_name, table, cnt in plan:
+            if cnt is not None:
+                await conn.run_sync(lambda sync_conn, t=table: t.drop(sync_conn, checkfirst=True))
+
+
 async def _do_uninstall(
     name: str,
     site: str | None = None,
@@ -116,10 +205,7 @@ async def _do_uninstall(
     """
     import json
 
-    from sqlalchemy import func, select
-
     from grunt.app import grunt
-    from grunt.metadata.compiler import compile_doctype_to_table
     from grunt.metadata.registry import doctype_registry
     from grunt.site.manager import current_site, site_manager
     from grunt.startup import load_core_doctypes
@@ -162,6 +248,7 @@ async def _do_uninstall(
     try:
         eng = site_manager.get_engine(target_site)
         maker = site_manager.get_session_maker(target_site)
+        plan: list = []
 
         async with maker() as session:
             await load_core_doctypes(session, eng)
@@ -172,69 +259,35 @@ async def _do_uninstall(
             ]
 
             async with grunt.system_context(session, eng):
-                has_installed_row = await grunt.exists("GruntInstalledApp", {"name": name})
-                has_workspace = await grunt.exists("AppMenu", {"name": name})
+                has_installed_row = bool(await grunt.exists("GruntInstalledApp", {"name": name}))
+                has_workspace = bool(await grunt.exists("AppMenu", {"name": name}))
 
                 if not (is_registered or app_doctypes or has_installed_row or has_workspace):
                     raise SystemExit(
                         f"Помилка: додаток '{name}' не встановлено і слідів у БД не знайдено."
                     )
 
-                # План видалення: DocType → (Table, кількість рядків | None якщо таблиці немає)
-                plan: list[tuple[str, object, int | None]] = []
-                for dt in app_doctypes:
-                    table = compile_doctype_to_table(dt)
-                    try:
-                        cnt = (
-                            await session.execute(select(func.count()).select_from(table))
-                        ).scalar() or 0
-                    except Exception:
-                        cnt = None
-                    plan.append((dt.name, table, cnt))
-
-                click.echo(f"Сайт: {target_site}. Буде видалено:")
-                for dt_name, table, cnt in plan:
-                    rows = "таблиці немає" if cnt is None else f"{cnt} рядків"
-                    click.echo(f"  • DocType {dt_name} ({getattr(table, 'name', '?')}: {rows})")
-                if has_workspace:
-                    click.echo(f"  • Workspace '{name}' із пунктами меню")
-                if has_installed_row:
-                    click.echo(f"  • Запис GruntInstalledApp '{name}'")
+                plan = await _plan_app_uninstall(session, app_doctypes)
+                _print_uninstall_plan(
+                    target_site,
+                    plan,
+                    name=name,
+                    has_workspace=has_workspace,
+                    has_installed_row=has_installed_row,
+                )
 
                 if not assume_yes and not click.confirm(
                     "Продовжити? Дані буде втрачено безповоротно"
                 ):
                     raise SystemExit("Скасовано.")
 
-                # before_uninstall hook додатку (apps/<name>/install.py)
-                install_py = site_manager.bench_dir / "apps" / name / "install.py"
-                if install_py.exists():
-                    import importlib.util
-
-                    spec = importlib.util.spec_from_file_location(f"{name}.install", install_py)
-                    if spec and spec.loader:
-                        mod = importlib.util.module_from_spec(spec)
-                        spec.loader.exec_module(mod)
-                        if hasattr(mod, "before_uninstall"):
-                            await mod.before_uninstall(session, target_site)
-
-                # Лічильники NamingSeries: префікси, що походять з autoname доктайпів
-                ns_table = compile_doctype_to_table(await doctype_registry.get("NamingSeries"))
-                for dt in app_doctypes:
-                    autoname = (dt.autoname or "").strip()
-                    if not autoname or autoname.startswith("field:"):
-                        continue
-                    head = autoname.removeprefix("format:").split(".", 1)[0]
-                    if head:
-                        await session.execute(
-                            ns_table.delete().where(ns_table.c.prefix.like(f"{head}%"))
-                        )
-
-                if has_workspace:
-                    await grunt.db.delete("WorkspaceSidebarItem", {"parent_name": name})
-                    await grunt.delete_doc("AppMenu", name)
-                if has_installed_row:
-                    await grunt.delete_doc("GruntInstalledApp", name)
+                await _run_before_uninstall_hook(session, target_site, name)
+                await _delete_naming_series_counters(session, app_doctypes)
+                await _delete_workspace_and_registration(
+                    name=name,
+                    has_workspace=has_workspace,
+                    has_installed_row=has_installed_row,
+                )
 
                 for dt in app_doctypes:
                     await doctype_registry.delete(dt.name, session)
@@ -242,12 +295,7 @@ async def _do_uninstall(
             await session.commit()
 
         # DDL після коміту, окремим з'єднанням — інакше SQLite тримає lock
-        async with eng.begin() as conn:
-            for _dt_name, table, cnt in plan:
-                if cnt is not None:
-                    await conn.run_sync(
-                        lambda sync_conn, t=table: t.drop(sync_conn, checkfirst=True)
-                    )
+        await _drop_app_tables(eng, plan)
 
         if vacuum and eng.dialect.name == "sqlite":
             # VACUUM не має SQLAlchemy-еквівалента і вимагає autocommit

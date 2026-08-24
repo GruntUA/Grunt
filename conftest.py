@@ -153,7 +153,7 @@ async def auth_headers(client: AsyncClient) -> dict[str, str]:
     """Register a superadmin user and return auth headers."""
     r_reg = await client.post(
         "/api/v1/auth/register",
-        json={"email": "admin@grunt.example.com", "password": "secret", "full_name": "Admin"},
+        json={"email": "admin@grunt.example.com", "password": "secret", "full_name": "Admin User"},
     )
     assert r_reg.status_code in (201, 200, 409)  # 409 if user somehow persisted
 

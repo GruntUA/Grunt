@@ -8,9 +8,15 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from typing import Any
+from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING, Any
 
 import structlog
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
+    from redis.asyncio import Redis
 
 from grunt.config import settings
 from grunt.document.base import DocumentList
@@ -72,34 +78,47 @@ class QueryCache:
     def _set_memory(self, key: str, payload: dict[str, Any]) -> None:
         self._memory[key] = (time.time() + self._ttl_seconds, payload)
 
-    async def _get_redis(self, key: str) -> dict[str, Any] | None:
-        if self._redis_failed or not settings.redis_url:
-            return None
-        try:
-            import redis.asyncio as aioredis
+    @asynccontextmanager
+    async def _redis(self) -> AsyncGenerator[Redis | None]:
+        """Yield a connected Redis client, or None when Redis isn't usable.
 
-            r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
-            raw = await r.get(key)
+        Shared connect/close so ``_get_redis``/``_set_redis``/``invalidate_doctype``
+        don't each reimplement "skip if disabled or previously failed, open a
+        client, always close it, flip ``_redis_failed`` on any error".
+        """
+        if self._redis_failed or not settings.redis_url:
+            yield None
+            return
+        import redis.asyncio as aioredis
+
+        r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
+        try:
+            yield r
+        finally:
             await r.aclose()
-            if not raw:
-                return None
-            if isinstance(raw, bytes):
-                raw = raw.decode()
-            return json.loads(raw)
+
+    async def _get_redis(self, key: str) -> dict[str, Any] | None:
+        try:
+            async with self._redis() as r:
+                if r is None:
+                    return None
+                raw = await r.get(key)
         except Exception as exc:
             self._redis_failed = True
             logger.warning("query_cache.redis_get_failed", error=str(exc))
             return None
+        if not raw:
+            return None
+        if isinstance(raw, bytes):
+            raw = raw.decode()
+        return json.loads(raw)
 
     async def _set_redis(self, key: str, payload: dict[str, Any]) -> None:
-        if self._redis_failed or not settings.redis_url:
-            return
         try:
-            import redis.asyncio as aioredis
-
-            r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
-            await r.setex(key, self._ttl_seconds, json.dumps(payload, separators=(",", ":")))
-            await r.aclose()
+            async with self._redis() as r:
+                if r is None:
+                    return
+                await r.setex(key, self._ttl_seconds, json.dumps(payload, separators=(",", ":")))
         except Exception as exc:
             self._redis_failed = True
             logger.warning("query_cache.redis_set_failed", error=str(exc))
@@ -134,16 +153,13 @@ class QueryCache:
         for k in stale:
             self._memory.pop(k, None)
 
-        if self._redis_failed or not settings.redis_url:
-            return
         try:
-            import redis.asyncio as aioredis
-
-            r = aioredis.from_url(settings.redis_url, socket_connect_timeout=1)
-            keys = await r.keys(f"{prefix}*")
-            if keys:
-                await r.delete(*keys)
-            await r.aclose()
+            async with self._redis() as r:
+                if r is None:
+                    return
+                keys = await r.keys(f"{prefix}*")
+                if keys:
+                    await r.delete(*keys)
         except Exception as exc:
             self._redis_failed = True
             logger.warning("query_cache.redis_invalidate_failed", error=str(exc), doctype=doctype)

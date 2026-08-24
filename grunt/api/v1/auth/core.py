@@ -35,7 +35,6 @@ from grunt.auth.service import (
     verify_mfa_token,
 )
 from grunt.db.session import get_session
-from grunt.middleware.rate_limit import limiter
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -43,17 +42,6 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 router = GruntRouter(optional_auth=True)
-
-
-def _rate_limit(limit: str):
-    """Decorator that applies slowapi rate limiting when available, no-op otherwise."""
-
-    def decorator(func):
-        if limiter is not None:
-            return limiter.limit(limit)(func)
-        return func
-
-    return decorator
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -69,20 +57,10 @@ async def register(body: RegisterRequest) -> UserResponse:
     first_name = name_parts[0] if name_parts else ""
     last_name = name_parts[1] if len(name_parts) > 1 else ""
     user = await create_user(body.email, body.password, first_name, last_name, None)
-    return UserResponse(
-        id=user.id,
-        email=user.email,
-        full_name=user.full_name,
-        roles=user.roles,
-        is_superadmin=user.is_superadmin,
-        mfa_enabled=bool(user.mfa_enabled),
-        avatar=user.avatar,
-        created_at=user.created_at.isoformat() if user.created_at else None,
-    )
+    return UserResponse.from_user(user)
 
 
 @router.post("/token", response_model=TokenResponse)
-@_rate_limit("20/minute")
 async def login(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(OAuth2PasswordRequestForm),
@@ -109,16 +87,7 @@ async def login(
         return TokenResponse(
             mfa_token=mfa_token,
             mfa_required=True,
-            user=UserResponse(
-                id=user.id,
-                email=user.email,
-                full_name=user.full_name,
-                roles=user.roles,
-                is_superadmin=user.is_superadmin,
-                theme=user.theme,
-                avatar=user.avatar,
-                mfa_enabled=bool(user.mfa_enabled),
-            ),
+            user=UserResponse.from_user(user),
         )
 
     assert user.id is not None
@@ -131,15 +100,7 @@ async def login(
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
-        user=UserResponse(
-            id=user.id,
-            email=user.email,
-            full_name=user.full_name,
-            roles=user.roles,
-            is_superadmin=user.is_superadmin,
-            theme=user.theme,
-            avatar=user.avatar,
-        ),
+        user=UserResponse.from_user(user),
     )
 
 
@@ -177,15 +138,7 @@ async def mfa_login_verify(
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
-        user=UserResponse(
-            id=user.id,
-            email=user.email,
-            full_name=user.full_name,
-            roles=user.roles,
-            is_superadmin=user.is_superadmin,
-            theme=user.theme,
-            avatar=user.avatar,
-        ),
+        user=UserResponse.from_user(user),
     )
 
 
@@ -204,16 +157,7 @@ async def _track_session(request: Request, user_id: str):
 @router.get("/me", response_model=UserResponse)
 async def me(user: User = Depends(current_user)) -> UserResponse:
     """Return the currently authenticated user."""
-    return UserResponse(
-        id=user.id,
-        email=user.email,
-        full_name=user.full_name,
-        roles=user.roles,
-        is_superadmin=user.is_superadmin,
-        theme=user.theme,
-        avatar=user.avatar,
-        mfa_enabled=bool(user.mfa_enabled),
-    )
+    return UserResponse.from_user(user)
 
 
 @router.patch("/me", response_model=UserResponse)
@@ -239,16 +183,7 @@ async def update_me(
     updated = await get_user_by_id(user.id)
     if updated is None:
         raise HTTPException(status_code=404, detail="User not found")
-    return UserResponse(
-        id=updated.id,
-        email=updated.email,
-        full_name=updated.full_name,
-        roles=updated.roles,
-        is_superadmin=updated.is_superadmin,
-        theme=updated.theme,
-        avatar=updated.avatar,
-        mfa_enabled=bool(updated.mfa_enabled),
-    )
+    return UserResponse.from_user(updated)
 
 
 @router.post("/refresh", response_model=TokenResponse)
@@ -264,15 +199,7 @@ async def refresh(body: RefreshRequest) -> TokenResponse:
     return TokenResponse(
         access_token=create_access_token(user),
         refresh_token=new_refresh_token,
-        user=UserResponse(
-            id=user.id,
-            email=user.email,
-            full_name=user.full_name,
-            roles=user.roles,
-            is_superadmin=user.is_superadmin,
-            theme=user.theme,
-            avatar=user.avatar,
-        ),
+        user=UserResponse.from_user(user),
     )
 
 

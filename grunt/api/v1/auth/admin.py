@@ -29,17 +29,7 @@ router = GruntRouter(dependencies=[Depends(superadmin_user)])
 async def list_users() -> list[UserResponse]:
     """List all users."""
     users = await service_list_users()
-    return [
-        UserResponse(
-            id=u.id,
-            email=u.email,
-            full_name=u.full_name,
-            roles=u.roles,
-            is_superadmin=u.is_superadmin,
-            created_at=u.created_at.isoformat() if u.created_at else None,
-        )
-        for u in users
-    ]
+    return [UserResponse.from_user(u) for u in users]
 
 
 @router.get("/roles")
@@ -61,24 +51,19 @@ async def create_role(body: AddRoleRequest) -> dict:
 
 @router.post("/users/{user_id}/roles")
 async def add_user_role(user_id: str, body: AddRoleRequest) -> dict:
-    """Assign a role to a user."""
-    target_user = await get_user_by_id(user_id)
-    if not target_user:
+    """Assign a role to a user.
+
+    Delegates to the whitelisted ``User.add_role`` RPC method — same
+    role-creation/assignment logic, single source of truth for it. This
+    endpoint only adds a friendlier 404 (``add_role`` itself would 404 too,
+    via ``grunt.get_doc``, just with a generic "Document not found" detail).
+    """
+    from grunt.auth.doctypes.User.user import add_role
+
+    if not await get_user_by_id(user_id):
         raise HTTPException(status_code=404, detail="Користувача не знайдено")
 
-    if not await grunt.db.get_all("Role", filters={"role_name": body.role_name}, limit=1):
-        await grunt.new_doc("Role", {"role_name": body.role_name})
-
-    existing = await grunt.db.get_all(
-        "UserRole",
-        filters={"user_id": user_id, "role_name": body.role_name},
-        limit=1,
-    )
-    if existing:
-        return ok(message="Роль вже призначено")
-
-    await grunt.new_doc("UserRole", {"user_id": user_id, "role_name": body.role_name})
-    return ok({"user_id": user_id, "role": body.role_name})
+    return ok(await add_role(user_id, body.role_name))
 
 
 @router.post("/users/set-password")

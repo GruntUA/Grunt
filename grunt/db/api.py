@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 from sqlalchemy import CursorResult, func, or_, select, update
@@ -13,6 +14,53 @@ from grunt.utils.attr_dict import AttrDict
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+
+# "sum(amount)" / "count()" — see _parse_aggregation_expr.
+_AGG_EXPR_RE = re.compile(r"^([a-z_]+)(?:\((.*)\))?$")
+
+
+def _parse_aggregation_expr(expr: str) -> tuple[str, str | None]:
+    """Parse an ``aggregations`` DSL string into (function name, field name).
+
+    ``field name`` is None for ``count()``/``count`` (no field required).
+    Raises ValueError for anything that doesn't match ``fn(field)`` / ``fn``.
+    """
+    m = _AGG_EXPR_RE.match(expr.strip().lower())
+    if not m:
+        raise ValueError(f"Invalid aggregation expression: {expr}")
+    fn_name, field = m.groups()
+    return fn_name, (field.strip() if field else None)
+
+
+def _build_aggregation_column(table: Any, fn_name: str, field_name: str | None) -> Any:
+    """Build the SQLAlchemy aggregate-function column for a parsed DSL entry."""
+    if fn_name == "count":
+        return func.count()
+    if not field_name or field_name == "*":
+        raise ValueError(f"Function {fn_name} requires a field name.")
+    if fn_name == "sum":
+        return func.sum(table.c[field_name])
+    if fn_name == "avg":
+        return func.avg(table.c[field_name])
+    if fn_name == "min":
+        return func.min(table.c[field_name])
+    if fn_name == "max":
+        return func.max(table.c[field_name])
+    raise ValueError(f"Unsupported aggregation function: {fn_name}")
+
+
+def _build_group_by_column(table: Any, gb: str) -> tuple[Any, Any]:
+    """Build (select_expr, group_by_expr) for one ``group_by`` entry.
+
+    Supports a bare column name, or ``date(field)`` to group by calendar day.
+    """
+    gb = gb.strip()
+    if gb.startswith("date(") and gb.endswith(")"):
+        field = gb[5:-1].strip()
+        expr = func.date(table.c[field])
+        return expr.label(gb), expr
+    col = table.c[gb]
+    return col.label(gb), col
 
 
 class GruntDB:
@@ -374,8 +422,6 @@ class GruntDB:
         order: str = "desc",
     ) -> list[dict[str, Any]]:
         """Fetch aggregated data (GROUP BY, SUM, COUNT, etc)."""
-        import re
-
         dt = await doctype_registry.get(doctype)
         table = compile_doctype_to_table(dt)
 
@@ -388,49 +434,17 @@ class GruntDB:
         if isinstance(group_by, str):
             group_by = [group_by]
 
-        if group_by:
-            for gb in group_by:
-                gb = gb.strip()
-                if gb.startswith("date(") and gb.endswith(")"):
-                    field = gb[5:-1].strip()
-                    expr = func.date(table.c[field]).label(gb)
-                    select_exprs.append(expr)
-                    group_by_exprs.append(func.date(table.c[field]))
-                else:
-                    expr = table.c[gb].label(gb)
-                    select_exprs.append(expr)
-                    group_by_exprs.append(table.c[gb])
-                labeled[gb] = expr
+        for gb in group_by or []:
+            select_expr, group_expr = _build_group_by_column(table, gb)
+            select_exprs.append(select_expr)
+            group_by_exprs.append(group_expr)
+            labeled[gb.strip()] = select_expr
 
-        if aggregations:
-            for label, agg_expr in aggregations.items():
-                agg_expr = agg_expr.strip().lower()
-                m = re.match(r"^([a-z_]+)(?:\((.*)\))?$", agg_expr)
-                if not m:
-                    raise ValueError(f"Invalid aggregation expression: {agg_expr}")
-                fn_name, field = m.groups()
-                field_name: str | None = field.strip() if field else None
-
-                col: Any
-                if fn_name == "count":
-                    col = func.count()
-                else:
-                    if not field_name or field_name == "*":
-                        raise ValueError(f"Function {fn_name} requires a field name.")
-                    if fn_name == "sum":
-                        col = func.sum(table.c[field_name])
-                    elif fn_name == "avg":
-                        col = func.avg(table.c[field_name])
-                    elif fn_name == "min":
-                        col = func.min(table.c[field_name])
-                    elif fn_name == "max":
-                        col = func.max(table.c[field_name])
-                    else:
-                        raise ValueError(f"Unsupported aggregation function: {fn_name}")
-
-                labeled_col = col.label(label)
-                select_exprs.append(labeled_col)
-                labeled[label] = labeled_col
+        for label, agg_expr in (aggregations or {}).items():
+            fn_name, field_name = _parse_aggregation_expr(agg_expr)
+            labeled_col = _build_aggregation_column(table, fn_name, field_name).label(label)
+            select_exprs.append(labeled_col)
+            labeled[label] = labeled_col
 
         if not select_exprs:
             select_exprs = [func.count().label("count")]

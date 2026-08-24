@@ -210,7 +210,7 @@ class Document(DocumentWriteMixin):
         if name.startswith("_"):
             raise AttributeError(name)
         try:
-            return object.__getattribute__(self, "data")[name]
+            return self._raw()[name]
         except KeyError:
             return None
 
@@ -223,64 +223,76 @@ class Document(DocumentWriteMixin):
                 f"Use self.data['{name}'] = ... if you must override it."
             )
         else:
-            object.__getattribute__(self, "data")[name] = value
+            self._raw()[name] = value
+
+    def _raw(self, name: str = "data") -> Any:
+        """Read a reserved attribute (``data``/``session``/``doctype``/…) directly.
+
+        ``self.data`` already resolves correctly via plain attribute lookup —
+        reserved names (see ``_RESERVED`` above) are always real instance
+        attributes, never routed through the data dict — but spelling that
+        out as ``self._raw()`` at every call site
+        buried the actual intent ("read the raw dict") under bypass-boilerplate
+        repeated ~25 times in this file. One named escape hatch instead.
+        """
+        return object.__getattribute__(self, name)
 
     # ── System field accessors (read-only) ───────────────────────────────
 
     @property
     def id(self) -> str | None:
         """Document identifier — alias for name (primary key)."""
-        return object.__getattribute__(self, "data").get("name")
+        return self._raw().get("name")
 
     @property
     def name(self) -> str | None:
         """Human-readable document identifier (primary key)."""
-        return object.__getattribute__(self, "data").get("name")
+        return self._raw().get("name")
 
     @property
     def owner(self) -> str | None:
         """Username of the user who created this document."""
-        return object.__getattribute__(self, "data").get("owner")
+        return self._raw().get("owner")
 
     @property
     def docstatus(self) -> int:
         """Workflow state: 0 = Draft, 1 = Submitted, 2 = Cancelled."""
-        return object.__getattribute__(self, "data").get("docstatus", 0)
+        return self._raw().get("docstatus", 0)
 
     @property
     def idx(self) -> int:
         """Row index within a parent document's child table."""
-        return object.__getattribute__(self, "data").get("idx", 0)
+        return self._raw().get("idx", 0)
 
     @property
     def created_at(self) -> Any:
         """Timestamp when the document was first created."""
-        return object.__getattribute__(self, "data").get("created_at")
+        return self._raw().get("created_at")
 
     @property
     def modified_at(self) -> Any:
         """Timestamp of the most recent save."""
-        return object.__getattribute__(self, "data").get("modified_at")
+        return self._raw().get("modified_at")
 
     @property
     def modified_by(self) -> str | None:
         """Username of the user who last saved this document."""
-        return object.__getattribute__(self, "data").get("modified_by")
+        return self._raw().get("modified_by")
 
     @property
     def parent(self) -> str | None:
         """ID of the parent document (set for child-table rows only)."""
-        return object.__getattribute__(self, "data").get("parent")
+        return self._raw().get("parent")
 
     @property
     def parentfield(self) -> str | None:
         """Field name in the parent DocType that references this child table."""
-        return object.__getattribute__(self, "data").get("parentfield")
+        return self._raw().get("parentfield")
 
     @property
     def parenttype(self) -> str | None:
         """DocType name of the parent document."""
-        return object.__getattribute__(self, "data").get("parenttype")
+        return self._raw().get("parenttype")
 
     # ── Convenience accessors ─────────────────────────────────────────────
 
@@ -305,19 +317,19 @@ class Document(DocumentWriteMixin):
 
     def as_dict(self) -> dict[str, Any]:
         """Return a shallow copy of the underlying data dict."""
-        return dict(object.__getattribute__(self, "data"))
+        return dict(self._raw())
 
     def update(self, values: dict[str, Any]) -> None:
         """Bulk-update multiple fields at once.
 
         Equivalent to calling ``self.field = value`` for each key in ``values``.
         """
-        data = object.__getattribute__(self, "data")
+        data = self._raw()
         data.update(values)
 
     def get(self, fieldname: str, default: Any = None) -> Any:
         """Return ``self.data.get(fieldname, default)`` — same as ``dict.get``."""
-        return object.__getattribute__(self, "data").get(fieldname, default)
+        return self._raw().get(fieldname, default)
 
     # ── Context binding ───────────────────────────────────────────────────
 
@@ -382,7 +394,7 @@ class Document(DocumentWriteMixin):
         result = await self.create_document(
             self.doctype, self.data, self.user, ignore_required=ignore_required
         )
-        data = object.__getattribute__(self, "data")
+        data = self._raw()
         data.clear()
         data.update(result)
         return result
@@ -400,7 +412,7 @@ class Document(DocumentWriteMixin):
         result = await self.update_document(
             self.doctype, doc_id, self.data, self.user, ignore_required=ignore_required
         )
-        data = object.__getattribute__(self, "data")
+        data = self._raw()
         data.clear()
         data.update(result)
         return result
@@ -436,7 +448,7 @@ class Document(DocumentWriteMixin):
         inst = controller_cls(doctype, {}, user=user, session=session, engine=engine)
         inst._bind()
         loaded = await inst.get_document(doctype, name, inst.user, expand=expand)
-        data = object.__getattribute__(inst, "data")
+        data = inst._raw()
         data.clear()
         data.update(loaded)
         return inst
@@ -580,13 +592,13 @@ class Document(DocumentWriteMixin):
             commit:    Whether to flush the session to DB (default ``True``).
                        Pass ``False`` if you handle the commit yourself.
         """
-        data = object.__getattribute__(self, "data")
+        data = self._raw()
         if "processed_rows" in data or hasattr(self, "processed_rows"):
             data["processed_rows"] = processed
         if "total_rows" in data or hasattr(self, "total_rows"):
             data["total_rows"] = total
 
-        session = object.__getattribute__(self, "session")
+        session = self._raw("session")
         if commit and session is not None:
             await session.commit()
 
@@ -602,7 +614,7 @@ class Document(DocumentWriteMixin):
                 if message is not None:
                     payload["message"] = message
                 await manager.broadcast_doc(
-                    object.__getattribute__(self, "doctype"),
+                    self._raw("doctype"),
                     str(doc_id),
                     "import_progress",
                     payload,
@@ -613,6 +625,6 @@ class Document(DocumentWriteMixin):
     # ── Repr ──────────────────────────────────────────────────────────────
 
     def __repr__(self) -> str:
-        doc_id = object.__getattribute__(self, "data").get("name", "?")
-        doctype = object.__getattribute__(self, "doctype")
+        doc_id = self._raw().get("name", "?")
+        doctype = self._raw("doctype")
         return f"<{doctype} id={doc_id!r}>"

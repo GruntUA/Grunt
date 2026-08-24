@@ -241,6 +241,28 @@ async def lifespan(app: FastAPI):
                                     name=_bt["name"],
                                     app=ext_app.name,
                                 )
+                        if hasattr(hooks_mod, "tree_title_resolvers"):
+                            from grunt.document.tree import register_tree_title_resolver
+
+                            for _dt_name, _resolver_path in hooks_mod.tree_title_resolvers.items():
+                                try:
+                                    _mod_path, _fn_name = _resolver_path.rsplit(".", 1)
+                                    _resolver_mod = importlib.import_module(_mod_path)
+                                    register_tree_title_resolver(
+                                        _dt_name, getattr(_resolver_mod, _fn_name)
+                                    )
+                                    logger.info(
+                                        "tree.title_resolver.registered",
+                                        doctype=_dt_name,
+                                        app=ext_app.name,
+                                    )
+                                except Exception as e:
+                                    logger.warning(
+                                        "tree.title_resolver.error",
+                                        doctype=_dt_name,
+                                        handler=_resolver_path,
+                                        error=str(e),
+                                    )
                     except Exception as e:
                         logger.warning("hooks.load_error", module=hooks_import, error=str(e))
 

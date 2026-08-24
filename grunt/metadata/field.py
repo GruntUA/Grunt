@@ -50,28 +50,17 @@ class FieldType:
 
 # ── Registry ──────────────────────────────────────────────────────────────────
 
-# Class-based registry (primary)
+# The FieldType class registry is the single source of truth — sa_factory/
+# searchable/empty_as_null/python_type are read straight off the registered
+# class (falling back to FieldType's own class-level defaults for unknown
+# types), instead of mirroring them into parallel dicts that a new FieldType
+# attribute would need remembering to also add a dict for.
 _FIELD_TYPE_REGISTRY: dict[str, type[FieldType]] = {}
-
-# Flat indices derived from _FIELD_TYPE_REGISTRY, kept in sync by
-# register_field_type_class(). Populated alongside the class registry so
-# to_sa_column()/is_physical_fieldtype()/get_python_type() stay O(1) lookups
-# instead of re-deriving from the class each call.
-_SA_TYPE_MAP: dict[str, Any] = {}
-_FIELD_META: dict[str, dict[str, Any]] = {}
-_PYTHON_TYPE_MAP: dict[str, str] = {}
 
 
 def register_field_type_class(cls: type[FieldType]) -> None:
     """Register a :class:`FieldType` subclass by its ``name`` attribute."""
     _FIELD_TYPE_REGISTRY[cls.name] = cls
-    if cls.sa_factory is not None:
-        _SA_TYPE_MAP[cls.name] = cls.sa_factory
-    _FIELD_META[cls.name] = {
-        "searchable": cls.searchable,
-        "empty_as_null": cls.empty_as_null,
-    }
-    _PYTHON_TYPE_MAP[cls.name] = cls.python_type
 
 
 def get_field_type_class(fieldtype: str) -> type[FieldType]:
@@ -87,7 +76,7 @@ def get_python_type(fieldtype: str) -> str:
 
     Falls back to ``"Any | None"`` for unknown / plugin field types.
     """
-    return _PYTHON_TYPE_MAP.get(fieldtype, "Any | None")
+    return get_field_type_class(fieldtype).python_type
 
 
 # ── Discovery ─────────────────────────────────────────────────────────────────
@@ -154,17 +143,28 @@ def discover_field_types() -> None:
                     logger.exception("suppressed_error")
 
 
+# Runs once, as an import-time side effect: plain `import grunt.metadata.field`
+# scans every app's fields/ dir on disk and dynamically loads each plugin's
+# register() — every field-type module (Select, Link, ...) becomes importable
+# and DocField-typeable this way. This has to happen before DocType JSON gets
+# parsed anywhere, and every code path that touches DocFields imports this
+# module first regardless, so there's no later "real" point to defer it to —
+# but it does mean this module can't be imported for its types alone without
+# the disk scan, and re-running discovery (e.g. after installing an app at
+# runtime) means calling discover_field_types() again explicitly.
 discover_field_types()
 
 
 # ── Convenience predicates ────────────────────────────────────────────────────
 
-NON_PHYSICAL_FIELDS: frozenset[str] = frozenset(ft for ft in _FIELD_META if ft not in _SA_TYPE_MAP)
+NON_PHYSICAL_FIELDS: frozenset[str] = frozenset(
+    name for name, cls in _FIELD_TYPE_REGISTRY.items() if cls.sa_factory is None
+)
 
 
 def is_physical_fieldtype(fieldtype: str) -> bool:
     """Return True if *fieldtype* produces a column in the database."""
-    return fieldtype in _SA_TYPE_MAP
+    return get_field_type_class(fieldtype).sa_factory is not None
 
 
 def is_empty_as_null_fieldtype(fieldtype: str) -> bool:
@@ -295,7 +295,7 @@ class DocField(BaseModel):
             Float as SAFloat,
         )
 
-        factory = _SA_TYPE_MAP.get(self.fieldtype)
+        factory = get_field_type_class(self.fieldtype).sa_factory
         if factory is None:
             raise ValueError(
                 f"Field type '{self.fieldtype}' is virtual"

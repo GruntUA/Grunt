@@ -11,11 +11,54 @@ from grunt.site.manager import site_manager
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
+    from contextlib import AbstractAsyncContextManager
 
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 
 logger = structlog.get_logger()
+
+
+def _bind_session_context(session: AsyncSession) -> None:
+    """Set *session* in the Grunt API context (lazy import to avoid cycles)."""
+    try:
+        from grunt.api.context import set_session as _set
+
+        _set(session)
+    except ImportError:
+        logger.debug("suppressed_expected_error", exc_info=True)
+
+
+def _clear_session_context() -> None:
+    try:
+        from grunt.api.context import clear_context as _clear
+
+        _clear()
+    except ImportError:
+        logger.debug("suppressed_expected_error", exc_info=True)
+
+
+@asynccontextmanager
+async def _session_scope() -> AsyncGenerator[AsyncSession]:
+    """Open a session for the active site, bound to the Grunt API context.
+
+    Shared by ``get_session`` (FastAPI dependency) and ``async_session_factory``
+    (everywhere else) — the two differ only in *how* they're invoked, not in
+    session lifecycle: bind → yield → commit/rollback → unbind.
+    """
+    site_name = site_manager.get_active_site()
+    maker = site_manager.get_session_maker(site_name)
+
+    async with maker() as session:
+        try:
+            _bind_session_context(session)
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            _clear_session_context()
 
 
 async def get_session() -> AsyncGenerator[AsyncSession]:
@@ -25,32 +68,8 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
         from grunt.app import grunt
         doc = await grunt.get_doc(...)
     """
-    site_name = site_manager.get_active_site()
-    maker = site_manager.get_session_maker(site_name)
-
-    async with maker() as session:
-        try:
-            # Set session in Grunt API context (lazy import to avoid cycles)
-            try:
-                from grunt.api.context import set_session as _set
-
-                _set(session)
-            except ImportError:
-                logger.debug("suppressed_expected_error", exc_info=True)
-
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            # Clear session from context
-            try:
-                from grunt.api.context import clear_context as _clear
-
-                _clear()
-            except ImportError:
-                logger.debug("suppressed_expected_error", exc_info=True)
+    async with _session_scope() as session:
+        yield session
 
 
 async def get_engine() -> AsyncEngine:
@@ -69,8 +88,7 @@ async def get_engine() -> AsyncEngine:
     return engine
 
 
-@asynccontextmanager
-async def async_session_factory() -> AsyncGenerator[AsyncSession]:
+def async_session_factory() -> AbstractAsyncContextManager[AsyncSession]:
     """Context manager for acquiring a session outside of a FastAPI request.
 
     Use in background tasks, scheduler jobs, and CLI commands where there is
@@ -81,27 +99,4 @@ async def async_session_factory() -> AsyncGenerator[AsyncSession]:
         async with async_session_factory() as session:
             ...
     """
-    site_name = site_manager.get_active_site()
-    maker = site_manager.get_session_maker(site_name)
-    async with maker() as session:
-        try:
-            # Set in context for Grunt API (lazy import)
-            try:
-                from grunt.api.context import set_session as _set
-
-                _set(session)
-            except ImportError:
-                logger.debug("suppressed_expected_error", exc_info=True)
-
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            try:
-                from grunt.api.context import clear_context as _clear
-
-                _clear()
-            except ImportError:
-                logger.debug("suppressed_expected_error", exc_info=True)
+    return _session_scope()

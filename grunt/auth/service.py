@@ -81,13 +81,20 @@ async def create_refresh_token(user_id: str) -> str:
     return token
 
 
-async def rotate_refresh_token(token: str) -> tuple[str, User] | None:
-    """Validate a refresh token, revoke it, and issue a new one.
+async def _find_and_invalidate_token(
+    token_field: str, expires_field: str, token: str
+) -> dict | None:
+    """Find the User row holding *token* in *token_field*, check expiry, clear it.
 
-    Returns (new_refresh_token, user) on success, None if invalid/expired.
+    Shared by ``rotate_refresh_token``/``consume_password_reset_token`` — both
+    are "look up a user by an opaque single-use token, reject if expired,
+    invalidate it" against a different field pair, then do their own
+    post-processing (issue a new token / set a new password).
+
+    Returns the matched row (with at least ``"name"``), or None if the token
+    doesn't exist or has expired.
     """
     from grunt.app import grunt
-    from grunt.auth.doctypes.User.user import get_user_by_id
     from grunt.context import require_session
 
     now = datetime.now(UTC)
@@ -95,29 +102,45 @@ async def rotate_refresh_token(token: str) -> tuple[str, User] | None:
     async with grunt.system_context(require_session()):
         users = await grunt.get_list(
             "User",
-            filters={"refresh_token": token},
-            fields=["name", "refresh_token_expires_at"],
+            filters={token_field: token},
+            fields=["name", expires_field],
             limit=1,
         )
         if not users:
             return None
 
         user_data = users[0]
-        expires_at = user_data.get("refresh_token_expires_at")
+        expires_at = user_data.get(expires_field)
         if isinstance(expires_at, str):
             expires_at = datetime.fromisoformat(expires_at)
 
         if not expires_at or expires_at.replace(tzinfo=UTC) < now:
             return None
 
-        # Revoke token
-        await grunt.db.set_value("User", user_data["name"], "refresh_token", None)
-        await grunt.db.set_value("User", user_data["name"], "refresh_token_expires_at", None)
+        await grunt.db.set_value("User", user_data["name"], token_field, None)
+        await grunt.db.set_value("User", user_data["name"], expires_field, None)
 
-        user_id = user_data["name"]
+    return user_data
+
+
+async def rotate_refresh_token(token: str) -> tuple[str, User] | None:
+    """Validate a refresh token, revoke it, and issue a new one.
+
+    Returns (new_refresh_token, user) on success, None if invalid/expired.
+    """
+    from grunt.context import require_session
+
+    user_data = await _find_and_invalidate_token(
+        "refresh_token", "refresh_token_expires_at", token
+    )
+    if user_data is None:
+        return None
+
+    from grunt.app import grunt
+    from grunt.auth.doctypes.User.user import get_user_by_id
 
     async with grunt.context(require_session()):
-        user = await get_user_by_id(user_id)
+        user = await get_user_by_id(user_data["name"])
     if user is None:
         return None
 
@@ -155,35 +178,15 @@ async def create_password_reset_token(user_id: str) -> str:
 
 async def consume_password_reset_token(token: str, new_password: str) -> bool:
     """Verify token and update the user's password. Returns True on success."""
+    user_data = await _find_and_invalidate_token("reset_token", "reset_token_expires_at", token)
+    if user_data is None:
+        return False
+
     from grunt.app import grunt
     from grunt.auth.doctypes.User.user import hash_password
     from grunt.context import require_session
 
-    now = datetime.now(UTC)
-
     async with grunt.system_context(require_session()):
-        users = await grunt.get_list(
-            "User",
-            filters={"reset_token": token},
-            fields=["name", "reset_token_expires_at"],
-            limit=1,
-        )
-        if not users:
-            return False
-
-        user_data = users[0]
-        expires_at = user_data.get("reset_token_expires_at")
-        if isinstance(expires_at, str):
-            expires_at = datetime.fromisoformat(expires_at)
-
-        if not expires_at or expires_at.replace(tzinfo=UTC) < now:
-            return False
-
-        # Invalidate token
-        await grunt.db.set_value("User", user_data["name"], "reset_token", None)
-        await grunt.db.set_value("User", user_data["name"], "reset_token_expires_at", None)
-
-        # Update password
         await grunt.db.set_value(
             "User",
             user_data["name"],

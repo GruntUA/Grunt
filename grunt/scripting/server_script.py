@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import functools
 import io
 from datetime import UTC
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -37,7 +38,7 @@ import structlog
 from grunt.scripting.safe_globals import build_safe_globals, compile_script, validate_script
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
+    from collections.abc import Awaitable, Callable, Coroutine
 
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -92,6 +93,23 @@ class _SyncBridge:
         return future.result(timeout=MAX_EXEC_SECONDS)
 
 
+def _bridged[T](fn: Callable[..., Awaitable[T]]) -> Callable[..., T]:
+    """Turn an async method into the sync entry point scripts actually call.
+
+    Every ``_DBProxy`` operation needs both a sync surface (RestrictedPython
+    scripts run synchronously) and an async implementation (it awaits real DB
+    calls) — this collapses each such pair from two named methods (a one-line
+    sync trampoline + an ``_async_*`` twin) into one ``async def`` that IS the
+    public method, run through ``self._bridge``.
+    """
+
+    @functools.wraps(fn)
+    def wrapper(self: Any, *args: Any, **kwargs: Any) -> T:
+        return self._bridge.run(fn(self, *args, **kwargs))
+
+    return wrapper
+
+
 class _DBProxy:
     """Database helpers exposed as ``grunt.db`` inside scripts."""
 
@@ -108,38 +126,31 @@ class _DBProxy:
         finally:
             _session_ctx.reset(token)
 
-    def get_value(self, doctype: str, filters: str | dict[str, Any], fieldname: str) -> Any:
+    @_bridged
+    async def get_value(self, doctype: str, filters: str | dict[str, Any], fieldname: str) -> Any:
         """Get a single field value from a document."""
-        return self._bridge.run(self._async_get_value(doctype, filters, fieldname))
-
-    async def _async_get_value(
-        self, doctype: str, filters: str | dict[str, Any], fieldname: str
-    ) -> Any:
         from grunt.app import GruntDB
 
         return await self._run_with_session(
             lambda: GruntDB().get_value(doctype, filters, fieldname)
         )
 
-    def set_value(self, doctype: str, doc_id: str, fieldname: str, value: Any) -> None:
+    @_bridged
+    async def set_value(self, doctype: str, doc_id: str, fieldname: str, value: Any) -> None:
         """Update a single field value on a document."""
-        self._bridge.run(self._async_set_value(doctype, doc_id, fieldname, value))
-
-    async def _async_set_value(self, doctype: str, doc_id: str, fieldname: str, value: Any) -> None:
         from grunt.app import GruntDB
 
         await self._run_with_session(lambda: GruntDB().set_value(doctype, doc_id, fieldname, value))
 
-    def exists(self, doctype: str, filters: str | dict[str, Any]) -> str | None:
+    @_bridged
+    async def exists(self, doctype: str, filters: str | dict[str, Any]) -> str | None:
         """Return document name if it exists, else None."""
-        return self._bridge.run(self._async_exists(doctype, filters))
-
-    async def _async_exists(self, doctype: str, filters: str | dict[str, Any]) -> str | None:
         from grunt.app import GruntDB
 
         return await self._run_with_session(lambda: GruntDB().exists(doctype, filters))
 
-    def get_all(
+    @_bridged
+    async def get_all(
         self,
         doctype: str,
         *,
@@ -150,19 +161,6 @@ class _DBProxy:
         order: str = "desc",
     ) -> list[dict[str, Any]]:
         """Fetch a list of documents as plain dicts."""
-        return self._bridge.run(
-            self._async_get_all(doctype, filters, fields, limit, order_by, order)
-        )
-
-    async def _async_get_all(
-        self,
-        doctype: str,
-        filters: dict[str, Any] | None,
-        fields: list[str] | None,
-        limit: int,
-        order_by: str | None,
-        order: str,
-    ) -> list[dict[str, Any]]:
         from grunt.app import GruntDB
 
         return await self._run_with_session(
@@ -234,6 +232,26 @@ class ScriptContext:
         finally:
             _session_ctx.reset(token)
 
+    def _run_or_default(self, coro: Coroutine[Any, Any, _T], default: _T) -> _T:
+        """Run *coro* via the bridge, or *default* if there's no bridge/session.
+
+        Missing bridge/session means the context was built for preview/dry-run
+        use without a live DB (see ``ScriptContext()`` call sites) — every
+        read-only ``grunt.*`` script method degrades to its empty-result
+        default in that mode rather than erroring.
+        """
+        if not self._bridge or not self._session:
+            coro.close()  # avoid "coroutine was never awaited"
+            return default
+        return self._bridge.run(coro)
+
+    def _run_or_raise(self, coro: Coroutine[Any, Any, _T], method_name: str) -> _T:
+        """Like ``_run_or_default``, but for mutating methods: no silent no-op."""
+        if not self._bridge or not self._session:
+            coro.close()
+            raise ScriptError(f"{method_name}: no session available")
+        return self._bridge.run(coro)
+
     @property
     def response(self) -> dict[str, Any]:
         return self._response
@@ -262,11 +280,9 @@ class ScriptContext:
             doc = grunt.get_doc("Applicant", "some-id")
             doc = grunt.get_doc("Applicant", {"tax_id": "1234567890"})
         """
-        if not self._bridge or not self._session:
-            return None
-        return self._bridge.run(self._async_get_doc(doctype, filters_or_id))
+        return self._run_or_default(self._get_doc_impl(doctype, filters_or_id), None)
 
-    async def _async_get_doc(
+    async def _get_doc_impl(
         self, doctype: str, filters_or_id: str | dict[str, Any]
     ) -> dict[str, Any] | None:
         from grunt.app import GruntDB
@@ -297,11 +313,9 @@ class ScriptContext:
                 "Applicant", filters={"applicant_type": "Фізична особа"}, limit=10
             )
         """
-        if not self._bridge or not self._session:
-            return []
-        return self._bridge.run(self._async_get_list(doctype, filters, fields, limit))
+        return self._run_or_default(self._get_list_impl(doctype, filters, fields, limit), [])
 
-    async def _async_get_list(
+    async def _get_list_impl(
         self,
         doctype: str,
         filters: dict[str, Any] | None,
@@ -326,11 +340,9 @@ class ScriptContext:
 
             inv = grunt.new_doc("Invoice", {"number": "INV-001", "amount": 1500.0})
         """
-        if not self._bridge or not self._session:
-            raise ScriptError("new_doc: no session available")
-        return self._bridge.run(self._async_new_doc(doctype, data))
+        return self._run_or_raise(self._new_doc_impl(doctype, data), "new_doc")
 
-    async def _async_new_doc(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
+    async def _new_doc_impl(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
         from grunt.app import grunt as _grunt
 
         return await self._run_with_session(lambda: _grunt.new_doc(doctype, data))
@@ -342,11 +354,9 @@ class ScriptContext:
 
             updated = grunt.save_doc("Invoice", doc_id, {"status": "Paid"})
         """
-        if not self._bridge or not self._session:
-            raise ScriptError("save_doc: no session available")
-        return self._bridge.run(self._async_save_doc(doctype, id_or_name, data))
+        return self._run_or_raise(self._save_doc_impl(doctype, id_or_name, data), "save_doc")
 
-    async def _async_save_doc(
+    async def _save_doc_impl(
         self, doctype: str, id_or_name: str, data: dict[str, Any]
     ) -> dict[str, Any]:
         from datetime import datetime
@@ -370,11 +380,9 @@ class ScriptContext:
 
             grunt.delete_doc("TempLog", log_id)
         """
-        if not self._bridge or not self._session:
-            raise ScriptError("delete_doc: no session available")
-        self._bridge.run(self._async_delete_doc(doctype, id_or_name))
+        self._run_or_raise(self._delete_doc_impl(doctype, id_or_name), "delete_doc")
 
-    async def _async_delete_doc(self, doctype: str, id_or_name: str) -> None:
+    async def _delete_doc_impl(self, doctype: str, id_or_name: str) -> None:
         from grunt.app import GruntDB
 
         async def _action() -> None:
@@ -391,11 +399,9 @@ class ScriptContext:
 
             n = grunt.count("Invoice", {"status": "Draft"})
         """
-        if not self._bridge or not self._session:
-            return 0
-        return self._bridge.run(self._async_count(doctype, filters))
+        return self._run_or_default(self._count_impl(doctype, filters), 0)
 
-    async def _async_count(self, doctype: str, filters: dict[str, Any] | None) -> int:
+    async def _count_impl(self, doctype: str, filters: dict[str, Any] | None) -> int:
         from grunt.app import GruntDB
 
         return await self._run_with_session(lambda: GruntDB().count(doctype, filters=filters))
@@ -414,11 +420,11 @@ class ScriptContext:
 
             grunt.notify(["user@example.com"], "Order ready", "Your order is ready.")
         """
-        if not self._bridge or not self._session:
-            return []
-        return self._bridge.run(self._async_notify(users, subject, message, doctype, doc_id))
+        return self._run_or_default(
+            self._notify_impl(users, subject, message, doctype, doc_id), []
+        )
 
-    async def _async_notify(
+    async def _notify_impl(
         self,
         users: list[str],
         subject: str,

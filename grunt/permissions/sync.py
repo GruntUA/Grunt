@@ -16,34 +16,7 @@ logger = structlog.get_logger()
 
 async def load_all_permissions_from_db(session) -> None:
     """Read DocTypePermission table and inject into registry. Called at startup."""
-    try:
-        from grunt.app import grunt
-        from grunt.metadata.compiler import compile_doctype_to_table
-        from grunt.metadata.registry import doctype_registry
-
-        dt = doctype_registry._doctypes.get("DocTypePermission")
-        if dt is None:
-            return
-        _ = compile_doctype_to_table(dt)
-
-        async with grunt.system_context(session):
-            rows = await grunt.db.get_all("DocTypePermission", limit=100_000)
-            if not rows:
-                return
-
-        # Group by doctype_name
-        by_dt: dict[str, list[dict]] = {}
-        for row in rows:
-            dn = row.get("doctype_name") or ""
-            if dn:
-                by_dt.setdefault(dn, []).append(row)
-
-        for doctype_name, perms in by_dt.items():
-            await _apply_perms_to_doctype(doctype_name, perms)
-
-        logger.info("permissions.loaded_from_db", count=len(rows))
-    except Exception as exc:
-        logger.warning("permissions.load_failed", error=str(exc))
+    await _load_and_apply(session, log_event="permissions.loaded_from_db")
 
 
 async def sync_permissions(doc: dict, session=None, **_kwargs) -> None:
@@ -52,10 +25,27 @@ async def sync_permissions(doc: dict, session=None, **_kwargs) -> None:
     if not doctype_name:
         return
     if session is not None:
-        await _reload_doctype_perms(doctype_name, session)
+        await _load_and_apply(
+            session,
+            doctype_name=doctype_name,
+            log_event="permissions.refreshed",
+            error_event="permissions.refresh_failed",
+        )
 
 
-async def _reload_doctype_perms(doctype_name: str, session) -> None:
+async def _load_and_apply(
+    session,
+    *,
+    doctype_name: str | None = None,
+    log_event: str,
+    error_event: str = "permissions.load_failed",
+) -> None:
+    """Read DocTypePermission rows (all, or just for *doctype_name*) and apply them.
+
+    Shared by the startup full load and the after_save/after_delete single-DocType
+    refresh — same round-trip, differing only in the filter and which DocTypes
+    end up re-applied.
+    """
     try:
         from grunt.app import grunt
         from grunt.metadata.compiler import compile_doctype_to_table
@@ -66,17 +56,28 @@ async def _reload_doctype_perms(doctype_name: str, session) -> None:
             return
         _ = compile_doctype_to_table(dt)
 
+        filters = {"doctype_name": doctype_name} if doctype_name else None
         async with grunt.system_context(session):
-            rows = await grunt.db.get_all(
-                "DocTypePermission",
-                filters={"doctype_name": doctype_name},
-                limit=10_000,
-            )
+            rows = await grunt.db.get_all("DocTypePermission", filters=filters, limit=100_000)
 
-        await _apply_perms_to_doctype(doctype_name, rows)
-        logger.info("permissions.refreshed", doctype=doctype_name, count=len(rows))
+        if doctype_name is not None:
+            # Single-DocType refresh always re-applies, even to an empty list —
+            # that's how a permission row getting deleted clears it in-memory.
+            await _apply_perms_to_doctype(doctype_name, rows)
+        elif not rows:
+            return
+        else:
+            by_dt: dict[str, list[dict]] = {}
+            for row in rows:
+                dn = row.get("doctype_name") or ""
+                if dn:
+                    by_dt.setdefault(dn, []).append(row)
+            for dn, perms in by_dt.items():
+                await _apply_perms_to_doctype(dn, perms)
+
+        logger.info(log_event, doctype=doctype_name, count=len(rows))
     except Exception as exc:
-        logger.warning("permissions.refresh_failed", doctype=doctype_name, error=str(exc))
+        logger.warning(error_event, doctype=doctype_name, error=str(exc))
 
 
 async def _apply_perms_to_doctype(doctype_name: str, perm_rows: list[dict]) -> None:

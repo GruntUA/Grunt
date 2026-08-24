@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import io
 from datetime import date, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import openpyxl
 import structlog
@@ -13,7 +13,28 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from grunt.document.meta import Meta
 from grunt.io.exporters.sanitize import escape_formula
 
+if TYPE_CHECKING:
+    from fastapi import Request
+
 logger = structlog.get_logger()
+
+
+def parse_query_filters(request: Request) -> dict[str, str]:
+    """Merge ``fast_filter[field__op]=value`` and ``filter[field__op]=value`` query params.
+
+    ``fast_filter[...]`` is applied first (lower precedence); an explicit
+    ``filter[...]`` for the same key overrides it. Shared by the three
+    endpoints that accept both styles from the query string: document list,
+    tree, and tree children.
+    """
+    merged: dict[str, str] = {}
+    for key, value in request.query_params.items():
+        if key.startswith("fast_filter[") and key.endswith("]"):
+            merged[key[12:-1]] = value
+    for key, value in request.query_params.items():
+        if key.startswith("filter[") and key.endswith("]"):
+            merged[key[7:-1]] = value
+    return merged
 
 
 def _fmt(val: object) -> str:

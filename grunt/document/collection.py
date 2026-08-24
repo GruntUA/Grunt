@@ -384,6 +384,95 @@ async def bulk_delete(
 # ── Rename ──────────────────────────────────────────────────────────────────
 
 
+async def _rename_child_and_link_refs(
+    session: AsyncSession,
+    dt_meta: Meta,
+    doctype_name: str,
+    old_id: str,
+    new_id: str,
+) -> None:
+    """Update every other DocType's child-table parent_name and Link field values."""
+    all_dts = await doctype_registry.list_all()
+    for other_dt in all_dts:
+        other_meta = Meta(other_dt)
+
+        is_child = any(f.options == other_dt.name for f in dt_meta.get_child_table_fields())
+        if is_child:
+            child_table = other_meta.table
+            await session.execute(
+                child_table.update()
+                .where(child_table.c.parent_name == old_id)
+                .values(parent_name=new_id)
+            )
+
+        for f in other_meta.get_link_fields():
+            if f.fieldtype == "Link" and f.options == doctype_name:
+                ref_table = other_meta.table
+                await session.execute(
+                    ref_table.update()
+                    .where(ref_table.c[f.fieldname] == old_id)
+                    .values(**{f.fieldname: new_id})
+                )
+
+
+async def _rename_multilink_refs(
+    session: AsyncSession, doctype_name: str, old_id: str, new_id: str
+) -> None:
+    """Update grunt_core_multi_link rows where *old_id* is either side of the link."""
+    from grunt.metadata.compiler import MULTI_LINK_TABLE
+
+    await session.execute(
+        update(MULTI_LINK_TABLE)
+        .where(
+            MULTI_LINK_TABLE.c.parent_name == old_id,
+            MULTI_LINK_TABLE.c.parent_doctype == doctype_name,
+        )
+        .values(parent_name=new_id)
+    )
+    await session.execute(
+        update(MULTI_LINK_TABLE)
+        .where(
+            MULTI_LINK_TABLE.c.link_name == old_id,
+            MULTI_LINK_TABLE.c.link_doctype == doctype_name,
+        )
+        .values(link_name=new_id)
+    )
+
+
+# System DocTypes that reference a document by id via a hardcoded field name
+# (not a declared Link field, so _rename_child_and_link_refs can't find them).
+_RENAME_SYSTEM_REFS = [
+    ("ActivityLog", "doc_id"),
+    ("DocVersion", "doc_id"),
+    ("File", "doc_id"),
+    ("File", "attached_to_id"),
+    ("Comment", "reference_id"),
+    ("EmailQueue", "doc_id"),
+]
+
+
+async def _rename_system_refs(session: AsyncSession, old_id: str, new_id: str) -> None:
+    """Best-effort update of _RENAME_SYSTEM_REFS rows pointing at *old_id*."""
+    for sys_dt_name, sys_fieldname in _RENAME_SYSTEM_REFS:
+        try:
+            sys_dt = await doctype_registry.get(sys_dt_name)
+            sys_table = Meta(sys_dt).table
+            if sys_fieldname in sys_table.c:
+                await session.execute(
+                    sys_table.update()
+                    .where(sys_table.c[sys_fieldname] == old_id)
+                    .values(**{sys_fieldname: new_id})
+                )
+        except Exception as exc:
+            logger.warning(
+                "document.rename_system_ref_failed",
+                doctype=sys_dt_name,
+                field=sys_fieldname,
+                error=str(exc),
+            )
+            continue
+
+
 async def rename_document(
     session: AsyncSession,
     engine: AsyncEngine,
@@ -411,7 +500,6 @@ async def rename_document(
     dt_meta = Meta(dt)
     table = dt_meta.table
 
-    # 0. Check if new_id already exists
     exists_q = select(table.c.name).where(table.c.name == new_id)
     exists_res = await session.execute(exists_q)
     if exists_res.first():
@@ -420,88 +508,18 @@ async def rename_document(
             detail=f"Document with name '{new_id}' already exists",
         )
 
-    # 1. Update main table
     await session.execute(table.update().where(table.c.name == old_id).values(name=new_id))
 
-    # 2. Update references across all DocTypes
-    all_dts = await doctype_registry.list_all()
-    for other_dt in all_dts:
-        other_meta = Meta(other_dt)
-        # A. Update child tables (Tables)
-        is_child = any(f.options == other_dt.name for f in dt_meta.get_child_table_fields())
-        if is_child:
-            child_table = other_meta.table
-            await session.execute(
-                child_table.update()
-                .where(child_table.c.parent_name == old_id)
-                .values(parent_name=new_id)
-            )
-
-        # B. Update Link fields referencing our doctype
-        for f in other_meta.get_link_fields():
-            if f.fieldtype == "Link" and f.options == doctype_name:
-                ref_table = other_meta.table
-                await session.execute(
-                    ref_table.update()
-                    .where(ref_table.c[f.fieldname] == old_id)
-                    .values(**{f.fieldname: new_id})
-                )
-
-    # 3. Update MultiLink references
-    from grunt.metadata.compiler import MULTI_LINK_TABLE
-
-    await session.execute(
-        update(MULTI_LINK_TABLE)
-        .where(
-            MULTI_LINK_TABLE.c.parent_name == old_id,
-            MULTI_LINK_TABLE.c.parent_doctype == doctype_name,
-        )
-        .values(parent_name=new_id)
-    )
-    await session.execute(
-        update(MULTI_LINK_TABLE)
-        .where(
-            MULTI_LINK_TABLE.c.link_name == old_id,
-            MULTI_LINK_TABLE.c.link_doctype == doctype_name,
-        )
-        .values(link_name=new_id)
-    )
-
-    # 4. Update system DocTypes
-    system_refs = [
-        ("ActivityLog", "doc_id"),
-        ("DocVersion", "doc_id"),
-        ("File", "doc_id"),
-        ("File", "attached_to_id"),
-        ("Comment", "reference_id"),
-        ("EmailQueue", "doc_id"),
-    ]
-    for sys_dt_name, sys_fieldname in system_refs:
-        try:
-            sys_dt = await doctype_registry.get(sys_dt_name)
-            sys_table = Meta(sys_dt).table
-            if sys_fieldname in sys_table.c:
-                await session.execute(
-                    sys_table.update()
-                    .where(sys_table.c[sys_fieldname] == old_id)
-                    .values(**{sys_fieldname: new_id})
-                )
-        except Exception as exc:
-            logger.warning(
-                "document.rename_system_ref_failed",
-                doctype=sys_dt_name,
-                field=sys_fieldname,
-                error=str(exc),
-            )
-            continue
+    await _rename_child_and_link_refs(session, dt_meta, doctype_name, old_id, new_id)
+    await _rename_multilink_refs(session, doctype_name, old_id, new_id)
+    await _rename_system_refs(session, old_id, new_id)
 
     await session.flush()
 
-    # 5. Update Search Index (delete old, index new)
+    # Update search index: delete old, re-index under the new id.
     from grunt.search.service import search_index_service
 
     await search_index_service.remove_document(session, doctype_name, old_id)
-    # Re-fetch with new ID for indexing
     new_doc = await _load(new_id)
     await search_index_service.index_document(session, doctype_name, dt, new_doc)
 

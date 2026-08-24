@@ -9,36 +9,52 @@ class TestResolveRecipients:
 
     def test_owner_recipient(self):
         doc = {"owner": "john@example.com"}
-        recipients = self.svc._resolve_recipients("owner", doc, "admin@example.com")
+        recipients, role_parts = self.svc._resolve_recipients("owner", doc, "admin@example.com")
         assert recipients == ["john@example.com"]
+        assert role_parts == []
 
     def test_owner_not_trigger_user(self):
         """Owner should not be notified if they triggered the event."""
         doc = {"owner": "admin@example.com"}
-        recipients = self.svc._resolve_recipients("owner", doc, "admin@example.com")
+        recipients, _ = self.svc._resolve_recipients("owner", doc, "admin@example.com")
         assert recipients == []
 
     def test_literal_email(self):
         doc = {}
-        recipients = self.svc._resolve_recipients("manager@example.com", doc, "admin@example.com")
+        recipients, _ = self.svc._resolve_recipients(
+            "manager@example.com", doc, "admin@example.com"
+        )
         assert recipients == ["manager@example.com"]
 
     def test_field_reference(self):
         doc = {"assigned_to": "worker@example.com"}
-        recipients = self.svc._resolve_recipients("{field:assigned_to}", doc, "admin@example.com")
+        recipients, _ = self.svc._resolve_recipients(
+            "{field:assigned_to}", doc, "admin@example.com"
+        )
         assert recipients == ["worker@example.com"]
 
     def test_multiple_recipients(self):
         doc = {"owner": "john@example.com"}
-        recipients = self.svc._resolve_recipients(
+        recipients, _ = self.svc._resolve_recipients(
             "owner, manager@example.com", doc, "admin@example.com"
         )
         assert set(recipients) == {"john@example.com", "manager@example.com"}
 
+    def test_role_recipient_deferred_for_async_lookup(self):
+        """role:X parts aren't resolved here — they come back as role_parts for
+        the caller to look up asynchronously (see _resolve_role_recipients)."""
+        doc = {}
+        recipients, role_parts = self.svc._resolve_recipients(
+            "role:Manager, owner", doc, "admin@example.com"
+        )
+        assert recipients == []
+        assert role_parts == ["Manager"]
+
     def test_empty_recipients(self):
         doc = {}
-        recipients = self.svc._resolve_recipients("", doc, "admin@example.com")
+        recipients, role_parts = self.svc._resolve_recipients("", doc, "admin@example.com")
         assert recipients == []
+        assert role_parts == []
 
 
 class TestFormatTemplate:

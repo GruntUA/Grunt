@@ -23,9 +23,6 @@ logger = structlog.get_logger()
 class NotificationService:
     """Evaluates notification rules and creates notifications for users."""
 
-    def __init__(self) -> None:
-        self._pending_role_parts: list[str] = []
-
     async def evaluate_rules(
         self,
         session: AsyncSession,
@@ -60,10 +57,9 @@ class NotificationService:
                 continue
 
             # Resolve recipients (sync part + async role lookup)
-            self._pending_role_parts = []
-            recipients = self._resolve_recipients(rule["recipients"], doc, user_email)
-            if self._pending_role_parts:
-                role_emails = await self._resolve_role_recipients(self._pending_role_parts, session)
+            recipients, role_parts = self._resolve_recipients(rule["recipients"], doc, user_email)
+            if role_parts:
+                role_emails = await self._resolve_role_recipients(role_parts, session)
                 recipients = list(set(recipients) | set(role_emails) - {user_email})
             if not recipients:
                 continue
@@ -203,17 +199,20 @@ class NotificationService:
         recipients_str: str,
         doc: dict[str, Any],
         triggering_user: str,
-    ) -> list[str]:
-        """Parse recipient spec into list of email addresses.
+    ) -> tuple[list[str], list[str]]:
+        """Parse recipient spec into (emails, role names still needing async lookup).
 
         Supports:
           - "owner"            → doc owner
-          - "role:Manager"     → all active users with this role
+          - "role:Manager"     → all active users with this role (resolved by the
+                                  caller via _resolve_role_recipients — needs a DB
+                                  round-trip, so it can't happen inside this
+                                  synchronous parse)
           - "user@example.com" → literal email
           - "{field:fieldname}" → value of a doc field
         """
         if not recipients_str:
-            return []
+            return [], []
 
         results: set[str] = set()
         role_parts: list[str] = []
@@ -237,14 +236,9 @@ class NotificationService:
             elif "@" in part:
                 results.add(part)
 
-        # Resolve role-based recipients synchronously can't be done here —
-        # callers that need role resolution should call _resolve_recipients_async.
-        # Store role parts for later use.
-        self._pending_role_parts = role_parts
-
         # Don't notify the user who triggered the event
         results.discard(triggering_user)
-        return list(results)
+        return list(results), role_parts
 
     async def _resolve_role_recipients(
         self,
@@ -310,7 +304,7 @@ class NotificationService:
 
         try:
             return template.format(**context)
-        except KeyError, IndexError:
+        except (KeyError, IndexError):
             return template
 
     def _eval_condition(self, condition: str, doc: dict[str, Any], user: str) -> bool:

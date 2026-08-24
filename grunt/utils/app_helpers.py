@@ -3,6 +3,35 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from types import ModuleType
+
+
+def load_app_hook_module(
+    app_dir: Path, app_name: str, hook_module: str = "install"
+) -> ModuleType | None:
+    """Import ``<app_dir>/<hook_module>.py`` if it exists, else return None.
+
+    Shared by ``cli.app`` (``before_uninstall``) and ``startup.app_install``
+    (``after_install``) — both need to run an optional lifecycle hook defined
+    in an app's own ``install.py`` without that app being on ``sys.path`` as
+    an importable package.
+    """
+    import importlib.util
+
+    path = app_dir / f"{hook_module}.py"
+    if not path.exists():
+        return None
+
+    spec = importlib.util.spec_from_file_location(f"{app_name}.{hook_module}", path)
+    if not spec or not spec.loader:
+        return None
+
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def _collect_template_dirs() -> list[str]:

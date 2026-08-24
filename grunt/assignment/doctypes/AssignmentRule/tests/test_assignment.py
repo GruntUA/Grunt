@@ -4,39 +4,39 @@ from __future__ import annotations
 
 import pytest
 
-from grunt.assignment import AssignmentService
+from grunt.assignment.doctypes.AssignmentRule.assignment_rule import AssignmentRule
+
+
+def _match(doc: dict, filters: dict) -> bool:
+    return AssignmentRule("AssignmentRule", {"filters": filters}).match(doc)
 
 
 class TestAssignmentFilters:
     """Test filter matching logic (Unit tests, no change needed)."""
 
-    @pytest.fixture(autouse=True)
-    def setup_service(self):
-        self.service = AssignmentService()
-
     @pytest.mark.asyncio
     async def test_simple_match(self):
         doc = {"id": "1", "name": "DOC-001", "status": "Draft", "title": "Test"}
         filters = {"status": "Draft"}
-        assert self.service._match_filters(doc, filters) is True
+        assert _match(doc, filters) is True
 
     @pytest.mark.asyncio
     async def test_simple_no_match(self):
         doc = {"status": "Submitted"}
         filters = {"status": "Draft"}
-        assert self.service._match_filters(doc, filters) is False
+        assert _match(doc, filters) is False
 
     @pytest.mark.asyncio
     async def test_operator_greater_than(self):
         doc = {"amount": 1500}
         filters = {"amount": {">": 1000}}
-        assert self.service._match_filters(doc, filters) is True
+        assert _match(doc, filters) is True
 
     @pytest.mark.asyncio
     async def test_operator_in(self):
         doc = {"status": "Draft"}
         filters = {"status": {"in": ["Draft", "Pending"]}}
-        assert self.service._match_filters(doc, filters) is True
+        assert _match(doc, filters) is True
 
 
 class TestAssignmentIntegration:

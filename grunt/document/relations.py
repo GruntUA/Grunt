@@ -52,93 +52,130 @@ async def _resolve_link_labels(
     present_keys = set(rows[0].keys())
     link_fields = [f for f in link_fields if f.fieldname in present_keys]
 
-    if not link_fields:
+    for lf in link_fields:
+        await _inject_link_field_labels(session, lf, rows)
+
+
+async def _inject_link_field_labels(
+    session: AsyncSession, lf: Any, rows: list[dict[str, Any]]
+) -> None:
+    """Load display label (+ extras/image) for one Link field and write it onto *rows*."""
+    try:
+        target_dt = await doctype_registry.get(lf.options)
+    except Exception as exc:
+        logger.warning("link_labels.target_doctype_error", doctype=lf.options, error=str(exc))
         return
 
-    for lf in link_fields:
-        try:
-            target_dt = await doctype_registry.get(lf.options)
-        except Exception as exc:
-            logger.warning(
-                "link_labels.target_doctype_error", doctype=lf.options, error=str(exc)
-            )
-            continue
+    target_meta = Meta(target_dt)
+    title_field = target_meta.get_title_field()
+    target_table = target_meta.table
 
-        target_meta = Meta(target_dt)
-        title_field = target_meta.get_title_field()
-        target_table = target_meta.table
+    raw_ids: set[str] = {
+        str(row[lf.fieldname]) for row in rows if row.get(lf.fieldname) not in (None, "")
+    }
+    if not raw_ids:
+        return
 
-        raw_ids: set[str] = {
-            str(row[lf.fieldname]) for row in rows if row.get(lf.fieldname) not in (None, "")
-        }
-        if not raw_ids:
-            continue
+    cols_to_fetch, extra_to_fetch, image_field, has_image = _link_display_columns(
+        target_meta, target_table, title_field
+    )
+    q = select(*cols_to_fetch).where(target_table.c.name.in_(raw_ids))
 
-        cols_to_fetch = [target_table.c.name]
-        if title_field != "name" and title_field in target_table.c:
-            cols_to_fetch.append(target_table.c[title_field])
+    try:
+        async with session.begin_nested():
+            result = await session.execute(q)
+            linked_rows = result.mappings().all()
+    except Exception as exc:
+        logger.warning(
+            "link_labels.fetch_error", doctype=lf.options, field=lf.fieldname, error=str(exc)
+        )
+        return
 
-        extra_to_fetch = [
-            fname
-            for fname in _EXTRA_INJECT
-            if target_meta.has_field(fname) and fname in target_table.c
-        ]
+    label_map, extra_maps, image_map = _build_link_lookup_maps(
+        linked_rows, title_field, extra_to_fetch, image_field, has_image
+    )
+    _apply_link_labels(rows, lf.fieldname, label_map, extra_maps, image_map, has_image)
+
+
+def _link_display_columns(
+    target_meta: Meta, target_table: Any, title_field: str
+) -> tuple[list[Any], list[str], str | None, bool]:
+    """Return (columns to SELECT, extra field names, image field name, has_image)."""
+    cols_to_fetch = [target_table.c.name]
+    if title_field != "name" and title_field in target_table.c:
+        cols_to_fetch.append(target_table.c[title_field])
+
+    extra_to_fetch = [
+        fname
+        for fname in _EXTRA_INJECT
+        if target_meta.has_field(fname) and fname in target_table.c
+    ]
+    for fname in extra_to_fetch:
+        cols_to_fetch.append(target_table.c[fname])
+
+    # image_field is doctype-specific (e.g. "photo" on Employee) — always
+    # surfaced to the caller as a fixed "image" key regardless of the
+    # target's own field name, so list-cell renderers have one contract.
+    image_field = target_meta.get_image_field()
+    has_image = bool(image_field and image_field in target_table.c)
+    if has_image and image_field not in {c.key for c in cols_to_fetch}:
+        cols_to_fetch.append(target_table.c[image_field])
+
+    return cols_to_fetch, extra_to_fetch, image_field, has_image
+
+
+def _build_link_lookup_maps(
+    linked_rows: Any,
+    title_field: str,
+    extra_to_fetch: list[str],
+    image_field: str | None,
+    has_image: bool,
+) -> tuple[dict[str, str], dict[str, dict[str, Any]], dict[str, Any]]:
+    """Build name -> (label, extra field value, image value) lookup maps from fetched rows."""
+    label_map: dict[str, str] = {}
+    image_map: dict[str, Any] = {}
+    extra_maps: dict[str, dict[str, Any]] = {fname: {} for fname in extra_to_fetch}
+    for lr in linked_rows:
+        key = str(lr["name"])
+        label_map[key] = str(lr.get(title_field) or lr.get("name") or "")
         for fname in extra_to_fetch:
-            cols_to_fetch.append(target_table.c[fname])
+            val = lr.get(fname)
+            if val is not None:
+                extra_maps[fname][key] = val
+        if has_image:
+            img_val = lr.get(image_field)
+            if img_val:
+                image_map[key] = img_val
+    return label_map, extra_maps, image_map
 
-        # image_field is doctype-specific (e.g. "photo" on Employee) — always
-        # surfaced to the caller as a fixed "image" key regardless of the
-        # target's own field name, so list-cell renderers have one contract.
-        image_field = target_meta.get_image_field()
-        has_image = bool(image_field and image_field in target_table.c)
-        if has_image and image_field not in {c.key for c in cols_to_fetch}:
-            cols_to_fetch.append(target_table.c[image_field])
 
-        q = select(*cols_to_fetch).where(target_table.c.name.in_(raw_ids))
-
-        try:
-            async with session.begin_nested():
-                result = await session.execute(q)
-                linked_rows = result.mappings().all()
-        except Exception as exc:
-            logger.warning(
-                "link_labels.fetch_error", doctype=lf.options, field=lf.fieldname, error=str(exc)
-            )
+def _apply_link_labels(
+    rows: list[dict[str, Any]],
+    fieldname: str,
+    label_map: dict[str, str],
+    extra_maps: dict[str, dict[str, Any]],
+    image_map: dict[str, Any],
+    has_image: bool,
+) -> None:
+    """Write ``fieldname__label``/``__<extra>``/``__image`` onto each row, from the lookup maps."""
+    label_key = f"{fieldname}__label"
+    image_key = f"{fieldname}__image"
+    for row in rows:
+        raw = row.get(fieldname)
+        if raw in (None, ""):
             continue
-
-        label_map: dict[str, str] = {}
-        image_map: dict[str, Any] = {}
-        extra_maps: dict[str, dict[str, Any]] = {fname: {} for fname in extra_to_fetch}
-        for lr in linked_rows:
-            label = str(lr.get(title_field) or lr.get("name") or "")
-            for key in (str(lr["name"]),):
-                label_map[key] = label
-                for fname in extra_to_fetch:
-                    val = lr.get(fname)
-                    if val is not None:
-                        extra_maps[fname][key] = val
-                if has_image:
-                    img_val = lr.get(image_field)
-                    if img_val:
-                        image_map[key] = img_val
-
-        label_key = f"{lf.fieldname}__label"
-        image_key = f"{lf.fieldname}__image"
-        for row in rows:
-            raw = row.get(lf.fieldname)
-            if raw not in (None, ""):
-                raw_str = str(raw)
-                row[label_key] = label_map.get(raw_str, raw_str)
-                for fname in extra_to_fetch:
-                    val = extra_maps[fname].get(raw_str)
-                    if val is not None:
-                        row[f"{lf.fieldname}__{fname}"] = val
-                if has_image:
-                    # Always set the key (even "") when the target doctype
-                    # supports avatars, so the frontend can render an
-                    # initials-fallback circle for records with no image yet
-                    # — distinct from Link fields with no avatar concept at all.
-                    row[image_key] = image_map.get(raw_str, "")
+        raw_str = str(raw)
+        row[label_key] = label_map.get(raw_str, raw_str)
+        for fname, values in extra_maps.items():
+            val = values.get(raw_str)
+            if val is not None:
+                row[f"{fieldname}__{fname}"] = val
+        if has_image:
+            # Always set the key (even "") when the target doctype supports
+            # avatars, so the frontend can render an initials-fallback circle
+            # for records with no image yet — distinct from Link fields with
+            # no avatar concept at all.
+            row[image_key] = image_map.get(raw_str, "")
 
 
 async def attach_multi_link_values(

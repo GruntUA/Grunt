@@ -413,6 +413,171 @@ async def test_aggregate_count_without_filters(ctx, setup_doctype):
 
 
 @pytest.mark.asyncio
+async def test_aggregate_group_by_with_sum_and_order_by(ctx, setup_doctype):
+    """group_by + sum() + order_by resolved against the labeled select, not raw SQL."""
+    await ctx.new_doc("TestItem", {"title": "A1", "status": "Draft", "count": 10})
+    await ctx.new_doc("TestItem", {"title": "A2", "status": "Draft", "count": 5})
+    await ctx.new_doc("TestItem", {"title": "B1", "status": "Active", "count": 100})
+    await ctx.db._session().commit()
+
+    rows = await ctx.db.aggregate(
+        "TestItem",
+        group_by="status",
+        aggregations={"total": "sum(count)"},
+        order_by="total",
+        order="desc",
+    )
+    assert [(r["status"], r["total"]) for r in rows] == [("Active", 100), ("Draft", 15)]
+
+
+@pytest.mark.asyncio
+async def test_aggregate_group_by_date_expr(ctx, setup_doctype):
+    """group_by="date(created_at)" groups by calendar day, not full timestamp."""
+    await ctx.new_doc("TestItem", {"title": "A1", "status": "Draft"})
+    await ctx.new_doc("TestItem", {"title": "A2", "status": "Draft"})
+    await ctx.db._session().commit()
+
+    rows = await ctx.db.aggregate(
+        "TestItem",
+        group_by="date(created_at)",
+        aggregations={"n": "count"},
+    )
+    assert len(rows) == 1
+    assert rows[0]["n"] == 2
+    assert "date(created_at)" in rows[0]
+
+
+LINK_TARGET_DOCTYPE = {
+    "name": "LinkLabelTarget",
+    "label": "Link Label Target",
+    "module": "core",
+    "title_field": "title",
+    "image_field": "photo",
+    "fields": [
+        {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
+        {"fieldname": "color", "label": "Color", "fieldtype": "Color"},
+        {"fieldname": "icon", "label": "Icon", "fieldtype": "Icon"},
+        {"fieldname": "photo", "label": "Photo", "fieldtype": "Attach"},
+    ],
+}
+
+LINK_SOURCE_DOCTYPE = {
+    "name": "LinkLabelSource",
+    "label": "Link Label Source",
+    "module": "core",
+    "fields": [
+        {
+            "fieldname": "target",
+            "label": "Target",
+            "fieldtype": "Link",
+            "options": "LinkLabelTarget",
+        },
+    ],
+}
+
+
+@pytest.fixture
+async def link_label_doctypes(ctx):
+    from grunt.api.v1.meta import save_doctype
+
+    await save_doctype(doctype_data={**LINK_TARGET_DOCTYPE, "__is_new": True})
+    await save_doctype(doctype_data={**LINK_SOURCE_DOCTYPE, "__is_new": True})
+    await ctx.db._session().commit()
+
+
+@pytest.mark.asyncio
+async def test_get_list_injects_link_field_labels_and_extras(ctx, link_label_doctypes):
+    """list_documents resolves Link fields to __label/__color/__icon/__image."""
+    target = await ctx.new_doc(
+        "LinkLabelTarget",
+        {"title": "Widget", "color": "#ff0000", "icon": "star", "photo": "widget.png"},
+    )
+    await ctx.new_doc("LinkLabelSource", {"target": target["name"]})
+    await ctx.db._session().commit()
+
+    rows = await ctx.get_list("LinkLabelSource", fields=["target"])
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["target__label"] == "Widget"
+    assert row["target__color"] == "#ff0000"
+    assert row["target__icon"] == "star"
+    assert row["target__image"] == "widget.png"
+
+
+@pytest.mark.asyncio
+async def test_get_list_link_label_falls_back_to_raw_id_for_dangling_link(
+    ctx, link_label_doctypes
+):
+    """A Link value pointing at a non-existent target still gets a __label (itself)."""
+    await ctx.new_doc("LinkLabelSource", {"target": "does-not-exist"})
+    await ctx.db._session().commit()
+
+    rows = await ctx.get_list("LinkLabelSource", fields=["target"])
+    assert rows[0]["target__label"] == "does-not-exist"
+    assert rows[0]["target__image"] == ""
+
+
+@pytest.mark.asyncio
+async def test_rename_document_cascades_to_link_fields(ctx, link_label_doctypes):
+    """rename_doc updates the main row and every Link field pointing at it."""
+    target = await ctx.new_doc("LinkLabelTarget", {"title": "Widget"})
+    source = await ctx.new_doc("LinkLabelSource", {"target": target["name"]})
+    await ctx.db._session().commit()
+
+    renamed = await ctx.rename_doc("LinkLabelTarget", target["name"], "widget-new-id")
+    assert renamed["name"] == "widget-new-id"
+
+    refetched_source = await ctx.get_doc("LinkLabelSource", source["name"])
+    assert refetched_source["target"] == "widget-new-id"
+
+    with pytest.raises(Exception):  # noqa: B017 - HTTPException 404, old id is gone
+        await ctx.get_doc("LinkLabelTarget", target["name"])
+
+
+@pytest.mark.asyncio
+async def test_rename_document_rejects_existing_new_id(ctx, link_label_doctypes):
+    """rename_doc 409s rather than silently merging into an existing document."""
+    from fastapi import HTTPException
+
+    await ctx.new_doc("LinkLabelTarget", {"title": "A", "name": "existing-id"})
+    doc_to_rename = await ctx.new_doc("LinkLabelTarget", {"title": "B"})
+    await ctx.db._session().commit()
+
+    with pytest.raises(HTTPException) as exc_info:
+        await ctx.rename_doc("LinkLabelTarget", doc_to_rename["name"], "existing-id")
+    assert exc_info.value.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_rename_document_cascades_to_multilink_refs(ctx, link_label_doctypes):
+    """rename_doc updates grunt_core_multi_link rows on both the parent and link side."""
+    from grunt.metadata.compiler import MULTI_LINK_TABLE
+
+    target = await ctx.new_doc("LinkLabelTarget", {"title": "Widget"})
+    session = ctx.db._session()
+    await session.execute(
+        MULTI_LINK_TABLE.insert().values(
+            parent_doctype="LinkLabelSource",
+            parent_name="some-source",
+            parent_field="targets",
+            idx=0,
+            link_doctype="LinkLabelTarget",
+            link_name=target["name"],
+        )
+    )
+    await session.commit()
+
+    await ctx.rename_doc("LinkLabelTarget", target["name"], "widget-new-id")
+
+    row = (
+        await session.execute(
+            MULTI_LINK_TABLE.select().where(MULTI_LINK_TABLE.c.parent_name == "some-source")
+        )
+    ).first()
+    assert row.link_name == "widget-new-id"
+
+
+@pytest.mark.asyncio
 async def test_bulk_delete_documents(ctx, setup_doctype):
     """bulk_delete_docs removes multiple docs and reports missing IDs."""
     from grunt.auth.doctypes.User.user import SYSTEM_USER

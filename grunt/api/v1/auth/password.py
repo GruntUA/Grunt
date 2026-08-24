@@ -15,7 +15,6 @@ from grunt.auth.service import (
     create_password_reset_token,
 )
 from grunt.db.session import get_session
-from grunt.middleware.rate_limit import limiter
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,19 +24,9 @@ if TYPE_CHECKING:
 router = GruntRouter(optional_auth=True)
 
 
-def _rate_limit(limit: str):
-    """Decorator for rate limiting."""
-
-    def decorator(func):
-        if limiter is not None:
-            return limiter.limit(limit)(func)
-        return func
-
-    return decorator
-
-
+# Rate limiting is enforced by RateLimitMiddleware (see _AUTH_STRICT_PATHS in
+# grunt/middleware/rate_limit.py, which covers this exact path).
 @router.post("/forgot-password", status_code=status.HTTP_200_OK)
-@_rate_limit("5/minute")
 async def forgot_password(
     request: Request,
     body: grunt.api.v1.auth.schemas.ForgotPasswordRequest,

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import (
@@ -242,6 +242,133 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
 # ── Sync (create / alter) ───────────────────────────────────────────────
 
 
+def _sync_columns(insp: Any, connection: Any, table: Table) -> None:
+    """Add missing columns (as NULL) and ALTER type-changed ones (non-SQLite only)."""
+    existing_col_map = {c["name"]: c["type"] for c in insp.get_columns(table.name)}
+
+    for col in table.columns:
+        if col.name not in existing_col_map:
+            col_type = col.type.compile(connection.dialect)
+            # Always add as NULL to avoid failures on tables with existing rows
+            connection.execute(
+                text(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {col_type} NULL')
+            )
+            logger.info("compiler.column_added", table=table.name, column=col.name)
+
+        elif connection.dialect.name != "sqlite" and _type_changed(
+            col.type, existing_col_map[col.name], connection.dialect
+        ):
+            # Varchar reduction safety: skip if existing data would be truncated
+            if _is_varchar_reduction(col.type, existing_col_map[col.name]):
+                max_stored = (
+                    connection.execute(
+                        text(
+                            f'SELECT MAX(char_length("{col.name}")) FROM "{table.name}"'
+                            f' WHERE "{col.name}" IS NOT NULL'
+                        )
+                    ).scalar()
+                    or 0
+                )
+                col_length = getattr(col.type, "length", None)
+                if col_length is not None and max_stored > col_length:
+                    logger.warning(
+                        "compiler.skip_varchar_reduction",
+                        table=table.name,
+                        column=col.name,
+                        current_max=max_stored,
+                        new_length=col_length,
+                    )
+                    continue
+
+            desired_type = col.type.compile(connection.dialect)
+            connection.execute(
+                text(f'ALTER TABLE "{table.name}" ALTER COLUMN "{col.name}" TYPE {desired_type}')
+            )
+            logger.info(
+                "compiler.column_altered",
+                table=table.name,
+                column=col.name,
+                new_type=desired_type,
+            )
+
+
+def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> None:
+    """Add missing per-field unique indexes, drop stale ones (our naming prefix only)."""
+    # SQLite exposes unique indexes via get_indexes (not get_unique_constraints),
+    # so merge both sources for a complete picture.
+    existing_uq: set[str] = {ix["name"] for ix in insp.get_unique_constraints(table.name)}
+    existing_uq |= {ix["name"] for ix in insp.get_indexes(table.name) if ix.get("unique")}
+    desired_uq: dict[str, UniqueConstraint] = {
+        str(c.name): c for c in table.constraints if isinstance(c, UniqueConstraint) and c.name
+    }
+    uq_prefix = f"uq_{table.name}_"
+    is_sqlite = connection.dialect.name == "sqlite"
+
+    for name, uq in desired_uq.items():
+        if name not in existing_uq:
+            uq_cols = [c.name for c in uq.columns]
+            cols_sql = ", ".join(f'"{c}"' for c in uq_cols)
+            # Partial index: uniqueness applies only to non-NULL, non-empty values.
+            # Empty strings are treated the same as NULL (not provided).
+            where_nonempty = " AND ".join(
+                f'("{c}" IS NOT NULL AND "{c}" != \'\')' for c in uq_cols
+            )
+
+            # Safety: raise with details if non-empty data has duplicates
+            dup_rows = connection.execute(
+                text(
+                    f"SELECT {cols_sql}, GROUP_CONCAT(name) as ids, COUNT(*) as cnt "
+                    f'FROM "{table.name}" '
+                    f"WHERE {where_nonempty} "
+                    f"GROUP BY {cols_sql} HAVING COUNT(*) > 1"
+                )
+            ).fetchall()
+            if dup_rows:
+                duplicates = [
+                    {
+                        "value": row[0] if len(uq_cols) == 1 else tuple(row[: len(uq_cols)]),
+                        "ids": row[-2],  # GROUP_CONCAT(name)
+                    }
+                    for row in dup_rows
+                ]
+                raise DuplicateDataError(table.name, name, uq_cols, duplicates)
+
+            # Use a partial unique index for both dialects so that NULL and
+            # empty-string values are exempt from the uniqueness check.
+            connection.execute(
+                text(
+                    f'CREATE UNIQUE INDEX IF NOT EXISTS "{name}" '
+                    f'ON "{table.name}" ({cols_sql}) '
+                    f"WHERE {where_nonempty}"
+                )
+            )
+            logger.info("compiler.unique_added", table=table.name, constraint=name)
+
+    # Drop stale per-field unique indexes (those with our naming prefix only)
+    for name in existing_uq:
+        if name and name.startswith(uq_prefix) and name not in desired_uq:
+            if is_sqlite:
+                connection.execute(text(f'DROP INDEX IF EXISTS "{name}"'))
+            else:
+                # Index may have been created via CREATE UNIQUE INDEX or ADD CONSTRAINT
+                try:
+                    connection.execute(text(f'DROP INDEX IF EXISTS "{name}"'))
+                except Exception:
+                    connection.execute(
+                        text(f'ALTER TABLE "{table.name}" DROP CONSTRAINT IF EXISTS "{name}"')
+                    )
+            logger.info("compiler.unique_dropped", table=table.name, constraint=name)
+
+
+def _sync_indexes(insp: Any, connection: Any, table: Table) -> None:
+    """Create indexes defined on *table* that don't exist yet in the DB."""
+    existing_indexes = {ix["name"] for ix in insp.get_indexes(table.name)}
+    for index in table.indexes:
+        if index.name and index.name not in existing_indexes:
+            index.create(connection)
+            logger.info("compiler.index_created", table=table.name, index=index.name)
+
+
 async def sync_table(
     doctype: DocType,
     async_engine: AsyncEngine,
@@ -274,128 +401,9 @@ async def sync_table(
             logger.info("compiler.table_created", table=table.name)
             return
 
-        # ── Columns ────────────────────────────────────────────────────
-        existing_col_map = {c["name"]: c["type"] for c in insp.get_columns(table.name)}
-
-        for col in table.columns:
-            if col.name not in existing_col_map:
-                col_type = col.type.compile(connection.dialect)
-                # Always add as NULL to avoid failures on tables with existing rows
-                connection.execute(
-                    text(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {col_type} NULL')
-                )
-                logger.info("compiler.column_added", table=table.name, column=col.name)
-
-            elif connection.dialect.name != "sqlite" and _type_changed(
-                col.type, existing_col_map[col.name], connection.dialect
-            ):
-                # Varchar reduction safety: skip if existing data would be truncated
-                if _is_varchar_reduction(col.type, existing_col_map[col.name]):
-                    max_stored = (
-                        connection.execute(
-                            text(
-                                f'SELECT MAX(char_length("{col.name}")) FROM "{table.name}"'
-                                f' WHERE "{col.name}" IS NOT NULL'
-                            )
-                        ).scalar()
-                        or 0
-                    )
-                    col_length = getattr(col.type, "length", None)
-                    if col_length is not None and max_stored > col_length:
-                        logger.warning(
-                            "compiler.skip_varchar_reduction",
-                            table=table.name,
-                            column=col.name,
-                            current_max=max_stored,
-                            new_length=col_length,
-                        )
-                        continue
-
-                desired_type = col.type.compile(connection.dialect)
-                connection.execute(
-                    text(
-                        f'ALTER TABLE "{table.name}" ALTER COLUMN "{col.name}" TYPE {desired_type}'
-                    )
-                )
-                logger.info(
-                    "compiler.column_altered",
-                    table=table.name,
-                    column=col.name,
-                    new_type=desired_type,
-                )
-
-        # ── Unique constraints ──────────────────────────────────────────
-        # SQLite exposes unique indexes via get_indexes (not get_unique_constraints),
-        # so merge both sources for a complete picture.
-        existing_uq: set[str] = {ix["name"] for ix in insp.get_unique_constraints(table.name)}
-        existing_uq |= {ix["name"] for ix in insp.get_indexes(table.name) if ix.get("unique")}
-        desired_uq: dict[str, UniqueConstraint] = {
-            str(c.name): c for c in table.constraints if isinstance(c, UniqueConstraint) and c.name
-        }
-        uq_prefix = f"uq_{table.name}_"
-        is_sqlite = connection.dialect.name == "sqlite"
-
-        for name, uq in desired_uq.items():
-            if name not in existing_uq:
-                uq_cols = [c.name for c in uq.columns]
-                cols_sql = ", ".join(f'"{c}"' for c in uq_cols)
-                # Partial index: uniqueness applies only to non-NULL, non-empty values.
-                # Empty strings are treated the same as NULL (not provided).
-                where_nonempty = " AND ".join(
-                    f'("{c}" IS NOT NULL AND "{c}" != \'\')' for c in uq_cols
-                )
-
-                # Safety: raise with details if non-empty data has duplicates
-                dup_rows = connection.execute(
-                    text(
-                        f"SELECT {cols_sql}, GROUP_CONCAT(name) as ids, COUNT(*) as cnt "
-                        f'FROM "{table.name}" '
-                        f"WHERE {where_nonempty} "
-                        f"GROUP BY {cols_sql} HAVING COUNT(*) > 1"
-                    )
-                ).fetchall()
-                if dup_rows:
-                    duplicates = [
-                        {
-                            "value": row[0] if len(uq_cols) == 1 else tuple(row[: len(uq_cols)]),
-                            "ids": row[-2],  # GROUP_CONCAT(name)
-                        }
-                        for row in dup_rows
-                    ]
-                    raise DuplicateDataError(table.name, name, uq_cols, duplicates)
-
-                # Use a partial unique index for both dialects so that NULL and
-                # empty-string values are exempt from the uniqueness check.
-                connection.execute(
-                    text(
-                        f'CREATE UNIQUE INDEX IF NOT EXISTS "{name}" '
-                        f'ON "{table.name}" ({cols_sql}) '
-                        f"WHERE {where_nonempty}"
-                    )
-                )
-                logger.info("compiler.unique_added", table=table.name, constraint=name)
-
-        # Drop stale per-field unique indexes (those with our naming prefix only)
-        for name in existing_uq:
-            if name and name.startswith(uq_prefix) and name not in desired_uq:
-                if is_sqlite:
-                    connection.execute(text(f'DROP INDEX IF EXISTS "{name}"'))
-                else:
-                    # Index may have been created via CREATE UNIQUE INDEX or ADD CONSTRAINT
-                    try:
-                        connection.execute(text(f'DROP INDEX IF EXISTS "{name}"'))
-                    except Exception:
-                        connection.execute(
-                            text(f'ALTER TABLE "{table.name}" DROP CONSTRAINT IF EXISTS "{name}"')
-                        )
-                logger.info("compiler.unique_dropped", table=table.name, constraint=name)
-
-        # ── Indexes ────────────────────────────────────────────────────
-        existing_indexes = {ix["name"] for ix in insp.get_indexes(table.name)}
-        for index in table.indexes:
-            if index.name and index.name not in existing_indexes:
-                index.create(connection)
-                logger.info("compiler.index_created", table=table.name, index=index.name)
+        _sync_columns(insp, connection, table)
+        _sync_unique_constraints(insp, connection, table)
+        _sync_indexes(insp, connection, table)
 
     if session is not None:
         conn = await session.connection()

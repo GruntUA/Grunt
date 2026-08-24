@@ -23,7 +23,24 @@ _DELETE_ALL_BATCH = 5_000
 
 
 class BulkDeleteTask:
-    """Background task that deletes many documents and streams progress."""
+    """Background task that deletes many documents and streams progress.
+
+    Three independent strategies, each with different guarantees — pick by
+    what the caller actually needs, not by which one runs first in this file:
+
+    +---------------------+------------------+----------+-------------------------+
+    | Method               | Input            | Hooks?   | Cost                   |
+    +---------------------+------------------+----------+-------------------------+
+    | run()                | explicit id list | yes      | one delete per id       |
+    | run_delete_all()     | filters/search   | yes      | batched, iterative      |
+    | run_fast_delete_all()| filters          | **no**   | raw SQL, superadmin only|
+    +---------------------+------------------+----------+-------------------------+
+
+    ``run_fast_delete_all`` is the only one that bypasses the document
+    lifecycle entirely (no before_delete/after_delete, no notification or
+    assignment rule evaluation, no per-row ActivityLog) — it exists purely
+    for "empty this huge table" administration, not everyday bulk actions.
+    """
 
     def __init__(self) -> None:
         from grunt.api.v1.ws import manager
