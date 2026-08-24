@@ -197,14 +197,12 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
     _client_script_scanned.add(doctype)
     results: list[dict[str, str]] = []
 
-    logger.info("file_scripts.scan_start", doctype=doctype, dirs_count=len(_client_script_dirs))
+    logger.debug("file_scripts.scan_start", doctype=doctype, dirs_count=len(_client_script_dirs))
 
     for app_name, doctypes_dir in _client_script_dirs:
-        import re
-
         # Try exact match first (e.g. HromsStaffingTable/HromsStaffingTable.js)
         js_file = doctypes_dir / doctype / f"{doctype}.js"
-        logger.info(
+        logger.debug(
             "file_scripts.try_path", app=app_name, path=str(js_file), exists=js_file.exists()
         )
 
@@ -237,7 +235,7 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
         if js_file.exists():
             source = js_file.read_text(encoding="utf-8")
             results.append({"name": f"{app_name}:{doctype}.js", "script": source})
-            logger.info(
+            logger.debug(
                 "file_scripts.client_loaded", app=app_name, doctype=doctype, file=str(js_file)
             )
 

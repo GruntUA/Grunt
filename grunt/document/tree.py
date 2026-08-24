@@ -280,7 +280,7 @@ class TreeService:
         walks an in-memory parent lookup to keep ancestors so the returned
         tree stays connected/readable instead of showing orphaned matches.
         """
-        from grunt.document.query import _apply_filters
+        from grunt.db.api import _apply_filters
 
         # Build parent lookup from the flat result set (avoids extra DB round-trip)
         parent_lookup: dict[str, str | None] = {

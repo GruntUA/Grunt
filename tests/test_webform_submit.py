@@ -136,3 +136,64 @@ async def test_submit_authenticated_sets_real_owner(ctx, db_session, engine):
 
     doc = await ctx.get_doc("WebFormTargetOpen", result["id"])
     assert doc["owner"] == "alice@example.com"
+
+
+async def _create_webform_login_required(ctx, target_doctype_name: str, route: str):
+    await ctx.new_doc(
+        "WebForm",
+        {
+            "title": "Test Form",
+            "route": route,
+            "doctype": target_doctype_name,
+            "fields": [{"fieldname": "title"}],
+            "is_published": True,
+            "login_required": True,
+        },
+    )
+    await ctx.db._session().commit()
+
+
+@pytest.mark.asyncio
+async def test_api_submit_form_rejects_anonymous_when_login_required(ctx, db_session, engine):
+    """api.v1.webform.submit_form (not the service directly) for a guest request.
+
+    Regression: submit_form used to read the current user via
+    grunt.get_current_user(), which falls back to a synthetic "system" user
+    for unauthenticated requests instead of returning None — so
+    user_email was always truthy and `login_required` could never actually
+    block an anonymous submission. Simulates the dispatcher's own guest
+    context (user=None) rather than calling the service layer directly.
+    """
+    from grunt.api.v1.meta import save_doctype
+    from grunt.api.v1.webform import submit_form
+    from grunt.app import grunt
+
+    await save_doctype(doctype_data={**TARGET_OPEN, "__is_new": True})
+    await ctx.db._session().commit()
+    await _create_webform_login_required(ctx, "WebFormTargetOpen", "login-required-form")
+
+    async with grunt.context(db_session, engine, None):
+        with pytest.raises(Exception) as exc_info:  # noqa: B017 - ApplicationError
+            await submit_form(route="login-required-form", data={"title": "Hello"})
+        assert "авторизація" in str(exc_info.value) or "SUBMISSION_ERROR" in str(
+            getattr(exc_info.value, "code", "")
+        )
+
+
+@pytest.mark.asyncio
+async def test_api_submit_form_allows_authenticated_when_login_required(ctx, db_session, engine):
+    """Same login_required form, but an authenticated caller — must succeed."""
+    from grunt.api.v1.meta import save_doctype
+    from grunt.api.v1.webform import submit_form
+    from grunt.app import grunt
+
+    await save_doctype(doctype_data={**TARGET_OPEN, "__is_new": True})
+    await ctx.db._session().commit()
+    await _create_webform_login_required(ctx, "WebFormTargetOpen", "login-required-form-2")
+
+    alice = make_user("alice@example.com", roles=["Employee"])
+    async with grunt.context(db_session, engine, alice):
+        result = await submit_form(route="login-required-form-2", data={"title": "Hello"})
+
+    doc = await ctx.get_doc("WebFormTargetOpen", result["id"])
+    assert doc["owner"] == "alice@example.com"

@@ -20,6 +20,7 @@ import structlog
 from fastapi import HTTPException
 
 from grunt.app import grunt as grunt_app
+from grunt.utils.optional_deps import require_extra
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -31,15 +32,12 @@ _BACKUP_CODE_COUNT = 8
 
 
 def _require_pyotp():
-    try:
+    def _load():
         import pyotp
 
         return pyotp
-    except ImportError as exc:
-        raise HTTPException(
-            501,
-            detail="MFA requires the 'mfa' extras: uv pip install grunt[mfa]",
-        ) from exc
+
+    return require_extra(_load, "mfa")
 
 
 # ── Setup ─────────────────────────────────────────────────────────────────────

@@ -3,18 +3,17 @@
 from __future__ import annotations
 
 from datetime import UTC
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import structlog
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 logger = structlog.get_logger()
 
-_GRUNT_ROOT = __import__("pathlib").Path(__file__).parent.parent  # grunt/startup/../ = grunt/
+_GRUNT_ROOT = Path(__file__).parent.parent  # grunt/startup/../ = grunt/
 
 
 async def load_core_fixtures(session: AsyncSession, eng: AsyncEngine) -> None:

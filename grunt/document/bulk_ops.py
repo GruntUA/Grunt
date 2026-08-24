@@ -254,8 +254,8 @@ class BulkDeleteTask:
         from sqlalchemy import delete as sa_delete
         from sqlalchemy.engine import CursorResult
 
+        from grunt.db.api import _apply_filters
         from grunt.db.session import async_session_factory
-        from grunt.document.query import _apply_filters
         from grunt.metadata.compiler import (
             MULTI_LINK_TABLE,
             compile_doctype_to_table,

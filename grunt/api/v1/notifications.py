@@ -17,9 +17,6 @@ async def list_notifications(
 ) -> dict[str, Any]:
     """Get notifications for the current user."""
     user = await grunt.get_current_user()
-    if not user:
-        grunt.throw("Authentication required", "AUTH_REQUIRED")
-
     filters: dict[str, Any] = {"user": user.email}
     if str(unread_only).lower() == "true":
         filters["is_read"] = False
@@ -40,9 +37,6 @@ async def list_notifications(
 async def mark_as_read(notification_id: str) -> bool:
     """Mark a notification as read — only if it belongs to the current user."""
     user = await grunt.get_current_user()
-    if not user:
-        grunt.throw("Authentication required", "AUTH_REQUIRED")
-
     count = await grunt.db.bulk_update(
         "Notification",
         filters={"name": notification_id, "user": user.email},
@@ -55,9 +49,6 @@ async def mark_as_read(notification_id: str) -> bool:
 async def mark_all_as_read() -> dict[str, Any]:
     """Mark all notifications as read for the current user."""
     user = await grunt.get_current_user()
-    if not user:
-        grunt.throw("Authentication required", "AUTH_REQUIRED")
-
     count = await grunt.db.bulk_update(
         "Notification",
         filters={"user": user.email, "is_read": False},
@@ -70,8 +61,6 @@ async def mark_all_as_read() -> dict[str, Any]:
 async def get_unread_count() -> int:
     """Get the count of unread notifications for the current user."""
     user = await grunt.get_current_user()
-    if not user:
-        return 0
     return await grunt.count("Notification", filters={"user": user.email, "is_read": False})
 
 
@@ -90,9 +79,6 @@ async def get_vapid_public_key() -> str | None:
 async def subscribe_push(endpoint: str, p256dh: str, auth: str, user_agent: str = "") -> bool:
     """Save a browser push subscription for the current user."""
     user = await grunt.get_current_user()
-    if not user:
-        grunt.throw("Authentication required", "AUTH_REQUIRED")
-
     from grunt.webpush.service import webpush_service
 
     await webpush_service.save_subscription(user.email, endpoint, p256dh, auth, user_agent)
@@ -103,9 +89,6 @@ async def subscribe_push(endpoint: str, p256dh: str, auth: str, user_agent: str 
 async def unsubscribe_push(endpoint: str) -> bool:
     """Remove a browser push subscription for the current user."""
     user = await grunt.get_current_user()
-    if not user:
-        grunt.throw("Authentication required", "AUTH_REQUIRED")
-
     from grunt.webpush.service import webpush_service
 
     await webpush_service.remove_subscription(endpoint, user.email)

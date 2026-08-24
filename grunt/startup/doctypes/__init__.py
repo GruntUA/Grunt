@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import structlog
@@ -15,19 +16,13 @@ from grunt.metadata.compiler import DuplicateDataError, compile_doctype_to_table
 
 logger = structlog.get_logger()
 
-_GRUNT_ROOT = (
-    __import__("pathlib").Path(__file__).parent.parent.parent
-)  # grunt/startup/doctypes/ → grunt/
+_GRUNT_ROOT = Path(__file__).parent.parent.parent  # grunt/startup/doctypes/ → grunt/
 
 
 def _find_doctype_dirs(_root=None):
     """Return all grunt/*/doctypes/ directories."""
     root = _root or _GRUNT_ROOT
     return [p for p in root.glob("*/doctypes") if p.is_dir()]
-
-
-# Kept for backward-compat with metadata/loader.py
-_CORE_DOCTYPES_DIR = _GRUNT_ROOT / "doctypes"
 
 
 async def apply_doctype_overrides(session: AsyncSession, engine: AsyncEngine) -> None:

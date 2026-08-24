@@ -86,7 +86,7 @@ async def link_search(
     try:
         parsed = json.loads(filters) if filters and filters != "{}" else {}
         raw_filters: dict[str, Any] = parsed if isinstance(parsed, dict) else {}
-    except json.JSONDecodeError, ValueError:
+    except ValueError:  # json.JSONDecodeError is already a ValueError subclass
         raw_filters = {}
 
     # Normalise Frappe-style filters: {"field": ["in", [...]]} → {"field__in": [...]}

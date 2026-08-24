@@ -95,7 +95,17 @@ SYS_FIELDS: frozenset[str] = frozenset(
 
 
 class DocumentList(list):
-    """A list of documents/rows with associated metadata (pagination, etc.)."""
+    """A list of documents/rows with associated metadata (pagination, etc.).
+
+    Deliberately dual-interface, not a plain list: ``for doc in result`` and
+    ``result[0]`` behave like a normal list, but ``result["data"]`` and
+    ``result["meta"]``/``result.meta`` are special-cased to make this object
+    also usable wherever callers expect the ``{"data": [...], "meta": {...}}``
+    API response shape (see :meth:`to_dict`) without a separate conversion
+    step. This means ``result["data"]`` is NOT indexing into the list by a
+    literal string key the way a real ``dict`` would raise for — don't assume
+    ``DocumentList`` behaves like ``dict`` beyond these two special keys.
+    """
 
     def __init__(self, data: list, meta: dict[str, Any] | None = None) -> None:
         super().__init__(data)

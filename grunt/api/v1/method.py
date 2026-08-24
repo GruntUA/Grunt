@@ -69,7 +69,7 @@ def get_whitelisted_method(method_path: str) -> Any:
                 obj = getattr(obj, attr)
             method = obj  # only assign when all attrs resolved successfully
             break
-        except ImportError, AttributeError:
+        except (ImportError, AttributeError):
             continue
 
     if not method:

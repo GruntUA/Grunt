@@ -18,6 +18,13 @@ if TYPE_CHECKING:
 # id(permissions_list) distinguishes different DocType objects sharing the same name.
 # Only populated for the doc=None path (list/count operations).
 # Invalidated per-doctype via invalidate_permission_cache().
+#
+# Unbounded, no TTL: entries accumulate for the process lifetime — bounded in
+# practice by (distinct users x distinct role-sets x DocTypes x actions),
+# which for a typical deployment (roles come from a small fixed Role table,
+# not per-request) stays small relative to available memory. If that stops
+# holding (e.g. per-request synthetic roles), this needs a real eviction
+# policy, not just invalidate_permission_cache().
 _PERM_CACHE: dict[tuple, bool] = {}
 _HIDDEN_CACHE: dict[tuple, frozenset] = {}
 

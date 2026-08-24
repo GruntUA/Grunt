@@ -21,6 +21,10 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
+# Target-doctype fields auto-injected alongside a Link field's __label (as
+# __color/__icon) when the target defines them — list-cell badges and map
+# markers render a linked record's color/icon without a separate fetch.
+# See frontend/src/components/fields/Link/ListCell.vue and useMapMarkers.ts.
 _EXTRA_INJECT = ("color", "icon")
 
 # Columns present in every child table row that carry no value for callers:

@@ -35,7 +35,11 @@ async def current_user(
     Auth priority:
     1. ``X-Api-Key: grnt_<key>`` header — static API key (for integrations/CI)
     2. ``Authorization: Bearer <jwt>`` header — standard JWT
-    3. ``?token=<jwt>`` query parameter — legacy WebSocket support
+    3. ``?token=<jwt>`` query parameter — for direct-navigation downloads
+       (e.g. the xlsx export link) where the browser can't attach a header.
+       WebSocket routes do NOT use this: they authenticate independently via
+       ``api/v1/ws.py::_authenticate_ws``, which reads its own ``token`` query
+       param directly rather than going through this dependency.
 
     When the JWT contains full identity claims (uid, full_name, etc.) the user
     object is built directly from the payload — zero DB queries.
@@ -65,7 +69,6 @@ async def current_user(
     if not token:
         token = request.query_params.get("token")
     if not token:
-        # print("DEBUG: No token found in headers or query params")
         raise credentials_exception
 
     try:

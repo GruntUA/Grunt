@@ -6,20 +6,13 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import or_, select
 
-from grunt.db.api import build_clauses
-
 if TYPE_CHECKING:
     from grunt.metadata.doctype import DocType
 
-
-def _apply_filters(query: Any, table: Any, filters: dict[str, str]) -> Any:
-    """Apply operator-aware dictionary filters to a statement.
-
-    Delegates clause building to the single shared parser in ``grunt.db.api``.
-    """
-    for clause in build_clauses(table, filters):
-        query = query.where(clause)
-    return query
+# Filter-clause building lives in grunt.db.api._apply_filters — this module
+# used to have a second, same-named function here that just wrapped
+# build_clauses() again, which made "which _apply_filters is this?" an
+# actual question when grepping. Import from grunt.db.api directly instead.
 
 
 async def _expand_child_of_filters(

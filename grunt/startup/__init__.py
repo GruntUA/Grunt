@@ -10,10 +10,10 @@ from grunt.startup.doctypes import (
     populate_system_doctypes,
     sync_all_doctypes,
 )
-from grunt.startup.fixtures import _load_app_meta, load_core_fixtures
+from grunt.startup.fixtures import load_core_fixtures
 from grunt.startup.settings import seed_system_settings
 from grunt.startup.validators import load_validators
-from grunt.startup.workspaces import _auto_seed_workspace, seed_grunt_workspace
+from grunt.startup.workspaces import seed_grunt_workspace
 
 __all__ = [
     "apply_doctype_overrides",
@@ -23,8 +23,6 @@ __all__ = [
     "seed_system_settings",
     "seed_grunt_workspace",
     "sync_installed_apps",
-    "_load_app_meta",
-    "_auto_seed_workspace",
     "load_core_fixtures",
     "load_validators",
 ]

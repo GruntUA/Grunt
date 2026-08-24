@@ -1,8 +1,11 @@
 """DocTypePermission controller.
 
-The ``DocTypePermission`` Pydantic model now lives in
-:mod:`grunt.metadata.permission` (re-exported below for backward compatibility)
-so the metadata layer can reference it without importing this controller module.
+The ``DocTypePermission`` Pydantic model lives in
+:mod:`grunt.metadata.permission` and is re-exported below — not for backward
+compatibility, but to avoid an import cycle: ``grunt.metadata.doctype`` needs
+this model and must not depend on ``grunt.document.base`` (this controller's
+base class), so the model was split out of this module rather than this
+module importing it downward.
 """
 
 from __future__ import annotations

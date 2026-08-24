@@ -133,7 +133,7 @@ def _hash_password_sync(plain: str) -> str:
 def _verify_password_sync(plain: str, hashed: str) -> bool:
     try:
         return bcrypt.checkpw(plain.encode(), hashed.encode())
-    except AttributeError, ValueError:
+    except (AttributeError, ValueError):
         return False
 
 
@@ -156,33 +156,29 @@ async def verify_password(plain: str, hashed: str | None) -> bool:
 # ── User CRUD ─────────────────────────────────────────────────────────────
 
 
-async def get_user_by_email(email: str) -> User | None:
-    """Look up a user by email. Runs as SYSTEM_USER — needed pre-login, when
-    no real user is in context yet."""
+async def _get_user_by(**filter_kwargs: str) -> User | None:
+    """Look up a user by a single field (email or name). Runs as SYSTEM_USER —
+    needed pre-login, when no real user is in context yet."""
     from grunt.auth.doctypes.UserRole.user_role import get_user_roles
     from grunt.context import require_session
 
     session = require_session()
     async with grunt.system_context(session):
-        user = await User.objects.filter(email=email).first()
+        user = await User.objects.filter(**filter_kwargs).first()
         if user is None:
             return None
         user.data["roles"] = await get_user_roles(user.name)
         return user
+
+
+async def get_user_by_email(email: str) -> User | None:
+    """Look up a user by email. See :func:`_get_user_by`."""
+    return await _get_user_by(email=email)
 
 
 async def get_user_by_id(user_id: str) -> User | None:
-    """Look up a user by id. Runs as SYSTEM_USER — see :func:`get_user_by_email`."""
-    from grunt.auth.doctypes.UserRole.user_role import get_user_roles
-    from grunt.context import require_session
-
-    session = require_session()
-    async with grunt.system_context(session):
-        user = await User.objects.filter(name=user_id).first()
-        if user is None:
-            return None
-        user.data["roles"] = await get_user_roles(user.name)
-        return user
+    """Look up a user by id. See :func:`_get_user_by`."""
+    return await _get_user_by(name=user_id)
 
 
 async def list_users() -> list[User]:

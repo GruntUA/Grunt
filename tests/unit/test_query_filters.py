@@ -1,17 +1,21 @@
-"""Unit tests for operator-aware filter building in ``grunt.document.query``.
+"""Unit tests for operator-aware filter building in ``grunt.db.api``.
 
 These exercise ``_apply_filters`` against a real SQLAlchemy table so the
 compiled SQL is checked directly — in particular that the list-level parser
 supports the same operators as the ``grunt.db`` count path (regression: the
 ``nin`` operator was silently dropped, so ``get_list`` and ``count`` disagreed).
+
+``document/query.py`` used to have its own near-identical ``_apply_filters``
+wrapping the same ``build_clauses`` — now the document layer imports this one
+directly (see grunt.document.collection/tree/bulk_ops), so there's a single
+implementation, not two that could drift apart again.
 """
 
 from __future__ import annotations
 
 from sqlalchemy import Column, MetaData, String, Table, select
 
-from grunt.db.api import build_clauses
-from grunt.document.query import _apply_filters
+from grunt.db.api import _apply_filters, build_clauses
 
 _META = MetaData()
 _TABLE = Table(
@@ -25,8 +29,6 @@ _TABLE = Table(
 
 
 def _sql(filters: dict) -> str:
-    # Goes through document/query, which delegates to db.api.build_clauses —
-    # exercising the single shared parser end to end.
     stmt = _apply_filters(select(_TABLE.c.doctype), _TABLE, filters)
     return str(stmt.compile(compile_kwargs={"literal_binds": True}))
 
@@ -84,14 +86,14 @@ class TestApplyFilters:
         # No clause should be added for a column that does not exist.
         assert "WHERE" not in _sql({"missing__nin": ["a"]})
 
-    def test_both_layers_share_one_parser(self):
-        # db.api.build_clauses and document.query._apply_filters must produce
-        # identical WHERE clauses — they are the same code now.
+    def test_apply_filters_matches_build_clauses(self):
+        # _apply_filters is a thin where()-applying wrapper around
+        # build_clauses — same WHERE output either way.
         f = {"doctype__nin": ["A", "B"], "status": "Open"}
-        via_query = _sql(f)
+        via_apply_filters = _sql(f)
         clauses = build_clauses(_TABLE, f)
         stmt = select(_TABLE.c.doctype)
         for c in clauses:
             stmt = stmt.where(c)
-        via_db = str(stmt.compile(compile_kwargs={"literal_binds": True}))
-        assert via_query == via_db
+        via_build_clauses = str(stmt.compile(compile_kwargs={"literal_binds": True}))
+        assert via_apply_filters == via_build_clauses

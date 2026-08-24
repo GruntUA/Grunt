@@ -32,6 +32,7 @@ from grunt.api.router import GruntRouter
 from grunt.api.v1.schemas.response import ok
 from grunt.app import grunt
 from grunt.config import settings
+from grunt.utils.optional_deps import require_extra
 
 router = GruntRouter(prefix="", tags=["oauth"], optional_auth=True)
 
@@ -44,15 +45,12 @@ _MICROSOFT_CONF_URL = (
 
 
 def _require_authlib() -> Any:
-    try:
+    def _load():
         from authlib.integrations.httpx_client import AsyncOAuth2Client
 
         return AsyncOAuth2Client
-    except ImportError as exc:
-        raise HTTPException(
-            501,
-            detail="OAuth requires the 'oauth' extras: uv pip install grunt[oauth]",
-        ) from exc
+
+    return require_extra(_load, "oauth")
 
 
 def _callback_url(provider: str) -> str:

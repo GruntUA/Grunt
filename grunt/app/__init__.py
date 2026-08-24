@@ -70,5 +70,4 @@ class GruntApp(ContextAPI, RealtimeAPI, PermissionAPI, DocumentAPI, UtilityAPI):
 
 grunt = GruntApp()
 
-# Backward-compatible public exports for internal/test imports.
 __all__ = ["GruntApp", "GruntDB", "GruntError", "doctype_registry", "grunt"]

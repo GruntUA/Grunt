@@ -80,7 +80,15 @@ class SiteManager:
             Path(__file__).resolve()
         )
         if bench_dir is None:
+            # No ancestor of cwd or of this file has both apps/ and sites/ —
+            # guess two levels up from cwd (matches apps/<app>/ as cwd, the
+            # common case when running a bench command from an app dir).
             bench_dir = Path.cwd().parent.parent.resolve()
+            logger.warning(
+                "site_manager.bench_dir_guessed",
+                cwd=str(Path.cwd()),
+                guessed=str(bench_dir),
+            )
 
         self.bench_dir = bench_dir.resolve()
         self.sites_dir = self.bench_dir / "sites"

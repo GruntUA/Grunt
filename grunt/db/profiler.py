@@ -84,51 +84,46 @@ _buffer_lock = threading.Lock()
 
 # ── Runtime settings (mutable via API) ────────────────────────────────────
 
-_profiling_enabled: bool = True
-_global_threshold_ms: float = 10.0
-_slow_request_db_ms: float = 20.0
-_slow_request_ms: float = 100.0
-# N+1 detector: warn when a single request fires more than this many SQL queries
-_n1_threshold: int = 10
+
+@dataclass
+class _ProfilerSettings:
+    enabled: bool = True
+    threshold_ms: float = 10.0
+    slow_request_db_ms: float = 20.0
+    slow_request_ms: float = 100.0
+    # N+1 detector: warn when a single request fires more than this many SQL queries
+    n1_threshold: int = 10
+
+
+_settings = _ProfilerSettings()
 
 
 def get_settings() -> dict:
-    return {
-        "enabled": _profiling_enabled,
-        "threshold_ms": _global_threshold_ms,
-        "slow_request_db_ms": _slow_request_db_ms,
-        "slow_request_ms": _slow_request_ms,
-        "n1_threshold": _n1_threshold,
-    }
+    return asdict(_settings)
 
 
 def set_enabled(enabled: bool) -> None:
-    global _profiling_enabled
-    _profiling_enabled = enabled
+    _settings.enabled = enabled
 
 
 def set_threshold(threshold_ms: float) -> None:
-    global _global_threshold_ms
-    _global_threshold_ms = threshold_ms
+    _settings.threshold_ms = threshold_ms
 
 
 def set_request_db_threshold(ms: float) -> None:
-    global _slow_request_db_ms
-    _slow_request_db_ms = ms
+    _settings.slow_request_db_ms = ms
 
 
 def set_request_threshold(ms: float) -> None:
-    global _slow_request_ms
-    _slow_request_ms = ms
+    _settings.slow_request_ms = ms
 
 
 def set_n1_threshold(n: int) -> None:
-    global _n1_threshold
-    _n1_threshold = max(1, n)
+    _settings.n1_threshold = max(1, n)
 
 
 def get_n1_threshold() -> int:
-    return _n1_threshold
+    return _settings.n1_threshold
 
 
 # ── Per-request context ────────────────────────────────────────────────────
@@ -151,7 +146,7 @@ def collect_for_request(
 
     When profiling is disabled the context manager is a no-op.
     """
-    if not _profiling_enabled:
+    if not _settings.enabled:
         yield
         return
 
@@ -160,7 +155,7 @@ def collect_for_request(
     token_q = _request_queries.set(queries)
     token_sp = _request_spans.set(spans)
     token_id = _request_id_var.set(request_id)
-    token_th = _threshold_var.set(_global_threshold_ms)
+    token_th = _threshold_var.set(_settings.threshold_ms)
     try:
         yield
     finally:
@@ -184,7 +179,7 @@ def finish_request(
 
     slow_count = sum(1 for q in queries if q.slow)
     total_q_ms = sum(q.duration_ms for q in queries)
-    is_slow = duration_ms >= _slow_request_ms or total_q_ms >= _slow_request_db_ms
+    is_slow = duration_ms >= _settings.slow_request_ms or total_q_ms >= _settings.slow_request_db_ms
 
     spans: list[SpanRecord] = _request_spans.get(None) or []
 
@@ -215,19 +210,19 @@ def finish_request(
             total_query_ms=round(total_q_ms, 2),
             query_count=len(queries),
             slow_query_count=slow_count,
-            threshold_request_ms=_slow_request_ms,
-            threshold_db_ms=_slow_request_db_ms,
+            threshold_request_ms=_settings.slow_request_ms,
+            threshold_db_ms=_settings.slow_request_db_ms,
         )
 
     # N+1 detector: warn if more SQL queries than the threshold fired for one request
-    if len(queries) > _n1_threshold:
+    if len(queries) > _settings.n1_threshold:
         logger.warning(
             "n1_suspect",
             request_id=request_id,
             method=method,
             path=path,
             query_count=len(queries),
-            n1_threshold=_n1_threshold,
+            n1_threshold=_settings.n1_threshold,
             hint="Consider using select_related / batch loading to reduce query count",
         )
 
@@ -301,7 +296,7 @@ def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> N
             return
 
         duration_ms = (time.perf_counter() - start_times.pop()) * 1000
-        threshold = _threshold_var.get(_global_threshold_ms)
+        threshold = _threshold_var.get(_settings.threshold_ms)
         is_slow = duration_ms >= threshold
 
         sql_preview = statement.strip()
@@ -351,7 +346,7 @@ async def profile_span(name: str) -> AsyncGenerator[None]:
         async with profile_span("grunt.get_doc"):
             doc = await session.execute(...)
     """
-    if not _profiling_enabled:
+    if not _settings.enabled:
         yield
         return
 

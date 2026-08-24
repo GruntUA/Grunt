@@ -23,28 +23,29 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from grunt.metadata.doctype import DocType
+    from grunt.metadata.field import DocField
 
 logger = structlog.get_logger()
 
 
-def _build_scaffold_context(doctype_name: str, fields: list) -> dict:
-    """Build Jinja template context for a new DocType controller."""
+def _build_scaffold_context(doctype_name: str, fields: list[DocField]) -> dict:
+    """Build Jinja template context for a new DocType controller.
+
+    ``fields`` is always ``DocType.fields`` from its one caller below — always
+    real ``DocField`` instances, never raw dicts (this used to also accept a
+    dict per field with silently different defaulting/error behavior, but
+    nothing ever called it that way).
+    """
     from grunt.metadata.field import get_python_type, is_physical_fieldtype
 
     physical_fields = []
     table_fields = []
 
     for field in fields:
-        if hasattr(field, "fieldname"):
-            fieldname = field.fieldname
-            fieldtype = field.fieldtype
-            label = field.label or ""
-            options = getattr(field, "options", None)
-        else:
-            fieldname = field.get("fieldname", "")
-            fieldtype = field.get("fieldtype", "Data")
-            label = field.get("label", "")
-            options = field.get("options")
+        fieldname = field.fieldname
+        fieldtype = field.fieldtype
+        label = field.label or ""
+        options = field.options
 
         if fieldname in SYS_FIELDS:
             continue
