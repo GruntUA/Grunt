@@ -186,7 +186,7 @@ function docInitials(doc: RecentDoc): string {
 
           <!-- Loading skeleton -->
           <div v-if="appStore.loading" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            <div v-for="i in 4" :key="i" class="h-52 rounded-lg bg-card/50 border border-border/30 animate-pulse" />
+            <div v-for="i in 4" :key="i" class="h-16 rounded-lg bg-card/50 border border-border/30 animate-pulse" />
           </div>
 
           <!-- Empty state -->
