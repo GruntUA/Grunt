@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
 import type { Workspace } from '@/core/api/workspace'
 import { ArrowUpRight, Layers } from '@lucide/vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -9,23 +8,17 @@ const props = defineProps<{
   counts?: Record<string, number>
 }>()
 
-const router = useRouter()
-
 function totalCount(): number {
   if (!props.counts) return 0
   return Object.values(props.counts).reduce((sum, v) => sum + v, 0)
 }
-
-function navigate() {
-  router.push({ name: 'workspace-home', params: { workspaceName: props.workspace.name } })
-}
 </script>
 
 <template>
-  <div
+  <router-link
+    :to="{ name: 'workspace-home', params: { workspaceName: workspace.name } }"
     class="group relative overflow-hidden rounded-lg border border-border bg-card cursor-pointer flex flex-col p-6 transition-colors hover:border-primary/40"
     :style="{ minWidth: '200px', borderLeft: `3px solid ${workspace.color || 'var(--primary)'}` }"
-    @click="navigate"
   >
     <!-- Top-right arrow -->
     <ArrowUpRight
@@ -63,5 +56,5 @@ function navigate() {
         <span class="text-xs text-muted-foreground/40 font-medium">Відкрити</span>
       </div>
     </div>
-  </div>
+  </router-link>
 </template>
