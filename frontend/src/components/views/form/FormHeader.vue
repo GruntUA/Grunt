@@ -18,13 +18,6 @@ import {
   Pencil,
   Trash2,
   ChevronDown,
-  Printer,
-  FileText,
-  FileSpreadsheet,
-  Globe,
-  ExternalLink,
-  Settings,
-  SlidersHorizontal,
 } from '@lucide/vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 import { Badge } from '@/components/ui/badge'
@@ -200,68 +193,13 @@ const statusBadgeVariant = computed(() => {
 
 const menuItems = computed(() => {
   const items: any[] = []
-  const workspaceName = props.workspace ?? 'grunt'
 
-  if (props.id) {
+  for (const item of props.scriptMenuItems ?? []) {
+    if (item.separator_before) items.push({ separator: true })
     items.push({
-      label: t('Print'),
-      icon: Printer,
-      url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=html&autoprint=1&token=${auth.token}`,
-      target: '_blank',
-    })
-
-    items.push({
-      label: 'Excel (.xlsx)',
-      icon: FileSpreadsheet,
-      url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=xlsx&token=${auth.token}`,
-      target: '_blank',
-    })
-
-    items.push({
-      label: 'PDF',
-      icon: FileText,
-      url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=pdf&token=${auth.token}`,
-      target: '_blank',
-    })
-
-    items.push({
-      label: 'HTML',
-      icon: Globe,
-      url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=html&token=${auth.token}`,
-      target: '_blank',
-    })
-
-    items.push({
-      label: t('Open in new tab'),
-      icon: ExternalLink,
-      url: router.resolve({
-        name: 'workspace-form',
-        params: { workspaceName, doctype: props.doctype, id: props.id },
-      }).href,
-      target: '_blank',
-    })
-  }
-
-  items.push({
-    label: t('Edit DocType'),
-    icon: Settings,
-    url: router.resolve({
-      name: 'workspace-form',
-      params: { workspaceName, doctype: 'DocType', id: props.doctype },
-    }).href,
-    target: '_blank',
-  })
-
-  if (props.dt) {
-    items.push({
-      label: t('Configure print'),
-      icon: SlidersHorizontal,
-      url: router.resolve({
-        name: 'workspace-list',
-        params: { workspaceName, doctype: 'PrintFormat' },
-        query: { 'filter[doctype]': props.doctype },
-      }).href,
-      target: '_blank',
+      label: item.label,
+      icon: item.icon,
+      command: () => item.action(),
     })
   }
 
@@ -299,15 +237,6 @@ const menuItems = computed(() => {
   }
 
   if (props.id) {
-    for (const item of props.scriptMenuItems ?? []) {
-      if (item.separator_before) items.push({ separator: true })
-      items.push({
-        label: item.label,
-        icon: item.icon,
-        command: () => item.action(),
-      })
-    }
-
     items.push({ separator: true })
     items.push({
       label: t('Rename'),

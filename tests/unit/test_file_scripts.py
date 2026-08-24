@@ -18,6 +18,7 @@ from grunt.scripting.file_scripts import (
     discover_file_scripts,
     get_file_client_scripts,
 )
+from grunt.scripting import file_scripts
 
 
 def _make_doctype_dir(tmp_path, doctype_name: str, controller_filename: str, extra_files=None):
@@ -82,3 +83,22 @@ def test_discover_file_scripts_finds_nested_package_doctypes(tmp_path):
 
     assert scripts
     assert any(s["name"].endswith(":DocType.js") for s in scripts)
+
+
+def test_framework_global_form_script_loads_before_doctype_script(tmp_path, monkeypatch):
+    doctypes_dir = tmp_path / "metadata" / "doctypes"
+    global_dir = doctypes_dir / "DocType"
+    global_dir.mkdir(parents=True)
+    (global_dir / "global_form.js").write_text("function on_load(frm) {}\n")
+
+    page_dir = doctypes_dir / "Page"
+    page_dir.mkdir()
+    (page_dir / "Page.js").write_text("function on_load(frm) {}\n")
+
+    monkeypatch.setattr(file_scripts, "_client_script_dirs", [("grunt", doctypes_dir)])
+    monkeypatch.setattr(file_scripts, "FILE_CLIENT_SCRIPT_REGISTRY", {})
+    monkeypatch.setattr(file_scripts, "_client_script_scanned", set())
+
+    scripts = get_file_client_scripts("Page")
+
+    assert [script["name"] for script in scripts] == ["grunt:global_form.js", "grunt:Page.js"]

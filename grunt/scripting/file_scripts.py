@@ -50,6 +50,9 @@ _client_script_dirs: list[tuple[str, Path]] = []
 # Doctypes already scanned (including misses) — avoids repeated disk reads
 _client_script_scanned: set[str] = set()
 
+# Framework-only client script loaded before every DocType-local script.
+_GLOBAL_FORM_SCRIPT_PATH = Path("DocType") / "global_form.js"
+
 _HEADER_RE = re.compile(r"^#\s*(\w[\w\s]+\w)\s*:\s*(.+)$", re.MULTILINE)
 
 
@@ -233,6 +236,16 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
     logger.debug("file_scripts.scan_start", doctype=doctype, dirs_count=len(_client_script_dirs))
 
     for app_name, doctypes_dir in _client_script_dirs:
+        if app_name == "grunt":
+            global_script = doctypes_dir / _GLOBAL_FORM_SCRIPT_PATH
+            if global_script.exists():
+                results.append(
+                    {
+                        "name": f"{app_name}:global_form.js",
+                        "script": global_script.read_text(encoding="utf-8"),
+                    }
+                )
+
         # Try exact match first (e.g. HromsStaffingTable/HromsStaffingTable.js)
         js_file = doctypes_dir / doctype / f"{doctype}.js"
         logger.debug(

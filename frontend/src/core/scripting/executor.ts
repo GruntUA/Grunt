@@ -204,6 +204,11 @@ export interface GruntProxy {
   route_options?: Record<string, unknown> | null
   set_route: (...route: unknown[]) => void
   open_route: (...route: unknown[]) => void
+  ui: {
+    form: {
+      add_standard_menu_items: (frm: FormProxy) => void
+    }
+  }
 }
 
 export type ClientScriptEvent = 'on_load' | 'on_change' | 'validate' | 'before_save' | 'after_save'
@@ -515,6 +520,49 @@ export function createGruntProxy(
     routeOptions = null
   }
 
+  const addStandardFormMenuItems = (frm: FormProxy): void => {
+    const documentName = String(frm.doc.name ?? '').trim()
+    const openInNewTab = (url: string) => {
+      window.open(url, '_blank', 'noopener')
+    }
+
+    if (documentName) {
+      const printUrl = (format: string, autoPrint = false): string => {
+        const params = new URLSearchParams({
+          doctype: frm.doctype,
+          doc_id: documentName,
+          fmt: format,
+        })
+        if (autoPrint) params.set('autoprint', '1')
+        const token = localStorage.getItem('grunt_token')
+        if (token) params.set('token', token)
+        return `/api/v1/method/grunt.document.base.Document.print?${params.toString()}`
+      }
+
+      frm.add_menu_item('Print', () => openInNewTab(printUrl('html', true)), { icon: 'printer' })
+      frm.add_menu_item('Excel (.xlsx)', () => openInNewTab(printUrl('xlsx')), { icon: 'file-spreadsheet' })
+      frm.add_menu_item('PDF', () => openInNewTab(printUrl('pdf')), { icon: 'file-text' })
+      frm.add_menu_item('HTML', () => openInNewTab(printUrl('html')), { icon: 'globe' })
+      frm.add_menu_item(
+        'Open in new tab',
+        () => openInNewTab(`/app/${encodeURIComponent(currentWorkspace())}/${encodeURIComponent(frm.doctype)}/${encodeURIComponent(documentName)}`),
+        { icon: 'external-link' },
+      )
+    }
+
+    const workspace = encodeURIComponent(currentWorkspace())
+    frm.add_menu_item(
+      'Edit DocType',
+      () => openInNewTab(`/app/${workspace}/DocType/${encodeURIComponent(frm.doctype)}`),
+      { icon: 'settings' },
+    )
+    frm.add_menu_item(
+      'Configure print',
+      () => openInNewTab(`/app/${workspace}/PrintFormat?filter%5Bdoctype%5D=${encodeURIComponent(frm.doctype)}`),
+      { icon: 'sliders-horizontal' },
+    )
+  }
+
   return {
     async call(methodOrOpts: string | { method: string; args?: Record<string, unknown> }, argsArg?: Record<string, unknown>) {
       const method = typeof methodOrOpts === 'string' ? methodOrOpts : methodOrOpts.method
@@ -625,6 +673,12 @@ export function createGruntProxy(
 
     open_route(...route: unknown[]) {
       navigateRoute(route, true)
+    },
+
+    ui: {
+      form: {
+        add_standard_menu_items: addStandardFormMenuItems,
+      },
     },
   }
 }
