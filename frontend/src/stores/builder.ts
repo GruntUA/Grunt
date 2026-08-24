@@ -5,8 +5,6 @@ import { metaApi } from '@/core/api'
 import { parseLayout } from '@/core/composables/useFormLayout'
 import type { FormLayout } from '@/core/composables/useFormLayout'
 import { useBuilderLayout } from '@/core/composables/builder/useBuilderLayout'
-import { useBuilderPermissions } from '@/core/composables/builder/useBuilderPermissions'
-import { useBuilderWorkflow } from '@/core/composables/builder/useBuilderWorkflow'
 
 export const useBuilderStore = defineStore('builder', () => {
   const doctype = ref<DocType | null>(null)
@@ -87,24 +85,6 @@ export const useBuilderStore = defineStore('builder', () => {
     setSectionColumns,
     addFieldToColumn,
   } = useBuilderLayout({ doctype, isDirty, selectedFieldIdx: _selectedFieldIdx })
-
-  const {
-    addPermission,
-    updatePermission,
-    removePermission,
-  } = useBuilderPermissions({ doctype, isDirty })
-
-  const {
-    updateWorkflow,
-    addWorkflowState,
-    removeWorkflowState,
-    addWorkflowTransition,
-    removeWorkflowTransition,
-    addWorkflowStep,
-    updateWorkflowStep,
-    removeWorkflowStep,
-    reorderWorkflowSteps,
-  } = useBuilderWorkflow({ doctype, isDirty })
 
   // ── Selection ────────────────────────────────────────────────────────
 
@@ -197,17 +177,5 @@ export const useBuilderStore = defineStore('builder', () => {
     removeSection,
     setSectionColumns,
     addFieldToColumn,
-    addPermission,
-    updatePermission,
-    removePermission,
-    updateWorkflow,
-    addWorkflowState,
-    removeWorkflowState,
-    addWorkflowTransition,
-    removeWorkflowTransition,
-    addWorkflowStep,
-    updateWorkflowStep,
-    removeWorkflowStep,
-    reorderWorkflowSteps,
   }
 })
