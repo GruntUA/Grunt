@@ -71,6 +71,40 @@ def register_client_script_dir(app_name: str, doctypes_dir: str | Path) -> None:
     _client_script_dirs.append((app_name, Path(doctypes_dir)))
 
 
+def _iter_doctype_dirs(root_dir: Path) -> list[Path]:
+    """Return all nested doctypes directories under a package/app root.
+
+    The framework keeps DocType folders under both of these layouts:
+    - apps/{app}/{module}/doctypes/{Name}/
+    - apps/{app}/{package}/metadata/doctypes/{Name}/
+
+    Using only ``*/doctypes`` misses the second form entirely, which is why
+    client scripts for built-in doctypes such as ``DocType`` never loaded.
+    """
+    seen: set[Path] = set()
+    results: list[Path] = []
+
+    for match in sorted(root_dir.glob("**/doctypes")):
+        if not match.is_dir():
+            continue
+        resolved = match.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        results.append(match)
+
+    for match in sorted(root_dir.glob("doctypes")):
+        if not match.is_dir():
+            continue
+        resolved = match.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        results.append(match)
+
+    return results
+
+
 def discover_file_scripts(apps_dir: str | Path, *, app_filter: str | None = None) -> None:
     """Scan all app module directories for server scripts.
 
@@ -93,12 +127,11 @@ def discover_file_scripts(apps_dir: str | Path, *, app_filter: str | None = None
             continue
 
         # DocType-colocated scripts: {module}/doctypes/{Name}/{Name}.js / .py
-        for doctypes_dir in app_dir.glob("*/doctypes"):
+        # and package-root layouts such as grunt/metadata/doctypes/{Name}/.
+        for doctypes_dir in _iter_doctype_dirs(app_dir):
             if not doctypes_dir.is_dir():
                 continue
-            # Register dir for lazy client script loading
             register_client_script_dir(app_dir.name, doctypes_dir)
-            # Eagerly load server-side scripts
             for dt_dir in sorted(doctypes_dir.iterdir()):
                 if not dt_dir.is_dir() or dt_dir.name.startswith((".", "_")):
                     continue
@@ -243,3 +276,4 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
         # Cache result (including empty — to avoid repeated disk reads)
         FILE_CLIENT_SCRIPT_REGISTRY[doctype] = results
     return results
+

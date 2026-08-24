@@ -30,6 +30,24 @@ export interface ScriptButtonOptions {
   group?: string
 }
 
+export interface ScriptMenuItem {
+  label: string
+  action: () => void | Promise<void>
+  icon?: string
+  separator_before?: boolean
+}
+
+export interface ScriptMenuItemOptions {
+  separator_before?: boolean
+  icon?: string
+}
+
+/** Handle returned by frm.add_menu_item — allows in-place updates/removal. */
+export interface FormScriptMenuItemHandle {
+  update: (updates: { label?: string; icon?: string; separator_before?: boolean }) => void
+  remove: () => void
+}
+
 /** Handle returned by listview.add_button — allows in-place updates. */
 export interface ScriptButtonHandle {
   update: (updates: { label?: string; severity?: string }) => void
@@ -69,6 +87,11 @@ export interface FormProxy {
     group?: string,
     options?: ScriptButtonOptions,
   ) => void
+  add_menu_item: (
+    label: string,
+    action: () => void | Promise<void>,
+    options?: ScriptMenuItemOptions,
+  ) => FormScriptMenuItemHandle
   remove_custom_button: (label: string, group?: string | null) => void
   clear_custom_buttons: () => void
   change_custom_button_type: (label: string, group: string | null, buttonType: string) => void
@@ -239,6 +262,11 @@ export function createFormProxy(
     setValue?: (field: string, value: unknown) => void
     refreshField?: (field: string) => void
     addButton?: (label: string, action: () => void | Promise<void>, options?: ScriptButtonOptions) => void
+    addMenuItem?: (
+      label: string,
+      action: () => void | Promise<void>,
+      options?: ScriptMenuItemOptions,
+    ) => FormScriptMenuItemHandle
     removeButton?: (label: string, group?: string | null) => void
     clearButtons?: () => void
     updateButtonType?: (label: string, group: string | null, buttonType: string) => void
@@ -306,6 +334,17 @@ export function createFormProxy(
         group: options?.group ?? group,
       }
       callbacks.addButton?.(label, action, merged)
+    },
+
+    add_menu_item(
+      label: string,
+      action: () => void | Promise<void>,
+      options?: ScriptMenuItemOptions,
+    ): FormScriptMenuItemHandle {
+      return callbacks.addMenuItem?.(label, action, options) ?? {
+        update: () => {},
+        remove: () => {},
+      }
     },
 
     remove_custom_button(label: string, group?: string | null) {

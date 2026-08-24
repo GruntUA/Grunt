@@ -91,6 +91,7 @@ export function useFormController(
 
   const {
     buttons: scriptButtons,
+    menuItems: scriptMenuItems,
     displayOverrides,
     reqdOverrides,
     dfPropOverrides,
@@ -299,6 +300,7 @@ export function useFormController(
 
     // Client scripts
     scriptButtons,
+    scriptMenuItems,
     displayOverrides,
     reqdOverrides,
     dfPropOverrides,

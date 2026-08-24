@@ -5,26 +5,26 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useQueryClient } from '@tanstack/vue-query'
 import type { Component } from 'vue'
-import type { DocType, ScriptButton } from '@/types'
+import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
 import {
   Loader2,
   EllipsisVertical,
   RefreshCw,
   Share2,
   Copy as CopyIcon,
-  Printer,
-  FileSpreadsheet,
-  FileText,
-  Globe,
-  ExternalLink,
-  Settings,
-  SlidersHorizontal,
   Copy,
   Undo,
   History,
   Pencil,
   Trash2,
   ChevronDown,
+  Printer,
+  FileText,
+  FileSpreadsheet,
+  Globe,
+  ExternalLink,
+  Settings,
+  SlidersHorizontal,
 } from '@lucide/vue'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 import { Badge } from '@/components/ui/badge'
@@ -44,6 +44,7 @@ const props = defineProps<{
   isLoading: boolean
   isSaving: boolean
   scriptButtons: ScriptButton[]
+  scriptMenuItems: ScriptMenuItem[]
 }>()
 
 const emit = defineEmits<{
@@ -176,6 +177,12 @@ const groupedScriptButtons = computed(() => {
   }).filter((g) => !!g.primary)
 })
 
+function menuItemIcon(item: any): Component | null {
+  if (!item?.icon) return null
+  if (typeof item.icon === 'string') return getIconComponent(item.icon)
+  return item.icon as Component
+}
+
 const documentStatus = computed(() => {
   return props.document?.status ?? null
 })
@@ -192,126 +199,134 @@ const statusBadgeVariant = computed(() => {
 })
 
 const menuItems = computed(() => {
-    const items: any[] = []
+  const items: any[] = []
   const workspaceName = props.workspace ?? 'grunt'
 
-    if (props.id) {
-        items.push({
-            label: t('Print'),
-            icon: Printer,
-        url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=html&autoprint=1&token=${auth.token}`,
-        target: '_blank'
-        })
+  if (props.id) {
+    items.push({
+      label: t('Print'),
+      icon: Printer,
+      url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=html&autoprint=1&token=${auth.token}`,
+      target: '_blank',
+    })
 
+    items.push({
+      label: 'Excel (.xlsx)',
+      icon: FileSpreadsheet,
+      url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=xlsx&token=${auth.token}`,
+      target: '_blank',
+    })
+
+    items.push({
+      label: 'PDF',
+      icon: FileText,
+      url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=pdf&token=${auth.token}`,
+      target: '_blank',
+    })
+
+    items.push({
+      label: 'HTML',
+      icon: Globe,
+      url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=html&token=${auth.token}`,
+      target: '_blank',
+    })
+
+    items.push({
+      label: t('Open in new tab'),
+      icon: ExternalLink,
+      url: router.resolve({
+        name: 'workspace-form',
+        params: { workspaceName, doctype: props.doctype, id: props.id },
+      }).href,
+      target: '_blank',
+    })
+  }
+
+  items.push({
+    label: t('Edit DocType'),
+    icon: Settings,
+    url: router.resolve({
+      name: 'workspace-form',
+      params: { workspaceName, doctype: 'DocType', id: props.doctype },
+    }).href,
+    target: '_blank',
+  })
+
+  if (props.dt) {
+    items.push({
+      label: t('Configure print'),
+      icon: SlidersHorizontal,
+      url: router.resolve({
+        name: 'workspace-list',
+        params: { workspaceName, doctype: 'PrintFormat' },
+        query: { 'filter[doctype]': props.doctype },
+      }).href,
+      target: '_blank',
+    })
+  }
+
+  if (props.id) {
+    items.push({ separator: true })
+    items.push({
+      label: t('Duplicate'),
+      icon: Copy,
+      command: () => emit('duplicate'),
+    })
+
+    if (props.isDirty) {
       items.push({
-        label: 'Excel (.xlsx)',
-        icon: FileSpreadsheet,
-        url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=xlsx&token=${auth.token}`,
-        target: '_blank'
+        label: t('Discard changes'),
+        icon: Undo,
+        command: handleUndo,
       })
-
-      items.push({
-        label: 'PDF',
-        icon: FileText,
-        url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=pdf&token=${auth.token}`,
-        target: '_blank'
-      })
-
-      items.push({
-        label: 'HTML',
-        icon: Globe,
-        url: `/api/v1/method/grunt.document.base.Document.print?doctype=${props.doctype}&doc_id=${props.id}&fmt=html&token=${auth.token}`,
-        target: '_blank'
-      })
-
-        items.push({
-            label: t('Open in new tab'),
-            icon: ExternalLink,
-            url: router.resolve({
-                name: 'workspace-form',
-                params: { workspaceName, doctype: props.doctype, id: props.id }
-            }).href,
-            target: '_blank'
-        })
     }
 
     items.push({
-        label: t('Edit DocType'),
-        icon: Settings,
-        url: router.resolve({
-            name: 'workspace-form',
-            params: { workspaceName, doctype: 'DocType', id: props.doctype }
-        }).href,
-        target: '_blank'
+      label: t('Activity log'),
+      icon: History,
+      command: () => emit('toggleLog'),
     })
 
-    if (props.dt) {
-        items.push({
-            label: t('Configure print'),
-            icon: SlidersHorizontal,
-            url: router.resolve({
-                name: 'workspace-list',
-                params: { workspaceName, doctype: 'PrintFormat' },
-                query: { 'filter[doctype]': props.doctype }
-            }).href,
-            target: '_blank'
-        })
+    items.push({
+      label: t('Share link'),
+      icon: Share2,
+      command: () => {
+        showShareDialog.value = true
+        shareLink.value = null
+        shareExpires.value = ''
+      },
+    })
+  }
+
+  if (props.id) {
+    for (const item of props.scriptMenuItems ?? []) {
+      if (item.separator_before) items.push({ separator: true })
+      items.push({
+        label: item.label,
+        icon: item.icon,
+        command: () => item.action(),
+      })
     }
 
     items.push({ separator: true })
+    items.push({
+      label: t('Rename'),
+      icon: Pencil,
+      command: () => {
+        newDocId.value = props.id || ''
+        showRenameDialog.value = true
+      },
+    })
 
-    if (props.id) {
-        items.push({
-            label: t('Duplicate'),
-            icon: Copy,
-            command: () => emit('duplicate')
-        })
+    items.push({
+      label: t('Delete'),
+      icon: Trash2,
+      class: 'text-destructive',
+      command: () => emit('delete'),
+    })
+  }
 
-        if (props.isDirty) {
-            items.push({
-                label: t('Discard changes'),
-                icon: Undo,
-                command: handleUndo
-            })
-        }
-
-        items.push({
-            label: t('Activity log'),
-            icon: History,
-            command: () => emit('toggleLog')
-        })
-
-        items.push({
-            label: t('Share link'),
-            icon: Share2,
-            command: () => {
-                showShareDialog.value = true
-                shareLink.value = null
-                shareExpires.value = ''
-            }
-        })
-    }
-
-    if (props.id) {
-        items.push({ separator: true })
-        items.push({
-            label: t('Rename'),
-            icon: Pencil,
-            command: () => {
-                newDocId.value = props.id || ''
-                showRenameDialog.value = true
-            }
-        })
-
-        items.push({
-            label: t('Delete'),
-            icon: Trash2,
-            class: 'text-destructive',
-            command: () => emit('delete')
-        })
-    }
-
-    return items
+  return items
 })
 </script>
 
@@ -419,12 +434,12 @@ const menuItems = computed(() => {
               <DropdownMenuSeparator v-if="item.separator" />
               <DropdownMenuItem v-else-if="item.url" as-child>
                 <a :href="item.url" :target="item.target" class="flex items-center gap-2">
-                  <component v-if="item.icon" :is="item.icon" class="size-4" />
+                  <component v-if="menuItemIcon(item)" :is="menuItemIcon(item)" class="size-4" />
                   <span>{{ item.label }}</span>
                 </a>
               </DropdownMenuItem>
               <DropdownMenuItem v-else :variant="item.class === 'text-destructive' ? 'destructive' : 'default'" @click="item.command?.()">
-                <component v-if="item.icon" :is="item.icon" class="size-4" />
+                <component v-if="menuItemIcon(item)" :is="menuItemIcon(item)" class="size-4" />
                 <span>{{ item.label }}</span>
               </DropdownMenuItem>
             </template>

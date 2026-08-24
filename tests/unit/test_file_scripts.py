@@ -12,7 +12,12 @@ filename.
 
 from __future__ import annotations
 
-from grunt.scripting.file_scripts import FILE_SCRIPT_REGISTRY, _load_doctype_dir_scripts
+from grunt.scripting.file_scripts import (
+    FILE_SCRIPT_REGISTRY,
+    _load_doctype_dir_scripts,
+    discover_file_scripts,
+    get_file_client_scripts,
+)
 
 
 def _make_doctype_dir(tmp_path, doctype_name: str, controller_filename: str, extra_files=None):
@@ -63,3 +68,17 @@ class TestControllerFileNotRegisteredAsScript:
         assert ("api", "doc_type") not in FILE_SCRIPT_REGISTRY  # unrelated sanity check
         assert ("api", "validate_tax_id") in FILE_SCRIPT_REGISTRY
         assert ("api", "applicant") not in FILE_SCRIPT_REGISTRY
+
+
+def test_discover_file_scripts_finds_nested_package_doctypes(tmp_path):
+    """Nested framework layouts like grunt/metadata/doctypes/{Name}/{Name}.js must scan."""
+    app_dir = tmp_path / "bench" / "apps" / "grunt"
+    dt_dir = app_dir / "metadata" / "doctypes" / "DocType"
+    dt_dir.mkdir(parents=True)
+    (dt_dir / "DocType.js").write_text("function on_load(frm) { frm.add_menu_item('Test', () => {}); }\n")
+
+    discover_file_scripts(app_dir.parent)
+    scripts = get_file_client_scripts("DocType")
+
+    assert scripts
+    assert any(s["name"].endswith(":DocType.js") for s in scripts)

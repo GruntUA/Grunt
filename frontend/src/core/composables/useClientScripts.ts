@@ -32,10 +32,12 @@ import {
   createGruntProxy,
   dispatchMessageToProxy,
   executeClientScripts,
+  type FormScriptMenuItemHandle,
   type FormProxy,
   type GruntProxy,
   type ClientScriptEvent,
   type ScriptButton,
+  type ScriptMenuItem,
   type ScriptButtonOptions,
 } from '@/core/scripting/executor'
 
@@ -92,6 +94,10 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
     return `${String(group ?? '').trim()}::${label}`
   }
 
+  function menuKey(label: string) {
+    return label.trim().toLowerCase()
+  }
+
   function applyButtonType(btn: ScriptButton, buttonType: string): ScriptButton {
     const style = normalizeButtonStyle({ color: buttonType })
     return {
@@ -105,6 +111,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
   const toast = useToast()
   const router = useRouter()
   const buttons = ref<ScriptButton[]>([])
+  const menuItems = ref<ScriptMenuItem[]>([])
   const displayOverrides = reactive<Record<string, boolean>>({})
   const reqdOverrides = reactive<Record<string, boolean>>({})
   const dfPropOverrides = reactive<Record<string, Record<string, unknown>>>({})
@@ -165,12 +172,44 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
           buttons.value.push(next)
         }
       },
+      addMenuItem: (label, action, options): FormScriptMenuItemHandle => {
+        const key = menuKey(label)
+        const idx = menuItems.value.findIndex((i) => menuKey(i.label) === key)
+        const next: ScriptMenuItem = {
+          label,
+          action,
+          icon: options?.icon,
+          separator_before: options?.separator_before,
+        }
+
+        if (idx >= 0) {
+          menuItems.value[idx] = next
+        } else {
+          menuItems.value.push(next)
+        }
+
+        return {
+          update: (updates: { label?: string; icon?: string; separator_before?: boolean }) => {
+            const i = menuItems.value.findIndex((x) => menuKey(x.label) === key)
+            if (i < 0) return
+            menuItems.value[i] = {
+              ...menuItems.value[i],
+              ...updates,
+            }
+          },
+          remove: () => {
+            const i = menuItems.value.findIndex((x) => menuKey(x.label) === key)
+            if (i !== -1) menuItems.value.splice(i, 1)
+          },
+        }
+      },
       removeButton: (label, group) => {
         const key = buttonKey(label, group)
         buttons.value = buttons.value.filter((b) => buttonKey(b.label, b.group) !== key)
       },
       clearButtons: () => {
         buttons.value = []
+        menuItems.value = []
       },
       updateButtonType: (label, group, buttonType) => {
         const key = buttonKey(label, group)
@@ -274,6 +313,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
 
   return {
     buttons,
+    menuItems,
     displayOverrides,
     reqdOverrides,
     dfPropOverrides,

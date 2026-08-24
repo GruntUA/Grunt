@@ -44,6 +44,7 @@ const {
   isSaving,
   validationErrors,
   scriptButtons,
+  scriptMenuItems,
   displayOverrides,
   reqdOverrides,
   dfPropOverrides,
@@ -81,7 +82,7 @@ const {
   <div class="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
     <!-- Header -->
     <FormHeader :doc-title="docTitle || doctype" :dt="dt" :doctype="doctype" :id="id" :document="form" :is-dirty="isDirty"
-      :is-loading="isLoading" :is-saving="isSaving" :script-buttons="scriptButtons"
+      :is-loading="isLoading" :is-saving="isSaving" :script-buttons="scriptButtons" :script-menu-items="scriptMenuItems"
       @save="handleSave" @delete="showDeleteModal = true" @duplicate="handleDuplicate"
       @toggleLog="showActivityLog = !showActivityLog"
       @rename="async (newId) => {
