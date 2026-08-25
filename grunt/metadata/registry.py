@@ -37,8 +37,8 @@ _FIELDNAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 _MAX_FIELDNAME_LEN = 64
 
 # Top-level DocType properties that _inject_core() always overwrites from the
-# bundled core JSON on every load. Anything NOT listed here (workflow,
-# permissions, list_view, autoname, ...) is treated as a Studio/user
+# bundled core JSON on every load. Anything NOT listed here (permissions,
+# list_view, autoname, ...) is treated as a Studio/user
 # customization: the JSON only seeds it on first run and never touches it again.
 # Adding a new core-authoritative property to DocType? Add it here too.
 _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
@@ -298,8 +298,8 @@ class DocTypeRegistry:
     def _sync_core_doctype_attrs(active_dt: DocType, doctype: DocType) -> None:
         """Overwrite ``active_dt``'s always-synced top-level attrs from the JSON source.
 
-        Only ``_CORE_SYNCED_DOCTYPE_ATTRS`` is touched — everything else (workflow,
-        permissions, list_view, ...) is a Studio/user customization and is left as-is.
+        Only ``_CORE_SYNCED_DOCTYPE_ATTRS`` is touched — everything else (permissions,
+        list_view, ...) is a Studio/user customization and is left as-is.
         """
         for attr in _CORE_SYNCED_DOCTYPE_ATTRS:
             json_val = getattr(doctype, attr, None)

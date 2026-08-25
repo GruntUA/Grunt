@@ -151,14 +151,17 @@ class DocumentWriteMixin(DocumentReadMixin):
 
         apply_field_values(dt.fields, data, row)
 
-        if dt.workflow:
-            sf = dt.workflow.state_field
+        from grunt.workflow.registry import get_active_workflow
+
+        workflow = await get_active_workflow(dt.name)
+        if workflow:
+            sf = workflow.state_field
             if sf in data:
                 row[sf] = data[sf]
             elif sf not in row:
-                initial = next((s for s in dt.workflow.states if s.is_initial), None)
+                initial = next((s for s in workflow.states if s.is_initial), None)
                 if initial:
-                    row[sf] = initial.name
+                    row[sf] = initial.state
 
         return doc_name, row
 

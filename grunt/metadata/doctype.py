@@ -15,55 +15,32 @@ from grunt.metadata.permission import DocTypePermission
 
 
 class WorkflowState(BaseModel):
-    name: str
-    label: str
-    color: str = "gray"  # gray, blue, green, yellow, red
+    """Runtime shape of a ``WorkflowState`` child row, as read off a ``Workflow`` document."""
+
+    state: str  # value stored in the target document's state field
+    label: str = ""
+    color: str = "gray"  # gray, blue, green, yellow, orange, red
     is_initial: bool = False
     is_final: bool = False
 
 
 class WorkflowTransition(BaseModel):
+    """Runtime shape of a ``WorkflowTransition`` child row, as read off a ``Workflow`` document."""
+
     from_state: str
     to_state: str
     action: str  # button label
     allowed_roles: list[str] = []
     condition: str | None = None  # Python expression
 
-
-class WorkflowStep(BaseModel):
-    """A node in the Studio workflow graph editor — UI-only, not executed.
-
-    ``workflow/engine.py`` runs purely on ``DocTypeWorkflow.states``/
-    ``transitions``/``state_field``; it never reads ``steps`` or ``positions``.
-    Those two exist only so Studio's graph builder (a visual editor distinct
-    from the states/transitions list) can save/restore node layout — don't
-    expect editing ``steps`` to change runtime workflow behaviour.
-    """
-
-    id: str
-    name: str
-    title: str = ""
-    step_type: str = (
-        "state"  # state | form | approval | notification | script | condition | create_doc | stop
-    )
-    variable: str | None = None  # variable binding (e.g. req.vars.input_docs)
-    sequence: int = 0
-    is_active: bool = True
-    next_steps: list[str] = []  # names of next steps
-    config: dict[str, Any] = {}
-
-
-class DocTypeWorkflow(BaseModel):
-    """states/transitions/state_field drive execution (workflow/engine.py).
-
-    steps/positions are Studio graph-editor state only — see WorkflowStep.
-    """
-
-    states: list[WorkflowState]
-    transitions: list[WorkflowTransition]
-    state_field: str = "status"  # field that stores current state
-    steps: list[WorkflowStep] = []  # Studio graph editor nodes — UI only, not executed
-    positions: dict[str, dict[str, float]] = {}  # graph editor node positions {state_name: {x, y}}
+    @model_validator(mode="before")
+    @classmethod
+    def _split_allowed_roles(cls, data: Any) -> Any:
+        """``allowed_roles`` is stored as a comma-separated ``LongText`` field."""
+        if isinstance(data, dict) and isinstance(data.get("allowed_roles"), str):
+            roles = [r.strip() for r in data["allowed_roles"].split(",") if r.strip()]
+            data = {**data, "allowed_roles": roles}
+        return data
 
 
 # ── Permission sub-model ─────────────────────────────────────────────────
@@ -232,7 +209,6 @@ class DocType(BaseModel):
     status_config: DocTypeStatusConfig | None = None
 
     # Business logic
-    workflow: DocTypeWorkflow | None = None
     permissions: list[DocTypePermission] = []
 
     # Naming / display

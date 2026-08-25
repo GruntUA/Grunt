@@ -102,48 +102,6 @@ export interface DocTypeSummary {
   is_singleton?: boolean
 }
 
-// ── Workflow types ────────────────────────────────────────────────────────
-
-export interface WorkflowState {
-  name: string
-  label: string
-  color?: string
-  is_initial?: boolean
-  is_final?: boolean
-}
-
-export interface WorkflowTransition {
-  action: string
-  from_state: string
-  to_state: string
-  allowed_roles?: string[]
-  condition?: string | null
-}
-
-export type WorkflowStepType =
-  | 'state' | 'form' | 'approval' | 'notification'
-  | 'script' | 'condition' | 'create_doc' | 'stop'
-
-export interface WorkflowStep {
-  id: string
-  name: string
-  title: string
-  step_type: WorkflowStepType
-  variable?: string | null
-  sequence: number
-  is_active: boolean
-  next_steps: string[]
-  config: Record<string, unknown>
-}
-
-export interface WorkflowDef {
-  state_field: string
-  states: WorkflowState[]
-  transitions: WorkflowTransition[]
-  steps: WorkflowStep[]
-  positions?: Record<string, { x: number; y: number }>
-}
-
 // ── Permission types ──────────────────────────────────────────────────────
 
 export interface DocTypePermission {
@@ -306,7 +264,7 @@ export interface DocType {
   tree_view?: DocTypeTreeView | null
   map_view?: DocTypeMapView | null
   status_config?: DocTypeStatusConfig | null
-  workflow?: WorkflowDef | null
+  workflow_state_field?: string | null
   permissions?: DocTypePermission[]
 }
 

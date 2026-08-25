@@ -53,9 +53,28 @@ from grunt.api.messages import (
     throw,
 )
 from grunt.api.permissions import get_current_user
-from grunt.app import GruntDB
 
-db = GruntDB()
+
+def __getattr__(name: str):
+    """Lazily resolve ``db``/``GruntDB`` on first access.
+
+    ``grunt.app`` transitively imports ``grunt.document.base``, whose mixins
+    decorate their RPC methods with ``@grunt.whitelist()`` — which itself
+    imports this package. Importing ``grunt.app`` eagerly here would close
+    that loop while ``grunt.app`` is still mid-import (whichever side started
+    first ends up importing a partially-initialized module). Deferring it
+    until ``db``/``GruntDB`` is actually used breaks the cycle: by the time
+    anything asks for a document, both packages have long finished loading.
+    """
+    if name in ("db", "GruntDB"):
+        from grunt.app import GruntDB
+
+        globals()["GruntDB"] = GruntDB
+        globals()["db"] = GruntDB()
+        return globals()[name]
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+
+
 __all__ = [
     # Database API
     "db",

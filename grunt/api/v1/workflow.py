@@ -13,7 +13,9 @@ from grunt.metadata.registry import doctype_registry
 async def get_transitions(doctype: str, doc_id: str) -> list[dict[str, Any]]:
     """Return available workflow transitions for a document."""
     dt = await doctype_registry.get(doctype)
-    if not dt.workflow:
+    from grunt.workflow.registry import get_active_workflow
+
+    if not await get_active_workflow(doctype):
         return []
 
     from grunt.workflow.engine import workflow_engine

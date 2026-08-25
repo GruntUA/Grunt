@@ -378,7 +378,7 @@ const menuItems = computed(() => {
     </div>
 
     <!-- Workflow (inside the header card) -->
-    <WorkflowBar v-if="!isLoading && dt && id && document && dt.workflow" :doctype="dt" :doc-id="id"
+    <WorkflowBar v-if="!isLoading && dt && id && document && dt.workflow_state_field" :doctype="dt" :doc-id="id"
       :doc="document as Record<string, unknown>"
       @transitioned="handleRefresh" />
   </div>

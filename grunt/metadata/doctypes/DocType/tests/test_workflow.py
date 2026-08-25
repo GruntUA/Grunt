@@ -1,10 +1,13 @@
-"""Tests for the Workflow engine — state machine transitions (migrated to whitelisted methods)."""
+"""Tests for the Workflow engine — state machine transitions.
+
+Workflow is a regular DocType (grunt/metadata/doctypes/Workflow): its
+documents reference the DocType they govern via `document_type`, instead of
+being embedded in that DocType's own definition.
+"""
 
 from __future__ import annotations
 
 import pytest
-
-# No TYPE_CHECKING needed for httpx as we are moving to direct API
 
 # ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -14,53 +17,54 @@ DOCTYPE_PAYLOAD = {
     "module": "crm",
     "fields": [
         {"fieldname": "title", "label": "Назва", "fieldtype": "Text"},
+        {"fieldname": "status", "label": "Статус", "fieldtype": "Text"},
     ],
-    "workflow": {
-        "state_field": "status",
-        "states": [
-            {"name": "Draft", "label": "Чернетка", "is_initial": True},
-            {"name": "Submitted", "label": "Надіслано"},
-            {"name": "Approved", "label": "Погоджено", "is_final": True},
-            {"name": "Rejected", "label": "Відхилено", "is_final": True},
-        ],
-        "transitions": [
-            {
-                "action": "Submit",
-                "from_state": "Draft",
-                "to_state": "Submitted",
-                "allowed_roles": [],
-            },
-            {
-                "action": "Approve",
-                "from_state": "Submitted",
-                "to_state": "Approved",
-                "allowed_roles": [],
-            },
-            {
-                "action": "Reject",
-                "from_state": "Submitted",
-                "to_state": "Rejected",
-                "allowed_roles": [],
-            },
-        ],
-    },
 }
+
+CONTRACT_WORKFLOW = {
+    "document_type": "Contract",
+    "workflow_state_field": "status",
+    "states": [
+        {"state": "Draft", "label": "Чернетка", "is_initial": True},
+        {"state": "Submitted", "label": "Надіслано"},
+        {"state": "Approved", "label": "Погоджено", "is_final": True},
+        {"state": "Rejected", "label": "Відхилено", "is_final": True},
+    ],
+    "transitions": [
+        {"action": "Submit", "from_state": "Draft", "to_state": "Submitted"},
+        {"action": "Approve", "from_state": "Submitted", "to_state": "Approved"},
+        {"action": "Reject", "from_state": "Submitted", "to_state": "Rejected"},
+    ],
+}
+
+
+async def _create_workflow(ctx, payload: dict) -> dict:
+    """Create a Workflow document, flush, and re-read it with its child rows.
+
+    ``new_doc()`` returns the inserted row as-is — it doesn't re-attach child
+    tables (``states``/``transitions``), so callers that need them must re-fetch.
+    """
+    created = await ctx.new_doc("Workflow", payload)
+    await ctx.db._session().commit()
+    return await ctx.get_doc("Workflow", created["name"])
 
 
 @pytest.mark.asyncio
 async def test_create_doctype_with_workflow(ctx):
-    """DocType with workflow can be created."""
+    """A Workflow document can be created for a DocType."""
     from grunt.api.v1.meta import save_doctype
 
-    data = await save_doctype(DOCTYPE_PAYLOAD)
+    await save_doctype(DOCTYPE_PAYLOAD)
     await ctx.db._session().commit()
-    assert data["workflow"]["state_field"] == "status"
-    assert len(data["workflow"]["states"]) == 4
+
+    workflow = await _create_workflow(ctx, CONTRACT_WORKFLOW)
+    assert workflow["workflow_state_field"] == "status"
+    assert len(workflow["states"]) == 4
 
 
 @pytest.mark.asyncio
 async def test_workflow_transitions_empty_for_no_workflow(ctx):
-    """A DocType without workflow returns empty transitions list."""
+    """A DocType without a Workflow document returns empty transitions list."""
     from grunt.api.v1.meta import save_doctype
     from grunt.api.v1.workflow import get_transitions
 
@@ -83,9 +87,10 @@ async def test_workflow_initial_transitions(ctx):
     from grunt.api.v1.meta import save_doctype
     from grunt.api.v1.workflow import get_transitions
 
-    # Create doctype
+    # Create doctype + workflow
     await save_doctype(DOCTYPE_PAYLOAD)
     await ctx.db._session().commit()
+    await _create_workflow(ctx, CONTRACT_WORKFLOW)
 
     # Create doc
     doc = await ctx.new_doc("Contract", {"title": "Test Contract", "status": "Draft"})
@@ -103,6 +108,7 @@ async def test_workflow_apply_transition(ctx):
 
     await save_doctype(DOCTYPE_PAYLOAD)
     await ctx.db._session().commit()
+    await _create_workflow(ctx, CONTRACT_WORKFLOW)
 
     doc = await ctx.new_doc("Contract", {"title": "Test Contract", "status": "Draft"})
     doc_id = doc["name"]
@@ -121,6 +127,7 @@ async def test_workflow_invalid_transition_rejected(ctx):
 
     await save_doctype(DOCTYPE_PAYLOAD)
     await ctx.db._session().commit()
+    await _create_workflow(ctx, CONTRACT_WORKFLOW)
 
     doc = await ctx.new_doc("Contract", {"title": "Test", "status": "Draft"})
     doc_id = doc["name"]
@@ -137,28 +144,26 @@ GUARDED_WORKFLOW_DOCTYPE = {
     "module": "crm",
     "fields": [
         {"fieldname": "title", "label": "Назва", "fieldtype": "Text"},
+        {"fieldname": "status", "label": "Статус", "fieldtype": "Text"},
     ],
     "permissions": [
         {"role": "ContractReader", "read": True},
         {"role": "ContractApprover", "read": True, "write": True},
     ],
-    "workflow": {
-        "state_field": "status",
-        "states": [
-            {"name": "Draft", "label": "Чернетка", "is_initial": True},
-            {"name": "Submitted", "label": "Надіслано"},
-        ],
-        "transitions": [
-            # No allowed_roles — the workflow-level gate alone would let
-            # anyone who can read the doc apply this transition.
-            {
-                "action": "Submit",
-                "from_state": "Draft",
-                "to_state": "Submitted",
-                "allowed_roles": [],
-            },
-        ],
-    },
+}
+
+GUARDED_CONTRACT_WORKFLOW = {
+    "document_type": "GuardedContract",
+    "workflow_state_field": "status",
+    "states": [
+        {"state": "Draft", "label": "Чернетка", "is_initial": True},
+        {"state": "Submitted", "label": "Надіслано"},
+    ],
+    "transitions": [
+        # No allowed_roles — the workflow-level gate alone would let
+        # anyone who can read the doc apply this transition.
+        {"action": "Submit", "from_state": "Draft", "to_state": "Submitted"},
+    ],
 }
 
 
@@ -178,6 +183,7 @@ async def test_apply_transition_requires_write_permission(ctx, db_session, engin
 
     await save_doctype(doctype_data={**GUARDED_WORKFLOW_DOCTYPE, "__is_new": True})
     await ctx.db._session().commit()
+    await _create_workflow(ctx, GUARDED_CONTRACT_WORKFLOW)
 
     doc = await ctx.new_doc("GuardedContract", {"title": "Test", "status": "Draft"})
     doc_id = doc["name"]
@@ -202,6 +208,7 @@ async def test_workflow_multi_step(ctx):
 
     await save_doctype(DOCTYPE_PAYLOAD)
     await ctx.db._session().commit()
+    await _create_workflow(ctx, CONTRACT_WORKFLOW)
 
     doc = await ctx.new_doc("Contract", {"title": "Multi-step", "status": "Draft"})
     doc_id = doc["name"]

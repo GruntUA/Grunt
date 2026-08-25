@@ -65,6 +65,10 @@ async def setup_db():
         await conn.run_sync(metadata.create_all)
     doctype_registry._doctypes.clear()
 
+    from grunt.workflow.registry import clear_cache as _clear_workflow_cache
+
+    _clear_workflow_cache()
+
     # Remove previously compiled dynamic doctype tables from SA_METADATA
     # Preserve static tables (e.g. grunt_core_multi_link) defined at module level
     _static_tables = {MULTI_LINK_TABLE.name}

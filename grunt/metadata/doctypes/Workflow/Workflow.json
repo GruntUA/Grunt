@@ -1,0 +1,53 @@
+{
+  "name": "Workflow",
+  "label": "Workflow",
+  "module": "metadata",
+  "title_field": "document_type",
+  "fields": [
+    {
+      "fieldname": "document_type",
+      "label": "DocType",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "is_active",
+      "label": "Активний",
+      "fieldtype": "Check",
+      "default": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "workflow_state_field",
+      "label": "Поле стану",
+      "fieldtype": "Text",
+      "default": "status",
+      "required": true,
+      "description": "Назва поля цільового DocType, у якому зберігається поточний стан"
+    },
+    {
+      "fieldname": "states",
+      "label": "Стани",
+      "fieldtype": "Table",
+      "options": "WorkflowState"
+    },
+    {
+      "fieldname": "transitions",
+      "label": "Переходи",
+      "fieldtype": "Table",
+      "options": "WorkflowTransition"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

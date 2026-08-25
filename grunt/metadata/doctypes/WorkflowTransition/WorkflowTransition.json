@@ -1,0 +1,48 @@
+{
+  "name": "WorkflowTransition",
+  "label": "Перехід Workflow",
+  "module": "metadata",
+  "is_child": true,
+  "fields": [
+    {
+      "fieldname": "from_state",
+      "label": "З стану",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "to_state",
+      "label": "У стан",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "action",
+      "label": "Дія (текст кнопки)",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "allowed_roles",
+      "label": "Дозволені ролі (через кому)",
+      "fieldtype": "LongText"
+    },
+    {
+      "fieldname": "condition",
+      "label": "Умова (eval:)",
+      "fieldtype": "Text"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

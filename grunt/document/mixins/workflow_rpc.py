@@ -22,7 +22,9 @@ class DocumentWorkflowRPCMixin:
         from grunt.app import grunt as grunt_app
 
         dt = await doctype_registry.get(doctype)
-        if not dt.workflow:
+        from grunt.workflow.registry import get_active_workflow
+
+        if not await get_active_workflow(doctype):
             return []
 
         from grunt.workflow.engine import workflow_engine

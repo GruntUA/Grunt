@@ -20,11 +20,14 @@ logger = structlog.get_logger()
 
 class WorkflowEngine:
     async def get_state(self, doctype: DocType, doc: dict) -> WorkflowState | None:
-        if not doctype.workflow:
+        from grunt.workflow.registry import get_active_workflow
+
+        workflow = await get_active_workflow(doctype.name)
+        if not workflow:
             return None
-        state_value = doc.get(doctype.workflow.state_field)
+        state_value = doc.get(workflow.state_field)
         return next(
-            (s for s in doctype.workflow.states if s.name == state_value),
+            (s for s in workflow.states if s.state == state_value),
             None,
         )
 
@@ -34,13 +37,16 @@ class WorkflowEngine:
         doc: dict,
         user: User,
     ) -> list[WorkflowTransition]:
-        if not doctype.workflow:
+        from grunt.workflow.registry import get_active_workflow
+
+        workflow = await get_active_workflow(doctype.name)
+        if not workflow:
             return []
         current_state = await self.get_state(doctype, doc)
-        current_state_name = current_state.name if current_state else None
+        current_state_name = current_state.state if current_state else None
 
         available: list[WorkflowTransition] = []
-        for t in doctype.workflow.transitions:
+        for t in workflow.transitions:
             if t.from_state != current_state_name:
                 continue
             # Check roles
@@ -66,6 +72,7 @@ class WorkflowEngine:
         engine: AsyncEngine,
     ) -> dict:
         from grunt.app import grunt
+        from grunt.workflow.registry import get_active_workflow
 
         # Get document
         doc = await grunt.get_doc(doctype.name, doc_id)
@@ -79,7 +86,8 @@ class WorkflowEngine:
                 detail="Перехід недоступний",
             )
 
-        if not doctype.workflow:
+        workflow = await get_active_workflow(doctype.name)
+        if not workflow:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Документ не має налаштованого Workflow",
@@ -90,7 +98,7 @@ class WorkflowEngine:
         # transition itself declares no `allowed_roles` (a reader with no
         # write access must not be able to move the document through its
         # workflow just because they can read it).
-        state_field = doctype.workflow.state_field
+        state_field = workflow.state_field
         await grunt.set_value(doctype.name, doc_id, state_field, transition.to_state)
 
         # Re-read updated document (set_value already flushed) as a bound controller

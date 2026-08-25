@@ -34,7 +34,7 @@ const COLOR_CLASSES: Record<string, string> = {
 }
 
 const stateBadge = computed(() => {
-  const stateField = props.doctype.workflow?.state_field
+  const stateField = props.doctype.workflow_state_field
   if (!stateField) return { colorClass: '', label: '—' }
   const val = String(props.doc[stateField] ?? '—')
   const sc = props.doctype.status_config
@@ -51,7 +51,7 @@ const transitions = ref<WorkflowTransitionItem[]>([])
 const isLoading = ref(false)
 
 async function loadTransitions() {
-  if (!props.doctype.workflow) return
+  if (!props.doctype.workflow_state_field) return
   try {
     const r = await docsApi.getTransitions(props.doctype.name, props.docId)
     transitions.value = r.data ?? []
@@ -76,7 +76,7 @@ onMounted(loadTransitions)
 
 <template>
   <div
-    v-if="doctype.workflow"
+    v-if="doctype.workflow_state_field"
     class="flex items-center gap-3 px-6 py-3 border-t border-border/50 bg-muted/30"
   >
     <span class="text-sm text-muted-foreground">Стан:</span>

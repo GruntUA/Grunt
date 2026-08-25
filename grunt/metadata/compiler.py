@@ -168,10 +168,6 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
         Column("docstatus", Integer, default=0),
     ]
 
-    # Workflow state column
-    if doctype.workflow:
-        columns.append(Column(doctype.workflow.state_field, String(100)))
-
     # Child-table specific columns
     if doctype.is_child:
         columns.extend(
