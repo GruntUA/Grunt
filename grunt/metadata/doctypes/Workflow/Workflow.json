@@ -5,6 +5,12 @@
   "title_field": "document_type",
   "fields": [
     {
+      "fieldname": "tab_main",
+      "label": "Основне",
+      "fieldtype": "Tab",
+      "icon": "settings"
+    },
+    {
       "fieldname": "document_type",
       "label": "DocType",
       "fieldtype": "Link",
@@ -29,6 +35,12 @@
       "description": "Назва поля цільового DocType, у якому зберігається поточний стан"
     },
     {
+      "fieldname": "tab_list",
+      "label": "Стани і переходи",
+      "fieldtype": "Tab",
+      "icon": "list"
+    },
+    {
       "fieldname": "states",
       "label": "Стани",
       "fieldtype": "Table",
@@ -39,6 +51,20 @@
       "label": "Переходи",
       "fieldtype": "Table",
       "options": "WorkflowTransition"
+    },
+    {
+      "fieldname": "positions",
+      "label": "Позиції вузлів",
+      "fieldtype": "JSON",
+      "hidden": true,
+      "description": "Координати вузлів графа {state: {x, y}} — керується вкладкою Граф"
+    },
+    {
+      "fieldname": "tab_graph",
+      "label": "Граф",
+      "fieldtype": "Tab",
+      "icon": "git-branch",
+      "experimental_component": "WorkflowGraphTab"
     }
   ],
   "permissions": [

@@ -11,6 +11,7 @@ import AppIcon from '@/components/AppIcon.vue'
 import FieldRenderer from './FieldRenderer.vue'
 import DesignerTab from '../../pages/studio/builder/DesignerTab.vue'
 import ViewsTab from '../../pages/studio/builder/tabs/ViewsTab.vue'
+import WorkflowGraphTab from '@/components/workflow/WorkflowGraphTab.vue'
 import { Button } from '@/components/ui/button'
 
 const props = defineProps<{
@@ -76,6 +77,7 @@ onUnmounted(() => tabsResizeObserver?.disconnect())
 const customTabComponents: Record<string, Component> = {
   DesignerTab,
   ViewsTab,
+  WorkflowGraphTab,
 }
 
 function getCustomTabComponent(name: string | undefined): Component | null {

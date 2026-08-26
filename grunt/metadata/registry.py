@@ -170,6 +170,13 @@ class DocTypeRegistry:
                 continue  # already loaded (core doctype)
             try:
                 dt = DocType.model_validate(row["data"])
+                # Mirrors _lazy_load: a stale cached Table (compiler.py's
+                # _TABLE_CACHE) would keep excluding columns for fields added
+                # since it was built — e.g. after the hot-reload middleware's
+                # clear_cache() + list_all() picks up a schema change made by
+                # `grunt migrate` in another process, reads would silently
+                # keep missing the new column until a full restart.
+                invalidate_table_cache(dt.name)
                 self._doctypes[dt.name] = dt
                 self._index_add(dt.name)
                 self._known_names.discard(dt.name)
