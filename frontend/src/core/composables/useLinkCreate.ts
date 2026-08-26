@@ -75,7 +75,8 @@ export function useLinkCreate() {
    * Called when the user clicks "Create" in a Link field.
    *
    * @param linkedDoctype  The doctype to create (e.g. "Customer")
-   * @param preset         Initial name/text typed in the Link field
+   * @param preset         Initial field values for the new doc, keyed by fieldname
+   *                       (never `name` — that stays under the doctype's own autoname)
    * @param fieldname      Which field on the current form to fill after return
    * @param currentDoctype The doctype of the current form
    * @param currentId      The document id (null for new documents)
@@ -84,7 +85,7 @@ export function useLinkCreate() {
    */
   function startLinkCreate(
     linkedDoctype: string,
-    preset: string | Record<string, unknown>,
+    preset: Record<string, unknown>,
     fieldname: string,
     currentDoctype: string,
     currentId: string | null,
@@ -102,12 +103,7 @@ export function useLinkCreate() {
       ? `/${workspace}/${linkedDoctype}/new`
       : `/${linkedDoctype}/new`
 
-    let initialData: Record<string, unknown> | null = null
-    if (typeof preset === 'string') {
-      initialData = preset ? { name: preset } : null
-    } else if (Object.keys(preset).length > 0) {
-      initialData = preset
-    }
+    const initialData = Object.keys(preset).length > 0 ? preset : null
 
     router.push({
       path: newPath,

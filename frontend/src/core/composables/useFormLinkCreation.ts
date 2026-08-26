@@ -4,7 +4,7 @@ import type { DocType } from '@/types'
 
 interface StartLinkCreateParams {
   linkedDoctype: string
-  preset: string | Record<string, unknown>
+  preset: Record<string, unknown>
   fieldname: string
   parentDoctype: string
   parentId: string | null
@@ -32,9 +32,22 @@ export function useFormLinkCreation(params: UseFormLinkCreationParams) {
 
   async function handleCreateNew(linkedDoctype: string, preset: string | Record<string, unknown>, fieldname: string) {
     const linkedDt = await params.loadDocType(linkedDoctype)
+
+    // A typed search string becomes the new document's title-field value (a
+    // sensible display default) — never its `name` (primary key). The `name`
+    // column is owned by the target DocType's own autoname scheme; stuffing
+    // free text into it here would silently hijack the naming series (see
+    // _build_initial_row, which always honors an explicit `data["name"]`).
+    const resolvedPreset: Record<string, unknown> =
+      typeof preset === 'string'
+        ? (preset && linkedDt?.title_field && linkedDt.title_field !== 'name'
+            ? { [linkedDt.title_field]: preset }
+            : {})
+        : (preset || {})
+
     if (linkedDt?.quick_entry) {
       quickEntryDt.value = linkedDt
-      quickEntryPreset.value = typeof preset === 'string' ? { name: preset } : (preset || {})
+      quickEntryPreset.value = resolvedPreset
       quickEntryFieldname.value = fieldname
       return
     }
@@ -50,7 +63,7 @@ export function useFormLinkCreation(params: UseFormLinkCreationParams) {
 
     params.startLinkCreate({
       linkedDoctype,
-      preset,
+      preset: resolvedPreset,
       fieldname,
       parentDoctype: params.doctype,
       parentId: params.id,

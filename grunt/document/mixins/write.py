@@ -129,11 +129,18 @@ class DocumentWriteMixin(DocumentReadMixin):
         Returns ``(doc_id, row)``.
         """
         from grunt.naming import naming_service
+        from grunt.naming.patterns import has_counter, parse_pattern
 
-        # An explicit caller-supplied name always wins over autoname —
-        # fixtures and imports rely on stable names regardless of the
-        # DocType's naming scheme. Uniqueness is enforced by the PK.
-        if data.get("name"):
+        # An explicit caller-supplied name wins over autoname for fixtures and
+        # imports, which rely on stable names regardless of the DocType's
+        # naming scheme — but NOT for counter-based series (e.g.
+        # "ВХ-.YYYY.-.####"), where the counter is the source of truth and
+        # must always be consulted. Otherwise any caller (a frontend bug, a
+        # crafted API request) could pass an arbitrary `name` and silently
+        # hijack the series — the counter would never advance and a later,
+        # properly-generated name could collide with it.
+        pattern = (dt.autoname or "").removeprefix("format:")
+        if data.get("name") and not has_counter(parse_pattern(pattern)):
             doc_name = str(data["name"])
         else:
             controller_cls = document_registry.get(dt.name)
