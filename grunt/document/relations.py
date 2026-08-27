@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -26,6 +27,11 @@ logger = structlog.get_logger()
 # markers render a linked record's color/icon without a separate fetch.
 # See frontend/src/components/fields/Link/ListCell.vue and useMapMarkers.ts.
 _EXTRA_INJECT = ("color", "icon")
+
+# Extracts the ?file_id=... query param from an Attach field's stored URL
+# (grunt.storage.doctypes.File.file.get_content?file_id=...). Mirrors
+# frontend/src/components/fields/Attach/Attach.vue's extractFileId().
+_ATTACH_FILE_ID_RE = re.compile(r"[?&]file_id=([^&]+)")
 
 # Columns present in every child table row that carry no value for callers:
 # parent linkage is implicit, audit fields are not rendered in child rows.
@@ -182,6 +188,73 @@ def _apply_link_labels(
             row[image_key] = image_map.get(raw_str, "")
 
 
+async def _resolve_attach_labels(
+    session: AsyncSession,
+    dt: Any,
+    rows: list[dict[str, Any]],
+) -> None:
+    """Inject ``fieldname__label`` (the real filename) for Attach fields.
+
+    An Attach value is a download URL keyed by ``file_id``, not a filename —
+    list/grid cells that show it raw are useless to the user (see
+    frontend/src/components/fields/Table/Table.vue's ``cellDisplay``, which
+    reads this the same way it reads a Link field's ``__label``).
+    """
+    if not rows:
+        return
+
+    attach_fields = [f for f in dt.fields if f.fieldtype == "Attach"]
+    present_keys = set(rows[0].keys())
+    attach_fields = [f for f in attach_fields if f.fieldname in present_keys]
+
+    for af in attach_fields:
+        await _inject_attach_field_labels(session, af, rows)
+
+
+async def _inject_attach_field_labels(
+    session: AsyncSession, af: Any, rows: list[dict[str, Any]]
+) -> None:
+    """Resolve each row's stored ``file_id`` to its real filename via ``File``."""
+    file_id_by_row_idx: dict[int, str] = {}
+    for i, row in enumerate(rows):
+        raw = row.get(af.fieldname)
+        if not raw:
+            continue
+        match = _ATTACH_FILE_ID_RE.search(str(raw))
+        if match:
+            file_id_by_row_idx[i] = match.group(1)
+
+    if not file_id_by_row_idx:
+        return
+
+    try:
+        file_dt = await doctype_registry.get("File")
+    except Exception as exc:
+        logger.warning("attach_labels.file_doctype_error", error=str(exc))
+        return
+
+    file_table = Meta(file_dt).table
+    file_ids = set(file_id_by_row_idx.values())
+
+    try:
+        async with session.begin_nested():
+            result = await session.execute(
+                select(file_table.c.name, file_table.c.file_name).where(
+                    file_table.c.name.in_(file_ids)
+                )
+            )
+            name_map = {str(r.name): r.file_name for r in result.all()}
+    except Exception as exc:
+        logger.warning("attach_labels.fetch_error", field=af.fieldname, error=str(exc))
+        return
+
+    label_key = f"{af.fieldname}__label"
+    for i, file_id in file_id_by_row_idx.items():
+        label = name_map.get(file_id)
+        if label:
+            rows[i][label_key] = label
+
+
 async def attach_multi_link_values(
     ml: Any,
     doctype_name: str,
@@ -265,6 +338,7 @@ async def _load_child_tables(
             for row in rows:
                 serialize_datetimes(row)
             await _resolve_link_labels(session, child_dt, rows)
+            await _resolve_attach_labels(session, child_dt, rows)
             doc[field.fieldname] = rows
         except Exception:
             logger.exception("child_table.load_error", doctype=dt.name, field=field.fieldname)

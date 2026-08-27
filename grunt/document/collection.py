@@ -23,7 +23,7 @@ from grunt.document.formula import evaluate_read_formulas
 from grunt.document.meta import Meta
 from grunt.document.query import _apply_search, _expand_child_of_filters
 from grunt.document.registry import document_registry
-from grunt.document.relations import _resolve_link_labels
+from grunt.document.relations import _resolve_attach_labels, _resolve_link_labels
 from grunt.document.serde import serialize_datetimes
 from grunt.document.update_side_effects import (
     bulk_delete_virtual,
@@ -204,6 +204,13 @@ async def _finalize_rows(
     except Exception as exc:
         logger.warning(
             "list_documents.link_labels_failed", doctype=doctype_name, error=str(exc)
+        )
+
+    try:
+        await _resolve_attach_labels(session, dt, rows)
+    except Exception as exc:
+        logger.warning(
+            "list_documents.attach_labels_failed", doctype=doctype_name, error=str(exc)
         )
 
     for doc_row in rows:

@@ -439,7 +439,7 @@ function cellDisplay(row: Record<string, unknown>, f: DocField): string {
   const val = row[f.fieldname]
   if (val === null || val === undefined || val === '') return ''
   if (f.fieldtype === 'Check') return val ? t('Yes') : t('No')
-  return f.fieldtype === 'Link'
+  return f.fieldtype === 'Link' || f.fieldtype === 'Attach'
     ? String(row[`${f.fieldname}__label`] ?? val)
     : String(val)
 }
