@@ -57,6 +57,10 @@ register_doc_events(
             "after_save": ["grunt.permissions.sync.sync_permissions"],
             "after_delete": ["grunt.permissions.sync.sync_permissions"],
         },
+        # Never hand a stored SMTP password back to a non-superadmin reader.
+        "EmailAccount": {
+            "after_read": ["grunt.email.hooks.mask_smtp_password"],
+        },
         # Log all document lifecycle events to ActivityLog
         "*": {
             "after_insert": ["grunt.activity.log_activity"],

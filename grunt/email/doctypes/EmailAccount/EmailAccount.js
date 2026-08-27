@@ -57,7 +57,8 @@ function on_change(frm, fieldname) {
         return
     }
 
-    if (fieldname === 'smtp_password' && frm.doc.smtp_password) {
+    // Пароль додатка Google — 16 літер без пробілів; прибираємо косметичні пробіли.
+    if (fieldname === 'smtp_password' && _isGmail(frm) && frm.doc.smtp_password) {
         const cleaned = String(frm.doc.smtp_password).replace(/\s+/g, '')
         if (cleaned !== frm.doc.smtp_password) frm.set_value('smtp_password', cleaned)
         return
@@ -70,6 +71,11 @@ function on_change(frm, fieldname) {
 
     if (fieldname === 'test_connection') {
         _testConnection(frm)
+        return
+    }
+
+    if (fieldname === 'test_send') {
+        _sendTest(frm)
     }
 }
 
@@ -94,7 +100,7 @@ async function _testConnection(frm) {
         grunt.show_alert('Спочатку оберіть поштову службу або вкажіть SMTP-сервер.', 'warning')
         return
     }
-    if (!frm.doc.smtp_password) {
+    if (!frm.doc.smtp_password && frm.is_new) {
         grunt.show_alert('Вкажіть пароль SMTP (для Gmail — пароль додатка).', 'warning')
         return
     }
@@ -107,9 +113,35 @@ async function _testConnection(frm) {
             use_tls: frm.doc.use_tls ? 1 : 0,
             smtp_user: frm.doc.smtp_user || frm.doc.email_address || undefined,
             smtp_password: frm.doc.smtp_password || undefined,
+            account_id: frm.is_new ? undefined : frm.doc.name,
         })
         if (res && res.success) {
             grunt.show_alert('З\'єднання успішне — вхід на SMTP-сервер пройшов.', 'success')
+        } else {
+            grunt.show_alert(_friendlySmtpError(res && res.error), 'error')
+        }
+    } catch (e) {
+        grunt.show_alert(_friendlySmtpError(e && e.message ? e.message : e), 'error')
+    }
+}
+
+/** @param {FormProxy} frm */
+async function _sendTest(frm) {
+    if (frm.is_new) {
+        grunt.show_alert('Спочатку збережіть обліковий запис, потім надсилайте тестовий лист.', 'warning')
+        return
+    }
+    const to = await grunt.prompt({ label: 'Адреса отримувача', title: 'Тестовий лист' })
+    if (!to || !to.trim()) return
+
+    grunt.show_alert('Надсилаємо тестовий лист…', 'info')
+    try {
+        const res = await grunt.call('grunt.api.v1.email.send_test_email', {
+            account_id: frm.doc.name,
+            recipient: to,
+        })
+        if (res && res.success) {
+            grunt.show_alert('Тестовий лист надіслано на ' + to + '.', 'success')
         } else {
             grunt.show_alert(_friendlySmtpError(res && res.error), 'error')
         }

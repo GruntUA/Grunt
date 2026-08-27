@@ -15,6 +15,12 @@ if TYPE_CHECKING:
 
 logger = structlog.get_logger()
 
+# Placeholder returned instead of a stored SMTP password on every non-superadmin
+# read (see grunt.email.hooks.mask_smtp_password). Saving the account back with
+# this exact value keeps the stored password untouched
+# (EmailAccount.before_save).
+SMTP_PASSWORD_MASK = "••••••••"
+
 
 def smtp_connect_kwargs(host: str, port: int | None, use_tls: bool) -> dict[str, Any]:
     """Build ``aiosmtplib.SMTP`` kwargs with the correct TLS mode for the port.
@@ -53,7 +59,7 @@ class EmailService:
         smtp_server = account.get("smtp_server")
         smtp_port = account.get("smtp_port", 587)
         use_tls = account.get("use_tls", True)
-        username = account.get("smtp_user")
+        username = account.get("smtp_user") or account.get("email_address")
         password = account.get("smtp_password")
 
         # Construct EmailMessage
@@ -61,7 +67,26 @@ class EmailService:
         msg["Subject"] = message.get("subject", "")
         msg["From"] = account.get("email_address")
         msg["To"] = message.get("recipient")
-        msg.set_content(message.get("content", ""))
+
+        content = message.get("content", "")
+        if message.get("html"):
+            msg.set_content(message.get("text") or "Це повідомлення у форматі HTML.")
+            msg.add_alternative(content, subtype="html")
+        else:
+            msg.set_content(content)
+
+        for att in message.get("attachments") or []:
+            data = att.get("content")
+            if not data:
+                continue
+            mimetype = att.get("mimetype") or "application/octet-stream"
+            maintype, _, subtype = mimetype.partition("/")
+            msg.add_attachment(
+                data,
+                maintype=maintype or "application",
+                subtype=subtype or "octet-stream",
+                filename=att.get("filename") or "attachment",
+            )
 
         try:
             async with aiosmtplib.SMTP(

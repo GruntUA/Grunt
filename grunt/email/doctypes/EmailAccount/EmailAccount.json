@@ -72,10 +72,10 @@
     {
       "fieldname": "smtp_password",
       "label": "Пароль SMTP (пароль додатка)",
-      "fieldtype": "Text",
+      "fieldtype": "Password",
       "mandatory_depends_on": "eval: doc.enable_outgoing",
       "placeholder": "xxxx xxxx xxxx xxxx",
-      "description": "Для Gmail — 16-значний пароль додатка (App Password). Звичайний пароль акаунта Google не працює."
+      "description": "Для Gmail — 16-значний пароль додатка (App Password). Звичайний пароль акаунта Google не працює.\nЗбережений пароль більше не показується — щоб змінити його, введіть новий."
     },
     {
       "fieldname": "test_connection",
@@ -84,6 +84,14 @@
       "options": "secondary",
       "icon": "plug-zap",
       "description": "Перевіряє підключення та вхід на SMTP-сервер без надсилання листа."
+    },
+    {
+      "fieldname": "test_send",
+      "label": "Надіслати тестовий лист",
+      "fieldtype": "Button",
+      "options": "secondary",
+      "icon": "send",
+      "description": "Надсилає короткий тестовий лист на вказану адресу через цей обліковий запис. Спершу збережіть зміни."
     },
 
     {
