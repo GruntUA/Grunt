@@ -119,8 +119,9 @@ const {
     <Teleport to="body">
     <div
       v-if="isOpen"
+      data-link-dropdown
       :style="dropdownStyle"
-      class="bg-popover border border-border rounded-lg shadow-md overflow-hidden"
+      class="pointer-events-auto bg-popover border border-border rounded-lg shadow-md overflow-hidden"
     >
       <div v-if="results.length" class="max-h-52 overflow-y-auto py-1">
         <button
