@@ -1,15 +1,9 @@
 /**
- * Known core field types — for reference and autocomplete.
- * Plugin apps may register additional types via registerField().
+ * Field type identifier. Fully open — the real set is resolved at runtime by
+ * the field registry (src/core/fieldRegistry.ts), which discovers core types
+ * from the manifest.json files under components/fields/ and lets any plugin
+ * app add its own via registerField().
  */
-export type CoreFieldType =
-  | "Text" | "LongText" | "Int" | "Float" | "Check"
-  | "Date" | "Datetime" | "Time" | "Select" | "Link"
-  | "MultiLink" | "Attach" | "Image" | "RichText"
-  | "JSON" | "Code" | "Color" | "Section" | "Column"
-  | "Tab" | "Table" | "Signature" | "Geolocation" | "Rating" | "Icon"
-
-/** Open type — allows custom field types registered by any app */
 export type FieldType = string
 
 /** Standard props contract for runtime field components */
