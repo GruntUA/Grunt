@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import grunt
-
 from grunt.auth.api_key_service import generate_api_key
 from grunt.document.base import Document
 from grunt.errors import forbidden

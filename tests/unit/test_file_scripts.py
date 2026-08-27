@@ -12,13 +12,13 @@ filename.
 
 from __future__ import annotations
 
+from grunt.scripting import file_scripts
 from grunt.scripting.file_scripts import (
     FILE_SCRIPT_REGISTRY,
     _load_doctype_dir_scripts,
     discover_file_scripts,
     get_file_client_scripts,
 )
-from grunt.scripting import file_scripts
 
 
 def _make_doctype_dir(tmp_path, doctype_name: str, controller_filename: str, extra_files=None):

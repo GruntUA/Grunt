@@ -23,8 +23,8 @@ def _fake_user(email: str, name: str, *, is_superadmin: bool = False):
 
 @pytest.mark.asyncio
 async def test_regular_user_sees_only_own_keys(ctx, db_session, engine):
-    from grunt.auth.doctypes.ApiKey.api_key import list_api_keys
     from grunt.app import grunt
+    from grunt.auth.doctypes.ApiKey.api_key import list_api_keys
 
     alice = _fake_user("alice@grunt.example.com", "alice-id")
     bob = _fake_user("bob@grunt.example.com", "bob-id")
@@ -60,8 +60,8 @@ async def test_regular_user_sees_only_own_keys(ctx, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_superadmin_sees_all_keys(ctx, db_session, engine):
-    from grunt.auth.doctypes.ApiKey.api_key import list_api_keys
     from grunt.app import grunt
+    from grunt.auth.doctypes.ApiKey.api_key import list_api_keys
 
     alice = _fake_user("alice2@grunt.example.com", "alice2-id")
     bob = _fake_user("bob2@grunt.example.com", "bob2-id")

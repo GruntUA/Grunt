@@ -11,14 +11,12 @@ from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
 import jwt
-import structlog
 
 from grunt.config import settings
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
 
-logger = structlog.get_logger()
 
 
 # ── JWT ───────────────────────────────────────────────────────────────────

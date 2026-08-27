@@ -5,7 +5,6 @@ from __future__ import annotations
 from itertools import islice
 from typing import TYPE_CHECKING
 
-import structlog
 from sqlalchemy import delete, select
 
 from grunt.metadata.compiler import MULTI_LINK_TABLE
@@ -13,7 +12,6 @@ from grunt.metadata.compiler import MULTI_LINK_TABLE
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-logger = structlog.get_logger()
 
 
 class MultiLinkService:

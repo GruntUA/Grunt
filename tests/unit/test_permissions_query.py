@@ -5,10 +5,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
+from sqlalchemy import Column, MetaData, String, Table, false, select
+
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocTypePermission
 from grunt.permissions.query import apply_permission_filter
-from sqlalchemy import Column, MetaData, String, Table, false, select
 from tests.support import make_user
 
 if TYPE_CHECKING:

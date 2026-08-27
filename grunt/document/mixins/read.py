@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import select
 
@@ -21,8 +20,6 @@ from grunt.document.relations import _load_child_tables, attach_multi_link_value
 from grunt.document.serde import serialize_datetimes
 from grunt.document.virtual import is_virtual_routed, virtual_get
 from grunt.metadata.registry import doctype_registry
-
-logger = structlog.get_logger()
 
 
 class DocumentReadMixin:

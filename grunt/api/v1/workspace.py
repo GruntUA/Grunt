@@ -4,12 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-import structlog
-
 import grunt
 from grunt.site.doctypes.AppMenu.app_menu import AppMenu
-
-logger = structlog.get_logger()
 
 
 def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:

@@ -12,12 +12,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import structlog
 from jinja2 import BaseLoader, Environment, FileSystemLoader, TemplateNotFound, select_autoescape
 
 from grunt.print.filters import JINJA_FILTERS
-
-logger = structlog.get_logger()
 
 # Core templates directory
 _CORE_TEMPLATE_DIR = Path(__file__).parent / "templates"

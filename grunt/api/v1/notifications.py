@@ -4,11 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-import structlog
-
 import grunt
-
-logger = structlog.get_logger()
 
 
 @grunt.whitelist()

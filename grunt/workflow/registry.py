@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import structlog
 from sqlalchemy import select
 
 from grunt.hooks import on_doc
@@ -20,7 +19,6 @@ from grunt.metadata.doctype import WorkflowState, WorkflowTransition
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-logger = structlog.get_logger()
 
 
 class ResolvedWorkflow:

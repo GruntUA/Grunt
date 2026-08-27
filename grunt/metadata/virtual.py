@@ -21,10 +21,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import structlog
-
-logger = structlog.get_logger()
-
 
 class VirtualDocType:
     """Base class for Virtual DocType controllers.

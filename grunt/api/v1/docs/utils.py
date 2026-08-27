@@ -7,7 +7,6 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING, Any
 
 import openpyxl
-import structlog
 from openpyxl.styles import Alignment, Font, PatternFill
 
 from grunt.document.meta import Meta
@@ -16,7 +15,6 @@ from grunt.io.exporters.sanitize import escape_formula
 if TYPE_CHECKING:
     from fastapi import Request
 
-logger = structlog.get_logger()
 
 
 def parse_query_filters(request: Request) -> dict[str, str]:
