@@ -39,7 +39,8 @@ async function handleLogout() { await auth.logout(); router.push('/login') }
 const adminLinks = [
   { to: '/grunt/DocTypePermission', icon: Shield, label: 'Права доступу' },
   { to: '/grunt/ActivityLog', icon: Activity, label: 'Журнал активності' },
-  { to: '/grunt/EmailAccount', icon: Mail, label: 'Пошта' },
+  { to: '/grunt/EmailMessage', icon: Mail, label: 'Листи (e-mail)' },
+  { to: '/grunt/EmailAccount', icon: Mail, label: 'Пошта — налаштування' },
 ]
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────────

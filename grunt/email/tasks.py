@@ -87,6 +87,54 @@ async def pull_from_accounts():
                         session=session,
                         user=SYSTEM_USER,
                     )
+
+                    # Delivery-status (DSN) / read-receipt (MDN) report —
+                    # update the referenced outgoing message, don't file it as
+                    # a normal inbound letter.
+                    report = email_data.get("report")
+                    if report:
+                        try:
+                            await EmailService.apply_report(report, session=session)
+                        except Exception:
+                            logger.exception("email.apply_report_failed")
+                        await session.commit()
+                        continue
+
+                    # Persist to the mailbox (EmailMessage).
+                    try:
+                        att_rows = []
+                        for att in email_data.get("attachments") or []:
+                            url = await EmailService.store_bytes(
+                                att.get("content") or b"",
+                                att.get("filename") or "attachment",
+                                att.get("mimetype"),
+                            )
+                            att_rows.append(
+                                {
+                                    "file": url,
+                                    "filename": att.get("filename") or "attachment",
+                                    "size": len(att.get("content") or b""),
+                                    "mimetype": att.get("mimetype") or "",
+                                }
+                            )
+                        await EmailService.record_message(
+                            direction="Вхідний",
+                            status="Отримано",
+                            subject=email_data.get("subject", ""),
+                            sender=email_data.get("sender", ""),
+                            recipients=email_data.get("recipients", ""),
+                            cc=email_data.get("cc") or None,
+                            email_account=account.get("name"),
+                            body_html=email_data.get("html") or None,
+                            body_text=email_data.get("text") or None,
+                            message_date=EmailService.parse_date(email_data.get("date")),
+                            message_id=email_data.get("message_id"),
+                            attachments=att_rows,
+                            session=session,
+                        )
+                    except Exception:
+                        logger.exception("email.record_inbound_failed")
+
                     await session.commit()
 
         except Exception as e:

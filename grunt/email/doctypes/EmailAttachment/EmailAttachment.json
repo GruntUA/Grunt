@@ -1,0 +1,32 @@
+{
+  "name": "EmailAttachment",
+  "label": "Вкладення листа",
+  "module": "email",
+  "is_child": true,
+  "fields": [
+    {
+      "fieldname": "filename",
+      "label": "Ім'я файлу",
+      "fieldtype": "Text",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "file",
+      "label": "Файл",
+      "fieldtype": "Attach",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "size",
+      "label": "Розмір, Б",
+      "fieldtype": "Int",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "mimetype",
+      "label": "Тип",
+      "fieldtype": "Text",
+      "in_list_view": true
+    }
+  ]
+}
