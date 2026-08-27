@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
+import type { Component } from 'vue'
+import { AlertCircle, AlertTriangle, CheckCircle2, Info } from '@lucide/vue'
 import { useDialog } from '@/core/composables/useDialog'
 import LinkField from '@/components/fields/Link/Link.vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -8,6 +10,20 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DialogFooter } from '@/components/ui/dialog'
 const { state, close } = useDialog()
+
+const MSG_ICON_MAP: Record<string, { icon: Component; class: string }> = {
+  green: { icon: CheckCircle2, class: 'text-green-600 dark:text-green-500' },
+  success: { icon: CheckCircle2, class: 'text-green-600 dark:text-green-500' },
+  red: { icon: AlertCircle, class: 'text-destructive' },
+  error: { icon: AlertCircle, class: 'text-destructive' },
+  orange: { icon: AlertTriangle, class: 'text-amber-500' },
+  yellow: { icon: AlertTriangle, class: 'text-amber-500' },
+  warning: { icon: AlertTriangle, class: 'text-amber-500' },
+  blue: { icon: Info, class: 'text-primary' },
+  info: { icon: Info, class: 'text-primary' },
+}
+const msgIndicator = computed(() => MSG_ICON_MAP[String(state.indicator ?? '')] ?? null)
+
 const promptValue = ref('')
 const formValues = ref<Record<string, any>>({})
 const copiedField = ref<string | null>(null)
@@ -59,7 +75,8 @@ function onOpenChange(v: boolean) {
     <DialogContent class="sm:max-w-md p-0 px-6 pb-4 pt-2">
     <DialogHeader v-if="state.title">
       <DialogTitle class="font-semibold flex items-center gap-2">
-        <span v-if="state.indicator" class="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+        <span v-if="state.indicator && !(state.type === 'msgprint' && msgIndicator)"
+          class="inline-block w-2.5 h-2.5 rounded-full shrink-0"
           :style="{ backgroundColor: state.indicator }" />
         {{ state.title }}
       </DialogTitle>
@@ -69,7 +86,11 @@ function onOpenChange(v: boolean) {
     <!-- Content -->
     <div>
         <!-- Msgprint -->
-        <div v-if="state.type === 'msgprint'" class="text-sm text-foreground leading-relaxed whitespace-pre-wrap py-2" v-html="state.message" />
+        <div v-if="state.type === 'msgprint'" class="flex gap-3 py-2">
+            <component :is="msgIndicator?.icon" v-if="msgIndicator" class="size-5 shrink-0 mt-px" :class="msgIndicator?.class" />
+            <div class="text-sm text-foreground/85 leading-relaxed whitespace-pre-wrap [&_a]:font-medium [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2"
+                v-html="state.message" />
+        </div>
 
         <!-- Confirm -->
         <p v-else-if="state.type === 'confirm'" class="text-sm text-muted-foreground py-2">{{ state.message }}</p>

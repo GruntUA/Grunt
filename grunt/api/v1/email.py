@@ -8,6 +8,7 @@ import aiosmtplib
 import structlog
 
 import grunt
+from grunt.email.service import smtp_connect_kwargs
 
 logger = structlog.get_logger()
 
@@ -29,10 +30,8 @@ async def test_smtp_connection(
     """Attempt SMTP connect+login without sending a message."""
     try:
         async with aiosmtplib.SMTP(
-            hostname=smtp_server,
-            port=int(smtp_port),
-            use_tls=bool(use_tls),
             timeout=10,
+            **smtp_connect_kwargs(smtp_server, smtp_port, bool(use_tls)),
         ) as smtp:
             if smtp_user and smtp_password:
                 await smtp.login(smtp_user, smtp_password)

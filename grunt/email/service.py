@@ -16,6 +16,29 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 
+def smtp_connect_kwargs(host: str, port: int | None, use_tls: bool) -> dict[str, Any]:
+    """Build ``aiosmtplib.SMTP`` kwargs with the correct TLS mode for the port.
+
+    - ``465`` → implicit TLS from the first byte (SMTPS).
+    - ``587`` / ``25`` / other → connect in plaintext, then upgrade via
+      STARTTLS: forced when ``use_tls`` is set, best-effort otherwise.
+
+    Passing ``use_tls=True`` on port 587 (as a naive reading of the account's
+    "use TLS" checkbox suggests) makes the client start a TLS handshake against
+    a plaintext SMTP banner — Gmail then fails with
+    ``[SSL: WRONG_VERSION_NUMBER] wrong version number``.
+    """
+    port = int(port or 587)
+    if port == 465:
+        return {"hostname": host, "port": port, "use_tls": True}
+    return {
+        "hostname": host,
+        "port": port,
+        "use_tls": False,
+        "start_tls": True if use_tls else None,
+    }
+
+
 class EmailService:
     """Service for asynchronous SMTP and IMAP operations."""
 
@@ -42,9 +65,7 @@ class EmailService:
 
         try:
             async with aiosmtplib.SMTP(
-                hostname=smtp_server,
-                port=smtp_port,
-                use_tls=use_tls,
+                **smtp_connect_kwargs(smtp_server, smtp_port, use_tls)
             ) as smtp:
                 if username and password:
                     await smtp.login(username, password)

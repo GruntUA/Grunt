@@ -2,77 +2,175 @@
   "name": "EmailAccount",
   "label": "Обліковий запис пошти",
   "module": "email",
+  "title_field": "email_address",
   "fields": [
+    {
+      "fieldname": "tab_main",
+      "label": "Обліковий запис",
+      "fieldtype": "Tab",
+      "icon": "mail"
+    },
+
+    {
+      "fieldname": "sec_provider",
+      "label": "",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "provider",
+      "label": "Поштова служба",
+      "fieldtype": "Select",
+      "options": "Gmail\nІнший провайдер",
+      "default": "Gmail",
+      "in_list_view": true,
+      "description": "Gmail — сервери SMTP/IMAP і порти заповнюються автоматично, потрібно лише вказати email і пароль додатка. Оберіть «Інший провайдер», щоб ввести параметри вручну."
+    },
     {
       "fieldname": "email_address",
       "label": "Email адреса",
       "fieldtype": "Text",
       "required": true,
-      "in_list_view": true
+      "in_list_view": true,
+      "placeholder": "ivan.petrenko@gmail.com",
+      "description": "Повна адреса пошти. Для Gmail вона ж використовується як логін SMTP."
+    },
+
+    {
+      "fieldname": "sec_gmail",
+      "label": "Крок 1 — пароль додатка Google",
+      "fieldtype": "Section",
+      "depends_on": "eval: (doc.provider || 'Gmail') === 'Gmail'"
+    },
+    {
+      "fieldname": "open_app_passwords",
+      "label": "Відкрити сторінку паролів додатків Google",
+      "fieldtype": "Button",
+      "options": "outline",
+      "icon": "key-round",
+      "description": "Щоб надсилати листи через Gmail, потрібен «пароль додатка», а не звичайний пароль акаунта.\n\n1. Відкрийте акаунт Google → «Безпека» та увімкніть «Двоетапну перевірку» (без неї паролі додатків недоступні).\n2. Натисніть кнопку вище або відкрийте https://myaccount.google.com/apppasswords\n3. Введіть назву додатка (напр. «Grunt») і натисніть «Створити».\n4. Скопіюйте 16-значний код у поле «Пароль SMTP» нижче — пробіли можна не видаляти, вони приберуться автоматично."
+    },
+
+    {
+      "fieldname": "sec_creds",
+      "label": "Крок 2 — автентифікація",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "col_creds_1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "smtp_user",
+      "label": "Користувач SMTP",
+      "fieldtype": "Text",
+      "description": "Логін для SMTP. Зазвичай збігається з email-адресою; для Gmail підставляється автоматично."
+    },
+    {
+      "fieldname": "col_creds_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "smtp_password",
+      "label": "Пароль SMTP (пароль додатка)",
+      "fieldtype": "Text",
+      "mandatory_depends_on": "eval: doc.enable_outgoing",
+      "placeholder": "xxxx xxxx xxxx xxxx",
+      "description": "Для Gmail — 16-значний пароль додатка (App Password). Звичайний пароль акаунта Google не працює."
+    },
+    {
+      "fieldname": "test_connection",
+      "label": "Перевірити з'єднання (SMTP)",
+      "fieldtype": "Button",
+      "options": "secondary",
+      "icon": "plug-zap",
+      "description": "Перевіряє підключення та вхід на SMTP-сервер без надсилання листа."
+    },
+
+    {
+      "fieldname": "sec_outgoing",
+      "label": "Вихідна пошта (SMTP)",
+      "fieldtype": "Section"
     },
     {
       "fieldname": "enable_outgoing",
       "label": "Дозволити вихідну пошту",
       "fieldtype": "Check",
-      "default": false
+      "default": true,
+      "description": "Дозволяє цьому обліковому запису надсилати листи."
+    },
+    {
+      "fieldname": "col_out_1",
+      "fieldtype": "Column"
     },
     {
       "fieldname": "smtp_server",
       "label": "SMTP сервер",
       "fieldtype": "Text",
-      "depends_on": "eval:doc.enable_outgoing"
+      "default": "smtp.gmail.com",
+      "depends_on": "eval: (doc.provider || 'Gmail') !== 'Gmail'",
+      "description": "Для Gmail: smtp.gmail.com — підставляється автоматично."
     },
     {
       "fieldname": "smtp_port",
       "label": "SMTP порт",
       "fieldtype": "Int",
       "default": 587,
-      "depends_on": "eval:doc.enable_outgoing"
+      "depends_on": "eval: (doc.provider || 'Gmail') !== 'Gmail'",
+      "description": "Gmail: 587 (STARTTLS)."
+    },
+    {
+      "fieldname": "col_out_2",
+      "fieldtype": "Column"
     },
     {
       "fieldname": "use_tls",
       "label": "Використовувати TLS",
       "fieldtype": "Check",
       "default": true,
-      "depends_on": "eval:doc.enable_outgoing"
+      "depends_on": "eval: (doc.provider || 'Gmail') !== 'Gmail'"
     },
+
     {
-      "fieldname": "smtp_user",
-      "label": "Користувач SMTP",
-      "fieldtype": "Text",
-      "depends_on": "eval:doc.enable_outgoing"
-    },
-    {
-      "fieldname": "smtp_password",
-      "label": "Пароль SMTP",
-      "fieldtype": "Text",
-      "depends_on": "eval:doc.enable_outgoing"
+      "fieldname": "sec_incoming",
+      "label": "Вхідна пошта (IMAP)",
+      "fieldtype": "Section",
+      "collapsible": true
     },
     {
       "fieldname": "enable_incoming",
       "label": "Дозволити вхідну пошту",
       "fieldtype": "Check",
-      "default": false
+      "default": false,
+      "description": "Читання вхідних листів по IMAP. Для простого надсилання листів не потрібно. Gmail вимагає того самого пароля додатка."
+    },
+    {
+      "fieldname": "col_in_1",
+      "fieldtype": "Column"
     },
     {
       "fieldname": "imap_server",
       "label": "IMAP сервер",
       "fieldtype": "Text",
-      "depends_on": "eval:doc.enable_incoming"
+      "default": "imap.gmail.com",
+      "depends_on": "eval: doc.enable_incoming && (doc.provider || 'Gmail') !== 'Gmail'"
     },
     {
       "fieldname": "imap_port",
       "label": "IMAP порт",
       "fieldtype": "Int",
       "default": 993,
-      "depends_on": "eval:doc.enable_incoming"
+      "depends_on": "eval: doc.enable_incoming && (doc.provider || 'Gmail') !== 'Gmail'"
+    },
+    {
+      "fieldname": "col_in_2",
+      "fieldtype": "Column"
     },
     {
       "fieldname": "use_ssl",
       "label": "Використовувати SSL",
       "fieldtype": "Check",
       "default": true,
-      "depends_on": "eval:doc.enable_incoming"
+      "depends_on": "eval: doc.enable_incoming && (doc.provider || 'Gmail') !== 'Gmail'"
     }
   ],
   "permissions": [

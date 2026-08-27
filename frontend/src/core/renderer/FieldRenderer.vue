@@ -72,7 +72,7 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
       @selection-change="(rowNames: string[]) => emit('table-selection-change', field.fieldname, rowNames)"
     />
 
-    <p v-if="field.description" class="text-xs text-muted-foreground leading-snug">
+    <p v-if="field.description" class="text-xs text-muted-foreground leading-snug whitespace-pre-line">
       {{ field.description }}
     </p>
 
