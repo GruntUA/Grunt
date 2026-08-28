@@ -48,8 +48,7 @@ const AGGREGATIONS = [
 ]
 
 onMounted(async () => {
-    const res = await api.get('/api/v1/meta/doctypes')
-    doctypes.value = res.data
+    doctypes.value = (await metaApi.list()).filter(dt => !dt.is_child)
 
     // Auto-select from query
     if (route.query.doctype) {
