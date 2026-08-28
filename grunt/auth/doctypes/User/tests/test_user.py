@@ -4,8 +4,8 @@ from grunt.auth.doctypes.User.user import User
 
 
 @pytest.mark.asyncio
-async def test_user_full_name_sync():
-    """Verify that full_name is correctly constructed from parts."""
+async def test_user_controller_full_name_and_validation():
+    """full_name is built from name parts; first/last name are required."""
     user = User(
         doctype="User",
         data={
@@ -19,28 +19,18 @@ async def test_user_full_name_sync():
     await user.before_save()
     assert user.full_name == "Іванов Іван Іванович"
 
-    # Test without middle name
     user.middle_name = ""
     await user.before_save()
     assert user.full_name == "Іванов Іван"
 
-
-@pytest.mark.asyncio
-async def test_user_validation():
-    """Verify that required name fields are validated."""
-    user = User(
-        doctype="User",
-        data={
-            "email": "test@example.com",
-        },
-    )
-
+    # Required name fields are enforced by validate()
+    bare = User(doctype="User", data={"email": "test@example.com"})
     with pytest.raises(ValueError, match="Ім'я є обов'язковим"):
-        await user.validate()
+        await bare.validate()
 
-    user.first_name = "Іван"
+    bare.first_name = "Іван"
     with pytest.raises(ValueError, match="Прізвище є обов'язковим"):
-        await user.validate()
+        await bare.validate()
 
-    user.last_name = "Іванов"
-    await user.validate()  # Should not raise
+    bare.last_name = "Іванов"
+    await bare.validate()  # should not raise

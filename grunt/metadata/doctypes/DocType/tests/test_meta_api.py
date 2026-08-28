@@ -1,10 +1,9 @@
-"""Tests for the Meta API — DocType CRUD and sync (migrated to whitelisted methods)."""
+"""Tests for the Meta API — DocType CRUD, sync, and schema export (migrated to
+whitelisted methods)."""
 
 from __future__ import annotations
 
 import pytest
-
-# Direct API tests don't need AsyncClient
 
 SAMPLE_DOCTYPE = {
     "name": "Task",
@@ -29,92 +28,61 @@ SAMPLE_DOCTYPE = {
     ],
 }
 
-# ── Tests ────────────────────────────────────────────────────────────────
-
 
 @pytest.mark.asyncio
-@pytest.mark.asyncio
-async def test_create_doctype(ctx):
-    """POST /method/save_doctype → 200."""
-    from grunt.api.v1.meta import save_doctype
-
-    data = await save_doctype(doctype_data=SAMPLE_DOCTYPE)
-    assert data["name"] == "Task"
-    assert data["module"] == "core"
-    assert len(data["fields"]) == 3
-
-
-@pytest.mark.asyncio
-async def test_list_doctypes(ctx):
-    """GET /method/list_doctypes → contains created DocType."""
-    from grunt.api.v1.meta import list_doctypes, save_doctype
-
-    await save_doctype(doctype_data=SAMPLE_DOCTYPE)
-    items = await list_doctypes()
-    assert any(item["name"] == "Task" for item in items)
-
-
-@pytest.mark.asyncio
-async def test_get_one_doctype(ctx):
-    """GET /method/get_doctype?name=Task → returns correct fields."""
-    from grunt.api.v1.meta import get_doctype, save_doctype
-
-    await save_doctype(doctype_data=SAMPLE_DOCTYPE)
-    data = await get_doctype(name="Task")
-    assert data["name"] == "Task"
-    assert data["label"] == "Завдання"
-    field_names = [f["fieldname"] for f in data["fields"]]
-    assert "title" in field_names
-    assert "status" in field_names
-
-
-@pytest.mark.asyncio
-async def test_update_doctype(ctx):
-    """POST /method/save_doctype (update) → 200."""
-    from grunt.api.v1.meta import save_doctype
-
-    await save_doctype(doctype_data=SAMPLE_DOCTYPE)
-
-    updated = {
-        **SAMPLE_DOCTYPE,
-        "fields": SAMPLE_DOCTYPE["fields"]
-        + [
-            {"fieldname": "deadline", "label": "Дедлайн", "fieldtype": "Date"},
-        ],
-    }
-    data = await save_doctype(doctype_data=updated)
-    assert len(data["fields"]) == 4
-
-
-@pytest.mark.asyncio
-async def test_delete_doctype(ctx):
-    """DELETE via /method/delete_doctype → 200, then GET → 404."""
+async def test_doctype_crud_lifecycle(ctx):
+    """save → get → list → sync → update → delete → 404, on one DocType."""
     from fastapi import HTTPException
 
-    from grunt.api.v1.meta import delete_doctype, get_doctype, save_doctype
+    from grunt.api.v1.meta import (
+        delete_doctype,
+        get_doctype,
+        list_doctypes,
+        save_doctype,
+        sync_doctype,
+    )
 
-    await save_doctype(doctype_data=SAMPLE_DOCTYPE)
+    # create
+    created = await save_doctype(doctype_data=SAMPLE_DOCTYPE)
+    assert created["name"] == "Task"
+    assert created["module"] == "core"
+    assert len(created["fields"]) == 3
+
+    # get one
+    fetched = await get_doctype(name="Task")
+    assert fetched["label"] == "Завдання"
+    assert {"title", "status", "priority"} <= {f["fieldname"] for f in fetched["fields"]}
+
+    # list
+    assert any(item["name"] == "Task" for item in await list_doctypes())
+
+    # sync the physical table
+    synced = await sync_doctype(name="Task")
+    assert synced["name"] == "Task"
+    assert "table_name" in synced
+
+    # update — add a field
+    updated = await save_doctype(
+        doctype_data={
+            **SAMPLE_DOCTYPE,
+            "fields": [
+                *SAMPLE_DOCTYPE["fields"],
+                {"fieldname": "deadline", "label": "Дедлайн", "fieldtype": "Date"},
+            ],
+        }
+    )
+    assert len(updated["fields"]) == 4
+
+    # delete → subsequent get 404s
     await delete_doctype(name="Task")
-
     with pytest.raises(HTTPException) as excinfo:
         await get_doctype(name="Task")
     assert excinfo.value.status_code == 404
 
 
 @pytest.mark.asyncio
-async def test_sync_doctype(ctx):
-    """POST /method/sync_doctype → 200."""
-    from grunt.api.v1.meta import save_doctype, sync_doctype
-
-    await save_doctype(doctype_data=SAMPLE_DOCTYPE)
-    data = await sync_doctype(name="Task")
-    assert data["name"] == "Task"
-    assert "table_name" in data
-
-
-@pytest.mark.asyncio
-async def test_duplicate_doctype_409(ctx):
-    """Creating a duplicate DocType → ApplicationError."""
+async def test_duplicate_doctype_rejected(ctx):
+    """Creating a DocType whose name already exists → ApplicationError."""
     from grunt.api.messages import ApplicationError
     from grunt.api.v1.meta import save_doctype
 
@@ -122,3 +90,39 @@ async def test_duplicate_doctype_409(ctx):
     with pytest.raises(ApplicationError) as excinfo:
         await save_doctype(doctype_data={**SAMPLE_DOCTYPE, "__is_new": True})
     assert "already exists" in excinfo.value.message
+
+
+# ── Schema export ────────────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_export_schemas_all(ctx):
+    """export_schemas() with no filter returns every shipped schema."""
+    from grunt.api.v1.meta import export_schemas
+
+    data = await export_schemas()
+    assert isinstance(data, dict)
+    assert "User" in data
+    assert "Role" in data
+    assert "fields" in data["User"]
+
+
+@pytest.mark.asyncio
+async def test_export_schemas_filtered(ctx):
+    """export_schemas(names=...) restricts the result to the named DocTypes."""
+    from grunt.api.v1.meta import export_schemas
+
+    data = await export_schemas(names=["User", "Role"])
+    assert set(data.keys()) == {"User", "Role"}
+
+
+@pytest.mark.asyncio
+async def test_export_schemas_module(ctx):
+    """export_schemas(module=...) restricts the result to one module."""
+    from grunt.api.v1.meta import export_schemas
+
+    # DocType "User" is in module "auth"
+    data = await export_schemas(module="auth")
+    assert "User" in data
+    for dt in data.values():
+        assert dt["module"] == "auth"

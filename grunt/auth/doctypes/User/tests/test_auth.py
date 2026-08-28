@@ -1,4 +1,4 @@
-"""Tests for the Auth system (migrated to whitelisted methods)."""
+"""Tests for the Auth system (whitelisted methods + HTTP surface)."""
 
 from __future__ import annotations
 
@@ -11,92 +11,56 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.asyncio
-async def test_register_login_me(ctx, client: AsyncClient):
-    """Full flow: register → login → whoami."""
-    # Register via direct API
-    u = await ctx.new_doc(
-        "User",
-        {
-            "email": "admin@grunt.example.com",
-            "password": "secret",
-            "first_name": "Admin",
-            "last_name": "Root",
-        },
-    )
-    await ctx.db._session().commit()
+async def test_session_lifecycle(ctx, client: AsyncClient):
+    """register → login → whoami → update_me, carrying name + language/timezone."""
+    from grunt.auth.doctypes.User.user import create_user
 
-    # Login (Keep HTTP to verify JWT generation)
-    resp = await client.post(
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        user = await create_user(
+            "admin@grunt.example.com", "Str0ngPass", "Admin", "Root", None
+        )
+        await ctx.db.set_value(
+            "User", user.id, {"language": "en", "timezone": "Europe/Warsaw"}
+        )
+        await ctx.db._session().commit()
+
+    login = await client.post(
         "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
-        json={"email": "admin@grunt.example.com", "password": "secret"},
+        json={"email": "admin@grunt.example.com", "password": "Str0ngPass"},
     )
-    assert resp.status_code == 200
-    token = resp.json()["data"]["access_token"]
-    assert token
+    assert login.status_code == 200
+    body = login.json()["data"]
+    assert body["access_token"]
+    assert body["user"]["language"] == "en"
+    assert body["user"]["timezone"] == "Europe/Warsaw"
 
-    # whoami via whitelisted method directly
-    from grunt.auth.doctypes.User.user import User as UserController
-    from grunt.auth.doctypes.User.user import whoami
-
-    # Wrap dict in controller to support attribute access in context
-    u_obj = UserController(doctype="User", data=u)
-    async with ctx.context(ctx.db._session(), ctx._require_engine(), u_obj):
-        me = await whoami()
-        assert me["email"] == "admin@grunt.example.com"
-        assert me["full_name"] == "Root Admin"
-
-
-@pytest.mark.asyncio
-async def test_first_user_is_superadmin(ctx):
-    """The first registered user gets is_superadmin=True."""
-    from grunt.auth.doctypes.User.user import get_user_by_email, register
-
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
-        # First user
-        await register(
-            email="first@grunt.example.com",
-            password="pass1",
-            first_name="First",
-            last_name="User",
+    headers = {"Authorization": f"Bearer {body['access_token']}"}
+    me = (
+        await client.get(
+            "/api/v1/method/grunt.auth.doctypes.User.user.whoami", headers=headers
         )
-        await ctx.db._session().commit()
+    ).json()["data"]
+    assert me["email"] == "admin@grunt.example.com"
+    assert me["full_name"] == "Root Admin"
+    assert me["language"] == "en"
+    assert me["timezone"] == "Europe/Warsaw"
 
-        u1 = await get_user_by_email("first@grunt.example.com")
-        assert u1 is not None
-        assert u1.is_superadmin is True
+    upd = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.update_me_api",
+        json={"language": "uk", "timezone": "UTC"},
+        headers=headers,
+    )
+    assert upd.status_code == 200
+    data = upd.json()["data"]
+    assert data["language"] == "uk"
+    assert data["timezone"] == "UTC"
 
-        # Second user
-        await register(
-            email="second@grunt.example.com",
-            password="pass2",
-            first_name="Second",
-            last_name="User",
-        )
-        await ctx.db._session().commit()
-
-        u2 = await get_user_by_email("second@grunt.example.com")
-        assert u2 is not None
-        assert u2.is_superadmin is False
-
-
-@pytest.mark.asyncio
-async def test_wrong_password_returns_401(ctx):
-    """Incorrect password → authenticate() returns None."""
-    from grunt.auth.doctypes.User.user import authenticate, create_user
-
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
-        await create_user(
-            "user@grunt.example.com",
-            "correct",
-            "Wrong",
-            "Password",
-            None,
-        )
-        await ctx.db._session().commit()
-
-    async with ctx.context(ctx.db._session(), ctx._require_engine()):
-        result = await authenticate("user@grunt.example.com", "wrong")
-    assert result is None
+    bad = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.update_me_api",
+        json={"language": "de"},
+        headers=headers,
+    )
+    assert bad.status_code == 422
 
 
 @pytest.mark.asyncio
@@ -118,8 +82,55 @@ async def _set_settings(ctx, **values) -> None:
 
 
 @pytest.mark.asyncio
-async def test_lockout_uses_system_settings(ctx):
-    """max_login_attempts / account_lockout_duration come from SystemSettings."""
+async def test_first_user_superadmin_and_registration_gate(ctx):
+    """First user is always allowed and becomes superadmin; later self-signup
+    obeys allow_user_registration and receives default_role."""
+    from grunt.api.messages import ApplicationError
+    from grunt.auth.doctypes.User.user import get_user_by_email, register
+
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        # First user: allowed even with registration disabled, gets superadmin.
+        await _set_settings(ctx, allow_user_registration=False, default_role=None)
+        await register(
+            email="one@grunt.example.com", password="x", first_name="One", last_name="U"
+        )
+        await ctx.db._session().commit()
+
+        u1 = await get_user_by_email("one@grunt.example.com")
+        assert u1 is not None and u1.is_superadmin is True
+
+        # Second user is now blocked.
+        with pytest.raises(ApplicationError) as excinfo:
+            await register(
+                email="two@grunt.example.com", password="x", first_name="Two", last_name="U"
+            )
+        assert excinfo.value.code == "FORBIDDEN"
+
+        # Enable registration + configure a default role.
+        await ctx.new_doc("Role", {"role_name": "Member"})
+        await _set_settings(ctx, allow_user_registration=True, default_role="Member")
+
+        res = await register(
+            email="two@grunt.example.com", password="x", first_name="Two", last_name="U"
+        )
+        await ctx.db._session().commit()
+
+        u2 = await get_user_by_email("two@grunt.example.com")
+        assert u2 is not None and u2.is_superadmin is False
+
+        roles = await ctx.db.get_all(
+            "UserRole",
+            filters={"user_id": res["name"], "role_name": "Member"},
+            fields=["name"],
+            limit=1,
+        )
+        assert roles, "default_role should have been assigned"
+
+
+@pytest.mark.asyncio
+async def test_lockout_and_wrong_password(ctx):
+    """Wrong password → authenticate() returns None; after max_login_attempts
+    (from SystemSettings) the account locks for account_lockout_duration."""
     from grunt.auth.doctypes.User.user import authenticate, create_user
 
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
@@ -145,44 +156,6 @@ async def test_lockout_uses_system_settings(ctx):
             )
         )[0]
     assert row["locked_until"] is not None
-
-
-@pytest.mark.asyncio
-async def test_registration_gate_and_default_role(ctx):
-    """allow_user_registration blocks self-signup (after the first user);
-    default_role is granted to newcomers."""
-    from grunt.api.messages import ApplicationError
-    from grunt.auth.doctypes.User.user import register
-
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
-        # first user is always allowed, even with registration disabled
-        await _set_settings(ctx, allow_user_registration=False, default_role=None)
-        await register(email="one@grunt.example.com", password="x", first_name="One", last_name="U")
-        await ctx.db._session().commit()
-
-        # second user is now blocked
-        with pytest.raises(ApplicationError) as excinfo:
-            await register(
-                email="two@grunt.example.com", password="x", first_name="Two", last_name="U"
-            )
-        assert excinfo.value.code == "FORBIDDEN"
-
-        # enable + configure a default role
-        await ctx.new_doc("Role", {"role_name": "Member"})
-        await _set_settings(ctx, allow_user_registration=True, default_role="Member")
-
-        res = await register(
-            email="two@grunt.example.com", password="x", first_name="Two", last_name="U"
-        )
-        await ctx.db._session().commit()
-
-        roles = await ctx.db.get_all(
-            "UserRole",
-            filters={"user_id": res["name"], "role_name": "Member"},
-            fields=["name"],
-            limit=1,
-        )
-        assert roles, "default_role should have been assigned"
 
 
 @pytest.mark.asyncio
@@ -239,48 +212,3 @@ async def test_register_rejects_weak_password(ctx):
             first_name="Strong",
             last_name="Pw",
         )
-
-
-@pytest.mark.asyncio
-async def test_whoami_and_update_me_carry_language_and_timezone(ctx, client: AsyncClient):
-    """Per-user language/timezone round-trip: whoami exposes them, update_me sets them."""
-    from grunt.auth.doctypes.User.user import create_user
-
-    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
-        user = await create_user("prefs@grunt.example.com", "Str0ngPass", "Pref", "S", None)
-        await ctx.db.set_value(
-            "User", user.id, {"language": "en", "timezone": "Europe/Warsaw"}
-        )
-        await ctx.db._session().commit()
-
-    login = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
-        json={"email": "prefs@grunt.example.com", "password": "Str0ngPass"},
-    )
-    body = login.json()["data"]
-    assert body["user"]["language"] == "en"
-    assert body["user"]["timezone"] == "Europe/Warsaw"
-    headers = {"Authorization": f"Bearer {body['access_token']}"}
-
-    me = await client.get(
-        "/api/v1/method/grunt.auth.doctypes.User.user.whoami", headers=headers
-    )
-    assert me.json()["data"]["language"] == "en"
-    assert me.json()["data"]["timezone"] == "Europe/Warsaw"
-
-    upd = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.update_me_api",
-        json={"language": "uk", "timezone": "UTC"},
-        headers=headers,
-    )
-    assert upd.status_code == 200
-    data = upd.json()["data"]
-    assert data["language"] == "uk"
-    assert data["timezone"] == "UTC"
-
-    bad = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.update_me_api",
-        json={"language": "de"},
-        headers=headers,
-    )
-    assert bad.status_code == 422
