@@ -1,0 +1,67 @@
+{
+  "name": "Hook",
+  "label": "Хуки",
+  "module": "scripting",
+  "is_virtual": true,
+  "track_changes": false,
+  "title_field": "event",
+  "search_fields": [
+    "event",
+    "handler",
+    "reference_doctype"
+  ],
+  "list_view": {
+    "fields": [
+      "source",
+      "reference_doctype",
+      "event",
+      "handler",
+      "priority"
+    ],
+    "sort_by": "reference_doctype",
+    "sort_order": "asc"
+  },
+  "fields": [
+    {
+      "fieldname": "source",
+      "label": "Джерело",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "reference_doctype",
+      "label": "DocType",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "event",
+      "label": "Подія",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "handler",
+      "label": "Обробник / Скрипт",
+      "fieldtype": "SmallText",
+      "in_list_view": true,
+      "read_only": true
+    },
+    {
+      "fieldname": "priority",
+      "label": "Пріоритет",
+      "fieldtype": "Int",
+      "in_list_view": true,
+      "read_only": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true
+    }
+  ]
+}

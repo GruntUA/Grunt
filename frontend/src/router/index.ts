@@ -173,9 +173,7 @@ const router = createRouter({
         },
         {
           path: 'hooks',
-          name: 'hook-manager',
-          component: () => import('@/pages/admin/HookManager.vue'),
-          props: true,
+          redirect: (route) => `/${route.params.workspaceName}/Hook`,
         },
         {
           path: 'activity-log',

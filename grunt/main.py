@@ -494,6 +494,7 @@ async def grunt_error_handler(request: Request, exc: GruntError) -> JSONResponse
 async def application_error_handler(request: Request, exc: ApplicationError) -> JSONResponse:
     """Map ApplicationError to appropriate HTTP status codes based on code."""
     status_map = {
+        "UNAUTHORIZED": 401,
         "PERMISSION_DENIED": 403,
         "NOT_FOUND": 404,
         "CONFLICT": 409,

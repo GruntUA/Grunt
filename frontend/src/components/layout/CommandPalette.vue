@@ -102,7 +102,7 @@ async function handleLogout() {
 const staticActions = computed(() => [
     { id: 'quick-create', title: t('Quick create (Ctrl+N)'), icon: FilePlus, action: () => { quickCreateOpen.value = true; uiStore.openCommandPalette() }, category: t('Actions') },
     { id: 'new-doctype', title: t('Create new DocType'), icon: Plus, action: () => navigateTo('/grunt/DocType/new'), category: t('Actions') },
-    { id: 'view-hooks', title: t('View hooks'), icon: Zap, action: () => navigateTo('/grunt/hooks'), category: t('Settings') },
+    { id: 'view-hooks', title: t('View hooks'), icon: Zap, action: () => navigateTo('/grunt/Hook'), category: t('Settings') },
     { id: 'activity-log', title: t('Activity log'), icon: Activity, action: () => navigateTo('/grunt/activity-log'), category: t('Settings') },
     { id: 'settings', title: t('System settings'), icon: Settings, action: () => navigateTo('/grunt/SystemSettings/SystemSettings'), category: t('Actions') },
     { id: 'logout', title: t('Log out'), icon: LogOut, action: handleLogout, category: t('Actions') },

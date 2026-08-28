@@ -24,11 +24,11 @@ const client: AxiosInstance = axios.create({
 
 const MUTABLE_METHODS = new Set(['post', 'put', 'patch', 'delete'])
 const PUBLIC_AUTH_PATHS = new Set([
-  '/app/login',
-  '/app/register',
-  '/app/forgot-password',
-  '/app/reset-password',
-  '/app/mfa-verify',
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/reset-password',
+  '/mfa-verify',
 ])
 
 async function redirectToRoute(name: 'login' | 'forbidden') {
@@ -71,7 +71,15 @@ client.interceptors.response.use(
       url.includes('/auth/register') ||
       url.includes('/auth/refresh') ||
       url.includes('/auth/logout') ||
-      url.includes('/auth/mfa')
+      url.includes('/auth/mfa') ||
+      url.includes('.User.user.login_api') ||
+      url.includes('.User.user.refresh_api') ||
+      url.includes('.User.user.logout_api') ||
+      url.includes('.User.user.register_full_name_api') ||
+      url.includes('.User.user.forgot_password_api') ||
+      url.includes('.User.user.reset_password_api') ||
+      url.includes('.User.user.mfa_login_api') ||
+      url.includes('.User.user.verify_mfa')
 
     if (error.response?.status === 401 && !isAuthEndpoint && !originalConfig._retried) {
       originalConfig._retried = true
