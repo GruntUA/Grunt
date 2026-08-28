@@ -299,11 +299,14 @@ class ReportEngine:
 
         stmt = select(*select_cols)
 
-        # Apply filters (simple equality)
-        for key, val in filters.items():
-            col = table.c.get(key)
-            if col is not None:
-                stmt = stmt.where(col == val)
+        # Apply filters — operator-aware, same vocabulary as list views:
+        # ``field__gte`` / ``__like`` / ``__ne`` / … ; a bare ``field`` means
+        # equality. Empty values are dropped so an untouched filter is a no-op.
+        from grunt.db.api import build_clauses
+
+        active_filters = {k: v for k, v in filters.items() if v not in (None, "", [])}
+        for clause in build_clauses(table, active_filters):
+            stmt = stmt.where(clause)
 
         # Row-level security
         from grunt.permissions.query import apply_permission_filter

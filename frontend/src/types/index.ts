@@ -270,8 +270,22 @@ export interface ReportColumn {
   fieldtype?: string
 }
 
+export type ReportChartType = 'bar' | 'line' | 'area' | 'pie' | 'donut'
+
+export interface ReportChartConfig {
+  type: ReportChartType
+  /** Column whose values become the category axis / slice labels. */
+  label_field: string
+  /** One or more numeric columns rendered as series. */
+  value_fields: string[]
+  stacked?: boolean
+  /** Accent for single-series charts; multi-series uses the palette. */
+  color?: string
+}
+
 export interface ReportSummary {
-  id: string
+  /** Doctype identifier (the `grunt_report` PK column — no separate `id`). */
+  name: string
   report_name: string
   report_type: string
   doctype?: string | null
@@ -283,6 +297,7 @@ export interface ReportDetail extends ReportSummary {
   script?: string | null
   columns?: ReportColumn[] | null
   filters_config?: unknown[] | null
+  chart_config?: ReportChartConfig | null
 }
 
 export interface ReportResult {
@@ -377,6 +392,8 @@ export interface DashboardWidget {
   icon?: string | null
   link_type?: LinkType | null
   description?: string | null
+  /** For chart_bar/chart_area/donut: draw data from this saved Report (report_name) instead of a doctype aggregate. */
+  report?: string | null
   content?: string | null
   sequence: number
 }

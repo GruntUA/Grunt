@@ -260,6 +260,50 @@ async def test_run_report_forbids_delete(ctx):
         await run_report(name="Bad Report", filters={})
 
 
+@pytest.mark.asyncio
+async def test_run_list_report_operator_filters(ctx):
+    """A List report applies operator-aware filters (``field__eq`` / ``__like`` / …)."""
+    from grunt.reports.doctypes.Report.report import run as run_report
+
+    for rn, rt in [("L Alpha", "Query"), ("L Beta", "Query"), ("L Gamma", "Script")]:
+        await ctx.new_doc(
+            "Report",
+            {
+                "report_name": rn,
+                "report_type": rt,
+                "query": "SELECT 1",
+                "script": "result = {'data': []}",
+            },
+        )
+    await ctx.new_doc(
+        "Report",
+        {
+            "report_name": "List Over Reports",
+            "report_type": "List",
+            "doctype": "Report",
+            "columns": [
+                {"fieldname": "report_name", "label": "Name"},
+                {"fieldname": "report_type", "label": "Type"},
+            ],
+            "filters_config": [
+                {"fieldname": "report_type", "label": "Type", "fieldtype": "Select"},
+                {"fieldname": "report_name", "label": "Name", "fieldtype": "Data"},
+            ],
+        },
+    )
+    await ctx.db._session().commit()
+
+    eq_res = await run_report(name="List Over Reports", filters={"report_type__eq": "Script"})
+    assert {r["report_name"] for r in eq_res["data"]} == {"L Gamma"}
+
+    like_res = await run_report(name="List Over Reports", filters={"report_name__like": "L "})
+    assert {r["report_name"] for r in like_res["data"]} == {"L Alpha", "L Beta", "L Gamma"}
+
+    # An empty filter value is a no-op (untouched filter in the UI).
+    noop_res = await run_report(name="List Over Reports", filters={"report_type__eq": ""})
+    assert len(noop_res["data"]) >= 4
+
+
 # ── export_report_xlsx ──────────────────────────────────────────────────
 
 

@@ -45,7 +45,7 @@ onMounted(load)
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
       <div
         v-for="report in reports"
-        :key="report.id"
+        :key="report.name"
         class="bg-card border border-border rounded-lg p-5 cursor-pointer hover:border-primary hover:shadow-sm transition-all"
         @click="router.push(`/reports/${encodeURIComponent(report.report_name)}`)"
       >

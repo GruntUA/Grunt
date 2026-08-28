@@ -113,6 +113,48 @@ async def test_unknown_widget_type_returns_none(ctx, widget_source):
 
 
 @pytest.mark.asyncio
+async def test_chart_widget_sourced_from_report(ctx, widget_source):
+    """A chart_bar widget with `report` set draws its series from that report."""
+    from grunt.api.v1.dashboard import _compute_widget_data
+
+    await ctx.new_doc(
+        "Report",
+        {
+            "report_name": "Widget Src By Status",
+            "report_type": "List",
+            "doctype": "WidgetSourceItem",
+            "columns": [
+                {"fieldname": "status", "label": "Status"},
+                {
+                    "fieldname": "amount",
+                    "label": "Amount",
+                    "aggregation": "sum",
+                    "fieldtype": "Int",
+                },
+            ],
+            "chart_config": {"type": "bar", "label_field": "status", "value_fields": ["amount"]},
+        },
+    )
+    await ctx.db._session().commit()
+
+    result = await _compute_widget_data(
+        _widget("chart_bar", doctype="", report="Widget Src By Status")
+    )
+    series = dict(zip(result["labels"], result["values"], strict=True))
+    assert series == {"Active": 30.0, "Draft": 5.0}
+
+
+@pytest.mark.asyncio
+async def test_report_sourced_widget_missing_report_is_empty(ctx, widget_source):
+    from grunt.api.v1.dashboard import _compute_widget_data
+
+    result = await _compute_widget_data(
+        _widget("donut", doctype="", report="No Such Report")
+    )
+    assert result == {"labels": [], "values": []}
+
+
+@pytest.mark.asyncio
 async def test_get_page_data_computes_all_widgets_by_name(ctx, widget_source):
     from grunt.api.v1.dashboard import get_page_data
 

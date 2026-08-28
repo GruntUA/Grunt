@@ -33,13 +33,13 @@ export const reportsApi = {
   create: (payload: Partial<ReportDetail>): Promise<ReportDetail> =>
     client.post('/api/v1/docs/Report', payload).then(r => r.data.data),
 
-  /** `id` is the doctype's internal `name` (from a prior list()/get() result). */
-  update: (id: string, payload: Partial<ReportDetail>): Promise<ReportDetail> =>
-    client.put(`/api/v1/docs/Report/${encodeURIComponent(id)}`, payload).then(r => r.data.data),
+  /** `name` is the doctype's internal id (from a prior list()/get() result). */
+  update: (name: string, payload: Partial<ReportDetail>): Promise<ReportDetail> =>
+    client.put(`/api/v1/docs/Report/${encodeURIComponent(name)}`, payload).then(r => r.data.data),
 
-  /** `id` is the doctype's internal `name` (from a prior list()/get() result). */
-  delete: (id: string): Promise<void> =>
-    client.delete(`/api/v1/docs/Report/${encodeURIComponent(id)}`).then(() => undefined),
+  /** `name` is the doctype's internal id (from a prior list()/get() result). */
+  delete: (name: string): Promise<void> =>
+    client.delete(`/api/v1/docs/Report/${encodeURIComponent(name)}`).then(() => undefined),
 
   run: (reportName: string, filters: Record<string, unknown> = {}): Promise<ReportResult> =>
     client

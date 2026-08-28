@@ -291,7 +291,7 @@ const flatResults = computed(() => results.value)
                 <template v-else>
                     <div v-for="(items, category) in groupedResults" :key="category" class="mb-4 last:mb-2">
                         <p
-                            class="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest opacity-60">
+                            class="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                             {{ category }}
                         </p>
                         <div class="space-y-0.5">
@@ -302,7 +302,7 @@ const flatResults = computed(() => results.value)
                                 @mouseenter="selectedIndex = flatResults.findIndex(r => r.id === item.id)">
 
                                 <div class="size-8 rounded-lg border flex items-center justify-center shrink-0"
-                                    :class="flatResults[selectedIndex]?.id === item.id ? 'bg-white/20 border-white/20' : 'bg-background border-border/50'">
+                                    :class="flatResults[selectedIndex]?.id === item.id ? 'bg-primary-foreground/10 border-primary-foreground/20' : 'bg-background border-border/50'">
                                     <component :is="item.icon" class="size-4" />
                                 </div>
 
@@ -310,13 +310,13 @@ const flatResults = computed(() => results.value)
                                     <div class="flex items-center gap-2">
                                         <span class="font-semibold text-sm truncate">{{ item.title }}</span>
                                         <span v-if="item.doctype"
-                                            class="text-xs px-1.5 py-0.5 rounded-full font-semibold uppercase opacity-70"
-                                            :class="flatResults[selectedIndex]?.id === item.id ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'">
+                                            class="text-xs px-1.5 py-0.5 rounded-full font-semibold uppercase"
+                                            :class="flatResults[selectedIndex]?.id === item.id ? 'bg-primary-foreground/15 text-primary-foreground' : 'bg-muted text-muted-foreground'">
                                             {{ item.doctype_label || item.doctype }}
                                         </span>
                                     </div>
                                     <p v-if="item.subtitle" class="text-xs truncate opacity-80"
-                                        :class="flatResults[selectedIndex]?.id === item.id ? 'text-white/80' : 'text-muted-foreground'">
+                                        :class="flatResults[selectedIndex]?.id === item.id ? 'text-primary-foreground/80' : 'text-muted-foreground'">
                                         {{ item.subtitle }}
                                     </p>
                                 </div>

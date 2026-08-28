@@ -1,13 +1,23 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { formatDate, formatDateTime } from '@/core/datetime'
 import { useRouter } from 'vue-router'
 import { reportsApi } from '@/core/api/reports'
+import { metaApi } from '@/core/api/meta'
 import { useAuthStore } from '@/stores/auth'
-import { Download, RefreshCw, Settings2, FileBarChart2, FileX } from '@lucide/vue'
+import type { ActiveFilter, DocField, ReportChartConfig } from '@/types'
+import { Download, RefreshCw, Settings2, FileBarChart2, FileX, ImageDown } from '@lucide/vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import FilterBar from '@/components/views/FilterBar.vue'
+import ReportChart from '@/components/reports/ReportChart.vue'
+
+/** Frontend display operator → backend filter-key suffix (see grunt/db/api.py build_clauses). */
+const OP_SUFFIX: Record<string, string> = {
+    '=': '', '!=': '__ne', 'like': '__like',
+    '>': '__gt', '<': '__lt', '>=': '__gte', '<=': '__lte', 'child_of': '__child_of',
+}
 
 const props = defineProps<{
     workspaceName: string
@@ -23,12 +33,61 @@ const columns = ref<any[]>([])
 const loading = ref(false)
 const meta = ref<any>(null)
 const filters = ref<Record<string, any>>({})
+const filterFields = ref<DocField[]>([])
+let filterFieldsLoaded = false
+
+const chartConfig = computed<ReportChartConfig | null>(() => {
+    const c = report.value?.chart_config
+    return c && c.type && c.label_field ? c as ReportChartConfig : null
+})
+const viewMode = ref<'table' | 'chart' | 'both'>('table')
+watch(chartConfig, (c) => { viewMode.value = c ? 'both' : 'table' })
+
+const chartRef = ref<InstanceType<typeof ReportChart> | null>(null)
+function exportChartPng() {
+    const url = chartRef.value?.toPng()
+    if (!url) return
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${report.value?.report_name || 'report'}.png`
+    a.click()
+}
+
+async function loadFilterFields() {
+    filterFieldsLoaded = true
+    const cfg = report.value?.filters_config
+    const doctype = report.value?.doctype
+    if (!Array.isArray(cfg) || cfg.length === 0 || !doctype) {
+        filterFields.value = []
+        return
+    }
+    try {
+        const dt = await metaApi.get(doctype)
+        const wanted = new Set(cfg.map((c: any) => c.fieldname))
+        filterFields.value = (dt.fields ?? [])
+            .filter((f) => wanted.has(f.fieldname))
+            .map((f) => ({ ...f, in_filter: true }))
+    } catch {
+        filterFields.value = []
+    }
+}
+
+function onFiltersChange(active: ActiveFilter[]) {
+    const next: Record<string, any> = {}
+    for (const f of active) {
+        if (f.value === '' || f.value == null) continue
+        next[`${f.fieldname}${OP_SUFFIX[f.op] ?? ''}`] = f.value
+    }
+    filters.value = next
+    fetchReport()
+}
 
 async function fetchReport() {
     loading.value = true
     try {
         // 1. Fetch metadata
         report.value = await reportsApi.get(props.reportName)
+        if (!filterFieldsLoaded) await loadFilterFields()
 
         // 2. Run report
         const runRes = await reportsApi.run(props.reportName, filters.value)
@@ -41,7 +100,11 @@ async function fetchReport() {
 }
 
 onMounted(fetchReport)
-watch(() => props.reportName, fetchReport)
+watch(() => props.reportName, () => {
+    filterFieldsLoaded = false
+    filters.value = {}
+    fetchReport()
+})
 
 function formatCell(val: any, fieldtype: string): string {
     if (val === null || val === undefined || val === '') return '—'
@@ -74,6 +137,20 @@ function openBuilder() {
             </div>
             
             <div class="flex items-center gap-2">
+                <div v-if="chartConfig" class="flex rounded-md border overflow-hidden mr-1 text-xs font-medium">
+                    <button
+                        v-for="m in ([['table', 'Таблиця'], ['chart', 'Графік'], ['both', 'Обидва']] as const)"
+                        :key="m[0]"
+                        class="px-2.5 py-1.5 transition-colors"
+                        :class="viewMode === m[0] ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted text-muted-foreground'"
+                        @click="viewMode = m[0]">
+                        {{ m[1] }}
+                    </button>
+                </div>
+                <Button v-if="chartConfig && viewMode !== 'table'" variant="outline" size="sm" @click="exportChartPng">
+                    <ImageDown class="size-4 mr-2" />
+                    PNG
+                </Button>
                 <Button variant="outline" size="sm" @click="fetchReport" :disabled="loading">
                     <RefreshCw class="size-4 mr-2" :class="{ 'animate-spin': loading }" />
                     Оновити
@@ -89,15 +166,25 @@ function openBuilder() {
             </div>
         </div>
 
-        <!-- Filters (Placeholder) -->
-        <div v-if="report?.filters_config" class="p-4 rounded-lg border bg-card/50">
-            <!-- Filter logic here -->
-            <p class="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Фільтри</p>
-            <div class="mt-2 text-sm text-muted-foreground italic">Конфігурація фільтрів ще не реалізована</div>
+        <!-- Filters -->
+        <div v-if="filterFields.length" class="p-3 rounded-lg border bg-card/50">
+            <FilterBar
+                :fields="filterFields"
+                :doctype="report?.doctype || undefined"
+                @change="onFiltersChange"
+            />
+        </div>
+
+        <!-- Chart -->
+        <div v-if="chartConfig && viewMode !== 'table'" class="border rounded-lg shadow-sm bg-card p-4">
+            <ReportChart v-if="data.length" ref="chartRef" :config="chartConfig" :columns="columns" :data="data" />
+            <div v-else class="h-[360px] flex items-center justify-center text-muted-foreground text-sm">
+                Дані відсутні
+            </div>
         </div>
 
         <!-- Table -->
-        <div class="border rounded-lg overflow-hidden shadow-sm bg-card">
+        <div v-show="viewMode !== 'chart'" class="border rounded-lg overflow-hidden shadow-sm bg-card">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>

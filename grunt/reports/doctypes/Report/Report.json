@@ -41,6 +41,11 @@
       "fieldtype": "JSON"
     },
     {
+      "fieldname": "chart_config",
+      "label": "Конфігурація графіка (JSON)",
+      "fieldtype": "JSON"
+    },
+    {
       "fieldname": "sec_query",
       "label": "SQL запит",
       "fieldtype": "Section",

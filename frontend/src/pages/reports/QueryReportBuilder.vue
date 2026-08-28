@@ -4,9 +4,10 @@ import { useRouter, useRoute } from 'vue-router'
 import api from '@/core/api/client'
 import { metaApi } from '@/core/api/meta'
 import { reportsApi } from '@/core/api/reports'
+import type { ReportChartConfig, ReportChartType } from '@/types'
 import {
     Plus, Search, Save, Play, Trash2, ChevronRight,
-    Layout, Table as TableIcon, FileBarChart
+    Layout, Table as TableIcon, FileBarChart, Pencil, ChartColumn
 } from '@lucide/vue'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
@@ -32,8 +33,23 @@ const reportTitle = ref(props.reportName || 'Новий звіт')
 
 /** Internal doctype id (`name`) of the report being edited — resolved from
  *  `reportsApi.get()` by `report_name`, needed for the PUT call on save. */
-const reportId = ref<string | null>(null)
+const reportDocName = ref<string | null>(null)
 const columns = ref<any[]>([]) // { fieldname, label, aggregation, fieldtype }
+const filterConfigs = ref<any[]>([]) // { fieldname, label, fieldtype } — whitelist of fields the viewer can filter on
+const chartEnabled = ref(false)
+const chart = ref<ReportChartConfig>({ type: 'bar', label_field: '', value_fields: [], stacked: false })
+const CHART_TYPES: { value: ReportChartType; label: string }[] = [
+    { value: 'bar', label: 'Стовпчиковий' },
+    { value: 'line', label: 'Лінійний' },
+    { value: 'area', label: 'Площа' },
+    { value: 'pie', label: 'Кругова' },
+    { value: 'donut', label: 'Кільцева' },
+]
+function toggleChartValueField(fieldname: string) {
+    const i = chart.value.value_fields.indexOf(fieldname)
+    if (i >= 0) chart.value.value_fields.splice(i, 1)
+    else chart.value.value_fields.push(fieldname)
+}
 const previewData = ref<any[]>([])
 const previewCols = ref<any[]>([])
 const previewMeta = ref<any>(null)
@@ -57,9 +73,20 @@ onMounted(async () => {
 
     if (props.reportName && props.reportName !== 'new') {
         const rep = await reportsApi.get(props.reportName)
-        reportId.value = rep.id
+        reportDocName.value = rep.name
         selectedDoctype.value = rep.doctype ?? ''
         columns.value = rep.columns ?? []
+        filterConfigs.value = Array.isArray(rep.filters_config) ? rep.filters_config as any[] : []
+        if (rep.chart_config && rep.chart_config.type) {
+            chartEnabled.value = true
+            chart.value = {
+                type: rep.chart_config.type,
+                label_field: rep.chart_config.label_field ?? '',
+                value_fields: Array.isArray(rep.chart_config.value_fields) ? [...rep.chart_config.value_fields] : [],
+                stacked: !!rep.chart_config.stacked,
+                color: rep.chart_config.color,
+            }
+        }
         reportTitle.value = rep.report_name
     }
 })
@@ -86,6 +113,20 @@ function addColumn(field: any) {
 
 function removeColumn(index: number) {
     columns.value.splice(index, 1)
+}
+
+function addFilter(fieldname: string) {
+    const field = fields.value.find(f => f.fieldname === fieldname)
+    if (!field || filterConfigs.value.some(f => f.fieldname === fieldname)) return
+    filterConfigs.value.push({
+        fieldname: field.fieldname,
+        label: field.label,
+        fieldtype: field.fieldtype,
+    })
+}
+
+function removeFilter(index: number) {
+    filterConfigs.value.splice(index, 1)
 }
 
 async function runPreview() {
@@ -119,11 +160,12 @@ async function saveReport() {
             doctype: selectedDoctype.value,
             report_type: 'List',
             columns: columns.value,
-            filters_config: [] as unknown[]
+            filters_config: filterConfigs.value,
+            chart_config: chartEnabled.value && chart.value.label_field ? chart.value : null,
         }
 
-        if (reportId.value) {
-            await reportsApi.update(reportId.value, payload)
+        if (reportDocName.value) {
+            await reportsApi.update(reportDocName.value, payload)
         } else {
             await reportsApi.create(payload)
         }
@@ -149,10 +191,14 @@ const displayFields = computed(() => {
         <!-- Sidebar: Configuration -->
         <aside class="w-[400px] border-r flex flex-col bg-card shrink-0 shadow-sm z-20">
             <div class="p-6 border-b space-y-4">
-                <div class="flex items-center gap-2">
-                    <FileBarChart class="size-5 text-primary" />
-                    <Input v-model="reportTitle" placeholder="Назва звіту"
-                        class="font-semibold !border-none !ring-0 !shadow-none !px-0 !h-8 text-lg !bg-transparent flex-1" />
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Назва звіту</label>
+                    <div class="relative">
+                        <FileBarChart class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-primary pointer-events-none" />
+                        <Input v-model="reportTitle" placeholder="Назва звіту"
+                            class="!pl-8 !pr-8 font-semibold text-base h-9" />
+                        <Pencil class="absolute right-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+                    </div>
                 </div>
 
                 <div class="space-y-2">
@@ -215,6 +261,86 @@ const displayFields = computed(() => {
                                   </SelectContent>
                                 </Select>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters whitelist -->
+                    <div v-if="selectedDoctype" class="space-y-3">
+                        <h4 class="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
+                            <Search class="size-3.5" />
+                            Фільтри ({{ filterConfigs.length }})
+                        </h4>
+                        <p class="text-xs text-muted-foreground">
+                            Поля, за якими глядач звіту зможе фільтрувати (оператор та значення обирає в самому звіті).
+                        </p>
+                        <div v-for="(flt, i) in filterConfigs" :key="flt.fieldname"
+                            class="flex items-center justify-between gap-2 p-2 rounded-lg border bg-background text-sm">
+                            <span class="flex items-center gap-2 min-w-0">
+                                <Badge class="h-5 px-1.5 text-xs font-semibold uppercase opacity-50 shrink-0">{{ flt.fieldtype }}</Badge>
+                                <span class="truncate">{{ flt.label }}</span>
+                            </span>
+                            <button @click="removeFilter(i)"
+                                class="p-1 text-muted-foreground hover:text-destructive transition-colors">
+                                <Trash2 class="size-4" />
+                            </button>
+                        </div>
+                        <Select :model-value="''" @update:model-value="v => addFilter(String(v))">
+                            <SelectTrigger class="h-8 text-xs w-full">
+                                <SelectValue placeholder="+ Додати поле-фільтр" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="f in fields" :key="f.fieldname" :value="f.fieldname"
+                                    :disabled="filterConfigs.some(x => x.fieldname === f.fieldname)">
+                                    {{ f.label }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <!-- Chart -->
+                    <div v-if="selectedDoctype" class="space-y-3">
+                        <label class="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground cursor-pointer">
+                            <input type="checkbox" v-model="chartEnabled" class="accent-primary size-3.5" />
+                            <ChartColumn class="size-3.5" />
+                            Графік
+                        </label>
+
+                        <div v-if="chartEnabled" class="space-y-3 pl-1">
+                            <Select v-model="chart.type">
+                                <SelectTrigger class="h-8 text-xs w-full"><SelectValue placeholder="Тип графіка" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="t in CHART_TYPES" :key="t.value" :value="t.value">{{ t.label }}</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <Select v-model="chart.label_field">
+                                <SelectTrigger class="h-8 text-xs w-full"><SelectValue placeholder="Колонка-підпис (вісь X)" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem v-for="c in columns" :key="c.fieldname" :value="c.fieldname">{{ c.label }}</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <div>
+                                <p class="text-xs text-muted-foreground mb-1.5">Колонки-значення</p>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <button v-for="c in columns" :key="c.fieldname" type="button"
+                                        class="px-2 py-1 rounded-md border text-xs transition-colors"
+                                        :class="chart.value_fields.includes(c.fieldname)
+                                            ? 'bg-primary text-primary-foreground border-primary'
+                                            : 'bg-background hover:bg-muted'"
+                                        :disabled="c.fieldname === chart.label_field"
+                                        :title="c.fieldname === chart.label_field ? 'Це колонка-підпис' : ''"
+                                        @click="toggleChartValueField(c.fieldname)">
+                                        {{ c.label }}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <label v-if="chart.type === 'bar'"
+                                class="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                                <input type="checkbox" v-model="chart.stacked" class="accent-primary size-3.5" />
+                                Накопичувальний (stacked)
+                            </label>
                         </div>
                     </div>
 

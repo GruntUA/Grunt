@@ -107,6 +107,11 @@
       "fieldtype": "Text"
     },
     {
+      "fieldname": "report",
+      "label": "Звіт (джерело даних для графіка)",
+      "fieldtype": "Text"
+    },
+    {
       "fieldname": "content",
       "label": "Вміст",
       "fieldtype": "LongText"

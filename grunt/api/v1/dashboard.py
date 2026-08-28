@@ -100,6 +100,61 @@ def _log_widget_failed(doctype_name: str, widget_type: str) -> None:
     )
 
 
+def _as_number(value: Any) -> float:
+    """Best-effort numeric coercion for report cell values."""
+    if isinstance(value, (int, float)):
+        return float(value)
+    try:
+        return float(str(value))
+    except (TypeError, ValueError):
+        return 0.0
+
+
+async def _widget_report_series(widget: Any) -> Any:
+    """Chart data sourced from a saved Report instead of a doctype aggregate.
+
+    Runs the report and reshapes its rows into the ``{labels, values}`` /
+    ``{labels, groups}`` payload the chart/donut renderers already consume,
+    using the report's own ``chart_config`` (``label_field`` / ``value_fields``)
+    or, absent that, the first column as labels and the second as values.
+    """
+    from grunt.app import grunt as grunt_app
+    from grunt.reports.engine import report_engine
+
+    report_name = widget.get("report") or ""
+    try:
+        user = grunt_app._require_user()
+        session = grunt_app._require_session()
+
+        cfg_rows = await grunt.get_list(
+            "Report", filters={"report_name": report_name}, fields=["chart_config"], limit=1
+        )
+        cfg = cfg_rows[0].get("chart_config") if cfg_rows else None
+        if isinstance(cfg, str):
+            cfg = json.loads(cfg or "{}")
+        cfg = cfg or {}
+
+        result = await report_engine.run(report_name, {}, user, session)
+        rows = result.get("data") or []
+        col_names = [c["fieldname"] for c in result.get("columns") or []]
+
+        label_field = cfg.get("label_field") or (col_names[0] if col_names else None)
+        value_fields = list(cfg.get("value_fields") or [])
+        if not value_fields:
+            value_fields = [c for c in col_names if c != label_field][:1]
+        if not label_field or not value_fields:
+            return {"labels": [], "values": []}
+
+        labels = [str(r.get(label_field, "—")) for r in rows]
+        if len(value_fields) > 1:
+            groups = {vf: [_as_number(r.get(vf)) for r in rows] for vf in value_fields}
+            return {"labels": labels, "groups": groups}
+        return {"labels": labels, "values": [_as_number(r.get(value_fields[0])) for r in rows]}
+    except Exception:
+        _log_widget_failed(report_name, "report_chart")
+        return {"labels": [], "values": []}
+
+
 async def _widget_metric(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
     """metric/gauge — a single aggregated value, optionally with a trend vs the prior period."""
     agg = widget.get("aggregation") or "count"
@@ -406,6 +461,12 @@ async def _compute_widget_data(
 
     doctype_name: str = widget.get("doctype") or ""
     widget_type: str = widget.get("widget_type") or "metric"
+
+    # A chart/donut widget may draw its data from a saved Report rather than a
+    # doctype aggregate — that path needs no doctype/date_field/group_by.
+    if widget.get("report") and widget_type in ("chart_bar", "chart_area", "donut"):
+        return await _widget_report_series(widget)
+
     if not doctype_name and widget_type != "activity":
         return None
 

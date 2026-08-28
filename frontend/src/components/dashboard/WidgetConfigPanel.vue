@@ -4,7 +4,9 @@ import { useI18n } from 'vue-i18n'
 import type { DashboardWidget, WidgetType, WidgetAggregation, WidgetPeriod, WidgetCols, ShortcutItem } from '@/types'
 import type { WorkspaceLinkItem } from '@/core/api/workspace'
 import { docsApi } from '@/core/api'
+import { reportsApi } from '@/core/api/reports'
 import type { LinkSearchItem } from '@/core/api/docs'
+import type { ReportSummary } from '@/types'
 import { useDocTypeStore } from '@/stores/doctype'
 import { Plus, Trash2 } from '@lucide/vue'
 
@@ -19,6 +21,15 @@ const dtStore = useDocTypeStore()
 dtStore.loadAll()
 
 const draft = ref<DashboardWidget | null>(null)
+
+// Report list for chart/donut widgets that source their data from a saved Report.
+const reports = ref<ReportSummary[]>([])
+let reportsLoaded = false
+async function ensureReports() {
+  if (reportsLoaded) return
+  reportsLoaded = true
+  try { reports.value = await reportsApi.list() } catch { reports.value = [] }
+}
 
 // ── Links editor ─────────────────────────────────────────────────────────────
 
@@ -46,6 +57,9 @@ watch(() => props.widget, (w) => {
     draft.value = { ...w }
     syncTilesFromContent(w.content)
     syncLinksFromContent(w.content)
+  }
+  if (w && (w.widget_type === 'chart_area' || w.widget_type === 'chart_bar' || w.widget_type === 'donut')) {
+    ensureReports()
   }
 }, { immediate: true })
 
@@ -116,6 +130,15 @@ const LINK_TYPES = computed(() => [
 
 const isChart        = computed(() => draft.value?.widget_type === 'chart_area' || draft.value?.widget_type === 'chart_bar')
 const isDonut        = computed(() => draft.value?.widget_type === 'donut')
+const supportsReportSource = computed(() => isChart.value || isDonut.value)
+// `report == null` → doctype-aggregate source; `report === ''` → report source, none picked yet.
+const isReportSourced = computed(() => supportsReportSource.value && draft.value?.report != null)
+
+function setReportSource(useReport: boolean) {
+  if (!draft.value) return
+  draft.value.report = useReport ? (draft.value.report ?? '') : null
+  apply()
+}
 const isList         = computed(() => draft.value?.widget_type === 'list')
 const isMetric       = computed(() => draft.value?.widget_type === 'metric')
 const isGauge        = computed(() => draft.value?.widget_type === 'gauge')
@@ -291,14 +314,36 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
         />
       </div>
 
+      <!-- Data source: doctype aggregate vs saved Report (chart / donut) -->
+      <div v-if="supportsReportSource" class="space-y-1">
+        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Data source') }}</label>
+        <select
+          :value="isReportSourced ? 'report' : 'doctype'"
+          class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          @change="setReportSource(($event.target as HTMLSelectElement).value === 'report')"
+        >
+          <option value="doctype">{{ t('DocType aggregate') }}</option>
+          <option value="report">{{ t('Saved report') }}</option>
+        </select>
+        <select
+          v-if="isReportSourced"
+          v-model="draft.report"
+          class="w-full h-8 px-3 mt-1 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          @change="apply"
+        >
+          <option value="">{{ t('— Select —') }}</option>
+          <option v-for="r in reports" :key="r.name" :value="r.report_name">{{ r.report_name }}</option>
+        </select>
+      </div>
+
       <!-- DocType -->
-      <div v-if="isDataWidget || isShortcut" class="space-y-1">
+      <div v-if="(isDataWidget && !isReportSourced) || isShortcut" class="space-y-1">
         <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           {{ isShortcut ? t('Target') : 'DocType' }}
         </label>
         <!-- data widgets — static select -->
         <select
-          v-if="isDataWidget"
+          v-if="isDataWidget && !isReportSourced"
           v-model="draft.doctype"
           class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           @change="apply"
@@ -563,13 +608,13 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
       </template>
 
       <!-- Group by (chart / donut / funnel / table) -->
-      <div v-if="isChart || isDonut || isFunnel || isTableWidget" class="space-y-1">
+      <div v-if="(isChart || isDonut || isFunnel || isTableWidget) && !isReportSourced" class="space-y-1">
         <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Group by') }}</label>
         <input v-model="draft.group_by" class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="fieldname" @change="apply" />
       </div>
 
       <!-- Date field + period -->
-      <template v-if="isChart || isMetric || isGauge || isCalendar || isHeatmap || isFunnel || isTableWidget">
+      <template v-if="(isChart || isMetric || isGauge || isCalendar || isHeatmap || isFunnel || isTableWidget) && !isReportSourced">
         <div class="space-y-1">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Date field') }}</label>
           <input v-model="draft.date_field" class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="created_at" @change="apply" />
