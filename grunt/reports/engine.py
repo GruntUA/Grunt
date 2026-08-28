@@ -121,26 +121,26 @@ class ReportEngine:
     ) -> dict[str, Any]:
         """Execute a Python script in the sandbox and return {columns, data}.
 
-        The script must populate ``grunt.result`` with a dict containing
-        ``columns`` (list of ``{fieldname, label, fieldtype}``) and
-        ``data`` (list of row dicts).
+        The sandbox has **no** database or network access. The script must
+        satisfy exactly one of two output contracts:
 
-        Example script::
+        1. ``result = {"columns": [...], "data": [...]}`` — the script builds
+           the rows itself from ``filters`` and plain Python. ``columns`` is a
+           list of ``{fieldname, label, fieldtype}``; omit it to derive plain
+           text columns from the first row's keys.
+        2. ``query = "SELECT ..."`` — the script only *chooses* a read-only
+           SQL statement (typically per ``db_dialect``), which the engine
+           then runs through the same SELECT-only guard as a Query report.
 
-            rows = grunt.get_list(
-                "Order",
-                filters={"status": filters.get("status", "Open")},
-                fields=["name", "customer", "amount"],
-                limit=1000,
-            )
-            grunt.result = {
-                "columns": [
-                    {"fieldname": "name", "label": "Order", "fieldtype": "Text"},
-                    {"fieldname": "customer", "label": "Customer", "fieldtype": "Text"},
-                    {"fieldname": "amount", "label": "Amount", "fieldtype": "Float"},
-                ],
-                "data": rows,
-            }
+        Injected globals: ``filters`` (dict) and ``db_dialect`` (str, e.g.
+        ``"sqlite"`` / ``"postgresql"``).
+
+        Example — portable "size per table" report::
+
+            if db_dialect == "postgresql":
+                query = "SELECT ... pg_total_relation_size(c.oid) ..."
+            else:
+                query = "SELECT ... FROM dbstat ..."
         """
         from grunt.app import grunt
         from grunt.db.session import get_engine as _engine_factory
@@ -149,7 +149,6 @@ class ReportEngine:
         if not script_src:
             raise HTTPException(400, detail="Скрипт не вказано")
 
-        # Inject 'grunt.result' placeholder and 'filters' into the context
         from grunt.scripting.safe_globals import build_safe_globals, compile_script
 
         # Not plain compile()+exec(): see safe_globals.py's module docstring
@@ -166,6 +165,10 @@ class ReportEngine:
         async with grunt.context(session, engine, user):
             extra_globals = build_safe_globals()
             extra_globals["filters"] = filters
+            try:
+                extra_globals["db_dialect"] = session.bind.dialect.name
+            except AttributeError:
+                extra_globals["db_dialect"] = ""
 
             # grunt.result will be set by the script
             _grunt_ns = extra_globals.get("grunt") or extra_globals.get("_grunt")
@@ -183,11 +186,20 @@ class ReportEngine:
             result: Any = extra_globals.get("result") or (
                 _grunt_ns.result if _grunt_ns and hasattr(_grunt_ns, "result") else None
             )
+            script_query = extra_globals.get("query")
 
         if not isinstance(result, dict) or "data" not in result:
+            # Contract 2: the script only picked a read-only SQL statement.
+            if isinstance(script_query, str) and script_query.strip():
+                return await self._run_query_report(
+                    {"query": script_query}, filters, session
+                )
             raise HTTPException(
                 500,
-                detail="Скрипт повинен присвоїти `result = {'columns': [...], 'data': [...]}`",
+                detail=(
+                    "Скрипт повинен присвоїти `result = {'columns': [...], 'data': [...]}` "
+                    "або `query = 'SELECT ...'`"
+                ),
             )
 
         columns = result.get("columns") or [

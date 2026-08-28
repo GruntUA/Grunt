@@ -1,0 +1,11 @@
+{
+  "doctype": "Report",
+  "records": [
+    {
+      "name": "db-table-sizes",
+      "report_name": "Розмір таблиць у БД",
+      "report_type": "Script",
+      "script": "# Розмір, який займає кожна таблиця в БД. Портативно: гілка за діалектом.\n# Пісочниця не має доступу до БД — скрипт лише обирає read-only SQL,\n# який рушій звітів виконує через той самий SELECT-only guard, що й Query-звіт.\nif db_dialect == \"postgresql\":\n    query = \"\"\"\n        SELECT\n            c.relname AS object_name,\n            CASE c.relkind\n                WHEN 'r' THEN 'table'\n                WHEN 'm' THEN 'matview'\n                WHEN 'p' THEN 'partitioned'\n                ELSE c.relkind\n            END AS object_type,\n            pg_total_relation_size(c.oid) AS size_bytes,\n            ROUND(pg_total_relation_size(c.oid) / 1048576.0, 3) AS size_mb,\n            ROUND(\n                100.0 * pg_total_relation_size(c.oid)\n                / NULLIF(pg_database_size(current_database()), 0), 2\n            ) AS pct_of_db\n        FROM pg_class c\n        JOIN pg_namespace n ON n.oid = c.relnamespace\n        WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')\n          AND n.nspname NOT LIKE 'pg_toast%'\n          AND c.relkind IN ('r', 'm', 'p')\n        ORDER BY size_bytes DESC\n    \"\"\"\nelse:\n    query = \"\"\"\n        SELECT\n            s.name AS object_name,\n            COALESCE(m.type, 'internal') AS object_type,\n            SUM(s.pgsize) AS size_bytes,\n            ROUND(SUM(s.pgsize) / 1048576.0, 3) AS size_mb,\n            ROUND(100.0 * SUM(s.pgsize) / (SELECT SUM(pgsize) FROM dbstat), 2) AS pct_of_db\n        FROM dbstat s\n        LEFT JOIN sqlite_master m ON m.name = s.name\n        GROUP BY s.name, m.type\n        ORDER BY size_bytes DESC\n    \"\"\"\n"
+    }
+  ]
+}

@@ -166,6 +166,77 @@ async def test_run_query_report(ctx):
 
 
 @pytest.mark.asyncio
+async def test_run_script_report_result_contract(ctx):
+    """A Script report may build rows itself via `result = {...}`."""
+    from grunt.reports.doctypes.Report.report import run as run_report
+
+    await ctx.new_doc(
+        "Report",
+        {
+            "report_name": "Script Result Report",
+            "report_type": "Script",
+            "script": (
+                "result = {"
+                "  'columns': [{'fieldname': 'n', 'label': 'N', 'fieldtype': 'Int'}],"
+                "  'data': [{'n': 1}, {'n': 2}],"
+                "}"
+            ),
+        },
+    )
+    await ctx.db._session().commit()
+
+    data = await run_report(name="Script Result Report", filters={})
+    assert [r["n"] for r in data["data"]] == [1, 2]
+
+
+@pytest.mark.asyncio
+async def test_run_script_report_query_contract(ctx):
+    """A Script report may just pick a read-only SQL string per `db_dialect`."""
+    from grunt.reports.doctypes.Report.report import run as run_report
+
+    await ctx.new_doc(
+        "Report",
+        {
+            "report_name": "Script Query Report",
+            "report_type": "Script",
+            "script": (
+                "if db_dialect == 'postgresql':\n"
+                "    query = 'SELECT 1 AS answer'\n"
+                "else:\n"
+                "    query = 'SELECT 42 AS answer'\n"
+            ),
+        },
+    )
+    await ctx.db._session().commit()
+
+    data = await run_report(name="Script Query Report", filters={})
+    assert data["data"][0]["answer"] == 42
+
+
+@pytest.mark.asyncio
+async def test_run_script_report_query_contract_still_select_only(ctx):
+    """The `query =` escape hatch runs through the same SELECT-only guard."""
+    from fastapi import HTTPException
+
+    from grunt.api.messages import ApplicationError
+    from grunt.errors import GruntError
+    from grunt.reports.doctypes.Report.report import run as run_report
+
+    await ctx.new_doc(
+        "Report",
+        {
+            "report_name": "Script Query Danger Report",
+            "report_type": "Script",
+            "script": "query = 'DELETE FROM grunt_auth_user'",
+        },
+    )
+    await ctx.db._session().commit()
+
+    with pytest.raises((HTTPException, ApplicationError, GruntError)):
+        await run_report(name="Script Query Danger Report", filters={})
+
+
+@pytest.mark.asyncio
 async def test_run_report_forbids_delete(ctx):
     """DELETE SQL is blocked in query reports."""
     from fastapi import HTTPException
