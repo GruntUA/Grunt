@@ -333,20 +333,29 @@ async def _guard_registration() -> None:
 
 
 async def _assign_default_role(user_id: str | None) -> None:
-    """Give a freshly registered user the configured ``default_role`` (if any)."""
+    """Give a freshly registered user the configured ``default_role`` (if any).
+
+    Runs as SYSTEM — registration happens in a guest context that cannot
+    read/write the admin-only UserRole DocType.
+    """
+    from grunt.context import require_session
     from grunt.site.settings import get_setting
 
     role = await get_setting("default_role")
     if not role or not user_id:
         return
-    existing = await grunt.get_list(
-        "UserRole",
-        filters={"user_id": user_id, "role_name": role},
-        fields=["name"],
-        limit=1,
-    )
-    if not existing:
-        await grunt.new_doc("UserRole", {"user_id": user_id, "role_name": role})
+
+    async with grunt.system_context(require_session()):
+        if not await grunt.db.exists("Role", {"role_name": role}):
+            return
+        existing = await grunt.db.get_all(
+            "UserRole",
+            filters={"user_id": user_id, "role_name": role},
+            fields=["name"],
+            limit=1,
+        )
+        if not existing:
+            await grunt.new_doc("UserRole", {"user_id": user_id, "role_name": role})
 
 
 @grunt.whitelist(allow_guest=True)

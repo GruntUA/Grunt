@@ -186,6 +186,28 @@ async def test_registration_gate_and_default_role(ctx):
 
 
 @pytest.mark.asyncio
+async def test_register_via_http_assigns_default_role(ctx, client: AsyncClient):
+    """Guest-context registration (the real HTTP path) can still grant the
+    admin-only default_role — _assign_default_role escalates to SYSTEM."""
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        await ctx.new_doc("Role", {"role_name": "Newcomer"})
+        await _set_settings(ctx, allow_user_registration=True, default_role="Newcomer")
+
+    resp = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
+        json={"email": "http@grunt.example.com", "password": "x", "full_name": "Http User"},
+    )
+    assert resp.status_code == 200, resp.text
+    uid = resp.json()["data"]["id"]
+
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        rows = await ctx.db.get_all(
+            "UserRole", filters={"user_id": uid, "role_name": "Newcomer"}, fields=["name"], limit=1
+        )
+    assert rows
+
+
+@pytest.mark.asyncio
 async def test_register_rejects_weak_password(ctx):
     """The register endpoint enforces the SystemSettings password policy."""
     from grunt.api.messages import ApplicationError
