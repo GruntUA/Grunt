@@ -211,13 +211,17 @@ class VersionService:
 
     @staticmethod
     def _serialize(value: Any) -> Any:
-        """Serialize a value for JSON storage."""
+        """Serialize a value for JSON storage (recurses into list/dict)."""
         from datetime import date, datetime
 
         if isinstance(value, (datetime, date)):
             return value.isoformat()
         if isinstance(value, (bytes, bytearray)):
             return None
+        if isinstance(value, list):
+            return [VersionService._serialize(v) for v in value]
+        if isinstance(value, dict):
+            return {k: VersionService._serialize(v) for k, v in value.items()}
         return value
 
 
