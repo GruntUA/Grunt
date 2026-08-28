@@ -31,6 +31,22 @@ export interface BacklinkItem {
   link_fieldname: string
 }
 
+export interface SidebarAssignee { name: string; assigned_to: string; created_at: string | null }
+export interface SidebarShare { name: string; user: string; permission: 'Read' | 'Write' }
+export interface SidebarTag { name: string; tag: string }
+
+export interface SidebarPerson { name: string; avatar: string | null }
+
+export interface SidebarBundle {
+  assignees: SidebarAssignee[]
+  shares: SidebarShare[]
+  tags: SidebarTag[]
+  backlinks: BacklinkItem[]
+  bookmark: GruntDocument | null
+  /** email → display name + avatar, for everyone referenced above */
+  people: Record<string, SidebarPerson>
+}
+
 // Maps FilterBar display operators to backend query suffixes
 export const OP_MAP: Record<string, string> = {
   '=': 'eq', '!=': 'ne', 'like': 'ilike',
@@ -171,6 +187,11 @@ export const docsApi = {
     client.get('/api/v1/method/grunt.document.base.Document.get_backlinks', {
       params: { doctype, doc_id: id },
     }).then(r => r.data.data ?? []),
+
+  getSidebar: (doctype: string, id: string): Promise<SidebarBundle> =>
+    client.get('/api/v1/method/grunt.document.base.Document.get_sidebar', {
+      params: { doctype, doc_id: id },
+    }).then(r => r.data.data),
 
   getTree: async (
     doctype: string,

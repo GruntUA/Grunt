@@ -146,3 +146,29 @@ export function formatIntl(value: DateInput, opts: Intl.DateTimeFormatOptions): 
   if (!d) return EMPTY_DATE
   return new Intl.DateTimeFormat(localeTag(), { timeZone: timeZone(), ...opts }).format(d)
 }
+
+const REL_STEPS: Array<[Intl.RelativeTimeFormatUnit, number]> = [
+  ['year', 31536000],
+  ['month', 2592000],
+  ['week', 604800],
+  ['day', 86400],
+  ['hour', 3600],
+  ['minute', 60],
+]
+
+/**
+ * Locale-aware "2 дні тому" / "щойно". Pair with `formatFull` in a tooltip
+ * for the exact timestamp.
+ */
+export function formatRelative(value: DateInput): string {
+  const d = toDate(value)
+  if (!d) return EMPTY_DATE
+  const seconds = Math.round((d.getTime() - Date.now()) / 1000)
+  const abs = Math.abs(seconds)
+  const rtf = new Intl.RelativeTimeFormat(localeTag(), { numeric: 'auto' })
+  if (abs < 45) return rtf.format(0, 'second')
+  for (const [unit, secs] of REL_STEPS) {
+    if (abs >= secs) return rtf.format(Math.round(seconds / secs), unit)
+  }
+  return rtf.format(0, 'second')
+}

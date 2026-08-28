@@ -18,7 +18,9 @@ import {
   Pencil,
   Trash2,
   ChevronDown,
+  PanelRight,
 } from '@lucide/vue'
+import { useDocPanel } from '@/components/views/sidebar/useDocPanel'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -53,6 +55,7 @@ const { t } = useI18n()
 const auth = useAuthStore()
 const router = useRouter()
 const queryClient = useQueryClient()
+const { open: panelOpen, toggle: togglePanel } = useDocPanel()
 
 const shareLink = ref<string | null>(null)
 const shareLoading = ref(false)
@@ -344,6 +347,17 @@ const menuItems = computed(() => {
 
         <Button variant="outline" v-if="id" class="text-foreground" :title="t('Refresh')" :disabled="isDirty || isLoading" @click="handleRefresh">
           <RefreshCw class="size-4" :class="{ 'animate-spin': isLoading }" />
+        </Button>
+
+        <Button
+          v-if="id"
+          variant="outline"
+          class="text-foreground"
+          :class="{ 'bg-muted': !panelOpen }"
+          :title="`${panelOpen ? 'Сховати' : 'Показати'} деталі (Ctrl+])`"
+          @click="togglePanel"
+        >
+          <PanelRight class="size-4" />
         </Button>
 
         <Button :disabled="isSaving" size="sm" @click="emit('save')" :title="`${t('Save')} (Ctrl+S)`">

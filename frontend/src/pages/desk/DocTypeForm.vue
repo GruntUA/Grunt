@@ -109,7 +109,7 @@ const {
     </div>
 
     <template v-else>
-      <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-5">
         <!-- Left Column -->
         <div class="min-w-0 flex flex-col gap-4">
           <!-- Dashboard / Connections -->
@@ -161,7 +161,7 @@ const {
 
         <!-- Right Column: Sidebar -->
         <DocSidebar v-if="id && document" :doctype="dt" :document="document as GruntDocument" :workspace="workspace"
-          :users="presenceUsers" class="lg:sticky lg:top-8 lg:self-start hidden lg:block" />
+          :users="presenceUsers" class="lg:sticky lg:top-8 lg:self-start" />
       </div>
     </template>
 

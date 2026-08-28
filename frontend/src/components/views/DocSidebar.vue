@@ -1,23 +1,14 @@
 <script setup lang="ts">
-import { ref, useAttrs } from 'vue'
+import { useAttrs } from 'vue'
+import { PanelRightClose, User } from '@lucide/vue'
 import type { DocType, GruntDocument } from '@/types'
-import { docsApi } from '@/core/api/docs'
-import {
-  User,
-  Bookmark,
-} from '@lucide/vue'
 import type { PresenceUser } from '@/core/composables/usePresence'
-
-// Sub-components
-import SidebarFileInfo from './sidebar/SidebarFileInfo.vue'
-import SidebarAssignments from './sidebar/SidebarAssignments.vue'
-import SidebarShare from './sidebar/SidebarShare.vue'
-import SidebarTags from './sidebar/SidebarTags.vue'
-import SidebarBacklinks from './sidebar/SidebarBacklinks.vue'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import DocSidebarBody from './sidebar/DocSidebarBody.vue'
+import { useDocPanel } from './sidebar/useDocPanel'
 
-const props = defineProps<{
+defineProps<{
   doctype: DocType
   document: GruntDocument
   workspace?: string
@@ -27,68 +18,68 @@ const props = defineProps<{
 const attrs = useAttrs()
 defineOptions({ inheritAttrs: false })
 
-// ── Bookmark ──────────────────────────────────────────────────────────────────
-const bookmark = ref<GruntDocument | null>(null)
-const bookmarkLoading = ref(false)
+const { open, openMobile, isMobile, state, width, toggle, setWidth, MIN_WIDTH } = useDocPanel()
 
-async function loadBookmark() {
-  try {
-    const doctypeName = props.doctype.name
-    if (doctypeName && props.document.id) {
-      bookmark.value = await docsApi.getBookmark(doctypeName, props.document.name)
-    }
-  } catch { /* silent */ }
+// ── Desktop resize handle ───────────────────────────────────────────────────
+function startResize(e: PointerEvent) {
+  e.preventDefault()
+  const startX = e.clientX
+  const startWidth = width.value
+  const onMove = (ev: PointerEvent) => setWidth(startWidth + (startX - ev.clientX))
+  const onUp = () => {
+    window.removeEventListener('pointermove', onMove)
+    window.removeEventListener('pointerup', onUp)
+    document.body.style.userSelect = ''
+  }
+  document.body.style.userSelect = 'none'
+  window.addEventListener('pointermove', onMove)
+  window.addEventListener('pointerup', onUp)
 }
-
-async function toggleBookmark() {
-  bookmarkLoading.value = true
-  try {
-    if (bookmark.value) {
-      await docsApi.removeBookmark(props.doctype.name, props.document.name)
-      bookmark.value = null
-    } else {
-      const title = String(props.document[props.doctype.title_field ?? 'name'] ?? props.document.name)
-      bookmark.value = await docsApi.addBookmark(props.doctype.name, props.document.name, title)
-    }
-  } catch { /* silent */ }
-  finally { bookmarkLoading.value = false }
-}
-
-// Initial load
-loadBookmark()
 </script>
 
 <template>
-  <aside v-bind="attrs" class="flex flex-col gap-0 w-full">
-    <div class="form-section bg-card border border-border/60 rounded-lg shadow-sm overflow-hidden">
-      <div class="form-section-header border-b border-border/60 px-4 py-3">
+  <!-- Desktop: collapsible + resizable column -->
+  <aside
+    v-if="!isMobile"
+    v-bind="attrs"
+    :data-state="state"
+    :style="{ width: open ? `${width}px` : '0px' }"
+    class="relative shrink-0 overflow-hidden transition-[width] duration-200 ease-in-out"
+  >
+    <div
+      class="absolute inset-y-0 left-0 z-10 w-1.5 -ml-0.5 cursor-col-resize hover:bg-primary/20 transition-colors"
+      :class="{ 'pointer-events-none opacity-0': !open }"
+      @pointerdown="startResize"
+    />
+    <div
+      class="form-section bg-card border border-border/60 rounded-lg shadow-sm overflow-hidden"
+      :style="{ width: `${Math.max(width, MIN_WIDTH)}px` }"
+    >
+      <div class="form-section-header border-b border-border/60 px-4 py-3 flex items-center gap-2">
         <User class="size-3.5 text-muted-foreground" />
-        <span class="text-xs font-semibold uppercase tracking-wider">Деталі</span>
+        <span class="flex-1 text-xs font-semibold uppercase tracking-wider">Деталі</span>
+        <Button variant="ghost" size="icon" class="size-6 -mr-1.5" title="Згорнути (Ctrl+])" @click="toggle">
+          <PanelRightClose class="size-4" />
+        </Button>
       </div>
-      <div class="form-section-body p-4 flex flex-col gap-5">
-        <SidebarFileInfo :doctype="doctype" :document="document" :users="users" />
-
-        <div class="flex gap-2">
-          <SidebarAssignments :doctype="doctype" :document="document" class="flex-1 mb-0" />
-          <SidebarShare :doctype="doctype" :document="document" class="flex-1 mb-0" />
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <Button
-                variant="outline"
-                :class="['size-9 shrink-0 shadow-sm transition-colors', bookmark ? 'text-warning border-warning/40' : '']"
-                :disabled="bookmarkLoading"
-                @click="toggleBookmark"
-              >
-                <Bookmark class="size-4" :fill="bookmark ? 'currentColor' : 'none'" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{{ bookmark ? 'Прибрати із закладок' : 'Додати до закладок' }}</TooltipContent>
-          </Tooltip>
-        </div>
-
-        <SidebarTags :doctype="doctype" :document="document" />
-        <SidebarBacklinks :doctype="doctype" :document="document" :workspace="workspace" />
+      <div class="form-section-body p-4">
+        <DocSidebarBody :doctype="doctype" :document="document" :workspace="workspace" :users="users" />
       </div>
     </div>
   </aside>
+
+  <!-- Mobile: off-canvas sheet -->
+  <Sheet v-else v-model:open="openMobile">
+    <SheetContent side="right" class="w-[19rem] sm:max-w-sm p-0 overflow-y-auto">
+      <SheetHeader class="border-b border-border/60 px-4 py-3">
+        <SheetTitle class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
+          <User class="size-3.5 text-muted-foreground" />
+          Деталі
+        </SheetTitle>
+      </SheetHeader>
+      <div class="p-4">
+        <DocSidebarBody :doctype="doctype" :document="document" :workspace="workspace" :users="users" />
+      </div>
+    </SheetContent>
+  </Sheet>
 </template>
