@@ -2,6 +2,7 @@
 import type { DashboardWidget } from '@/types'
 import { FileText, Plus, RefreshCcw, Trash2, Send, Share2, MessageSquare, GitBranch } from '@lucide/vue'
 import { useRouter } from 'vue-router'
+import { formatDayMonth } from '@/core/datetime'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -64,7 +65,7 @@ function formatTime(val: string): string {
   if (diffMin < 60) return `${diffMin} хв тому`
   const diffH = Math.floor(diffMin / 60)
   if (diffH < 24) return `${diffH} год тому`
-  return d.toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' })
+  return formatDayMonth(d)
 }
 
 function goToDoc(item: ActivityItem) {

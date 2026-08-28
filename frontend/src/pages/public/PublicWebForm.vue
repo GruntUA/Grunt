@@ -2,8 +2,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { CheckCircle2, AlertCircle, Loader2 } from '@lucide/vue'
+import { useSiteConfig } from '@/core/composables/useSiteConfig'
 
 const route = useRoute()
+const { appName } = useSiteConfig()
 const formRoute = computed(() => route.params.route as string)
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -287,7 +289,7 @@ const errorInputClass = 'border-destructive focus:ring-destructive/30'
       </div>
 
       <!-- Footer -->
-      <p class="text-center text-xs text-muted-foreground mt-6 opacity-60">Powered by Ґрунт</p>
+      <p class="text-center text-xs text-muted-foreground mt-6 opacity-60">Powered by {{ appName }}</p>
     </div>
   </div>
 </template>

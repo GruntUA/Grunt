@@ -2,6 +2,7 @@
 import type { DashboardWidget } from '@/types'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { formatDate as fmtDate } from '@/core/datetime'
 
 const props = defineProps<{
   widget: DashboardWidget
@@ -15,9 +16,7 @@ const { t } = useI18n()
 
 function formatDate(val: unknown): string {
   if (!val) return ''
-  const d = new Date(val as string)
-  if (isNaN(d.getTime())) return String(val)
-  return d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', year: '2-digit' })
+  return fmtDate(val as string)
 }
 
 function getTitle(item: Record<string, unknown>): string {

@@ -9,9 +9,11 @@ import AppCard from '@/components/desk/AppCard.vue'
 import ActivityStream from '@/components/dashboard/ActivityStream.vue'
 import MyWorkPanel from '@/components/dashboard/MyWorkPanel.vue'
 import { readRecent, looksLikeId, type RecentDoc } from '@/core/recentDocs'
+import { useSiteConfig } from '@/core/composables/useSiteConfig'
 import { Clock, Search, Zap, LayoutGrid, ArrowRight } from '@lucide/vue'
 
 const auth = useAuthStore()
+const { appName } = useSiteConfig()
 const appStore = useAppStore()
 const uiStore = useUIStore()
 const router = useRouter()
@@ -51,8 +53,6 @@ const quickStats = computed(() => [
 ])
 
 onMounted(async () => {
-  document.title = 'Головна — Grunt'
-
   await appStore.loadAll()
 
   // Read history, dropping entries whose workspace is no longer installed.
@@ -166,7 +166,7 @@ function docInitials(doc: RecentDoc): string {
             </div>
             <div class="flex items-center gap-1.5 text-xs text-muted-foreground/40">
               <Zap class="size-3" />
-              <span>Grunt</span>
+              <span>{{ appName }}</span>
             </div>
           </div>
         </section>

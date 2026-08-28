@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from '@/core/composables/useToast'
+import { reloadSiteConfig, siteConfigState } from '@/core/composables/useSiteConfig'
 import client from '@/core/api/client'
 import { Sparkles, CheckCircle2, ShieldCheck, Mail, Globe, ArrowRight, ArrowLeft, Zap } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
@@ -16,10 +17,10 @@ const activeStep = ref('1')
 const loading = ref(false)
 
 const setupData = ref({
-  app_name: 'Grunt Framework',
+  app_name: siteConfigState().appName || 'Ґрунт',
   admin_email: 'admin@grunt.local',
   admin_password: '',
-  language: 'uk-UA',
+  language: siteConfigState().language || 'uk-UA',
 })
 
 async function submitSetup() {
@@ -30,8 +31,9 @@ async function submitSetup() {
       app_name: setupData.value.app_name,
       language: setupData.value.language,
     })
+    await reloadSiteConfig()
 
-    toast.success('Ласкаво просимо до Grunt', 'Систему ініціалізовано!')
+    toast.success(`Ласкаво просимо до ${setupData.value.app_name}`, 'Систему ініціалізовано!')
     router.push('/')
   } catch (err: any) {
     toast.error(err.message, 'Помилка')
@@ -52,7 +54,7 @@ async function submitSetup() {
             <div class="size-10 rounded-lg bg-primary flex items-center justify-center">
               <Sparkles class="size-5 text-primary-foreground" />
             </div>
-            <span class="text-lg font-semibold tracking-tight text-foreground">Grunt Framework</span>
+            <span class="text-lg font-semibold tracking-tight text-foreground">{{ setupData.app_name || 'Ґрунт' }}</span>
           </div>
 
           <div class="mt-16 mb-auto">

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { formatDate as fmtDate, formatDateTime as fmtDateTime } from '@/core/datetime'
 import { useRouter } from 'vue-router'
 import type { DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
@@ -76,15 +77,7 @@ function getFieldType(key: string): string {
 }
 
 function formatDate(val: unknown, type: string): string {
-  if (!val) return '—'
-  try {
-    const d = new Date(String(val))
-    if (isNaN(d.getTime())) return String(val)
-    if (type === 'Date') return d.toLocaleDateString('uk-UA')
-    return d.toLocaleString('uk-UA', { dateStyle: 'short', timeStyle: 'short' })
-  } catch {
-    return String(val)
-  }
+  return type === 'Date' ? fmtDate(val as string) : fmtDateTime(val as string)
 }
 </script>
 

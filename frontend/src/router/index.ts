@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { loadSiteConfig, siteConfigState } from '@/core/composables/useSiteConfig'
 
 const router = createRouter({
   history: createWebHistory('/'),
@@ -208,6 +209,9 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
+  // Branding / locale / date-format config must be ready before the first paint.
+  await loadSiteConfig()
+
   // Redirect alias paths (/:workspaceName/...) to canonical /app/:workspaceName/...
   // When matched via alias, matched[0].path is the alias path (e.g. /:workspaceName),
   // but matched[0].aliasOf?.path is the canonical path (/app/:workspaceName).
@@ -234,6 +238,10 @@ router.beforeEach(async (to) => {
   if (!auth.isLoggedIn) return { name: 'login' }
   if (!auth.user) await auth.fetchMe()
   return true
+})
+
+router.afterEach(() => {
+  document.title = siteConfigState().appName || 'Ґрунт'
 })
 
 export default router

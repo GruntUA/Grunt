@@ -2,10 +2,14 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Loader2, AlertCircle, Sprout, Eye, Clock } from '@lucide/vue'
+import { Loader2, AlertCircle, Eye, Clock } from '@lucide/vue'
+import AppBrand from '@/components/app/AppBrand.vue'
+import { useSiteConfig } from '@/core/composables/useSiteConfig'
+import { formatFull } from '@/core/datetime'
 
 const route = useRoute()
 const { t } = useI18n()
+const { appName } = useSiteConfig()
 const token = route.params.token as string
 
 interface SharedField { fieldname: string; label: string; fieldtype: string }
@@ -59,10 +63,7 @@ function formatVal(fieldtype: string, val: string | null): string {
   <div class="min-h-screen bg-muted/30">
     <!-- Minimal header -->
     <header class="bg-card border-b border-border/60 px-6 py-3 flex items-center gap-2.5">
-      <div class="w-7 h-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center">
-        <Sprout class="w-4 h-4" />
-      </div>
-      <span class="text-sm font-semibold text-foreground">Ґрунт</span>
+      <AppBrand mark-class="w-7 h-7" name-class="text-sm font-semibold" />
       <span class="text-muted-foreground/40 text-xs ml-1">·</span>
       <span class="text-xs text-muted-foreground flex items-center gap-1">
         <Eye class="size-3" /> Перегляд документа
@@ -91,7 +92,7 @@ function formatVal(fieldtype: string, val: string | null): string {
         <h1 class="text-2xl font-semibold text-foreground">{{ data.doc.name ?? data.doc_id }}</h1>
         <div v-if="data.expires_at" class="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
           <Clock class="size-3" />
-          Дійсно до {{ new Date(data.expires_at).toLocaleString('uk-UA') }}
+          Дійсно до {{ formatFull(data.expires_at) }}
         </div>
       </div>
 
@@ -116,7 +117,7 @@ function formatVal(fieldtype: string, val: string | null): string {
 
       <!-- Footer note -->
       <p class="text-center text-xs text-muted-foreground mt-6">
-        Цей документ надано у режимі лише для читання через Ґрунт
+        Цей документ надано у режимі лише для читання через {{ appName }}
       </p>
     </div>
   </div>

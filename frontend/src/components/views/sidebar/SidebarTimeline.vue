@@ -15,6 +15,7 @@ import type { DocType, GruntDocument, UserPublic } from '@/types'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { formatIntl } from '@/core/datetime'
 
 const props = defineProps<{
   doctype: DocType
@@ -68,13 +69,12 @@ function timelineLabel(item: TimelineItem): string {
 
 function fmtDate(d: string | null) {
   if (!d) return ''
-  const date = new Date(d)
-  return new Intl.DateTimeFormat('uk-UA', {
+  return formatIntl(d, {
       day: 'numeric',
       month: 'short',
       hour: '2-digit',
       minute: '2-digit'
-  }).format(date)
+  })
 }
 
 const commentInput = ref('')

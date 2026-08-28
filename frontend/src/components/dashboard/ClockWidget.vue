@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import type { DashboardWidget } from '@/types'
+import { formatIntl } from '@/core/datetime'
 
 defineProps<{ widget: DashboardWidget }>()
 
@@ -18,7 +19,7 @@ const timeStr = computed(() => {
 })
 
 const dateStr = computed(() =>
-  now.value.toLocaleDateString('uk-UA', { weekday: 'long', day: 'numeric', month: 'long' })
+  formatIntl(now.value, { weekday: 'long', day: 'numeric', month: 'long' })
 )
 </script>
 

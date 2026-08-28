@@ -7,6 +7,7 @@ import i18n from './plugins/i18n'
 import { vueQueryOptions } from './plugins/vueQuery'
 import { grunt } from '@/core/grunt'
 import { useAuthStore } from '@/stores/auth'
+import { loadSiteConfig } from '@/core/composables/useSiteConfig'
 import '@/app-hooks'
 
 import './assets/main.css'
@@ -18,8 +19,10 @@ window.frappe = grunt // Frappe-compatible alias
 const pinia = createPinia()
 const app = createApp(App)
 app.use(pinia)
-// Start auth request immediately — router guard will await the same promise
+// Kick off boot requests immediately — the router guard awaits the same
+// promises before resolving the first route.
 useAuthStore().prefetchMe()
+loadSiteConfig()
 app.use(router)
 app.use(i18n)
 app.use(VueQueryPlugin, vueQueryOptions)

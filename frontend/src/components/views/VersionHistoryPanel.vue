@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Clock, RotateCcw, ChevronRight, Loader2, User } from '@lucide/vue'
+import { formatDateTime } from '@/core/datetime'
 import api from '@/core/api/client'
 
 const props = defineProps<{
@@ -64,11 +65,7 @@ function toggleExpand(id: string) {
 }
 
 function formatTime(val: string | null): string {
-  if (!val) return '—'
-  return new Date(val).toLocaleString('uk-UA', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  })
+  return formatDateTime(val)
 }
 
 function changedFields(changes: VersionEntry['changes']): string[] {

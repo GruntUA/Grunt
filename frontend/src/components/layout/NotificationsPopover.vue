@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Bell, Check, MailOpen, Mail, BellOff, BellRing } from '@lucide/vue'
+import { formatIntl } from '@/core/datetime'
 import { useWebPush } from '@/core/composables/useWebPush'
 
 const { isSupported: pushSupported, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = useWebPush()
@@ -66,7 +67,7 @@ function handleNotificationClick(n: NotificationItem) {
 }
 
 function formatDate(val: string) {
-    return new Date(val).toLocaleString('uk-UA', {
+    return formatIntl(val, {
         day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
     })
 }

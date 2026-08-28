@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useSiteConfig } from '@/core/composables/useSiteConfig'
+import AppBrand from '@/components/app/AppBrand.vue'
 import client from '@/core/api/client'
-import { Sprout } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -11,6 +12,11 @@ import { Spinner } from '@/components/ui/spinner'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { allowRegistration } = useSiteConfig()
+
+onMounted(() => {
+  if (!allowRegistration.value) router.replace({ name: 'login' })
+})
 
 const fullName = ref('')
 const email = ref('')
@@ -57,12 +63,8 @@ async function handleRegister() {
   <div class="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
     <div class="flex w-full max-w-sm flex-col gap-6">
       <!-- Logo -->
-      <a href="#" class="flex items-center gap-2 self-center font-medium">
-        <div class="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-          <Sprout class="size-4" />
-        </div>
-        <span class="text-foreground">Ґрунт</span>
-      </a>
+      <AppBrand class="self-center" />
+
 
       <!-- Card -->
       <Card>

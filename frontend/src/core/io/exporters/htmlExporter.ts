@@ -1,4 +1,5 @@
 import type { Exporter, ExportContext } from './registry'
+import { formatDate, formatDateTime, formatFull } from '@/core/datetime'
 
 // Maps indicator color names → inline CSS values (mirrors global Badge variant colors)
 const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -63,17 +64,11 @@ function formatCellHtml(
   }
 
   if (fieldtype === 'Date') {
-    try {
-      const d = new Date(str)
-      return escapeHtml(new Intl.DateTimeFormat('uk-UA', { dateStyle: 'medium' }).format(d))
-    } catch { return escapeHtml(str) }
+    return escapeHtml(formatDate(str))
   }
 
   if (fieldtype === 'Datetime') {
-    try {
-      const d = new Date(str)
-      return escapeHtml(new Intl.DateTimeFormat('uk-UA', { dateStyle: 'short', timeStyle: 'short' }).format(d))
-    } catch { return escapeHtml(str) }
+    return escapeHtml(formatDateTime(str))
   }
 
   if (fieldtype === 'Rating') {
@@ -145,8 +140,7 @@ export function generateHtml(ctx: ExportContext): string {
   const indicatorMap = new Map<string, { color: string; label?: string | null }>()
   for (const ind of statusConfig?.indicators ?? []) indicatorMap.set(ind.value, ind)
 
-  const now = new Date()
-  const dateStr = new Intl.DateTimeFormat('uk-UA', { dateStyle: 'long', timeStyle: 'short' }).format(now)
+  const dateStr = formatFull(new Date())
   const isPartial = rows.length < total && total > 10_000
 
   const filterSummary = filters.length

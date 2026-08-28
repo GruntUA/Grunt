@@ -39,7 +39,7 @@ const dateObj = computed<Date | null>({
       v-model="dateObj"
       :disabled="isDisabled"
       :invalid="!!error"
-      :placeholder="field.placeholder || 'ДД.ММ.РРРР'"
+      :placeholder="field.placeholder || undefined"
       class="w-full"
     />
   </div>

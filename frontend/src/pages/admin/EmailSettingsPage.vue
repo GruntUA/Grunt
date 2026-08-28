@@ -2,6 +2,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import api from '@/core/api/client'
 import { useToast } from '@/core/composables/useToast'
+import { formatDateTime } from '@/core/datetime'
 import {
   Mail, Plus, Trash2, RefreshCcw, Send, CheckCircle2,
   XCircle, Clock, ChevronLeft, ChevronRight,
@@ -227,8 +228,7 @@ function statusIcon(status: string) {
 }
 
 function fmtDate(d: string | null) {
-  if (!d) return '—'
-  return new Date(d).toLocaleString('uk-UA', { dateStyle: 'short', timeStyle: 'short' })
+  return formatDateTime(d)
 }
 </script>
 

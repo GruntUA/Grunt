@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { formatDayMonth } from '@/core/datetime'
 import draggable from 'vuedraggable'
 import type { DocType, DocField } from '@/types'
 import { docsApi } from '@/core/api/docs'
@@ -127,7 +128,7 @@ async function quickAdd(col: string) {
 
 function formatDate(val: any) {
   if (!val) return ''
-  return new Date(val).toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' })
+  return formatDayMonth(val as string)
 }
 
 onMounted(loadCards)

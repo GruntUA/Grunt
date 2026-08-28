@@ -2,6 +2,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDocTypeStore } from '@/stores/doctype'
+import { formatDateTime } from '@/core/datetime'
 import api from '@/core/api/client'
 import {
   Search, RefreshCcw, Plus, FileText, Trash2, Send,
@@ -172,12 +173,7 @@ function getActionLabel(action: string): string {
 }
 
 function formatTime(val: string | null): string {
-  if (!val) return '—'
-  const d = new Date(val)
-  return d.toLocaleString('uk-UA', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  })
+  return formatDateTime(val)
 }
 </script>
 

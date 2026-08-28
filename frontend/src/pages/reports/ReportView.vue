@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
+import { formatDate, formatDateTime } from '@/core/datetime'
 import { useRouter } from 'vue-router'
 import { reportsApi } from '@/core/api/reports'
 import { useAuthStore } from '@/stores/auth'
@@ -44,8 +45,8 @@ watch(() => props.reportName, fetchReport)
 
 function formatCell(val: any, fieldtype: string): string {
     if (val === null || val === undefined || val === '') return '—'
-    if (fieldtype === 'Date') return new Date(val).toLocaleDateString('uk-UA')
-    if (fieldtype === 'Datetime') return new Date(val).toLocaleString('uk-UA')
+    if (fieldtype === 'Date') return formatDate(val)
+    if (fieldtype === 'Datetime') return formatDateTime(val)
     if (fieldtype === 'Float' || fieldtype === 'Int') return val.toLocaleString('uk-UA')
     return String(val)
 }

@@ -47,7 +47,7 @@ const dateObj = computed<Date | null>({
       :disabled="isDisabled"
       :invalid="error"
       show-time
-      :placeholder="field.placeholder || 'ДД.ММ.РРРР ГГ:ХХ'"
+      :placeholder="field.placeholder || undefined"
       class="w-full"
     />
   </div>

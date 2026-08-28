@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { workspaceApi, type MyWork } from '@/core/api/workspace'
 import { CheckSquare, AlertTriangle, Bell, ArrowRight, Inbox } from '@lucide/vue'
+import { formatIntl } from '@/core/datetime'
 
 const router = useRouter()
 const appStore = useAppStore()
@@ -48,9 +49,7 @@ function openNotification(n: MyWork['notifications'][number]) {
 
 function formatDue(due: string | null): string {
   if (!due) return ''
-  const d = new Date(due)
-  if (isNaN(d.getTime())) return String(due)
-  return d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' })
+  return formatIntl(due, { day: '2-digit', month: '2-digit' })
 }
 
 onMounted(async () => {

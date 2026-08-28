@@ -11,6 +11,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Download, X, Share, PlusSquare } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
+import { useSiteConfig } from '@/core/composables/useSiteConfig'
+
+const { appName } = useSiteConfig()
 
 // ── State ──────────────────────────────────────────────────────────────────
 
@@ -95,7 +98,7 @@ function dismiss() {
         <Download class="w-5 h-5 text-primary" />
       </div>
       <div class="flex-1 min-w-0">
-        <p class="text-sm font-semibold text-foreground leading-tight">Встановити Ґрунт</p>
+        <p class="text-sm font-semibold text-foreground leading-tight">Встановити {{ appName }}</p>
         <p class="text-xs text-muted-foreground mt-0.5">Додати на головний екран для швидкого доступу</p>
       </div>
       <div class="flex items-center gap-1.5 shrink-0">

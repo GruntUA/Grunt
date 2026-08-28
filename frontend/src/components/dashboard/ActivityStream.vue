@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import api from '@/core/api/client'
 import { useWebSocket } from '@/core/composables/useWebSocket'
 import { useAuthStore } from '@/stores/auth'
+import { formatTime as fmtTime, formatDayMonth } from '@/core/datetime'
 import {
     FileText,
     Plus,
@@ -70,13 +71,11 @@ function getActionColor(action: string) {
 }
 
 function formatTime(val: string) {
-    const date = new Date(val)
-    return date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })
+    return fmtTime(val)
 }
 
 function formatDate(val: string) {
-    const date = new Date(val)
-    return date.toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' })
+    return formatDayMonth(val)
 }
 
 function goToDoc(item: ActivityEntry) {

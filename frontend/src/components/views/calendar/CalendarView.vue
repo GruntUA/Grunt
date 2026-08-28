@@ -14,8 +14,9 @@ import {
   isToday,
   parse
 } from 'date-fns'
-import { uk } from 'date-fns/locale'
+import { uk, enUS } from 'date-fns/locale'
 import type { DocType } from '@/types'
+import { siteConfigState } from '@/core/composables/useSiteConfig'
 import { docsApi } from '@/core/api/docs'
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ExternalLink } from '@lucide/vue'
 import { useRouter } from 'vue-router'
@@ -31,6 +32,7 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
+const dfLocale = computed(() => (siteConfigState().language.toLowerCase().startsWith('en') ? enUS : uk))
 const currentMonth = ref(new Date())
 const isLoading = ref(true)
 const isRescheduling = ref(false)
@@ -42,7 +44,7 @@ const calendarDays = computed(() => {
 })
 
 const monthLabel = computed(() => {
-  const label = format(currentMonth.value, 'LLLL yyyy', { locale: uk })
+  const label = format(currentMonth.value, 'LLLL yyyy', { locale: dfLocale.value })
   return label.charAt(0).toUpperCase() + label.slice(1)
 })
 
@@ -202,7 +204,7 @@ function setToday() { currentMonth.value = new Date() }
 
 function fmtDate(d: string | null) {
   if (!d) return ''
-  return format(parseISO(d.slice(0, 19)), 'dd MMMM yyyy, HH:mm', { locale: uk })
+  return format(parseISO(d.slice(0, 19)), 'dd MMMM yyyy, HH:mm', { locale: dfLocale.value })
 }
 
 onMounted(loadDocuments)

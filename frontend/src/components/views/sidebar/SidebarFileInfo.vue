@@ -5,6 +5,7 @@ import PresenceAvatars from '@/components/ui/PresenceAvatars.vue'
 import type { DocType, GruntDocument } from '@/types'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { formatDateTime } from '@/core/datetime'
 
 const props = defineProps<{
   doctype: DocType
@@ -18,15 +19,8 @@ const imageUrl = computed(() => {
   return typeof val === 'string' && val ? val : null
 })
 
-const createdAt = computed(() => {
-  const d = props.document.created_at
-  return d ? new Date(d).toLocaleDateString('uk-UA', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'
-})
-
-const modifiedAt = computed(() => {
-  const d = props.document.modified_at
-  return d ? new Date(d).toLocaleDateString('uk-UA', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'
-})
+const createdAt = computed(() => formatDateTime(props.document.created_at as string | undefined))
+const modifiedAt = computed(() => formatDateTime(props.document.modified_at as string | undefined))
 </script>
 
 <template>
