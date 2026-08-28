@@ -62,8 +62,16 @@ async def get_unread_count() -> int:
 
 @grunt.whitelist()
 async def get_vapid_public_key() -> str | None:
-    """Return the VAPID public key needed to subscribe to Web Push."""
+    """Return the VAPID public key needed to subscribe to Web Push.
+
+    ``None`` when Web Push is disabled in SystemSettings — the client then
+    shows "server not configured for push".
+    """
+    from grunt.site.settings import get_setting
     from grunt.webpush.service import webpush_service
+
+    if not await get_setting("enable_web_push", False):
+        return None
 
     key = await webpush_service.get_vapid_public_key()
     if not key:
@@ -74,6 +82,11 @@ async def get_vapid_public_key() -> str | None:
 @grunt.whitelist()
 async def subscribe_push(endpoint: str, p256dh: str, auth: str, user_agent: str = "") -> bool:
     """Save a browser push subscription for the current user."""
+    from grunt.site.settings import get_setting
+
+    if not await get_setting("enable_web_push", False):
+        grunt.throw("Web Push вимкнено в налаштуваннях системи", "FORBIDDEN")
+
     user = await grunt.get_current_user()
     from grunt.webpush.service import webpush_service
 

@@ -73,6 +73,12 @@ class User(Document):
         # If a plain-text password was passed through the generic API, hash it.
         raw = self.data.get("password")
         if raw:
+            if not await _is_internal_context():
+                # Interactive create (admin form / import) — hold it to policy.
+                # The register_* endpoints already checked before reaching here.
+                from grunt.auth.password_policy import enforce_password_policy
+
+                await enforce_password_policy(str(raw))
             self.hashed_password = await hash_password(str(raw))
             self.data.pop("password", None)
 
@@ -135,6 +141,17 @@ def _verify_password_sync(plain: str, hashed: str) -> bool:
         return bcrypt.checkpw(plain.encode(), hashed.encode())
     except (AttributeError, ValueError):
         return False
+
+
+async def _is_internal_context() -> bool:
+    """True when the active context is the internal SYSTEM_USER (bootstrap,
+    fixtures, registration flows) or has no user at all — those paths must not
+    be blocked by the interactive password policy."""
+    try:
+        current = await grunt.get_current_user()
+    except Exception:
+        return True
+    return not current or current.email == SYSTEM_USER.email
 
 
 async def hash_password(plain: str) -> str:
@@ -231,14 +248,21 @@ async def create_user(
 async def authenticate(email: str, password: str) -> User | None:
     """Return user if credentials are valid, else None.
 
-    Tracks failed attempts and locks the account after _MAX_ATTEMPTS failures.
+    Tracks failed attempts and locks the account after ``max_login_attempts``
+    (``SystemSettings``) failures for ``account_lockout_duration`` minutes.
     Raises ``ValueError("locked")`` when the account is temporarily locked.
     """
     from grunt.context import require_session
+    from grunt.site.settings import get_setting
 
     user = await get_user_by_email(email)
     if user is None:
         return None
+
+    max_attempts = int(await get_setting("max_login_attempts", _MAX_ATTEMPTS) or _MAX_ATTEMPTS)
+    lockout_minutes = int(
+        await get_setting("account_lockout_duration", _LOCKOUT_MINUTES) or _LOCKOUT_MINUTES
+    )
 
     now = datetime.now(UTC)
 
@@ -254,8 +278,8 @@ async def authenticate(email: str, password: str) -> User | None:
         if not user.hashed_password or not await verify_password(password, user.hashed_password):
             new_attempts = (user.login_attempts or 0) + 1
             updates: dict = {"login_attempts": new_attempts}
-            if new_attempts >= _MAX_ATTEMPTS:
-                updates["locked_until"] = now + timedelta(minutes=_LOCKOUT_MINUTES)
+            if new_attempts >= max_attempts:
+                updates["locked_until"] = now + timedelta(minutes=lockout_minutes)
                 updates["login_attempts"] = 0
             await grunt.db.set_value("User", user.name, updates)
             return None
@@ -294,6 +318,37 @@ async def _track_login_session(
         logger.exception("suppressed_error")
 
 
+async def _guard_registration() -> None:
+    """Block self-service registration unless ``allow_user_registration`` is on.
+
+    The very first user is always allowed — that path is the setup wizard /
+    ``grunt site create`` bootstrap, not public sign-up.
+    """
+    from grunt.site.settings import get_setting
+
+    if await grunt.db.count("User") == 0:
+        return
+    if not await get_setting("allow_user_registration", False):
+        grunt.throw("Реєстрація нових користувачів вимкнена", "FORBIDDEN")
+
+
+async def _assign_default_role(user_id: str | None) -> None:
+    """Give a freshly registered user the configured ``default_role`` (if any)."""
+    from grunt.site.settings import get_setting
+
+    role = await get_setting("default_role")
+    if not role or not user_id:
+        return
+    existing = await grunt.get_list(
+        "UserRole",
+        filters={"user_id": user_id, "role_name": role},
+        fields=["name"],
+        limit=1,
+    )
+    if not existing:
+        await grunt.new_doc("UserRole", {"user_id": user_id, "role_name": role})
+
+
 @grunt.whitelist(allow_guest=True)
 async def register(
     email: str,
@@ -303,21 +358,33 @@ async def register(
     middle_name: str | None = None,
 ) -> dict[str, Any]:
     """Register a new user."""
+    from grunt.auth.password_policy import enforce_password_policy
+
+    await _guard_registration()
+    await enforce_password_policy(password)
+
     existing = await get_user_by_email(email)
     if existing is not None:
         grunt.throw(f"User with email '{email}' already exists", "CONFLICT")
 
     user = await create_user(email, password, first_name or "", last_name or "", middle_name)
+    await _assign_default_role(user.id)
     return UserPublic.dump(user)
 
 
 @grunt.whitelist(allow_guest=True)
 async def register_full_name_api(email: str, password: str, full_name: str) -> dict[str, Any]:
     """Register a new user using a single full_name string."""
+    from grunt.auth.password_policy import enforce_password_policy
+
+    await _guard_registration()
+    await enforce_password_policy(password)
+
     name_parts = full_name.split(maxsplit=1)
     first_name = name_parts[0] if name_parts else ""
     last_name = name_parts[1] if len(name_parts) > 1 else ""
     user = await create_user(email, password, first_name, last_name, None)
+    await _assign_default_role(user.id)
     return _auth_user_dump(user)
 
 
@@ -329,7 +396,12 @@ async def login_api(
     user_agent: str | None = None,
 ) -> dict[str, Any]:
     """Authenticate a user and issue auth tokens or MFA challenge token."""
-    from grunt.auth.service import create_access_token, create_mfa_token, create_refresh_token
+    from grunt.auth.service import (
+        create_access_token,
+        create_mfa_token,
+        create_refresh_token,
+        session_ttl_minutes,
+    )
 
     try:
         user = await authenticate(email, password)
@@ -352,8 +424,9 @@ async def login_api(
         }
 
     assert user.id is not None
-    access_token = create_access_token(user)
-    refresh_token = await create_refresh_token(user.id)
+    ttl = await session_ttl_minutes()
+    access_token = create_access_token(user, ttl)
+    refresh_token = await create_refresh_token(user.id, ttl)
     await _track_login_session(user.id, ip_address, user_agent)
 
     return {
@@ -375,7 +448,12 @@ async def mfa_login_api(
 ) -> dict[str, Any]:
     """Verify MFA challenge token+code and issue full auth tokens."""
     from grunt.auth.mfa import check_mfa_code
-    from grunt.auth.service import create_access_token, create_refresh_token, verify_mfa_token
+    from grunt.auth.service import (
+        create_access_token,
+        create_refresh_token,
+        session_ttl_minutes,
+        verify_mfa_token,
+    )
 
     payload = verify_mfa_token(mfa_token)
     if not payload:
@@ -392,8 +470,9 @@ async def mfa_login_api(
         raise
 
     assert user.id is not None
-    access_token = create_access_token(user)
-    refresh_token = await create_refresh_token(user.id)
+    ttl = await session_ttl_minutes()
+    access_token = create_access_token(user, ttl)
+    refresh_token = await create_refresh_token(user.id, ttl)
     await _track_login_session(user.id, ip_address, user_agent)
 
     return {
@@ -444,7 +523,11 @@ async def update_me_api(theme: str | None = None) -> dict[str, Any]:
 @grunt.whitelist(allow_guest=True)
 async def refresh_api(refresh_token: str) -> dict[str, Any]:
     """Exchange a valid refresh token for a new access+refresh pair."""
-    from grunt.auth.service import create_access_token, rotate_refresh_token
+    from grunt.auth.service import (
+        create_access_token,
+        rotate_refresh_token,
+        session_ttl_minutes,
+    )
 
     result = await rotate_refresh_token(refresh_token)
     if result is None:
@@ -452,7 +535,7 @@ async def refresh_api(refresh_token: str) -> dict[str, Any]:
 
     new_refresh_token, user = result
     return {
-        "access_token": create_access_token(user),
+        "access_token": create_access_token(user, await session_ttl_minutes()),
         "refresh_token": new_refresh_token,
         "mfa_token": None,
         "token_type": "bearer",
@@ -564,10 +647,13 @@ async def remove_role(user_id: str, role_name: str) -> bool:
 @grunt.whitelist(roles=["superadmin"])
 async def set_user_password_api(user_id: str, new_password: str) -> bool:
     """Set a new password for a user. Superadmin only."""
+    from grunt.auth.password_policy import enforce_password_policy
+
     user = await get_user_by_id(user_id)
     if not user or not user.id:
         grunt.throw("Користувача не знайдено", "NOT_FOUND")
 
+    await enforce_password_policy(new_password)
     await grunt.set_value("User", user.id, "hashed_password", await hash_password(new_password))
     return True
 
@@ -671,10 +757,10 @@ async def forgot_password_api(email: str) -> bool:
 @grunt.whitelist(allow_guest=True)
 async def reset_password_api(token: str, new_password: str) -> bool:
     """Reset password using a valid reset token."""
+    from grunt.auth.password_policy import enforce_password_policy
     from grunt.auth.service import consume_password_reset_token
 
-    if len(new_password) < 8:
-        grunt.throw("Password must be at least 8 characters", "VALIDATION_ERROR")
+    await enforce_password_policy(new_password)
 
     reset_ok = await consume_password_reset_token(token, new_password)
     if not reset_ok:

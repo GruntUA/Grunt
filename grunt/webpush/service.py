@@ -131,6 +131,11 @@ class WebPushService:
         url: str = "/",
     ) -> None:
         """Send a Web Push notification to all subscriptions of a user."""
+        from grunt.site.settings import get_setting
+
+        if not await get_setting("enable_web_push", False):
+            return
+
         try:
             from pywebpush import webpush
         except ImportError:

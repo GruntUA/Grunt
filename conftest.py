@@ -101,6 +101,40 @@ async def setup_db():
         await conn.run_sync(SA_METADATA.create_all)
     await search_index_service.ensure_table(test_engine)
 
+    # Seed a permissive SystemSettings row so the production password /
+    # registration policy (grunt/auth/password_policy.py, register gate) does
+    # not block unrelated tests. Tests that exercise the policy set strict
+    # values themselves and call grunt.site.settings.clear_settings_cache().
+    from datetime import UTC, datetime
+
+    from grunt.site.settings import clear_settings_cache
+
+    clear_settings_cache()
+    try:
+        _ss = compile_doctype_to_table(doctype_registry._doctypes["SystemSettings"])
+        _now = datetime.now(UTC)
+        async with test_engine.begin() as conn:
+            await conn.execute(
+                _ss.insert().values(
+                    name="SystemSettings",
+                    owner="system@grunt.local",
+                    created_at=_now,
+                    modified_at=_now,
+                    modified_by="system@grunt.local",
+                    docstatus=0,
+                    allow_user_registration=True,
+                    password_min_length=1,
+                    password_require_uppercase=False,
+                    password_require_lowercase=False,
+                    password_require_numbers=False,
+                    password_require_symbols=False,
+                    enable_web_push=False,
+                )
+            )
+    except Exception as exc:  # pragma: no cover - defensive
+        logging.getLogger(__name__).warning("SystemSettings test seed failed: %s", exc)
+    clear_settings_cache()
+
     yield
 
     async with test_engine.begin() as conn:

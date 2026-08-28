@@ -130,6 +130,7 @@ async def oauth_callback(provider: str, code: str) -> dict:
     from grunt.auth.service import (
         create_access_token,
         create_refresh_token,
+        session_ttl_minutes,
     )
 
     # Fetch OIDC discovery document
@@ -175,8 +176,9 @@ async def oauth_callback(provider: str, code: str) -> dict:
         await session.commit()
 
     assert user.id is not None
-    access_token = create_access_token(user)
-    refresh_token = await create_refresh_token(user.id)
+    ttl = await session_ttl_minutes()
+    access_token = create_access_token(user, ttl)
+    refresh_token = await create_refresh_token(user.id, ttl)
     await session.commit()
 
     return ok(

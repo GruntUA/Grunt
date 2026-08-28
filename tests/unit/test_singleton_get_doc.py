@@ -3,8 +3,20 @@
 import pytest
 
 
+async def _clear_system_settings(ctx) -> None:
+    """The shared conftest seeds a permissive SystemSettings row; these tests
+    exercise the empty-singleton / first-create paths, so start from scratch."""
+    from grunt.metadata.compiler import compile_doctype_to_table
+    from grunt.metadata.registry import doctype_registry
+
+    table = compile_doctype_to_table(await doctype_registry.get("SystemSettings"))
+    await ctx.db._session().execute(table.delete())
+    await ctx.db._session().commit()
+
+
 @pytest.mark.asyncio
 async def test_get_doc_singleton_without_id(ctx):
+    await _clear_system_settings(ctx)
     await ctx.new_doc("SystemSettings", {"app_name": "Acme"})
 
     # No id at all — Frappe-style `get_doc('System Settings')`.
@@ -23,6 +35,8 @@ async def test_get_doc_singleton_without_id(ctx):
 @pytest.mark.asyncio
 async def test_get_doc_singleton_missing_row_404(ctx):
     from fastapi import HTTPException
+
+    await _clear_system_settings(ctx)
 
     with pytest.raises(HTTPException) as exc:
         await ctx.get_doc("SystemSettings")

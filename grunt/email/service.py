@@ -590,25 +590,45 @@ class EmailService:
     ) -> str:
         """Insert a record into EmailQueue for async delivery.
 
-        The ``process_email_queue`` task picks it up and sends via the default
-        outgoing EmailAccount (the first account with enable_outgoing=True).
+        Sending account: ``SystemSettings.default_email_account`` when set,
+        otherwise the first EmailAccount with ``enable_outgoing=True``.
+        ``SystemSettings.email_footer`` (if any) is appended to the body.
         """
         from grunt.app import grunt
+        from grunt.site.settings import get_setting
 
-        # Find the default outgoing account id (best-effort — None if unconfigured)
+        # Resolve the outgoing account id (best-effort — None if unconfigured)
         email_account_id: str | None = None
+        footer: str = ""
         try:
             async with grunt.system_context(session):
-                accounts = await grunt.db.get_all(
-                    "EmailAccount",
-                    filters={"enable_outgoing": True},
-                    fields=["name"],
-                    limit=1,
-                )
-            if accounts:
-                email_account_id = str(accounts[0]["name"])
+                configured = await get_setting("default_email_account")
+                if configured and await grunt.db.exists("EmailAccount", {"name": configured}):
+                    email_account_id = str(configured)
+                else:
+                    accounts = await grunt.db.get_all(
+                        "EmailAccount",
+                        filters={"enable_outgoing": True},
+                        fields=["name"],
+                        limit=1,
+                    )
+                    if accounts:
+                        email_account_id = str(accounts[0]["name"])
+                raw_footer = (await get_setting("email_footer") or "").strip()
+                # Ignore markup-only footers like "<p></p>" that a rich-text
+                # editor leaves behind when the field is "empty".
+                if re.sub(r"<[^>]+>", "", raw_footer).strip():
+                    footer = raw_footer
         except Exception:
             logger.exception("suppressed_error")
+
+        content = html_body or body
+        if footer:
+            if html_body:
+                content = f"{html_body}<br><br>{footer}"
+            else:
+                plain_footer = re.sub(r"<[^>]+>", "", footer).strip()
+                content = f"{body}\n\n{plain_footer}"
 
         record_id = str(uuid.uuid4())
         now = datetime.now(UTC)
@@ -626,7 +646,7 @@ class EmailService:
                         "docstatus": 0,
                         "recipient": to,
                         "subject": subject,
-                        "content": html_body or body,
+                        "content": content,
                         "status": "Pending",
                         "email_account": email_account_id,
                     },

@@ -21,10 +21,30 @@ if TYPE_CHECKING:
 
 # ── JWT ───────────────────────────────────────────────────────────────────
 
+# Fallback when SystemSettings has no session_timeout value (very early boot).
+_DEFAULT_REFRESH_TTL_MINUTES = 7 * 24 * 60
 
-def create_access_token(user: User) -> str:
+
+async def session_ttl_minutes() -> int:
+    """How long access + refresh tokens live, from ``SystemSettings.session_timeout``.
+
+    Both tokens share this TTL so that idle longer than the timeout invalidates
+    the refresh token too (real logout), while an active user keeps going via
+    refresh-token rotation.
+    """
+    from grunt.site.settings import get_setting
+
+    minutes = await get_setting("session_timeout", settings.access_token_expire_minutes)
+    try:
+        return max(1, int(minutes))
+    except (TypeError, ValueError):
+        return settings.access_token_expire_minutes
+
+
+def create_access_token(user: User, expire_minutes: int | None = None) -> str:
     """Create a JWT with user identity claims to avoid DB lookups on every request."""
-    expire = datetime.now(UTC) + timedelta(minutes=settings.access_token_expire_minutes)
+    minutes = expire_minutes if expire_minutes is not None else settings.access_token_expire_minutes
+    expire = datetime.now(UTC) + timedelta(minutes=minutes)
     payload = {
         "sub": user.email,
         "uid": user.id,
@@ -64,13 +84,14 @@ def verify_mfa_token(token: str) -> dict | None:
 # ── Refresh tokens ────────────────────────────────────────────────────────
 
 
-async def create_refresh_token(user_id: str) -> str:
-    """Issue a 7-day refresh token for a user."""
+async def create_refresh_token(user_id: str, expire_minutes: int | None = None) -> str:
+    """Issue a refresh token for a user (TTL from ``SystemSettings.session_timeout``)."""
     from grunt.app import grunt
     from grunt.context import require_session
 
+    minutes = expire_minutes if expire_minutes is not None else _DEFAULT_REFRESH_TTL_MINUTES
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
-    expires_at = datetime.now(UTC) + timedelta(days=7)
+    expires_at = datetime.now(UTC) + timedelta(minutes=minutes)
 
     async with grunt.system_context(require_session()):
         await grunt.db.set_value("User", user_id, "refresh_token", token)
@@ -142,7 +163,7 @@ async def rotate_refresh_token(token: str) -> tuple[str, User] | None:
     if user is None:
         return None
 
-    new_token = await create_refresh_token(user.id)
+    new_token = await create_refresh_token(user.id, await session_ttl_minutes())
     return new_token, user
 
 

@@ -188,7 +188,7 @@ class NotificationService:
         try:
             from grunt.webpush.service import webpush_service
 
-            await webpush_service.send_push(session, user, subject, message)
+            await webpush_service.send_push(user, subject, message)
         except Exception:
             logger.exception("suppressed_error")
 
