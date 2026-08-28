@@ -239,3 +239,48 @@ async def test_register_rejects_weak_password(ctx):
             first_name="Strong",
             last_name="Pw",
         )
+
+
+@pytest.mark.asyncio
+async def test_whoami_and_update_me_carry_language_and_timezone(ctx, client: AsyncClient):
+    """Per-user language/timezone round-trip: whoami exposes them, update_me sets them."""
+    from grunt.auth.doctypes.User.user import create_user
+
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        user = await create_user("prefs@grunt.example.com", "Str0ngPass", "Pref", "S", None)
+        await ctx.db.set_value(
+            "User", user.id, {"language": "en", "timezone": "Europe/Warsaw"}
+        )
+        await ctx.db._session().commit()
+
+    login = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        json={"email": "prefs@grunt.example.com", "password": "Str0ngPass"},
+    )
+    body = login.json()["data"]
+    assert body["user"]["language"] == "en"
+    assert body["user"]["timezone"] == "Europe/Warsaw"
+    headers = {"Authorization": f"Bearer {body['access_token']}"}
+
+    me = await client.get(
+        "/api/v1/method/grunt.auth.doctypes.User.user.whoami", headers=headers
+    )
+    assert me.json()["data"]["language"] == "en"
+    assert me.json()["data"]["timezone"] == "Europe/Warsaw"
+
+    upd = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.update_me_api",
+        json={"language": "uk", "timezone": "UTC"},
+        headers=headers,
+    )
+    assert upd.status_code == 200
+    data = upd.json()["data"]
+    assert data["language"] == "uk"
+    assert data["timezone"] == "UTC"
+
+    bad = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.update_me_api",
+        json={"language": "de"},
+        headers=headers,
+    )
+    assert bad.status_code == 422

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch } from 'vue'
+import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import i18n from '@/plugins/i18n'
 import { useAppStore } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
 import NotificationsPopover from '@/components/layout/NotificationsPopover.vue'
@@ -12,7 +13,7 @@ import { useSidebar } from '@/components/ui/sidebar'
 import {
   ArrowLeft, Check, ChevronDown, ChevronRight, ChevronsUpDown, Sun, Moon, Monitor,
   Settings2, Search, Shield, Activity,
-  Mail, LogOut,
+  Mail, LogOut, Languages,
 } from '@lucide/vue'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -30,9 +31,12 @@ const { isMobile } = useSidebar()
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 function goToDesk() { router.push('/app') }
+function goToProfile() { if (auth.user) router.push(`/app/grunt/User/${auth.user.id}`) }
 function triggerSearch() { window.dispatchEvent(new CustomEvent('toggle-search')) }
 function initials(name: string) { return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() }
 async function onThemeChange(theme: unknown) { await auth.setTheme(theme as Theme) }
+const currentLanguage = computed(() => auth.user?.language || i18n.global.locale.value)
+async function onLanguageChange(lang: unknown) { await auth.setLanguage(lang as 'uk' | 'en') }
 async function handleLogout() { await auth.logout(); router.push('/login') }
 
 // ── Admin shortcuts ───────────────────────────────────────────────────────────
@@ -207,8 +211,8 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
               class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
               :side="isMobile ? 'bottom' : 'right'" align="end" :side-offset="4"
             >
-              <DropdownMenuLabel class="p-0 font-normal">
-                <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+              <DropdownMenuItem class="p-0 font-normal focus:bg-sidebar-accent" title="Відкрити мій профіль" @click="goToProfile">
+                <div class="flex w-full items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar class="size-8 rounded-lg">
                     <AvatarImage v-if="auth.user?.avatar" :src="auth.user.avatar" alt="" />
                     <AvatarFallback class="rounded-lg">
@@ -220,7 +224,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
                     <span class="truncate text-xs text-muted-foreground">{{ auth.user?.email }}</span>
                   </div>
                 </div>
-              </DropdownMenuLabel>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuLabel class="text-xs text-muted-foreground">Тема</DropdownMenuLabel>
               <DropdownMenuRadioGroup :model-value="colorMode.currentTheme.value" @update:model-value="onThemeChange">
@@ -235,6 +239,18 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
                 <DropdownMenuRadioItem value="system" class="gap-2 p-2">
                   <Monitor class="size-4 shrink-0" />
                   <span>Системна</span>
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel class="text-xs text-muted-foreground">Мова</DropdownMenuLabel>
+              <DropdownMenuRadioGroup :model-value="currentLanguage" @update:model-value="onLanguageChange">
+                <DropdownMenuRadioItem value="uk" class="gap-2 p-2">
+                  <Languages class="size-4 shrink-0" />
+                  <span>Українська</span>
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="en" class="gap-2 p-2">
+                  <Languages class="size-4 shrink-0" />
+                  <span>English</span>
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
               <DropdownMenuSeparator />

@@ -1,15 +1,18 @@
 /**
- * Site-wide configuration sourced from the `SystemSettings` singleton.
+ * Site-wide configuration sourced from the `SystemSettings` singleton, plus the
+ * signed-in user's own `language` / `timezone` overrides.
+ *
+ * Precedence for the *effective* locale & timezone:
+ *   1. the logged-in user's `User.language` / `User.timezone`   (applyUserPrefs)
+ *   2. the visitor's explicit browser choice — localStorage['grunt-locale']
+ *   3. `SystemSettings` defaults                                (loadSiteConfig)
  *
  * Singleton state (same pattern as `useColorMode`) so plain modules — e.g.
  * `core/datetime.ts` — can read it without a component instance.
- *
- * Loaded once on boot: `main.ts` fires `loadSiteConfig()`, the router guard
- * awaits the same promise before resolving the first route.
  */
 
 import { reactive, toRefs } from 'vue'
-import { setLocale, type SupportedLocale } from '@/plugins/i18n'
+import i18n, { setLocale, type SupportedLocale } from '@/plugins/i18n'
 
 const LOCALE_STORAGE_KEY = 'grunt-locale'
 
@@ -18,7 +21,7 @@ export interface SiteConfig {
   appLogo: string
   /** Backend locale tag, e.g. "uk-UA" / "en-US". */
   language: string
-  /** IANA tz name, e.g. "Europe/Kyiv". Empty = use the browser's zone. */
+  /** Effective IANA tz name, e.g. "Europe/Kyiv". Empty = use the browser's zone. */
   timezone: string
   /** "dd.mm.yyyy" | "dd/mm/yyyy" | "yyyy-mm-dd" */
   dateFormat: string
@@ -36,17 +39,23 @@ const state = reactive<SiteConfig>({
   loaded: false,
 })
 
+// Site default vs. per-user override — `state.timezone` is whichever applies.
+let _siteTimezone = ''
+let _userTimezone: string | null = null
+
 let _promise: Promise<void> | null = null
 
 function toShortLocale(tag: string): SupportedLocale {
   return tag.toLowerCase().startsWith('en') ? 'en' : 'uk'
 }
 
+function _syncTimezone(): void {
+  state.timezone = _userTimezone || _siteTimezone
+}
+
 async function _load(): Promise<void> {
   try {
-    const res = await fetch(
-      '/api/v1/method/grunt.api.v1.site_config.get_public_config',
-    )
+    const res = await fetch('/api/v1/method/grunt.api.v1.site_config.get_public_config')
     if (res.ok) {
       const body = await res.json()
       const data = body?.data ?? body
@@ -54,7 +63,7 @@ async function _load(): Promise<void> {
         state.appName = data.app_name || state.appName
         state.appLogo = data.app_logo || ''
         state.language = data.language || state.language
-        state.timezone = data.timezone || ''
+        _siteTimezone = data.timezone || ''
         state.dateFormat = data.date_format || state.dateFormat
         state.allowRegistration = !!data.allow_user_registration
       }
@@ -63,6 +72,7 @@ async function _load(): Promise<void> {
     // Offline / not configured — keep the defaults.
   } finally {
     state.loaded = true
+    _syncTimezone()
   }
 
   // Seed the UI locale from the backend only when the visitor has not made
@@ -88,6 +98,20 @@ export function loadSiteConfig(): Promise<void> {
 export function reloadSiteConfig(): Promise<void> {
   _promise = _load()
   return _promise
+}
+
+/**
+ * Apply the signed-in user's own preferences over the site defaults. Call with
+ * `{}` on logout to fall back to the site config.
+ */
+export function applyUserPrefs(prefs: { language?: string | null; timezone?: string | null } = {}): void {
+  _userTimezone = prefs.timezone?.trim() || null
+  _syncTimezone()
+
+  if (prefs.language) {
+    const short = toShortLocale(prefs.language)
+    if (i18n.global.locale.value !== short) setLocale(short)
+  }
 }
 
 /** Reactive refs for use inside components. */

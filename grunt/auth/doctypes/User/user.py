@@ -300,6 +300,8 @@ def _auth_user_dump(user: User) -> dict[str, Any]:
         "theme": user.theme,
         "avatar": user.avatar,
         "mfa_enabled": bool(user.mfa_enabled),
+        "language": getattr(user, "language", None) or None,
+        "timezone": getattr(user, "timezone", None) or None,
         "created_at": user.created_at.isoformat() if user.created_at else None,
     }
 
@@ -496,9 +498,19 @@ async def mfa_login_api(
 
 @grunt.whitelist()
 async def whoami() -> dict[str, Any]:
-    """Return the currently authenticated user."""
-    user = await grunt.get_current_user()
-    return {**UserPublic.dump(user), "mfa_enabled": bool(user.mfa_enabled)}
+    """Return the currently authenticated user.
+
+    Re-reads the row from the DB (the context user is built from JWT claims and
+    lacks profile fields like ``mfa_enabled`` / ``language`` / ``timezone``).
+    """
+    ctx_user = await grunt.get_current_user()
+    user = (await get_user_by_id(ctx_user.id) if ctx_user.id else None) or ctx_user
+    return {
+        **UserPublic.dump(user),
+        "mfa_enabled": bool(user.mfa_enabled),
+        "language": getattr(user, "language", None) or None,
+        "timezone": getattr(user, "timezone", None) or None,
+    }
 
 
 @grunt.whitelist()
@@ -509,7 +521,11 @@ async def me_api() -> dict[str, Any]:
 
 
 @grunt.whitelist()
-async def update_me_api(theme: str | None = None) -> dict[str, Any]:
+async def update_me_api(
+    theme: str | None = None,
+    language: str | None = None,
+    timezone: str | None = None,
+) -> dict[str, Any]:
     """Update current user preferences and return updated profile."""
     user = await grunt.get_current_user()
 
@@ -518,6 +534,12 @@ async def update_me_api(theme: str | None = None) -> dict[str, Any]:
         if theme not in ("light", "dark", "system"):
             grunt.throw("Invalid theme value", "VALIDATION_ERROR")
         values["theme"] = theme
+    if language is not None:
+        if language not in ("uk", "en"):
+            grunt.throw("Invalid language value", "VALIDATION_ERROR")
+        values["language"] = language
+    if timezone is not None:
+        values["timezone"] = timezone.strip()
 
     assert user.id is not None
     if values:

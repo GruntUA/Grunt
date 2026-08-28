@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import client from '@/core/api/client'
 import { useColorMode, type Theme } from '@/core/composables/useColorMode'
+import { applyUserPrefs } from '@/core/composables/useSiteConfig'
+import { setLocale, type SupportedLocale } from '@/plugins/i18n'
 
 interface User {
   id: string
@@ -12,6 +14,8 @@ interface User {
   mfa_enabled?: boolean
   theme?: Theme
   avatar?: string
+  language?: string
+  timezone?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -49,8 +53,9 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function applyUserTheme(u: User) {
+  function applyUserPreferences(u: User) {
     if (u.theme) useColorMode().setTheme(u.theme)
+    applyUserPrefs({ language: u.language, timezone: u.timezone })
   }
 
   function _setTokens(accessToken: string, rt: string) {
@@ -73,7 +78,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!data.mfa_required) {
       _setTokens(data.access_token, data.refresh_token)
       user.value = data.user
-      applyUserTheme(data.user)
+      applyUserPreferences(data.user)
     }
     return {
       mfa_required: !!data.mfa_required,
@@ -92,6 +97,7 @@ export const useAuthStore = defineStore('auth', () => {
       const data = body.data
       _setTokens(data.access_token, data.refresh_token)
       user.value = data.user
+      applyUserPreferences(data.user)
       return true
     } catch (err: any) {
       // Only log out on auth errors (401/403), not on network/server errors
@@ -121,7 +127,7 @@ export const useAuthStore = defineStore('auth', () => {
         .then(({ data }) => {
           const u = data.data ?? data
           user.value = u
-          applyUserTheme(u)
+          applyUserPreferences(u)
         })
         .catch((err: any) => {
           // Only log out on auth errors (401/403), not on network/server errors
@@ -144,12 +150,20 @@ export const useAuthStore = defineStore('auth', () => {
     await client.post('/api/v1/method/grunt.auth.doctypes.User.user.update_me_api', { theme })
   }
 
+  async function setLanguage(language: SupportedLocale) {
+    setLocale(language)
+    if (user.value) user.value.language = language
+    await client.post('/api/v1/method/grunt.auth.doctypes.User.user.update_me_api', { language })
+  }
+
   function _logout() {
     token.value = null
     refreshToken.value = null
     user.value = null
     localStorage.removeItem('grunt_token')
     localStorage.removeItem('grunt_refresh_token')
+    // Drop the user's timezone override; fall back to the site config.
+    applyUserPrefs({})
   }
 
   async function logout() {
@@ -161,5 +175,5 @@ export const useAuthStore = defineStore('auth', () => {
     _logout()
   }
 
-  return { token, refreshToken, user, isLoggedIn, login, logout, refresh, fetchMe, prefetchMe, setTheme }
+  return { token, refreshToken, user, isLoggedIn, login, logout, refresh, fetchMe, prefetchMe, setTheme, setLanguage }
 })
