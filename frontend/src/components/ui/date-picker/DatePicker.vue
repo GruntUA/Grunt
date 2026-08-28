@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<{
   showTime?: boolean
   class?: string
 }>(), {
-  placeholder: 'Оберіть дату',
+  placeholder: 'ДД.ММ.РРРР',
 })
 
 const emit = defineEmits<{ 'update:modelValue': [value: Date | null] }>()
@@ -54,6 +54,21 @@ const displayText = computed(() => {
   let s = `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`
   if (props.showTime) s += ` ${pad(d.getHours())}:${pad(d.getMinutes())}`
   return s
+})
+
+function setTime(h: number, m: number) {
+  const base = props.modelValue ? new Date(props.modelValue) : new Date()
+  base.setHours(h, m, 0, 0)
+  emit('update:modelValue', base)
+}
+
+const hours = computed({
+  get: () => props.modelValue ? pad(props.modelValue.getHours()) : '00',
+  set: (v: string) => setTime(Number(v), props.modelValue?.getMinutes() ?? 0),
+})
+const minutes = computed({
+  get: () => props.modelValue ? pad(props.modelValue.getMinutes()) : '00',
+  set: (v: string) => setTime(props.modelValue?.getHours() ?? 0, Number(v)),
 })
 
 // --- Клавіатурний ввід ---
@@ -134,7 +149,7 @@ function onKeydown(e: KeyboardEvent) {
       inputmode="numeric"
       :value="text"
       :disabled="disabled"
-      :placeholder="showTime ? 'ДД.ММ.РРРР ГГ:ХХ' : 'ДД.ММ.РРРР'"
+      :placeholder="placeholder"
       class="text-foreground placeholder:text-muted-foreground w-full min-w-0 bg-transparent outline-none disabled:cursor-not-allowed"
       @focus="focused = true"
       @input="onInput"
@@ -158,17 +173,13 @@ function onKeydown(e: KeyboardEvent) {
       <Calendar v-model="calendarValue" />
       <div v-if="showTime" class="flex items-center justify-center gap-2 border-t border-border p-3">
         <input
-          type="number" min="0" max="23"
-          :value="modelValue ? pad(modelValue.getHours()) : '00'"
+          type="number" min="0" max="23" v-model="hours"
           class="w-14 rounded-md border border-input bg-transparent px-2 py-1 text-sm text-center outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          @change="(e) => { const base = modelValue ? new Date(modelValue) : new Date(); base.setHours(Number((e.target as HTMLInputElement).value), base.getMinutes(), 0, 0); emit('update:modelValue', base) }"
         >
         <span class="text-muted-foreground">:</span>
         <input
-          type="number" min="0" max="59"
-          :value="modelValue ? pad(modelValue.getMinutes()) : '00'"
+          type="number" min="0" max="59" v-model="minutes"
           class="w-14 rounded-md border border-input bg-transparent px-2 py-1 text-sm text-center outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          @change="(e) => { const base = modelValue ? new Date(modelValue) : new Date(); base.setMinutes(Number((e.target as HTMLInputElement).value), 0, 0); emit('update:modelValue', base) }"
         >
       </div>
     </PopoverContent>
