@@ -156,7 +156,7 @@ async def render_page(
     async with grunt.context(session, user=SYSTEM_USER):
         try:
             # Fetch global website settings (Singleton)
-            ws = await grunt.get_doc("WebsiteSettings", "WebsiteSettings")
+            ws = await grunt.get_doc("WebsiteSettings")
             context["website_settings"] = ws
         except Exception:
             context["website_settings"] = None
@@ -258,7 +258,7 @@ async def render_db_page(doc: dict[str, Any], request: Request, session: Any) ->
 
     async with grunt.context(session, user=SYSTEM_USER):
         try:
-            ws = await grunt.get_doc("WebsiteSettings", "WebsiteSettings")
+            ws = await grunt.get_doc("WebsiteSettings")
             context["website_settings"] = ws
         except Exception:
             context["website_settings"] = None

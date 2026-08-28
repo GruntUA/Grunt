@@ -76,7 +76,7 @@ class DocumentAPI:
     async def get_doc(
         self,
         doctype: str,
-        id_or_name: str,
+        id_or_name: str | None = None,
         *,
         expand: list[str] | None = None,
     ) -> dict[str, Any]: ...
@@ -85,13 +85,13 @@ class DocumentAPI:
     async def get_doc[D: Document](
         self,
         doctype: type[D],
-        id_or_name: str,
+        id_or_name: str | None = None,
         *,
         expand: list[str] | None = None,
     ) -> D: ...
 
     @profile("grunt.get_doc")
-    async def get_doc(self, doctype, id_or_name, *, expand=None):
+    async def get_doc(self, doctype, id_or_name=None, *, expand=None):
         """Fetch a single document by id or name.
 
         Pass a doctype name for the untyped dict result, or a ``Document``
@@ -99,6 +99,10 @@ class DocumentAPI:
 
             order = await grunt.get_doc(Order, order_id)    # typed -> Order
             order = await grunt.get_doc("Order", order_id)  # dict
+
+        For a singleton DocType the id is optional — there is only one row::
+
+            settings = await grunt.get_doc("SystemSettings")
         """
         from grunt.hooks import fire
         from grunt.permissions.rbac import permission_checker
@@ -125,7 +129,7 @@ class DocumentAPI:
     async def find_doc(
         self,
         doctype: str,
-        id_or_name: str,
+        id_or_name: str | None = None,
         *,
         expand: list[str] | None = None,
     ) -> dict[str, Any] | None: ...
@@ -134,12 +138,12 @@ class DocumentAPI:
     async def find_doc[D: Document](
         self,
         doctype: type[D],
-        id_or_name: str,
+        id_or_name: str | None = None,
         *,
         expand: list[str] | None = None,
     ) -> D | None: ...
 
-    async def find_doc(self, doctype, id_or_name, *, expand=None):
+    async def find_doc(self, doctype, id_or_name=None, *, expand=None):
         """Like :meth:`get_doc`, but returns ``None`` instead of raising 404."""
         from fastapi import HTTPException
 

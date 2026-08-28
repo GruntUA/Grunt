@@ -31,23 +31,30 @@ class DocumentReadMixin:
     async def get_document(
         self,
         doctype_name: str,
-        doc_id: str,
+        doc_id: str | None,
         user: User,
         expand: list[str] | None = None,
     ) -> dict[str, Any]:
         dt = await doctype_registry.get(doctype_name)
         if is_virtual_routed(dt, doctype_name):
-            return await virtual_get(doctype_name, user, doc_id)
+            return await virtual_get(doctype_name, user, doc_id or doctype_name)
 
         meta = Meta(dt)
         table = meta.table
 
-        result = await self.session.execute(select(table).where(table.c.name == doc_id))
+        # Singleton — there is only ever one row; ``doc_id`` is irrelevant
+        # (callers may pass the doctype name, or nothing at all).
+        if dt.is_singleton:
+            query = select(table).limit(1)
+        else:
+            query = select(table).where(table.c.name == doc_id)
+
+        result = await self.session.execute(query)
         row = result.first()
         if row is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Document '{doc_id}' not found.",
+                detail=f"Document '{doc_id or doctype_name}' not found.",
             )
 
         doc = serialize_datetimes(dict(row._mapping))

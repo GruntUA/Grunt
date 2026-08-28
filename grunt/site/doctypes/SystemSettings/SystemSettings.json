@@ -4,14 +4,24 @@
   "module": "site",
   "is_singleton": true,
   "icon": "Settings2",
+  "form_view": {
+    "layout": "compact"
+  },
   "fields": [
     {
-      "fieldname": "sec_general",
-      "label": "Загальні налаштування",
+      "fieldname": "tab_general",
+      "label": "Загальні",
+      "fieldtype": "Tab",
+      "icon": "settings"
+    },
+
+    {
+      "fieldname": "sec_identity",
+      "label": "",
       "fieldtype": "Section"
     },
     {
-      "fieldname": "col_g1",
+      "fieldname": "col_identity_left",
       "fieldtype": "Column"
     },
     {
@@ -20,17 +30,24 @@
       "fieldtype": "Text",
       "required": true,
       "default": "Grunt Framework",
-      "columns": 12
+      "bold": true,
+      "description": "Відображається у заголовку вкладки браузера, боковому меню та системних листах."
+    },
+    {
+      "fieldname": "col_identity_right",
+      "fieldtype": "Column"
     },
     {
       "fieldname": "app_logo",
       "label": "Логотип",
       "fieldtype": "Image",
-      "columns": 12
+      "description": "PNG або SVG. Показується у боковому меню та на сторінці входу."
     },
+
     {
-      "fieldname": "col_g2",
-      "fieldtype": "Column"
+      "fieldname": "sec_regional",
+      "label": "Регіональні налаштування",
+      "fieldtype": "Section"
     },
     {
       "fieldname": "language",
@@ -38,7 +55,8 @@
       "fieldtype": "Select",
       "options": "uk-UA\nen-US",
       "default": "uk-UA",
-      "columns": 12
+      "columns": 6,
+      "description": "Мова інтерфейсу для нових користувачів."
     },
     {
       "fieldname": "timezone",
@@ -46,66 +64,52 @@
       "fieldtype": "Select",
       "options": "Europe/Kyiv\nUTC",
       "default": "Europe/Kyiv",
-      "columns": 12
+      "columns": 6,
+      "description": "Використовується для відображення дат і часу."
     },
     {
       "fieldname": "date_format",
       "label": "Формат дати",
       "fieldtype": "Select",
-      "options": "dd.mm.yyyy\nyyyy-mm-dd",
+      "options": "dd.mm.yyyy\ndd/mm/yyyy\nyyyy-mm-dd",
       "default": "dd.mm.yyyy",
-      "columns": 12
+      "columns": 6
     },
+
     {
-      "fieldname": "sec_auth",
-      "label": "Авторизація та Реєстрація",
+      "fieldname": "sec_registration",
+      "label": "Реєстрація користувачів",
       "fieldtype": "Section"
     },
     {
       "fieldname": "allow_user_registration",
-      "label": "Дозволити реєстрацію користувачів",
+      "label": "Дозволити самостійну реєстрацію",
       "fieldtype": "Check",
       "default": false,
-      "columns": 6
+      "columns": 12,
+      "description": "Показує форму реєстрації на сторінці входу."
     },
     {
-      "fieldname": "sec_webpush",
-      "label": "Web Push (сповіщення браузера)",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "webpush_vapid_public",
-      "label": "VAPID Public Key",
-      "fieldtype": "Text",
-      "read_only": true
-    },
-    {
-      "fieldname": "webpush_vapid_private",
-      "label": "VAPID Private Key",
-      "fieldtype": "LongText",
-      "hidden": true
-    },
-    {
-      "fieldname": "sec_email",
-      "label": "Email налаштування",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "default_email_account",
-      "label": "Обліковий запис за замовчуванням",
+      "fieldname": "default_role",
+      "label": "Роль за замовчуванням",
       "fieldtype": "Link",
-      "options": "EmailAccount",
-      "columns": 6
+      "options": "Role",
+      "columns": 6,
+      "depends_on": "eval: doc.allow_user_registration",
+      "mandatory_depends_on": "eval: doc.allow_user_registration",
+      "description": "Призначається користувачу одразу після самостійної реєстрації."
     },
+
     {
-      "fieldname": "email_footer",
-      "label": "Підпис у email",
-      "fieldtype": "RichText",
-      "columns": 12
-    },
-    {
-      "fieldname": "sec_security",
+      "fieldname": "tab_security",
       "label": "Безпека",
+      "fieldtype": "Tab",
+      "icon": "shield-check"
+    },
+
+    {
+      "fieldname": "sec_password",
+      "label": "Політика паролів",
       "fieldtype": "Section"
     },
     {
@@ -113,50 +117,135 @@
       "label": "Мінімальна довжина пароля",
       "fieldtype": "Int",
       "default": 8,
-      "columns": 6
+      "min_value": 4,
+      "max_value": 128,
+      "columns": 6,
+      "description": "Застосовується при створенні або зміні пароля."
     },
     {
       "fieldname": "password_require_uppercase",
-      "label": "Вимагати великі літери",
+      "label": "Великі літери (A–Z)",
+      "fieldtype": "Check",
+      "default": true,
+      "columns": 6
+    },
+    {
+      "fieldname": "password_require_lowercase",
+      "label": "Малі літери (a–z)",
       "fieldtype": "Check",
       "default": true,
       "columns": 6
     },
     {
       "fieldname": "password_require_numbers",
-      "label": "Вимагати цифри",
+      "label": "Цифри (0–9)",
       "fieldtype": "Check",
       "default": true,
       "columns": 6
     },
     {
       "fieldname": "password_require_symbols",
-      "label": "Вимагати символи",
+      "label": "Спеціальні символи",
       "fieldtype": "Check",
       "default": false,
       "columns": 6
     },
+
+    {
+      "fieldname": "sec_sessions",
+      "label": "Сесії та захист від підбору",
+      "fieldtype": "Section"
+    },
     {
       "fieldname": "session_timeout",
-      "label": "Час життя сесії (хвилини)",
+      "label": "Час життя сесії, хв",
       "fieldtype": "Int",
       "default": 480,
-      "columns": 6
+      "min_value": 5,
+      "columns": 6,
+      "description": "Через скільки хвилин бездіяльності потрібен повторний вхід."
     },
     {
       "fieldname": "max_login_attempts",
       "label": "Максимум спроб входу",
       "fieldtype": "Int",
       "default": 5,
-      "columns": 6
+      "min_value": 1,
+      "columns": 6,
+      "description": "Кількість невдалих спроб до тимчасового блокування."
     },
     {
       "fieldname": "account_lockout_duration",
-      "label": "Блокування після невдачі (хвилини)",
+      "label": "Тривалість блокування, хв",
       "fieldtype": "Int",
       "default": 30,
+      "min_value": 1,
       "columns": 6
     },
+
+    {
+      "fieldname": "tab_email",
+      "label": "Email",
+      "fieldtype": "Tab",
+      "icon": "mail"
+    },
+
+    {
+      "fieldname": "sec_email",
+      "label": "",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "default_email_account",
+      "label": "Обліковий запис за замовчуванням",
+      "fieldtype": "Link",
+      "options": "EmailAccount",
+      "columns": 6,
+      "description": "Використовується для вихідних листів, коли відправника не вказано явно."
+    },
+    {
+      "fieldname": "email_footer",
+      "label": "Підпис у листах",
+      "fieldtype": "RichText",
+      "columns": 12,
+      "description": "Додається в кінець кожного вихідного листа."
+    },
+
+    {
+      "fieldname": "tab_notifications",
+      "label": "Сповіщення",
+      "fieldtype": "Tab",
+      "icon": "bell"
+    },
+
+    {
+      "fieldname": "sec_webpush",
+      "label": "Web Push (сповіщення браузера)",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "enable_web_push",
+      "label": "Увімкнути push-сповіщення",
+      "fieldtype": "Check",
+      "default": false,
+      "columns": 12,
+      "description": "Дозволяє користувачам підписуватися на сповіщення в браузері."
+    },
+    {
+      "fieldname": "webpush_vapid_public",
+      "label": "VAPID Public Key",
+      "fieldtype": "Text",
+      "read_only": true,
+      "columns": 12,
+      "description": "Генерується автоматично при першому запуску Web Push. Потрібен клієнтам для підписки."
+    },
+    {
+      "fieldname": "webpush_vapid_private",
+      "label": "VAPID Private Key",
+      "fieldtype": "LongText",
+      "hidden": true
+    },
+
     {
       "fieldname": "is_setup_complete",
       "label": "Систему налаштовано",

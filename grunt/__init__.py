@@ -63,13 +63,13 @@ if TYPE_CHECKING:
     # controller instance — see the real overloads on GruntApp.get_doc.
     async def get_doc[D: Document](
         doctype: str | type[D],
-        id_or_name: str,
+        id_or_name: str | None = None,
         *,
         expand: list[str] | None = None,
     ) -> dict[str, Any] | D: ...
     async def find_doc[D: Document](
         doctype: str | type[D],
-        id_or_name: str,
+        id_or_name: str | None = None,
         *,
         expand: list[str] | None = None,
     ) -> dict[str, Any] | D | None: ...
