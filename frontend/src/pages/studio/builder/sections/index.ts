@@ -12,7 +12,6 @@ registerPropertySection('formula', () => import('./FormulaSection.vue').then(m =
 registerPropertySection('aggregate', () => import('./AggregateSection.vue').then(m => m.default))
 registerPropertySection('options', () => import('./OptionsSection.vue').then(m => m.default))
 registerPropertySection('link', () => import('./LinkSection.vue').then(m => m.default))
-registerPropertySection('dashboard', () => import('./DashboardSection.vue').then(m => m.default))
 registerPropertySection('fetch_from', () => import('./FetchFromSection.vue').then(m => m.default))
 registerPropertySection('table', () => import('./TableSection.vue').then(m => m.default))
 registerPropertySection('icon', () => import('./IconSection.vue').then(m => m.default))

@@ -84,9 +84,6 @@ _CORE_SYNCED_FIELD_ATTRS = frozenset(
         "in_quick_filter",
         "is_virtual",
         "read_formula",
-        "show_in_dashboard",
-        "dashboard_doctype",
-        "dashboard_link_field",
         "validator",
     }
 )

@@ -166,11 +166,21 @@ class DocTypeStatusConfigSchema(BaseModel):
 
 
 class DocTypeActionSchema(BaseModel):
-    action: str
+    action: str = ""
     label: str = ""
     group: str = ""
     variant: str = ""
     condition: str | None = None
+    hidden: bool = False
+
+
+class DocTypeLinkSchema(BaseModel):
+    link_doctype: str = ""
+    link_fieldname: str = ""
+    parent_doctype: str | None = None
+    table_fieldname: str | None = None
+    group: str = ""
+    label: str = ""
     hidden: bool = False
 
 
@@ -212,6 +222,7 @@ class DocTypeSchema(BaseModel):
     map_view: DocTypeMapViewSchema | None = None
     status_config: DocTypeStatusConfigSchema | None = None
     actions: list[DocTypeActionSchema] = []
+    links: list[DocTypeLinkSchema] = []
 
 
 DocTypeSaveResult.model_rebuild()

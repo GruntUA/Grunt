@@ -17,7 +17,7 @@ import SidebarTimeline from '@/components/views/sidebar/SidebarTimeline.vue'
 
 import FormHeader from '@/components/views/form/FormHeader.vue'
 import FormModals from '@/components/views/form/FormModals.vue'
-import DocDashboard from '@/components/views/form/DocDashboard.vue'
+import DocConnections from '@/components/views/form/DocConnections.vue'
 import { Spinner } from '@/components/ui/spinner'
 
 const props = defineProps<{ doctype: string; id: string | null; workspace?: string }>()
@@ -145,8 +145,8 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
       <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-5">
         <!-- Left Column -->
         <div class="min-w-0 flex flex-col gap-4">
-          <!-- Dashboard / Connections -->
-          <DocDashboard v-if="id && document && dt" :dt="dt" :document="document" :workspace="props.workspace"
+          <!-- Connections ("Зв'язки" panel) -->
+          <DocConnections v-if="id && document && dt" :dt="dt" :document="document" :workspace="props.workspace"
             @create-new="handleCreateNew"
           />
 

@@ -202,12 +202,54 @@ class DocTypeAction(BaseModel):
     against ``doc`` on the client — falsy hides the button.
     """
 
-    action: str  # registered action key
+    action: str = ""  # registered action key (blank row is pruned by DocType)
     label: str = ""  # override registered label
     group: str = ""  # toolbar dropdown group (empty → standalone button)
     variant: str = ""  # button variant override (outline|default|secondary|destructive|success)
     condition: str | None = None  # JS expression on `doc`; falsy → hidden
     hidden: bool = False  # hard off-switch, keeps the row for later
+
+    @model_validator(mode="before")
+    @classmethod
+    def _blank_none_strings(cls, data: Any) -> Any:
+        """The child-table editor sends ``null`` for empty cells — coerce to ``""``."""
+        if isinstance(data, dict):
+            data = {
+                k: ("" if v is None and k in {"action", "label", "group", "variant"} else v)
+                for k, v in data.items()
+            }
+        return data
+
+
+# ── Document links (Connections tab) ───────────────────────────────────
+
+
+class DocTypeLink(BaseModel):
+    """Declares one related DocType surfaced on the document "Зв'язки" panel.
+
+    * direct: ``link_doctype`` has a Link field ``link_fieldname`` back to this
+      document;
+    * via child table: ``parent_doctype`` (a child DocType) carries the Link
+      field ``link_fieldname``; ``link_doctype`` is the owning parent type and
+      ``table_fieldname`` optionally pins which Table field holds those rows.
+    """
+
+    link_doctype: str = ""  # related DocType to list/count (blank row is pruned by DocType)
+    link_fieldname: str = ""  # Link field on link_doctype (or parent_doctype) → this doc
+    parent_doctype: str | None = None  # child DocType, when the link lives on a child row
+    table_fieldname: str | None = None  # Table field on link_doctype holding those child rows
+    group: str = ""  # section grouping on the panel
+    label: str = ""  # override display label (default: link_doctype label)
+    hidden: bool = False
+
+    @model_validator(mode="before")
+    @classmethod
+    def _blank_none_strings(cls, data: Any) -> Any:
+        """The child-table editor sends ``null`` for empty cells — coerce to ``""``."""
+        if isinstance(data, dict):
+            str_keys = {"link_doctype", "link_fieldname", "group", "label"}
+            data = {k: ("" if v is None and k in str_keys else v) for k, v in data.items()}
+        return data
 
 
 # ── DocType — main model ─────────────────────────────────────────────────
@@ -258,6 +300,9 @@ class DocType(BaseModel):
     # Custom document actions — code-registered, bound here (see grunt.actions)
     actions: list[DocTypeAction] = []
 
+    # Related document types shown on the "Зв'язки" panel (see grunt.document.connections)
+    links: list[DocTypeLink] = []
+
     # Business logic
     permissions: list[DocTypePermission] = []
 
@@ -274,6 +319,13 @@ class DocType(BaseModel):
     table_name: str | None = None
 
     model_config = {"use_enum_values": True}
+
+    @model_validator(mode="after")
+    def _prune_incomplete_child_rows(self) -> DocType:
+        """Drop half-filled ``actions`` / ``links`` rows left behind in the editor."""
+        self.actions = [a for a in self.actions if a.action.strip()]
+        self.links = [link for link in self.links if link.link_doctype.strip()]
+        return self
 
     @model_validator(mode="after")
     def _validate_fast_filters(self) -> DocType:

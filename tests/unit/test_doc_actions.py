@@ -84,6 +84,31 @@ def test_enrich_resolves_defaults_and_flags_missing(sample_action):
     assert {c["key"] for c in data["_action_catalog"]} >= {sample_action.key}
 
 
+def test_incomplete_and_null_action_rows_are_tolerated():
+    """The child-table editor sends nulls for empty cells; blank rows are dropped."""
+    from grunt.metadata.doctype import DocType
+
+    dt = DocType(
+        name="X",
+        label="X",
+        module="core",
+        actions=[
+            {"action": None, "label": None},  # half-filled → pruned
+            {"action": "core.recalc", "group": None, "variant": None},  # nulls → ""
+        ],
+    )
+    dumped = dt.model_dump()["actions"]
+    assert len(dumped) == 1
+    assert dumped[0] == {
+        "action": "core.recalc",
+        "label": "",
+        "group": "",
+        "variant": "",
+        "condition": None,
+        "hidden": False,
+    }
+
+
 def test_builtin_core_actions_are_registered():
     for key in ("core.duplicate", "core.recalc", "core.copy_reference"):
         spec = get_doc_action(key)

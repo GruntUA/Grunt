@@ -187,18 +187,24 @@ def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
     if begin_idx != -1 and end_idx != -1:
         block_line_start = source.rfind("\n", 0, begin_idx) + 1
         marker_indent = source[block_line_start:begin_idx]
-        block_is_class_scoped = marker_indent == "    "
+        # Class-scoped when the marker line is whitespace-indented (the normal
+        # case). Any spaces count — not just exactly four — so a file whose
+        # indentation has already crept stays recognised and gets normalised.
+        block_is_class_scoped = marker_indent != "" and marker_indent.strip() == ""
 
         end_of_block = end_idx + len(_END_MARKER)
         if block_is_class_scoped:
-            # Replace class-scoped block in place.
-            new_source = source[:begin_idx] + new_block + source[end_of_block:]
+            # Replace class-scoped block in place. Slice from the START of the
+            # marker line, not from `begin_idx`: `new_block` carries its own
+            # indentation, so keeping the old indent here would duplicate it and
+            # creep every method below the block one level deeper per sync.
+            new_source = source[:block_line_start] + new_block + source[end_of_block:]
         else:
             # Legacy format had top-level block that declared a second class.
             # Remove it and reinsert as class-scoped annotations.
             while end_of_block < len(source) and source[end_of_block] in "\r\n":
                 end_of_block += 1
-            source_without_legacy_block = source[:begin_idx] + source[end_of_block:]
+            source_without_legacy_block = source[:block_line_start] + source[end_of_block:]
             new_source = _insert_block_into_class(source_without_legacy_block, new_block)
     else:
         new_source = _insert_block_into_class(source, new_block)

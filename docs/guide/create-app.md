@@ -141,6 +141,21 @@ Core ships three generic actions you can bind to any DocType without writing
 code: `core.duplicate`, `core.recalc` (re-save so formulas/hooks re-run) and
 `core.copy_reference`.
 
+## Document connections (the "Зв'язки" panel)
+
+The form shows related documents grouped in a panel with live counts and a
+"+ Новий" shortcut. Two ways to configure it:
+
+* **Zero config** — any DocType with a Link field back to yours is surfaced
+  automatically.
+* **Explicit** — add rows to the DocType's **Зв'язки** tab (`DocTypeLink`):
+  `link_doctype`, `link_fieldname` (the Link field on the other side),
+  optional `group` / `label`. For a link that lives on a *child table*, also
+  set `parent_doctype` (the child DocType) and `table_fieldname`. Once any row
+  is declared, the table is authoritative — derivation stops.
+
+Counts and previews come from `grunt.document.connections.get_connections`.
+
 ## Adding background tasks
 
 ```python title="my_crm/tasks.py"

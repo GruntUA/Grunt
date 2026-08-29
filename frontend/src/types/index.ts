@@ -76,10 +76,6 @@ export interface DocField {
   // Virtual
   is_virtual?: boolean
   read_formula?: string | null
-  // Dashboard
-  show_in_dashboard?: boolean
-  dashboard_doctype?: string | null
-  dashboard_link_field?: string | null
   // Fetch From
   fetch_from?: string | null
   // Named validator (e.g. "email", "phone", "url", "iban_ua")
@@ -281,6 +277,34 @@ export interface DocType {
   actions?: DocTypeActionBinding[]
   /** Registry metadata for every action bind-able on this DocType (Studio helper). */
   _action_catalog?: DocActionCatalogEntry[]
+  links?: DocTypeLink[]
+}
+
+/** One row of the DocType `links` table — a related DocType surfaced on the
+ *  document "Зв'язки" panel. */
+export interface DocTypeLink {
+  link_doctype: string
+  link_fieldname?: string
+  parent_doctype?: string | null
+  table_fieldname?: string | null
+  group?: string
+  label?: string
+  hidden?: boolean
+}
+
+/** `grunt.document.connections.get_connections` response. */
+export interface DocConnectionsResult {
+  groups: {
+    name: string
+    links: {
+      link_doctype: string
+      label: string
+      fieldname: string
+      via_child: boolean
+      count: number
+      preview: { name: string; title: string }[]
+    }[]
+  }[]
 }
 
 /** One row of the DocType `actions` table — binds a registered action, with

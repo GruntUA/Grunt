@@ -162,8 +162,6 @@ async def populate_system_doctypes(
             **_col("search_fields", dt.search_fields if dt.search_fields else None),
             **_col("is_tree", dt.is_tree),
             **_col("tree_view", dt.tree_view.model_dump() if dt.tree_view else None),
-            **_col("show_in_dashboard", getattr(dt, "show_in_dashboard", None)),
-            **_col("dashboard_doctype", getattr(dt, "dashboard_doctype", None)),
             **_col("fetch_from", getattr(dt, "fetch_from", None)),
         }
 

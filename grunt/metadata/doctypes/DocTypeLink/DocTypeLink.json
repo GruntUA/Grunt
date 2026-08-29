@@ -1,0 +1,79 @@
+{
+  "name": "DocTypeLink",
+  "label": "Зв'язок документа",
+  "module": "metadata",
+  "is_child": true,
+  "fields": [
+    {
+      "fieldname": "link_doctype",
+      "label": "Пов'язаний DocType",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "in_list_view": true,
+      "bold": true,
+      "description": "Тип документів, які показувати у зв'язках"
+    },
+    {
+      "fieldname": "link_fieldname",
+      "label": "Поле-посилання",
+      "fieldtype": "Text",
+      "required": true,
+      "in_list_view": true,
+      "description": "Ім'я Link-поля в пов'язаному DocType (або в дочірньому рядку), що вказує на цей документ"
+    },
+    {
+      "fieldname": "group",
+      "label": "Група",
+      "fieldtype": "Text",
+      "in_list_view": true,
+      "description": "Необов'язково — секція на панелі зв'язків"
+    },
+    {
+      "fieldname": "col_link_1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "label",
+      "label": "Підпис",
+      "fieldtype": "Text",
+      "description": "Необов'язково — перевизначає назву (типово: назва пов'язаного DocType)"
+    },
+    {
+      "fieldname": "hidden",
+      "label": "Прихований",
+      "fieldtype": "Check",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "sec_child",
+      "label": "Зв'язок через дочірню таблицю",
+      "fieldtype": "Section",
+      "collapsible": true,
+      "description": "Заповнюйте, лише якщо Link-поле розташоване в дочірній таблиці"
+    },
+    {
+      "fieldname": "parent_doctype",
+      "label": "Дочірній DocType",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "description": "Child DocType, у рядках якого лежить поле-посилання"
+    },
+    {
+      "fieldname": "table_fieldname",
+      "label": "Поле-таблиця",
+      "fieldtype": "Text",
+      "description": "Ім'я Table-поля в пов'язаному DocType, що містить ці дочірні рядки"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

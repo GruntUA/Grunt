@@ -110,6 +110,19 @@
       "description": "Кнопки в тулбарі картки. Кожен рядок підключає дію, зареєстровану застосунком у коді (@doc_action)."
     },
     {
+      "fieldname": "tab_links",
+      "label": "Зв'язки",
+      "fieldtype": "Tab",
+      "icon": "Link"
+    },
+    {
+      "fieldname": "links",
+      "label": "Зв'язки документа",
+      "fieldtype": "Table",
+      "options": "DocTypeLink",
+      "description": "Пов'язані типи документів на панелі «Зв'язки» картки. Якщо порожньо — зв'язки визначаються автоматично зі зворотних Link-полів."
+    },
+    {
       "fieldname": "tab_settings",
       "label": "Керованість",
       "fieldtype": "Tab",
@@ -268,24 +281,6 @@
       "label": "Налаштування дерева",
       "fieldtype": "JSON",
       "description": "{\"parent_field\": \"parent_department\", \"title_field\": \"title\"}"
-    },
-    {
-      "fieldname": "tab_dashboard",
-      "label": "Дашборд",
-      "fieldtype": "Tab",
-      "icon": "LayoutDashboard"
-    },
-    {
-      "fieldname": "show_in_dashboard",
-      "label": "Показувати в дашборді",
-      "fieldtype": "Check",
-      "description": "Відображати це поле як бейдж з лічильником у заголовку форми"
-    },
-    {
-      "fieldname": "dashboard_doctype",
-      "label": "Документ дашборду",
-      "fieldtype": "Text",
-      "description": "DocType для створення нового запису при натисканні '+'"
     },
     {
       "fieldname": "tab_views_builder",

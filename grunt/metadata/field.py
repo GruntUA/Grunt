@@ -240,10 +240,6 @@ class DocField(BaseModel):
     is_virtual: bool = False
     read_formula: str | None = None
 
-    show_in_dashboard: bool = False
-    dashboard_doctype: str | None = None
-    dashboard_link_field: str | None = None
-
     fetch_from: str | None = None
 
     in_quick_entry: bool = False
