@@ -9,6 +9,7 @@ import { ChevronDown, ChevronLeft, ChevronRight } from '@lucide/vue'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import AppIcon from '@/components/AppIcon.vue'
 import FieldRenderer from './FieldRenderer.vue'
+import DocConnections from '@/components/views/form/DocConnections.vue'
 import DesignerTab from '../../pages/studio/builder/DesignerTab.vue'
 import ViewsTab from '../../pages/studio/builder/tabs/ViewsTab.vue'
 import WorkflowGraphTab from '@/components/workflow/WorkflowGraphTab.vue'
@@ -24,6 +25,7 @@ const props = defineProps<{
   reqdOverrides?: Record<string, boolean>
   dfPropOverrides?: Record<string, Record<string, unknown>>
   fieldLocks?: Record<string, PresenceUser>
+  workspace?: string
 }>()
 
 const emit = defineEmits<{
@@ -31,12 +33,24 @@ const emit = defineEmits<{
   'update:activeTab': [value: string]
   'field-focus': [fieldname: string]
   'field-blur': [fieldname: string]
-  'create-new': [doctype: string, preset: string, fieldname: string]
+  'create-new': [doctype: string, preset: string | Record<string, unknown>, fieldname: string]
   'table-selection-change': [payload: { fieldname: string; rowNames: string[] }]
 }>()
 
 const layout = computed(() => parseLayout(props.doctype.fields))
 const hasTabs = computed(() => layout.value.length > 1 || (layout.value[0]?.label !== '' && layout.value[0]?.label !== 'Main'))
+
+// The "Зв'язки" panel is placed inside whichever Tab has `show_connections`
+// set (Frappe's "Show Dashboard" flag), falling back to the first tab. Only
+// shown for a saved, non-child doc.
+const connectionsEnabled = computed(
+  () => !props.doctype.is_child && !!props.modelValue?.name,
+)
+const connectionsTabLabel = computed<string | null>(() => {
+  if (!connectionsEnabled.value) return null
+  const opted = layout.value.find((t) => t._field?.show_connections)
+  return (opted ?? layout.value[0])?.label || 'Main'
+})
 
 const currentTab = computed({
   get: () => props.activeTab || layout.value[0]?.label || 'Main',
@@ -146,6 +160,14 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
     <!-- Sections -->
     <TabsContent v-for="(tab, ti) in layout" :key="ti" :value="tab.label || 'Main'"
       class="mt-0 flex flex-col gap-4 focus-visible:ring-0">
+      <!-- Connections panel, when this Tab has `show_connections` set -->
+      <DocConnections
+        v-if="connectionsTabLabel === (tab.label || 'Main')"
+        :dt="doctype"
+        :document="modelValue"
+        :workspace="workspace"
+        @create-new="(cd, preset, fieldname) => emit('create-new', cd, preset, fieldname)"
+      />
       <!-- Support for custom tab components (e.g. Studio Designer) -->
       <template v-if="hasCustomTabComponent(tab._field?.experimental_component)">
         <component :is="getCustomTabComponent(tab._field?.experimental_component)" :doctype="doctype"

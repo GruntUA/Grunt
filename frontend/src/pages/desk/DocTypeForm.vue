@@ -17,7 +17,6 @@ import SidebarTimeline from '@/components/views/sidebar/SidebarTimeline.vue'
 
 import FormHeader from '@/components/views/form/FormHeader.vue'
 import FormModals from '@/components/views/form/FormModals.vue'
-import DocConnections from '@/components/views/form/DocConnections.vue'
 import { Spinner } from '@/components/ui/spinner'
 
 const props = defineProps<{ doctype: string; id: string | null; workspace?: string }>()
@@ -145,15 +144,10 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
       <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-5">
         <!-- Left Column -->
         <div class="min-w-0 flex flex-col gap-4">
-          <!-- Connections ("Зв'язки" panel) -->
-          <DocConnections v-if="id && document && dt" :dt="dt" :document="document" :workspace="props.workspace"
-            @create-new="handleCreateNew"
-          />
-
           <!-- Main Form Card -->
           <div class="bg-card border border-border rounded-md shadow-sm p-5 overflow-hidden">
             <FormRenderer :doctype="dt" :model-value="form" :disabled="isSaving" :errors="validationErrors"
-              v-model:active-tab="activeTab"
+              v-model:active-tab="activeTab" :workspace="props.workspace"
               :overrides="displayOverrides" :reqd-overrides="reqdOverrides" :df-prop-overrides="dfPropOverrides" :field-locks="fieldLocks"
               @update:model-value="onFormUpdate($event)" @field-focus="focusField($event)"
               @field-blur="blurField($event)" @create-new="handleCreateNew"

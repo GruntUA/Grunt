@@ -16,3 +16,4 @@ registerPropertySection('fetch_from', () => import('./FetchFromSection.vue').the
 registerPropertySection('table', () => import('./TableSection.vue').then(m => m.default))
 registerPropertySection('icon', () => import('./IconSection.vue').then(m => m.default))
 registerPropertySection('button', () => import('./ButtonSection.vue').then(m => m.default))
+registerPropertySection('tab', () => import('./TabSection.vue').then(m => m.default))

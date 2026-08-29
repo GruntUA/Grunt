@@ -71,6 +71,8 @@ export interface DocField {
   // Layout
   columns?: number
   collapsible?: boolean
+  /** Tab fields only — render the "Зв'язки" (connections) panel inside this tab. */
+  show_connections?: boolean
   icon?: string
   experimental_component?: string
   // Virtual

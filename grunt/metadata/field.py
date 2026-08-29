@@ -217,6 +217,7 @@ class DocField(BaseModel):
 
     # Layout
     collapsible: bool = False
+    show_connections: bool = False  # Tab fields only — host the "Зв'язки" panel in this tab
     columns: int = 12
     icon: str | None = None
     experimental_component: str | None = None

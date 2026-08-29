@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { ChevronRight, Plus } from '@lucide/vue'
 
@@ -73,13 +73,21 @@ function handleAdd(link: { link_doctype: string; fieldname: string; via_child: b
   emit('create-new', link.link_doctype, { [link.fieldname]: id }, '')
 }
 
-const hasAny = () => (result.value?.groups ?? []).some((g) => g.links.length > 0)
+const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.length > 0))
 </script>
 
 <template>
-  <div v-if="result && hasAny()" class="flex flex-col gap-3">
+  <div class="flex flex-col gap-3">
+    <p v-if="loading" class="text-xs text-muted-foreground px-0.5">Завантаження зв'язків…</p>
+    <p
+      v-else-if="!hasAny"
+      class="text-sm text-muted-foreground px-0.5 py-2"
+    >
+      Немає пов'язаних документів.
+    </p>
+
     <div
-      v-for="group in result.groups"
+      v-for="group in (hasAny ? (result?.groups ?? []) : [])"
       :key="group.name || '_'"
       class="flex flex-col gap-1.5"
     >
