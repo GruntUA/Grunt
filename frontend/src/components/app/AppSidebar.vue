@@ -212,7 +212,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
               :side="isMobile ? 'bottom' : 'right'" align="end" :side-offset="4"
             >
               <DropdownMenuItem class="p-0 font-normal focus:bg-sidebar-accent" title="Відкрити мій профіль" @click="goToProfile">
-                <div class="flex w-full items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <div class="flex w-full items-center gap-2 px-1 py-1.5 text-left">
                   <Avatar class="size-8 rounded-lg">
                     <AvatarImage v-if="auth.user?.avatar" :src="auth.user.avatar" alt="" />
                     <AvatarFallback class="rounded-lg">

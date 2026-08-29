@@ -106,20 +106,20 @@ const requiredMissing = computed(() => {
 <template>
   <div class="space-y-3">
     <!-- Loading -->
-    <div v-if="loading" class="flex items-center gap-2 text-sm text-muted-foreground py-4">
+    <div v-if="loading" class="flex items-center gap-2 text-muted-foreground py-4">
       <Loader2 class="size-4 animate-spin" />
       Завантаження структури файлу...
     </div>
 
     <!-- No file/doctype selected -->
     <div v-else-if="!doc?.file || !doc?.doctype_name"
-      class="text-sm text-muted-foreground py-3 px-4 bg-muted/40 rounded-lg border border-dashed">
+      class="text-muted-foreground py-3 px-4 bg-muted/40 rounded-lg border border-dashed">
       Спочатку оберіть DocType та завантажте файл
     </div>
 
     <!-- Error -->
     <div v-else-if="fetchError"
-      class="flex items-center gap-2 text-sm text-destructive py-3 px-4 bg-destructive/10 rounded-lg">
+      class="flex items-center gap-2 text-destructive py-3 px-4 bg-destructive/10 rounded-lg">
       <AlertCircle class="size-4 shrink-0" />
       {{ fetchError }}
     </div>
@@ -143,7 +143,7 @@ const requiredMissing = computed(() => {
       </div>
 
       <div class="rounded-lg border overflow-hidden">
-        <table class="w-full text-sm">
+        <table class="w-full">
           <thead class="bg-muted/60 border-b">
             <tr>
               <th class="px-3 py-2 text-left font-medium text-muted-foreground w-[40%]">Колонка файлу</th>
@@ -162,7 +162,7 @@ const requiredMissing = computed(() => {
                 <select
                   :value="mapping[header] || ''"
                   :disabled="disabled"
-                  class="w-full text-sm border rounded px-2 py-1 bg-background text-foreground disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-ring"
+                  class="w-full border rounded px-2 py-1 bg-background text-foreground disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-ring"
                   @change="setMapping(header, ($event.target as HTMLSelectElement).value)">
                   <option value="">— Не імпортувати —</option>
                   <option v-for="f in preview.doctype_fields" :key="f.fieldname" :value="f.fieldname">

@@ -29,7 +29,7 @@ function widthPct(count: number): number {
 <template>
   <div class="flex flex-col h-full px-4 py-3">
     <!-- Header -->
-    <p class="text-sm font-medium text-muted-foreground mb-3 shrink-0">{{ widget.title }}</p>
+    <p class="font-medium text-muted-foreground mb-3 shrink-0">{{ widget.title }}</p>
 
     <!-- Skeleton -->
     <div v-if="loading" class="flex-1 flex flex-col justify-center gap-2">
@@ -38,7 +38,7 @@ function widthPct(count: number): number {
 
     <!-- Empty -->
     <div v-else-if="stages.length === 0"
-      class="flex-1 flex items-center justify-center text-sm text-muted-foreground">
+      class="flex-1 flex items-center justify-center text-muted-foreground">
       {{ t('No data') }}
     </div>
 

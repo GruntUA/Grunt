@@ -130,7 +130,7 @@ function docInitials(doc: RecentDoc): string {
                   {{ greeting.text }}
                 </h1>
               </div>
-              <p class="text-sm text-muted-foreground/70 ml-[3.5rem] font-medium">
+              <p class="text-muted-foreground/70 ml-[3.5rem] font-medium">
                 Що плануєте зробити сьогодні?
               </p>
             </div>
@@ -144,7 +144,7 @@ function docInitials(doc: RecentDoc): string {
                 class="size-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 transition-colors group-hover:bg-primary/20">
                 <Search class="size-4 text-primary/70 group-hover:text-primary transition-colors" />
               </div>
-              <span class="text-sm text-muted-foreground/50 flex-1 font-medium">
+              <span class="text-muted-foreground/50 flex-1 font-medium">
                 Шукайте документи, додатки або дії...
               </span>
               <div class="hidden sm:flex items-center gap-1 shrink-0">
@@ -181,7 +181,7 @@ function docInitials(doc: RecentDoc): string {
               <div class="size-7 rounded-lg bg-primary/10 flex items-center justify-center">
                 <LayoutGrid class="size-3.5 text-primary/70" />
               </div>
-              <h2 class="text-sm font-semibold text-foreground/70 uppercase tracking-widest">Ваші додатки</h2>
+              <h2 class="font-semibold text-foreground/70 uppercase tracking-widest">Ваші додатки</h2>
             </div>
             <span class="text-xs text-muted-foreground/40 font-medium">{{ appStore.workspaces.length }}
               встановлено</span>
@@ -196,7 +196,7 @@ function docInitials(doc: RecentDoc): string {
           <div v-else-if="appStore.workspaces.length === 0 && !auth.user?.is_superadmin"
             class="flex flex-col items-center justify-center py-20 rounded-lg border border-dashed border-border/40 text-center space-y-3">
             <div class="size-16 rounded-lg bg-muted/20 flex items-center justify-center text-3xl">📦</div>
-            <p class="text-sm text-muted-foreground">Немає встановлених додатків</p>
+            <p class="text-muted-foreground">Немає встановлених додатків</p>
           </div>
 
           <!-- Cards grid -->
@@ -215,7 +215,7 @@ function docInitials(doc: RecentDoc): string {
                 <div class="size-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
                   <Clock class="size-3.5 text-amber-500/70" />
                 </div>
-                <h2 class="text-sm font-semibold text-foreground/70 uppercase tracking-widest">Нещодавні</h2>
+                <h2 class="font-semibold text-foreground/70 uppercase tracking-widest">Нещодавні</h2>
               </div>
             </div>
 
@@ -223,7 +223,7 @@ function docInitials(doc: RecentDoc): string {
             <div v-if="recentDocs.length === 0"
               class="flex flex-col items-center justify-center py-14 rounded-lg border border-dashed border-border/40 text-center space-y-2">
               <div class="size-12 rounded-lg bg-muted/20 flex items-center justify-center text-2xl">🕐</div>
-              <p class="text-sm text-muted-foreground">Відкритих документів ще немає</p>
+              <p class="text-muted-foreground">Відкритих документів ще немає</p>
               <p class="text-xs text-muted-foreground/50">Перейдіть до будь-якого запису, і він з'явиться тут</p>
             </div>
 
@@ -244,7 +244,7 @@ function docInitials(doc: RecentDoc): string {
                 <!-- Info -->
                 <div class="flex-1 min-w-0">
                   <p
-                    class="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors duration-200">
+                    class="font-semibold text-foreground truncate group-hover:text-primary transition-colors duration-200">
                     {{ docDisplayTitle(doc) }}
                   </p>
                   <div class="flex items-center gap-1.5 mt-0.5">

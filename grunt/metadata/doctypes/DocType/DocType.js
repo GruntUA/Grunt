@@ -32,14 +32,6 @@ function _refresh_field_selects(frm) {
 }
 
 async function on_load(frm) {
-    // Open standard DocType form (with designer tab available in-form)
-    if (frm.doc && frm.doc.name && !frm.is_new) {
-        frm.add_button('Designer', () => {
-            const workspace = frm.doc.module === 'core' ? 'grunt' : (frm.doc.module || 'grunt')
-            window.open(`/${workspace}/DocType/${frm.doc.name}`, '_blank')
-        }, { variant: 'primary' })
-    }
-
     // Populate title_field / image_field selects from current fields
     _refresh_field_selects(frm)
 

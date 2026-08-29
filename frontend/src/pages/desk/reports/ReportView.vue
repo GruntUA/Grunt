@@ -62,7 +62,7 @@ onMounted(load)
 <template>
   <div class="p-8 max-w-6xl">
     <!-- Breadcrumb -->
-    <div class="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+    <div class="flex items-center gap-2 text-muted-foreground mb-6">
       <button class="hover:text-primary" @click="router.push('/reports')">Звіти</button>
       <span>/</span>
       <span class="text-foreground font-medium">{{ reportName }}</span>
@@ -71,7 +71,7 @@ onMounted(load)
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-xl font-semibold text-foreground">{{ reportName }}</h1>
-        <p v-if="report" class="text-sm text-muted-foreground mt-0.5">
+        <p v-if="report" class="text-muted-foreground mt-0.5">
           {{ report.report_type }} звіт
           <span v-if="report.doctype"> · {{ report.doctype }}</span>
         </p>
@@ -105,10 +105,10 @@ onMounted(load)
           </TableRow>
         </TableBody>
       </Table>
-      <div v-else-if="result" class="text-center py-10 text-muted-foreground text-sm">
+      <div v-else-if="result" class="text-center py-10 text-muted-foreground">
         Немає даних
       </div>
-      <div v-else class="text-center py-10 text-destructive text-sm">
+      <div v-else class="text-center py-10 text-destructive">
         Помилка виконання звіту
       </div>
     </template>

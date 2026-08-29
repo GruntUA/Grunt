@@ -51,7 +51,7 @@ const registeredSettingsViews = computed(() =>
 
 <template>
   <div class="w-full p-6 space-y-6 overflow-y-auto h-full pb-24">
-    <div class="rounded-lg border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+    <div class="rounded-lg border border-border bg-muted/20 p-4 text-muted-foreground">
       Налаштуйте відображення DocType: список, форму, статуси та розширені уявлення.
     </div>
 

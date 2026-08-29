@@ -200,12 +200,12 @@ function onKeydown(e: KeyboardEvent) {
       <div v-if="showTime" class="flex items-center justify-center gap-2 border-t border-border p-3">
         <input
           type="number" min="0" max="23" v-model="hours"
-          class="w-14 rounded-md border border-input bg-transparent px-2 py-1 text-sm text-center outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          class="w-14 rounded-md border border-input bg-transparent px-2 py-1 text-center outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
         <span class="text-muted-foreground">:</span>
         <input
           type="number" min="0" max="59" v-model="minutes"
-          class="w-14 rounded-md border border-input bg-transparent px-2 py-1 text-sm text-center outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          class="w-14 rounded-md border border-input bg-transparent px-2 py-1 text-center outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
       </div>
     </PopoverContent>

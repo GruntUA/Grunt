@@ -81,7 +81,7 @@ function formatVal(fieldtype: string, val: string | null): string {
         <AlertCircle class="size-8 text-destructive" />
       </div>
       <p class="text-lg font-semibold text-foreground">{{ error }}</p>
-      <p class="text-sm text-muted-foreground">Зверніться до власника документа за новим посиланням.</p>
+      <p class="text-muted-foreground">Зверніться до власника документа за новим посиланням.</p>
     </div>
 
     <!-- Document -->
@@ -99,7 +99,7 @@ function formatVal(fieldtype: string, val: string | null): string {
       <!-- Fields -->
       <div class="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-border/60">
-          <h2 class="text-sm font-semibold text-foreground">Дані документа</h2>
+          <h2 class="font-semibold text-foreground">Дані документа</h2>
         </div>
         <div class="divide-y divide-border/50">
           <div
@@ -107,7 +107,7 @@ function formatVal(fieldtype: string, val: string | null): string {
             :key="field.fieldname"
             class="grid grid-cols-[180px_1fr] gap-4 px-6 py-3.5 hover:bg-muted/20 transition-colors"
           >
-            <span class="text-sm text-muted-foreground font-medium truncate self-start pt-0.5">{{ field.label }}</span>
+            <span class="text-muted-foreground font-medium truncate self-start pt-0.5">{{ field.label }}</span>
             <span
               :class="['text-sm text-foreground', MULTILINE.has(field.fieldtype) ? 'whitespace-pre-wrap' : '']"
             >{{ formatVal(field.fieldtype, data.doc[field.fieldname] ?? null) }}</span>

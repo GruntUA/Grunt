@@ -72,12 +72,12 @@ const items = computed(() => {
           </BreadcrumbSeparator>
           <BreadcrumbItem>
             <BreadcrumbLink v-if="item.route" as-child>
-              <router-link :to="item.route" class="flex items-center gap-2 font-semibold text-sm">
+              <router-link :to="item.route" class="flex items-center gap-2 font-semibold">
                 <AppIcon v-if="item.icon" :icon="item.icon" class="size-4 shrink-0 text-muted-foreground/60" />
                 <span class="truncate max-w-[200px]">{{ item.label }}</span>
               </router-link>
             </BreadcrumbLink>
-            <span v-else class="font-semibold text-foreground text-sm truncate max-w-[300px]">{{ item.label }}</span>
+            <span v-else class="font-semibold text-foreground truncate max-w-[300px]">{{ item.label }}</span>
           </BreadcrumbItem>
         </template>
       </BreadcrumbList>
@@ -87,7 +87,7 @@ const items = computed(() => {
     <Breadcrumb class="flex sm:hidden">
       <BreadcrumbList>
         <BreadcrumbItem>
-          <span class="font-semibold text-foreground text-sm truncate max-w-[200px]">{{ items[items.length - 1].label }}</span>
+          <span class="font-semibold text-foreground truncate max-w-[200px]">{{ items[items.length - 1].label }}</span>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>

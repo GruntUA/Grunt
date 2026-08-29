@@ -209,7 +209,7 @@ function highlight(text: string): string {
   <div class="relative">
     <!-- Tags + Input wrapper -->
     <div
-      class="flex flex-wrap items-center gap-1.5 min-h-[38px] w-full rounded-md border border-input bg-transparent px-2 py-1.5 text-sm ring-offset-background transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:border-ring"
+      class="flex flex-wrap items-center gap-1.5 min-h-[38px] w-full rounded-md border border-input bg-transparent px-2 py-1.5 ring-offset-background transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:border-ring"
       :class="{
         'border-destructive focus-within:ring-destructive': error,
         'bg-muted cursor-not-allowed': disabled || field.read_only,
@@ -220,7 +220,7 @@ function highlight(text: string): string {
       <span
         v-for="val in selectedValues"
         :key="val"
-        class="inline-flex items-center gap-1 rounded-md bg-secondary text-secondary-foreground px-2 py-0.5 text-sm max-w-[200px]"
+        class="inline-flex items-center gap-1 rounded-md bg-secondary text-secondary-foreground px-2 py-0.5 max-w-[200px]"
       >
         <span class="truncate">{{ getDisplayLabel(val) }}</span>
         <button
@@ -239,7 +239,7 @@ function highlight(text: string): string {
           ref="inputEl"
           :value="query"
           :placeholder="selectedValues.length ? '' : (field.placeholder ?? t('Search {doctype}...', { doctype: field.options ?? '' }))"
-          class="w-full bg-transparent outline-none text-sm py-0.5"
+          class="w-full bg-transparent outline-none py-0.5"
           autocomplete="off"
           @input="onInput(($event.target as HTMLInputElement).value)"
           @focus="onFocus"
@@ -276,7 +276,7 @@ function highlight(text: string): string {
         </div>
       </template>
 
-      <div v-else class="px-3 py-3 text-sm text-muted-foreground text-center">
+      <div v-else class="px-3 py-3 text-muted-foreground text-center">
         <span v-if="isLoading">{{ t('Searching...') }}</span>
         <span v-else-if="query">{{ t('Nothing found for «{query}»', { query }) }}</span>
         <span v-else>{{ t('No records') }}</span>

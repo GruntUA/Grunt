@@ -37,7 +37,7 @@ function navigate(link: WorkspaceLinkItem) {
 
 <template>
   <div class="p-4 h-full flex flex-col">
-    <h3 v-if="widget.title" class="text-sm font-semibold text-foreground mb-3">
+    <h3 v-if="widget.title" class="font-semibold text-foreground mb-3">
       {{ widget.title }}
     </h3>
 
@@ -50,7 +50,7 @@ function navigate(link: WorkspaceLinkItem) {
       >
         <span v-if="link.icon" class="text-lg shrink-0">{{ link.icon }}</span>
         <div class="min-w-0">
-          <p class="text-sm font-medium text-foreground truncate">{{ link.label }}</p>
+          <p class="font-medium text-foreground truncate">{{ link.label }}</p>
           <p v-if="link.description" class="text-xs text-muted-foreground truncate">
             {{ link.description }}
           </p>
@@ -58,6 +58,6 @@ function navigate(link: WorkspaceLinkItem) {
       </button>
     </div>
 
-    <p v-else class="text-sm text-muted-foreground/60 italic">{{ t('No links') }}</p>
+    <p v-else class="text-muted-foreground/60 italic">{{ t('No links') }}</p>
   </div>
 </template>

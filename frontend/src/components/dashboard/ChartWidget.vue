@@ -105,12 +105,12 @@ const chartOptions = computed(() => ({
 
 <template>
   <div class="flex flex-col gap-2 p-5 h-full">
-    <p class="text-sm text-muted-foreground font-medium">{{ widget.title }}</p>
+    <p class="text-muted-foreground font-medium">{{ widget.title }}</p>
 
     <div v-if="loading" class="flex-1 bg-muted animate-pulse rounded" />
 
     <div v-else-if="!data?.labels?.length"
-      class="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+      class="flex-1 flex items-center justify-center text-muted-foreground">
       {{ t('No data') }}
     </div>
 

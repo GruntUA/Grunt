@@ -76,16 +76,14 @@ async function submitUpdate() {
       leave-to-class="translate-y-4 opacity-0"
     >
       <div v-if="count > 0 || allSelected"
-        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3
-               px-4 py-2.5 rounded-lg border border-primary/25
-               bg-background/90 shadow-md">
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-lg border border-primary/25 bg-background/90 shadow-md">
 
         <!-- Count -->
         <div class="flex items-center gap-2 shrink-0">
           <div class="size-5 rounded-full bg-primary/20 flex items-center justify-center">
             <CheckCircle class="size-3 text-primary" />
           </div>
-          <span class="text-sm font-semibold text-foreground tabular-nums">
+          <span class="font-semibold text-foreground tabular-nums">
             {{ allSelected ? `всі ${total ?? count}` : count }}
           </span>
           <span class="text-xs text-muted-foreground">вибрано</span>
@@ -158,7 +156,7 @@ async function submitUpdate() {
     </DialogHeader>
 
     <div class="py-2">
-      <p class="text-sm text-muted-foreground leading-relaxed">
+      <p class="text-muted-foreground leading-relaxed">
         Ви збираєтесь видалити <span class="font-semibold text-foreground">{{ displayCount }}</span> записів.
         Цю дію неможливо буде скасувати. Ви впевнені?
       </p>
@@ -186,7 +184,7 @@ async function submitUpdate() {
     </DialogHeader>
 
     <div class="py-2 flex flex-col gap-3">
-      <p class="text-sm text-muted-foreground leading-relaxed">
+      <p class="text-muted-foreground leading-relaxed">
         Видалити <span class="font-semibold text-foreground">{{ displayCount }}</span> записів напряму через SQL
         — без lifecycle хуків, ActivityLog per-record.
       </p>

@@ -16,6 +16,9 @@
     "sort_by": "modified_at",
     "sort_order": "desc"
   },
+  "form_view": {
+    "show_sidebar": false
+  },
   "fields": [
     {
       "fieldname": "tab_main",

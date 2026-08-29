@@ -96,8 +96,8 @@ onMounted(() => {
     <!-- Trigger button -->
     <Button variant="outline" type="button" class="h-9 gap-2 min-w-[140px] justify-start font-normal" :disabled="disabled || field.read_only" @click="toggle">
         <component :is="currentComponent" v-if="currentComponent" class="size-4 shrink-0" />
-        <span v-if="currentName" class="text-sm truncate">{{ currentName }}</span>
-        <span v-else class="text-sm text-muted-foreground">Обрати іконку…</span>
+        <span v-if="currentName" class="truncate">{{ currentName }}</span>
+        <span v-else class="text-muted-foreground">Обрати іконку…</span>
     </Button>
 
     <Popover v-model:open="isOpen">
@@ -109,7 +109,7 @@ onMounted(() => {
                 <Search class="size-3.5 shrink-0 text-muted-foreground" />
                 <input
                     v-model="search"
-                    class="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
+                    class="flex-1 bg-transparent outline-none placeholder:text-muted-foreground/60"
                     placeholder="Пошук іконки…"
                     autofocus
                 />
@@ -120,10 +120,10 @@ onMounted(() => {
 
             <!-- Grid -->
             <div class="h-64 overflow-y-auto p-2">
-                <div v-if="!allNames.length" class="flex items-center justify-center h-full text-sm text-muted-foreground">
+                <div v-if="!allNames.length" class="flex items-center justify-center h-full text-muted-foreground">
                     <Spinner class="!size-6" />
                 </div>
-                <div v-else-if="!filtered.length" class="flex items-center justify-center h-full text-sm text-muted-foreground">
+                <div v-else-if="!filtered.length" class="flex items-center justify-center h-full text-muted-foreground">
                     Не знайдено
                 </div>
                 <div v-else class="grid grid-cols-8 gap-0.5">

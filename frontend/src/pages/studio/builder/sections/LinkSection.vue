@@ -30,7 +30,7 @@ onMounted(async () => {
   </div>
 
   <div v-if="field.options" class="mb-4 flex flex-col gap-1.5">
-    <label class="text-sm font-medium">Link Filters</label>
+    <label class="font-medium">Link Filters</label>
     <Textarea
       :model-value="field.link_filters ?? ''"
       rows="2"

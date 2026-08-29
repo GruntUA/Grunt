@@ -33,7 +33,7 @@ const titleFields = computed(() =>
     <div class="flex items-center justify-between px-4 py-3 bg-muted/40 border-b border-border">
       <div class="flex items-center gap-2.5">
         <GitBranch class="size-4 text-muted-foreground" />
-        <h3 class="text-sm font-semibold text-foreground">Відображення: Дерево</h3>
+        <h3 class="font-semibold text-foreground">Відображення: Дерево</h3>
         <span
           v-if="hasTree"
           class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-violet-500/15 text-violet-700 dark:text-violet-400"

@@ -63,7 +63,7 @@ watch(() => props.workspaceName, init)
       <AppIcon :icon="appStore.active.icon || 'folder'" class="size-8 shrink-0" />
       <div>
         <h1 class="text-xl font-semibold text-foreground">{{ appStore.active.label }}</h1>
-        <p v-if="appStore.active.description" class="text-sm text-muted-foreground">
+        <p v-if="appStore.active.description" class="text-muted-foreground">
           {{ appStore.active.description }}
         </p>
       </div>
@@ -89,7 +89,7 @@ watch(() => props.workspaceName, init)
     <!-- Empty state -->
     <div v-else-if="appStore.active" class="flex flex-col items-center justify-center py-20 text-center">
       <AppIcon :icon="appStore.active.icon || 'folder'" class="size-12 mb-4 text-muted-foreground/40" />
-      <p class="text-muted-foreground text-sm">Домашня сторінка не налаштована.</p>
+      <p class="text-muted-foreground">Домашня сторінка не налаштована.</p>
       <p class="text-muted-foreground/60 text-xs mt-1">
         Створіть <router-link :to="`/${workspaceName}/Page`" class="text-primary hover:underline">Сторінку</router-link>
         і вкажіть її у полі «Домашня сторінка» в налаштуваннях AppMenu.

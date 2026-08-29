@@ -78,7 +78,7 @@ function goToDoc(item: ActivityItem) {
   <div class="flex flex-col h-full">
     <!-- Header -->
     <div class="px-5 pt-4 pb-2 shrink-0">
-      <p class="text-sm text-muted-foreground font-medium">{{ widget.title }}</p>
+      <p class="text-muted-foreground font-medium">{{ widget.title }}</p>
     </div>
 
     <!-- Skeleton -->
@@ -88,7 +88,7 @@ function goToDoc(item: ActivityItem) {
 
     <!-- Empty -->
     <div v-else-if="!data?.items?.length"
-      class="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+      class="flex-1 flex items-center justify-center text-muted-foreground">
       Немає активності
     </div>
 

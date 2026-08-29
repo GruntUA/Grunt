@@ -47,7 +47,7 @@ function onSelect(result: AttachmentResult) {
             v-for="ch in channels"
             :key="ch.id"
             type="button"
-            class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors text-left w-full"
+            class="flex items-center gap-2.5 px-3 py-2 rounded-md transition-colors text-left w-full"
             :class="activeChannel?.id === ch.id
               ? 'bg-primary/10 text-primary font-medium border-l-2 border-primary pl-[10px]'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground'"
@@ -68,7 +68,7 @@ function onSelect(result: AttachmentResult) {
             :attached-to-id="attachedToId"
             @select="onSelect"
           />
-          <div v-else class="flex items-center justify-center h-full text-sm text-muted-foreground">
+          <div v-else class="flex items-center justify-center h-full text-muted-foreground">
             Немає доступних джерел
           </div>
         </div>

@@ -125,7 +125,7 @@ async function reindex() {
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-semibold text-foreground">Глобальний пошук</h1>
-        <p class="text-sm text-muted-foreground mt-0.5">Пошук по всіх документах системи</p>
+        <p class="text-muted-foreground mt-0.5">Пошук по всіх документах системи</p>
       </div>
       <Button
         v-if="auth.user?.is_superadmin"
@@ -153,19 +153,19 @@ async function reindex() {
       <div class="h-[3px] w-full overflow-hidden rounded-full bg-primary/20">
         <div class="h-full w-1/3 rounded-full bg-primary animate-progress-indeterminate" />
       </div>
-      <p class="text-sm text-muted-foreground text-center">Шукаємо...</p>
+      <p class="text-muted-foreground text-center">Шукаємо...</p>
     </div>
 
     <!-- ── Too short ── -->
     <div v-else-if="q.length < 2 && !isLoading" class="py-16 flex flex-col items-center gap-3 text-muted-foreground">
       <Search class="text-5xl opacity-20" />
-      <p class="text-sm">Введіть мінімум 2 символи для пошуку</p>
+      <p>Введіть мінімум 2 символи для пошуку</p>
     </div>
 
     <!-- ── Empty ── -->
     <div v-else-if="q.length >= 2 && !results.length && !isLoading" class="py-16 flex flex-col items-center gap-3">
       <Inbox class="text-5xl text-muted-foreground/30" />
-      <p class="text-sm text-muted-foreground">
+      <p class="text-muted-foreground">
         Нічого не знайдено для <b>"{{ q }}"</b>
       </p>
       <Button variant="ghost" v-if="auth.user?.is_superadmin" size="sm" @click="reindex"><RefreshCw class="size-4 mr-2" />Спробувати перебудувати індекс</Button>
@@ -176,7 +176,7 @@ async function reindex() {
 
       <!-- DocType filter chips -->
       <div class="flex flex-wrap items-center gap-2">
-        <span class="text-sm text-muted-foreground mr-1">
+        <span class="text-muted-foreground mr-1">
           {{ results.length }} {{ results.length === 1 ? 'результат' : 'результатів' }}
         </span>
 
@@ -223,7 +223,7 @@ async function reindex() {
                     <FileText class="size-3.5 text-primary" />
                   </div>
                   <div>
-                    <p class="text-sm font-semibold text-foreground">{{ item.display_title || item.name }}</p>
+                    <p class="font-semibold text-foreground">{{ item.display_title || item.name }}</p>
                     <p v-if="item.display_title && item.display_title !== item.name" class="text-xs text-muted-foreground">
                       {{ item.name }}
                     </p>

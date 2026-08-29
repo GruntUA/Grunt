@@ -87,7 +87,7 @@ function formatValue(val: unknown): string {
     </div>
 
     <!-- Empty -->
-    <div v-else-if="versions.length === 0" class="py-5 text-center text-sm text-muted-foreground">
+    <div v-else-if="versions.length === 0" class="py-5 text-center text-muted-foreground">
       {{ t('No saved versions') }}
     </div>
 

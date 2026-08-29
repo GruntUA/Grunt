@@ -88,17 +88,17 @@ function onOpenChange(v: boolean) {
         <!-- Msgprint -->
         <div v-if="state.type === 'msgprint'" class="flex gap-3 py-2">
             <component :is="msgIndicator?.icon" v-if="msgIndicator" class="size-5 shrink-0 mt-px" :class="msgIndicator?.class" />
-            <div class="text-sm text-foreground/85 leading-relaxed whitespace-pre-wrap [&_a]:font-medium [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2"
+            <div class="text-foreground/85 leading-relaxed whitespace-pre-wrap [&_a]:font-medium [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2"
                 v-html="state.message" />
         </div>
 
         <!-- Confirm -->
-        <p v-else-if="state.type === 'confirm'" class="text-sm text-muted-foreground py-2">{{ state.message }}</p>
+        <p v-else-if="state.type === 'confirm'" class="text-muted-foreground py-2">{{ state.message }}</p>
 
         <!-- Prompt -->
         <div v-else-if="state.type === 'prompt'" class="space-y-2 py-2">
             <div v-for="field in state.fields" :key="field.fieldname" class="space-y-2">
-                <label :for="field.fieldname" class="text-sm font-medium">{{ field.label }}</label>
+                <label :for="field.fieldname" class="font-medium">{{ field.label }}</label>
                 <div v-if="field.fieldtype === 'HTML'" v-html="field.default" class="rounded border p-2 bg-muted/30" />
                 <Input v-else :id="field.fieldname" v-model="promptValue" :placeholder="field.placeholder"
                     :type="field.fieldtype === 'Int' || field.fieldtype === 'Float' ? 'number' : 'text'"
@@ -111,19 +111,19 @@ function onOpenChange(v: boolean) {
         <div v-else-if="state.type === 'dialog'" class="space-y-4 py-2">
             <div v-for="field in state.fields" :key="field.fieldname" class="space-y-2">
                 <template v-if="field.fieldtype === 'HTML'">
-                    <label v-if="field.label" class="mb-1 block text-sm font-medium">{{ field.label }}</label>
+                    <label v-if="field.label" class="mb-1 block font-medium">{{ field.label }}</label>
                     <div v-html="String(field.default || '').replace(/<\?xml.*\?>/g, '')"
                         class="rounded-lg border-2 border-dashed p-6 flex justify-center bg-muted shadow-inner min-h-[240px] items-center [&>svg]:block [&>svg]:max-w-full [&>svg]:h-auto" />
                 </template>
                 <template v-else-if="field.fieldtype === 'Check'">
                     <div class="flex items-center space-x-2 py-1">
                         <Checkbox :id="field.fieldname" v-model="formValues[field.fieldname]" />
-                        <label :for="field.fieldname" class="cursor-pointer text-sm">{{ field.label }}</label>
+                        <label :for="field.fieldname" class="cursor-pointer">{{ field.label }}</label>
                     </div>
                 </template>
                 <template v-else-if="field.fieldtype === 'LongText' || field.fieldtype === 'Code'">
                     <div class="flex items-center justify-between gap-2">
-                        <label :for="field.fieldname" class="text-sm font-medium">{{ field.label }}</label>
+                        <label :for="field.fieldname" class="font-medium">{{ field.label }}</label>
                         <button
                             v-if="field.read_only"
                             type="button"
@@ -147,7 +147,7 @@ function onOpenChange(v: boolean) {
                     />
                 </template>
                 <template v-else-if="field.fieldtype === 'Link'">
-                    <label :for="field.fieldname" class="text-sm font-medium">{{ field.label }}</label>
+                    <label :for="field.fieldname" class="font-medium">{{ field.label }}</label>
                     <p v-if="field.description" class="text-xs text-muted-foreground -mt-1">{{ field.description }}</p>
                     <LinkField
                         :field="{ fieldname: field.fieldname, fieldtype: 'Link', options: field.options, label: field.label }"
@@ -157,7 +157,7 @@ function onOpenChange(v: boolean) {
                     />
                 </template>
                 <template v-else>
-                    <label :for="field.fieldname" class="text-sm font-medium">{{ field.label }}</label>
+                    <label :for="field.fieldname" class="font-medium">{{ field.label }}</label>
                     <p v-if="field.description" class="text-xs text-muted-foreground -mt-1">{{ field.description }}</p>
                     <Input :id="field.fieldname" v-model="formValues[field.fieldname]" :placeholder="field.placeholder"
                         :type="field.fieldtype === 'Int' || field.fieldtype === 'Float' ? 'number' : 'text'"

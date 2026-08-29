@@ -78,7 +78,7 @@ const value = computed(() => {
 
 <template>
   <div
-    class="rounded-md overflow-hidden text-sm border"
+    class="rounded-md overflow-hidden border"
     :class="error ? 'border-destructive' : 'border-input'"
   >
     <Codemirror

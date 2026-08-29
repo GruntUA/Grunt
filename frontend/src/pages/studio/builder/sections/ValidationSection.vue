@@ -20,7 +20,7 @@ const validatorOptions = computed(() => {
     v => v.field_types.includes(field.value.fieldtype)
   )
   return [
-    { value: '', label: '— не обрано —' },
+    { value: '__none__', label: '— не обрано —' },
     ...applicable.map(v => ({ value: v.name, label: v.label })),
   ]
 })
@@ -33,7 +33,7 @@ const hasValidators = computed(() => validatorOptions.value.length > 1)
   <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Validation</p>
   <div class="flex flex-col gap-3 mb-4">
     <div v-if="['Text', 'LongText'].includes(field.fieldtype)" class="flex flex-col gap-1.5">
-      <label class="text-sm font-medium">Max Length</label>
+      <label class="font-medium">Max Length</label>
       <Input
         type="number"
         :model-value="field.max_length ?? ''"
@@ -44,8 +44,8 @@ const hasValidators = computed(() => validatorOptions.value.length > 1)
     </div>
 
     <div v-if="hasValidators" class="flex flex-col gap-1.5">
-      <label class="text-sm font-medium">Validator</label>
-      <Select :model-value="field.validator ?? ''" @update:model-value="updateField('validator', $event || undefined)">
+      <label class="font-medium">Validator</label>
+      <Select :model-value="field.validator || '__none__'" @update:model-value="updateField('validator', $event === '__none__' ? undefined : $event)">
         <SelectTrigger class="w-full">
           <SelectValue placeholder="— не обрано —" />
         </SelectTrigger>
@@ -56,7 +56,7 @@ const hasValidators = computed(() => validatorOptions.value.length > 1)
     </div>
 
     <div class="flex flex-col gap-1.5">
-      <label class="text-sm font-medium">Regex</label>
+      <label class="font-medium">Regex</label>
       <Input
         :model-value="field.regex ?? ''"
         placeholder="^[A-Z].*"

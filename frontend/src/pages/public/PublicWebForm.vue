@@ -128,7 +128,7 @@ const errorInputClass = 'border-destructive focus:ring-destructive/30'
       <div v-else-if="submitted" class="bg-background rounded-lg shadow-sm border p-10 text-center">
         <CheckCircle2 class="size-12 text-emerald-500 mx-auto mb-4" />
         <h2 class="text-xl font-semibold mb-2">Дякуємо!</h2>
-        <p class="text-muted-foreground text-sm">
+        <p class="text-muted-foreground">
           {{ formDef?.success_message || 'Форму успішно надіслано.' }}
         </p>
       </div>
@@ -138,7 +138,7 @@ const errorInputClass = 'border-destructive focus:ring-destructive/30'
         <!-- Header -->
         <div class="px-8 py-7 border-b bg-primary/5">
           <h1 class="text-2xl font-semibold text-foreground">{{ formDef.title }}</h1>
-          <p v-if="formDef.introduction" class="mt-2 text-sm text-muted-foreground leading-relaxed">
+          <p v-if="formDef.introduction" class="mt-2 text-muted-foreground leading-relaxed">
             {{ formDef.introduction }}
           </p>
         </div>
@@ -158,7 +158,7 @@ const errorInputClass = 'border-destructive focus:ring-destructive/30'
 
             <!-- Data fields -->
             <div v-else class="space-y-1.5">
-              <label class="flex items-center gap-1 text-sm font-medium text-foreground">
+              <label class="flex items-center gap-1 font-medium text-foreground">
                 {{ field.label }}
                 <span v-if="field.required" class="text-destructive">*</span>
               </label>
@@ -224,7 +224,7 @@ const errorInputClass = 'border-destructive focus:ring-destructive/30'
                   type="checkbox"
                   class="size-4 rounded border-border accent-primary"
                 />
-                <span class="text-sm text-muted-foreground">{{ field.description || field.label }}</span>
+                <span class="text-muted-foreground">{{ field.description || field.label }}</span>
               </label>
 
               <!-- Email -->
@@ -269,7 +269,7 @@ const errorInputClass = 'border-destructive focus:ring-destructive/30'
 
           <!-- Submit error -->
           <div v-if="submitError"
-            class="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive">
+            class="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
             <AlertCircle class="size-4 shrink-0 mt-0.5" />
             {{ submitError }}
           </div>
@@ -279,7 +279,7 @@ const errorInputClass = 'border-destructive focus:ring-destructive/30'
             <button
               type="submit"
               :disabled="submitting"
-              class="w-full h-11 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:pointer-events-none flex items-center justify-center gap-2"
+              class="w-full h-11 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:pointer-events-none flex items-center justify-center gap-2"
             >
               <Loader2 v-if="submitting" class="size-4 animate-spin" />
               {{ formDef.submit_label || 'Надіслати' }}

@@ -295,7 +295,7 @@ function removeSelectedTransition() {
           <Controls :show-interactive="false" />
         </VueFlow>
         <div v-if="states.length === 0" class="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <p class="text-sm text-muted-foreground">Додайте стани кнопкою «Стан» вище</p>
+          <p class="text-muted-foreground">Додайте стани кнопкою «Стан» вище</p>
         </div>
       </div>
     </div>
@@ -306,17 +306,17 @@ function removeSelectedTransition() {
         <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Стан</p>
         <div class="flex flex-col gap-3">
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium">Значення (для поля стану)</label>
+            <label class="font-medium">Значення (для поля стану)</label>
             <Input :model-value="selectedState.state"
               @update:model-value="updateSelectedState({ state: String($event) })" />
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium">Назва</label>
+            <label class="font-medium">Назва</label>
             <Input :model-value="selectedState.label ?? ''"
               @update:model-value="updateSelectedState({ label: String($event) })" />
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium">Колір</label>
+            <label class="font-medium">Колір</label>
             <Select :model-value="selectedState.color ?? 'gray'"
               @update:model-value="updateSelectedState({ color: String($event) })">
               <SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
@@ -328,12 +328,12 @@ function removeSelectedTransition() {
           <div class="flex items-center gap-2">
             <Checkbox :model-value="!!selectedState.is_initial"
               @update:model-value="updateSelectedState({ is_initial: !!$event })" />
-            <label class="text-sm font-medium">Початковий стан</label>
+            <label class="font-medium">Початковий стан</label>
           </div>
           <div class="flex items-center gap-2">
             <Checkbox :model-value="!!selectedState.is_final"
               @update:model-value="updateSelectedState({ is_final: !!$event })" />
-            <label class="text-sm font-medium">Кінцевий стан</label>
+            <label class="font-medium">Кінцевий стан</label>
           </div>
           <Button variant="destructive" size="sm" class="mt-2" @click="removeSelectedState">
             <Trash2 class="size-3.5" />Видалити стан
@@ -345,7 +345,7 @@ function removeSelectedTransition() {
         <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Перехід</p>
         <div class="flex flex-col gap-3">
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium">З стану</label>
+            <label class="font-medium">З стану</label>
             <Select :model-value="selectedTransition.from_state"
               @update:model-value="updateSelectedTransition({ from_state: String($event) })">
               <SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
@@ -355,7 +355,7 @@ function removeSelectedTransition() {
             </Select>
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium">У стан</label>
+            <label class="font-medium">У стан</label>
             <Select :model-value="selectedTransition.to_state"
               @update:model-value="updateSelectedTransition({ to_state: String($event) })">
               <SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
@@ -365,17 +365,17 @@ function removeSelectedTransition() {
             </Select>
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium">Дія (текст кнопки)</label>
+            <label class="font-medium">Дія (текст кнопки)</label>
             <Input :model-value="selectedTransition.action"
               @update:model-value="updateSelectedTransition({ action: String($event) })" />
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium">Дозволені ролі (через кому)</label>
+            <label class="font-medium">Дозволені ролі (через кому)</label>
             <Input :model-value="selectedTransition.allowed_roles ?? ''"
               @update:model-value="updateSelectedTransition({ allowed_roles: String($event) })" />
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium">Умова (eval:)</label>
+            <label class="font-medium">Умова (eval:)</label>
             <Textarea :model-value="selectedTransition.condition ?? ''" rows="3"
               @update:model-value="updateSelectedTransition({ condition: String($event) || null })" />
           </div>
@@ -385,7 +385,7 @@ function removeSelectedTransition() {
         </div>
       </template>
 
-      <p v-else class="text-sm text-muted-foreground text-center mt-8">
+      <p v-else class="text-muted-foreground text-center mt-8">
         Натисніть на стан або перехід для редагування
       </p>
     </div>

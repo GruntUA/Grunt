@@ -33,13 +33,13 @@ function goHome() {
   >
     <template #actions>
       <button
-        class="px-4 py-2 text-sm rounded-md border border-input bg-background hover:bg-muted transition-colors"
+        class="px-4 py-2 rounded-md border border-input bg-background hover:bg-muted transition-colors"
         @click="reset"
       >
         Try again
       </button>
       <button
-        class="px-4 py-2 text-sm rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+        class="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
         @click="goHome"
       >
         Go home

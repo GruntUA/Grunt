@@ -80,12 +80,12 @@ function toggleValue(v: string) {
         <label
           v-for="opt in options"
           :key="optValue(opt)"
-          class="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+          class="flex items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
         >
           <Checkbox :model-value="modelValue.includes(optValue(opt))" @update:model-value="toggleValue(optValue(opt))" />
           <span class="truncate">{{ optLabel(opt) }}</span>
         </label>
-        <p v-if="!options.length" class="px-2 py-3 text-center text-sm text-muted-foreground">Немає варіантів</p>
+        <p v-if="!options.length" class="px-2 py-3 text-center text-muted-foreground">Немає варіантів</p>
       </div>
     </PopoverContent>
   </Popover>

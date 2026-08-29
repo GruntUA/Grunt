@@ -143,7 +143,7 @@ function onClear(e: Event) {
           v-model="search"
           autofocus
           placeholder="Пошук..."
-          class="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground px-1 py-1"
+          class="w-full bg-transparent outline-none placeholder:text-muted-foreground px-1 py-1"
           @input="emit('filter', search)"
         >
       </div>
@@ -158,7 +158,7 @@ function onClear(e: Event) {
           @select="onSelect"
           @toggle="onToggle"
         />
-        <p v-if="!filteredOptions.length" class="px-2 py-3 text-center text-sm text-muted-foreground">Нічого не знайдено</p>
+        <p v-if="!filteredOptions.length" class="px-2 py-3 text-center text-muted-foreground">Нічого не знайдено</p>
       </div>
     </PopoverContent>
   </Popover>

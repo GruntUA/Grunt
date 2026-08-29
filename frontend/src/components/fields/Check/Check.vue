@@ -22,6 +22,6 @@ const id = useId()
       :disabled="disabled || field.read_only"
       @update:model-value="emit('update:modelValue', $event)"
     />
-    <label :for="id" class="text-sm font-medium cursor-pointer select-none text-foreground/90">{{ field.label }}</label>
+    <label :for="id" class="font-medium cursor-pointer select-none text-foreground/90">{{ field.label }}</label>
   </div>
 </template>

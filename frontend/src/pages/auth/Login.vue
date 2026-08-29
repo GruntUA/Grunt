@@ -61,7 +61,7 @@ async function handleLogin() {
       <Card>
         <div class="flex flex-col items-center gap-1.5 px-6 text-center">
           <h3 class="font-semibold text-xl">З поверненням</h3>
-          <p class="text-muted-foreground text-sm">Увійдіть у свій акаунт</p>
+          <p class="text-muted-foreground">Увійдіть у свій акаунт</p>
         </div>
         <div class="px-6">
           <form @submit.prevent="handleLogin" class="flex flex-col gap-5">
@@ -69,7 +69,7 @@ async function handleLogin() {
             <div id="oauth-providers" class="hidden [.oauth-enabled_&]:flex">
               <a
                 href="/api/v1/oauth/google/authorize"
-                class="flex items-center justify-center gap-2 w-full h-10 rounded-md border border-border bg-background hover:bg-muted/50 transition-colors text-sm font-medium"
+                class="flex items-center justify-center gap-2 w-full h-10 rounded-md border border-border bg-background hover:bg-muted/50 transition-colors font-medium"
               >
                 <svg class="size-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -89,17 +89,17 @@ async function handleLogin() {
 
             <!-- Email -->
             <div class="flex flex-col gap-1.5">
-              <label for="email" class="text-sm font-medium">Email</label>
+              <label for="email" class="font-medium">Email</label>
               <Input id="email" v-model="email" type="email" autocomplete="username" placeholder="admin@grunt.local" required class="w-full" />
             </div>
 
             <!-- Password -->
             <div class="flex flex-col gap-1.5">
               <div class="flex items-center">
-                <label for="password" class="text-sm font-medium">Пароль</label>
+                <label for="password" class="font-medium">Пароль</label>
                 <router-link
                   to="/forgot-password"
-                  class="ml-auto text-sm underline-offset-4 hover:underline text-muted-foreground"
+                  class="ml-auto underline-offset-4 hover:underline text-muted-foreground"
                 >
                   Забули пароль?
                 </router-link>
@@ -108,7 +108,7 @@ async function handleLogin() {
             </div>
 
             <!-- Error -->
-            <p v-if="error" class="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
+            <p v-if="error" class="text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
               {{ error }}
             </p>
 
@@ -118,7 +118,7 @@ async function handleLogin() {
                 <Spinner v-if="loading" class="size-4 mr-2" />
                 Увійти
               </Button>
-              <p v-if="allowRegistration" class="text-center text-sm text-muted-foreground">
+              <p v-if="allowRegistration" class="text-center text-muted-foreground">
                 Немає акаунту?
                 <router-link to="/register" class="text-primary hover:underline font-medium">Зареєструватись</router-link>
               </p>

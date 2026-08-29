@@ -43,7 +43,7 @@ const trendNeutral = computed(() => trend.value === null || trend.value === 0)
   <div class="flex flex-col gap-3 p-5 h-full">
     <!-- Header -->
     <div class="flex items-center justify-between">
-      <p class="text-sm text-muted-foreground font-medium">{{ widget.title }}</p>
+      <p class="text-muted-foreground font-medium">{{ widget.title }}</p>
       <div v-if="iconComponent" :class="['p-2 rounded-lg', iconBg]">
         <component :is="iconComponent" class="w-4 h-4" />
       </div>

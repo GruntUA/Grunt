@@ -129,7 +129,7 @@ function deselect() {
 
           <button
             type="button"
-            class="flex items-center justify-center gap-1.5 w-full py-2.5 border-2 border-dashed border-border rounded-md text-sm text-muted-foreground/70 hover:text-primary hover:border-primary/40 transition-colors"
+            class="flex items-center justify-center gap-1.5 w-full py-2.5 border-2 border-dashed border-border rounded-md text-muted-foreground/70 hover:text-primary hover:border-primary/40 transition-colors"
             @click="onAddSection"
           >
             + Add Section

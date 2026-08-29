@@ -475,7 +475,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
           <div class="w-72 p-1">
               <p class="text-xs font-medium text-muted-foreground mb-2">Посилання</p>
               <div class="flex gap-2">
-                <Input v-model="linkUrl" placeholder="https://…" class="h-8 text-sm flex-1"
+                <Input v-model="linkUrl" placeholder="https://…" class="h-8 flex-1"
                   @keydown.enter.prevent="applyLink" />
                 <Button size="sm" class="h-8 px-3" @click="applyLink">OK</Button>
                 <Button v-if="editor.isActive('link')" variant="ghost" size="sm" class="h-8 px-2 text-destructive hover:text-destructive" @click="removeLink">
@@ -496,7 +496,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
           <div class="w-72 p-1">
               <p class="text-xs font-medium text-muted-foreground mb-2">Зображення</p>
               <div class="flex gap-2 mb-2">
-                <Input v-model="imageUrl" placeholder="https://…" class="h-8 text-sm flex-1"
+                <Input v-model="imageUrl" placeholder="https://…" class="h-8 flex-1"
                   @keydown.enter.prevent="insertImageUrl" />
                 <Button size="sm" class="h-8 px-3" @click="insertImageUrl">OK</Button>
               </div>
@@ -577,7 +577,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
         </div>
       </Transition>
 
-      <EditorContent :editor="editor" class="richtext-content p-3 text-sm text-foreground" :class="isDocumentStyle ? 'richtext-document' : ''" />
+      <EditorContent :editor="editor" class="richtext-content p-3 text-foreground" :class="isDocumentStyle ? 'richtext-document' : ''" />
     </div>
 
     <!-- ── Footer ─────────────────────────────────────────────────────── -->

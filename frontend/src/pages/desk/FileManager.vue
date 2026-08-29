@@ -90,7 +90,7 @@ function onSearchInput() {
                 </div>
                 <div>
                     <h1 class="text-xl font-semibold text-foreground">Менеджер файлів</h1>
-                    <p class="text-sm text-muted-foreground">Завантажуйте та керуйте документами і медіа</p>
+                    <p class="text-muted-foreground">Завантажуйте та керуйте документами і медіа</p>
                 </div>
             </div>
             <div class="flex items-center gap-3 w-full md:w-auto md:flex-1 md:justify-end">
@@ -134,7 +134,7 @@ function onSearchInput() {
                     <UploadCloud class="size-10 text-primary/40" />
                 </div>
                 <h3 class="text-2xl font-semibold mb-3">Немає файлів</h3>
-                <p class="text-muted-foreground max-w-md md:max-w-xl mb-6 text-sm md:text-base px-4">
+                <p class="text-muted-foreground max-w-md md:max-w-xl mb-6 md:text-base px-4">
                     Перетягніть сюди файли або скористайтеся кнопкою «Завантажити» у правому верхньому куті.
                 </p>
             </div>

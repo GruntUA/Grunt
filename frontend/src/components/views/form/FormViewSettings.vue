@@ -4,11 +4,12 @@ import { FileText } from '@lucide/vue'
 import { useBuilderStore } from '@/stores/builder'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 
 const builder = useBuilderStore()
 
 const formView = computed(
-  () => builder.doctype?.form_view ?? { layout: 'standard' as const, print_format: null },
+  () => builder.doctype?.form_view ?? { layout: 'standard' as const, print_format: null, show_sidebar: true },
 )
 
 function updateFormView(patch: Record<string, unknown>) {
@@ -20,7 +21,7 @@ function updateFormView(patch: Record<string, unknown>) {
   <div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
     <div class="flex items-center gap-2.5 px-4 py-3 bg-muted/40 border-b border-border">
       <FileText class="size-4 text-muted-foreground" />
-      <h3 class="text-sm font-semibold text-foreground">Відображення: Форма</h3>
+      <h3 class="font-semibold text-foreground">Відображення: Форма</h3>
     </div>
     <div class="p-4">
       <div class="grid grid-cols-2 gap-3">
@@ -48,6 +49,17 @@ function updateFormView(patch: Record<string, unknown>) {
             @update:model-value="updateFormView({ print_format: $event || null })"
           />
         </div>
+      </div>
+
+      <div class="flex items-center justify-between gap-3 mt-3 pt-3 border-t border-border">
+        <div class="flex flex-col">
+          <span class="text-xs font-medium text-foreground">Бічна панель</span>
+          <span class="text-xs text-muted-foreground">Деталі, теги, зв'язки збоку від форми</span>
+        </div>
+        <Switch
+          :model-value="formView.show_sidebar !== false"
+          @update:model-value="updateFormView({ show_sidebar: $event })"
+        />
       </div>
     </div>
   </div>

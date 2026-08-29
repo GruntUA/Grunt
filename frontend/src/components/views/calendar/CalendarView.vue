@@ -320,7 +320,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
         <input
           type="month"
           :value="format(currentMonth, 'yyyy-MM')"
-          class="!w-48 !h-10 rounded-md border border-input bg-transparent px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          class="!w-48 !h-10 rounded-md border border-input bg-transparent px-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
           @change="currentMonth = parse(($event.target as HTMLInputElement).value, 'yyyy-MM', new Date())"
         >
         
@@ -398,7 +398,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
             <div class="flex items-start justify-between">
                 <div class="flex flex-col">
                     <span class="text-xs font-medium uppercase tracking-wider text-muted-foreground">{{ selectedEvent.doctype }}</span>
-                    <h3 class="text-sm font-semibold text-foreground leading-tight">{{ selectedEvent.title }}</h3>
+                    <h3 class="font-semibold text-foreground leading-tight">{{ selectedEvent.title }}</h3>
                 </div>
                 <Button variant="ghost" size="sm" @click="navigateToDoc(selectedEvent)" class="rounded-full"><ExternalLink class="size-4" /></Button>
             </div>

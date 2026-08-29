@@ -100,12 +100,21 @@ export interface FormProxy {
   save: () => Promise<void>
   /** Reset the dirty-state baseline to the current form values (for display-only set_value calls). */
   mark_clean: () => void
+  /**
+   * Show/hide the document detail sidebar. Overrides the DocType's
+   * `form_view.show_sidebar` for this form. Call from `refresh`/`onload`.
+   */
+  toggle_sidebar: (show: boolean) => void
+  hide_sidebar: () => void
+  show_sidebar: () => void
   /** Internal state modified by scripts */
   _display: Record<string, boolean>
   _reqd: Record<string, boolean>
   _df_props: Record<string, Record<string, unknown>>
   _queries: Record<string, LinkQueryFn>
   _selected_rows: Record<string, string[]>
+  /** undefined → script left the sidebar decision to config */
+  _sidebar_hidden?: boolean
 }
 
 /** Handle returned by listview.add_menu_item — allows in-place updates. */
@@ -382,6 +391,18 @@ export function createFormProxy(
 
     mark_clean() {
       callbacks.markClean?.()
+    },
+
+    toggle_sidebar(show: boolean) {
+      proxy._sidebar_hidden = !show
+    },
+
+    hide_sidebar() {
+      proxy._sidebar_hidden = true
+    },
+
+    show_sidebar() {
+      proxy._sidebar_hidden = false
     },
   }
 

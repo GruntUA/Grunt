@@ -268,7 +268,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
 <template>
   <div v-if="!draft" class="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground px-6">
     <div class="text-4xl">👈</div>
-    <p class="text-sm text-center">{{ t('Select a widget on the canvas or add a new one from the palette') }}</p>
+    <p class="text-center">{{ t('Select a widget on the canvas or add a new one from the palette') }}</p>
   </div>
 
   <div v-else class="flex flex-col h-full overflow-hidden">
@@ -308,7 +308,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
         <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Title') }}</label>
         <input
           v-model="draft.title"
-          class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
           :placeholder="t('Widget title')"
           @change="apply"
         />
@@ -319,7 +319,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
         <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Data source') }}</label>
         <select
           :value="isReportSourced ? 'report' : 'doctype'"
-          class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
           @change="setReportSource(($event.target as HTMLSelectElement).value === 'report')"
         >
           <option value="doctype">{{ t('DocType aggregate') }}</option>
@@ -328,7 +328,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
         <select
           v-if="isReportSourced"
           v-model="draft.report"
-          class="w-full h-8 px-3 mt-1 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          class="w-full h-8 px-3 mt-1 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
           @change="apply"
         >
           <option value="">{{ t('— Select —') }}</option>
@@ -345,7 +345,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
         <select
           v-if="isDataWidget && !isReportSourced"
           v-model="draft.doctype"
-          class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
           @change="apply"
         >
           <option value="">{{ t('— Select —') }}</option>
@@ -357,7 +357,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
         <div v-else-if="isShortcut && linkSearchDoctype" class="relative">
           <input
             :value="linkQuery"
-            class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
             :placeholder="t('Search {dt}...', { dt: linkSearchDoctype })"
             autocomplete="off"
             @input="onLinkInput(($event.target as HTMLInputElement).value)"
@@ -372,7 +372,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
               v-for="item in linkResults"
               :key="item.name"
               type="button"
-              class="w-full text-left px-3 py-1.5 text-sm hover:bg-accent/50 transition-colors"
+              class="w-full text-left px-3 py-1.5 hover:bg-accent/50 transition-colors"
               @mousedown.prevent="selectLink(item)"
             >{{ item.title }}</button>
           </div>
@@ -381,7 +381,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
         <input
           v-else-if="isShortcut"
           v-model="draft.doctype"
-          class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
           placeholder="https://…"
           @change="apply"
         />
@@ -394,7 +394,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
         </label>
         <select
           v-model="draft.doctype"
-          class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
           @change="apply"
         >
           <option value="">{{ t('— All —') }}</option>
@@ -426,7 +426,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
         </label>
         <input
           v-model="draft.description"
-          class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
           @change="apply"
         />
       </div>
@@ -437,7 +437,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
         <textarea
           v-model="draft.content"
           rows="5"
-          class="w-full px-3 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none font-mono"
+          class="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none font-mono"
           @change="apply"
         />
       </div>
@@ -574,13 +574,13 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
           <div class="space-y-1">
             <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Min') }}</label>
             <input v-model.number="draft.min_value" type="number"
-              class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
               @change="apply" />
           </div>
           <div class="space-y-1">
             <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Max') }}</label>
             <input v-model.number="draft.max_value" type="number"
-              class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
               @change="apply" />
           </div>
         </div>
@@ -603,21 +603,21 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
         </div>
         <div v-if="needsField" class="space-y-1">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Field') }}</label>
-          <input v-model="draft.field" class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="fieldname" @change="apply" />
+          <input v-model="draft.field" class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="fieldname" @change="apply" />
         </div>
       </template>
 
       <!-- Group by (chart / donut / funnel / table) -->
       <div v-if="(isChart || isDonut || isFunnel || isTableWidget) && !isReportSourced" class="space-y-1">
         <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Group by') }}</label>
-        <input v-model="draft.group_by" class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="fieldname" @change="apply" />
+        <input v-model="draft.group_by" class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="fieldname" @change="apply" />
       </div>
 
       <!-- Date field + period -->
       <template v-if="(isChart || isMetric || isGauge || isCalendar || isHeatmap || isFunnel || isTableWidget) && !isReportSourced">
         <div class="space-y-1">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Date field') }}</label>
-          <input v-model="draft.date_field" class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="created_at" @change="apply" />
+          <input v-model="draft.date_field" class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="created_at" @change="apply" />
         </div>
         <div class="space-y-1">
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Period') }}</label>
@@ -666,7 +666,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
       <!-- Icon -->
       <div v-if="isMetric || isShortcut" class="space-y-1">
         <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Icon (lucide)') }}</label>
-        <input v-model="draft.icon" class="w-full h-8 px-3 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="BarChart2, Users..." @change="apply" />
+        <input v-model="draft.icon" class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="BarChart2, Users..." @change="apply" />
       </div>
 
     </div>

@@ -144,7 +144,7 @@ const {
         </button>
       </div>
 
-      <div v-else class="px-3 py-3 text-sm text-muted-foreground text-center">
+      <div v-else class="px-3 py-3 text-muted-foreground text-center">
         <span v-if="isLoading">{{ t('Searching...') }}</span>
         <span v-else-if="query">Нічого не знайдено для «{{ query }}»</span>
         <span v-else>{{ t('No records') }}</span>

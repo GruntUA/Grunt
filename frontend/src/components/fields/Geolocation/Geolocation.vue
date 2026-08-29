@@ -59,7 +59,7 @@ function locate() {
         :value="parsed.lat ?? ''"
         :disabled="disabled || field.read_only"
         placeholder="Latitude"
-        class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:bg-muted disabled:cursor-not-allowed"
+        class="w-full rounded-md border border-input bg-transparent px-3 py-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:bg-muted disabled:cursor-not-allowed"
         @input="update('lat', ($event.target as HTMLInputElement).value)"
         @paste="parsePaste"
       />
@@ -71,7 +71,7 @@ function locate() {
         :value="parsed.lng ?? ''"
         :disabled="disabled || field.read_only"
         placeholder="Longitude"
-        class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:bg-muted disabled:cursor-not-allowed"
+        class="w-full rounded-md border border-input bg-transparent px-3 py-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:bg-muted disabled:cursor-not-allowed"
         @input="update('lng', ($event.target as HTMLInputElement).value)"
         @paste="parsePaste"
       />

@@ -243,7 +243,7 @@ const displayFields = computed(() => {
                                     <Badge
                                         class="h-5 px-1.5 text-xs font-semibold uppercase opacity-50 shrink-0">{{
                                             col.fieldtype }}</Badge>
-                                    <span class="text-sm font-semibold truncate">{{ col.label }}</span>
+                                    <span class="font-semibold truncate">{{ col.label }}</span>
                                 </div>
                                 <button @click="removeColumn(index)"
                                     class="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive transition-all">
@@ -274,7 +274,7 @@ const displayFields = computed(() => {
                             Поля, за якими глядач звіту зможе фільтрувати (оператор та значення обирає в самому звіті).
                         </p>
                         <div v-for="(flt, i) in filterConfigs" :key="flt.fieldname"
-                            class="flex items-center justify-between gap-2 p-2 rounded-lg border bg-background text-sm">
+                            class="flex items-center justify-between gap-2 p-2 rounded-lg border bg-background">
                             <span class="flex items-center gap-2 min-w-0">
                                 <Badge class="h-5 px-1.5 text-xs font-semibold uppercase opacity-50 shrink-0">{{ flt.fieldtype }}</Badge>
                                 <span class="truncate">{{ flt.label }}</span>
@@ -357,7 +357,7 @@ const displayFields = computed(() => {
                         </div>
                         <div class="grid grid-cols-1 gap-1">
                             <button v-for="f in displayFields" :key="f.fieldname"
-                                class="flex items-center justify-between px-3 py-2 rounded-lg text-left text-sm hover:bg-muted text-foreground/80 group transition-colors"
+                                class="flex items-center justify-between px-3 py-2 rounded-lg text-left hover:bg-muted text-foreground/80 group transition-colors"
                                 @click="addColumn(f)" :disabled="columns.some(c => c.fieldname === f.fieldname)"
                                 :class="{ 'opacity-50 cursor-not-allowed': columns.some(c => c.fieldname === f.fieldname) }">
                                 <div class="flex flex-col min-w-0">
@@ -393,7 +393,7 @@ const displayFields = computed(() => {
         <main class="flex-1 flex flex-col bg-muted/10 overflow-hidden">
             <!-- Tools -->
             <header class="p-8 pb-4 flex justify-between items-center shrink-0">
-                <div class="flex items-center gap-2 text-sm text-muted-foreground/80 font-medium">
+                <div class="flex items-center gap-2 text-muted-foreground/80 font-medium">
                     <span>Звіти</span>
                     <ChevronRight class="size-3 opacity-50" />
                     <span class="text-foreground font-semibold">{{ reportTitle }}</span>
@@ -432,7 +432,7 @@ const displayFields = computed(() => {
 
                     <!-- Results Table -->
                     <div class="flex-1 overflow-auto">
-                        <table class="w-full text-sm">
+                        <table class="w-full">
                             <thead class="sticky top-0 bg-background/95 z-10">
                                 <tr class="border-b shadow-sm">
                                     <th v-for="col in previewCols" :key="col.fieldname"

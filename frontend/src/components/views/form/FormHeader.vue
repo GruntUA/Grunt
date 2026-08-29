@@ -40,6 +40,7 @@ const props = defineProps<{
   isSaving: boolean
   scriptButtons: ScriptButton[]
   scriptMenuItems: ScriptMenuItem[]
+  hidePanelToggle?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -350,7 +351,7 @@ const menuItems = computed(() => {
         </Button>
 
         <Button
-          v-if="id"
+          v-if="id && !hidePanelToggle"
           variant="outline"
           class="text-foreground"
           :class="{ 'bg-muted': !panelOpen }"
@@ -418,7 +419,7 @@ const menuItems = computed(() => {
           <input
             v-model="shareExpires"
             type="datetime-local"
-            class="w-full h-9 px-3 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+            class="w-full h-9 px-3 rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
         <DialogFooter>
@@ -463,7 +464,7 @@ const menuItems = computed(() => {
         <label class="text-xs font-medium text-muted-foreground block mb-1.5">{{ t('New ID') }}</label>
         <input
           v-model="newDocId"
-          class="w-full h-10 px-3 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+          class="w-full h-10 px-3 rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
           @keyup.enter="handleRename"
         />
       </div>

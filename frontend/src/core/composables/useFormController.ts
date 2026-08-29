@@ -95,6 +95,7 @@ export function useFormController(
     displayOverrides,
     reqdOverrides,
     dfPropOverrides,
+    sidebarHidden,
     runEvent: runScriptEvent,
     getLinkFilters,
     setTableSelection,
@@ -304,6 +305,7 @@ export function useFormController(
     displayOverrides,
     reqdOverrides,
     dfPropOverrides,
+    sidebarHidden,
 
     // Presence / Real-time
     presenceUsers,

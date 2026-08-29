@@ -18,14 +18,14 @@ const { field, updateField } = usePropertyEditor()
         :model-value="field.show_in_dashboard"
         @update:model-value="updateField('show_in_dashboard', $event)"
       />
-      <label class="text-sm font-medium cursor-pointer" @click="updateField('show_in_dashboard', !field.show_in_dashboard)">
+      <label class="font-medium cursor-pointer" @click="updateField('show_in_dashboard', !field.show_in_dashboard)">
         Показувати в дашборді
       </label>
     </div>
 
     <!-- Dashboard DocType -->
     <div v-if="field.show_in_dashboard" class="flex flex-col gap-1.5">
-      <label class="text-sm font-medium">DocType для значка</label>
+      <label class="font-medium">DocType для значка</label>
       <Input
         :model-value="field.dashboard_doctype ?? ''"
         placeholder="напр. Employee"
@@ -36,7 +36,7 @@ const { field, updateField } = usePropertyEditor()
 
     <!-- Dashboard Link Field -->
     <div v-if="field.show_in_dashboard" class="flex flex-col gap-1.5">
-      <label class="text-sm font-medium">Поле зв'язку (Back-link)</label>
+      <label class="font-medium">Поле зв'язку (Back-link)</label>
       <Input
         :model-value="field.dashboard_link_field ?? ''"
         placeholder="напр. department"

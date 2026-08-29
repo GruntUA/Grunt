@@ -36,7 +36,7 @@ function open(item: Record<string, unknown>) {
   <div class="flex flex-col h-full">
     <!-- Header -->
     <div class="px-5 pt-5 pb-2">
-      <p class="text-sm text-muted-foreground font-medium">{{ widget.title }}</p>
+      <p class="text-muted-foreground font-medium">{{ widget.title }}</p>
     </div>
 
     <!-- Skeleton -->
@@ -46,7 +46,7 @@ function open(item: Record<string, unknown>) {
 
     <!-- Empty -->
     <div v-else-if="!data?.items?.length"
-      class="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+      class="flex-1 flex items-center justify-center text-muted-foreground">
       {{ t('No records') }}
     </div>
 
@@ -55,8 +55,7 @@ function open(item: Record<string, unknown>) {
       <div
         v-for="item in data.items"
         :key="String(item.id)"
-        class="flex items-center justify-between px-5 py-2.5 border-b last:border-0
-               hover:bg-muted/50 cursor-pointer transition-colors text-sm"
+        class="flex items-center justify-between px-5 py-2.5 border-b last:border-0 hover:bg-muted/50 cursor-pointer transition-colors"
         @click="open(item)"
       >
         <span class="font-medium truncate max-w-[70%] text-foreground">{{ getTitle(item) }}</span>

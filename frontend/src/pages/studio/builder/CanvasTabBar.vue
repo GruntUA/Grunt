@@ -84,7 +84,7 @@ function cancelRename() {
             <input
               v-model="editLabel"
               type="text"
-              class="text-sm font-medium bg-transparent border-b border-primary outline-none w-24 px-0 py-0"
+              class="font-medium bg-transparent border-b border-primary outline-none w-24 px-0 py-0"
               @blur="finishRename(tab)"
               @keydown.enter="finishRename(tab)"
               @keydown.escape="cancelRename"
@@ -93,7 +93,7 @@ function cancelRename() {
             />
           </template>
           <template v-else>
-            <span class="text-sm font-medium whitespace-nowrap">
+            <span class="font-medium whitespace-nowrap">
               {{ tab.label || 'Main' }}
             </span>
           </template>
@@ -118,7 +118,7 @@ function cancelRename() {
     <!-- Add tab button -->
     <button
       type="button"
-      class="px-3 py-2.5 text-sm text-muted-foreground/70 hover:text-primary transition-colors shrink-0"
+      class="px-3 py-2.5 text-muted-foreground/70 hover:text-primary transition-colors shrink-0"
       title="Add tab"
       @click="emit('addTab')"
     >+</button>

@@ -34,7 +34,7 @@ function updateListView(patch: Record<string, unknown>) {
   <div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
     <div class="flex items-center gap-2.5 px-4 py-3 bg-muted/40 border-b border-border">
       <LayoutList class="size-4 text-muted-foreground" />
-      <h3 class="text-sm font-semibold text-foreground">Відображення: Список</h3>
+      <h3 class="font-semibold text-foreground">Відображення: Список</h3>
     </div>
     <div class="p-4 space-y-4">
       <!-- Visible columns -->

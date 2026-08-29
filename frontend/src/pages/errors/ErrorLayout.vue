@@ -21,7 +21,7 @@ const router = useRouter()
     <div class="text-center max-w-md w-full">
       <p v-if="code" class="text-8xl font-semibold text-muted-foreground/20 mb-4 select-none">{{ code }}</p>
       <h1 class="text-2xl font-semibold mb-2">{{ title }}</h1>
-      <p class="text-sm text-muted-foreground mb-8">
+      <p class="text-muted-foreground mb-8">
         {{ message }}
       </p>
       <div class="flex gap-3 justify-center flex-wrap">

@@ -65,7 +65,7 @@ const filtered = computed(() => {
           v-model="search"
           autofocus
           placeholder="Пошук..."
-          class="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground px-1.5 py-1"
+          class="w-full bg-transparent outline-none placeholder:text-muted-foreground px-1.5 py-1"
         />
       </div>
       <div class="max-h-64 overflow-y-auto p-1">
@@ -73,11 +73,11 @@ const filtered = computed(() => {
           v-for="opt in filtered"
           :key="opt"
           type="button"
-          class="w-full rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+          class="w-full rounded-sm px-2 py-1.5 text-left hover:bg-accent hover:text-accent-foreground transition-colors"
           :class="opt === modelValue ? 'bg-accent/60 font-medium' : ''"
           @click="select(opt)"
         >{{ opt }}</button>
-        <p v-if="!filtered.length" class="px-2 py-3 text-center text-sm text-muted-foreground">{{ emptyMessage }}</p>
+        <p v-if="!filtered.length" class="px-2 py-3 text-center text-muted-foreground">{{ emptyMessage }}</p>
       </div>
     </PopoverContent>
   </Popover>

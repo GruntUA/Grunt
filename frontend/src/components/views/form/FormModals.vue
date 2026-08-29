@@ -27,7 +27,7 @@ const emit = defineEmits<{
         <DialogHeader>
           <DialogTitle class="text-base">{{ t('Delete document?') }}</DialogTitle>
         </DialogHeader>
-        <p class="text-sm text-muted-foreground">Цю дію не можна скасувати. Всі пов'язані дані будуть видалені назавжди.</p>
+        <p class="text-muted-foreground">Цю дію не можна скасувати. Всі пов'язані дані будуть видалені назавжди.</p>
         <DialogFooter>
           <Button variant="ghost" @click="emit('update:showDelete', false)">{{ t('Cancel') }}</Button>
           <Button variant="destructive" @click="emit('confirmDelete')">{{ t('Delete') }}</Button>
@@ -41,7 +41,7 @@ const emit = defineEmits<{
         <DialogHeader>
           <DialogTitle class="text-base">{{ t('Unsaved changes') }}</DialogTitle>
         </DialogHeader>
-        <p class="text-sm text-muted-foreground">Ви внесли зміни, які буде втрачено, якщо ви покинете сторінку. Покинути без збереження?</p>
+        <p class="text-muted-foreground">Ви внесли зміни, які буде втрачено, якщо ви покинете сторінку. Покинути без збереження?</p>
         <DialogFooter>
           <Button variant="ghost" @click="emit('cancelLeave')">{{ t('Stay') }}</Button>
           <Button variant="destructive" @click="emit('confirmLeave')">{{ t('Leave') }}</Button>

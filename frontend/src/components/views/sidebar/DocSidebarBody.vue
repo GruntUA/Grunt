@@ -405,7 +405,7 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
               >
                 <Avatar class="!size-6"><AvatarFallback class="!text-[10px]">{{ (u.full_name || u.email).slice(0, 2).toUpperCase() }}</AvatarFallback></Avatar>
                 <div class="flex flex-col min-w-0">
-                  <span class="text-sm font-medium truncate">{{ u.full_name || u.email }}</span>
+                  <span class="font-medium truncate">{{ u.full_name || u.email }}</span>
                   <span class="text-xs text-muted-foreground truncate">{{ u.email }}</span>
                 </div>
               </button>

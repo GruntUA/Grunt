@@ -79,7 +79,7 @@ onMounted(loadTransitions)
     v-if="doctype.workflow_state_field"
     class="flex items-center gap-3 px-6 py-3 border-t border-border/50 bg-muted/30"
   >
-    <span class="text-sm text-muted-foreground">Стан:</span>
+    <span class="text-muted-foreground">Стан:</span>
     <Badge :class="stateBadge.colorClass">{{ stateBadge.label }}</Badge>
     <div class="flex gap-2 ml-2">
       <Button variant="secondary" v-for="t in transitions" :key="t.action" size="sm" :disabled="isLoading" @click="apply(t.action)">

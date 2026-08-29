@@ -115,6 +115,8 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
   const displayOverrides = reactive<Record<string, boolean>>({})
   const reqdOverrides = reactive<Record<string, boolean>>({})
   const dfPropOverrides = reactive<Record<string, Record<string, unknown>>>({})
+  // null → scripts left the sidebar decision to form_view.show_sidebar
+  const sidebarHidden = ref<boolean | null>(null)
 
   const messageListeners = new Map<string, Set<(data: unknown) => void>>()
 
@@ -277,6 +279,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
     for (const [fieldname, overrideProps] of Object.entries(frm._df_props)) {
       dfPropOverrides[fieldname] = { ...dfPropOverrides[fieldname], ...overrideProps }
     }
+    if (frm._sidebar_hidden !== undefined) sidebarHidden.value = frm._sidebar_hidden
 
     return result
   }
@@ -317,6 +320,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
     displayOverrides,
     reqdOverrides,
     dfPropOverrides,
+    sidebarHidden,
     runEvent,
     getLinkFilters,
     setTableSelection,

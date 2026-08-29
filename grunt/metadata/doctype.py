@@ -97,6 +97,7 @@ class DocTypeListView(BaseModel):
 class DocTypeFormView(BaseModel):
     layout: Literal["standard", "compact", "wide"] = "standard"
     print_format: str | None = None
+    show_sidebar: bool = True  # False → hide the document detail sidebar on the form
 
 
 class DocTypeKanbanView(BaseModel):

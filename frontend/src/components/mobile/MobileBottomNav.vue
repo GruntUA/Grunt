@@ -102,14 +102,14 @@ function goHome() {
   <Sheet :open="showOverflow" @update:open="(v: boolean) => (showOverflow = v)">
     <SheetContent side="bottom" class="md:hidden p-0 rounded-t-lg" style="padding-bottom: env(safe-area-inset-bottom)">
       <SheetHeader class="flex-row items-center justify-between px-5 pt-4 pb-2 gap-0 space-y-0">
-        <SheetTitle class="text-sm">Всі розділи</SheetTitle>
+        <SheetTitle>Всі розділи</SheetTitle>
       </SheetHeader>
       <div class="max-h-72 overflow-y-auto">
         <div class="px-3 pb-4 space-y-0.5">
           <button
             v-for="item in overflowItems"
             :key="item.link_to"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
             :class="isActive(item.link_to)
               ? 'bg-primary/10 text-primary font-medium'
               : 'text-foreground hover:bg-muted'"

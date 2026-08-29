@@ -64,7 +64,7 @@ function addLayoutItem(type: string) {
       >
         <template #item="{ element: item }">
           <div
-            class="flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-border transition-colors text-left w-full cursor-grab active:cursor-grabbing"
+            class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-border transition-colors text-left w-full cursor-grab active:cursor-grabbing"
           >
             <span class="w-5 flex items-center justify-center shrink-0 text-muted-foreground">
               <component :is="getLucideIcon(item.icon)" v-if="getLucideIcon(item.icon)" class="size-4" />
@@ -84,7 +84,7 @@ function addLayoutItem(type: string) {
           v-for="item in layoutItems"
           :key="item.type"
           type="button"
-          class="flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-border transition-colors text-left w-full"
+          class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-border transition-colors text-left w-full"
           @click="addLayoutItem(item.type)"
         >
           <span class="w-5 flex items-center justify-center shrink-0 text-muted-foreground">

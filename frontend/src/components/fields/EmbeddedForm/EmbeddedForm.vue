@@ -60,7 +60,7 @@ function update(fieldname: string, val: unknown) {
 </script>
 
 <template>
-  <div v-if="loading" class="flex items-center gap-2 py-2 text-sm text-muted-foreground">
+  <div v-if="loading" class="flex items-center gap-2 py-2 text-muted-foreground">
     <Spinner class="!size-4" />
     <span>Завантаження специфікації…</span>
   </div>
@@ -77,7 +77,7 @@ function update(fieldname: string, val: unknown) {
     />
   </div>
 
-  <div v-else-if="targetDoctypeName === null" class="py-2 text-sm text-muted-foreground italic">
+  <div v-else-if="targetDoctypeName === null" class="py-2 text-muted-foreground italic">
     Оберіть тип обладнання для відображення специфічних полів
   </div>
 </template>

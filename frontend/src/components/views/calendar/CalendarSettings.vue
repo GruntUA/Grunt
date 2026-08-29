@@ -103,7 +103,7 @@ function updateCalendarSourceReminderDays(index: number, raw: string | number | 
     <div class="flex items-center justify-between px-4 py-3 bg-muted/40 border-b border-border">
       <div class="flex items-center gap-2.5">
         <CalendarDays class="size-4 text-muted-foreground" />
-        <h3 class="text-sm font-semibold text-foreground">Відображення: Календар</h3>
+        <h3 class="font-semibold text-foreground">Відображення: Календар</h3>
         <span
           v-if="hasCalendar"
           class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-700 dark:text-amber-400"

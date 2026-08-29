@@ -55,7 +55,7 @@ const hasOwnLabel = computed(() => INLINE_LABEL_TYPES.has(props.field.fieldtype)
       'bg-destructive/[0.03] ring-1 ring-destructive/20': displayError,
       'hover:bg-muted/30': !displayError
     }">
-    <label v-if="!hasOwnLabel" class="text-sm font-medium text-foreground/90 flex items-center gap-1">
+    <label v-if="!hasOwnLabel" class="font-medium text-foreground/90 flex items-center gap-1">
       {{ field.label }}
       <span v-if="field.required" class="text-destructive font-semibold">*</span>
     </label>

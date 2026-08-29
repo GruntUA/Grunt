@@ -37,13 +37,13 @@ async function handleSubmit() {
           <Sprout class="w-7 h-7" />
         </div>
         <h1 class="text-2xl font-semibold text-foreground tracking-tight">Скинути пароль</h1>
-        <p class="text-sm text-muted-foreground mt-1">Ми надішлемо вам посилання для відновлення</p>
+        <p class="text-muted-foreground mt-1">Ми надішлемо вам посилання для відновлення</p>
       </div>
 
       <div class="bg-card rounded-lg shadow-sm border border-border p-8">
         <div v-if="sent" class="text-center py-4 flex flex-col items-center gap-3">
-          <p class="text-sm text-foreground font-medium">Перевірте пошту</p>
-          <p class="text-sm text-muted-foreground">
+          <p class="text-foreground font-medium">Перевірте пошту</p>
+          <p class="text-muted-foreground">
             Якщо акаунт з <strong>{{ email }}</strong> існує, ми надіслали посилання для зміни пароля.
           </p>
           <Button variant="ghost" class="mt-2" @click="router.push('/login')">Повернутись до входу</Button>
@@ -51,22 +51,22 @@ async function handleSubmit() {
 
         <form v-else class="flex flex-col gap-5" @submit.prevent="handleSubmit">
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium">Email <span class="text-destructive">*</span></label>
+            <label class="font-medium">Email <span class="text-destructive">*</span></label>
             <Input v-model="email" type="email" placeholder="you@example.com" required class="h-11 w-full" />
           </div>
 
-          <p v-if="error" class="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
+          <p v-if="error" class="text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
             {{ error }}
           </p>
 
-          <Button type="submit" :disabled="loading" class="w-full h-11 mt-1 text-sm font-medium">
+          <Button type="submit" :disabled="loading" class="w-full h-11 mt-1 font-medium">
             <Spinner v-if="loading" class="size-4 mr-2" />
             Надіслати посилання
           </Button>
 
           <button
             type="button"
-            class="flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mt-2"
+            class="flex items-center justify-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors mt-2"
             @click="router.push('/login')"
           >
             <ArrowLeft class="size-3.5" />

@@ -66,7 +66,7 @@ async function submitSetup() {
             </p>
 
             <div class="space-y-6">
-              <div class="flex items-center gap-4 text-sm"
+              <div class="flex items-center gap-4"
                    :class="activeStep === '1' ? 'text-foreground' : 'text-muted-foreground'">
                 <div class="size-10 rounded-full flex items-center justify-center"
                      :class="activeStep === '1' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'">
@@ -78,7 +78,7 @@ async function submitSetup() {
                 </div>
               </div>
 
-              <div class="flex items-center gap-4 text-sm"
+              <div class="flex items-center gap-4"
                    :class="activeStep === '2' ? 'text-foreground' : 'text-muted-foreground'">
                 <div class="size-10 rounded-full flex items-center justify-center"
                      :class="activeStep === '2' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'">
@@ -103,12 +103,12 @@ async function submitSetup() {
                 <div class="animate-in fade-in duration-300">
                   <div class="mb-8">
                     <h2 class="text-xl font-semibold text-foreground mb-2">Як назвемо проект?</h2>
-                    <p class="text-muted-foreground text-sm">Ця назва буде відображатися на головному екрані та в листах.</p>
+                    <p class="text-muted-foreground">Ця назва буде відображатися на головному екрані та в листах.</p>
                   </div>
 
                   <div class="space-y-6">
                     <div class="flex flex-col gap-1.5">
-                      <label class="text-sm font-medium text-foreground">Назва системи</label>
+                      <label class="font-medium text-foreground">Назва системи</label>
                       <Input
                          v-model="setupData.app_name"
                          placeholder="Наприклад: My ERP"
@@ -116,7 +116,7 @@ async function submitSetup() {
                     </div>
 
                     <div class="flex flex-col gap-1.5">
-                      <label class="text-sm font-medium text-foreground">Мова інтерфейсу</label>
+                      <label class="font-medium text-foreground">Мова інтерфейсу</label>
                       <Select v-model="setupData.language">
                         <SelectTrigger class="w-full">
                           <SelectValue />
@@ -140,12 +140,12 @@ async function submitSetup() {
                 <div class="animate-in fade-in duration-300">
                   <div class="mb-8">
                     <h2 class="text-xl font-semibold text-foreground mb-2">Доступ адміністратора</h2>
-                    <p class="text-muted-foreground text-sm">Встановіть надійний пароль для головного акаунту.</p>
+                    <p class="text-muted-foreground">Встановіть надійний пароль для головного акаунту.</p>
                   </div>
 
                   <div class="space-y-6">
                     <div class="flex flex-col gap-1.5">
-                      <label class="text-sm font-medium text-foreground flex items-center gap-2">
+                      <label class="font-medium text-foreground flex items-center gap-2">
                         <Mail class="size-3.5" /> Email
                       </label>
                       <Input
@@ -155,7 +155,7 @@ async function submitSetup() {
                     </div>
 
                     <div class="flex flex-col gap-1.5">
-                      <label class="text-sm font-medium text-foreground">Пароль доступу</label>
+                      <label class="font-medium text-foreground">Пароль доступу</label>
                       <Input
                          type="password"
                          v-model="setupData.admin_password"
@@ -182,7 +182,7 @@ async function submitSetup() {
                   </div>
 
                   <h2 class="text-2xl font-semibold text-foreground mb-3">Систему готово!</h2>
-                  <p class="text-muted-foreground text-sm mb-10 max-w-[280px] mx-auto leading-relaxed">
+                  <p class="text-muted-foreground mb-10 max-w-[280px] mx-auto leading-relaxed">
                     Тисніть кнопку нижче, щоб увійти та розпочати роботу з Grunt.
                   </p>
 

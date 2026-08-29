@@ -122,7 +122,7 @@ function clear() {
     />
     <div
       v-else
-      class="h-20 rounded-md border border-border flex items-center justify-center text-sm text-muted-foreground/50"
+      class="h-20 rounded-md border border-border flex items-center justify-center text-muted-foreground/50"
     >
       — не підписано —
     </div>
@@ -176,7 +176,7 @@ function clear() {
 
         <div
           v-if="!strokes.length && !currentStroke.length"
-          class="pointer-events-none absolute inset-0 flex items-end justify-center pb-8 text-sm text-muted-foreground/35 select-none"
+          class="pointer-events-none absolute inset-0 flex items-end justify-center pb-8 text-muted-foreground/35 select-none"
         >
           Підпишіть тут
         </div>

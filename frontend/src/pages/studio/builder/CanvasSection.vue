@@ -87,7 +87,7 @@ function selectSection() {
     >
       <!-- Drag handle -->
       <span
-        class="section-drag-handle text-muted-foreground/30 hover:text-muted-foreground/70 cursor-grab active:cursor-grabbing text-sm shrink-0 select-none"
+        class="section-drag-handle text-muted-foreground/30 hover:text-muted-foreground/70 cursor-grab active:cursor-grabbing shrink-0 select-none"
         title="Перетягнути секцію"
         @click.stop
       >⠿</span>

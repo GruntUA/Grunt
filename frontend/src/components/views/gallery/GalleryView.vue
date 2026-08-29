@@ -90,7 +90,7 @@ function formatDate(val: unknown, type: string): string {
       </div>
       <div class="space-y-2">
         <h3 class="text-xl font-semibold text-foreground">Записів не знайдено</h3>
-        <p class="text-sm text-muted-foreground max-w-xs mx-auto font-medium">Спробуйте змінити фільтри або додати новий документ у цю категорію</p>
+        <p class="text-muted-foreground max-w-xs mx-auto font-medium">Спробуйте змінити фільтри або додати новий документ у цю категорію</p>
       </div>
     </div>
 

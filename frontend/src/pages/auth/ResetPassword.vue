@@ -60,37 +60,37 @@ async function handleSubmit() {
           <Sprout class="w-7 h-7" />
         </div>
         <h1 class="text-2xl font-semibold text-foreground tracking-tight">Новий пароль</h1>
-        <p class="text-sm text-muted-foreground mt-1">Оберіть надійний пароль</p>
+        <p class="text-muted-foreground mt-1">Оберіть надійний пароль</p>
       </div>
 
       <div class="bg-card rounded-lg shadow-sm border border-border p-8">
         <div v-if="done" class="text-center py-4 flex flex-col items-center gap-3">
-          <p class="text-sm text-foreground font-medium">Пароль оновлено!</p>
-          <p class="text-sm text-muted-foreground mb-2">Тепер ви можете увійти з новим паролем.</p>
+          <p class="text-foreground font-medium">Пароль оновлено!</p>
+          <p class="text-muted-foreground mb-2">Тепер ви можете увійти з новим паролем.</p>
           <Button class="w-full h-11" @click="router.push('/login')">Перейти до входу</Button>
         </div>
 
         <form v-else class="flex flex-col gap-5" @submit.prevent="handleSubmit">
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium">Новий пароль <span class="text-destructive">*</span></label>
+            <label class="font-medium">Новий пароль <span class="text-destructive">*</span></label>
             <Input v-model="newPassword" type="password" autocomplete="new-password"
               placeholder="••••••••" required class="h-11 w-full" />
           </div>
 
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium">Підтвердіть пароль <span class="text-destructive">*</span></label>
+            <label class="font-medium">Підтвердіть пароль <span class="text-destructive">*</span></label>
             <Input v-model="confirmPassword" type="password" autocomplete="new-password"
               placeholder="••••••••" required class="h-11 w-full" />
           </div>
 
-          <p v-if="error" class="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
+          <p v-if="error" class="text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
             {{ error }}
           </p>
 
           <Button
             type="submit"
             :disabled="loading || !token"
-            class="w-full h-11 mt-1 text-sm font-medium"
+            class="w-full h-11 mt-1 font-medium"
           >
             <Spinner v-if="loading" class="size-4 mr-2" />
             Встановити новий пароль

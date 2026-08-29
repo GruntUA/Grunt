@@ -81,12 +81,12 @@ function formatSize(bytes: number) {
   <div class="flex flex-col h-full">
     <!-- Search -->
     <div class="p-3 border-b border-border">
-      <Input v-model="search" placeholder="Пошук файлів..." class="h-8 text-sm w-full" />
+      <Input v-model="search" placeholder="Пошук файлів..." class="h-8 w-full" />
     </div>
 
     <!-- Grid -->
     <div class="flex-1 overflow-y-auto p-3">
-      <div v-if="items.length === 0 && !isLoading" class="flex flex-col items-center justify-center h-40 text-muted-foreground text-sm gap-2">
+      <div v-if="items.length === 0 && !isLoading" class="flex flex-col items-center justify-center h-40 text-muted-foreground gap-2">
         <FileIcon class="size-8 opacity-30" />
         Файлів не знайдено
       </div>

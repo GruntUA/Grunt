@@ -130,7 +130,7 @@ function openBuilder() {
                 </h2>
                 <div class="flex items-center gap-2 mt-1">
                     <Badge variant="secondary" class="font-normal">{{ report?.report_type }}</Badge>
-                    <p class="text-muted-foreground text-sm" v-if="meta">
+                    <p class="text-muted-foreground" v-if="meta">
                         {{ meta.rows }} записів • {{ meta.time_ms }}мс
                     </p>
                 </div>
@@ -178,7 +178,7 @@ function openBuilder() {
         <!-- Chart -->
         <div v-if="chartConfig && viewMode !== 'table'" class="border rounded-lg shadow-sm bg-card p-4">
             <ReportChart v-if="data.length" ref="chartRef" :config="chartConfig" :columns="columns" :data="data" />
-            <div v-else class="h-[360px] flex items-center justify-center text-muted-foreground text-sm">
+            <div v-else class="h-[360px] flex items-center justify-center text-muted-foreground">
                 Дані відсутні
             </div>
         </div>
@@ -186,7 +186,7 @@ function openBuilder() {
         <!-- Table -->
         <div v-show="viewMode !== 'chart'" class="border rounded-lg overflow-hidden shadow-sm bg-card">
             <div class="overflow-x-auto">
-                <table class="w-full text-sm">
+                <table class="w-full">
                     <thead>
                         <tr class="border-b bg-muted/30">
                             <th v-for="col in columns" :key="col.fieldname" class="px-4 py-3 text-left font-semibold text-muted-foreground uppercase tracking-wider text-xs">

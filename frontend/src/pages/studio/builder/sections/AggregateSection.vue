@@ -37,7 +37,7 @@ const tableFields = computed(() =>
   </div>
   <div class="flex flex-col gap-3 mb-4">
     <div class="flex flex-col gap-1.5">
-      <label class="text-sm font-medium">Функція</label>
+      <label class="font-medium">Функція</label>
       <Select :model-value="field.aggregate_function ?? '__none__'" @update:model-value="updateField('aggregate_function', $event === '__none__' ? null : $event)">
         <SelectTrigger class="w-full">
           <SelectValue />
@@ -49,7 +49,7 @@ const tableFields = computed(() =>
     </div>
     <template v-if="field.aggregate_function">
       <div class="flex flex-col gap-1.5">
-        <label class="text-sm font-medium">Таблиця (TABLE поле)</label>
+        <label class="font-medium">Таблиця (TABLE поле)</label>
         <Select :model-value="field.aggregate_table ?? ''" empty-message="Немає TABLE полів у цьому DocType" @update:model-value="updateField('aggregate_table', $event || null)">
           <SelectTrigger class="w-full">
             <SelectValue placeholder="— оберіть TABLE поле —" />
@@ -60,7 +60,7 @@ const tableFields = computed(() =>
         </Select>
       </div>
       <div v-if="field.aggregate_function !== 'count'" class="flex flex-col gap-1.5">
-        <label class="text-sm font-medium">Поле дочірнього DocType</label>
+        <label class="font-medium">Поле дочірнього DocType</label>
         <Input
           :model-value="field.aggregate_field ?? ''"
           placeholder="напр. amount"

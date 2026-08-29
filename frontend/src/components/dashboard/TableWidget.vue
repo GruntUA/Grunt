@@ -31,7 +31,7 @@ function formatVal(v: number): string {
   <div class="flex flex-col h-full">
     <!-- Header -->
     <div class="px-4 pt-3 pb-2 shrink-0">
-      <p class="text-sm font-medium text-muted-foreground">{{ widget.title }}</p>
+      <p class="font-medium text-muted-foreground">{{ widget.title }}</p>
     </div>
 
     <!-- Skeleton -->
@@ -41,7 +41,7 @@ function formatVal(v: number): string {
 
     <!-- Empty -->
     <div v-else-if="rows.length === 0"
-      class="flex-1 flex items-center justify-center text-sm text-muted-foreground">
+      class="flex-1 flex items-center justify-center text-muted-foreground">
       Немає даних
     </div>
 

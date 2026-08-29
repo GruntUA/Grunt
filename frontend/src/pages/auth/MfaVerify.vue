@@ -60,7 +60,7 @@ async function handleVerify() {
           <ShieldCheck class="w-8 h-8" />
         </div>
         <h1 class="text-2xl font-semibold text-foreground tracking-tight">Двофакторна перевірка</h1>
-        <p class="text-sm text-muted-foreground mt-2 max-w-[280px] mx-auto leading-relaxed">
+        <p class="text-muted-foreground mt-2 max-w-[280px] mx-auto leading-relaxed">
           Будь ласка, введіть 6-значний код з вашого додатку або резервний код.
         </p>
       </div>

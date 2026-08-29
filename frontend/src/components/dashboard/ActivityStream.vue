@@ -93,7 +93,7 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
         <div class="px-4 py-3 border-b flex items-center justify-between bg-muted/20">
             <div class="flex items-center gap-2">
                 <Clock class="size-4 text-muted-foreground" />
-                <h3 class="font-semibold text-sm">Стрічка активності</h3>
+                <h3 class="font-semibold">Стрічка активності</h3>
             </div>
             <button @click="fetchActivity" class="text-xs text-primary hover:underline font-medium">Оновити</button>
         </div>
@@ -105,7 +105,7 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
             </div>
 
             <div v-else-if="activities.length === 0" class="py-12 text-center">
-                <p class="text-sm text-muted-foreground">Немає недавньої активності</p>
+                <p class="text-muted-foreground">Немає недавньої активності</p>
             </div>
 
             <div v-else class="divide-y divide-border/50">
@@ -123,7 +123,7 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
                                     formatTime(item.created_at) }}</span>
                             </div>
 
-                            <p class="text-sm text-muted-foreground leading-snug break-words mb-2">
+                            <p class="text-muted-foreground leading-snug break-words mb-2">
                                 <span class="font-medium text-foreground">
                                     {{ item.action === 'create' ? 'Створив(ла)' : item.action === 'update' ?
                                         'Оновив(ла)' : item.action }}

@@ -18,7 +18,7 @@ const { field, updateField } = usePropertyEditor()
   </div>
   <div class="flex flex-col gap-3 mb-4">
     <div class="flex flex-col gap-1.5">
-      <label class="text-sm font-medium">Вираз (Python)</label>
+      <label class="font-medium">Вираз (Python)</label>
       <Textarea
         :model-value="field.formula ?? ''"
         rows="2"
@@ -35,7 +35,7 @@ const { field, updateField } = usePropertyEditor()
     </div>
     <div v-if="field.formula" class="flex items-center gap-2 pt-1 pl-0.5">
       <Checkbox :model-value="!!field.read_only" @update:model-value="updateField('read_only', $event)" />
-      <label class="text-sm text-muted-foreground cursor-pointer font-medium">Read Only (рекомендовано)</label>
+      <label class="text-muted-foreground cursor-pointer font-medium">Read Only (рекомендовано)</label>
     </div>
   </div>
 </template>

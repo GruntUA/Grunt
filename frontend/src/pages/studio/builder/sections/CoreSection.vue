@@ -10,11 +10,11 @@ const LAYOUT_TYPES = getLayoutTypeSet()
 <template>
   <div class="flex flex-col gap-3 mb-4">
     <div class="flex flex-col gap-1.5">
-      <label class="text-sm font-medium">Label</label>
+      <label class="font-medium">Label</label>
       <Input :model-value="field.label" class="w-full" @update:model-value="updateField('label', $event)" />
     </div>
     <div class="flex flex-col gap-1.5">
-      <label class="text-sm font-medium text-muted-foreground">Fieldname</label>
+      <label class="font-medium text-muted-foreground">Fieldname</label>
       <Input
         :model-value="field.fieldname"
         :disabled="LAYOUT_TYPES.has(field.fieldtype)"

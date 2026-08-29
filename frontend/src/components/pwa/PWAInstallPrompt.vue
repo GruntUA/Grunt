@@ -98,7 +98,7 @@ function dismiss() {
         <Download class="w-5 h-5 text-primary" />
       </div>
       <div class="flex-1 min-w-0">
-        <p class="text-sm font-semibold text-foreground leading-tight">Встановити {{ appName }}</p>
+        <p class="font-semibold text-foreground leading-tight">Встановити {{ appName }}</p>
         <p class="text-xs text-muted-foreground mt-0.5">Додати на головний екран для швидкого доступу</p>
       </div>
       <div class="flex items-center gap-1.5 shrink-0">
@@ -124,12 +124,12 @@ function dismiss() {
       class="fixed bottom-4 inset-x-4 z-[150] p-4 bg-card border border-border/60 rounded-lg shadow-md max-w-sm mx-auto"
     >
       <div class="flex items-start justify-between mb-3">
-        <p class="text-sm font-semibold text-foreground">Встановити на iPhone / iPad</p>
+        <p class="font-semibold text-foreground">Встановити на iPhone / iPad</p>
         <button class="p-1 rounded-md hover:bg-muted transition-colors" @click="dismiss">
           <X class="w-4 h-4 text-muted-foreground" />
         </button>
       </div>
-      <ol class="space-y-2 text-sm text-muted-foreground">
+      <ol class="space-y-2 text-muted-foreground">
         <li class="flex items-center gap-2">
           <Share class="w-4 h-4 shrink-0 text-blue-500" />
           <span>Натисніть кнопку <strong class="text-foreground">Поділитись</strong> в Safari</span>

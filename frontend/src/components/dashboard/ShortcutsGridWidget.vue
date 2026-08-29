@@ -49,7 +49,7 @@ function navigate(tile: ShortcutItem) {
 <template>
   <div class="flex flex-col h-full">
     <div v-if="widget.title" class="px-5 pt-4 pb-2">
-      <p class="text-sm text-muted-foreground font-medium">{{ widget.title }}</p>
+      <p class="text-muted-foreground font-medium">{{ widget.title }}</p>
     </div>
     <div class="flex-1 grid grid-cols-2 gap-2 p-3">
       <button

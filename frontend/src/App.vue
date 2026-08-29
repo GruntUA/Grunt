@@ -44,7 +44,7 @@ onUnmounted(() => {
         enter-to-class="translate-y-0 opacity-100" leave-active-class="transition-all duration-200 ease-in"
         leave-from-class="translate-y-0 opacity-100" leave-to-class="-translate-y-full opacity-0">
         <div v-if="!isOnline"
-          class="fixed top-0 inset-x-0 z-200 flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 text-amber-950 text-sm font-medium shadow-md">
+          class="fixed top-0 inset-x-0 z-200 flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 text-amber-950 font-medium shadow-md">
           <WifiOff class="size-4 shrink-0" />
           <span>Немає з'єднання — зміни зберігаються локально</span>
           <span v-if="pendingCount > 0"

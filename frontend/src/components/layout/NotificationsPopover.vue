@@ -102,7 +102,7 @@ onUnmounted(() => {
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                     </span>
                 </div>
-                <span class="text-sm font-medium truncate">{{ t('Notifications') }}</span>
+                <span class="font-medium truncate">{{ t('Notifications') }}</span>
             </div>
             <Badge v-if="unreadCount > 0" class="h-5 px-1.5 text-xs font-semibold tabular-nums">
                 {{ unreadCount }}
@@ -116,7 +116,7 @@ onUnmounted(() => {
                 <!-- Header -->
                 <div class="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
                     <div class="flex items-center gap-2">
-                        <h3 class="font-semibold text-sm">{{ t('Notifications') }}</h3>
+                        <h3 class="font-semibold">{{ t('Notifications') }}</h3>
                         <Badge v-if="unreadCount > 0" variant="secondary" class="h-5 text-xs">{{ unreadCount }} нових
                         </Badge>
                     </div>
@@ -132,7 +132,7 @@ onUnmounted(() => {
                     <div v-if="notifications.length === 0"
                         class="flex flex-col items-center justify-center h-40 text-center px-4">
                         <Bell class="size-10 text-muted-foreground/20 mb-3" />
-                        <p class="text-sm font-medium text-foreground">{{ t('No notifications') }}</p>
+                        <p class="font-medium text-foreground">{{ t('No notifications') }}</p>
                         <p class="text-xs text-muted-foreground mt-1">Тут з'являться ваші останні сповіщення.</p>
                     </div>
                     <div v-else class="flex flex-col">
@@ -148,7 +148,7 @@ onUnmounted(() => {
                                 </div>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-foreground leading-tight mb-1"
+                                <p class="font-semibold text-foreground leading-tight mb-1"
                                     :class="!n.is_read && 'text-primary'">
                                     {{ n.subject }}
                                 </p>

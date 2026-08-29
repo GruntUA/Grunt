@@ -104,7 +104,7 @@ function isRowSelected(row: Record<string, unknown>): boolean {
 </script>
 
 <template>
-  <Table class="w-full text-sm">
+  <Table class="w-full">
     <TableHeader v-if="!hideHeader">
       <TableRow class="hover:bg-transparent border-0">
         <TableHead style="width: 3rem" class="px-3 py-2.5 border-b border-border/40">
@@ -112,13 +112,10 @@ function isRowSelected(row: Record<string, unknown>): boolean {
             <Checkbox :model-value="isAllSelected()" @update:model-value="emit('selectAll')" />
           </div>
         </TableHead>
-        <TableHead
-          v-for="col in columns" :key="col.key"
-          class="px-3 py-2.5 text-xs font-semibold uppercase tracking-widest border-b border-border/40 text-left transition-colors"
+        <TableHead v-for="col in columns" :key="col.key"
+          class="px-3 py-2.5 font-semibold border-b border-border/40 text-left transition-colors"
           :class="sortKey === col.key ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80'"
-          :role="col.sortable ? 'button' : undefined"
-          @click="col.sortable && emit('sort', col.key)"
-        >
+          :role="col.sortable ? 'button' : undefined" @click="col.sortable && emit('sort', col.key)">
           <span class="inline-flex items-center gap-1" :class="col.sortable && 'cursor-pointer select-none'">
             {{ col.label }}
             <template v-if="col.sortable">
@@ -146,56 +143,45 @@ function isRowSelected(row: Record<string, unknown>): boolean {
         <TableCell :colspan="columns.length + 1" class="px-3 py-16 text-center border-0">
           <div class="flex flex-col items-center gap-2">
             <FileSpreadsheet class="text-muted-foreground/40 text-4xl" />
-            <p class="text-sm text-muted-foreground">Записів не знайдено</p>
+            <p class="text-muted-foreground">Записів не знайдено</p>
           </div>
         </TableCell>
       </TableRow>
 
       <!-- Rows -->
-      <TableRow
-        v-for="(row, ri) in rows" :key="getRowDocId(row) ?? ri"
+      <TableRow v-for="(row, ri) in rows" :key="getRowDocId(row) ?? ri"
         class="cursor-pointer border-b border-border/20 last:border-0 transition-colors hover:bg-primary/5"
-        :class="{ 'bg-primary/5 hover:bg-primary/10': isRowSelected(row) }"
-        @click="emit('rowClick', row)"
-      >
-        <TableCell class="relative px-3 py-2.5 text-sm border-b border-border/10">
+        :class="{ 'bg-primary/5 hover:bg-primary/10': isRowSelected(row) }" @click="emit('rowClick', row)">
+        <TableCell class="relative px-3 py-2.5 border-b border-border/10">
           <div v-if="isRowSelected(row)"
             class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full pointer-events-none" />
           <div class="flex items-center justify-center w-full">
-            <Checkbox
-              :model-value="isRowSelected(row)"
+            <Checkbox :model-value="isRowSelected(row)"
               @update:model-value="() => { const docId = getRowDocId(row); if (docId) emit('select', docId) }"
-              @click.stop
-            />
+              @click.stop />
           </div>
         </TableCell>
 
-        <TableCell v-for="(col, ci) in columns" :key="col.key" class="px-3 py-2.5 text-sm border-b border-border/10 max-w-xs whitespace-normal wrap-break-word">
+        <TableCell v-for="(col, ci) in columns" :key="col.key"
+          class="px-3 py-2.5 border-b border-border/10 max-w-xs whitespace-normal wrap-break-word">
           <div @dblclick.stop="ci > 0 && startEdit(row, col.key, getFieldType(col.key))">
             <!-- Inline edit input -->
             <template v-if="isEditing(getRowDocId(row) ?? '', col.key)">
-              <Input ref="inlineInput" v-model="inlineEdit!.value" class="h-8 border-primary"
-                @blur="commitEdit" @keydown.enter.prevent="commitEdit" @keydown.escape.prevent="cancelEdit"
-                @click.stop />
+              <Input ref="inlineInput" v-model="inlineEdit!.value" class="h-8 border-primary" @blur="commitEdit"
+                @keydown.enter.prevent="commitEdit" @keydown.escape.prevent="cancelEdit" @click.stop />
             </template>
 
             <!-- Field-type cell renderer (registry) -->
             <template v-else>
-              <a
-                v-if="rowHref(row)"
-                :href="rowHref(row)!"
-                class="block"
+              <a v-if="rowHref(row)" :href="rowHref(row)!" class="block"
                 :class="{ 'font-semibold text-primary hover:underline': ci === 0 && !['Image', 'Attach', 'Check'].includes(getFieldType(col.key)) }"
-                @click.stop="onRowAnchorClick($event, row)"
-              >
+                @click.stop="onRowAnchorClick($event, row)">
                 <component :is="getListCell(getFieldType(col.key)) ?? DefaultListCell" :value="row[col.key]" :row="row"
                   :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
                   :status-config="statusConfig" />
               </a>
-              <div
-                v-else
-                :class="{ 'font-semibold text-primary hover:underline': ci === 0 && !['Image', 'Attach', 'Check'].includes(getFieldType(col.key)) }"
-              >
+              <div v-else
+                :class="{ 'font-semibold text-primary hover:underline': ci === 0 && !['Image', 'Attach', 'Check'].includes(getFieldType(col.key)) }">
                 <component :is="getListCell(getFieldType(col.key)) ?? DefaultListCell" :value="row[col.key]" :row="row"
                   :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
                   :status-config="statusConfig" />

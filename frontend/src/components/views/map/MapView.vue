@@ -134,7 +134,7 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
   <div class="flex flex-col h-[calc(100vh-14rem)] rounded-lg overflow-hidden border ring-1 ring-border/40 bg-card">
     <!-- Toolbar -->
     <div class="flex items-center justify-between px-5 py-3 bg-card/50 border-b border-border/40 shrink-0 gap-4">
-      <div class="flex items-center gap-3 text-sm text-muted-foreground shrink-0">
+      <div class="flex items-center gap-3 text-muted-foreground shrink-0">
         <div class="size-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
           <MapPin class="size-4 text-primary" />
         </div>
@@ -185,9 +185,7 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
         <div class="absolute inset-0 z-[2000] select-none" @mousedown.self.prevent>
 
           <!-- Format selector bar -->
-          <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10
-                      flex items-center gap-3 px-4 py-2
-                      bg-foreground/90 text-background text-xs rounded-lg shadow-md border border-white/10">
+          <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 px-4 py-2 bg-foreground/90 text-background text-xs rounded-lg shadow-md border border-white/10">
             <span class="opacity-60 font-semibold uppercase tracking-wider text-xs">Формат:</span>
             <div class="flex bg-background/10 p-1 rounded-lg gap-1">
               <button v-for="(fmt, key) in PRINT_FORMATS" :key="key"
@@ -215,8 +213,7 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
                @mousedown.stop="startMove">
 
             <!-- Size label bar -->
-            <div class="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-2
-                        bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm">
+            <div class="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm">
               <Expand class="size-3" />
               {{ Math.round(printRect.w) }} × {{ Math.round(printRect.h) }} px
             </div>

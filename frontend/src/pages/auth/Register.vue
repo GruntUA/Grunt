@@ -70,13 +70,13 @@ async function handleRegister() {
       <Card>
         <div class="flex flex-col items-center gap-1.5 px-6 text-center">
           <h3 class="font-semibold text-xl">Створити акаунт</h3>
-          <p class="text-muted-foreground text-sm">Заповніть форму для реєстрації</p>
+          <p class="text-muted-foreground">Заповніть форму для реєстрації</p>
         </div>
         <div class="px-6">
           <form @submit.prevent="handleRegister" class="flex flex-col gap-5">
             <!-- Full Name -->
             <div class="flex flex-col gap-1.5">
-              <label for="full-name" class="text-sm font-medium">Повне ім'я</label>
+              <label for="full-name" class="font-medium">Повне ім'я</label>
               <Input
                 id="full-name"
                 v-model="fullName"
@@ -90,7 +90,7 @@ async function handleRegister() {
 
             <!-- Email -->
             <div class="flex flex-col gap-1.5">
-              <label for="email" class="text-sm font-medium">Email</label>
+              <label for="email" class="font-medium">Email</label>
               <Input
                 id="email"
                 v-model="email"
@@ -104,7 +104,7 @@ async function handleRegister() {
 
             <!-- Password -->
             <div class="flex flex-col gap-1.5">
-              <label for="password" class="text-sm font-medium">Пароль</label>
+              <label for="password" class="font-medium">Пароль</label>
               <Input
                 id="password"
                 v-model="password"
@@ -118,7 +118,7 @@ async function handleRegister() {
 
             <!-- Confirm Password -->
             <div class="flex flex-col gap-1.5">
-              <label for="password-confirm" class="text-sm font-medium">Повторіть пароль</label>
+              <label for="password-confirm" class="font-medium">Повторіть пароль</label>
               <Input
                 id="password-confirm"
                 v-model="passwordConfirm"
@@ -131,7 +131,7 @@ async function handleRegister() {
             </div>
 
             <!-- Error -->
-            <p v-if="error" class="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
+            <p v-if="error" class="text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
               {{ error }}
             </p>
 
@@ -141,7 +141,7 @@ async function handleRegister() {
                 <Spinner v-if="loading" class="size-4 mr-2" />
                 Зареєструватись
               </Button>
-              <p class="text-center text-sm text-muted-foreground">
+              <p class="text-center text-muted-foreground">
                 Вже маєте акаунт?
                 <router-link to="/login" class="text-primary hover:underline font-medium">Увійти</router-link>
               </p>

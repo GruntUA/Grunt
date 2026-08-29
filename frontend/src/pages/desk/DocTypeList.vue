@@ -384,7 +384,7 @@ watch(() => props.doctype, async (newDoctype) => {
       <div class="flex flex-col gap-4 py-2">
         <div class="flex items-center gap-3">
           <div class="size-5 shrink-0 rounded-full border-2 border-destructive/20 border-t-destructive animate-spin" />
-          <p class="text-sm font-medium text-foreground">
+          <p class="font-medium text-foreground">
             Видалення записів…
           </p>
         </div>

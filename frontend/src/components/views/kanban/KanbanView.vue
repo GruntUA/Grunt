@@ -182,7 +182,7 @@ watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) loadCards() 
 
                 <!-- Card Title -->
                 <div class="flex items-start justify-between gap-3 relative z-10">
-                  <p class="text-sm font-semibold text-foreground leading-snug line-clamp-2">
+                  <p class="font-semibold text-foreground leading-snug line-clamp-2">
                     {{ card[doctype.title_field || 'name'] || card.id }}
                   </p>
                   <FileText

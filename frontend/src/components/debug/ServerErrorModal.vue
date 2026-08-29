@@ -53,11 +53,11 @@ function copyAll() {
                 </span>
                 <span class="text-xs text-red-400/70 font-mono">Internal Server Error</span>
               </div>
-              <p class="text-sm font-mono text-red-200 font-semibold break-words" v-if="state.debug">
+              <p class="font-mono text-red-200 font-semibold break-words" v-if="state.debug">
                 <span class="text-red-400">{{ state.debug.exc_type }}</span>:
                 {{ state.debug.message }}
               </p>
-              <p class="text-sm text-red-300/80" v-else>{{ state.plainMessage }}</p>
+              <p class="text-red-300/80" v-else>{{ state.plainMessage }}</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <button
@@ -77,7 +77,7 @@ function copyAll() {
           </div>
 
           <!-- Body -->
-          <div class="flex-1 overflow-y-auto p-5 space-y-4 text-sm font-mono">
+          <div class="flex-1 overflow-y-auto p-5 space-y-4 font-mono">
             <!-- SQL block -->
             <template v-if="state.debug?.sql">
               <div>

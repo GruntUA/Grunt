@@ -192,7 +192,7 @@ onMounted(loadTimeline)
           class="absolute left-0 right-0 bottom-full mb-2 bg-popover border border-border rounded-lg shadow-md overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
           <div class="px-3 py-2 bg-muted/50 border-b border-border text-xs font-semibold uppercase tracking-widest text-muted-foreground/80">Згадати користувача</div>
           <button v-for="(u, i) in mentionDropdown" :key="u.id"
-            class="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-left transition-all border-b border-border/40 last:border-0"
+            class="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all border-b border-border/40 last:border-0"
             :class="i === mentionIndex ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-foreground'"
             @mousedown.prevent="insertMention(u)">
             <Avatar class="!size-7 shrink-0">
@@ -215,7 +215,7 @@ onMounted(loadTimeline)
       </div>
     </div>
 
-    <div v-if="timeline.length === 0" class="py-12 text-center text-sm text-muted-foreground/60 italic bg-muted/20 rounded-lg border border-dashed border-border/40">
+    <div v-if="timeline.length === 0" class="py-12 text-center text-muted-foreground/60 italic bg-muted/20 rounded-lg border border-dashed border-border/40">
       Поки що немає активності
     </div>
 
@@ -246,7 +246,7 @@ onMounted(loadTimeline)
             {{ timelineLabel(item) }}
           </span>
           <p v-if="item.type === 'comment'"
-            class="text-sm text-foreground bg-muted/40 border border-border/20 rounded-lg px-4 py-2.5 mt-1 whitespace-pre-wrap leading-relaxed shadow-sm">
+            class="text-foreground bg-muted/40 border border-border/20 rounded-lg px-4 py-2.5 mt-1 whitespace-pre-wrap leading-relaxed shadow-sm">
             {{ item.content }}
           </p>
         </div>

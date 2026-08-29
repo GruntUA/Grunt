@@ -84,7 +84,7 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
                     <Layers class="size-3.5 text-muted-foreground/40" />
                     <span class="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">{{ groupByField?.label || 'Група' }}</span>
                 </div>
-                <h3 class="text-sm font-semibold text-foreground truncate">{{ groupLabel(group.key) }}</h3>
+                <h3 class="font-semibold text-foreground truncate">{{ groupLabel(group.key) }}</h3>
             </div>
 
             <div class="ml-auto flex items-center gap-4">

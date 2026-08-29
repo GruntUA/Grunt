@@ -31,7 +31,7 @@ function totalCount(): number {
 
     <!-- Name & count -->
     <div class="min-w-0 flex-1">
-      <h3 class="truncate text-sm font-semibold text-foreground leading-tight group-hover:text-primary transition-colors">
+      <h3 class="truncate font-semibold text-foreground leading-tight group-hover:text-primary transition-colors">
         {{ workspace.label }}
       </h3>
       <div v-if="totalCount() > 0" class="flex items-center gap-1 text-xs text-muted-foreground/60">

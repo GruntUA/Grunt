@@ -124,7 +124,7 @@ const filteredSortOptions = computed(() => {
                 >
                   <span class="drag-handle cursor-grab text-muted-foreground select-none">⠿</span>
                   <Check class="size-4 shrink-0" />
-                  <span class="flex-1 truncate text-sm">{{ col.label }}</span>
+                  <span class="flex-1 truncate">{{ col.label }}</span>
                 </div>
               </template>
             </draggable>
@@ -136,7 +136,7 @@ const filteredSortOptions = computed(() => {
             >
               <span class="size-4" />
               <Check class="size-4 shrink-0 invisible" />
-              <span class="flex-1 truncate text-sm text-muted-foreground">{{ col.label }}</span>
+              <span class="flex-1 truncate text-muted-foreground">{{ col.label }}</span>
             </div>
           </div>
         </TabsContent>
@@ -149,7 +149,7 @@ const filteredSortOptions = computed(() => {
             @click="emit('update:groupBy', null)"
           >
             <Check class="size-4 shrink-0" :class="{ invisible: groupBy }" />
-            <span class="text-sm">Без групування</span>
+            <span>Без групування</span>
           </div>
           <Separator class="my-1" />
           <div class="max-h-[240px] overflow-y-auto scrollbar-none">
@@ -160,7 +160,7 @@ const filteredSortOptions = computed(() => {
               @click="emit('update:groupBy', f.fieldname)"
             >
               <Check class="size-4 shrink-0" :class="{ invisible: groupBy !== f.fieldname }" />
-              <span class="text-sm">{{ f.label }}</span>
+              <span>{{ f.label }}</span>
             </div>
           </div>
         </TabsContent>
@@ -170,7 +170,7 @@ const filteredSortOptions = computed(() => {
           <div class="px-1 pb-1 pt-1">
             <div class="relative">
               <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-              <Input v-model="sortSearch" class="h-8 pl-8 text-sm" placeholder="Пошук поля..." />
+              <Input v-model="sortSearch" class="h-8 pl-8" placeholder="Пошук поля..." />
             </div>
           </div>
           <div
@@ -178,10 +178,10 @@ const filteredSortOptions = computed(() => {
             @click="emit('sort', '')"
           >
             <Check class="size-4 shrink-0" :class="{ invisible: sortKey }" />
-            <span class="text-sm">За замовчуванням</span>
+            <span>За замовчуванням</span>
           </div>
           <Separator class="my-1" />
-          <div v-if="!filteredSortOptions.length" class="px-2 py-3 text-sm text-center text-muted-foreground">Нічого не знайдено</div>
+          <div v-if="!filteredSortOptions.length" class="px-2 py-3 text-center text-muted-foreground">Нічого не знайдено</div>
           <div class="max-h-[220px] overflow-y-auto pr-1">
             <div
               v-for="opt in filteredSortOptions"
@@ -190,7 +190,7 @@ const filteredSortOptions = computed(() => {
               @click="emit('sort', opt.key)"
             >
               <Check class="size-4 shrink-0" :class="{ invisible: sortKey !== opt.key }" />
-              <span class="flex-1 text-sm" :class="sortKey === opt.key ? 'font-medium' : ''">{{ opt.label }}</span>
+              <span class="flex-1" :class="sortKey === opt.key ? 'font-medium' : ''">{{ opt.label }}</span>
               <component
                 :is="sortOrder === 'asc' ? ArrowUp : ArrowDown"
                 v-if="sortKey === opt.key"

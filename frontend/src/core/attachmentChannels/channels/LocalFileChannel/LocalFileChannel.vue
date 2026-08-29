@@ -60,12 +60,12 @@ function onFileChange(e: Event) {
       <div class="w-48 bg-muted rounded-full h-1.5">
         <div class="bg-primary h-1.5 rounded-full transition-all" :style="{ width: uploadProgress + '%' }" />
       </div>
-      <p class="text-sm text-muted-foreground">Завантаження...</p>
+      <p class="text-muted-foreground">Завантаження...</p>
     </template>
     <template v-else>
       <Upload class="size-8 text-muted-foreground/50" />
       <div class="text-center">
-        <p class="text-sm text-foreground">Перетягни файл або <span class="text-primary font-medium">клікни для вибору</span></p>
+        <p class="text-foreground">Перетягни файл або <span class="text-primary font-medium">клікни для вибору</span></p>
         <p v-if="imageOnly" class="text-xs text-muted-foreground mt-1">Тільки зображення</p>
       </div>
     </template>

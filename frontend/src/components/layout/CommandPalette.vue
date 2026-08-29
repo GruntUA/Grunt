@@ -239,13 +239,13 @@ const flatResults = computed(() => results.value)
 
             <div class="max-h-[450px] overflow-y-auto p-2 scrollbar-thin">
                 <div v-if="loading && results.length === 0"
-                    class="py-12 text-center text-sm text-muted-foreground flex flex-col items-center gap-3">
+                    class="py-12 text-center text-muted-foreground flex flex-col items-center gap-3">
                     <div class="size-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
                     {{ t('Searching...') }}
                 </div>
 
                 <div v-else-if="search.length > 0 && results.length === 0 && !loading"
-                    class="py-12 text-center text-sm text-muted-foreground italic">
+                    class="py-12 text-center text-muted-foreground italic">
                     {{ t('Nothing found for') }} "{{ search }}"
                 </div>
 
@@ -283,7 +283,7 @@ const flatResults = computed(() => results.value)
                                 class="size-9 rounded-lg bg-background border flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
                                 <component :is="action.icon" class="size-5" />
                             </div>
-                            <span class="text-sm font-medium text-foreground">{{ action.title }}</span>
+                            <span class="font-medium text-foreground">{{ action.title }}</span>
                         </button>
                     </div>
                 </div>
@@ -308,7 +308,7 @@ const flatResults = computed(() => results.value)
 
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-2">
-                                        <span class="font-semibold text-sm truncate">{{ item.title }}</span>
+                                        <span class="font-semibold truncate">{{ item.title }}</span>
                                         <span v-if="item.doctype"
                                             class="text-xs px-1.5 py-0.5 rounded-full font-semibold uppercase"
                                             :class="flatResults[selectedIndex]?.id === item.id ? 'bg-primary-foreground/15 text-primary-foreground' : 'bg-muted text-muted-foreground'">

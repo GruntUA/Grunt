@@ -66,18 +66,18 @@ onMounted(async () => {
           <div
             v-for="role in roles"
             :key="role.name"
-            class="px-3 py-2 text-sm rounded-sm bg-card border border-border text-foreground"
+            class="px-3 py-2 rounded-sm bg-card border border-border text-foreground"
           >
             {{ role.name }}
           </div>
-          <p v-if="roles.length === 0" class="text-sm text-muted-foreground/70 px-2">Ролей немає</p>
+          <p v-if="roles.length === 0" class="text-muted-foreground/70 px-2">Ролей немає</p>
         </div>
         <!-- Create role -->
         <div class="flex flex-col gap-2">
           <Input
             v-model="newRoleName"
             placeholder="Нова роль..."
-            class="w-full text-sm h-9"
+            class="w-full h-9"
             @keydown.enter="createRole"
           />
           <Button size="sm" :disabled="isCreating" @click="createRole"><Loader2 v-if="isCreating" class="size-4 animate-spin" />Додати роль</Button>
@@ -87,13 +87,13 @@ onMounted(async () => {
       <!-- Permissions matrix -->
       <div class="flex-1">
         <p class="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wide mb-3">DocType → Дозволи</p>
-        <p class="text-sm text-muted-foreground">
+        <p class="text-muted-foreground">
           Налаштування дозволів для конкретних DocType виконується через
           <strong>App Studio &rarr; Builder &rarr; DocType</strong>.
           Дозволи зберігаються у полі <code class="text-xs bg-gray-100 px-1 rounded">permissions</code> DocType.
         </p>
         <div class="mt-4 overflow-x-auto">
-          <table class="text-sm border-collapse">
+          <table class="border-collapse">
             <thead>
               <tr class="bg-background">
                 <th class="px-3 py-2 text-left border border-border font-medium text-muted-foreground">DocType</th>

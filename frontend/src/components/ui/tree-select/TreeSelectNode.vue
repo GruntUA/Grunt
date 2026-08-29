@@ -18,7 +18,7 @@ const emit = defineEmits<{
 <template>
   <div>
     <div
-      class="flex items-center gap-1 rounded-sm py-1.5 pr-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+      class="flex items-center gap-1 rounded-sm py-1.5 pr-2 hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
       :class="node.key === selectedKey ? 'bg-accent/60 font-medium' : ''"
       :style="{ paddingLeft: `${depth * 16 + 8}px` }"
       @click="emit('select', node.key)"

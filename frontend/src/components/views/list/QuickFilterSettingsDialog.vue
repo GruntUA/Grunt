@@ -91,7 +91,7 @@ function handleReset() {
       <div class="grid grid-cols-2 gap-x-4 gap-y-2 max-h-[320px] overflow-y-auto">
         <label
           v-for="f in filteredFields" :key="f.fieldname"
-          class="flex items-center gap-2 text-sm cursor-pointer"
+          class="flex items-center gap-2 cursor-pointer"
         >
           <Checkbox
             :model-value="selected.has(f.fieldname)"
@@ -99,7 +99,7 @@ function handleReset() {
           />
           {{ f.label }}
         </label>
-        <p v-if="!filteredFields.length" class="col-span-2 text-sm text-muted-foreground text-center py-4">
+        <p v-if="!filteredFields.length" class="col-span-2 text-muted-foreground text-center py-4">
           {{ t('Нічого не знайдено') }}
         </p>
       </div>

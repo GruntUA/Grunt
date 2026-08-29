@@ -66,7 +66,7 @@ const sectionComponents = computed(() =>
     </template>
 
     <!-- No selection -->
-    <div v-else class="flex items-center justify-center h-32 text-muted-foreground text-sm">
+    <div v-else class="flex items-center justify-center h-32 text-muted-foreground">
       Оберіть поле для редагування
     </div>
   </div>

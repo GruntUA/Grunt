@@ -50,13 +50,13 @@ const chartOptions = {
 <template>
   <div class="flex flex-col gap-2 p-5 h-full">
     <div class="flex items-start justify-between">
-      <p class="text-sm text-muted-foreground font-medium">{{ widget.title }}</p>
+      <p class="text-muted-foreground font-medium">{{ widget.title }}</p>
       <span v-if="total" class="text-xs text-muted-foreground tabular-nums">{{ total }} {{ t('total') }}</span>
     </div>
 
     <div v-if="loading" class="flex-1 bg-muted animate-pulse rounded" />
 
-    <div v-else-if="!data?.labels?.length" class="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+    <div v-else-if="!data?.labels?.length" class="flex-1 flex items-center justify-center text-muted-foreground">
       {{ t('No data') }}
     </div>
 

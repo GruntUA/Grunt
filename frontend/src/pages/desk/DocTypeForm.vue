@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useQueryClient } from '@tanstack/vue-query'
@@ -48,6 +48,7 @@ const {
   displayOverrides,
   reqdOverrides,
   dfPropOverrides,
+  sidebarHidden,
   presenceUsers,
   fieldLocks,
   focusField,
@@ -76,6 +77,13 @@ const {
     onNotFound: (payload) => emit('notfound', payload),
   },
 )
+
+// Sidebar visibility: a client script (`frm.hide_sidebar()` / `frm.toggle_sidebar()`)
+// wins; otherwise the DocType's `form_view.show_sidebar` config (default: shown).
+const showSidebar = computed(() => {
+  if (sidebarHidden.value !== null) return !sidebarHidden.value
+  return dt.value?.form_view?.show_sidebar !== false
+})
 </script>
 
 <template>
@@ -83,6 +91,7 @@ const {
     <!-- Header -->
     <FormHeader :doc-title="docTitle || doctype" :dt="dt" :doctype="doctype" :id="id" :document="form" :is-dirty="isDirty"
       :is-loading="isLoading" :is-saving="isSaving" :script-buttons="scriptButtons" :script-menu-items="scriptMenuItems"
+      :hide-panel-toggle="!showSidebar"
       @save="handleSave" @delete="showDeleteModal = true" @duplicate="handleDuplicate"
       @toggleLog="showActivityLog = !showActivityLog"
       @rename="async (newId) => {
@@ -160,8 +169,8 @@ const {
         </div>
 
         <!-- Right Column: Sidebar -->
-        <DocSidebar v-if="id && document" :doctype="dt" :document="document as GruntDocument" :workspace="workspace"
-          :users="presenceUsers" class="lg:sticky lg:top-8 lg:self-start" />
+        <DocSidebar v-if="id && document && showSidebar" :doctype="dt" :document="document as GruntDocument"
+          :workspace="workspace" :users="presenceUsers" class="lg:sticky lg:top-8 lg:self-start" />
       </div>
     </template>
 

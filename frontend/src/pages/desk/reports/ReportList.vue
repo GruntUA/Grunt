@@ -39,7 +39,7 @@ onMounted(load)
 
     <div v-else-if="reports.length === 0" class="text-center py-16 text-muted-foreground/70">
       <p class="text-lg mb-2">Звітів немає</p>
-      <p class="text-sm">Додайте звіти через API або через Studio.</p>
+      <p>Додайте звіти через API або через Studio.</p>
     </div>
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

@@ -251,7 +251,7 @@ const printPage = () => window.print()
       <div class="flex items-center gap-2">
         <LayoutDashboard class="w-5 h-5 text-muted-foreground" />
         <h1 class="text-lg font-semibold">{{ page?.label ?? pageName }}</h1>
-        <p v-if="page?.description" class="text-sm text-muted-foreground ml-2">{{ page.description }}</p>
+        <p v-if="page?.description" class="text-muted-foreground ml-2">{{ page.description }}</p>
       </div>
 
       <div class="flex items-center gap-2">
@@ -283,23 +283,23 @@ const printPage = () => window.print()
 
         <template v-if="!editMode">
           <button
-            class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed border-primary/40 text-primary bg-primary/5 text-sm hover:bg-primary/10 transition-colors"
+            class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed border-primary/40 text-primary bg-primary/5 hover:bg-primary/10 transition-colors"
             @click="enterEdit">
             <Pencil class="w-4 h-4" /> Налаштувати
           </button>
           <button
-            class="flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm hover:bg-muted transition-colors"
+            class="flex items-center gap-2 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
             :disabled="refreshing || loading"
             @click="refresh">
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': refreshing }" /> Оновити
           </button>
           <button v-if="page"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm hover:bg-muted transition-colors"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
             @click="showEmbedModal = true">
             <Link2 class="w-4 h-4" />
           </button>
           <button v-if="page"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm hover:bg-muted transition-colors"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
             @click="printPage">
             <Printer class="w-4 h-4" />
           </button>
@@ -316,9 +316,9 @@ const printPage = () => window.print()
     <div v-else-if="!page"
       class="flex flex-col items-center justify-center py-24 text-muted-foreground">
       <LayoutDashboard class="w-12 h-12 mb-3 opacity-30" />
-      <p class="text-sm mb-4">Сторінку ще не створено</p>
+      <p class="mb-4">Сторінку ще не створено</p>
       <button
-        class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
+        class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors"
         @click="createPage">
         <Plus class="w-4 h-4" /> Створити Сторінку
       </button>
@@ -328,9 +328,9 @@ const printPage = () => window.print()
     <div v-else-if="!editMode && (page?.widgets.length ?? 0) === 0"
       class="flex flex-col items-center justify-center py-24 text-muted-foreground">
       <LayoutDashboard class="w-12 h-12 mb-3 opacity-30" />
-      <p class="text-sm mb-4">Сторінка порожня</p>
+      <p class="mb-4">Сторінка порожня</p>
       <button
-        class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
+        class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors"
         @click="enterEdit">
         <Pencil class="w-4 h-4" /> Налаштувати
       </button>
@@ -357,18 +357,18 @@ const printPage = () => window.print()
       <!-- Edit header -->
       <div class="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-card shrink-0">
         <LayoutDashboard class="size-4 text-muted-foreground" />
-        <span class="text-sm font-semibold">{{ page?.label ?? pageName }}</span>
+        <span class="font-semibold">{{ page?.label ?? pageName }}</span>
         <span class="text-xs font-medium bg-warning/10 text-warning border border-warning/30 px-2 py-0.5 rounded">
           Режим редагування
         </span>
         <div class="ml-auto flex items-center gap-2">
           <button
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm hover:bg-muted transition-colors"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border hover:bg-muted transition-colors"
             @click="cancelEdit">
             <X class="w-4 h-4" /> Скасувати
           </button>
           <button
-            class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+            class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
             :class="{ 'opacity-50': saving }"
             :disabled="saving"
             @click="savePage">
@@ -390,11 +390,11 @@ const printPage = () => window.print()
               <button
                 v-for="t in WIDGET_TYPES"
                 :key="t.value"
-                class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-left hover:bg-background transition-colors border border-transparent hover:border-border"
+                class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-background transition-colors border border-transparent hover:border-border"
                 @click="addWidget(t.value)"
               >
                 <AppIcon :icon="t.icon" class="size-4 shrink-0 text-muted-foreground" />
-                <span class="text-sm">{{ t.label }}</span>
+                <span>{{ t.label }}</span>
                 <Plus class="size-3 ml-auto text-muted-foreground opacity-0 group-hover:opacity-100" />
               </button>
             </div>
@@ -411,7 +411,7 @@ const printPage = () => window.print()
             class="flex flex-col items-center justify-center py-20 border-2 border-dashed border-primary/20 rounded-lg bg-primary/5 text-center">
             <div class="text-4xl mb-3">👈</div>
             <h3 class="text-base font-semibold text-primary mb-1">Оберіть тип віджета</h3>
-            <p class="text-sm text-muted-foreground max-w-xs">Натисніть на будь-який тип у лівій панелі — він з'явиться тут</p>
+            <p class="text-muted-foreground max-w-xs">Натисніть на будь-який тип у лівій панелі — він з'явиться тут</p>
           </div>
 
           <draggable
@@ -478,9 +478,9 @@ const printPage = () => window.print()
           <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Пряме посилання</label>
           <div class="flex gap-2">
             <input :value="embedUrl" readonly
-              class="flex-1 h-9 px-3 rounded-lg border bg-muted text-sm font-mono focus:outline-none" />
+              class="flex-1 h-9 px-3 rounded-lg border bg-muted font-mono focus:outline-none" />
             <button
-              class="px-3 h-9 rounded-lg border text-sm hover:bg-muted transition-colors"
+              class="px-3 h-9 rounded-lg border hover:bg-muted transition-colors"
               @click="copyEmbedUrl">
               Копіювати
             </button>

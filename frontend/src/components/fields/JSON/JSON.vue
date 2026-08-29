@@ -54,7 +54,7 @@ function onBlur() {
       :value="text"
       :disabled="disabled || field.read_only"
       rows="6"
-      class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y disabled:bg-muted disabled:cursor-not-allowed"
+      class="w-full rounded-md border border-input bg-transparent px-3 py-2 font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y disabled:bg-muted disabled:cursor-not-allowed"
       :class="{ 'border-destructive focus-visible:ring-destructive': error || localError }"
       @input="onInput(($event.target as HTMLTextAreaElement).value)"
       @blur="onBlur"

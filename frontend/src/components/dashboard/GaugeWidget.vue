@@ -73,7 +73,7 @@ const trendPos = computed(() => (trend.value ?? 0) > 0)
 
 <template>
   <div class="flex flex-col gap-1 p-5 h-full">
-    <p class="text-sm text-muted-foreground font-medium">{{ widget.title }}</p>
+    <p class="text-muted-foreground font-medium">{{ widget.title }}</p>
 
     <!-- Skeleton -->
     <div v-if="loading" class="flex-1 bg-muted animate-pulse rounded" />

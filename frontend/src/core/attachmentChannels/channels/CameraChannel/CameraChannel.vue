@@ -80,7 +80,7 @@ onUnmounted(stopStream)
     <template v-if="state === 'idle' || state === 'error'">
       <div class="flex flex-col items-center gap-3 py-8">
         <Camera class="size-10 text-muted-foreground/40" />
-        <p class="text-sm text-muted-foreground text-center">Зробіть фото за допомогою камери пристрою</p>
+        <p class="text-muted-foreground text-center">Зробіть фото за допомогою камери пристрою</p>
         <Button type="button" @click="startCamera">
           <Camera class="size-4 mr-2" />
           Увімкнути камеру
@@ -94,7 +94,7 @@ onUnmounted(stopStream)
 
     <!-- Starting -->
     <template v-if="state === 'starting'">
-      <div class="flex items-center gap-2 text-sm text-muted-foreground py-8">
+      <div class="flex items-center gap-2 text-muted-foreground py-8">
         <Loader2 class="size-4 animate-spin" />
         Підключення до камери...
       </div>
@@ -119,7 +119,7 @@ onUnmounted(stopStream)
 
     <!-- Uploading -->
     <template v-if="state === 'uploading' || state === 'capturing'">
-      <div class="flex items-center gap-2 text-sm text-muted-foreground py-8">
+      <div class="flex items-center gap-2 text-muted-foreground py-8">
         <Loader2 class="size-4 animate-spin" />
         Завантаження фото...
       </div>

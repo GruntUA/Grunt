@@ -92,7 +92,7 @@ onMounted(async () => {
           class="group w-full flex items-center gap-3 px-4 py-2.5 border-b border-border/10 last:border-0 hover:bg-primary/[0.03] transition-colors text-left"
           @click="openTask(t)">
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+            <p class="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
               {{ t.title }}
             </p>
             <span class="text-xs text-muted-foreground/50 font-mono">{{ t.reference_doctype }}</span>
@@ -120,7 +120,7 @@ onMounted(async () => {
           :class="{ 'cursor-default': !n.doctype }"
           @click="openNotification(n)">
           <div class="size-1.5 rounded-full bg-blue-500 shrink-0" />
-          <p class="flex-1 min-w-0 text-sm text-foreground truncate group-hover:text-primary transition-colors">
+          <p class="flex-1 min-w-0 text-foreground truncate group-hover:text-primary transition-colors">
             {{ n.subject }}
           </p>
           <ArrowRight v-if="n.doctype"

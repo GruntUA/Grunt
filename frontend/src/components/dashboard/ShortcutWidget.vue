@@ -60,7 +60,7 @@ function navigate() {
       </span>
     </div>
     <div class="flex flex-col gap-0.5">
-      <span class="font-semibold text-sm text-foreground">{{ widget.title }}</span>
+      <span class="font-semibold text-foreground">{{ widget.title }}</span>
       <span v-if="widget.description" class="text-xs text-muted-foreground line-clamp-2">
         {{ widget.description }}
       </span>

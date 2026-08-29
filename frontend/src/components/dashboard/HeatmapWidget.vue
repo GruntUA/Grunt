@@ -80,7 +80,7 @@ function cellColor(count: number): string {
   <div class="flex flex-col h-full px-4 py-3">
     <!-- Header -->
     <div class="flex items-center justify-between mb-3 shrink-0">
-      <p class="text-sm font-medium text-muted-foreground">{{ widget.title }}</p>
+      <p class="font-medium text-muted-foreground">{{ widget.title }}</p>
       <span v-if="!loading" class="text-xs text-muted-foreground">{{ totalCount }} за {{ periodDays }} дн.</span>
     </div>
 

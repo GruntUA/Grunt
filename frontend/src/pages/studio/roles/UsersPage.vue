@@ -64,7 +64,7 @@ onMounted(loadUsers)
         <div class="flex items-start justify-between gap-4">
           <div>
             <p class="font-medium text-foreground">{{ user.full_name }}</p>
-            <p class="text-sm text-muted-foreground">{{ user.email }}</p>
+            <p class="text-muted-foreground">{{ user.email }}</p>
             <Badge v-if="user.is_superadmin" variant="warning" class="mt-1">Superadmin</Badge>
           </div>
           <div class="flex-1">
@@ -80,7 +80,7 @@ onMounted(loadUsers)
             <!-- Add role form for this user -->
             <div v-if="selectedUserId === user.id" class="flex gap-2">
               <Input v-model="newRole" placeholder="Назва ролі"
-                class="h-9 text-sm"
+                class="h-9"
                 @keydown.enter="addRole(user.id)" />
               <Button size="sm" :disabled="isSubmitting" @click="addRole(user.id)">
                 <Loader2 v-if="isSubmitting" class="size-4 animate-spin" />Додати

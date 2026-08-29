@@ -41,7 +41,7 @@ function confirm() {
 
 <template>
   <div class="p-4 flex flex-col gap-3">
-    <p class="text-sm text-muted-foreground">Вкажіть пряме посилання на файл у інтернеті.</p>
+    <p class="text-muted-foreground">Вкажіть пряме посилання на файл у інтернеті.</p>
 
     <Input
       v-model="urlInput"

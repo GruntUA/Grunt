@@ -289,7 +289,7 @@ const totalCount = computed(() => {
     </div>
 
     <!-- Error -->
-    <div v-else-if="error" class="flex items-center gap-3 p-4 rounded-lg bg-destructive/10 text-destructive text-sm">
+    <div v-else-if="error" class="flex items-center gap-3 p-4 rounded-lg bg-destructive/10 text-destructive">
       <AlertCircle class="size-4 shrink-0" />
       {{ error }}
       <Button variant="ghost" size="sm" class="ml-auto" @click="loadTree">{{ t('Retry') }}</Button>
@@ -299,7 +299,7 @@ const totalCount = computed(() => {
     <div v-else-if="!loading && !treeNodes.length"
       class="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
       <FolderOpen class="size-12 opacity-30" />
-      <p class="text-sm">Записів поки немає</p>
+      <p>Записів поки немає</p>
       <Button size="sm" @click="createRoot">
         <Plus class="size-4 mr-1.5" />
         Створити перший
