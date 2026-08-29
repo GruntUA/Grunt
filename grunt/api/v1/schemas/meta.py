@@ -165,6 +165,15 @@ class DocTypeStatusConfigSchema(BaseModel):
     indicators: list[StatusIndicatorSchema] = []
 
 
+class DocTypeActionSchema(BaseModel):
+    action: str
+    label: str = ""
+    group: str = ""
+    variant: str = ""
+    condition: str | None = None
+    hidden: bool = False
+
+
 class DocTypeSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -202,6 +211,7 @@ class DocTypeSchema(BaseModel):
     tree_view: DocTypeTreeViewSchema | None = None
     map_view: DocTypeMapViewSchema | None = None
     status_config: DocTypeStatusConfigSchema | None = None
+    actions: list[DocTypeActionSchema] = []
 
 
 DocTypeSaveResult.model_rebuild()

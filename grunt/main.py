@@ -270,6 +270,12 @@ async def lifespan(app: FastAPI):
                                         handler=_resolver_path,
                                         error=str(e),
                                     )
+                        if hasattr(hooks_mod, "doc_actions"):
+                            from grunt.actions import load_app_doc_actions
+
+                            load_app_doc_actions(
+                                list(hooks_mod.doc_actions), app=ext_app.name
+                            )
                     except Exception as e:
                         logger.warning("hooks.load_error", module=hooks_import, error=str(e))
 

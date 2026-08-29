@@ -1,0 +1,66 @@
+{
+  "name": "DocTypeAction",
+  "label": "Дія документа",
+  "module": "metadata",
+  "is_child": true,
+  "fields": [
+    {
+      "fieldname": "action",
+      "label": "Дія",
+      "fieldtype": "Select",
+      "options_source": "grunt.doc_action",
+      "required": true,
+      "in_list_view": true,
+      "bold": true,
+      "description": "Ключ дії, зареєстрованої застосунком у коді (@doc_action)"
+    },
+    {
+      "fieldname": "label",
+      "label": "Підпис",
+      "fieldtype": "Text",
+      "in_list_view": true,
+      "description": "Необов'язково — перевизначає зареєстрований підпис кнопки"
+    },
+    {
+      "fieldname": "group",
+      "label": "Група",
+      "fieldtype": "Text",
+      "in_list_view": true,
+      "description": "Необов'язково — об'єднує кнопки у випадне меню під цією назвою"
+    },
+    {
+      "fieldname": "col_action_1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "variant",
+      "label": "Стиль кнопки",
+      "fieldtype": "Select",
+      "options": "\noutline\ndefault\nsecondary\ndestructive\nsuccess\nghost",
+      "description": "Необов'язково — перевизначає зареєстрований стиль"
+    },
+    {
+      "fieldname": "hidden",
+      "label": "Прихована",
+      "fieldtype": "Check",
+      "in_list_view": true,
+      "description": "Вимкнути дію, зберігши рядок"
+    },
+    {
+      "fieldname": "condition",
+      "label": "Умова показу",
+      "fieldtype": "Code",
+      "description": "JS-вираз над doc; якщо хибний — кнопка прихована. Напр.: doc.status === 'Draft'"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

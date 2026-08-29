@@ -97,6 +97,19 @@
       "options": "DocTypePermission"
     },
     {
+      "fieldname": "tab_actions",
+      "label": "Дії",
+      "fieldtype": "Tab",
+      "icon": "Zap"
+    },
+    {
+      "fieldname": "actions",
+      "label": "Дії документа",
+      "fieldtype": "Table",
+      "options": "DocTypeAction",
+      "description": "Кнопки в тулбарі картки. Кожен рядок підключає дію, зареєстровану застосунком у коді (@doc_action)."
+    },
+    {
       "fieldname": "tab_settings",
       "label": "Керованість",
       "fieldtype": "Tab",

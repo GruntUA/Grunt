@@ -190,6 +190,26 @@ class DocTypeStatusConfig(BaseModel):
     indicators: list[StatusIndicator] = []
 
 
+# ── Document actions ────────────────────────────────────────────────────
+
+
+class DocTypeAction(BaseModel):
+    """Binds one code-registered document action (see ``grunt.actions``) to a
+    DocType, with optional presentation overrides.
+
+    ``action`` is the registry key; everything else overrides the registered
+    defaults for this DocType only. ``condition`` is a JS expression evaluated
+    against ``doc`` on the client — falsy hides the button.
+    """
+
+    action: str  # registered action key
+    label: str = ""  # override registered label
+    group: str = ""  # toolbar dropdown group (empty → standalone button)
+    variant: str = ""  # button variant override (outline|default|secondary|destructive|success)
+    condition: str | None = None  # JS expression on `doc`; falsy → hidden
+    hidden: bool = False  # hard off-switch, keeps the row for later
+
+
 # ── DocType — main model ─────────────────────────────────────────────────
 
 
@@ -234,6 +254,9 @@ class DocType(BaseModel):
 
     # Status display
     status_config: DocTypeStatusConfig | None = None
+
+    # Custom document actions — code-registered, bound here (see grunt.actions)
+    actions: list[DocTypeAction] = []
 
     # Business logic
     permissions: list[DocTypePermission] = []

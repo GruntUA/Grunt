@@ -278,6 +278,38 @@ export interface DocType {
   status_config?: DocTypeStatusConfig | null
   workflow_state_field?: string | null
   permissions?: DocTypePermission[]
+  actions?: DocTypeActionBinding[]
+  /** Registry metadata for every action bind-able on this DocType (Studio helper). */
+  _action_catalog?: DocActionCatalogEntry[]
+}
+
+/** One row of the DocType `actions` table — binds a registered action, with
+ *  optional presentation overrides. Keys prefixed `_` are resolved server-side
+ *  from the code registry (see grunt.actions). */
+export interface DocTypeActionBinding {
+  action: string
+  label?: string
+  group?: string
+  variant?: string
+  condition?: string | null
+  hidden?: boolean
+  // Server-resolved (grunt.api.v1.meta._dump_doctype):
+  _label?: string
+  _icon?: string | null
+  _variant?: string
+  _group?: string
+  _confirm?: string | null
+  _missing?: boolean
+}
+
+export interface DocActionCatalogEntry {
+  key: string
+  label: string
+  icon?: string | null
+  group?: string
+  variant?: string
+  confirm?: string | null
+  module?: string
 }
 
 // ── Report types ──────────────────────────────────────────────────────────

@@ -16,6 +16,7 @@ import { useToast } from '@/core/composables/useToast'
 import { useWebSocket } from '@/core/composables/useWebSocket'
 import { usePresence } from '@/core/composables/usePresence'
 import { useClientScripts } from '@/core/composables/useClientScripts'
+import { useDocActions } from '@/core/composables/useDocActions'
 import { useLinkCreate } from '@/core/composables/useLinkCreate'
 import { useFetchFrom } from '@/core/composables/useFetchFrom'
 import { useQueryClient } from '@tanstack/vue-query'
@@ -117,6 +118,20 @@ export function useFormController(
     markClean,
     lastMessage,
   })
+
+  // ── Declarative document actions (DocType.actions bindings) ────────────────
+  const { docActionButtons } = useDocActions({
+    doctype,
+    id,
+    dt,
+    form: () => form.value,
+    reload: async () => {
+      if (id) await queryClient.invalidateQueries({ queryKey: ['document', doctype, id] })
+    },
+  })
+
+  // Registry-bound action buttons render first, then client-script buttons.
+  const allButtons = computed(() => [...docActionButtons.value, ...(scriptButtons.value ?? [])])
 
   // ── Validation ─────────────────────────────────────────────────────────────
   const { validationErrors, focusFirstError, validateForm } = useFormValidation({
@@ -299,8 +314,8 @@ export function useFormController(
     // Validation
     validationErrors,
 
-    // Client scripts
-    scriptButtons,
+    // Client scripts (+ declarative DocType.actions bindings, prepended)
+    scriptButtons: allButtons,
     scriptMenuItems,
     displayOverrides,
     reqdOverrides,

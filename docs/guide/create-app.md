@@ -102,6 +102,45 @@ async def on_customer_insert(doc, user, **kwargs):
     )
 ```
 
+## Custom document actions
+
+Register a named action in code, then bind it to a DocType from the **Actions**
+tab of the DocType editor (a `DocTypeAction` row per button). Bound actions
+appear as buttons in the document toolbar.
+
+```python title="my_crm/actions.py"
+from grunt.actions import doc_action
+
+@doc_action(
+    "send_welcome_email",
+    label="Надіслати вітальний лист",
+    doctypes=["Customer"],        # or ["*"] for any DocType
+    icon="mail",                   # lucide icon name
+    confirm="Надіслати листа клієнту?",   # optional confirm dialog
+    roles=["Sales"],              # optional — gate by role (also enforced server-side)
+)
+async def send_welcome_email(doc: dict, *, args: dict) -> dict:
+    # ... send mail ...
+    return {"message": "Лист надіслано", "refresh": False}
+```
+
+Point `hooks.py` at the module so the decorators run on startup:
+
+```python title="my_crm/hooks.py"
+doc_actions = ["my_crm.actions"]
+```
+
+The handler receives the document as a plain `dict` (`doc["doctype"]` and
+`doc["name"]` are always set). Return a `dict` (`message` is toasted,
+`refresh` != `False` reloads the form, `copy` is written to the clipboard), a
+bare string, or nothing. A binding row may override `label` / `group` /
+`variant` and add a JS `condition` (evaluated against `doc` on the client) to
+show the button conditionally.
+
+Core ships three generic actions you can bind to any DocType without writing
+code: `core.duplicate`, `core.recalc` (re-save so formulas/hooks re-run) and
+`core.copy_reference`.
+
 ## Adding background tasks
 
 ```python title="my_crm/tasks.py"

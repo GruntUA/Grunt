@@ -39,6 +39,12 @@ async def _dump_doctype(dt: DocType) -> dict[str, Any]:
             fdata["dynamic_schemas"] = get_schemas(field.dynamic_schema_source)
     workflow = await get_active_workflow(dt.name)
     data["workflow_state_field"] = workflow.state_field if workflow else None
+
+    # Enrich `actions` bindings with defaults from the code registry and attach
+    # `_action_catalog` for the binding editor — see grunt.actions.
+    from grunt.actions import enrich_doctype_actions
+
+    enrich_doctype_actions(data)
     return data
 
 
