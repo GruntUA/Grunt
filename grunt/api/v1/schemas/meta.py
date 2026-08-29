@@ -128,6 +128,17 @@ class DocTypeCalendarViewSchema(BaseModel):
     sources: list[CalendarSourceSchema] = []
 
 
+class DocTypeGanttViewSchema(BaseModel):
+    start_field: str
+    end_field: str
+    title_field: str = "name"
+    progress_field: str | None = None
+    color_field: str | None = None
+    color_map: dict[str, str] | None = None
+    default_color: str | None = None
+    dependencies_field: str | None = None
+
+
 class DocTypeTreeViewSchema(BaseModel):
     parent_field: str
     title_field: str = "name"
@@ -187,6 +198,7 @@ class DocTypeSchema(BaseModel):
     form_view: DocTypeFormViewSchema = DocTypeFormViewSchema()
     kanban_view: DocTypeKanbanViewSchema | None = None
     calendar_view: DocTypeCalendarViewSchema | None = None
+    gantt_view: DocTypeGanttViewSchema | None = None
     tree_view: DocTypeTreeViewSchema | None = None
     map_view: DocTypeMapViewSchema | None = None
     status_config: DocTypeStatusConfigSchema | None = None

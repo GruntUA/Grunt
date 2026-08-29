@@ -153,6 +153,17 @@ export interface DocTypeCalendarView {
   sources?: CalendarSource[]
 }
 
+export interface DocTypeGanttView {
+  start_field: string                 // Date/Datetime — bar start
+  end_field: string                   // Date/Datetime — bar end
+  title_field?: string                // row/bar label (defaults to 'name')
+  progress_field?: string             // Float/Percent 0–100 → bar fill
+  color_field?: string                // field whose value drives the bar colour
+  color_map?: Record<string, string>  // { value: '#hex' } mapping for color_field
+  default_color?: string              // fallback bar colour (defaults to primary)
+  dependencies_field?: string         // comma-separated predecessor doc names / Link
+}
+
 export interface DocTypeTreeView {
   parent_field: string   // fieldname of the self-referential Link field
   title_field?: string   // which field to display as node label (defaults to 'name')
@@ -261,6 +272,7 @@ export interface DocType {
   form_view?: DocTypeFormView
   kanban_view?: DocTypeKanbanView | null
   calendar_view?: DocTypeCalendarView | null
+  gantt_view?: DocTypeGanttView | null
   tree_view?: DocTypeTreeView | null
   map_view?: DocTypeMapView | null
   status_config?: DocTypeStatusConfig | null

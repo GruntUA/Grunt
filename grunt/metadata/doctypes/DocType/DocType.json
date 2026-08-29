@@ -141,7 +141,7 @@
       "fieldname": "default_view",
       "label": "Вигляд за замовчуванням",
       "fieldtype": "Select",
-      "options": "\nlist\nkanban\ncalendar\ntree\ngallery\nmap"
+      "options": "\nlist\nkanban\ncalendar\ngantt\ntree\ngallery\nmap"
     },
     {
       "fieldname": "table_name",
@@ -341,6 +341,17 @@
       "label": "Налаштування календаря",
       "fieldtype": "JSON",
       "description": "{\"start_date_field\": \"start_date\", \"end_date_field\": \"end_date\", \"title_field\": \"name\"}"
+    },
+    {
+      "fieldname": "sec_gantt_view",
+      "label": "Діаграма Ганта",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "gantt_view",
+      "label": "Налаштування діаграми Ганта",
+      "fieldtype": "JSON",
+      "description": "{\"start_field\": \"start_date\", \"end_field\": \"end_date\", \"title_field\": \"name\", \"progress_field\": \"progress\"}"
     },
     {
       "fieldname": "tab_designer",

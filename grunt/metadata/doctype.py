@@ -142,6 +142,25 @@ class DocTypeTreeView(BaseModel):
     sort_order: Literal["asc", "desc"] = "asc"  # optional default sort direction
 
 
+class DocTypeGanttView(BaseModel):
+    """Configuration for the Gantt view — time-scaled bars per document.
+
+    Needs a start and an end Date/Datetime field. Optional extras: a numeric
+    ``progress_field`` (0–100) fills the bar, ``color_field`` + ``color_map``
+    tint it by value, and ``dependencies_field`` (comma-separated document names,
+    or a Link) draws finish-to-start arrows between bars.
+    """
+
+    start_field: str  # Date/Datetime — where the bar starts
+    end_field: str  # Date/Datetime — where the bar ends
+    title_field: str = "name"  # field shown as the row/bar label
+    progress_field: str | None = None  # Float/Percent 0–100 → bar fill
+    color_field: str | None = None  # field whose value drives the bar colour
+    color_map: dict[str, str] | None = None  # { value: '#hex' } for color_field
+    default_color: str | None = None  # fallback bar colour
+    dependencies_field: str | None = None  # comma-separated predecessor doc names / Link
+
+
 class DocTypeMapView(BaseModel):
     """Configuration for the map view — requires a Geolocation field."""
 
@@ -204,11 +223,12 @@ class DocType(BaseModel):
     fields: list[DocField] = []
 
     # View configuration
-    default_view: str | None = None  # "list" | "kanban" | "calendar" | "tree" | "map"
+    default_view: str | None = None  # "list" | "kanban" | "calendar" | "gantt" | "tree" | "map"
     list_view: DocTypeListView = DocTypeListView()
     form_view: DocTypeFormView = DocTypeFormView()
     kanban_view: DocTypeKanbanView | None = None
     calendar_view: DocTypeCalendarView | None = None
+    gantt_view: DocTypeGanttView | None = None
     tree_view: DocTypeTreeView | None = None
     map_view: DocTypeMapView | None = None
 
