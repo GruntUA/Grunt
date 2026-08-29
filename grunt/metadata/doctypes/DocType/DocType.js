@@ -2,12 +2,6 @@
  * Client Script for DocType
  */
 
-function setup_list(listview) {
-    listview.add_button('Designer', () => {
-        window.open('/grunt/DocType', '_blank')
-    }, { variant: 'secondary' })
-}
-
 /**
  * Refresh title_field, image_field, and status_field options based on current fields list.
  * title_field / status_field — all non-layout fields; image_field — only Image/Attach fields.
@@ -107,8 +101,6 @@ async function on_change(frm, fieldname) {
 // Export for the executor
 window.doc_type_on_load = on_load
 window.doc_type_on_change = on_change
-window.doc_type_setup_list = setup_list
 
 if (typeof on_load === 'function') { window.on_load = on_load }
 if (typeof on_change === 'function') { window.on_change = on_change }
-if (typeof setup_list === 'function') { window.setup_list = setup_list }
