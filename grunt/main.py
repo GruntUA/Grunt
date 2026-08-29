@@ -65,6 +65,9 @@ register_doc_events(
         "*": {
             "after_insert": ["grunt.activity.log_activity"],
             "after_delete": ["grunt.activity.log_activity"],
+            # Record per-user "seen" state / ViewLog for DocTypes that opt in
+            # via track_seen / track_views (no-op for everything else).
+            "after_read": ["grunt.activity.record_view"],
         },
     }
 )

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import structlog
 
+import grunt as _grunt
 from grunt.app import grunt
 from grunt.document.versioning import _SKIP_FIELDS
 
@@ -16,6 +17,7 @@ logger = structlog.get_logger()
 _SKIP_DOCTYPES = frozenset(
     {
         "ActivityLog",
+        "ViewLog",
         "BackgroundTaskLog",
         "ErrorLog",
         "UserSession",
@@ -174,3 +176,108 @@ async def log_activity(event: str, **kwargs) -> None:
             details = {"changed_fields": changed}
 
     await record_activity(doctype, doc_id, action, user_email=user_email, details=details)
+
+
+# View-log throttle: at most one ViewLog row per (user, document) per hour.
+_VIEW_LOG_THROTTLE = timedelta(hours=1)
+
+
+async def record_view(event: str, **kwargs: Any) -> None:
+    """``after_read`` hook: record per-user "seen" state and ViewLog entries.
+
+    Acts only for DocTypes that opt in via ``track_seen`` / ``track_views``, and
+    only for single-document reads — the ``after_read`` fired by list, get_value
+    and get_all passes ``method=`` and/or no ``doc`` dict, so those are skipped.
+    """
+    from grunt.metadata.registry import doctype_registry
+
+    doctype = kwargs.get("doctype")
+    doc = kwargs.get("doc")
+    if kwargs.get("method") or not doctype or not isinstance(doc, dict):
+        return
+    doc_id = doc.get("name")
+    if not doc_id or doctype in _SKIP_DOCTYPES:
+        return
+
+    try:
+        dt = await doctype_registry.get(doctype)
+    except Exception:
+        return
+    if not (getattr(dt, "track_seen", False) or getattr(dt, "track_views", False)):
+        return
+
+    user_obj = kwargs.get("user")
+    user_email = getattr(user_obj, "email", None) or str(user_obj or "")
+    if not user_email or user_email in ("guest@grunt.local", "system", "Guest"):
+        return
+
+    session = grunt._require_session()
+
+    if getattr(dt, "track_seen", False):
+        seen = doc.get("_seen")
+        seen = list(seen) if isinstance(seen, list) else []
+        if user_email not in seen:
+            seen.append(user_email)
+            try:
+                async with grunt.system_context(session):
+                    await grunt.db.set_value(doctype, str(doc_id), "_seen", seen)
+                doc["_seen"] = seen
+            except Exception as e:
+                logger.warning("view.seen_failed", error=str(e), doctype=doctype, doc_id=doc_id)
+
+    if getattr(dt, "track_views", False):
+        try:
+            async with grunt.system_context(session):
+                recent = await grunt.db.get_all(
+                    "ViewLog",
+                    filters={
+                        "doctype": doctype,
+                        "doc_id": str(doc_id),
+                        "viewed_by": user_email,
+                        "viewed_at__gte": datetime.now(UTC) - _VIEW_LOG_THROTTLE,
+                    },
+                    fields=["name"],
+                    limit=1,
+                )
+                if not recent:
+                    await grunt.new_doc(
+                        "ViewLog",
+                        {
+                            "doctype": doctype,
+                            "doc_id": str(doc_id),
+                            "viewed_by": user_email,
+                            "viewed_at": datetime.now(UTC),
+                        },
+                    )
+        except Exception as e:
+            logger.warning("view.log_failed", error=str(e), doctype=doctype, doc_id=doc_id)
+
+
+@_grunt.whitelist()
+async def get_view_info(doctype: str, doc_id: str) -> dict[str, Any]:
+    """Return ``{"seen": [...emails], "views": <int>, "viewers": <int>}`` for a document.
+
+    ``seen`` comes from the document's ``_seen`` column (track_seen); ``views`` is
+    the total ViewLog row count and ``viewers`` the distinct viewer count
+    (track_views). Fields the DocType hasn't opted into come back empty/zero.
+    """
+    from grunt.metadata.registry import doctype_registry
+
+    dt = await doctype_registry.get(doctype)
+    out: dict[str, Any] = {"seen": [], "views": 0, "viewers": 0}
+
+    if getattr(dt, "track_seen", False):
+        seen = await grunt.db.get_value(doctype, doc_id, "_seen")
+        out["seen"] = seen if isinstance(seen, list) else []
+
+    if getattr(dt, "track_views", False):
+        rows = await grunt.db.get_all(
+            "ViewLog",
+            filters={"doctype": doctype, "doc_id": str(doc_id)},
+            fields=["viewed_by"],
+            limit=100000,
+        )
+        out["views"] = len(rows)
+        out["viewers"] = len({r["viewed_by"] for r in rows})
+
+    return out

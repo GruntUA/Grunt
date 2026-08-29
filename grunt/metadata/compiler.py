@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import (
+    JSON,
     Column,
     DateTime,
     Index,
@@ -179,6 +180,10 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
             ]
         )
 
+    # track_seen → JSON list of user emails that have opened this document.
+    if getattr(doctype, "track_seen", False) and not doctype.is_child:
+        columns.append(Column("_seen", JSON, default=list))
+
     # Names already claimed by system columns — skip any user field that would conflict.
     _system_cols = frozenset(
         {
@@ -188,6 +193,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
             "modified_at",
             "modified_by",
             "docstatus",
+            "_seen",
             "parent_name",
             "parent_doctype",
             "parent_field",

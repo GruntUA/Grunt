@@ -311,6 +311,13 @@ export const docsApi = {
       params: { doctype, doc_id: id },
     }).then(r => r.data.data ?? []),
 
+  // ── Seen / views (track_seen / track_views) ─────────────────────────────
+
+  getViewInfo: (doctype: string, id: string): Promise<{ seen: string[]; views: number; viewers: number }> =>
+    client.get('/api/v1/method/grunt.activity.get_view_info', {
+      params: { doctype, doc_id: id },
+    }).then(r => r.data.data ?? { seen: [], views: 0, viewers: 0 }),
+
   // ── Bulk update ──────────────────────────────────────────────────────────
 
   rename: <T extends GruntDocument = GruntDocument>(doctype: string, id: string, newId: string): Promise<T> =>

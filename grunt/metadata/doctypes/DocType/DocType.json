@@ -209,6 +209,36 @@
       "description": "Зберігати версії документа при кожному збереженні"
     },
     {
+      "fieldname": "track_seen",
+      "label": "Відстежувати перегляди (хто відкривав)",
+      "fieldtype": "Check",
+      "description": "Запам'ятовувати, які користувачі вже відкривали документ (колонка _seen)"
+    },
+    {
+      "fieldname": "track_views",
+      "label": "Журнал переглядів",
+      "fieldtype": "Check",
+      "description": "Писати кожне відкриття документа у ViewLog (не частіше 1 разу/год на користувача)"
+    },
+    {
+      "fieldname": "quick_entry",
+      "label": "Швидке створення (діалог)",
+      "fieldtype": "Check",
+      "description": "«Створити» відкриває міні-діалог з обов'язковими полями замість повної форми"
+    },
+    {
+      "fieldname": "beta",
+      "label": "Beta",
+      "fieldtype": "Check",
+      "description": "Показувати позначку «Beta» — тип документа ще в розробці"
+    },
+    {
+      "fieldname": "deprecated",
+      "label": "Неактуальний (deprecated)",
+      "fieldtype": "Check",
+      "description": "Показувати попередження — тип лишено для сумісності, не використовувати в новому коді"
+    },
+    {
       "fieldname": "tab_tree",
       "label": "Ієрархія",
       "fieldtype": "Tab",

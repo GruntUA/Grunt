@@ -2,11 +2,12 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useQueryClient } from '@tanstack/vue-query'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useToast } from '@/core/composables/useToast'
 import { useFormController } from '@/core/composables/useFormController'
+import { docsApi } from '@/core/api/docs'
 import type { GruntDocument } from '@/types'
-import { History, Activity } from '@lucide/vue'
+import { History, Activity, Eye, TriangleAlert, FlaskConical } from '@lucide/vue'
 
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import DocSidebar from '@/components/views/DocSidebar.vue'
@@ -84,6 +85,17 @@ const showSidebar = computed(() => {
   if (sidebarHidden.value !== null) return !sidebarHidden.value
   return dt.value?.form_view?.show_sidebar !== false
 })
+
+// Seen / views (only fetched when the DocType opts into track_seen / track_views)
+const tracksViews = computed(() => !!(dt.value?.track_seen || dt.value?.track_views))
+const { data: viewInfo } = useQuery({
+  queryKey: computed(() => ['view-info', props.doctype, props.id]),
+  queryFn: () => docsApi.getViewInfo(props.doctype, props.id!),
+  enabled: computed(() => !!props.id && tracksViews.value),
+})
+const seenList = computed<string[]>(() => viewInfo.value?.seen ?? [])
+const seenShown = computed(() => seenList.value.slice(0, 6))
+const initials = (email: string) => email.slice(0, 2).toUpperCase()
 </script>
 
 <template>
@@ -118,6 +130,18 @@ const showSidebar = computed(() => {
     </div>
 
     <template v-else>
+      <!-- Lifecycle markers -->
+      <div v-if="dt?.deprecated"
+        class="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
+        <TriangleAlert class="size-4 mt-0.5 shrink-0" />
+        <span>{{ t('Цей тип документа позначено як неактуальний (deprecated). Він продовжує працювати, але не використовуйте його в новому коді.') }}</span>
+      </div>
+      <div v-else-if="dt?.beta"
+        class="flex items-start gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+        <FlaskConical class="size-4 mt-0.5 shrink-0" />
+        <span>{{ t('Beta: цей тип документа ще в розробці, поведінка може змінитися.') }}</span>
+      </div>
+
       <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-5">
         <!-- Left Column -->
         <div class="min-w-0 flex flex-col gap-4">
@@ -136,6 +160,25 @@ const showSidebar = computed(() => {
               @table-selection-change="({ fieldname, rowNames }) => setTableSelection(fieldname, rowNames)" />
           </div>
 
+
+          <!-- Seen / views -->
+          <div v-if="id && tracksViews && viewInfo"
+            class="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-1 text-xs text-muted-foreground">
+            <span v-if="dt?.track_views" class="inline-flex items-center gap-1.5">
+              <Eye class="size-3.5" />
+              {{ t('{views} переглядів · {viewers} користувачів', { views: viewInfo.views, viewers: viewInfo.viewers }) }}
+            </span>
+            <span v-if="dt?.track_seen && seenList.length" class="inline-flex items-center gap-1.5">
+              {{ t('Переглянули:') }}
+              <span class="flex -space-x-1.5">
+                <span v-for="email in seenShown" :key="email" :title="email"
+                  class="inline-flex size-5 items-center justify-center rounded-full border border-background bg-muted text-[9px] font-medium text-foreground">
+                  {{ initials(email) }}
+                </span>
+              </span>
+              <span v-if="seenList.length > seenShown.length">+{{ seenList.length - seenShown.length }}</span>
+            </span>
+          </div>
 
           <!-- Activity timeline -->
           <div v-if="showActivityLog && id && document" class="form-section">

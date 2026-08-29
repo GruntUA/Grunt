@@ -245,7 +245,11 @@ export interface DocType {
   is_virtual?: boolean
   is_tree?: boolean
   track_changes?: boolean
+  track_seen?: boolean
+  track_views?: boolean
   quick_entry?: boolean
+  beta?: boolean
+  deprecated?: boolean
   table_name?: string | null
   fields: DocField[]
   title_field?: string

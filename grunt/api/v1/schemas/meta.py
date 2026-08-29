@@ -165,6 +165,11 @@ class DocTypeSchema(BaseModel):
     is_submittable: bool = False
     is_singleton: bool = False
     track_changes: bool = True
+    track_seen: bool = False
+    track_views: bool = False
+    quick_entry: bool = False
+    beta: bool = False
+    deprecated: bool = False
 
     fields: list[DocFieldSchema] = []
 

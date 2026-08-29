@@ -200,7 +200,7 @@ async def fire(event: str, **kwargs: Any) -> None:
     if (
         event in _NOTIFICATION_EVENTS
         and doctype
-        and doctype not in {"BackgroundTaskLog", "ErrorLog", "ActivityLog"}
+        and doctype not in {"BackgroundTaskLog", "ErrorLog", "ActivityLog", "ViewLog"}
         and kwargs.get("doc")
         and kwargs.get("session")
     ):

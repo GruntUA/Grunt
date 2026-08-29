@@ -192,7 +192,13 @@ class DocType(BaseModel):
     log_retention_days: int | None = None  # is_log only; None → DEFAULT_LOG_RETENTION_DAYS
     # to name the self-referential Link
     track_changes: bool = True  # audit log
+    track_seen: bool = False  # record which users have opened each document (_seen column)
+    track_views: bool = False  # log every document open to ViewLog (throttled 1/user/doc/hour)
     quick_entry: bool = False  # True → "Create" opens a dialog instead of full form
+
+    # Lifecycle markers (UI-only; no behavioural effect)
+    beta: bool = False  # show a "Beta" badge — feature still under development
+    deprecated: bool = False  # show a warning banner — kept for compatibility, avoid new use
 
     # Fields
     fields: list[DocField] = []
