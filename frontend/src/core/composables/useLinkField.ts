@@ -5,15 +5,10 @@ import type { DocField } from '@/types'
 import { docsApi, metaApi } from '@/core/api'
 import type { LinkSearchItem } from '@/core/api/docs'
 import type { TreeNode } from '@/components/ui/tree-select'
+import { escapeHtml } from '@/lib/utils'
+import { useAnchoredDropdown } from '@/core/composables/useAnchoredDropdown'
 
 export type LinkFiltersFn = (fieldname: string, doc: Record<string, unknown>) => Record<string, string | string[]>
-
-const HTML_ESCAPES: Record<string, string> = {
-  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-}
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c])
-}
 
 export function useLinkField(props: {
   field: DocField
@@ -36,9 +31,6 @@ export function useLinkField(props: {
   const activeIdx = ref(-1)
   const titleField = ref<string>('name')
 
-  const containerRef = ref<HTMLElement | null>(null)
-  const dropdownStyle = ref<Record<string, string>>({})
-
   // Tree mode
   const isTree = ref(false)
   const treeNodes = ref<TreeNode[]>([])
@@ -56,41 +48,13 @@ export function useLinkField(props: {
 
   const getScriptFilters = inject<LinkFiltersFn>('getLinkFilters', () => ({}))
 
-  function computeDropdownStyle() {
-    if (!containerRef.value) return
-    const rect = containerRef.value.getBoundingClientRect()
-    const spaceBelow = window.innerHeight - rect.bottom - 4
-    const openUp = spaceBelow < 120 && rect.top > spaceBelow
-    dropdownStyle.value = {
-      position: 'fixed',
-      left: `${rect.left}px`,
-      width: `${rect.width}px`,
-      zIndex: '9999',
-      ...(openUp
-        ? { bottom: `${window.innerHeight - rect.top + 4}px` }
-        : { top: `${rect.bottom + 4}px` }),
-    }
-  }
+  // Teleported dropdown, kept anchored to the input on scroll / resize.
+  const containerRef = ref<HTMLElement | null>(null)
+  const { dropdownStyle, reposition: computeDropdownStyle } = useAnchoredDropdown(isOpen, containerRef)
 
-  // The teleported dropdown is `position: fixed`, so it must be re-anchored
-  // whenever the input moves under it — page/container scroll, window resize.
-  function reanchorDropdown() {
-    if (isOpen.value) computeDropdownStyle()
-  }
-  watch(isOpen, (open) => {
-    if (open) {
-      window.addEventListener('scroll', reanchorDropdown, true)
-      window.addEventListener('resize', reanchorDropdown)
-    } else {
-      window.removeEventListener('scroll', reanchorDropdown, true)
-      window.removeEventListener('resize', reanchorDropdown)
-    }
-  })
   onUnmounted(() => {
     clearTimeout(debounceTimer)
     clearTimeout(blurTimer)
-    window.removeEventListener('scroll', reanchorDropdown, true)
-    window.removeEventListener('resize', reanchorDropdown)
   })
 
   // `link_filters` rarely changes, but resolveFilters() is called on every

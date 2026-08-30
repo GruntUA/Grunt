@@ -1,116 +1,130 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onUnmounted, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
-import { docsApi, metaApi } from '@/core/api'
+import { docsApi } from '@/core/api'
+import type { LinkSearchItem } from '@/core/api/docs'
 import { X, Loader2 } from '@lucide/vue'
+import { Badge } from '@/components/ui/badge'
+import { escapeHtml } from '@/lib/utils'
+import { useAnchoredDropdown } from '@/core/composables/useAnchoredDropdown'
 
 const props = defineProps<{
   field: DocField
   modelValue: unknown
   disabled?: boolean
   error?: string
+  /** Current document values — used to evaluate `link_filters` with an "eval:" prefix. */
+  doc?: Record<string, unknown>
 }>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
-// ── State ─────────────────────────────────────────────────────────────────────
-
 const { t } = useI18n()
+
+// ── State ────────────────────────────────────────────────────────────────────
 const query = ref('')
-const results = ref<Record<string, string>[]>([])
+const results = ref<LinkSearchItem[]>([])
 const isOpen = ref(false)
 const isLoading = ref(false)
 const activeIdx = ref(-1)
-const titleField = ref<string>('name')
 
-// Resolved display labels: name → label
-const displayLabels = ref<Map<string, string>>(new Map())
+// name → display label; seeded from search hits and resolved in bulk on load.
+const labels = ref<Map<string, string>>(new Map())
 
-let debounceTimer: ReturnType<typeof setTimeout>
-let blurTimer: ReturnType<typeof setTimeout>
+const inputEl = ref<HTMLInputElement | null>(null)
+const anchorRef = ref<HTMLElement | null>(null)
+const { dropdownStyle, reposition } = useAnchoredDropdown(isOpen, anchorRef)
 
-// ── Selected values ─────────────────────────────────────────────────────────
+const listboxId = useId()
+const optionId = (i: number) => `${listboxId}-opt-${i}`
+
+let debounceTimer: ReturnType<typeof setTimeout> | undefined
+let blurTimer: ReturnType<typeof setTimeout> | undefined
+let searchSeq = 0
+
+// ── Derived ──────────────────────────────────────────────────────────────────
+const readonly = computed(() => !!props.disabled || !!props.field.read_only)
 
 const selectedValues = computed<string[]>(() => {
   const v = props.modelValue
-  if (Array.isArray(v)) return v as string[]
+  if (Array.isArray(v)) return v.map(String)
   if (typeof v === 'string' && v) {
-    try { return JSON.parse(v) as string[] } catch { return [] }
+    try {
+      const parsed = JSON.parse(v)
+      return Array.isArray(parsed) ? parsed.map(String) : []
+    } catch {
+      return []
+    }
   }
   return []
 })
 
-// ── Resolve display labels ──────────────────────────────────────────────────
-
-let titleFieldReady = false
-
-async function resolveLabels(values: string[]) {
-  if (!props.field.options || !titleFieldReady) return
-  if (titleField.value === 'name') {
-    values.forEach(v => displayLabels.value.set(v, v))
-    return
-  }
-  for (const val of values) {
-    if (displayLabels.value.has(val)) continue
-    try {
-      const doc = await docsApi.get(props.field.options, val)
-      const label = (doc as Record<string, unknown>)[titleField.value]
-      displayLabels.value.set(val, typeof label === 'string' && label ? label : val)
-    } catch {
-      displayLabels.value.set(val, val)
-    }
-  }
-}
-
-function getDisplayLabel(value: string): string {
-  return displayLabels.value.get(value) ?? value
-}
-
-// ── Fetch linked DocType meta ───────────────────────────────────────────────
-
-watch(() => props.field.options, async (doctype) => {
-  if (!doctype) return
+// `link_filters`: raw JSON, or `eval:<expr>` evaluated against the parent doc.
+const linkFilters = computed<Record<string, string | string[]>>(() => {
+  const raw = props.field.link_filters
+  if (!raw) return {}
+  const trimmed = raw.trim()
   try {
-    const meta = await metaApi.get(doctype)
-    titleField.value = meta.title_field || 'name'
+    if (trimmed.startsWith('eval:')) {
+      // eslint-disable-next-line no-new-func
+      const r = new Function('doc', `return (${trimmed.slice(5).trim()})`)(props.doc ?? {})
+      return r && typeof r === 'object' ? r : {}
+    }
+    return JSON.parse(raw)
   } catch {
-    titleField.value = 'name'
+    return {}
   }
-  titleFieldReady = true
-  displayLabels.value.clear()
-  if (selectedValues.value.length) resolveLabels(selectedValues.value)
-}, { immediate: true })
-
-watch(selectedValues, (vals) => {
-  if (vals.length) resolveLabels(vals)
 })
 
-// ── Search ────────────────────────────────────────────────────────────────────
-
 const filteredResults = computed(() =>
-  results.value.filter(r => !selectedValues.value.includes(r.name))
+  results.value.filter((r) => !selectedValues.value.includes(r.name)),
 )
 
+function labelFor(name: string): string {
+  return labels.value.get(name) ?? name
+}
+
+// ── Label resolution (one request for every unresolved value) ─────────────────
+async function resolveLabels(values: string[]) {
+  const missing = values.filter((v) => !labels.value.has(v))
+  if (!missing.length || !props.field.options) return
+  const next = new Map(labels.value)
+  try {
+    const hits = await docsApi.linkSearch(props.field.options, '', { name__in: missing }, missing.length)
+    hits.forEach((h) => next.set(h.name, h.title || h.name))
+  } catch {
+    /* fall through — unresolved names are shown as-is below */
+  }
+  missing.forEach((v) => { if (!next.has(v)) next.set(v, v) })
+  labels.value = next
+}
+
+watch(
+  () => props.field.options,
+  () => {
+    labels.value = new Map()
+    if (selectedValues.value.length) resolveLabels(selectedValues.value)
+  },
+  { immediate: true },
+)
+watch(selectedValues, (vals) => { if (vals.length) resolveLabels(vals) })
+
+// ── Search ───────────────────────────────────────────────────────────────────
 async function search(val: string) {
   if (!props.field.options) return
+  const seq = ++searchSeq
   isLoading.value = true
   try {
-    const fields = titleField.value !== 'name'
-      ? `id,name,${titleField.value}`
-      : 'id,name'
-    const resp = await docsApi.list(props.field.options, {
-      search: val || undefined,
-      per_page: 20,
-      fields,
-    })
-    results.value = (resp.data ?? []) as Record<string, string>[]
+    const hits = await docsApi.linkSearch(props.field.options, val, linkFilters.value, 20)
+    if (seq !== searchSeq) return
+    results.value = hits
     activeIdx.value = -1
     isOpen.value = true
   } catch {
-    results.value = []
+    if (seq === searchSeq) results.value = []
   } finally {
-    isLoading.value = false
+    if (seq === searchSeq) isLoading.value = false
   }
 }
 
@@ -122,6 +136,7 @@ function onInput(val: string) {
 
 function onFocus() {
   clearTimeout(blurTimer)
+  reposition()
   if (!isOpen.value) search(query.value)
 }
 
@@ -129,10 +144,8 @@ function onBlur() {
   blurTimer = setTimeout(() => {
     isOpen.value = false
     query.value = ''
-  }, 200)
+  }, 150)
 }
-
-// ── Keyboard navigation ───────────────────────────────────────────────────────
 
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Backspace' && !query.value && selectedValues.value.length) {
@@ -140,20 +153,18 @@ function onKeydown(e: KeyboardEvent) {
     removeValue(selectedValues.value[selectedValues.value.length - 1])
     return
   }
-
   if (!isOpen.value) return
 
+  const items = filteredResults.value
   if (e.key === 'ArrowDown') {
     e.preventDefault()
-    activeIdx.value = Math.min(activeIdx.value + 1, filteredResults.value.length - 1)
+    activeIdx.value = Math.min(activeIdx.value + 1, items.length - 1)
   } else if (e.key === 'ArrowUp') {
     e.preventDefault()
     activeIdx.value = Math.max(activeIdx.value - 1, -1)
   } else if (e.key === 'Enter') {
     e.preventDefault()
-    if (activeIdx.value >= 0 && filteredResults.value[activeIdx.value]) {
-      addItem(filteredResults.value[activeIdx.value])
-    }
+    if (items[activeIdx.value]) addItem(items[activeIdx.value])
   } else if (e.key === 'Escape') {
     e.preventDefault()
     isOpen.value = false
@@ -161,126 +172,133 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 
-// ── Selection ─────────────────────────────────────────────────────────────────
-
-function addItem(item: Record<string, string>) {
-  const name = item.name
-  if (selectedValues.value.includes(name)) return
-
-  const label = titleField.value !== 'name' && item[titleField.value]
-    ? item[titleField.value]
-    : item.name
-  displayLabels.value.set(name, label)
-
-  const newValues = [...selectedValues.value, name]
-  emit('update:modelValue', newValues)
+// ── Selection ────────────────────────────────────────────────────────────────
+function addItem(item: LinkSearchItem) {
+  if (selectedValues.value.includes(item.name)) return
+  labels.value = new Map(labels.value).set(item.name, item.title || item.name)
+  emit('update:modelValue', [...selectedValues.value, item.name])
   query.value = ''
-  // Keep dropdown open for adding more
-  search('')
+  activeIdx.value = -1
+  inputEl.value?.focus()
+  search('') // refresh the list so the next pick is ready
 }
 
 function removeValue(name: string) {
-  const newValues = selectedValues.value.filter(v => v !== name)
-  emit('update:modelValue', newValues)
+  emit('update:modelValue', selectedValues.value.filter((v) => v !== name))
+  inputEl.value?.focus()
 }
 
-// ── Display helpers ───────────────────────────────────────────────────────────
-
-function getLabel(item: Record<string, string>): string {
-  if (titleField.value !== 'name' && item[titleField.value]) return item[titleField.value]
-  return item.name
-}
-
-function getSublabel(item: Record<string, string>): string | null {
-  if (titleField.value !== 'name' && item[titleField.value] && item[titleField.value] !== item.name) {
-    return item.name
-  }
-  return null
-}
-
+// ── Highlight (source text is user data → always escaped before v-html) ───────
 function highlight(text: string): string {
-  if (!query.value.trim()) return text
-  const escaped = query.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return text.replace(new RegExp(`(${escaped})`, 'gi'), '<mark class="bg-primary/20 text-foreground rounded-sm">$1</mark>')
+  const safe = escapeHtml(text)
+  const q = query.value.trim()
+  if (!q) return safe
+  const esc = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return safe.replace(
+    new RegExp(`(${esc})`, 'gi'),
+    '<mark class="bg-primary/20 text-foreground rounded-sm">$1</mark>',
+  )
 }
+
+onUnmounted(() => {
+  clearTimeout(debounceTimer)
+  clearTimeout(blurTimer)
+})
 </script>
 
 <template>
   <div class="relative">
-    <!-- Tags + Input wrapper -->
+    <!-- Tags + input -->
     <div
-      class="flex flex-wrap items-center gap-1.5 min-h-[38px] w-full rounded-md border border-input bg-transparent px-2 py-1.5 ring-offset-background transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:border-ring"
-      :class="{
-        'border-destructive focus-within:ring-destructive': error,
-        'bg-muted cursor-not-allowed': disabled || field.read_only,
-      }"
-      @click="($refs.inputEl as HTMLInputElement)?.focus()"
+      ref="anchorRef"
+      class="flex flex-wrap items-center gap-1 min-h-9 max-h-32 w-full overflow-y-auto rounded-md border border-input bg-transparent dark:bg-input/30 px-1.5 py-1 text-sm ring-offset-background transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:border-ring"
+      :class="[
+        error && 'border-destructive focus-within:ring-destructive',
+        readonly && 'bg-muted/50 opacity-60 cursor-not-allowed',
+      ]"
+      @mousedown.self="inputEl?.focus()"
     >
-      <!-- Tags -->
-      <span
+      <Badge
         v-for="val in selectedValues"
         :key="val"
-        class="inline-flex items-center gap-1 rounded-md bg-secondary text-secondary-foreground px-2 py-0.5 max-w-[200px]"
+        variant="secondary"
+        class="rounded gap-1 pl-2 pr-1 py-0.5 font-normal max-w-[220px]"
       >
-        <span class="truncate">{{ getDisplayLabel(val) }}</span>
+        <span class="min-w-0 truncate">{{ labelFor(val) }}</span>
         <button
-          v-if="!disabled && !field.read_only"
+          v-if="!readonly"
           type="button"
-          class="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+          class="shrink-0 rounded-sm text-muted-foreground transition-colors hover:bg-background/60 hover:text-foreground"
+          :aria-label="t('Remove {item}', { item: labelFor(val) })"
           @mousedown.prevent="removeValue(val)"
         >
           <X class="size-3" />
         </button>
-      </span>
+      </Badge>
 
-      <!-- Input -->
-      <div v-if="!disabled && !field.read_only" class="relative flex-1 min-w-[120px]">
-        <input
-          ref="inputEl"
-          :value="query"
-          :placeholder="selectedValues.length ? '' : (field.placeholder ?? t('Search {doctype}...', { doctype: field.options ?? '' }))"
-          class="w-full bg-transparent outline-none py-0.5"
-          autocomplete="off"
-          @input="onInput(($event.target as HTMLInputElement).value)"
-          @focus="onFocus"
-          @blur="onBlur"
-          @keydown="onKeydown"
-        />
-      </div>
+      <input
+        v-if="!readonly"
+        ref="inputEl"
+        :value="query"
+        :placeholder="selectedValues.length ? '' : (field.placeholder ?? t('Search {doctype}…', { doctype: field.options ?? '' }))"
+        class="min-w-[120px] flex-1 bg-transparent py-0.5 outline-none placeholder:text-muted-foreground"
+        autocomplete="off"
+        role="combobox"
+        aria-autocomplete="list"
+        :aria-label="field.label"
+        :aria-expanded="isOpen"
+        :aria-controls="listboxId"
+        :aria-invalid="error ? true : undefined"
+        :aria-activedescendant="isOpen && activeIdx >= 0 ? optionId(activeIdx) : undefined"
+        @input="onInput(($event.target as HTMLInputElement).value)"
+        @focus="onFocus"
+        @blur="onBlur"
+        @keydown="onKeydown"
+      />
 
-      <!-- Loading indicator -->
-      <Loader2 v-if="isLoading" class="size-4 text-muted-foreground animate-spin shrink-0" />
+      <Loader2 v-if="isLoading" class="size-4 shrink-0 animate-spin text-muted-foreground" />
     </div>
 
     <!-- Dropdown -->
-    <div
-      v-if="isOpen && !disabled && !field.read_only"
-      class="absolute top-full mt-1 left-0 right-0 bg-popover border border-border rounded-lg shadow-md z-50 overflow-hidden"
-    >
-      <template v-if="filteredResults.length">
-        <div class="max-h-52 overflow-y-auto py-1">
+    <Teleport to="body">
+      <div
+        v-if="isOpen && !readonly"
+        :id="listboxId"
+        role="listbox"
+        :aria-label="field.label"
+        :style="dropdownStyle"
+        class="overflow-hidden rounded-lg border border-border bg-popover shadow-md"
+      >
+        <div v-if="filteredResults.length" class="max-h-52 overflow-y-auto py-1">
           <button
             v-for="(item, i) in filteredResults"
+            :id="optionId(i)"
             :key="item.id"
             type="button"
+            role="option"
+            :aria-selected="i === activeIdx"
             :class="[
-              'w-full text-left px-3 py-2 text-sm transition-colors flex flex-col gap-0.5',
+              'flex w-full flex-col gap-0.5 px-3 py-2 text-left text-sm transition-colors',
               i === activeIdx ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50',
             ]"
             @mousedown.prevent="addItem(item)"
             @mouseover="activeIdx = i"
           >
-            <span v-html="highlight(getLabel(item))" />
-            <span v-if="getSublabel(item)" class="text-xs text-muted-foreground" v-html="highlight(getSublabel(item)!)" />
+            <span v-html="highlight(item.title || item.name)" />
+            <span
+              v-if="item.subtitle && item.subtitle !== (item.title || item.name)"
+              class="text-xs text-muted-foreground"
+              v-html="highlight(item.subtitle)"
+            />
           </button>
         </div>
-      </template>
 
-      <div v-else class="px-3 py-3 text-muted-foreground text-center">
-        <span v-if="isLoading">{{ t('Searching...') }}</span>
-        <span v-else-if="query">{{ t('Nothing found for «{query}»', { query }) }}</span>
-        <span v-else>{{ t('No records') }}</span>
+        <div v-else class="px-3 py-3 text-center text-sm text-muted-foreground">
+          <span v-if="isLoading">{{ t('Searching...') }}</span>
+          <span v-else-if="query">{{ t('Nothing found for “{query}”', { query }) }}</span>
+          <span v-else>{{ t('No records') }}</span>
+        </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>

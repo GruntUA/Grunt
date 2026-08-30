@@ -351,5 +351,8 @@ msgstr "Фільтр:"
 msgid "Clear"
 msgstr "Очистити"
 
+msgid "Remove {item}"
+msgstr "Прибрати {item}"
+
 msgid "{n} available"
 msgstr "{n} доступних"
