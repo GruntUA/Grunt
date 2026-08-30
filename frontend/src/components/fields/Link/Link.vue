@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { DocField } from '@/types'
 import { Search, X, Loader2, Plus, ArrowUpRight } from '@lucide/vue'
 import { TreeSelect } from '@/components/ui/tree-select'
@@ -12,7 +13,20 @@ const props = defineProps<{
   error?: string
   /** Current document values — used to evaluate link_filters with "eval:" prefix. */
   doc?: Record<string, unknown>
+  /**
+   * Flush "grid cell" look for use inside the inline child table — a
+   * borderless, transparent input the height of a table row, matching the
+   * other inline cell editors instead of a standalone bordered search box.
+   */
+  cell?: boolean
 }>()
+
+// Base classes for the regular-mode <input>; `pr-*` is appended in the template.
+const inputClass = computed(() =>
+  props.cell
+    ? 'w-full h-8 rounded-none border border-transparent border-b-border/30 bg-transparent pl-8 text-xs text-foreground placeholder:text-muted-foreground shadow-none outline-none hover:border-input focus-visible:ring-0 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-60 transition-colors'
+    : 'w-full rounded-md border border-input bg-transparent dark:bg-input/30 pl-8 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-60 transition-colors',
+)
 
 const emit = defineEmits<{
   'update:modelValue': [value: unknown]
@@ -81,7 +95,7 @@ const {
         :placeholder="field.placeholder ?? `Пошук ${field.options ?? ''}...`"
         :disabled="disabled || field.read_only"
         :class="[
-          'w-full rounded-md border border-input bg-transparent dark:bg-input/30 pl-8 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-60 transition-colors',
+          inputClass,
           isSelected && linkedDocUrl ? 'pr-16' : 'pr-8',
           error ? 'border-destructive focus-visible:ring-destructive' : '',
         ]"

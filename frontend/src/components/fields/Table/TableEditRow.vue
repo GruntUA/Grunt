@@ -132,16 +132,13 @@ function isInline(f: DocField): boolean {
       </div>
 
       <!-- Link -->
-      <div
-        v-else-if="f.fieldtype === 'Link'"
-        class="px-1.5 py-1"
-        :class="cellError(f) && 'rounded ring-1 ring-destructive/50'"
-        :title="cellError(f) || undefined"
-      >
+      <div v-else-if="f.fieldtype === 'Link'" :title="cellError(f) || undefined">
         <LinkField
+          cell
           :field="f"
           :model-value="row[f.fieldname] ?? null"
           :doc="row"
+          :error="cellError(f) || undefined"
           @update:model-value="emit('set-cell', f.fieldname, $event)"
           @create-new="(dt, preset) => emit('create-new', dt, preset, f.fieldname)"
         />
