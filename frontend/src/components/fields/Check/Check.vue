@@ -1,16 +1,11 @@
 <script setup lang="ts">
-import type { DocField } from '@/types'
 import { useId } from 'vue'
+import type { BaseFieldProps } from '@/types'
 import { Checkbox } from '@/components/ui/checkbox'
 
-defineProps<{
-  field: DocField
-  modelValue: unknown
-  disabled?: boolean
-  error?: string
-}>()
-
+defineProps<BaseFieldProps>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
+
 const id = useId()
 </script>
 
@@ -20,8 +15,16 @@ const id = useId()
       :id="id"
       :model-value="!!modelValue"
       :disabled="disabled || field.read_only"
-      @update:model-value="emit('update:modelValue', $event)"
+      :aria-invalid="error ? true : undefined"
+      @update:model-value="emit('update:modelValue', $event === true)"
     />
-    <label :for="id" class="font-medium cursor-pointer select-none text-foreground/90">{{ field.label }}</label>
+    <label
+      :for="id"
+      class="cursor-pointer select-none font-medium"
+      :class="error ? 'text-destructive' : 'text-foreground/90'"
+    >
+      {{ field.label }}
+      <span v-if="field.required" class="text-destructive font-semibold">*</span>
+    </label>
   </div>
 </template>

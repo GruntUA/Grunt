@@ -34,13 +34,11 @@ const dateObj = computed<Date | null>({
 </script>
 
 <template>
-  <div class="w-full">
-    <DatePicker
-      v-model="dateObj"
-      :disabled="isDisabled"
-      :invalid="!!error"
-      :placeholder="field.placeholder || undefined"
-      class="w-full"
-    />
-  </div>
+  <DatePicker
+    v-model="dateObj"
+    :disabled="isDisabled"
+    :invalid="!!error"
+    :placeholder="field.placeholder || undefined"
+    class="w-full"
+  />
 </template>

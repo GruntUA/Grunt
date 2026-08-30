@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { DocField } from '@/types'
+import type { BaseFieldProps } from '@/types'
 import { DatePicker } from '@/components/ui/date-picker'
 
-const props = defineProps<{
-  field: DocField
-  modelValue: unknown
-  disabled?: boolean
-  error?: boolean
-}>()
+const props = defineProps<BaseFieldProps>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
@@ -35,20 +30,17 @@ const dateObj = computed<Date | null>({
     const mi = String(val.getMinutes()).padStart(2, '0')
     const s = String(val.getSeconds()).padStart(2, '0')
     emit('update:modelValue', `${y}-${mo}-${day} ${h}:${mi}:${s}`)
-  }
+  },
 })
-
 </script>
 
 <template>
-  <div class="w-full">
-    <DatePicker
-      v-model="dateObj"
-      :disabled="isDisabled"
-      :invalid="error"
-      show-time
-      :placeholder="field.placeholder || undefined"
-      class="w-full"
-    />
-  </div>
+  <DatePicker
+    v-model="dateObj"
+    show-time
+    :disabled="isDisabled"
+    :invalid="!!error"
+    :placeholder="field.placeholder || undefined"
+    class="w-full"
+  />
 </template>

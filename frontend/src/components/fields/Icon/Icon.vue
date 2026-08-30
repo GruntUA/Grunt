@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, shallowRef, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Component } from 'vue'
 import type { DocField } from '@/types'
 import { Search, X } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { Spinner } from '@/components/ui/spinner'
+import { loadLucideLib } from '@/lib/lucide'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   field: DocField
@@ -25,7 +29,7 @@ let loaded = false
 async function ensureLoaded() {
   if (loaded) return
   loaded = true
-  const lib = await import('@lucide/vue') as unknown as IconMap
+  const lib = await loadLucideLib() as IconMap
   allIcons.value = lib
   // Extract canonical icon names: PascalCase functions, no *Icon suffix aliases
   allNames.value = Object.keys(lib).filter(k =>
@@ -94,10 +98,10 @@ onMounted(() => {
 <template>
   <div class="flex items-center gap-2">
     <!-- Trigger button -->
-    <Button variant="outline" type="button" class="h-9 gap-2 min-w-[140px] justify-start font-normal" :disabled="disabled || field.read_only" @click="toggle">
+    <Button variant="outline" type="button" class="h-9 gap-2 min-w-[140px] justify-start font-normal" :disabled="disabled || field.read_only" :aria-invalid="error ? true : undefined" :aria-label="field.label" @click="toggle">
         <component :is="currentComponent" v-if="currentComponent" class="size-4 shrink-0" />
         <span v-if="currentName" class="truncate">{{ currentName }}</span>
-        <span v-else class="text-muted-foreground">Обрати іконку…</span>
+        <span v-else class="text-muted-foreground">{{ t('Choose an icon…') }}</span>
     </Button>
 
     <Popover v-model:open="isOpen">
@@ -110,7 +114,8 @@ onMounted(() => {
                 <input
                     v-model="search"
                     class="flex-1 bg-transparent outline-none placeholder:text-muted-foreground/60"
-                    placeholder="Пошук іконки…"
+                    :placeholder="t('Search icon…')"
+                    :aria-label="t('Search icon…')"
                     autofocus
                 />
                 <button v-if="search" type="button" @click="search = ''" class="text-muted-foreground hover:text-foreground">
@@ -124,7 +129,7 @@ onMounted(() => {
                     <Spinner class="!size-6" />
                 </div>
                 <div v-else-if="!filtered.length" class="flex items-center justify-center h-full text-muted-foreground">
-                    Не знайдено
+                    {{ t('Nothing found') }}
                 </div>
                 <div v-else class="grid grid-cols-8 gap-0.5">
                     <button
@@ -136,16 +141,18 @@ onMounted(() => {
                             ? 'bg-primary text-primary-foreground'
                             : 'hover:bg-muted text-foreground'"
                         :title="toKebab(name)"
+                        :aria-label="toKebab(name)"
+                        :aria-pressed="toKebab(name) === currentName"
                         @click="select(name)"
                     >
                         <component :is="allIcons[name]" class="size-4" />
                     </button>
                 </div>
                 <p v-if="filtered.length === 200 && search" class="text-center text-xs text-muted-foreground mt-2">
-                    Показано перші 200 результатів
+                    {{ t('Showing first {n} results', { n: 200 }) }}
                 </p>
                 <p v-else-if="!search && allNames.length > 120" class="text-center text-xs text-muted-foreground mt-2 pb-1">
-                    Введіть назву для пошуку по {{ allNames.length }} іконках
+                    {{ t('Type to search {n} icons', { n: allNames.length }) }}
                 </p>
             </div>
         </div>
@@ -157,6 +164,7 @@ onMounted(() => {
       v-if="currentName && !disabled && !field.read_only"
       type="button"
       class="text-muted-foreground hover:text-foreground transition-colors"
+      :aria-label="t('Clear')"
       @click="clear"
     >
       <X class="size-4" />

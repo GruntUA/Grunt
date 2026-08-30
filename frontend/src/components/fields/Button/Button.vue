@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { shallowRef, watchEffect } from 'vue'
+import { computed, shallowRef, watchEffect } from 'vue'
 import type { Component } from 'vue'
 import type { DocField } from '@/types'
-import { Button as ShadcnButton } from '@/components/ui/button'
+import { Button as ShadcnButton, type ButtonVariants } from '@/components/ui/button'
+import { resolveLucideIcon } from '@/lib/lucide'
 
 const props = defineProps<{
   field: DocField
@@ -12,14 +13,18 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
-const iconComponent = shallowRef<Component | null>(null)
+const VARIANTS = new Set<NonNullable<ButtonVariants['variant']>>([
+  'default', 'destructive', 'outline', 'secondary', 'ghost', 'link', 'success', 'warning', 'info',
+])
 
+const variant = computed<ButtonVariants['variant']>(() => {
+  const o = props.field.options as ButtonVariants['variant']
+  return o && VARIANTS.has(o) ? o : 'default'
+})
+
+const iconComponent = shallowRef<Component | null>(null)
 watchEffect(async () => {
-  const name = props.field.icon
-  if (!name) { iconComponent.value = null; return }
-  const pascal = name.split('-').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join('')
-  const lib = await import('@lucide/vue') as unknown as Record<string, Component>
-  iconComponent.value = lib[pascal] ?? null
+  iconComponent.value = await resolveLucideIcon(props.field.icon)
 })
 
 function onClick() {
@@ -29,7 +34,13 @@ function onClick() {
 
 <template>
   <div class="py-1">
-    <ShadcnButton :variant="field.options as any" type="button" :disabled="disabled || field.read_only" class="w-full sm:w-auto gap-2" @click="onClick">
+    <ShadcnButton
+      :variant="variant"
+      type="button"
+      :disabled="disabled || field.read_only"
+      class="w-full gap-2 sm:w-auto"
+      @click="onClick"
+    >
       <component :is="iconComponent" v-if="iconComponent" class="size-4 shrink-0" />
       {{ field.label }}
     </ShadcnButton>

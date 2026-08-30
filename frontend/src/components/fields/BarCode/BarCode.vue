@@ -198,12 +198,14 @@ onUnmounted(stopScan)
           :placeholder="field.placeholder ?? t('Scan or enter manually')"
           :required="field.required"
           :disabled="disabled || field.read_only"
+          :aria-invalid="error ? true : undefined"
+          :aria-label="field.label"
           class="pr-8 w-full"
           @update:model-value="emit('update:modelValue', $event)"
         />
         <CheckCircle2
           v-if="scanSuccess"
-          class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500 animate-in fade-in"
+          class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-success animate-in fade-in"
         />
       </div>
 
@@ -235,12 +237,12 @@ onUnmounted(stopScan)
         <div class="absolute bottom-3 right-3 w-8 h-8 border-b-2 border-r-2 border-primary rounded-br" />
       </div>
       <p class="absolute bottom-2 inset-x-0 text-center text-xs text-white/70">
-        Наведіть камеру на штрих-код або QR-код
+        {{ t('Point the camera at a barcode or QR code') }}
       </p>
     </div>
 
     <!-- Error message -->
-    <div v-if="scanError || error" class="flex items-center gap-1.5 text-xs text-destructive">
+    <div v-if="scanError || error" role="alert" class="flex items-center gap-1.5 text-xs text-destructive">
       <AlertCircle class="w-3.5 h-3.5 shrink-0" />
       {{ scanError || error }}
     </div>

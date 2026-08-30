@@ -1,29 +1,48 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import type { DocField } from '@/types'
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { X } from '@lucide/vue'
+import type { BaseFieldProps } from '@/types'
+import { Input } from '@/components/ui/input'
 
-const props = defineProps<{
-  field: DocField
-  modelValue: unknown
-  disabled?: boolean
-  error?: string
-}>()
-
+const props = defineProps<BaseFieldProps>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
-const hex = ref(String(props.modelValue ?? '#000000'))
 
-watch(() => props.modelValue, (v) => { hex.value = String(v ?? '#000000') })
+const { t } = useI18n()
 
-function onColorChange(val: string) {
-  hex.value = val
-  emit('update:modelValue', val)
+// Local editable text; the model is only updated once it parses to a full hex.
+const text = ref(String(props.modelValue ?? ''))
+watch(() => props.modelValue, (v) => { text.value = String(v ?? '') })
+
+const HEX6 = /^#[0-9a-f]{6}$/i
+
+const readonly = computed(() => !!props.disabled || !!props.field.read_only)
+const hasValue = computed(() => HEX6.test(text.value))
+const invalid = computed(() => !!props.error || (!!text.value && !hasValue.value))
+const clearable = computed(() => !readonly.value && !props.field.required && !!text.value)
+
+// The native swatch always needs a concrete colour.
+const swatch = computed(() => (hasValue.value ? text.value.toLowerCase() : '#000000'))
+
+function commit(v: string | null) {
+  text.value = v ?? ''
+  emit('update:modelValue', v)
 }
 
-function onHexInput(val: string) {
-  hex.value = val
-  if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
-    emit('update:modelValue', val)
-  }
+function normalize(raw: string): string {
+  let s = raw.trim().replace(/\s+/g, '')
+  if (s && !s.startsWith('#')) s = `#${s}`
+  // #rgb → #rrggbb
+  const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(s)
+  if (short) s = `#${short[1]}${short[1]}${short[2]}${short[2]}${short[3]}${short[3]}`
+  return s
+}
+
+function onHexInput(raw: string) {
+  const s = normalize(raw)
+  text.value = s
+  if (HEX6.test(s)) emit('update:modelValue', s.toLowerCase())
+  else if (!s) emit('update:modelValue', null)
 }
 </script>
 
@@ -31,19 +50,30 @@ function onHexInput(val: string) {
   <div class="flex items-center gap-2">
     <input
       type="color"
-      :value="hex"
-      :disabled="disabled || field.read_only"
-      class="h-9 w-12 rounded-md border border-input cursor-pointer p-0.5"
-      @input="onColorChange(($event.target as HTMLInputElement).value)"
+      :value="swatch"
+      :disabled="readonly"
+      :aria-label="t('Pick a colour')"
+      class="size-9 shrink-0 cursor-pointer rounded-md border border-input p-1 disabled:cursor-not-allowed disabled:opacity-60"
+      @input="commit(($event.target as HTMLInputElement).value)"
     />
-    <input
-      type="text"
-      :value="hex"
-      :disabled="disabled || field.read_only"
-      maxlength="7"
-      class="flex-1 rounded-md border border-input bg-transparent px-3 py-2 font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:bg-muted disabled:cursor-not-allowed"
-      :class="{ 'border-destructive focus-visible:ring-destructive': error }"
-      @input="onHexInput(($event.target as HTMLInputElement).value)"
+    <Input
+      :model-value="text"
+      :placeholder="field.placeholder ?? '#000000'"
+      :disabled="readonly"
+      :maxlength="7"
+      :aria-invalid="invalid ? true : undefined"
+      :aria-label="field.label"
+      class="flex-1 font-mono uppercase"
+      @update:model-value="onHexInput(String($event))"
     />
+    <button
+      v-if="clearable"
+      type="button"
+      class="shrink-0 rounded-sm p-1 text-muted-foreground transition-colors hover:text-foreground"
+      :aria-label="t('Clear')"
+      @click="commit(null)"
+    >
+      <X class="size-4" />
+    </button>
   </div>
 </template>

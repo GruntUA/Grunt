@@ -1,70 +1,86 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { DocField } from '@/types'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { Star, StarHalf } from '@lucide/vue'
+import type { BaseFieldProps } from '@/types'
 
-const props = defineProps<{
-  field: DocField
-  modelValue: unknown
-  disabled?: boolean
-  error?: string
-}>()
-
+const props = defineProps<BaseFieldProps>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
-const maxStars = computed(() => Math.round(props.field.max_value ?? 5))
+const { t } = useI18n()
+
+const maxStars = computed(() => Math.max(1, Math.round(props.field.max_value ?? 5)))
 const value = computed(() => {
   const v = Number(props.modelValue)
-  return isNaN(v) ? 0 : v
+  return Number.isFinite(v) ? Math.min(Math.max(v, 0), maxStars.value) : 0
 })
+const readonly = computed(() => !!props.disabled || !!props.field.read_only)
 
-// Hover state (only in edit mode)
 const hoverStar = ref<number | null>(null)
+const shown = computed(() => hoverStar.value ?? value.value)
 
-function starFill(index: number): 'full' | 'half' | 'empty' {
-  const display = hoverStar.value !== null ? hoverStar.value : value.value
-  if (display >= index) return 'full'
-  if (display >= index - 0.5) return 'half'
+function fill(i: number): 'full' | 'half' | 'empty' {
+  if (shown.value >= i) return 'full'
+  if (shown.value >= i - 0.5) return 'half'
   return 'empty'
 }
 
 function setValue(star: number) {
-  if (props.disabled || props.field.read_only) return
-  // Clicking the same value clears it
+  if (readonly.value) return
   emit('update:modelValue', value.value === star ? null : star)
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (readonly.value) return
+  const cur = value.value || 0
+  let next = cur
+  if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = Math.min(maxStars.value, cur + 1)
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') next = Math.max(0, cur - 1)
+  else if (e.key === 'Home') next = 1
+  else if (e.key === 'End') next = maxStars.value
+  else return
+  e.preventDefault()
+  emit('update:modelValue', next === 0 ? null : next)
 }
 </script>
 
 <template>
-  <div class="flex items-center gap-1" :class="disabled || field.read_only ? 'opacity-70 cursor-default' : 'cursor-pointer'"
-    @mouseleave="hoverStar = null">
+  <div
+    class="inline-flex items-center gap-1 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    role="slider"
+    :aria-label="field.label"
+    :aria-valuemin="0"
+    :aria-valuemax="maxStars"
+    :aria-valuenow="value"
+    :aria-valuetext="t('{n} of {max}', { n: value, max: maxStars })"
+    :aria-invalid="error ? true : undefined"
+    :aria-readonly="readonly || undefined"
+    :tabindex="readonly ? -1 : 0"
+    @keydown="onKeydown"
+    @mouseleave="hoverStar = null"
+  >
     <button
       v-for="i in maxStars"
       :key="i"
       type="button"
-      class="focus:outline-none"
-      :class="disabled || field.read_only ? 'pointer-events-none' : ''"
-      @mouseenter="!disabled && !field.read_only && (hoverStar = i)"
+      tabindex="-1"
+      :disabled="readonly"
+      :aria-label="t('Rate {n}', { n: i })"
+      class="disabled:cursor-default"
+      :class="readonly ? '' : 'cursor-pointer'"
+      @mouseenter="!readonly && (hoverStar = i)"
       @click="setValue(i)"
     >
-      <!-- Full star -->
-      <svg v-if="starFill(i) === 'full'" xmlns="http://www.w3.org/2000/svg" class="size-6 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-      </svg>
-      <!-- Half star -->
-      <svg v-else-if="starFill(i) === 'half'" xmlns="http://www.w3.org/2000/svg" class="size-6" viewBox="0 0 24 24">
-        <defs>
-          <linearGradient :id="`half-${i}`">
-            <stop offset="50%" stop-color="#fbbf24"/>
-            <stop offset="50%" style="stop-color: var(--border)"/>
-          </linearGradient>
-        </defs>
-        <path :fill="`url(#half-${i})`" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-      </svg>
-      <!-- Empty star -->
-      <svg v-else xmlns="http://www.w3.org/2000/svg" class="size-6 text-border" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-      </svg>
+      <span v-if="fill(i) === 'half'" class="relative inline-flex size-6">
+        <Star class="absolute inset-0 size-6 fill-transparent text-muted-foreground/40" />
+        <StarHalf class="absolute inset-0 size-6 fill-warning text-warning" />
+      </span>
+      <Star
+        v-else
+        class="size-6"
+        :class="fill(i) === 'full' ? 'fill-warning text-warning' : 'fill-transparent text-muted-foreground/40'"
+      />
     </button>
-    <span v-if="value" class="ml-1.5 text-muted-foreground tabular-nums">{{ value }}</span>
+    <span v-if="value" class="ml-1.5 text-sm text-muted-foreground tabular-nums">{{ value }}</span>
   </div>
 </template>

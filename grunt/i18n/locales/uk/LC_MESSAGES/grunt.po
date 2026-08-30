@@ -354,5 +354,72 @@ msgstr "Очистити"
 msgid "Remove {item}"
 msgstr "Прибрати {item}"
 
+#. ── Select / MultiSelect ─────────────────────────────────────
+msgid "— select —"
+msgstr "— оберіть —"
+
+#. ── Rating ───────────────────────────────────────────────────
+msgid "Rate {n}"
+msgstr "Оцінити на {n}"
+
+msgid "{n} of {max}"
+msgstr "{n} з {max}"
+
+#. ── Color ────────────────────────────────────────────────────
+msgid "Pick a colour"
+msgstr "Обрати колір"
+
+#. ── Password ─────────────────────────────────────────────────
+msgid "Hide"
+msgstr "Сховати"
+
+msgid "Show"
+msgstr "Показати"
+
+msgid "Caps Lock is on"
+msgstr "Увімкнено Caps Lock"
+
+#. ── Geolocation ──────────────────────────────────────────────
+msgid "Latitude"
+msgstr "Широта"
+
+msgid "Longitude"
+msgstr "Довгота"
+
+msgid "My location"
+msgstr "Моє місце"
+
+msgid "Location unavailable"
+msgstr "Геолокація недоступна"
+
+msgid "Could not get your location"
+msgstr "Не вдалося визначити місце"
+
+msgid "Open in map"
+msgstr "Відкрити на мапі"
+
+msgid "Coordinates out of range"
+msgstr "Координати поза діапазоном"
+
+#. ── Icon picker ──────────────────────────────────────────────
+msgid "Choose an icon…"
+msgstr "Обрати іконку…"
+
+msgid "Search icon…"
+msgstr "Пошук іконки…"
+
+msgid "Nothing found"
+msgstr "Нічого не знайдено"
+
+msgid "Showing first {n} results"
+msgstr "Показано перші {n} результатів"
+
+msgid "Type to search {n} icons"
+msgstr "Введіть назву для пошуку по {n} іконках"
+
+#. ── Barcode ──────────────────────────────────────────────────
+msgid "Point the camera at a barcode or QR code"
+msgstr "Наведіть камеру на штрих-код або QR-код"
+
 msgid "{n} available"
 msgstr "{n} доступних"

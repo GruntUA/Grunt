@@ -1,30 +1,26 @@
 <script setup lang="ts">
-import type { DocField } from '@/types'
+import type { BaseFieldProps } from '@/types'
+import { Textarea } from '@/components/ui/textarea'
 
-defineProps<{
-  field: DocField
-  modelValue: unknown
-  disabled?: boolean
-  error?: string
-}>()
-
+const props = defineProps<BaseFieldProps>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
-function autoResize(el: HTMLTextAreaElement) {
-  el.style.height = 'auto'
-  el.style.height = el.scrollHeight + 'px'
+function onUpdate(v: string | number) {
+  emit('update:modelValue', String(v ?? ''))
 }
 </script>
 
 <template>
-  <textarea
-    :value="String(modelValue ?? '')"
+  <Textarea
+    :model-value="String(props.modelValue ?? '')"
     :placeholder="field.placeholder ?? ''"
     :disabled="disabled || field.read_only"
+    :required="field.required"
+    :maxlength="field.max_length || undefined"
+    :aria-invalid="error ? true : undefined"
+    :aria-label="field.label"
     rows="3"
-    class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-foreground placeholder:text-muted-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring resize-none overflow-hidden disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
-    :class="{ 'border-destructive focus-visible:ring-destructive': error }"
-    @input="(e) => { emit('update:modelValue', (e.target as HTMLTextAreaElement).value); autoResize(e.target as HTMLTextAreaElement) }"
-    @focus="(e) => autoResize(e.target as HTMLTextAreaElement)"
+    class="max-h-64 w-full overflow-y-auto"
+    @update:model-value="onUpdate"
   />
 </template>
