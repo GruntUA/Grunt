@@ -1,4 +1,4 @@
-import { ref, computed, watch, inject } from 'vue'
+import { ref, computed, watch, inject, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import type { DocField } from '@/types'
@@ -7,6 +7,13 @@ import type { LinkSearchItem } from '@/core/api/docs'
 import type { TreeNode } from '@/components/ui/tree-select'
 
 export type LinkFiltersFn = (fieldname: string, doc: Record<string, unknown>) => Record<string, string | string[]>
+
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+}
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c])
+}
 
 export function useLinkField(props: {
   field: DocField
@@ -43,6 +50,10 @@ export function useLinkField(props: {
   let debounceTimer: ReturnType<typeof setTimeout>
   let blurTimer: ReturnType<typeof setTimeout>
 
+  // Monotonic tokens so a slow response can't overwrite a newer one.
+  let searchSeq = 0
+  let syncSeq = 0
+
   const getScriptFilters = inject<LinkFiltersFn>('getLinkFilters', () => ({}))
 
   function computeDropdownStyle() {
@@ -61,30 +72,82 @@ export function useLinkField(props: {
     }
   }
 
+  // The teleported dropdown is `position: fixed`, so it must be re-anchored
+  // whenever the input moves under it — page/container scroll, window resize.
+  function reanchorDropdown() {
+    if (isOpen.value) computeDropdownStyle()
+  }
+  watch(isOpen, (open) => {
+    if (open) {
+      window.addEventListener('scroll', reanchorDropdown, true)
+      window.addEventListener('resize', reanchorDropdown)
+    } else {
+      window.removeEventListener('scroll', reanchorDropdown, true)
+      window.removeEventListener('resize', reanchorDropdown)
+    }
+  })
+  onUnmounted(() => {
+    clearTimeout(debounceTimer)
+    clearTimeout(blurTimer)
+    window.removeEventListener('scroll', reanchorDropdown, true)
+    window.removeEventListener('resize', reanchorDropdown)
+  })
+
+  // `link_filters` rarely changes, but resolveFilters() is called on every
+  // search, on every activeFilterChips recompute and inside a JSON.stringify
+  // watcher — so compile the `eval:` expression / parse the JSON once per
+  // distinct raw string instead of rebuilding it each call.
+  let compiledRaw: string | undefined
+  let compiledEval: ((doc: Record<string, unknown>) => unknown) | null = null
+  let compiledJson: Record<string, string> | null = null
+
+  function metaFilters(raw: string, doc: Record<string, unknown>): Record<string, string> {
+    if (raw !== compiledRaw) {
+      compiledRaw = raw
+      compiledEval = null
+      compiledJson = null
+      const trimmed = raw.trim()
+      if (trimmed.startsWith('eval:')) {
+        try {
+          // eslint-disable-next-line no-new-func
+          compiledEval = new Function('doc', `return (${trimmed.slice(5).trim()})`) as (d: Record<string, unknown>) => unknown
+        } catch { /* bad expression in metadata */ }
+      } else {
+        try { compiledJson = JSON.parse(raw) } catch { /* bad JSON in metadata */ }
+      }
+    }
+    if (compiledEval) {
+      try {
+        const r = compiledEval(doc)
+        return typeof r === 'object' && r ? (r as Record<string, string>) : {}
+      } catch { return {} }
+    }
+    return compiledJson ?? {}
+  }
+
   function resolveFilters(): Record<string, string | string[]> {
     const doc = props.doc ?? {}
     const scriptFilters = getScriptFilters(props.field.fieldname, doc)
-    let metaFilters: Record<string, string> = {}
     const raw = props.field.link_filters
-    if (raw) {
-      try {
-        if (raw.trim().startsWith('eval:')) {
-          const expr = raw.trim().slice(5).trim()
-          // eslint-disable-next-line no-new-func
-          const result = new Function('doc', `return (${expr})`)(doc)
-          metaFilters = typeof result === 'object' && result ? result : {}
-        } else {
-          metaFilters = JSON.parse(raw)
-        }
-      } catch { /* ignore */ }
-    }
-    return { ...metaFilters, ...scriptFilters }
+    return { ...(raw ? metaFilters(raw, doc) : {}), ...scriptFilters }
   }
 
-  function transformNodes(nodes: any[]): TreeNode[] {
-    return nodes.map(node => ({
+  interface RawTreeNode {
+    id: string
+    name?: string
+    display_title?: string
+    children?: RawTreeNode[]
+    [key: string]: unknown
+  }
+
+  function transformNodes(nodes: RawTreeNode[]): TreeNode[] {
+    return nodes.map((node) => ({
       key: node.id,
-      label: node.display_title || node[titleField.value] || node.name || node.id,
+      label:
+        node.display_title ||
+        (node[titleField.value] as string | undefined) ||
+        node.name ||
+        node.id,
       children: node.children?.length ? transformNodes(node.children) : undefined,
     }))
   }
@@ -136,9 +199,27 @@ export function useLinkField(props: {
 
   async function syncQueryFromValue(v: unknown) {
     const raw = String(v ?? '')
+    const seq = ++syncSeq
     if (!raw) { query.value = ''; return }
+
+    if (displayCache.has(raw)) { query.value = displayCache.get(raw)!; return }
+
+    // The parent (form / child-table row) usually already carries the resolved
+    // label as `<fieldname>__label` — use it instead of a network round-trip,
+    // but only while it still matches the field's current value.
+    const docLabel = props.doc?.[`${props.field.fieldname}__label`]
+    if (
+      typeof docLabel === 'string' && docLabel &&
+      String(props.doc?.[props.field.fieldname] ?? '') === raw
+    ) {
+      displayCache.set(raw, docLabel)
+      query.value = docLabel
+      return
+    }
+
     query.value = raw
-    query.value = await resolveDisplay(raw)
+    const display = await resolveDisplay(raw)
+    if (seq === syncSeq) query.value = display
   }
 
   watch(() => props.modelValue, (v) => {
@@ -172,19 +253,18 @@ export function useLinkField(props: {
 
   async function search(val: string) {
     if (!props.field.options) return
+    const seq = ++searchSeq
     isLoading.value = true
     try {
-      results.value = await docsApi.linkSearch(
-        props.field.options,
-        val,
-        resolveFilters(),
-      )
+      const hits = await docsApi.linkSearch(props.field.options, val, resolveFilters())
+      if (seq !== searchSeq) return // a newer search already superseded this one
+      results.value = hits
       activeIdx.value = -1
       isOpen.value = true
     } catch {
-      results.value = []
+      if (seq === searchSeq) results.value = []
     } finally {
-      isLoading.value = false
+      if (seq === searchSeq) isLoading.value = false
     }
   }
 
@@ -197,7 +277,10 @@ export function useLinkField(props: {
   function onFocus() {
     clearTimeout(blurTimer)
     computeDropdownStyle()
-    if (!isOpen.value) search(query.value)
+    // When a value is already picked, `query` holds its label — searching for
+    // that exact string just echoes the one row back. Open the default list
+    // instead so the user can switch to another record.
+    if (!isOpen.value) search(isSelected.value ? '' : query.value)
   }
 
   function onBlur() {
@@ -255,10 +338,13 @@ export function useLinkField(props: {
     }
   }
 
+  // Returns an HTML string for v-html: the source text is always HTML-escaped
+  // first (record titles are user data), then the query match is wrapped.
   function highlight(text: string): string {
-    if (!query.value.trim()) return text
-    const escaped = query.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    return text.replace(
+    const safe = escapeHtml(text ?? '')
+    if (!query.value.trim()) return safe
+    const escaped = query.value.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return safe.replace(
       new RegExp(`(${escaped})`, 'gi'),
       '<mark class="bg-primary/20 text-foreground rounded-sm">$1</mark>',
     )
@@ -288,7 +374,7 @@ export function useLinkField(props: {
 
       try {
         const meta = await metaApi.get(props.field.options)
-        const filterField = meta.fields.find((f: any) => f.fieldname === key)
+        const filterField = meta.fields.find((f) => f.fieldname === key)
         if (filterField?.fieldtype === 'Link' && filterField.options) {
           const hits = await docsApi.linkSearch(filterField.options, String(value), {}, 5)
           const match = hits.find(r => r.name === String(value) || r.id === String(value))
@@ -312,7 +398,7 @@ export function useLinkField(props: {
   const activeFilterChips = computed(() =>
     Object.entries(resolveFilters()).map(([key, value]) => {
       if (key.endsWith('__in') && Array.isArray(value)) {
-        return { key, display: `${value.length} доступних` }
+        return { key, display: t('{n} available', { n: value.length }) }
       }
       const cacheKey = `${key}:${String(value)}`
       return { key, display: filterChipLabels.value.get(cacheKey) ?? String(value) }

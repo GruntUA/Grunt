@@ -334,3 +334,22 @@ msgstr[2] "%(count)d вибрано"
 #. ── N+1 detector ──────────────────────────────────────────────
 msgid "Possible N+1 query detected: %(count)d queries in one request (%(path)s). Threshold: %(threshold)d."
 msgstr "Виявлено можливу N+1 проблему: %(count)d запитів за один HTTP-запит (%(path)s). Поріг: %(threshold)d."
+
+#. ── Link field ───────────────────────────────────────────────
+msgid "Search {doctype}…"
+msgstr "Пошук {doctype}…"
+
+msgid "Select {doctype}…"
+msgstr "Оберіть {doctype}…"
+
+msgid "Nothing found for “{query}”"
+msgstr "Нічого не знайдено за запитом «{query}»"
+
+msgid "Filter:"
+msgstr "Фільтр:"
+
+msgid "Clear"
+msgstr "Очистити"
+
+msgid "{n} available"
+msgstr "{n} доступних"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import type { DocField } from '@/types'
 import { Search, X, Loader2, Plus, ArrowUpRight } from '@lucide/vue'
 import { TreeSelect } from '@/components/ui/tree-select'
@@ -32,6 +32,10 @@ const emit = defineEmits<{
   'update:modelValue': [value: unknown]
   'create-new': [doctype: string, preset: string]
 }>()
+
+// Stable ids to wire the combobox input to its teleported listbox for a11y.
+const listboxId = useId()
+const optionId = (i: number) => `${listboxId}-opt-${i}`
 
 const linkField = useLinkField(props, emit)
 const {
@@ -70,7 +74,7 @@ const {
       :options="treeNodes"
       :loading="treeLoading"
       :disabled="disabled || field.read_only"
-      :placeholder="field.placeholder ?? `Оберіть ${field.options ?? ''}...`"
+      :placeholder="field.placeholder ?? t('Select {doctype}…', { doctype: field.options ?? '' })"
       :class="cn('w-full', error && 'border-destructive')"
       @update:model-value="onTreeSelect"
     />
@@ -83,6 +87,15 @@ const {
     >
       <ArrowUpRight class="size-4" />
     </button>
+    <button
+      v-if="isSelected && !disabled && !field.read_only"
+      type="button"
+      class="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+      :title="t('Clear')"
+      @click="clear"
+    >
+      <X class="size-4" />
+    </button>
   </div>
 
   <!-- Regular mode: custom input + dropdown -->
@@ -92,7 +105,7 @@ const {
 
       <input
         :value="query"
-        :placeholder="field.placeholder ?? `Пошук ${field.options ?? ''}...`"
+        :placeholder="field.placeholder ?? t('Search {doctype}…', { doctype: field.options ?? '' })"
         :disabled="disabled || field.read_only"
         :class="[
           inputClass,
@@ -100,6 +113,13 @@ const {
           error ? 'border-destructive focus-visible:ring-destructive' : '',
         ]"
         autocomplete="off"
+        role="combobox"
+        aria-autocomplete="list"
+        :aria-label="field.label"
+        :aria-expanded="isOpen"
+        :aria-controls="listboxId"
+        :aria-activedescendant="isOpen && activeIdx >= 0 ? optionId(activeIdx) : undefined"
+        :aria-invalid="error ? true : undefined"
         @input="onInput(($event.target as HTMLInputElement).value)"
         @focus="onFocus"
         @blur="onBlur"
@@ -122,6 +142,8 @@ const {
             v-if="!disabled && !field.read_only"
             type="button"
             class="text-muted-foreground hover:text-foreground transition-colors"
+            :title="t('Clear')"
+            :aria-label="t('Clear')"
             @mousedown.prevent="clear"
           >
             <X class="size-4" />
@@ -133,7 +155,10 @@ const {
     <Teleport to="body">
     <div
       v-if="isOpen"
+      :id="listboxId"
       data-link-dropdown
+      role="listbox"
+      :aria-label="field.label"
       :style="dropdownStyle"
       class="pointer-events-auto bg-popover border border-border rounded-lg shadow-md overflow-hidden"
     >
@@ -142,6 +167,9 @@ const {
           v-for="(item, i) in results"
           :key="item.id"
           type="button"
+          role="option"
+          :id="optionId(i)"
+          :aria-selected="i === activeIdx"
           :class="[
             'w-full text-left px-3 py-2 text-sm transition-colors flex flex-col gap-0.5',
             i === activeIdx ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50',
@@ -160,7 +188,7 @@ const {
 
       <div v-else class="px-3 py-3 text-muted-foreground text-center">
         <span v-if="isLoading">{{ t('Searching...') }}</span>
-        <span v-else-if="query">Нічого не знайдено для «{{ query }}»</span>
+        <span v-else-if="query">{{ t('Nothing found for “{query}”', { query }) }}</span>
         <span v-else>{{ t('No records') }}</span>
       </div>
 
@@ -168,6 +196,9 @@ const {
         <div class="border-t border-border" />
         <button
           type="button"
+          role="option"
+          :id="optionId(results.length)"
+          :aria-selected="activeIdx === results.length"
           :class="[
             'w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors',
             activeIdx === results.length
@@ -191,7 +222,7 @@ const {
       <template v-if="activeFilterChips.length">
         <div class="border-t border-border" />
         <div class="px-3 py-1.5 flex items-center gap-1.5 flex-wrap">
-          <span class="text-xs text-muted-foreground">Фільтр:</span>
+          <span class="text-xs text-muted-foreground">{{ t('Filter:') }}</span>
           <span
             v-for="chip in activeFilterChips"
             :key="chip.key"
