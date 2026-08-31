@@ -21,7 +21,6 @@ import { useToast } from '@/core/composables/useToast'
 import { formatFull, formatRelative } from '@/core/datetime'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import type { BadgeVariants } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -49,27 +48,7 @@ const imageUrl = computed(() => {
 })
 const isBookmarked = computed(() => !!sb.bundle.value.bookmark)
 
-// ── Status badges ───────────────────────────────────────────────────────────
-const STATUS_VARIANT: Record<string, BadgeVariants['variant']> = {
-  success: 'success', green: 'success',
-  info: 'info', blue: 'info',
-  warn: 'warning', yellow: 'warning', orange: 'warning',
-  danger: 'destructive', red: 'destructive',
-  secondary: 'secondary', gray: 'secondary',
-}
-
-const statusBadge = computed(() => {
-  const cfg = props.doctype.status_config
-  if (!cfg?.field) return null
-  const val = props.document[cfg.field]
-  if (val == null || val === '') return null
-  const ind = cfg.indicators?.find((i) => i.value === String(val))
-  return {
-    label: ind?.label || String(val),
-    variant: (ind && STATUS_VARIANT[ind.color]) || 'secondary',
-  }
-})
-
+// ── Submission state badge (status itself lives in the form toolbar) ─────────
 const docstatusBadge = computed(() => {
   if (!props.doctype.is_submittable) return null
   return (
@@ -174,27 +153,20 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
       </div>
     </div>
 
-    <!-- Identity: id + status -->
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center gap-1.5">
-        <code class="text-xs font-mono font-semibold text-foreground truncate">{{ document.name }}</code>
-        <button
-          class="shrink-0 text-muted-foreground/60 hover:text-foreground transition-colors"
-          title="Скопіювати ідентифікатор"
-          @click="copyId"
-        >
-          <Check v-if="copied" class="size-3.5 text-success" />
-          <Copy v-else class="size-3.5" />
-        </button>
-      </div>
-      <div v-if="statusBadge || docstatusBadge" class="flex flex-wrap gap-1.5">
-        <Badge v-if="statusBadge" :variant="statusBadge.variant" class="text-xs h-5 px-1.5">
-          {{ statusBadge.label }}
-        </Badge>
-        <Badge v-if="docstatusBadge" :variant="docstatusBadge.variant" class="text-xs h-5 px-1.5">
-          {{ docstatusBadge.label }}
-        </Badge>
-      </div>
+    <!-- Identity: id -->
+    <div class="flex items-center gap-1.5">
+      <code class="text-xs font-mono font-semibold text-foreground truncate">{{ document.name }}</code>
+      <button
+        class="shrink-0 text-muted-foreground/60 hover:text-foreground transition-colors"
+        title="Скопіювати ідентифікатор"
+        @click="copyId"
+      >
+        <Check v-if="copied" class="size-3.5 text-success" />
+        <Copy v-else class="size-3.5" />
+      </button>
+      <Badge v-if="docstatusBadge" :variant="docstatusBadge.variant" class="ml-auto text-xs h-5 px-1.5">
+        {{ docstatusBadge.label }}
+      </Badge>
     </div>
 
     <!-- Meta: who / when, compact -->

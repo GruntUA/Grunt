@@ -21,6 +21,7 @@ import {
   PanelRight,
 } from '@lucide/vue'
 import { useDocPanel } from '@/components/views/sidebar/useDocPanel'
+import { resolveStatusBadge } from '@/core/status'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -180,20 +181,7 @@ function menuItemIcon(item: any): Component | null {
   return item.icon as Component
 }
 
-const documentStatus = computed(() => {
-  return props.document?.status ?? null
-})
-
-const statusBadgeVariant = computed(() => {
-  const status = documentStatus.value
-  if (!status) return 'secondary'
-  const lower = String(status).toLowerCase()
-  if (['active', 'enabled', 'published'].includes(lower)) return 'success'
-  if (['inactive', 'disabled', 'draft'].includes(lower)) return 'info'
-  if (['archived', 'deleted'].includes(lower)) return 'warning'
-  if (['error', 'failed'].includes(lower)) return 'destructive'
-  return 'secondary'
-})
+const statusBadge = computed(() => resolveStatusBadge(props.dt, props.document))
 
 const menuItems = computed(() => {
   const items: any[] = []
@@ -269,8 +257,8 @@ const menuItems = computed(() => {
     <div class="flex items-center justify-between gap-4 px-4 py-2.5">
       <div class="min-w-0 flex items-center gap-3">
         <h1 class="text-xl font-semibold text-foreground truncate selection:bg-primary/20">{{ docTitle }}</h1>
-        <Badge v-if="documentStatus" :variant="statusBadgeVariant" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
-          {{ documentStatus }}
+        <Badge v-if="statusBadge" :variant="statusBadge.variant" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
+          {{ statusBadge.label }}
         </Badge>
         <Badge v-if="isDirty" variant="warning" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
           {{ t('Unsaved') }}
