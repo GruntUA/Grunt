@@ -25,15 +25,41 @@ const emit = defineEmits<{
 
 const isOpen = ref(false)
 const anchorEl = ref<HTMLElement | null>(null)
+const triggerEl = ref<HTMLElement | null>(null)
 const search = ref('')
 const expandedKeys = ref<Record<string, boolean>>({})
 
-function toggle(event: Event) {
-  if (props.disabled) return
-  if (isOpen.value) { isOpen.value = false; return }
-  anchorEl.value = event.currentTarget as HTMLElement
+function openTree() {
+  anchorEl.value = triggerEl.value
   search.value = ''
   isOpen.value = true
+}
+
+/**
+ * The trigger is a plain focusable element (not a <button>) so the selected
+ * label stays selectable — the user can drag over it to copy the value.
+ * A click that ends such a drag must not also open the tree.
+ */
+function selectionInsideTrigger(): boolean {
+  const sel = window.getSelection()
+  if (!sel || sel.isCollapsed || !sel.toString().trim()) return false
+  return !!(sel.anchorNode && triggerEl.value?.contains(sel.anchorNode))
+}
+
+function onTriggerClick() {
+  if (props.disabled || selectionInsideTrigger()) return
+  if (isOpen.value) { isOpen.value = false; return }
+  openTree()
+}
+
+function onTriggerKeydown(e: KeyboardEvent) {
+  if (props.disabled) return
+  if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+    e.preventDefault()
+    if (!isOpen.value) openTree()
+  } else if (e.key === 'Escape' && isOpen.value) {
+    isOpen.value = false
+  }
 }
 
 function findNode(nodes: TreeNode[], key: string): TreeNode | null {
@@ -116,23 +142,38 @@ function onClear(e: Event) {
 </script>
 
 <template>
-  <button
-    type="button"
-    :disabled="disabled"
+  <div
+    ref="triggerEl"
+    role="button"
+    aria-haspopup="tree"
+    :aria-expanded="isOpen"
+    :aria-disabled="disabled || undefined"
+    :tabindex="disabled ? undefined : 0"
     :class="cn(
-      'border-input text-foreground dark:bg-input/30 dark:hover:bg-input/50 flex h-9 w-full items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-60',
+      'border-input text-foreground dark:bg-input/30 dark:hover:bg-input/50 flex h-9 w-full items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3',
+      disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
       !selectedLabel && 'text-muted-foreground',
       props.class,
     )"
-    @click="toggle"
+    @click="onTriggerClick"
+    @keydown="onTriggerKeydown"
   >
-    <span class="truncate">{{ selectedLabel || placeholder }}</span>
+    <span class="truncate" :class="selectedLabel && 'cursor-text select-text'">{{ selectedLabel || placeholder }}</span>
     <span class="flex items-center gap-1 shrink-0">
-      <X v-if="selectedLabel" class="size-3.5 opacity-50 hover:opacity-100" @click.stop="onClear" />
+      <button
+        v-if="selectedLabel && !disabled"
+        type="button"
+        class="text-muted-foreground/70 transition-colors hover:text-foreground"
+        aria-label="Очистити"
+        @click.stop="onClear"
+        @mousedown.stop
+      >
+        <X class="size-3.5" />
+      </button>
       <Spinner v-if="loading" class="size-4" />
-      <ChevronDown v-else class="size-4 opacity-50" />
+      <ChevronDown v-else class="size-4 opacity-50 pointer-events-none" />
     </span>
-  </button>
+  </div>
 
   <Popover v-model:open="isOpen">
     <PopoverAnchor :reference="anchorEl ?? undefined" />

@@ -75,7 +75,7 @@ const {
       :loading="treeLoading"
       :disabled="disabled || field.read_only"
       :placeholder="field.placeholder ?? t('Select {doctype}…', { doctype: field.options ?? '' })"
-      :class="cn('w-full', error && 'border-destructive')"
+      :class="cn('min-w-0 flex-1', error && 'border-destructive')"
       @update:model-value="onTreeSelect"
     />
     <button
