@@ -15,9 +15,8 @@ Two link shapes are supported:
   parents that own a matching child row. ``table_fieldname`` optionally pins
   which Table field on ``link_doctype`` holds those rows.
 
-When a DocType declares no links, they are derived on the fly from every
-reverse Link field across the registry (mirrors the sidebar's current
-behaviour) so the panel works with zero configuration.
+The ``links`` table is authoritative: a DocType that declares no rows shows
+no connection chips. Backlinks are never derived from reverse Link fields.
 """
 
 from __future__ import annotations
@@ -35,57 +34,6 @@ from grunt.metadata.registry import doctype_registry
 logger = structlog.get_logger()
 
 _PREVIEW_LIMIT = 5
-
-
-async def _derive_links(doctype: str) -> list[DocTypeLink]:
-    """Synthesize link rows from every reverse Link field in the registry."""
-    derived: list[DocTypeLink] = []
-    seen: set[tuple[str, str, str | None]] = set()
-    all_dts = await doctype_registry.list_all()
-
-    for dt in all_dts:
-        if not dt.name:
-            continue
-        for field in dt.fields:
-            if field.fieldtype != "Link" or field.options != doctype:
-                continue
-
-            if dt.is_child:
-                # Find the parent DocType + Table field that holds this child.
-                for parent in all_dts:
-                    tbl = next(
-                        (
-                            f
-                            for f in parent.fields
-                            if f.fieldtype == "Table" and f.options == dt.name
-                        ),
-                        None,
-                    )
-                    if not tbl:
-                        continue
-                    key = (parent.name, field.fieldname, dt.name)
-                    if key in seen:
-                        continue
-                    seen.add(key)
-                    derived.append(
-                        DocTypeLink(
-                            link_doctype=parent.name,
-                            link_fieldname=field.fieldname,
-                            parent_doctype=dt.name,
-                            table_fieldname=tbl.fieldname,
-                            group="",
-                        )
-                    )
-            else:
-                key = (dt.name, field.fieldname, None)
-                if key in seen:
-                    continue
-                seen.add(key)
-                derived.append(
-                    DocTypeLink(link_doctype=dt.name, link_fieldname=field.fieldname, group="")
-                )
-
-    return derived
 
 
 async def _child_link_stats(
@@ -175,14 +123,9 @@ async def get_connections(doctype: str, doc_id: str) -> dict[str, Any]:
     doc_name = doc.get("name") or doc_id
 
     dt = await doctype_registry.get(doctype)
-    # An empty `links` table means "derive from reverse Link fields"; once a
-    # DocType declares any rows, the table is authoritative (hidden rows stay
-    # hidden, they don't fall back to derivation).
-    declared = dt.links or []
-    if declared:
-        links = [link for link in declared if not link.hidden]
-    else:
-        links = await _derive_links(doctype)
+    # The `links` table is authoritative. A DocType that declares no rows shows
+    # no connection chips — backlinks are never derived from reverse Link fields.
+    links = [link for link in (dt.links or []) if not link.hidden]
 
     groups: dict[str, list[dict[str, Any]]] = {}
     for link in links:

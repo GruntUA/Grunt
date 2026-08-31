@@ -77,14 +77,8 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
 </script>
 
 <template>
-  <div class="flex flex-col gap-3">
+  <div v-if="loading || hasAny" class="flex flex-col gap-3">
     <p v-if="loading" class="text-xs text-muted-foreground px-0.5">Завантаження зв'язків…</p>
-    <p
-      v-else-if="!hasAny"
-      class="text-sm text-muted-foreground px-0.5 py-2"
-    >
-      Немає пов'язаних документів.
-    </p>
 
     <div
       v-for="group in (hasAny ? (result?.groups ?? []) : [])"

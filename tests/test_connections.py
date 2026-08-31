@@ -1,8 +1,8 @@
 """Document Connections service — grouped counts + previews behind the
 "Зв'язки" panel.
 
-Covers the two link shapes and the zero-config path where a DocType declares
-no ``links`` and they are derived from reverse Link fields.
+Covers the two link shapes and the rule that the ``links`` table is
+authoritative: a DocType with no declared rows shows no connection chips.
 """
 
 from __future__ import annotations
@@ -48,19 +48,13 @@ async def conn_doctypes(ctx):
 
 
 @pytest.mark.asyncio
-async def test_derived_connections_count_and_preview(ctx, conn_doctypes):
-    """With no declared links, ConnAsset connects to ConnOrder via the reverse Link."""
+async def test_no_connections_without_declared_links(ctx, conn_doctypes):
+    """A DocType with no declared `links` shows no chips — nothing is derived."""
     from grunt.document.connections import get_connections
 
     res = await get_connections("ConnAsset", conn_doctypes["asset"]["name"])
     links = [link for g in res["groups"] for link in g["links"]]
-
-    order_link = next(link for link in links if link["link_doctype"] == "ConnOrder")
-    assert order_link["fieldname"] == "asset"
-    assert order_link["via_child"] is False
-    assert order_link["count"] == 2
-    titles = {row["title"] for row in order_link["preview"]}
-    assert titles == {"Order 1", "Order 2"}
+    assert links == []
 
 
 def test_incomplete_and_null_link_rows_are_tolerated():
@@ -84,7 +78,7 @@ def test_incomplete_and_null_link_rows_are_tolerated():
 
 
 @pytest.mark.asyncio
-async def test_declared_links_win_over_derivation(ctx, conn_doctypes):
+async def test_declared_links_are_used_verbatim(ctx, conn_doctypes):
     """An explicit `links` row is used verbatim (label override, grouping)."""
     from grunt.api.v1.meta import get_doctype, save_doctype
     from grunt.document.connections import get_connections
