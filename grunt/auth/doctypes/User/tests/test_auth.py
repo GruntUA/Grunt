@@ -212,3 +212,89 @@ async def test_register_rejects_weak_password(ctx):
             first_name="Strong",
             last_name="Pw",
         )
+
+
+@pytest.mark.asyncio
+async def test_signup_approval_flow(ctx, client: AsyncClient):
+    """require_signup_approval: a self-registered user is 'pending' and cannot
+    log in until a superadmin approves them."""
+    from grunt.auth.doctypes.User.user import create_user
+
+    # First user = superadmin (bootstrap), always approved, does the approving.
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        await create_user("root@grunt.example.com", "Str0ngPass", "Root", "Admin", None)
+        await ctx.db._session().commit()
+    await _set_settings(ctx, allow_user_registration=True, require_signup_approval=True)
+
+    # Self sign-up → pending.
+    reg = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
+        json={
+            "email": "newbie@grunt.example.com",
+            "password": "Str0ngPass",
+            "full_name": "New Bie",
+        },
+    )
+    assert reg.status_code == 200, reg.text
+    assert reg.json()["data"]["approval_pending"] is True
+
+    # Login is refused with a soft 'approval_pending' payload, no tokens.
+    login = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        json={"email": "newbie@grunt.example.com", "password": "Str0ngPass"},
+    )
+    assert login.status_code == 200, login.text
+    body = login.json()["data"]
+    assert body["approval_pending"] is True
+    assert body["access_token"] is None
+
+    # Superadmin approves.
+    admin_login = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        json={"email": "root@grunt.example.com", "password": "Str0ngPass"},
+    )
+    headers = {"Authorization": f"Bearer {admin_login.json()['data']['access_token']}"}
+
+    pending = await client.get(
+        "/api/v1/method/grunt.auth.doctypes.User.user.list_pending_users_api", headers=headers
+    )
+    assert [u["email"] for u in pending.json()["data"]] == ["newbie@grunt.example.com"]
+
+    approve = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.approve_user_api",
+        json={"user_id": "newbie@grunt.example.com"},
+        headers=headers,
+    )
+    assert approve.status_code == 200, approve.text
+
+    # Now the user can log in for real.
+    ok = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        json={"email": "newbie@grunt.example.com", "password": "Str0ngPass"},
+    )
+    data = ok.json()["data"]
+    assert data["access_token"]
+    assert not data.get("approval_pending")
+
+
+@pytest.mark.asyncio
+async def test_signup_approval_off_by_default(ctx, client: AsyncClient):
+    """Without the setting, registration behaves as before (immediate login)."""
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        await _set_settings(ctx, allow_user_registration=True)
+
+    reg = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
+        json={
+            "email": "immediate@grunt.example.com",
+            "password": "Str0ngPass",
+            "full_name": "Imm Ediate",
+        },
+    )
+    assert reg.json()["data"]["approval_pending"] is False
+
+    login = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        json={"email": "immediate@grunt.example.com", "password": "Str0ngPass"},
+    )
+    assert login.json()["data"]["access_token"]

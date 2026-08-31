@@ -46,6 +46,7 @@ class User(Document):
     bio: str | None
     is_active: bool
     is_superadmin: bool
+    signup_state: str
     password: str | None
     hashed_password: str | None
     theme: str
@@ -360,6 +361,30 @@ async def _assign_default_role(user_id: str | None) -> None:
             await grunt.new_doc("UserRole", {"user_id": user_id, "role_name": role})
 
 
+async def _apply_signup_approval(user: User) -> bool:
+    """Put a freshly self-registered user in the ``pending`` state when
+    ``require_signup_approval`` is on, so they can't sign in until an admin
+    approves them. Superadmins (the bootstrap first user) are never held.
+
+    Returns True when the user was left pending.
+    """
+    from grunt.context import require_session
+    from grunt.site.settings import get_setting
+
+    if user.is_superadmin or not await get_setting("require_signup_approval", False):
+        return False
+
+    assert user.id is not None
+    async with grunt.system_context(require_session()):
+        await grunt.db.set_value(
+            "User", user.id, {"signup_state": "pending", "is_active": False}
+        )
+    user.data["signup_state"] = "pending"
+    user.data["is_active"] = False
+    logger.info("user.pending_approval", email=user.email)
+    return True
+
+
 @grunt.whitelist(allow_guest=True)
 async def register(
     email: str,
@@ -380,7 +405,8 @@ async def register(
 
     user = await create_user(email, password, first_name or "", last_name or "", middle_name)
     await _assign_default_role(user.id)
-    return UserPublic.dump(user)
+    pending = await _apply_signup_approval(user)
+    return {**UserPublic.dump(user), "approval_pending": pending}
 
 
 @grunt.whitelist(allow_guest=True)
@@ -396,7 +422,8 @@ async def register_full_name_api(email: str, password: str, full_name: str) -> d
     last_name = name_parts[1] if len(name_parts) > 1 else ""
     user = await create_user(email, password, first_name, last_name, None)
     await _assign_default_role(user.id)
-    return _auth_user_dump(user)
+    pending = await _apply_signup_approval(user)
+    return {**_auth_user_dump(user), "approval_pending": pending}
 
 
 @grunt.whitelist(allow_guest=True)
@@ -407,12 +434,7 @@ async def login_api(
     user_agent: str | None = None,
 ) -> dict[str, Any]:
     """Authenticate a user and issue auth tokens or MFA challenge token."""
-    from grunt.auth.service import (
-        create_access_token,
-        create_mfa_token,
-        create_refresh_token,
-        session_ttl_minutes,
-    )
+    from grunt.auth.login import issue_login
 
     try:
         user = await authenticate(email, password)
@@ -424,30 +446,7 @@ async def login_api(
     if user is None:
         grunt.throw("Incorrect email or password", "UNAUTHORIZED")
 
-    if user.mfa_enabled:
-        return {
-            "access_token": None,
-            "refresh_token": None,
-            "mfa_token": create_mfa_token(user),
-            "token_type": "bearer",
-            "user": _auth_user_dump(user),
-            "mfa_required": True,
-        }
-
-    assert user.id is not None
-    ttl = await session_ttl_minutes()
-    access_token = create_access_token(user, ttl)
-    refresh_token = await create_refresh_token(user.id, ttl)
-    await _track_login_session(user.id, ip_address, user_agent)
-
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "mfa_token": None,
-        "token_type": "bearer",
-        "user": _auth_user_dump(user),
-        "mfa_required": False,
-    }
+    return await issue_login(user, ip_address=ip_address, user_agent=user_agent)
 
 
 @grunt.whitelist(allow_guest=True)
@@ -458,13 +457,9 @@ async def mfa_login_api(
     user_agent: str | None = None,
 ) -> dict[str, Any]:
     """Verify MFA challenge token+code and issue full auth tokens."""
+    from grunt.auth.login import issue_login
     from grunt.auth.mfa import check_mfa_code
-    from grunt.auth.service import (
-        create_access_token,
-        create_refresh_token,
-        session_ttl_minutes,
-        verify_mfa_token,
-    )
+    from grunt.auth.service import verify_mfa_token
 
     payload = verify_mfa_token(mfa_token)
     if not payload:
@@ -480,20 +475,10 @@ async def mfa_login_api(
         logger.error("auth.mfa_verify_error", error=str(exc))
         raise
 
-    assert user.id is not None
-    ttl = await session_ttl_minutes()
-    access_token = create_access_token(user, ttl)
-    refresh_token = await create_refresh_token(user.id, ttl)
-    await _track_login_session(user.id, ip_address, user_agent)
-
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "mfa_token": None,
-        "token_type": "bearer",
-        "user": _auth_user_dump(user),
-        "mfa_required": False,
-    }
+    # honor_mfa=False: the second factor has just been proven here.
+    return await issue_login(
+        user, ip_address=ip_address, user_agent=user_agent, honor_mfa=False
+    )
 
 
 @grunt.whitelist()
@@ -614,10 +599,50 @@ async def list_users_detailed_api() -> list[dict[str, Any]]:
             "theme": u.theme,
             "avatar": u.avatar,
             "mfa_enabled": bool(u.mfa_enabled),
+            "is_active": bool(u.is_active),
+            "signup_state": getattr(u, "signup_state", None) or "approved",
             "created_at": u.created_at.isoformat() if u.created_at else None,
         }
         for u in users
     ]
+
+
+@grunt.whitelist(roles=["superadmin"])
+async def list_pending_users_api() -> list[dict[str, Any]]:
+    """Self-registered users awaiting approval. Superadmin only."""
+    rows = await grunt.get_list(
+        "User",
+        filters={"signup_state": "pending"},
+        fields=["name", "email", "full_name", "created_at"],
+        order_by="created_at asc",
+        limit=500,
+    )
+    return rows
+
+
+async def _set_signup_state(user_id: str, state: str) -> bool:
+    user = await get_user_by_id(user_id)
+    if not user or not user.id:
+        grunt.throw("Користувача не знайдено", "NOT_FOUND")
+    await grunt.set_value(
+        "User",
+        user.id,
+        {"signup_state": state, "is_active": state == "approved"},
+    )
+    logger.info("user.signup_state_changed", email=user.email, state=state)
+    return True
+
+
+@grunt.whitelist(roles=["superadmin"])
+async def approve_user_api(user_id: str) -> bool:
+    """Approve a pending registration — the user can now sign in. Superadmin only."""
+    return await _set_signup_state(user_id, "approved")
+
+
+@grunt.whitelist(roles=["superadmin"])
+async def reject_user_api(user_id: str) -> bool:
+    """Reject a pending registration. Superadmin only."""
+    return await _set_signup_state(user_id, "rejected")
 
 
 @grunt.whitelist(roles=["superadmin"])

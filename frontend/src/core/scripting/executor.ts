@@ -185,7 +185,22 @@ export interface GruntProxy {
   show_alert: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void
   prompt: (labelOrOpts: string | { label: string; fieldtype?: string; title?: string }, title?: string) => Promise<string | null>
   warn: (title: string, message: string, primaryLabel?: string) => Promise<boolean>
-  form: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: DialogSize }) => Promise<Record<string, unknown> | null>
+  form: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: DialogSize; buttons?: unknown[] }) => Promise<Record<string, unknown> | null>
+  /** Frappe-style selectable list/table dialog. Resolves with picked row(s) or null. */
+  select: (opts: {
+    title: string
+    columns: { key: string; label: string; width?: string; align?: 'left' | 'right' | 'center' }[]
+    rows: Record<string, unknown>[]
+    rowKey?: string
+    multiple?: boolean
+    searchable?: boolean
+    primaryLabel?: string
+    size?: DialogSize
+    description?: string
+    maxHeight?: string
+    fields?: unknown[]
+    buttons?: unknown[]
+  }) => Promise<Record<string, unknown>[] | Record<string, unknown> | null>
   show_progress: (title: string, count: number, total: number, description?: string) => void
   /**
    * Subscribe to a WebSocket event on the current document channel.
@@ -217,6 +232,22 @@ export interface GruntProxy {
     form: {
       add_standard_menu_items: (frm: FormProxy) => void
     }
+  }
+  /**
+   * WebAuthn / passkey helpers (drive `/api/v1/auth/webauthn/*` from a client
+   * script). `mode: 'cross-device'` registers/uses a passkey that lives on a
+   * phone (QR / Bluetooth).
+   *
+   * ```js
+   * const { label } = await grunt.passkey.register('iPhone', { mode: 'cross-device' })
+   * ```
+   */
+  passkey: {
+    isSupported: () => boolean
+    register: (label?: string, opts?: { mode?: 'cross-device' }) => Promise<{ name: string; label: string }>
+    list: () => Promise<Array<{ name: string; label: string; last_used_at: string | null }>>
+    rename: (name: string, label: string) => Promise<void>
+    remove: (name: string) => Promise<void>
   }
 }
 
@@ -420,6 +451,7 @@ export function createGruntProxy(
     prompt?: (labelOrOpts: string | { label: string; fieldtype?: string; title?: string }, title?: string) => Promise<string | null>
     warn?: (title: string, message: string, primaryLabel?: string) => Promise<boolean>
     form?: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: DialogSize }) => Promise<Record<string, unknown> | null>
+    select?: (opts: Record<string, unknown>) => Promise<unknown>
     showProgress?: (title: string, count: number, total: number, description?: string) => void
     navigateTo?: (href: string, inNewTab: boolean) => void
   } = {},
@@ -664,6 +696,13 @@ export function createGruntProxy(
       return null
     },
 
+    async select(opts) {
+      if (callbacks.select) {
+        return callbacks.select(opts as Record<string, unknown>) as any
+      }
+      return null
+    },
+
     show_progress(title: string, count: number, total: number, description?: string) {
       callbacks.showProgress?.(title, count, total, description)
     },
@@ -699,6 +738,35 @@ export function createGruntProxy(
     ui: {
       form: {
         add_standard_menu_items: addStandardFormMenuItems,
+      },
+    },
+
+    passkey: {
+      isSupported() {
+        return typeof window !== 'undefined' && !!window.PublicKeyCredential
+      },
+      async register(label?: string, opts?: { mode?: 'cross-device' }) {
+        const { authApi } = await import('@/core/api/auth')
+        const { createPasskey, isWebAuthnSupported } = await import('@/core/composables/useWebAuthn')
+        if (!isWebAuthnSupported()) throw new Error('Цей браузер не підтримує ключі доступу')
+        const { options, challenge_token } = await authApi.enrollBegin(
+          'webauthn',
+          opts?.mode ? { mode: opts.mode } : {},
+        )
+        const credential = await createPasskey(options)
+        return authApi.enrollComplete('webauthn', { challenge_token, response: credential, label })
+      },
+      async list() {
+        const { authApi } = await import('@/core/api/auth')
+        return authApi.listPasskeys()
+      },
+      async rename(name: string, label: string) {
+        const { authApi } = await import('@/core/api/auth')
+        await authApi.renamePasskey(name, label)
+      },
+      async remove(name: string) {
+        const { authApi } = await import('@/core/api/auth')
+        await authApi.deletePasskey(name)
       },
     },
   }

@@ -1,199 +1,91 @@
-"""OAuth2 / SSO endpoints — Google and Microsoft OIDC.
+"""OAuth2 / OIDC redirect endpoints — Google and Microsoft.
 
-Requires the ``oauth`` optional extras::
+The provider logic lives in :mod:`grunt.auth.providers.oauth`; these routes are
+just the redirect plumbing the IdP needs (the ``/callback`` path is the
+registered redirect URI, so it must keep its shape).
 
-    uv pip install grunt[oauth]
-
-Configuration (in .env or environment variables)::
+Configuration (``.env`` / environment)::
 
     OAUTH_GOOGLE_CLIENT_ID=...
     OAUTH_GOOGLE_CLIENT_SECRET=...
     OAUTH_MICROSOFT_CLIENT_ID=...
     OAUTH_MICROSOFT_CLIENT_SECRET=...
-    OAUTH_MICROSOFT_TENANT_ID=common   # or specific tenant UUID
-    APP_URL=https://app.example.com    # used to build the callback URL
+    OAUTH_MICROSOFT_TENANT_ID=common
+    APP_URL=https://app.example.com
 
 Flow:
 
-1. Frontend redirects user to ``GET /api/v1/oauth/{provider}/authorize``
-   which returns the provider's authorization URL.
-2. Provider redirects back to ``GET /api/v1/oauth/{provider}/callback?code=...``
-3. Backend exchanges code for tokens, fetches the user's profile, finds or
-   creates a local User, and returns a Grunt access + refresh token pair.
+1. Frontend fetches ``GET /api/v1/oauth/{provider}/authorize`` and redirects the
+   browser to ``data.url``.
+2. IdP redirects back to ``GET /api/v1/oauth/{provider}/callback?code=...``.
+3. This exchanges the code, finds/creates the local User, then **302-redirects
+   the browser back to the SPA** at ``{APP_URL}/login#access_token=...`` (tokens
+   in the URL fragment — never sent to a server). ``Login.vue`` consumes the
+   fragment, stores the pair and strips it from the URL.
 """
 
 from __future__ import annotations
 
-from typing import Any
+from urllib.parse import urlencode
 
-from fastapi import HTTPException
+from fastapi import Request
+from fastapi.responses import RedirectResponse
 
+from grunt.api.messages import ApplicationError
 from grunt.api.router import GruntRouter
 from grunt.api.v1.schemas.response import ok
-from grunt.app import grunt
+from grunt.auth import providers as auth_providers
+from grunt.auth.login import issue_login
+from grunt.auth.providers.base import AuthFlowContext
 from grunt.config import settings
-from grunt.utils.optional_deps import require_extra
 
 router = GruntRouter(prefix="", tags=["oauth"], optional_auth=True)
 
-# ── Provider registry ─────────────────────────────────────────────────────────
 
-_GOOGLE_CONF_URL = "https://accounts.google.com/.well-known/openid-configuration"
-_MICROSOFT_CONF_URL = (
-    "https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration"
-)
-
-
-def _require_authlib() -> Any:
-    def _load():
-        from authlib.integrations.httpx_client import AsyncOAuth2Client
-
-        return AsyncOAuth2Client
-
-    return require_extra(_load, "oauth")
-
-
-def _callback_url(provider: str) -> str:
-    return f"{settings.app_url}/api/v1/oauth/{provider}/callback"
-
-
-def _get_provider_config(provider: str) -> dict:
-    """Return client_id, client_secret, and OIDC discovery URL for the provider."""
-    if provider == "google":
-        if not settings.oauth_google_client_id:
-            raise HTTPException(501, detail="Google OAuth is not configured")
-        return {
-            "client_id": settings.oauth_google_client_id,
-            "client_secret": settings.oauth_google_client_secret,
-            "conf_url": _GOOGLE_CONF_URL,
-            "scope": "openid email profile",
-        }
-    if provider == "microsoft":
-        if not settings.oauth_microsoft_client_id:
-            raise HTTPException(501, detail="Microsoft OAuth is not configured")
-        return {
-            "client_id": settings.oauth_microsoft_client_id,
-            "client_secret": settings.oauth_microsoft_client_secret,
-            "conf_url": _MICROSOFT_CONF_URL.format(tenant=settings.oauth_microsoft_tenant_id),
-            "scope": "openid email profile",
-        }
-    raise HTTPException(400, detail=f"Unknown OAuth provider: {provider}")
-
-
-# ── Endpoints ─────────────────────────────────────────────────────────────────
+def _spa_redirect(fragment: dict[str, str]) -> RedirectResponse:
+    base = settings.app_url.rstrip("/")
+    return RedirectResponse(f"{base}/login#{urlencode(fragment)}", status_code=302)
 
 
 @router.get("/{provider}/authorize")
-async def oauth_authorize(provider: str) -> dict:
-    """Return the authorization URL to redirect the user to.
-
-    The frontend should redirect the browser to ``data.url``.
-    """
-    oauth_client_cls = _require_authlib()
-    cfg = _get_provider_config(provider)
-
-    import httpx
-
-    # Fetch OIDC discovery document to get the authorization_endpoint
-    async with httpx.AsyncClient() as http:
-        resp = await http.get(cfg["conf_url"])
-        resp.raise_for_status()
-        oidc = resp.json()
-
-    client = oauth_client_cls(
-        client_id=cfg["client_id"],
-        redirect_uri=_callback_url(provider),
-        scope=cfg["scope"],
-    )
-    url, _state = client.create_authorization_url(oidc["authorization_endpoint"])
-    await client.aclose()
-
-    return ok({"url": url})
+async def oauth_authorize(provider: str, request: Request) -> dict:
+    """Return the IdP authorization URL for the frontend to redirect to."""
+    prov = auth_providers.get(provider)
+    result = await prov.begin(AuthFlowContext(request=request))
+    return ok({"url": result["redirect_url"]})
 
 
 @router.get("/{provider}/callback")
-async def oauth_callback(provider: str, code: str) -> dict:
-    """Exchange the authorization code for Grunt tokens.
+async def oauth_callback(
+    provider: str,
+    request: Request,
+    code: str | None = None,
+    error: str | None = None,
+) -> RedirectResponse:
+    """Exchange the authorization code and bounce back into the SPA."""
+    if error or not code:
+        return _spa_redirect({"error": error or "missing_code"})
 
-    Returns the same token payload shape as
-    ``grunt.auth.doctypes.User.user.login_api``.
-    """
-    oauth_client_cls = _require_authlib()
-    cfg = _get_provider_config(provider)
-
-    import httpx
-
-    from grunt.auth.doctypes.User.user import (
-        create_user,
-        get_user_by_email,
-    )
-    from grunt.auth.service import (
-        create_access_token,
-        create_refresh_token,
-        session_ttl_minutes,
-    )
-
-    # Fetch OIDC discovery document
-    async with httpx.AsyncClient() as http:
-        oidc_resp = await http.get(cfg["conf_url"])
-        oidc_resp.raise_for_status()
-        oidc = oidc_resp.json()
-
-    # Exchange code for tokens and fetch user info
-    oa_client = oauth_client_cls(
-        client_id=cfg["client_id"],
-        client_secret=cfg["client_secret"],
-        redirect_uri=_callback_url(provider),
-        scope=cfg["scope"],
-    )
     try:
-        await oa_client.fetch_token(
-            oidc["token_endpoint"],
-            code=code,
-            grant_type="authorization_code",
+        prov = auth_providers.get(provider)
+        ctx = AuthFlowContext(
+            request=request,
+            data={"code": code},
+            ip_address=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
         )
-        userinfo = await oa_client.get(oidc["userinfo_endpoint"])
-        userinfo.raise_for_status()
-        profile = userinfo.json()
-    finally:
-        await oa_client.aclose()
+        user = await prov.complete(ctx)
+        payload = await issue_login(
+            user, ip_address=ctx.ip_address, user_agent=ctx.user_agent
+        )
+    except ApplicationError as exc:
+        return _spa_redirect({"error": exc.code})
 
-    email: str = profile.get("email", "")
-    if not email:
-        raise HTTPException(422, detail="OAuth provider did not return an email address")
-
-    full_name: str = profile.get("name") or profile.get("given_name") or email.split("@")[0]
-
-    session = grunt._require_session()
-
-    # Find or create the local user
-    user = await get_user_by_email(email)
-    if user is None:
-        import secrets
-
-        # Create user with a random unusable password
-        user = await create_user(email, secrets.token_hex(32), full_name, "", None)
-        await session.commit()
-
-    assert user.id is not None
-    ttl = await session_ttl_minutes()
-    access_token = create_access_token(user, ttl)
-    refresh_token = await create_refresh_token(user.id, ttl)
-    await session.commit()
-
-    return ok(
+    if payload["mfa_required"]:
+        return _spa_redirect({"mfa_token": payload["mfa_token"], "mfa_required": "1"})
+    return _spa_redirect(
         {
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-            "token_type": "bearer",
-            "mfa_required": user.mfa_enabled,
-            "user": {
-                "name": user.name,
-                "email": user.email,
-                "full_name": user.full_name,
-                "roles": user.roles,
-                "is_superadmin": user.is_superadmin,
-                "theme": user.theme,
-            },
+            "access_token": payload["access_token"],
+            "refresh_token": payload["refresh_token"],
         }
     )

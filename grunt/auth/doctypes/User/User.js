@@ -10,6 +10,10 @@ function on_load(frm) {
 
   frm.set_df_property("mfa_backup_display", "hidden", !frm.doc.mfa_enabled);
 
+  // Passkeys are enrolled against the *logged-in* session, so only expose the
+  // manager on a saved record (your own profile).
+  frm.set_df_property("passkeys_button", "hidden", frm.is_new);
+
   if (!frm.is_new) {
     // Top bar override for change password
     frm.add_button("Змінити пароль", async () => {
@@ -24,6 +28,26 @@ function on_load(frm) {
     });
 
     frm.set_df_property("mfa_setup_button", "label", frm.doc.mfa_enabled ? "Вимкнути MFA" : "Увімкнути MFA");
+
+    if (frm.doc.signup_state === "pending") {
+      frm.add_button("✓ Підтвердити реєстрацію", async () => {
+        await grunt.call({
+          method: "grunt.auth.doctypes.User.user.approve_user_api",
+          args: { user_id: frm.doc.name },
+        });
+        grunt.msgprint({ message: "Реєстрацію підтверджено — користувач може увійти", indicator: "green" });
+        await frm.reload();
+      });
+      frm.add_button("Відхилити", async () => {
+        if (!confirm("Відхилити реєстрацію цього користувача?")) return;
+        await grunt.call({
+          method: "grunt.auth.doctypes.User.user.reject_user_api",
+          args: { user_id: frm.doc.name },
+        });
+        grunt.msgprint({ message: "Реєстрацію відхилено", indicator: "orange" });
+        await frm.reload();
+      });
+    }
   }
 }
 
@@ -34,6 +58,81 @@ async function on_change(frm, fieldname) {
     const middle = frm.get_value("middle_name") || "";
     const full = [last, first, middle].map(v => v.trim()).filter(Boolean).join(" ");
     frm.set_value("full_name", full);
+  }
+
+  if (fieldname === "passkeys_button") {
+    await manage_passkeys();
+    return;
+  }
+
+  async function manage_passkeys() {
+    const PK = "grunt.auth.doctypes.WebAuthnCredential.web_authn_credential";
+    const load = async () => (await grunt.call({ method: `${PK}.list_my_passkeys` })) || [];
+    const fmtDate = (d) => (d
+      ? new Date(d).toLocaleDateString("uk-UA", { day: "2-digit", month: "short", year: "numeric" })
+      : "—");
+
+    // One button — the browser's own picker offers "this device" / phone (QR) /
+    // security key. No need to pre-choose the authenticator type.
+    async function addKey({ values, setField }) {
+      try {
+        const r = await grunt.passkey.register((values.new_label || "").trim() || undefined);
+        grunt.show_alert(`Ключ «${r.label}» додано`, "success");
+      } catch (e) {
+        if (e && e.name === "NotAllowedError") return; // user cancelled the browser prompt
+        grunt.show_alert(e && e.message ? e.message : "Не вдалося додати ключ", "error");
+        return;
+      }
+      setField("keys", { rows: await load() });
+      setField("new_label", { default: "" });
+    }
+
+    await grunt.form({
+      title: "Ключі доступу (Passkeys)",
+      size: "large",
+      fields: [
+        {
+          fieldname: "hint",
+          fieldtype: "HTML",
+          plain: true,
+          default: "Дозволяють входити без пароля — за відбитком, Face ID або PIN. " +
+            "Під час додавання браузер запропонує зберегти ключ на цьому пристрої, " +
+            "на телефоні (QR-код) або на апаратному ключі.",
+        },
+        {
+          fieldname: "keys",
+          label: "Ваші ключі",
+          fieldtype: "Table",
+          selectable: false,
+          searchable: false,
+          rowKey: "name",
+          maxHeight: "260px",
+          emptyText: "Ще немає жодного ключа. Додайте нижче.",
+          columns: [
+            { key: "label", label: "Назва" },
+            { key: "backed_up", label: "Синхр.", width: "90px", align: "center", format: (v) => (v ? "так" : "—") },
+            { key: "last_used_at", label: "Востаннє", width: "130px", format: (v) => fmtDate(v) },
+          ],
+          rows: await load(),
+          rowActions: [
+            {
+              label: "Видалити",
+              danger: true,
+              onClick: async (row, { confirm, setRows }) => {
+                if (!(await confirm(`Видалити ключ «${row.label}»? Увійти за ним більше не вийде.`))) return;
+                await grunt.call({ method: `${PK}.delete_passkey`, args: { name: row.name } });
+                grunt.show_alert("Ключ видалено", "success");
+                setRows(await load());
+              },
+            },
+          ],
+        },
+        { fieldname: "new_label", label: "Назва нового ключа", fieldtype: "Text", placeholder: "напр. Робочий ноутбук" },
+      ],
+      buttons: [
+        { label: "＋ Додати ключ", variant: "default", action: addKey },
+      ],
+    });
   }
 
   if (fieldname === "mfa_setup_button") {

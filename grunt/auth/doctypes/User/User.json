@@ -160,6 +160,17 @@
       "in_filter": true
     },
     {
+      "fieldname": "signup_state",
+      "label": "Стан реєстрації",
+      "fieldtype": "Select",
+      "options": "approved\npending\nrejected",
+      "default": "approved",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "pending — самостійно зареєстрований користувач очікує підтвердження адміністратора і не може увійти."
+    },
+    {
       "fieldname": "is_superadmin",
       "label": "Суперадмін",
       "fieldtype": "Check",
@@ -237,6 +248,18 @@
       "label": "Акаунт заблоковано до",
       "fieldtype": "Datetime",
       "read_only": true
+    },
+    {
+      "fieldname": "sec_passkeys",
+      "label": "Ключі доступу (Passkeys)",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "passkeys_button",
+      "label": "Керувати ключами доступу",
+      "fieldtype": "Button",
+      "description": "Додати або видалити passkey (WebAuthn) для входу без пароля."
     },
     {
       "fieldname": "tab_preferences",

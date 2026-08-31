@@ -90,6 +90,15 @@
       "description": "Показує форму реєстрації на сторінці входу."
     },
     {
+      "fieldname": "require_signup_approval",
+      "label": "Реєстрація потребує підтвердження",
+      "fieldtype": "Check",
+      "default": false,
+      "columns": 12,
+      "depends_on": "eval: doc.allow_user_registration",
+      "description": "Новий користувач не зможе увійти, доки адміністратор не підтвердить його реєстрацію."
+    },
+    {
       "fieldname": "default_role",
       "label": "Роль за замовчуванням",
       "fieldtype": "Link",

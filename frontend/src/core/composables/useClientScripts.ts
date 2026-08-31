@@ -249,6 +249,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
         },
         prompt: (labelOrOpts, title) => dialog.prompt(labelOrOpts as any, title),
         form: (opts) => dialog.form(opts as any),
+        select: (opts) => dialog.select(opts as any),
         navigateTo: (href, inNewTab) => {
           if (inNewTab) {
             window.open(href, '_blank')

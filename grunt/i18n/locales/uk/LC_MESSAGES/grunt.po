@@ -454,5 +454,149 @@ msgstr "Форматувати"
 msgid "Invalid JSON"
 msgstr "Невалідний JSON"
 
+#. ── Rich text editor ─────────────────────────────────────────
+msgid "Rich text"
+msgstr "Форматований текст"
+
+msgid "Formatting"
+msgstr "Форматування"
+
+msgid "Font"
+msgstr "Шрифт"
+
+msgid "Font size"
+msgstr "Розмір шрифту"
+
+msgid "Default"
+msgstr "За замовчуванням"
+
+msgid "Auto"
+msgstr "Авто"
+
+msgid "Bold"
+msgstr "Жирний"
+
+msgid "Italic"
+msgstr "Курсив"
+
+msgid "Strikethrough"
+msgstr "Закреслений"
+
+msgid "Inline code"
+msgstr "Код у рядку"
+
+msgid "Heading 2"
+msgstr "Заголовок 2"
+
+msgid "Heading 3"
+msgstr "Заголовок 3"
+
+msgid "Bulleted list"
+msgstr "Маркований список"
+
+msgid "Numbered list"
+msgstr "Нумерований список"
+
+msgid "Quote"
+msgstr "Цитата"
+
+msgid "Increase indent"
+msgstr "Збільшити відступ"
+
+msgid "Decrease indent"
+msgstr "Зменшити відступ"
+
+msgid "Code block"
+msgstr "Блок коду"
+
+msgid "Horizontal rule"
+msgstr "Горизонтальна лінія"
+
+msgid "Link"
+msgstr "Посилання"
+
+msgid "Link URL"
+msgstr "URL посилання"
+
+msgid "Remove link"
+msgstr "Прибрати посилання"
+
+msgid "Image"
+msgstr "Зображення"
+
+msgid "Image URL"
+msgstr "URL зображення"
+
+msgid "Uploading…"
+msgstr "Завантаження…"
+
+msgid "Upload file"
+msgstr "Завантажити файл"
+
+msgid "Import from Word (.docx)"
+msgstr "Імпорт з Word (.docx)"
+
+msgid "Table"
+msgstr "Таблиця"
+
+msgid "Redo"
+msgstr "Повторити"
+
+msgid "Image upload failed"
+msgstr "Не вдалося завантажити зображення"
+
+msgid "Imported with warnings"
+msgstr "Імпортовано з попередженнями"
+
+msgid "Could not import document"
+msgstr "Не вдалося імпортувати документ"
+
+msgid "{words} w · {chars} ch"
+msgstr "{words} сл. · {chars} симв."
+
+#. ── EmbeddedForm ─────────────────────────────────────────────
+msgid "Loading fields…"
+msgstr "Завантаження полів…"
+
+msgid "Select a type to show its fields"
+msgstr "Оберіть тип, щоб показати відповідні поля"
+
+#. ── ColumnMapping (import) ───────────────────────────────────
+msgid "Reading file structure…"
+msgstr "Читання структури файлу…"
+
+msgid "First choose a DocType and upload a file"
+msgstr "Спочатку оберіть DocType і завантажте файл"
+
+msgid "Failed to load preview"
+msgstr "Не вдалося завантажити попередній перегляд"
+
+msgid "{n} columns in file"
+msgstr "{n} колонок у файлі"
+
+msgid "{mapped} of {total} mapped"
+msgstr "{mapped} з {total} прив'язано"
+
+msgid "Required fields not mapped:"
+msgstr "Обов'язкові поля без прив'язки:"
+
+msgid "File column"
+msgstr "Колонка файлу"
+
+msgid "System field"
+msgstr "Поле системи"
+
+msgid "Sample data"
+msgstr "Приклад даних"
+
+msgid "Map column “{header}”"
+msgstr "Прив'язати колонку «{header}»"
+
+msgid "— Do not import —"
+msgstr "— Не імпортувати —"
+
+msgid "Show first rows of the file ({n})"
+msgstr "Показати перші рядки файлу ({n})"
+
 msgid "{n} available"
 msgstr "{n} доступних"

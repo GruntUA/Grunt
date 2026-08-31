@@ -88,6 +88,13 @@ class Settings(BaseSettings):
     oauth_microsoft_client_secret: str | None = None
     oauth_microsoft_tenant_id: str = "common"  # or specific tenant UUID
 
+    # WebAuthn / Passkeys (optional — needs the `webauthn` extra installed)
+    # All three fall back to APP_URL / APP_NAME when left unset, which is fine
+    # for local dev but should be pinned explicitly in production.
+    webauthn_rp_id: str | None = None  # DNS name only, e.g. "app.example.com"
+    webauthn_rp_name: str | None = None  # display name shown by the authenticator
+    webauthn_origin: str | None = None  # full origin, e.g. "https://app.example.com"
+
     @model_validator(mode="after")
     def _forbid_default_secret_outside_debug(self) -> Settings:
         """Refuse to run with the placeholder secret when debug is off.

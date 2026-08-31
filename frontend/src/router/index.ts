@@ -13,6 +13,14 @@ const router = createRouter({
       meta: { public: true },
     },
     {
+      // Same combined component as /login — it switches to the sign-up form
+      // based on the path.
+      path: '/signup',
+      name: 'register',
+      component: () => import('@/pages/auth/Login.vue'),
+      meta: { public: true },
+    },
+    {
       path: '/forgot-password',
       name: 'forgot-password',
       component: () => import('@/pages/auth/ForgotPassword.vue'),
@@ -28,12 +36,6 @@ const router = createRouter({
       path: '/mfa-verify',
       name: 'mfa-verify',
       component: () => import('@/pages/auth/MfaVerify.vue'),
-      meta: { public: true },
-    },
-    {
-      path: '/signup',
-      name: 'register',
-      component: () => import('@/pages/auth/Register.vue'),
       meta: { public: true },
     },
 
@@ -71,6 +73,7 @@ const router = createRouter({
       name: 'desk',
       component: () => import('@/pages/DeskPage.vue'),
     },
+
 
 
     // Setup Wizard
@@ -227,7 +230,7 @@ router.beforeEach(async (to) => {
   // bookmark or /login link) — send them straight to the desk instead of
   // showing the form again. isLoggedIn only checks token presence; fetchMe
   // confirms the token is still valid server-side (and clears it on 401/403).
-  if (to.name === 'login' && auth.isLoggedIn) {
+  if ((to.name === 'login' || to.name === 'register') && auth.isLoggedIn) {
     if (!auth.user) await auth.fetchMe()
     if (auth.isLoggedIn) return { name: 'desk' }
   }

@@ -58,6 +58,23 @@ export const grunt = {
     return dialog.form(opts)
   },
 
+  /**
+   * Frappe-style "select from a list" dialog. Resolves with the picked row(s),
+   * or null if cancelled.
+   *
+   * @example
+   * const rows = await grunt.select({
+   *   title: 'Оберіть заявки',
+   *   columns: [{ key: 'name', label: 'Номер' }, { key: 'status', label: 'Статус', width: '120px' }],
+   *   rows: await grunt.call({ method: 'app.api.pending_requests' }),
+   *   primaryLabel: 'Отримати позиції',
+   * })
+   */
+  select(opts: Parameters<ReturnType<typeof useDialog>['select']>[0]) {
+    const dialog = useDialog()
+    return dialog.select(opts)
+  },
+
   show_progress(title: string, count: number, total: number, description?: string): void {
     const dialog = useDialog()
     dialog.progress(title, count, total, description)
@@ -75,5 +92,56 @@ export const grunt = {
 
   throw(msg: string): never {
     throw new Error(msg)
+  },
+
+  /**
+   * WebAuthn / passkey helpers — drive the `/api/v1/auth/webauthn/*` ceremonies
+   * from client scripts and app code without touching the browser API directly.
+   *
+   * @example
+   * const { label } = await grunt.passkey.register('MacBook Touch ID')
+   */
+  passkey: {
+    isSupported(): boolean {
+      return typeof window !== 'undefined' && !!window.PublicKeyCredential
+    },
+
+    async register(
+      label?: string,
+      opts?: { mode?: 'cross-device' },
+    ): Promise<{ name: string; label: string }> {
+      const { authApi } = await import('@/core/api/auth')
+      const { createPasskey, isWebAuthnSupported } = await import(
+        '@/core/composables/useWebAuthn'
+      )
+      if (!isWebAuthnSupported()) {
+        throw new Error('Цей браузер не підтримує ключі доступу')
+      }
+      const { options, challenge_token } = await authApi.enrollBegin(
+        'webauthn',
+        opts?.mode ? { mode: opts.mode } : {},
+      )
+      const credential = await createPasskey(options)
+      return authApi.enrollComplete('webauthn', {
+        challenge_token,
+        response: credential,
+        label,
+      })
+    },
+
+    async list() {
+      const { authApi } = await import('@/core/api/auth')
+      return authApi.listPasskeys()
+    },
+
+    async rename(name: string, label: string): Promise<void> {
+      const { authApi } = await import('@/core/api/auth')
+      await authApi.renamePasskey(name, label)
+    },
+
+    async remove(name: string): Promise<void> {
+      const { authApi } = await import('@/core/api/auth')
+      await authApi.deletePasskey(name)
+    },
   },
 }

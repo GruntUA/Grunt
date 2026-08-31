@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import { Extension } from '@tiptap/core'
 import type { EditorState, Transaction } from '@tiptap/pm/state'
@@ -45,9 +46,17 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
+const { t } = useI18n()
+
 const isEditable = () => !props.disabled && !props.field.read_only
 const isDocumentStyle = props.field.options === 'document'
 const toast = useToast()
+
+// FieldRenderer only passes `field` / `modelValue` / `disabled` / `error`, so
+// the character limit and placeholder come from field metadata (the explicit
+// props stay as an override for direct usage).
+const maxLen = computed(() => props.maxLength ?? props.field.max_length)
+const placeholderText = computed(() => props.placeholder ?? props.field.placeholder ?? '')
 
 // ── Font & Indent data ────────────────────────────────────────────────────────
 // Reka-ui's Select reserves the empty string for "no selection" internally, so
@@ -293,15 +302,19 @@ function insertImageUrl() {
 }
 
 async function uploadImage(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
   if (!file) return
   imageUploading.value = true
   try {
     const item = await filesApi.upload(file)
     editor.value?.chain().focus().setImage({ src: item.url, alt: item.filename }).run()
     isImageOpen.value = false
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : String(err), t('Image upload failed'))
   } finally {
     imageUploading.value = false
+    input.value = ''
   }
 }
 
@@ -323,9 +336,9 @@ async function importDocx(e: Event) {
     const { value: html, messages } = await mammoth.convertToHtml({ arrayBuffer })
     editor.value?.chain().focus().insertContent(html).run()
     const errors = messages.filter(m => m.type === 'error')
-    if (errors.length) toast.warning(errors.map(m => m.message).join('; '), 'Імпортовано з попередженнями')
+    if (errors.length) toast.warning(errors.map(m => m.message).join('; '), t('Imported with warnings'))
   } catch (err) {
-    toast.error(err instanceof Error ? err.message : String(err), 'Не вдалося імпортувати документ')
+    toast.error(err instanceof Error ? err.message : String(err), t('Could not import document'))
   } finally {
     docxImporting.value = false
     input.value = ''
@@ -333,9 +346,18 @@ async function importDocx(e: Event) {
 }
 
 // ── Editor ────────────────────────────────────────────────────────────────────
+let lastEmitted = ''
+
 const editor = useEditor({
   content: String(props.modelValue ?? ''),
   editable: isEditable(),
+  editorProps: {
+    attributes: {
+      role: 'textbox',
+      'aria-multiline': 'true',
+      'aria-label': props.field.label ?? t('Rich text'),
+    },
+  },
   extensions: [
     StarterKit.configure({
       link: false,
@@ -345,10 +367,14 @@ const editor = useEditor({
     Link.configure({ openOnClick: false }),
     Image.configure({ inline: false }),
     TableKit,
-    Placeholder.configure({ placeholder: props.placeholder ?? props.field.label ?? '' }),
-    CharacterCount.configure(props.maxLength ? { limit: props.maxLength } : {}),
+    Placeholder.configure({ placeholder: placeholderText.value }),
+    CharacterCount.configure(maxLen.value ? { limit: maxLen.value } : {}),
   ],
-  onUpdate: ({ editor: e }) => { emit('update:modelValue', e.getHTML()); updateFormatState() },
+  onUpdate: ({ editor: e }) => {
+    lastEmitted = e.getHTML()
+    emit('update:modelValue', lastEmitted)
+    updateFormatState()
+  },
   onSelectionUpdate: () => { updateBubble(); updateFormatState() },
   onBlur: () => { bubbleVisible.value = false },
 })
@@ -357,6 +383,7 @@ watch(() => props.disabled,       () => editor.value?.setEditable(isEditable()))
 watch(() => props.field.read_only, () => editor.value?.setEditable(isEditable()))
 watch(() => props.modelValue, (v) => {
   const html = String(v ?? '')
+  if (html === lastEmitted) return // our own echo — don't reset the caret
   if (editor.value && editor.value.getHTML() !== html)
     editor.value.commands.setContent(html, { emitUpdate: false })
 })
@@ -376,45 +403,55 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
     <!-- ── Toolbar ────────────────────────────────────────────────────── -->
     <div
       v-if="editor && isEditable()"
+      role="toolbar"
+      :aria-label="t('Formatting')"
       class="flex items-center gap-0.5 rounded-t-md border border-b-0 border-border bg-muted/50 p-1 flex-wrap text-foreground"
     >
       <!-- Font family -->
       <Select :model-value="currentFontFamily" @update:model-value="(v: unknown) => applyFontFamily(String(v))">
-        <SelectTrigger class="h-7 w-36 text-xs">
+        <SelectTrigger class="h-7 w-36 text-xs" :aria-label="t('Font')">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem v-for="opt in FONT_FAMILIES" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          <SelectItem v-for="opt in FONT_FAMILIES" :key="opt.value" :value="opt.value">
+            {{ opt.value === FONT_DEFAULT ? t('Default') : opt.label }}
+          </SelectItem>
         </SelectContent>
       </Select>
       <!-- Font size -->
       <Select :model-value="currentFontSize" @update:model-value="(v: unknown) => applyFontSize(String(v))">
-        <SelectTrigger class="h-7 w-[4.5rem] text-xs">
+        <SelectTrigger class="h-7 w-[4.5rem] text-xs" :aria-label="t('Font size')">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem v-for="opt in FONT_SIZES" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          <SelectItem v-for="opt in FONT_SIZES" :key="opt.value" :value="opt.value">
+            {{ opt.value === FONT_DEFAULT ? t('Auto') : opt.label }}
+          </SelectItem>
         </SelectContent>
       </Select>
 
       <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
 
-      <Button size="sm" variant="ghost" :class="editor.isActive('bold') ? 'text-primary bg-accent' : 'text-muted-foreground'"
+      <Button size="sm" variant="ghost" :title="t('Bold')" :aria-label="t('Bold')" :aria-pressed="editor.isActive('bold')"
+        :class="editor.isActive('bold') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         :disabled="!editor.can().chain().focus().toggleBold().run()"
         @click="editor.chain().focus().toggleBold().run()">
         <Bold class="size-4" />
       </Button>
-      <Button size="sm" variant="ghost" :class="editor.isActive('italic') ? 'text-primary bg-accent' : 'text-muted-foreground'"
+      <Button size="sm" variant="ghost" :title="t('Italic')" :aria-label="t('Italic')" :aria-pressed="editor.isActive('italic')"
+        :class="editor.isActive('italic') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         :disabled="!editor.can().chain().focus().toggleItalic().run()"
         @click="editor.chain().focus().toggleItalic().run()">
         <Italic class="size-4" />
       </Button>
-      <Button size="sm" variant="ghost" :class="editor.isActive('strike') ? 'text-primary bg-accent' : 'text-muted-foreground'"
+      <Button size="sm" variant="ghost" :title="t('Strikethrough')" :aria-label="t('Strikethrough')" :aria-pressed="editor.isActive('strike')"
+        :class="editor.isActive('strike') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         :disabled="!editor.can().chain().focus().toggleStrike().run()"
         @click="editor.chain().focus().toggleStrike().run()">
         <Strikethrough class="size-4" />
       </Button>
-      <Button size="sm" variant="ghost" :class="editor.isActive('code') ? 'text-primary bg-accent' : 'text-muted-foreground'"
+      <Button size="sm" variant="ghost" :title="t('Inline code')" :aria-label="t('Inline code')" :aria-pressed="editor.isActive('code')"
+        :class="editor.isActive('code') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         :disabled="!editor.can().chain().focus().toggleCode().run()"
         @click="editor.chain().focus().toggleCode().run()">
         <Code class="size-4" />
@@ -422,43 +459,49 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 
       <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
 
-      <Button size="sm" variant="ghost" :class="editor.isActive('heading', { level: 2 }) ? 'text-primary bg-accent' : 'text-muted-foreground'"
+      <Button size="sm" variant="ghost" :title="t('Heading 2')" :aria-label="t('Heading 2')" :aria-pressed="editor.isActive('heading', { level: 2 })"
+        :class="editor.isActive('heading', { level: 2 }) ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.chain().focus().toggleHeading({ level: 2 }).run()">
         <Heading2 class="size-4" />
       </Button>
-      <Button size="sm" variant="ghost" :class="editor.isActive('heading', { level: 3 }) ? 'text-primary bg-accent' : 'text-muted-foreground'"
+      <Button size="sm" variant="ghost" :title="t('Heading 3')" :aria-label="t('Heading 3')" :aria-pressed="editor.isActive('heading', { level: 3 })"
+        :class="editor.isActive('heading', { level: 3 }) ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.chain().focus().toggleHeading({ level: 3 }).run()">
         <Heading3 class="size-4" />
       </Button>
 
       <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
 
-      <Button size="sm" variant="ghost" :class="editor.isActive('bulletList') ? 'text-primary bg-accent' : 'text-muted-foreground'"
+      <Button size="sm" variant="ghost" :title="t('Bulleted list')" :aria-label="t('Bulleted list')" :aria-pressed="editor.isActive('bulletList')"
+        :class="editor.isActive('bulletList') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.chain().focus().toggleBulletList().run()">
         <List class="size-4" />
       </Button>
-      <Button size="sm" variant="ghost" :class="editor.isActive('orderedList') ? 'text-primary bg-accent' : 'text-muted-foreground'"
+      <Button size="sm" variant="ghost" :title="t('Numbered list')" :aria-label="t('Numbered list')" :aria-pressed="editor.isActive('orderedList')"
+        :class="editor.isActive('orderedList') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.chain().focus().toggleOrderedList().run()">
         <ListOrdered class="size-4" />
       </Button>
-      <Button size="sm" variant="ghost" :class="editor.isActive('blockquote') ? 'text-primary bg-accent' : 'text-muted-foreground'"
+      <Button size="sm" variant="ghost" :title="t('Quote')" :aria-label="t('Quote')" :aria-pressed="editor.isActive('blockquote')"
+        :class="editor.isActive('blockquote') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.chain().focus().toggleBlockquote().run()">
         <Quote class="size-4" />
       </Button>
 
       <!-- Indent / Outdent -->
-      <Button size="sm" variant="ghost" @click="doIndent">
+      <Button size="sm" variant="ghost" :title="t('Increase indent')" :aria-label="t('Increase indent')" @click="doIndent">
         <IndentIncrease class="size-4" />
       </Button>
-      <Button size="sm" variant="ghost" @click="doOutdent">
+      <Button size="sm" variant="ghost" :title="t('Decrease indent')" :aria-label="t('Decrease indent')" @click="doOutdent">
         <IndentDecrease class="size-4" />
       </Button>
 
-      <Button size="sm" variant="ghost" :class="editor.isActive('codeBlock') ? 'text-primary bg-accent' : 'text-muted-foreground'"
+      <Button size="sm" variant="ghost" :title="t('Code block')" :aria-label="t('Code block')" :aria-pressed="editor.isActive('codeBlock')"
+        :class="editor.isActive('codeBlock') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.chain().focus().toggleCodeBlock().run()">
         <Code2 class="size-4" />
       </Button>
-      <Button size="sm" variant="ghost"
+      <Button size="sm" variant="ghost" :title="t('Horizontal rule')" :aria-label="t('Horizontal rule')"
         @click="editor.chain().focus().setHorizontalRule().run()">
         <Minus class="size-4" />
       </Button>
@@ -466,19 +509,21 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
       <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
 
       <!-- Link -->
-      <Button size="sm" variant="ghost" :class="editor.isActive('link') ? 'text-primary bg-accent' : 'text-muted-foreground'" @click="openLinkPopover">
+      <Button size="sm" variant="ghost" :title="t('Link')" :aria-label="t('Link')" :aria-pressed="editor.isActive('link')"
+        :class="editor.isActive('link') ? 'text-primary bg-accent' : 'text-muted-foreground'" @click="openLinkPopover">
         <LinkIcon class="size-4" />
       </Button>
       <Popover v-model:open="isLinkOpen">
         <PopoverAnchor :reference="linkAnchorEl ?? undefined" />
         <PopoverContent class="w-auto p-0">
           <div class="w-72 p-1">
-              <p class="text-xs font-medium text-muted-foreground mb-2">Посилання</p>
+              <p class="text-xs font-medium text-muted-foreground mb-2">{{ t('Link') }}</p>
               <div class="flex gap-2">
-                <Input v-model="linkUrl" placeholder="https://…" class="h-8 flex-1"
+                <Input v-model="linkUrl" placeholder="https://…" class="h-8 flex-1" :aria-label="t('Link URL')"
                   @keydown.enter.prevent="applyLink" />
                 <Button size="sm" class="h-8 px-3" @click="applyLink">OK</Button>
-                <Button v-if="editor.isActive('link')" variant="ghost" size="sm" class="h-8 px-2 text-destructive hover:text-destructive" @click="removeLink">
+                <Button v-if="editor.isActive('link')" variant="ghost" size="sm" class="h-8 px-2 text-destructive hover:text-destructive"
+                  :aria-label="t('Remove link')" @click="removeLink">
                   <Link2Off class="size-4" />
                 </Button>
               </div>
@@ -487,22 +532,22 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
       </Popover>
 
       <!-- Image -->
-      <Button size="sm" variant="ghost" @click="openImagePopover">
+      <Button size="sm" variant="ghost" :title="t('Image')" :aria-label="t('Image')" @click="openImagePopover">
         <ImageIcon class="size-4" />
       </Button>
       <Popover v-model:open="isImageOpen">
         <PopoverAnchor :reference="imageAnchorEl ?? undefined" />
         <PopoverContent class="w-auto p-0">
           <div class="w-72 p-1">
-              <p class="text-xs font-medium text-muted-foreground mb-2">Зображення</p>
+              <p class="text-xs font-medium text-muted-foreground mb-2">{{ t('Image') }}</p>
               <div class="flex gap-2 mb-2">
-                <Input v-model="imageUrl" placeholder="https://…" class="h-8 flex-1"
+                <Input v-model="imageUrl" placeholder="https://…" class="h-8 flex-1" :aria-label="t('Image URL')"
                   @keydown.enter.prevent="insertImageUrl" />
                 <Button size="sm" class="h-8 px-3" @click="insertImageUrl">OK</Button>
               </div>
               <label class="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors p-2 hover:bg-muted rounded">
                 <Upload class="size-3.5" />
-                <span>{{ imageUploading ? 'Завантаження…' : 'Завантажити файл' }}</span>
+                <span>{{ imageUploading ? t('Uploading…') : t('Upload file') }}</span>
                 <input type="file" accept="image/*" class="hidden" :disabled="imageUploading" @change="uploadImage" />
               </label>
           </div>
@@ -510,7 +555,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
       </Popover>
 
       <!-- Import from Word -->
-      <Button size="sm" variant="ghost" title="Імпорт з Word (.docx)" :disabled="docxImporting"
+      <Button size="sm" variant="ghost" :title="t('Import from Word (.docx)')" :aria-label="t('Import from Word (.docx)')" :disabled="docxImporting"
         class="text-muted-foreground" @click="triggerDocxImport">
         <Loader2 v-if="docxImporting" class="size-4 animate-spin" />
         <FileUp v-else class="size-4" />
@@ -520,7 +565,8 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
       <Separator orientation="vertical" class="!mx-1 !h-6 !my-0" />
 
       <!-- Table -->
-      <Button size="sm" variant="ghost" :class="editor.isActive('table') ? 'text-primary bg-accent' : 'text-muted-foreground'"
+      <Button size="sm" variant="ghost" :title="t('Table')" :aria-label="t('Table')" :aria-pressed="editor.isActive('table')"
+        :class="editor.isActive('table') ? 'text-primary bg-accent' : 'text-muted-foreground'"
         @click="editor.isActive('table')
           ? editor.chain().focus().deleteTable().run()
           : editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()">
@@ -529,12 +575,12 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 
       <div class="flex-1" />
 
-      <Button size="sm" variant="ghost"
+      <Button size="sm" variant="ghost" :title="t('Undo')" :aria-label="t('Undo')"
         :disabled="!editor.can().chain().focus().undo().run()"
         @click="editor.chain().focus().undo().run()">
         <Undo class="size-4" />
       </Button>
-      <Button size="sm" variant="ghost"
+      <Button size="sm" variant="ghost" :title="t('Redo')" :aria-label="t('Redo')"
         :disabled="!editor.can().chain().focus().redo().run()"
         @click="editor.chain().focus().redo().run()">
         <Redo class="size-4" />
@@ -580,13 +626,11 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
       <EditorContent :editor="editor" class="richtext-content p-3 text-foreground" :class="isDocumentStyle ? 'richtext-document' : ''" />
     </div>
 
-    <!-- ── Footer ─────────────────────────────────────────────────────── -->
-    <div class="flex items-center justify-between">
-      <p v-if="error" class="text-xs text-destructive">{{ error }}</p>
-      <div v-else />
-      <p v-if="editor" class="text-xs text-muted-foreground tabular-nums">
-        <template v-if="maxLength">{{ charCount() }} / {{ maxLength }}</template>
-        <template v-else>{{ wordCount() }} сл. · {{ charCount() }} симв.</template>
+    <!-- ── Footer (error is rendered by FieldRenderer) ────────────────── -->
+    <div class="flex justify-end">
+      <p v-if="editor" class="text-xs text-muted-foreground tabular-nums" aria-live="off">
+        <template v-if="maxLen">{{ charCount() }} / {{ maxLen }}</template>
+        <template v-else>{{ t('{words} w · {chars} ch', { words: wordCount(), chars: charCount() }) }}</template>
       </p>
     </div>
 

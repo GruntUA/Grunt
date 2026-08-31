@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, type Component } from 'vue'
+import { computed, onMounted, onUnmounted, provide, ref, type Component } from 'vue'
 import type { DocField, DocType } from '@/types'
 import { parseLayout } from '@/core/composables/useFormLayout'
+import { FORM_ERRORS } from './formErrors'
 import type { LayoutSection, LayoutTab } from '@/core/composables/useFormLayout'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { initials } from '@/core/composables/usePresence'
@@ -36,6 +37,13 @@ const emit = defineEmits<{
   'create-new': [doctype: string, preset: string | Record<string, unknown>, fieldname: string]
   'table-selection-change': [payload: { fieldname: string; rowNames: string[] }]
 }>()
+
+// Expose the validation-error map to the whole field tree (nested sub-forms
+// re-provide it with an extended path prefix).
+provide(FORM_ERRORS, {
+  errors: computed(() => props.errors ?? {}),
+  prefix: '',
+})
 
 const layout = computed(() => parseLayout(props.doctype.fields))
 const hasTabs = computed(() => layout.value.length > 1 || (layout.value[0]?.label !== '' && layout.value[0]?.label !== 'Main'))

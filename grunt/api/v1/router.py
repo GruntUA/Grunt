@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter
 
+from grunt.api.v1.auth_methods import router as auth_methods_router
 from grunt.api.v1.dashboard_data import router as dashboard_data_router
 from grunt.api.v1.docs import router as docs_router
 from grunt.api.v1.health import router as health_router
@@ -26,6 +27,9 @@ v1_router.include_router(docs_router, prefix="/docs", tags=["docs"])
 
 # Dashboard widget data
 v1_router.include_router(dashboard_data_router, tags=["dashboard"])
+
+# Pluggable authentication providers (password-less, passkeys, SSO, ...)
+v1_router.include_router(auth_methods_router, prefix="/auth", tags=["auth"])
 
 # External / Binary endpoints
 v1_router.include_router(oauth_router, prefix="/oauth", tags=["oauth"])

@@ -58,27 +58,47 @@ def create_access_token(user: User, expire_minutes: int | None = None) -> str:
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
 
-def create_mfa_token(user: User) -> str:
-    """Create a short-lived token meant ONLY for MFA verification during login."""
-    expire = datetime.now(UTC) + timedelta(minutes=5)
-    payload = {
-        "sub": user.email,
-        "uid": user.id,
-        "mfa_pending": True,
-        "exp": expire,
+def create_challenge_token(purpose: str, *, ttl_minutes: int = 5, **claims: object) -> str:
+    """Sign a short-lived, single-purpose token.
+
+    Used for stateless multi-step ceremonies where the server has to remember
+    something between two HTTP calls without a DB row — MFA hand-off, WebAuthn
+    challenges, ... . ``purpose`` is checked on the way back in
+    :func:`verify_challenge_token`, so a token minted for one flow can't be
+    replayed into another.
+    """
+    payload: dict[str, object] = {
+        **claims,
+        "purpose": purpose,
+        "exp": datetime.now(UTC) + timedelta(minutes=ttl_minutes),
     }
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
 
-def verify_mfa_token(token: str) -> dict | None:
-    """Validate MFA token and return payload if valid."""
+def verify_challenge_token(token: str, purpose: str) -> dict | None:
+    """Validate a :func:`create_challenge_token` token; return its claims or None."""
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-        if not payload.get("mfa_pending"):
-            return None
-        return payload
     except jwt.PyJWTError:
         return None
+    if payload.get("purpose") != purpose:
+        return None
+    return payload
+
+
+def create_mfa_token(user: User) -> str:
+    """Create a short-lived token meant ONLY for MFA verification during login."""
+    return create_challenge_token(
+        "mfa", ttl_minutes=5, sub=user.email, uid=user.id, mfa_pending=True
+    )
+
+
+def verify_mfa_token(token: str) -> dict | None:
+    """Validate MFA token and return payload if valid."""
+    payload = verify_challenge_token(token, "mfa")
+    if not payload or not payload.get("mfa_pending"):
+        return None
+    return payload
 
 
 # ── Refresh tokens ────────────────────────────────────────────────────────

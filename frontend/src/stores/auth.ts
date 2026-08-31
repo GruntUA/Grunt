@@ -67,6 +67,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function login(email: string, password: string): Promise<{
     mfa_required: boolean
+    approval_pending: boolean
     mfa_token?: string
     expected_code?: string
   }> {
@@ -75,16 +76,53 @@ export const useAuthStore = defineStore('auth', () => {
       password,
     })
     const data = body.data
-    if (!data.mfa_required) {
+    if (data.access_token) {
       _setTokens(data.access_token, data.refresh_token)
       user.value = data.user
       applyUserPreferences(data.user)
     }
     return {
       mfa_required: !!data.mfa_required,
+      approval_pending: !!data.approval_pending,
       mfa_token: data.mfa_token,
       expected_code: data.expected_code,
     }
+  }
+
+  /** Adopt a token pair minted server-side (e.g. the OAuth callback fragment). */
+  async function setSession(accessToken: string, rt: string): Promise<void> {
+    _setTokens(accessToken, rt)
+    await fetchMe()
+  }
+
+  async function loginWithPasskey(
+    email?: string,
+    opts?: { mode?: 'cross-device' },
+  ): Promise<void> {
+    const { authApi } = await import('@/core/api/auth')
+    const { getPasskeyAssertion, isWebAuthnSupported } = await import('@/core/composables/useWebAuthn')
+    if (!isWebAuthnSupported()) throw new Error('Цей браузер не підтримує ключі доступу')
+
+    const payload: Record<string, string> = {}
+    if (opts?.mode) payload.mode = opts.mode
+    else if (email) payload.email = email
+    const { options, challenge_token } = await authApi.begin('webauthn', payload)
+    const assertion = await getPasskeyAssertion(options)
+    const data = await authApi.complete('webauthn', {
+      challenge_token,
+      response: assertion,
+    })
+
+    if (data.approval_pending) throw new Error('approval_pending')
+    if (data.mfa_required) {
+      // Rare: user has MFA on top of a passkey — hand back to the MFA step.
+      const err: any = new Error('mfa_required')
+      err.mfa = { mfa_token: data.mfa_token, user: data.user }
+      throw err
+    }
+    _setTokens(data.access_token, data.refresh_token)
+    user.value = data.user
+    applyUserPreferences(data.user)
   }
 
   async function refresh(): Promise<boolean> {
@@ -175,5 +213,5 @@ export const useAuthStore = defineStore('auth', () => {
     _logout()
   }
 
-  return { token, refreshToken, user, isLoggedIn, login, logout, refresh, fetchMe, prefetchMe, setTheme, setLanguage }
+  return { token, refreshToken, user, isLoggedIn, login, loginWithPasskey, setSession, logout, refresh, fetchMe, prefetchMe, setTheme, setLanguage }
 })
