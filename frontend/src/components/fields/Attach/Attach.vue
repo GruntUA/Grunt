@@ -1,62 +1,22 @@
 <script setup lang="ts">
-import { ref, computed, watch, inject } from 'vue'
-import type { DocField } from '@/types'
-import type { AttachmentResult } from '@/core/attachmentChannels/types'
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import type { BaseFieldProps } from '@/types'
 import { Paperclip, X, ExternalLink } from '@lucide/vue'
 import { cn } from '@/lib/utils'
 import AttachPicker from './AttachPicker.vue'
-import { filesApi } from '@/core/api/files'
+import { useAttachmentField } from './useAttachmentField'
 
-const docContext = inject<{ doctype: string; getId: () => string | null } | null>('docContext', null)
-
-const props = defineProps<{
-  field: DocField
-  modelValue: unknown
-  disabled?: boolean
-  error?: boolean
-}>()
-
+const props = defineProps<BaseFieldProps>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
+const { t } = useI18n()
+const { docContext, isDisabled, currentUrl, filename, onSelect, remove } = useAttachmentField(props, emit)
+
 const pickerOpen = ref(false)
-const isDisabled = computed(() => !!(props.disabled || props.field.read_only))
 
-const currentUrl = computed(() =>
-  typeof props.modelValue === 'string' && props.modelValue ? props.modelValue : null
-)
-
-const filename = ref<string | null>(null)
-
-function extractFileId(url: string): string | null {
-  try {
-    const params = new URL(url, window.location.origin).searchParams
-    return params.get('file_id')
-  } catch {
-    const match = url.match(/[?&]file_id=([^&]+)/)
-    return match ? match[1] : null
-  }
-}
-
-watch(currentUrl, async (url) => {
-  if (!url) { filename.value = null; return }
-  const fileId = extractFileId(url)
-  if (!fileId) { filename.value = url.split('/').pop() ?? url; return }
-  try {
-    const item = await filesApi.getById(fileId)
-    filename.value = item?.filename ?? null
-  } catch {
-    filename.value = null
-  }
-}, { immediate: true })
-
-function onSelect(result: AttachmentResult) {
-  filename.value = result.filename
-  emit('update:modelValue', result.url)
-}
-
-function remove(e: Event) {
-  e.stopPropagation()
-  emit('update:modelValue', null)
+function openPicker() {
+  if (!isDisabled.value) pickerOpen.value = true
 }
 </script>
 
@@ -70,9 +30,15 @@ function remove(e: Event) {
         !currentUrl && !isDisabled ? 'cursor-pointer hover:border-ring/40' : '',
         error ? 'border-destructive' : '',
       )"
-      @click="!isDisabled && !currentUrl && (pickerOpen = true)"
+      :role="!currentUrl && !isDisabled ? 'button' : undefined"
+      :tabindex="!currentUrl && !isDisabled ? 0 : undefined"
+      :aria-label="!currentUrl ? (field.placeholder || t('Attach a file…')) : undefined"
+      :aria-invalid="error ? true : undefined"
+      @click="!isDisabled && !currentUrl && openPicker()"
+      @keydown.enter.prevent="!currentUrl && openPicker()"
+      @keydown.space.prevent="!currentUrl && openPicker()"
     >
-      <Paperclip class="size-4 text-muted-foreground shrink-0" />
+      <Paperclip class="size-4 shrink-0 text-muted-foreground" />
 
       <!-- File attached: filename opens the file in a new tab -->
       <a
@@ -80,37 +46,34 @@ function remove(e: Event) {
         :href="currentUrl"
         target="_blank"
         rel="noopener noreferrer"
-        class="flex-1 truncate text-primary hover:underline flex items-center gap-1"
+        class="flex flex-1 items-center gap-1 truncate text-primary hover:underline"
         @click.stop
       >
         <span class="truncate">{{ filename ?? currentUrl }}</span>
         <ExternalLink class="size-3 shrink-0" />
       </a>
 
-      <!-- No file: placeholder -->
       <span v-else class="flex-1 truncate text-muted-foreground">
-        {{ field.placeholder || 'Прикріпити файл...' }}
+        {{ field.placeholder || t('Attach a file…') }}
       </span>
 
-      <!-- Replace button (when file attached and not disabled) -->
       <button
         v-if="currentUrl && !isDisabled"
         type="button"
-        title="Замінити файл"
-        class="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-        tabindex="-1"
-        @click.stop="pickerOpen = true"
+        :title="t('Replace file')"
+        :aria-label="t('Replace file')"
+        class="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
+        @click.stop="openPicker"
       >
         <Paperclip class="size-3.5" />
       </button>
 
-      <!-- Remove button -->
       <button
         v-if="currentUrl && !isDisabled"
         type="button"
-        title="Видалити вкладення"
-        class="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
-        tabindex="-1"
+        :title="t('Remove attachment')"
+        :aria-label="t('Remove attachment')"
+        class="shrink-0 text-muted-foreground transition-colors hover:text-destructive"
         @click.stop="remove"
       >
         <X class="size-3.5" />

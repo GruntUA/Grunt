@@ -1,61 +1,22 @@
 <script setup lang="ts">
-import { ref, computed, watch, inject } from 'vue'
-import type { DocField } from '@/types'
-import type { AttachmentResult } from '@/core/attachmentChannels/types'
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import type { BaseFieldProps } from '@/types'
 import { ImageIcon, X } from '@lucide/vue'
 import { cn } from '@/lib/utils'
 import AttachPicker from '@/components/fields/Attach/AttachPicker.vue'
-import { filesApi } from '@/core/api/files'
+import { useAttachmentField } from '@/components/fields/Attach/useAttachmentField'
 
-const docContext = inject<{ doctype: string; getId: () => string | null } | null>('docContext', null)
-
-const props = defineProps<{
-  field: DocField
-  modelValue: unknown
-  disabled?: boolean
-  error?: boolean
-}>()
-
+const props = defineProps<BaseFieldProps>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
+const { t } = useI18n()
+const { docContext, isDisabled, currentUrl, filename, onSelect, remove } = useAttachmentField(props, emit)
+
 const pickerOpen = ref(false)
-const isDisabled = computed(() => !!(props.disabled || props.field.read_only))
 
-const currentUrl = computed(() =>
-  typeof props.modelValue === 'string' && props.modelValue ? props.modelValue : null
-)
-
-const filename = ref<string | null>(null)
-
-function extractFileId(url: string): string | null {
-  try {
-    return new URL(url, window.location.origin).searchParams.get('file_id')
-  } catch {
-    const match = url.match(/[?&]file_id=([^&]+)/)
-    return match ? match[1] : null
-  }
-}
-
-watch(currentUrl, async (url) => {
-  if (!url) { filename.value = null; return }
-  const fileId = extractFileId(url)
-  if (!fileId) { filename.value = url.split('/').pop() ?? url; return }
-  try {
-    const item = await filesApi.getById(fileId)
-    filename.value = item?.filename ?? null
-  } catch {
-    filename.value = null
-  }
-}, { immediate: true })
-
-function onSelect(result: AttachmentResult) {
-  filename.value = result.filename
-  emit('update:modelValue', result.url)
-}
-
-function remove(e: Event) {
-  e.stopPropagation()
-  emit('update:modelValue', null)
+function openPicker() {
+  if (!isDisabled.value) pickerOpen.value = true
 }
 </script>
 
@@ -68,26 +29,33 @@ function remove(e: Event) {
         isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-ring/40',
         error ? 'border-destructive' : '',
       )"
-      @click="!isDisabled && (pickerOpen = true)"
+      :role="isDisabled || currentUrl ? undefined : 'button'"
+      :tabindex="isDisabled ? undefined : 0"
+      :aria-label="currentUrl ? t('Replace image') : (field.placeholder || t('Attach an image…'))"
+      :aria-invalid="error ? true : undefined"
+      @click="openPicker"
+      @keydown.enter.prevent="openPicker"
+      @keydown.space.prevent="openPicker"
     >
-      <!-- Мініатюра 24px для зображень, інакше іконка -->
       <img
         v-if="currentUrl"
         :src="currentUrl"
-        class="size-6 rounded object-cover shrink-0"
-        alt=""
+        class="size-6 shrink-0 rounded object-cover"
+        :alt="filename ?? ''"
       />
-      <ImageIcon v-else class="size-4 text-muted-foreground shrink-0" />
+      <ImageIcon v-else class="size-4 shrink-0 text-muted-foreground" />
 
       <span class="flex-1 truncate" :class="currentUrl ? 'text-foreground' : 'text-muted-foreground'">
-        {{ filename ?? (field.placeholder || 'Прикріпити зображення...') }}
+        {{ filename ?? (field.placeholder || t('Attach an image…')) }}
       </span>
+
       <button
         v-if="currentUrl && !isDisabled"
         type="button"
-        class="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-        tabindex="-1"
-        @click="remove"
+        :title="t('Remove attachment')"
+        :aria-label="t('Remove attachment')"
+        class="shrink-0 text-muted-foreground transition-colors hover:text-destructive"
+        @click.stop="remove"
       >
         <X class="size-3.5" />
       </button>

@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { DocField } from '@/types'
+import { useI18n } from 'vue-i18n'
+import { Undo2 } from '@lucide/vue'
+import type { BaseFieldProps } from '@/types'
 
-const props = defineProps<{
-  field: DocField
-  modelValue: unknown
-  disabled?: boolean
-  error?: string
-}>()
-
+const props = defineProps<BaseFieldProps>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
+
+const { t } = useI18n()
 
 const SVG_W = 800
 const SVG_H = 200
@@ -22,7 +20,43 @@ const currentStroke = ref<Point[]>([])
 const isDrawing = ref(false)
 
 const isReadonly = computed(() => props.disabled || props.field.read_only)
-const existingValue = computed(() => typeof props.modelValue === 'string' && props.modelValue ? props.modelValue : null)
+const existingValue = computed(() =>
+  typeof props.modelValue === 'string' && props.modelValue ? props.modelValue : null,
+)
+
+/**
+ * Rebuild the stored SVG from a parsed DOM, keeping only our own
+ * `<svg><path d="…"/></svg>` shape with numeric path data. Neutralises any
+ * markup (event handlers, <script>, foreignObject) a malicious stored value
+ * could carry, while keeping `currentColor` so it still follows the theme.
+ */
+const safeSignature = computed(() => {
+  const raw = existingValue.value
+  if (!raw || !raw.includes('<svg')) return ''
+  const doc = new DOMParser().parseFromString(raw, 'image/svg+xml')
+  if (doc.querySelector('parsererror')) return ''
+  const src = doc.querySelector('svg')
+  if (!src) return ''
+  const NS = 'http://www.w3.org/2000/svg'
+  const out = document.createElementNS(NS, 'svg')
+  out.setAttribute('viewBox', src.getAttribute('viewBox') || `0 0 ${SVG_W} ${SVG_H}`)
+  out.setAttribute('width', '100%')
+  out.setAttribute('height', '100%')
+  out.setAttribute('fill', 'none')
+  out.setAttribute('stroke', 'currentColor')
+  out.setAttribute('stroke-width', '2.5')
+  out.setAttribute('stroke-linecap', 'round')
+  out.setAttribute('stroke-linejoin', 'round')
+  src.querySelectorAll('path').forEach((p) => {
+    const d = p.getAttribute('d')
+    if (d && /^[\d\s.,\-mlqcMLQC]+$/.test(d)) {
+      const np = document.createElementNS(NS, 'path')
+      np.setAttribute('d', d)
+      out.appendChild(np)
+    }
+  })
+  return out.outerHTML
+})
 
 // Smooth path via midpoint quadratic bezier
 function toPathD(pts: Point[]): string {
@@ -98,11 +132,16 @@ function commitStroke() {
 }
 
 function save() {
-  const paths = strokes.value
-    .map((pts) => `<path d="${toPathD(pts)}"/>`)
-    .join('')
+  const paths = strokes.value.map((pts) => `<path d="${toPathD(pts)}"/>`).join('')
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SVG_W} ${SVG_H}" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`
   emit('update:modelValue', svg)
+}
+
+function undo() {
+  if (!strokes.value.length) return
+  strokes.value.pop()
+  if (strokes.value.length) save()
+  else emit('update:modelValue', null)
 }
 
 function clear() {
@@ -116,32 +155,36 @@ function clear() {
   <!-- Readonly -->
   <div v-if="isReadonly">
     <div
-      v-if="existingValue"
-      class="rounded-md border border-border overflow-hidden bg-background p-2 h-32 [&>svg]:block [&>svg]:h-full"
-      v-html="existingValue"
+      v-if="safeSignature"
+      role="img"
+      :aria-label="field.label"
+      class="h-32 overflow-hidden rounded-md border border-border bg-background p-2 [&>svg]:block [&>svg]:h-full"
+      v-html="safeSignature"
     />
     <div
       v-else
-      class="h-20 rounded-md border border-border flex items-center justify-center text-muted-foreground/50"
+      class="flex h-20 items-center justify-center rounded-md border border-border text-muted-foreground/50"
     >
-      — не підписано —
+      {{ t('Not signed') }}
     </div>
   </div>
 
   <!-- Editable -->
   <div v-else class="flex flex-col gap-1.5">
     <div
-      class="relative rounded-md border overflow-hidden bg-background"
+      class="relative overflow-hidden rounded-md border bg-background"
       :class="error ? 'border-destructive' : 'border-input'"
     >
-      <!-- Show saved signature with option to re-sign -->
-      <template v-if="existingValue && !strokes.length && !currentStroke.length">
-        <div class="p-2 h-32 [&>svg]:block [&>svg]:h-full" v-html="existingValue" />
+      <!-- Saved signature with option to re-sign -->
+      <template v-if="safeSignature && !strokes.length && !currentStroke.length">
+        <div class="h-32 p-2 [&>svg]:block [&>svg]:h-full" v-html="safeSignature" />
         <button
           type="button"
-          class="absolute top-1.5 right-1.5 px-2 py-0.5 text-xs rounded bg-background/90 border border-border text-muted-foreground hover:text-destructive hover:border-destructive transition-colors"
+          class="absolute right-1.5 top-1.5 rounded border border-border bg-background/90 px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
           @click="clear"
-        >Очистити</button>
+        >
+          {{ t('Clear') }}
+        </button>
       </template>
 
       <!-- Drawing canvas -->
@@ -149,7 +192,9 @@ function clear() {
         <svg
           ref="svgRef"
           :viewBox="`0 0 ${SVG_W} ${SVG_H}`"
-          class="w-full h-32 block touch-none cursor-crosshair"
+          role="img"
+          :aria-label="field.label"
+          class="block h-32 w-full cursor-crosshair touch-none"
           fill="none"
           stroke="currentColor"
           stroke-width="2.5"
@@ -163,14 +208,11 @@ function clear() {
           @touchmove="onTouchMove"
           @touchend="onTouchEnd"
         >
-          <!-- Baseline -->
-          <line :x1="SVG_W * 0.05" :y1="SVG_H * 0.82" :x2="SVG_W * 0.95" :y2="SVG_H * 0.82"
-            stroke-dasharray="4 6" class="stroke-muted-foreground/20" stroke-width="1" />
-
-          <!-- Committed strokes -->
+          <line
+            :x1="SVG_W * 0.05" :y1="SVG_H * 0.82" :x2="SVG_W * 0.95" :y2="SVG_H * 0.82"
+            stroke-dasharray="4 6" class="stroke-muted-foreground/20" stroke-width="1"
+          />
           <path v-for="(pts, i) in strokes" :key="i" :d="toPathD(pts)" />
-
-          <!-- Current stroke (live) -->
           <path v-if="currentStroke.length > 1" :d="toPathD(currentStroke)" />
         </svg>
 
@@ -178,15 +220,27 @@ function clear() {
           v-if="!strokes.length && !currentStroke.length"
           class="pointer-events-none absolute inset-0 flex items-end justify-center pb-8 text-muted-foreground/35 select-none"
         >
-          Підпишіть тут
+          {{ t('Sign here') }}
         </div>
 
-        <button
-          v-if="strokes.length"
-          type="button"
-          class="absolute top-1.5 right-1.5 px-2 py-0.5 text-xs rounded bg-background/90 border border-border text-muted-foreground hover:text-destructive hover:border-destructive transition-colors"
-          @click="clear"
-        >Очистити</button>
+        <div v-if="strokes.length" class="absolute right-1.5 top-1.5 flex gap-1">
+          <button
+            type="button"
+            :title="t('Undo')"
+            :aria-label="t('Undo')"
+            class="rounded border border-border bg-background/90 p-1 text-muted-foreground transition-colors hover:text-foreground"
+            @click="undo"
+          >
+            <Undo2 class="size-3.5" />
+          </button>
+          <button
+            type="button"
+            class="rounded border border-border bg-background/90 px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+            @click="clear"
+          >
+            {{ t('Clear') }}
+          </button>
+        </div>
       </template>
     </div>
     <p v-if="error" class="text-xs text-destructive">{{ error }}</p>

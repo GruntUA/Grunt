@@ -421,5 +421,38 @@ msgstr "Введіть назву для пошуку по {n} іконках"
 msgid "Point the camera at a barcode or QR code"
 msgstr "Наведіть камеру на штрих-код або QR-код"
 
+#. ── Attach / Image ───────────────────────────────────────────
+msgid "Attach a file…"
+msgstr "Прикріпити файл…"
+
+msgid "Attach an image…"
+msgstr "Прикріпити зображення…"
+
+msgid "Replace file"
+msgstr "Замінити файл"
+
+msgid "Replace image"
+msgstr "Замінити зображення"
+
+msgid "Remove attachment"
+msgstr "Видалити вкладення"
+
+#. ── Signature ────────────────────────────────────────────────
+msgid "Not signed"
+msgstr "Не підписано"
+
+msgid "Sign here"
+msgstr "Підпишіть тут"
+
+msgid "Undo"
+msgstr "Відмінити"
+
+#. ── Code / JSON ──────────────────────────────────────────────
+msgid "Format"
+msgstr "Форматувати"
+
+msgid "Invalid JSON"
+msgstr "Невалідний JSON"
+
 msgid "{n} available"
 msgstr "{n} доступних"
