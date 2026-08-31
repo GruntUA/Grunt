@@ -18,7 +18,7 @@ async def test_inject_core_warns_on_permissions_drift_but_does_not_overwrite(
     ctx, db_session, engine, monkeypatch
 ):
     from grunt.metadata.doctype import DocType
-    from grunt.metadata.permission import DocTypePermission
+    from grunt.metadata.permission import DocPermission
     from grunt.metadata.registry import doctype_registry, logger
 
     # Seed a "core" doctype the way _inject_core's first-run branch would,
@@ -28,7 +28,7 @@ async def test_inject_core_warns_on_permissions_drift_but_does_not_overwrite(
         label="Drift Target",
         module="test",
         fields=[],
-        permissions=[DocTypePermission(role="System Manager", read=True)],
+        permissions=[DocPermission(role="System Manager", read=True)],
     )
     await doctype_registry.register(stored, db_session, engine)
     await db_session.commit()
@@ -47,7 +47,7 @@ async def test_inject_core_warns_on_permissions_drift_but_does_not_overwrite(
         label="Drift Target",
         module="test",
         fields=[],
-        permissions=[DocTypePermission(role="Manager", read=True, write=True)],
+        permissions=[DocPermission(role="Manager", read=True, write=True)],
     )
     await doctype_registry._inject_core(updated_json, db_session, sync_db=True)
 
@@ -64,10 +64,10 @@ async def test_inject_core_warns_on_permissions_drift_but_does_not_overwrite(
 @pytest.mark.asyncio
 async def test_inject_core_silent_when_permissions_match(ctx, db_session, engine, monkeypatch):
     from grunt.metadata.doctype import DocType
-    from grunt.metadata.permission import DocTypePermission
+    from grunt.metadata.permission import DocPermission
     from grunt.metadata.registry import doctype_registry, logger
 
-    same_perms = [DocTypePermission(role="System Manager", read=True)]
+    same_perms = [DocPermission(role="System Manager", read=True)]
     stored = DocType(
         name="NoDriftTarget", label="No Drift", module="test", fields=[], permissions=same_perms
     )

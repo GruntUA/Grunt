@@ -10,7 +10,7 @@ Example:
     if not await grunt.has_permission("Invoice", "write"):
         throw("Read-only access")
 
-    # Document-level check — also evaluates the matching DocTypePermission's
+    # Document-level check — also evaluates the matching DocPermission's
     # match expression (e.g. "owner == user") against this document
     if not await grunt.has_permission("Contract", "read", contract_id):
         throw("You don't have permission to read this contract")

@@ -94,7 +94,7 @@
       "fieldname": "permissions",
       "label": "Дозволи",
       "fieldtype": "Table",
-      "options": "DocTypePermission"
+      "options": "DocPermission"
     },
     {
       "fieldname": "tab_actions",

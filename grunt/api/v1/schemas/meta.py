@@ -56,7 +56,7 @@ class DocFieldSchema(BaseModel):
     group_by: str | None = None
 
 
-class DocTypePermissionSchema(BaseModel):
+class DocPermissionSchema(BaseModel):
     role: str
     read: bool = False
     write: bool = False
@@ -203,7 +203,7 @@ class DocTypeSchema(BaseModel):
 
     fields: list[DocFieldSchema] = []
 
-    permissions: list[DocTypePermissionSchema] = []
+    permissions: list[DocPermissionSchema] = []
     workflow: WorkflowDefSchema | None = None
 
     autoname: str | None = None

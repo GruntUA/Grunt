@@ -1,4 +1,4 @@
-"""A single parsed DocTypePermission.match expression.
+"""A single parsed DocPermission.match expression.
 
 `match` (e.g. ``"owner == user"``) is evaluated two different ways depending
 on where a permission check happens:

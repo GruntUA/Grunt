@@ -4,6 +4,10 @@ Lives in the metadata layer (no dependency on ``grunt.document.base``) so that
 ``grunt.metadata.doctype`` can reference it during bootstrap without importing a
 Document controller — which would invert the metadata→document layering and
 create an import cycle.
+
+Permissions are stored inline on the owning DocType (``doctype.permissions``,
+a list of these) and edited in the Studio DocType builder's "Дозволи" tab via
+the ``DocPermission`` child schema. There is no standalone permission store.
 """
 
 from __future__ import annotations
@@ -11,8 +15,8 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict
 
 
-class DocTypePermission(BaseModel):
-    """Pydantic model for DocType permissions inside DocType metadata."""
+class DocPermission(BaseModel):
+    """Pydantic model for a single permission row inside DocType metadata."""
 
     model_config = ConfigDict(extra="ignore")
 

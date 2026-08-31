@@ -14,20 +14,14 @@ logger = structlog.get_logger()
 
 
 async def _apply_hot_reload_if_triggered(site: str) -> None:
-    """Refresh this worker's in-memory DocType/permission caches for *site*
-    if `.reload_meta` is present (written by `grunt db migrate` or a
-    DocTypePermission write — see permissions/sync.py).
+    """Refresh this worker's in-memory DocType caches for *site* if
+    `.reload_meta` is present (written by `grunt db migrate` / `grunt doctype
+    sync`).
 
-    Just clearing the DocType cache isn't enough on its own: the next
-    lazy-load re-reads a DocType's *stored* JSON blob (grunt_meta_doctype),
-    and `permissions` is deliberately excluded from the core-sync allowlist
-    (registry.py's `_CORE_SYNCED_DOCTYPE_ATTRS`) — Studio/DocTypePermission
-    edits are Studio-owned, not JSON-owned. So a permission change made
-    through the DocTypePermission table would silently keep being enforced
-    with its *old* value after a "hot reload" until the process fully
-    restarted. Forcing every known DocType to load (`list_all`) and then
-    re-applying `DocTypePermission` rows on top (`load_all_permissions_from_db`)
-    closes that gap.
+    Clearing the DocType cache is enough on its own: the next lazy-load
+    re-reads the DocType's *stored* JSON blob (grunt_meta_doctype), which is
+    the single source of truth for `permissions` too (edited in the Studio
+    DocType builder, persisted in that blob).
     """
     reload_file = site_manager.sites_dir / site / ".reload_meta"
     if not reload_file.exists():
@@ -39,16 +33,6 @@ async def _apply_hot_reload_if_triggered(site: str) -> None:
     doctype_registry.clear_cache()
     FILE_CLIENT_SCRIPT_REGISTRY.clear()
     _client_script_scanned.clear()
-
-    try:
-        from grunt.permissions.sync import load_all_permissions_from_db
-
-        await doctype_registry.list_all()
-        maker = site_manager.get_session_maker(site)
-        async with maker() as session:
-            await load_all_permissions_from_db(session)
-    except Exception:
-        logger.exception("suppressed_error")
 
     try:
         reload_file.unlink()

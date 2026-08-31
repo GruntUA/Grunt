@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from grunt.metadata.doctype import DocType
-from grunt.metadata.permission import DocTypePermission
+from grunt.metadata.permission import DocPermission
 from grunt.permissions.rbac import permission_checker
 from tests.support import make_user
 
@@ -20,7 +20,7 @@ def _make_doctype_with_perms(perms: list[dict]) -> DocType:
         label="Test",
         module="test",
         fields=[],
-        permissions=[DocTypePermission(**p) for p in perms],
+        permissions=[DocPermission(**p) for p in perms],
     )
 
 

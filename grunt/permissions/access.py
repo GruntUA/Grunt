@@ -3,7 +3,7 @@
 `PermissionChecker.check()`/`.hidden_fields()` (rbac.py) and
 `apply_permission_filter()` (query.py) each independently re-derived the same
 two things: whether access checks apply at all (superadmin bypasses
-everything), and which `DocTypePermission` rows a user's roles actually
+everything), and which `DocPermission` rows a user's roles actually
 match. Wrapping that here means the three call sites can't drift the way
 `PermissionMatch`'s two evaluation modes already had.
 """
@@ -14,7 +14,8 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
-    from grunt.metadata.doctype import DocType, DocTypePermission
+    from grunt.metadata.doctype import DocType
+    from grunt.metadata.permission import DocPermission
 
 
 class RoleAccess:
@@ -37,7 +38,7 @@ class RoleAccess:
         """
         return bool(getattr(self.user, "is_superadmin", False))
 
-    def matching_permissions(self) -> list[DocTypePermission]:
+    def matching_permissions(self) -> list[DocPermission]:
         """Permission rows whose role applies to this user (own roles, or "All").
 
         Returns an empty list when :attr:`is_unrestricted` — callers must
@@ -53,5 +54,5 @@ class RoleAccess:
         ]
 
     @staticmethod
-    def _role_of(perm: DocTypePermission) -> str:
+    def _role_of(perm: DocPermission) -> str:
         return perm.role if hasattr(perm, "role") else ""

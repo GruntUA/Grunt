@@ -171,10 +171,6 @@ const router = createRouter({
         },
         // Legacy admin routes — redirect to standard DocType ListViews
         {
-          path: 'rbac',
-          redirect: (route) => `/${route.params.workspaceName}/DocTypePermission`,
-        },
-        {
           path: 'hooks',
           redirect: (route) => `/${route.params.workspaceName}/Hook`,
         },

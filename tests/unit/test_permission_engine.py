@@ -18,7 +18,8 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlalchemy import Column, MetaData, String, Table, false, select
 
-from grunt.metadata.doctype import DocType, DocTypePermission
+from grunt.metadata.doctype import DocType
+from grunt.metadata.permission import DocPermission
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
 from grunt.permissions.query import apply_permission_filter
@@ -47,7 +48,7 @@ def _doctype(perms: list[dict]) -> DocType:
         label="Perm Test",
         module="test",
         fields=[],
-        permissions=[DocTypePermission(**p) for p in perms],
+        permissions=[DocPermission(**p) for p in perms],
     )
 
 

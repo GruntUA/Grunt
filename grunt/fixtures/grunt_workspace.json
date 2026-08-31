@@ -45,16 +45,6 @@
     {
       "section": "Користувачі та безпека",
       "type": "DocType",
-      "label": "Дозволи",
-      "icon": "lock",
-      "link_to": "DocTypePermission",
-      "show_count": true,
-      "show_new_btn": true,
-      "sequence": 12
-    },
-    {
-      "section": "Користувачі та безпека",
-      "type": "DocType",
       "label": "API ключі",
       "icon": "key",
       "link_to": "ApiKey",

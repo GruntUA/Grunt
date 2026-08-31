@@ -12,7 +12,7 @@ import type { Theme } from '@/core/composables/useColorMode'
 import { useSidebar } from '@/components/ui/sidebar'
 import {
   ArrowLeft, Check, ChevronDown, ChevronRight, ChevronsUpDown, Sun, Moon, Monitor,
-  Settings2, Search, Shield, Activity,
+  Settings2, Search, Activity,
   Mail, LogOut, Languages,
 } from '@lucide/vue'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
@@ -41,7 +41,6 @@ async function handleLogout() { await auth.logout(); router.push('/login') }
 
 // ── Admin shortcuts ───────────────────────────────────────────────────────────
 const adminLinks = [
-  { to: '/grunt/DocTypePermission', icon: Shield, label: 'Права доступу' },
   { to: '/grunt/ActivityLog', icon: Activity, label: 'Журнал активності' },
   { to: '/grunt/EmailMessage', icon: Mail, label: 'Листи (e-mail)' },
   { to: '/grunt/EmailAccount', icon: Mail, label: 'Пошта — налаштування' },

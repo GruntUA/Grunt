@@ -9,7 +9,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, model_validator
 
 from grunt.metadata.field import DocField
-from grunt.metadata.permission import DocTypePermission
+from grunt.metadata.permission import DocPermission
 
 # ── Workflow sub-models ──────────────────────────────────────────────────
 
@@ -304,7 +304,7 @@ class DocType(BaseModel):
     links: list[DocTypeLink] = []
 
     # Business logic
-    permissions: list[DocTypePermission] = []
+    permissions: list[DocPermission] = []
 
     # Naming / display
     autoname: str | None = None  # "CONTR-.YYYY.-.####" or "field:title"

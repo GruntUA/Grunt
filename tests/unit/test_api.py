@@ -21,12 +21,12 @@ from grunt.api.context import (
 from grunt.api.messages import ApplicationError, msgprint, throw
 from grunt.api.permissions import get_current_user
 from grunt.app import GruntDB, grunt
-from grunt.metadata.permission import DocTypePermission
+from grunt.metadata.permission import DocPermission
 
 db = GruntDB()
 
 
-def _dt(name: str, permissions: list[DocTypePermission] | None = None) -> Mock:
+def _dt(name: str, permissions: list[DocPermission] | None = None) -> Mock:
     """A stand-in DocType with just the attributes permission_checker.check() reads.
 
     Plain ``Mock(name=..., permissions=...)`` doesn't work here — ``name`` is a
@@ -434,7 +434,7 @@ class TestPermissions:
         """A permission row exists, but not for the user's role."""
         user = Mock(email="guest@example.com", roles=["Guest"], is_superadmin=False)
         set_user(user)
-        dt = _dt("Invoice", [DocTypePermission(role="Admin", read=True)])
+        dt = _dt("Invoice", [DocPermission(role="Admin", read=True)])
         with _registry_returning(dt):
             assert await grunt.has_permission("Invoice", "read") is False
 
@@ -443,7 +443,7 @@ class TestPermissions:
         """A permission row matches the role, but doesn't grant this action."""
         user = Mock(email="guest@example.com", roles=["Guest"], is_superadmin=False)
         set_user(user)
-        dt = _dt("Invoice", [DocTypePermission(role="Guest", read=False)])
+        dt = _dt("Invoice", [DocPermission(role="Guest", read=False)])
         with _registry_returning(dt):
             assert await grunt.has_permission("Invoice", "read") is False
 
@@ -451,7 +451,7 @@ class TestPermissions:
     async def test_permission_row_matches_role_and_action_allowed(self, setup_context):
         user = Mock(email="user@example.com", roles=["User"], is_superadmin=False)
         set_user(user)
-        dt = _dt("Invoice", [DocTypePermission(role="User", write=True)])
+        dt = _dt("Invoice", [DocPermission(role="User", write=True)])
         with _registry_returning(dt):
             assert await grunt.has_permission("Invoice", "write") is True
 
@@ -460,7 +460,7 @@ class TestPermissions:
         """A user with no roles doesn't match any role-scoped permission row."""
         user = Mock(email="nouser@example.com", roles=[], is_superadmin=False)
         set_user(user)
-        dt = _dt("Invoice", [DocTypePermission(role="User", read=True)])
+        dt = _dt("Invoice", [DocPermission(role="User", read=True)])
         with _registry_returning(dt):
             assert await grunt.has_permission("Invoice", "read") is False
 
@@ -473,7 +473,7 @@ class TestPermissions:
         """
         owner = Mock(email="owner@example.com", roles=["User"], is_superadmin=False)
         attacker = Mock(email="attacker@example.com", roles=["User"], is_superadmin=False)
-        dt = _dt("Contract", [DocTypePermission(role="User", read=True, match="owner == user")])
+        dt = _dt("Contract", [DocPermission(role="User", read=True, match="owner == user")])
         doc = {"name": "CONTRACT-1", "owner": "owner@example.com"}
 
         with (
@@ -519,7 +519,7 @@ class TestIntegration:
         set_user(mock_user)
 
         # User with matching write permission row → allowed
-        dt = _dt("Invoice", [DocTypePermission(role="User", write=True)])
+        dt = _dt("Invoice", [DocPermission(role="User", write=True)])
         with _registry_returning(dt):
             can_edit = await grunt.has_permission("Invoice", "write")
             assert can_edit is True

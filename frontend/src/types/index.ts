@@ -98,7 +98,7 @@ export interface DocTypeSummary {
 
 // ── Permission types ──────────────────────────────────────────────────────
 
-export interface DocTypePermission {
+export interface DocPermission {
   role: string
   read?: boolean
   write?: boolean
@@ -277,7 +277,7 @@ export interface DocType {
   map_view?: DocTypeMapView | null
   status_config?: DocTypeStatusConfig | null
   workflow_state_field?: string | null
-  permissions?: DocTypePermission[]
+  permissions?: DocPermission[]
   actions?: DocTypeActionBinding[]
   /** Registry metadata for every action bind-able on this DocType (Studio helper). */
   _action_catalog?: DocActionCatalogEntry[]

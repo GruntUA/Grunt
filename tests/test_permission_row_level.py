@@ -1,4 +1,4 @@
-"""Integration tests: DocTypePermission.match actually restricts
+"""Integration tests: DocPermission.match actually restricts
 grunt.get_list/get_doc/save_doc/delete_doc.
 
 Regression for two related gaps where row-level `match` (documented as

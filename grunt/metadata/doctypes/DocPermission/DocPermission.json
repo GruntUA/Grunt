@@ -1,18 +1,10 @@
 {
-  "name": "DocTypePermission",
-  "label": "Дозвіл DocType",
+  "name": "DocPermission",
+  "label": "Дозвіл",
   "module": "metadata",
-  "title_field": "doctype_name",
+  "is_child": true,
+  "title_field": "role",
   "fields": [
-    {
-      "fieldname": "doctype_name",
-      "label": "DocType",
-      "fieldtype": "Link",
-      "options": "DocType",
-      "required": true,
-      "in_list_view": true,
-      "in_filter": true
-    },
     {
       "fieldname": "role",
       "label": "Роль",

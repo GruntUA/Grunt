@@ -324,7 +324,7 @@ async def test_tree_sort_override_via_document_controller(ctx, tree_doctype):
 
 # ── Regression: docs/tree.py router endpoints used to have NO doctype-level
 # permission check at all — any authenticated user could read/reorder tree
-# data for any doctype regardless of DocTypePermission. TreeCategory (above)
+# data for any doctype regardless of DocPermission. TreeCategory (above)
 # has no `permissions` defined, so per the framework's "no permissions = open
 # (dev mode)" convention it can't prove the gate works — these tests use a
 # doctype with real restrictive permissions instead. ─────────────────────────

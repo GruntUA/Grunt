@@ -13,7 +13,7 @@ not enforcement -- the generic docs CRUD ignored it entirely.
 
 Both are fixed the same way as File (see test_file_permissions.py): broad
 `create` isn't needed (rows are created via system_context, which bypasses
-DocTypePermission entirely), and read/write/delete are scoped with
+DocPermission entirely), and read/write/delete are scoped with
 `match: "user == user"`.
 
 Same rationale as test_file_permissions.py for testing permission_checker

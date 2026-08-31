@@ -50,13 +50,8 @@ register_exporter(CsvExporter())
 register_importer(CsvImporter())
 register_importer(XlsxImporter())
 
-# Auto-refresh in-memory permissions when DocTypePermission is saved/deleted
 register_doc_events(
     {
-        "DocTypePermission": {
-            "after_save": ["grunt.permissions.sync.sync_permissions"],
-            "after_delete": ["grunt.permissions.sync.sync_permissions"],
-        },
         # Never hand a stored SMTP password back to a non-superadmin reader.
         "EmailAccount": {
             "after_read": ["grunt.email.hooks.mask_smtp_password"],
@@ -137,15 +132,6 @@ async def lifespan(app: FastAPI):
                 await doctype_registry.prefetch_names(session)
                 # Merge in-memory field extensions from app hooks (no table sync)
                 await apply_doctype_overrides(session, eng)
-                # Permissions: migrate DocType meta → DocTypePermission, then load into memory
-                from grunt.permissions.sync import (
-                    load_all_permissions_from_db,
-                    migrate_doctype_meta_permissions,
-                )
-
-                await migrate_doctype_meta_permissions(session)
-                await session.flush()
-                await load_all_permissions_from_db(session)
                 await session.commit()
 
         except Exception as e:
