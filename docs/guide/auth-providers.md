@@ -121,12 +121,6 @@ claims = verify_challenge_token(token, "telegram-login")  # None if wrong purpos
 
 ## WebAuthn / passkeys (reference)
 
-Needs the extra:
-
-```bash
-uv pip install grunt[webauthn]
-```
-
 Config:
 
 ```

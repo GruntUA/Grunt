@@ -25,6 +25,10 @@ dependencies = [
     "pyjwt>=2.8.0",
     "passlib[bcrypt]>=1.7.4",
     "python-multipart>=0.0.9",
+    "pyotp>=2.10.0",              # MFA / TOTP
+    "qrcode[pil]>=8.2",        # MFA QR codes
+    "authlib>=1.8.0",            # OIDC / OAuth login providers
+    "webauthn>=3.0.0",           # passkeys / WebAuthn
     # Logging
     "structlog>=24.1.0",
     # Logging output
@@ -72,17 +76,11 @@ docs = [
     "openpyxl>=3.1.0",
     "sqlparse>=0.5.0",
 ]
-mfa = [
-    "pyotp>=2.9.0",
-    "qrcode[pil]>=7.4.2",
-]
-oauth = [
-    "authlib>=1.3.0",
-    "httpx>=0.27.0",
-]
-webauthn = [
-    "webauthn>=2.5.0",
-]
+
+# Dev tooling lives in a dependency-group (PEP 735), NOT an extra: `uv sync`
+# installs the default groups automatically, so a plain `uv sync` can never
+# strip pytest/ruff/mypy the way `--extra`-gated deps get dropped.
+[dependency-groups]
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",

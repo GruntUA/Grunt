@@ -5,28 +5,23 @@ Credentials are stored one-per-row in the ``WebAuthnCredential`` DocType. The
 challenge that has to survive between ``begin`` and ``complete`` is carried in a
 signed, single-purpose JWT (:func:`grunt.auth.service.create_challenge_token`)
 rather than server state, so the flow stays stateless.
-
-Needs the ``webauthn`` extra::
-
-    uv pip install grunt[webauthn]
 """
 
 from __future__ import annotations
 
-import importlib.util
 import json
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, ClassVar
 from urllib.parse import urlparse
 
 import structlog
+import webauthn
 
 from grunt.api.messages import throw
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.auth.service import create_challenge_token, verify_challenge_token
 from grunt.config import settings
-from grunt.utils.optional_deps import require_extra
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -36,15 +31,6 @@ logger = structlog.get_logger()
 _AUTH_PURPOSE = "webauthn-auth"
 _REG_PURPOSE = "webauthn-reg"
 _CRED = "WebAuthnCredential"
-
-
-def _require_webauthn() -> Any:
-    def _load():
-        import webauthn
-
-        return webauthn
-
-    return require_extra(_load, "webauthn")
 
 
 # ── deployment config ───────────────────────────────────────────────────────
@@ -130,7 +116,7 @@ async def _credential_by_id(credential_id: str) -> dict | None:
     return rows[0] if rows else None
 
 
-def _descriptors(webauthn: Any, rows: list[dict]) -> list[Any]:
+def _descriptors(rows: list[dict]) -> list[Any]:
     from webauthn.helpers.structs import (
         AuthenticatorTransport,
         PublicKeyCredentialDescriptor,
@@ -165,13 +151,9 @@ class WebAuthnProvider(AuthProvider):
     requires_identifier = False  # usernameless (resident-key) sign-in supported
     supports_enrollment = True
 
-    def is_configured(self) -> bool:
-        return importlib.util.find_spec("webauthn") is not None
-
     # ── sign in ────────────────────────────────────────────────────────────
 
     async def begin(self, ctx: AuthFlowContext) -> dict[str, Any]:
-        webauthn = _require_webauthn()
         from webauthn.helpers.structs import UserVerificationRequirement
 
         from grunt.auth.doctypes.User.user import get_user_by_email
@@ -187,7 +169,7 @@ class WebAuthnProvider(AuthProvider):
         if email and not cross_device:
             user = await get_user_by_email(email)
             if user and user.id:
-                allow = _descriptors(webauthn, await _credentials_for_user(user.id))
+                allow = _descriptors(await _credentials_for_user(user.id))
 
         rp_id, origin = _resolve_rp(ctx.request)
         options = webauthn.generate_authentication_options(
@@ -209,7 +191,6 @@ class WebAuthnProvider(AuthProvider):
         return {"options": options_json, "challenge_token": token}
 
     async def complete(self, ctx: AuthFlowContext) -> User:
-        webauthn = _require_webauthn()
         from grunt.app import grunt
         from grunt.auth.doctypes.User.user import get_user_by_id
 
@@ -262,7 +243,6 @@ class WebAuthnProvider(AuthProvider):
     # ── enrol a passkey for the signed-in user ───────────────────────────
 
     async def enroll_begin(self, ctx: AuthFlowContext) -> dict[str, Any]:
-        webauthn = _require_webauthn()
         from webauthn.helpers.structs import (
             AuthenticatorAttachment,
             AuthenticatorSelectionCriteria,
@@ -276,7 +256,7 @@ class WebAuthnProvider(AuthProvider):
 
         cross_device = ctx.get("mode") == "cross-device"
         rp_id, origin = _resolve_rp(ctx.request)
-        exclude = _descriptors(webauthn, await _credentials_for_user(user.id))
+        exclude = _descriptors(await _credentials_for_user(user.id))
         options = webauthn.generate_registration_options(
             rp_id=rp_id,
             rp_name=_rp_name(),
@@ -312,7 +292,6 @@ class WebAuthnProvider(AuthProvider):
         return {"options": options_json, "challenge_token": token}
 
     async def enroll_complete(self, ctx: AuthFlowContext) -> dict[str, Any]:
-        webauthn = _require_webauthn()
         from grunt.app import grunt
         from grunt.context import require_session
 

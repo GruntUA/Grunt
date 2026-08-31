@@ -5,22 +5,18 @@ The HTTP surface still lives at ``/api/v1/oauth/{provider}/authorize`` and
 IdP) — see :mod:`grunt.api.v1.oauth` — but the actual OIDC dance is here so it
 goes through the same registry and :func:`grunt.auth.login.issue_login` as
 every other method.
-
-Needs the ``oauth`` extra::
-
-    uv pip install grunt[oauth]
 """
 
 from __future__ import annotations
 
-import importlib.util
 from typing import TYPE_CHECKING, Any, ClassVar
+
+from authlib.integrations.httpx_client import AsyncOAuth2Client
 
 from grunt.api.messages import throw
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.config import settings
-from grunt.utils.optional_deps import require_extra
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -29,15 +25,6 @@ _GOOGLE_CONF_URL = "https://accounts.google.com/.well-known/openid-configuration
 _MICROSOFT_CONF_URL = (
     "https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration"
 )
-
-
-def _require_authlib() -> Any:
-    def _load():
-        from authlib.integrations.httpx_client import AsyncOAuth2Client
-
-        return AsyncOAuth2Client
-
-    return require_extra(_load, "oauth")
 
 
 class OIDCProvider(AuthProvider):
@@ -61,7 +48,7 @@ class OIDCProvider(AuthProvider):
         return self.conf_url
 
     def is_configured(self) -> bool:
-        return bool(self._client_id()) and importlib.util.find_spec("authlib") is not None
+        return bool(self._client_id())
 
     def _callback_url(self) -> str:
         return f"{settings.app_url}/api/v1/oauth/{self.name}/callback"
@@ -79,9 +66,8 @@ class OIDCProvider(AuthProvider):
     # ── ceremony ───────────────────────────────────────────────────────────
 
     async def begin(self, ctx: AuthFlowContext) -> dict[str, Any]:
-        client_cls = _require_authlib()
         oidc = await self._discover()
-        client = client_cls(
+        client = AsyncOAuth2Client(
             client_id=self._client_id(),
             redirect_uri=self._callback_url(),
             scope=self.scope,
@@ -97,9 +83,8 @@ class OIDCProvider(AuthProvider):
         if not code:
             throw("Missing OAuth 'code'", "VALIDATION_ERROR")
 
-        client_cls = _require_authlib()
         oidc = await self._discover()
-        oa = client_cls(
+        oa = AsyncOAuth2Client(
             client_id=self._client_id(),
             client_secret=self._client_secret(),
             redirect_uri=self._callback_url(),

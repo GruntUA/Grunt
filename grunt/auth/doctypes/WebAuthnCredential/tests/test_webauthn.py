@@ -2,18 +2,12 @@
 
 from __future__ import annotations
 
-import importlib.util
 from typing import TYPE_CHECKING
 
 import pytest
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
-
-pytestmark = pytest.mark.skipif(
-    importlib.util.find_spec("webauthn") is None,
-    reason="requires the `webauthn` extra",
-)
 
 _METHODS = "/api/v1/auth/methods"
 

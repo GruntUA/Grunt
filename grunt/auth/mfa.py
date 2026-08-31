@@ -2,10 +2,6 @@
 
 Provides Time-based One-Time Password (TOTP) setup and verification,
 backed by the ``mfa_secret`` and ``mfa_backup_codes`` fields on the User DocType.
-
-Requires the ``mfa`` optional extras::
-
-    uv pip install grunt[mfa]
 """
 
 from __future__ import annotations
@@ -16,11 +12,11 @@ import json
 import os
 from typing import TYPE_CHECKING
 
+import pyotp
 import structlog
 from fastapi import HTTPException
 
 from grunt.app import grunt as grunt_app
-from grunt.utils.optional_deps import require_extra
 
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
@@ -31,27 +27,16 @@ _APP_NAME = "Grunt"
 _BACKUP_CODE_COUNT = 8
 
 
-def _require_pyotp():
-    def _load():
-        import pyotp
-
-        return pyotp
-
-    return require_extra(_load, "mfa")
-
-
 # ── Setup ─────────────────────────────────────────────────────────────────────
 
 
 def generate_mfa_secret() -> str:
     """Generate a new random TOTP secret (base32 encoded)."""
-    pyotp = _require_pyotp()
     return pyotp.random_base32()
 
 
 def get_totp_uri(secret: str, email: str) -> str:
     """Return the otpauth:// URI for QR code generation."""
-    pyotp = _require_pyotp()
     return pyotp.TOTP(secret).provisioning_uri(name=email, issuer_name=_APP_NAME)
 
 
@@ -100,7 +85,6 @@ def verify_totp(secret: str, code: str) -> bool:
 
     Allows a 1-step window (30s before/after) to handle clock drift.
     """
-    pyotp = _require_pyotp()
     totp = pyotp.TOTP(secret.strip())
     return totp.verify(code.strip(), valid_window=1)
 

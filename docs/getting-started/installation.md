@@ -18,10 +18,10 @@ pip install grunt[postgres]
 
 # With Redis support
 pip install grunt[postgres,redis]
-
-# All extras (MFA, OAuth, S3)
-pip install grunt[postgres,redis,mfa,oauth]
 ```
+
+MFA (TOTP), OAuth/OIDC login and WebAuthn passkeys are part of the core
+install — no extra needed.
 
 Using [uv](https://github.com/astral-sh/uv) (recommended):
 

@@ -184,31 +184,70 @@ def _install_deps(path: Path, label: str) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _run_package_update() -> None:
+def _run_package_update(upgrade: bool = False) -> None:
+    """Синхронізує Python-оточення з ``uv.lock``.
+
+    За замовчуванням застосовує САМЕ ті версії, що зафіксовані в lock-файлі
+    (який щойно підтягнув ``git pull``) — це не ламає оточення. ``--all-extras``
+    гарантує, що dev-інструменти й драйвери БД лишаються на місці.
+
+    ``upgrade=True`` (прапорець ``--upgrade-packages``) додатково піднімає всі
+    пакети до найновіших сумісних версій — робити свідомо.
+    """
     app_dir = _grunt_app_dir()
     uv = _find_uv()
     if uv:
-        console.print("  [dim]uv sync --upgrade...[/dim]")
+        cmd = [uv, "sync", "--all-extras"]
+        if upgrade:
+            cmd.append("--upgrade")
+        console.print(f"  [dim]{' '.join(cmd[1:])}...[/dim]")
         env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
         env["PWD"] = str(app_dir)
-        result = subprocess.run(
-            [uv, "sync", "--upgrade", "--all-extras"], cwd=str(app_dir), check=False, env=env
-        )
+        result = subprocess.run(cmd, cwd=str(app_dir), check=False, env=env)
         if result.returncode != 0:
-            console.print("  [yellow]⚠[/yellow]  uv sync --upgrade завершився з помилкою")
+            console.print("  [yellow]⚠[/yellow]  uv sync завершився з помилкою")
         else:
-            console.print("  [green]✓[/green] Python пакети оновлені")
+            _verify_toolchain(app_dir)
+            console.print("  [green]✓[/green] Python пакети синхронізовані")
         return
     console.print("  [dim]uv не знайдено, використовую pip...[/dim]")
-    result = subprocess.run(
-        [sys.executable, "-m", "pip", "install", "--upgrade", "grunt"],
-        cwd=str(app_dir),
-        check=False,
-    )
+    result = subprocess.run(_pip_install_cmd(upgrade), cwd=str(app_dir), check=False)
     if result.returncode != 0:
-        console.print("  [yellow]⚠[/yellow]  pip install --upgrade завершився з помилкою")
+        console.print("  [yellow]⚠[/yellow]  pip install завершився з помилкою")
     else:
-        console.print("  [green]✓[/green] Python пакети оновлені")
+        console.print("  [green]✓[/green] Python пакети синхронізовані")
+
+
+# dev tooling — an installable list for the pip fallback (uv reads the
+# [dependency-groups] table directly).
+_DEV_DEPS = ["pytest", "pytest-asyncio", "pytest-cov", "httpx", "ruff", "mypy"]
+
+
+def _pip_install_cmd(upgrade: bool) -> list[str]:
+    cmd = [sys.executable, "-m", "pip", "install", "-e", ".", *_DEV_DEPS]
+    if upgrade:
+        cmd.insert(4, "--upgrade")
+    return cmd
+
+
+def _verify_toolchain(app_dir: Path) -> None:
+    """Попереджає, якщо sync лишив оточення без dev-інструментів (напр. коли
+    забули ``--all-extras``)."""
+    venv = app_dir / ".venv" / "bin"
+    py = venv / "python"
+    if not py.exists():
+        return
+    has_pytest = (
+        subprocess.run(
+            [str(py), "-c", "import pytest"], capture_output=True, check=False
+        ).returncode
+        == 0
+    )
+    if not has_pytest or not (venv / "ruff").exists():
+        console.print(
+            "  [yellow]⚠[/yellow]  У .venv відсутні dev-пакети (pytest / ruff). "
+            "Відновіть: [cyan]uv sync --all-extras[/cyan]"
+        )
 
 
 def _run_npm_install_for(app_dir: Path, upgrade: bool = False) -> None:
@@ -230,26 +269,41 @@ def _run_npm_install_for(app_dir: Path, upgrade: bool = False) -> None:
         else:
             console.print("  [yellow]⚠[/yellow]  npm update завершився з помилкою")
         return
-    console.print(f"  [dim]npm install ({app_dir.name})...[/dim]")
-    result = subprocess.run([*npm_run, "install"], cwd=str(app_dir), check=False)
-    if result.returncode != 0:
-        nm = app_dir / "node_modules"
-        if nm.exists():
-            console.print("  [dim]Очищення node_modules, повторна спроба...[/dim]")
-            shutil.rmtree(nm)
+    # `npm ci` коли є lock — ставить РІВНО за package-lock.json, без правок.
+    use_ci = (app_dir / "package-lock.json").exists()
+    verb = "ci" if use_ci else "install"
+    console.print(f"  [dim]npm {verb} ({app_dir.name})...[/dim]")
+    result = subprocess.run([*npm_run, verb], cwd=str(app_dir), check=False)
+    if result.returncode != 0 and use_ci:
+        # lock розійшовся з package.json — відкат на install
+        console.print("  [dim]npm ci не пройшов, пробую npm install...[/dim]")
         result = subprocess.run([*npm_run, "install"], cwd=str(app_dir), check=False)
     if result.returncode == 0:
-        subprocess.run([*npm_run, "audit", "fix"], cwd=str(app_dir), check=False)
         console.print("  [green]✓[/green] npm пакети встановлені")
     else:
         console.print("  [yellow]⚠[/yellow]  npm install завершився з помилкою")
 
 
 def _run_migrations(site: str | None) -> None:
+    try:
+        from grunt.site.manager import site_manager
+
+        if not (site or site_manager.get_sites()):
+            console.print("  [dim]Жодного сайту — міграції пропущено[/dim]")
+            return
+    except Exception:
+        pass  # site manager unavailable → let db_migrate decide
+
     from grunt.cli.db import db_migrate
 
     ctx = click.Context(db_migrate)
-    ctx.invoke(db_migrate, dry_run=False, site=site)
+    try:
+        ctx.invoke(db_migrate, dry_run=False, site=site)
+    except SystemExit as exc:
+        if exc.code:
+            console.print("  [yellow]⚠[/yellow]  Міграції завершились з помилкою")
+    except Exception as exc:  # noqa: BLE001 — update must not crash on migrate
+        console.print(f"  [yellow]⚠[/yellow]  Міграції пропущено: {exc}")
 
 
 # ---------------------------------------------------------------------------
@@ -268,9 +322,17 @@ def update_group() -> None:
     "--framework", "update_framework", is_flag=True, default=False, help="Оновити тільки фреймворк"
 )
 @click.option("--apps", "update_apps", is_flag=True, default=False, help="Оновити тільки додатки")
-@click.option("--skip-packages", is_flag=True, default=False, help="Не оновлювати Python пакети")
+@click.option(
+    "--skip-packages", is_flag=True, default=False, help="Не синхронізувати Python пакети"
+)
 @click.option("--skip-npm", is_flag=True, default=False, help="Не встановлювати npm пакети")
 @click.option("--skip-migrate", is_flag=True, default=False, help="Не запускати міграції БД")
+@click.option(
+    "--upgrade-packages",
+    is_flag=True,
+    default=False,
+    help="Підняти Python/npm пакети до нових версій (не лише синхронізувати з lock)",
+)
 @click.option(
     "--no-deps", is_flag=True, default=False, help="Не встановлювати залежності після git pull"
 )
@@ -282,6 +344,7 @@ def update(
     skip_packages: bool,
     skip_npm: bool,
     skip_migrate: bool,
+    upgrade_packages: bool,
     no_deps: bool,
     site: str | None,
 ) -> None:
@@ -290,13 +353,14 @@ def update(
     \b
     Послідовність:
       1. git pull --rebase для CLI, фреймворку та додатків
-      2. uv sync --upgrade (Python пакети)
+      2. uv sync --all-extras (Python пакети — рівно за lock-файлом)
       3. npm install
       4. grunt migrate
 
     \b
-    Без прапорців оновлює все.
-    З прапорцями — тільки вказані компоненти.
+    Без прапорців синхронізує все з підтягнутими lock-файлами (безпечно).
+    --upgrade-packages — свідомо піднімає версії пакетів.
+    З прапорцями компонентів — тільки вказані.
 
     \b
     Приклади:
@@ -358,7 +422,7 @@ def update(
     # ── 4. Python пакети ────────────────────────────────────────────
     if not skip_packages:
         console.print("[bold cyan]Python пакети[/bold cyan]")
-        _run_package_update()
+        _run_package_update(upgrade=upgrade_packages)
         console.print()
     else:
         console.print("[dim]Python пакети пропущено (--skip-packages)[/dim]")
@@ -369,7 +433,7 @@ def update(
         console.print("[bold cyan]npm пакети[/bold cyan]")
         grunt_dir = _grunt_app_dir()
         if grunt_dir.exists():
-            _run_npm_install_for(grunt_dir, upgrade=True)
+            _run_npm_install_for(grunt_dir, upgrade=upgrade_packages)
         else:
             console.print("  [dim]Grunt app директорія не знайдена[/dim]")
         console.print()
@@ -433,10 +497,9 @@ def deps(upgrade: bool, python_only: bool, npm_only: bool) -> None:
                 console.print("  [yellow]⚠[/yellow]  uv sync завершився з помилкою")
         else:
             console.print("  [dim]uv не знайдено, використовую pip...[/dim]")
-            cmd = [sys.executable, "-m", "pip", "install", "-e", ".[all]"]
-            if upgrade:
-                cmd.insert(4, "--upgrade")
-            result = subprocess.run(cmd, cwd=str(app_dir), check=False)
+            result = subprocess.run(
+                _pip_install_cmd(upgrade), cwd=str(app_dir), check=False
+            )
             if result.returncode == 0:
                 console.print("  [green]✓[/green] Python пакети встановлені")
             else:
