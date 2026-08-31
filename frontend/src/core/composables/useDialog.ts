@@ -25,7 +25,7 @@ import { reactive } from 'vue'
 
 // ── Types ────────────────────────────────────────────────────────────────
 
-export type DialogFieldType = 'Text' | 'LongText' | 'Code' | 'Int' | 'Float' | 'Date' | 'Datetime' | 'Select' | 'Check' | 'HTML' | 'Link' | 'Table'
+export type DialogFieldType = 'Text' | 'LongText' | 'Code' | 'Int' | 'Float' | 'Date' | 'Datetime' | 'Select' | 'Check' | 'HTML' | 'Link' | 'Table' | 'Password'
 
 export interface DialogTableColumn {
   /** Row property to read. */
@@ -64,6 +64,8 @@ export interface DialogField {
   description?: string
   /** HTML fields only: render inline (no dashed QR-style frame). */
   plain?: boolean
+  /** Password fields only: show a live checklist of the password policy. */
+  show_strength?: boolean
 
   // ── Table field ──────────────────────────────────────────────────────
   /** Table: column spec. */

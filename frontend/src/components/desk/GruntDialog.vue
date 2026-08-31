@@ -4,7 +4,8 @@ import type { Component } from 'vue'
 import { AlertCircle, AlertTriangle, CheckCircle2, Info } from '@lucide/vue'
 import { useDialog } from '@/core/composables/useDialog'
 import LinkField from '@/components/fields/Link/Link.vue'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import PasswordField from '@/components/fields/Password/Password.vue'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -208,6 +209,7 @@ function onOpenChange(v: boolean) {
       </DialogTitle>
     </DialogHeader>
     <DialogTitle v-else class="sr-only">Діалог</DialogTitle>
+    <DialogDescription class="sr-only">Dialog content</DialogDescription>
 
     <!-- Content -->
     <div>
@@ -355,6 +357,23 @@ function onOpenChange(v: boolean) {
                             field.fieldtype === 'Code' ? 'font-mono' : '',
                             field.read_only ? 'bg-muted/40 cursor-default' : '',
                         ]"
+                    />
+                </template>
+                <template v-else-if="field.fieldtype === 'Password'">
+                    <label :for="field.fieldname" class="font-medium">{{ field.label }}</label>
+                    <p v-if="field.description" class="text-xs text-muted-foreground -mt-1">{{ field.description }}</p>
+                    <PasswordField
+                        :field="{
+                            fieldname: field.fieldname,
+                            fieldtype: 'Password',
+                            label: field.label,
+                            placeholder: field.placeholder,
+                            required: field.required,
+                            read_only: field.read_only,
+                            show_strength: field.show_strength,
+                        }"
+                        :model-value="formValues[field.fieldname]"
+                        @update:model-value="formValues[field.fieldname] = $event"
                     />
                 </template>
                 <template v-else-if="field.fieldtype === 'Link'">

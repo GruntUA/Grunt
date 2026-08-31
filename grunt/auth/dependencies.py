@@ -12,6 +12,7 @@ from fastapi.security import OAuth2PasswordBearer
 from grunt.auth.doctypes.User.user import (
     User,
     get_user_by_email,
+    get_user_by_id,
 )
 from grunt.config import settings
 from grunt.db.session import get_engine, get_session
@@ -46,8 +47,10 @@ async def current_user(
        ``api/v1/ws.py::_authenticate_ws``, which reads its own ``token`` query
        param directly rather than going through this dependency.
 
-    When the JWT contains full identity claims (uid, full_name, etc.) the user
-    object is built directly from the payload — zero DB queries.
+    The JWT identifies the user, while mutable authorization attributes (roles,
+    superadmin status, and active status) are loaded from the database for each
+    request. This makes role removals and account deactivation effective before
+    the access token expires.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -88,20 +91,11 @@ async def current_user(
     if not uid:
         raise credentials_exception
 
-    user = User(
-        doctype="User",
-        data={
-            "name": uid,
-            "email": email,
-            "full_name": payload.get("full_name") or "",
-            "is_superadmin": bool(payload.get("is_superadmin", False)),
-            "is_active": bool(payload.get("is_active", True)),
-            "theme": payload.get("theme") or "system",
-            "roles": payload.get("roles") or [],
-        },
-    )
+    from grunt.app import grunt
 
-    if not user.is_active:
+    async with grunt.context(session):
+        user = await get_user_by_id(uid)
+    if user is None or user.email != email or not user.is_active:
         raise credentials_exception
 
     from grunt.api.context import set_user

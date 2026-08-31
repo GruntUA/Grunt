@@ -82,6 +82,8 @@ export interface DocField {
   fetch_from?: string | null
   // Named validator (e.g. "email", "phone", "url", "iban_ua")
   validator?: string | null
+  // Password field — show a live checklist of the SystemSettings password policy.
+  show_strength?: boolean
   // Table field — group rows by this child fieldname
   group_by?: string | null
 }

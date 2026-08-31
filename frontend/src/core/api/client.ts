@@ -52,6 +52,23 @@ client.interceptors.request.use(async (config) => {
 
 // Track whether a refresh is in flight to avoid parallel refresh loops
 let _refreshing: Promise<boolean> | null = null
+let _lastForbiddenMessage: string | null = null
+let _forbiddenToastReset: ReturnType<typeof setTimeout> | null = null
+
+function showForbiddenToast(message: string) {
+  if (message === _lastForbiddenMessage) return
+
+  _lastForbiddenMessage = message
+  if (_forbiddenToastReset) clearTimeout(_forbiddenToastReset)
+  _forbiddenToastReset = setTimeout(() => {
+    _lastForbiddenMessage = null
+    _forbiddenToastReset = null
+  }, 1_000)
+
+  void import('@/core/composables/useToast').then(({ useToast }) => {
+    useToast().error(message)
+  })
+}
 
 // Response interceptor: normalize id=name shim, then handle auth errors
 client.interceptors.response.use(
@@ -111,8 +128,7 @@ client.interceptors.response.use(
     if (error.response?.status === 403) {
       const body = error.response?.data
       const message: string = body?.detail ?? body?.error?.message ?? 'Доступ заборонено'
-      const { useToast } = await import('@/core/composables/useToast')
-      useToast().error(message)
+      showForbiddenToast(message)
       return Promise.reject(error)
     }
 

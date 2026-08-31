@@ -73,6 +73,29 @@ async def test_invalid_token_returns_401(client: AsyncClient):
     assert resp.status_code == 401
 
 
+@pytest.mark.asyncio
+async def test_authenticated_requests_load_current_roles(ctx, client: AsyncClient):
+    """A role removed after login must not remain active in the JWT."""
+    from grunt.auth.doctypes.User.user import create_user
+    from grunt.auth.service import create_access_token
+
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        user = await create_user("roles@grunt.example.com", "Str0ngPass", "Role", "Test", None)
+        await ctx.new_doc("UserRole", {"user_id": user.id, "role_name": "Кадровик"})
+        await ctx.db._session().commit()
+        token = create_access_token(user)
+        await ctx.db.delete("UserRole", {"user_id": user.id, "role_name": "Кадровик"})
+        await ctx.db._session().commit()
+
+    response = await client.get(
+        "/api/v1/method/grunt.auth.doctypes.User.user.whoami",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["data"]["roles"] == []
+
+
 async def _set_settings(ctx, **values) -> None:
     from grunt.site.settings import clear_settings_cache
 

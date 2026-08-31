@@ -624,9 +624,13 @@ export function createGruntProxy(
         const { data } = await client.post(`/api/v1/method/${method}`, args)
         return data?.data
       } catch (err: unknown) {
-        const e = err as { response?: { data?: { detail?: string } } }
-        const detail = e?.response?.data?.detail
-        throw new Error(detail || 'Server error')
+        const body = (err as { response?: { data?: Record<string, unknown> } })?.response?.data
+        const errBody = body?.error as { message?: string } | string | undefined
+        const message =
+          (typeof errBody === 'object' ? errBody?.message : errBody) ??
+          (body?.detail as string | undefined) ??
+          (body?.message as string | undefined)
+        throw new Error(typeof message === 'string' ? message : 'Server error')
       }
     },
 

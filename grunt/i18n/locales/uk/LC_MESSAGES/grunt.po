@@ -379,6 +379,21 @@ msgstr "Показати"
 msgid "Caps Lock is on"
 msgstr "Увімкнено Caps Lock"
 
+msgid "At least {min} characters"
+msgstr "Щонайменше {min} символів"
+
+msgid "An uppercase letter"
+msgstr "Велика літера"
+
+msgid "A lowercase letter"
+msgstr "Мала літера"
+
+msgid "A digit"
+msgstr "Цифра"
+
+msgid "A special character"
+msgstr "Спеціальний символ"
+
 #. ── Geolocation ──────────────────────────────────────────────
 msgid "Latitude"
 msgstr "Широта"

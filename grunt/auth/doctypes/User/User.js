@@ -18,13 +18,32 @@ function on_load(frm) {
     // Top bar override for change password
     frm.add_button("Змінити пароль", async () => {
       const user_id = frm.doc.name;
-      const password = window.prompt("Новий пароль:");
-      if (!password) return;
-      await grunt.call({
-        method: "grunt.auth.doctypes.User.user.set_user_password_api",
-        args: { user_id, new_password: password },
+      if (!user_id) return;
+
+      const values = await grunt.form({
+        title: "Змінити пароль",
+        primaryLabel: "Змінити",
+        fields: [
+          { fieldname: "new_password", label: "Новий пароль", fieldtype: "Password", required: true, show_strength: true },
+          { fieldname: "confirm_password", label: "Підтвердіть пароль", fieldtype: "Password", required: true },
+        ],
       });
-      grunt.msgprint("Пароль успішно змінено");
+      if (!values) return; // cancelled
+
+      if (values.new_password !== values.confirm_password) {
+        grunt.msgprint({ message: "Паролі не збігаються", indicator: "orange" });
+        return;
+      }
+
+      try {
+        await grunt.call({
+          method: "grunt.auth.doctypes.User.user.set_user_password_api",
+          args: { user_id, new_password: values.new_password },
+        });
+        grunt.msgprint({ message: "Пароль успішно змінено", indicator: "green" });
+      } catch (error) {
+        grunt.msgprint({ message: error?.message || "Помилка при встановленні пароля", indicator: "red" });
+      }
     });
 
     frm.set_df_property("mfa_setup_button", "label", frm.doc.mfa_enabled ? "Вимкнути MFA" : "Увімкнути MFA");
