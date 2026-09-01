@@ -84,7 +84,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
 
                     db_url = site_manager.get_database_url(site_name)
                     outcome = await asyncio.to_thread(sync_site, db_url)
-                    click.echo(f"  [3/5] Alembic migrations — {outcome} (head).")
+                    click.echo(f"  [3/5] Alembic — {outcome}.")
 
                 # 4. DocType tables
                 click.echo("  [4/5] DocType tables (sync_table)...")

@@ -13,6 +13,7 @@ from pathlib import Path
 import sqlalchemy as sa
 from alembic import command
 from alembic.config import Config
+from alembic.script import ScriptDirectory
 
 # apps/grunt/alembic.ini
 _ALEMBIC_INI = Path(__file__).resolve().parents[2] / "alembic.ini"
@@ -61,13 +62,21 @@ def sync_site(db_url: str) -> str:
     The framework's migrations are incremental patches on top of
     ``metadata.create_all`` — they are not runnable from an empty database. So:
 
+    * **no revision scripts** (``versions/`` is empty — the default in dev, until
+      the first migration is written for a release): there is no history to
+      apply. Skip.
     * **no ``alembic_version`` table** (fresh site, or one that predates Alembic):
       the tables ``create_all`` just built are already at head — ``stamp head``
       records that without running any migration.
     * **``alembic_version`` present**: ``upgrade head`` applies whatever is pending.
 
-    Returns ``"stamped"`` or ``"upgraded"``.
+    Returns ``"no migrations"``, ``"stamped"`` or ``"upgraded"``.
     """
+    cfg = make_config(db_url)
+
+    if not list(ScriptDirectory.from_config(cfg).walk_revisions()):
+        return "no migrations"
+
     sync_url = async_url_to_sync(db_url)
     engine = sa.create_engine(sync_url, poolclass=sa.pool.NullPool)
     try:
@@ -75,7 +84,6 @@ def sync_site(db_url: str) -> str:
     finally:
         engine.dispose()
 
-    cfg = make_config(db_url)
     if has_version:
         command.upgrade(cfg, "head")
         return "upgraded"
