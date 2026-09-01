@@ -135,7 +135,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
         <TriangleAlert class="size-4 mt-0.5 shrink-0" />
         <span>{{ t('Цей тип документа позначено як неактуальний (deprecated). Він продовжує працювати, але не використовуйте його в новому коді.') }}</span>
       </div>
-      <div v-else-if="dt?.beta"
+      <div v-if="dt?.beta"
         class="flex items-start gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
         <FlaskConical class="size-4 mt-0.5 shrink-0" />
         <span>{{ t('Beta: цей тип документа ще в розробці, поведінка може змінитися.') }}</span>
