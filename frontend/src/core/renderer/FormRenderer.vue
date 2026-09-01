@@ -146,7 +146,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
 </script>
 
 <template>
-  <Tabs v-model="currentTab" class="w-full overflow-hidden">
+  <Tabs v-model="currentTab" class="w-full min-w-0">
     <!-- Tab navigation (hidden when there's nothing worth switching between) -->
     <div v-if="hasTabs" class="flex items-center gap-1 mb-4">
       <Button v-if="canScrollLeft" variant="ghost" size="icon" class="size-7 shrink-0" @click="scrollTabsBy(-160)">
