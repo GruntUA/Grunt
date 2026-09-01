@@ -851,28 +851,29 @@ const canAddRow = computed(() => {
 <template>
   <div ref="rootRef" @paste="onPaste" @keydown="onRootKeydown">
   <div class="flex flex-col gap-2">
-    <div v-if="field.label" class="flex items-center gap-1 font-medium text-foreground/90">
-      {{ field.label }}
-      <span v-if="field.required" class="text-destructive font-semibold" aria-hidden="true">*</span>
-    </div>
     <div
-      v-if="tableColumns.length > 1 || rows.length > 8"
-      class="flex items-center justify-between gap-2"
+      v-if="field.label || tableColumns.length > 1 || rows.length > 8"
+      class="flex items-center gap-2 flex-wrap"
     >
-      <div class="flex items-center gap-2 min-w-0">
-        <Input
-          v-if="rows.length > 8"
-          v-model="tableSearch"
-          :placeholder="t('Search rows…')"
-          class="h-8 w-52 text-xs"
-        />
-        <span v-if="tableSearch.trim()" class="text-xs text-muted-foreground whitespace-nowrap">
-          {{ visibleRows.length }} / {{ rows.length }}
-        </span>
-      </div>
+      <span
+        v-if="field.label"
+        class="flex items-center gap-1 font-medium text-foreground/90 mr-1"
+      >
+        {{ field.label }}
+        <span v-if="field.required" class="text-destructive font-semibold" aria-hidden="true">*</span>
+      </span>
+      <Input
+        v-if="rows.length > 8"
+        v-model="tableSearch"
+        :placeholder="t('Search rows…')"
+        class="h-8 w-52 text-xs"
+      />
+      <span v-if="tableSearch.trim()" class="text-xs text-muted-foreground whitespace-nowrap">
+        {{ visibleRows.length }} / {{ rows.length }}
+      </span>
       <DropdownMenu v-if="tableColumns.length > 1">
         <DropdownMenuTrigger as-child>
-          <Button variant="outline" size="sm" type="button" class="!text-xs gap-1 shrink-0">
+          <Button variant="outline" size="sm" type="button" class="!text-xs gap-1 shrink-0 ml-auto">
             {{ t('Columns') }}
             <ChevronDown class="size-3.5" />
           </Button>
