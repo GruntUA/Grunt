@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 from sqlalchemy import func, select
 
 from grunt.db.system_tables import GruntMetaDoctype
+from grunt.metadata.compiler import get_table_name
 from grunt.metadata.doctype import DocType
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.virtual import VirtualDocType
@@ -21,11 +22,26 @@ def _row_to_doc(row: RowMapping) -> dict[str, Any]:
     data: dict[str, Any] = dict(row.get("data") or {})
     data["name"] = row["name"]
     data["module"] = row["module"]
+    # Show the resolved physical table name (override, or the computed default)
+    # so the read-only "Назва таблиці" field isn't a dead empty box in the form.
+    # Virtual DocTypes have no table of their own — leave it blank.
+    if not data.get("is_virtual"):
+        data["table_name"] = data.get("table_name") or get_table_name(
+            row["module"], row["name"]
+        )
     created_at = row.get("created_at")
     modified_at = row.get("modified_at")
     data["created_at"] = created_at.isoformat() if created_at else None
     data["modified_at"] = modified_at.isoformat() if modified_at else None
     return data
+
+
+def _drop_default_table_name(dt: DocType) -> None:
+    """Don't persist ``table_name`` when it just equals the computed default —
+    it's surfaced read-only in the form and would round-trip back as a
+    spurious override that goes stale if the DocType is ever renamed."""
+    if dt.table_name and dt.table_name == get_table_name(dt.module, dt.name):
+        dt.table_name = None
 
 
 class DocTypeController(VirtualDocType):
@@ -98,6 +114,7 @@ class DocTypeController(VirtualDocType):
         from grunt.metadata.scaffold import export_doctype_files
 
         dt = DocType(**data)
+        _drop_default_table_name(dt)
         session = self._session()
         engine = grunt._require_engine()
 
@@ -122,6 +139,7 @@ class DocTypeController(VirtualDocType):
         from grunt.metadata.scaffold import export_doctype_files
 
         dt = DocType(**data)
+        _drop_default_table_name(dt)
         session = self._session()
         engine = grunt._require_engine()
 

@@ -274,10 +274,10 @@
     },
     {
       "fieldname": "table_name",
-      "label": "Назва таблиці (override)",
-      "fieldtype": "Text",
+      "label": "Назва таблиці",
+      "fieldtype": "Data",
       "read_only": true,
-      "description": "Фізична таблиця в БД. Заповнюється автоматично"
+      "description": "Фізична таблиця цього типу в базі даних"
     },
     {
       "fieldname": "tab_fields",
