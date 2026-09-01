@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, provide, ref, type Component } from 'vue'
 import type { DocField, DocType } from '@/types'
 import { parseLayout } from '@/core/composables/useFormLayout'
+import { evalDependsOn } from '@/core/dependsOn'
 import { FORM_ERRORS } from './formErrors'
 import type { LayoutSection, LayoutTab } from '@/core/composables/useFormLayout'
 import type { PresenceUser } from '@/core/composables/usePresence'
@@ -128,16 +129,7 @@ function isSectionVisible(section: LayoutSection): boolean {
   const sectionField = section._field
   if (!sectionField) return true
   if (sectionField.hidden) return false
-  if (!sectionField.depends_on) return true
-
-  const expr = sectionField.depends_on.replace(/^eval:\s*/, '')
-  try {
-    const doc = props.modelValue ?? {}
-    // eslint-disable-next-line no-new-func
-    return !!(new Function('doc', `return !!(${expr})`))(doc)
-  } catch {
-    return true
-  }
+  return evalDependsOn(sectionField.depends_on, props.modelValue ?? {})
 }
 
 function getVisibleSections(tab: LayoutTab): LayoutSection[] {

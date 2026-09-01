@@ -16,46 +16,30 @@ const emit = defineEmits<{
 }>()
 
 const builder = useBuilderStore()
-const isInitializing = ref(true)
+const ready = ref(false)
 
-// Sync modelValue -> builder.doctype
-watch(() => props.modelValue, (newVal) => {
-  if (!builder.isSaving && newVal && !isInitializing.value) {
-    builder.doctype = { fields: [], ...newVal } as unknown as DocType
-  }
-}, { deep: true, flush: 'sync' })
-
-// Sync builder.doctype -> modelValue
+// This tab is unmounted by the surrounding <TabsContent> whenever it isn't the
+// active tab, so it re-seeds from the live form model on every visit. While it
+// *is* mounted the designer is the only editor touching the model, so a single
+// outward mirror (builder.doctype -> modelValue) is enough — no inbound watcher,
+// no echo loop.
 watch(() => builder.doctype, (newVal) => {
-  if (newVal && !isInitializing.value) {
-    emit('update:modelValue', { ...newVal })
-  }
+  if (ready.value && newVal) emit('update:modelValue', { ...newVal })
 }, { deep: true, flush: 'sync' })
 
-onMounted(async () => {
-  console.log('DesignerTab initializing with:', props.modelValue?.name)
-  // Initialize builder state with current document
+onMounted(() => {
   builder.doctype = { fields: [], ...props.modelValue } as unknown as DocType
-  builder.isNew = !props.modelValue.name
-  builder.isDirty = false
-  isInitializing.value = false
+  ready.value = true
 })
 </script>
 
 <template>
-  <div class="flex flex-col h-[calc(100vh-230px)] overflow-hidden -mx-5 -mb-5 border-t border-border bg-background">
-    <div v-if="isInitializing" class="flex flex-1 items-center justify-center p-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      <span class="ml-2">Завантаження конструктора...</span>
-    </div>
-    <div v-else class="flex flex-1 overflow-hidden">
+  <div class="flex flex-col h-[75vh] min-h-[30rem] overflow-hidden -mx-5 -mb-5 border-t border-border bg-background">
+    <div class="flex flex-1 overflow-hidden">
       <div class="w-60 shrink-0 border-r bg-card/50 overflow-y-auto">
         <FieldPalette />
       </div>
-      <div class="flex-1 overflow-hidden bg-muted/5 flex flex-col relative">
-        <div class="absolute top-0 right-0 z-10 px-2 py-1 text-xs text-muted-foreground font-mono opacity-50">
-          DESIGNER TAB ACTIVE
-        </div>
+      <div class="flex-1 overflow-hidden bg-muted/5 flex flex-col">
         <BuilderCanvas class="flex-1" />
       </div>
       <div class="w-72 shrink-0 border-l bg-card/50 overflow-y-auto">

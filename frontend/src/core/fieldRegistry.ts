@@ -25,6 +25,8 @@
 
 import { defineAsyncComponent, type Component } from 'vue'
 
+// Keep in sync with the sections registered in
+// pages/studio/builder/sections/index.ts
 export type PropSection =
   | 'core'
   | 'flags'
@@ -35,11 +37,14 @@ export type PropSection =
   | 'default'
   | 'options'
   | 'link'
+  | 'fetch_from'
   | 'table'
   | 'number'
   | 'collapsible'
   | 'aggregate'
   | 'icon'
+  | 'button'
+  | 'tab'
 
 export interface FieldDefinition {
   /** Unique identifier — matches DocField.fieldtype */

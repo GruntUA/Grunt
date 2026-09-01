@@ -1,78 +1,59 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
-import type { DocType, DocField, FieldType, IndexHint } from '@/types'
-import { metaApi } from '@/core/api'
+import type { DocType, DocField, FieldType } from '@/types'
 import { parseLayout } from '@/core/composables/useFormLayout'
 import type { FormLayout } from '@/core/composables/useFormLayout'
 import { useBuilderLayout } from '@/core/composables/builder/useBuilderLayout'
 
+/**
+ * Designer-only state for the DocType "Конструктор" tab.
+ *
+ * The document itself (load / save / dirty tracking) is owned by
+ * `useFormController` on the surrounding standard form — this store only holds
+ * the working copy the canvas mutates and the current field selection, keyed by
+ * fieldname so it survives reorders and splices. `DesignerTab.vue` seeds
+ * `doctype` on mount and mirrors every change back out via `update:modelValue`.
+ */
 export const useBuilderStore = defineStore('builder', () => {
   const doctype = ref<DocType | null>(null)
-  const isDirty = ref(false)
-  const isNew = ref(false)
-  const _selectedFieldIdx = ref<number | null>(null)
-  const isSaving = ref(false)
-  const activeTab = ref<string>('form')
-  const indexHints = ref<IndexHint[]>([])
-  const exportedTo = ref<string | null>(null)
+  const selectedFieldName = ref<string | null>(null)
 
-  function resetTransientState() {
-    isDirty.value = false
-    _selectedFieldIdx.value = null
-    activeTab.value = 'form'
-    indexHints.value = []
-    exportedTo.value = null
+  // ── Selection ────────────────────────────────────────────────────────
+
+  function selectField(fieldname: string | null) {
+    if (fieldname === null || !doctype.value) {
+      selectedFieldName.value = null
+      return
+    }
+    selectedFieldName.value =
+      doctype.value.fields.some((f) => f.fieldname === fieldname) ? fieldname : null
   }
+
+  // Drop a selection whose field was removed by a structural edit.
+  watch(
+    () => doctype.value?.fields,
+    (fields) => {
+      if (
+        selectedFieldName.value &&
+        !(fields ?? []).some((f) => f.fieldname === selectedFieldName.value)
+      ) {
+        selectedFieldName.value = null
+      }
+    },
+  )
 
   // ── Computed ─────────────────────────────────────────────────────────
 
   const selectedField = computed<DocField | null>(() => {
-    if (_selectedFieldIdx.value === null || !doctype.value) return null
-    return doctype.value.fields[_selectedFieldIdx.value] ?? null
+    if (!selectedFieldName.value || !doctype.value) return null
+    return doctype.value.fields.find((f) => f.fieldname === selectedFieldName.value) ?? null
   })
-
-  const selectedFieldName = computed<string | null>(() =>
-    selectedField.value?.fieldname ?? null
-  )
 
   const layout = computed<FormLayout>(() => {
     const fields = doctype.value?.fields
     if (!Array.isArray(fields)) return []
     return parseLayout(fields)
   })
-
-  // ── Load / Save ──────────────────────────────────────────────────────
-
-  async function loadDocType(name: string) {
-    if (name === 'new') {
-      doctype.value = { name: '', label: '', module: '', fields: [], permissions: [] }
-      isNew.value = true
-      resetTransientState()
-      return
-    }
-    doctype.value = await metaApi.get(name)
-    isNew.value = false
-    resetTransientState()
-  }
-
-  async function save(): Promise<DocType | null> {
-    if (!doctype.value) return null
-    isSaving.value = true
-    try {
-      const result = isNew.value
-        ? await metaApi.create(doctype.value)
-        : await metaApi.update(doctype.value)
-      if (isNew.value) isNew.value = false
-      await metaApi.sync(result.data.name)
-      doctype.value = result.data
-      indexHints.value = result.hints ?? []
-      exportedTo.value = result.exported_to ?? null
-      isDirty.value = false
-      return result.data
-    } finally {
-      isSaving.value = false
-    }
-  }
 
   const {
     generateFieldname,
@@ -84,15 +65,7 @@ export const useBuilderStore = defineStore('builder', () => {
     removeSection,
     setSectionColumns,
     addFieldToColumn,
-  } = useBuilderLayout({ doctype, isDirty, selectedFieldIdx: _selectedFieldIdx })
-
-  // ── Selection ────────────────────────────────────────────────────────
-
-  function selectField(fieldname: string | null) {
-    if (fieldname === null || !doctype.value) { _selectedFieldIdx.value = null; return }
-    const idx = doctype.value.fields.findIndex((f) => f.fieldname === fieldname)
-    _selectedFieldIdx.value = idx === -1 ? null : idx
-  }
+  } = useBuilderLayout({ doctype, selectField })
 
   // ── Field CRUD (by fieldname) ────────────────────────────────────────
 
@@ -103,34 +76,29 @@ export const useBuilderStore = defineStore('builder', () => {
 
     doctype.value = {
       ...doctype.value,
-      fields: doctype.value.fields.map((f, i) => i === idx ? { ...f, ...patch } : f)
+      fields: doctype.value.fields.map((f, i) => (i === idx ? { ...f, ...patch } : f)),
     }
-    // Index stays the same even if fieldname changed
-    isDirty.value = true
+
+    // Keep the selection pinned to a field that was just renamed.
+    if (patch.fieldname && patch.fieldname !== fieldname && selectedFieldName.value === fieldname) {
+      selectedFieldName.value = patch.fieldname
+    }
   }
 
   function removeField(fieldname: string) {
     if (!doctype.value) return
-    const idx = doctype.value.fields.findIndex((f) => f.fieldname === fieldname)
-    if (idx === -1) return
+    if (!doctype.value.fields.some((f) => f.fieldname === fieldname)) return
 
     doctype.value = {
       ...doctype.value,
-      fields: doctype.value.fields.filter((_, i) => i !== idx),
+      fields: doctype.value.fields.filter((f) => f.fieldname !== fieldname),
     }
-
-    if (_selectedFieldIdx.value === idx) {
-      _selectedFieldIdx.value = null
-    } else if (_selectedFieldIdx.value !== null && _selectedFieldIdx.value > idx) {
-      _selectedFieldIdx.value -= 1
-    }
-    isDirty.value = true
+    // Orphaned selection is cleared by the watcher above.
   }
 
   function updateDocType(patch: Partial<DocType>) {
     if (!doctype.value) return
     doctype.value = { ...doctype.value, ...patch }
-    isDirty.value = true
   }
 
   // ── Simple add (for palette click) ───────────────────────────────────
@@ -144,30 +112,21 @@ export const useBuilderStore = defineStore('builder', () => {
     }
     doctype.value = {
       ...doctype.value,
-      fields: [...doctype.value.fields, newField]
+      fields: [...doctype.value.fields, newField],
     }
-    _selectedFieldIdx.value = doctype.value.fields.length - 1
-    isDirty.value = true
+    selectField(newField.fieldname)
   }
 
   return {
     doctype,
-    isDirty,
-    isNew,
     selectedFieldName,
     selectedField,
-    isSaving,
-    activeTab,
     layout,
-    indexHints,
-    exportedTo,
-    loadDocType,
     addField,
     removeField,
     updateField,
     updateDocType,
     selectField,
-    save,
     generateFieldname,
     rebuildFlatFields,
     addTab,

@@ -3,6 +3,7 @@ import { computed, inject, useId } from 'vue'
 import { getAsyncFieldComponent } from '@/core/fieldRegistry'
 import { useDevMode } from '@/core/composables/useDevMode'
 import { validateFieldValue } from '@/core/validators'
+import { evalDependsOn } from '@/core/dependsOn'
 import { FORM_ERRORS } from './formErrors'
 import type { DocField } from '@/types'
 
@@ -26,15 +27,7 @@ const emit = defineEmits<{
 
 const isVisible = computed(() => {
   if (props.field.hidden) return false
-  if (!props.field.depends_on) return true
-  const expr = props.field.depends_on.replace(/^eval:\s*/, '')
-  try {
-    const doc = props.docValues ?? {}
-    // eslint-disable-next-line no-new-func
-    return !!(new Function('doc', `return !!(${expr})`))(doc)
-  } catch {
-    return true
-  }
+  return evalDependsOn(props.field.depends_on, props.docValues ?? {})
 })
 
 const validatorError = computed(() => {
