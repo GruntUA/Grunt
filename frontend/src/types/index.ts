@@ -74,7 +74,8 @@ export interface DocField {
   /** Tab fields only — render the "Зв'язки" (connections) panel inside this tab. */
   show_connections?: boolean
   icon?: string
-  experimental_component?: string
+  /** Tab fields only — mount a bespoke component as the tab body (e.g. "DesignerTab"). */
+  tab_component?: string
   // Virtual
   is_virtual?: boolean
   read_formula?: string | null

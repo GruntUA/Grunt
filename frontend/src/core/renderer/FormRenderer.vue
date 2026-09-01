@@ -166,9 +166,9 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
         :workspace="workspace"
         @create-new="(cd, preset, fieldname) => emit('create-new', cd, preset, fieldname)"
       />
-      <!-- Support for custom tab components (e.g. Studio Designer) -->
-      <template v-if="hasCustomTabComponent(tab._field?.experimental_component)">
-        <component :is="getCustomTabComponent(tab._field?.experimental_component)" :doctype="doctype"
+      <!-- Support for custom tab components (e.g. Designer, Workflow graph) -->
+      <template v-if="hasCustomTabComponent(tab._field?.tab_component)">
+        <component :is="getCustomTabComponent(tab._field?.tab_component)" :doctype="doctype"
           :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" />
       </template>
       <template v-else>

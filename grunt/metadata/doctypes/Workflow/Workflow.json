@@ -64,7 +64,7 @@
       "label": "Граф",
       "fieldtype": "Tab",
       "icon": "git-branch",
-      "experimental_component": "WorkflowGraphTab"
+      "tab_component": "WorkflowGraphTab"
     }
   ],
   "permissions": [

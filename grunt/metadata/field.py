@@ -220,7 +220,9 @@ class DocField(BaseModel):
     show_connections: bool = False  # Tab fields only — host the "Зв'язки" panel in this tab
     columns: int = 12
     icon: str | None = None
-    experimental_component: str | None = None
+    # Tab fields only — mount a bespoke Vue component as the tab body instead of
+    # the generic section/field layout (e.g. "DesignerTab", "WorkflowGraphTab").
+    tab_component: str | None = None
 
     # Validation rules
     min_value: float | None = None

@@ -112,7 +112,7 @@
       "fieldname": "tab_designer",
       "label": "Конструктор",
       "fieldtype": "Tab",
-      "experimental_component": "DesignerTab",
+      "tab_component": "DesignerTab",
       "icon": "LayoutTemplate"
     },
     {

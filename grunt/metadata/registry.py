@@ -90,6 +90,7 @@ _CORE_SYNCED_FIELD_ATTRS = frozenset(
         "is_virtual",
         "read_formula",
         "validator",
+        "tab_component",
     }
 )
 

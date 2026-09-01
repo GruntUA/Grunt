@@ -95,11 +95,6 @@ const router = createRouter({
           component: () => import('@/pages/app/AppHome.vue'),
           props: true,
         },
-        // Backward compatibility: old DocType studio route now points to standard DocType form.
-        {
-          path: 'studio/DocType/:id',
-          redirect: (route) => `/${route.params.workspaceName}/DocType/${route.params.id}`,
-        },
         {
           path: ':doctype/new',
           name: 'workspace-new',
@@ -121,20 +116,6 @@ const router = createRouter({
           name: 'workspace-list',
           component: () => import('@/pages/app/AppListView.vue'),
           props: true,
-        },
-        // AppMenu list (Studio → Меню додатків)
-        {
-          path: 'studio/workspaces',
-          redirect: (route) => `/app/${route.params.workspaceName}/AppMenu`,
-        },
-        // Backward compat: old /list/… URLs
-        {
-          path: 'list/:doctype',
-          redirect: (route) => `/${route.params.workspaceName}/${route.params.doctype}`,
-        },
-        {
-          path: 'list/:doctype/:id',
-          redirect: (route) => `/${route.params.workspaceName}/${route.params.doctype}/${route.params.id}`,
         },
         {
           path: 'report/:reportName',
@@ -168,23 +149,6 @@ const router = createRouter({
           name: 'file-manager',
           component: () => import('@/pages/desk/FileManager.vue'),
           props: true,
-        },
-        // Legacy admin routes — redirect to standard DocType ListViews
-        {
-          path: 'hooks',
-          redirect: (route) => `/${route.params.workspaceName}/Hook`,
-        },
-        {
-          path: 'activity-log',
-          redirect: (route) => `/${route.params.workspaceName}/ActivityLog`,
-        },
-        {
-          path: 'email-settings',
-          redirect: (route) => `/${route.params.workspaceName}/EmailAccount`,
-        },
-        {
-          path: 'settings',
-          redirect: (route) => `/${route.params.workspaceName}/SystemSettings/SystemSettings`,
         },
       ],
     },
