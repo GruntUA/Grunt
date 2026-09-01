@@ -128,26 +128,6 @@
       "options": "DocPermission"
     },
     {
-      "fieldname": "tab_card",
-      "label": "Картка",
-      "fieldtype": "Tab",
-      "icon": "Link"
-    },
-    {
-      "fieldname": "actions",
-      "label": "Дії документа",
-      "fieldtype": "Table",
-      "options": "DocTypeAction",
-      "description": "Кнопки в тулбарі картки. Кожен рядок підключає дію, зареєстровану застосунком у коді (@doc_action)."
-    },
-    {
-      "fieldname": "links",
-      "label": "Зв'язки документа",
-      "fieldtype": "Table",
-      "options": "DocTypeLink",
-      "description": "Пов'язані типи документів на панелі «Зв'язки» картки. Якщо порожньо — зв'язки визначаються автоматично зі зворотних Link-полів."
-    },
-    {
       "fieldname": "tab_behavior",
       "label": "Поведінка",
       "fieldtype": "Tab",
@@ -298,46 +278,24 @@
       "icon": "Zap"
     },
     {
+      "fieldname": "actions",
+      "label": "Дії документа",
+      "fieldtype": "Table",
+      "options": "DocTypeAction",
+      "description": "Кнопки в тулбарі картки. Кожен рядок підключає дію, зареєстровану застосунком у коді (@doc_action)."
+    },
+    {
       "fieldname": "tab_links",
       "label": "Зв'язки",
       "fieldtype": "Tab",
       "icon": "Link"
     },
     {
-      "fieldname": "tab_settings",
-      "label": "Керованість",
-      "fieldtype": "Tab",
-      "icon": "Settings"
-    },
-    {
-      "fieldname": "sec_naming",
-      "label": "Збереження та ідентифікація",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "col_n1",
-      "label": "",
-      "fieldtype": "Column"
-    },
-    {
-      "fieldname": "col_n2",
-      "label": "",
-      "fieldtype": "Column"
-    },
-    {
-      "fieldname": "sec_flags",
-      "label": "Життєвий цикл та модель даних",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "col_f1",
-      "label": "",
-      "fieldtype": "Column"
-    },
-    {
-      "fieldname": "col_f2",
-      "label": "",
-      "fieldtype": "Column"
+      "fieldname": "links",
+      "label": "Зв'язки документа",
+      "fieldtype": "Table",
+      "options": "DocTypeLink",
+      "description": "Пов'язані типи документів на панелі «Зв'язки» картки. Якщо порожньо — зв'язки визначаються автоматично зі зворотних Link-полів."
     },
     {
       "fieldname": "tab_tree",
