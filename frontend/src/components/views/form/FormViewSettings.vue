@@ -3,13 +3,12 @@ import { computed } from 'vue'
 import { FileText } from '@lucide/vue'
 import { useBuilderStore } from '@/stores/builder'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 
 const builder = useBuilderStore()
 
 const formView = computed(
-  () => builder.doctype?.form_view ?? { layout: 'standard' as const, print_format: null, show_sidebar: true },
+  () => builder.doctype?.form_view ?? { print_format: null, show_sidebar: true },
 )
 
 function updateFormView(patch: Record<string, unknown>) {
@@ -24,31 +23,14 @@ function updateFormView(patch: Record<string, unknown>) {
       <h3 class="font-semibold text-foreground">Відображення: Форма</h3>
     </div>
     <div class="p-4">
-      <div class="grid grid-cols-2 gap-3">
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Розкладка</label>
-          <Select :model-value="formView.layout" @update:model-value="updateFormView({ layout: $event })">
-            <SelectTrigger class="h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="opt in [
-              { value: 'standard', label: 'Стандартна' },
-              { value: 'compact', label: 'Компактна' },
-              { value: 'wide', label: 'Широка' },
-            ]" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Формат друку</label>
-          <Input
-            :model-value="formView.print_format ?? ''"
-            placeholder="Назва шаблону"
-            class="h-8 text-xs w-full"
-            @update:model-value="updateFormView({ print_format: $event || null })"
-          />
-        </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Формат друку</label>
+        <Input
+          :model-value="formView.print_format ?? ''"
+          placeholder="Назва шаблону"
+          class="h-8 text-xs w-full"
+          @update:model-value="updateFormView({ print_format: $event || null })"
+        />
       </div>
 
       <div class="flex items-center justify-between gap-3 mt-3 pt-3 border-t border-border">

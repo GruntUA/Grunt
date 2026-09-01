@@ -121,7 +121,6 @@ export interface DocTypeListView {
 }
 
 export interface DocTypeFormView {
-  layout: 'standard' | 'compact' | 'wide'
   print_format: string | null
   /** false → hide the document detail sidebar on the form (default: true) */
   show_sidebar?: boolean

@@ -98,7 +98,6 @@ class DocTypeListViewSchema(BaseModel):
 
 
 class DocTypeFormViewSchema(BaseModel):
-    layout: Literal["standard", "compact", "wide"] = "standard"
     print_format: str | None = None
 
 
