@@ -99,7 +99,7 @@
       "fieldname": "default_view",
       "label": "Вигляд за замовчуванням",
       "fieldtype": "Select",
-      "options": "\nlist\nkanban\ncalendar\ngantt\ntree\ngallery\nmap"
+      "options": "\nlist|LayoutList\nkanban|LayoutGrid\ncalendar|CalendarDays\ngantt|ChartGantt\ntree|GitBranch\ngallery|Image\nmap|Map"
     },
     {
       "fieldname": "image_field",

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
+import { parseSelectValues } from '@/lib/selectOptions'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const props = defineProps<{
@@ -19,12 +20,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const options = computed(() => {
-  if (!props.field.options) return []
-  return typeof props.field.options === 'string'
-    ? props.field.options.split('\n').map((o) => o.trim()).filter(Boolean)
-    : (props.field.options as string[])
-})
+const options = computed(() => parseSelectValues(props.field.options))
 </script>
 
 <template>

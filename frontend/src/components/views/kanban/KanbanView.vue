@@ -4,6 +4,7 @@ import { formatDayMonth } from '@/core/datetime'
 import draggable from 'vuedraggable'
 import type { DocType, DocField } from '@/types'
 import { docsApi } from '@/core/api/docs'
+import { parseSelectValues } from '@/lib/selectOptions'
 
 import { Plus, Calendar, FileText, Ellipsis } from '@lucide/vue'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -21,10 +22,7 @@ const columnFieldDef = computed<DocField | undefined>(() =>
   props.doctype.fields.find(f => f.fieldname === props.columnField)
 )
 
-const columns = computed<string[]>(() => {
-  if (!columnFieldDef.value?.options) return []
-  return columnFieldDef.value.options.split('\n').map(s => s.trim()).filter(Boolean)
-})
+const columns = computed<string[]>(() => parseSelectValues(columnFieldDef.value?.options))
 
 // Status colors and labels
 const statusIndicatorMap = computed(() => {
