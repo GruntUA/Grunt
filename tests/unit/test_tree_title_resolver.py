@@ -19,7 +19,8 @@ RESOLVER_TREE_DOCTYPE = {
     "label": "Resolver Test Tree",
     "module": "core",
     "is_tree": True,
-    "tree_view": {"parent_field": "parent_node", "title_field": "title"},
+    "tree_parent_field": "parent_node",
+    "tree_title_field": "title",
     "fields": [
         {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
         {

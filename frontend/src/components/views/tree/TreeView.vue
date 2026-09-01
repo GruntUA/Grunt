@@ -48,20 +48,20 @@ const ffDefs = computed<FastFilter[]>(
 
 const { rawFastFilters } = useFastFilters(ffDefs, 'tree', _ffValues)
 
-// ── As-of date (from tree_view.as_of_date_field) ──────────────────────────────
-const asOfField = computed(() => props.doctype.tree_view?.as_of_date_field ?? null)
+// ── As-of date (from tree_as_of_date_field) ──────────────────────────────────
+const asOfField = computed(() => props.doctype.tree_as_of_date_field ?? null)
 const asOf = computed(() => _ffValues.value.as_of_date ?? '')
 
 // ── Sorting (metadata defaults + runtime override) ───────────────────────────
 const defaultSortBy = computed(() =>
-  props.doctype.tree_view?.sort_by
-  ?? props.doctype.tree_view?.title_field
+  props.doctype.tree_sort_by
+  ?? props.doctype.tree_title_field
   ?? props.doctype.title_field
   ?? 'name'
 )
 
 const defaultSortOrder = computed<'asc' | 'desc'>(() =>
-  props.doctype.tree_view?.sort_order === 'desc' ? 'desc' : 'asc'
+  props.doctype.tree_sort_order === 'desc' ? 'desc' : 'asc'
 )
 
 const sortBy = ref(defaultSortBy.value)
@@ -75,9 +75,9 @@ watch(() => props.doctype.name, () => {
 const sortFieldOptions = computed(() => {
   const base = [
     'name',
-    props.doctype.tree_view?.title_field,
+    props.doctype.tree_title_field,
     props.doctype.title_field,
-    props.doctype.tree_view?.sort_by,
+    props.doctype.tree_sort_by,
   ].filter((v): v is string => Boolean(v && v.trim()))
 
   const metadata = props.doctype.fields
@@ -135,7 +135,7 @@ async function loadTree() {
   error.value = ''
   try {
     const ffRaw = Object.keys(rawFastFilters.value).length ? rawFastFilters.value : undefined
-    // Merge as_of date as a raw filter on the designated field (tree_view.as_of_date_field)
+    // Merge as_of date as a raw filter on the designated field (tree_as_of_date_field)
     const dateFilter: Record<string, string> | undefined =
       asOf.value && asOfField.value
         ? { [`${asOfField.value}__lte`]: asOf.value }
@@ -168,7 +168,7 @@ onMounted(loadTree)
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const titleField = computed(() =>
-  props.doctype.tree_view?.title_field
+  props.doctype.tree_title_field
   ?? props.doctype.title_field
   ?? props.doctype.fields.find(f => f.fieldtype === 'Text' && f.in_list_view)?.fieldname
   ?? 'name'

@@ -156,13 +156,6 @@ export interface DocTypeGanttView {
   dependencies_field?: string         // comma-separated predecessor doc names / Link
 }
 
-export interface DocTypeTreeView {
-  parent_field: string   // fieldname of the self-referential Link field
-  title_field?: string   // which field to display as node label (defaults to 'name')
-  as_of_date_field?: string  // Date field enabling the "as of date" picker in tree toolbar
-  sort_by?: string
-  sort_order?: 'asc' | 'desc'
-}
 
 // ── Fast filter types ─────────────────────────────────────────────────────
 
@@ -270,7 +263,11 @@ export interface DocType {
   kanban_column_field?: string | null
   calendar_view?: DocTypeCalendarView | null
   gantt_view?: DocTypeGanttView | null
-  tree_view?: DocTypeTreeView | null
+  tree_parent_field?: string | null
+  tree_title_field?: string | null
+  tree_as_of_date_field?: string | null
+  tree_sort_by?: string | null
+  tree_sort_order?: 'asc' | 'desc'
   map_view?: DocTypeMapView | null
   status_field?: string | null
   status_indicators?: StatusIndicator[]

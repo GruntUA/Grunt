@@ -9,14 +9,13 @@ const def: ViewDefinition = {
   order: 3,
 
   resolveField: (dt: DocType): DocField | null => {
-    if (dt.tree_view?.parent_field) {
-      return dt.fields.find((f) => f.fieldname === dt.tree_view!.parent_field) ?? null
+    if (dt.tree_parent_field) {
+      return dt.fields.find((f) => f.fieldname === dt.tree_parent_field) ?? null
     }
     return dt.fields.find((f) => f.fieldtype === 'Link' && f.options === dt.name) ?? null
   },
 
   component: () => import('./TreeView.vue').then((m) => m.default),
-  settingsComponent: () => import('./TreeSettings.vue').then((m) => m.default),
 
   mountProps: (ctx) => ({
     doctype: ctx.dt,

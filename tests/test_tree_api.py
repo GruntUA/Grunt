@@ -15,10 +15,8 @@ TREE_DOCTYPE = {
     "label": "Tree Category",
     "module": "core",
     "is_tree": True,
-    "tree_view": {
-        "parent_field": "parent_category",
-        "title_field": "title",
-    },
+    "tree_parent_field": "parent_category",
+    "tree_title_field": "title",
     "fields": [
         {
             "fieldname": "title",
@@ -334,7 +332,8 @@ GUARDED_TREE_DOCTYPE = {
     "label": "Guarded Tree Category",
     "module": "core",
     "is_tree": True,
-    "tree_view": {"parent_field": "parent_category", "title_field": "title"},
+    "tree_parent_field": "parent_category",
+    "tree_title_field": "title",
     "fields": [
         {"fieldname": "title", "label": "Title", "fieldtype": "Text", "required": True},
         {

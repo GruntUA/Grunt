@@ -364,10 +364,43 @@
       "description": "Дозволяє ієрархічне відображення та TreeSelect вміст"
     },
     {
-      "fieldname": "tree_view",
-      "label": "Налаштування дерева",
-      "fieldtype": "JSON",
-      "description": "{\"parent_field\": \"parent_department\", \"title_field\": \"title\"}"
+      "fieldname": "tree_parent_field",
+      "label": "Батьківське поле",
+      "fieldtype": "Select",
+      "options": "",
+      "depends_on": "is_tree",
+      "description": "Link-поле, що вказує на цей самий DocType (ієрархія вузлів)"
+    },
+    {
+      "fieldname": "tree_title_field",
+      "label": "Поле назви вузла",
+      "fieldtype": "Select",
+      "options": "",
+      "depends_on": "is_tree",
+      "description": "Яке поле показувати як підпис вузла (default: поле заголовка)"
+    },
+    {
+      "fieldname": "tree_as_of_date_field",
+      "label": "Поле дати «станом на»",
+      "fieldtype": "Select",
+      "options": "",
+      "depends_on": "is_tree",
+      "description": "Date-поле, що вмикає вибір дати в панелі дерева"
+    },
+    {
+      "fieldname": "tree_sort_by",
+      "label": "Сортувати за",
+      "fieldtype": "Select",
+      "options": "",
+      "depends_on": "is_tree"
+    },
+    {
+      "fieldname": "tree_sort_order",
+      "label": "Напрям сортування",
+      "fieldtype": "Select",
+      "options": "asc\ndesc",
+      "default": "asc",
+      "depends_on": "is_tree"
     },
     {
       "fieldname": "tab_views_builder",

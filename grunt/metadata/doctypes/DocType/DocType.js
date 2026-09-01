@@ -38,25 +38,27 @@ function _seed_status_indicators(frm) {
 function _refresh_field_selects(frm) {
     const LAYOUT_TYPES = new Set(['Tab', 'Section', 'Column', 'HTML', 'Heading'])
     const IMAGE_TYPES = new Set(['Image', 'Attach', 'AttachImage'])
+    const DATE_TYPES = new Set(['Date', 'Datetime'])
 
     const fields = frm.doc.fields || []
+    const named = fields.filter(f => f.fieldname)
+    const pick = pred => named.filter(pred).map(f => f.fieldname)
 
-    const allFieldnames = fields
-        .filter(f => f.fieldname && !LAYOUT_TYPES.has(f.fieldtype))
-        .map(f => f.fieldname)
+    const allFieldnames = pick(f => !LAYOUT_TYPES.has(f.fieldtype))
+    const imageFieldnames = pick(f => IMAGE_TYPES.has(f.fieldtype))
+    const selectFieldnames = pick(f => f.fieldtype === 'Select')
+    const linkFieldnames = pick(f => f.fieldtype === 'Link')
+    const dateFieldnames = pick(f => DATE_TYPES.has(f.fieldtype))
 
-    const imageFieldnames = fields
-        .filter(f => f.fieldname && IMAGE_TYPES.has(f.fieldtype))
-        .map(f => f.fieldname)
-
-    const selectFieldnames = fields
-        .filter(f => f.fieldname && f.fieldtype === 'Select')
-        .map(f => f.fieldname)
-
-    frm.set_df_property('title_field', 'options', '\n' + allFieldnames.join('\n'))
-    frm.set_df_property('image_field', 'options', '\n' + imageFieldnames.join('\n'))
-    frm.set_df_property('status_field', 'options', '\n' + allFieldnames.join('\n'))
-    frm.set_df_property('kanban_column_field', 'options', '\n' + selectFieldnames.join('\n'))
+    const opt = names => '\n' + names.join('\n')
+    frm.set_df_property('title_field', 'options', opt(allFieldnames))
+    frm.set_df_property('image_field', 'options', opt(imageFieldnames))
+    frm.set_df_property('status_field', 'options', opt(allFieldnames))
+    frm.set_df_property('kanban_column_field', 'options', opt(selectFieldnames))
+    frm.set_df_property('tree_parent_field', 'options', opt(linkFieldnames))
+    frm.set_df_property('tree_title_field', 'options', opt(allFieldnames))
+    frm.set_df_property('tree_as_of_date_field', 'options', opt(dateFieldnames))
+    frm.set_df_property('tree_sort_by', 'options', opt(allFieldnames))
 }
 
 async function on_load(frm) {

@@ -83,7 +83,7 @@ const fastFilterDefs = computed<FastFilter[]>(() => {
   const fallbackAsOfField = dt.value?.fields.find(
     f => f.fieldname === 'valid_from' && ['Date', 'Datetime'].includes(f.fieldtype),
   )?.fieldname
-  const asOfField = dt.value?.tree_view?.as_of_date_field ?? fallbackAsOfField
+  const asOfField = dt.value?.tree_as_of_date_field ?? fallbackAsOfField
   if (!asOfField) return merged
 
   const normalized: FastFilter[] = merged.map((ff) => {

@@ -161,7 +161,11 @@ async def populate_system_doctypes(
             **_col("table_name", dt.table_name),
             **_col("search_fields", dt.search_fields if dt.search_fields else None),
             **_col("is_tree", dt.is_tree),
-            **_col("tree_view", dt.tree_view.model_dump() if dt.tree_view else None),
+            **_col("tree_parent_field", dt.tree_parent_field),
+            **_col("tree_title_field", dt.tree_title_field),
+            **_col("tree_as_of_date_field", dt.tree_as_of_date_field),
+            **_col("tree_sort_by", dt.tree_sort_by),
+            **_col("tree_sort_order", dt.tree_sort_order),
             **_col("fetch_from", getattr(dt, "fetch_from", None)),
         }
 

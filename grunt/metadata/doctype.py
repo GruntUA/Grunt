@@ -123,7 +123,8 @@ class DocTypeCalendarView(BaseModel):
 
 
 class DocTypeTreeView(BaseModel):
-    """Configuration for the tree view — hierarchical documents via a self-referential Link."""
+    """Resolved tree-view config. Assembled by ``DocType.tree_view`` from the
+    flat ``tree_*`` fields — it is not stored directly."""
 
     parent_field: str  # fieldname of the Link field pointing to the same DocType
     title_field: str = "name"  # field displayed as node label
@@ -276,8 +277,15 @@ class DocType(BaseModel):
     kanban_column_field: str | None = None  # Select field grouping the kanban columns
     calendar_view: DocTypeCalendarView | None = None
     gantt_view: DocTypeGanttView | None = None
-    tree_view: DocTypeTreeView | None = None
     map_view: DocTypeMapView | None = None
+
+    # Tree view — hierarchy via a self-referential Link (`tree_parent_field`).
+    # Gated by `is_tree`; the assembled config is exposed via `.tree_view`.
+    tree_parent_field: str | None = None
+    tree_title_field: str | None = None  # node label; None → falls back to title_field
+    tree_as_of_date_field: str | None = None  # Date field enabling the "as-of" picker
+    tree_sort_by: str | None = None
+    tree_sort_order: Literal["asc", "desc"] = "asc"
 
     # Status display — field whose value is the document status, plus the
     # value → colour/icon/label indicators used by list/form/kanban badges.
@@ -306,6 +314,20 @@ class DocType(BaseModel):
     table_name: str | None = None
 
     model_config = {"use_enum_values": True}
+
+    @property
+    def tree_view(self) -> DocTypeTreeView | None:
+        """Assembled tree-view config from the flat ``tree_*`` fields, or None
+        when this DocType isn't a configured tree. Read-only — not serialised."""
+        if not self.is_tree or not self.tree_parent_field:
+            return None
+        return DocTypeTreeView(
+            parent_field=self.tree_parent_field,
+            title_field=self.tree_title_field or self.title_field or "name",
+            as_of_date_field=self.tree_as_of_date_field,
+            sort_by=self.tree_sort_by,
+            sort_order=self.tree_sort_order,
+        )
 
     @model_validator(mode="after")
     def _prune_incomplete_child_rows(self) -> DocType:

@@ -132,11 +132,6 @@ class DocTypeGanttViewSchema(BaseModel):
     dependencies_field: str | None = None
 
 
-class DocTypeTreeViewSchema(BaseModel):
-    parent_field: str
-    title_field: str = "name"
-
-
 class DocTypeMapViewSchema(BaseModel):
     geo_field: str | None = None
     label_field: str | None = None
@@ -206,8 +201,12 @@ class DocTypeSchema(BaseModel):
     kanban_column_field: str | None = None
     calendar_view: DocTypeCalendarViewSchema | None = None
     gantt_view: DocTypeGanttViewSchema | None = None
-    tree_view: DocTypeTreeViewSchema | None = None
     map_view: DocTypeMapViewSchema | None = None
+    tree_parent_field: str | None = None
+    tree_title_field: str | None = None
+    tree_as_of_date_field: str | None = None
+    tree_sort_by: str | None = None
+    tree_sort_order: Literal["asc", "desc"] = "asc"
     status_field: str | None = None
     status_indicators: list[StatusIndicatorSchema] = []
     actions: list[DocTypeActionSchema] = []
