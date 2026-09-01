@@ -40,6 +40,7 @@ function _refresh_field_selects(frm) {
     const IMAGE_TYPES = new Set(['Image', 'Attach', 'AttachImage'])
     const DATE_TYPES = new Set(['Date', 'Datetime'])
     const NUMBER_TYPES = new Set(['Float', 'Int', 'Percent'])
+    const TEXT_TYPES = new Set(['Data', 'Text', 'SmallText', 'LongText', 'Select', 'Link', 'Code', 'JSON'])
 
     const fields = frm.doc.fields || []
     const named = fields.filter(f => f.fieldname)
@@ -51,9 +52,11 @@ function _refresh_field_selects(frm) {
     const linkFieldnames = pick(f => f.fieldtype === 'Link')
     const dateFieldnames = pick(f => DATE_TYPES.has(f.fieldtype))
     const numberFieldnames = pick(f => NUMBER_TYPES.has(f.fieldtype))
+    const textFieldnames = pick(f => TEXT_TYPES.has(f.fieldtype))
 
     const opt = names => '\n' + names.join('\n')
     frm.set_df_property('title_field', 'options', opt(allFieldnames))
+    frm.set_df_property('search_fields', 'options', opt(textFieldnames))
     frm.set_df_property('image_field', 'options', opt(imageFieldnames))
     frm.set_df_property('status_field', 'options', opt(allFieldnames))
     frm.set_df_property('kanban_column_field', 'options', opt(selectFieldnames))

@@ -263,8 +263,8 @@
     {
       "fieldname": "search_fields",
       "label": "Поля пошуку",
-      "fieldtype": "JSON",
-      "description": "Список полів для full-text пошуку, наприклад [\"name\", \"label\"]"
+      "fieldtype": "MultiSelect",
+      "description": "Поля для full-text пошуку в списку (name додається автоматично)"
     },
     {
       "fieldname": "sec_service",
