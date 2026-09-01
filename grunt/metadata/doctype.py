@@ -95,14 +95,7 @@ class DocTypeListView(BaseModel):
 
 
 class DocTypeFormView(BaseModel):
-    print_format: str | None = None
     show_sidebar: bool = True  # False → hide the document detail sidebar on the form
-
-
-class DocTypeKanbanView(BaseModel):
-    column_field: str  # Select field for columns
-    title_field: str = "name"
-    color_field: str | None = None
 
 
 class CalendarSource(BaseModel):
@@ -180,13 +173,6 @@ class StatusIndicator(BaseModel):
     color: str = "secondary"  # default|secondary|success|info|warn|danger|contrast
     icon: str | None = None  # Lucide icon name, e.g. "circle-check"
     label: str | None = None  # override display label (defaults to value)
-
-
-class DocTypeStatusConfig(BaseModel):
-    """Configures how document status is displayed in list/form views."""
-
-    field: str  # fieldname that represents status
-    indicators: list[StatusIndicator] = []
 
 
 # ── Document actions ────────────────────────────────────────────────────
@@ -287,14 +273,16 @@ class DocType(BaseModel):
     default_view: str | None = None  # "list" | "kanban" | "calendar" | "gantt" | "tree" | "map"
     list_view: DocTypeListView = DocTypeListView()
     form_view: DocTypeFormView = DocTypeFormView()
-    kanban_view: DocTypeKanbanView | None = None
+    kanban_column_field: str | None = None  # Select field grouping the kanban columns
     calendar_view: DocTypeCalendarView | None = None
     gantt_view: DocTypeGanttView | None = None
     tree_view: DocTypeTreeView | None = None
     map_view: DocTypeMapView | None = None
 
-    # Status display
-    status_config: DocTypeStatusConfig | None = None
+    # Status display — field whose value is the document status, plus the
+    # value → colour/icon/label indicators used by list/form/kanban badges.
+    status_field: str | None = None
+    status_indicators: list[StatusIndicator] = []
 
     # Custom document actions — code-registered, bound here (see grunt.actions)
     actions: list[DocTypeAction] = []

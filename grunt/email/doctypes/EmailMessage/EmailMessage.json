@@ -6,18 +6,16 @@
   "default_view": "list",
   "track_changes": false,
   "search_fields": ["subject", "sender", "recipients"],
-  "status_config": {
-    "field": "status",
-    "indicators": [
-      { "value": "Отримано", "color": "blue", "icon": "inbox" },
-      { "value": "Надіслано", "color": "blue", "icon": "send" },
-      { "value": "Доставлено", "color": "green", "icon": "circle-check" },
-      { "value": "Не доставлено", "color": "red", "icon": "circle-x" },
-      { "value": "Відкладено", "color": "orange", "icon": "clock" },
-      { "value": "У черзі", "color": "yellow", "icon": "loader" },
-      { "value": "Помилка", "color": "red", "icon": "circle-x" }
-    ]
-  },
+  "status_field": "status",
+  "status_indicators": [
+    {"value": "Отримано", "color": "blue", "icon": "inbox"},
+    {"value": "Надіслано", "color": "blue", "icon": "send"},
+    {"value": "Доставлено", "color": "green", "icon": "circle-check"},
+    {"value": "Не доставлено", "color": "red", "icon": "circle-x"},
+    {"value": "Відкладено", "color": "orange", "icon": "clock"},
+    {"value": "У черзі", "color": "yellow", "icon": "loader"},
+    {"value": "Помилка", "color": "red", "icon": "circle-x"}
+  ],
   "list_view": {
     "fast_filters": [
       { "id": "direction_filter", "field": "direction", "label": "Напрям", "input_type": "select", "on_change": { "debounce_ms": 0 } },

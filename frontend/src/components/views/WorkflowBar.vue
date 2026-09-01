@@ -37,12 +37,9 @@ const stateBadge = computed(() => {
   const stateField = props.doctype.workflow_state_field
   if (!stateField) return { colorClass: '', label: '—' }
   const val = String(props.doc[stateField] ?? '—')
-  const sc = props.doctype.status_config
-  if (sc) {
-    const ind = sc.indicators.find(i => i.value === val)
-    if (ind) {
-      return { colorClass: COLOR_CLASSES[ind.color] ?? '', label: ind.label ?? val }
-    }
+  const ind = (props.doctype.status_indicators ?? []).find(i => i.value === val)
+  if (ind) {
+    return { colorClass: COLOR_CLASSES[ind.color] ?? '', label: ind.label ?? val }
   }
   return { colorClass: '', label: val }
 })

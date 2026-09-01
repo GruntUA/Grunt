@@ -5,6 +5,7 @@ import type { ActiveFilter, DocType } from '@/types'
 import type { ExportContext } from '@/core/io'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { docsApi } from '@/core/api/docs'
+import { statusConfigOf } from '@/core/status'
 
 interface UseInfiniteDocTypeListDataOptions {
   doctype: string
@@ -24,7 +25,7 @@ export function useInfiniteDocTypeListData(options: UseInfiniteDocTypeListDataOp
     const fields = new Set([...options.visibleKeys.value, 'modified_at', 'docstatus'])
     if (options.groupBy.value) fields.add(options.groupBy.value)
     if (options.sortKey.value) fields.add(options.sortKey.value)
-    if (options.dt.value?.status_config?.field) fields.add(options.dt.value.status_config.field)
+    if (options.dt.value?.status_field) fields.add(options.dt.value.status_field)
     if (options.dt.value?.image_field) fields.add(options.dt.value.image_field)
     return [...fields].join(',')
   })
@@ -74,7 +75,7 @@ export function useInfiniteDocTypeListData(options: UseInfiniteDocTypeListDataOp
     columns: options.visibleColumns.value,
     fields: options.dt.value?.fields ?? [],
     filters: options.activeFilters.value,
-    statusConfig: options.dt.value?.status_config ?? null,
+    statusConfig: statusConfigOf(options.dt.value),
     total: meta.value?.total ?? rows.value.length,
     groupBy: options.groupBy.value,
     getAll: async () => {

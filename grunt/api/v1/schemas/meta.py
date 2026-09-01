@@ -98,13 +98,7 @@ class DocTypeListViewSchema(BaseModel):
 
 
 class DocTypeFormViewSchema(BaseModel):
-    print_format: str | None = None
-
-
-class DocTypeKanbanViewSchema(BaseModel):
-    column_field: str
-    title_field: str = "name"
-    color_field: str | None = None
+    show_sidebar: bool = True
 
 
 class CalendarSourceSchema(BaseModel):
@@ -159,11 +153,6 @@ class StatusIndicatorSchema(BaseModel):
     label: str | None = None
 
 
-class DocTypeStatusConfigSchema(BaseModel):
-    field: str
-    indicators: list[StatusIndicatorSchema] = []
-
-
 class DocTypeActionSchema(BaseModel):
     action: str = ""
     label: str = ""
@@ -214,12 +203,13 @@ class DocTypeSchema(BaseModel):
 
     list_view: DocTypeListViewSchema = DocTypeListViewSchema()
     form_view: DocTypeFormViewSchema = DocTypeFormViewSchema()
-    kanban_view: DocTypeKanbanViewSchema | None = None
+    kanban_column_field: str | None = None
     calendar_view: DocTypeCalendarViewSchema | None = None
     gantt_view: DocTypeGanttViewSchema | None = None
     tree_view: DocTypeTreeViewSchema | None = None
     map_view: DocTypeMapViewSchema | None = None
-    status_config: DocTypeStatusConfigSchema | None = None
+    status_field: str | None = None
+    status_indicators: list[StatusIndicatorSchema] = []
     actions: list[DocTypeActionSchema] = []
     links: list[DocTypeLinkSchema] = []
 

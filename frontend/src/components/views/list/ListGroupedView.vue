@@ -5,6 +5,7 @@ import type { ListColumn } from '@/core/composables/useListColumns'
 import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 import GruntDataTable from '@/components/views/GruntDataTable.vue'
 import { Badge } from '@/components/ui/badge'
+import { statusConfigOf } from '@/core/status'
 
 interface SelectionState {
   selectedIds: string[]
@@ -58,7 +59,7 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
           :sort-key="sortKey"
           :sort-order="sortOrder"
           :selected-ids="[]"
-          :status-config="dt?.status_config"
+          :status-config="statusConfigOf(dt)"
           :hide-body="true"
           @sort="emit('sort', $event)"
           @select-all="emit('selectAll')"
@@ -110,7 +111,7 @@ function handleSelectGroup(items: Record<string, unknown>[]) {
                 :sort-order="sortOrder"
                 :selected-ids="selection?.selectedIds || []"
                 :all-selected="selection?.allSelected || false"
-                :status-config="dt?.status_config"
+                :status-config="statusConfigOf(dt)"
                 :hide-header="true"
                 @select="selection?.toggle"
                 @select-all="handleSelectGroup(group.items)"

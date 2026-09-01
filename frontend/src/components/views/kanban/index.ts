@@ -8,11 +8,18 @@ const def: ViewDefinition = {
   icon: LayoutGrid,
   order: 1,
 
-  resolveField: (dt: DocType): DocField | null =>
-    dt.fields.find((f) => f.fieldtype === 'Select' && f.in_list_view && !f.hidden) ?? null,
+  resolveField: (dt: DocType): DocField | null => {
+    const configured = dt.kanban_column_field
+      ? dt.fields.find((f) => f.fieldname === dt.kanban_column_field && f.fieldtype === 'Select')
+      : null
+    return (
+      configured ??
+      dt.fields.find((f) => f.fieldtype === 'Select' && f.in_list_view && !f.hidden) ??
+      null
+    )
+  },
 
   component: () => import('./KanbanView.vue').then((m) => m.default),
-  settingsComponent: () => import('./KanbanSettings.vue').then((m) => m.default),
 
   mountProps: (ctx) => ({
     doctype: ctx.dt,

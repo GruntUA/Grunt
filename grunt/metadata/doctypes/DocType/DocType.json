@@ -302,6 +302,152 @@
       "label": "Список полів",
       "fieldtype": "Table",
       "options": "DocField"
+    },
+    {
+      "fieldname": "tab_actions",
+      "label": "Дії",
+      "fieldtype": "Tab",
+      "icon": "Zap"
+    },
+    {
+      "fieldname": "tab_links",
+      "label": "Зв'язки",
+      "fieldtype": "Tab",
+      "icon": "Link"
+    },
+    {
+      "fieldname": "tab_settings",
+      "label": "Керованість",
+      "fieldtype": "Tab",
+      "icon": "Settings"
+    },
+    {
+      "fieldname": "sec_naming",
+      "label": "Збереження та ідентифікація",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "col_n1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "col_n2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "sec_flags",
+      "label": "Життєвий цикл та модель даних",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "col_f1",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "col_f2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "tab_tree",
+      "label": "Ієрархія",
+      "fieldtype": "Tab",
+      "icon": "GitBranch"
+    },
+    {
+      "fieldname": "is_tree",
+      "label": "Це дерево (Is Tree)",
+      "fieldtype": "Check",
+      "description": "Дозволяє ієрархічне відображення та TreeSelect вміст"
+    },
+    {
+      "fieldname": "tree_view",
+      "label": "Налаштування дерева",
+      "fieldtype": "JSON",
+      "description": "{\"parent_field\": \"parent_department\", \"title_field\": \"title\"}"
+    },
+    {
+      "fieldname": "tab_views_builder",
+      "label": "Вигляди",
+      "fieldtype": "Tab",
+      "icon": "PanelsTopLeft"
+    },
+    {
+      "fieldname": "sec_list_view",
+      "label": "Список",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "list_view",
+      "label": "Налаштування списку",
+      "fieldtype": "Code",
+      "options": "json"
+    },
+    {
+      "fieldname": "sec_form_view",
+      "label": "Форма",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "form_view",
+      "label": "Налаштування форми",
+      "fieldtype": "Code",
+      "options": "json"
+    },
+    {
+      "fieldname": "sec_status_config",
+      "label": "Статуси",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "status_field",
+      "label": "Поле статусу",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Поле DocType, яке відображає статус документа (наприклад «status»)"
+    },
+    {
+      "fieldname": "status_indicators",
+      "label": "Індикатори",
+      "fieldtype": "Table",
+      "options": "DocTypeStatusIndicator"
+    },
+    {
+      "fieldname": "sec_kanban_view",
+      "label": "Kanban",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "kanban_column_field",
+      "label": "Поле колонок",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Select-поле, за значеннями якого групуються колонки канбану (default: перше Select-поле у списку)"
+    },
+    {
+      "fieldname": "sec_calendar_view",
+      "label": "Календар",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "calendar_view",
+      "label": "Налаштування календаря",
+      "fieldtype": "JSON",
+      "description": "{\"start_date_field\": \"start_date\", \"end_date_field\": \"end_date\", \"title_field\": \"name\"}"
+    },
+    {
+      "fieldname": "sec_gantt_view",
+      "label": "Діаграма Ганта",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "gantt_view",
+      "label": "Налаштування діаграми Ганта",
+      "fieldtype": "JSON",
+      "description": "{\"start_field\": \"start_date\", \"end_field\": \"end_date\", \"title_field\": \"name\", \"progress_field\": \"progress\"}"
     }
   ],
   "permissions": [

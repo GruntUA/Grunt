@@ -6,6 +6,7 @@ import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 import GruntDataTable from '@/components/views/GruntDataTable.vue'
 import BulkActionBar from '@/components/views/BulkActionBar.vue'
 import ListGroupedView from '@/components/views/list/ListGroupedView.vue'
+import { statusConfigOf } from '@/core/status'
 
 interface TableMeta {
   page: number
@@ -136,7 +137,7 @@ watch(() => sentinelEl.value, setupObserver)
             :sort-order="sortOrder"
             :selected-ids="selection.selectedIds"
             :all-selected="selection.allSelected"
-            :status-config="dt?.status_config"
+            :status-config="statusConfigOf(dt)"
             @sort="(key) => emit('sort', key)"
             @select="(id) => selection.toggle(id)"
             @select-all="selection.toggleAll(rows.map((r) => rowDocId(r)).filter(Boolean))"

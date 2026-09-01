@@ -2,9 +2,38 @@
  * Client Script for DocType
  */
 
+// Colour palette cycled through when auto-seeding status indicators.
+const STATUS_COLORS = ['secondary', 'success', 'info', 'warn', 'danger', 'contrast', 'primary', 'default']
+
+/**
+ * When `status_field` points at a Select field and the indicators table is
+ * still empty, pre-fill one row per option so the common case needs no typing.
+ * Never clobbers a table the user has already edited.
+ */
+function _seed_status_indicators(frm) {
+    if ((frm.doc.status_indicators || []).length) return
+
+    const fname = frm.get_value('status_field')
+    if (!fname) return
+
+    const fld = (frm.doc.fields || []).find(f => f.fieldname === fname)
+    if (!fld || fld.fieldtype !== 'Select' || !fld.options) return
+
+    const values = String(fld.options).split('\n').map(s => s.trim()).filter(Boolean)
+    if (!values.length) return
+
+    frm.set_value('status_indicators', values.map((value, i) => ({
+        value,
+        color: STATUS_COLORS[i % STATUS_COLORS.length],
+        icon: null,
+        label: null,
+    })))
+}
+
 /**
  * Refresh title_field, image_field, and status_field options based on current fields list.
- * title_field / status_field — all non-layout fields; image_field — only Image/Attach fields.
+ * title_field / status_field — all non-layout fields; image_field — only
+ * Image/Attach fields; kanban_column_field — only Select fields.
  */
 function _refresh_field_selects(frm) {
     const LAYOUT_TYPES = new Set(['Tab', 'Section', 'Column', 'HTML', 'Heading'])
@@ -20,9 +49,14 @@ function _refresh_field_selects(frm) {
         .filter(f => f.fieldname && IMAGE_TYPES.has(f.fieldtype))
         .map(f => f.fieldname)
 
+    const selectFieldnames = fields
+        .filter(f => f.fieldname && f.fieldtype === 'Select')
+        .map(f => f.fieldname)
+
     frm.set_df_property('title_field', 'options', '\n' + allFieldnames.join('\n'))
     frm.set_df_property('image_field', 'options', '\n' + imageFieldnames.join('\n'))
     frm.set_df_property('status_field', 'options', '\n' + allFieldnames.join('\n'))
+    frm.set_df_property('kanban_column_field', 'options', '\n' + selectFieldnames.join('\n'))
 }
 
 async function on_load(frm) {
@@ -64,6 +98,11 @@ async function on_change(frm, fieldname) {
     // Refresh field selects whenever the fields table changes
     if (fieldname === 'fields') {
         _refresh_field_selects(frm)
+        return
+    }
+
+    if (fieldname === 'status_field') {
+        _seed_status_indicators(frm)
         return
     }
 

@@ -28,10 +28,9 @@ const columns = computed<string[]>(() => {
 
 // Status colors and labels
 const statusIndicatorMap = computed(() => {
-  const sc = props.doctype.status_config
-  if (!sc || sc.field !== props.columnField) return null
+  if (props.doctype.status_field !== props.columnField) return null
   const m = new Map<string, { color: string; label?: string | null }>()
-  for (const ind of sc.indicators) m.set(ind.value, ind)
+  for (const ind of props.doctype.status_indicators ?? []) m.set(ind.value, ind)
   return m
 })
 

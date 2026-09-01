@@ -121,15 +121,8 @@ export interface DocTypeListView {
 }
 
 export interface DocTypeFormView {
-  print_format: string | null
   /** false → hide the document detail sidebar on the form (default: true) */
   show_sidebar?: boolean
-}
-
-export interface DocTypeKanbanView {
-  column_field: string
-  title_field: string
-  color_field: string | null
 }
 
 export interface CalendarSource {
@@ -237,6 +230,11 @@ export interface StatusIndicator {
   label?: string | null
 }
 
+/**
+ * Runtime bundle passed to list cells / exporters. Assembled from a DocType's
+ * `status_field` + `status_indicators` by `statusConfigOf()` — it is not stored
+ * on the DocType itself.
+ */
 export interface DocTypeStatusConfig {
   field: string
   indicators: StatusIndicator[]
@@ -269,12 +267,13 @@ export interface DocType {
   default_view?: string | null
   list_view?: DocTypeListView
   form_view?: DocTypeFormView
-  kanban_view?: DocTypeKanbanView | null
+  kanban_column_field?: string | null
   calendar_view?: DocTypeCalendarView | null
   gantt_view?: DocTypeGanttView | null
   tree_view?: DocTypeTreeView | null
   map_view?: DocTypeMapView | null
-  status_config?: DocTypeStatusConfig | null
+  status_field?: string | null
+  status_indicators?: StatusIndicator[]
   workflow_state_field?: string | null
   permissions?: DocPermission[]
   actions?: DocTypeActionBinding[]

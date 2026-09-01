@@ -17,11 +17,12 @@ def db_group():
 @db_group.command("migrate")
 @click.option("--dry-run", is_flag=True, help="Показати SQL без виконання (для DocType таблиць)")
 @click.option("--site", default=None, help="Назва сайту")
-def db_migrate(dry_run: bool, site: str | None) -> None:
-    """Синхронізувати схему БД: system tables + DocType tables + fixtures.
+@click.option("--no-alembic", is_flag=True, help="Пропустити Alembic-міграції історії схеми")
+def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
+    """Синхронізувати схему БД: Alembic-міграції + system tables + DocType tables + fixtures.
 
     Запускати після:
-    - Оновлення фреймворку (нові core DocTypes або зміни полів)
+    - Оновлення фреймворку (нові Alembic-міграції, core DocTypes або зміни полів)
     - Додавання нових DocTypes через Studio
     - Встановлення нових додатків із DocTypes
     - Змін у fixture файлах (00_workspace.json тощо)
@@ -63,17 +64,30 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
                 maker = site_manager.get_session_maker(site_name)
 
                 # 1. System ORM tables
-                click.echo("  [1/4] System tables (metadata.create_all)...")
+                click.echo("  [1/5] System tables (metadata.create_all)...")
                 async with eng.begin() as conn:
                     await conn.run_sync(metadata.create_all)
 
                 # 2. Shared infrastructure tables (MultiLink junction, etc.)
-                click.echo("  [2/4] Infrastructure tables (SA_METADATA)...")
+                click.echo("  [2/5] Infrastructure tables (SA_METADATA)...")
                 async with eng.begin() as conn:
                     await conn.run_sync(SA_METADATA.create_all)
 
-                # 3. DocType tables
-                click.echo("  [3/4] DocType tables (sync_table)...")
+                # 3. Alembic history — schema patches on top of create_all.
+                #    Fresh site → stamp head; existing → upgrade. Not
+                #    offline-previewable, so --dry-run skips it.
+                if no_alembic or dry_run:
+                    why = "--no-alembic" if no_alembic else "dry-run"
+                    click.echo(f"  [3/5] Alembic — пропущено ({why}).")
+                else:
+                    from grunt.db.alembic_utils import sync_site
+
+                    db_url = site_manager.get_database_url(site_name)
+                    outcome = await asyncio.to_thread(sync_site, db_url)
+                    click.echo(f"  [3/5] Alembic migrations — {outcome} (head).")
+
+                # 4. DocType tables
+                click.echo("  [4/5] DocType tables (sync_table)...")
                 async with maker() as session:
                     await load_core_doctypes(session, sync_db=True)
                     await apply_doctype_overrides(session, eng)
@@ -103,9 +117,9 @@ def db_migrate(dry_run: bool, site: str | None) -> None:
 
                 # 4. Seed fixtures (skip on dry-run)
                 if dry_run:
-                    click.echo("  [4/4] Seed fixtures — пропущено (dry-run).")
+                    click.echo("  [5/5] Seed fixtures — пропущено (dry-run).")
                 else:
-                    click.echo("  [4/4] Seed fixtures...")
+                    click.echo("  [5/5] Seed fixtures...")
                     async with maker() as session:
                         await seed_system_settings(session, eng)
                         await load_core_fixtures(session, eng)

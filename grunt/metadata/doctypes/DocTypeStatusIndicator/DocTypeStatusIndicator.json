@@ -38,6 +38,7 @@
       "fieldname": "label",
       "label": "Мітка",
       "fieldtype": "Text",
+      "in_list_view": true,
       "description": "Відображувана назва; якщо порожньо — використовується значення поля"
     }
   ],
