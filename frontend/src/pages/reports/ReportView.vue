@@ -106,6 +106,17 @@ watch(() => props.reportName, () => {
     fetchReport()
 })
 
+/** Sum of every column flagged with `total: true`; null when none apply. */
+const totalsRow = computed<Record<string, number> | null>(() => {
+    const totalCols = columns.value.filter((c) => c.total)
+    if (totalCols.length === 0 || data.value.length === 0) return null
+    const acc: Record<string, number> = {}
+    for (const col of totalCols) {
+        acc[col.fieldname] = data.value.reduce((s, r) => s + (Number(r[col.fieldname]) || 0), 0)
+    }
+    return acc
+})
+
 function formatCell(val: any, fieldtype: string): string {
     if (val === null || val === undefined || val === '') return '—'
     if (fieldtype === 'Date') return formatDate(val)
@@ -214,6 +225,16 @@ function openBuilder() {
                             </td>
                         </tr>
                     </tbody>
+                    <tfoot v-if="totalsRow && data.length">
+                        <tr class="border-t-2 bg-muted/30 font-semibold text-foreground">
+                            <td v-for="(col, ci) in columns" :key="col.fieldname" class="px-4 py-3 whitespace-nowrap">
+                                <template v-if="totalsRow?.[col.fieldname] !== undefined">
+                                    {{ formatCell(totalsRow?.[col.fieldname], col.fieldtype) }}
+                                </template>
+                                <template v-else-if="ci === 0">Разом</template>
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>

@@ -260,6 +260,10 @@ const displayFields = computed(() => {
                                     <SelectItem v-for="opt in AGGREGATIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
                                   </SelectContent>
                                 </Select>
+                                <label class="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap cursor-pointer select-none">
+                                    <input type="checkbox" v-model="col.total" class="size-3.5 accent-primary" />
+                                    Підсумок
+                                </label>
                             </div>
                         </div>
                     </div>

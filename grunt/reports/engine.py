@@ -74,6 +74,7 @@ class ReportEngine:
         report: dict,
         filters: dict,
         session: AsyncSession,
+        declared_columns: list[dict] | None = None,
     ) -> dict[str, Any]:
         query_str = report.get("query", "").strip()
         if not query_str:
@@ -103,7 +104,16 @@ class ReportEngine:
         rows = [dict(zip(keys, row, strict=False)) for row in result.fetchall()]
         elapsed = int((time.time() - start) * 1000)
 
-        columns = [{"fieldname": k, "label": k, "fieldtype": "Text"} for k in keys]
+        # A caller (e.g. a Script report that only *picked* the SQL) may declare
+        # column metadata — labels, fieldtypes, `total` flag. Match it to the
+        # SQL result keys by fieldname; fall back to a plain text column.
+        declared = {
+            c["fieldname"]: c for c in (declared_columns or []) if c.get("fieldname")
+        }
+        columns = [
+            declared.get(k, {"fieldname": k, "label": k, "fieldtype": "Text"})
+            for k in keys
+        ]
         return {
             "columns": columns,
             "data": rows,
@@ -192,7 +202,10 @@ class ReportEngine:
             # Contract 2: the script only picked a read-only SQL statement.
             if isinstance(script_query, str) and script_query.strip():
                 return await self._run_query_report(
-                    {"query": script_query}, filters, session
+                    {"query": script_query},
+                    filters,
+                    session,
+                    declared_columns=report.get("columns"),
                 )
             raise HTTPException(
                 500,
@@ -363,6 +376,23 @@ class ReportEngine:
                 if isinstance(cell_value, str):
                     cell_value = escape_formula(cell_value)
                 ws.cell(row=ri, column=ci, value=cell_value)
+
+        # Totals row — sum every column flagged with `total: true`.
+        total_fields = {c["fieldname"] for c in columns if c.get("total")}
+        if total_fields and data:
+            tr = len(data) + 2
+            for ci, col in enumerate(columns, 1):
+                fn = col["fieldname"]
+                if fn in total_fields:
+                    value: Any = sum(
+                        row.get(fn) or 0 for row in data
+                    )
+                elif ci == 1:
+                    value = "Разом"
+                else:
+                    continue
+                cell = ws.cell(row=tr, column=ci, value=value)
+                cell.font = Font(bold=True)
 
         # Auto-width
         for col in ws.columns:
