@@ -466,10 +466,32 @@
       "fieldtype": "Section"
     },
     {
-      "fieldname": "calendar_view",
-      "label": "Налаштування календаря",
-      "fieldtype": "JSON",
-      "description": "{\"start_date_field\": \"start_date\", \"end_date_field\": \"end_date\", \"title_field\": \"name\"}"
+      "fieldname": "calendar_date_field",
+      "label": "Поле дати",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Основне Date/Datetime-поле, за яким подія розміщується на календарі"
+    },
+    {
+      "fieldname": "calendar_end_date_field",
+      "label": "Поле дати завершення",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Date/Datetime-поле кінця події (для багатоденних)"
+    },
+    {
+      "fieldname": "calendar_title_field",
+      "label": "Поле заголовка",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Підпис події (default: поле заголовка)"
+    },
+    {
+      "fieldname": "calendar_sources",
+      "label": "Додаткові джерела",
+      "fieldtype": "Table",
+      "options": "DocTypeCalendarSource",
+      "description": "Інші типи документів, накладені на цей календар"
     },
     {
       "fieldname": "sec_gantt_view",

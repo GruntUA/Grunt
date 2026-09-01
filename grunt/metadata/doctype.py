@@ -99,7 +99,8 @@ class DocTypeFormView(BaseModel):
 
 
 class CalendarSource(BaseModel):
-    """Additional document source for the calendar view."""
+    """One extra document source overlaid on the calendar view — a row of the
+    ``calendar_sources`` child table."""
 
     doctype: str
     date_field: str
@@ -110,11 +111,11 @@ class CalendarSource(BaseModel):
     recurring: bool = False
     event_type: Literal["default", "birthday"] = "default"
     show_age: bool = False
-    remind_before_days: int | None = None
 
 
 class DocTypeCalendarView(BaseModel):
-    """Configuration for the calendar view (Phase 2)."""
+    """Resolved calendar-view config. Assembled by ``DocType.calendar_view`` from
+    the flat ``calendar_*`` fields + the ``calendar_sources`` table."""
 
     field: str  # Principal date field
     end_field: str | None = None
@@ -276,8 +277,14 @@ class DocType(BaseModel):
     list_view: DocTypeListView = DocTypeListView()
     form_view: DocTypeFormView = DocTypeFormView()
     kanban_column_field: str | None = None  # Select field grouping the kanban columns
-    calendar_view: DocTypeCalendarView | None = None
     map_view: DocTypeMapView | None = None
+
+    # Calendar view — principal date field + optional extra document sources.
+    # The assembled config is exposed via `.calendar_view`.
+    calendar_date_field: str | None = None
+    calendar_end_date_field: str | None = None
+    calendar_title_field: str | None = None  # None → falls back to title_field
+    calendar_sources: list[CalendarSource] = []
 
     # Gantt view — time-scaled bars. Needs start + end Date/Datetime fields;
     # the assembled config is exposed via `.gantt_view`.
@@ -325,6 +332,20 @@ class DocType(BaseModel):
     table_name: str | None = None
 
     model_config = {"use_enum_values": True}
+
+    @property
+    def calendar_view(self) -> DocTypeCalendarView | None:
+        """Assembled calendar-view config from the flat ``calendar_*`` fields +
+        ``calendar_sources``, or None when no principal date field is set.
+        Read-only — not serialised."""
+        if not self.calendar_date_field:
+            return None
+        return DocTypeCalendarView(
+            field=self.calendar_date_field,
+            end_field=self.calendar_end_date_field,
+            title_field=self.calendar_title_field or self.title_field or "name",
+            sources=self.calendar_sources,
+        )
 
     @property
     def gantt_view(self) -> DocTypeGanttView | None:

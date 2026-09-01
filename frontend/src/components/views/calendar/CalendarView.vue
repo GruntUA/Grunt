@@ -97,13 +97,13 @@ async function loadDocuments() {
     const endStr = format(endM, 'yyyy-MM-dd')
     const currentYear = currentMonth.value.getFullYear()
 
-    const endField = props.doctype.calendar_view?.end_field
+    const endField = props.doctype.calendar_end_date_field
     const primaryFetch = docsApi.list(props.doctype.name, {
       rawFilters: { [`${props.dateField}__lte`]: endStr },
       per_page: 200,
     })
 
-    const sources = props.doctype.calendar_view?.sources || []
+    const sources = props.doctype.calendar_sources || []
     const secondaryFetches = sources.map(source =>
       docsApi.list(source.doctype, {
         rawFilters: {
@@ -254,7 +254,7 @@ async function onDrop(e: DragEvent, day: Date) {
   if (event.recurring) return
   const dateField = event.doctype === props.doctype.name
     ? props.dateField
-    : props.doctype.calendar_view?.sources?.find(s => s.doctype === event.doctype)?.date_field
+    : props.doctype.calendar_sources?.find(s => s.doctype === event.doctype)?.date_field
 
   if (!dateField) return
 

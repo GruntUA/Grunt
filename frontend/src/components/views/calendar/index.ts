@@ -9,7 +9,7 @@ const def: ViewDefinition = {
   order: 2,
 
   resolveField: (dt: DocType): DocField | null => {
-    const configured = dt.calendar_view?.field
+    const configured = dt.calendar_date_field
     if (configured && new Set(['created_at', 'modified_at']).has(configured)) {
       return { fieldname: configured, fieldtype: 'Datetime', label: configured } as DocField
     }
@@ -20,7 +20,6 @@ const def: ViewDefinition = {
   },
 
   component: () => import('./CalendarView.vue').then((m) => m.default),
-  settingsComponent: () => import('./CalendarSettings.vue').then((m) => m.default),
 
   mountProps: (ctx) => ({
     doctype: ctx.dt,

@@ -135,7 +135,6 @@ export interface CalendarSource {
   recurring?: boolean
   event_type?: 'default' | 'birthday'
   show_age?: boolean
-  remind_before_days?: number
 }
 
 export interface DocTypeCalendarView {
@@ -249,7 +248,10 @@ export interface DocType {
   list_view?: DocTypeListView
   form_view?: DocTypeFormView
   kanban_column_field?: string | null
-  calendar_view?: DocTypeCalendarView | null
+  calendar_date_field?: string | null
+  calendar_end_date_field?: string | null
+  calendar_title_field?: string | null
+  calendar_sources?: CalendarSource[]
   gantt_start_field?: string | null
   gantt_end_field?: string | null
   gantt_title_field?: string | null

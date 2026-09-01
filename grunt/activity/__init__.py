@@ -42,6 +42,7 @@ FEED_HIDDEN_DOCTYPES = _SKIP_DOCTYPES | frozenset(
         "DocType",
         "DocField",
         "DocTypeStatusIndicator",
+        "DocTypeCalendarSource",
         "Role",
         "UserRole",
         "AppMenu",

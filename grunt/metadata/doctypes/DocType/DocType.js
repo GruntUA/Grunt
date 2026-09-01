@@ -67,6 +67,9 @@ function _refresh_field_selects(frm) {
     frm.set_df_property('gantt_progress_field', 'options', opt(numberFieldnames))
     frm.set_df_property('gantt_color_field', 'options', opt(selectFieldnames))
     frm.set_df_property('gantt_dependencies_field', 'options', opt(allFieldnames))
+    frm.set_df_property('calendar_date_field', 'options', opt(dateFieldnames))
+    frm.set_df_property('calendar_end_date_field', 'options', opt(dateFieldnames))
+    frm.set_df_property('calendar_title_field', 'options', opt(allFieldnames))
 }
 
 async function on_load(frm) {

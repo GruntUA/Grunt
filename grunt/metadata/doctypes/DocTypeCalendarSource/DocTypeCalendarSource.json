@@ -1,0 +1,78 @@
+{
+  "name": "DocTypeCalendarSource",
+  "label": "Джерело календаря",
+  "module": "metadata",
+  "is_child": true,
+  "fields": [
+    {
+      "fieldname": "doctype",
+      "label": "DocType",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "in_list_view": true,
+      "description": "Тип документів, які додаються на календар окремим джерелом"
+    },
+    {
+      "fieldname": "date_field",
+      "label": "Поле дати",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "description": "Fieldname у джерельному DocType, що містить дату події"
+    },
+    {
+      "fieldname": "end_date_field",
+      "label": "Поле дати завершення",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "label_field",
+      "label": "Поле підпису",
+      "fieldtype": "Data",
+      "description": "Fieldname для тексту події (default: name)"
+    },
+    {
+      "fieldname": "color",
+      "label": "Колір",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "description": "#hex або var(--…)"
+    },
+    {
+      "fieldname": "event_type",
+      "label": "Тип події",
+      "fieldtype": "Select",
+      "options": "default\nbirthday",
+      "default": "default",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "recurring",
+      "label": "Щорічна",
+      "fieldtype": "Check",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "show_age",
+      "label": "Показувати вік",
+      "fieldtype": "Check",
+      "description": "Для birthday-подій — додає (N років) до підпису"
+    },
+    {
+      "fieldname": "filters",
+      "label": "Фільтри (JSON)",
+      "fieldtype": "JSON",
+      "description": "{ \"status\": \"Активний\" }"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

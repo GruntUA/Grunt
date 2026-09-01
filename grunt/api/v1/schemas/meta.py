@@ -111,14 +111,6 @@ class CalendarSourceSchema(BaseModel):
     recurring: bool = False
     event_type: Literal["default", "birthday"] = "default"
     show_age: bool = False
-    remind_before_days: int | None = None
-
-
-class DocTypeCalendarViewSchema(BaseModel):
-    field: str
-    end_field: str | None = None
-    title_field: str = "name"
-    sources: list[CalendarSourceSchema] = []
 
 
 class DocTypeMapViewSchema(BaseModel):
@@ -188,7 +180,10 @@ class DocTypeSchema(BaseModel):
     list_view: DocTypeListViewSchema = DocTypeListViewSchema()
     form_view: DocTypeFormViewSchema = DocTypeFormViewSchema()
     kanban_column_field: str | None = None
-    calendar_view: DocTypeCalendarViewSchema | None = None
+    calendar_date_field: str | None = None
+    calendar_end_date_field: str | None = None
+    calendar_title_field: str | None = None
+    calendar_sources: list[CalendarSourceSchema] = []
     map_view: DocTypeMapViewSchema | None = None
     gantt_start_field: str | None = None
     gantt_end_field: str | None = None
