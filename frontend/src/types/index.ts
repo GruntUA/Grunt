@@ -145,18 +145,6 @@ export interface DocTypeCalendarView {
   sources?: CalendarSource[]
 }
 
-export interface DocTypeGanttView {
-  start_field: string                 // Date/Datetime — bar start
-  end_field: string                   // Date/Datetime — bar end
-  title_field?: string                // row/bar label (defaults to 'name')
-  progress_field?: string             // Float/Percent 0–100 → bar fill
-  color_field?: string                // field whose value drives the bar colour
-  color_map?: Record<string, string>  // { value: '#hex' } mapping for color_field
-  default_color?: string              // fallback bar colour (defaults to primary)
-  dependencies_field?: string         // comma-separated predecessor doc names / Link
-}
-
-
 // ── Fast filter types ─────────────────────────────────────────────────────
 
 export interface FastFilterOnChange {
@@ -262,7 +250,14 @@ export interface DocType {
   form_view?: DocTypeFormView
   kanban_column_field?: string | null
   calendar_view?: DocTypeCalendarView | null
-  gantt_view?: DocTypeGanttView | null
+  gantt_start_field?: string | null
+  gantt_end_field?: string | null
+  gantt_title_field?: string | null
+  gantt_progress_field?: string | null
+  gantt_color_field?: string | null
+  gantt_color_map?: Record<string, string> | null
+  gantt_default_color?: string | null
+  gantt_dependencies_field?: string | null
   tree_parent_field?: string | null
   tree_title_field?: string | null
   tree_as_of_date_field?: string | null

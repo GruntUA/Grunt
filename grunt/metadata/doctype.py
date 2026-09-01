@@ -136,7 +136,8 @@ class DocTypeTreeView(BaseModel):
 
 
 class DocTypeGanttView(BaseModel):
-    """Configuration for the Gantt view — time-scaled bars per document.
+    """Resolved Gantt-view config. Assembled by ``DocType.gantt_view`` from the
+    flat ``gantt_*`` fields — it is not stored directly.
 
     Needs a start and an end Date/Datetime field. Optional extras: a numeric
     ``progress_field`` (0–100) fills the bar, ``color_field`` + ``color_map``
@@ -276,8 +277,18 @@ class DocType(BaseModel):
     form_view: DocTypeFormView = DocTypeFormView()
     kanban_column_field: str | None = None  # Select field grouping the kanban columns
     calendar_view: DocTypeCalendarView | None = None
-    gantt_view: DocTypeGanttView | None = None
     map_view: DocTypeMapView | None = None
+
+    # Gantt view — time-scaled bars. Needs start + end Date/Datetime fields;
+    # the assembled config is exposed via `.gantt_view`.
+    gantt_start_field: str | None = None
+    gantt_end_field: str | None = None
+    gantt_title_field: str | None = None  # None → falls back to title_field
+    gantt_progress_field: str | None = None  # Float/Int/Percent 0–100 → bar fill
+    gantt_color_field: str | None = None
+    gantt_color_map: dict[str, str] | None = None  # { value: '#hex' }
+    gantt_default_color: str | None = None
+    gantt_dependencies_field: str | None = None
 
     # Tree view — hierarchy via a self-referential Link (`tree_parent_field`).
     # Gated by `is_tree`; the assembled config is exposed via `.tree_view`.
@@ -314,6 +325,23 @@ class DocType(BaseModel):
     table_name: str | None = None
 
     model_config = {"use_enum_values": True}
+
+    @property
+    def gantt_view(self) -> DocTypeGanttView | None:
+        """Assembled Gantt-view config from the flat ``gantt_*`` fields, or None
+        when no start/end field is set. Read-only — not serialised."""
+        if not self.gantt_start_field or not self.gantt_end_field:
+            return None
+        return DocTypeGanttView(
+            start_field=self.gantt_start_field,
+            end_field=self.gantt_end_field,
+            title_field=self.gantt_title_field or self.title_field or "name",
+            progress_field=self.gantt_progress_field,
+            color_field=self.gantt_color_field,
+            color_map=self.gantt_color_map,
+            default_color=self.gantt_default_color,
+            dependencies_field=self.gantt_dependencies_field,
+        )
 
     @property
     def tree_view(self) -> DocTypeTreeView | None:

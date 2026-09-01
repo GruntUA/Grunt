@@ -1,6 +1,7 @@
 import { nextTick, ref, type Ref } from 'vue'
 
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
+import { parseLayout } from '@/core/composables/useFormLayout'
 import type { DocType } from '@/types'
 
 interface UseFormValidationParams {
@@ -24,19 +25,14 @@ export function useFormValidation(params: UseFormValidationParams) {
     const firstKey = Object.keys(validationErrors.value)[0]
     if (!firstKey) return
 
-    // 1. Find which tab this field is in
+    // 1. Switch to the tab that contains this field (tabs are keyed by fieldname)
     if (params.activeTab && params.dt.value) {
-      let fieldTab = 'Main'
-      for (const field of params.dt.value.fields) {
-        if (field.fieldtype === 'Tab') {
-          fieldTab = field.label || 'Main'
-        }
-        if (field.fieldname === firstKey) {
-          if (params.activeTab.value !== fieldTab) {
-            params.activeTab.value = fieldTab
-          }
-          break
-        }
+      const layout = parseLayout(params.dt.value.fields)
+      const target = layout.find((t) =>
+        t.sections.some((s) => s.columns.some((c) => c.some((f) => f.fieldname === firstKey))),
+      )
+      if (target && params.activeTab.value !== target._fieldname) {
+        params.activeTab.value = target._fieldname
       }
     }
 

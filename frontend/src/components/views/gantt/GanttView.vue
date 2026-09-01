@@ -35,8 +35,17 @@ const router = useRouter()
 const toast = useToast()
 const dfLocale = computed(() => (siteConfigState().language.toLowerCase().startsWith('en') ? enUS : uk))
 
-// ── Config ────────────────────────────────────────────────────────────────
-const cfg = computed(() => props.doctype.gantt_view ?? null)
+// ── Config (assembled from the flat gantt_* fields) ───────────────────────
+const cfg = computed(() => ({
+  start_field: props.doctype.gantt_start_field ?? '',
+  end_field: props.doctype.gantt_end_field ?? '',
+  title_field: props.doctype.gantt_title_field ?? '',
+  progress_field: props.doctype.gantt_progress_field ?? '',
+  color_field: props.doctype.gantt_color_field ?? '',
+  color_map: props.doctype.gantt_color_map ?? {},
+  default_color: props.doctype.gantt_default_color ?? '',
+  dependencies_field: props.doctype.gantt_dependencies_field ?? '',
+}))
 const startField = computed(() => cfg.value?.start_field || autoDates.value[0] || '')
 const endField = computed(() => cfg.value?.end_field || autoDates.value[1] || '')
 const titleField = computed(() => cfg.value?.title_field || props.doctype.title_field || 'name')

@@ -39,6 +39,7 @@ function _refresh_field_selects(frm) {
     const LAYOUT_TYPES = new Set(['Tab', 'Section', 'Column', 'HTML', 'Heading'])
     const IMAGE_TYPES = new Set(['Image', 'Attach', 'AttachImage'])
     const DATE_TYPES = new Set(['Date', 'Datetime'])
+    const NUMBER_TYPES = new Set(['Float', 'Int', 'Percent'])
 
     const fields = frm.doc.fields || []
     const named = fields.filter(f => f.fieldname)
@@ -49,6 +50,7 @@ function _refresh_field_selects(frm) {
     const selectFieldnames = pick(f => f.fieldtype === 'Select')
     const linkFieldnames = pick(f => f.fieldtype === 'Link')
     const dateFieldnames = pick(f => DATE_TYPES.has(f.fieldtype))
+    const numberFieldnames = pick(f => NUMBER_TYPES.has(f.fieldtype))
 
     const opt = names => '\n' + names.join('\n')
     frm.set_df_property('title_field', 'options', opt(allFieldnames))
@@ -59,6 +61,12 @@ function _refresh_field_selects(frm) {
     frm.set_df_property('tree_title_field', 'options', opt(allFieldnames))
     frm.set_df_property('tree_as_of_date_field', 'options', opt(dateFieldnames))
     frm.set_df_property('tree_sort_by', 'options', opt(allFieldnames))
+    frm.set_df_property('gantt_start_field', 'options', opt(dateFieldnames))
+    frm.set_df_property('gantt_end_field', 'options', opt(dateFieldnames))
+    frm.set_df_property('gantt_title_field', 'options', opt(allFieldnames))
+    frm.set_df_property('gantt_progress_field', 'options', opt(numberFieldnames))
+    frm.set_df_property('gantt_color_field', 'options', opt(selectFieldnames))
+    frm.set_df_property('gantt_dependencies_field', 'options', opt(allFieldnames))
 }
 
 async function on_load(frm) {

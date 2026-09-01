@@ -477,10 +477,58 @@
       "fieldtype": "Section"
     },
     {
-      "fieldname": "gantt_view",
-      "label": "Налаштування діаграми Ганта",
+      "fieldname": "gantt_start_field",
+      "label": "Поле початку",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Date/Datetime-поле, де починається смуга"
+    },
+    {
+      "fieldname": "gantt_end_field",
+      "label": "Поле завершення",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Date/Datetime-поле, де смуга закінчується"
+    },
+    {
+      "fieldname": "gantt_title_field",
+      "label": "Поле заголовка",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Підпис рядка/смуги (default: поле заголовка)"
+    },
+    {
+      "fieldname": "gantt_progress_field",
+      "label": "Поле прогресу (0–100)",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Float/Int/Percent — заповнення смуги"
+    },
+    {
+      "fieldname": "gantt_color_field",
+      "label": "Колір за полем",
+      "fieldtype": "Select",
+      "options": ""
+    },
+    {
+      "fieldname": "gantt_color_map",
+      "label": "Мапа кольорів",
       "fieldtype": "JSON",
-      "description": "{\"start_field\": \"start_date\", \"end_field\": \"end_date\", \"title_field\": \"name\", \"progress_field\": \"progress\"}"
+      "depends_on": "gantt_color_field",
+      "description": "{\"В роботі\": \"#f59e0b\", \"Готово\": \"#16a34a\"}"
+    },
+    {
+      "fieldname": "gantt_default_color",
+      "label": "Колір за замовчуванням",
+      "fieldtype": "Data",
+      "description": "#2563eb або var(--primary)"
+    },
+    {
+      "fieldname": "gantt_dependencies_field",
+      "label": "Поле залежностей",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Текстове поле зі списком name документів-попередників через кому — між ними малюються стрілки"
     }
   ],
   "permissions": [

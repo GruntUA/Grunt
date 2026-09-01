@@ -13,7 +13,7 @@ const def: ViewDefinition = {
   // Enabled once a start field is configured, or auto-detected: needs at least
   // two Date/Datetime fields (start + end) to draw a bar.
   resolveField: (dt: DocType): DocField | null => {
-    const configured = dt.gantt_view?.start_field
+    const configured = dt.gantt_start_field
     if (configured && SYSTEM_DATE_FIELDS.has(configured)) {
       return { fieldname: configured, fieldtype: 'Datetime', label: configured } as DocField
     }
@@ -25,7 +25,6 @@ const def: ViewDefinition = {
   },
 
   component: () => import('./GanttView.vue').then((m) => m.default),
-  settingsComponent: () => import('./GanttSettings.vue').then((m) => m.default),
 
   mountProps: (ctx) => ({
     doctype: ctx.dt,

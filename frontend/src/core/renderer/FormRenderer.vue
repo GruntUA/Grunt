@@ -54,14 +54,14 @@ const hasTabs = computed(() => layout.value.length > 1 || (layout.value[0]?.labe
 const connectionsEnabled = computed(
   () => !props.doctype.is_child && !!props.modelValue?.name,
 )
-const connectionsTabLabel = computed<string | null>(() => {
+const connectionsTabId = computed<string | null>(() => {
   if (!connectionsEnabled.value) return null
   const opted = layout.value.find((t) => t._field?.show_connections)
-  return (opted ?? layout.value[0])?.label || 'Main'
+  return (opted ?? layout.value[0])?._fieldname || null
 })
 
 const currentTab = computed({
-  get: () => props.activeTab || layout.value[0]?.label || 'Main',
+  get: () => props.activeTab || layout.value[0]?._fieldname || '',
   set: (val) => emit('update:activeTab', val)
 })
 
@@ -155,7 +155,7 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
         <ChevronLeft class="size-4" />
       </Button>
       <TabsList ref="tabsListRef" class="flex-1 min-w-0 justify-start overflow-x-auto scrollbar-none" @scroll="updateTabScrollState">
-        <TabsTrigger v-for="(tab, ti) in layout" :key="ti" :value="tab.label || 'Main'" class="flex-none px-3">
+        <TabsTrigger v-for="(tab, ti) in layout" :key="ti" :value="tab._fieldname" class="flex-none px-3">
           <AppIcon v-if="tab._field?.icon" :icon="tab._field.icon" class="size-3.5 shrink-0" />
           <span>{{ tab.label || 'Main' }}</span>
         </TabsTrigger>
@@ -166,11 +166,11 @@ function getVisibleSections(tab: LayoutTab): LayoutSection[] {
     </div>
 
     <!-- Sections -->
-    <TabsContent v-for="(tab, ti) in layout" :key="ti" :value="tab.label || 'Main'"
+    <TabsContent v-for="(tab, ti) in layout" :key="ti" :value="tab._fieldname"
       class="mt-0 flex flex-col gap-4 focus-visible:ring-0">
       <!-- Connections panel, when this Tab has `show_connections` set -->
       <DocConnections
-        v-if="connectionsTabLabel === (tab.label || 'Main')"
+        v-if="connectionsTabId === tab._fieldname"
         :dt="doctype"
         :document="modelValue"
         :workspace="workspace"
