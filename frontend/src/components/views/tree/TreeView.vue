@@ -39,12 +39,7 @@ watch(_ffValues, (v) => {
   emit('update:quickFilterValues', v)
 }, { deep: true })
 
-const ffDefs = computed<QuickFilter[]>(
-  () => {
-    const defs = props.quickFilterDefs
-    return (defs && defs.length > 0) ? defs : (props.doctype.quick_filters ?? [])
-  }
-)
+const ffDefs = computed<QuickFilter[]>(() => props.quickFilterDefs ?? [])
 
 const { rawQuickFilters } = useQuickFilters(ffDefs, 'tree', _ffValues)
 

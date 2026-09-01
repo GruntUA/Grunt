@@ -234,7 +234,6 @@ export interface DocType {
   search_fields?: string[]
   autoname?: string | null
   default_view?: string | null
-  quick_filters?: QuickFilter[]
   form_show_sidebar?: boolean
   kanban_column_field?: string | null
   calendar_date_field?: string | null

@@ -17,7 +17,7 @@ import { useListSearch } from '@/core/composables/useListSearch'
 import { useGrouping } from '@/core/composables/useGrouping'
 import { useListClientScripts } from '@/core/composables/useListClientScripts'
 import { useQuickFilters } from '@/core/composables/useQuickFilters'
-import { buildQuickFiltersFromFields, mergeQuickFilters, applyFieldSelection } from '@/core/quickFilters'
+import { buildQuickFiltersFromFields, applyFieldSelection } from '@/core/quickFilters'
 import { useQuickFilterPrefs } from '@/core/composables/useQuickFilterPrefs'
 import { useDebounce } from '@/core/composables/useDebounce'
 import { useBulkDeleteProgress } from '@/core/composables/useBulkDeleteProgress'
@@ -72,9 +72,8 @@ const quickFilterPrefs = useQuickFilterPrefs(props.doctype)
 const showQuickFilterDialog = ref(false)
 
 const quickFilterDefs = computed<QuickFilter[]>(() => {
-  const explicitDefs = dt.value?.quick_filters ?? []
-  const generatedDefs = buildQuickFiltersFromFields(dt.value?.fields ?? [])
-  const adminDefaults = mergeQuickFilters(explicitDefs, generatedDefs)
+  // Admin-defined defaults are derived purely from fields flagged in_quick_filter.
+  const adminDefaults = buildQuickFiltersFromFields(dt.value?.fields ?? [])
   const personalFields = quickFilterPrefs.selectedFields.value
   const merged = personalFields === null
     ? adminDefaults

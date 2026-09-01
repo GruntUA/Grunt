@@ -53,7 +53,8 @@
       "fieldtype": "Select",
       "options": "\nАфрика\nАзія\nАвстралія та Океанія\nАнтарктида\nЄвропа\nПівнічна Америка\nПівденна Америка",
       "in_list_view": true,
-      "in_filter": true
+      "in_filter": true,
+      "in_quick_filter": true
     },
     {
       "fieldname": "capital",
@@ -92,12 +93,12 @@
       "fieldtype": "Check",
       "default": "1",
       "in_list_view": true,
-      "in_filter": true
+      "in_filter": true,
+      "in_quick_filter": true
     }
   ],
   "default_view": "list",
 
-  "quick_filters": [{"id": "continent_filter", "field": "continent", "label": "Континент", "input_type": "select", "on_change": {"debounce_ms": 0}}, {"id": "active_filter", "field": "is_active", "label": "Активні", "input_type": "select", "default_value": "1", "on_change": {"debounce_ms": 0}}],
   "search_fields": ["code", "title", "title_uk"],
   "permissions": [
     { "role": "All", "read": true },

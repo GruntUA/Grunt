@@ -35,13 +35,16 @@ function inferOperator(field: DocField): string {
 }
 
 export function buildQuickFilterForField(field: DocField): QuickFilter {
+  const inputType = inferInputType(field)
+  // Free-text inputs benefit from a debounce; discrete pickers apply instantly.
+  const debounceMs = inputType === 'text' || inputType === 'number' ? 300 : 0
   return {
     id: `qf_${field.fieldname}`,
     field: field.fieldname,
     operator: inferOperator(field),
     label: field.label || field.fieldname,
-    input_type: inferInputType(field),
-    on_change: { mode: 'local', debounce_ms: 300 },
+    input_type: inputType,
+    on_change: { mode: 'local', debounce_ms: debounceMs },
     enabled_in: ['list', 'tree'],
   }
 }
@@ -63,17 +66,4 @@ export function applyFieldSelection(
   return selectedFieldnames
     .map(fieldname => byField.get(fieldname) ?? (fieldByName.has(fieldname) ? buildQuickFilterForField(fieldByName.get(fieldname)!) : null))
     .filter((ff): ff is QuickFilter => ff !== null)
-}
-
-export function mergeQuickFilters(explicitDefs: QuickFilter[], generatedDefs: QuickFilter[]): QuickFilter[] {
-  const merged: QuickFilter[] = [...explicitDefs]
-  const usedIds = new Set(explicitDefs.map(ff => ff.id))
-  const usedFields = new Set(explicitDefs.map(ff => ff.field))
-
-  for (const ff of generatedDefs) {
-    if (usedIds.has(ff.id) || usedFields.has(ff.field)) continue
-    merged.push(ff)
-  }
-
-  return merged
 }

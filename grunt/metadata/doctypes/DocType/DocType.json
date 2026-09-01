@@ -355,18 +355,6 @@
       "icon": "PanelsTopLeft"
     },
     {
-      "fieldname": "sec_list_view",
-      "label": "Швидкі фільтри",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "quick_filters",
-      "label": "Швидкі фільтри",
-      "fieldtype": "Table",
-      "options": "DocTypeQuickFilter",
-      "description": "Фільтри у панелі списку/дерева"
-    },
-    {
       "fieldname": "sec_form_view",
       "label": "Форма",
       "fieldtype": "Section"

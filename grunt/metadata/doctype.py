@@ -48,58 +48,9 @@ class WorkflowTransition(BaseModel):
 
 # ── View configuration sub-models ────────────────────────────────────────
 
-_QUICK_FILTER_OPERATORS: frozenset[str] = frozenset(
-    {
-        "eq",
-        "ne",
-        "neq",
-        "ilike",
-        "like",
-        "gt",
-        "lt",
-        "gte",
-        "lte",
-        "in",
-        "isnull",
-        "lte_or_null",
-    }
-)
-
-
-class QuickFilterOnChange(BaseModel):
-    mode: Literal["local", "external"] = "local"
-    source: str | None = None  # required when mode="external"; identifies context source
-    debounce_ms: int = 300
-
-
-class QuickFilter(BaseModel):
-    """A metadata-driven quick filter shown in the list/tree toolbar — one row
-    of the ``quick_filters`` child table."""
-
-    id: str  # unique within the DocType; used as the backend query key prefix
-    field: str  # fieldname on the DocType
-    operator: str = "eq"  # must be one of _QUICK_FILTER_OPERATORS
-    label: str | None = None  # display label; falls back to field label when omitted
-    input_type: str = "text"  # text | date | select | check | number | link
-    default_value: str | None = None
-    options: list[str] | None = None  # explicit select options; overrides field.options when set
-    on_change: QuickFilterOnChange = QuickFilterOnChange()
-    enabled_in: list[Literal["list", "tree"]] = ["list", "tree"]
-
-    @model_validator(mode="before")
-    @classmethod
-    def _coerce_child_row(cls, data: Any) -> Any:
-        """The child-table editor stores ``on_change`` / ``enabled_in`` as JSON
-        cells that may arrive empty — fall back to the defaults."""
-        if isinstance(data, dict):
-            patch: dict[str, Any] = {}
-            if not data.get("on_change"):
-                patch["on_change"] = QuickFilterOnChange().model_dump()
-            if not data.get("enabled_in"):
-                patch["enabled_in"] = ["list", "tree"]
-            if patch:
-                data = {**data, **patch}
-        return data
+# Quick filters are not configured here: the list/tree toolbar filter set is
+# derived entirely from fields flagged ``in_quick_filter`` in the designer
+# (see ``buildQuickFiltersFromFields`` on the frontend).
 
 
 class CalendarSource(BaseModel):
@@ -281,7 +232,6 @@ class DocType(BaseModel):
     # View configuration
     default_view: str | None = None  # "list" | "kanban" | "calendar" | "gantt" | "tree" | "map"
     form_show_sidebar: bool = True  # False → hide the document detail sidebar on the form
-    quick_filters: list[QuickFilter] = []  # list/tree toolbar filters
     kanban_column_field: str | None = None  # Select field grouping the kanban columns
     map_view: DocTypeMapView | None = None
 
@@ -391,31 +341,3 @@ class DocType(BaseModel):
         self.links = [link for link in self.links if link.link_doctype.strip()]
         return self
 
-    @model_validator(mode="after")
-    def _validate_quick_filters(self) -> DocType:
-        """Validate each quick_filter entry against declared fields and allowed operators."""
-        if not self.quick_filters:
-            return self
-        field_names = {f.fieldname for f in self.fields}
-        seen_ids: set[str] = set()
-        for ff in self.quick_filters:
-            if ff.id in seen_ids:
-                raise ValueError(
-                    f"quick_filter id '{ff.id}' is duplicated. Each id must be unique."
-                )
-            seen_ids.add(ff.id)
-            if ff.operator not in _QUICK_FILTER_OPERATORS:
-                raise ValueError(
-                    f"quick_filter '{ff.id}': invalid operator '{ff.operator}'. "
-                    f"Allowed: {sorted(_QUICK_FILTER_OPERATORS)}"
-                )
-            if ff.field not in field_names:
-                raise ValueError(
-                    f"quick_filter '{ff.id}': field '{ff.field}' not found in DocType fields."
-                )
-            if ff.on_change.mode == "external" and not ff.on_change.source:
-                raise ValueError(
-                    f"quick_filter '{ff.id}': on_change.mode='external' requires "
-                    "on_change.source to be set."
-                )
-        return self

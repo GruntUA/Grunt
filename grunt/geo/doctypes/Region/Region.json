@@ -27,7 +27,8 @@
       "options": "Country",
       "required": true,
       "in_list_view": true,
-      "in_filter": true
+      "in_filter": true,
+      "in_quick_filter": true
     },
     {
       "fieldname": "code",
@@ -53,7 +54,6 @@
   ],
   "default_view": "list",
 
-  "quick_filters": [{"id": "country_filter", "field": "country", "label": "Країна", "input_type": "select", "on_change": {"debounce_ms": 0}}],
   "search_fields": ["title", "title_uk", "code"],
   "permissions": [
     { "role": "All", "read": true },

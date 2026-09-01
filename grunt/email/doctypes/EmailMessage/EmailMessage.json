@@ -17,7 +17,6 @@
     {"value": "Помилка", "color": "red", "icon": "circle-x"}
   ],
 
-  "quick_filters": [{"id": "direction_filter", "field": "direction", "label": "Напрям", "input_type": "select", "on_change": {"debounce_ms": 0}}, {"id": "status_filter", "field": "status", "label": "Статус", "input_type": "select", "on_change": {"debounce_ms": 0}}, {"id": "account_filter", "field": "email_account", "label": "Акаунт", "input_type": "select", "on_change": {"debounce_ms": 0}}],
   "fields": [
     { "fieldname": "tab_main", "label": "Лист", "fieldtype": "Tab", "icon": "mail" },
 
@@ -31,7 +30,8 @@
       "required": true,
       "read_only": true,
       "in_list_view": true,
-      "in_filter": true
+      "in_filter": true,
+      "in_quick_filter": true
     },
     {
       "fieldname": "message_date",
@@ -49,7 +49,8 @@
       "options": "Отримано\nНадіслано\nДоставлено\nНе доставлено\nВідкладено\nУ черзі\nПомилка",
       "read_only": true,
       "in_list_view": true,
-      "in_filter": true
+      "in_filter": true,
+      "in_quick_filter": true
     },
     {
       "fieldname": "email_account",
@@ -58,7 +59,8 @@
       "options": "EmailAccount",
       "read_only": true,
       "in_list_view": true,
-      "in_filter": true
+      "in_filter": true,
+      "in_quick_filter": true
     },
 
     { "fieldname": "sec_env", "label": "", "fieldtype": "Section" },
