@@ -7,7 +7,7 @@ import { ref } from 'vue'
  * in dev, restart the backend via --reload-include '*.json').
  *
  * null = no personal override, fall back to the doctype's admin-defined set
- * (explicit list_view.fast_filters + fields flagged in_quick_filter).
+ * (explicit quick_filters + fields flagged in_quick_filter).
  */
 export function useQuickFilterPrefs(doctype: string) {
   const storageKey = `grunt_quick_filters_v1_${doctype}`

@@ -14,7 +14,7 @@ interface UseInfiniteDocTypeListDataOptions {
   sortOrder: Ref<'asc' | 'desc'>
   groupBy: Ref<string | null>
   activeFilters: Ref<ActiveFilter[]>
-  debouncedFastFilters?: ComputedRef<Record<string, string>> | Ref<Record<string, string>>
+  debouncedQuickFilters?: ComputedRef<Record<string, string>> | Ref<Record<string, string>>
   visibleKeys: ComputedRef<string[]>
   visibleColumns: ComputedRef<ListColumn[]>
   dt: Ref<DocType | null>
@@ -38,7 +38,7 @@ export function useInfiniteDocTypeListData(options: UseInfiniteDocTypeListDataOp
       options.sortKey.value,
       options.sortOrder.value,
       JSON.stringify(options.activeFilters.value),
-      JSON.stringify(options.debouncedFastFilters?.value ?? {}),
+      JSON.stringify(options.debouncedQuickFilters?.value ?? {}),
       options.groupBy.value,
       listFields.value,
     ]),
@@ -49,7 +49,7 @@ export function useInfiniteDocTypeListData(options: UseInfiniteDocTypeListDataOp
       sort: options.groupBy.value ?? options.sortKey.value ?? undefined,
       order: options.groupBy.value ? 'asc' : (options.sortKey.value ? options.sortOrder.value : undefined),
       filters: options.activeFilters.value,
-      fastFilters: options.debouncedFastFilters?.value,
+      quickFilters: options.debouncedQuickFilters?.value,
       fields: listFields.value,
     }),
     initialPageParam: 1,

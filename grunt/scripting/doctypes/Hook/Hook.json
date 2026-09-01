@@ -10,17 +10,6 @@
     "handler",
     "reference_doctype"
   ],
-  "list_view": {
-    "fields": [
-      "source",
-      "reference_doctype",
-      "event",
-      "handler",
-      "priority"
-    ],
-    "sort_by": "reference_doctype",
-    "sort_order": "asc"
-  },
   "fields": [
     {
       "fieldname": "source",

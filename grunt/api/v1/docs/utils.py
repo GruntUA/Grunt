@@ -18,17 +18,18 @@ if TYPE_CHECKING:
 
 
 def parse_query_filters(request: Request) -> dict[str, str]:
-    """Merge ``fast_filter[field__op]=value`` and ``filter[field__op]=value`` query params.
+    """Merge ``quick_filter[field__op]=value`` and ``filter[field__op]=value`` query params.
 
-    ``fast_filter[...]`` is applied first (lower precedence); an explicit
+    ``quick_filter[...]`` is applied first (lower precedence); an explicit
     ``filter[...]`` for the same key overrides it. Shared by the three
     endpoints that accept both styles from the query string: document list,
     tree, and tree children.
     """
     merged: dict[str, str] = {}
+    qf_prefix = "quick_filter["
     for key, value in request.query_params.items():
-        if key.startswith("fast_filter[") and key.endswith("]"):
-            merged[key[12:-1]] = value
+        if key.startswith(qf_prefix) and key.endswith("]"):
+            merged[key[len(qf_prefix) : -1]] = value
     for key, value in request.query_params.items():
         if key.startswith("filter[") and key.endswith("]"):
             merged[key[7:-1]] = value

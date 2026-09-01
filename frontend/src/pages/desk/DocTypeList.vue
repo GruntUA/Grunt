@@ -16,14 +16,14 @@ import { useListViewState } from '@/core/composables/useListViewState'
 import { useListSearch } from '@/core/composables/useListSearch'
 import { useGrouping } from '@/core/composables/useGrouping'
 import { useListClientScripts } from '@/core/composables/useListClientScripts'
-import { useFastFilters } from '@/core/composables/useFastFilters'
-import { buildQuickFiltersFromFields, mergeFastFilters, applyFieldSelection } from '@/core/quickFilters'
+import { useQuickFilters } from '@/core/composables/useQuickFilters'
+import { buildQuickFiltersFromFields, mergeQuickFilters, applyFieldSelection } from '@/core/quickFilters'
 import { useQuickFilterPrefs } from '@/core/composables/useQuickFilterPrefs'
 import { useDebounce } from '@/core/composables/useDebounce'
 import { useBulkDeleteProgress } from '@/core/composables/useBulkDeleteProgress'
 import { useListSelection } from '@/core/composables/useListSelection'
 import { useDevMode } from '@/core/composables/useDevMode'
-import type { DocType, FastFilter } from '@/types'
+import type { DocType, QuickFilter } from '@/types'
 import { getRegisteredViews } from '@/core/viewRegistry'
 import { useDialog } from '@/core/composables/useDialog'
 import { useToast } from '@/core/composables/useToast'
@@ -64,17 +64,17 @@ const page = ref(1)
 // (tree/calendar/kanban) watch this to refetch; query-based views already
 // refetch automatically from invalidateQueries below and ignore it.
 const refreshKey = ref(0)
-const { viewMode, sortKey, sortOrder, groupBy, activeFilters, fastFilterValues } = useListViewState(props.doctype)
+const { viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues } = useListViewState(props.doctype)
 const { inlineSearch, debouncedSearch } = useListSearch(page)
 
-// ── Fast filters ─────────────────────────────────────────────────────────────
+// ── Quick filters ─────────────────────────────────────────────────────────────
 const quickFilterPrefs = useQuickFilterPrefs(props.doctype)
 const showQuickFilterDialog = ref(false)
 
-const fastFilterDefs = computed<FastFilter[]>(() => {
-  const explicitDefs = dt.value?.list_view?.fast_filters ?? []
+const quickFilterDefs = computed<QuickFilter[]>(() => {
+  const explicitDefs = dt.value?.quick_filters ?? []
   const generatedDefs = buildQuickFiltersFromFields(dt.value?.fields ?? [])
-  const adminDefaults = mergeFastFilters(explicitDefs, generatedDefs)
+  const adminDefaults = mergeQuickFilters(explicitDefs, generatedDefs)
   const personalFields = quickFilterPrefs.selectedFields.value
   const merged = personalFields === null
     ? adminDefaults
@@ -86,7 +86,7 @@ const fastFilterDefs = computed<FastFilter[]>(() => {
   const asOfField = dt.value?.tree_as_of_date_field ?? fallbackAsOfField
   if (!asOfField) return merged
 
-  const normalized: FastFilter[] = merged.map((ff) => {
+  const normalized: QuickFilter[] = merged.map((ff) => {
     if (ff.field !== asOfField) return ff
     if (ff.operator === 'lte_or_null') return ff
     return {
@@ -102,7 +102,7 @@ const fastFilterDefs = computed<FastFilter[]>(() => {
   const hasAsOf = normalized.some(ff => ff.id === 'as_of_date' || ff.field === asOfField)
   if (hasAsOf) return normalized
 
-  const asOfFastFilter: FastFilter = {
+  const asOfQuickFilter: QuickFilter = {
     id: 'as_of_date',
     field: asOfField,
     operator: 'lte_or_null',
@@ -112,16 +112,16 @@ const fastFilterDefs = computed<FastFilter[]>(() => {
     enabled_in: ['tree'],
   }
 
-  return [...normalized, asOfFastFilter]
+  return [...normalized, asOfQuickFilter]
 })
-const { rawFastFilters, setFastFilterValue, setFastFilters } = useFastFilters(fastFilterDefs, 'list', fastFilterValues)
+const { rawQuickFilters, setQuickFilterValue, setQuickFilters } = useQuickFilters(quickFilterDefs, 'list', quickFilterValues)
 // Use the maximum debounce_ms across all local-mode filters active in list scope
-const fastFilterDebounceMs = computed(() =>
-  fastFilterDefs.value
+const quickFilterDebounceMs = computed(() =>
+  quickFilterDefs.value
     .filter(ff => ff.enabled_in.includes('list') && ff.on_change.mode !== 'external')
     .reduce((max, ff) => Math.max(max, ff.on_change.debounce_ms ?? 0), 0)
 )
-const debouncedFastFilters = useDebounce(rawFastFilters, fastFilterDebounceMs)
+const debouncedQuickFilters = useDebounce(rawQuickFilters, quickFilterDebounceMs)
 
 const {
   selectedIds,
@@ -140,13 +140,13 @@ const {
   listButtons,
   listMenuItems,
   runListClientSetup,
-  runFastFilterOnChange,
+  runQuickFilterOnChange,
 } = useListClientScripts({
   doctype: props.doctype,
   activeFilters,
-  fastFilterValues,
-  setFastFilterValue,
-  setFastFilters,
+  quickFilterValues,
+  setQuickFilterValue,
+  setQuickFilters,
   page,
   queryClient,
   dialog,
@@ -154,7 +154,7 @@ const {
 })
 
 watch(
-  fastFilterValues,
+  quickFilterValues,
   (next, prev) => {
     const prevValues = prev ?? {}
     const keys = new Set([...Object.keys(prevValues), ...Object.keys(next)])
@@ -164,8 +164,8 @@ watch(
       const oldValue = String(prevValues[id] ?? '')
       if (newValue === oldValue) continue
 
-      const def = fastFilterDefs.value.find(ff => ff.id === id)
-      runFastFilterOnChange({
+      const def = quickFilterDefs.value.find(ff => ff.id === id)
+      runQuickFilterOnChange({
         id,
         value: newValue,
         previousValue: oldValue,
@@ -186,7 +186,7 @@ const { data, isLoading, isFetching, isFetchingNextPage, fetchNextPage, hasNextP
   sortOrder,
   groupBy,
   activeFilters,
-  debouncedFastFilters,
+  debouncedQuickFilters,
   visibleKeys: colState.visibleKeys,
   visibleColumns: colState.visibleColumns,
   dt,
@@ -200,7 +200,7 @@ const { applyRouteState, setGroupByInRoute, applySort } = useListRouteSync({
   sortKey,
   sortOrder,
   activeFilters,
-  fastFilterValues,
+  quickFilterValues,
   validViews: getRegisteredViews().map((d) => d.type),
   getDefaultView: () => dt.value?.default_view ?? 'list',
   dt,
@@ -313,8 +313,8 @@ watch(() => props.doctype, async (newDoctype) => {
       v-model:active-filters="activeFilters"
       :dt="dt"
       :doctype="doctype"
-      :fast-filter-defs="fastFilterDefs"
-      :fast-filter-values="fastFilterValues"
+      :quick-filter-defs="quickFilterDefs"
+      :quick-filter-values="quickFilterValues"
       :view-extras="{
         columns: colState,
         groupableFields,
@@ -324,10 +324,10 @@ watch(() => props.doctype, async (newDoctype) => {
         sortOrder,
         sortableColumns: colState.allAvailableColumns.value,
       }"
-      @update:fast-filter-values="fastFilterValues = $event"
+      @update:quick-filter-values="quickFilterValues = $event"
       @update:group-by="setGroupBy"
       @sort="onSort"
-      @reset="inlineSearch = ''; activeFilters = []; fastFilterValues = {}; page = 1"
+      @reset="inlineSearch = ''; activeFilters = []; quickFilterValues = {}; page = 1"
     />
 
     <ListViewRouter
@@ -353,9 +353,9 @@ watch(() => props.doctype, async (newDoctype) => {
       :sort-order="sortOrder"
 :search="debouncedSearch || undefined"
       :active-filters="activeFilters"
-      :fast-filter-defs="fastFilterDefs"
-      :fast-filter-values="fastFilterValues"
-      @update:fast-filter-values="fastFilterValues = $event"
+      :quick-filter-defs="quickFilterDefs"
+      :quick-filter-values="quickFilterValues"
+      @update:quick-filter-values="quickFilterValues = $event"
       :fetch-next-page="fetchNextPage"
       :has-next-page="hasNextPage"
       :is-fetching-next-page="isFetchingNextPage"
@@ -413,7 +413,7 @@ watch(() => props.doctype, async (newDoctype) => {
       v-if="dt"
       v-model:open="showQuickFilterDialog"
       :dt="dt"
-      :current-fields="fastFilterDefs.map((ff) => ff.field)"
+      :current-fields="quickFilterDefs.map((ff) => ff.field)"
       @save="quickFilterPrefs.setSelection($event)"
       @reset="quickFilterPrefs.reset()"
     />

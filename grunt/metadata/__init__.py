@@ -4,7 +4,6 @@ from grunt.metadata.doctype import (
     DocPermission,
     DocType,
     DocTypeFormView,
-    DocTypeListView,
     WorkflowState,
     WorkflowTransition,
 )
@@ -15,7 +14,6 @@ __all__ = [
     "DocType",
     "DocField",
     "DocTypeFormView",
-    "DocTypeListView",
     "NON_PHYSICAL_FIELDS",
     "is_physical_fieldtype",
     "WorkflowState",

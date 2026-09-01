@@ -246,7 +246,7 @@ class TreeService:
         all_rows = [dict(r._mapping) for r in result.fetchall()]
 
         if filters:
-            all_rows = await self._apply_fast_filter(
+            all_rows = await self._apply_quick_filter(
                 session, table, ctrl_cls, all_rows, parent_field, filters
             )
 
@@ -265,7 +265,7 @@ class TreeService:
             )
         return nested
 
-    async def _apply_fast_filter(
+    async def _apply_quick_filter(
         self,
         session: AsyncSession,
         table: Any,

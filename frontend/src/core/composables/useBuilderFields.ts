@@ -8,7 +8,7 @@ const SYSTEM_DATE_FIELDS = [
 
 /**
  * Shared field-filtering utilities for view settings components.
- * Components that need filtered field lists (e.g. ListViewSettings) use this
+ * Components that need filtered field lists use this
  * composable to avoid duplicating the filtering logic.
  */
 export function useBuilderFields() {

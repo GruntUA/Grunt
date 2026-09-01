@@ -139,12 +139,12 @@ export interface ListViewProxy {
    * listview.set_filters([{ fieldname: 'language', op: '=', value: 'uk', label: 'Мова' }])
    * ```
    */
-  set_filters: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string }>) => void  /** Set a single fast-filter value by its id. */
-  set_fast_filter_value: (id: string, value: string) => void
-  /** Replace all fast-filter values at once. */
-  set_fast_filters: (values: Record<string, string>) => void}
+  set_filters: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string }>) => void  /** Set a single quick-filter value by its id. */
+  set_quick_filter_value: (id: string, value: string) => void
+  /** Replace all quick-filter values at once. */
+  set_quick_filters: (values: Record<string, string>) => void}
 
-export interface ListFastFilterChange {
+export interface ListQuickFilterChange {
   id: string
   value: string
   previousValue: string
@@ -851,8 +851,8 @@ export function createListViewProxy(
     addMenuItem?: (label: string, action: () => void | Promise<void>, options?: { separator_before?: boolean }) => ScriptMenuItemHandle
     refresh?: () => void
     setFilters?: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string }>) => void
-    setFastFilterValue?: (id: string, value: string) => void
-    setFastFilters?: (values: Record<string, string>) => void
+    setQuickFilterValue?: (id: string, value: string) => void
+    setQuickFilters?: (values: Record<string, string>) => void
   } = {},
 ): ListViewProxy {
   return {
@@ -869,11 +869,11 @@ export function createListViewProxy(
     set_filters(filters) {
       callbacks.setFilters?.(filters)
     },
-    set_fast_filter_value(id, value) {
-      callbacks.setFastFilterValue?.(id, value)
+    set_quick_filter_value(id, value) {
+      callbacks.setQuickFilterValue?.(id, value)
     },
-    set_fast_filters(values) {
-      callbacks.setFastFilters?.(values)
+    set_quick_filters(values) {
+      callbacks.setQuickFilters?.(values)
     },
   }
 }
@@ -908,22 +908,22 @@ export async function executeListSetup(
 }
 
 /**
- * Execute `on_fast_filter_change(listview, change)` from client scripts.
+ * Execute `on_quick_filter_change(listview, change)` from client scripts.
  *
  * Example in Client Script:
  *
  * ```js
- * function on_fast_filter_change(listview, change) {
+ * function on_quick_filter_change(listview, change) {
  *   if (change.id !== 'as_of_date') return
- *   listview.set_fast_filter_value('valid_from_upto', change.value)
+ *   listview.set_quick_filter_value('valid_from_upto', change.value)
  * }
  * ```
  */
-export async function executeListFastFilterOnChange(
+export async function executeListQuickFilterOnChange(
   doctype: string,
   listview: ListViewProxy,
   gruntProxy: GruntProxy,
-  change: ListFastFilterChange,
+  change: ListQuickFilterChange,
 ): Promise<void> {
   const scripts = await loadClientScripts(doctype)
   if (!scripts.length) return
@@ -936,11 +936,11 @@ export async function executeListFastFilterOnChange(
         'frappe',
         'change',
         `${entry.script};\n` +
-        `if (typeof on_fast_filter_change === 'function') { return on_fast_filter_change(listview, change); }`,
+        `if (typeof on_quick_filter_change === 'function') { return on_quick_filter_change(listview, change); }`,
       )
       await fn(listview, gruntProxy, gruntProxy, change)
     } catch (err) {
-      console.warn(`[ClientScript] Error in "${entry.name}" (on_fast_filter_change):`, err)
+      console.warn(`[ClientScript] Error in "${entry.name}" (on_quick_filter_change):`, err)
     }
   }
 }

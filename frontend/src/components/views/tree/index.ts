@@ -21,15 +21,15 @@ const def: ViewDefinition = {
     doctype: ctx.dt,
     parentField: ctx.resolvedField?.fieldname ?? '',
     workspace: ctx.workspace,
-    fastFilterDefs: ctx.fastFilterDefs,
-    fastFilterValues: ctx.fastFilterValues,
+    quickFilterDefs: ctx.quickFilterDefs,
+    quickFilterValues: ctx.quickFilterValues,
     activeFilters: ctx.activeFilters,
     refreshKey: ctx.refreshKey,
   }),
 
   mountEvents: (ctx) => ({
-    'onUpdate:fastFilterValues': (val: unknown) =>
-      ctx.emit.updateFastFilterValues(val as Record<string, string>),
+    'onUpdate:quickFilterValues': (val: unknown) =>
+      ctx.emit.updateQuickFilterValues(val as Record<string, string>),
     'onUpdate:activeFilters': (val: unknown) =>
       ctx.emit.updateActiveFilters(val as ActiveFilter[]),
   }),

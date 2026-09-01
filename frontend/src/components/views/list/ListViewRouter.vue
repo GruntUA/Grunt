@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent } from 'vue'
 import { getViewDef, type ViewContext, type SelectionState } from '@/core/viewRegistry'
-import type { DocType, DocField, ActiveFilter, FastFilter, ScriptMenuItem } from '@/types'
+import type { DocType, DocField, ActiveFilter, QuickFilter, ScriptMenuItem } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 
@@ -36,8 +36,8 @@ const props = defineProps<{
   isFetchingNextPage?: boolean
   search?: string
   activeFilters: ActiveFilter[]
-  fastFilterDefs: FastFilter[]
-  fastFilterValues: Record<string, string>
+  quickFilterDefs: QuickFilter[]
+  quickFilterValues: Record<string, string>
   isSuperadmin?: boolean
   refreshKey: number
 }>()
@@ -55,7 +55,7 @@ const emit = defineEmits<{
   page: [page: number]
   'register-menu-items': [items: ScriptMenuItem[]]
   'unregister-menu-items': [items: ScriptMenuItem[]]
-  'update:fastFilterValues': [val: Record<string, string>]
+  'update:quickFilterValues': [val: Record<string, string>]
   'update:activeFilters': [val: ActiveFilter[]]
 }>()
 
@@ -98,8 +98,8 @@ const ctx = computed((): ViewContext => ({
   isFetchingNextPage: props.isFetchingNextPage,
   search: props.search,
   activeFilters: props.activeFilters,
-  fastFilterDefs: props.fastFilterDefs,
-  fastFilterValues: props.fastFilterValues,
+  quickFilterDefs: props.quickFilterDefs,
+  quickFilterValues: props.quickFilterValues,
   resolvedField: resolvedField.value,
   isSuperadmin: props.isSuperadmin,
   refreshKey: props.refreshKey,
@@ -116,7 +116,7 @@ const ctx = computed((): ViewContext => ({
     page: (p) => emit('page', p),
     registerMenuItems: (items) => emit('register-menu-items', items),
     unregisterMenuItems: (items) => emit('unregister-menu-items', items),
-    updateFastFilterValues: (val) => emit('update:fastFilterValues', val),
+    updateQuickFilterValues: (val) => emit('update:quickFilterValues', val),
     updateActiveFilters: (val) => emit('update:activeFilters', val),
   },
 }))

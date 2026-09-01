@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { X } from '@lucide/vue'
-import type { DocField, DocType, FastFilter } from '@/types'
+import type { DocField, DocType, QuickFilter } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator'
 
 const props = defineProps<{
-  defs: FastFilter[]
+  defs: QuickFilter[]
   dt: DocType
   scope: 'list' | 'tree'
   modelValue: Record<string, string>
@@ -28,11 +28,11 @@ const activeDefs = computed(() =>
   ),
 )
 
-function getField(ff: FastFilter): DocField | undefined {
+function getField(ff: QuickFilter): DocField | undefined {
   return props.dt.fields.find(f => f.fieldname === ff.field)
 }
 
-function getSelectOptions(ff: FastFilter): string[] {
+function getSelectOptions(ff: QuickFilter): string[] {
   // Explicit options on the filter definition take priority over field.options
   if (ff.options?.length) return ff.options
   const field = getField(ff)
@@ -40,15 +40,15 @@ function getSelectOptions(ff: FastFilter): string[] {
   return String(field.options).split('\n').map(s => s.trim()).filter(Boolean)
 }
 
-function getLabel(ff: FastFilter): string {
+function getLabel(ff: QuickFilter): string {
   return ff.label ?? getField(ff)?.label ?? ff.field
 }
 
-function getValue(ff: FastFilter): string {
+function getValue(ff: QuickFilter): string {
   return props.modelValue[ff.id] ?? ''
 }
 
-function onInput(ff: FastFilter, value: string) {
+function onInput(ff: QuickFilter, value: string) {
   emit('update:modelValue', { ...props.modelValue, [ff.id]: value })
 }
 </script>

@@ -71,24 +71,8 @@
     }
   ],
   "default_view": "list",
-  "list_view": {
-    "fast_filters": [
-      {
-        "id": "country_filter",
-        "field": "country",
-        "label": "Країна",
-        "input_type": "select",
-        "on_change": { "debounce_ms": 0 }
-      },
-      {
-        "id": "capital_filter",
-        "field": "is_capital",
-        "label": "Лише столиці",
-        "input_type": "select",
-        "on_change": { "debounce_ms": 0 }
-      }
-    ]
-  },
+
+  "quick_filters": [{"id": "country_filter", "field": "country", "label": "Країна", "input_type": "select", "on_change": {"debounce_ms": 0}}, {"id": "capital_filter", "field": "is_capital", "label": "Лише столиці", "input_type": "select", "on_change": {"debounce_ms": 0}}],
   "search_fields": ["title", "title_uk"],
   "permissions": [
     { "role": "All", "read": true },

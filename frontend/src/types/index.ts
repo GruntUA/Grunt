@@ -112,14 +112,6 @@ export interface DocPermission {
 
 // ── View configuration types ─────────────────────────────────────────────
 
-export interface DocTypeListView {
-  fields: string[]
-  sort_by: string
-  sort_order: 'asc' | 'desc'
-  default_filters: Record<string, string>
-  fast_filters?: FastFilter[]
-}
-
 export interface DocTypeFormView {
   /** false → hide the document detail sidebar on the form (default: true) */
   show_sidebar?: boolean
@@ -144,15 +136,15 @@ export interface DocTypeCalendarView {
   sources?: CalendarSource[]
 }
 
-// ── Fast filter types ─────────────────────────────────────────────────────
+// ── Quick filter types ─────────────────────────────────────────────────────
 
-export interface FastFilterOnChange {
+export interface QuickFilterOnChange {
   mode: 'local' | 'external'
   source?: string
   debounce_ms?: number
 }
 
-export interface FastFilter {
+export interface QuickFilter {
   id: string
   field: string
   operator: string
@@ -161,7 +153,7 @@ export interface FastFilter {
   default_value?: string | null
   /** Explicit list of select options; overrides field.options when set */
   options?: string[] | null
-  on_change: FastFilterOnChange
+  on_change: QuickFilterOnChange
   enabled_in: Array<'list' | 'tree'>
 }
 
@@ -245,7 +237,7 @@ export interface DocType {
   search_fields?: string[]
   autoname?: string | null
   default_view?: string | null
-  list_view?: DocTypeListView
+  quick_filters?: QuickFilter[]
   form_view?: DocTypeFormView
   kanban_column_field?: string | null
   calendar_date_field?: string | null

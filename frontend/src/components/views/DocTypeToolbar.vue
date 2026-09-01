@@ -2,9 +2,9 @@
 import { ref, watch, computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Search } from '@lucide/vue'
-import type { ActiveFilter, DocType, FastFilter } from '@/types'
+import type { ActiveFilter, DocType, QuickFilter } from '@/types'
 import FilterBar from '@/components/views/FilterBar.vue'
-import FastFilterBar from '@/components/views/FastFilterBar.vue'
+import QuickFilterBar from '@/components/views/QuickFilterBar.vue'
 import { getViewDef, type ToolbarContext } from '@/core/viewRegistry'
 import { Input } from '@/components/ui/input'
 
@@ -14,8 +14,8 @@ const props = defineProps<{
   viewMode: string
   inlineSearch: string
   activeFilters: ActiveFilter[]
-  fastFilterDefs: FastFilter[]
-  fastFilterValues: Record<string, string>
+  quickFilterDefs: QuickFilter[]
+  quickFilterValues: Record<string, string>
   /** Opaque view-specific data forwarded to the active view's toolbarControls. */
   viewExtras?: Record<string, unknown>
 }>()
@@ -24,7 +24,7 @@ const emit = defineEmits<{
   'update:viewMode': [val: string]
   'update:inlineSearch': [val: string]
   'update:activeFilters': [val: ActiveFilter[]]
-  'update:fastFilterValues': [val: Record<string, string>]
+  'update:quickFilterValues': [val: Record<string, string>]
   'update:groupBy': [val: string | null]
   sort: [key: string]
 }>()
@@ -50,14 +50,14 @@ const toolbarCtx = computed((): ToolbarContext => ({
   viewMode: props.viewMode,
   inlineSearch: props.inlineSearch,
   activeFilters: props.activeFilters,
-  fastFilterDefs: props.fastFilterDefs,
-  fastFilterValues: props.fastFilterValues,
+  quickFilterDefs: props.quickFilterDefs,
+  quickFilterValues: props.quickFilterValues,
   extras: props.viewExtras ?? {},
   emit: {
     updateViewMode: (val) => emit('update:viewMode', val),
     updateInlineSearch: (val) => emit('update:inlineSearch', val),
     updateActiveFilters: (val) => emit('update:activeFilters', val),
-    updateFastFilterValues: (val) => emit('update:fastFilterValues', val),
+    updateQuickFilterValues: (val) => emit('update:quickFilterValues', val),
     updateGroupBy: (val) => emit('update:groupBy', val),
     sort: (key) => emit('sort', key),
   },
@@ -82,15 +82,15 @@ const toolbarControlsEvents = computed(() =>
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input v-model="localSearch" class="h-8 pl-9" :placeholder="t('Search...')" />
         </div>
-        <FastFilterBar
-          v-if="dt && fastFilterDefs.length && ['list', 'tree'].includes(viewMode)"
-          :defs="fastFilterDefs"
+        <QuickFilterBar
+          v-if="dt && quickFilterDefs.length && ['list', 'tree'].includes(viewMode)"
+          :defs="quickFilterDefs"
           :dt="dt"
           :scope="viewMode === 'tree' ? 'tree' : 'list'"
-          :model-value="fastFilterValues"
+          :model-value="quickFilterValues"
           variant="quick"
           class="!px-0 !py-0"
-          @update:model-value="emit('update:fastFilterValues', $event)"
+          @update:model-value="emit('update:quickFilterValues', $event)"
         />
         <FilterBar
           v-if="dt"
@@ -113,15 +113,15 @@ const toolbarControlsEvents = computed(() =>
     </div>
 
     <!-- Fast filter bar (shown below main row for non-list/tree views) -->
-    <FastFilterBar
-      v-if="dt && fastFilterDefs.length && !['list', 'tree'].includes(viewMode)"
-      :defs="fastFilterDefs"
+    <QuickFilterBar
+      v-if="dt && quickFilterDefs.length && !['list', 'tree'].includes(viewMode)"
+      :defs="quickFilterDefs"
       :dt="dt"
       :scope="['tree'].includes(viewMode) ? 'tree' : 'list'"
-      :model-value="fastFilterValues"
+      :model-value="quickFilterValues"
       variant="default"
       class="border-t border-border/30 pt-2"
-      @update:model-value="emit('update:fastFilterValues', $event)"
+      @update:model-value="emit('update:quickFilterValues', $event)"
     />
   </div>
 </template>

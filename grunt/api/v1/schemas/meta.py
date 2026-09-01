@@ -90,11 +90,22 @@ class WorkflowDefSchema(BaseModel):
     positions: dict[str, dict[str, float]] = {}
 
 
-class DocTypeListViewSchema(BaseModel):
-    fields: list[str] = []
-    sort_by: str = "modified"
-    sort_order: Literal["asc", "desc"] = "desc"
-    default_filters: dict[str, str] = {}
+class QuickFilterOnChangeSchema(BaseModel):
+    mode: Literal["local", "external"] = "local"
+    source: str | None = None
+    debounce_ms: int = 300
+
+
+class QuickFilterSchema(BaseModel):
+    id: str
+    field: str
+    operator: str = "eq"
+    label: str | None = None
+    input_type: str = "text"
+    default_value: str | None = None
+    options: list[str] | None = None
+    on_change: QuickFilterOnChangeSchema = QuickFilterOnChangeSchema()
+    enabled_in: list[Literal["list", "tree"]] = ["list", "tree"]
 
 
 class DocTypeFormViewSchema(BaseModel):
@@ -177,8 +188,8 @@ class DocTypeSchema(BaseModel):
     default_view: str | None = None
     image_field: str | None = None
 
-    list_view: DocTypeListViewSchema = DocTypeListViewSchema()
     form_view: DocTypeFormViewSchema = DocTypeFormViewSchema()
+    quick_filters: list[QuickFilterSchema] = []
     kanban_column_field: str | None = None
     calendar_date_field: str | None = None
     calendar_end_date_field: str | None = None

@@ -12,10 +12,6 @@
     "label",
     "module"
   ],
-  "list_view": {
-    "sort_by": "modified_at",
-    "sort_order": "desc"
-  },
   "form_view": {
     "show_sidebar": false
   },
@@ -410,14 +406,15 @@
     },
     {
       "fieldname": "sec_list_view",
-      "label": "Список",
+      "label": "Швидкі фільтри",
       "fieldtype": "Section"
     },
     {
-      "fieldname": "list_view",
-      "label": "Налаштування списку",
-      "fieldtype": "Code",
-      "options": "json"
+      "fieldname": "quick_filters",
+      "label": "Швидкі фільтри",
+      "fieldtype": "Table",
+      "options": "DocTypeQuickFilter",
+      "description": "Фільтри у панелі списку/дерева"
     },
     {
       "fieldname": "sec_form_view",

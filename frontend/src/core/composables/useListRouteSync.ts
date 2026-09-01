@@ -11,7 +11,7 @@ interface UseListRouteSyncOptions {
   sortKey: Ref<string>
   sortOrder: Ref<'asc' | 'desc'>
   activeFilters: Ref<any[]>
-  fastFilterValues?: Ref<Record<string, string>>
+  quickFilterValues?: Ref<Record<string, string>>
   validViews: readonly string[]
   getDefaultView: () => string
   dt: Ref<DocType | null>
@@ -35,7 +35,7 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
   let _syncingToUrl = false
 
   // Sync state → URL
-  watch([options.viewMode, options.activeFilters, options.fastFilterValues], () => {
+  watch([options.viewMode, options.activeFilters, options.quickFilterValues], () => {
     _syncingToUrl = true
 
     const query = { ...options.route.query }
@@ -57,8 +57,8 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
     Object.keys(query).forEach(k => {
       if (k.startsWith('ff[')) delete query[k]
     })
-    if (options.fastFilterValues) {
-      Object.entries(options.fastFilterValues.value).forEach(([id, val]) => {
+    if (options.quickFilterValues) {
+      Object.entries(options.quickFilterValues.value).forEach(([id, val]) => {
         if (val !== '' && val != null) query[`ff[${id}]`] = val
       })
     }
@@ -129,8 +129,8 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
       const match = key.match(/^ff\[(.+)\]$/)
       if (match && value) ffValues[match[1]] = String(value)
     })
-    if (Object.keys(ffValues).length > 0 && options.fastFilterValues) {
-      options.fastFilterValues.value = { ...options.fastFilterValues.value, ...ffValues }
+    if (Object.keys(ffValues).length > 0 && options.quickFilterValues) {
+      options.quickFilterValues.value = { ...options.quickFilterValues.value, ...ffValues }
     }
   }
 

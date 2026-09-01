@@ -1,4 +1,4 @@
-import type { DocField, FastFilter } from '@/types'
+import type { DocField, QuickFilter } from '@/types'
 
 export const SUPPORTED_FIELD_TYPES = new Set([
   'Text', 'Data', 'LongText',
@@ -8,7 +8,7 @@ export const SUPPORTED_FIELD_TYPES = new Set([
   'Link',
 ])
 
-function inferInputType(field: DocField): FastFilter['input_type'] {
+function inferInputType(field: DocField): QuickFilter['input_type'] {
   switch (field.fieldtype) {
     case 'Date':
     case 'Datetime':
@@ -34,7 +34,7 @@ function inferOperator(field: DocField): string {
   return 'eq'
 }
 
-export function buildFastFilterForField(field: DocField): FastFilter {
+export function buildQuickFilterForField(field: DocField): QuickFilter {
   return {
     id: `qf_${field.fieldname}`,
     field: field.fieldname,
@@ -46,27 +46,27 @@ export function buildFastFilterForField(field: DocField): FastFilter {
   }
 }
 
-export function buildQuickFiltersFromFields(fields: DocField[]): FastFilter[] {
+export function buildQuickFiltersFromFields(fields: DocField[]): QuickFilter[] {
   return fields
     .filter(f => !!f.in_quick_filter && SUPPORTED_FIELD_TYPES.has(f.fieldtype) && !!f.fieldname)
-    .map(buildFastFilterForField)
+    .map(buildQuickFilterForField)
 }
 
 /** Apply a personal field-selection override on top of the doctype's admin-defined defaults. */
 export function applyFieldSelection(
   selectedFieldnames: string[],
-  adminDefaults: FastFilter[],
+  adminDefaults: QuickFilter[],
   fields: DocField[],
-): FastFilter[] {
+): QuickFilter[] {
   const byField = new Map(adminDefaults.map(ff => [ff.field, ff]))
   const fieldByName = new Map(fields.map(f => [f.fieldname, f]))
   return selectedFieldnames
-    .map(fieldname => byField.get(fieldname) ?? (fieldByName.has(fieldname) ? buildFastFilterForField(fieldByName.get(fieldname)!) : null))
-    .filter((ff): ff is FastFilter => ff !== null)
+    .map(fieldname => byField.get(fieldname) ?? (fieldByName.has(fieldname) ? buildQuickFilterForField(fieldByName.get(fieldname)!) : null))
+    .filter((ff): ff is QuickFilter => ff !== null)
 }
 
-export function mergeFastFilters(explicitDefs: FastFilter[], generatedDefs: FastFilter[]): FastFilter[] {
-  const merged: FastFilter[] = [...explicitDefs]
+export function mergeQuickFilters(explicitDefs: QuickFilter[], generatedDefs: QuickFilter[]): QuickFilter[] {
+  const merged: QuickFilter[] = [...explicitDefs]
   const usedIds = new Set(explicitDefs.map(ff => ff.id))
   const usedFields = new Set(explicitDefs.map(ff => ff.field))
 

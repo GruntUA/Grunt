@@ -96,25 +96,8 @@
     }
   ],
   "default_view": "list",
-  "list_view": {
-    "fast_filters": [
-      {
-        "id": "continent_filter",
-        "field": "continent",
-        "label": "Континент",
-        "input_type": "select",
-        "on_change": { "debounce_ms": 0 }
-      },
-      {
-        "id": "active_filter",
-        "field": "is_active",
-        "label": "Активні",
-        "input_type": "select",
-        "default_value": "1",
-        "on_change": { "debounce_ms": 0 }
-      }
-    ]
-  },
+
+  "quick_filters": [{"id": "continent_filter", "field": "continent", "label": "Континент", "input_type": "select", "on_change": {"debounce_ms": 0}}, {"id": "active_filter", "field": "is_active", "label": "Активні", "input_type": "select", "default_value": "1", "on_change": {"debounce_ms": 0}}],
   "search_fields": ["code", "title", "title_uk"],
   "permissions": [
     { "role": "All", "read": true },

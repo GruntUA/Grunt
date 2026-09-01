@@ -75,9 +75,9 @@ export interface ListParams {
   rawFilters?: Record<string, string>
   /**
    * Fast filter values in backend format { 'field__op': 'value' }.
-   * Sent as fast_filter[...] params; explicit filter[...] take precedence on the backend.
+   * Sent as quick_filter[...] params; explicit filter[...] take precedence on the backend.
    */
-  fastFilters?: Record<string, string>
+  quickFilters?: Record<string, string>
   /** Opaque cursor for keyset pagination (replaces page-based OFFSET) */
   cursor?: string
 }
@@ -103,11 +103,11 @@ export const docsApi = {
   },
 
   list: async (doctype: string, params: ListParams = {}): Promise<StandardListResponse<GruntDocument>> => {
-    const { filters = [], rawFilters = {}, fastFilters = {}, sort, order, ...rest } = params
+    const { filters = [], rawFilters = {}, quickFilters = {}, sort, order, ...rest } = params
     const filterParams: Record<string, string> = {}
     // Fast filters have lower precedence — sent first so backend override logic applies
-    for (const [k, v] of Object.entries(fastFilters)) {
-      filterParams[`fast_filter[${k}]`] = v
+    for (const [k, v] of Object.entries(quickFilters)) {
+      filterParams[`quick_filter[${k}]`] = v
     }
     for (const f of filters) {
       const backendOp = OP_MAP[f.op] ?? 'eq'
@@ -197,15 +197,15 @@ export const docsApi = {
     doctype: string,
     params?: {
       as_of?: string
-      fastFilters?: Record<string, string>
+      quickFilters?: Record<string, string>
       filters?: ActiveFilter[]
       sort_by?: string
       sort_order?: 'asc' | 'desc'
     },
   ): Promise<any[]> => {
-    // fast_filter[...] takes lower precedence than an explicit filter[...] for
+    // quick_filter[...] takes lower precedence than an explicit filter[...] for
     // the same key — merge fast filters first so filters can override them.
-    const merged: Record<string, string> = { ...(params?.fastFilters ?? {}) }
+    const merged: Record<string, string> = { ...(params?.quickFilters ?? {}) }
     for (const f of params?.filters ?? []) {
       const backendOp = OP_MAP[f.op] ?? 'eq'
       merged[`${f.fieldname}__${backendOp}`] = f.value

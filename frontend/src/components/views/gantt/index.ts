@@ -30,7 +30,7 @@ const def: ViewDefinition = {
     doctype: ctx.dt,
     workspace: ctx.workspace,
     activeFilters: ctx.activeFilters,
-    fastFilterValues: ctx.fastFilterValues,
+    quickFilterValues: ctx.quickFilterValues,
     refreshKey: ctx.refreshKey,
   }),
 

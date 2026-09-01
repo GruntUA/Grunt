@@ -6,8 +6,8 @@ import {
   createListViewProxy,
   createGruntProxy,
   executeListSetup,
-  executeListFastFilterOnChange,
-  type ListFastFilterChange,
+  executeListQuickFilterOnChange,
+  type ListQuickFilterChange,
   type ListViewProxy,
   type GruntProxy,
 } from '@/core/scripting/executor'
@@ -16,9 +16,9 @@ import type { ScriptButton, ScriptMenuItem } from '@/types'
 interface UseListClientScriptsParams {
   doctype: string
   activeFilters: Ref<any[]>
-  fastFilterValues: Ref<Record<string, string>>
-  setFastFilterValue: (id: string, value: string) => void
-  setFastFilters: (values: Record<string, string>) => void
+  quickFilterValues: Ref<Record<string, string>>
+  setQuickFilterValue: (id: string, value: string) => void
+  setQuickFilters: (values: Record<string, string>) => void
   page: Ref<number>
   queryClient: QueryClient
   dialog: any
@@ -105,11 +105,11 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
         }))
         params.page.value = 1
       },
-      setFastFilterValue(id, value) {
-        params.setFastFilterValue(id, value)
+      setQuickFilterValue(id, value) {
+        params.setQuickFilterValue(id, value)
       },
-      setFastFilters(values) {
-        params.setFastFilters(values)
+      setQuickFilters(values) {
+        params.setQuickFilters(values)
       },
     })
 
@@ -118,9 +118,9 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
     await executeListSetup(params.doctype, lv, gp)
   }
 
-  async function runFastFilterOnChange(change: ListFastFilterChange) {
+  async function runQuickFilterOnChange(change: ListQuickFilterChange) {
     if (!listviewProxy.value || !gruntProxy.value) return
-    await executeListFastFilterOnChange(
+    await executeListQuickFilterOnChange(
       params.doctype,
       listviewProxy.value,
       gruntProxy.value,
@@ -132,6 +132,6 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
     listButtons,
     listMenuItems,
     runListClientSetup,
-    runFastFilterOnChange,
+    runQuickFilterOnChange,
   }
 }

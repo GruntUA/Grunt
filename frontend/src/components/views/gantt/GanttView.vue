@@ -27,7 +27,7 @@ const props = defineProps<{
   doctype: DocType
   workspace?: string
   activeFilters?: unknown[]
-  fastFilterValues?: Record<string, string>
+  quickFilterValues?: Record<string, string>
   refreshKey?: number
 }>()
 
@@ -116,7 +116,7 @@ async function load() {
     wanted.delete('')
     const resp = await docsApi.list(props.doctype.name, {
       filters: (props.activeFilters as never) ?? [],
-      fastFilters: props.fastFilterValues ?? {},
+      quickFilters: props.quickFilterValues ?? {},
       fields: [...wanted].join(','),
       per_page: 500,
     })
@@ -166,7 +166,7 @@ onMounted(async () => {
   scrollToToday()
 })
 watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) load() })
-watch([() => props.activeFilters, () => props.fastFilterValues], load, { deep: true })
+watch([() => props.activeFilters, () => props.quickFilterValues], load, { deep: true })
 watch(() => props.doctype.name, load)
 
 // ── Timeline range ────────────────────────────────────────────────────────

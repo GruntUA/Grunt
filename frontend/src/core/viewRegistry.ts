@@ -40,7 +40,7 @@
  */
 
 import type { Component } from 'vue'
-import type { DocType, DocField, ActiveFilter, FastFilter, ScriptMenuItem } from '@/types'
+import type { DocType, DocField, ActiveFilter, QuickFilter, ScriptMenuItem } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import type { GroupedRowBucket } from '@/core/composables/useGrouping'
 
@@ -68,7 +68,7 @@ export interface ViewEmit {
   page(page: number): void
   registerMenuItems(items: ScriptMenuItem[]): void
   unregisterMenuItems(items: ScriptMenuItem[]): void
-  updateFastFilterValues(val: Record<string, string>): void
+  updateQuickFilterValues(val: Record<string, string>): void
   updateActiveFilters(val: ActiveFilter[]): void
 }
 
@@ -109,8 +109,8 @@ export interface ViewContext {
   // Filters
   search?: string
   activeFilters: ActiveFilter[]
-  fastFilterDefs: FastFilter[]
-  fastFilterValues: Record<string, string>
+  quickFilterDefs: QuickFilter[]
+  quickFilterValues: Record<string, string>
   /**
    * Result of calling the active view's resolveField(dt).
    * Pre-computed once by ListViewRouter so mountProps can use it without a
@@ -166,7 +166,7 @@ export interface ViewDefinition {
   /**
    * Maps ViewContext → event handlers bound to the component via v-on.
    * Keys use Vue's camelCase onXxx convention (e.g. 'onRowClick').
-   * For update:* events keep the colon: 'onUpdate:fastFilterValues'.
+   * For update:* events keep the colon: 'onUpdate:quickFilterValues'.
    */
   mountEvents?(ctx: ViewContext): Record<string, (...args: unknown[]) => void>
   /**
@@ -194,7 +194,7 @@ export interface ToolbarEmit {
   updateViewMode(val: string): void
   updateInlineSearch(val: string): void
   updateActiveFilters(val: ActiveFilter[]): void
-  updateFastFilterValues(val: Record<string, string>): void
+  updateQuickFilterValues(val: Record<string, string>): void
   /** Emitted by view toolbar controls that need group-by (e.g. list). */
   updateGroupBy(val: string | null): void
   /** Emitted by view toolbar controls that need sorting (e.g. list). */
@@ -212,8 +212,8 @@ export interface ToolbarContext {
   viewMode: string
   inlineSearch: string
   activeFilters: ActiveFilter[]
-  fastFilterDefs: FastFilter[]
-  fastFilterValues: Record<string, string>
+  quickFilterDefs: QuickFilter[]
+  quickFilterValues: Record<string, string>
   /**
    * Opaque view-specific data injected by DocTypeList.
    * Each view's mountToolbarProps casts the values it needs.

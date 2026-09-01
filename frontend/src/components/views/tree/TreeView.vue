@@ -4,9 +4,9 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { docsApi } from '@/core/api/docs'
 import { ChevronRight, ChevronDown, Plus, FolderOpen, AlertCircle } from '@lucide/vue'
-import type { DocType, FastFilter, ActiveFilter } from '@/types'
+import type { DocType, QuickFilter, ActiveFilter } from '@/types'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
-import { useFastFilters } from '@/core/composables/useFastFilters'
+import { useQuickFilters } from '@/core/composables/useQuickFilters'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 
@@ -14,39 +14,39 @@ const props = defineProps<{
   doctype: DocType
   parentField: string
   workspace?: string
-  fastFilterDefs?: FastFilter[]
-  fastFilterValues?: Record<string, string>
+  quickFilterDefs?: QuickFilter[]
+  quickFilterValues?: Record<string, string>
   activeFilters?: ActiveFilter[]
   refreshKey?: number
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:fastFilterValues', val: Record<string, string>): void
+  (e: 'update:quickFilterValues', val: Record<string, string>): void
   (e: 'update:activeFilters', val: ActiveFilter[]): void
 }>()
 
 const { t } = useI18n()
 const router = useRouter()
 
-// ── Fast filter state ────────────────────────────────────────────────────────
-const _ffValues = ref<Record<string, string>>(props.fastFilterValues ?? {})
+// ── Quick filter state ────────────────────────────────────────────────────────
+const _ffValues = ref<Record<string, string>>(props.quickFilterValues ?? {})
 
-watch(() => props.fastFilterValues, (v) => {
+watch(() => props.quickFilterValues, (v) => {
   if (v !== undefined) _ffValues.value = v
 }, { deep: true, immediate: true })
 
 watch(_ffValues, (v) => {
-  emit('update:fastFilterValues', v)
+  emit('update:quickFilterValues', v)
 }, { deep: true })
 
-const ffDefs = computed<FastFilter[]>(
+const ffDefs = computed<QuickFilter[]>(
   () => {
-    const defs = props.fastFilterDefs
-    return (defs && defs.length > 0) ? defs : (props.doctype.list_view?.fast_filters ?? [])
+    const defs = props.quickFilterDefs
+    return (defs && defs.length > 0) ? defs : (props.doctype.quick_filters ?? [])
   }
 )
 
-const { rawFastFilters } = useFastFilters(ffDefs, 'tree', _ffValues)
+const { rawQuickFilters } = useQuickFilters(ffDefs, 'tree', _ffValues)
 
 // ── As-of date (from tree_as_of_date_field) ──────────────────────────────────
 const asOfField = computed(() => props.doctype.tree_as_of_date_field ?? null)
@@ -134,18 +134,18 @@ async function loadTree() {
   loading.value = true
   error.value = ''
   try {
-    const ffRaw = Object.keys(rawFastFilters.value).length ? rawFastFilters.value : undefined
+    const ffRaw = Object.keys(rawQuickFilters.value).length ? rawQuickFilters.value : undefined
     // Merge as_of date as a raw filter on the designated field (tree_as_of_date_field)
     const dateFilter: Record<string, string> | undefined =
       asOf.value && asOfField.value
         ? { [`${asOfField.value}__lte`]: asOf.value }
         : undefined
-    const mergedFastFilters = (ffRaw || dateFilter)
+    const mergedQuickFilters = (ffRaw || dateFilter)
       ? { ...(ffRaw ?? {}), ...(dateFilter ?? {}) }
       : undefined
 
     treeNodes.value = await docsApi.getTree(props.doctype.name, {
-      fastFilters: mergedFastFilters,
+      quickFilters: mergedQuickFilters,
       as_of: asOf.value || undefined,
       filters: _activeFilters.value.length ? _activeFilters.value : undefined,
       sort_by: sortBy.value || undefined,
@@ -158,7 +158,7 @@ async function loadTree() {
   }
 }
 
-watch(rawFastFilters, () => loadTree(), { deep: true })
+watch(rawQuickFilters, () => loadTree(), { deep: true })
 watch(_activeFilters, () => loadTree(), { deep: true })
 watch(sortBy, () => loadTree())
 watch(sortOrder, () => loadTree())

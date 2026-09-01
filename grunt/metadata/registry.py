@@ -38,7 +38,7 @@ _MAX_FIELDNAME_LEN = 64
 
 # Top-level DocType properties that _inject_core() always overwrites from the
 # bundled core JSON on every load. Anything NOT listed here (permissions,
-# list_view, autoname, ...) is treated as a Studio/user
+# quick_filters, autoname, ...) is treated as a Studio/user
 # customization: the JSON only seeds it on first run and never touches it again.
 # Adding a new core-authoritative property to DocType? Add it here too.
 _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
@@ -312,7 +312,7 @@ class DocTypeRegistry:
         """Overwrite ``active_dt``'s always-synced top-level attrs from the JSON source.
 
         Only ``_CORE_SYNCED_DOCTYPE_ATTRS`` is touched — everything else (permissions,
-        list_view, ...) is a Studio/user customization and is left as-is.
+        quick_filters, ...) is a Studio/user customization and is left as-is.
         """
         for attr in _CORE_SYNCED_DOCTYPE_ATTRS:
             json_val = getattr(doctype, attr, None)

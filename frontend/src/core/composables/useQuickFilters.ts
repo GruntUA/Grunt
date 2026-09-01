@@ -1,6 +1,6 @@
 import { computed, watch } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
-import type { FastFilter } from '@/types'
+import type { QuickFilter } from '@/types'
 
 function currentLocalIsoDate(): string {
   const now = new Date()
@@ -14,7 +14,7 @@ function isTodayToken(value: string | null | undefined): boolean {
   return token === 'today' || token === 'today()'
 }
 
-function resolveDefaultValue(ff: FastFilter): string | null {
+function resolveDefaultValue(ff: QuickFilter): string | null {
   if (ff.default_value == null) return null
   const raw = String(ff.default_value)
   if (ff.input_type === 'date') {
@@ -26,30 +26,30 @@ function resolveDefaultValue(ff: FastFilter): string | null {
   return raw
 }
 
-export interface UseFastFiltersReturn {
+export interface UseQuickFiltersReturn {
   /** Raw backend-format filter map { "field__op": "value" } */
-  rawFastFilters: ComputedRef<Record<string, string>>
-  /** Set one fast-filter value by its id */
-  setFastFilterValue: (id: string, value: string) => void
-  /** Replace all fast-filter values at once */
-  setFastFilters: (values: Record<string, string>) => void
+  rawQuickFilters: ComputedRef<Record<string, string>>
+  /** Set one quick-filter value by its id */
+  setQuickFilterValue: (id: string, value: string) => void
+  /** Replace all quick-filter values at once */
+  setQuickFilters: (values: Record<string, string>) => void
 }
 
 /**
  * Computes backend-format fast filters from metadata defs and a shared values ref.
  *
- * The caller owns `fastFilterValues` (e.g. from useListViewState) so state
+ * The caller owns `quickFilterValues` (e.g. from useListViewState) so state
  * persists independently of this composable.
  *
- * @param defs             Reactive list of FastFilter definitions
+ * @param defs             Reactive list of QuickFilter definitions
  * @param scope            'list' or 'tree' — only filters with matching enabled_in are active
- * @param fastFilterValues External ref containing { [filterId]: value }
+ * @param quickFilterValues External ref containing { [filterId]: value }
  */
-export function useFastFilters(
-  defs: ComputedRef<FastFilter[]> | Ref<FastFilter[]>,
+export function useQuickFilters(
+  defs: ComputedRef<QuickFilter[]> | Ref<QuickFilter[]>,
   scope: 'list' | 'tree',
-  fastFilterValues: Ref<Record<string, string>>,
-): UseFastFiltersReturn {
+  quickFilterValues: Ref<Record<string, string>>,
+): UseQuickFiltersReturn {
   // Apply default_values from defs when they change (e.g. on DocType load)
   watch(
     defs,
@@ -57,14 +57,14 @@ export function useFastFilters(
       for (const ff of newDefs) {
         if (!ff.enabled_in.includes(scope)) continue
         const defaultValue = resolveDefaultValue(ff)
-        const existing = fastFilterValues.value[ff.id]
-        const hasKey = ff.id in fastFilterValues.value
+        const existing = quickFilterValues.value[ff.id]
+        const hasKey = ff.id in quickFilterValues.value
         const shouldReapplyTodayDefault =
           hasKey && existing === '' && ff.input_type === 'date' && isTodayToken(ff.default_value)
 
         if ((!hasKey || shouldReapplyTodayDefault) && defaultValue != null) {
-          fastFilterValues.value = {
-            ...fastFilterValues.value,
+          quickFilterValues.value = {
+            ...quickFilterValues.value,
             [ff.id]: defaultValue,
           }
         }
@@ -73,21 +73,21 @@ export function useFastFilters(
     { immediate: true },
   )
 
-  const rawFastFilters = computed<Record<string, string>>(() => {
+  const rawQuickFilters = computed<Record<string, string>>(() => {
     const result: Record<string, string> = {}
     const knownIds = new Set(defs.value.map(ff => ff.id))
 
     for (const ff of defs.value) {
       if (!ff.enabled_in.includes(scope)) continue
-      const val = fastFilterValues.value[ff.id]
+      const val = quickFilterValues.value[ff.id]
       if (val !== undefined && val !== '' && val !== null) {
         result[`${ff.field}__${ff.operator}`] = val
       }
     }
 
     // Script escape hatch: allow raw backend filter keys (field__op) directly
-    // in fastFilterValues, e.g. listview.set_fast_filter_value('valid_from__lte_or_null', '2026-04-01').
-    for (const [key, val] of Object.entries(fastFilterValues.value)) {
+    // in quickFilterValues, e.g. listview.set_quick_filter_value('valid_from__lte_or_null', '2026-04-01').
+    for (const [key, val] of Object.entries(quickFilterValues.value)) {
       if (knownIds.has(key)) continue
       if (!key.includes('__')) continue
       if (val !== undefined && val !== '' && val !== null) {
@@ -98,13 +98,13 @@ export function useFastFilters(
     return result
   })
 
-  function setFastFilterValue(id: string, value: string) {
-    fastFilterValues.value = { ...fastFilterValues.value, [id]: value }
+  function setQuickFilterValue(id: string, value: string) {
+    quickFilterValues.value = { ...quickFilterValues.value, [id]: value }
   }
 
-  function setFastFilters(values: Record<string, string>) {
-    fastFilterValues.value = { ...values }
+  function setQuickFilters(values: Record<string, string>) {
+    quickFilterValues.value = { ...values }
   }
 
-  return { rawFastFilters, setFastFilterValue, setFastFilters }
+  return { rawQuickFilters, setQuickFilterValue, setQuickFilters }
 }

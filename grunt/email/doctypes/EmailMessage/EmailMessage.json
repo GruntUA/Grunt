@@ -16,13 +16,8 @@
     {"value": "У черзі", "color": "yellow", "icon": "loader"},
     {"value": "Помилка", "color": "red", "icon": "circle-x"}
   ],
-  "list_view": {
-    "fast_filters": [
-      { "id": "direction_filter", "field": "direction", "label": "Напрям", "input_type": "select", "on_change": { "debounce_ms": 0 } },
-      { "id": "status_filter", "field": "status", "label": "Статус", "input_type": "select", "on_change": { "debounce_ms": 0 } },
-      { "id": "account_filter", "field": "email_account", "label": "Акаунт", "input_type": "select", "on_change": { "debounce_ms": 0 } }
-    ]
-  },
+
+  "quick_filters": [{"id": "direction_filter", "field": "direction", "label": "Напрям", "input_type": "select", "on_change": {"debounce_ms": 0}}, {"id": "status_filter", "field": "status", "label": "Статус", "input_type": "select", "on_change": {"debounce_ms": 0}}, {"id": "account_filter", "field": "email_account", "label": "Акаунт", "input_type": "select", "on_change": {"debounce_ms": 0}}],
   "fields": [
     { "fieldname": "tab_main", "label": "Лист", "fieldtype": "Tab", "icon": "mail" },
 
