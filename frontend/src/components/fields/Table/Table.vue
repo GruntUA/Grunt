@@ -851,6 +851,10 @@ const canAddRow = computed(() => {
 <template>
   <div ref="rootRef" @paste="onPaste" @keydown="onRootKeydown">
   <div class="flex flex-col gap-2">
+    <div v-if="field.label" class="flex items-center gap-1 font-medium text-foreground/90">
+      {{ field.label }}
+      <span v-if="field.required" class="text-destructive font-semibold" aria-hidden="true">*</span>
+    </div>
     <div
       v-if="tableColumns.length > 1 || rows.length > 8"
       class="flex items-center justify-between gap-2"
