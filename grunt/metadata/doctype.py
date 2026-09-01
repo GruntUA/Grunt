@@ -102,10 +102,6 @@ class QuickFilter(BaseModel):
         return data
 
 
-class DocTypeFormView(BaseModel):
-    show_sidebar: bool = True  # False → hide the document detail sidebar on the form
-
-
 class CalendarSource(BaseModel):
     """One extra document source overlaid on the calendar view — a row of the
     ``calendar_sources`` child table."""
@@ -282,7 +278,7 @@ class DocType(BaseModel):
 
     # View configuration
     default_view: str | None = None  # "list" | "kanban" | "calendar" | "gantt" | "tree" | "map"
-    form_view: DocTypeFormView = DocTypeFormView()
+    form_show_sidebar: bool = True  # False → hide the document detail sidebar on the form
     quick_filters: list[QuickFilter] = []  # list/tree toolbar filters
     kanban_column_field: str | None = None  # Select field grouping the kanban columns
     map_view: DocTypeMapView | None = None

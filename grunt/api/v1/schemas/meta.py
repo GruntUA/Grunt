@@ -108,10 +108,6 @@ class QuickFilterSchema(BaseModel):
     enabled_in: list[Literal["list", "tree"]] = ["list", "tree"]
 
 
-class DocTypeFormViewSchema(BaseModel):
-    show_sidebar: bool = True
-
-
 class CalendarSourceSchema(BaseModel):
     doctype: str
     date_field: str
@@ -188,7 +184,7 @@ class DocTypeSchema(BaseModel):
     default_view: str | None = None
     image_field: str | None = None
 
-    form_view: DocTypeFormViewSchema = DocTypeFormViewSchema()
+    form_show_sidebar: bool = True
     quick_filters: list[QuickFilterSchema] = []
     kanban_column_field: str | None = None
     calendar_date_field: str | None = None

@@ -4,9 +4,6 @@
   "module": "site",
   "is_singleton": true,
   "icon": "Settings2",
-  "form_view": {
-    "layout": "compact"
-  },
   "fields": [
     {
       "fieldname": "tab_general",

@@ -12,9 +12,7 @@
     "label",
     "module"
   ],
-  "form_view": {
-    "show_sidebar": false
-  },
+  "form_show_sidebar": false,
   "fields": [
     {
       "fieldname": "tab_main",
@@ -115,13 +113,6 @@
       "fieldtype": "Tab",
       "experimental_component": "DesignerTab",
       "icon": "LayoutTemplate"
-    },
-    {
-      "fieldname": "tab_views",
-      "label": "Вигляди",
-      "fieldtype": "Tab",
-      "experimental_component": "ViewsTab",
-      "icon": "PanelsTopLeft"
     },
     {
       "fieldname": "tab_permissions",
@@ -399,7 +390,7 @@
       "depends_on": "is_tree"
     },
     {
-      "fieldname": "tab_views_builder",
+      "fieldname": "tab_views",
       "label": "Вигляди",
       "fieldtype": "Tab",
       "icon": "PanelsTopLeft"
@@ -422,10 +413,11 @@
       "fieldtype": "Section"
     },
     {
-      "fieldname": "form_view",
-      "label": "Налаштування форми",
-      "fieldtype": "Code",
-      "options": "json"
+      "fieldname": "form_show_sidebar",
+      "label": "Бічна панель на формі",
+      "fieldtype": "Check",
+      "default": "1",
+      "description": "Показувати панель деталей / тегів / зв'язків збоку від форми"
     },
     {
       "fieldname": "sec_status_config",

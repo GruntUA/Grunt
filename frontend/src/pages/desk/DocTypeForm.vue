@@ -79,10 +79,10 @@ const {
 )
 
 // Sidebar visibility: a client script (`frm.hide_sidebar()` / `frm.toggle_sidebar()`)
-// wins; otherwise the DocType's `form_view.show_sidebar` config (default: shown).
+// wins; otherwise the DocType's `form_show_sidebar` config (default: shown).
 const showSidebar = computed(() => {
   if (sidebarHidden.value !== null) return !sidebarHidden.value
-  return dt.value?.form_view?.show_sidebar !== false
+  return dt.value?.form_show_sidebar !== false
 })
 
 // Seen / views (only fetched when the DocType opts into track_seen / track_views)

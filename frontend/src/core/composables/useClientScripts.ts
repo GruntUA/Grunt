@@ -115,7 +115,7 @@ export function useClientScripts(doctype: string, options: UseClientScriptsOptio
   const displayOverrides = reactive<Record<string, boolean>>({})
   const reqdOverrides = reactive<Record<string, boolean>>({})
   const dfPropOverrides = reactive<Record<string, Record<string, unknown>>>({})
-  // null → scripts left the sidebar decision to form_view.show_sidebar
+  // null → scripts left the sidebar decision to form_show_sidebar
   const sidebarHidden = ref<boolean | null>(null)
 
   const messageListeners = new Map<string, Set<(data: unknown) => void>>()

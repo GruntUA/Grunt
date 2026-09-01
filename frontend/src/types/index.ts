@@ -112,11 +112,6 @@ export interface DocPermission {
 
 // ── View configuration types ─────────────────────────────────────────────
 
-export interface DocTypeFormView {
-  /** false → hide the document detail sidebar on the form (default: true) */
-  show_sidebar?: boolean
-}
-
 export interface CalendarSource {
   doctype: string
   date_field: string
@@ -238,7 +233,7 @@ export interface DocType {
   autoname?: string | null
   default_view?: string | null
   quick_filters?: QuickFilter[]
-  form_view?: DocTypeFormView
+  form_show_sidebar?: boolean
   kanban_column_field?: string | null
   calendar_date_field?: string | null
   calendar_end_date_field?: string | null

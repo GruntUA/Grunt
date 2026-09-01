@@ -102,7 +102,7 @@ export interface FormProxy {
   mark_clean: () => void
   /**
    * Show/hide the document detail sidebar. Overrides the DocType's
-   * `form_view.show_sidebar` for this form. Call from `refresh`/`onload`.
+   * `form_show_sidebar` for this form. Call from `refresh`/`onload`.
    */
   toggle_sidebar: (show: boolean) => void
   hide_sidebar: () => void

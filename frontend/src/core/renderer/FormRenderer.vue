@@ -12,7 +12,6 @@ import AppIcon from '@/components/AppIcon.vue'
 import FieldRenderer from './FieldRenderer.vue'
 import DocConnections from '@/components/views/form/DocConnections.vue'
 import DesignerTab from '../../pages/studio/builder/DesignerTab.vue'
-import ViewsTab from '../../pages/studio/builder/tabs/ViewsTab.vue'
 import WorkflowGraphTab from '@/components/workflow/WorkflowGraphTab.vue'
 import { Button } from '@/components/ui/button'
 
@@ -98,7 +97,6 @@ onUnmounted(() => tabsResizeObserver?.disconnect())
 
 const customTabComponents: Record<string, Component> = {
   DesignerTab,
-  ViewsTab,
   WorkflowGraphTab,
 }
 
