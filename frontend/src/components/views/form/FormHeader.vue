@@ -21,6 +21,7 @@ import {
   PanelRight,
 } from '@lucide/vue'
 import { useDocPanel } from '@/components/views/sidebar/useDocPanel'
+import AppIcon from '@/components/AppIcon.vue'
 import { resolveStatusBadge } from '@/core/status'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 import { Badge } from '@/components/ui/badge'
@@ -256,6 +257,7 @@ const menuItems = computed(() => {
     <!-- Top bar: actions -->
     <div class="flex items-center justify-between gap-4 px-4 py-2.5">
       <div class="min-w-0 flex items-center gap-3">
+        <AppIcon v-if="dt?.icon" :icon="dt.icon" class="size-5 shrink-0 text-muted-foreground" />
         <h1 class="text-xl font-semibold text-foreground truncate selection:bg-primary/20">{{ docTitle }}</h1>
         <Badge v-if="statusBadge" :variant="statusBadge.variant" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
           {{ statusBadge.label }}

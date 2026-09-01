@@ -220,7 +220,10 @@ async def _auto_seed_workspace(
                 "section": app_meta.get("title", app_name),
                 "type": "DocType",
                 "label": dt.label,
-                "icon": "📄",
+                # Leave blank when the DocType has no icon of its own — the
+                # workspace API fills it from the DocType meta on read, and the
+                # frontend falls back to a generic icon.
+                "icon": getattr(dt, "icon", None) or "",
                 "link_to": dt.name,
                 "show_count": True,
                 "count_filters": "",

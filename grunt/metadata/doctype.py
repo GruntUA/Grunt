@@ -255,6 +255,7 @@ class DocType(BaseModel):
     module: str  # "crm"
     app: str | None = None  # installed app name (e.g. "hrm"); UI convenience, derived from module
     description: str | None = None  # short human description — tooltips, Studio, docs
+    icon: str | None = None  # Lucide icon name (kebab-case) — menu & Workspace
 
     # Flags
     is_child: bool = False  # True → used inside a TABLE field

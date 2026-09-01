@@ -43,6 +43,14 @@ const doctypeDescription = computed(
   () => (props.doctype && dtStore.cache?.get?.(props.doctype)?.description) || undefined,
 )
 
+const doctypeIcon = computed(() => {
+  if (!props.doctype) return undefined
+  const fromCache = dtStore.cache?.get?.(props.doctype)?.icon
+  if (fromCache) return fromCache
+  const item = appStore.active?.items.find(i => i.link_to === props.doctype)
+  return item?.icon || undefined
+})
+
 const items = computed(() => {
   const result: Array<{ label?: string; icon?: string; route?: string; title?: string }> = [
     {
@@ -54,6 +62,7 @@ const items = computed(() => {
   if (props.doctype) {
     result.push({
       label: doctypeLabel.value,
+      icon: doctypeIcon.value,
       route: props.docId ? `/${props.workspaceName}/${props.doctype}` : undefined,
       title: doctypeDescription.value,
     })
@@ -86,7 +95,10 @@ const items = computed(() => {
                     <span class="truncate max-w-[200px]">{{ item.label }}</span>
                   </router-link>
                 </BreadcrumbLink>
-                <span v-else class="font-semibold text-foreground truncate max-w-[300px]">{{ item.label }}</span>
+                <span v-else class="flex items-center gap-2 font-semibold text-foreground truncate max-w-[300px]">
+                  <AppIcon v-if="item.icon" :icon="item.icon" class="size-4 shrink-0 text-muted-foreground/60" />
+                  {{ item.label }}
+                </span>
               </TooltipTrigger>
               <TooltipContent side="bottom" class="max-w-xs">{{ item.title }}</TooltipContent>
             </Tooltip>

@@ -8,7 +8,7 @@ import grunt
 from grunt.site.doctypes.AppMenu.app_menu import AppMenu
 
 
-def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
+async def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
     """Convert AppMenu document data to dict, filtering items by role."""
     from grunt.app import grunt as grunt_app
 
@@ -25,19 +25,28 @@ def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
 
         item_type = item.get("type", "DocType")
         link_to = item.get("link_to", "")
+        item_icon = item.get("icon", "")
         is_singleton = False
         if item_type == "DocType" and link_to:
             from grunt.metadata.registry import doctype_registry
 
-            if link_to in doctype_registry._doctypes:
-                is_singleton = doctype_registry._doctypes[link_to].is_singleton
+            try:
+                dt_meta = await doctype_registry.get(link_to)
+            except Exception:
+                dt_meta = None
+            if dt_meta is not None:
+                is_singleton = dt_meta.is_singleton
+                # Fall back to the DocType's own icon when the sidebar item
+                # doesn't pin one explicitly.
+                if not item_icon:
+                    item_icon = dt_meta.icon or ""
 
         items.append(
             {
                 "section": item.get("section", ""),
                 "type": item_type,
                 "label": item.get("label", ""),
-                "icon": item.get("icon", ""),
+                "icon": item_icon,
                 "link_to": link_to,
                 "show_count": item.get("show_count", False),
                 "show_new_btn": item.get("show_new_btn", False),
@@ -87,7 +96,7 @@ async def list_workspaces() -> list[dict[str, Any]]:
             if ws_data.get("is_hidden") and not user.is_superadmin:
                 continue
             # Basic role check could be added here
-            data.append(_workspace_to_dict(ws_data))
+            data.append(await _workspace_to_dict(ws_data))
         except Exception:
             continue
     return data
@@ -97,7 +106,7 @@ async def list_workspaces() -> list[dict[str, Any]]:
 async def get_workspace(name: str) -> dict[str, Any]:
     """Get a single workspace with filtered items."""
     ws_data = await _get_ws_controller(name)
-    return _workspace_to_dict(ws_data)
+    return await _workspace_to_dict(ws_data)
 
 
 @grunt.whitelist(roles=["superadmin"])
@@ -113,7 +122,7 @@ async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
     else:
         ws_data = await grunt.new_doc("AppMenu", data)
 
-    return _workspace_to_dict(ws_data)
+    return await _workspace_to_dict(ws_data)
 
 
 @grunt.whitelist(roles=["superadmin"])
