@@ -7,6 +7,7 @@ import { ChevronRight } from '@lucide/vue'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 const props = defineProps<{
   workspaceName: string
   doctype?: string
@@ -23,7 +24,7 @@ const workspaceIcon = computed(() => appStore.active?.icon ?? '')
 
 const doctypeLabel = computed(() => {
   if (!props.doctype) return ''
-  
+
   // 1. Try to find in cache first (sync)
   const cached = dtStore.cache?.get?.(props.doctype)
   if (cached) return cached.label ?? cached.name
@@ -37,8 +38,13 @@ const doctypeLabel = computed(() => {
   return props.doctype
 })
 
+// Shown as a native hover tooltip on the DocType breadcrumb item.
+const doctypeDescription = computed(
+  () => (props.doctype && dtStore.cache?.get?.(props.doctype)?.description) || undefined,
+)
+
 const items = computed(() => {
-  const result: Array<{ label?: string; icon?: string; route?: string }> = [
+  const result: Array<{ label?: string; icon?: string; route?: string; title?: string }> = [
     {
       label: workspaceLabel.value,
       icon: workspaceIcon.value || undefined,
@@ -49,6 +55,7 @@ const items = computed(() => {
     result.push({
       label: doctypeLabel.value,
       route: props.docId ? `/${props.workspaceName}/${props.doctype}` : undefined,
+      title: doctypeDescription.value,
     })
   }
   if (props.docId) {
@@ -71,13 +78,18 @@ const items = computed(() => {
             <ChevronRight class="size-3.5 text-muted-foreground/30" />
           </BreadcrumbSeparator>
           <BreadcrumbItem>
-            <BreadcrumbLink v-if="item.route" as-child>
-              <router-link :to="item.route" class="flex items-center gap-2 font-semibold">
-                <AppIcon v-if="item.icon" :icon="item.icon" class="size-4 shrink-0 text-muted-foreground/60" />
-                <span class="truncate max-w-[200px]">{{ item.label }}</span>
-              </router-link>
-            </BreadcrumbLink>
-            <span v-else class="font-semibold text-foreground truncate max-w-[300px]">{{ item.label }}</span>
+            <Tooltip :disabled="!item.title" :delay-duration="300">
+              <TooltipTrigger as-child>
+                <BreadcrumbLink v-if="item.route" as-child>
+                  <router-link :to="item.route" class="flex items-center gap-2 font-semibold">
+                    <AppIcon v-if="item.icon" :icon="item.icon" class="size-4 shrink-0 text-muted-foreground/60" />
+                    <span class="truncate max-w-[200px]">{{ item.label }}</span>
+                  </router-link>
+                </BreadcrumbLink>
+                <span v-else class="font-semibold text-foreground truncate max-w-[300px]">{{ item.label }}</span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" class="max-w-xs">{{ item.title }}</TooltipContent>
+            </Tooltip>
           </BreadcrumbItem>
         </template>
       </BreadcrumbList>

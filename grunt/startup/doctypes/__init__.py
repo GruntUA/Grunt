@@ -147,6 +147,7 @@ async def populate_system_doctypes(
     for dt in all_doctypes:
         scalar_fields: dict = {
             **_col("label", dt.label),
+            **_col("description", dt.description),
             **_col("app", dt.app),
             **_col("module", dt.module),
             **_col("is_child", dt.is_child),

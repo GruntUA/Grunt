@@ -213,6 +213,7 @@ export interface DocType {
   name: string
   label: string
   module: string
+  description?: string | null
   app?: string | null
   is_child?: boolean
   is_submittable?: boolean

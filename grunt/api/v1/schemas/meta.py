@@ -161,6 +161,7 @@ class DocTypeSchema(BaseModel):
     name: str
     label: str
     module: str
+    description: str | None = None
 
     is_child: bool = False
     is_submittable: bool = False

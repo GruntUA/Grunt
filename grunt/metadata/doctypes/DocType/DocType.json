@@ -38,7 +38,8 @@
       "fieldname": "description",
       "label": "Опис",
       "fieldtype": "Text",
-      "description": "Короткий опис DocType (відображається у підказках та Studio)"
+      "in_list_view": true,
+      "description": "Короткий опис DocType (показується під списком і у списку типів документів)"
     },
     {
       "fieldname": "col_icon_app_1",
