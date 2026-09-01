@@ -28,31 +28,6 @@ def _row_to_doc(row: RowMapping) -> dict[str, Any]:
     return data
 
 
-def _expand_status_config(data: dict[str, Any]) -> None:
-    """Expand status_config → status_field + status_indicators for the form."""
-    sc = data.get("status_config")
-    if sc and isinstance(sc, dict):
-        data["status_field"] = sc.get("field", "")
-        data["status_indicators"] = sc.get("indicators", [])
-    else:
-        data.setdefault("status_field", "")
-        data.setdefault("status_indicators", [])
-
-
-def _collapse_status_fields(data: dict[str, Any]) -> None:
-    """Convert status_field + status_indicators → status_config before saving."""
-    status_field = data.pop("status_field", None)
-    status_indicators = data.pop("status_indicators", None)
-    if status_field:
-        data["status_config"] = {
-            "field": status_field,
-            "indicators": status_indicators or [],
-        }
-    elif status_field is not None:
-        # Explicit empty string means clear the status config
-        data["status_config"] = None
-
-
 class DocTypeController(VirtualDocType):
     """Serves DocType list/get from grunt_meta_doctype (single source of truth)."""
 
@@ -114,13 +89,10 @@ class DocTypeController(VirtualDocType):
             select(GruntMetaDoctype).where(GruntMetaDoctype.c.name == doc_id)
         )
         row = result.mappings().one_or_none()
-        data = _row_to_doc(row) if row else {}
-        _expand_status_config(data)
-        return data
+        return _row_to_doc(row) if row else {}
 
     async def create(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         """Create a new DocType."""
-        _collapse_status_fields(data)
         from grunt.app import grunt
         from grunt.metadata.compiler import sync_table
         from grunt.metadata.scaffold import export_doctype_files
@@ -141,13 +113,10 @@ class DocTypeController(VirtualDocType):
         # Export to files if applicable
         export_doctype_files(dt, app_name=dt.app or None)
 
-        result = dt.model_dump()
-        _expand_status_config(result)
-        return result
+        return dt.model_dump()
 
     async def update(self, doc_id: str, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         """Update an existing DocType."""
-        _collapse_status_fields(data)
         from grunt.app import grunt
         from grunt.metadata.compiler import sync_table
         from grunt.metadata.scaffold import export_doctype_files
@@ -165,9 +134,7 @@ class DocTypeController(VirtualDocType):
         # Export to files
         export_doctype_files(dt, app_name=dt.app or None)
 
-        result = dt.model_dump()
-        _expand_status_config(result)
-        return result
+        return dt.model_dump()
 
     async def delete(self, doc_id: str, **kwargs: Any) -> None:
         """Delete a DocType."""

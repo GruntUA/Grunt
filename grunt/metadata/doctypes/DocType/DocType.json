@@ -22,7 +22,7 @@
   "fields": [
     {
       "fieldname": "tab_main",
-      "label": "Ідентичність",
+      "label": "Загальне",
       "fieldtype": "Tab",
       "icon": "Info"
     },
@@ -73,68 +73,12 @@
       "description": "Спочатку оберіть Додаток"
     },
     {
-      "fieldname": "tab_fields",
-      "label": "Поля",
-      "fieldtype": "Tab",
-      "icon": "List"
-    },
-    {
-      "fieldname": "fields",
-      "label": "Список полів",
-      "fieldtype": "Table",
-      "options": "DocField"
-    },
-    {
-      "fieldname": "tab_permissions",
-      "label": "Дозволи",
-      "fieldtype": "Tab",
-      "icon": "ShieldLock"
-    },
-    {
-      "fieldname": "permissions",
-      "label": "Дозволи",
-      "fieldtype": "Table",
-      "options": "DocPermission"
-    },
-    {
-      "fieldname": "tab_actions",
-      "label": "Дії",
-      "fieldtype": "Tab",
-      "icon": "Zap"
-    },
-    {
-      "fieldname": "actions",
-      "label": "Дії документа",
-      "fieldtype": "Table",
-      "options": "DocTypeAction",
-      "description": "Кнопки в тулбарі картки. Кожен рядок підключає дію, зареєстровану застосунком у коді (@doc_action)."
-    },
-    {
-      "fieldname": "tab_links",
-      "label": "Зв'язки",
-      "fieldtype": "Tab",
-      "icon": "Link"
-    },
-    {
-      "fieldname": "links",
-      "label": "Зв'язки документа",
-      "fieldtype": "Table",
-      "options": "DocTypeLink",
-      "description": "Пов'язані типи документів на панелі «Зв'язки» картки. Якщо порожньо — зв'язки визначаються автоматично зі зворотних Link-полів."
-    },
-    {
-      "fieldname": "tab_settings",
-      "label": "Керованість",
-      "fieldtype": "Tab",
-      "icon": "Settings"
-    },
-    {
-      "fieldname": "sec_naming",
-      "label": "Збереження та ідентифікація",
+      "fieldname": "sec_doc_identity",
+      "label": "Ідентифікація документа",
       "fieldtype": "Section"
     },
     {
-      "fieldname": "col_n1",
+      "fieldname": "col_di_1",
       "label": "",
       "fieldtype": "Column"
     },
@@ -152,14 +96,7 @@
       "description": "Яке поле відображається як назва документа (default: name)"
     },
     {
-      "fieldname": "image_field",
-      "label": "Поле зображення",
-      "fieldtype": "Select",
-      "options": "",
-      "description": "Поле типу Image або Attach для аватара документа"
-    },
-    {
-      "fieldname": "col_n2",
+      "fieldname": "col_di_2",
       "label": "",
       "fieldtype": "Column"
     },
@@ -170,30 +107,71 @@
       "options": "\nlist\nkanban\ncalendar\ngantt\ntree\ngallery\nmap"
     },
     {
-      "fieldname": "table_name",
-      "label": "Назва таблиці (override)",
-      "fieldtype": "Text",
-      "read_only": true,
-      "description": "Фізична таблиця в БД. Заповнюється автоматично"
+      "fieldname": "image_field",
+      "label": "Поле зображення",
+      "fieldtype": "Select",
+      "options": "",
+      "description": "Поле типу Image або Attach для аватара документа"
     },
     {
-      "fieldname": "sec_search",
-      "label": "Пошук",
+      "fieldname": "tab_designer",
+      "label": "Конструктор",
+      "fieldtype": "Tab",
+      "experimental_component": "DesignerTab",
+      "icon": "LayoutTemplate"
+    },
+    {
+      "fieldname": "tab_views",
+      "label": "Вигляди",
+      "fieldtype": "Tab",
+      "experimental_component": "ViewsTab",
+      "icon": "PanelsTopLeft"
+    },
+    {
+      "fieldname": "tab_permissions",
+      "label": "Дозволи",
+      "fieldtype": "Tab",
+      "icon": "ShieldLock"
+    },
+    {
+      "fieldname": "permissions",
+      "label": "Дозволи",
+      "fieldtype": "Table",
+      "options": "DocPermission"
+    },
+    {
+      "fieldname": "tab_card",
+      "label": "Картка",
+      "fieldtype": "Tab",
+      "icon": "Link"
+    },
+    {
+      "fieldname": "actions",
+      "label": "Дії документа",
+      "fieldtype": "Table",
+      "options": "DocTypeAction",
+      "description": "Кнопки в тулбарі картки. Кожен рядок підключає дію, зареєстровану застосунком у коді (@doc_action)."
+    },
+    {
+      "fieldname": "links",
+      "label": "Зв'язки документа",
+      "fieldtype": "Table",
+      "options": "DocTypeLink",
+      "description": "Пов'язані типи документів на панелі «Зв'язки» картки. Якщо порожньо — зв'язки визначаються автоматично зі зворотних Link-полів."
+    },
+    {
+      "fieldname": "tab_behavior",
+      "label": "Поведінка",
+      "fieldtype": "Tab",
+      "icon": "Settings"
+    },
+    {
+      "fieldname": "sec_data_model",
+      "label": "Модель даних",
       "fieldtype": "Section"
     },
     {
-      "fieldname": "search_fields",
-      "label": "Поля пошуку",
-      "fieldtype": "JSON",
-      "description": "Список полів для full-text пошуку, наприклад [\"name\", \"label\"]"
-    },
-    {
-      "fieldname": "sec_flags",
-      "label": "Життєвий цикл та модель даних",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "col_f1",
+      "fieldname": "col_dm_1",
       "label": "",
       "fieldtype": "Column"
     },
@@ -206,19 +184,13 @@
       "description": "Використовується всередині поля TABLE іншого DocType"
     },
     {
-      "fieldname": "is_submittable",
-      "label": "Можна подати (Submittable)",
-      "fieldtype": "Check",
-      "description": "Додає кнопку Submit та поле docstatus"
-    },
-    {
       "fieldname": "is_singleton",
       "label": "Одинарний (Singleton)",
       "fieldtype": "Check",
       "description": "Лише один документ цього типу (налаштування, профіль)"
     },
     {
-      "fieldname": "col_f2",
+      "fieldname": "col_dm_2",
       "label": "",
       "fieldtype": "Column"
     },
@@ -227,6 +199,17 @@
       "label": "Віртуальний",
       "fieldtype": "Check",
       "description": "Без фізичної таблиці — дані з контролера"
+    },
+    {
+      "fieldname": "is_submittable",
+      "label": "Можна подати (Submittable)",
+      "fieldtype": "Check",
+      "description": "Додає кнопку Submit та поле docstatus"
+    },
+    {
+      "fieldname": "sec_audit",
+      "label": "Аудит і журналювання",
+      "fieldtype": "Section"
     },
     {
       "fieldname": "track_changes",
@@ -247,10 +230,25 @@
       "description": "Писати кожне відкриття документа у ViewLog (не частіше 1 разу/год на користувача)"
     },
     {
+      "fieldname": "sec_ux",
+      "label": "Взаємодія",
+      "fieldtype": "Section"
+    },
+    {
       "fieldname": "quick_entry",
       "label": "Швидке створення (діалог)",
       "fieldtype": "Check",
       "description": "«Створити» відкриває міні-діалог з обов'язковими полями замість повної форми"
+    },
+    {
+      "fieldname": "sec_lifecycle",
+      "label": "Життєвий цикл",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "col_lc_1",
+      "label": "",
+      "fieldtype": "Column"
     },
     {
       "fieldname": "beta",
@@ -259,114 +257,51 @@
       "description": "Показувати позначку «Beta» — тип документа ще в розробці"
     },
     {
+      "fieldname": "col_lc_2",
+      "label": "",
+      "fieldtype": "Column"
+    },
+    {
       "fieldname": "deprecated",
       "label": "Неактуальний (deprecated)",
       "fieldtype": "Check",
       "description": "Показувати попередження — тип лишено для сумісності, не використовувати в новому коді"
     },
     {
-      "fieldname": "tab_tree",
-      "label": "Ієрархія",
-      "fieldtype": "Tab",
-      "icon": "GitBranch"
+      "fieldname": "sec_search",
+      "label": "Пошук",
+      "fieldtype": "Section"
     },
     {
-      "fieldname": "is_tree",
-      "label": "Це дерево (Is Tree)",
-      "fieldtype": "Check",
-      "description": "Дозволяє ієрархічне відображення та TreeSelect вміст"
-    },
-    {
-      "fieldname": "tree_view",
-      "label": "Налаштування дерева",
+      "fieldname": "search_fields",
+      "label": "Поля пошуку",
       "fieldtype": "JSON",
-      "description": "{\"parent_field\": \"parent_department\", \"title_field\": \"title\"}"
+      "description": "Список полів для full-text пошуку, наприклад [\"name\", \"label\"]"
     },
     {
-      "fieldname": "tab_views_builder",
-      "label": "Вигляди",
+      "fieldname": "sec_service",
+      "label": "Службове",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "table_name",
+      "label": "Назва таблиці (override)",
+      "fieldtype": "Text",
+      "read_only": true,
+      "description": "Фізична таблиця в БД. Заповнюється автоматично"
+    },
+    {
+      "fieldname": "tab_fields",
+      "label": "Поля",
       "fieldtype": "Tab",
-      "icon": "PanelsTopLeft"
+      "icon": "List"
     },
     {
-      "fieldname": "sec_list_view",
-      "label": "Список",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "list_view",
-      "label": "Налаштування списку",
-      "fieldtype": "Code",
-      "options": "json"
-    },
-    {
-      "fieldname": "sec_form_view",
-      "label": "Форма",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "form_view",
-      "label": "Налаштування форми",
-      "fieldtype": "Code",
-      "options": "json"
-    },
-    {
-      "fieldname": "sec_status_config",
-      "label": "Статуси",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "status_field",
-      "label": "Поле статусу",
-      "fieldtype": "Select",
-      "options": "",
-      "description": "Поле DocType, яке відображає статус документа (наприклад «status»)"
-    },
-    {
-      "fieldname": "status_indicators",
-      "label": "Індикатори",
+      "fieldname": "fields",
+      "label": "Список полів",
       "fieldtype": "Table",
-      "options": "DocTypeStatusIndicator"
-    },
-    {
-      "fieldname": "sec_kanban_view",
-      "label": "Kanban",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "kanban_view",
-      "label": "Налаштування Kanban",
-      "fieldtype": "JSON",
-      "description": "{\"grouping_field\": \"status\"}"
-    },
-    {
-      "fieldname": "sec_calendar_view",
-      "label": "Календар",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "calendar_view",
-      "label": "Налаштування календаря",
-      "fieldtype": "JSON",
-      "description": "{\"start_date_field\": \"start_date\", \"end_date_field\": \"end_date\", \"title_field\": \"name\"}"
-    },
-    {
-      "fieldname": "sec_gantt_view",
-      "label": "Діаграма Ганта",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "gantt_view",
-      "label": "Налаштування діаграми Ганта",
-      "fieldtype": "JSON",
-      "description": "{\"start_field\": \"start_date\", \"end_field\": \"end_date\", \"title_field\": \"name\", \"progress_field\": \"progress\"}"
-    },
-    {
-      "fieldname": "tab_designer",
-      "label": "Конструктор",
-      "fieldtype": "Tab",
-      "experimental_component": "DesignerTab",
-      "icon": "LayoutTemplate"
+      "options": "DocField"
     }
   ],
   "permissions": [

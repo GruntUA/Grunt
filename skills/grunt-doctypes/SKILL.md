@@ -432,23 +432,6 @@ description: Довідник по всіх типах полів, налашт�
 
 ---
 
-## Дашборд-поля
-
-```json
-{
-  "fieldname": "tasks_count",
-  "fieldtype": "Int",
-  "label": "Завдань",
-  "show_in_dashboard": true,
-  "dashboard_doctype": "Task",
-  "dashboard_link_field": "project"
-}
-```
-
-Показує лічильник пов'язаних документів прямо у формі.
-
----
-
 ## Типові патерни
 
 ### Ідентифікатор + статус (шапка)
