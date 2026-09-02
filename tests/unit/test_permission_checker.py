@@ -181,3 +181,28 @@ async def test_user_roles_child_table(ctx):
     users = await list_users_api()
     user_data = next(u for u in users if u["name"] == target_id)
     assert "Manager" not in user_data["roles"]
+
+
+@pytest.mark.asyncio
+async def test_count_respects_permissions(ctx):
+    """`grunt.count(..., respect_permissions=True)` applies the same row-level
+    `match` filter as the list view — a non-privileged user counting `User`
+    sees only their own row, not everyone's."""
+    from grunt.app import grunt
+    from grunt.auth.doctypes.User.user import User, create_user
+
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        await create_user("boss@grunt.example.com", "Str0ngPass", "Boss", "One", None)
+        me = await create_user("countme@grunt.example.com", "Str0ngPass", "Count", "Me", None)
+        await ctx.db.set_value("User", me.id, {"is_superadmin": False})
+        await ctx.db._session().commit()
+        raw_total = await grunt.count("User")
+    assert raw_total >= 2
+
+    me_ctx = User(
+        doctype="User",
+        data={"email": me.id, "name": me.id, "roles": [], "is_superadmin": False},
+    )
+    async with ctx.context(ctx.db._session(), ctx._require_engine(), me_ctx):
+        assert await grunt.count("User", respect_permissions=True) == 1
+        assert await grunt.count("User") == raw_total  # default path unchanged

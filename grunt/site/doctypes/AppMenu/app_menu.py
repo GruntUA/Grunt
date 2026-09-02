@@ -9,7 +9,6 @@ import json
 from typing import Any, cast
 
 import structlog
-from sqlalchemy import text
 
 from grunt.app import grunt
 from grunt.document.base import Document
@@ -44,9 +43,12 @@ class AppMenu(Document):
             item['link_doctype'] = self._LINK_DOCTYPE.get(item.get('type', ''), '')
 
     async def get_counts(self) -> dict[str, int]:
-        """Get document counts for sidebar items that have show_count=true."""
-        from grunt.metadata.compiler import get_table_name  # noqa: PLC0415
+        """Get document counts for sidebar items that have show_count=true.
 
+        Counts go through ``grunt.count``, so each badge reflects only the
+        rows the current user may actually see (same row-level permission
+        filter the list view applies) — never a raw table total.
+        """
         items = [
             item
             for item in self.get("sidebar_items", [])
@@ -56,8 +58,6 @@ class AppMenu(Document):
             return {}
 
         counts: dict[str, int] = {}
-        sql_resolved: list[tuple[str, str, dict[str, Any]]] = []
-
         for item in items:
             link_to = item["link_to"]
             try:
@@ -72,12 +72,12 @@ class AppMenu(Document):
                 counts[key] = await self._get_virtual_count(link_to, filters)
                 continue
 
-            table_name = dt.table_name or get_table_name(dt.module, dt.name)
-            sql_resolved.append((key, table_name, filters))
-
-        if sql_resolved:
-            batched_counts = await self._execute_batched_counts(sql_resolved)
-            counts.update(batched_counts)
+            try:
+                counts[key] = await grunt.count(
+                    link_to, filters=filters or None, respect_permissions=True
+                )
+            except Exception as e:  # table not built yet
+                logger.warning("workspace.count_error", doctype=link_to, error=str(e))
 
         return counts
 
@@ -111,39 +111,6 @@ class AppMenu(Document):
         except Exception as e:
             logger.warning("workspace.virtual_count_error", doctype=doctype, error=str(e))
         return 0
-
-    async def _execute_batched_counts(
-        self, sql_resolved: list[tuple[str, str, dict[str, Any]]]
-    ) -> dict[str, int]:
-        """Execute multiple count queries in a single SQL UNION ALL batch."""
-        parts: list[str] = []
-        params: dict[str, Any] = {}
-        counts: dict[str, int] = {}
-
-        for i, (key, table_name, filters) in enumerate(sql_resolved):
-            key_param = f"k{i}"
-            params[key_param] = key
-            
-            where = ""
-            if filters:
-                conditions = []
-                for col, val in filters.items():
-                    p = f"{col}_{i}"
-                    params[p] = val
-                    conditions.append(f'"{col}" = :{p}')
-                where = " WHERE " + " AND ".join(conditions)
-            
-            parts.append(f'SELECT :{key_param} AS k, COUNT(*) AS c FROM "{table_name}"{where}')
-
-        try:
-            sql = " UNION ALL ".join(parts)
-            result = await grunt.db._session().execute(text(sql), params)
-            for row in result:
-                counts[row.k] = row.c
-        except Exception as e:
-            logger.warning("workspace.counts_error", error=str(e))
-        
-        return counts
 
     def has_access(self, user: Any) -> bool:
         """Check if user has access to this workspace based on roles."""

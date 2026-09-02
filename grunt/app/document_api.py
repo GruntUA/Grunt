@@ -506,9 +506,25 @@ class DocumentAPI:
         doctype: str,
         *,
         filters: dict[str, Any] | None = None,
+        respect_permissions: bool = False,
     ) -> int:
-        """Count documents matching optional filters."""
-        return await self.db.count(doctype, filters=filters)
+        """Count documents matching optional filters.
+
+        By default this is a raw table count (no permission check) — many
+        internal callers (bootstrap, formulas, background jobs) rely on that.
+        Pass ``respect_permissions=True`` to apply the same row-level ``match``
+        filter ``grunt.get_list`` uses, so the number never includes rows the
+        list view would hide. Superadmin / system context see the full count
+        either way.
+        """
+        if not respect_permissions:
+            return await self.db.count(doctype, filters=filters)
+
+        from grunt.document import collection
+
+        return await collection.count_documents(
+            require_session(), doctype, require_user(), filters=filters
+        )
 
     async def exists(
         self,

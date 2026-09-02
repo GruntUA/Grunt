@@ -299,6 +299,36 @@ async def list_documents(
     )
 
 
+async def count_documents(
+    session: AsyncSession,
+    doctype_name: str,
+    user: User,
+    *,
+    filters: dict[str, str] | None = None,
+    search: str | None = None,
+) -> int:
+    """Count rows the *user* is allowed to see — the same row-level permission
+    filter ``list_documents`` applies to its pagination total, so a sidebar
+    badge or a headline stat never reports rows the list itself hides.
+    """
+    dt = await doctype_registry.get(doctype_name)
+    if dt.is_virtual:
+        # Virtual DocTypes own their storage; fall back to the plain count.
+        from grunt.app import grunt
+
+        return await grunt.db.count(doctype_name, filters=filters)
+
+    table = Meta(dt).table
+    extra_clause = await _resolve_list_filter_extra(session, doctype_name, filters, table)
+    if filters and any(k.endswith("__child_of") for k in filters):
+        filters = await _expand_child_of_filters(session, dt, filters)
+
+    count_q = _apply_where(
+        select(func.count()).select_from(table), table, dt, filters, search, extra_clause, user
+    )
+    return (await session.execute(count_q)).scalar() or 0
+
+
 # ── Bulk delete ─────────────────────────────────────────────────────────────
 
 
