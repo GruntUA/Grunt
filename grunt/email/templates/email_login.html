@@ -21,6 +21,11 @@
   .header h1 { margin: 0; font-size: 20px; font-weight: 700; }
   .body { padding: 28px; }
   .body p { margin: 0 0 16px; line-height: 1.6; }
+  .code {
+    text-align: center; margin: 24px 0;
+    font-size: 32px; font-weight: 700; letter-spacing: 8px;
+    color: #1b1b1b;
+  }
   .btn-wrap { text-align: center; margin: 28px 0; }
   .btn {
     display: inline-block;
@@ -43,18 +48,21 @@
 <body>
 <div class="wrapper">
   <div class="header">
-    <h1>Скидання пароля</h1>
+    <h1>Вхід в систему</h1>
   </div>
   <div class="body">
-    <p>Привіт, {{ full_name }},</p>
-    <p>Ми отримали запит на скидання пароля для вашого облікового запису.</p>
+    <p>Ми отримали запит на вхід за цією адресою електронної пошти.</p>
+    <p>Ваш код для входу:</p>
+    <div class="code">{{ code }}</div>
+    <p>Або натисніть кнопку, щоб увійти одразу:</p>
     <div class="btn-wrap">
-      <a href="{{ reset_url }}" class="btn"
+      <a href="{{ login_url }}" class="btn"
          style="display:inline-block;background:#2D6A4F;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:4px;font-size:14px;font-weight:700;"
-      ><span style="color:#ffffff;">Скинути пароль</span></a>
+      ><span style="color:#ffffff;">Увійти</span></a>
     </div>
-    <p class="url-fallback">Або перейдіть за посиланням: {{ reset_url }}</p>
-    <p>Посилання дійсне <strong>1 годину</strong>. Якщо ви не надсилали цей запит — просто проігноруйте цей лист.</p>
+    <p class="url-fallback">Або перейдіть за посиланням: {{ login_url }}</p>
+    <p>Код і посилання дійсні <strong>{{ ttl_minutes }} хвилин</strong>.
+       Якщо ви не намагалися увійти — просто проігноруйте цей лист.</p>
   </div>
   <div class="footer">Ґрунт — автоматичне повідомлення, не відповідайте на цей лист.</div>
 </div>

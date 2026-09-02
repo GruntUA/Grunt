@@ -495,6 +495,7 @@ async def application_error_handler(request: Request, exc: ApplicationError) -> 
         "CONFLICT": 409,
         "DUPLICATE_DATA": 409,
         "VALIDATION_ERROR": 422,
+        "RATE_LIMITED": 429,
     }
     status_code = status_map.get(exc.code, 422)
     return JSONResponse(

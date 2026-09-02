@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Fingerprint, Smartphone } from '@lucide/vue'
+import { Fingerprint, Mail } from '@lucide/vue'
 import { useAuthStore } from '@/stores/auth'
 import { useSiteConfig } from '@/core/composables/useSiteConfig'
 import { authApi, type AuthMethod } from '@/core/api/auth'
@@ -34,10 +34,17 @@ const password = ref('')
 const passwordConfirm = ref('')
 const loading = ref(false)
 const passkeyLoading = ref(false)
-const phoneLoading = ref(false)
 const error = ref('')
 const notice = ref('')
 const signupDone = ref(false)
+
+// "Sign in with email" (passwordless code / magic link)
+const emailStage = ref<'idle' | 'code'>('idle')
+const emailTarget = ref('')
+const emailChallengeToken = ref('')
+const emailCode = ref('')
+const emailSending = ref(false)
+const emailVerifying = ref(false)
 
 const isSignup = computed(() => mode.value === 'signup')
 const title = computed(() => (isSignup.value ? 'Створити акаунт' : 'З поверненням'))
@@ -51,7 +58,10 @@ const redirectMethods = computed(() => methods.value.filter((m) => m.kind === 'r
 const hasPasskey = computed(
   () => isWebAuthnSupported() && methods.value.some((m) => m.name === 'webauthn'),
 )
-const hasAlternatives = computed(() => hasPasskey.value || redirectMethods.value.length > 0)
+const hasEmailLogin = computed(() => methods.value.some((m) => m.name === 'email'))
+const hasAlternatives = computed(
+  () => hasPasskey.value || hasEmailLogin.value || redirectMethods.value.length > 0,
+)
 
 onMounted(async () => {
   if (mode.value === 'signup' && !allowRegistration.value) router.replace('/login')
@@ -74,8 +84,23 @@ async function consumeExternalRedirect() {
   const hash = window.location.hash?.slice(1)
   if (!hash) return
   const p = new URLSearchParams(hash)
-  if (!p.has('access_token') && !p.has('error') && !p.has('mfa_required')) return
+  const known = ['access_token', 'error', 'mfa_required', 'email_login_token']
+  if (!known.some((k) => p.has(k))) return
   history.replaceState(null, '', window.location.pathname + window.location.search)
+
+  // Magic link from the "sign in with email" mail.
+  if (p.has('email_login_token')) {
+    try {
+      const res = await auth.completeEmailLogin({ token: p.get('email_login_token')! })
+      if (res.approval_pending) notice.value = PENDING_MSG
+      else if (res.mfa_required) router.push({ name: 'mfa-verify', query: { token: res.mfa_token } })
+      else router.push({ name: 'desk' })
+    } catch (e: any) {
+      error.value =
+        e?.response?.data?.error?.message || 'Посилання для входу недійсне або застаріле'
+    }
+    return
+  }
 
   if (p.get('approval_pending')) {
     notice.value = PENDING_MSG
@@ -152,15 +177,12 @@ async function handleSubmit() {
   }
 }
 
-async function runPasskey(
-  busy: typeof passkeyLoading,
-  opts?: { mode?: 'cross-device' },
-) {
+async function loginWithPasskey() {
   error.value = ''
   notice.value = ''
-  busy.value = true
+  passkeyLoading.value = true
   try {
-    await auth.loginWithPasskey(email.value || undefined, opts)
+    await auth.loginWithPasskey(email.value || undefined)
     router.push({ name: 'desk' })
   } catch (e: any) {
     if (e?.message === 'approval_pending') {
@@ -174,12 +196,9 @@ async function runPasskey(
     if (e?.name === 'NotAllowedError') return // user dismissed the prompt
     error.value = e?.response?.data?.error?.message || e?.message || 'Не вдалося увійти за ключем доступу'
   } finally {
-    busy.value = false
+    passkeyLoading.value = false
   }
 }
-
-const loginWithPasskey = () => runPasskey(passkeyLoading)
-const loginFromPhone = () => runPasskey(phoneLoading, { mode: 'cross-device' })
 
 async function loginWithRedirect(provider: string) {
   error.value = ''
@@ -188,6 +207,65 @@ async function loginWithRedirect(provider: string) {
     window.location.assign(redirect_url)
   } catch (e: any) {
     error.value = e?.response?.data?.error?.message || e?.message || 'Провайдер недоступний'
+  }
+}
+
+async function startEmailLogin() {
+  error.value = ''
+  notice.value = ''
+  const target = email.value.trim()
+  if (!target) {
+    error.value = 'Спершу введіть адресу електронної пошти'
+    return
+  }
+  emailSending.value = true
+  try {
+    const { challenge_token } = await auth.beginEmailLogin(target)
+    emailChallengeToken.value = challenge_token
+    emailTarget.value = target
+    emailCode.value = ''
+    emailStage.value = 'code'
+  } catch (e: any) {
+    error.value =
+      e?.response?.data?.error?.message || e?.message || 'Не вдалося надіслати код'
+  } finally {
+    emailSending.value = false
+  }
+}
+
+function resetEmailLogin() {
+  emailStage.value = 'idle'
+  emailChallengeToken.value = ''
+  emailCode.value = ''
+  error.value = ''
+  notice.value = ''
+}
+
+async function verifyEmailCode() {
+  error.value = ''
+  if (emailCode.value.trim().length < 4) {
+    error.value = 'Введіть код з листа'
+    return
+  }
+  emailVerifying.value = true
+  try {
+    const res = await auth.completeEmailLogin({
+      challenge_token: emailChallengeToken.value,
+      code: emailCode.value.trim(),
+    })
+    if (res.approval_pending) {
+      notice.value = PENDING_MSG
+      resetEmailLogin()
+    } else if (res.mfa_required) {
+      toMfa({ mfa_token: res.mfa_token })
+    } else {
+      router.push({ name: 'desk' })
+    }
+  } catch (e: any) {
+    error.value =
+      e?.response?.data?.error?.message || e?.message || 'Невірний або застарілий код'
+  } finally {
+    emailVerifying.value = false
   }
 }
 </script>
@@ -221,7 +299,54 @@ async function loginWithRedirect(provider: string) {
           <p class="text-muted-foreground">{{ subtitle }}</p>
         </div>
         <div class="px-6">
-          <form @submit.prevent="handleSubmit" class="flex flex-col gap-5">
+          <!-- Passwordless email: enter the code from the mail -->
+          <form
+            v-if="emailStage === 'code'"
+            @submit.prevent="verifyEmailCode"
+            class="flex flex-col gap-5"
+          >
+            <p class="text-muted-foreground text-center leading-relaxed">
+              Ми надіслали код і посилання для входу на
+              <span class="text-foreground font-medium">{{ emailTarget }}</span>.
+              Введіть код або перейдіть за посиланням із листа.
+            </p>
+            <div class="flex flex-col gap-1.5">
+              <label for="email-code" class="font-medium">Код із листа</label>
+              <Input
+                id="email-code"
+                v-model="emailCode"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                placeholder="000000"
+                required
+                class="w-full tracking-[0.3em] text-center"
+              />
+            </div>
+
+            <p v-if="notice" class="text-foreground bg-muted rounded-lg px-3 py-2 text-center border border-border">
+              {{ notice }}
+            </p>
+            <p v-if="error" class="text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-center border border-destructive/20">
+              {{ error }}
+            </p>
+
+            <div class="flex flex-col gap-3">
+              <Button type="submit" :disabled="emailVerifying" class="w-full">
+                <Spinner v-if="emailVerifying" class="size-4 mr-2" />
+                Підтвердити
+              </Button>
+              <div class="flex items-center justify-between text-muted-foreground">
+                <button type="button" class="hover:underline" :disabled="emailSending" @click="startEmailLogin">
+                  Надіслати ще раз
+                </button>
+                <button type="button" class="hover:underline" @click="resetEmailLogin">
+                  Інший спосіб входу
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <form v-else @submit.prevent="handleSubmit" class="flex flex-col gap-5">
             <!-- Alternative methods (discovered from /api/v1/auth/methods) -->
             <div v-if="hasAlternatives" class="flex flex-col gap-2.5">
               <Button
@@ -229,24 +354,12 @@ async function loginWithRedirect(provider: string) {
                 type="button"
                 variant="outline"
                 class="w-full"
-                :disabled="passkeyLoading || phoneLoading"
+                :disabled="passkeyLoading"
                 @click="loginWithPasskey"
               >
                 <Spinner v-if="passkeyLoading" class="size-4 mr-2" />
                 <Fingerprint v-else class="size-4 mr-2" />
                 Ключ доступу
-              </Button>
-              <Button
-                v-if="hasPasskey"
-                type="button"
-                variant="outline"
-                class="w-full"
-                :disabled="passkeyLoading || phoneLoading"
-                @click="loginFromPhone"
-              >
-                <Spinner v-if="phoneLoading" class="size-4 mr-2" />
-                <Smartphone v-else class="size-4 mr-2" />
-                Продовжити з телефона
               </Button>
               <Button
                 v-for="m in redirectMethods"
@@ -258,13 +371,25 @@ async function loginWithRedirect(provider: string) {
               >
                 Продовжити з {{ m.label }}
               </Button>
+              <Button
+                v-if="hasEmailLogin"
+                type="button"
+                variant="outline"
+                class="w-full"
+                :disabled="emailSending"
+                @click="startEmailLogin"
+              >
+                <Spinner v-if="emailSending" class="size-4 mr-2" />
+                <Mail v-else class="size-4 mr-2" />
+                Надіслати код на пошту
+              </Button>
             </div>
 
             <div v-if="hasAlternatives" class="relative text-center">
               <div class="absolute inset-0 flex items-center" aria-hidden="true">
                 <span class="w-full border-t border-border"></span>
               </div>
-              <span class="bg-card text-muted-foreground relative px-2 text-xs">або через email</span>
+              <span class="bg-card text-muted-foreground relative px-2 text-xs">або введіть пароль</span>
             </div>
 
             <!-- Full name (signup only) -->

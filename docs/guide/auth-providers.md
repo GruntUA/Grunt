@@ -158,3 +158,42 @@ sealed into the challenge token and re-checked by `complete`.
   [`core/api/auth.ts`](../../frontend/src/core/api/auth.ts),
   `auth.loginWithPasskey()` in the store, and `grunt.passkey.*` for client
   scripts (used by the **Керувати ключами доступу** button on the User form).
+
+## Sign in with email (magic link + one-time code)
+
+Provider `email` ([`providers/email_link.py`](../../grunt/auth/providers/email_link.py)) —
+passwordless login by an address the user types in. No config beyond a working
+outgoing `EmailAccount` (`SystemSettings.default_email_account`, or the first
+account with `enable_outgoing`); `begin` returns a `422` with a clear message
+when none is set.
+
+`kind = "challenge"`, `requires_identifier = true`. One `begin`, two ways to finish:
+
+* **One-time code** — `POST /api/v1/auth/email/begin` `{email}` mails a 6-digit
+  code and returns `{challenge_token, ttl_minutes}` (15 min). `POST .../complete`
+  `{challenge_token, code}` needs **both**: the token proves this browser started
+  the flow, the code proves inbox control. Wrong codes count against the account
+  lock-out (`register_failed_attempt` — shared with password login); a locked
+  account gets `429 RATE_LIMITED`.
+* **Magic link** — the same mail carries
+  `{APP_URL}/login#email_login_token=<jwt>`. `Login.vue`'s
+  `consumeExternalRedirect()` lifts the fragment and posts `{token}` to
+  `.../complete`. The link token is self-contained (inbox possession is the
+  proof).
+
+Both the code's keyed HMAC (`hmac(secret_key, "email:code")`) and the link token
+are sealed into short-lived signed JWTs — no server state, like the WebAuthn
+challenge. The HMAC key is the app secret, so a `challenge_token` leaked to an
+attacker can't be brute-forced into the code offline, only against `complete`
+(guarded by the lock-out).
+
+An unknown address is provisioned as a passwordless user via
+`find_or_create_external_user` — but only after `_guard_registration()` (so
+`allow_user_registration = false` limits email login to existing users) and
+`_apply_signup_approval()` (so `require_signup_approval` still holds the account
+pending). `complete` funnels through `issue_login`, so MFA / approval gating is
+identical to every other method.
+
+* **Frontend glue** — `auth.beginEmailLogin(email)` / `auth.completeEmailLogin(...)`
+  in the store, the **Надіслати код на пошту** button + code panel in `Login.vue`,
+  the `email_login.html` mail template in `grunt/email/templates/`.

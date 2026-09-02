@@ -246,6 +246,48 @@ async def create_user(
     return user
 
 
+async def is_account_locked(user: User) -> bool:
+    """True while ``user.locked_until`` is still in the future."""
+    if not user.locked_until:
+        return False
+    locked_until = user.locked_until
+    if locked_until.tzinfo is not None and locked_until.utcoffset() is not None:
+        locked_until = locked_until.astimezone(UTC)
+    else:
+        locked_until = locked_until.replace(tzinfo=UTC)
+    return locked_until > datetime.now(UTC)
+
+
+async def register_failed_attempt(user: User) -> None:
+    """Count one failed sign-in; lock the account past ``max_login_attempts``
+    (``SystemSettings``) for ``account_lockout_duration`` minutes.
+
+    Shared by every authentication factor (password, email code, ...).
+    """
+    from grunt.context import require_session
+    from grunt.site.settings import get_setting
+
+    max_attempts = int(await get_setting("max_login_attempts", _MAX_ATTEMPTS) or _MAX_ATTEMPTS)
+    lockout_minutes = int(
+        await get_setting("account_lockout_duration", _LOCKOUT_MINUTES) or _LOCKOUT_MINUTES
+    )
+    new_attempts = (user.login_attempts or 0) + 1
+    updates: dict = {"login_attempts": new_attempts}
+    if new_attempts >= max_attempts:
+        updates["locked_until"] = datetime.now(UTC) + timedelta(minutes=lockout_minutes)
+        updates["login_attempts"] = 0
+    async with grunt.system_context(require_session()):
+        await grunt.db.set_value("User", user.name, updates)
+
+
+async def clear_failed_attempts(user: User) -> None:
+    """Reset the failed-sign-in counter and any lock after a success."""
+    from grunt.context import require_session
+
+    async with grunt.system_context(require_session()):
+        await grunt.db.set_value("User", user.name, {"login_attempts": 0, "locked_until": None})
+
+
 async def authenticate(email: str, password: str) -> User | None:
     """Return user if credentials are valid, else None.
 
@@ -254,39 +296,24 @@ async def authenticate(email: str, password: str) -> User | None:
     Raises ``ValueError("locked")`` when the account is temporarily locked.
     """
     from grunt.context import require_session
-    from grunt.site.settings import get_setting
 
     user = await get_user_by_email(email)
     if user is None:
         return None
 
-    max_attempts = int(await get_setting("max_login_attempts", _MAX_ATTEMPTS) or _MAX_ATTEMPTS)
-    lockout_minutes = int(
-        await get_setting("account_lockout_duration", _LOCKOUT_MINUTES) or _LOCKOUT_MINUTES
-    )
-
-    now = datetime.now(UTC)
-
-    if user.locked_until:
-        if user.locked_until.tzinfo is not None and user.locked_until.utcoffset() is not None:
-            locked_until_utc = user.locked_until.astimezone(UTC)
-        else:
-            locked_until_utc = user.locked_until.replace(tzinfo=UTC)
-        if locked_until_utc > now:
-            raise ValueError("locked")
+    if await is_account_locked(user):
+        raise ValueError("locked")
 
     async with grunt.system_context(require_session()):
-        if not user.hashed_password or not await verify_password(password, user.hashed_password):
-            new_attempts = (user.login_attempts or 0) + 1
-            updates: dict = {"login_attempts": new_attempts}
-            if new_attempts >= max_attempts:
-                updates["locked_until"] = now + timedelta(minutes=lockout_minutes)
-                updates["login_attempts"] = 0
-            await grunt.db.set_value("User", user.name, updates)
-            return None
+        valid = bool(user.hashed_password) and await verify_password(
+            password, user.hashed_password
+        )
 
-        await grunt.db.set_value("User", user.name, {"login_attempts": 0, "locked_until": None})
+    if not valid:
+        await register_failed_attempt(user)
+        return None
 
+    await clear_failed_attempts(user)
     return user
 
 

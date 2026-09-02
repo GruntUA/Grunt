@@ -80,8 +80,13 @@ class EmailService:
             msg["Return-Receipt-To"] = receipt_addr
 
         content = message.get("content", "")
-        if message.get("html"):
-            msg.set_content(message.get("text") or "Це повідомлення у форматі HTML.")
+        if message.get("is_html") or message.get("html"):
+            plain = (
+                message.get("text_content")
+                or message.get("text")
+                or "Це повідомлення у форматі HTML."
+            )
+            msg.set_content(plain)
             msg.add_alternative(content, subtype="html")
         else:
             msg.set_content(content)
@@ -128,8 +133,9 @@ class EmailService:
         error: str | None = None,
         dedup: bool = True,
     ) -> None:
-        html = bool(message.get("html"))
+        html = bool(message.get("is_html") or message.get("html"))
         content = message.get("content", "")
+        plain = message.get("text_content") or message.get("text") or None
         await EmailService.record_message(
             direction="Вихідний",
             status=status,
@@ -139,7 +145,7 @@ class EmailService:
             cc=message.get("cc"),
             email_account=message.get("email_account") or account.get("name"),
             body_html=content if html else None,
-            body_text=(message.get("text") or None) if html else content,
+            body_text=plain if html else content,
             message_date=datetime.now(UTC),
             message_id=(msg["Message-ID"] if dedup else None),
             error_message=error,
@@ -581,6 +587,28 @@ class EmailService:
             return None
 
     @staticmethod
+    async def resolve_outgoing_account_id(session: AsyncSession) -> str | None:
+        """The EmailAccount id outgoing mail is sent from, or None if unconfigured.
+
+        ``SystemSettings.default_email_account`` when it points at a real account,
+        otherwise the first ``EmailAccount`` with ``enable_outgoing=True``.
+        """
+        from grunt.app import grunt
+        from grunt.site.settings import get_setting
+
+        async with grunt.system_context(session):
+            configured = await get_setting("default_email_account")
+            if configured and await grunt.db.exists("EmailAccount", {"name": configured}):
+                return str(configured)
+            accounts = await grunt.db.get_all(
+                "EmailAccount",
+                filters={"enable_outgoing": True},
+                fields=["name"],
+                limit=1,
+            )
+            return str(accounts[0]["name"]) if accounts else None
+
+    @staticmethod
     async def queue_email(
         session: AsyncSession,
         to: str,
@@ -601,19 +629,8 @@ class EmailService:
         email_account_id: str | None = None
         footer: str = ""
         try:
+            email_account_id = await EmailService.resolve_outgoing_account_id(session)
             async with grunt.system_context(session):
-                configured = await get_setting("default_email_account")
-                if configured and await grunt.db.exists("EmailAccount", {"name": configured}):
-                    email_account_id = str(configured)
-                else:
-                    accounts = await grunt.db.get_all(
-                        "EmailAccount",
-                        filters={"enable_outgoing": True},
-                        fields=["name"],
-                        limit=1,
-                    )
-                    if accounts:
-                        email_account_id = str(accounts[0]["name"])
                 raw_footer = (await get_setting("email_footer") or "").strip()
                 # Ignore markup-only footers like "<p></p>" that a rich-text
                 # editor leaves behind when the field is "empty".
@@ -622,13 +639,18 @@ class EmailService:
         except Exception:
             logger.exception("suppressed_error")
 
-        content = html_body or body
+        is_html = bool(html_body)
+        html_content = html_body or ""
+        text_content = body
         if footer:
-            if html_body:
-                content = f"{html_body}<br><br>{footer}"
-            else:
-                plain_footer = re.sub(r"<[^>]+>", "", footer).strip()
-                content = f"{body}\n\n{plain_footer}"
+            plain_footer = re.sub(r"<[^>]+>", "", footer).strip()
+            text_content = f"{body}\n\n{plain_footer}"
+            if is_html:
+                html_content = f"{html_body}<br><br>{footer}"
+
+        # ``content`` is what SMTP sends as the primary body; ``text_content`` is
+        # the ``text/plain`` alternative (and the fallback for HTML mail).
+        content = html_content if is_html else text_content
 
         record_id = str(uuid.uuid4())
         now = datetime.now(UTC)
@@ -647,6 +669,8 @@ class EmailService:
                         "recipient": to,
                         "subject": subject,
                         "content": content,
+                        "text_content": text_content,
+                        "is_html": is_html,
                         "status": "Pending",
                         "email_account": email_account_id,
                     },

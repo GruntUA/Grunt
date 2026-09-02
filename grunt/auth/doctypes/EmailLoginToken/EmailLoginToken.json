@@ -1,0 +1,55 @@
+{
+  "name": "EmailLoginToken",
+  "label": "Токен входу через пошту",
+  "module": "auth",
+  "autoname": "hash",
+  "title_field": "email",
+  "track_changes": false,
+  "description": "Одноразовий токен для passwordless-входу (код + magic-link). Успішний вхід будь-яким шляхом позначає рядок використаним, і другий шлях перестає працювати.",
+  "fields": [
+    {
+      "fieldname": "email",
+      "label": "Ел. пошта",
+      "fieldtype": "Data",
+      "required": true,
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "code_hash",
+      "label": "Хеш коду",
+      "fieldtype": "Data",
+      "read_only": true
+    },
+    {
+      "fieldname": "expires_at",
+      "label": "Дійсний до",
+      "fieldtype": "Datetime",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "consumed_at",
+      "label": "Використано",
+      "fieldtype": "Datetime",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "ip_address",
+      "label": "IP-адреса запиту",
+      "fieldtype": "Data",
+      "read_only": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

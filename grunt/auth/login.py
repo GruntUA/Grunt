@@ -90,7 +90,11 @@ async def find_or_create_external_user(email: str, full_name: str) -> User:
     if user is not None:
         return user
 
+    # The User controller needs a non-empty first *and* last name. External
+    # identities often carry only a single-word name (or none at all) — fall
+    # back to the email local part so provisioning never fails on that.
+    local = email.split("@", 1)[0]
     parts = (full_name or "").split(maxsplit=1)
-    first = parts[0] if parts else email.split("@")[0]
-    last = parts[1] if len(parts) > 1 else ""
+    first = parts[0] if parts else local
+    last = parts[1] if len(parts) > 1 else local
     return await create_user(email, secrets.token_hex(32), first, last, None)

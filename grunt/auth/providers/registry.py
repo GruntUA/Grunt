@@ -31,10 +31,11 @@ def _bootstrap() -> None:
     if _BOOTSTRAPPED:
         return
     _BOOTSTRAPPED = True  # set first: a failing import must not retry every call
-    from grunt.auth.providers import oauth, webauthn
+    from grunt.auth.providers import email_link, oauth, webauthn
 
     webauthn.register_provider()
     oauth.register_providers()
+    email_link.register_provider()
 
 
 def get(name: str) -> AuthProvider:

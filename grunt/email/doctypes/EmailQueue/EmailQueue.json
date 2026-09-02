@@ -27,6 +27,17 @@
       "fieldtype": "LongText"
     },
     {
+      "fieldname": "text_content",
+      "label": "Текстова версія",
+      "fieldtype": "LongText"
+    },
+    {
+      "fieldname": "is_html",
+      "label": "HTML",
+      "fieldtype": "Check",
+      "default": "0"
+    },
+    {
       "fieldname": "status",
       "label": "Статус",
       "fieldtype": "Select",

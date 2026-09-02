@@ -125,6 +125,34 @@ export const useAuthStore = defineStore('auth', () => {
     applyUserPreferences(data.user)
   }
 
+  /** Passwordless "sign in with email" — step 1: mail a code + magic link. */
+  async function beginEmailLogin(
+    email: string,
+  ): Promise<{ challenge_token: string; ttl_minutes: number }> {
+    const { authApi } = await import('@/core/api/auth')
+    return authApi.begin('email', { email })
+  }
+
+  /**
+   * Passwordless "sign in with email" — step 2. Pass the mailed `code` together
+   * with the `challenge_token` from step 1, or the `token` lifted from a magic
+   * link. Adopts the session on success.
+   */
+  async function completeEmailLogin(
+    payload: { challenge_token: string; code: string } | { token: string },
+  ): Promise<{ mfa_required: boolean; approval_pending: boolean; mfa_token?: string }> {
+    const { authApi } = await import('@/core/api/auth')
+    const data = await authApi.complete('email', payload as Record<string, unknown>)
+    if (data.approval_pending) return { mfa_required: false, approval_pending: true }
+    if (data.mfa_required) {
+      return { mfa_required: true, approval_pending: false, mfa_token: data.mfa_token }
+    }
+    _setTokens(data.access_token, data.refresh_token)
+    user.value = data.user
+    applyUserPreferences(data.user)
+    return { mfa_required: false, approval_pending: false }
+  }
+
   async function refresh(): Promise<boolean> {
     const rt = refreshToken.value
     if (!rt) return false
@@ -213,5 +241,5 @@ export const useAuthStore = defineStore('auth', () => {
     _logout()
   }
 
-  return { token, refreshToken, user, isLoggedIn, login, loginWithPasskey, setSession, logout, refresh, fetchMe, prefetchMe, setTheme, setLanguage }
+  return { token, refreshToken, user, isLoggedIn, login, loginWithPasskey, beginEmailLogin, completeEmailLogin, setSession, logout, refresh, fetchMe, prefetchMe, setTheme, setLanguage }
 })
