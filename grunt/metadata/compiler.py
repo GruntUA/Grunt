@@ -6,7 +6,6 @@ import structlog
 from sqlalchemy import (
     JSON,
     Column,
-    DateTime,
     Index,
     Integer,
     MetaData,
@@ -17,6 +16,7 @@ from sqlalchemy import (
     text,
 )
 
+from grunt.db.types import UtcDateTime
 from grunt.metadata.field import NON_PHYSICAL_FIELDS
 from grunt.utils.strings import to_snake_case
 
@@ -163,8 +163,8 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     columns: list[Column] = [
         Column("name", String(255), primary_key=True),
         Column("owner", String(255), nullable=False),
-        Column("created_at", DateTime(timezone=True)),
-        Column("modified_at", DateTime(timezone=True)),
+        Column("created_at", UtcDateTime()),
+        Column("modified_at", UtcDateTime()),
         Column("modified_by", String(255)),
         Column("docstatus", Integer, default=0),
     ]

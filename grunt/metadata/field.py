@@ -284,7 +284,6 @@ class DocField(BaseModel):
             Boolean,
             Column,
             Date,
-            DateTime,
             Integer,
             String,
             Text,
@@ -293,6 +292,8 @@ class DocField(BaseModel):
         from sqlalchemy import (
             Float as SAFloat,
         )
+
+        from grunt.db.types import UtcDateTime
 
         factory = get_field_type_class(self.fieldtype).sa_factory
         if factory is None:
@@ -312,7 +313,7 @@ class DocField(BaseModel):
             "Float": lambda a: SAFloat(precision=a[0]) if a else SAFloat(),
             "Boolean": lambda a: Boolean(),
             "Date": lambda a: Date(),
-            "DateTime": lambda a: DateTime(timezone=True),
+            "DateTime": lambda a: UtcDateTime(),
             "Time": lambda a: Time(),
             "JSON": lambda a: SAJSON(),
         }

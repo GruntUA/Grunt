@@ -66,6 +66,18 @@ describe('core/datetime', () => {
     expect(formatDate('2026-03-07 09:05:00')).toBe('07.03.2026')
   })
 
+  it('treats a zone-less server timestamp as UTC, then re-localises', () => {
+    setConfig({ dateFormat: 'yyyy-mm-dd', timezone: 'Europe/Kyiv' })
+    // 08:18 UTC → 11:18 Kyiv (UTC+3 in March DST), not 08:18
+    expect(formatDateTime('2026-08-31T08:18:52.318697')).toBe('2026-08-31 11:18')
+    expect(formatDateTime('2026-08-31 08:18:52')).toBe('2026-08-31 11:18')
+  })
+
+  it('leaves an explicit offset untouched', () => {
+    setConfig({ dateFormat: 'yyyy-mm-dd', timezone: 'Europe/Kyiv' })
+    expect(formatDateTime('2026-08-31T08:18:52+00:00')).toBe('2026-08-31 11:18')
+  })
+
   it('dateFormatSpec describes separator / order / placeholder', () => {
     setConfig({ dateFormat: 'yyyy-mm-dd' })
     expect(dateFormatSpec()).toEqual({ sep: '-', order: ['y', 'm', 'd'], placeholder: 'РРРР-ММ-ДД' })

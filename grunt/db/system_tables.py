@@ -9,9 +9,10 @@ DocType-driven — defined in core/doctypes/*.json.
 
 from __future__ import annotations
 
-from sqlalchemy import JSON, Column, DateTime, Integer, String, Table, func, text
+from sqlalchemy import JSON, Column, Integer, String, Table, func, text
 
 from grunt.db.base import metadata
+from grunt.db.types import UtcDateTime
 
 GruntMetaDoctype = Table(
     "grunt_meta_doctype",
@@ -19,8 +20,8 @@ GruntMetaDoctype = Table(
     Column("name", String(255), primary_key=True),
     Column("module", String(255), nullable=False),
     Column("data", JSON, nullable=False),
-    Column("created_at", DateTime(timezone=True), server_default=func.now()),
-    Column("modified_at", DateTime(timezone=True), server_default=func.now()),
+    Column("created_at", UtcDateTime(), server_default=func.now()),
+    Column("modified_at", UtcDateTime(), server_default=func.now()),
 )
 
 GruntInstalledApp = Table(
@@ -32,8 +33,8 @@ GruntInstalledApp = Table(
     Column("modules", JSON, nullable=False, server_default=text("'[]'")),
     Column("owner", String(255), nullable=False, server_default=text("'system'")),
     Column("docstatus", Integer, server_default=text("0")),
-    Column("created_at", DateTime(timezone=True), server_default=func.now()),
-    Column("modified_at", DateTime(timezone=True), server_default=func.now()),
+    Column("created_at", UtcDateTime(), server_default=func.now()),
+    Column("modified_at", UtcDateTime(), server_default=func.now()),
     Column("modified_by", String(255), nullable=True),
-    Column("installed_at", DateTime(timezone=True), server_default=func.now()),
+    Column("installed_at", UtcDateTime(), server_default=func.now()),
 )

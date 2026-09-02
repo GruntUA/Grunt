@@ -27,8 +27,12 @@ function toDate(value: DateInput): Date | null {
     const d = new Date(value)
     return Number.isNaN(d.getTime()) ? null : d
   }
-  // "2026-08-28 09:30:00" → ISO-parseable
-  const d = new Date(String(value).trim().replace(' ', 'T'))
+  // "2026-08-28 09:30:00" → ISO-parseable. Server timestamps are always UTC;
+  // a date-time string with no zone designator is parsed by JS as *local*
+  // time, so tag a bare one as UTC before `Intl` re-localises it.
+  let s = String(value).trim().replace(' ', 'T')
+  if (/T\d{2}:\d{2}/.test(s) && !/[zZ]$|[+-]\d{2}:?\d{2}$/.test(s)) s += 'Z'
+  const d = new Date(s)
   return Number.isNaN(d.getTime()) ? null : d
 }
 
