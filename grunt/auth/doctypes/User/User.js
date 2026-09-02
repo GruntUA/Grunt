@@ -48,6 +48,22 @@ function on_load(frm) {
 
     frm.set_df_property("mfa_setup_button", "label", frm.doc.mfa_enabled ? "Вимкнути MFA" : "Увімкнути MFA");
 
+    // Референтність — суперадмін відкриває сесію під цим користувачем, щоб
+    // перевірити доступність документів. Повернення — через банер угорі.
+    if (grunt.session.is_superadmin && frm.doc.name !== grunt.session.user && !frm.doc.is_superadmin) {
+      frm.add_button("Увійти як цей користувач", async () => {
+        if (!(await grunt.confirm(
+          `Відкрити сесію під користувачем «${frm.doc.full_name || frm.doc.name}»? ` +
+          `Ви зможете повернутися у свій обліковий запис у будь-який момент.`
+        ))) return;
+        try {
+          await grunt.impersonate(frm.doc.name);
+        } catch (e) {
+          grunt.msgprint({ message: e?.message || "Не вдалося увійти під користувачем", indicator: "red" });
+        }
+      });
+    }
+
     if (frm.doc.signup_state === "pending") {
       frm.add_button("✓ Підтвердити реєстрацію", async () => {
         await grunt.call({

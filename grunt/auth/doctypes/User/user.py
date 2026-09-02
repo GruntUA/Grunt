@@ -522,6 +522,8 @@ async def whoami() -> dict[str, Any]:
         "mfa_enabled": bool(user.mfa_enabled),
         "language": getattr(user, "language", None) or None,
         "timezone": getattr(user, "timezone", None) or None,
+        # Set only while a superadmin is viewing the system as this user.
+        "impersonated_by": ctx_user.data.get("_impersonator"),
     }
 
 
@@ -603,6 +605,37 @@ async def logout_api() -> bool:
     except Exception:
         logger.exception("suppressed_error")
 
+    return True
+
+
+@grunt.whitelist(require=lambda user: bool(user.is_superadmin))
+async def start_impersonation_api(user_id: str) -> dict[str, Any]:
+    """Open a short-lived session as another user. Superadmin only.
+
+    Returns an access token (no refresh token) that authenticates as
+    ``user_id`` with that user's roles, plus an ``impersonated_by`` block.
+    """
+    from grunt.auth.impersonation import start_impersonation
+
+    actor = await grunt.get_current_user()
+    return await start_impersonation(actor, user_id)
+
+
+@grunt.whitelist()
+async def stop_impersonation_api() -> bool:
+    """Log the end of an impersonation session.
+
+    The real session is restored client-side from the tokens it stashed before
+    starting; this endpoint only records that the view-as session was closed.
+    """
+    user = await grunt.get_current_user()
+    imp = user.data.get("_impersonator") if hasattr(user, "data") else None
+    if imp:
+        logger.warning(
+            "auth.impersonation.stop",
+            actor=imp.get("email"),
+            target=user.email,
+        )
     return True
 
 

@@ -18,10 +18,30 @@ interface User {
   timezone?: string
 }
 
+interface Impersonator {
+  email: string
+  full_name: string
+}
+
+function _readImpersonation(): Impersonator | null {
+  try {
+    const raw = localStorage.getItem('grunt_impersonation')
+    return raw ? (JSON.parse(raw) as Impersonator) : null
+  } catch {
+    return null
+  }
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('grunt_token'))
   const refreshToken = ref<string | null>(localStorage.getItem('grunt_refresh_token'))
   const user = ref<User | null>(null)
+
+  // Set while a superadmin is viewing the system as another user. The real
+  // session's tokens are stashed under `*_orig` keys and restored on stop.
+  const impersonatedBy = ref<Impersonator | null>(_readImpersonation())
+  const isImpersonating = computed(() => !!impersonatedBy.value)
+  let _impTimer: ReturnType<typeof setTimeout> | null = null
 
   if (typeof window !== 'undefined') {
     window.addEventListener('storage', (e) => {
@@ -93,6 +113,81 @@ export const useAuthStore = defineStore('auth', () => {
   async function setSession(accessToken: string, rt: string): Promise<void> {
     _setTokens(accessToken, rt)
     await fetchMe()
+  }
+
+  function _jwtExpMs(jwt: string): number | null {
+    try {
+      const payload = JSON.parse(atob(jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+      return typeof payload?.exp === 'number' ? payload.exp * 1000 : null
+    } catch {
+      return null
+    }
+  }
+
+  function _scheduleImpersonationExpiry() {
+    if (_impTimer) clearTimeout(_impTimer)
+    if (!token.value) return
+    const expMs = _jwtExpMs(token.value)
+    if (expMs == null) return
+    const delay = Math.max(0, expMs - Date.now())
+    _impTimer = setTimeout(() => { void stopImpersonation() }, delay)
+  }
+
+  /**
+   * Superadmin: open a short-lived session as `userId`. Stashes the real
+   * session so `stopImpersonation()` can restore it, then swaps in the
+   * impersonation access token (which has no refresh token — it just expires).
+   */
+  async function startImpersonation(userId: string): Promise<void> {
+    const { authAdminApi } = await import('@/core/api/auth-admin')
+    const data = await authAdminApi.startImpersonation(userId)
+
+    if (token.value) localStorage.setItem('grunt_token_orig', token.value)
+    if (refreshToken.value) localStorage.setItem('grunt_refresh_token_orig', refreshToken.value)
+
+    token.value = data.access_token
+    refreshToken.value = null
+    localStorage.setItem('grunt_token', data.access_token)
+    localStorage.removeItem('grunt_refresh_token')
+
+    const who: Impersonator = {
+      email: data.impersonated_by.email,
+      full_name: data.impersonated_by.full_name,
+    }
+    impersonatedBy.value = who
+    localStorage.setItem('grunt_impersonation', JSON.stringify(who))
+
+    user.value = data.user as User
+    applyUserPreferences(data.user as User)
+    _scheduleImpersonationExpiry()
+  }
+
+  /** Leave an impersonation session and restore the superadmin's own session. */
+  async function stopImpersonation(): Promise<void> {
+    if (_impTimer) { clearTimeout(_impTimer); _impTimer = null }
+    if (!isImpersonating.value) return
+
+    try {
+      const { authAdminApi } = await import('@/core/api/auth-admin')
+      await authAdminApi.stopImpersonation()
+    } catch {
+      // best-effort audit call
+    }
+
+    const origToken = localStorage.getItem('grunt_token_orig')
+    const origRefresh = localStorage.getItem('grunt_refresh_token_orig')
+    localStorage.removeItem('grunt_token_orig')
+    localStorage.removeItem('grunt_refresh_token_orig')
+    localStorage.removeItem('grunt_impersonation')
+    impersonatedBy.value = null
+
+    if (origToken && origRefresh) {
+      _setTokens(origToken, origRefresh)
+      user.value = null
+      await fetchMe()
+    } else {
+      _logout()
+    }
   }
 
   async function loginWithPasskey(
@@ -176,16 +271,24 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchMe() {
     if (!token.value) return
-    // Token without refresh token cannot be recovered and only causes noisy 401 calls.
-    if (!refreshToken.value) {
-      _logout()
-      return
-    }
 
-    // Refresh first when access token is already expired.
-    if (isJwtExpired(token.value)) {
-      const ok = await refresh()
-      if (!ok || user.value) return
+    if (isImpersonating.value) {
+      // No refresh token by design — an expired impersonation token just ends.
+      if (isJwtExpired(token.value)) {
+        await stopImpersonation()
+        return
+      }
+    } else {
+      // Token without refresh token cannot be recovered and only causes noisy 401 calls.
+      if (!refreshToken.value) {
+        _logout()
+        return
+      }
+      // Refresh first when access token is already expired.
+      if (isJwtExpired(token.value)) {
+        const ok = await refresh()
+        if (!ok || user.value) return
+      }
     }
 
     if (!_fetchMePromise) {
@@ -194,10 +297,21 @@ export const useAuthStore = defineStore('auth', () => {
           const u = data.data ?? data
           user.value = u
           applyUserPreferences(u)
+          if (u.impersonated_by) {
+            const who: Impersonator = {
+              email: u.impersonated_by.email,
+              full_name: u.impersonated_by.full_name,
+            }
+            impersonatedBy.value = who
+            localStorage.setItem('grunt_impersonation', JSON.stringify(who))
+            _scheduleImpersonationExpiry()
+          }
         })
         .catch((err: any) => {
-          // Only log out on auth errors (401/403), not on network/server errors
-          if (err?.response?.status === 401 || err?.response?.status === 403) {
+          if (isImpersonating.value) {
+            void stopImpersonation()
+          } else if (err?.response?.status === 401 || err?.response?.status === 403) {
+            // Only log out on auth errors (401/403), not on network/server errors
             _logout()
           }
         })
@@ -223,11 +337,16 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function _logout() {
+    if (_impTimer) { clearTimeout(_impTimer); _impTimer = null }
     token.value = null
     refreshToken.value = null
     user.value = null
+    impersonatedBy.value = null
     localStorage.removeItem('grunt_token')
     localStorage.removeItem('grunt_refresh_token')
+    localStorage.removeItem('grunt_token_orig')
+    localStorage.removeItem('grunt_refresh_token_orig')
+    localStorage.removeItem('grunt_impersonation')
     // Drop the user's timezone override; fall back to the site config.
     applyUserPrefs({})
   }
@@ -241,5 +360,12 @@ export const useAuthStore = defineStore('auth', () => {
     _logout()
   }
 
-  return { token, refreshToken, user, isLoggedIn, login, loginWithPasskey, beginEmailLogin, completeEmailLogin, setSession, logout, refresh, fetchMe, prefetchMe, setTheme, setLanguage }
+  // Resume the expiry timer for an impersonation session across a page reload.
+  if (isImpersonating.value) _scheduleImpersonationExpiry()
+
+  return {
+    token, refreshToken, user, isLoggedIn, login, loginWithPasskey, beginEmailLogin,
+    completeEmailLogin, setSession, logout, refresh, fetchMe, prefetchMe, setTheme, setLanguage,
+    impersonatedBy, isImpersonating, startImpersonation, stopImpersonation,
+  }
 })

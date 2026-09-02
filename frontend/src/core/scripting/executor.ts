@@ -10,6 +10,7 @@
  */
 
 import client from '@/core/api/client'
+import { useAuthStore } from '@/stores/auth'
 import type { DialogSize } from '@/core/composables/useDialog'
 
 // ── Types ────────────────────────────────────────────────────────────────
@@ -156,6 +157,21 @@ export interface ListQuickFilterChange {
 
 /** Framework helpers exposed as `grunt`. */
 export interface GruntProxy {
+  /** The currently signed-in user (read-only snapshot). */
+  session: {
+    user: string
+    full_name: string
+    roles: string[]
+    is_superadmin: boolean
+    /** Set (with the impersonator) while a superadmin is viewing as this user. */
+    impersonated_by: { email: string; full_name: string } | null
+  }
+  /**
+   * Superadmin only: open a short-lived session as another user to verify
+   * their access, then reload the app. Return to your own account from the
+   * banner at the top of the screen. Rejects for non-superadmins.
+   */
+  impersonate: (userId: string) => Promise<void>
   /**
    * Call a whitelisted server method.
    *
@@ -617,6 +633,24 @@ export function createGruntProxy(
   }
 
   return {
+    get session() {
+      const u = useAuthStore().user
+      return {
+        user: u?.email ?? 'guest@grunt.local',
+        full_name: u?.full_name ?? 'Guest',
+        roles: u?.roles ?? [],
+        is_superadmin: !!u?.is_superadmin,
+        impersonated_by: useAuthStore().impersonatedBy,
+      }
+    },
+
+    async impersonate(userId: string) {
+      const auth = useAuthStore()
+      await auth.startImpersonation(userId)
+      // Full reload so every store re-initialises under the new identity.
+      window.location.href = '/'
+    },
+
     async call(methodOrOpts: string | { method: string; args?: Record<string, unknown> }, argsArg?: Record<string, unknown>) {
       const method = typeof methodOrOpts === 'string' ? methodOrOpts : methodOrOpts.method
       const args = typeof methodOrOpts === 'string' ? (argsArg ?? {}) : (methodOrOpts.args ?? {})

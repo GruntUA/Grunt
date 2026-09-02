@@ -41,8 +41,18 @@ async def session_ttl_minutes() -> int:
         return settings.access_token_expire_minutes
 
 
-def create_access_token(user: User, expire_minutes: int | None = None) -> str:
-    """Create a JWT with user identity claims to avoid DB lookups on every request."""
+def create_access_token(
+    user: User,
+    expire_minutes: int | None = None,
+    *,
+    impersonator: User | None = None,
+) -> str:
+    """Create a JWT with user identity claims to avoid DB lookups on every request.
+
+    When ``impersonator`` is given, the token authenticates as *user* but also
+    carries ``imp*`` claims naming the superadmin who opened the session — so
+    the UI can show a "you are viewing as …" banner and audit knows who acted.
+    """
     minutes = expire_minutes if expire_minutes is not None else settings.access_token_expire_minutes
     expire = datetime.now(UTC) + timedelta(minutes=minutes)
     payload = {
@@ -55,6 +65,10 @@ def create_access_token(user: User, expire_minutes: int | None = None) -> str:
         "roles": user.roles,
         "exp": expire,
     }
+    if impersonator is not None:
+        payload["imp"] = impersonator.id
+        payload["imp_email"] = impersonator.email
+        payload["imp_name"] = impersonator.full_name
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
 

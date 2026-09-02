@@ -98,6 +98,15 @@ async def current_user(
     if user is None or user.email != email or not user.is_active:
         raise credentials_exception
 
+    # Impersonation session: the token authenticates as ``user`` but names the
+    # superadmin who opened it. Stash it so ``whoami`` / audit can surface it.
+    if payload.get("imp"):
+        user.data["_impersonator"] = {
+            "id": payload.get("imp"),
+            "email": payload.get("imp_email"),
+            "full_name": payload.get("imp_name"),
+        }
+
     from grunt.api.context import set_user
 
     set_user(user)

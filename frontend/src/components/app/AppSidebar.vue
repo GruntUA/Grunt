@@ -13,7 +13,7 @@ import { useSidebar } from '@/components/ui/sidebar'
 import {
   ArrowLeft, Check, ChevronDown, ChevronRight, ChevronsUpDown, Sun, Moon, Monitor,
   Settings2, Search, Activity,
-  Mail, LogOut, Languages,
+  Mail, LogOut, Languages, Eye,
 } from '@lucide/vue'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -38,6 +38,11 @@ async function onThemeChange(theme: unknown) { await auth.setTheme(theme as Them
 const currentLanguage = computed(() => auth.user?.language || i18n.global.locale.value)
 async function onLanguageChange(lang: unknown) { await auth.setLanguage(lang as 'uk' | 'en') }
 async function handleLogout() { await auth.logout(); router.push('/login') }
+async function exitImpersonation() {
+  await auth.stopImpersonation()
+  // Full reload so every store re-initialises under the superadmin identity.
+  window.location.href = '/'
+}
 
 // ── Admin shortcuts ───────────────────────────────────────────────────────────
 const adminLinks = [
@@ -189,6 +194,26 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
 
     <SidebarFooter>
       <SidebarMenu>
+        <!-- Референтність: суперадмін переглядає систему від імені цього користувача -->
+        <SidebarMenuItem v-if="auth.isImpersonating">
+          <div class="rounded-md border border-violet-500/40 bg-violet-500/10 px-2 py-1.5 group-data-[collapsible=icon]:hidden">
+            <div class="flex items-center gap-1.5 text-xs font-medium text-violet-700 dark:text-violet-300">
+              <Eye class="size-3.5 shrink-0" />
+              <span class="truncate">Перегляд як {{ auth.user?.full_name }}</span>
+            </div>
+            <button
+              class="mt-1.5 w-full rounded bg-violet-600 px-2 py-1 text-xs font-semibold text-white transition-colors hover:bg-violet-700"
+              @click="exitImpersonation">
+              Повернутися до себе
+            </button>
+          </div>
+          <SidebarMenuButton
+            class="hidden text-violet-600 group-data-[collapsible=icon]:flex dark:text-violet-400"
+            tooltip="Повернутися до свого облікового запису" @click="exitImpersonation">
+            <Eye />
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
         <SidebarMenuItem>
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
@@ -253,6 +278,10 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
               <DropdownMenuSeparator />
+              <DropdownMenuItem v-if="auth.isImpersonating" class="gap-2 p-2 text-violet-600 focus:text-violet-700 dark:text-violet-400" @click="exitImpersonation">
+                <Eye class="size-4 shrink-0" />
+                <span>Повернутися до свого облікового запису</span>
+              </DropdownMenuItem>
               <DropdownMenuItem class="gap-2 p-2" @click="handleLogout">
                 <LogOut class="size-4 shrink-0" />
                 <span>Вийти</span>

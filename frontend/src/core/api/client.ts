@@ -101,6 +101,25 @@ client.interceptors.response.use(
     if (error.response?.status === 401 && !isAuthEndpoint && !originalConfig._retried) {
       originalConfig._retried = true
 
+      // An impersonation session has no refresh token — a 401 means it expired
+      // or was rejected. Restore the superadmin's own session and retry once.
+      {
+        const { useAuthStore } = await import('@/stores/auth')
+        const auth = useAuthStore()
+        if (auth.isImpersonating) {
+          await auth.stopImpersonation()
+          const restored = localStorage.getItem('grunt_token')
+          if (restored) {
+            originalConfig.headers.Authorization = `Bearer ${restored}`
+            return client(originalConfig)
+          }
+          if (!isPublicAuthPath(window.location.pathname)) {
+            await redirectToRoute('login')
+          }
+          return Promise.reject(error)
+        }
+      }
+
       // Coalesce concurrent refresh attempts into one
       if (!_refreshing) {
         _refreshing = (async () => {
