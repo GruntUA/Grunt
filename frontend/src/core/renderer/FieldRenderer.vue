@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, useId } from 'vue'
+import { computed, inject, ref, useId } from 'vue'
 import { getAsyncFieldComponent } from '@/core/fieldRegistry'
 import { useDevMode } from '@/core/composables/useDevMode'
 import { validateFieldValue } from '@/core/validators'
@@ -63,6 +63,20 @@ const describedBy = computed(() => {
   if (displayError.value) ids.push(errId)
   return ids.length ? ids.join(' ') : undefined
 })
+
+const copied = ref(false)
+let copiedTimer: ReturnType<typeof setTimeout> | undefined
+
+async function copyFieldname() {
+  try {
+    await navigator.clipboard.writeText(props.field.fieldname)
+    copied.value = true
+    clearTimeout(copiedTimer)
+    copiedTimer = setTimeout(() => (copied.value = false), 1000)
+  } catch {
+    /* clipboard unavailable — ignore */
+  }
+}
 </script>
 
 <template>
@@ -101,9 +115,10 @@ const describedBy = computed(() => {
       {{ displayError }}
     </p>
 
-    <span v-if="isDev && altPressed"
-      class="absolute -top-2 right-1 z-50 rounded bg-foreground px-1.5 py-0.5 text-xs font-mono text-background pointer-events-none select-none">
-      {{ field.fieldname }}
-    </span>
+    <button v-if="isDev && altPressed" type="button" @click="copyFieldname"
+      :title="`Клікніть, щоб скопіювати «${field.fieldname}»`"
+      class="absolute -top-2 right-1 z-50 rounded bg-foreground px-1.5 py-0.5 text-xs font-mono text-background select-none cursor-pointer hover:bg-foreground/80">
+      {{ copied ? 'Скопійовано' : field.fieldname }}
+    </button>
   </div>
 </template>
