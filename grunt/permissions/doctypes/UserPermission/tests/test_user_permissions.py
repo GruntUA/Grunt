@@ -44,7 +44,7 @@ async def setup(ctx):
     blue = (await ctx.new_doc("UPTestPost", {"title": "blue post", "team": "Blue"}))["name"]
     await ctx.new_doc(
         "UserPermission",
-        {"user": "alice@example.com", "allow": "Role", "for_value": "Red"},
+        {"for_user": "alice@example.com", "allow": "Role", "for_value": "Red"},
     )
     await ctx.db._session().commit()
     invalidate_user_permission_cache()
@@ -118,7 +118,7 @@ async def test_is_default_form_defaults(ctx, setup, db_session, engine):
     await grunt.new_doc(
         "UserPermission",
         {
-            "user": "carol@example.com",
+            "for_user": "carol@example.com",
             "allow": "Role",
             "for_value": "Blue",
             "is_default": True,

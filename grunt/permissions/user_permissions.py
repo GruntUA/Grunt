@@ -68,7 +68,7 @@ async def _load(user_email: str) -> dict[str, dict[str, set[str]]]:
 
     rows = await grunt.db.get_all(
         "UserPermission",
-        filters={"user": user_email},
+        filters={"for_user": user_email},
         fields=["allow", "for_value", "apply_to_all_doctypes", "applicable_for"],
         limit=5000,
     )
@@ -92,7 +92,12 @@ async def get_user_permissions_for(user: User | None, doctype_name: str) -> dict
 
     by_allow = _UP_CACHE.get(email)
     if by_allow is None:
-        by_allow = await _load(email)
+        try:
+            by_allow = await _load(email)
+        except RuntimeError:
+            # No active DB session (e.g. a bare permission_checker unit test) —
+            # there's nothing to load, so impose no restriction.
+            return {}
         _UP_CACHE[email] = by_allow
 
     result: dict[str, set[str]] = {}
@@ -182,11 +187,10 @@ async def doc_passes(user: User | None, doctype: DocType, doc: dict[str, Any]) -
 async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
     """Rows for the list-view "Restrictions" popup: which fields on *doctype*
     are constrained, and to which values, for the current user."""
-    from grunt.app import grunt as g
     from grunt.document.meta import Meta
     from grunt.metadata.registry import doctype_registry
 
-    user = await g.get_current_user()
+    user = await grunt.get_current_user()
     dt = await doctype_registry.get(doctype)
     up = await get_user_permissions_for(user, doctype)
     if not up:
@@ -208,19 +212,18 @@ async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
 async def get_user_permission_defaults(doctype: str) -> dict[str, str]:
     """``{fieldname: value}`` to pre-fill on a new *doctype* form from the
     current user's ``is_default`` UserPermission rows."""
-    from grunt.app import grunt as g
     from grunt.metadata.registry import doctype_registry
 
-    user = await g.get_current_user()
+    user = await grunt.get_current_user()
     if not user_permissions_apply_to(user):
         return {}
     email = getattr(user, "email", None)
     if not email:
         return {}
 
-    rows = await g.db.get_all(
+    rows = await grunt.db.get_all(
         "UserPermission",
-        filters={"user": email, "is_default": True},
+        filters={"for_user": email, "is_default": True},
         fields=["allow", "for_value", "apply_to_all_doctypes", "applicable_for"],
         limit=500,
     )

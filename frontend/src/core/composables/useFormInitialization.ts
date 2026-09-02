@@ -52,6 +52,17 @@ export function useFormInitialization(params: FormInitializationParams) {
         }
       }
 
+      // Prefill Link fields from the user's is_default User Permissions.
+      try {
+        const { permissionsApi } = await import('@/core/api/permissions')
+        const upDefaults = await permissionsApi.getUserPermissionDefaults(params.doctype)
+        for (const [fieldname, value] of Object.entries(upDefaults)) {
+          if (params.form.value[fieldname] == null) params.form.value[fieldname] = value
+        }
+      } catch {
+        // no-op — defaults are a convenience, not a requirement
+      }
+
       applyHistoryObject(params.form.value, 'duplicate')
       applyHistoryObject(params.form.value, 'initial_data')
 

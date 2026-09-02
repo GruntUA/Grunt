@@ -1,8 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import type { DocType, ScriptButton, ScriptMenuItem } from '@/types'
+import { permissionsApi, type ActiveRestriction } from '@/core/api/permissions'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { getExporters } from '@/core/io'
 import type { ExportContext } from '@/core/io'
 import { getRegisteredViews, getViewDef } from '@/core/viewRegistry'
@@ -16,6 +23,7 @@ import {
   ChevronDown,
   Check,
   Filter,
+  Ban,
 } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import type { ButtonVariants } from '@/components/ui/button'
@@ -130,6 +138,20 @@ const menuItems = computed(() => {
 
     return items
 })
+
+// ── Row-level "Restrictions" (User Permissions) ──────────────────────────
+const restrictions = ref<ActiveRestriction[]>([])
+const showRestrictions = ref(false)
+
+async function loadRestrictions() {
+  try {
+    restrictions.value = await permissionsApi.getRestrictions(props.doctype)
+  } catch {
+    restrictions.value = []
+  }
+}
+onMounted(loadRestrictions)
+watch(() => props.doctype, loadRestrictions)
 </script>
 
 <template>
@@ -157,6 +179,18 @@ const menuItems = computed(() => {
         <!-- Refresh button -->
         <Button variant="outline" size="icon-sm" :title="t('Refresh')" @click="emit('refresh')">
           <RefreshCw class="size-4" :class="{ 'animate-spin': isFetching }" />
+        </Button>
+
+        <!-- Restrictions (row-level User Permissions applied to this list) -->
+        <Button
+          v-if="restrictions.length"
+          variant="outline"
+          size="icon-sm"
+          class="text-amber-600 dark:text-amber-500"
+          title="Список обмежено вашими правами доступу"
+          @click="showRestrictions = true"
+        >
+          <Ban class="size-4" />
         </Button>
 
         <!-- Actions menu -->
@@ -196,4 +230,32 @@ const menuItems = computed(() => {
       </Button>
     </div>
   </div>
+
+  <Dialog v-model:open="showRestrictions">
+    <DialogContent class="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle class="flex items-center gap-2">
+          <Ban class="size-4 text-amber-600 dark:text-amber-500" />
+          Обмеження
+        </DialogTitle>
+      </DialogHeader>
+      <p class="text-sm text-muted-foreground -mt-1">
+        Ви бачите лише записи, що відповідають цим значенням.
+      </p>
+      <table class="w-full text-sm border border-border rounded-md overflow-hidden">
+        <thead>
+          <tr class="bg-muted/50 text-muted-foreground">
+            <th class="text-left font-medium px-3 py-2 border-b border-border">Поле</th>
+            <th class="text-left font-medium px-3 py-2 border-b border-border">Значення</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(r, i) in restrictions" :key="i" class="border-b border-border last:border-0">
+            <td class="px-3 py-2">{{ r.field }}</td>
+            <td class="px-3 py-2 font-medium">{{ r.value }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </DialogContent>
+  </Dialog>
 </template>

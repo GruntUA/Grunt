@@ -16,9 +16,13 @@ from grunt.document.base import Document
 
 
 class UserPermission(Document):
-    """DocType controller for UserPermission."""
+    """DocType controller for UserPermission.
 
-    user: str
+    NB: the "who" field is ``for_user`` (not ``user``) — ``user`` is a
+    reserved attribute on ``Document`` (the acting user).
+    """
+
+    for_user: str
     allow: str
     for_value: str
     apply_to_all_doctypes: bool
@@ -36,7 +40,7 @@ class UserPermission(Document):
         dupes = await grunt.get_list(
             "UserPermission",
             filters={
-                "user": self.user,
+                "for_user": self.for_user,
                 "allow": self.allow,
                 "for_value": self.for_value,
                 "applicable_for": self.applicable_for,
@@ -48,10 +52,10 @@ class UserPermission(Document):
             raise ValueError("Такий дозвіл користувача вже існує")
 
     async def after_save(self) -> None:
-        _invalidate(self.user)
+        _invalidate(self.for_user)
 
     async def after_delete(self) -> None:
-        _invalidate(self.user)
+        _invalidate(self.for_user)
 
 
 def _invalidate(user_id: str | None) -> None:

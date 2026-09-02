@@ -3,10 +3,10 @@
   "label": "Дозвіл користувача",
   "module": "permissions",
   "autoname": "hash",
-  "title_field": "user",
+  "title_field": "for_user",
   "fields": [
     {
-      "fieldname": "user",
+      "fieldname": "for_user",
       "label": "Користувач",
       "fieldtype": "Link",
       "options": "User",
