@@ -31,7 +31,7 @@ async def people(ctx):
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         boss = await create_user("boss@grunt.example.com", "Str0ngPass", "Boss", "Root", None)
         member = await create_user("member@grunt.example.com", "Str0ngPass", "Mem", "Ber", None)
-        await ctx.new_doc("UserRole", {"user_id": member.id, "role_name": "Кадровик"})
+        await ctx.save_doc("User", member.id, {"roles": [{"role_name": "Кадровик"}]})
         other_admin = await create_user(
             "admin2@grunt.example.com", "Str0ngPass", "Ad", "Min", None
         )

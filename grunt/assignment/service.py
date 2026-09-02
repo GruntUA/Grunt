@@ -90,12 +90,12 @@ class AssignmentService:
             elif rule.assign_to_role:
                 ur_rows = await grunt.get_list(
                     "UserRole",
-                    filters={"role_name": rule.assign_to_role},
-                    fields=["user_id"],
+                    filters={"role_name": rule.assign_to_role, "parent_doctype": "User"},
+                    fields=["parent_name"],
                     limit=500,
                 )
                 for ur in ur_rows:
-                    u = await get_user_by_id(ur["user_id"])
+                    u = await get_user_by_id(ur["parent_name"])
                     if u and u.is_active:
                         will_assign_to.append(u.email)
 
@@ -209,12 +209,12 @@ class AssignmentService:
             async with grunt.system_context(require_session()):
                 ur_rows = await grunt.db.get_all(
                     "UserRole",
-                    filters={"role_name": role},
-                    fields=["user_id"],
+                    filters={"role_name": role, "parent_doctype": "User"},
+                    fields=["parent_name"],
                     limit=500,
                 )
 
-            user_ids = [r["user_id"] for r in ur_rows]
+            user_ids = [r["parent_name"] for r in ur_rows]
             if not user_ids:
                 logger.info("assignment.no_users_in_role", doctype=doctype, role=role)
                 return

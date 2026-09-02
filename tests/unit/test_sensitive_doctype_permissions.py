@@ -100,13 +100,46 @@ def test_shipped_doctype_has_permissions_defined(doctype_name):
     assert dt.permissions, f"{doctype_name} must declare permissions, not be open by default"
 
 
-@pytest.mark.parametrize("doctype_name", list(_DOCTYPE_JSON))
+# User is the one exception: it also ships a `{"role": "All", "match":
+# "name == user"}` row so a signed-in user can save *their own* profile via the
+# generic form. Its self-service model is covered by the dedicated tests below.
+_GENERIC_LOCKED = [n for n in _DOCTYPE_JSON if n != "User"]
+
+
+@pytest.mark.parametrize("doctype_name", _GENERIC_LOCKED)
 @pytest.mark.parametrize("action", ["read", "write", "create", "delete"])
 @pytest.mark.asyncio
 async def test_plain_user_has_no_access(doctype_name, action):
     dt = _load(doctype_name)
     allowed = await permission_checker.check(_plain_user(), dt, action)
     assert allowed is False
+
+
+@pytest.mark.parametrize("action", ["create", "delete"])
+@pytest.mark.asyncio
+async def test_plain_user_cannot_create_or_delete_users(action):
+    """The "All" row grants only read+write — never create/delete."""
+    dt = _load("User")
+    assert await permission_checker.check(_plain_user(), dt, action) is False
+
+
+@pytest.mark.asyncio
+async def test_plain_user_write_is_scoped_to_own_row():
+    """`match: "name == user"` — a plain user may write their own User row but
+    not anyone else's. (Which *fields* they may change is enforced by the User
+    controller — see test_auth.test_self_edit_scope.)"""
+    dt = _load("User")
+    attacker = _plain_user("victim@example.com")
+    assert (
+        await permission_checker.check(
+            attacker, dt, "write", {"name": "someone-else@example.com"}
+        )
+        is False
+    )
+    assert (
+        await permission_checker.check(attacker, dt, "write", {"name": "victim@example.com"})
+        is True
+    )
 
 
 @pytest.mark.parametrize("doctype_name", list(_DOCTYPE_JSON))
@@ -130,15 +163,16 @@ async def test_superadmin_bypasses_regardless(doctype_name):
 
 
 @pytest.mark.asyncio
-async def test_self_promotion_to_superadmin_denied_by_permission_check():
-    """The exact exploit: a plain user has no `write` on User at all, so the
-    generic write_guard()/save_doc("User", own_id, {"is_superadmin": True})
-    path is refused before a single field is touched.
+async def test_self_promotion_to_superadmin_denied():
+    """A plain user can save their own profile, but `is_superadmin` /
+    `is_active` / `signup_state` / roles / password / MFA are blocked by the
+    User controller (`_enforce_self_edit_scope`). The permission layer here
+    proves the second line of defence — no `create` on User — and the
+    controller test (test_auth.test_self_edit_scope) proves the field guard.
     """
     dt = _load("User")
     attacker = _plain_user("victim@example.com")
-    allowed = await permission_checker.check(attacker, dt, "write")
-    assert allowed is False
+    assert await permission_checker.check(attacker, dt, "create") is False
 
 
 @pytest.mark.asyncio

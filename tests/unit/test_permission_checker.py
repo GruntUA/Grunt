@@ -151,11 +151,11 @@ async def test_list_users_as_superadmin(ctx):
 
 
 @pytest.mark.asyncio
-async def test_add_remove_role(ctx):
-    """Superadmin can add and remove roles from users."""
-    from grunt.auth.doctypes.User.user import add_role, list_users_api, remove_role
+async def test_user_roles_child_table(ctx):
+    """Roles are managed through the ``User.roles`` child table."""
+    from grunt.auth.doctypes.User.user import list_users_api
 
-    # Register a regular user
+    await ctx.new_doc("Role", {"role_name": "Manager"})
     target_data = {
         "email": "target@grunt.example.com",
         "password": "pass",
@@ -166,20 +166,18 @@ async def test_add_remove_role(ctx):
     target_id = target_doc["name"]
     await ctx.db._session().commit()
 
-    # Add role
-    await add_role(user_id=target_id, role_name="Manager")
+    # Assign a role
+    await ctx.save_doc("User", target_id, {"roles": [{"role_name": "Manager"}]})
     await ctx.db._session().commit()
 
-    # Verify role is in user list
     users = await list_users_api()
     user_data = next(u for u in users if u["name"] == target_id)
     assert "Manager" in user_data["roles"]
 
-    # Remove role
-    await remove_role(user_id=target_id, role_name="Manager")
+    # Clear roles
+    await ctx.save_doc("User", target_id, {"roles": []})
     await ctx.db._session().commit()
 
-    # Verify role removed
     users = await list_users_api()
     user_data = next(u for u in users if u["name"] == target_id)
     assert "Manager" not in user_data["roles"]

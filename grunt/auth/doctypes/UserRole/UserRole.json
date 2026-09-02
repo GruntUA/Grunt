@@ -2,17 +2,8 @@
   "name": "UserRole",
   "label": "Роль користувача",
   "module": "auth",
-  "autoname": "hash",
+  "is_child": true,
   "fields": [
-    {
-      "fieldname": "user_id",
-      "label": "Користувач (ID)",
-      "fieldtype": "Text",
-      "required": true,
-      "index": true,
-      "in_list_view": true,
-      "in_filter": true
-    },
     {
       "fieldname": "role_name",
       "label": "Роль",

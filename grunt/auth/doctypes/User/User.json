@@ -196,6 +196,18 @@
       "hidden": true
     },
     {
+      "fieldname": "sec_roles",
+      "label": "Ролі",
+      "fieldtype": "Section",
+      "description": "Ролі користувача. Редагувати може лише System Manager."
+    },
+    {
+      "fieldname": "roles",
+      "label": "Ролі",
+      "fieldtype": "Table",
+      "options": "UserRole"
+    },
+    {
       "fieldname": "sec_mfa",
       "label": "MFA та Блокування",
       "fieldtype": "Section",
@@ -332,6 +344,21 @@
       "write": true,
       "create": true,
       "delete": true
+    },
+    {
+      "role": "All",
+      "read": true,
+      "write": true,
+      "match": "name == user",
+      "hidden_fields": [
+        "hashed_password",
+        "mfa_secret",
+        "mfa_backup_codes",
+        "refresh_token",
+        "refresh_token_expires_at",
+        "reset_token",
+        "reset_token_expires_at"
+      ]
     }
   ]
 }

@@ -22,6 +22,40 @@ logger = structlog.get_logger()
 _MAX_ATTEMPTS = 10
 _LOCKOUT_MINUTES = 30
 
+# When a non-privileged user saves their *own* record via the generic form (the
+# "All" permission row lets them), these fields must not change. Roles live in
+# the `roles` child table and are guarded separately. Privileged callers
+# (System Manager / superadmin) and internal/system code bypass this.
+#
+# Two tiers:
+#  * _GUARDED — user-meaningful privileged fields; changing one is a real
+#    escalation attempt, so reject loudly and name the field.
+#  * _SILENT_RESET — framework-managed / read-only fields the form just echoes
+#    back; a stale echo is not an attack, so quietly restore the stored value
+#    instead of failing the whole save.
+_GUARDED_USER_FIELDS: dict[str, str] = {
+    "email": "Email",  # autoname source — renaming an account is an admin action
+    "is_active": "Активний",
+    "is_superadmin": "Суперадмін",
+    "signup_state": "Стан реєстрації",
+    "password": "Пароль",
+}
+_SILENT_RESET_USER_FIELDS: frozenset[str] = frozenset(
+    {
+        "hashed_password",
+        "mfa_enabled",
+        "mfa_secret",
+        "mfa_backup_codes",
+        "login_attempts",
+        "locked_until",
+        "last_login",
+        "refresh_token",
+        "refresh_token_expires_at",
+        "reset_token",
+        "reset_token_expires_at",
+    }
+)
+
 # ── Document Controller ───────────────────────────────────────────────────
 
 
@@ -64,6 +98,71 @@ class User(Document):
             raise ValueError("Ім'я є обов'язковим")
         if not self.last_name:
             raise ValueError("Прізвище є обов'язковим")
+        await self._enforce_self_edit_scope()
+
+    async def _enforce_self_edit_scope(self) -> None:
+        """Restrict what a non-privileged user may change on their own record.
+
+        The ``{"role": "All", "match": "name == user"}`` permission on User lets
+        any authenticated user save *their own* profile via the generic form.
+        This keeps that to profile fields only — roles, activation, superadmin,
+        password and MFA state stay admin-only. System Manager / superadmin and
+        internal/system code (registration, fixtures, ``_assign_default_role``)
+        are unrestricted.
+        """
+        from grunt.permissions.roles import user_has_roles
+
+        try:
+            current = await grunt.get_current_user()
+        except Exception:
+            return
+        if current is None or not getattr(current, "id", None):
+            return
+        if user_has_roles(current, ["System Manager"]):  # True for superadmin too
+            return
+        if await _is_internal_context():
+            return
+        if not self.name:
+            grunt.throw("Недостатньо прав для створення користувача", "FORBIDDEN")
+
+        # Roles are only in the merged payload when the client actually submitted
+        # the child table (see update_document) — so key presence == an attempt.
+        if "roles" in self.data:
+            stored = await grunt.db.get_all(
+                "UserRole",
+                filters={"parent_name": self.name, "parent_doctype": "User"},
+                fields=["role_name"],
+                limit=100,
+            )
+            submitted = {
+                r.get("role_name")
+                for r in (self.data.get("roles") or [])
+                if isinstance(r, dict)
+            }
+            if submitted != {r["role_name"] for r in stored}:
+                grunt.throw("Недостатньо прав для зміни ролей", "FORBIDDEN")
+
+        # Framework-managed fields the form only echoes back — quietly restore
+        # the stored value rather than failing the save.
+        for field in _SILENT_RESET_USER_FIELDS:
+            if field in self.data:
+                self.data[field] = await grunt.db.get_value("User", self.name, field)
+
+        # User-meaningful privileged fields — changing one is an escalation
+        # attempt: reject and say exactly which field.
+        for field, label in _GUARDED_USER_FIELDS.items():
+            if field not in self.data:
+                continue
+            if field == "password":
+                if self.data.get("password"):
+                    grunt.throw(
+                        "Недостатньо прав, щоб задати пароль — скористайтесь дією «Змінити пароль»",
+                        "FORBIDDEN",
+                    )
+                continue
+            stored = await grunt.db.get_value("User", self.name, field)
+            if _norm_scalar(self.data.get(field)) != _norm_scalar(stored):
+                grunt.throw(f"Недостатньо прав, щоб змінити поле «{label}»", "FORBIDDEN")
 
     async def before_save(self) -> None:
         """Construct full_name from components."""
@@ -128,6 +227,14 @@ SYSTEM_USER = User(
         "language": "uk",
     },
 )
+
+
+def _norm_scalar(value: Any) -> str:
+    """Loose scalar comparison key for _enforce_self_edit_scope — treats
+    None / "" / whitespace as equal and compares everything else by string."""
+    if value is None:
+        return ""
+    return str(value).strip()
 
 
 # ── Password helpers ──────────────────────────────────────────────────────
@@ -366,7 +473,7 @@ async def _assign_default_role(user_id: str | None) -> None:
     """Give a freshly registered user the configured ``default_role`` (if any).
 
     Runs as SYSTEM — registration happens in a guest context that cannot
-    read/write the admin-only UserRole DocType.
+    write the admin-only ``User.roles`` table.
     """
     from grunt.context import require_session
     from grunt.site.settings import get_setting
@@ -378,14 +485,17 @@ async def _assign_default_role(user_id: str | None) -> None:
     async with grunt.system_context(require_session()):
         if not await grunt.db.exists("Role", {"role_name": role}):
             return
-        existing = await grunt.db.get_all(
+        current = await grunt.db.get_all(
             "UserRole",
-            filters={"user_id": user_id, "role_name": role},
-            fields=["name"],
-            limit=1,
+            filters={"parent_name": user_id, "parent_doctype": "User"},
+            fields=["role_name"],
+            limit=100,
         )
-        if not existing:
-            await grunt.new_doc("UserRole", {"user_id": user_id, "role_name": role})
+        names = {r["role_name"] for r in current}
+        if role in names:
+            return
+        rows = [{"role_name": n} for n in names] + [{"role_name": role}]
+        await grunt.save_doc("User", user_id, {"roles": rows})
 
 
 async def _apply_signup_approval(user: User) -> bool:
@@ -703,61 +813,6 @@ async def approve_user_api(user_id: str) -> bool:
 async def reject_user_api(user_id: str) -> bool:
     """Reject a pending registration. Superadmin only."""
     return await _set_signup_state(user_id, "rejected")
-
-
-@grunt.whitelist(roles=["superadmin"])
-async def list_roles_api() -> list[dict[str, Any]]:
-    """List all defined roles. Superadmin only."""
-    roles = await grunt.get_list("Role", fields=["role_name", "description"], limit=1000)
-    return [{"name": r["role_name"], "description": r.get("description")} for r in roles]
-
-
-@grunt.whitelist(roles=["superadmin"])
-async def create_role_api(role_name: str) -> dict[str, Any]:
-    """Create a role if it doesn't exist. Superadmin only."""
-    existing = await grunt.get_list("Role", filters={"role_name": role_name}, limit=1)
-    if existing:
-        grunt.throw(f"Роль '{role_name}' вже існує", "CONFLICT")
-
-    doc = await grunt.new_doc("Role", {"role_name": role_name})
-    return {"name": doc["role_name"]}
-
-
-@grunt.whitelist(roles=["superadmin"])
-async def add_role(user_id: str, role_name: str) -> dict[str, Any]:
-    """Assign a role to a user. Superadmin only (enforced by the whitelist gate)."""
-    await grunt.get_doc(User, user_id)  # raises 404 if the user doesn't exist
-
-    existing_role = await grunt.get_list("Role", filters={"role_name": role_name}, limit=1)
-    if not existing_role:
-        await grunt.new_doc("Role", {"role_name": role_name})
-
-    existing_assignment = await grunt.get_list(
-        "UserRole",
-        filters={"user_id": user_id, "role_name": role_name},
-        limit=1,
-    )
-    if existing_assignment:
-        return {"user_id": user_id, "role": role_name, "message": "Роль вже призначено"}
-
-    await grunt.new_doc("UserRole", {"user_id": user_id, "role_name": role_name})
-    return {"user_id": user_id, "role": role_name}
-
-
-@grunt.whitelist(roles=["superadmin"])
-async def remove_role(user_id: str, role_name: str) -> bool:
-    """Remove a role from a user. Superadmin only (enforced by the whitelist gate)."""
-    rows = await grunt.get_list(
-        "UserRole",
-        filters={"user_id": user_id, "role_name": role_name},
-        fields=["name"],
-        limit=1,
-    )
-    if not rows:
-        grunt.throw("Роль не знайдено у користувача", "NOT_FOUND")
-
-    await grunt.delete_doc("UserRole", rows[0]["name"])
-    return True
 
 
 @grunt.whitelist(roles=["superadmin"])

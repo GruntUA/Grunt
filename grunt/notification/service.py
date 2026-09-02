@@ -257,11 +257,11 @@ class NotificationService:
                 for role in role_names:
                     rows = await grunt.db.get_all(
                         "UserRole",
-                        filters={"role_name": role},
-                        fields=["user_id"],
+                        filters={"role_name": role, "parent_doctype": "User"},
+                        fields=["parent_name"],
                         limit=1000,
                     )
-                    user_ids.update(r["user_id"] for r in rows)
+                    user_ids.update(r["parent_name"] for r in rows)
 
                 if not user_ids:
                     return []

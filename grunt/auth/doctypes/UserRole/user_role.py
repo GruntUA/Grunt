@@ -1,4 +1,4 @@
-"""UserRole DocType controller."""
+"""UserRole DocType controller — child table of ``User.roles``."""
 
 from __future__ import annotations
 
@@ -6,9 +6,8 @@ from grunt.document.base import Document
 
 
 class UserRole(Document):
-    """DocType controller for UserRole."""
+    """DocType controller for UserRole (a child row of ``User.roles``)."""
 
-    user_id: str
     role_name: str
 
 
@@ -20,7 +19,7 @@ async def get_user_roles(user_id: str) -> list[str]:
     async with grunt.system_context(require_session()):
         rows = await grunt.db.get_all(
             "UserRole",
-            filters={"user_id": user_id},
+            filters={"parent_name": user_id, "parent_doctype": "User"},
             fields=["role_name"],
             limit=100,
         )

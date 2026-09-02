@@ -13,18 +13,6 @@ export const authAdminApi = {
   listUsers: (): Promise<UserPublic[]> =>
     client.get('/api/v1/method/grunt.auth.doctypes.User.user.list_users_detailed_api').then(r => r.data.data),
 
-  listRoles: (): Promise<{ success: boolean; data: { name: string; description?: string }[] }> =>
-    client.get('/api/v1/method/grunt.auth.doctypes.User.user.list_roles_api').then(r => r.data),
-
-  createRole: (roleName: string): Promise<{ success: boolean }> =>
-    client.post('/api/v1/method/grunt.auth.doctypes.User.user.create_role_api', { role_name: roleName }).then(r => r.data),
-
-  addRole: (userId: string, roleName: string): Promise<{ success: boolean }> =>
-    client.post('/api/v1/method/grunt.auth.doctypes.User.user.add_role', { user_id: userId, role_name: roleName }).then(r => r.data),
-
-  removeRole: (userId: string, role: string): Promise<{ success: boolean }> =>
-    client.post('/api/v1/method/grunt.auth.doctypes.User.user.remove_role', { user_id: userId, role_name: role }).then(r => r.data),
-
   /** Superadmin: open a short-lived session as another user. */
   startImpersonation: (userId: string): Promise<{
     access_token: string

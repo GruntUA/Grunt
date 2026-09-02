@@ -81,10 +81,10 @@ async def test_authenticated_requests_load_current_roles(ctx, client: AsyncClien
 
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         user = await create_user("roles@grunt.example.com", "Str0ngPass", "Role", "Test", None)
-        await ctx.new_doc("UserRole", {"user_id": user.id, "role_name": "Кадровик"})
+        await ctx.save_doc("User", user.id, {"roles": [{"role_name": "Кадровик"}]})
         await ctx.db._session().commit()
         token = create_access_token(user)
-        await ctx.db.delete("UserRole", {"user_id": user.id, "role_name": "Кадровик"})
+        await ctx.save_doc("User", user.id, {"roles": []})
         await ctx.db._session().commit()
 
     response = await client.get(
@@ -94,6 +94,48 @@ async def test_authenticated_requests_load_current_roles(ctx, client: AsyncClien
 
     assert response.status_code == 200
     assert response.json()["data"]["roles"] == []
+
+
+@pytest.mark.asyncio
+async def test_self_edit_scope(ctx):
+    """A non-privileged user may save their own profile fields but not roles,
+    activation, superadmin or password state (`_enforce_self_edit_scope`)."""
+    from grunt.auth.doctypes.User.user import User, create_user
+
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        u = await create_user("selfedit@grunt.example.com", "Str0ngPass", "Self", "Edit", None)
+        await ctx.new_doc("Role", {"role_name": "Manager"})
+        # create_user() makes the very first user a superadmin — demote so this
+        # exercises the non-privileged path.
+        await ctx.db.set_value("User", u.id, {"is_superadmin": False, "is_active": True})
+        await ctx.db._session().commit()
+        uid = u.id
+
+    me = User(doctype="User", data={"email": uid, "name": uid, "roles": [], "is_superadmin": False})
+
+    async with ctx.context(ctx.db._session(), ctx._require_engine(), me):
+        # profile field — allowed
+        await ctx.save_doc("User", uid, {"first_name": "Renamed", "bio": "hi"})
+        await ctx.db._session().commit()
+
+        for forbidden_patch in (
+            {"is_superadmin": True},
+            {"is_active": False},
+            {"signup_state": "pending"},
+            {"roles": [{"role_name": "Manager"}]},
+            {"password": "hacked-in-plain"},
+        ):
+            with pytest.raises(Exception) as exc:
+                await ctx.save_doc("User", uid, forbidden_patch)
+            assert "прав" in str(exc.value)
+            ctx.db._session().expire_all()
+
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        row = await ctx.db.get_all(
+            "User", filters={"name": uid}, fields=["first_name", "is_superadmin"], limit=1
+        )
+    assert row[0]["first_name"] == "Renamed"
+    assert not row[0]["is_superadmin"]
 
 
 async def _set_settings(ctx, **values) -> None:
@@ -143,7 +185,11 @@ async def test_first_user_superadmin_and_registration_gate(ctx):
 
         roles = await ctx.db.get_all(
             "UserRole",
-            filters={"user_id": res["name"], "role_name": "Member"},
+            filters={
+                "parent_name": res["name"],
+                "parent_doctype": "User",
+                "role_name": "Member",
+            },
             fields=["name"],
             limit=1,
         )
@@ -198,7 +244,10 @@ async def test_register_via_http_assigns_default_role(ctx, client: AsyncClient):
 
     async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
         rows = await ctx.db.get_all(
-            "UserRole", filters={"user_id": uid, "role_name": "Newcomer"}, fields=["name"], limit=1
+            "UserRole",
+            filters={"parent_name": uid, "parent_doctype": "User", "role_name": "Newcomer"},
+            fields=["name"],
+            limit=1,
         )
     assert rows
 
