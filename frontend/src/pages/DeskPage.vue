@@ -10,9 +10,13 @@ import ActivityStream from '@/components/dashboard/ActivityStream.vue'
 import MyWorkPanel from '@/components/dashboard/MyWorkPanel.vue'
 import { readRecent, looksLikeId, type RecentDoc } from '@/core/recentDocs'
 import { useSiteConfig } from '@/core/composables/useSiteConfig'
-import { Clock, Search, Zap, LayoutGrid, ArrowRight } from '@lucide/vue'
+import { Clock, Search, Zap, LayoutGrid, ArrowRight, Eye } from '@lucide/vue'
 
 const auth = useAuthStore()
+async function exitImpersonation() {
+  await auth.stopImpersonation()
+  window.location.href = '/'
+}
 const { appName } = useSiteConfig()
 const appStore = useAppStore()
 const uiStore = useUIStore()
@@ -133,6 +137,12 @@ function docInitials(doc: RecentDoc): string {
               <p class="text-muted-foreground/70 ml-[3.5rem] font-medium">
                 Що плануєте зробити сьогодні?
               </p>
+              <button v-if="auth.isImpersonating"
+                class="mt-3 ml-[3.5rem] inline-flex items-center gap-2 rounded-md border border-violet-500/40 bg-violet-500/10 px-3 py-1.5 text-xs font-medium text-violet-700 transition-colors hover:bg-violet-500/20 dark:text-violet-300"
+                @click="exitImpersonation">
+                <Eye class="size-3.5 shrink-0" />
+                <span>Перегляд як {{ auth.user?.full_name }} — <span class="font-semibold underline">повернутися до себе</span></span>
+              </button>
             </div>
           </div>
 

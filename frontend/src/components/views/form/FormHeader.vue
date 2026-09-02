@@ -19,7 +19,11 @@ import {
   Trash2,
   ChevronDown,
   PanelRight,
+  Database,
+  Check,
+  HardDriveDownload,
 } from '@lucide/vue'
+import { metaApi, type DocTypeTableInfo, type DocTypeCompactResult } from '@/core/api/meta'
 import { useDocPanel } from '@/components/views/sidebar/useDocPanel'
 import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
 import { resolveStatusBadge } from '@/core/status'
@@ -67,6 +71,81 @@ const shareExpires = ref('')
 const showRenameDialog = ref(false)
 const newDocId = ref('')
 const isRenaming = ref(false)
+
+// Table info (DocType editor only)
+const isDocTypeEditor = computed(() => props.doctype === 'DocType' && !!props.id)
+const showTableInfoDialog = ref(false)
+const tableInfo = ref<DocTypeTableInfo | null>(null)
+const tableInfoLoading = ref(false)
+const tableInfoError = ref('')
+const tableNameCopied = ref(false)
+
+// Compaction (VACUUM / OPTIMIZE) — blocking, so it goes through a confirm step
+const confirmCompact = ref(false)
+const compacting = ref(false)
+const compactResult = ref<DocTypeCompactResult | null>(null)
+const compactError = ref('')
+
+async function openTableInfo() {
+  if (!props.id) return
+  showTableInfoDialog.value = true
+  tableInfo.value = null
+  tableInfoError.value = ''
+  confirmCompact.value = false
+  compactResult.value = null
+  compactError.value = ''
+  tableInfoLoading.value = true
+  try {
+    tableInfo.value = await metaApi.tableInfo(props.id)
+  } catch (e: any) {
+    tableInfoError.value = e?.response?.data?.detail || e?.message || String(e)
+  } finally {
+    tableInfoLoading.value = false
+  }
+}
+
+async function runCompact() {
+  if (!props.id) return
+  confirmCompact.value = false
+  compactError.value = ''
+  compactResult.value = null
+  compacting.value = true
+  try {
+    compactResult.value = await metaApi.compactTable(props.id)
+    // Refresh the size figures so the dialog reflects the post-compaction state
+    tableInfo.value = await metaApi.tableInfo(props.id)
+  } catch (e: any) {
+    compactError.value = e?.response?.data?.detail || e?.message || String(e)
+  } finally {
+    compacting.value = false
+  }
+}
+
+const compactLabel = computed(() =>
+  tableInfo.value?.reclaim_scope === 'database'
+    ? t('Стиснути базу даних (VACUUM)')
+    : t('Оптимізувати таблицю'),
+)
+
+function copyTableName() {
+  if (!tableInfo.value) return
+  navigator.clipboard.writeText(tableInfo.value.table_name)
+  tableNameCopied.value = true
+  setTimeout(() => { tableNameCopied.value = false }, 1500)
+}
+
+function formatBytes(bytes: number | null | undefined): string {
+  if (bytes === null || bytes === undefined) return '—'
+  if (bytes < 1024) return `${bytes} Б`
+  const units = ['КБ', 'МБ', 'ГБ', 'ТБ']
+  let value = bytes / 1024
+  let i = 0
+  while (value >= 1024 && i < units.length - 1) {
+    value /= 1024
+    i++
+  }
+  return `${value.toFixed(value < 10 ? 1 : 0)} ${units[i]}`
+}
 
 type IconMap = Record<string, Component>
 const lucideIcons = shallowRef<IconMap>({})
@@ -193,6 +272,15 @@ const menuItems = computed(() => {
       label: item.label,
       icon: item.icon,
       command: () => item.action(),
+    })
+  }
+
+  if (isDocTypeEditor.value) {
+    items.push({ separator: true })
+    items.push({
+      label: t('Інформація про таблицю'),
+      icon: Database,
+      command: openTableInfo,
     })
   }
 
@@ -469,6 +557,130 @@ const menuItems = computed(() => {
           <Loader2 v-if="isRenaming" class="size-3.5 mr-1.5 animate-spin" />
           {{ t('Rename') }}
         </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
+  <!-- Table Info Dialog (DocType editor) -->
+  <Dialog :open="showTableInfoDialog" @update:open="(v: boolean) => showTableInfoDialog = v">
+    <DialogContent class="max-w-md">
+      <DialogHeader>
+        <div class="flex items-center gap-2">
+          <div class="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Database class="size-4.5 text-primary" />
+          </div>
+          <div>
+            <DialogTitle class="text-base font-semibold">{{ t('Інформація про таблицю') }}</DialogTitle>
+            <p class="text-xs text-muted-foreground">{{ t('Фізичне сховище цього типу документа') }}</p>
+          </div>
+        </div>
+      </DialogHeader>
+
+      <div v-if="tableInfoLoading" class="flex justify-center py-8">
+        <Loader2 class="size-6 animate-spin text-muted-foreground" />
+      </div>
+
+      <p v-else-if="tableInfoError" class="text-sm text-destructive py-2">{{ tableInfoError }}</p>
+
+      <div v-else-if="tableInfo" class="text-sm">
+        <dl class="divide-y divide-border">
+          <div class="flex items-center justify-between gap-3 py-2">
+            <dt class="text-muted-foreground shrink-0">{{ t('Назва таблиці') }}</dt>
+            <dd class="flex items-center gap-1.5 min-w-0">
+              <code class="font-mono text-xs truncate">{{ tableInfo.table_name }}</code>
+              <Button variant="ghost" size="sm" class="size-6 p-0 shrink-0" :title="t('Copy')" @click="copyTableName">
+                <CopyIcon class="size-3" />
+              </Button>
+            </dd>
+          </div>
+          <div class="flex items-center justify-between gap-3 py-2">
+            <dt class="text-muted-foreground">{{ t('СКБД') }}</dt>
+            <dd>{{ tableInfo.dialect }}</dd>
+          </div>
+          <div v-if="!tableInfo.exists" class="py-2 text-amber-600 dark:text-amber-400">
+            {{ t('Таблиця ще не створена в базі даних') }}
+          </div>
+          <template v-else>
+            <div class="flex items-center justify-between gap-3 py-2">
+              <dt class="text-muted-foreground">{{ t('Рядків') }}</dt>
+              <dd>{{ tableInfo.row_count?.toLocaleString() ?? '—' }}</dd>
+            </div>
+            <template v-if="tableInfo.size_supported">
+              <div class="flex items-center justify-between gap-3 py-2">
+                <dt class="text-muted-foreground">{{ t('Дані') }}</dt>
+                <dd>{{ formatBytes(tableInfo.table_bytes) }}</dd>
+              </div>
+              <div class="flex items-center justify-between gap-3 py-2">
+                <dt class="text-muted-foreground">{{ t('Індекси') }}</dt>
+                <dd>{{ formatBytes(tableInfo.index_bytes) }}</dd>
+              </div>
+              <div class="flex items-center justify-between gap-3 py-2 font-medium">
+                <dt>{{ t('Разом на диску') }}</dt>
+                <dd>{{ formatBytes(tableInfo.total_bytes) }}</dd>
+              </div>
+              <div v-if="tableInfo.reclaimable_bytes" class="flex items-center justify-between gap-3 py-2">
+                <dt class="text-muted-foreground">
+                  {{ tableInfo.reclaim_scope === 'database' ? t('Вільно у файлі БД') : t('Можна вивільнити') }}
+                </dt>
+                <dd>{{ formatBytes(tableInfo.reclaimable_bytes) }}</dd>
+              </div>
+            </template>
+            <div v-else class="py-2 text-xs text-muted-foreground">
+              {{ t('Розмір недоступний для цієї бази даних') }}
+            </div>
+          </template>
+        </dl>
+        <p v-if="tableInfo.dead_tuples" class="mt-2 text-xs text-muted-foreground">
+          {{ t('«мертвих» рядків: {n}').replace('{n}', String(tableInfo.dead_tuples)) }}
+        </p>
+
+        <!-- Compaction -->
+        <div v-if="tableInfo.exists && tableInfo.size_supported" class="mt-3 border-t border-border pt-3">
+          <div v-if="compacting" class="flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 class="size-3.5 animate-spin" />
+            {{ t('Виконується стиснення… база може бути заблокована до завершення.') }}
+          </div>
+
+          <p v-else-if="compactError" class="text-xs text-destructive">{{ compactError }}</p>
+
+          <div v-else-if="compactResult" class="flex items-start gap-2 text-xs">
+            <Check class="size-3.5 mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <span v-if="compactResult.freed_bytes && compactResult.freed_bytes > 0" class="text-foreground">
+              {{ (compactResult.scope === 'database'
+                    ? t('Звільнено {size} у файлі бази даних')
+                    : t('Звільнено {size}')).replace('{size}', formatBytes(compactResult.freed_bytes)) }}
+              <span class="text-muted-foreground">
+                ({{ formatBytes(compactResult.before_bytes) }} → {{ formatBytes(compactResult.after_bytes) }})
+              </span>
+            </span>
+            <span v-else class="text-muted-foreground">{{ t('Таблиця вже щільно упакована — вивільняти нічого.') }}</span>
+          </div>
+
+          <div v-else-if="confirmCompact" class="text-xs">
+            <p class="text-muted-foreground mb-2">
+              <span v-if="tableInfo.reclaim_scope === 'database'">
+                {{ t('VACUUM перепише весь файл бази даних і на час виконання заблокує запис. Продовжити?') }}
+              </span>
+              <span v-else>
+                {{ t('Операція перепише таблицю під ексклюзивним блокуванням. Продовжити?') }}
+              </span>
+            </p>
+            <div class="flex gap-2">
+              <Button variant="outline" size="sm" @click="confirmCompact = false">{{ t('Cancel') }}</Button>
+              <Button variant="destructive" size="sm" @click="runCompact">{{ t('Стиснути') }}</Button>
+            </div>
+          </div>
+
+          <Button v-else variant="outline" size="sm" class="gap-1.5" @click="confirmCompact = true">
+            <HardDriveDownload class="size-3.5" />
+            {{ compactLabel }}
+          </Button>
+        </div>
+      </div>
+
+      <DialogFooter>
+        <span v-if="tableNameCopied" class="text-xs text-muted-foreground self-center mr-auto">{{ t('Скопійовано') }}</span>
+        <Button size="sm" :disabled="compacting" @click="showTableInfoDialog = false">{{ t('Done') }}</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
