@@ -131,6 +131,72 @@ async def test_is_default_form_defaults(ctx, setup, db_session, engine):
         assert await get_user_permission_defaults("UPTestPost") == {"team": "Blue"}
 
 
+TREE_DOCTYPE = {
+    "name": "UPTestUnit",
+    "label": "UP Test Unit",
+    "module": "core",
+    "is_tree": True,
+    "tree_parent_field": "parent_unit",
+    "autoname": "field:title",
+    "fields": [
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
+        {
+            "fieldname": "parent_unit",
+            "label": "Parent",
+            "fieldtype": "Link",
+            "options": "UPTestUnit",
+        },
+    ],
+    "permissions": [{"role": "Employee", "read": True}],
+}
+
+TREE_ASSET_DOCTYPE = {
+    "name": "UPTestUnitAsset",
+    "label": "UP Test Unit Asset",
+    "module": "core",
+    "fields": [
+        {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "unit", "label": "Unit", "fieldtype": "Link", "options": "UPTestUnit"},
+    ],
+    "permissions": [{"role": "Employee", "read": True}],
+}
+
+
+@pytest.mark.asyncio
+async def test_tree_allow_authorises_whole_subtree(ctx, db_session, engine):
+    """A UserPermission on a parent tree node also grants its descendants —
+    an institution → all its sub-units."""
+    from grunt.api.v1.meta import save_doctype
+    from grunt.app import grunt
+    from grunt.permissions.user_permissions import invalidate_user_permission_cache
+
+    await save_doctype(doctype_data={**TREE_DOCTYPE, "__is_new": True})
+    await save_doctype(doctype_data={**TREE_ASSET_DOCTYPE, "__is_new": True})
+    await ctx.new_doc("UPTestUnit", {"title": "HQ"})
+    await ctx.new_doc("UPTestUnit", {"title": "HQ-IT", "parent_unit": "HQ"})
+    await ctx.new_doc("UPTestUnit", {"title": "HQ-IT-Ops", "parent_unit": "HQ-IT"})
+    await ctx.new_doc("UPTestUnit", {"title": "Other"})
+
+    at_hq = (await ctx.new_doc("UPTestUnitAsset", {"title": "hq", "unit": "HQ"}))["name"]
+    at_it = (await ctx.new_doc("UPTestUnitAsset", {"title": "it", "unit": "HQ-IT"}))["name"]
+    at_ops = (await ctx.new_doc("UPTestUnitAsset", {"title": "ops", "unit": "HQ-IT-Ops"}))["name"]
+    at_other = (await ctx.new_doc("UPTestUnitAsset", {"title": "other", "unit": "Other"}))["name"]
+    await ctx.new_doc(
+        "UserPermission",
+        {"for_user": "alice@example.com", "allow": "UPTestUnit", "for_value": "HQ"},
+    )
+    await ctx.db._session().commit()
+    invalidate_user_permission_cache()
+
+    async with grunt.context(db_session, engine, _employee("alice@example.com")):
+        names = {r["name"] for r in await grunt.get_list("UPTestUnitAsset")}
+        assert names == {at_hq, at_it, at_ops}
+        assert (await grunt.get_doc("UPTestUnitAsset", at_ops))["name"] == at_ops
+        with pytest.raises(HTTPException) as exc:
+            await grunt.get_doc("UPTestUnitAsset", at_other)
+        assert exc.value.status_code == 403
+
+
 @pytest.mark.asyncio
 async def test_strict_mode_hides_docs_without_link(ctx, setup, db_session, engine):
     from grunt.app import grunt

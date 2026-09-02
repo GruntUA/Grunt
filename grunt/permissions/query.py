@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 
-def apply_permission_filter(
+async def apply_permission_filter(
     query: Select,
     table: Table,
     user: User,
@@ -49,7 +49,7 @@ def apply_permission_filter(
             has_unrestricted = True
             break
 
-        condition = PermissionMatch(match_expr).to_sql(table, user)
+        condition = await PermissionMatch(match_expr).to_sql(table, user, doctype)
         if condition is not None:
             conditions.append(condition)
         else:

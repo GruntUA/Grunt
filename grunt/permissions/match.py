@@ -30,14 +30,49 @@ if TYPE_CHECKING:
     from sqlalchemy.sql import ColumnElement
 
     from grunt.auth.doctypes.User.user import User
+    from grunt.metadata.doctype import DocType
 
 logger = structlog.get_logger()
 
-# "<field> == <value>" / "<field> != <value>", value is either the bare word
-# `user` (→ current user's email) or a single/double-quoted string literal.
+# "<field> == <value>" / "<field> != <value>".
+#   <field>  a document field, or "<link_field>.<target_field>" for a single
+#            Link hop — translated to an IN-subquery against the linked table.
+#   <value>  the bare word `user` (→ current user's email) or a quoted literal.
 _MATCH_RE = re.compile(
-    r"^(?P<field>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?P<op>==|!=)\s*(?P<value>.+)$"
+    r"^(?P<field>[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)"
+    r"\s*(?P<op>==|!=)\s*(?P<value>.+)$"
 )
+
+
+def _operand(raw_value: str, user: User) -> tuple[bool, str]:
+    """Resolve the RHS of a match expression to a concrete string.
+
+    ``(True, value)`` for the bare word ``user`` or a quoted literal;
+    ``(False, "")`` for anything else (numbers, bare names) — which the caller
+    must treat as "outside the supported grammar" and reject.
+    """
+    if raw_value == "user":
+        return True, user.email
+    if len(raw_value) >= 2 and raw_value[0] == raw_value[-1] and raw_value[0] in "'\"":
+        return True, raw_value[1:-1]
+    return False, ""
+
+
+async def _resolve_link_target(doctype: DocType, link_fn: str) -> tuple[str, Table] | None:
+    """``(target_doctype_name, target_table)`` for the Link field *link_fn* on
+    *doctype*, or ``None`` when *link_fn* is not a Link (or its target DocType
+    can't be loaded)."""
+    field = next((f for f in doctype.fields if f.fieldname == link_fn), None)
+    if field is None or field.fieldtype != "Link" or not field.options:
+        return None
+    from grunt.metadata.compiler import compile_doctype_to_table
+    from grunt.metadata.registry import doctype_registry
+
+    try:
+        target_dt = await doctype_registry.get(field.options)
+    except Exception:
+        return None
+    return field.options, compile_doctype_to_table(target_dt)
 
 
 class PermissionMatch:
@@ -57,29 +92,95 @@ class PermissionMatch:
             return None
         return m.group("field"), m.group("op"), m.group("value").strip()
 
-    def to_sql(self, table: Table, user: User) -> ColumnElement | None:
+    async def to_sql(
+        self, table: Table, user: User, doctype: DocType | None = None
+    ) -> ColumnElement | None:
         """SQL condition for row-level list/count filtering.
 
         Returns None when this expression can't be translated — the caller
         must treat that as "can't enforce this rule" (deny/skip), never as
         "unrestricted", or an unparseable rule would silently expose every
         row instead of none.
+
+        A ``link_field.target_field`` expression needs *doctype* (to resolve
+        the Link's target) and becomes
+        ``link_field IN (SELECT name FROM <target> WHERE target_field = value)``.
         """
         if self._parsed is None:
             return None
         field, op, raw_value = self._parsed
-        if not hasattr(table.c, field):
-            return None
-
-        if raw_value == "user":
-            value: str = user.email
-        elif len(raw_value) >= 2 and raw_value[0] == raw_value[-1] and raw_value[0] in "'\"":
-            value = raw_value[1:-1]
-        else:
+        ok, value = _operand(raw_value, user)
+        if not ok:
             return None  # numbers, bare names, etc. — outside the supported form
 
-        col = table.c[field]
-        return col == value if op == "==" else col != value
+        if "." not in field:
+            if not hasattr(table.c, field):
+                return None
+            col = table.c[field]
+            return col == value if op == "==" else col != value
+
+        link_fn, sub_fn = field.split(".", 1)
+        if doctype is None or not hasattr(table.c, link_fn):
+            return None
+        resolved = await _resolve_link_target(doctype, link_fn)
+        if resolved is None:
+            return None
+        _target_name, target_table = resolved
+        if sub_fn not in target_table.c:
+            return None
+
+        from sqlalchemy import select
+
+        subq = select(target_table.c.name).where(target_table.c[sub_fn] == value)
+        col = table.c[link_fn]
+        return col.in_(subq) if op == "==" else col.not_in(subq)
+
+    async def evaluate_doc(self, doc: dict, user: User, doctype: DocType) -> bool:
+        """Per-document check.
+
+        Resolves the single-hop ``link_field.target_field`` form with one DB
+        lookup (the ``owner``/literal forms and full simpleeval expressions
+        are delegated to the synchronous :meth:`evaluate`).
+
+        Fails CLOSED on any resolution failure — unparseable operand, a Link
+        that can't be resolved, or no active DB session — same as
+        :meth:`evaluate`.
+        """
+        if self._parsed is None or "." not in self._parsed[0]:
+            return self.evaluate(doc, user, doctype_name=doctype.name)
+
+        field, op, raw_value = self._parsed
+        ok, value = _operand(raw_value, user)
+        if not ok:
+            logger.warning(
+                "permissions.match_eval_error", doctype=doctype.name, match=self.expr
+            )
+            return False
+
+        link_fn, sub_fn = field.split(".", 1)
+        link_val = doc.get(link_fn)
+        if link_val in (None, ""):
+            # this row's link is unset: "== value" can't hold, "!= value" does
+            return op != "=="
+
+        resolved = await _resolve_link_target(doctype, link_fn)
+        if resolved is None:
+            logger.warning(
+                "permissions.match_eval_error", doctype=doctype.name, match=self.expr
+            )
+            return False
+        target_name, _target_table = resolved
+
+        import grunt
+
+        try:
+            actual = await grunt.db.get_value(target_name, link_val, sub_fn)
+        except RuntimeError:
+            logger.warning(
+                "permissions.match_eval_error", doctype=doctype.name, match=self.expr
+            )
+            return False
+        return actual == value if op == "==" else actual != value
 
     def evaluate(self, doc: dict, user: User, *, doctype_name: str = "") -> bool:
         """Python-level evaluation against a single already-fetched document.

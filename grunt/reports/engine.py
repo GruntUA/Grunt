@@ -325,7 +325,7 @@ class ReportEngine:
         from grunt.permissions.query import apply_permission_filter
         from grunt.permissions.user_permissions import build_conditions
 
-        stmt = apply_permission_filter(stmt, table, user, dt)
+        stmt = await apply_permission_filter(stmt, table, user, dt)
         up_conds = await build_conditions(table, user, dt)
         if up_conds:
             from sqlalchemy import and_

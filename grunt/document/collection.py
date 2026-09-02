@@ -103,7 +103,7 @@ async def _resolve_list_filter_extra(
     return await controller_cls.list_filter_extra(session, filters or {}, table)
 
 
-def _apply_where(
+async def _apply_where(
     query: Any,
     table: Any,
     dt: Any,
@@ -123,7 +123,7 @@ def _apply_where(
     """
     from grunt.permissions.query import apply_permission_filter
 
-    query = apply_permission_filter(query, table, user, dt)
+    query = await apply_permission_filter(query, table, user, dt)
     if user_permission_conditions:
         query = query.where(and_(*user_permission_conditions))
     if extra_clause is not None:
@@ -278,9 +278,11 @@ async def list_documents(
 
     up_conds = await build_conditions(table, user, dt)
 
-    query = _apply_where(query, table, dt, filters, search, extra_clause, user, up_conds)
+    query = await _apply_where(
+        query, table, dt, filters, search, extra_clause, user, up_conds
+    )
 
-    count_q = _apply_where(
+    count_q = await _apply_where(
         select(func.count()).select_from(table),
         table,
         dt,
@@ -342,7 +344,7 @@ async def count_documents(
     from grunt.permissions.user_permissions import build_conditions
 
     up_conds = await build_conditions(table, user, dt)
-    count_q = _apply_where(
+    count_q = await _apply_where(
         select(func.count()).select_from(table),
         table,
         dt,

@@ -87,8 +87,8 @@ class PermissionChecker:
             # Check match expression
             match_expr = perm.match if hasattr(perm, "match") else None
             if match_expr and doc:
-                matched = PermissionMatch(match_expr).evaluate(
-                    doc, user, doctype_name=doctype.name
+                matched = await PermissionMatch(match_expr).evaluate_doc(
+                    doc, user, doctype
                 )
                 if not matched:
                     continue

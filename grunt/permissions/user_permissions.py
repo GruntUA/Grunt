@@ -8,6 +8,8 @@ touch documents that link (via a Link field) to *for_value* of DocType *allow*.
 * ``apply_to_all_doctypes`` — the rule binds every DocType with a Link to
   ``allow``; otherwise only ``applicable_for``.
 * ``is_default`` — ``for_value`` pre-fills the matching Link field on new docs.
+* When ``allow`` is a tree DocType, ``for_value`` also authorises the whole
+  subtree beneath it (a parent department → all its sub-units).
 
 Not applied to superadmin or System Manager. When SystemSettings
 ``apply_strict_user_permissions`` is on, a restricted ``allow`` with no Link
@@ -108,6 +110,43 @@ async def get_user_permissions_for(user: User | None, doctype_name: str) -> dict
     return result
 
 
+async def _expand_tree_values(allow: str, values: set[str]) -> set[str]:
+    """When *allow* is a tree DocType, widen *values* to every descendant so a
+    UserPermission on a parent node authorises its whole subtree (an
+    institution → all its sub-departments).
+
+    Non-tree ``allow`` — the common case — returns *values* unchanged after a
+    single in-memory registry hit. Tree ``allow`` costs a couple of small
+    indexed queries per list render; departments/units are few enough that
+    caching isn't worth the staleness risk.
+    """
+    from grunt.metadata.registry import doctype_registry
+
+    try:
+        dt = await doctype_registry.get(allow)
+    except Exception:
+        return values
+    parent_field = getattr(dt, "tree_parent_field", None)
+    if not getattr(dt, "is_tree", False) or not parent_field:
+        return values
+
+    from grunt.app import grunt
+
+    out = set(values)
+    frontier = list(values)
+    while frontier:
+        rows = await grunt.db.get_all(
+            allow,
+            filters={f"{parent_field}__in": frontier},
+            fields=["name"],
+            limit=10000,
+        )
+        children = [r["name"] for r in rows if r["name"] not in out]
+        out.update(children)
+        frontier = children
+    return out
+
+
 def _link_fieldnames(doctype: DocType, allow: str) -> list[str]:
     """Fields on *doctype* that Link to *allow* (plus ``name`` when the DocType
     is itself restricted). DynamicLink fields are skipped — their target isn't
@@ -138,6 +177,7 @@ async def build_conditions(
     strict = await _strict_mode()
     conds: list[ColumnElement] = []
     for allow, values in up.items():
+        values = await _expand_tree_values(allow, values)
         fields = [fn for fn in _link_fieldnames(doctype, allow) if fn in table.c]
         if not fields:
             if strict:
@@ -163,6 +203,7 @@ async def doc_passes(user: User | None, doctype: DocType, doc: dict[str, Any]) -
 
     strict = await _strict_mode()
     for allow, values in up.items():
+        values = await _expand_tree_values(allow, values)
         fields = _link_fieldnames(doctype, allow)
         checkable = [fn for fn in fields if fn == "name" or fn in doc]
         if not checkable:
