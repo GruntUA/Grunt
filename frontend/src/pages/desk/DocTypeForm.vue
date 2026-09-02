@@ -161,7 +161,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
             class="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-1 text-xs text-muted-foreground">
             <span v-if="dt?.track_views" class="inline-flex items-center gap-1.5">
               <Eye class="size-3.5" />
-              {{ t('{views} переглядів · {viewers} користувачів', { views: viewInfo.views, viewers: viewInfo.viewers }) }}
+              {{ t('{views} переглядів · {viewers} користувачів').replace('{views}', String(viewInfo.views)).replace('{viewers}', String(viewInfo.viewers)) }}
             </span>
             <span v-if="dt?.track_seen && seenList.length" class="inline-flex items-center gap-1.5">
               {{ t('Переглянули:') }}
