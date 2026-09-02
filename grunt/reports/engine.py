@@ -323,8 +323,14 @@ class ReportEngine:
 
         # Row-level security
         from grunt.permissions.query import apply_permission_filter
+        from grunt.permissions.user_permissions import build_conditions
 
         stmt = apply_permission_filter(stmt, table, user, dt)
+        up_conds = await build_conditions(table, user, dt)
+        if up_conds:
+            from sqlalchemy import and_
+
+            stmt = stmt.where(and_(*up_conds))
 
         if group_by_cols:
             stmt = stmt.group_by(*group_by_cols)

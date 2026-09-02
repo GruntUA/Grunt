@@ -1,0 +1,75 @@
+{
+  "name": "UserPermission",
+  "label": "Дозвіл користувача",
+  "module": "permissions",
+  "autoname": "hash",
+  "title_field": "user",
+  "fields": [
+    {
+      "fieldname": "user",
+      "label": "Користувач",
+      "fieldtype": "Link",
+      "options": "User",
+      "required": true,
+      "index": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "allow",
+      "label": "Обмежити за",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "Тип документа, за яким обмежуємо доступ (напр. «Компанія»)."
+    },
+    {
+      "fieldname": "for_value",
+      "label": "Значення",
+      "fieldtype": "DynamicLink",
+      "options": "allow",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "Дозволений запис. Користувач бачитиме лише документи, пов'язані з ним."
+    },
+    {
+      "fieldname": "col_scope",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "apply_to_all_doctypes",
+      "label": "Застосувати до всіх документів",
+      "fieldtype": "Check",
+      "default": true,
+      "in_list_view": true,
+      "description": "Обмеження діє на будь-який DocType із Link-полем на «Обмежити за»."
+    },
+    {
+      "fieldname": "applicable_for",
+      "label": "Лише для документа",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "depends_on": "eval:!doc.apply_to_all_doctypes",
+      "description": "Обмежити дію цього правила одним DocType."
+    },
+    {
+      "fieldname": "is_default",
+      "label": "Значення за замовчуванням",
+      "fieldtype": "Check",
+      "default": false,
+      "description": "Підставляти це значення у відповідне Link-поле нових документів."
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

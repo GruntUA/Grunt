@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 from fastapi import HTTPException, status
-from sqlalchemy import func, select, update
+from sqlalchemy import and_, func, select, update
 
 from grunt.db.api import _apply_filters
 from grunt.document.base import Document, DocumentList
@@ -111,16 +111,21 @@ def _apply_where(
     search: str | None,
     extra_clause: Any | None,
     user: Any,
+    user_permission_conditions: list[Any] | None = None,
 ) -> Any:
     """Apply row-level permissions, the controller clause, filters, and search.
 
     Shared by the data query and the COUNT query so the two can never drift
     out of sync with each other — including which rows count() reports as
-    the pagination total.
+    the pagination total. ``user_permission_conditions`` (from
+    ``grunt.permissions.user_permissions.build_conditions``) is resolved by the
+    async caller and passed in because it needs a DB round-trip.
     """
     from grunt.permissions.query import apply_permission_filter
 
     query = apply_permission_filter(query, table, user, dt)
+    if user_permission_conditions:
+        query = query.where(and_(*user_permission_conditions))
     if extra_clause is not None:
         query = query.where(extra_clause)
     if filters:
@@ -269,10 +274,21 @@ async def list_documents(
     if filters and any(k.endswith("__child_of") for k in filters):
         filters = await _expand_child_of_filters(session, dt, filters)
 
-    query = _apply_where(query, table, dt, filters, search, extra_clause, user)
+    from grunt.permissions.user_permissions import build_conditions
+
+    up_conds = await build_conditions(table, user, dt)
+
+    query = _apply_where(query, table, dt, filters, search, extra_clause, user, up_conds)
 
     count_q = _apply_where(
-        select(func.count()).select_from(table), table, dt, filters, search, extra_clause, user
+        select(func.count()).select_from(table),
+        table,
+        dt,
+        filters,
+        search,
+        extra_clause,
+        user,
+        up_conds,
     )
     count_result = await session.execute(count_q)
     total = count_result.scalar() or 0
@@ -323,8 +339,18 @@ async def count_documents(
     if filters and any(k.endswith("__child_of") for k in filters):
         filters = await _expand_child_of_filters(session, dt, filters)
 
+    from grunt.permissions.user_permissions import build_conditions
+
+    up_conds = await build_conditions(table, user, dt)
     count_q = _apply_where(
-        select(func.count()).select_from(table), table, dt, filters, search, extra_clause, user
+        select(func.count()).select_from(table),
+        table,
+        dt,
+        filters,
+        search,
+        extra_clause,
+        user,
+        up_conds,
     )
     return (await session.execute(count_q)).scalar() or 0
 

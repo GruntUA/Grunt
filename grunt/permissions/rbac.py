@@ -95,6 +95,14 @@ class PermissionChecker:
             result = True
             break
 
+        # Row-level User Permissions narrow the role grant for a specific doc.
+        # (doc=None list/count checks are filtered in apply_permission_filter.)
+        if result and doc is not None:
+            from grunt.permissions.user_permissions import doc_passes
+
+            if not await doc_passes(user, doctype, doc):
+                result = False
+
         if cache_key is not None:
             _PERM_CACHE[cache_key] = result
         return result

@@ -188,6 +188,18 @@
       "min_value": 1,
       "columns": 6
     },
+    {
+      "fieldname": "sec_user_permissions",
+      "label": "Обмеження доступу (User Permissions)",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "apply_strict_user_permissions",
+      "label": "Суворі обмеження користувача",
+      "fieldtype": "Check",
+      "default": false,
+      "description": "Якщо увімкнено — документ без Link-поля на обмежений тип (або з порожнім значенням) приховується, а не показується."
+    },
 
     {
       "fieldname": "tab_email",
