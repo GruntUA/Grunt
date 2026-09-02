@@ -19,6 +19,7 @@ import type { PresenceUser } from '@/core/composables/usePresence'
 import { useDocSidebar } from './useDocSidebar'
 import { useToast } from '@/core/composables/useToast'
 import { formatFull, formatRelative } from '@/core/datetime'
+import { resolveStatusBadge } from '@/core/status'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -48,7 +49,10 @@ const imageUrl = computed(() => {
 })
 const isBookmarked = computed(() => !!sb.bundle.value.bookmark)
 
-// ── Submission state badge (status itself lives in the form toolbar) ─────────
+// ── Primary status badge (e.g. "На складі") — moved here from the form toolbar ──
+const statusBadge = computed(() => resolveStatusBadge(props.doctype, props.document))
+
+// ── Submission state badge ─────────────────────────────────────────────────────
 const docstatusBadge = computed(() => {
   if (!props.doctype.is_submittable) return null
   return (
@@ -151,6 +155,12 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
       <div class="max-w-full max-h-48 rounded-lg overflow-hidden ring-4 ring-background shadow-sm border border-border/40">
         <img :src="imageUrl" :alt="document.name" class="max-w-full h-auto max-h-48 object-contain" />
       </div>
+    </div>
+
+    <!-- Primary status -->
+    <div v-if="statusBadge" class="flex items-center gap-2">
+      <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Статус</span>
+      <Badge :variant="statusBadge.variant" class="text-xs h-5 px-2">{{ statusBadge.label }}</Badge>
     </div>
 
     <!-- Identity: id -->

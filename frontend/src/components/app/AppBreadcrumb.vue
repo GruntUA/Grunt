@@ -12,6 +12,8 @@ const props = defineProps<{
   workspaceName: string
   doctype?: string
   docId?: string | null
+  /** Human title for the document — replaces the raw id as the last crumb. */
+  docLabel?: string | null
   /** Record count shown next to the last breadcrumb item (e.g. list page total). */
   count?: number | null
 }>()
@@ -68,7 +70,11 @@ const items = computed(() => {
     })
   }
   if (props.docId) {
-    result.push({ label: String(props.docId) })
+    const label = props.docLabel?.trim() || String(props.docId)
+    result.push({
+      label,
+      title: label !== String(props.docId) ? String(props.docId) : undefined,
+    })
   }
   return result
 })
@@ -80,13 +86,13 @@ const items = computed(() => {
     <div class="flex items-center gap-3 overflow-hidden">
     <SidebarTrigger class="shrink-0" />
 
-    <Breadcrumb class="hidden sm:flex">
-      <BreadcrumbList class="flex-nowrap gap-0">
+    <Breadcrumb class="hidden sm:flex min-w-0">
+      <BreadcrumbList class="flex-nowrap gap-0 min-w-0">
         <template v-for="(item, idx) in items" :key="idx">
-          <BreadcrumbSeparator v-if="idx > 0" class="mx-1">
+          <BreadcrumbSeparator v-if="idx > 0" class="mx-1 shrink-0">
             <ChevronRight class="size-3.5 text-muted-foreground/30" />
           </BreadcrumbSeparator>
-          <BreadcrumbItem>
+          <BreadcrumbItem :class="idx === items.length - 1 ? 'min-w-0' : 'shrink-0'">
             <Tooltip :disabled="!item.title" :delay-duration="300">
               <TooltipTrigger as-child>
                 <BreadcrumbLink v-if="item.route" as-child>
@@ -95,7 +101,7 @@ const items = computed(() => {
                     <span class="truncate max-w-[200px]">{{ item.label }}</span>
                   </router-link>
                 </BreadcrumbLink>
-                <span v-else class="flex items-center gap-2 font-semibold text-foreground truncate max-w-[300px]">
+                <span v-else class="flex items-center gap-2 font-semibold text-foreground truncate min-w-0">
                   <AppIcon v-if="item.icon" :icon="item.icon" class="size-4 shrink-0 text-muted-foreground/60" />
                   {{ item.label }}
                 </span>

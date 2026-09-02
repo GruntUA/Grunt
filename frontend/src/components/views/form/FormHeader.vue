@@ -21,7 +21,7 @@ import {
   PanelRight,
 } from '@lucide/vue'
 import { useDocPanel } from '@/components/views/sidebar/useDocPanel'
-import AppIcon from '@/components/AppIcon.vue'
+import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
 import { resolveStatusBadge } from '@/core/status'
 import WorkflowBar from '@/components/views/WorkflowBar.vue'
 import { Badge } from '@/components/ui/badge'
@@ -253,13 +253,18 @@ const menuItems = computed(() => {
 </script>
 
 <template>
-  <div class="bg-card border-b border-border/60 mb-4 transition-all duration-300">
-    <!-- Top bar: actions -->
-    <div class="flex items-center justify-between gap-4 px-4 py-2.5">
-      <div class="min-w-0 flex items-center gap-3">
-        <AppIcon v-if="dt?.icon" :icon="dt.icon" class="size-5 shrink-0 text-muted-foreground" />
-        <h1 class="text-xl font-semibold text-foreground truncate selection:bg-primary/20">{{ docTitle }}</h1>
-        <Badge v-if="statusBadge" :variant="statusBadge.variant" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
+  <div class="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border/60 transition-all duration-300">
+    <!-- Single row: breadcrumb (with document title as the last crumb) + primary actions -->
+    <div class="flex items-center justify-between gap-3 px-4 py-2.5">
+      <div class="flex items-center gap-2 min-w-0 flex-1">
+        <AppBreadcrumb
+          :workspace-name="workspace ?? 'grunt'"
+          :doctype="doctype"
+          :doc-id="id"
+          :doc-label="docTitle"
+          class="mb-0! min-w-0 flex-1"
+        />
+        <Badge v-if="statusBadge && hidePanelToggle" :variant="statusBadge.variant" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
           {{ statusBadge.label }}
         </Badge>
         <Badge v-if="isDirty" variant="warning" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">

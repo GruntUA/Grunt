@@ -98,9 +98,9 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
 </script>
 
 <template>
-  <div class="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
-    <!-- Header -->
-    <FormHeader :doc-title="docTitle || doctype" :dt="dt" :doctype="doctype" :id="id" :document="form" :is-dirty="isDirty"
+  <div class="flex flex-1 flex-col">
+    <!-- Sticky header: breadcrumb + actions + document title -->
+    <FormHeader :doc-title="docTitle || doctype" :dt="dt" :doctype="doctype" :id="id" :workspace="workspace" :document="form" :is-dirty="isDirty"
       :is-loading="isLoading" :is-saving="isSaving" :script-buttons="scriptButtons" :script-menu-items="scriptMenuItems"
       :hide-panel-toggle="!showSidebar"
       @save="handleSave" @delete="showDeleteModal = true" @duplicate="handleDuplicate"
@@ -123,6 +123,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
       }"
       @invalidate="queryClient.invalidateQueries({ queryKey: ['document', props.doctype, props.id] })" />
 
+    <div class="flex flex-1 flex-col gap-5 p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
     <!-- Loading -->
     <div v-if="isLoading || !dt" class="flex justify-center py-24">
       <Spinner class="!size-10" />
@@ -207,9 +208,10 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
 
         <!-- Right Column: Sidebar -->
         <DocSidebar v-if="id && document && showSidebar" :doctype="dt" :document="document as GruntDocument"
-          :workspace="workspace" :users="presenceUsers" class="lg:sticky lg:top-8 lg:self-start" />
+          :workspace="workspace" :users="presenceUsers" class="lg:sticky lg:top-14 lg:self-start" />
       </div>
     </template>
+    </div>
 
     <!-- Quick Entry Dialog (from Link field) -->
     <QuickEntryDialog v-if="quickEntryDt" :dt="quickEntryDt" :preset="quickEntryPreset" :workspace="workspace"

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
 import DocTypeForm from '@/pages/desk/DocTypeForm.vue'
 import { pushRecent, removeRecent } from '@/core/recentDocs'
 
@@ -28,19 +27,11 @@ function onNotFound(payload: { id: string }) {
 </script>
 
 <template>
-  <div class="px-4 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-4">
-    <AppBreadcrumb
-      :workspace-name="workspaceName"
-      :doctype="doctype"
-      :doc-id="id"
-    />
-    <DocTypeForm
-      :doctype="doctype"
-      :id="id"
-      :workspace="workspaceName"
-      class="p-0! mt-2!"
-      @loaded="onLoaded"
-      @notfound="onNotFound"
-    />
-  </div>
+  <DocTypeForm
+    :doctype="doctype"
+    :id="id"
+    :workspace="workspaceName"
+    @loaded="onLoaded"
+    @notfound="onNotFound"
+  />
 </template>
