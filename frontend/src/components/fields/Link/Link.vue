@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue'
+import { RouterLink } from 'vue-router'
 import type { DocField } from '@/types'
 import { Search, X, Loader2, Plus, ArrowUpRight } from '@lucide/vue'
 import { TreeSelect } from '@/components/ui/tree-select'
@@ -68,35 +69,28 @@ const {
 
 <template>
   <!-- Tree mode -->
-  <div v-if="isTree" class="relative flex items-center gap-1">
-    <TreeSelect
-      :model-value="(modelValue as string) || null"
-      :options="treeNodes"
-      :loading="treeLoading"
-      :disabled="disabled || field.read_only"
-      :placeholder="field.placeholder ?? t('Select {doctype}…', { doctype: field.options ?? '' })"
-      :class="cn('min-w-0 flex-1', error && 'border-destructive')"
-      @update:model-value="onTreeSelect"
-    />
-    <button
-      v-if="isSelected && linkedDocUrl"
-      type="button"
-      class="shrink-0 text-muted-foreground hover:text-primary transition-colors"
-      :title="t('Open {doctype}', { doctype: field.options ?? '' })"
-      @click="openLinkedDoc"
-    >
-      <ArrowUpRight class="size-4" />
-    </button>
-    <button
-      v-if="isSelected && !disabled && !field.read_only"
-      type="button"
-      class="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-      :title="t('Clear')"
-      @click="clear"
-    >
-      <X class="size-4" />
-    </button>
-  </div>
+  <TreeSelect
+    v-if="isTree"
+    :model-value="(modelValue as string) || null"
+    :options="treeNodes"
+    :loading="treeLoading"
+    :disabled="disabled || field.read_only"
+    :placeholder="field.placeholder ?? t('Select {doctype}…', { doctype: field.options ?? '' })"
+    :class="cn('w-full', error && 'border-destructive')"
+    @update:model-value="onTreeSelect"
+  >
+    <template v-if="isSelected && linkedDocUrl" #actions>
+      <RouterLink
+        :to="linkedDocUrl"
+        class="text-muted-foreground hover:text-primary transition-colors"
+        :title="t('Open {doctype}', { doctype: field.options ?? '' })"
+        @click.stop
+        @mousedown.stop
+      >
+        <ArrowUpRight class="size-3.5" />
+      </RouterLink>
+    </template>
+  </TreeSelect>
 
   <!-- Regular mode: custom input + dropdown -->
   <div v-else :ref="(el) => { linkField.containerRef.value = el as HTMLElement | null }" class="relative">

@@ -1,11 +1,18 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { ChevronDown, X, Search } from '@lucide/vue'
+import { ref, computed, watch, nextTick, useId } from 'vue'
+import { X, Pencil } from '@lucide/vue'
 import { cn } from '@/lib/utils'
 import { Spinner } from '@/components/ui/spinner'
 import TreeSelectNode from './TreeSelectNode.vue'
 import type { TreeNode } from './types'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 const props = withDefaults(defineProps<{
   modelValue: string | null
@@ -23,44 +30,18 @@ const emit = defineEmits<{
   filter: [query: string]
 }>()
 
+const listboxId = useId()
 const isOpen = ref(false)
-const anchorEl = ref<HTMLElement | null>(null)
+const dialogOpen = ref(false)
 const triggerEl = ref<HTMLElement | null>(null)
+const inputEl = ref<HTMLInputElement | null>(null)
+const contentEl = ref<HTMLElement | null>(null)
+const dialogListEl = ref<HTMLElement | null>(null)
+const dialogSearchEl = ref<HTMLInputElement | null>(null)
+/** Live text typed into the field; also the tree filter query. */
 const search = ref('')
 const expandedKeys = ref<Record<string, boolean>>({})
-
-function openTree() {
-  anchorEl.value = triggerEl.value
-  search.value = ''
-  isOpen.value = true
-}
-
-/**
- * The trigger is a plain focusable element (not a <button>) so the selected
- * label stays selectable — the user can drag over it to copy the value.
- * A click that ends such a drag must not also open the tree.
- */
-function selectionInsideTrigger(): boolean {
-  const sel = window.getSelection()
-  if (!sel || sel.isCollapsed || !sel.toString().trim()) return false
-  return !!(sel.anchorNode && triggerEl.value?.contains(sel.anchorNode))
-}
-
-function onTriggerClick() {
-  if (props.disabled || selectionInsideTrigger()) return
-  if (isOpen.value) { isOpen.value = false; return }
-  openTree()
-}
-
-function onTriggerKeydown(e: KeyboardEvent) {
-  if (props.disabled) return
-  if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
-    e.preventDefault()
-    if (!isOpen.value) openTree()
-  } else if (e.key === 'Escape' && isOpen.value) {
-    isOpen.value = false
-  }
-}
+let blurTimer: ReturnType<typeof setTimeout> | undefined
 
 function findNode(nodes: TreeNode[], key: string): TreeNode | null {
   for (const n of nodes) {
@@ -77,6 +58,52 @@ const selectedLabel = computed(() => {
   if (!props.modelValue) return null
   return findNode(props.options, props.modelValue)?.label ?? props.modelValue
 })
+
+/**
+ * While the dropdown is open the field shows what the user is typing; when
+ * closed it shows the picked label. Focusing an already-picked field starts a
+ * fresh search (empty) so the full tree is offered, mirroring the Link input.
+ */
+const displayValue = computed(() => (isOpen.value ? search.value : (selectedLabel.value ?? '')))
+
+function open() {
+  if (props.disabled) return
+  if (!isOpen.value) {
+    search.value = ''
+    isOpen.value = true
+  }
+}
+
+function onFocus() {
+  clearTimeout(blurTimer)
+  open()
+}
+
+function onInput(e: Event) {
+  search.value = (e.target as HTMLInputElement).value
+  emit('filter', search.value)
+  open()
+}
+
+function onBlur() {
+  blurTimer = setTimeout(() => {
+    // Stay open while focus is inside the dropdown (e.g. an expander button).
+    if (contentEl.value?.contains(document.activeElement)) return
+    isOpen.value = false
+  }, 120)
+}
+
+function onInputKeydown(e: KeyboardEvent) {
+  if (props.disabled) return
+  if (e.key === 'Escape' && isOpen.value) {
+    e.preventDefault()
+    isOpen.value = false
+    inputEl.value?.blur()
+  } else if ((e.key === 'ArrowDown' || e.key === 'Enter') && !isOpen.value) {
+    e.preventDefault()
+    open()
+  }
+}
 
 /** Expand ancestors leading to `key`; returns true once `key` is found in this subtree. */
 function expandPathTo(nodes: TreeNode[], key: string): boolean {
@@ -126,69 +153,129 @@ watch([() => props.modelValue, () => props.options], ([key]) => {
   if (key) expandPathTo(props.options, key)
 }, { immediate: true })
 
+watch(isOpen, (openNow) => {
+  if (!openNow) search.value = ''
+})
+
+watch(dialogOpen, async (openNow) => {
+  if (!openNow) { search.value = ''; return }
+  // Opening the picker: start clean and reveal the current selection.
+  search.value = ''
+  isOpen.value = false
+  if (props.modelValue) expandPathTo(props.options, props.modelValue)
+  await nextTick()
+  // Land focus on the currently selected node (scrolled into view), so the
+  // picker opens right where the user left off; fall back to the search box.
+  const selectedRow = dialogListEl.value?.querySelector<HTMLElement>('[data-selected]')
+  if (selectedRow) {
+    selectedRow.scrollIntoView({ block: 'center' })
+    selectedRow.focus()
+  } else {
+    dialogSearchEl.value?.focus()
+  }
+})
+
 function onSelect(key: string) {
   emit('update:modelValue', key)
+  clearTimeout(blurTimer)
   isOpen.value = false
+  dialogOpen.value = false
+  inputEl.value?.blur()
 }
 
 function onToggle(key: string) {
   expandedKeys.value[key] = !expandedKeys.value[key]
+  // Clicking an expander in the inline dropdown steals focus from the input —
+  // hand it straight back so the user can keep typing.
+  if (!dialogOpen.value) inputEl.value?.focus()
 }
 
 function onClear(e: Event) {
   e.stopPropagation()
   emit('update:modelValue', null)
+  emit('filter', '')
+  search.value = ''
+  inputEl.value?.focus()
+}
+
+function openDialog() {
+  if (props.disabled) return
+  dialogOpen.value = true
+}
+
+function onDialogSearch(e: Event) {
+  search.value = (e.target as HTMLInputElement).value
+  emit('filter', search.value)
+}
+
+/** Keep the popover open when the "outside" interaction is the field itself. */
+function keepOpenIfSelf(e: CustomEvent<{ originalEvent?: Event }>) {
+  const target = (e.detail?.originalEvent?.target ?? e.target) as Node | null
+  if (target && triggerEl.value?.contains(target)) e.preventDefault()
 }
 </script>
 
 <template>
-  <div
-    ref="triggerEl"
-    role="button"
-    aria-haspopup="tree"
-    :aria-expanded="isOpen"
-    :aria-disabled="disabled || undefined"
-    :tabindex="disabled ? undefined : 0"
-    :class="cn(
-      'border-input text-foreground dark:bg-input/30 dark:hover:bg-input/50 flex h-9 w-full items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3',
-      disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
-      !selectedLabel && 'text-muted-foreground',
-      props.class,
-    )"
-    @click="onTriggerClick"
-    @keydown="onTriggerKeydown"
-  >
-    <span class="truncate" :class="selectedLabel && 'cursor-text select-text'">{{ selectedLabel || placeholder }}</span>
-    <span class="flex items-center gap-1 shrink-0">
-      <button
-        v-if="selectedLabel && !disabled"
-        type="button"
-        class="text-muted-foreground/70 transition-colors hover:text-foreground"
-        aria-label="Очистити"
-        @click.stop="onClear"
-        @mousedown.stop
-      >
-        <X class="size-3.5" />
-      </button>
-      <Spinner v-if="loading" class="size-4" />
-      <ChevronDown v-else class="size-4 opacity-50 pointer-events-none" />
-    </span>
-  </div>
-
   <Popover v-model:open="isOpen">
-    <PopoverAnchor :reference="anchorEl ?? undefined" />
-    <PopoverContent class="w-(--reka-popper-anchor-width) min-w-56 p-0">
-      <div class="flex items-center gap-1.5 p-1.5 border-b border-border">
-        <Search class="size-3.5 text-muted-foreground shrink-0 ml-1" />
+    <PopoverAnchor as-child>
+      <div ref="triggerEl" class="relative w-full min-w-0">
         <input
-          v-model="search"
-          autofocus
-          placeholder="Пошук..."
-          class="w-full bg-transparent outline-none placeholder:text-muted-foreground px-1 py-1"
-          @input="emit('filter', search)"
+          ref="inputEl"
+          :value="displayValue"
+          :placeholder="placeholder"
+          :disabled="disabled"
+          role="combobox"
+          aria-haspopup="tree"
+          aria-autocomplete="list"
+          :aria-expanded="isOpen"
+          :aria-controls="listboxId"
+          autocomplete="off"
+          :class="cn(
+            'border-input text-foreground dark:bg-input/30 flex h-9 w-full rounded-md border bg-transparent py-2 pl-3 pr-20 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-60',
+            props.class,
+          )"
+          @focus="onFocus"
+          @input="onInput"
+          @blur="onBlur"
+          @keydown="onInputKeydown"
         >
+        <div class="absolute right-2.5 top-1/2 flex -translate-y-1/2 items-center gap-1">
+          <slot name="actions" />
+          <button
+            v-if="!disabled"
+            type="button"
+            class="text-muted-foreground/70 transition-colors hover:text-foreground"
+            aria-label="Обрати зі списку"
+            @click.stop="openDialog"
+            @mousedown.stop.prevent
+          >
+            <Pencil class="size-3.5" />
+          </button>
+          <button
+            v-if="selectedLabel && !disabled"
+            type="button"
+            class="text-muted-foreground/70 transition-colors hover:text-foreground"
+            aria-label="Очистити"
+            @click.stop="onClear"
+            @mousedown.stop.prevent
+          >
+            <X class="size-3.5" />
+          </button>
+          <Spinner v-if="loading" class="size-4" />
+        </div>
       </div>
-      <div class="max-h-64 overflow-y-auto p-1">
+    </PopoverAnchor>
+
+    <PopoverContent
+      :id="listboxId"
+      align="start"
+      class="w-(--reka-popper-anchor-width) min-w-56 p-0"
+      @open-auto-focus.prevent
+      @close-auto-focus.prevent
+      @pointer-down-outside="keepOpenIfSelf"
+      @focus-outside="keepOpenIfSelf"
+    >
+      <div ref="contentEl" class="max-h-64 overflow-y-auto p-1">
         <TreeSelectNode
           v-for="node in filteredOptions"
           :key="node.key"
@@ -203,4 +290,36 @@ function onClear(e: Event) {
       </div>
     </PopoverContent>
   </Popover>
+
+  <Dialog v-model:open="dialogOpen">
+    <DialogContent class="gap-0 p-0 sm:max-w-6xl" @open-auto-focus.prevent>
+      <DialogHeader class="border-b border-border px-4 py-3 pr-10">
+        <DialogTitle>{{ placeholder }}</DialogTitle>
+        <DialogDescription class="sr-only">Оберіть значення з дерева</DialogDescription>
+      </DialogHeader>
+      <div class="border-b border-border px-3 py-2">
+        <input
+          ref="dialogSearchEl"
+          :value="search"
+          placeholder="Пошук…"
+          autocomplete="off"
+          class="w-full bg-transparent py-1 text-sm outline-none placeholder:text-muted-foreground"
+          @input="onDialogSearch"
+        >
+      </div>
+      <div ref="dialogListEl" class="max-h-[60vh] min-h-40 overflow-y-auto p-2">
+        <TreeSelectNode
+          v-for="node in filteredOptions"
+          :key="node.key"
+          :node="node"
+          :depth="0"
+          :selected-key="modelValue"
+          :expanded-keys="expandedKeys"
+          @select="onSelect"
+          @toggle="onToggle"
+        />
+        <p v-if="!filteredOptions.length" class="px-2 py-6 text-center text-muted-foreground">Нічого не знайдено</p>
+      </div>
+    </DialogContent>
+  </Dialog>
 </template>
