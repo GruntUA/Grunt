@@ -7,6 +7,9 @@ touch documents that link (via a Link field) to *for_value* of DocType *allow*.
 * Different ``allow`` types narrow it (AND).
 * ``apply_to_all_doctypes`` — the rule binds every DocType with a Link to
   ``allow``; otherwise only ``applicable_for``.
+* A Link field flagged ``ignore_user_permissions`` is skipped when matching —
+  lets a DocType keep a free-reference Link to ``allow`` alongside the one
+  that actually scopes access.
 * ``is_default`` — ``for_value`` pre-fills the matching Link field on new docs.
 * When ``allow`` is a tree DocType, ``for_value`` also authorises the whole
   subtree beneath it (a parent department → all its sub-units).
@@ -157,7 +160,9 @@ def _link_fieldnames(doctype: DocType, allow: str) -> list[str]:
     names.extend(
         f.fieldname
         for f in doctype.fields
-        if f.fieldtype == "Link" and f.options == allow
+        if f.fieldtype == "Link"
+        and f.options == allow
+        and not getattr(f, "ignore_user_permissions", False)
     )
     return names
 

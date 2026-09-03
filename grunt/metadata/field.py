@@ -214,6 +214,12 @@ class DocField(BaseModel):
     placeholder: str | None = None
 
     link_filters: str | None = None
+    # Link fields only — exclude this field from User Permission row-filtering
+    # (see grunt.permissions.user_permissions). Use when a DocType has several
+    # Link fields to the same target but only some of them should scope a
+    # user's visible rows (e.g. a letter's "registering unit" restricts access
+    # while its "sender unit" must stay a free reference).
+    ignore_user_permissions: bool = False
 
     # Layout
     collapsible: bool = False
