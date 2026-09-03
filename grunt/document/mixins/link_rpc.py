@@ -13,8 +13,44 @@ from __future__ import annotations
 
 from typing import Any
 
+from sqlalchemy import or_, select
+
 import grunt
 from grunt.metadata.registry import doctype_registry
+
+
+async def _identifier_search(
+    dt: Any,
+    cols_needed: list[str],
+    query: str,
+    filters: dict[str, Any],
+    per_page: int,
+) -> list[dict[str, Any]]:
+    """Search a DocType's identifier columns only (name + title + search
+    fields) — the ``select``-permission path, which must not touch row-level
+    filters, hidden-field masking or read hooks.
+
+    Filters are honoured only on identifier columns; any other key is dropped
+    so a select-only caller can't probe non-identifier values.
+    """
+    from grunt.context import require_session
+    from grunt.document.meta import Meta
+
+    table = Meta(dt).table
+    allowed = {c for c in cols_needed if c in table.c}
+
+    stmt = select(*[table.c[c] for c in cols_needed if c in table.c])
+    if query:
+        like = f"%{query}%"
+        stmt = stmt.where(or_(*[table.c[c].ilike(like) for c in allowed]))
+    for key, value in (filters or {}).items():
+        base = key.split("__", 1)[0]
+        if base in allowed:
+            stmt = stmt.where(table.c[base] == value)
+    stmt = stmt.limit(per_page)
+
+    result = await require_session().execute(stmt)
+    return [dict(r._mapping) for r in result]
 
 
 def _doctype_fieldnames(dt: Any) -> set[str]:
@@ -43,9 +79,19 @@ class DocumentLinkRPCMixin:
     ) -> list[dict[str, Any]]:
         """Search documents for a Link field dropdown."""
         from grunt.app import grunt as grunt_app
+        from grunt.context import require_user
+        from grunt.permissions.rbac import permission_checker
 
         dt = await doctype_registry.get(doctype)
         extra_filters: dict[str, Any] = filters or {}
+
+        # Gate: full "read" runs the normal (row-filtered, field-masked) path;
+        # otherwise "select" is enough for an identifier-only search. Neither →
+        # a 403 that names the DocType.
+        user = require_user()
+        has_read = await permission_checker.check(user, dt, "read")
+        if not has_read:
+            await permission_checker.require(user, dt, "select")
 
         # Virtual DocType — delegate to its controller's get_list
         if dt.is_virtual:
@@ -82,13 +128,18 @@ class DocumentLinkRPCMixin:
                 cols_needed.append(sf)
 
         query = search.strip()
-        rows = await grunt_app.get_list(
-            doctype,
-            filters=extra_filters if extra_filters else None,
-            fields=cols_needed,
-            limit=per_page,
-            search=query or None,
-        )
+        if has_read:
+            rows = await grunt_app.get_list(
+                doctype,
+                filters=extra_filters if extra_filters else None,
+                fields=cols_needed,
+                limit=per_page,
+                search=query or None,
+            )
+        else:
+            rows = await _identifier_search(
+                dt, cols_needed, query, extra_filters, per_page
+            )
 
         # ── Shape response ────────────────────────────────────────────────
         items = []

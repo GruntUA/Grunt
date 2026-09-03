@@ -13,7 +13,31 @@ from typing import Any
 
 import grunt
 from grunt.document.tree import TREE_TITLE_RESOLVERS, tree_service
-from grunt.permissions.guards import read_guard, write_guard
+from grunt.permissions.guards import write_guard
+
+
+async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
+    """Permission gate for the read-only tree RPCs.
+
+    Full ``read`` → unrestricted (returns ``(dt, None)``). Only ``select`` →
+    the caller must limit nodes to identifier columns and ignore ad-hoc
+    filters, so returns ``(dt, [name, parent_field, title_field])``. Neither →
+    a 403 naming the DocType.
+    """
+    from grunt.metadata.registry import doctype_registry
+    from grunt.permissions.rbac import permission_checker
+
+    dt = await doctype_registry.get(doctype)
+    user = grunt.get_user()
+    if await permission_checker.check(user, dt, "read"):
+        return dt, None
+    await permission_checker.require(user, dt, "select")
+    parent_field = getattr(dt, "tree_parent_field", None) or "parent"
+    title_field = getattr(dt, "tree_title_field", None) or getattr(dt, "title_field", None)
+    allowed = ["name", parent_field]
+    if title_field and title_field not in allowed:
+        allowed.append(title_field)
+    return dt, allowed
 
 
 def _parse_iso_day(raw: str | None) -> str | None:
@@ -56,7 +80,9 @@ class DocumentTreeRPCMixin:
         """Return the full tree (or subtree from *root_id*) as nested dicts with ``children``."""
         from grunt.app import grunt as grunt_app
 
-        await read_guard(doctype)
+        _dt, restricted = await _tree_read_gate(doctype)
+        if restricted is not None:
+            fields, filters = restricted, None
         session = grunt_app._require_session()
 
         nodes = await tree_service.get_tree(
@@ -95,7 +121,9 @@ class DocumentTreeRPCMixin:
         """
         from grunt.app import grunt as grunt_app
 
-        await read_guard(doctype)
+        _dt, restricted = await _tree_read_gate(doctype)
+        if restricted is not None:
+            fields, filters = restricted, None
         session = grunt_app._require_session()
 
         return await tree_service.get_children(
@@ -122,7 +150,9 @@ class DocumentTreeRPCMixin:
         """
         from grunt.app import grunt as grunt_app
 
-        await read_guard(doctype)
+        _dt, restricted = await _tree_read_gate(doctype)
+        if restricted is not None:
+            fields = restricted
         session = grunt_app._require_session()
         return await tree_service.get_ancestors(session, doctype, node_id, fields=fields)
 

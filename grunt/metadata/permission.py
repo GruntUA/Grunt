@@ -22,6 +22,9 @@ class DocPermission(BaseModel):
 
     role: str
     read: bool = False
+    # Narrow read for Link-field pickers: resolve/search name + title + search
+    # fields only. Implied by ``read``. See ``PermissionAction``.
+    select: bool = False
     write: bool = False
     create: bool = False
     delete: bool = False

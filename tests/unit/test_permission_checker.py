@@ -91,6 +91,30 @@ async def test_match_eval_error_denies():
 
 
 @pytest.mark.asyncio
+async def test_select_granted_explicitly():
+    """A role with only ``select`` can select but not read."""
+    user = make_user("user@example.com", roles=["Picker"])
+    dt = _make_doctype_with_perms([{"role": "Picker", "select": True}])
+    assert await permission_checker.check(user, dt, "select")
+    assert not await permission_checker.check(user, dt, "read")
+
+
+@pytest.mark.asyncio
+async def test_read_implies_select():
+    """A role with ``read`` implicitly satisfies ``select`` too."""
+    user = make_user("user@example.com", roles=["Manager"])
+    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
+    assert await permission_checker.check(user, dt, "select")
+
+
+@pytest.mark.asyncio
+async def test_select_denied_without_grant():
+    user = make_user("user@example.com", roles=["Viewer"])
+    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
+    assert not await permission_checker.check(user, dt, "select")
+
+
+@pytest.mark.asyncio
 async def test_require_raises_on_deny():
     """require() raises HTTPException when denied."""
     from fastapi import HTTPException

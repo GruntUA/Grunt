@@ -15,6 +15,24 @@ def _iso(value: Any) -> str | None:
     return str(value) if value else None
 
 
+async def _optional(coro: Any, fallback: Any) -> Any:
+    """Await *coro*, returning *fallback* if it fails with a permission error.
+
+    The sidebar bundles several auxiliary sections (assignees, shares, tags,
+    bookmark). A viewer who lacks read on one of those system DocTypes should
+    just get an empty section — not a failed sidebar and a stray "access
+    denied" toast.
+    """
+    from fastapi import HTTPException
+
+    try:
+        return await coro
+    except HTTPException as exc:
+        if exc.status_code == 403:
+            return fallback
+        raise
+
+
 class DocumentMetaRPCMixin:
     """Cross-document metadata (backlinks, sidebar bundle), exposed via the RPC dispatcher."""
 
@@ -46,29 +64,44 @@ class DocumentMetaRPCMixin:
 
         ref = {"reference_doctype": doctype, "reference_id": doc_id}
 
-        assignees = await grunt_app.get_list(
-            "ToDo",
-            filters={**ref, "status": "Open"},
-            order_by="created_at",
-            order="asc",
-            limit=100,
+        # Auxiliary sections — a viewer who can't read one of these system
+        # DocTypes just gets an empty section, not a broken sidebar.
+        assignees = await _optional(
+            grunt_app.get_list(
+                "ToDo",
+                filters={**ref, "status": "Open"},
+                order_by="created_at",
+                order="asc",
+                limit=100,
+            ),
+            [],
         )
-        shares = await grunt_app.get_list(
-            "SharedWith", filters=ref, order_by="created_at", order="asc", limit=100
+        shares = await _optional(
+            grunt_app.get_list(
+                "SharedWith", filters=ref, order_by="created_at", order="asc", limit=100
+            ),
+            [],
         )
-        tags = await grunt_app.get_list(
-            "DocTag", filters=ref, order_by="created_at", order="asc", limit=100
+        tags = await _optional(
+            grunt_app.get_list(
+                "DocTag", filters=ref, order_by="created_at", order="asc", limit=100
+            ),
+            [],
         )
-        bookmarks = await grunt_app.get_list(
-            "Bookmark",
-            filters={**ref, "owner": grunt_app.session.user},
-            limit=1,
+        bookmarks = await _optional(
+            grunt_app.get_list(
+                "Bookmark",
+                filters={**ref, "owner": grunt_app.session.user},
+                limit=1,
+            ),
+            [],
         )
 
         from grunt.document.links import link_service
 
-        backlinks = await link_service.get_backlinks(
-            grunt_app._require_session(), doctype, doc_id
+        backlinks = await _optional(
+            link_service.get_backlinks(grunt_app._require_session(), doctype, doc_id),
+            [],
         )
 
         bookmark = dict(bookmarks[0]) if bookmarks else None

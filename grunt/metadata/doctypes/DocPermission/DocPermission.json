@@ -26,6 +26,13 @@
       "in_list_view": true
     },
     {
+      "fieldname": "select",
+      "label": "Вибір у полі",
+      "fieldtype": "Check",
+      "default": false,
+      "description": "Дозволяє шукати значення для Link-поля (назва, заголовок, поля пошуку) без доступу до списку та повного документа. Автоматично надається разом із «Читати»."
+    },
+    {
       "fieldname": "write",
       "label": "Редагувати",
       "fieldtype": "Check",

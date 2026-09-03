@@ -9,6 +9,20 @@ from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
 from grunt.permissions.types import PermissionAction
 
+# Human-readable action names for the "insufficient permissions" message, so a
+# toast says *which* DocType and *which* operation was denied instead of a bare
+# "Недостатньо прав".
+_ACTION_UK: dict[str, str] = {
+    "read": "читання",
+    "select": "вибір у полі",
+    "write": "редагування",
+    "create": "створення",
+    "delete": "видалення",
+    "submit": "проведення",
+    "cancel": "скасування",
+    "report": "звіти",
+}
+
 if TYPE_CHECKING:
     from grunt.auth.doctypes.User.user import User
     from grunt.metadata.doctype import DocType
@@ -82,6 +96,10 @@ class PermissionChecker:
         result = False
         for perm in access.matching_permissions():
             perm_val = getattr(perm, action, False)
+            # "read" implies "select" — a role that can read the whole
+            # document can certainly resolve its identifier for a picker.
+            if not perm_val and action == "select":
+                perm_val = getattr(perm, "read", False)
             if not perm_val:
                 continue
             # Check match expression
@@ -116,7 +134,9 @@ class PermissionChecker:
     ) -> None:
         allowed = await self.check(user, doctype, action, doc)
         if not allowed:
-            raise forbidden()
+            label = getattr(doctype, "label", None) or getattr(doctype, "name", "")
+            verb = _ACTION_UK.get(action, action)
+            raise forbidden(f"Немає доступу: {verb} «{label}»")
 
     def hidden_fields(
         self,
