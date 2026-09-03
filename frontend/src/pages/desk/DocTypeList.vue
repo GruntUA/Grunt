@@ -64,8 +64,8 @@ const page = ref(1)
 // (tree/calendar/kanban) watch this to refetch; query-based views already
 // refetch automatically from invalidateQueries below and ignore it.
 const refreshKey = ref(0)
-const { viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues } = useListViewState(props.doctype)
-const { inlineSearch, debouncedSearch } = useListSearch(page)
+const { viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues, search } = useListViewState(props.doctype)
+const { inlineSearch, debouncedSearch } = useListSearch(page, search)
 
 // ── Quick filters ─────────────────────────────────────────────────────────────
 const quickFilterPrefs = useQuickFilterPrefs(props.doctype)

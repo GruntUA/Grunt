@@ -8,6 +8,7 @@ interface ListViewState {
   groupBy: string | null
   activeFilters: ActiveFilter[]
   quickFilterValues: Record<string, string>
+  search: string
 }
 
 function storageKey(doctype: string) {
@@ -36,9 +37,10 @@ export function useListViewState(doctype: string) {
   const groupBy = ref<string | null>(saved.groupBy ?? null)
   const activeFilters = ref<ActiveFilter[]>(saved.activeFilters ?? [])
   const quickFilterValues = ref<Record<string, string>>(saved.quickFilterValues ?? {})
+  const search = ref<string>(saved.search ?? '')
 
   watch(
-    [viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues],
+    [viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues, search],
     () => {
       saveState(doctype, {
         viewMode: viewMode.value,
@@ -47,10 +49,11 @@ export function useListViewState(doctype: string) {
         groupBy: groupBy.value,
         activeFilters: activeFilters.value,
         quickFilterValues: quickFilterValues.value,
+        search: search.value,
       })
     },
     { deep: true },
   )
 
-  return { viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues }
+  return { viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues, search }
 }
