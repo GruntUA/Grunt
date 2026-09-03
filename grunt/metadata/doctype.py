@@ -220,6 +220,7 @@ class DocType(BaseModel):
     track_changes: bool = True  # audit log
     track_seen: bool = False  # record which users have opened each document (_seen column)
     track_views: bool = False  # log every document open to ViewLog (throttled 1/user/doc/hour)
+    track_deletions: bool = True  # False → skip the restorable DeletedDocument snapshot on delete
     quick_entry: bool = False  # True → "Create" opens a dialog instead of full form
 
     # Lifecycle markers (UI-only; no behavioural effect)

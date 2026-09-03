@@ -18,6 +18,7 @@ _SKIP_DOCTYPES = frozenset(
     {
         "ActivityLog",
         "ViewLog",
+        "DeletedDocument",
         "BackgroundTaskLog",
         "ErrorLog",
         "UserSession",

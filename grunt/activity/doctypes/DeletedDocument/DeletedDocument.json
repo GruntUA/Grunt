@@ -1,0 +1,105 @@
+{
+  "name": "DeletedDocument",
+  "label": "Видалений документ",
+  "module": "activity",
+  "is_log": true,
+  "log_retention_days": 180,
+  "track_changes": false,
+  "autoname": "hash",
+  "title_field": "title",
+  "table_name": "grunt_log_deleted_document",
+  "search_fields": ["deleted_doctype", "deleted_name", "title"],
+  "fields": [
+    {
+      "fieldname": "deleted_doctype",
+      "label": "Тип документа",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "index": true
+    },
+    {
+      "fieldname": "deleted_name",
+      "label": "ID документа",
+      "fieldtype": "Text",
+      "required": true,
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "index": true
+    },
+    {
+      "fieldname": "title",
+      "label": "Назва",
+      "fieldtype": "Text",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "deleted_by",
+      "label": "Видалив",
+      "fieldtype": "Text",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "index": true
+    },
+    {
+      "fieldname": "deleted_at",
+      "label": "Час видалення",
+      "fieldtype": "Datetime",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "restored",
+      "label": "Відновлено",
+      "fieldtype": "Check",
+      "default": 0,
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "index": true
+    },
+    {
+      "fieldname": "restored_at",
+      "label": "Час відновлення",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "restored_to",
+      "label": "Відновлено як",
+      "fieldtype": "Text",
+      "read_only": true
+    },
+    {
+      "fieldname": "data",
+      "label": "Знімок (JSON)",
+      "fieldtype": "JSON",
+      "read_only": true
+    }
+  ],
+  "actions": [
+    {
+      "action": "trash.restore",
+      "variant": "success",
+      "condition": "!doc.restored"
+    },
+    {
+      "action": "trash.restore_as_copy",
+      "variant": "outline",
+      "condition": "!doc.restored"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "delete": true
+    }
+  ]
+}

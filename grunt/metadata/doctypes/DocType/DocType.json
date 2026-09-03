@@ -198,6 +198,13 @@
       "description": "Писати кожне відкриття документа у ViewLog (не частіше 1 разу/год на користувача)"
     },
     {
+      "fieldname": "track_deletions",
+      "label": "Кошик (відновлення видалених)",
+      "fieldtype": "Check",
+      "default": 1,
+      "description": "Зберігати JSON-знімок документа при видаленні у DeletedDocument для подальшого відновлення"
+    },
+    {
       "fieldname": "sec_ux",
       "label": "Взаємодія",
       "fieldtype": "Section"
