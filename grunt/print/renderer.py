@@ -3,7 +3,7 @@
 Supports:
 - Standard template (auto-generated from DocType fields)
 - Custom PrintFormat templates (stored in DB or files)
-- Output formats: HTML, PDF (WeasyPrint), DOCX (docxtpl), XLSX (openpyxl)
+- Output formats: HTML, PDF (headless Chromium via Playwright), DOCX (docxtpl), XLSX (openpyxl)
 """
 
 from __future__ import annotations

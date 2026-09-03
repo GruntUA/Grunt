@@ -197,24 +197,21 @@ class DocumentExportRPCMixin:
                     html = html.replace("</body>", f"{_AUTOPRINT_SCRIPT}</body>", 1)
                 return Response(content=html, media_type="text/html")
 
-            # PDF via WeasyPrint
-            try:
-                from weasyprint import HTML as WP_HTML
+            # PDF via headless Chromium (Playwright)
+            from grunt.print.pdf import PdfEngineError, html_to_pdf
 
-                pdf_bytes = WP_HTML(string=html).write_pdf()
-                return Response(
-                    content=pdf_bytes,
-                    media_type="application/pdf",
-                    headers={
-                        "Content-Disposition": f'attachment; filename="{doctype}_{doc_id[:8]}.pdf"'
-                    },
-                )
-            except (ImportError, OSError) as err:
-                raise HTTPException(
-                    status_code=501,
-                    detail="PDF-генерація недоступна (WeasyPrint потребує системних бібліотек). "
-                    "Використайте fmt=xlsx або fmt=html",
-                ) from err
+            try:
+                pdf_bytes = await html_to_pdf(html)
+            except PdfEngineError as err:
+                raise HTTPException(status_code=501, detail=str(err)) from err
+
+            return Response(
+                content=pdf_bytes,
+                media_type="application/pdf",
+                headers={
+                    "Content-Disposition": f'attachment; filename="{doctype}_{doc_id[:8]}.pdf"'
+                },
+            )
 
         raise HTTPException(
             status_code=400,
