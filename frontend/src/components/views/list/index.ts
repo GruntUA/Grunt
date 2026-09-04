@@ -43,7 +43,7 @@ const def: ViewDefinition = {
     onClear: () => ctx.emit.clear(),
     onSelectAll: () => ctx.emit.selectAll(),
     onUpdate: (field: unknown, value: unknown) =>
-      ctx.emit.update(field as string, value as string),
+      ctx.emit.update(field as string, value),
     onToggleGroup: (key: unknown) => ctx.emit.toggleGroup(key as string),
   }),
 

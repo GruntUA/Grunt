@@ -52,7 +52,7 @@ const emit = defineEmits<{
   'fast-delete': []
   'clear': []
   'select-all': []
-  'update': [field: string, value: string]
+  'update': [field: string, value: unknown]
   'toggle-group': [key: string]
 }>()
 

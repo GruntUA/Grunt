@@ -14,7 +14,7 @@ interface UseListActionsOptions {
 }
 
 export function useListActions(options: UseListActionsOptions) {
-  async function bulkUpdate(field: string, value: string) {
+  async function bulkUpdate(field: string, value: unknown) {
     const ids = options.allSelected.value
       ? (
           await docsApi.list(options.doctype, {

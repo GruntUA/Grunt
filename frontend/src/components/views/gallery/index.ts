@@ -35,7 +35,7 @@ const def: ViewDefinition = {
     onClear: () => ctx.emit.clear(),
     onSelectAll: () => ctx.emit.selectAll(),
     onUpdate: (field: unknown, value: unknown) =>
-      ctx.emit.update(field as string, value as string),
+      ctx.emit.update(field as string, value),
     'onUpdate:page': (page: unknown) => ctx.emit.page(page as number),
   }),
 }

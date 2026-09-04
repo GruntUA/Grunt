@@ -63,7 +63,7 @@ export interface ViewEmit {
   fastDelete(): void
   clear(): void
   selectAll(): void
-  update(field: string, value: string): void
+  update(field: string, value: unknown): void
   toggleGroup(key: string): void
   page(page: number): void
   registerMenuItems(items: ScriptMenuItem[]): void

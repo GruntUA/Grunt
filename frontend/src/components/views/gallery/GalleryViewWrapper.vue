@@ -28,7 +28,7 @@ const emit = defineEmits<{
   delete: []
   clear: []
   selectAll: []
-  update: [field: string, value: string]
+  update: [field: string, value: unknown]
   'update:page': [page: number]
 }>()
 </script>

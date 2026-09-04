@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Trash2, Pencil, Loader2, CheckCircle, AlertCircle, X, Zap } from '@lucide/vue'
 import type { DocField } from '@/types'
-import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
+import { getNonPhysicalTypeSet, getAsyncFieldComponent } from '@/core/fieldRegistry'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const props = defineProps<{
@@ -22,7 +21,7 @@ const emit = defineEmits<{
   (e: 'delete'): void
   (e: 'clear'): void
   (e: 'selectAll'): void
-  (e: 'update', field: string, value: string): void
+  (e: 'update', field: string, value: unknown): void
   (e: 'fastDelete'): void
 }>()
 
@@ -31,7 +30,7 @@ const showDeleteModal = ref(false)
 const showFastDeleteModal = ref(false)
 const showUpdateModal = ref(false)
 const updateField = ref('')
-const updateValue = ref('')
+const updateValue = ref<unknown>(null)
 const updateSaving = ref(false)
 
 const isFullPage = computed(() =>
@@ -47,9 +46,22 @@ const updatableFields = computed(() =>
   (props.editableFields ?? []).filter(f => !NON_PHYSICAL.has(f.fieldtype) && !f.read_only)
 )
 
+// The field object for the currently picked fieldname — drives which control is
+// rendered for the "new value" input (Link picker, Select, Date, Check, …).
+const selectedField = computed(() =>
+  updatableFields.value.find(f => f.fieldname === updateField.value) ?? null
+)
+const valueComponent = computed(() =>
+  selectedField.value ? getAsyncFieldComponent(selectedField.value.fieldtype) : null
+)
+
+// Reset the value whenever the target field changes — a value entered for one
+// fieldtype is meaningless for the next.
+watch(updateField, () => { updateValue.value = null })
+
 function openUpdateModal() {
   updateField.value = updatableFields.value[0]?.fieldname ?? ''
-  updateValue.value = ''
+  updateValue.value = null
   showUpdateModal.value = true
 }
 
@@ -234,10 +246,14 @@ async function submitUpdate() {
       </div>
       <div class="flex flex-col gap-2">
         <label class="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Нове значення</label>
-        <Input v-model="updateValue" :placeholder="t('Enter value...')"
-          class="w-full"
-          fluid
-          @keydown.enter="submitUpdate" />
+        <component
+          :is="valueComponent"
+          v-if="selectedField"
+          :key="selectedField.fieldname"
+          :field="selectedField"
+          :model-value="updateValue"
+          @update:model-value="updateValue = $event"
+        />
       </div>
 
       <div class="p-3 bg-muted/30 rounded-lg border border-border/40">
