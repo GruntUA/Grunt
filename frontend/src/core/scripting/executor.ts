@@ -163,6 +163,8 @@ export interface GruntProxy {
     full_name: string
     roles: string[]
     is_superadmin: boolean
+    /** False for accounts provisioned via OIDC / email link that never set a password. */
+    has_password: boolean
     /** Set (with the impersonator) while a superadmin is viewing as this user. */
     impersonated_by: { email: string; full_name: string } | null
   }
@@ -640,6 +642,7 @@ export function createGruntProxy(
         full_name: u?.full_name ?? 'Guest',
         roles: u?.roles ?? [],
         is_superadmin: !!u?.is_superadmin,
+        has_password: u?.has_password ?? true,
         impersonated_by: useAuthStore().impersonatedBy,
       }
     },

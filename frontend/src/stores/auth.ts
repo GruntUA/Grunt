@@ -12,6 +12,8 @@ interface User {
   roles: string[]
   is_superadmin: boolean
   mfa_enabled?: boolean
+  /** False for accounts provisioned via OIDC / email link that never set one. */
+  has_password?: boolean
   theme?: Theme
   avatar?: string
   language?: string

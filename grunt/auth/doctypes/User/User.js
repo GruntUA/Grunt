@@ -20,10 +20,19 @@ function on_load(frm) {
       const user_id = frm.doc.name;
       if (!user_id) return;
 
+      // Own password: prove knowledge of the current one — unless there is none
+      // yet (signed up via email link / OIDC). Admins skip the check entirely.
+      const isSelf = user_id === grunt.session.user;
+      const isAdmin = grunt.session.is_superadmin || (grunt.session.roles || []).includes("System Manager");
+      const needCurrent = isSelf && !isAdmin && grunt.session.has_password !== false;
+
       const values = await grunt.form({
         title: "Змінити пароль",
         primaryLabel: "Змінити",
         fields: [
+          ...(needCurrent
+            ? [{ fieldname: "current_password", label: "Поточний пароль", fieldtype: "Password", required: true }]
+            : []),
           { fieldname: "new_password", label: "Новий пароль", fieldtype: "Password", required: true, show_strength: true },
           { fieldname: "confirm_password", label: "Підтвердіть пароль", fieldtype: "Password", required: true },
         ],
@@ -38,7 +47,7 @@ function on_load(frm) {
       try {
         await grunt.call({
           method: "grunt.auth.doctypes.User.user.set_user_password_api",
-          args: { user_id, new_password: values.new_password },
+          args: { user_id, new_password: values.new_password, current_password: values.current_password },
         });
         grunt.msgprint({ message: "Пароль успішно змінено", indicator: "green" });
       } catch (error) {

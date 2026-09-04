@@ -80,10 +80,13 @@ async def issue_login(
 
 async def find_or_create_external_user(email: str, full_name: str) -> User:
     """Resolve a local :class:`User` for an externally-authenticated identity
-    (OIDC / SAML / ...), creating one with an unusable random password if needed.
-    """
-    import secrets
+    (OIDC / SAML / email link / ...), creating a passwordless one if needed.
 
+    No password is set — ``hashed_password`` stays ``NULL``. Password sign-in is
+    simply unavailable for the account until the user sets one from their profile
+    (``set_user_password_api`` treats a null hash as a first-time set, so no
+    "current password" is asked for).
+    """
     from grunt.auth.doctypes.User.user import create_user, get_user_by_email
 
     user = await get_user_by_email(email)
@@ -97,4 +100,4 @@ async def find_or_create_external_user(email: str, full_name: str) -> User:
     parts = (full_name or "").split(maxsplit=1)
     first = parts[0] if parts else local
     last = parts[1] if len(parts) > 1 else local
-    return await create_user(email, secrets.token_hex(32), first, last, None)
+    return await create_user(email, "", first, last, None)

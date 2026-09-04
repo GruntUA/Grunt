@@ -370,3 +370,145 @@ async def test_signup_approval_off_by_default(ctx, client: AsyncClient):
         json={"email": "immediate@grunt.example.com", "password": "Str0ngPass"},
     )
     assert login.json()["data"]["access_token"]
+
+
+_SET_PWD = "/api/v1/method/grunt.auth.doctypes.User.user.set_user_password_api"
+
+
+@pytest.mark.asyncio
+async def test_set_user_password_self_service(ctx, client: AsyncClient):
+    """A non-privileged user changes their own password by proving the current
+    one; wrong current password and another user's record are both refused."""
+    from grunt.auth.doctypes.User.user import create_user
+
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        boss = await create_user("pwboss@grunt.example.com", "Str0ngPass", "Pw", "Boss", None)
+        me = await create_user("pwme@grunt.example.com", "Str0ngPass", "Pw", "Me", None)
+        other = await create_user("pwother@grunt.example.com", "Str0ngPass", "Pw", "Other", None)
+        await ctx.db.set_value("User", me.id, {"is_superadmin": False, "is_active": True})
+        await ctx.db.set_value("User", other.id, {"is_superadmin": False, "is_active": True})
+        await ctx.db._session().commit()
+        assert boss  # first user → superadmin, keeps the demoted users non-privileged
+
+    async def _login(email: str, password: str) -> dict[str, str]:
+        r = await client.post(
+            "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+            json={"email": email, "password": password},
+        )
+        assert r.status_code == 200, r.text
+        return {"Authorization": f"Bearer {r.json()['data']['access_token']}"}
+
+    headers = await _login("pwme@grunt.example.com", "Str0ngPass")
+
+    wrong = await client.post(
+        _SET_PWD,
+        json={
+            "user_id": "pwme@grunt.example.com",
+            "new_password": "N3wStr0ngPass",
+            "current_password": "nope",
+        },
+        headers=headers,
+    )
+    assert wrong.status_code == 403
+
+    ok = await client.post(
+        _SET_PWD,
+        json={
+            "user_id": "pwme@grunt.example.com",
+            "new_password": "N3wStr0ngPass",
+            "current_password": "Str0ngPass",
+        },
+        headers=headers,
+    )
+    assert ok.status_code == 200, ok.text
+
+    # new password now works, old one does not
+    await _login("pwme@grunt.example.com", "N3wStr0ngPass")
+
+    # cannot change someone else's password without System Manager / superadmin
+    forbidden = await client.post(
+        _SET_PWD,
+        json={
+            "user_id": "pwother@grunt.example.com",
+            "new_password": "N3wStr0ngPass",
+            "current_password": "Str0ngPass",
+        },
+        headers=headers,
+    )
+    assert forbidden.status_code == 403
+
+    # a superadmin sets anyone's password with no current_password
+    admin_headers = await _login("pwboss@grunt.example.com", "Str0ngPass")
+    admin_ok = await client.post(
+        _SET_PWD,
+        json={"user_id": "pwother@grunt.example.com", "new_password": "N3wStr0ngPass"},
+        headers=admin_headers,
+    )
+    assert admin_ok.status_code == 200, admin_ok.text
+    await _login("pwother@grunt.example.com", "N3wStr0ngPass")
+
+
+@pytest.mark.asyncio
+async def test_set_password_first_time_for_passwordless_user(ctx, client: AsyncClient):
+    """A user provisioned via email link / OIDC has no password; they set one
+    from their profile without being asked for a "current" password."""
+    from grunt.auth.doctypes.User.user import (
+        User,
+        create_user,
+        set_user_password_api,
+        whoami,
+    )
+    from grunt.auth.login import find_or_create_external_user
+
+    async with ctx.system_context(ctx.db._session(), ctx._require_engine()):
+        await create_user("first@grunt.example.com", "Str0ngPass", "Fir", "St", None)  # superadmin
+        ext = await find_or_create_external_user("passwordless@grunt.example.com", "Pw Less")
+        await ctx.db.set_value("User", ext.id, {"is_superadmin": False, "is_active": True})
+        await ctx.db._session().commit()
+        assert not ext.hashed_password  # provisioned without a password
+
+    # A no-op whoami-style check: the account cannot sign in with a password yet.
+    denied = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        json={"email": "passwordless@grunt.example.com", "password": "anything-at-all"},
+    )
+    assert denied.status_code != 200
+
+    async with ctx.context(
+        ctx.db._session(),
+        ctx._require_engine(),
+        User(
+            doctype="User",
+            data={
+                "email": "passwordless@grunt.example.com",
+                "name": "passwordless@grunt.example.com",
+                "roles": [],
+                "is_superadmin": False,
+            },
+        ),
+    ):
+        me = await whoami()
+        assert me["has_password"] is False
+
+    async with ctx.context(
+        ctx.db._session(),
+        ctx._require_engine(),
+        User(
+            doctype="User",
+            data={
+                "email": "passwordless@grunt.example.com",
+                "name": "passwordless@grunt.example.com",
+                "roles": [],
+                "is_superadmin": False,
+            },
+        ),
+    ):
+        # No current_password — accepted because there is no password yet.
+        assert await set_user_password_api("passwordless@grunt.example.com", "N3wStr0ngPass")
+        await ctx.db._session().commit()
+
+    ok = await client.post(
+        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        json={"email": "passwordless@grunt.example.com", "password": "N3wStr0ngPass"},
+    )
+    assert ok.status_code == 200, ok.text

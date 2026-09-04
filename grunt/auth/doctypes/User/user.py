@@ -435,6 +435,7 @@ def _auth_user_dump(user: User) -> dict[str, Any]:
         "theme": user.theme,
         "avatar": user.avatar,
         "mfa_enabled": bool(user.mfa_enabled),
+        "has_password": bool(user.hashed_password),
         "language": getattr(user, "language", None) or None,
         "timezone": getattr(user, "timezone", None) or None,
         "created_at": user.created_at.isoformat() if user.created_at else None,
@@ -630,6 +631,7 @@ async def whoami() -> dict[str, Any]:
     return {
         **UserPublic.dump(user),
         "mfa_enabled": bool(user.mfa_enabled),
+        "has_password": bool(getattr(user, "hashed_password", None)),
         "language": getattr(user, "language", None) or None,
         "timezone": getattr(user, "timezone", None) or None,
         # Set only while a superadmin is viewing the system as this user.
@@ -815,14 +817,44 @@ async def reject_user_api(user_id: str) -> bool:
     return await _set_signup_state(user_id, "rejected")
 
 
-@grunt.whitelist(roles=["superadmin"])
-async def set_user_password_api(user_id: str, new_password: str) -> bool:
-    """Set a new password for a user. Superadmin only."""
+@grunt.whitelist()
+async def set_user_password_api(
+    user_id: str, new_password: str, current_password: str | None = None
+) -> bool:
+    """Set a new password for a user.
+
+    A user may change *their own* password by passing their ``current_password``.
+    When the account has no password yet (provisioned via OIDC / email link),
+    that check is skipped — it is a first-time set. Changing *someone else's*
+    password requires System Manager / superadmin.
+    """
     from grunt.auth.password_policy import enforce_password_policy
+    from grunt.permissions.roles import user_has_roles
 
     user = await get_user_by_id(user_id)
     if not user or not user.id:
         grunt.throw("Користувача не знайдено", "NOT_FOUND")
+
+    current = await grunt.get_current_user()
+    is_self = bool(
+        current
+        and (
+            (current.id and current.id == user.id)
+            or (current.email and current.email == user.email)
+        )
+    )
+    is_admin = bool(current and user_has_roles(current, ["System Manager"]))
+
+    if not is_admin:
+        if not is_self:
+            grunt.throw(
+                "Недостатньо прав, щоб змінити пароль іншого користувача", "PERMISSION_DENIED"
+            )
+        # A first-time set (no existing password) needs no current-password proof.
+        if user.hashed_password and (
+            not current_password or not await user.check_password(current_password)
+        ):
+            grunt.throw("Поточний пароль вказано невірно", "PERMISSION_DENIED")
 
     await enforce_password_policy(new_password)
     await grunt.set_value("User", user.id, "hashed_password", await hash_password(new_password))
