@@ -82,7 +82,9 @@ const badge = computed(() => {
       }
     }
   }
-  return { colorClass: '', variant: undefined, label: val, icon: null }
+  // Plain select value (no status indicator): render as a soft neutral chip
+  // rather than the heavy solid `default` badge.
+  return { colorClass: COLOR_CLASSES.secondary, variant: 'secondary' as const, label: val, icon: null }
 })
 </script>
 
