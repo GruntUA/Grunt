@@ -1,5 +1,10 @@
 """Hook registry — event-driven extensibility for Grunt apps.
 
+This module owns hook *registration* and *dispatch* only. The document event
+bus that fans a lifecycle event out to framework subsystems (Server Scripts,
+backlink sync, notification rules, assignment rules) lives in
+:mod:`grunt.events`; its ``fire()`` calls :func:`dispatch` here first.
+
 Usage in app hooks.py:
 
     from grunt.hooks import on, on_doc
@@ -30,8 +35,6 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, Any, TypedDict
 
 import structlog
-
-from grunt.context import _bootstrap_ctx
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -88,168 +91,32 @@ def on_doc(doctype: str, event: str, priority: int = 10) -> Callable:
     return decorator
 
 
-_NOTIFICATION_EVENTS = frozenset({"after_insert", "after_save", "after_update", "on_transition"})
+async def dispatch(**kwargs: Any) -> None:
+    """Run every registered hook for ``kwargs["event"]``.
 
-# DocTypes whose writes never warrant notification-rule evaluation: append-only
-# logs, plus ``Notification`` itself (the fan-out table — evaluating rules on a
-# Notification write would recursively enqueue more work).
-_NOTIFICATION_EXCLUDED_DOCTYPES = frozenset(
-    {"BackgroundTaskLog", "ErrorLog", "ActivityLog", "ViewLog", "Notification"}
-)
+    Global hooks (:func:`on`) first, then DocType-specific hooks
+    (:func:`on_doc` / ``doc_events``) with the wildcard ``"*"`` DocType before
+    the concrete one. This is the hook-registry half of the document event
+    bus; the subsystem pipeline lives in :func:`grunt.events.fire`, which
+    calls this first (``event`` is already present in ``kwargs``).
 
-_SERVER_SCRIPT_EVENTS = frozenset(
-    {
-        "before_insert",
-        "after_insert",
-        "before_save",
-        "after_save",
-        "before_delete",
-        "after_delete",
-        "validate",
-        "on_transition",
-    }
-)
-
-
-async def fire(event: str, **kwargs: Any) -> None:
-    """Fire an event through every side-effect subsystem the framework wires up.
-
-    This is the shared bus behind the whole CRUD pipeline
-    (:class:`~grunt.document.mixins.write.DocumentWriteMixin`) — a single
-    ``fire("after_save", ...)`` call fans out to, in order:
-
-    1. Global hooks registered via :func:`on`.
-    2. DocType-specific hooks registered via :func:`on_doc` (wildcard ``"*"`` first).
-    3. Server Scripts of type "DocType Event" (``before_insert``, ``after_insert``,
-       ``before_save``, ``after_save``, ``before_delete``, ``after_delete``,
-       ``validate``, ``on_transition`` only).
-    4. Backlink sync/cleanup (``after_save``/``after_insert`` sync links,
-       ``after_delete`` removes them).
-    5. Notification rule evaluation, offloaded to a background worker
-       (``after_insert``/``after_save``/``after_update``/``on_transition`` only,
-       excluding log DocTypes).
-    6. Assignment rule evaluation (``after_save``/``after_insert`` only).
-
-    Each stage is independently best-effort: an exception in one subsystem is
-    logged and does not stop the rest from running. No-ops entirely during
-    bootstrap (``_bootstrap_ctx``) so fixture/migration loading never triggers
-    notifications or server scripts.
+    Best-effort per handler: an exception is logged and the rest still run.
     """
-    if _bootstrap_ctx.get():
-        logger.debug("hook.skipped", reason="bootstrap", hook_event=event)
-        return
-
-    kwargs["event"] = event
-
-    # 1. Fire global hooks
+    event = kwargs["event"]
     for hook in HOOK_REGISTRY.get(event, []):
         await _call_hook(hook["handler"], event, **kwargs)
 
-    # 2. Fire DocType-specific hooks
     doctype = kwargs.get("doctype")
-    if doctype:
-        # Fire wildcard hooks first
-        if "*" in DOC_EVENT_REGISTRY:
-            for hook in DOC_EVENT_REGISTRY["*"].get(event, []):
-                await _call_hook(hook["handler"], f"*:{event}", **kwargs)
+    if not doctype:
+        return
 
-        if doctype in DOC_EVENT_REGISTRY:
-            for hook in DOC_EVENT_REGISTRY[doctype].get(event, []):
-                await _call_hook(hook["handler"], f"{doctype}:{event}", **kwargs)
+    if "*" in DOC_EVENT_REGISTRY:
+        for hook in DOC_EVENT_REGISTRY["*"].get(event, []):
+            await _call_hook(hook["handler"], f"*:{event}", **kwargs)
 
-    # 3. Run Server Scripts (DocType Event type)
-    if event in _SERVER_SCRIPT_EVENTS and doctype and kwargs.get("session"):
-        try:
-            from grunt.scripting import server_script_runner
-
-            user_email = ""
-            user_obj_ss = kwargs.get("user")
-            if user_obj_ss:
-                user_email = getattr(user_obj_ss, "email", str(user_obj_ss))
-
-            await server_script_runner.run_doctype_event(
-                session=kwargs["session"],
-                doctype=doctype,
-                event=event,
-                doc=kwargs.get("doc", {}),
-                user_email=user_email,
-            )
-        except Exception:
-            logger.exception("server_script.hook_error", hook_event=event, doctype=doctype)
-
-    # 4. Sync document links (backlinks)
-    if (
-        event in ("after_save", "after_insert")
-        and doctype
-        and kwargs.get("doc")
-        and kwargs.get("session")
-    ):
-        try:
-            from grunt.document.links import link_service
-
-            doc = kwargs["doc"]
-            doc_id = doc.get("name", "")
-            await link_service.sync_links(kwargs["session"], doctype, str(doc_id), doc)
-        except Exception:
-            logger.exception("links.sync_error", hook_event=event, doctype=doctype)
-
-    if event == "after_delete" and doctype and kwargs.get("doc") and kwargs.get("session"):
-        try:
-            from grunt.document.links import link_service
-
-            doc = kwargs["doc"]
-            doc_id = doc.get("name", "")
-            await link_service.delete_links(kwargs["session"], doctype, str(doc_id))
-        except Exception:
-            logger.exception("links.delete_error", hook_event=event, doctype=doctype)
-
-    # 5. Evaluate notification rules (Background)
-    if (
-        event in _NOTIFICATION_EVENTS
-        and doctype
-        and doctype not in _NOTIFICATION_EXCLUDED_DOCTYPES
-        and kwargs.get("doc")
-        and kwargs.get("session")
-    ):
-        try:
-            from grunt.notification import rule_index
-
-            # Skip the worker hop entirely unless a rule could actually match —
-            # otherwise every document write queues a task and a log row.
-            if await rule_index.has_rules(doctype, event):
-                from grunt.notification.tasks import evaluate_notification_rules_task
-
-                user_email = ""
-                user_obj = kwargs.get("user")
-                if user_obj:
-                    user_email = getattr(user_obj, "email", str(user_obj))
-
-                # Send to background worker
-                await evaluate_notification_rules_task.kiq(
-                    event=event,
-                    doctype=doctype,
-                    doc=kwargs["doc"],
-                    user_email=user_email,
-                )
-        except Exception:
-            logger.exception("notification.offload_error", hook_event=event, doctype=doctype)
-
-    # 6. Evaluate assignment rules
-    if (
-        event in ("after_save", "after_insert")
-        and doctype
-        and kwargs.get("doc")
-        and kwargs.get("session")
-    ):
-        try:
-            from grunt.assignment import assignment_service
-
-            await assignment_service.evaluate_and_assign(
-                doctype=doctype,
-                doc=kwargs["doc"],
-            )
-        except Exception:
-            logger.exception("assignment.evaluate_error", hook_event=event, doctype=doctype)
+    if doctype in DOC_EVENT_REGISTRY:
+        for hook in DOC_EVENT_REGISTRY[doctype].get(event, []):
+            await _call_hook(hook["handler"], f"{doctype}:{event}", **kwargs)
 
 
 async def _call_hook(fn: Callable, event_name: str, **kwargs: Any) -> None:

@@ -42,7 +42,7 @@ from grunt.document.virtual import (
     virtual_update,
 )
 from grunt.errors import GruntError
-from grunt.hooks import fire
+from grunt.events import fire
 from grunt.metadata.registry import doctype_registry
 
 logger = structlog.get_logger()

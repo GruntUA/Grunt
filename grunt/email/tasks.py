@@ -78,7 +78,7 @@ async def pull_from_accounts():
                 for email_data in emails:
                     # Trigger hook for inbound email
                     # Apps can register to this hook to create Support Tickets, Leads, etc.
-                    from grunt.hooks import fire
+                    from grunt.events import fire
 
                     await fire(
                         "inbound_email",

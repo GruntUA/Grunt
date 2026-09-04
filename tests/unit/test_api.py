@@ -303,7 +303,7 @@ class TestGruntAppLayerPermissions:
             patch.object(
                 grunt.db, "exists", new_callable=AsyncMock, return_value="INV-001"
             ) as mock_db_exists,
-            patch("grunt.hooks.fire", new_callable=AsyncMock),
+            patch("grunt.events.fire", new_callable=AsyncMock),
         ):
             result = await grunt.exists("Invoice", {"name": "INV-001"})
 
@@ -338,7 +338,7 @@ class TestGruntAppLayerPermissions:
             patch.object(
                 grunt.db, "get_all", new_callable=AsyncMock, return_value=rows
             ) as mock_db_get_all,
-            patch("grunt.hooks.fire", new_callable=AsyncMock) as mock_fire,
+            patch("grunt.events.fire", new_callable=AsyncMock) as mock_fire,
         ):
             result = await grunt.get_all(
                 InvoiceModel,

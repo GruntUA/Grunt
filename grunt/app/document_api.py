@@ -104,7 +104,7 @@ class DocumentAPI:
 
             settings = await grunt.get_doc("SystemSettings")
         """
-        from grunt.hooks import fire
+        from grunt.events import fire
         from grunt.permissions.rbac import permission_checker
 
         if isinstance(doctype, type):
@@ -218,7 +218,7 @@ class DocumentAPI:
 
     async def rename_doc(self, doctype: str, old_id: str, new_id: str) -> dict[str, Any]:
         """Rename a document and cascade all references."""
-        from grunt.hooks import fire
+        from grunt.events import fire
 
         dt, user, session = await write_guard(doctype, "write")
         await fire(
@@ -317,7 +317,7 @@ class DocumentAPI:
         and hidden-field masking. Returns a :class:`DocumentList` whose
         ``to_dict()`` carries pagination metadata.
         """
-        from grunt.hooks import fire
+        from grunt.events import fire
 
         dt, user, hidden_fields = await read_guard(doctype)
         await fire(
@@ -399,7 +399,7 @@ class DocumentAPI:
             users = await grunt.get_all(User, filters={"active": True})
         """
         from grunt.document.base import DocumentList
-        from grunt.hooks import fire
+        from grunt.events import fire
 
         doctype: str = getattr(model_class, "doctype", model_class.__name__)
         _, user, hidden_fields = await read_guard(doctype)
@@ -538,7 +538,7 @@ class DocumentAPI:
             if await grunt.exists("Invoice", {"number": "INV-001", "status": "Unpaid"}):
                 ...
         """
-        from grunt.hooks import fire
+        from grunt.events import fire
 
         _, user, _ = await read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, filters=filters, method="exists")
@@ -564,7 +564,7 @@ class DocumentAPI:
 
             status = await grunt.get_value("Invoice", invoice_id, "status")
         """
-        from grunt.hooks import fire
+        from grunt.events import fire
 
         _, user, _ = await read_guard(doctype)
         await fire(

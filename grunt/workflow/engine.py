@@ -112,7 +112,7 @@ class WorkflowEngine:
             logger.exception("workflow.controller_after_save_error", doctype=doctype.name)
 
         # Fire on_transition hooks
-        from grunt.hooks import fire as fire_hook
+        from grunt.events import fire as fire_hook
 
         try:
             await fire_hook(
