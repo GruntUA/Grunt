@@ -254,8 +254,19 @@ export function useLinkField(props: {
     }, 200)
   }
 
+  // When the typed text already names an existing record (by label or id),
+  // creating "the same thing" again is meaningless — hide the create row.
+  const hasExactMatch = computed(() => {
+    const q = query.value.trim().toLowerCase()
+    if (!q) return false
+    return results.value.some(
+      (r) => r.title.trim().toLowerCase() === q || r.name.toLowerCase() === q,
+    )
+  })
+
   const canCreate = computed(() =>
-    !!(props.field.options && !props.disabled && !props.field.read_only)
+    !!(props.field.options && !props.disabled && !props.field.read_only) &&
+    !hasExactMatch.value
   )
 
   const totalItems = computed(() => results.value.length + (canCreate.value ? 1 : 0))
