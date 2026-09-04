@@ -122,7 +122,7 @@ if TYPE_CHECKING:
     ) -> None: ...
     async def get_single(doctype: str, fieldname: str) -> Any: ...
     async def submit(doctype: str, doc_id: str, action: str) -> dict[str, Any]: ...
-    async def duplicate(
+    async def copy_doc(
         doctype: str,
         id_or_name: str,
         *,
@@ -189,6 +189,7 @@ def __getattr__(name: str):
         "new_doc",
         "save_doc",
         "delete_doc",
+        "copy_doc",
         "get_meta",
         "get_values",
         "get_value",
@@ -210,6 +211,7 @@ def __getattr__(name: str):
             "new_doc",
             "save_doc",
             "delete_doc",
+            "copy_doc",
             "get_meta",
             "get_values",
             "get_value",

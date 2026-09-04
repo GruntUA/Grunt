@@ -44,6 +44,11 @@ class DocAction:
     confirm: str | None = None
     roles: list[str] = field(default_factory=list)
     module: str = ""
+    # Input fields to prompt for before running — each a ``DialogField``-shaped
+    # dict (``fieldname``, ``label``, ``fieldtype``, ``required``, ``default``,
+    # ``options``, ``description``). The toolbar opens a form dialog and passes
+    # the collected values to the handler as ``args``. Empty = run immediately.
+    fields: list[dict] = field(default_factory=list)
 
     def matches(self, doctype: str | None) -> bool:
         if not doctype or not self.doctypes or "*" in self.doctypes:
@@ -87,6 +92,7 @@ def doc_action(
     variant: str = "outline",
     confirm: str | None = None,
     roles: list[str] | None = None,
+    fields: list[dict] | None = None,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator: register the wrapped function as a document action.
 
@@ -116,6 +122,7 @@ def doc_action(
                 variant=variant,
                 confirm=confirm,
                 roles=list(roles or []),
+                fields=list(fields or []),
                 module=getattr(fn, "__module__", ""),
             )
         )

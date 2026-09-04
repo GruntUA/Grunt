@@ -644,7 +644,7 @@ class DocumentAPI:
             require_engine(),
         )
 
-    async def duplicate(
+    async def copy_doc(
         self,
         doctype: str,
         id_or_name: str,
@@ -653,9 +653,11 @@ class DocumentAPI:
     ) -> dict[str, Any]:
         """Create a copy of a document and return it.
 
-        Optionally pass ``overrides`` to change specific fields on the copy::
+        Copies every field except ``id`` / ``name`` / ``created_at`` (child
+        tables included), then inserts a fresh document. Pass ``overrides`` to
+        change specific fields on the copy::
 
-            draft = await grunt.duplicate("Invoice", original_id, overrides={"status": "Draft"})
+            draft = await grunt.copy_doc("Invoice", original_id, overrides={"status": "Draft"})
         """
         original = await self.get_doc(doctype, id_or_name)
         data = {k: v for k, v in original.items() if k not in ("id", "name", "created_at")}

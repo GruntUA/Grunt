@@ -84,6 +84,31 @@ def test_enrich_resolves_defaults_and_flags_missing(sample_action):
     assert {c["key"] for c in data["_action_catalog"]} >= {sample_action.key}
 
 
+def test_enrich_exposes_input_fields():
+    """An action that declares `fields` surfaces them as `_fields` on the binding
+    and in the catalog, so the toolbar can prompt before running."""
+    prompt_fields = [
+        {"fieldname": "qty", "label": "How many", "fieldtype": "Float", "required": True},
+        {"fieldname": "note", "label": "Note", "fieldtype": "Text"},
+    ]
+    register_doc_action(
+        DocAction(
+            key="test.doc_actions.with_fields",
+            label="With fields",
+            handler=lambda doc, *, args: None,
+            doctypes=["Widget"],
+            fields=prompt_fields,
+        )
+    )
+
+    data = {"name": "Widget", "actions": [{"action": "test.doc_actions.with_fields"}]}
+    enrich_doctype_actions(data)
+
+    assert data["actions"][0]["_fields"] == prompt_fields
+    catalog = {c["key"]: c for c in data["_action_catalog"]}
+    assert catalog["test.doc_actions.with_fields"]["fields"] == prompt_fields
+
+
 def test_incomplete_and_null_action_rows_are_tolerated():
     """The child-table editor sends nulls for empty cells; blank rows are dropped."""
     from grunt.metadata.doctype import DocType

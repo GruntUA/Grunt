@@ -12,8 +12,10 @@ import { computed, unref } from 'vue'
 import type { MaybeRefOrGetter, Ref } from 'vue'
 
 import client from '@/core/api/client'
+import type { DialogField } from '@/core/composables/useDialog'
+import { useDialog } from '@/core/composables/useDialog'
 import { toast } from '@/core/composables/useToast'
-import type { DocType, ScriptButton } from '@/types'
+import type { DocActionField, DocType, ScriptButton } from '@/types'
 
 interface UseDocActionsOptions {
   doctype: string
@@ -51,12 +53,34 @@ export function useDocActions(options: UseDocActionsOptions) {
         icon: b._icon || undefined,
         group: b._group || b.group || undefined,
         severity: b._variant || b.variant || 'outline',
-        action: () => runAction(b.action, b._label || b.label || b.action, b._confirm ?? null),
+        action: () =>
+          runAction(
+            b.action,
+            b._label || b.label || b.action,
+            b._confirm ?? null,
+            b._fields ?? [],
+          ),
       }))
   })
 
-  async function runAction(action: string, label: string, confirmMsg: string | null) {
-    if (confirmMsg && !window.confirm(confirmMsg)) return
+  async function runAction(
+    action: string,
+    label: string,
+    confirmMsg: string | null,
+    fields: DocActionField[],
+  ) {
+    let args: Record<string, unknown> = {}
+    if (fields.length) {
+      const values = await useDialog().form({
+        title: label,
+        fields: fields as DialogField[],
+        primaryLabel: label,
+      })
+      if (values === null) return
+      args = values
+    } else if (confirmMsg && !window.confirm(confirmMsg)) {
+      return
+    }
     const doc = (typeof options.form === 'function' ? options.form() : unref(options.form)) ?? {}
     const docId = (doc as Record<string, unknown>).name ?? options.id
     try {
@@ -64,7 +88,7 @@ export function useDocActions(options: UseDocActionsOptions) {
         doctype: options.doctype,
         action,
         doc_id: docId,
-        args: {},
+        args,
       })
       const payload = data?.data ?? {}
       if (payload.copy && typeof navigator !== 'undefined' && navigator.clipboard) {

@@ -18,7 +18,9 @@ Flow at runtime:
   defaults by ``grunt.api.v1.meta._dump_doctype``) and renders a toolbar
   button per visible binding;
 * clicking a button calls ``POST /api/v1/method/grunt.actions.run`` with the
-  DocType, the action key and the document id;
+  DocType, the action key and the document id — if the action declares
+  ``fields`` the toolbar first opens a form dialog and sends the collected
+  values as ``args``;
 * :func:`run` re-checks that the key is actually bound on that DocType,
   enforces the action's ``roles``, loads the document (which enforces read
   permission) and awaits the handler.
@@ -101,6 +103,7 @@ def enrich_doctype_actions(data: dict) -> None:
             "group": a.group,
             "variant": a.variant,
             "confirm": a.confirm,
+            "fields": a.fields,
             "module": a.module,
         }
         for a in actions_for_doctype(doctype_name)
@@ -119,6 +122,7 @@ def enrich_doctype_actions(data: dict) -> None:
         row["_variant"] = row.get("variant") or spec.variant
         row["_group"] = row.get("group") or spec.group
         row["_confirm"] = spec.confirm
+        row["_fields"] = spec.fields
 
 
 @grunt.whitelist()
@@ -133,6 +137,7 @@ async def list_doc_actions(doctype: str | None = None) -> list[dict]:
             "group": a.group,
             "variant": a.variant,
             "confirm": a.confirm,
+            "fields": a.fields,
             "doctypes": a.doctypes,
             "roles": a.roles,
             "module": a.module,

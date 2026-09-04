@@ -648,3 +648,26 @@ async def test_link_search_returns_compact_items(ctx, setup_doctype):
     assert len(items) == 1
     assert items[0]["title"] == "Alpha Item"
     assert items[0]["subtitle"] == items[0]["name"]
+
+
+@pytest.mark.asyncio
+async def test_copy_doc(ctx, setup_doctype):
+    """copy_doc clones every field but id/name/created_at, applies overrides,
+    and inserts a fresh document."""
+    original = await ctx.new_doc(
+        "TestItem", {"title": "Original", "status": "Active", "count": 7}
+    )
+    await ctx.db._session().commit()
+
+    copy = await ctx.copy_doc(
+        "TestItem", original["name"], overrides={"status": "Draft"}
+    )
+    await ctx.db._session().commit()
+
+    assert copy["name"] != original["name"]
+    assert copy["title"] == "Original"  # copied
+    assert copy["count"] == 7  # copied
+    assert copy["status"] == "Draft"  # overridden
+    # original untouched
+    again = await ctx.get_doc("TestItem", original["name"])
+    assert again["status"] == "Active"

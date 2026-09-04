@@ -28,7 +28,7 @@ logger = structlog.get_logger()
 )
 async def duplicate(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Create a fresh copy of the current document."""
-    copy = await grunt.duplicate(doc["doctype"], doc["name"])
+    copy = await grunt.copy_doc(doc["doctype"], doc["name"])
     return {"message": f"Створено копію: {copy['name']}", "refresh": False}
 
 

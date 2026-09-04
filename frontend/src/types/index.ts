@@ -292,6 +292,18 @@ export interface DocConnectionsResult {
   }[]
 }
 
+/** Input field an action prompts for before running — a subset of the
+ *  `DialogField` shape consumed by `useDialog().form()`. */
+export interface DocActionField {
+  fieldname: string
+  label: string
+  fieldtype?: string
+  required?: boolean
+  default?: unknown
+  options?: string
+  description?: string
+}
+
 /** One row of the DocType `actions` table — binds a registered action, with
  *  optional presentation overrides. Keys prefixed `_` are resolved server-side
  *  from the code registry (see grunt.actions). */
@@ -308,6 +320,7 @@ export interface DocTypeActionBinding {
   _variant?: string
   _group?: string
   _confirm?: string | null
+  _fields?: DocActionField[]
   _missing?: boolean
 }
 
