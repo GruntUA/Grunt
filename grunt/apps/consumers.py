@@ -15,7 +15,6 @@ this exact path.
 from __future__ import annotations
 
 import importlib
-import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
@@ -108,20 +107,6 @@ def _scheduler_events(value: dict, ctx: LoadContext) -> None:
     from grunt.tasks.scheduler import register_scheduler_events
 
     register_scheduler_events(value)
-
-
-@consumer("on_startup")
-async def _on_startup(value: list[str], ctx: LoadContext) -> None:
-    for path in value:
-        try:
-            result = _resolve(path)()
-            if inspect.isawaitable(result):
-                await result
-            logger.info("apps.on_startup.called", app=ctx.app_name, handler=path)
-        except Exception as e:
-            logger.warning(
-                "apps.on_startup.error", app=ctx.app_name, handler=path, error=str(e)
-            )
 
 
 @consumer("io_exporters")

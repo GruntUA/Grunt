@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING
 
 import structlog
 
-from grunt.apps.consumers import HOOK_CONSUMERS, LoadContext
+from grunt.apps.consumers import HOOK_CONSUMERS, LoadContext, _resolve
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -44,8 +44,13 @@ _GRUNT_PKG = Path(__file__).resolve().parent.parent  # grunt/apps/loader.py -> g
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-async def load_core(fastapi_app: FastAPI | None = None) -> None:
-    """Wire the framework's own hooks and resources."""
+def load_core(fastapi_app: FastAPI | None = None) -> None:
+    """Wire the framework's own hooks and resources.
+
+    Synchronous by design: it runs at :mod:`grunt.main` import time (before
+    any event loop), and every core consumer is synchronous. ``core_hooks``
+    must not grow an ``on_startup`` — that belongs in the lifespan.
+    """
     from grunt.document.registry import document_registry
 
     document_registry.index_core_controllers()
@@ -66,7 +71,7 @@ async def load_core(fastapi_app: FastAPI | None = None) -> None:
     from grunt import core_hooks
 
     ctx = LoadContext(app_name=CORE_APP, app_dir=_GRUNT_PKG, fastapi_app=fastapi_app)
-    await _apply_hooks_module(core_hooks, ctx)
+    _apply_hooks_module(core_hooks, ctx)
 
 
 def _load_core_client_scripts() -> None:
@@ -137,7 +142,8 @@ async def load_app(fastapi_app: FastAPI | None, app_dir: Path) -> None:
     document_registry.index_external_app_controllers(app_dir)
 
     for hooks_mod in _iter_hooks_modules(app_dir):
-        await _apply_hooks_module(hooks_mod, ctx)
+        _apply_hooks_module(hooks_mod, ctx)
+        await _run_on_startup(hooks_mod, ctx)
 
     _include_app_routers(ctx)
     _mount_app_static(ctx)
@@ -161,7 +167,8 @@ async def reload_app(app_name: str, fastapi_app: FastAPI | None = None) -> None:
     ctx = LoadContext(app_name=app_name, app_dir=app_dir, fastapi_app=fastapi_app)
     for hooks_mod in _iter_hooks_modules(app_dir):
         reloaded = importlib.reload(sys.modules[hooks_mod.__name__])
-        await _apply_hooks_module(reloaded, ctx)
+        _apply_hooks_module(reloaded, ctx)
+        await _run_on_startup(reloaded, ctx)
         logger.info("apps.reloaded", module=reloaded.__name__)
 
 
@@ -196,16 +203,33 @@ def _iter_hooks_modules(app_dir: Path) -> Iterator[object]:
         yield mod
 
 
-async def _apply_hooks_module(mod: object, ctx: LoadContext) -> None:
+def _apply_hooks_module(mod: object, ctx: LoadContext) -> None:
+    """Run every registered consumer whose key the module defines.
+
+    All consumers are synchronous (registry mutations). Anything that needs
+    to *await* at load time is a discrete step — see :func:`_run_on_startup`.
+    """
     for key, hook_consumer in HOOK_CONSUMERS.items():
         if not hasattr(mod, key):
             continue
         try:
-            result = hook_consumer.apply(getattr(mod, key), ctx)
-            if inspect.isawaitable(result):
-                await result
+            hook_consumer.apply(getattr(mod, key), ctx)
         except Exception:
             logger.exception("apps.consumer_error", app=ctx.app_name, hook_key=key)
+
+
+async def _run_on_startup(mod: object, ctx: LoadContext) -> None:
+    """Await each ``on_startup`` handler an app declares — best-effort, isolated."""
+    for path in getattr(mod, "on_startup", ()):
+        try:
+            result = _resolve(path)()
+            if inspect.isawaitable(result):
+                await result
+            logger.info("apps.on_startup.called", app=ctx.app_name, handler=path)
+        except Exception as e:  # noqa: BLE001 - one bad handler must not stop the rest
+            logger.warning(
+                "apps.on_startup.error", app=ctx.app_name, handler=path, error=str(e)
+            )
 
 
 def _include_app_routers(ctx: LoadContext) -> None:

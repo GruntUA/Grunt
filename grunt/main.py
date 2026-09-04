@@ -1,8 +1,6 @@
 """FastAPI application entry point."""
 
 from contextlib import asynccontextmanager
-
-# Register core doctypes dir for lazy client script loading + eager server script loading
 from pathlib import Path as _Path
 
 import structlog
@@ -12,80 +10,25 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
-# Ensure all ORM models are imported so metadata is complete
 from grunt.api.messages import ApplicationError
 from grunt.api.v1.router import v1_router
+from grunt.apps import load_core, load_external_apps
 from grunt.config import settings
-from grunt.document.registry import document_registry
 from grunt.errors import GruntError, error_body
-from grunt.hooks import register_doc_events
-
-# Register built-in io exporters / importers
-from grunt.io import register_exporter, register_importer
-from grunt.io.exporters.csv import CsvExporter
-from grunt.io.exporters.xlsx import XlsxExporter
-from grunt.io.importers.csv import CsvImporter
-from grunt.io.importers.xlsx import XlsxImporter
 from grunt.metadata.registry import doctype_registry
 from grunt.middleware.language import LanguageMiddleware
 from grunt.middleware.logging import RequestLoggingMiddleware
 from grunt.middleware.rate_limit import RateLimitMiddleware
 from grunt.middleware.security import SecurityHeadersMiddleware
-from grunt.scripting.file_scripts import (
-    _load_doctype_dir_scripts as _load_dt_scripts,
-)
-from grunt.scripting.file_scripts import (
-    register_client_script_dir as _reg_client_dirs,
-)
 from grunt.site.manager import current_site, site_manager
 from grunt.site.middleware import SiteContextMiddleware
-from grunt.startup.doctypes import _find_doctype_dirs as _grunt_doctype_dirs
 from grunt.tasks.broker import broker
-from grunt.tasks.scheduler import register_scheduler_events, start_scheduler, stop_scheduler
+from grunt.tasks.scheduler import start_scheduler, stop_scheduler
 from grunt.website import make_website_handler, robots_txt, sitemap_xml, website_registry
 
-document_registry.index_core_controllers()
-register_exporter(XlsxExporter())
-register_exporter(CsvExporter())
-register_importer(CsvImporter())
-register_importer(XlsxImporter())
-
-register_doc_events(
-    {
-        # Never hand a stored SMTP password back to a non-superadmin reader.
-        "EmailAccount": {
-            "after_read": ["grunt.email.hooks.mask_smtp_password"],
-        },
-        # Keep the notification-rule index (grunt.hooks.fire stage 5) fresh.
-        "NotificationRule": {
-            "after_save": ["grunt.notification.rule_index.invalidate_on_change"],
-            "after_delete": ["grunt.notification.rule_index.invalidate_on_change"],
-        },
-        # Log all document lifecycle events to ActivityLog
-        "*": {
-            "after_insert": ["grunt.activity.log_activity"],
-            # Snapshot the doc first (restorable trash bin), then log the delete.
-            "after_delete": [
-                "grunt.activity.trash.snapshot_deleted_document",
-                "grunt.activity.log_activity",
-            ],
-            # Record per-user "seen" state / ViewLog for DocTypes that opt in
-            # via track_seen / track_views (no-op for everything else).
-            "after_read": ["grunt.activity.record_view"],
-        },
-    }
-)
-
-
-for _doctypes_dir in _grunt_doctype_dirs():
-    _reg_client_dirs("grunt", _doctypes_dir)
-    for _dt_dir in sorted(_doctypes_dir.iterdir()):
-        if _dt_dir.is_dir() and not _dt_dir.name.startswith((".", "_")):
-            _load_dt_scripts(_dt_dir, "grunt")
-
-# Phase 3 modules (imported for side-effects: table registration)
-# workflow, permissions, reports engines are imported on-demand in endpoints
-
+# Wire the framework's own hooks/resources ("app zero"). External apps are
+# loaded from the lifespan below, once the DB says which are installed.
+load_core()
 
 logger = structlog.get_logger()
 
@@ -105,8 +48,6 @@ async def lifespan(app: FastAPI):
 
     logger.info("grunt.startup", version="0.1.0")
 
-    import importlib
-
     from grunt.startup import (
         apply_doctype_overrides,
         load_core_doctypes,
@@ -114,8 +55,6 @@ async def lifespan(app: FastAPI):
     )
 
     load_validators()
-
-    from grunt.website import make_website_handler, website_registry
 
     sites = site_manager.get_sites()
     if not sites:
@@ -148,173 +87,15 @@ async def lifespan(app: FastAPI):
         finally:
             current_site.reset(token)
 
-    # ── Post-startup: discover resources from installed external apps (bench_dir/apps/*) ──
-    import sys
-
-    from grunt.scripting.file_scripts import (
-        discover_file_scripts as _discover_scripts,
+    # ── Post-startup: discover resources from installed external apps ──
+    # Only apps installed on at least one site are loaded — an app present in
+    # apps/ but installed nowhere stays dormant (its hooks, controllers and
+    # startup tasks must not act on sites that never opted in).
+    await load_external_apps(
+        app,
+        bench_dir=site_manager.bench_dir,
+        installed_apps=site_manager.get_all_installed_apps(),
     )
-
-    ext_apps_dir = site_manager.bench_dir / "apps"
-    if ext_apps_dir.is_dir():
-        # Ensure external apps are importable
-        ext_apps_str = str(ext_apps_dir)
-        if ext_apps_str not in sys.path:
-            sys.path.insert(0, ext_apps_str)
-
-        # Only load code from apps that are installed on at least one site. An
-        # app present in apps/ but not installed anywhere must stay dormant —
-        # its hooks, controllers and startup tasks must not run (they would act
-        # on sites that never opted in, a source of noise, bugs and security
-        # exposure).
-        installed_apps = site_manager.get_all_installed_apps()
-
-        for ext_app in sorted(ext_apps_dir.iterdir()):
-            if (
-                ext_app.is_dir()
-                and ext_app.name not in ("grunt",)
-                and ext_app.name in installed_apps
-                and not ext_app.name.startswith((".", "_"))
-            ):
-                # Also add the app directory itself so that `import {app}` resolves
-                # the inner Python package (apps/{app}/{app}/) rather than treating
-                # apps/{app}/ as a namespace package. This allows `car_ua.services.*`
-                # to work instead of requiring `car_ua.car_ua.services.*`.
-                ext_app_str = str(ext_app)
-                if ext_app_str not in sys.path:
-                    sys.path.insert(0, ext_app_str)
-
-                _discover_scripts(ext_app.parent, app_filter=ext_app.name)
-                document_registry.index_external_app_controllers(ext_app)
-
-                # Load hooks from external app modules: {app}/{module}/hooks.py
-                for hooks_file in ext_app.glob("*/hooks.py"):
-                    hooks_module_name = hooks_file.parent.name
-                    # Same-name layout (apps/car_ua/car_ua/hooks.py): app dir is on
-                    # sys.path so importable prefix is just the module name.
-                    if hooks_module_name == ext_app.name:
-                        hooks_import = f"{hooks_module_name}.hooks"
-                    else:
-                        hooks_import = f"{ext_app.name}.{hooks_module_name}.hooks"
-                    try:
-                        hooks_mod = importlib.import_module(hooks_import)
-                        logger.info("hooks.loaded", module=hooks_import)
-
-                        if hasattr(hooks_mod, "doc_events"):
-                            register_doc_events(hooks_mod.doc_events)
-                        if hasattr(hooks_mod, "override_doctype_class"):
-                            document_registry.register_overrides(hooks_mod.override_doctype_class)
-                        if hasattr(hooks_mod, "scheduler_events"):
-                            register_scheduler_events(hooks_mod.scheduler_events)
-                        if hasattr(hooks_mod, "on_startup"):
-                            for startup_fn_path in hooks_mod.on_startup:
-                                try:
-                                    mod_path, fn_name = startup_fn_path.rsplit(".", 1)
-                                    startup_mod = importlib.import_module(mod_path)
-                                    fn = getattr(startup_mod, fn_name)
-                                    await fn()
-                                    logger.info("hooks.on_startup.called", handler=startup_fn_path)
-                                except Exception as e:
-                                    logger.warning(
-                                        "hooks.on_startup.error",
-                                        handler=startup_fn_path,
-                                        error=str(e),
-                                    )
-                        if hasattr(hooks_mod, "io_exporters"):
-                            from grunt.io import register_exporter as _reg_exp
-
-                            for _exp in hooks_mod.io_exporters:
-                                _reg_exp(_exp)
-                                logger.info("io.exporter.registered", id=_exp.id, app=ext_app.name)
-                        if hasattr(hooks_mod, "io_importers"):
-                            from grunt.io import register_importer as _reg_imp
-
-                            for _imp in hooks_mod.io_importers:
-                                _reg_imp(_imp)
-                                logger.info("io.importer.registered", id=_imp.id, app=ext_app.name)
-                        if hasattr(hooks_mod, "website_block_types"):
-                            from grunt.website.block_types import register_block_type
-
-                            website_registry.add_template_source("grunt", ext_app / "www")
-                            for _bt in hooks_mod.website_block_types:
-                                register_block_type(_bt["name"], _bt["template"], _bt.get("fields"))
-                                logger.info(
-                                    "website.block_type.registered",
-                                    name=_bt["name"],
-                                    app=ext_app.name,
-                                )
-                        if hasattr(hooks_mod, "tree_title_resolvers"):
-                            from grunt.document.tree import register_tree_title_resolver
-
-                            for _dt_name, _resolver_path in hooks_mod.tree_title_resolvers.items():
-                                try:
-                                    _mod_path, _fn_name = _resolver_path.rsplit(".", 1)
-                                    _resolver_mod = importlib.import_module(_mod_path)
-                                    register_tree_title_resolver(
-                                        _dt_name, getattr(_resolver_mod, _fn_name)
-                                    )
-                                    logger.info(
-                                        "tree.title_resolver.registered",
-                                        doctype=_dt_name,
-                                        app=ext_app.name,
-                                    )
-                                except Exception as e:
-                                    logger.warning(
-                                        "tree.title_resolver.error",
-                                        doctype=_dt_name,
-                                        handler=_resolver_path,
-                                        error=str(e),
-                                    )
-                        if hasattr(hooks_mod, "doc_actions"):
-                            from grunt.actions import load_app_doc_actions
-
-                            load_app_doc_actions(
-                                list(hooks_mod.doc_actions), app=ext_app.name
-                            )
-                    except Exception as e:
-                        logger.warning("hooks.load_error", module=hooks_import, error=str(e))
-
-                # Discover app API routers: {app}/{module}/routes.py → router: APIRouter
-                for routes_file in ext_app.glob("*/routes.py"):
-                    module_name = routes_file.parent.name
-                    if module_name == ext_app.name:
-                        import_path = f"{module_name}.routes"
-                    else:
-                        import_path = f"{ext_app.name}.{module_name}.routes"
-                    try:
-                        mod = importlib.import_module(import_path)
-                        if hasattr(mod, "router"):
-                            app.include_router(
-                                mod.router,
-                                prefix=f"/api/v1/app/{ext_app.name}",
-                            )
-                            logger.info(
-                                "app_router.registered", app=ext_app.name, module=module_name
-                            )
-                    except Exception as e:
-                        logger.warning("app_router.load_error", path=import_path, error=str(e))
-
-                # Mount app/public/ as static files at /assets/{app}/
-                public_dir = ext_app / "public"
-                if public_dir.is_dir():
-                    from fastapi.staticfiles import StaticFiles
-
-                    app.mount(
-                        f"/assets/{ext_app.name}",
-                        StaticFiles(directory=str(public_dir)),
-                        name=f"assets_{ext_app.name}",
-                    )
-                    logger.info("www.assets.mounted", app=ext_app.name)
-
-                # 2. Discover external app pages
-                for page in website_registry.discover_app(ext_app, ext_app.name):
-                    app.add_api_route(
-                        page.url_pattern,
-                        make_website_handler(page),
-                        methods=["GET", "POST"],
-                        include_in_schema=False,
-                        tags=["www"],
-                    )
 
     # Initialize Sentry (optional)
     if settings.sentry_dsn:
