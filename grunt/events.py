@@ -241,6 +241,8 @@ for _core_stage in (
     EventSubscriber(
         "notification_rules", _evaluate_notification_rules, _NOTIFICATION_EVENTS, priority=50
     ),
-    EventSubscriber("assignment_rules", _evaluate_assignment_rules, _ASSIGNMENT_EVENTS, priority=60),
+    EventSubscriber(
+        "assignment_rules", _evaluate_assignment_rules, _ASSIGNMENT_EVENTS, priority=60
+    ),
 ):
     register_subscriber(_core_stage)
