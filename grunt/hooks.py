@@ -90,6 +90,13 @@ def on_doc(doctype: str, event: str, priority: int = 10) -> Callable:
 
 _NOTIFICATION_EVENTS = frozenset({"after_insert", "after_save", "after_update", "on_transition"})
 
+# DocTypes whose writes never warrant notification-rule evaluation: append-only
+# logs, plus ``Notification`` itself (the fan-out table — evaluating rules on a
+# Notification write would recursively enqueue more work).
+_NOTIFICATION_EXCLUDED_DOCTYPES = frozenset(
+    {"BackgroundTaskLog", "ErrorLog", "ActivityLog", "ViewLog", "Notification"}
+)
+
 _SERVER_SCRIPT_EVENTS = frozenset(
     {
         "before_insert",
@@ -200,27 +207,30 @@ async def fire(event: str, **kwargs: Any) -> None:
     if (
         event in _NOTIFICATION_EVENTS
         and doctype
-        and doctype not in {"BackgroundTaskLog", "ErrorLog", "ActivityLog", "ViewLog"}
+        and doctype not in _NOTIFICATION_EXCLUDED_DOCTYPES
         and kwargs.get("doc")
         and kwargs.get("session")
     ):
         try:
-            from grunt.notification.tasks import (
-                evaluate_notification_rules_task,
-            )
+            from grunt.notification import rule_index
 
-            user_email = ""
-            user_obj = kwargs.get("user")
-            if user_obj:
-                user_email = getattr(user_obj, "email", str(user_obj))
+            # Skip the worker hop entirely unless a rule could actually match —
+            # otherwise every document write queues a task and a log row.
+            if await rule_index.has_rules(doctype, event):
+                from grunt.notification.tasks import evaluate_notification_rules_task
 
-            # Send to background worker
-            await evaluate_notification_rules_task.kiq(
-                event=event,
-                doctype=doctype,
-                doc=kwargs["doc"],
-                user_email=user_email,
-            )
+                user_email = ""
+                user_obj = kwargs.get("user")
+                if user_obj:
+                    user_email = getattr(user_obj, "email", str(user_obj))
+
+                # Send to background worker
+                await evaluate_notification_rules_task.kiq(
+                    event=event,
+                    doctype=doctype,
+                    doc=kwargs["doc"],
+                    user_email=user_email,
+                )
         except Exception:
             logger.exception("notification.offload_error", hook_event=event, doctype=doctype)
 

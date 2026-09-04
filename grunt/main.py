@@ -56,6 +56,11 @@ register_doc_events(
         "EmailAccount": {
             "after_read": ["grunt.email.hooks.mask_smtp_password"],
         },
+        # Keep the notification-rule index (grunt.hooks.fire stage 5) fresh.
+        "NotificationRule": {
+            "after_save": ["grunt.notification.rule_index.invalidate_on_change"],
+            "after_delete": ["grunt.notification.rule_index.invalidate_on_change"],
+        },
         # Log all document lifecycle events to ActivityLog
         "*": {
             "after_insert": ["grunt.activity.log_activity"],
