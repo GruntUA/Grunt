@@ -1,15 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Codemirror } from 'vue-codemirror'
 import { Sparkles } from '@lucide/vue'
-import { format as formatSql } from 'sql-formatter'
-import { sql } from '@codemirror/lang-sql'
-import { javascript } from '@codemirror/lang-javascript'
-import { python } from '@codemirror/lang-python'
-import { html } from '@codemirror/lang-html'
-import { css } from '@codemirror/lang-css'
-import { json } from '@codemirror/lang-json'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { EditorState } from '@codemirror/state'
 import type { Extension } from '@codemirror/state'
@@ -28,28 +21,43 @@ const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 const { t } = useI18n()
 const { isDark } = useColorMode()
 
-const LANG_MAP: Record<string, () => Extension> = {
-  sql: () => sql(),
-  js: () => javascript(),
-  javascript: () => javascript(),
-  ts: () => javascript({ typescript: true }),
-  typescript: () => javascript({ typescript: true }),
-  py: () => python(),
-  python: () => python(),
-  html: () => html(),
-  css: () => css(),
-  json: () => json(),
+// Each grammar is its own chunk — a SQL field never pulls the Python/HTML/… parsers.
+const LANG_LOADERS: Record<string, () => Promise<Extension>> = {
+  sql: () => import('@codemirror/lang-sql').then((m) => m.sql()),
+  js: () => import('@codemirror/lang-javascript').then((m) => m.javascript()),
+  javascript: () => import('@codemirror/lang-javascript').then((m) => m.javascript()),
+  ts: () => import('@codemirror/lang-javascript').then((m) => m.javascript({ typescript: true })),
+  typescript: () => import('@codemirror/lang-javascript').then((m) => m.javascript({ typescript: true })),
+  py: () => import('@codemirror/lang-python').then((m) => m.python()),
+  python: () => import('@codemirror/lang-python').then((m) => m.python()),
+  html: () => import('@codemirror/lang-html').then((m) => m.html()),
+  css: () => import('@codemirror/lang-css').then((m) => m.css()),
+  json: () => import('@codemirror/lang-json').then((m) => m.json()),
 }
 
 const lang = computed(() => (props.field.options ?? '').toLowerCase().trim())
 const canFormat = computed(() => lang.value === 'sql' || lang.value === 'json')
 const isReadonly = computed(() => !!props.disabled || !!props.field.read_only)
 
+// Populated asynchronously — the editor renders immediately, highlighting snaps
+// in once the grammar chunk resolves.
+const langExt = shallowRef<Extension | null>(null)
+watch(
+  lang,
+  (l, _prev, onCleanup) => {
+    let cancelled = false
+    onCleanup(() => { cancelled = true })
+    const loader = LANG_LOADERS[l]
+    if (!loader) { langExt.value = null; return }
+    loader().then((ext) => { if (!cancelled) langExt.value = ext })
+  },
+  { immediate: true },
+)
+
 const extensions = computed<Extension[]>(() => {
   const exts: Extension[] = []
   if (isDark.value) exts.push(oneDark) // default (light) theme otherwise
-  const langExt = LANG_MAP[lang.value]?.()
-  if (langExt) exts.push(langExt)
+  if (langExt.value) exts.push(langExt.value)
   if (isReadonly.value) exts.push(EditorState.readOnly.of(true))
   return exts
 })
@@ -64,13 +72,17 @@ function fromModel(v: unknown): string {
   }
 }
 
-function prettify(raw: string): string {
+async function prettify(raw: string): Promise<string> {
   if (!raw.trim()) return raw
   if (lang.value === 'json') {
     try { return JSON.stringify(JSON.parse(raw), null, 2) } catch { return raw }
   }
   if (lang.value === 'sql') {
-    try { return formatSql(raw, { language: 'sql', tabWidth: 2, keywordCase: 'upper' }) } catch { return raw }
+    // sql-formatter (~40 kB) is only pulled for SQL fields, and only lazily.
+    try {
+      const { format } = await import('sql-formatter')
+      return format(raw, { language: 'sql', tabWidth: 2, keywordCase: 'upper' })
+    } catch { return raw }
   }
   return raw
 }
@@ -89,8 +101,8 @@ watch(
 )
 
 // Pretty-print the stored value once for readability (no emit → not dirty).
-onMounted(() => {
-  buffer.value = prettify(buffer.value)
+onMounted(async () => {
+  buffer.value = await prettify(buffer.value)
 })
 
 function onChange(v: string) {
@@ -99,8 +111,8 @@ function onChange(v: string) {
   emit('update:modelValue', v)
 }
 
-function formatNow() {
-  const f = prettify(buffer.value)
+async function formatNow() {
+  const f = await prettify(buffer.value)
   if (f !== buffer.value) onChange(f)
 }
 </script>
