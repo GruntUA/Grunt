@@ -7,7 +7,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from '@lucide/vue'
-import draggable from 'vuedraggable'
+import { VueDraggable } from 'vue-draggable-plus'
 import type { DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { Button } from '@/components/ui/button'
@@ -53,7 +53,8 @@ const toggle = (event: Event) => {
 const sortSearch = ref('')
 watch(isOpen, (v) => { if (v) sortSearch.value = '' })
 
-function onColReorder(e: { oldIndex: number; newIndex: number }) {
+function onColReorder(e: { oldIndex?: number; newIndex?: number }) {
+  if (e.oldIndex == null || e.newIndex == null) return
   props.columns.reorderCols(e.oldIndex, e.newIndex)
 }
 
@@ -110,24 +111,23 @@ const filteredSortOptions = computed(() => {
             </span>
           </div>
           <div class="max-h-[280px] overflow-y-auto overflow-x-hidden scrollbar-none py-1">
-            <draggable
+            <VueDraggable
               :model-value="columns.visibleColumns.value"
-              item-key="key"
               handle=".drag-handle"
               class="space-y-0.5"
               @end="onColReorder"
             >
-              <template #item="{ element: col }">
-                <div
-                  class="flex items-center gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                  @click="columns.toggleCol(col.key)"
-                >
-                  <span class="drag-handle cursor-grab text-muted-foreground select-none">⠿</span>
-                  <Check class="size-4 shrink-0" />
-                  <span class="flex-1 truncate">{{ col.label }}</span>
-                </div>
-              </template>
-            </draggable>
+              <div
+                v-for="col in columns.visibleColumns.value"
+                :key="col.key"
+                class="flex items-center gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                @click="columns.toggleCol(col.key)"
+              >
+                <span class="drag-handle cursor-grab text-muted-foreground select-none">⠿</span>
+                <Check class="size-4 shrink-0" />
+                <span class="flex-1 truncate">{{ col.label }}</span>
+              </div>
+            </VueDraggable>
             <div
               v-for="col in columns.allAvailableColumns.value.filter((c) => !columns.isVisible(c.key))"
               :key="col.key"

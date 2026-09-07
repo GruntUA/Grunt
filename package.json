@@ -65,22 +65,25 @@
     "vue": "^3.5.32",
     "vue-chartjs": "^5.3.3",
     "vue-codemirror": "^6.1.1",
+    "vue-draggable-plus": "^0.6.1",
     "vue-i18n": "11.3.2",
     "vue-router": "^5.1.0",
-    "vue-sonner": "^2.0.9",
-    "vuedraggable": "^4.1.0"
+    "vue-sonner": "^2.0.9"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
     "@tailwindcss/vite": "^4.2.2",
-    "@types/node": "^25.6.0",
+    "@types/node": "^26.5.0",
     "@vitejs/plugin-vue": "^6.0.6",
     "@vue/test-utils": "^2.4.6",
-    "jsdom": "^29.0.2",
+    "jsdom": "^30.0.1",
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.2",
     "vite": "^8.0.8",
     "vitest": "^4.1.4",
     "vue-tsc": "^3.2.6"
+  },
+  "allowScripts": {
+    "vue-demi@0.14.10": true
   }
 }

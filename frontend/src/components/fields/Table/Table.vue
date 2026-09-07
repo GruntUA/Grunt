@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import draggable from 'vuedraggable'
+import { VueDraggable } from 'vue-draggable-plus'
 import type { DocField, DocType } from '@/types'
 import { metaApi, docsApi } from '@/core/api'
 import { Plus, Trash2, Copy, ChevronDown, TriangleAlert, X, ArrowUp, ArrowDown, ClipboardCopy, PencilLine } from '@lucide/vue'
@@ -390,7 +390,7 @@ function push(updated: Record<string, unknown>[]) {
   emit('update:modelValue', updated)
 }
 
-// vuedraggable v-model target: strips DataTable-era meta-fields and reassigns
+// drag v-model target: strips DataTable-era meta-fields and reassigns
 // idx to match the new visual position so the backend (which sorts child rows
 // by idx on load) persists the drag order.
 const draggableRows = computed({
@@ -948,42 +948,41 @@ const canAddRow = computed(() => {
         </TableRow>
       </TableBody>
 
-      <!-- Reorderable path — never grouped, so exactly one <TableRow> per #item -->
-      <draggable
+      <!-- Reorderable path — never grouped, so exactly one <TableRow> per row -->
+      <VueDraggable
         v-else-if="canReorder"
         v-model="draggableRows"
         tag="tbody"
-        item-key="__row_key"
         handle=".row-drag-handle"
         ghost-class="tbl-drag-ghost"
         class="[&_tr:last-child]:border-0"
       >
-        <template #item="{ element: row, index: idx }">
-          <TableEditRow
-            :row="row"
-            :columns="displayedColumns"
-            :display-index="idx + 1"
-            :disabled="disabled"
-            :can-reorder="canReorder"
-            :selected="rowSelected(row)"
-            :has-error="rowHasError(row)"
-            :show-editor-button="!!allFields.length"
-            @set-cell="(fn: string, v: unknown) => setCell(row, fn, v)"
-            @create-new="(dt: string, preset: string, fn: string) => handleInlineCreateNew(String(row.__uid), dt, preset, fn)"
-            @edit="openEditor(row)"
-            @remove="removeRow(row)"
-            @toggle-select="toggleRowSelection(row)"
-            @duplicate="duplicateRow(row)"
-            @insert-above="insertRow(row, 'above')"
-            @insert-below="insertRow(row, 'below')"
-            @cell-keydown="(ev: KeyboardEvent, colIdx: number) => onCellKeydown(ev, row, colIdx)"
-            @cell-focus="(colIdx: number) => (activeCell = { uid: String(row.__uid), colIdx })"
-            @fill-start="(colIdx: number) => startFill(String(row.__uid), colIdx)"
-            :fill-handle-col="!disabled && activeCell && activeCell.uid === String(row.__uid) ? activeCell.colIdx : null"
-            :fill-preview="fillPreviewUids.has(String(row.__uid))"
-          />
-        </template>
-      </draggable>
+        <TableEditRow
+          v-for="(row, idx) in draggableRows"
+          :key="String(row.__row_key)"
+          :row="row"
+          :columns="displayedColumns"
+          :display-index="idx + 1"
+          :disabled="disabled"
+          :can-reorder="canReorder"
+          :selected="rowSelected(row)"
+          :has-error="rowHasError(row)"
+          :show-editor-button="!!allFields.length"
+          @set-cell="(fn: string, v: unknown) => setCell(row, fn, v)"
+          @create-new="(dt: string, preset: string, fn: string) => handleInlineCreateNew(String(row.__uid), dt, preset, fn)"
+          @edit="openEditor(row)"
+          @remove="removeRow(row)"
+          @toggle-select="toggleRowSelection(row)"
+          @duplicate="duplicateRow(row)"
+          @insert-above="insertRow(row, 'above')"
+          @insert-below="insertRow(row, 'below')"
+          @cell-keydown="(ev: KeyboardEvent, colIdx: number) => onCellKeydown(ev, row, colIdx)"
+          @cell-focus="(colIdx: number) => (activeCell = { uid: String(row.__uid), colIdx })"
+          @fill-start="(colIdx: number) => startFill(String(row.__uid), colIdx)"
+          :fill-handle-col="!disabled && activeCell && activeCell.uid === String(row.__uid) ? activeCell.colIdx : null"
+          :fill-preview="fillPreviewUids.has(String(row.__uid))"
+        />
+      </VueDraggable>
 
       <!-- Grouped / read-only path — group sub-headers interleave with rows -->
       <TableBody v-else>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, type Ref } from 'vue'
-import draggable from 'vuedraggable'
+import { VueDraggable } from 'vue-draggable-plus'
 import type { DocField } from '@/types'
 import { useBuilderStore } from '@/stores/builder'
 import CanvasFieldCard from './CanvasFieldCard.vue'
@@ -31,11 +31,10 @@ function onDragEnd() {
 </script>
 
 <template>
-  <div class="min-h-[60px]">
-    <draggable
+  <div class="min-h-[60px] relative">
+    <VueDraggable
       v-model="localFields"
       group="builder-fields"
-      item-key="fieldname"
       handle=".drag-handle"
       ghost-class="opacity-30"
       class="flex flex-col gap-1.5 min-h-[60px] p-1.5 rounded-sm border border-dashed border-transparent transition-colors"
@@ -43,23 +42,21 @@ function onDragEnd() {
       @start="onDragStart"
       @end="onDragEnd"
     >
-      <template #item="{ element: f }">
-        <CanvasFieldCard
-          :field="f"
-          :selected="builder.selectedFieldName === f.fieldname"
-          @select="builder.selectField(f.fieldname)"
-          @remove="builder.removeField(f.fieldname)"
-        />
-      </template>
+      <CanvasFieldCard
+        v-for="f in localFields"
+        :key="f.fieldname"
+        :field="f"
+        :selected="builder.selectedFieldName === f.fieldname"
+        @select="builder.selectField(f.fieldname)"
+        @remove="builder.removeField(f.fieldname)"
+      />
+    </VueDraggable>
 
-      <template #footer>
-        <div
-          v-if="!fields.length"
-          class="flex items-center justify-center h-10 text-muted-foreground/70 select-none"
-        >
-          Drop fields here
-        </div>
-      </template>
-    </draggable>
+    <div
+      v-if="!fields.length"
+      class="pointer-events-none absolute inset-0 flex items-center justify-center text-muted-foreground/70 select-none"
+    >
+      Drop fields here
+    </div>
   </div>
 </template>

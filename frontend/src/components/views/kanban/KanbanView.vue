@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { formatDayMonth } from '@/core/datetime'
-import draggable from 'vuedraggable'
+import { VueDraggable } from 'vue-draggable-plus'
 import type { DocType, DocField } from '@/types'
 import { docsApi } from '@/core/api/docs'
 import { parseSelectValues } from '@/lib/selectOptions'
@@ -93,8 +93,8 @@ async function loadCards() {
 }
 
 async function onMove(col: string, evt: any) {
-  if (!evt.added || !props.doctype?.name) return
-  const card = evt.added.element
+  const card = evt?.data
+  if (!card || !props.doctype?.name) return
   try {
     await docsApi.update(props.doctype.name, String(card.id), { [props.columnField]: col })
   } catch (e) {
@@ -169,47 +169,47 @@ watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) loadCards() 
           </div>
 
           <!-- Draggable Cards -->
-          <draggable v-model="cardsByColumn[col]" group="kanban" item-key="id"
+          <VueDraggable v-model="cardsByColumn[col]" group="kanban"
             class="flex-1 overflow-y-auto px-3 py-4 space-y-4 custom-scrollbar" ghost-class="ghost-class"
-            drag-class="rotate-2" @change="onMove(col, $event)">
-            <template #item="{ element: card }">
-              <div
-                class="bg-card hover:bg-card/80 border border-border/50 hover:border-primary/30 transition-colors duration-300 rounded-lg p-5 cursor-grab active:cursor-grabbing group shadow-sm relative overflow-hidden"
-                @click="$router.push(`/grunt/${doctype.name}/${card.id || card.name}`)">
+            drag-class="rotate-2" @add="onMove(col, $event)">
+            <div
+              v-for="card in cardsByColumn[col]"
+              :key="card.id"
+              class="bg-card hover:bg-card/80 border border-border/50 hover:border-primary/30 transition-colors duration-300 rounded-lg p-5 cursor-grab active:cursor-grabbing group shadow-sm relative overflow-hidden"
+              @click="$router.push(`/grunt/${doctype.name}/${card.id || card.name}`)">
 
-                <!-- Card Title -->
-                <div class="flex items-start justify-between gap-3 relative z-10">
-                  <p class="font-semibold text-foreground leading-snug line-clamp-2">
-                    {{ card[doctype.title_field || 'name'] || card.id }}
-                  </p>
-                  <FileText
-                    class="size-4 text-muted-foreground/10 group-hover:text-primary/20 transition-all shrink-0" />
-                </div>
-
-                <!-- Metadata -->
-                <div class="flex items-center justify-between mt-6 relative z-10">
-                  <div class="flex items-center gap-2">
-                    <div v-if="card.owner" class="flex items-center gap-2 group-hover:bg-primary/5 px-2 py-1 rounded-full transition-colors" title="Власник">
-                      <Avatar class="!size-5 !border !border-primary/20">
-                        <AvatarFallback class="!text-xs !bg-primary/10 !text-primary">{{ card.owner.charAt(0).toUpperCase() }}</AvatarFallback>
-                      </Avatar>
-                      <span class="text-muted-foreground font-semibold truncate max-w-[80px]">
-                        {{ card.owner.split('@')[0] }}
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    class="flex items-center gap-2 text-muted-foreground/50 font-semibold uppercase tracking-wider bg-muted/30 px-2.5 py-1 rounded-lg border border-border/10">
-                    <Calendar class="size-3" />
-                    {{ formatDate(card.modified_at) }}
-                  </div>
-                </div>
-
-                <!-- Interactive Indicator -->
-                <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary/0 group-hover:bg-primary/40 transition-all rounded-r-full" />
+              <!-- Card Title -->
+              <div class="flex items-start justify-between gap-3 relative z-10">
+                <p class="font-semibold text-foreground leading-snug line-clamp-2">
+                  {{ card[doctype.title_field || 'name'] || card.id }}
+                </p>
+                <FileText
+                  class="size-4 text-muted-foreground/10 group-hover:text-primary/20 transition-all shrink-0" />
               </div>
-            </template>
-          </draggable>
+
+              <!-- Metadata -->
+              <div class="flex items-center justify-between mt-6 relative z-10">
+                <div class="flex items-center gap-2">
+                  <div v-if="card.owner" class="flex items-center gap-2 group-hover:bg-primary/5 px-2 py-1 rounded-full transition-colors" title="Власник">
+                    <Avatar class="!size-5 !border !border-primary/20">
+                      <AvatarFallback class="!text-xs !bg-primary/10 !text-primary">{{ card.owner.charAt(0).toUpperCase() }}</AvatarFallback>
+                    </Avatar>
+                    <span class="text-muted-foreground font-semibold truncate max-w-[80px]">
+                      {{ card.owner.split('@')[0] }}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  class="flex items-center gap-2 text-muted-foreground/50 font-semibold uppercase tracking-wider bg-muted/30 px-2.5 py-1 rounded-lg border border-border/10">
+                  <Calendar class="size-3" />
+                  {{ formatDate(card.modified_at) }}
+                </div>
+              </div>
+
+              <!-- Interactive Indicator -->
+              <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary/0 group-hover:bg-primary/40 transition-all rounded-r-full" />
+            </div>
+          </VueDraggable>
         </div>
       </div>
     </template>

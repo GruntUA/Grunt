@@ -1,5 +1,5 @@
 [tools]
-node = "22.13.1"
+node = "26"
 uv = "latest"
 
 

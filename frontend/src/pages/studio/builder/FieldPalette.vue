@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { shallowRef } from 'vue'
 import type { Component } from 'vue'
-import draggable from 'vuedraggable'
+import { VueDraggable } from 'vue-draggable-plus'
 import { useBuilderStore } from '@/stores/builder'
 import { getPaletteGroups, getLayoutFields } from '@/core/fieldRegistry'
 import type { FieldDefinition } from '@/core/fieldRegistry'
@@ -54,26 +54,25 @@ function addLayoutItem(type: string) {
     <!-- Draggable field groups (from registry) -->
     <div v-for="group in fieldGroups" :key="group.category" class="mb-4">
       <p class="text-muted-foreground/70 px-1 mb-1">{{ group.category }}</p>
-      <draggable
+      <VueDraggable
         :model-value="group.fields"
         :group="{ name: 'builder-fields', pull: 'clone', put: false }"
         :sort="false"
-        item-key="type"
         :clone="cloneField"
         class="flex flex-col gap-0.5"
       >
-        <template #item="{ element: item }">
-          <div
-            class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-border transition-colors text-left w-full cursor-grab active:cursor-grabbing"
-          >
-            <span class="w-5 flex items-center justify-center shrink-0 text-muted-foreground">
-              <component :is="getLucideIcon(item.icon)" v-if="getLucideIcon(item.icon)" class="size-4" />
-              <span v-else class="text-base">{{ item.icon }}</span>
-            </span>
-            <span class="text-foreground">{{ item.label }}</span>
-          </div>
-        </template>
-      </draggable>
+        <div
+          v-for="item in group.fields"
+          :key="item.type"
+          class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-border transition-colors text-left w-full cursor-grab active:cursor-grabbing"
+        >
+          <span class="w-5 flex items-center justify-center shrink-0 text-muted-foreground">
+            <component :is="getLucideIcon(item.icon)" v-if="getLucideIcon(item.icon)" class="size-4" />
+            <span v-else class="text-base">{{ item.icon }}</span>
+          </span>
+          <span class="text-foreground">{{ item.label }}</span>
+        </div>
+      </VueDraggable>
     </div>
 
     <!-- Layout items (click only, from registry) -->

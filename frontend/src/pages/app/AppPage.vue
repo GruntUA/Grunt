@@ -5,7 +5,7 @@ import {
   RefreshCw, LayoutDashboard, Pencil, Plus, Save, X,
   Calendar, Timer, Link2, Printer, GripVertical,
 } from '@lucide/vue'
-import draggable from 'vuedraggable'
+import { VueDraggable } from 'vue-draggable-plus'
 import { docsApi } from '@/core/api/docs'
 import { getPageData } from '@/core/api/pages'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
@@ -414,44 +414,43 @@ const printPage = () => window.print()
             <p class="text-muted-foreground max-w-xs">Натисніть на будь-який тип у лівій панелі — він з'явиться тут</p>
           </div>
 
-          <draggable
+          <VueDraggable
             v-else-if="page"
             v-model="page.widgets"
-            item-key="id"
             class="grid grid-cols-4 gap-3 auto-rows-auto"
             handle=".drag-handle"
             ghost-class="opacity-40"
           >
-            <template #item="{ element }">
-              <div
-                :class="[
-                  'relative rounded-lg border-2 transition-colors cursor-pointer group',
-                  selectedWidgetId === element.id
-                    ? 'border-primary shadow-md'
-                    : 'border-transparent hover:border-primary/30',
-                ]"
-                @click.stop="selectWidget(element)"
-              >
-                <!-- Drag handle -->
-                <div class="absolute top-1.5 left-1.5 z-10 drag-handle cursor-grab opacity-0 group-hover:opacity-60 transition-opacity p-0.5 rounded bg-background/80">
-                  <GripVertical class="size-3.5 text-muted-foreground" />
-                </div>
-                <!-- Remove button -->
-                <button
-                  class="absolute top-1.5 right-1.5 z-10 p-1 rounded bg-background/80 border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
-                  @click.stop="removeWidget(element)"
-                >
-                  <X class="size-3" />
-                </button>
-                <!-- Widget preview -->
-                <WidgetCard
-                  :widget="element"
-                  :data="(widgetData[element.id] ?? null) as unknown"
-                  :workspace-name="workspaceName"
-                />
+            <div
+              v-for="element in page.widgets"
+              :key="element.id"
+              :class="[
+                'relative rounded-lg border-2 transition-colors cursor-pointer group',
+                selectedWidgetId === element.id
+                  ? 'border-primary shadow-md'
+                  : 'border-transparent hover:border-primary/30',
+              ]"
+              @click.stop="selectWidget(element)"
+            >
+              <!-- Drag handle -->
+              <div class="absolute top-1.5 left-1.5 z-10 drag-handle cursor-grab opacity-0 group-hover:opacity-60 transition-opacity p-0.5 rounded bg-background/80">
+                <GripVertical class="size-3.5 text-muted-foreground" />
               </div>
-            </template>
-          </draggable>
+              <!-- Remove button -->
+              <button
+                class="absolute top-1.5 right-1.5 z-10 p-1 rounded bg-background/80 border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
+                @click.stop="removeWidget(element)"
+              >
+                <X class="size-3" />
+              </button>
+              <!-- Widget preview -->
+              <WidgetCard
+                :widget="element"
+                :data="(widgetData[element.id] ?? null) as unknown"
+                :workspace-name="workspaceName"
+              />
+            </div>
+          </VueDraggable>
         </div>
 
         <!-- ── Right: config panel ────────────────────────────────────────────── -->

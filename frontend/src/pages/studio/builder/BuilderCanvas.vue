@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, provide } from 'vue'
-import draggable from 'vuedraggable'
+import { VueDraggable } from 'vue-draggable-plus'
 import { useBuilderStore } from '@/stores/builder'
 import type { LayoutTab, LayoutSection } from '@/core/composables/useFormLayout'
 import CanvasTabBar from './CanvasTabBar.vue'
@@ -109,23 +109,22 @@ function deselect() {
         @click.self="deselect"
       >
         <div class="flex flex-col gap-3 max-w-4xl mx-auto">
-          <draggable
+          <VueDraggable
             :model-value="tab.sections"
-            item-key="_fieldname"
             handle=".section-drag-handle"
             ghost-class="opacity-30"
             :animation="200"
             class="flex flex-col gap-3"
             @update:model-value="onReorderSections(ti, $event)"
           >
-            <template #item="{ element: section, index: si }">
-              <CanvasSection
-                :section="section"
-                @update:section="onUpdateSection(ti, si, $event)"
-                @delete="onDeleteSection(section._fieldname)"
-              />
-            </template>
-          </draggable>
+            <CanvasSection
+              v-for="(section, si) in tab.sections"
+              :key="section._fieldname"
+              :section="section"
+              @update:section="onUpdateSection(ti, si, $event)"
+              @delete="onDeleteSection(section._fieldname)"
+            />
+          </VueDraggable>
 
           <button
             type="button"

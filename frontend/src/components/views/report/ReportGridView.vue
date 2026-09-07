@@ -15,7 +15,7 @@ import {
   FileBarChart2,
   Save,
 } from '@lucide/vue'
-import draggable from 'vuedraggable'
+import { VueDraggable } from 'vue-draggable-plus'
 import type { DocType, DocField, ActiveFilter, ReportSummary } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
@@ -307,17 +307,16 @@ const colsOpen = ref(false)
         <PopoverContent class="w-64 p-1" align="start">
           <div class="px-2 py-1.5 font-medium text-muted-foreground">Стовпці звіту</div>
           <div class="max-h-[320px] overflow-y-auto scrollbar-none py-1">
-            <draggable :model-value="model.visibleColumns.value" item-key="key" handle=".drag-handle"
+            <VueDraggable :model-value="model.visibleColumns.value" handle=".drag-handle"
               class="space-y-0.5" @end="(e: any) => model.reorderColumns(e.oldIndex, e.newIndex)">
-              <template #item="{ element: col }">
-                <div class="flex items-center gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                  @click="model.toggleColumn(col.key)">
-                  <span class="drag-handle cursor-grab text-muted-foreground select-none">⠿</span>
-                  <Check class="size-4 shrink-0" />
-                  <span class="flex-1 truncate">{{ col.label }}</span>
-                </div>
-              </template>
-            </draggable>
+              <div v-for="col in model.visibleColumns.value" :key="col.key"
+                class="flex items-center gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                @click="model.toggleColumn(col.key)">
+                <span class="drag-handle cursor-grab text-muted-foreground select-none">⠿</span>
+                <Check class="size-4 shrink-0" />
+                <span class="flex-1 truncate">{{ col.label }}</span>
+              </div>
+            </VueDraggable>
             <div v-for="col in model.availableColumns.value.filter((c) => !model.isVisible(c.key))" :key="col.key"
               class="flex items-center gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
               @click="model.toggleColumn(col.key)">
