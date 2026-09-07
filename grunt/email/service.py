@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import email
 import re
 import uuid
@@ -23,6 +24,50 @@ logger = structlog.get_logger()
 # this exact value keeps the stored password untouched
 # (EmailAccount.before_save).
 SMTP_PASSWORD_MASK = "••••••••"
+
+# Strong refs to in-flight "kick the queue" tasks so asyncio doesn't GC them
+# before they run (see _kick_queue_after_commit).
+_pending_kicks: set[asyncio.Task[Any]] = set()
+
+
+async def _kick_queue() -> None:
+    """Best-effort nudge for the ``process_email_queue`` scheduled task."""
+    try:
+        from grunt.email.tasks import process_email_queue
+
+        await process_email_queue.kiq()
+    except Exception:
+        logger.warning("email.queue_kick_failed", exc_info=True)
+
+
+def _kick_queue_after_commit(session: AsyncSession) -> None:
+    """Arm a one-shot hook that runs ``process_email_queue`` the moment this
+    session's transaction commits.
+
+    Queuing on its own leaves the row waiting for the every-5-min scheduled
+    tick. Firing on ``after_commit`` (rather than right away) means the row is
+    already visible to the worker's own session, and a caller that rolls back
+    never triggers a send. Repeated ``queue_email`` calls in one transaction
+    share a single hook.
+    """
+    from sqlalchemy import event
+
+    sync_session = session.sync_session
+    if getattr(sync_session, "_grunt_email_kick_armed", False):
+        return
+    sync_session._grunt_email_kick_armed = True
+
+    def _on_commit(_s: Any) -> None:
+        sync_session._grunt_email_kick_armed = False
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return
+        task = loop.create_task(_kick_queue())
+        _pending_kicks.add(task)
+        task.add_done_callback(_pending_kicks.discard)
+
+    event.listen(sync_session, "after_commit", _on_commit, once=True)
 
 
 def smtp_connect_kwargs(host: str, port: int | None, use_tls: bool) -> dict[str, Any]:
@@ -679,6 +724,7 @@ class EmailService:
             logger.warning("email.queue_doctype_missing")
             return ""
 
+        _kick_queue_after_commit(session)
         return record_id
 
 
