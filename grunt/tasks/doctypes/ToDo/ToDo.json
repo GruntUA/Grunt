@@ -19,7 +19,8 @@
     {
       "fieldname": "reference_id",
       "label": "ID документа",
-      "fieldtype": "Text"
+      "fieldtype": "DynamicLink",
+      "options": "reference_doctype"
     },
     {
       "fieldname": "assigned_to",
