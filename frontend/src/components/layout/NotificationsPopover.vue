@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Bell, Check, MailOpen, Mail, BellOff, BellRing } from '@lucide/vue'
+import { Bell, Check, BellOff, BellRing } from '@lucide/vue'
 import { formatIntl } from '@/core/datetime'
 import { useWebPush } from '@/core/composables/useWebPush'
 
@@ -88,11 +88,9 @@ onUnmounted(() => {
 
 <template>
     <div>
-        <button
-            class="relative w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all group"
+        <button class="relative w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all group"
             :class="unreadCount > 0 ? 'bg-primary/5 hover:bg-primary/10 text-primary' : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'"
-            @click="toggle"
-        >
+            @click="toggle">
             <div class="flex items-center gap-2.5 min-w-0">
                 <div class="relative flex items-center justify-center shrink-0">
                     <Bell class="size-4 transition-colors" />
@@ -110,82 +108,76 @@ onUnmounted(() => {
         </button>
 
         <Popover v-model:open="isOpen">
-          <PopoverAnchor :reference="anchorEl ?? undefined" />
-          <PopoverContent class="w-auto p-0 border-border/50">
-            <div class="w-80 flex flex-col overflow-hidden">
-                <!-- Header -->
-                <div class="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-semibold">{{ t('Notifications') }}</h3>
-                        <Badge v-if="unreadCount > 0" variant="secondary" class="h-5 text-xs">{{ unreadCount }} нових
-                        </Badge>
+            <PopoverAnchor :reference="anchorEl ?? undefined" />
+            <PopoverContent align="start" class="w-80 p-0">
+                <div class="flex flex-col overflow-hidden text-xs">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between px-3 py-2 border-b">
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-semibold">{{ t('Notifications') }}</h3>
+                            <Badge v-if="unreadCount > 0" variant="secondary" class="h-4 px-1.5 tabular-nums">
+                                {{ unreadCount }}
+                            </Badge>
+                        </div>
+                        <Button v-if="unreadCount > 0" variant="ghost" size="sm"
+                            class="h-6 gap-1 px-1.5 text-muted-foreground" @click="markAllAsRead"
+                            :title="t('Mark all as read')">
+                            <Check class="size-3.5" />
+                            {{ t('Mark all as read') }}
+                        </Button>
                     </div>
-                    <Button v-if="unreadCount > 0" variant="ghost" size="sm"
-                        class="h-6 w-6 !p-0" @click="markAllAsRead"
-                        :title="t('Mark all as read')">
-                        <Check class="size-3.5" />
-                    </Button>
-                </div>
 
-                <!-- List -->
-                <div class="h-[300px] w-full overflow-y-auto">
-                    <div v-if="notifications.length === 0"
-                        class="flex flex-col items-center justify-center h-40 text-center px-4">
-                        <Bell class="size-10 text-muted-foreground/20 mb-3" />
-                        <p class="font-medium text-foreground">{{ t('No notifications') }}</p>
-                        <p class="text-xs text-muted-foreground mt-1">Тут з'являться ваші останні сповіщення.</p>
-                    </div>
-                    <div v-else class="flex flex-col">
-                        <div v-for="n in notifications" :key="n.id"
-                            class="flex items-start gap-3 p-4 border-b last:border-0 transition-colors cursor-pointer"
-                            :class="n.is_read ? 'bg-background hover:bg-muted/40 opacity-70' : 'bg-primary/5 hover:bg-primary/10'"
-                            @click="handleNotificationClick(n)">
-                            <div class="mt-0.5 shrink-0">
-                                <div class="size-8 rounded-full flex items-center justify-center border"
-                                    :class="n.is_read ? 'bg-muted/50 border-border' : 'bg-background border-primary/20'">
-                                    <MailOpen v-if="n.is_read" class="size-3.5 text-muted-foreground" />
-                                    <Mail v-else class="size-3.5 text-primary" />
+                    <!-- List -->
+                    <div class="max-h-[320px] w-full overflow-y-auto">
+                        <div v-if="notifications.length === 0"
+                            class="flex flex-col items-center justify-center gap-1 py-12 text-center px-4">
+                            <Bell class="size-8 text-muted-foreground/25 mb-1" />
+                            <p class="font-medium text-foreground">{{ t('No notifications') }}</p>
+                            <p class="text-muted-foreground">Тут з'являться ваші останні сповіщення.</p>
+                        </div>
+                        <div v-else class="flex flex-col divide-y divide-border/60">
+                            <div v-for="n in notifications" :key="n.id"
+                                class="group flex items-start gap-2.5 px-3 py-2.5 transition-colors cursor-pointer"
+                                :class="n.is_read ? 'hover:bg-muted/50' : 'bg-primary/[0.04] hover:bg-primary/[0.08]'"
+                                @click="handleNotificationClick(n)">
+                                <span class="mt-1.5 size-1.5 shrink-0 rounded-full"
+                                    :class="n.is_read ? 'bg-transparent' : 'bg-primary'" />
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-semibold leading-snug line-clamp-2"
+                                        :class="n.is_read ? 'text-muted-foreground' : 'text-foreground'">
+                                        {{ n.subject }}
+                                    </p>
+                                    <p v-if="n.message" class="text-muted-foreground line-clamp-2 leading-snug mt-0.5">
+                                        {{ n.message }}
+                                    </p>
+                                    <div class="flex items-center gap-2 mt-1 text-muted-foreground/70">
+                                        <span>{{ formatDate(n.created_at) }}</span>
+                                        <span v-if="n.doctype" class="uppercase tracking-wide">{{ n.doctype }}</span>
+                                    </div>
                                 </div>
+                                <button v-if="!n.is_read"
+                                    class="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100"
+                                    @click.stop="markAsRead(n.id)" :title="t('Mark as read')">
+                                    <Check class="size-3.5" />
+                                </button>
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="font-semibold text-foreground leading-tight mb-1"
-                                    :class="!n.is_read && 'text-primary'">
-                                    {{ n.subject }}
-                                </p>
-                                <p class="text-xs text-muted-foreground line-clamp-2 mb-1.5 leading-snug">
-                                    {{ n.message }}
-                                </p>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-medium text-muted-foreground/70">{{
-                                        formatDate(n.created_at) }}</span>
-                                    <Badge v-if="n.doctype" variant="secondary"
-                                        class="h-4 px-1 text-xs uppercase tracking-wider bg-background">{{ n.doctype }}
-                                    </Badge>
-                                </div>
-                            </div>
-                            <!-- manual mark as read button if needed, but handled by clicking the row -->
-                            <button v-if="!n.is_read"
-                                class="shrink-0 p-1 rounded-md text-primary/40 hover:text-primary hover:bg-primary/10 transition-colors"
-                                @click.stop="markAsRead(n.id)" title="Позначити прочитаним">
-                                <Check class="size-3.5" />
-                            </button>
                         </div>
                     </div>
-                </div>
 
-                <!-- Push subscribe footer -->
-                <div v-if="pushSupported" class="px-4 py-2.5 border-t bg-muted/20 flex items-center justify-between">
-                    <span class="text-xs text-muted-foreground">
-                        {{ pushSubscribed ? t('Push notifications enabled') : t('Push notifications disabled') }}
-                    </span>
-                    <Button variant="ghost" size="sm" class="h-6 px-2 text-xs" :disabled="pushLoading" @click="pushSubscribed ? pushUnsubscribe() : pushSubscribe()">
-                        <BellOff v-if="pushSubscribed" class="size-3 mr-1" />
-                        <BellRing v-else class="size-3 mr-1" />
-                        {{ pushSubscribed ? t('Disable') : t('Enable') }}
-                    </Button>
+                    <!-- Push subscribe footer -->
+                    <div v-if="pushSupported" class="px-3 py-2 border-t flex items-center justify-between">
+                        <span class="text-muted-foreground">
+                            {{ pushSubscribed ? t('Push notifications enabled') : t('Push notifications disabled') }}
+                        </span>
+                        <Button variant="ghost" size="sm" class="h-6 px-2" :disabled="pushLoading"
+                            @click="pushSubscribed ? pushUnsubscribe() : pushSubscribe()">
+                            <BellOff v-if="pushSubscribed" class="size-3 mr-1" />
+                            <BellRing v-else class="size-3 mr-1" />
+                            {{ pushSubscribed ? t('Disable') : t('Enable') }}
+                        </Button>
+                    </div>
                 </div>
-            </div>
-          </PopoverContent>
+            </PopoverContent>
         </Popover>
     </div>
 </template>
