@@ -25,7 +25,8 @@
     {
       "fieldname": "assigned_to",
       "label": "Виконавець",
-      "fieldtype": "Text",
+      "fieldtype": "Link",
+      "options": "User",
       "in_list_view": true
     },
     {
