@@ -19,12 +19,36 @@ logger = structlog.get_logger()
 router = APIRouter()
 
 
-def _process_params(params: dict[str, str]) -> dict[str, Any]:
+def _string_params(method: Any) -> set[str]:
+    """Names of the method's parameters explicitly annotated as ``str``.
+
+    Query params are strings; the coercion below turns ``"123"`` into an int,
+    which breaks a method that asked for a string (e.g. a Link search for a
+    numeric term). Such params keep their raw value.
+    """
+    import inspect
+
+    try:
+        params = inspect.signature(method).parameters.values()
+    except (TypeError, ValueError):
+        return set()
+    # ``from __future__ import annotations`` leaves the annotation as the string
+    # "str"; a live import gives the ``str`` type. Accept both.
+    return {p.name for p in params if p.annotation in (str, "str")}
+
+
+def _process_params(params: dict[str, str], method: Any = None) -> dict[str, Any]:
     """Parse JSON strings and convert numeric/bool types in parameters."""
     import json
 
+    string_params = _string_params(method) if method is not None else set()
+
     args = {}
     for key, val in params.items():
+        if key in string_params:
+            args[key] = val
+            continue
+
         if val.startswith(("{", "[")):
             try:
                 args[key] = json.loads(val)
@@ -149,7 +173,7 @@ async def run_method_get(
     method = get_whitelisted_method(path)
 
     # Process query params: parse JSON strings and convert numeric types
-    args = _process_params(dict(request.query_params))
+    args = _process_params(dict(request.query_params), method)
 
     result = await _invoke_with_context(method, args, request, session, engine, token)
     if isinstance(result, Response):
@@ -170,7 +194,7 @@ async def run_method_post(
     method = get_whitelisted_method(path)
 
     # Merge query params and body / form data
-    args = _process_params(dict(request.query_params))
+    args = _process_params(dict(request.query_params), method)
 
     try:
         body = await request.json()

@@ -84,6 +84,8 @@ class DocumentLinkRPCMixin:
 
         dt = await doctype_registry.get(doctype)
         extra_filters: dict[str, Any] = filters or {}
+        # A numeric search term ("12345") can arrive coerced to int — normalise.
+        search = str(search or "").strip()
 
         # Gate: full "read" runs the normal (row-filtered, field-masked) path;
         # otherwise "select" is enough for an identifier-only search. Neither →
@@ -127,7 +129,7 @@ class DocumentLinkRPCMixin:
             if sf in doctype_fields and sf not in cols_needed:
                 cols_needed.append(sf)
 
-        query = search.strip()
+        query = search
         if has_read:
             rows = await grunt_app.get_list(
                 doctype,
