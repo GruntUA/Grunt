@@ -20,12 +20,16 @@ Available built-ins (sandboxed — no imports, no file I/O):
     all, any, sorted, reversed, enumerate, zip, map, filter,
     divmod, pow, True, False, None
 
+Also in scope: ``now`` (timezone-aware UTC ``datetime``) and ``today`` (its
+``date``) — handy for age / expiry / overdue flags.
+
 If evaluation raises an exception the field is left unchanged and a warning
 is logged.  This ensures a bad formula never blocks a save.
 """
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -93,11 +97,14 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
         rows = await grunt.get_list(doctype, filters=filters, fields=[fieldname])
         return sum(float(r.get(fieldname) or 0) for r in rows)
 
+    _now = datetime.now(UTC)
     ns: dict[str, Any] = {
         **_SAFE_BUILTINS,
         "count": _count,
         "sum_docs": _sum,  # renamed to avoid conflict with built-in sum
         "grunt": grunt,
+        "now": _now,
+        "today": _now.date(),
     }
     numeric_fields = meta.get_numeric_fieldnames()
     for k, v in row.items():

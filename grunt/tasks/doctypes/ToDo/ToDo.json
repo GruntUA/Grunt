@@ -2,19 +2,66 @@
   "name": "ToDo",
   "label": "Завдання",
   "module": "tasks",
+  "icon": "list-checks",
+  "title_field": "description",
+  "default_view": "list",
+  "search_fields": ["description", "assigned_to", "reference_id"],
+  "status_field": "status",
+  "track_changes": true,
+  "track_seen": true,
+  "quick_entry": true,
+  "kanban_column_field": "status",
+  "calendar_date_field": "due_date",
+  "calendar_title_field": "description",
+  "gantt_start_field": "assigned_on",
+  "gantt_end_field": "due_date",
+  "gantt_title_field": "description",
+  "gantt_color_field": "priority",
+  "gantt_color_map": {
+    "Urgent": "#ef4444",
+    "High": "#f97316",
+    "Medium": "#eab308",
+    "Low": "#94a3b8"
+  },
+  "gantt_default_color": "#6366f1",
+  "status_indicators": [
+    { "value": "Open", "color": "warn", "label": "Відкрито" },
+    { "value": "In Progress", "color": "primary", "label": "В роботі" },
+    { "value": "Closed", "color": "success", "label": "Виконано" },
+    { "value": "Cancelled", "color": "secondary", "label": "Скасовано" }
+  ],
+  "actions": [
+    {
+      "action": "todo.complete",
+      "variant": "success",
+      "condition": "doc.status !== 'Closed' && doc.status !== 'Cancelled'"
+    },
+    {
+      "action": "todo.reopen",
+      "variant": "outline",
+      "condition": "doc.status === 'Closed' || doc.status === 'Cancelled'"
+    },
+    {
+      "action": "todo.cancel",
+      "variant": "ghost",
+      "condition": "doc.status === 'Open' || doc.status === 'In Progress'"
+    }
+  ],
   "fields": [
     {
       "fieldname": "description",
       "label": "Опис",
-      "fieldtype": "Text",
+      "fieldtype": "LongText",
       "required": true,
-      "in_list_view": true
+      "in_list_view": true,
+      "bold": true
     },
     {
       "fieldname": "reference_doctype",
       "label": "Тип документа",
       "fieldtype": "Link",
-      "options": "DocType"
+      "options": "DocType",
+      "in_list_view": true
     },
     {
       "fieldname": "reference_id",
@@ -27,15 +74,30 @@
       "label": "Виконавець",
       "fieldtype": "Link",
       "options": "User",
-      "in_list_view": true
+      "in_list_view": true,
+      "in_quick_filter": true
+    },
+    {
+      "fieldname": "assigned_by",
+      "label": "Призначив",
+      "fieldtype": "Link",
+      "options": "User",
+      "read_only": true
+    },
+    {
+      "fieldname": "assigned_on",
+      "label": "Призначено",
+      "fieldtype": "Datetime",
+      "read_only": true
     },
     {
       "fieldname": "status",
       "label": "Статус",
       "fieldtype": "Select",
-      "options": "Open\nClosed",
+      "options": "Open\nIn Progress\nClosed\nCancelled",
       "default": "Open",
-      "in_list_view": true
+      "in_list_view": true,
+      "in_quick_filter": true
     },
     {
       "fieldname": "priority",
@@ -43,13 +105,46 @@
       "fieldtype": "Select",
       "options": "Low\nMedium\nHigh\nUrgent",
       "default": "Medium",
-      "in_list_view": true
+      "in_list_view": true,
+      "in_quick_filter": true
     },
     {
       "fieldname": "due_date",
       "label": "Термін",
       "fieldtype": "Date",
       "in_list_view": true
+    },
+    {
+      "fieldname": "is_overdue",
+      "label": "Прострочено",
+      "fieldtype": "Check",
+      "is_virtual": true,
+      "read_only": true,
+      "in_list_view": true,
+      "read_formula": "bool(due_date) and status not in ('Closed', 'Cancelled') and str(due_date)[:10] < str(today)"
+    },
+    {
+      "fieldname": "color",
+      "label": "Колір",
+      "fieldtype": "Color"
+    },
+    {
+      "fieldname": "sec_completion",
+      "label": "Виконання",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "completed_on",
+      "label": "Виконано",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "completed_by",
+      "label": "Виконав",
+      "fieldtype": "Link",
+      "options": "User",
+      "read_only": true
     }
   ],
   "permissions": [
@@ -57,7 +152,15 @@
       "role": "All",
       "read": true,
       "write": true,
+      "create": true,
       "match": "assigned_to == user"
+    },
+    {
+      "role": "All",
+      "read": true,
+      "write": true,
+      "delete": true,
+      "match": "owner == user"
     },
     {
       "role": "System Manager",

@@ -13,12 +13,15 @@ import {
   Plus,
   ChevronRight,
   Loader2,
+  CalendarClock,
 } from '@lucide/vue'
 import type { DocType, GruntDocument, UserPublic } from '@/types'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { useDocSidebar } from './useDocSidebar'
+import { isAssignmentPlaceholder, type SidebarAssignee } from '@/core/api/docs'
 import { useToast } from '@/core/composables/useToast'
-import { formatFull, formatRelative } from '@/core/datetime'
+import { useDialog } from '@/core/composables/useDialog'
+import { formatDate, formatFull, formatRelative } from '@/core/datetime'
 import { resolveStatusBadge } from '@/core/status'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -38,6 +41,7 @@ const props = defineProps<{
 
 const router = useRouter()
 const toast = useToast()
+const dialog = useDialog()
 const sb = useDocSidebar(
   () => props.doctype.name,
   () => props.document.name,
@@ -96,20 +100,35 @@ async function onPickInput() {
   matches.value = await sb.searchUsers(pickUser.value)
 }
 
-// A ToDo created without a task text carries the "Assigned to <email>" placeholder —
+// A ToDo created without a task text carries an auto-generated placeholder —
 // treat that as "no text" so it's not shown as an actual task.
-function realNote(a: { assigned_to: string; description: string | null }): string {
+function realNote(a: SidebarAssignee): string {
   const d = (a.description ?? '').trim()
-  if (!d || d === `Assigned to ${a.assigned_to}`) return ''
-  return d
+  return isAssignmentPlaceholder(d) ? '' : d
 }
-const assigneeTasks = computed(() =>
-  sb.bundle.value.assignees.filter((a) => realNote(a)),
-)
-function assigneeTooltip(a: { assigned_to: string; description: string | null }): string {
-  const name = sb.personName(a.assigned_to)
+// One detail card per assignment (note + state), newest last.
+const assigneeTasks = computed(() => sb.bundle.value.assignees)
+const STATUS_LABEL: Record<string, string> = { Open: 'Відкрито', 'In Progress': 'В роботі' }
+function statusLabel(a: SidebarAssignee): string {
+  return a.status ? (STATUS_LABEL[a.status] ?? a.status) : ''
+}
+function assigneeTooltip(a: SidebarAssignee): string {
+  const parts = [sb.personName(a.assigned_to)]
   const note = realNote(a)
-  return note ? `${name} — ${note}` : name
+  if (note) parts.push(note)
+  if (a.created_at) parts.push(`призначено ${formatRelative(a.created_at)}`)
+  return parts.join(' — ')
+}
+const PRIORITY_LABEL: Record<string, string> = { Urgent: 'Терміново', High: 'Високий' }
+function priorityTag(a: SidebarAssignee): string {
+  return a.priority && a.priority in PRIORITY_LABEL ? PRIORITY_LABEL[a.priority] : ''
+}
+function openTask(a: SidebarAssignee) {
+  router.push(props.workspace ? `/${props.workspace}/ToDo/${a.name}` : `/ToDo/${a.name}`)
+}
+async function confirmUnassign(a: SidebarAssignee) {
+  const ok = await dialog.confirm(`Прибрати ${sb.personName(a.assigned_to)} з відповідальних?`)
+  if (ok) await sb.unassign(a.name)
 }
 async function submitDialog() {
   const user = pickUser.value.trim()
@@ -246,14 +265,21 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
               class="relative group"
               :title="assigneeTooltip(a)"
             >
-              <Avatar class="!size-7 border border-border/60">
-                <AvatarImage v-if="sb.personAvatar(a.assigned_to)" :src="sb.personAvatar(a.assigned_to)!" />
-                <AvatarFallback class="!text-[10px]">{{ sb.personInitials(a.assigned_to) }}</AvatarFallback>
-              </Avatar>
+              <button type="button" @click="openTask(a)">
+                <Avatar
+                  class="!size-7 border transition-shadow hover:ring-2 hover:ring-primary/30"
+                  :class="a.is_overdue
+                    ? 'border-destructive/60 ring-1 ring-destructive/40'
+                    : a.status === 'In Progress' ? 'border-primary/60 ring-1 ring-primary/40' : 'border-border/60'"
+                >
+                  <AvatarImage v-if="sb.personAvatar(a.assigned_to)" :src="sb.personAvatar(a.assigned_to)!" />
+                  <AvatarFallback class="!text-[10px]">{{ sb.personInitials(a.assigned_to) }}</AvatarFallback>
+                </Avatar>
+              </button>
               <button
                 class="absolute -top-1 -right-1 size-3.5 rounded-full bg-background border border-border shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 :title="`Прибрати ${sb.personName(a.assigned_to)}`"
-                @click="sb.unassign(a.name)"
+                @click="confirmUnassign(a)"
               >
                 <X class="size-2.5 text-destructive" />
               </button>
@@ -262,10 +288,37 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
           <span v-else class="text-xs text-muted-foreground/50">нема</span>
         </div>
 
-        <ul v-if="assigneeTasks.length" class="flex flex-col gap-1">
-          <li v-for="a in assigneeTasks" :key="a.name" class="text-xs leading-snug text-muted-foreground">
-            <span class="font-medium text-foreground/80">{{ sb.personName(a.assigned_to) }}:</span>
-            {{ a.description }}
+        <ul v-if="assigneeTasks.length" class="flex flex-col gap-1.5">
+          <li v-for="a in assigneeTasks" :key="a.name">
+            <button
+              type="button"
+              class="w-full text-left flex flex-col gap-1 rounded-lg border border-border/40 bg-background px-2 py-1.5 shadow-sm hover:border-primary/50 hover:bg-primary/5 transition-colors"
+              @click="openTask(a)"
+            >
+              <span v-if="realNote(a)" class="text-xs leading-snug text-foreground/80 line-clamp-2">
+                {{ realNote(a) }}
+              </span>
+              <span class="flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground">
+                <Badge
+                  :variant="a.status === 'In Progress' ? 'secondary' : 'outline'"
+                  class="!text-[10px] !py-0 !px-1.5 !font-normal"
+                >
+                  {{ statusLabel(a) }}
+                </Badge>
+                <Badge
+                  v-if="a.due_date"
+                  :variant="a.is_overdue ? 'destructive' : 'outline'"
+                  class="!text-[10px] !py-0 !px-1.5 !font-normal gap-0.5"
+                >
+                  <CalendarClock class="size-2.5" />
+                  {{ formatDate(a.due_date) }}
+                </Badge>
+                <Badge v-if="priorityTag(a)" variant="outline" class="!text-[10px] !py-0 !px-1.5 !font-normal">
+                  {{ priorityTag(a) }}
+                </Badge>
+                <span class="ml-auto shrink-0">{{ sb.personName(a.assigned_to) }}</span>
+              </span>
+            </button>
           </li>
         </ul>
       </div>

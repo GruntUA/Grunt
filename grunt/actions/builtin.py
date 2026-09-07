@@ -92,3 +92,46 @@ async def trash_restore_as_copy(doc: dict[str, Any], *, args: dict[str, Any]) ->
 
     restored = await restore(doc["name"], allow_rename=True)
     return {"message": f"Відновлено як: {restored['name']}", "refresh": True}
+
+
+async def _set_todo_status(name: str, status: str) -> dict[str, Any]:
+    """Flip a ToDo's status through the controller (stamps + notifications run)."""
+    await grunt.save_doc("ToDo", name, {"status": status})
+    return {"refresh": True}
+
+
+@doc_action(
+    "todo.complete",
+    label="Позначити виконаним",
+    doctypes=["ToDo"],
+    icon="check",
+    variant="success",
+)
+async def todo_complete(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
+    """Close the task — the controller stamps completed_on/by and pings the assigner."""
+    return {**await _set_todo_status(doc["name"], "Closed"), "message": "Завдання виконано"}
+
+
+@doc_action(
+    "todo.cancel",
+    label="Скасувати",
+    doctypes=["ToDo"],
+    icon="x",
+    variant="ghost",
+    confirm="Скасувати завдання?",
+)
+async def todo_cancel(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
+    """Cancel the task without marking it done."""
+    return {**await _set_todo_status(doc["name"], "Cancelled"), "message": "Завдання скасовано"}
+
+
+@doc_action(
+    "todo.reopen",
+    label="Відкрити знову",
+    doctypes=["ToDo"],
+    icon="undo-2",
+    variant="outline",
+)
+async def todo_reopen(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
+    """Reopen a closed/cancelled task — the controller clears the completion stamp."""
+    return {**await _set_todo_status(doc["name"], "Open"), "message": "Завдання відкрито"}

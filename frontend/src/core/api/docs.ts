@@ -31,7 +31,16 @@ export interface BacklinkItem {
   link_fieldname: string
 }
 
-export interface SidebarAssignee { name: string; assigned_to: string; description: string | null; created_at: string | null }
+export interface SidebarAssignee {
+  name: string
+  assigned_to: string
+  description: string | null
+  created_at: string | null
+  status: string | null
+  priority: string | null
+  due_date: string | null
+  is_overdue: boolean
+}
 export interface SidebarShare { name: string; user: string; permission: 'Read' | 'Write' }
 export interface SidebarTag { name: string; tag: string }
 
@@ -48,6 +57,19 @@ export interface SidebarBundle {
 }
 
 // Maps FilterBar display operators to backend query suffixes
+/**
+ * A ToDo created without a task note carries auto-generated boilerplate as its
+ * description: `assign()` below writes "Assigned to <email>"; backend auto-rules
+ * write "Призначено: <doctype> <id>". Either should read as "no note".
+ */
+export const assignmentPlaceholder = (user: string): string => `Assigned to ${user}`
+
+const ASSIGNMENT_PLACEHOLDER_RE = /^(Assigned to \S+|Призначено:.*)$/
+
+export function isAssignmentPlaceholder(description: string | null | undefined): boolean {
+  return ASSIGNMENT_PLACEHOLDER_RE.test((description ?? '').trim())
+}
+
 export const OP_MAP: Record<string, string> = {
   '=': 'eq', '!=': 'ne', 'like': 'ilike',
   '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte',
@@ -222,18 +244,13 @@ export const docsApi = {
     return r.data.data ?? []
   },
 
-  getAssignees: (doctype: string, id: string): Promise<GruntDocument[]> =>
-    client.get(`/api/v1/docs/ToDo`, {
-      params: { 'filter[reference_doctype]': doctype, 'filter[reference_id]': id, 'filter[status]': 'Open' }
-    }).then(r => r.data.data ?? []),
-
   assign: (doctype: string, id: string, user: string, description?: string): Promise<GruntDocument> =>
     client.post(`/api/v1/docs/ToDo`, {
       reference_doctype: doctype,
       reference_id: id,
       assigned_to: user,
       status: 'Open',
-      description: description?.trim() || `Assigned to ${user}`,
+      description: description?.trim() || assignmentPlaceholder(user),
     }).then(r => r.data.data),
 
   getSharedWith: (doctype: string, id: string): Promise<GruntDocument[]> =>

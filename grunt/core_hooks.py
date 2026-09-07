@@ -19,10 +19,8 @@ doc_events: dict[str, dict[str, list[str]]] = {
         "after_save": ["grunt.notification.rule_index.invalidate_on_change"],
         "after_delete": ["grunt.notification.rule_index.invalidate_on_change"],
     },
-    # A new ToDo is an assignment — notify the person it lands on.
-    "ToDo": {
-        "after_insert": ["grunt.tasks.doctypes.ToDo.to_do.notify_assignee"],
-    },
+    # ToDo assignment notifications live in its controller
+    # (grunt.tasks.doctypes.ToDo.to_do.ToDo) — create / reassign / complete.
     # Log every document lifecycle event to ActivityLog.
     "*": {
         "after_insert": ["grunt.activity.log_activity"],

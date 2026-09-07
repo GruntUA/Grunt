@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { workspaceApi, type MyWork } from '@/core/api/workspace'
+import { isAssignmentPlaceholder } from '@/core/api/docs'
 import { CheckSquare, AlertTriangle, Bell, ArrowRight, Inbox } from '@lucide/vue'
 import { formatIntl } from '@/core/datetime'
 
@@ -35,10 +36,10 @@ const tiles = computed(() => {
   ]
 })
 
-// The task text, unless it's the bare "Assigned to <email>" placeholder.
+// The task text, unless it's the auto-generated assignment placeholder.
 function taskNote(t: MyWork['assigned'][number]): string {
   const d = (t.description ?? '').trim()
-  return !d || /^Assigned to \S+$/.test(d) ? '' : d
+  return isAssignmentPlaceholder(d) ? '' : d
 }
 
 function openTask(t: MyWork['assigned'][number]) {

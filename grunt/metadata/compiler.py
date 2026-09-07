@@ -205,6 +205,8 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     for field in doctype.fields:
         if field.fieldtype in NON_PHYSICAL_FIELDS:
             continue
+        if field.is_virtual:  # computed on read (read_formula) — no stored column
+            continue
         if field.fieldname in _system_cols:
             continue
 

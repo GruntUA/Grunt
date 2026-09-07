@@ -268,10 +268,12 @@ class AssignmentService:
             )
             if already:
                 return
+            from grunt.tasks.doctypes.ToDo.to_do import auto_assign_note
+
             await grunt.new_doc(
                 "ToDo",
                 {
-                    "description": f"Призначено: {doctype} {ref_id or ''}".strip(),
+                    "description": auto_assign_note(doctype, ref_id),
                     "reference_doctype": doctype,
                     "reference_id": ref_id,
                     "assigned_to": owner_email,

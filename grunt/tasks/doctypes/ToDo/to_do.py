@@ -1,61 +1,163 @@
-"""ToDo controller — assignment notification.
+"""ToDo controller.
 
 A ToDo row *is* an assignment: someone (``assigned_to``) is put on the hook for
 a document (``reference_doctype`` / ``reference_id``), optionally with a task
-note in ``description``. On creation we ping that person.
+note in ``description``.
+
+- on create        → ping the assignee
+- on reassignment  → ping the new assignee
+- on completion    → stamp ``completed_on`` / ``completed_by`` and tell whoever
+                     created the assignment (``assigned_by``, falling back to
+                     ``owner``); reopening clears the stamp
 """
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Any
 
 import structlog
 
+from grunt.document.base import Document
+
 logger = structlog.get_logger()
 
-# A ToDo created without a real task note carries this placeholder as its
-# description (see the frontend ``docsApi.assign``). Treat it as "no note".
-_PLACEHOLDER_PREFIX = "Assigned to "
+_DONE_STATES = ("Closed", "Cancelled")
+
+# A ToDo created without a real task note carries a boilerplate description:
+# the frontend ``docsApi.assign`` writes ``"Assigned to <email>"``; the
+# auto-assignment rules (see ``grunt.assignment.service``) write
+# ``"Призначено: <doctype> <id>"``. Either means "no note".
+_PLACEHOLDER_PREFIXES = ("Assigned to ", "Призначено:")
 
 
-async def notify_assignee(**kwargs: Any) -> None:
-    """``after_insert`` hook: tell ``assigned_to`` they have a new assignment."""
-    doc: dict[str, Any] = kwargs.get("doc") or {}
-    session = kwargs.get("session")
-    if session is None:
-        return
+def is_placeholder_note(note: str | None) -> bool:
+    """True when *note* is auto-generated assignment boilerplate, not a real task."""
+    return (note or "").strip().startswith(_PLACEHOLDER_PREFIXES)
 
-    assignee = (doc.get("assigned_to") or "").strip()
-    if not assignee:
-        return
 
-    actor = kwargs.get("user")
-    actor_email = getattr(actor, "email", "") or ""
-    if assignee == actor_email:
-        return  # assigned to yourself — no ping
+def auto_assign_note(doctype: str, ref_id: str | None) -> str:
+    """The boilerplate description an automatic assignment gets."""
+    return f"Призначено: {doctype} {ref_id or ''}".strip()
 
-    ref_dt = (doc.get("reference_doctype") or "").strip()
-    ref_id = str(doc.get("reference_id") or "").strip()
-    target = f"{ref_dt} {ref_id}".strip() or "документ"
 
-    note = (doc.get("description") or "").strip()
-    if note == f"{_PLACEHOLDER_PREFIX}{assignee}":
-        note = ""
+class ToDo(Document):
+    """DocType controller for ToDo (assignment)."""
 
-    subject = f"Вам призначено: {target}"
-    message = note or f"Вас призначено відповідальним за {target}."
+    description: str
+    reference_doctype: str | None
+    reference_id: str | None
+    assigned_to: str | None
+    assigned_by: str | None
+    status: str
 
-    from grunt.notification.service import notification_service
+    _inserting: bool = False
+    _prev: dict[str, Any] | None = None
 
-    try:
+    # ── lifecycle ────────────────────────────────────────────────────────
+
+    async def before_insert(self) -> None:
+        self._inserting = True
+        if not self.get("assigned_by"):
+            self.assigned_by = self._actor_email() or None
+        if not self.get("assigned_on"):
+            self.assigned_on = datetime.now(UTC)
+
+    async def before_save(self) -> None:
+        if self._inserting:
+            return
+        if self._prev is None:
+            self._prev = (
+                await self.grunt.db.get_value(
+                    "ToDo", self.id, ["status", "assigned_to"], as_dict=True
+                )
+                or {}
+            )
+
+        was_done = self._prev.get("status") in _DONE_STATES
+        is_done = self.status in _DONE_STATES
+        if is_done and not was_done:
+            if not self.get("completed_on"):
+                self.completed_on = datetime.now(UTC)
+            if not self.get("completed_by"):
+                self.completed_by = self._actor_email() or None
+        elif was_done and not is_done:
+            # reopened — drop the stale completion stamp
+            self.completed_on = None
+            self.completed_by = None
+
+    async def after_insert(self) -> None:
+        await self._notify_assignee((self.assigned_to or "").strip())
+
+    async def after_save(self) -> None:
+        if self._inserting or self._prev is None:
+            return
+        prev = self._prev
+
+        new_assignee = (self.assigned_to or "").strip()
+        if new_assignee and new_assignee != (prev.get("assigned_to") or "").strip():
+            await self._notify_assignee(new_assignee)
+
+        if self.status == "Closed" and prev.get("status") != "Closed":
+            await self._notify_completion()
+
+    # ── helpers ─────────────────────────────────────────────────────────
+
+    def _actor_email(self) -> str:
+        return getattr(getattr(self, "user", None), "email", "") or ""
+
+    def _target(self) -> str:
+        ref_dt = (self.get("reference_doctype") or "").strip()
+        ref_id = str(self.get("reference_id") or "").strip()
+        return f"{ref_dt} {ref_id}".strip() or "документ"
+
+    def _task_note(self) -> str:
+        note = (self.get("description") or "").strip()
+        return "" if is_placeholder_note(note) else note
+
+    async def _deliver(self, user: str, subject: str, message: str) -> None:
+        ref_dt = (self.get("reference_doctype") or "").strip()
+        ref_id = str(self.get("reference_id") or "").strip()
+        from grunt.notification.service import notification_service
+
         await notification_service.notify(
-            session,
-            user=assignee,
+            self.session,
+            user=user,
             doctype=ref_dt or "ToDo",
-            doc_id=ref_id or str(doc.get("name") or ""),
+            doc_id=ref_id or (self.id or ""),
             subject=subject,
             message=message,
             email=True,
         )
-    except Exception:
-        logger.exception("todo.notify_assignee_failed", assignee=assignee)
+
+    async def _notify_assignee(self, assignee: str) -> None:
+        """Tell *assignee* they have a new assignment (skips self-assignment)."""
+        if not assignee or assignee == self._actor_email():
+            return
+        target = self._target()
+        note = self._task_note()
+        try:
+            await self._deliver(
+                assignee,
+                f"Вам призначено: {target}",
+                note or f"Вас призначено відповідальним за {target}.",
+            )
+        except Exception:
+            logger.exception("todo.notify_assignee_failed", assignee=assignee)
+
+    async def _notify_completion(self) -> None:
+        """Tell whoever created the assignment that it is done."""
+        recipient = (self.get("assigned_by") or self.get("owner") or "").strip()
+        actor = self._actor_email()
+        if not recipient or recipient == actor:
+            return
+        target = self._target()
+        try:
+            await self._deliver(
+                recipient,
+                f"Завдання виконано: {target}",
+                f"{actor or 'Виконавець'} позначив завдання виконаним: "
+                f"{self._task_note() or target}",
+            )
+        except Exception:
+            logger.exception("todo.notify_completion_failed", recipient=recipient)

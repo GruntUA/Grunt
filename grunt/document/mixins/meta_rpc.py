@@ -69,7 +69,7 @@ class DocumentMetaRPCMixin:
         assignees = await _optional(
             grunt_app.get_list(
                 "ToDo",
-                filters={**ref, "status": "Open"},
+                filters={**ref, "status__in": ["Open", "In Progress"]},
                 order_by="created_at",
                 order="asc",
                 limit=100,
@@ -140,6 +140,10 @@ class DocumentMetaRPCMixin:
                     "assigned_to": r.get("assigned_to"),
                     "description": r.get("description"),
                     "created_at": _iso(r.get("created_at")),
+                    "status": r.get("status"),
+                    "priority": r.get("priority"),
+                    "due_date": r.get("due_date"),
+                    "is_overdue": bool(r.get("is_overdue")),
                 }
                 for r in assignees
             ],
