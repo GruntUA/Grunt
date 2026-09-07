@@ -67,7 +67,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 
   /* ── Font families ── */
-  --font-sans: 'Geist Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* ── Keyframes ── */
   --animate-accordion-down: accordion-down 0.2s ease-out;

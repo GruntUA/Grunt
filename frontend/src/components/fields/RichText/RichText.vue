@@ -13,6 +13,8 @@ import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
 import { TableKit } from '@tiptap/extension-table'
 import mammoth from 'mammoth'
+// Geist is the editor typeface only — loaded with this (lazy) chunk, not app-wide.
+import '@fontsource-variable/geist'
 
 import {
   Bold, Italic, Strikethrough,
@@ -641,6 +643,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 .richtext-content .tiptap {
   outline: none;
   min-height: 96px;
+  font-family: 'Geist Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 .richtext-content .tiptap > :first-child { margin-top: 0; }
 
