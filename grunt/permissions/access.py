@@ -27,6 +27,39 @@ class RoleAccess:
         self.user_roles: frozenset[str] = frozenset(getattr(user, "roles", []) or [])
 
     @property
+    def has_unrestricted_read(self) -> bool:
+        """True when a matching permission grants ``read`` with no row ``match`` —
+        the user may read every row, not just a filtered subset.
+
+        ``apply_permission_filter()`` and the Link/tree picker gates both need to
+        tell "reads everything" apart from "reads only rows matching an
+        expression"; ``check(user, dt, "read")`` can't, because with ``doc=None``
+        it skips ``match`` and answers True for a row-scoped grant too.
+        """
+        if self.is_unrestricted:
+            return True
+        return any(
+            getattr(perm, "read", False) and not getattr(perm, "match", None)
+            for perm in self.matching_permissions()
+        )
+
+    @property
+    def has_explicit_select(self) -> bool:
+        """True when a matching permission sets ``select`` explicitly (not merely
+        implied by ``read``).
+
+        The Link-picker / tree-picker identifier path checks this to offer an
+        unfiltered identifier search even when the user's only ``read`` grant is
+        row-scoped: ``match`` is irrelevant there because that path resolves
+        identifier columns only and never applies row-level filters.
+        """
+        if self.is_unrestricted:
+            return True
+        return any(
+            getattr(perm, "select", False) for perm in self.matching_permissions()
+        )
+
+    @property
     def is_unrestricted(self) -> bool:
         """True when access checks should be skipped entirely.
 

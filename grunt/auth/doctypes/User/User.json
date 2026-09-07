@@ -359,6 +359,14 @@
         "reset_token",
         "reset_token_expires_at"
       ]
+    },
+    {
+      "role": "Діловод",
+      "select": true
+    },
+    {
+      "role": "Інвентаризатор",
+      "select": true
     }
   ]
 }

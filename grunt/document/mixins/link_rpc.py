@@ -80,6 +80,7 @@ class DocumentLinkRPCMixin:
         """Search documents for a Link field dropdown."""
         from grunt.app import grunt as grunt_app
         from grunt.context import require_user
+        from grunt.permissions.access import RoleAccess
         from grunt.permissions.rbac import permission_checker
 
         dt = await doctype_registry.get(doctype)
@@ -87,13 +88,25 @@ class DocumentLinkRPCMixin:
         # A numeric search term ("12345") can arrive coerced to int — normalise.
         search = str(search or "").strip()
 
-        # Gate: full "read" runs the normal (row-filtered, field-masked) path;
-        # otherwise "select" is enough for an identifier-only search. Neither →
-        # a 403 that names the DocType.
+        # Gate, in order of precedence:
+        #   1. unrestricted "read"      → normal row-filtered, field-masked path
+        #   2. explicit "select" grant  → identifier-only search of every row
+        #   3. row-scoped "read" only   → normal path (returns the user's subset)
+        #   4. neither                  → 403 naming the DocType
+        # (2) has to beat (3): a role granted "select" alongside a match-scoped
+        # "read" wants an unfiltered picker, and check(user, dt, "read") can't
+        # see that its "read" is row-scoped when there's no doc to match against.
         user = require_user()
-        has_read = await permission_checker.check(user, dt, "read")
-        if not has_read:
-            await permission_checker.require(user, dt, "select")
+        access = RoleAccess(dt, user)
+        if access.has_unrestricted_read:
+            has_read = True
+        elif access.has_explicit_select:
+            has_read = False
+        elif await permission_checker.check(user, dt, "read"):
+            has_read = True
+        else:
+            await permission_checker.require(user, dt, "select")  # raises 403
+            has_read = False
 
         # Virtual DocType — delegate to its controller's get_list
         if dt.is_virtual:

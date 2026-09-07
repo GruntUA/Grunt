@@ -33,11 +33,10 @@ async def apply_permission_filter(
     could actually enforce quietly expose every row instead of none.
     """
     access = RoleAccess(doctype, user)
-    if access.is_unrestricted:
+    if access.has_unrestricted_read:
         return query
 
     conditions = []
-    has_unrestricted = False
 
     for perm in access.matching_permissions():
         read_ok = perm.read if hasattr(perm, "read") else False
@@ -46,8 +45,8 @@ async def apply_permission_filter(
 
         match_expr = perm.match if hasattr(perm, "match") else None
         if not match_expr:
-            has_unrestricted = True
-            break
+            # has_unrestricted_read would have returned above; defensive only.
+            return query
 
         condition = await PermissionMatch(match_expr).to_sql(table, user, doctype)
         if condition is not None:
@@ -57,8 +56,6 @@ async def apply_permission_filter(
                 "permissions.match_unparseable", doctype=doctype.name, match=match_expr
             )
 
-    if has_unrestricted:
-        return query
     if not conditions:
         # Either no read rule matched this user's roles, or every matching
         # rule's `match` was unparseable — deny all rows rather than guess.

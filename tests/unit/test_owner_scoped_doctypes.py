@@ -11,11 +11,13 @@ already covered elsewhere:
   two-row shape as Comment/File — tags are meant to be visible to anyone
   who can see the tagged document, tagging is cheap/low-risk to leave open;
   only *removing/editing* someone else's tag needed closing).
-- ToDo: read/write scoped to `assigned_to == user` for regular users (the
-  assignee needs to update their own task's status), plus a second row
-  giving System Manager unrestricted access (assignment-rule-driven
-  creation runs under grunt.system_context(), so it isn't gated by either
-  row — see grunt/assignment/service.py:_create_todo).
+- ToDo: read/write scoped to `assigned_to == user` for the assignee and to
+  `owner == user` for whoever created the assignment; `create` is open to any
+  authenticated user (assigning a task to someone else is the whole point —
+  same "create broad, mutate scoped" shape as DocTag), plus a row giving
+  System Manager unrestricted access. Assignment-rule-driven creation runs
+  under grunt.system_context(), so it isn't gated by any row — see
+  grunt/assignment/service.py:_create_todo.
 """
 
 from __future__ import annotations
@@ -122,6 +124,18 @@ async def test_todo_assignee_can_read_and_update_own_task():
     own_task = {"assigned_to": "assignee@example.com"}
     assert await permission_checker.check(assignee, dt, "read", own_task) is True
     assert await permission_checker.check(assignee, dt, "write", own_task) is True
+
+
+@pytest.mark.asyncio
+async def test_todo_any_authenticated_user_can_create():
+    """Assigning a task to someone else must not require a special role."""
+    dt = _load(_TODO_JSON)
+    user = _user("anyone@example.com")
+    assert await permission_checker.check(user, dt, "create") is True
+    # ...but only create — they still can't read/write a task that is neither
+    # assigned to them nor created by them.
+    someone_elses_task = {"assigned_to": "victim@example.com", "owner": "boss@example.com"}
+    assert await permission_checker.check(user, dt, "read", someone_elses_task) is False
 
 
 @pytest.mark.asyncio

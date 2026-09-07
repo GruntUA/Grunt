@@ -25,19 +25,30 @@ async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
     a 403 naming the DocType.
     """
     from grunt.metadata.registry import doctype_registry
+    from grunt.permissions.access import RoleAccess
     from grunt.permissions.rbac import permission_checker
 
     dt = await doctype_registry.get(doctype)
     user = grunt.get_user()
+    access = RoleAccess(dt, user)
+
+    # An explicit ``select`` grant (without unrestricted ``read``) limits the
+    # tree to identifier columns — even when the user also has a row-scoped
+    # ``read`` that check(user, dt, "read") would otherwise wave through.
+    if not access.has_unrestricted_read and access.has_explicit_select:
+        parent_field = getattr(dt, "tree_parent_field", None) or "parent"
+        title_field = getattr(dt, "tree_title_field", None) or getattr(
+            dt, "title_field", None
+        )
+        allowed = ["name", parent_field]
+        if title_field and title_field not in allowed:
+            allowed.append(title_field)
+        return dt, allowed
+
     if await permission_checker.check(user, dt, "read"):
         return dt, None
-    await permission_checker.require(user, dt, "select")
-    parent_field = getattr(dt, "tree_parent_field", None) or "parent"
-    title_field = getattr(dt, "tree_title_field", None) or getattr(dt, "title_field", None)
-    allowed = ["name", parent_field]
-    if title_field and title_field not in allowed:
-        allowed.append(title_field)
-    return dt, allowed
+    await permission_checker.require(user, dt, "select")  # raises 403
+    return dt, None  # unreachable — require() raised
 
 
 def _parse_iso_day(raw: str | None) -> str | None:

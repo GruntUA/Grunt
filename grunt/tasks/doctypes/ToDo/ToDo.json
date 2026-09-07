@@ -152,7 +152,6 @@
       "role": "All",
       "read": true,
       "write": true,
-      "create": true,
       "match": "assigned_to == user"
     },
     {
@@ -161,6 +160,10 @@
       "write": true,
       "delete": true,
       "match": "owner == user"
+    },
+    {
+      "role": "All",
+      "create": true
     },
     {
       "role": "System Manager",
