@@ -12,9 +12,9 @@ import Image from '@tiptap/extension-image'
 import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
 import { TableKit } from '@tiptap/extension-table'
-import mammoth from 'mammoth'
 // Geist is the editor typeface only — loaded with this (lazy) chunk, not app-wide.
 import '@fontsource-variable/geist'
+// `mammoth` (~200 kB, pulls jszip) is loaded on demand in importDocx() only.
 
 import {
   Bold, Italic, Strikethrough,
@@ -335,6 +335,7 @@ async function importDocx(e: Event) {
   docxImporting.value = true
   try {
     const arrayBuffer = await file.arrayBuffer()
+    const { default: mammoth } = await import('mammoth')
     const { value: html, messages } = await mammoth.convertToHtml({ arrayBuffer })
     editor.value?.chain().focus().insertContent(html).run()
     const errors = messages.filter(m => m.type === 'error')
