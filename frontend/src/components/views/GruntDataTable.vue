@@ -4,6 +4,7 @@ import { FileSpreadsheet, ChevronUp, ChevronDown, ArrowUpDown } from '@lucide/vu
 import type { DocField, DocTypeStatusConfig } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
+import { useAuthStore } from '@/stores/auth'
 import DefaultListCell from '@/components/fields/Default/ListCell.vue'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Table, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -38,6 +39,31 @@ function getRowDocId(row: Record<string, unknown>): string | null {
   if (raw === null || raw === undefined) return null
   const normalized = String(raw)
   return normalized.length > 0 ? normalized : null
+}
+
+// ── Seen / unseen (track_seen) ────────────────────────────────────────────
+// `_seen` is only present in the row when the DocType opts into track_seen and
+// the list query requested it. Without it every row is "off" — untouched styling.
+const auth = useAuthStore()
+const currentEmail = computed(() => auth.user?.email ?? '')
+
+function seenState(row: Record<string, unknown>): 'off' | 'seen' | 'unseen' {
+  const seen = row._seen
+  if (!Array.isArray(seen)) return 'off'
+  return seen.includes(currentEmail.value) ? 'seen' : 'unseen'
+}
+
+/** First-column (title) class — dim once the current user has opened the row. */
+function firstColClass(row: Record<string, unknown>, key: string): string {
+  if (['Image', 'Attach', 'Check'].includes(getFieldType(key))) return ''
+  switch (seenState(row)) {
+    case 'seen':
+      return 'font-normal text-muted-foreground hover:underline'
+    case 'unseen':
+      return 'font-semibold text-foreground hover:underline'
+    default:
+      return 'font-semibold text-primary hover:underline'
+  }
 }
 
 // ── Inline editing ────────────────────────────────────────────────────────
@@ -155,6 +181,9 @@ function isRowSelected(row: Record<string, unknown>): boolean {
         <TableCell class="relative px-3 py-2.5 border-b border-border/10">
           <div v-if="isRowSelected(row)"
             class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full pointer-events-none" />
+          <span v-else-if="seenState(row) === 'unseen'"
+            class="absolute left-1 top-1/2 -translate-y-1/2 size-1.5 rounded-full bg-primary pointer-events-none"
+            title="Не переглянуто" aria-hidden="true" />
           <div class="flex items-center justify-center w-full">
             <Checkbox :model-value="isRowSelected(row)"
               @update:model-value="() => { const docId = getRowDocId(row); if (docId) emit('select', docId) }"
@@ -174,14 +203,14 @@ function isRowSelected(row: Record<string, unknown>): boolean {
             <!-- Field-type cell renderer (registry) -->
             <template v-else>
               <a v-if="rowHref(row)" :href="rowHref(row)!" class="block"
-                :class="{ 'font-semibold text-primary hover:underline': ci === 0 && !['Image', 'Attach', 'Check'].includes(getFieldType(col.key)) }"
+                :class="ci === 0 ? firstColClass(row, col.key) : (seenState(row) === 'seen' ? 'text-muted-foreground/70' : '')"
                 @click.stop="onRowAnchorClick($event, row)">
                 <component :is="getListCell(getFieldType(col.key)) ?? DefaultListCell" :value="row[col.key]" :row="row"
                   :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
                   :status-config="statusConfig" />
               </a>
               <div v-else
-                :class="{ 'font-semibold text-primary hover:underline': ci === 0 && !['Image', 'Attach', 'Check'].includes(getFieldType(col.key)) }">
+                :class="ci === 0 ? firstColClass(row, col.key) : (seenState(row) === 'seen' ? 'text-muted-foreground/70' : '')">
                 <component :is="getListCell(getFieldType(col.key)) ?? DefaultListCell" :value="row[col.key]" :row="row"
                   :field="fieldMap[col.key] ?? { fieldname: col.key, fieldtype: 'Data', label: col.label }"
                   :status-config="statusConfig" />

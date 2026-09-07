@@ -138,6 +138,7 @@ class DocumentMetaRPCMixin:
                 {
                     "name": str(r["name"]),
                     "assigned_to": r.get("assigned_to"),
+                    "description": r.get("description"),
                     "created_at": _iso(r.get("created_at")),
                 }
                 for r in assignees

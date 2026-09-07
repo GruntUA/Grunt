@@ -41,7 +41,7 @@
       "fieldname": "status",
       "label": "Статус",
       "fieldtype": "Select",
-      "options": "Pending\nSent\nError",
+      "options": "Pending\nSending\nSent\nError",
       "default": "Pending",
       "in_list_view": true,
       "in_filter": true

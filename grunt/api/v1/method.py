@@ -145,6 +145,14 @@ async def _invoke_with_context(
         import inspect
 
         sig = inspect.signature(method)
+
+        # Methods reached through this dispatcher are called with kwargs only, so
+        # a ``request: Request`` parameter never gets FastAPI's native injection.
+        # Supply the raw request for methods that ask for it (e.g. building
+        # absolute links from the caller's real Host behind a proxy).
+        if "request" in sig.parameters and "request" not in args:
+            args["request"] = request
+
         missing = [
             p.name
             for p in sig.parameters.values()

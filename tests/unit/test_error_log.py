@@ -136,6 +136,22 @@ async def test_record_view_marks_error_log_seen(ctx):
     assert "plain@example.com" in (stored or [])
 
 
+@pytest.mark.asyncio
+async def test_seen_column_is_selectable_in_list(ctx):
+    """The list view pulls ``_seen`` per row to mark unread rows — it must be
+    a real, selectable column on the ErrorLog table."""
+    from grunt.monitoring.error_log import record_error
+
+    session = ctx.db._session()
+    await record_error(exc=RuntimeError("list me"), session=session)
+    await session.commit()
+
+    result = await ctx.get_list("ErrorLog", fields=["name", "title", "_seen"])
+    rows = result.to_dict()["data"]
+    assert rows
+    assert "_seen" in rows[0]
+
+
 # ── retention fallback ──────────────────────────────────────────────────
 
 

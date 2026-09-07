@@ -57,24 +57,10 @@ class AuthFlowContext:
         return self.data.get(key, default)
 
     def base_url(self) -> str:
-        """The public origin the browser is actually on, for links back into the SPA.
+        """The public origin the browser is actually on, for links back into the SPA."""
+        from grunt.utils.http import public_base_url
 
-        Taken from ``Origin`` / ``Host`` + ``X-Forwarded-Proto`` so it resolves to
-        the real domain behind a reverse proxy, not the ``APP_URL`` default.
-        Falls back to ``settings.app_url`` when no usable headers are present.
-        """
-        headers = self.request.headers
-        origin = headers.get("origin")
-        if origin:
-            return origin.rstrip("/")
-        host = headers.get("host")
-        if host:
-            scheme = headers.get("x-forwarded-proto") or self.request.url.scheme
-            return f"{scheme}://{host}"
-
-        from grunt.config import settings
-
-        return settings.app_url.rstrip("/")
+        return public_base_url(self.request)
 
 
 class AuthProvider(ABC):

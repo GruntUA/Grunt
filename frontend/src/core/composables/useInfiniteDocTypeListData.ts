@@ -27,6 +27,8 @@ export function useInfiniteDocTypeListData(options: UseInfiniteDocTypeListDataOp
     if (options.sortKey.value) fields.add(options.sortKey.value)
     if (options.dt.value?.status_field) fields.add(options.dt.value.status_field)
     if (options.dt.value?.image_field) fields.add(options.dt.value.image_field)
+    // track_seen: pull the per-user "seen" column so the list can mark unread rows.
+    if (options.dt.value?.track_seen) fields.add('_seen')
     return [...fields].join(',')
   })
 

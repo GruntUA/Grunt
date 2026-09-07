@@ -273,6 +273,13 @@ const { deleteProgress, bulkDelete, bulkFastDelete } = useBulkDeleteProgress({
 function navigateToDoc(row: Record<string, unknown>) {
   const docId = row.id ?? row.name
   if (docId === null || docId === undefined || String(docId).trim() === '') return
+  // Optimistically mark the row seen for the current user so it dims on return —
+  // the server records it for real via the form's after_read hook (track_seen).
+  const seen = row._seen
+  const email = auth.user?.email
+  if (Array.isArray(seen) && email && !seen.includes(email)) {
+    row._seen = [...seen, email]
+  }
   const ws = props.workspace ?? 'grunt'
   // Use generic routing for all DocTypes including DocType itself
   router.push(`/${ws}/${props.doctype}/${encodeURIComponent(String(docId))}`)

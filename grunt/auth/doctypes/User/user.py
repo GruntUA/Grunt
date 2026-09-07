@@ -7,11 +7,14 @@ The auth layer (JWT tokens, refresh tokens) remains in ``grunt.core.auth.service
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import anyio.to_thread
 import bcrypt
 import structlog
+
+if TYPE_CHECKING:
+    from fastapi import Request
 
 import grunt
 from grunt.document.base import Document
@@ -912,13 +915,13 @@ async def disable_mfa() -> bool:
 
 
 @grunt.whitelist(allow_guest=True)
-async def forgot_password_api(email: str) -> bool:
+async def forgot_password_api(email: str, request: Request | None = None) -> bool:
     """Queue a password reset email if the user exists (always returns success)."""
     import structlog
 
     from grunt.auth.service import create_password_reset_token
-    from grunt.config import settings
     from grunt.context import require_session
+    from grunt.utils.http import public_base_url
 
     log = structlog.get_logger()
     user = await get_user_by_email(email)
@@ -926,12 +929,15 @@ async def forgot_password_api(email: str) -> bool:
         return True
 
     token = await create_password_reset_token(user.id)
-    reset_url = f"{settings.app_url}/reset-password?token={token}"
+    # Build the link from the caller's real origin (Host / X-Forwarded-Proto),
+    # not the APP_URL default which is localhost in most deployments.
+    reset_url = f"{public_base_url(request)}/reset-password?token={token}"
 
     try:
+        from grunt.app import grunt as grunt_app
         from grunt.email.service import email_service
 
-        html_body = await grunt.render_template(
+        html_body = await grunt_app.render_template(
             "password_reset.html",
             {"full_name": user.full_name, "reset_url": reset_url},
         )
@@ -952,7 +958,11 @@ async def forgot_password_api(email: str) -> bool:
         await session.flush()
         log.info("auth.forgot_password", email=user.email)
     except Exception:
-        log.warning("auth.forgot_password_email_queue_failed", email=user.email)
+        # Stay silent to the caller (anti-enumeration), but keep the traceback —
+        # a swallowed warning here left us blind when a request landed mid-reload.
+        log.warning(
+            "auth.forgot_password_email_queue_failed", email=user.email, exc_info=True
+        )
 
     return True
 

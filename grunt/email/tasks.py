@@ -20,8 +20,21 @@ async def process_email_queue():
     maker = site_manager.get_session_maker(site)
     eng = site_manager.get_engine(site)
     async with maker() as session, grunt.system_context(session, eng):
-        # 1. Fetch Pending emails
         try:
+            # Reopen rows a crashed run left mid-flight (claimed "Sending" but
+            # never marked Sent/Error) so they get retried, not stranded.
+            reopened = await grunt.db.bulk_update(
+                "EmailQueue",
+                {
+                    "status": "Sending",
+                    "modified_at__lt": datetime.now(UTC) - timedelta(minutes=10),
+                },
+                {"status": "Pending"},
+            )
+            if reopened:
+                await session.commit()
+                logger.warning("email.queue_reopened_stale", count=reopened)
+
             queue_items = await grunt.get_list(
                 "EmailQueue", filters={"status": "Pending"}, limit=100
             )
@@ -32,20 +45,27 @@ async def process_email_queue():
             logger.info("email.processing_queue", count=len(queue_items))
 
             for item in queue_items:
-                # 2. Get Account settings
-                # Note: list_documents returns raw data. We need to fetch the account.
                 account_id = item.get("email_account")
                 if not account_id:
                     logger.warning("email.no_account_for_item", id=item["name"])
                     continue
 
+                # Atomically claim the row: flip Pending → Sending and bail if a
+                # concurrent run (on-commit kick overlapping the */5 cron tick)
+                # already took it. Without this both runs would send the mail.
+                claimed = await grunt.db.bulk_update(
+                    "EmailQueue",
+                    {"name": item["name"], "status": "Pending"},
+                    {"status": "Sending", "modified_at": datetime.now(UTC)},
+                )
+                await session.commit()
+                if not claimed:
+                    continue
+
                 account = await grunt.get_doc("EmailAccount", account_id)
 
                 try:
-                    # 3. Send
                     await EmailService.send_now(account, item)
-
-                    # 4. Update status
                     await grunt.save_doc("EmailQueue", item["name"], {"status": "Sent"})
                     await session.commit()
                 except Exception as e:
