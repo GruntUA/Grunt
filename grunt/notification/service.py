@@ -151,6 +151,38 @@ class NotificationService:
                 {"is_read": True},
             )
 
+    async def notify(
+        self,
+        session: AsyncSession,
+        *,
+        user: str,
+        doctype: str,
+        doc_id: str,
+        subject: str,
+        message: str,
+        email: bool = False,
+    ) -> str | None:
+        """Deliver one notification to *user* directly (bypasses NotificationRule).
+
+        System notification + web-push always; ``email`` also queues a mail.
+        For code paths that must ping a specific person — e.g. document
+        assignment — without a configurable rule in the loop.
+        """
+        if not user:
+            return None
+        name = await self._create_notification(
+            session=session,
+            user=user,
+            doctype=doctype,
+            doc_id=doc_id,
+            subject=subject,
+            message=message,
+        )
+        if email:
+            await self._queue_email(session, user, subject, message)
+        await self._broadcast_ws(doctype, {"name": doc_id}, subject, [user])
+        return name
+
     # ── Internal helpers ──────────────────────────────────────────────────
 
     async def _create_notification(

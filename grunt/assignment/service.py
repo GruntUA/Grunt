@@ -247,18 +247,36 @@ class AssignmentService:
             )
 
     async def _create_todo(self, doctype: str, doc: dict[str, Any], owner_email: str) -> None:
+        """Assign *doc* to *owner_email* via a ToDo row (idempotent per doc+user).
+
+        Goes through ``new_doc`` — not ``bulk_insert`` — so the ``ToDo``
+        ``after_insert`` hook fires and the assignee gets notified.
+        """
         from grunt.context import require_session
 
-        todo_doc = {
-            "title": f"{doctype}: {doc.get('name', doc.get('id', 'Document'))}",
-            "reference_type": doctype,
-            "reference_name": doc.get("name"),
-            "assigned_by": "system",
-            "owner": owner_email,
-            "status": "Open",
-        }
+        ref_id = doc.get("name") or doc.get("id")
 
         async with grunt.system_context(require_session()):
-            await grunt.bulk_insert("ToDo", [todo_doc])
+            already = await grunt.db.exists(
+                "ToDo",
+                {
+                    "reference_doctype": doctype,
+                    "reference_id": ref_id,
+                    "assigned_to": owner_email,
+                    "status": "Open",
+                },
+            )
+            if already:
+                return
+            await grunt.new_doc(
+                "ToDo",
+                {
+                    "description": f"Призначено: {doctype} {ref_id or ''}".strip(),
+                    "reference_doctype": doctype,
+                    "reference_id": ref_id,
+                    "assigned_to": owner_email,
+                    "status": "Open",
+                },
+            )
 
 assignment_service = AssignmentService()

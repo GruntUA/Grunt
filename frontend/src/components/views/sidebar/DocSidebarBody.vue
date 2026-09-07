@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const props = defineProps<{
@@ -79,6 +80,7 @@ async function copyId() {
 // ── Assign / Share — one dialog, two modes ───────────────────────────────────
 const dialogMode = ref<'assign' | 'share' | null>(null)
 const pickUser = ref('')
+const pickNote = ref('')
 const pickPermission = ref<'Read' | 'Write'>('Read')
 const matches = ref<UserPublic[]>([])
 const saving = ref(false)
@@ -86,18 +88,35 @@ const saving = ref(false)
 function openDialog(mode: 'assign' | 'share') {
   dialogMode.value = mode
   pickUser.value = ''
+  pickNote.value = ''
   pickPermission.value = 'Read'
   matches.value = []
 }
 async function onPickInput() {
   matches.value = await sb.searchUsers(pickUser.value)
 }
+
+// A ToDo created without a task text carries the "Assigned to <email>" placeholder —
+// treat that as "no text" so it's not shown as an actual task.
+function realNote(a: { assigned_to: string; description: string | null }): string {
+  const d = (a.description ?? '').trim()
+  if (!d || d === `Assigned to ${a.assigned_to}`) return ''
+  return d
+}
+const assigneeTasks = computed(() =>
+  sb.bundle.value.assignees.filter((a) => realNote(a)),
+)
+function assigneeTooltip(a: { assigned_to: string; description: string | null }): string {
+  const name = sb.personName(a.assigned_to)
+  const note = realNote(a)
+  return note ? `${name} — ${note}` : name
+}
 async function submitDialog() {
   const user = pickUser.value.trim()
   if (!user) return
   saving.value = true
   try {
-    if (dialogMode.value === 'assign') await sb.assign(user)
+    if (dialogMode.value === 'assign') await sb.assign(user, pickNote.value)
     else await sb.share(user, pickPermission.value)
     dialogMode.value = null
   } catch {
@@ -217,24 +236,38 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
       </div>
 
       <!-- Assignees -->
-      <div class="flex items-center gap-2">
-        <span class="text-xs text-muted-foreground shrink-0">Відповідальні</span>
-        <div v-if="sb.bundle.value.assignees.length" class="flex flex-wrap gap-1.5">
-          <div v-for="a in sb.bundle.value.assignees" :key="a.name" class="relative group">
-            <Avatar class="!size-7 border border-border/60">
-              <AvatarImage v-if="sb.personAvatar(a.assigned_to)" :src="sb.personAvatar(a.assigned_to)!" />
-              <AvatarFallback class="!text-[10px]">{{ sb.personInitials(a.assigned_to) }}</AvatarFallback>
-            </Avatar>
-            <button
-              class="absolute -top-1 -right-1 size-3.5 rounded-full bg-background border border-border shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-              :title="`Прибрати ${sb.personName(a.assigned_to)}`"
-              @click="sb.unassign(a.name)"
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-muted-foreground shrink-0">Відповідальні</span>
+          <div v-if="sb.bundle.value.assignees.length" class="flex flex-wrap gap-1.5">
+            <div
+              v-for="a in sb.bundle.value.assignees"
+              :key="a.name"
+              class="relative group"
+              :title="assigneeTooltip(a)"
             >
-              <X class="size-2.5 text-destructive" />
-            </button>
+              <Avatar class="!size-7 border border-border/60">
+                <AvatarImage v-if="sb.personAvatar(a.assigned_to)" :src="sb.personAvatar(a.assigned_to)!" />
+                <AvatarFallback class="!text-[10px]">{{ sb.personInitials(a.assigned_to) }}</AvatarFallback>
+              </Avatar>
+              <button
+                class="absolute -top-1 -right-1 size-3.5 rounded-full bg-background border border-border shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                :title="`Прибрати ${sb.personName(a.assigned_to)}`"
+                @click="sb.unassign(a.name)"
+              >
+                <X class="size-2.5 text-destructive" />
+              </button>
+            </div>
           </div>
+          <span v-else class="text-xs text-muted-foreground/50">нема</span>
         </div>
-        <span v-else class="text-xs text-muted-foreground/50">нема</span>
+
+        <ul v-if="assigneeTasks.length" class="flex flex-col gap-1">
+          <li v-for="a in assigneeTasks" :key="a.name" class="text-xs leading-snug text-muted-foreground">
+            <span class="font-medium text-foreground/80">{{ sb.personName(a.assigned_to) }}:</span>
+            {{ a.description }}
+          </li>
+        </ul>
       </div>
 
       <!-- Access (collapsed by default) -->
@@ -392,6 +425,16 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
                 </div>
               </button>
             </div>
+          </div>
+
+          <div v-if="dialogMode === 'assign'" class="flex flex-col gap-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Текст задачі</label>
+            <Textarea
+              v-model="pickNote"
+              rows="3"
+              placeholder="Що потрібно зробити? Напр. «Роутер передати на склад або списати»"
+              class="w-full resize-none"
+            />
           </div>
 
           <div v-if="dialogMode === 'share'" class="flex flex-col gap-2">

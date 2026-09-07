@@ -35,6 +35,12 @@ const tiles = computed(() => {
   ]
 })
 
+// The task text, unless it's the bare "Assigned to <email>" placeholder.
+function taskNote(t: MyWork['assigned'][number]): string {
+  const d = (t.description ?? '').trim()
+  return !d || /^Assigned to \S+$/.test(d) ? '' : d
+}
+
 function openTask(t: MyWork['assigned'][number]) {
   if (!t.reference_doctype || !t.reference_id) return
   const ws = workspaceForDoctype(t.reference_doctype)
@@ -95,6 +101,7 @@ onMounted(async () => {
             <p class="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
               {{ t.title }}
             </p>
+            <p v-if="taskNote(t)" class="text-xs text-muted-foreground truncate">{{ taskNote(t) }}</p>
             <span class="text-xs text-muted-foreground/50 font-mono">{{ t.reference_doctype }}</span>
           </div>
           <span v-if="t.overdue"

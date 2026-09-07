@@ -55,10 +55,10 @@ export function useDocSidebar(
   watch([dt, id], reload, { immediate: true })
 
   // ── Assignees ──────────────────────────────────────────────────────────────
-  async function assign(user: string): Promise<void> {
+  async function assign(user: string, description?: string): Promise<void> {
     const d = dt(); const i = id()
     if (!d || !i || !user.trim()) return
-    await docsApi.assign(d, i, user.trim())
+    await docsApi.assign(d, i, user.trim(), description)
     await reload()
   }
   async function unassign(name: string): Promise<void> {

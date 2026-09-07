@@ -31,7 +31,7 @@ export interface BacklinkItem {
   link_fieldname: string
 }
 
-export interface SidebarAssignee { name: string; assigned_to: string; created_at: string | null }
+export interface SidebarAssignee { name: string; assigned_to: string; description: string | null; created_at: string | null }
 export interface SidebarShare { name: string; user: string; permission: 'Read' | 'Write' }
 export interface SidebarTag { name: string; tag: string }
 
@@ -227,13 +227,13 @@ export const docsApi = {
       params: { 'filter[reference_doctype]': doctype, 'filter[reference_id]': id, 'filter[status]': 'Open' }
     }).then(r => r.data.data ?? []),
 
-  assign: (doctype: string, id: string, user: string): Promise<GruntDocument> =>
+  assign: (doctype: string, id: string, user: string, description?: string): Promise<GruntDocument> =>
     client.post(`/api/v1/docs/ToDo`, {
       reference_doctype: doctype,
       reference_id: id,
       assigned_to: user,
       status: 'Open',
-      description: `Assigned to ${user}`,
+      description: description?.trim() || `Assigned to ${user}`,
     }).then(r => r.data.data),
 
   getSharedWith: (doctype: string, id: string): Promise<GruntDocument[]> =>
