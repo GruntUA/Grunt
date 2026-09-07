@@ -176,10 +176,10 @@ function onSearchInput() {
 
                     <!-- Metadata Area -->
                     <div class="p-3 shrink-0 flex flex-col bg-background/95">
-                        <p class="text-xs font-semibold truncate text-foreground/90 mb-1" :title="file.filename">{{
+                        <p class="font-semibold truncate text-foreground/90 mb-1" :title="file.filename">{{
                             file.filename }}</p>
                         <div
-                            class="flex items-center justify-between text-xs uppercase font-semibold text-muted-foreground">
+                            class="flex items-center justify-between uppercase font-semibold text-muted-foreground">
                             <Badge variant="secondary"
                                 class="text-xs px-1 bg-muted/30 border-transparent truncate max-w-[60px]">
                                 {{ file.content_type.split('/')[1] || 'FILE' }}

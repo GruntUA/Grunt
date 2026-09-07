@@ -389,7 +389,7 @@ async function verifyEmailCode() {
               <div class="absolute inset-0 flex items-center" aria-hidden="true">
                 <span class="w-full border-t border-border"></span>
               </div>
-              <span class="bg-card text-muted-foreground relative px-2 text-xs">або введіть пароль</span>
+              <span class="bg-card text-muted-foreground relative px-2">або введіть пароль</span>
             </div>
 
             <!-- Full name (signup only) -->
@@ -458,7 +458,7 @@ async function verifyEmailCode() {
         </div>
       </Card>
 
-      <p class="px-6 text-center text-xs text-muted-foreground leading-relaxed">
+      <p class="px-6 text-center text-muted-foreground leading-relaxed">
         Продовжуючи, ви погоджуєтесь з нашими
         <a href="#" class="underline underline-offset-2 hover:text-foreground">Умовами використання</a> та <a href="#" class="underline underline-offset-2 hover:text-foreground">Політикою конфіденційності</a>.
       </p>

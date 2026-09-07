@@ -25,12 +25,12 @@ const dateStr = computed(() =>
 
 <template>
   <div class="flex flex-col items-center justify-center gap-1 h-full p-5 text-center select-none">
-    <p v-if="widget.title" class="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">
+    <p v-if="widget.title" class="text-muted-foreground font-medium uppercase tracking-wide mb-1">
       {{ widget.title }}
     </p>
     <p class="text-4xl font-semibold tabular-nums tracking-tight font-mono leading-none text-foreground">{{ timeStr }}</p>
     <p class="text-muted-foreground mt-1 capitalize">{{ dateStr }}</p>
-    <p v-if="widget.description" class="text-xs text-muted-foreground mt-1 italic opacity-70">
+    <p v-if="widget.description" class="text-muted-foreground mt-1 italic opacity-70">
       {{ widget.description }}
     </p>
   </div>

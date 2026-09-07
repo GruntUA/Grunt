@@ -152,7 +152,7 @@ watch(() => sentinelEl.value, setupObserver)
           <div class="size-5 rounded-full border-2 border-muted border-t-primary animate-spin" />
         </div>
         <p v-else-if="meta && !hasNextPage && rows.length > 0 && rows.length >= meta.total"
-          class="py-3 text-center text-xs text-muted-foreground/50">
+          class="py-3 text-center text-muted-foreground/50">
           Усі {{ meta.total }} записів завантажено
         </p>
       </template>

@@ -110,30 +110,30 @@ function formatValue(val: unknown): string {
           <div v-else class="size-3.5 shrink-0" />
 
           <!-- Version badge -->
-          <span class="shrink-0 text-xs font-semibold bg-primary/10 text-primary rounded px-1.5 py-0.5">
+          <span class="shrink-0 font-semibold bg-primary/10 text-primary rounded px-1.5 py-0.5">
             v{{ v.version }}
           </span>
 
           <!-- User + time -->
           <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-1.5 text-xs">
+            <div class="flex items-center gap-1.5">
               <User class="size-3 text-muted-foreground shrink-0" />
               <span class="font-medium text-foreground truncate">{{ v.user }}</span>
             </div>
-            <div class="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+            <div class="flex items-center gap-1 text-muted-foreground mt-0.5">
               <Clock class="size-3 shrink-0" />
               {{ formatTime(v.created_at) }}
             </div>
           </div>
 
           <!-- Changed fields count -->
-          <span v-if="v.changes" class="shrink-0 text-xs text-muted-foreground">
+          <span v-if="v.changes" class="shrink-0 text-muted-foreground">
             {{ changedFields(v.changes).length }} поле(й)
           </span>
 
           <!-- Restore button -->
           <button
-            class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-xs text-muted-foreground hover:text-primary px-2 py-1 rounded-md hover:bg-primary/5"
+            class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-muted-foreground hover:text-primary px-2 py-1 rounded-md hover:bg-primary/5"
             :disabled="restoring === v.id"
             @click.stop="restore(v.id)"
           >
@@ -146,11 +146,11 @@ function formatValue(val: unknown): string {
         <!-- Expanded diff -->
         <Transition name="diff">
           <div v-if="expanded === v.id && v.changes" class="px-8 pb-3">
-            <div class="rounded-lg border bg-muted/20 overflow-hidden text-xs">
+            <div class="rounded-lg border bg-muted/20 overflow-hidden">
               <div v-for="field in changedFields(v.changes)" :key="field"
                 class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-1.5 border-b last:border-0">
                 <div class="min-w-0">
-                  <span class="text-xs font-medium text-muted-foreground uppercase block mb-0.5">{{ field }}</span>
+                  <span class="font-medium text-muted-foreground uppercase block mb-0.5">{{ field }}</span>
                   <span class="line-through text-muted-foreground/60 truncate block">
                     {{ formatValue(v.changes![field].old) }}
                   </span>

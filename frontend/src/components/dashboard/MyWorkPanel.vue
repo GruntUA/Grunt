@@ -82,7 +82,7 @@ onMounted(async () => {
         </div>
         <div class="min-w-0">
           <p class="text-lg font-semibold text-foreground tabular-nums leading-none">{{ tile.value }}</p>
-          <p class="text-xs text-muted-foreground/60 font-medium truncate">{{ tile.label }}</p>
+          <p class="text-muted-foreground/60 font-medium truncate">{{ tile.label }}</p>
         </div>
       </div>
     </div>
@@ -93,7 +93,7 @@ onMounted(async () => {
         class="rounded-lg border border-border/40 bg-card/60 overflow-hidden">
         <div class="px-4 py-2.5 border-b border-border/20 flex items-center gap-2">
           <CheckSquare class="size-3.5 text-indigo-500/70" />
-          <span class="text-xs font-semibold uppercase tracking-widest text-foreground/70">Мої задачі</span>
+          <span class="font-semibold uppercase tracking-widest text-foreground/70">Мої задачі</span>
         </div>
         <button v-for="t in data.assigned.slice(0, 6)" :key="t.id"
           class="group w-full flex items-center gap-3 px-4 py-2.5 border-b border-border/10 last:border-0 hover:bg-primary/[0.03] transition-colors text-left"
@@ -102,15 +102,15 @@ onMounted(async () => {
             <p class="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
               {{ t.title }}
             </p>
-            <p v-if="taskNote(t)" class="text-xs text-muted-foreground truncate">{{ taskNote(t) }}</p>
-            <span class="text-xs text-muted-foreground/50 font-mono">{{ t.reference_doctype }}</span>
+            <p v-if="taskNote(t)" class="text-muted-foreground truncate">{{ taskNote(t) }}</p>
+            <span class="text-muted-foreground/50 font-mono">{{ t.reference_doctype }}</span>
           </div>
           <span v-if="t.overdue"
-            class="text-xs font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-red-500/10 text-red-600 shrink-0">
+            class="font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-red-500/10 text-red-600 shrink-0">
             прострочено
           </span>
           <span v-else-if="t.due_date"
-            class="text-xs text-muted-foreground/50 font-mono tabular-nums shrink-0">{{ formatDue(t.due_date) }}</span>
+            class="text-muted-foreground/50 font-mono tabular-nums shrink-0">{{ formatDue(t.due_date) }}</span>
           <ArrowRight
             class="size-3.5 text-muted-foreground/20 group-hover:text-primary/50 transition-colors shrink-0" />
         </button>
@@ -121,7 +121,7 @@ onMounted(async () => {
         class="rounded-lg border border-border/40 bg-card/60 overflow-hidden">
         <div class="px-4 py-2.5 border-b border-border/20 flex items-center gap-2">
           <Bell class="size-3.5 text-blue-500/70" />
-          <span class="text-xs font-semibold uppercase tracking-widest text-foreground/70">Сповіщення</span>
+          <span class="font-semibold uppercase tracking-widest text-foreground/70">Сповіщення</span>
         </div>
         <button v-for="n in data.notifications.slice(0, 6)" :key="n.name"
           class="group w-full flex items-center gap-3 px-4 py-2.5 border-b border-border/10 last:border-0 hover:bg-primary/[0.03] transition-colors text-left"
@@ -140,7 +140,7 @@ onMounted(async () => {
       <div v-if="data && (data.assigned.length === 0) !== (data.notifications.length === 0)"
         class="hidden lg:flex flex-col items-center justify-center rounded-lg border border-dashed border-border/30 text-center p-6">
         <Inbox class="size-6 text-muted-foreground/30 mb-2" />
-        <p class="text-xs text-muted-foreground/50">
+        <p class="text-muted-foreground/50">
           {{ data.assigned.length === 0 ? 'Немає призначених задач' : 'Немає нових сповіщень' }}
         </p>
       </div>

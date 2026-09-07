@@ -148,10 +148,10 @@ onMounted(() => {
                         <component :is="allIcons[name]" class="size-4" />
                     </button>
                 </div>
-                <p v-if="filtered.length === 200 && search" class="text-center text-xs text-muted-foreground mt-2">
+                <p v-if="filtered.length === 200 && search" class="text-center text-muted-foreground mt-2">
                     {{ t('Showing first {n} results', { n: 200 }) }}
                 </p>
-                <p v-else-if="!search && allNames.length > 120" class="text-center text-xs text-muted-foreground mt-2 pb-1">
+                <p v-else-if="!search && allNames.length > 120" class="text-center text-muted-foreground mt-2 pb-1">
                     {{ t('Type to search {n} icons', { n: allNames.length }) }}
                 </p>
             </div>

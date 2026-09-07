@@ -57,7 +57,7 @@ function startResize(e: PointerEvent) {
     >
       <div class="form-section-header border-b border-border/60 px-4 py-3 flex items-center gap-2">
         <User class="size-3.5 text-muted-foreground" />
-        <span class="flex-1 text-xs font-semibold uppercase tracking-wider">Деталі</span>
+        <span class="flex-1 font-semibold uppercase tracking-wider">Деталі</span>
         <Button variant="ghost" size="icon" class="size-6 -mr-1.5" title="Згорнути (Ctrl+])" @click="toggle">
           <PanelRightClose class="size-4" />
         </Button>

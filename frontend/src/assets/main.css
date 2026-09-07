@@ -256,9 +256,10 @@
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
-    /* Framework base type size — single source of truth (== Tailwind text-sm).
-       Components should not repeat `text-sm`; use text-xs / text-base+ only to deviate. */
-    font-size: 1rem;
+    /* Framework base type size — single source of truth (== Tailwind text-xs, 0.75rem).
+       Components must not repeat `text-xs`; use `text-sm` / `text-base`+ only to deviate up.
+       Note: shadcn primitives under components/ui/ intentionally keep their own `text-sm`. */
+    font-size: 0.75rem;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

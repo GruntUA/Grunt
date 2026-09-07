@@ -46,7 +46,7 @@ function onJump() {
   <div class="flex items-center justify-between w-full py-2 px-1">
     <!-- Summary info -->
     <div class="hidden md:flex items-center gap-2">
-        <span class="text-xs font-semibold text-muted-foreground/60 uppercase tracking-widest">Всього:</span>
+        <span class="font-semibold text-muted-foreground/60 uppercase tracking-widest">Всього:</span>
         <Badge variant="secondary" class="!text-xs !font-semibold !px-2 !py-0.5 shadow-sm">
             {{ total }}
         </Badge>
@@ -62,7 +62,7 @@ function onJump() {
         </Button>
 
         <template v-for="(p, idx) in pageWindow" :key="idx">
-          <span v-if="p === '…'" class="size-9 flex items-center justify-center text-xs text-muted-foreground/60">…</span>
+          <span v-if="p === '…'" class="size-9 flex items-center justify-center text-muted-foreground/60">…</span>
           <Button
             v-else
             size="icon-sm"
@@ -93,7 +93,7 @@ function onJump() {
 
     <!-- Mobile view summary -->
     <div class="md:hidden ml-4">
-        <p class="text-xs font-semibold text-muted-foreground uppercase opacity-60">
+        <p class="font-semibold text-muted-foreground uppercase opacity-60">
             {{ page }} / {{ pages }}
         </p>
     </div>

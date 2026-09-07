@@ -116,7 +116,7 @@ function formatNow() {
     >
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         @click="formatNow"
       >
         <Sparkles class="size-3" />

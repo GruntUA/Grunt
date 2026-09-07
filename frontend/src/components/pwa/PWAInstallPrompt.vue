@@ -99,7 +99,7 @@ function dismiss() {
       </div>
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-foreground leading-tight">Встановити {{ appName }}</p>
-        <p class="text-xs text-muted-foreground mt-0.5">Додати на головний екран для швидкого доступу</p>
+        <p class="text-muted-foreground mt-0.5">Додати на головний екран для швидкого доступу</p>
       </div>
       <div class="flex items-center gap-1.5 shrink-0">
         <Button size="sm" @click="install">Так</Button>

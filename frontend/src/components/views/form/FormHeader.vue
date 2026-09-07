@@ -491,14 +491,14 @@ const menuItems = computed(() => {
           </div>
           <div>
             <DialogTitle class="text-base font-semibold">{{ t('Share link') }}</DialogTitle>
-            <p class="text-xs text-muted-foreground">{{ t('Anyone with the link can view this document') }}</p>
+            <p class="text-muted-foreground">{{ t('Anyone with the link can view this document') }}</p>
           </div>
         </div>
       </DialogHeader>
 
       <template v-if="!shareLink">
         <div>
-          <label class="text-xs font-medium text-muted-foreground block mb-1.5">{{ t('Expires at') }} ({{ t('optional') }})</label>
+          <label class="font-medium text-muted-foreground block mb-1.5">{{ t('Expires at') }} ({{ t('optional') }})</label>
           <input
             v-model="shareExpires"
             type="datetime-local"
@@ -519,13 +519,13 @@ const menuItems = computed(() => {
           <input
             :value="shareLink"
             readonly
-            class="flex-1 h-9 px-3 text-xs rounded-md border border-border bg-muted font-mono focus:outline-none"
+            class="flex-1 h-9 px-3 rounded-md border border-border bg-muted font-mono focus:outline-none"
           />
           <Button variant="outline" size="sm" @click="copyShareLink" class="shrink-0">
             <CopyIcon class="size-3.5" />
           </Button>
         </div>
-        <p class="text-xs text-muted-foreground">
+        <p class="text-muted-foreground">
           {{ t('Link copied to clipboard when you click the copy button.') }}
           <a :href="router.resolve({ name: 'workspace-list', params: { workspaceName: props.workspace ?? 'grunt', doctype: 'DocumentShare' } }).href" target="_blank" class="text-primary hover:underline ml-1">{{ t('Manage shares') }} →</a>
         </p>
@@ -544,7 +544,7 @@ const menuItems = computed(() => {
         <DialogTitle class="text-lg font-semibold">{{ t('Rename document') }}</DialogTitle>
       </DialogHeader>
       <div>
-        <label class="text-xs font-medium text-muted-foreground block mb-1.5">{{ t('New ID') }}</label>
+        <label class="font-medium text-muted-foreground block mb-1.5">{{ t('New ID') }}</label>
         <input
           v-model="newDocId"
           class="w-full h-10 px-3 rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -571,7 +571,7 @@ const menuItems = computed(() => {
           </div>
           <div>
             <DialogTitle class="text-base font-semibold">{{ t('Інформація про таблицю') }}</DialogTitle>
-            <p class="text-xs text-muted-foreground">{{ t('Фізичне сховище цього типу документа') }}</p>
+            <p class="text-muted-foreground">{{ t('Фізичне сховище цього типу документа') }}</p>
           </div>
         </div>
       </DialogHeader>
@@ -580,14 +580,14 @@ const menuItems = computed(() => {
         <Loader2 class="size-6 animate-spin text-muted-foreground" />
       </div>
 
-      <p v-else-if="tableInfoError" class="text-sm text-destructive py-2">{{ tableInfoError }}</p>
+      <p v-else-if="tableInfoError" class="text-destructive py-2">{{ tableInfoError }}</p>
 
-      <div v-else-if="tableInfo" class="text-sm">
+      <div v-else-if="tableInfo">
         <dl class="divide-y divide-border">
           <div class="flex items-center justify-between gap-3 py-2">
             <dt class="text-muted-foreground shrink-0">{{ t('Назва таблиці') }}</dt>
             <dd class="flex items-center gap-1.5 min-w-0">
-              <code class="font-mono text-xs truncate">{{ tableInfo.table_name }}</code>
+              <code class="font-mono truncate">{{ tableInfo.table_name }}</code>
               <Button variant="ghost" size="sm" class="size-6 p-0 shrink-0" :title="t('Copy')" @click="copyTableName">
                 <CopyIcon class="size-3" />
               </Button>
@@ -625,25 +625,25 @@ const menuItems = computed(() => {
                 <dd>{{ formatBytes(tableInfo.reclaimable_bytes) }}</dd>
               </div>
             </template>
-            <div v-else class="py-2 text-xs text-muted-foreground">
+            <div v-else class="py-2 text-muted-foreground">
               {{ t('Розмір недоступний для цієї бази даних') }}
             </div>
           </template>
         </dl>
-        <p v-if="tableInfo.dead_tuples" class="mt-2 text-xs text-muted-foreground">
+        <p v-if="tableInfo.dead_tuples" class="mt-2 text-muted-foreground">
           {{ t('«мертвих» рядків: {n}').replace('{n}', String(tableInfo.dead_tuples)) }}
         </p>
 
         <!-- Compaction -->
         <div v-if="tableInfo.exists && tableInfo.size_supported" class="mt-3 border-t border-border pt-3">
-          <div v-if="compacting" class="flex items-center gap-2 text-xs text-muted-foreground">
+          <div v-if="compacting" class="flex items-center gap-2 text-muted-foreground">
             <Loader2 class="size-3.5 animate-spin" />
             {{ t('Виконується стиснення… база може бути заблокована до завершення.') }}
           </div>
 
-          <p v-else-if="compactError" class="text-xs text-destructive">{{ compactError }}</p>
+          <p v-else-if="compactError" class="text-destructive">{{ compactError }}</p>
 
-          <div v-else-if="compactResult" class="flex items-start gap-2 text-xs">
+          <div v-else-if="compactResult" class="flex items-start gap-2">
             <Check class="size-3.5 mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
             <span v-if="compactResult.freed_bytes && compactResult.freed_bytes > 0" class="text-foreground">
               {{ (compactResult.scope === 'database'
@@ -656,7 +656,7 @@ const menuItems = computed(() => {
             <span v-else class="text-muted-foreground">{{ t('Таблиця вже щільно упакована — вивільняти нічого.') }}</span>
           </div>
 
-          <div v-else-if="confirmCompact" class="text-xs">
+          <div v-else-if="confirmCompact">
             <p class="text-muted-foreground mb-2">
               <span v-if="tableInfo.reclaim_scope === 'database'">
                 {{ t('VACUUM перепише весь файл бази даних і на час виконання заблокує запис. Продовжити?') }}
@@ -679,7 +679,7 @@ const menuItems = computed(() => {
       </div>
 
       <DialogFooter>
-        <span v-if="tableNameCopied" class="text-xs text-muted-foreground self-center mr-auto">{{ t('Скопійовано') }}</span>
+        <span v-if="tableNameCopied" class="text-muted-foreground self-center mr-auto">{{ t('Скопійовано') }}</span>
         <Button size="sm" :disabled="compacting" @click="showTableInfoDialog = false">{{ t('Done') }}</Button>
       </DialogFooter>
     </DialogContent>

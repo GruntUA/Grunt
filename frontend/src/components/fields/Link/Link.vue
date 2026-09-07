@@ -25,7 +25,7 @@ const props = defineProps<{
 // Base classes for the regular-mode <input>; `pr-*` is appended in the template.
 const inputClass = computed(() =>
   props.cell
-    ? 'w-full h-8 rounded-none border border-transparent border-b-border/30 bg-transparent pl-8 text-xs text-foreground placeholder:text-muted-foreground shadow-none outline-none hover:border-input focus-visible:ring-0 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-60 transition-colors'
+    ? 'w-full h-8 rounded-none border border-transparent border-b-border/30 bg-transparent pl-8 text-foreground placeholder:text-muted-foreground shadow-none outline-none hover:border-input focus-visible:ring-0 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-60 transition-colors'
     : 'w-full rounded-md border border-input bg-transparent dark:bg-input/30 pl-8 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring disabled:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-60 transition-colors',
 )
 
@@ -205,7 +205,7 @@ const {
           <Plus class="size-3.5 shrink-0" />
           <span v-if="query">
             {{ t('Create') }} <strong>{{ query }}</strong>
-            <span class="text-muted-foreground text-xs ml-1">({{ field.options }})</span>
+            <span class="text-xs text-muted-foreground ml-1">({{ field.options }})</span>
           </span>
           <span v-else class="text-muted-foreground">
             {{ t('Create new') }} {{ field.options }}
@@ -216,11 +216,11 @@ const {
       <template v-if="activeFilterChips.length">
         <div class="border-t border-border" />
         <div class="px-3 py-1.5 flex items-center gap-1.5 flex-wrap">
-          <span class="text-xs text-muted-foreground">{{ t('Filter:') }}</span>
+          <span class="text-muted-foreground">{{ t('Filter:') }}</span>
           <span
             v-for="chip in activeFilterChips"
             :key="chip.key"
-            class="inline-flex items-center text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5 font-medium"
+            class="inline-flex items-center bg-primary/10 text-primary rounded px-1.5 py-0.5 font-medium"
           >
             {{ chip.display }}
           </span>

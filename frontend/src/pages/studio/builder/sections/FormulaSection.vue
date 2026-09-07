@@ -10,10 +10,10 @@ const { field, updateField } = usePropertyEditor()
 <template>
   <Separator class="!mb-3" />
   <div class="flex items-center justify-between mb-3">
-    <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Formula</p>
+    <p class="font-semibold text-muted-foreground uppercase tracking-wide">Formula</p>
     <span
       v-if="field.formula"
-      class="text-xs font-mono text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-1.5 py-0.5 rounded"
+      class="font-mono text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-1.5 py-0.5 rounded"
     >ƒx активна</span>
   </div>
   <div class="flex flex-col gap-3 mb-4">
@@ -26,7 +26,7 @@ const { field, updateField } = usePropertyEditor()
         class="w-full !text-sm !font-mono"
         @update:model-value="(v: string | number) => updateField('formula', String(v).trim() || null)"
       />
-      <p class="text-xs text-muted-foreground leading-relaxed">
+      <p class="text-muted-foreground leading-relaxed">
         Обчислюється при кожному збереженні. Доступні всі поля документа як змінні.<br>
         Приклади: <code class="bg-muted px-1 rounded">qty * price</code>,
         <code class="bg-muted px-1 rounded">round(a + b, 2)</code>,

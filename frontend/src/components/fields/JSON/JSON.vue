@@ -71,6 +71,6 @@ function onBlur() {
       @update:model-value="onUpdate"
       @blur="onBlur"
     />
-    <p v-if="localError" class="text-xs text-destructive">{{ localError }}</p>
+    <p v-if="localError" class="text-destructive">{{ localError }}</p>
   </div>
 </template>

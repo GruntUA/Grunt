@@ -33,19 +33,19 @@ watchEffect(() => {
   >
     <!-- ── Header row ── -->
     <div class="flex items-center gap-1.5 px-2 py-1.5 border-b border-border/50 bg-muted/30">
-      <span class="drag-handle text-muted-foreground/50 hover:text-muted-foreground cursor-grab active:cursor-grabbing text-xs shrink-0 select-none">⠿</span>
+      <span class="drag-handle text-muted-foreground/50 hover:text-muted-foreground cursor-grab active:cursor-grabbing shrink-0 select-none">⠿</span>
 
-      <span class="font-medium text-foreground text-xs truncate flex-1">
+      <span class="font-medium text-foreground truncate flex-1">
         {{ field.label || field.fieldname }}
         <span v-if="field.required" class="text-destructive ml-0.5">*</span>
       </span>
 
       <span v-if="field.formula"
-        class="text-xs font-mono text-amber-600 bg-amber-50 border border-amber-200 px-1 py-px rounded shrink-0">ƒx</span>
+        class="font-mono text-amber-600 bg-amber-50 border border-amber-200 px-1 py-px rounded shrink-0">ƒx</span>
       <span v-if="field.aggregate_function"
-        class="text-xs font-mono text-blue-600 bg-blue-50 border border-blue-200 px-1 py-px rounded shrink-0">∑</span>
+        class="font-mono text-blue-600 bg-blue-50 border border-blue-200 px-1 py-px rounded shrink-0">∑</span>
 
-      <span class="text-xs text-muted-foreground/60 shrink-0">{{ field.fieldtype }}</span>
+      <span class="text-muted-foreground/60 shrink-0">{{ field.fieldtype }}</span>
 
       <button
         type="button"
@@ -62,7 +62,7 @@ watchEffect(() => {
         :model-value="field.default"
         :disabled="true"
       />
-      <p class="mt-1.5 text-xs text-muted-foreground/40 font-mono">{{ field.fieldname }}</p>
+      <p class="mt-1.5 text-muted-foreground/40 font-mono">{{ field.fieldname }}</p>
     </div>
   </div>
 </template>

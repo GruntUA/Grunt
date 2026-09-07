@@ -132,12 +132,12 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
     <template v-else>
       <!-- Lifecycle markers -->
       <div v-if="dt?.deprecated"
-        class="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
+        class="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
         <TriangleAlert class="size-4 mt-0.5 shrink-0" />
         <span>{{ t('Цей тип документа позначено як неактуальний (deprecated). Він продовжує працювати, але не використовуйте його в новому коді.') }}</span>
       </div>
       <div v-if="dt?.beta"
-        class="flex items-start gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+        class="flex items-start gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-muted-foreground">
         <FlaskConical class="size-4 mt-0.5 shrink-0" />
         <span>{{ t('Beta: цей тип документа ще в розробці, поведінка може змінитися.') }}</span>
       </div>
@@ -158,7 +158,7 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
 
           <!-- Seen / views -->
           <div v-if="id && tracksViews && viewInfo"
-            class="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-1 text-xs text-muted-foreground">
+            class="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-1 text-muted-foreground">
             <span v-if="dt?.track_views" class="inline-flex items-center gap-1.5">
               <Eye class="size-3.5" />
               {{ t('{views} переглядів · {viewers} користувачів').replace('{views}', String(viewInfo.views)).replace('{viewers}', String(viewInfo.viewers)) }}

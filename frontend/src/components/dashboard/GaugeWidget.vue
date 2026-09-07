@@ -89,11 +89,11 @@ const trendPos = computed(() => (trend.value ?? 0) > 0)
         <p class="text-2xl font-semibold tabular-nums tracking-tight" :style="{ color: accent }">
           {{ formattedValue }}
         </p>
-        <p class="text-xs text-muted-foreground tabular-nums">
+        <p class="text-muted-foreground tabular-nums">
           {{ minVal }} – {{ maxVal }}
         </p>
         <!-- Trend indicator -->
-        <p v-if="trend !== null" class="text-xs font-medium"
+        <p v-if="trend !== null" class="font-medium"
           :class="trend === 0 ? 'text-muted-foreground' : trendPos ? 'text-emerald-600' : 'text-red-500'">
           {{ trendPos ? '+' : '' }}{{ trend }}%
         </p>

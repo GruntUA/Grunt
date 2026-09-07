@@ -114,7 +114,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
           <SidebarMenuButton tooltip="Пошук" @click="triggerSearch">
             <Search />
             <span>Пошук...</span>
-            <kbd class="ml-auto flex items-center gap-0.5 rounded border border-sidebar-border/50 bg-background/50 px-1.5 text-xs font-semibold text-muted-foreground group-data-[collapsible=icon]:hidden">
+            <kbd class="ml-auto flex items-center gap-0.5 rounded border border-sidebar-border/50 bg-background/50 px-1.5 font-semibold text-muted-foreground group-data-[collapsible=icon]:hidden">
               <span class="opacity-70">⌘</span>K
             </kbd>
           </SidebarMenuButton>
@@ -197,12 +197,12 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
         <!-- Референтність: суперадмін переглядає систему від імені цього користувача -->
         <SidebarMenuItem v-if="auth.isImpersonating">
           <div class="rounded-md border border-violet-500/40 bg-violet-500/10 px-2 py-1.5 group-data-[collapsible=icon]:hidden">
-            <div class="flex items-center gap-1.5 text-xs font-medium text-violet-700 dark:text-violet-300">
+            <div class="flex items-center gap-1.5 font-medium text-violet-700 dark:text-violet-300">
               <Eye class="size-3.5 shrink-0" />
               <span class="truncate">Перегляд як {{ auth.user?.full_name }}</span>
             </div>
             <button
-              class="mt-1.5 w-full rounded bg-violet-600 px-2 py-1 text-xs font-semibold text-white transition-colors hover:bg-violet-700"
+              class="mt-1.5 w-full rounded bg-violet-600 px-2 py-1 font-semibold text-white transition-colors hover:bg-violet-700"
               @click="exitImpersonation">
               Повернутися до себе
             </button>
@@ -226,7 +226,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
                 </Avatar>
                 <div class="grid flex-1 text-left leading-tight">
                   <span class="truncate font-medium">{{ auth.user?.full_name }}</span>
-                  <span class="truncate text-xs text-muted-foreground">{{ auth.user?.email }}</span>
+                  <span class="truncate text-muted-foreground">{{ auth.user?.email }}</span>
                 </div>
                 <ChevronsUpDown class="ml-auto" />
               </SidebarMenuButton>
@@ -245,7 +245,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
                   </Avatar>
                   <div class="grid flex-1 text-left leading-tight">
                     <span class="truncate font-semibold">{{ auth.user?.full_name }}</span>
-                    <span class="truncate text-xs text-muted-foreground">{{ auth.user?.email }}</span>
+                    <span class="truncate text-muted-foreground">{{ auth.user?.email }}</span>
                   </div>
                 </div>
               </DropdownMenuItem>

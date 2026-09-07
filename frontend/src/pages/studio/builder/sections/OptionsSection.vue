@@ -8,7 +8,7 @@ const { field, updateField } = usePropertyEditor()
 
 <template>
   <Separator class="!mb-3" />
-  <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Options</p>
+  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Options</p>
   <div class="mb-4">
     <Textarea
       :model-value="field.options ?? ''"

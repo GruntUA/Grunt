@@ -78,7 +78,7 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
 
 <template>
   <div v-if="loading || hasAny" class="flex flex-col gap-3">
-    <p v-if="loading" class="text-xs text-muted-foreground px-0.5">Завантаження зв'язків…</p>
+    <p v-if="loading" class="text-muted-foreground px-0.5">Завантаження зв'язків…</p>
 
     <div
       v-for="group in (hasAny ? (result?.groups ?? []) : [])"
@@ -87,7 +87,7 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
     >
       <span
         v-if="group.name"
-        class="text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider px-0.5"
+        class="font-semibold text-muted-foreground/80 uppercase tracking-wider px-0.5"
       >
         {{ group.name }}
       </span>
@@ -107,7 +107,7 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
                 class="size-3 text-muted-foreground/50 transition-transform data-[disabled]:opacity-0 [[data-state=open]_&]:rotate-90"
               />
               <span
-                class="text-xs font-semibold text-muted-foreground uppercase tracking-wider group-hover/link:text-primary transition-colors"
+                class="font-semibold text-muted-foreground uppercase tracking-wider group-hover/link:text-primary transition-colors"
               >
                 {{ link.label }}
               </span>
@@ -136,7 +136,7 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
                 v-for="row in link.preview"
                 :key="row.name"
                 :to="docTo(link.link_doctype, row.name)"
-                class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-background text-xs no-underline text-foreground"
+                class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-background no-underline text-foreground"
               >
                 <ChevronRight class="size-3 text-muted-foreground/40" />
                 <span class="truncate">{{ row.title }}</span>
@@ -144,7 +144,7 @@ const hasAny = computed(() => (result.value?.groups ?? []).some((g) => g.links.l
               <RouterLink
                 v-if="link.count > link.preview.length"
                 :to="listTo(link)"
-                class="px-2 py-1.5 text-xs text-primary hover:underline no-underline"
+                class="px-2 py-1.5 text-primary hover:underline no-underline"
               >
                 Переглянути всі {{ link.count }} →
               </RouterLink>

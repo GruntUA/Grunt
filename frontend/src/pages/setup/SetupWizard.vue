@@ -74,7 +74,7 @@ async function submitSetup() {
                 </div>
                 <div>
                   <div class="font-medium">Базові дані</div>
-                  <div class="text-xs text-muted-foreground">Назва та локалізація</div>
+                  <div class="text-muted-foreground">Назва та локалізація</div>
                 </div>
               </div>
 
@@ -86,7 +86,7 @@ async function submitSetup() {
                 </div>
                 <div>
                   <div class="font-medium">Адміністратор</div>
-                  <div class="text-xs text-muted-foreground">Захист головного акаунту</div>
+                  <div class="text-muted-foreground">Захист головного акаунту</div>
                 </div>
               </div>
             </div>

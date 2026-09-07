@@ -273,9 +273,9 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
 
   <div v-else class="flex flex-col h-full overflow-hidden">
     <div class="px-4 py-3 border-b shrink-0 flex items-center justify-between">
-      <span class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ t('Settings') }}</span>
+      <span class="font-semibold uppercase tracking-wide text-muted-foreground">{{ t('Settings') }}</span>
       <button
-        class="text-xs text-destructive hover:underline flex items-center gap-1"
+        class="text-destructive hover:underline flex items-center gap-1"
         @click="emit('remove')"
       >
         <Trash2 class="size-3" /> {{ t('Delete') }}
@@ -286,12 +286,12 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
 
       <!-- Widget type -->
       <div class="space-y-1.5">
-        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Type') }}</label>
+        <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Type') }}</label>
         <div class="grid grid-cols-2 gap-1">
           <button
             v-for="wt in WIDGET_TYPES" :key="wt.value"
             :class="[
-              'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs transition-colors',
+              'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border transition-colors',
               draft.widget_type === wt.value
                 ? 'bg-primary text-primary-foreground border-primary'
                 : 'hover:bg-muted border-border',
@@ -305,7 +305,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
 
       <!-- Title -->
       <div class="space-y-1">
-        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Title') }}</label>
+        <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Title') }}</label>
         <input
           v-model="draft.title"
           class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -316,7 +316,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
 
       <!-- Data source: doctype aggregate vs saved Report (chart / donut) -->
       <div v-if="supportsReportSource" class="space-y-1">
-        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Data source') }}</label>
+        <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Data source') }}</label>
         <select
           :value="isReportSourced ? 'report' : 'doctype'"
           class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -338,7 +338,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
 
       <!-- DocType -->
       <div v-if="(isDataWidget && !isReportSourced) || isShortcut" class="space-y-1">
-        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <label class="font-medium text-muted-foreground uppercase tracking-wide">
           {{ isShortcut ? t('Target') : 'DocType' }}
         </label>
         <!-- data widgets — static select -->
@@ -389,7 +389,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
 
       <!-- DocType filter (activity) -->
       <div v-if="isActivity" class="space-y-1">
-        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <label class="font-medium text-muted-foreground uppercase tracking-wide">
           {{ t('Filter by DocType') }} <span class="normal-case font-normal">({{ t('optional') }})</span>
         </label>
         <select
@@ -406,12 +406,12 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
 
       <!-- Link type (shortcut) -->
       <div v-if="isShortcut" class="space-y-1">
-        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Link type') }}</label>
+        <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Link type') }}</label>
         <div class="grid grid-cols-2 gap-1">
           <button
             v-for="lt in LINK_TYPES" :key="lt.value"
             :class="[
-              'px-2.5 py-1.5 rounded-md border text-xs transition-colors',
+              'px-2.5 py-1.5 rounded-md border transition-colors',
               draft.link_type === lt.value ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted',
             ]"
             @click="draft.link_type = lt.value as typeof draft.link_type; apply()"
@@ -421,7 +421,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
 
       <!-- Description (shortcut / clock) -->
       <div v-if="isShortcut || isClock" class="space-y-1">
-        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <label class="font-medium text-muted-foreground uppercase tracking-wide">
           {{ isClock ? t('Note') : t('Subtitle') }}
         </label>
         <input
@@ -433,7 +433,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
 
       <!-- Content (text widget) -->
       <div v-if="isText" class="space-y-1">
-        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Content (HTML/text)') }}</label>
+        <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Content (HTML/text)') }}</label>
         <textarea
           v-model="draft.content"
           rows="5"
@@ -445,15 +445,15 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
       <!-- Shortcuts grid: tile list editor -->
       <div v-if="isShortcutsGrid" class="space-y-2">
         <div class="flex items-center justify-between">
-          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Tiles') }}</label>
+          <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Tiles') }}</label>
           <button
-            class="flex items-center gap-1 text-xs text-primary hover:underline"
+            class="flex items-center gap-1 text-primary hover:underline"
             @click="addTile"
           >
             <Plus class="size-3" /> {{ t('Add') }}
           </button>
         </div>
-        <div v-if="tiles.length === 0" class="py-3 text-center text-xs text-muted-foreground border rounded-md">
+        <div v-if="tiles.length === 0" class="py-3 text-center text-muted-foreground border rounded-md">
           {{ t('No tiles — click «Add»') }}
         </div>
         <div
@@ -462,27 +462,27 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
           class="rounded-md border bg-muted/30 p-3 space-y-2"
         >
           <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-muted-foreground">{{ t('Tile {n}', { n: i + 1 }) }}</span>
+            <span class="font-medium text-muted-foreground">{{ t('Tile {n}', { n: i + 1 }) }}</span>
             <button class="text-muted-foreground hover:text-destructive transition-colors" @click="removeTile(i)">
               <Trash2 class="size-3.5" />
             </button>
           </div>
           <input
             :value="tile.title"
-            class="w-full h-7 px-2.5 rounded border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+            class="w-full h-7 px-2.5 rounded border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
             :placeholder="t('Title')"
             @input="updateTile(i, 'title', ($event.target as HTMLInputElement).value)"
           />
           <div class="grid grid-cols-2 gap-1.5">
             <input
               :value="tile.icon"
-              class="h-7 px-2.5 rounded border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+              class="h-7 px-2.5 rounded border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
               :placeholder="t('Icon (lucide)')"
               @input="updateTile(i, 'icon', ($event.target as HTMLInputElement).value)"
             />
             <select
               :value="tile.link_type"
-              class="h-7 px-2 rounded border bg-background text-xs focus:outline-none"
+              class="h-7 px-2 rounded border bg-background focus:outline-none"
               @change="updateTile(i, 'link_type', ($event.target as HTMLSelectElement).value)"
             >
               <option value="DocType">DocType</option>
@@ -494,7 +494,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
           <select
             v-if="tile.link_type === 'DocType'"
             :value="tile.link_to"
-            class="w-full h-7 px-2 rounded border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+            class="w-full h-7 px-2 rounded border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
             @change="updateTile(i, 'link_to', ($event.target as HTMLSelectElement).value)"
           >
             <option value="">{{ t('— Select —') }}</option>
@@ -503,7 +503,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
           <input
             v-else
             :value="tile.link_to"
-            class="w-full h-7 px-2.5 rounded border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+            class="w-full h-7 px-2.5 rounded border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
             :placeholder="t('URL or name...')"
             @input="updateTile(i, 'link_to', ($event.target as HTMLInputElement).value)"
           />
@@ -523,35 +523,35 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
       <!-- Links editor -->
       <div v-if="isLinks" class="space-y-2">
         <div class="flex items-center justify-between">
-          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Links') }}</label>
-          <button class="flex items-center gap-1 text-xs text-primary hover:underline" @click="addLink">
+          <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Links') }}</label>
+          <button class="flex items-center gap-1 text-primary hover:underline" @click="addLink">
             <Plus class="size-3" /> {{ t('Add') }}
           </button>
         </div>
-        <div v-if="linkItems.length === 0" class="py-3 text-center text-xs text-muted-foreground border rounded-md">
+        <div v-if="linkItems.length === 0" class="py-3 text-center text-muted-foreground border rounded-md">
           {{ t('No links') }}
         </div>
         <div v-for="(link, i) in linkItems" :key="i" class="rounded-md border bg-muted/30 p-3 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-muted-foreground">{{ t('Link {n}', { n: i + 1 }) }}</span>
+            <span class="font-medium text-muted-foreground">{{ t('Link {n}', { n: i + 1 }) }}</span>
             <button class="text-muted-foreground hover:text-destructive transition-colors" @click="removeLink(i)">
               <Trash2 class="size-3.5" />
             </button>
           </div>
           <div class="grid grid-cols-2 gap-1.5">
-            <input :value="link.icon" class="h-7 px-2.5 rounded border bg-background text-xs focus:outline-none" placeholder="Emoji 📋" @input="updateLink(i, 'icon', ($event.target as HTMLInputElement).value)" />
-            <select :value="link.type" class="h-7 px-2 rounded border bg-background text-xs focus:outline-none" @change="updateLink(i, 'type', ($event.target as HTMLSelectElement).value)">
+            <input :value="link.icon" class="h-7 px-2.5 rounded border bg-background focus:outline-none" placeholder="Emoji 📋" @input="updateLink(i, 'icon', ($event.target as HTMLInputElement).value)" />
+            <select :value="link.type" class="h-7 px-2 rounded border bg-background focus:outline-none" @change="updateLink(i, 'type', ($event.target as HTMLSelectElement).value)">
               <option value="DocType">DocType</option>
               <option value="Report">{{ t('Report') }}</option>
               <option value="Page">Page</option>
               <option value="URL">URL</option>
             </select>
           </div>
-          <input :value="link.label" class="w-full h-7 px-2.5 rounded border bg-background text-xs focus:outline-none" :placeholder="t('Title')" @input="updateLink(i, 'label', ($event.target as HTMLInputElement).value)" />
+          <input :value="link.label" class="w-full h-7 px-2.5 rounded border bg-background focus:outline-none" :placeholder="t('Title')" @input="updateLink(i, 'label', ($event.target as HTMLInputElement).value)" />
           <select
             v-if="link.type === 'DocType'"
             :value="link.link_to"
-            class="w-full h-7 px-2 rounded border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+            class="w-full h-7 px-2 rounded border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
             @change="updateLink(i, 'link_to', ($event.target as HTMLSelectElement).value)"
           >
             <option value="">{{ t('— Select —') }}</option>
@@ -560,11 +560,11 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
           <input
             v-else
             :value="link.link_to"
-            class="w-full h-7 px-2.5 rounded border bg-background text-xs focus:outline-none"
+            class="w-full h-7 px-2.5 rounded border bg-background focus:outline-none"
             :placeholder="t('URL or name...')"
             @input="updateLink(i, 'link_to', ($event.target as HTMLInputElement).value)"
           />
-          <input :value="link.description" class="w-full h-7 px-2.5 rounded border bg-background text-xs focus:outline-none" :placeholder="t('Description (optional)')" @input="updateLink(i, 'description', ($event.target as HTMLInputElement).value)" />
+          <input :value="link.description" class="w-full h-7 px-2.5 rounded border bg-background focus:outline-none" :placeholder="t('Description (optional)')" @input="updateLink(i, 'description', ($event.target as HTMLInputElement).value)" />
         </div>
       </div>
 
@@ -572,13 +572,13 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
       <template v-if="isGauge">
         <div class="grid grid-cols-2 gap-2">
           <div class="space-y-1">
-            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Min') }}</label>
+            <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Min') }}</label>
             <input v-model.number="draft.min_value" type="number"
               class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
               @change="apply" />
           </div>
           <div class="space-y-1">
-            <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Max') }}</label>
+            <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Max') }}</label>
             <input v-model.number="draft.max_value" type="number"
               class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
               @change="apply" />
@@ -589,12 +589,12 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
       <!-- Aggregation (metric / gauge / table) -->
       <template v-if="isMetric || isGauge || isTableWidget">
         <div class="space-y-1">
-          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Aggregation') }}</label>
+          <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Aggregation') }}</label>
           <div class="grid grid-cols-1 gap-1">
             <button
               v-for="a in AGGREGATIONS" :key="a.value"
               :class="[
-                'px-3 py-1.5 rounded-md border text-xs transition-colors text-left',
+                'px-3 py-1.5 rounded-md border transition-colors text-left',
                 draft.aggregation === a.value ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted',
               ]"
               @click="draft.aggregation = a.value; apply()"
@@ -602,30 +602,30 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
           </div>
         </div>
         <div v-if="needsField" class="space-y-1">
-          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Field') }}</label>
+          <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Field') }}</label>
           <input v-model="draft.field" class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="fieldname" @change="apply" />
         </div>
       </template>
 
       <!-- Group by (chart / donut / funnel / table) -->
       <div v-if="(isChart || isDonut || isFunnel || isTableWidget) && !isReportSourced" class="space-y-1">
-        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Group by') }}</label>
+        <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Group by') }}</label>
         <input v-model="draft.group_by" class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="fieldname" @change="apply" />
       </div>
 
       <!-- Date field + period -->
       <template v-if="(isChart || isMetric || isGauge || isCalendar || isHeatmap || isFunnel || isTableWidget) && !isReportSourced">
         <div class="space-y-1">
-          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Date field') }}</label>
+          <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Date field') }}</label>
           <input v-model="draft.date_field" class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="created_at" @change="apply" />
         </div>
         <div class="space-y-1">
-          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Period') }}</label>
+          <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Period') }}</label>
           <div class="grid grid-cols-4 gap-1">
             <button
               v-for="p in PERIODS" :key="p.value"
               :class="[
-                'py-1.5 rounded-md border text-xs transition-colors',
+                'py-1.5 rounded-md border transition-colors',
                 draft.period === p.value ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted',
               ]"
               @click="draft.period = p.value; apply()"
@@ -636,12 +636,12 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
 
       <!-- Width -->
       <div class="space-y-1">
-        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Width') }}</label>
+        <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Width') }}</label>
         <div class="grid grid-cols-4 gap-1">
           <button
             v-for="c in COLS" :key="c.value"
             :class="[
-              'py-1.5 rounded-md border text-xs transition-colors',
+              'py-1.5 rounded-md border transition-colors',
               draft.cols === c.value ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted',
             ]"
             @click="draft.cols = c.value; apply()"
@@ -651,7 +651,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
 
       <!-- Color -->
       <div class="space-y-1">
-        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Color') }}</label>
+        <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Color') }}</label>
         <div class="flex gap-2">
           <button
             v-for="c in COLORS" :key="c.value"
@@ -665,7 +665,7 @@ function updateTile(i: number, key: keyof ShortcutItem, value: string) {
 
       <!-- Icon -->
       <div v-if="isMetric || isShortcut" class="space-y-1">
-        <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">{{ t('Icon (lucide)') }}</label>
+        <label class="font-medium text-muted-foreground uppercase tracking-wide">{{ t('Icon (lucide)') }}</label>
         <input v-model="draft.icon" class="w-full h-8 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="BarChart2, Users..." @change="apply" />
       </div>
 

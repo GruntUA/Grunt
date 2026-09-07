@@ -51,10 +51,10 @@ onMounted(load)
       >
         <div class="flex items-center gap-2 mb-2">
           <span class="text-2xl">{{ typeIcon[report.report_type] ?? '📊' }}</span>
-          <span class="text-xs font-medium text-muted-foreground/70 uppercase">{{ report.report_type }}</span>
+          <span class="font-medium text-muted-foreground/70 uppercase">{{ report.report_type }}</span>
         </div>
         <h3 class="font-medium text-foreground mb-1">{{ report.report_name }}</h3>
-        <p v-if="report.doctype" class="text-xs text-muted-foreground">{{ report.doctype }}</p>
+        <p v-if="report.doctype" class="text-muted-foreground">{{ report.doctype }}</p>
       </div>
     </div>
   </div>

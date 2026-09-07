@@ -103,7 +103,7 @@ const filteredSortOptions = computed(() => {
 
         <!-- Columns -->
         <TabsContent value="columns" class="p-1">
-          <div class="px-2 py-1.5 flex items-center justify-between text-xs font-medium text-muted-foreground">
+          <div class="px-2 py-1.5 flex items-center justify-between font-medium text-muted-foreground">
             <span>Видимі стовпці</span>
             <span class="tabular-nums">
               {{ columns.visibleColumns.value.length }}/{{ columns.allAvailableColumns.value.length }}
@@ -143,7 +143,7 @@ const filteredSortOptions = computed(() => {
 
         <!-- Group by -->
         <TabsContent v-if="groupableFields.length" value="group" class="p-1">
-          <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">Групувати за</div>
+          <div class="px-2 py-1.5 font-medium text-muted-foreground">Групувати за</div>
           <div
             class="flex items-center gap-2 p-2 rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer"
             @click="emit('update:groupBy', null)"

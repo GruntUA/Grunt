@@ -81,6 +81,6 @@ function onKeydown(e: KeyboardEvent) {
         :class="fill(i) === 'full' ? 'fill-warning text-warning' : 'fill-transparent text-muted-foreground/40'"
       />
     </button>
-    <span v-if="value" class="ml-1.5 text-sm text-muted-foreground tabular-nums">{{ value }}</span>
+    <span v-if="value" class="ml-1.5 text-muted-foreground tabular-nums">{{ value }}</span>
   </div>
 </template>

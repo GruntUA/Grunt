@@ -81,7 +81,7 @@ function cellColor(count: number): string {
     <!-- Header -->
     <div class="flex items-center justify-between mb-3 shrink-0">
       <p class="font-medium text-muted-foreground">{{ widget.title }}</p>
-      <span v-if="!loading" class="text-xs text-muted-foreground">{{ totalCount }} за {{ periodDays }} дн.</span>
+      <span v-if="!loading" class="text-muted-foreground">{{ totalCount }} за {{ periodDays }} дн.</span>
     </div>
 
     <!-- Skeleton -->
@@ -97,7 +97,7 @@ function cellColor(count: number): string {
         <!-- Day labels column -->
         <div class="flex flex-col justify-around shrink-0 pt-5 pb-0.5">
           <div v-for="d in ['Пн','','Ср','','Пт','','Нд']" :key="d"
-            class="text-xs text-muted-foreground leading-none flex items-center h-0">
+            class="text-muted-foreground leading-none flex items-center h-0">
             {{ d }}
           </div>
         </div>
@@ -111,7 +111,7 @@ function cellColor(count: number): string {
           >
             <div
               v-for="(_, wi) in grid.weeks" :key="wi"
-              class="text-xs text-muted-foreground font-medium truncate leading-none h-4 flex items-end"
+              class="text-muted-foreground font-medium truncate leading-none h-4 flex items-end"
             >
               {{ grid.monthLabels.find(m => m.weekIdx === wi)?.label ?? '' }}
             </div>
@@ -137,10 +137,10 @@ function cellColor(count: number): string {
 
       <!-- Legend -->
       <div class="flex items-center gap-1 mt-2 shrink-0 justify-end">
-        <span class="text-xs text-muted-foreground">Мало</span>
+        <span class="text-muted-foreground">Мало</span>
         <div v-for="lvl in [0, 0.25, 0.5, 0.75, 1]" :key="lvl"
           :class="['size-2.5 rounded-sm', lvl === 0 ? 'bg-muted/50' : lvl < 0.5 ? 'bg-primary/' + Math.round(lvl*100) : 'bg-primary']" />
-        <span class="text-xs text-muted-foreground">Багато</span>
+        <span class="text-muted-foreground">Багато</span>
       </div>
     </template>
   </div>

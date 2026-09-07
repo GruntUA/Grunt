@@ -8,7 +8,7 @@ const { field, updateField } = usePropertyEditor()
 
 <template>
   <Separator class="!mb-3" />
-  <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Fetch From</p>
+  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Fetch From</p>
   <div class="flex flex-col gap-1.5 mb-4">
     <label class="font-medium">Отримувати з (Fetch From)</label>
     <Input
@@ -17,7 +17,7 @@ const { field, updateField } = usePropertyEditor()
       class="w-full"
       @update:model-value="updateField('fetch_from', $event || undefined)"
     />
-    <p class="text-xs text-muted-foreground leading-relaxed mt-1">
+    <p class="text-muted-foreground leading-relaxed mt-1">
       Автоматично заповнювати значення з іншого документа при виборі зв'язкового поля (Link). 
       Формат: <code class="bg-muted px-1 rounded">назва_лінк_поля.назва_поля_крапки</code>
     </p>

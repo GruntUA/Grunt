@@ -29,10 +29,10 @@ const tableFields = computed(() =>
 <template>
   <Separator class="!mb-3" />
   <div class="flex items-center justify-between mb-3">
-    <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Aggregation</p>
+    <p class="font-semibold text-muted-foreground uppercase tracking-wide">Aggregation</p>
     <span
       v-if="field.aggregate_function"
-      class="text-xs font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-1.5 py-0.5 rounded"
+      class="font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-1.5 py-0.5 rounded"
     >∑ активна</span>
   </div>
   <div class="flex flex-col gap-3 mb-4">
@@ -67,7 +67,7 @@ const tableFields = computed(() =>
           class="w-full"
           @update:model-value="updateField('aggregate_field', $event || null)"
         />
-        <p class="text-xs text-muted-foreground">Fieldname числового поля у дочірньому DocType</p>
+        <p class="text-muted-foreground">Fieldname числового поля у дочірньому DocType</p>
       </div>
     </template>
   </div>

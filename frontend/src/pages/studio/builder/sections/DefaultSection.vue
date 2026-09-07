@@ -8,7 +8,7 @@ const { field, updateField } = usePropertyEditor()
 
 <template>
   <Separator class="!mb-3" />
-  <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Default</p>
+  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Default</p>
   <div class="mb-4">
     <Input
       :model-value="String(field.default ?? '')"

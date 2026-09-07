@@ -293,7 +293,7 @@ onUnmounted(() => {
           </button>
         </div>
 
-        <div v-else class="px-3 py-3 text-center text-sm text-muted-foreground">
+        <div v-else class="px-3 py-3 text-center text-muted-foreground">
           <span v-if="isLoading">{{ t('Searching...') }}</span>
           <span v-else-if="query">{{ t('Nothing found for “{query}”', { query }) }}</span>
           <span v-else>{{ t('No records') }}</span>

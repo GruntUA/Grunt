@@ -165,7 +165,7 @@ function clear() {
           v-for="item in linkResults"
           :key="item.id"
           type="button"
-          class="w-full px-3 py-2 text-left text-xs hover:bg-primary/5 transition-colors flex items-center gap-2"
+          class="w-full px-3 py-2 text-left hover:bg-primary/5 transition-colors flex items-center gap-2"
           :class="modelValue === item.name ? 'bg-primary/10' : ''"
           @click="selectItem(item)"
         >
@@ -173,11 +173,11 @@ function clear() {
           <span v-if="item.subtitle" class="text-muted-foreground/60 shrink-0 truncate max-w-[80px]">{{ item.subtitle }}</span>
         </button>
       </div>
-      <p v-else-if="linkQuery && !linkLoading && !modelValue" class="text-xs text-muted-foreground/60 italic px-1">
+      <p v-else-if="linkQuery && !linkLoading && !modelValue" class="text-muted-foreground/60 italic px-1">
         Нічого не знайдено
       </p>
 
-      <div v-if="modelValue" class="flex items-center gap-1.5 px-2 py-1 bg-primary/5 border border-primary/20 rounded-md text-xs text-primary">
+      <div v-if="modelValue" class="flex items-center gap-1.5 px-2 py-1 bg-primary/5 border border-primary/20 rounded-md text-primary">
         <span class="truncate flex-1">{{ displayValue || modelValue }}</span>
         <button type="button" class="shrink-0 hover:text-destructive" @click="clear">
           <X class="size-3" />

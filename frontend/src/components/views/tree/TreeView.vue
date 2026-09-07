@@ -266,7 +266,7 @@ const totalCount = computed(() => {
       </Button>
       <select
         v-model="sortBy"
-        class="h-8 rounded-md border border-border bg-background px-2 text-xs text-foreground"
+        class="h-8 rounded-md border border-border bg-background px-2 text-foreground"
         :title="t('Sort by')"
       >
         <option v-for="field in sortFieldOptions" :key="field" :value="field">
@@ -309,7 +309,7 @@ const totalCount = computed(() => {
     </div>
 
     <!-- Counter -->
-    <p v-if="totalCount" class="mt-3 text-xs text-muted-foreground text-right">
+    <p v-if="totalCount" class="mt-3 text-muted-foreground text-right">
       Всього: {{ totalCount }} записів
     </p>
 
@@ -373,7 +373,7 @@ const TreeNodeRow: any = defineComponent({
           onClick: (e: Event) => { e.stopPropagation(); emit('navigate', node) },
         }, props.getTitle(node)),
         descendants > 0 && h('span', {
-          class: 'text-xs px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium shrink-0',
+          class: 'px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-medium shrink-0',
         }, String(descendants)),
         h('button', {
           class: 'opacity-0 group-hover:opacity-100 transition-opacity shrink-0 p-1 rounded hover:bg-primary/10 hover:text-primary text-muted-foreground',

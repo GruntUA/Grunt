@@ -106,18 +106,18 @@ async function copyFieldname() {
       @selection-change="(rowNames: string[]) => emit('table-selection-change', field.fieldname, rowNames)"
     />
 
-    <p v-if="field.description" :id="descId" class="text-xs text-muted-foreground leading-snug whitespace-pre-line">
+    <p v-if="field.description" :id="descId" class="text-muted-foreground leading-snug whitespace-pre-line">
       {{ field.description }}
     </p>
 
     <p v-if="displayError" :id="errId" aria-live="polite" aria-atomic="true"
-      class="text-xs text-destructive font-medium animate-in fade-in slide-in-from-top-1 duration-200">
+      class="text-destructive font-medium animate-in fade-in slide-in-from-top-1 duration-200">
       {{ displayError }}
     </p>
 
     <button v-if="isDev && altPressed" type="button" @click="copyFieldname"
       :title="`Клікніть, щоб скопіювати «${field.fieldname}»`"
-      class="absolute -top-2 right-1 z-50 rounded bg-foreground px-1.5 py-0.5 text-xs font-mono text-background select-none cursor-pointer hover:bg-foreground/80">
+      class="absolute -top-2 right-1 z-50 rounded bg-foreground px-1.5 py-0.5 font-mono text-background select-none cursor-pointer hover:bg-foreground/80">
       {{ copied ? 'Скопійовано' : field.fieldname }}
     </button>
   </div>

@@ -180,7 +180,7 @@ function clear() {
         <div class="h-32 p-2 [&>svg]:block [&>svg]:h-full" v-html="safeSignature" />
         <button
           type="button"
-          class="absolute right-1.5 top-1.5 rounded border border-border bg-background/90 px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+          class="absolute right-1.5 top-1.5 rounded border border-border bg-background/90 px-2 py-0.5 text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
           @click="clear"
         >
           {{ t('Clear') }}
@@ -235,7 +235,7 @@ function clear() {
           </button>
           <button
             type="button"
-            class="rounded border border-border bg-background/90 px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+            class="rounded border border-border bg-background/90 px-2 py-0.5 text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
             @click="clear"
           >
             {{ t('Clear') }}
@@ -243,6 +243,6 @@ function clear() {
         </div>
       </template>
     </div>
-    <p v-if="error" class="text-xs text-destructive">{{ error }}</p>
+    <p v-if="error" class="text-destructive">{{ error }}</p>
   </div>
 </template>

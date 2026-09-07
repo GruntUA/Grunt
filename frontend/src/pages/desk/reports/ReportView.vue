@@ -88,7 +88,7 @@ onMounted(load)
 
     <template v-else>
       <!-- Result meta -->
-      <div v-if="result" class="text-xs text-muted-foreground mb-3">
+      <div v-if="result" class="text-muted-foreground mb-3">
         Рядків: {{ result.meta.rows }} · {{ result.meta.time_ms }} мс
       </div>
 

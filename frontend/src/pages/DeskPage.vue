@@ -138,7 +138,7 @@ function docInitials(doc: RecentDoc): string {
                 Що плануєте зробити сьогодні?
               </p>
               <button v-if="auth.isImpersonating"
-                class="mt-3 ml-[3.5rem] inline-flex items-center gap-2 rounded-md border border-violet-500/40 bg-violet-500/10 px-3 py-1.5 text-xs font-medium text-violet-700 transition-colors hover:bg-violet-500/20 dark:text-violet-300"
+                class="mt-3 ml-[3.5rem] inline-flex items-center gap-2 rounded-md border border-violet-500/40 bg-violet-500/10 px-3 py-1.5 font-medium text-violet-700 transition-colors hover:bg-violet-500/20 dark:text-violet-300"
                 @click="exitImpersonation">
                 <Eye class="size-3.5 shrink-0" />
                 <span>Перегляд як {{ auth.user?.full_name }} — <span class="font-semibold underline">повернутися до себе</span></span>
@@ -159,9 +159,9 @@ function docInitials(doc: RecentDoc): string {
               </span>
               <div class="hidden sm:flex items-center gap-1 shrink-0">
                 <kbd
-                  class="px-2 py-1 rounded-lg bg-muted/60 text-xs font-semibold text-muted-foreground border border-border/40 shadow-sm">⌘</kbd>
+                  class="px-2 py-1 rounded-lg bg-muted/60 font-semibold text-muted-foreground border border-border/40 shadow-sm">⌘</kbd>
                 <kbd
-                  class="px-2 py-1 rounded-lg bg-muted/60 text-xs font-semibold text-muted-foreground border border-border/40 shadow-sm">K</kbd>
+                  class="px-2 py-1 rounded-lg bg-muted/60 font-semibold text-muted-foreground border border-border/40 shadow-sm">K</kbd>
               </div>
             </div>
           </div>
@@ -171,10 +171,10 @@ function docInitials(doc: RecentDoc): string {
             <div v-for="stat in quickStats" :key="stat.label"
               class="flex items-center gap-2 px-4 py-2 rounded-lg bg-card/50 border border-border/30">
               <div class="size-2 rounded-full" :style="{ backgroundColor: stat.color }" />
-              <span class="text-xs text-muted-foreground/60 font-medium">{{ stat.label }}:</span>
-              <span class="text-xs font-semibold text-foreground tabular-nums">{{ stat.value }}</span>
+              <span class="text-muted-foreground/60 font-medium">{{ stat.label }}:</span>
+              <span class="font-semibold text-foreground tabular-nums">{{ stat.value }}</span>
             </div>
-            <div class="flex items-center gap-1.5 text-xs text-muted-foreground/40">
+            <div class="flex items-center gap-1.5 text-muted-foreground/40">
               <Zap class="size-3" />
               <span>{{ appName }}</span>
             </div>
@@ -193,7 +193,7 @@ function docInitials(doc: RecentDoc): string {
               </div>
               <h2 class="font-semibold text-foreground/70 uppercase tracking-widest">Ваші додатки</h2>
             </div>
-            <span class="text-xs text-muted-foreground/40 font-medium">{{ appStore.workspaces.length }}
+            <span class="text-muted-foreground/40 font-medium">{{ appStore.workspaces.length }}
               встановлено</span>
           </div>
 
@@ -234,7 +234,7 @@ function docInitials(doc: RecentDoc): string {
               class="flex flex-col items-center justify-center py-14 rounded-lg border border-dashed border-border/40 text-center space-y-2">
               <div class="size-12 rounded-lg bg-muted/20 flex items-center justify-center text-2xl">🕐</div>
               <p class="text-muted-foreground">Відкритих документів ще немає</p>
-              <p class="text-xs text-muted-foreground/50">Перейдіть до будь-якого запису, і він з'явиться тут</p>
+              <p class="text-muted-foreground/50">Перейдіть до будь-якого запису, і він з'явиться тут</p>
             </div>
 
             <div v-else class="rounded-lg border border-border/40 bg-card/60 overflow-hidden shadow-sm">
@@ -243,7 +243,7 @@ function docInitials(doc: RecentDoc): string {
                 @click="router.push(`/${doc.workspace}/${doc.doctype}/${doc.id}`)">
                 <!-- Avatar -->
                 <div
-                  class="size-8 rounded-lg flex items-center justify-center text-xs font-semibold shrink-0"
+                  class="size-8 rounded-lg flex items-center justify-center font-semibold shrink-0"
                   :style="{
                     backgroundColor: `color-mix(in srgb, ${findWorkspaceForDoc(doc)?.color ?? '#6366f1'} 20%, transparent)`,
                     color: findWorkspaceForDoc(doc)?.color ?? '#6366f1'
@@ -259,17 +259,17 @@ function docInitials(doc: RecentDoc): string {
                   </p>
                   <div class="flex items-center gap-1.5 mt-0.5">
                     <span v-if="findWorkspaceForDoc(doc)"
-                      class="text-xs font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded-md" :style="{
+                      class="font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded-md" :style="{
                         backgroundColor: `color-mix(in srgb, ${findWorkspaceForDoc(doc)?.color ?? '#666'} 15%, transparent)`,
                         color: findWorkspaceForDoc(doc)?.color ?? '#666'
                       }">{{ findWorkspaceForDoc(doc)?.label }}</span>
-                    <span class="text-xs text-muted-foreground/40 font-mono">{{ doc.doctype }}</span>
+                    <span class="text-muted-foreground/40 font-mono">{{ doc.doctype }}</span>
                   </div>
                 </div>
 
                 <!-- Time + arrow -->
                 <div class="flex items-center gap-2 shrink-0">
-                  <span class="text-xs text-muted-foreground/40 font-mono tabular-nums">{{ timeAgo(doc.ts) }}</span>
+                  <span class="text-muted-foreground/40 font-mono tabular-nums">{{ timeAgo(doc.ts) }}</span>
                   <ArrowRight
                     class="size-3.5 text-muted-foreground/20 group-hover:text-primary/50 transition-colors duration-200" />
                 </div>

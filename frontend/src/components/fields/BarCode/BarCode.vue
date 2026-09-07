@@ -236,13 +236,13 @@ onUnmounted(stopScan)
         <div class="absolute bottom-3 left-3 w-8 h-8 border-b-2 border-l-2 border-primary rounded-bl" />
         <div class="absolute bottom-3 right-3 w-8 h-8 border-b-2 border-r-2 border-primary rounded-br" />
       </div>
-      <p class="absolute bottom-2 inset-x-0 text-center text-xs text-white/70">
+      <p class="absolute bottom-2 inset-x-0 text-center text-white/70">
         {{ t('Point the camera at a barcode or QR code') }}
       </p>
     </div>
 
     <!-- Error message -->
-    <div v-if="scanError || error" role="alert" class="flex items-center gap-1.5 text-xs text-destructive">
+    <div v-if="scanError || error" role="alert" class="flex items-center gap-1.5 text-destructive">
       <AlertCircle class="w-3.5 h-3.5 shrink-0" />
       {{ scanError || error }}
     </div>

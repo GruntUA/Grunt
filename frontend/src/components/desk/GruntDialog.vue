@@ -241,13 +241,13 @@ function onOpenChange(v: boolean) {
                 <template v-if="field.fieldtype === 'HTML'">
                     <label v-if="field.label" class="mb-1 block font-medium">{{ field.label }}</label>
                     <div v-if="field.plain" v-html="String(field.default || '')"
-                        class="text-sm text-foreground/85 leading-relaxed [&_a]:text-primary [&_a]:underline" />
+                        class="text-foreground/85 leading-relaxed [&_a]:text-primary [&_a]:underline" />
                     <div v-else v-html="String(field.default || '').replace(/<\?xml.*\?>/g, '')"
                         class="rounded-lg border-2 border-dashed p-6 flex justify-center bg-muted shadow-inner min-h-[240px] items-center [&>svg]:block [&>svg]:max-w-full [&>svg]:h-auto" />
                 </template>
                 <template v-else-if="field.fieldtype === 'Table'">
                     <label v-if="field.label" class="font-medium">{{ field.label }}</label>
-                    <p v-if="field.description" class="text-xs text-muted-foreground -mt-1">{{ field.description }}</p>
+                    <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
                     <Input
                         v-if="field.searchable !== false"
                         v-model="tableSearch[field.fieldname]"
@@ -324,7 +324,7 @@ function onOpenChange(v: boolean) {
                         </div>
                         <div
                             v-if="isSelectable(field) && field.multiple !== false"
-                            class="border-t border-border bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground"
+                            class="border-t border-border bg-muted/30 px-3 py-1.5 text-muted-foreground"
                         >Вибрано: {{ selectedCount(field) }}</div>
                     </div>
                 </template>
@@ -340,13 +340,13 @@ function onOpenChange(v: boolean) {
                         <button
                             v-if="field.read_only"
                             type="button"
-                            class="shrink-0 text-xs px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+                            class="shrink-0 px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
                             @click="copyToClipboard(field.fieldname, String(formValues[field.fieldname] ?? ''))"
                         >
                             {{ copiedField === field.fieldname ? 'Скопійовано ✓' : 'Копіювати' }}
                         </button>
                     </div>
-                    <p v-if="field.description" class="text-xs text-muted-foreground -mt-1">{{ field.description }}</p>
+                    <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
                     <textarea
                         :id="field.fieldname"
                         v-model="formValues[field.fieldname]"
@@ -361,7 +361,7 @@ function onOpenChange(v: boolean) {
                 </template>
                 <template v-else-if="field.fieldtype === 'Password'">
                     <label :for="field.fieldname" class="font-medium">{{ field.label }}</label>
-                    <p v-if="field.description" class="text-xs text-muted-foreground -mt-1">{{ field.description }}</p>
+                    <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
                     <PasswordField
                         :field="{
                             fieldname: field.fieldname,
@@ -378,7 +378,7 @@ function onOpenChange(v: boolean) {
                 </template>
                 <template v-else-if="field.fieldtype === 'Link'">
                     <label :for="field.fieldname" class="font-medium">{{ field.label }}</label>
-                    <p v-if="field.description" class="text-xs text-muted-foreground -mt-1">{{ field.description }}</p>
+                    <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
                     <LinkField
                         :field="{ fieldname: field.fieldname, fieldtype: 'Link', options: field.options, label: field.label }"
                         :model-value="formValues[field.fieldname]"
@@ -388,7 +388,7 @@ function onOpenChange(v: boolean) {
                 </template>
                 <template v-else>
                     <label :for="field.fieldname" class="font-medium">{{ field.label }}</label>
-                    <p v-if="field.description" class="text-xs text-muted-foreground -mt-1">{{ field.description }}</p>
+                    <p v-if="field.description" class="text-muted-foreground -mt-1">{{ field.description }}</p>
                     <Input :id="field.fieldname" v-model="formValues[field.fieldname]" :placeholder="field.placeholder"
                         :type="field.fieldtype === 'Int' || field.fieldtype === 'Float' ? 'number' : 'text'"
                         class="w-full"
@@ -403,7 +403,7 @@ function onOpenChange(v: boolean) {
                 <div class="h-full bg-primary rounded-full transition-all duration-300"
                     :style="{ width: `${state.progress.percent}%` }" />
             </div>
-            <div class="flex items-center justify-between text-xs text-muted-foreground">
+            <div class="flex items-center justify-between text-muted-foreground">
                 <span v-if="state.progress.description">{{ state.progress.description }}</span>
                 <span class="tabular-nums ml-auto">{{ state.progress.percent }}%</span>
             </div>
@@ -449,7 +449,7 @@ function onOpenChange(v: boolean) {
     <div v-if="state.actionConfirm"
         class="absolute inset-0 z-20 flex items-center justify-center rounded-lg bg-background/70 backdrop-blur-[2px] p-6">
         <div class="w-full max-w-xs rounded-lg border bg-card p-4 shadow-lg flex flex-col gap-3">
-            <p class="text-sm text-foreground leading-relaxed">{{ state.actionConfirm.message }}</p>
+            <p class="text-foreground leading-relaxed">{{ state.actionConfirm.message }}</p>
             <div class="flex justify-end gap-2">
                 <Button variant="outline" size="sm" @click="resolveActionConfirm(false)">Скасувати</Button>
                 <Button variant="destructive" size="sm" @click="resolveActionConfirm(true)">Підтвердити</Button>

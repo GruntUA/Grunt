@@ -150,7 +150,7 @@ const errorInputClass = 'border-destructive focus:ring-destructive/30'
 
             <!-- Section break -->
             <div v-if="field.fieldtype === 'Section'" class="pt-2">
-              <p v-if="field.label" class="text-xs font-semibold uppercase tracking-widest text-muted-foreground border-b pb-2">
+              <p v-if="field.label" class="font-semibold uppercase tracking-widest text-muted-foreground border-b pb-2">
                 {{ field.label }}
               </p>
               <hr v-else class="border-border" />
@@ -255,12 +255,12 @@ const errorInputClass = 'border-destructive focus:ring-destructive/30'
               />
 
               <!-- Description -->
-              <p v-if="field.description && field.fieldtype !== 'Check'" class="text-xs text-muted-foreground">
+              <p v-if="field.description && field.fieldtype !== 'Check'" class="text-muted-foreground">
                 {{ field.description }}
               </p>
 
               <!-- Validation error -->
-              <p v-if="validationErrors[field.fieldname]" class="text-xs text-destructive flex items-center gap-1">
+              <p v-if="validationErrors[field.fieldname]" class="text-destructive flex items-center gap-1">
                 <AlertCircle class="size-3 shrink-0" />
                 {{ validationErrors[field.fieldname] }}
               </p>
@@ -289,7 +289,7 @@ const errorInputClass = 'border-destructive focus:ring-destructive/30'
       </div>
 
       <!-- Footer -->
-      <p class="text-center text-xs text-muted-foreground mt-6 opacity-60">Powered by {{ appName }}</p>
+      <p class="text-center text-muted-foreground mt-6 opacity-60">Powered by {{ appName }}</p>
     </div>
   </div>
 </template>

@@ -19,7 +19,7 @@ const emit = defineEmits<{
   <div class="flex gap-2">
     <button
       type="button"
-      class="flex-1 py-1.5 text-xs rounded border transition-colors"
+      class="flex-1 py-1.5 rounded border transition-colors"
       :class="modelValue === '1'
         ? 'border-primary bg-primary/10 text-primary font-semibold'
         : 'border-border hover:border-primary/40 text-muted-foreground'"
@@ -27,7 +27,7 @@ const emit = defineEmits<{
     >✓ Так</button>
     <button
       type="button"
-      class="flex-1 py-1.5 text-xs rounded border transition-colors"
+      class="flex-1 py-1.5 rounded border transition-colors"
       :class="modelValue === '0'
         ? 'border-primary bg-primary/10 text-primary font-semibold'
         : 'border-border hover:border-primary/40 text-muted-foreground'"

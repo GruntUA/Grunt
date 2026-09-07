@@ -8,7 +8,7 @@ const { field, updateField } = usePropertyEditor()
 
 <template>
   <Separator class="!mb-3" />
-  <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Flags</p>
+  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Flags</p>
   <div class="flex flex-col gap-3 mb-4">
     <div class="flex items-center gap-2">
       <Checkbox :model-value="!!field.required" @update:model-value="updateField('required', $event)" />

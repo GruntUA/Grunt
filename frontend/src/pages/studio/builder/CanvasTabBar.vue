@@ -102,7 +102,7 @@ function cancelRename() {
           <button
             v-if="tab._field && tabs.length > 1"
             type="button"
-            class="text-muted-foreground/70 hover:text-destructive text-xs opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+            class="text-muted-foreground/70 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity ml-1"
             @click.stop="emit('deleteTab', tab._fieldname)"
           >×</button>
 

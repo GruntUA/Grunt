@@ -148,7 +148,7 @@ function openBuilder() {
             </div>
             
             <div class="flex items-center gap-2">
-                <div v-if="chartConfig" class="flex rounded-md border overflow-hidden mr-1 text-xs font-medium">
+                <div v-if="chartConfig" class="flex rounded-md border overflow-hidden mr-1 font-medium">
                     <button
                         v-for="m in ([['table', 'Таблиця'], ['chart', 'Графік'], ['both', 'Обидва']] as const)"
                         :key="m[0]"
@@ -200,7 +200,7 @@ function openBuilder() {
                 <table class="w-full">
                     <thead>
                         <tr class="border-b bg-muted/30">
-                            <th v-for="col in columns" :key="col.fieldname" class="px-4 py-3 text-left font-semibold text-muted-foreground uppercase tracking-wider text-xs">
+                            <th v-for="col in columns" :key="col.fieldname" class="px-4 py-3 text-left font-semibold text-muted-foreground uppercase tracking-wider">
                                 {{ col.label }}
                             </th>
                         </tr>

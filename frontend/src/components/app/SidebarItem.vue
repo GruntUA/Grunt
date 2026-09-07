@@ -80,7 +80,7 @@ const displayCount = computed(() => {
       </a>
     </SidebarMenuSubButton>
 
-    <span v-if="displayCount" class="text-sidebar-foreground pointer-events-none absolute top-1/2 right-1 flex h-5 min-w-5 -translate-y-1/2 items-center justify-center rounded-md px-1 text-xs font-medium tabular-nums select-none">
+    <span v-if="displayCount" class="text-sidebar-foreground pointer-events-none absolute top-1/2 right-1 flex h-5 min-w-5 -translate-y-1/2 items-center justify-center rounded-md px-1 font-medium tabular-nums select-none">
       {{ displayCount }}
     </span>
 

@@ -517,7 +517,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
         <PopoverAnchor :reference="linkAnchorEl ?? undefined" />
         <PopoverContent class="w-auto p-0">
           <div class="w-72 p-1">
-              <p class="text-xs font-medium text-muted-foreground mb-2">{{ t('Link') }}</p>
+              <p class="font-medium text-muted-foreground mb-2">{{ t('Link') }}</p>
               <div class="flex gap-2">
                 <Input v-model="linkUrl" placeholder="https://…" class="h-8 flex-1" :aria-label="t('Link URL')"
                   @keydown.enter.prevent="applyLink" />
@@ -539,13 +539,13 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
         <PopoverAnchor :reference="imageAnchorEl ?? undefined" />
         <PopoverContent class="w-auto p-0">
           <div class="w-72 p-1">
-              <p class="text-xs font-medium text-muted-foreground mb-2">{{ t('Image') }}</p>
+              <p class="font-medium text-muted-foreground mb-2">{{ t('Image') }}</p>
               <div class="flex gap-2 mb-2">
                 <Input v-model="imageUrl" placeholder="https://…" class="h-8 flex-1" :aria-label="t('Image URL')"
                   @keydown.enter.prevent="insertImageUrl" />
                 <Button size="sm" class="h-8 px-3" @click="insertImageUrl">OK</Button>
               </div>
-              <label class="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors p-2 hover:bg-muted rounded">
+              <label class="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-foreground transition-colors p-2 hover:bg-muted rounded">
                 <Upload class="size-3.5" />
                 <span>{{ imageUploading ? t('Uploading…') : t('Upload file') }}</span>
                 <input type="file" accept="image/*" class="hidden" :disabled="imageUploading" @change="uploadImage" />
@@ -628,7 +628,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
 
     <!-- ── Footer (error is rendered by FieldRenderer) ────────────────── -->
     <div class="flex justify-end">
-      <p v-if="editor" class="text-xs text-muted-foreground tabular-nums" aria-live="off">
+      <p v-if="editor" class="text-muted-foreground tabular-nums" aria-live="off">
         <template v-if="maxLen">{{ charCount() }} / {{ maxLen }}</template>
         <template v-else>{{ t('{words} w · {chars} ch', { words: wordCount(), chars: charCount() }) }}</template>
       </p>

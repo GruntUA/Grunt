@@ -30,7 +30,7 @@ const hasValidators = computed(() => validatorOptions.value.length > 1)
 
 <template>
   <Separator class="!mb-3" />
-  <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Validation</p>
+  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Validation</p>
   <div class="flex flex-col gap-3 mb-4">
     <div v-if="['Text', 'LongText'].includes(field.fieldtype)" class="flex flex-col gap-1.5">
       <label class="font-medium">Max Length</label>

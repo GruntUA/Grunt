@@ -33,7 +33,7 @@ const sectionComponents = computed(() =>
   <div class="h-full overflow-y-auto p-4 border-l border-border bg-card">
     <template v-if="field && config">
       <!-- Header -->
-      <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+      <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-4">
         {{ config.label }}
       </p>
 

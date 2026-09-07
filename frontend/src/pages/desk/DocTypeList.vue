@@ -401,14 +401,14 @@ watch(() => props.doctype, async (newDoctype) => {
             <div class="h-full rounded-full bg-destructive transition-all duration-300"
               :style="{ width: `${deleteProgress.total ? Math.round(deleteProgress.done / deleteProgress.total * 100) : 0}%` }" />
           </div>
-          <div class="flex justify-between text-xs text-muted-foreground tabular-nums">
+          <div class="flex justify-between text-muted-foreground tabular-nums">
             <span>{{ deleteProgress.done }} / {{ deleteProgress.total }}</span>
             <span>{{ deleteProgress.total ? Math.round(deleteProgress.done / deleteProgress.total * 100) : 0
             }}%</span>
           </div>
         </div>
 
-        <p v-if="deleteProgress.errors > 0" class="text-xs text-destructive">
+        <p v-if="deleteProgress.errors > 0" class="text-destructive">
           Помилок: {{ deleteProgress.errors }}
         </p>
       </div>

@@ -197,13 +197,13 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
 
     <!-- Primary status -->
     <div v-if="statusBadge" class="flex items-center gap-2">
-      <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Статус</span>
+      <span class="font-semibold uppercase tracking-wider text-muted-foreground/80">Статус</span>
       <Badge :variant="statusBadge.variant" class="text-xs h-5 px-2">{{ statusBadge.label }}</Badge>
     </div>
 
     <!-- Identity: id -->
     <div class="flex items-center gap-1.5">
-      <code class="text-xs font-mono font-semibold text-foreground truncate">{{ document.name }}</code>
+      <code class="font-mono font-semibold text-foreground truncate">{{ document.name }}</code>
       <button
         class="shrink-0 text-muted-foreground/60 hover:text-foreground transition-colors"
         title="Скопіювати ідентифікатор"
@@ -225,7 +225,7 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
           {{ sb.personInitials(document.owner) }}
         </AvatarFallback>
       </Avatar>
-      <div class="flex flex-col gap-0.5 text-xs min-w-0 leading-snug">
+      <div class="flex flex-col gap-0.5 min-w-0 leading-snug">
         <span class="truncate" :title="`${document.owner} · ${formatFull(document.created_at)}`">
           <span class="font-semibold text-foreground">{{ sb.personName(document.owner) }}</span>
           <span class="text-muted-foreground"> · створив {{ formatRelative(document.created_at) }}</span>
@@ -243,7 +243,7 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
     <!-- People: assignees + access -->
     <div class="flex flex-col gap-3 p-3 bg-muted/30 rounded-lg border border-border/40">
       <div class="flex items-center justify-between">
-        <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Люди</span>
+        <span class="font-semibold uppercase tracking-wider text-muted-foreground/80">Люди</span>
         <div class="flex items-center gap-0.5">
           <Button variant="ghost" size="icon" class="size-6" title="Призначити відповідального" @click="openDialog('assign')">
             <UserPlus class="size-3.5" />
@@ -257,7 +257,7 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
       <!-- Assignees -->
       <div class="flex flex-col gap-2">
         <div class="flex items-center gap-2">
-          <span class="text-xs text-muted-foreground shrink-0">Відповідальні</span>
+          <span class="text-muted-foreground shrink-0">Відповідальні</span>
           <div v-if="sb.bundle.value.assignees.length" class="flex flex-wrap gap-1.5">
             <div
               v-for="a in sb.bundle.value.assignees"
@@ -285,7 +285,7 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
               </button>
             </div>
           </div>
-          <span v-else class="text-xs text-muted-foreground/50">нема</span>
+          <span v-else class="text-muted-foreground/50">нема</span>
         </div>
 
         <ul v-if="assigneeTasks.length" class="flex flex-col gap-1.5">
@@ -295,7 +295,7 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
               class="w-full text-left flex flex-col gap-1 rounded-lg border border-border/40 bg-background px-2 py-1.5 shadow-sm hover:border-primary/50 hover:bg-primary/5 transition-colors"
               @click="openTask(a)"
             >
-              <span v-if="realNote(a)" class="text-xs leading-snug text-foreground/80 line-clamp-2">
+              <span v-if="realNote(a)" class="leading-snug text-foreground/80 line-clamp-2">
                 {{ realNote(a) }}
               </span>
               <span class="flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground">
@@ -326,7 +326,7 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
       <!-- Access (collapsed by default) -->
       <Collapsible v-if="sb.bundle.value.shares.length" class="flex flex-col gap-2">
         <CollapsibleTrigger
-          class="group flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          class="group flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronRight class="size-3 transition-transform group-data-[state=open]:rotate-90" />
           Доступ · {{ sb.bundle.value.shares.length }}
@@ -336,7 +336,7 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
             <div
               v-for="s in sb.bundle.value.shares"
               :key="s.name"
-              class="flex items-center gap-2 text-xs group"
+              class="flex items-center gap-2 group"
             >
               <Avatar class="!size-5 shrink-0">
                 <AvatarImage v-if="sb.personAvatar(s.user)" :src="sb.personAvatar(s.user)!" />
@@ -357,7 +357,7 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
     <!-- Tags -->
     <div class="flex flex-col gap-2.5 p-3 bg-muted/30 rounded-lg border border-border/40">
       <div class="flex items-center justify-between">
-        <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5">
+        <span class="font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-1.5">
           <Tag class="size-3" />
           Теги
         </span>
@@ -379,7 +379,7 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
           />
         </Badge>
       </div>
-      <span v-else-if="!showTagInput" class="text-xs text-muted-foreground/50">нема тегів</span>
+      <span v-else-if="!showTagInput" class="text-muted-foreground/50">нема тегів</span>
 
       <div v-if="showTagInput" class="inline-flex h-8 shadow-sm w-full">
         <Input
@@ -406,7 +406,7 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
       class="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/40"
     >
       <CollapsibleTrigger
-        class="group flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 hover:text-foreground transition-colors"
+        class="group flex items-center gap-1.5 font-semibold uppercase tracking-wider text-muted-foreground/80 hover:text-foreground transition-colors"
       >
         <ChevronRight class="size-3 transition-transform group-data-[state=open]:rotate-90" />
         Зв'язки · {{ sb.bundle.value.backlinks.length }}
@@ -421,8 +421,8 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
           >
             <ChevronRight class="size-3 text-muted-foreground/50 group-hover:text-primary transition-colors" />
             <div class="flex flex-col min-w-0">
-              <span class="text-xs font-semibold text-foreground truncate">{{ l.source_doctype }}</span>
-              <span class="text-xs text-muted-foreground truncate">{{ l.source_id }}</span>
+              <span class="font-semibold text-foreground truncate">{{ l.source_doctype }}</span>
+              <span class="text-muted-foreground truncate">{{ l.source_id }}</span>
             </div>
           </button>
         </div>
@@ -438,11 +438,11 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
         @click="sb.toggleBookmark(bookmarkTitle())"
       >
         <Bookmark class="size-3.5 mr-2" :fill="isBookmarked ? 'currentColor' : 'none'" />
-        <span class="text-xs font-semibold">{{ isBookmarked ? 'У закладках' : 'Закладка' }}</span>
+        <span class="font-semibold">{{ isBookmarked ? 'У закладках' : 'Закладка' }}</span>
       </Button>
       <Button variant="outline" size="sm" class="flex-1 text-foreground shadow-sm" @click="printDoc">
         <Printer class="size-3.5 mr-2" />
-        <span class="text-xs font-semibold">Друк</span>
+        <span class="font-semibold">Друк</span>
       </Button>
     </div>
 
@@ -458,7 +458,7 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
 
         <div class="flex flex-col gap-5 py-2">
           <div class="flex flex-col gap-2">
-            <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email або логін</label>
+            <label class="font-semibold uppercase tracking-wider text-muted-foreground">Email або логін</label>
             <Input v-model="pickUser" placeholder="Пошук користувача..." class="w-full" @input="onPickInput" />
             <div
               v-if="matches.length"
@@ -474,14 +474,14 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
                 <Avatar class="!size-6"><AvatarFallback class="!text-[10px]">{{ (u.full_name || u.email).slice(0, 2).toUpperCase() }}</AvatarFallback></Avatar>
                 <div class="flex flex-col min-w-0">
                   <span class="font-medium truncate">{{ u.full_name || u.email }}</span>
-                  <span class="text-xs text-muted-foreground truncate">{{ u.email }}</span>
+                  <span class="text-muted-foreground truncate">{{ u.email }}</span>
                 </div>
               </button>
             </div>
           </div>
 
           <div v-if="dialogMode === 'assign'" class="flex flex-col gap-2">
-            <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Текст задачі</label>
+            <label class="font-semibold uppercase tracking-wider text-muted-foreground">Текст задачі</label>
             <Textarea
               v-model="pickNote"
               rows="3"
@@ -491,7 +491,7 @@ function goToLink(l: { source_doctype: string; source_id: string }) {
           </div>
 
           <div v-if="dialogMode === 'share'" class="flex flex-col gap-2">
-            <label class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Рівень доступу</label>
+            <label class="font-semibold uppercase tracking-wider text-muted-foreground">Рівень доступу</label>
             <Select v-model="pickPermission">
               <SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>

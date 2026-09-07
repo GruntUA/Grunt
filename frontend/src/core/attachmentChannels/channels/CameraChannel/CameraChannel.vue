@@ -86,7 +86,7 @@ onUnmounted(stopStream)
           Увімкнути камеру
         </Button>
       </div>
-      <div v-if="error" class="flex items-center gap-1.5 text-xs text-destructive">
+      <div v-if="error" class="flex items-center gap-1.5 text-destructive">
         <AlertCircle class="size-3.5 shrink-0" />
         {{ error }}
       </div>

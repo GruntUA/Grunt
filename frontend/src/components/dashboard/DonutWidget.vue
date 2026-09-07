@@ -51,7 +51,7 @@ const chartOptions = {
   <div class="flex flex-col gap-2 p-5 h-full">
     <div class="flex items-start justify-between">
       <p class="text-muted-foreground font-medium">{{ widget.title }}</p>
-      <span v-if="total" class="text-xs text-muted-foreground tabular-nums">{{ total }} {{ t('total') }}</span>
+      <span v-if="total" class="text-muted-foreground tabular-nums">{{ total }} {{ t('total') }}</span>
     </div>
 
     <div v-if="loading" class="flex-1 bg-muted animate-pulse rounded" />

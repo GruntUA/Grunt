@@ -51,7 +51,7 @@ function navigate(link: WorkspaceLinkItem) {
         <span v-if="link.icon" class="text-lg shrink-0">{{ link.icon }}</span>
         <div class="min-w-0">
           <p class="font-medium text-foreground truncate">{{ link.label }}</p>
-          <p v-if="link.description" class="text-xs text-muted-foreground truncate">
+          <p v-if="link.description" class="text-muted-foreground truncate">
             {{ link.description }}
           </p>
         </div>

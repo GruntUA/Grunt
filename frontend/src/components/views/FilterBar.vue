@@ -232,7 +232,7 @@ function toggleFilter(event: Event) {
             </Button>
           </div>
 
-          <p v-if="!filterableFields.length" class="text-xs text-muted-foreground italic px-1 py-1">
+          <p v-if="!filterableFields.length" class="text-muted-foreground italic px-1 py-1">
             {{ t('No fields available') }}
           </p>
         </div>
@@ -240,7 +240,7 @@ function toggleFilter(event: Event) {
         <button
           v-if="filterableFields.length"
           type="button"
-          class="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mt-2 px-1 py-1"
+          class="flex items-center gap-1.5 text-muted-foreground hover:text-foreground mt-2 px-1 py-1"
           @click="addRow"
         >
           <Plus class="size-3.5" />
@@ -250,7 +250,7 @@ function toggleFilter(event: Event) {
         <!-- Saved presets -->
         <template v-if="doctype && savedPresets.length">
           <Separator class="my-2" />
-          <p class="text-xs text-muted-foreground px-1 mb-1">{{ t('Saved filters') }}</p>
+          <p class="text-muted-foreground px-1 mb-1">{{ t('Saved filters') }}</p>
           <div class="flex flex-wrap gap-1">
             <Badge
               v-for="preset in savedPresets" :key="preset.name"

@@ -66,11 +66,11 @@ function onFileChange(e: Event) {
       <Upload class="size-8 text-muted-foreground/50" />
       <div class="text-center">
         <p class="text-foreground">Перетягни файл або <span class="text-primary font-medium">клікни для вибору</span></p>
-        <p v-if="imageOnly" class="text-xs text-muted-foreground mt-1">Тільки зображення</p>
+        <p v-if="imageOnly" class="text-muted-foreground mt-1">Тільки зображення</p>
       </div>
     </template>
 
-    <div v-if="error" class="flex items-center gap-1.5 text-xs text-destructive" @click.stop>
+    <div v-if="error" class="flex items-center gap-1.5 text-destructive" @click.stop>
       <AlertCircle class="size-3.5 shrink-0" />
       {{ error }}
     </div>

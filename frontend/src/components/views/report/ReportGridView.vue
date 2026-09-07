@@ -305,7 +305,7 @@ const colsOpen = ref(false)
           </Button>
         </PopoverTrigger>
         <PopoverContent class="w-64 p-1" align="start">
-          <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">Стовпці звіту</div>
+          <div class="px-2 py-1.5 font-medium text-muted-foreground">Стовпці звіту</div>
           <div class="max-h-[320px] overflow-y-auto scrollbar-none py-1">
             <draggable :model-value="model.visibleColumns.value" item-key="key" handle=".drag-handle"
               class="space-y-0.5" @end="(e: any) => model.reorderColumns(e.oldIndex, e.newIndex)">
@@ -370,7 +370,7 @@ const colsOpen = ref(false)
               <span class="flex-1 truncate">{{ r.report_name }}</span>
             </DropdownMenuItem>
           </template>
-          <div v-else class="px-2 py-2 text-xs text-muted-foreground">Ще немає</div>
+          <div v-else class="px-2 py-2 text-muted-foreground">Ще немає</div>
           <template v-if="canSave">
             <DropdownMenuSeparator />
             <DropdownMenuItem @click="saveAsReport">
@@ -387,7 +387,7 @@ const colsOpen = ref(false)
       </Button>
     </div>
 
-    <div v-if="isPartial" class="flex items-center gap-2 text-xs text-muted-foreground">
+    <div v-if="isPartial" class="flex items-center gap-2 text-muted-foreground">
       <template v-if="truncated">
         <span class="text-amber-600 dark:text-amber-500">
           Досягнуто ліміту {{ MAX_AUTOLOAD.toLocaleString('uk-UA') }} записів — підсумки лише за ними.

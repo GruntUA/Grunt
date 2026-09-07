@@ -55,7 +55,7 @@ function onDragEnd() {
       <template #footer>
         <div
           v-if="!fields.length"
-          class="flex items-center justify-center h-10 text-muted-foreground/70 text-xs select-none"
+          class="flex items-center justify-center h-10 text-muted-foreground/70 select-none"
         >
           Drop fields here
         </div>

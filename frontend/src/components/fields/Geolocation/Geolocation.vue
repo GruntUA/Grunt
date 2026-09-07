@@ -125,7 +125,7 @@ function locate() {
       </Button>
     </div>
 
-    <div class="flex items-center gap-3 text-xs">
+    <div class="flex items-center gap-3">
       <a
         v-if="mapUrl"
         :href="mapUrl"

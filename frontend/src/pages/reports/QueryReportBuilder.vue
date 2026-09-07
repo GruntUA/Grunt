@@ -192,7 +192,7 @@ const displayFields = computed(() => {
         <aside class="w-[400px] border-r flex flex-col bg-card shrink-0 shadow-sm z-20">
             <div class="p-6 border-b space-y-4">
                 <div class="space-y-1.5">
-                    <label class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Назва звіту</label>
+                    <label class="font-semibold uppercase tracking-widest text-muted-foreground">Назва звіту</label>
                     <div class="relative">
                         <FileBarChart class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-primary pointer-events-none" />
                         <Input v-model="reportTitle" placeholder="Назва звіту"
@@ -202,7 +202,7 @@ const displayFields = computed(() => {
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Тип
+                    <label class="font-semibold uppercase tracking-widest text-muted-foreground">Тип
                         документа</label>
                     <Select v-model="selectedDoctype">
                       <SelectTrigger class="w-full">
@@ -225,14 +225,14 @@ const displayFields = computed(() => {
                     <!-- Selected Columns -->
                     <div class="space-y-3">
                         <div class="flex items-center justify-between">
-                            <h4 class="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
+                            <h4 class="font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                                 <TableIcon class="size-3.5" />
                                 Вибрані стовпці ({{ columns.length }})
                             </h4>
                         </div>
 
                         <div v-if="columns.length === 0"
-                            class="border-2 border-dashed rounded-lg p-8 text-center text-xs text-muted-foreground bg-muted/20">
+                            class="border-2 border-dashed rounded-lg p-8 text-center text-muted-foreground bg-muted/20">
                             Додайте поля зі списку нижче
                         </div>
 
@@ -260,7 +260,7 @@ const displayFields = computed(() => {
                                     <SelectItem v-for="opt in AGGREGATIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
                                   </SelectContent>
                                 </Select>
-                                <label class="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap cursor-pointer select-none">
+                                <label class="flex items-center gap-1.5 text-muted-foreground whitespace-nowrap cursor-pointer select-none">
                                     <input type="checkbox" v-model="col.total" class="size-3.5 accent-primary" />
                                     Підсумок
                                 </label>
@@ -270,11 +270,11 @@ const displayFields = computed(() => {
 
                     <!-- Filters whitelist -->
                     <div v-if="selectedDoctype" class="space-y-3">
-                        <h4 class="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
+                        <h4 class="font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                             <Search class="size-3.5" />
                             Фільтри ({{ filterConfigs.length }})
                         </h4>
-                        <p class="text-xs text-muted-foreground">
+                        <p class="text-muted-foreground">
                             Поля, за якими глядач звіту зможе фільтрувати (оператор та значення обирає в самому звіті).
                         </p>
                         <div v-for="(flt, i) in filterConfigs" :key="flt.fieldname"
@@ -303,7 +303,7 @@ const displayFields = computed(() => {
 
                     <!-- Chart -->
                     <div v-if="selectedDoctype" class="space-y-3">
-                        <label class="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground cursor-pointer">
+                        <label class="flex items-center gap-2 font-semibold uppercase text-muted-foreground cursor-pointer">
                             <input type="checkbox" v-model="chartEnabled" class="accent-primary size-3.5" />
                             <ChartColumn class="size-3.5" />
                             Графік
@@ -325,10 +325,10 @@ const displayFields = computed(() => {
                             </Select>
 
                             <div>
-                                <p class="text-xs text-muted-foreground mb-1.5">Колонки-значення</p>
+                                <p class="text-muted-foreground mb-1.5">Колонки-значення</p>
                                 <div class="flex flex-wrap gap-1.5">
                                     <button v-for="c in columns" :key="c.fieldname" type="button"
-                                        class="px-2 py-1 rounded-md border text-xs transition-colors"
+                                        class="px-2 py-1 rounded-md border transition-colors"
                                         :class="chart.value_fields.includes(c.fieldname)
                                             ? 'bg-primary text-primary-foreground border-primary'
                                             : 'bg-background hover:bg-muted'"
@@ -341,7 +341,7 @@ const displayFields = computed(() => {
                             </div>
 
                             <label v-if="chart.type === 'bar'"
-                                class="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                                class="flex items-center gap-2 text-muted-foreground cursor-pointer">
                                 <input type="checkbox" v-model="chart.stacked" class="accent-primary size-3.5" />
                                 Накопичувальний (stacked)
                             </label>
@@ -350,7 +350,7 @@ const displayFields = computed(() => {
 
                     <!-- Available Fields -->
                     <div v-if="selectedDoctype" class="space-y-3">
-                        <h4 class="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
+                        <h4 class="font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                             <Plus class="size-3.5" />
                             Доступні поля
                         </h4>
@@ -366,7 +366,7 @@ const displayFields = computed(() => {
                                 :class="{ 'opacity-50 cursor-not-allowed': columns.some(c => c.fieldname === f.fieldname) }">
                                 <div class="flex flex-col min-w-0">
                                     <span class="font-medium truncate">{{ f.label }}</span>
-                                    <span class="text-xs text-muted-foreground">{{ f.fieldname }}</span>
+                                    <span class="text-muted-foreground">{{ f.fieldname }}</span>
                                 </div>
                                 <Plus class="size-4 opacity-0 group-hover:opacity-100 text-primary transition-all" />
                             </button>
@@ -420,7 +420,7 @@ const displayFields = computed(() => {
                     <!-- Table Toolbar -->
                     <div class="p-4 border-b flex items-center justify-between bg-muted/20 shrink-0">
                         <div
-                            class="flex items-center gap-4 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                            class="flex items-center gap-4 font-semibold text-muted-foreground uppercase tracking-widest">
                             <span class="flex items-center gap-1.5">
                                 <TableIcon class="size-3.5" /> Результат
                             </span>
@@ -430,7 +430,7 @@ const displayFields = computed(() => {
                         <div v-if="previewLoading" class="flex items-center gap-2">
                             <Spinner class="!size-4" />
                             <span
-                                class="text-xs font-semibold text-primary italic uppercase anima">Завантаження...</span>
+                                class="font-semibold text-primary italic uppercase anima">Завантаження...</span>
                         </div>
                     </div>
 
@@ -440,7 +440,7 @@ const displayFields = computed(() => {
                             <thead class="sticky top-0 bg-background/95 z-10">
                                 <tr class="border-b shadow-sm">
                                     <th v-for="col in previewCols" :key="col.fieldname"
-                                        class="px-4 py-3 text-left font-semibold text-muted-foreground uppercase tracking-wider text-xs whitespace-nowrap">
+                                        class="px-4 py-3 text-left font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
                                         {{ col.label }}
                                     </th>
                                 </tr>

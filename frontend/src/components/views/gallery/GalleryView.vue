@@ -160,7 +160,7 @@ function formatDate(val: unknown, type: string): string {
           <!-- Title Section -->
           <div v-if="titleCol" class="space-y-1">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-medium uppercase tracking-widest text-muted-foreground/40 leading-none">ID: {{ row.id }}</span>
+                <span class="font-medium uppercase tracking-widest text-muted-foreground/40 leading-none">ID: {{ row.id }}</span>
                 <div class="size-1.5 rounded-full bg-primary/20 group-hover/card:bg-primary transition-colors duration-500" />
               </div>
               <p class="font-semibold text-base text-foreground/90 leading-tight line-clamp-2 group-hover/card:text-primary transition-colors duration-300">
@@ -171,8 +171,8 @@ function formatDate(val: unknown, type: string): string {
           <!-- Metadata Grid -->
           <div class="grid gap-2 pt-4 border-t border-border/10 group-hover/card:border-primary/10 transition-colors">
               <div v-for="col in bodyColumns" :key="col.key" class="flex items-center justify-between gap-4 min-w-0">
-                <span class="text-xs font-medium text-muted-foreground/50 shrink-0 uppercase tracking-widest">{{ col.label }}</span>
-                <span class="text-xs font-medium text-foreground/70 truncate">
+                <span class="font-medium text-muted-foreground/50 shrink-0 uppercase tracking-widest">{{ col.label }}</span>
+                <span class="font-medium text-foreground/70 truncate">
                   <template v-if="getFieldType(col.key) === 'Date' || getFieldType(col.key) === 'Datetime'">
                     {{ formatDate(row[col.key], getFieldType(col.key)) }}
                   </template>

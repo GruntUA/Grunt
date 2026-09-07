@@ -95,13 +95,13 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
                 <Clock class="size-4 text-muted-foreground" />
                 <h3 class="font-semibold">Стрічка активності</h3>
             </div>
-            <button @click="fetchActivity" class="text-xs text-primary hover:underline font-medium">Оновити</button>
+            <button @click="fetchActivity" class="text-primary hover:underline font-medium">Оновити</button>
         </div>
 
         <div class="flex-1 overflow-y-auto">
             <div v-if="loading" class="flex flex-col items-center justify-center py-12 gap-3">
                 <div class="size-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-                <span class="text-xs text-muted-foreground">Завантаження...</span>
+                <span class="text-muted-foreground">Завантаження...</span>
             </div>
 
             <div v-else-if="activities.length === 0" class="py-12 text-center">
@@ -118,8 +118,8 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
 
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs font-semibold text-foreground">{{ item.user }}</span>
-                                <span class="text-xs text-muted-foreground tabular-nums">{{
+                                <span class="font-semibold text-foreground">{{ item.user }}</span>
+                                <span class="text-muted-foreground tabular-nums">{{
                                     formatTime(item.created_at) }}</span>
                             </div>
 
@@ -135,10 +135,10 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
 
                             <div class="flex items-center justify-between">
                                 <span
-                                    class="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono uppercase">{{
+                                    class="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono uppercase">{{
                                         formatDate(item.created_at) }}</span>
                                 <button @click="goToDoc(item)"
-                                    class="text-xs flex items-center gap-1 text-primary opacity-0 group-hover:opacity-100 transition-opacity font-semibold uppercase tracking-wider">
+                                    class="flex items-center gap-1 text-primary opacity-0 group-hover:opacity-100 transition-opacity font-semibold uppercase tracking-wider">
                                     Переглянути
                                     <ExternalLink class="size-3" />
                                 </button>

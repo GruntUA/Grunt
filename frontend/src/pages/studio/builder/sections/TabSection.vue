@@ -12,7 +12,7 @@ function toggle() {
 
 <template>
   <Separator class="!mb-3" />
-  <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Вкладка</p>
+  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Вкладка</p>
   <div class="mb-4">
     <div class="flex items-start gap-2">
       <Checkbox
@@ -27,7 +27,7 @@ function toggle() {
         Показувати панель «Зв'язки» в цій вкладці
       </span>
     </div>
-    <p class="mt-1.5 text-xs text-muted-foreground leading-snug">
+    <p class="mt-1.5 text-muted-foreground leading-snug">
       Пов'язані документи (лічильники, «+ Новий») рендеряться зверху цієї вкладки.
       Якщо вимкнено скрізь — панель показується над формою.
     </p>

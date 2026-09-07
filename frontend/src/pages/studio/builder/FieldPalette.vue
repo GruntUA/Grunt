@@ -49,11 +49,11 @@ function addLayoutItem(type: string) {
 
 <template>
   <div class="h-full overflow-y-auto p-3 border-r border-border bg-background">
-    <p class="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wide mb-3 px-1">Fields</p>
+    <p class="font-semibold text-muted-foreground/70 uppercase tracking-wide mb-3 px-1">Fields</p>
 
     <!-- Draggable field groups (from registry) -->
     <div v-for="group in fieldGroups" :key="group.category" class="mb-4">
-      <p class="text-xs text-muted-foreground/70 px-1 mb-1">{{ group.category }}</p>
+      <p class="text-muted-foreground/70 px-1 mb-1">{{ group.category }}</p>
       <draggable
         :model-value="group.fields"
         :group="{ name: 'builder-fields', pull: 'clone', put: false }"
@@ -78,7 +78,7 @@ function addLayoutItem(type: string) {
 
     <!-- Layout items (click only, from registry) -->
     <div class="mb-4">
-      <p class="text-xs text-muted-foreground/70 px-1 mb-1">Структурні</p>
+      <p class="text-muted-foreground/70 px-1 mb-1">Структурні</p>
       <div class="flex flex-col gap-0.5">
         <button
           v-for="item in layoutItems"

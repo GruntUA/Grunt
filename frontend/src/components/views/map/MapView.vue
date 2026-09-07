@@ -145,7 +145,7 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
           <span v-else class="font-semibold text-foreground/80 lowercase">
             {{ markerCount }} мітк{{ markerCount === 1 ? 'а' : markerCount < 5 ? 'и' : '' }}
           </span>
-          <span v-if="skippedCount && !isLoading" class="text-xs text-muted-foreground/60 font-medium">
+          <span v-if="skippedCount && !isLoading" class="text-muted-foreground/60 font-medium">
             {{ skippedCount }} без координат
           </span>
         </div>
@@ -185,11 +185,11 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
         <div class="absolute inset-0 z-[2000] select-none" @mousedown.self.prevent>
 
           <!-- Format selector bar -->
-          <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 px-4 py-2 bg-foreground/90 text-background text-xs rounded-lg shadow-md border border-white/10">
-            <span class="opacity-60 font-semibold uppercase tracking-wider text-xs">Формат:</span>
+          <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 px-4 py-2 bg-foreground/90 text-background rounded-lg shadow-md border border-white/10">
+            <span class="opacity-60 font-semibold uppercase tracking-wider">Формат:</span>
             <div class="flex bg-background/10 p-1 rounded-lg gap-1">
               <button v-for="(fmt, key) in PRINT_FORMATS" :key="key"
-                      class="px-3 py-1 rounded-lg transition-all text-xs font-semibold uppercase tracking-wide"
+                      class="px-3 py-1 rounded-lg transition-all font-semibold uppercase tracking-wide"
                       :class="printFormat === key
                         ? 'bg-background text-foreground shadow-sm'
                         : 'opacity-50 hover:opacity-100 hover:bg-background/5'"
@@ -213,7 +213,7 @@ const { map, markerLayer, browserPrint } = useMapLifecycle({
                @mousedown.stop="startMove">
 
             <!-- Size label bar -->
-            <div class="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm">
+            <div class="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-primary text-primary-foreground font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm">
               <Expand class="size-3" />
               {{ Math.round(printRect.w) }} × {{ Math.round(printRect.h) }} px
             </div>

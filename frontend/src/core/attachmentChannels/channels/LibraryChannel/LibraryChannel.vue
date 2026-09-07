@@ -110,10 +110,10 @@ function formatSize(bytes: number) {
             <FileIcon v-else class="size-6 text-muted-foreground" />
           </div>
           <!-- Filename -->
-          <span class="text-xs text-muted-foreground truncate w-full leading-tight">
+          <span class="text-muted-foreground truncate w-full leading-tight">
             {{ item.filename }}
           </span>
-          <span class="text-xs text-muted-foreground/60">
+          <span class="text-muted-foreground/60">
             {{ formatSize(item.size_bytes) }}
           </span>
         </button>

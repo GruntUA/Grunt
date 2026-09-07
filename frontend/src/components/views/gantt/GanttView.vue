@@ -393,13 +393,13 @@ const zoomOptions: { value: Zoom; label: string }[] = [
           <ChartGantt class="size-4 text-primary" />
         </div>
         <h2 class="text-base font-semibold text-foreground">Діаграма Ганта</h2>
-        <span v-if="isSaving" class="text-xs text-primary animate-pulse">Оновлення…</span>
+        <span v-if="isSaving" class="text-primary animate-pulse">Оновлення…</span>
       </div>
 
       <div class="flex items-center gap-2">
         <div class="flex items-center rounded-md border border-border/50 bg-background p-0.5">
           <button v-for="opt in zoomOptions" :key="opt.value"
-            class="px-2.5 h-7 text-xs font-medium rounded transition-colors"
+            class="px-2.5 h-7 font-medium rounded transition-colors"
             :class="zoom === opt.value ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'"
             @click="zoom = opt.value">{{ opt.label }}</button>
         </div>
@@ -415,8 +415,8 @@ const zoomOptions: { value: Zoom; label: string }[] = [
     <!-- Not configured -->
     <div v-if="!isConfigured" class="flex-1 flex flex-col items-center justify-center gap-2 p-10 text-center text-muted-foreground">
       <ChartGantt class="size-8 opacity-40" />
-      <p class="text-sm">Для діаграми Ганта потрібні поля початку та завершення (Date/Datetime).</p>
-      <p class="text-xs">Оберіть їх у Конструкторі → вкладка «Вигляди» → «Діаграма Ганта».</p>
+      <p>Для діаграми Ганта потрібні поля початку та завершення (Date/Datetime).</p>
+      <p>Оберіть їх у Конструкторі → вкладка «Вигляди» → «Діаграма Ганта».</p>
     </div>
 
     <!-- Chart -->
@@ -424,11 +424,11 @@ const zoomOptions: { value: Zoom; label: string }[] = [
       <div class="flex" :style="{ width: `${chartWidth + 256}px` }">
         <!-- Frozen task column -->
         <div class="sticky left-0 z-30 shrink-0 w-64 border-r border-border/40 bg-card">
-          <div class="sticky top-0 z-40 border-b border-border/40 bg-card px-3 flex items-end pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+          <div class="sticky top-0 z-40 border-b border-border/40 bg-card px-3 flex items-end pb-2 font-semibold text-muted-foreground uppercase tracking-wider"
             :style="{ height: `${HEADER_H}px` }">
             {{ props.doctype.label }}
           </div>
-          <div v-if="!isLoading && !tasks.length" class="p-4 text-xs text-muted-foreground">
+          <div v-if="!isLoading && !tasks.length" class="p-4 text-muted-foreground">
             Немає документів із заповненими датами.
           </div>
           <div v-for="task in tasks" :key="task.id"
@@ -501,7 +501,7 @@ const zoomOptions: { value: Zoom; label: string }[] = [
             </div>
 
             <div v-if="!isLoading && !tasks.length"
-              class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
+              class="absolute inset-0 flex items-center justify-center text-muted-foreground">
               Немає документів із заповненими датами початку та завершення.
             </div>
           </div>

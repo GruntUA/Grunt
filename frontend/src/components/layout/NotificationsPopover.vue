@@ -102,7 +102,7 @@ onUnmounted(() => {
                 </div>
                 <span class="font-medium truncate">{{ t('Notifications') }}</span>
             </div>
-            <Badge v-if="unreadCount > 0" class="h-5 px-1.5 text-xs font-semibold tabular-nums">
+            <Badge v-if="unreadCount > 0" class="h-5 px-1.5 font-semibold tabular-nums">
                 {{ unreadCount }}
             </Badge>
         </button>
@@ -110,7 +110,7 @@ onUnmounted(() => {
         <Popover v-model:open="isOpen">
             <PopoverAnchor :reference="anchorEl ?? undefined" />
             <PopoverContent align="start" class="w-80 p-0">
-                <div class="flex flex-col overflow-hidden text-xs">
+                <div class="flex flex-col overflow-hidden">
                     <!-- Header -->
                     <div class="flex items-center justify-between px-3 py-2 border-b">
                         <div class="flex items-center gap-2">

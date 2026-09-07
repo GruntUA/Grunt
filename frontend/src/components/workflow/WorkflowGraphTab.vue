@@ -269,7 +269,7 @@ function removeSelectedTransition() {
         <Button variant="secondary" size="sm" class="shrink-0" :disabled="states.length < 2" @click="addTransition">
           <Plus class="size-3.5" />Перехід
         </Button>
-        <span class="text-xs text-muted-foreground shrink-0 whitespace-nowrap ml-2">
+        <span class="text-muted-foreground shrink-0 whitespace-nowrap ml-2">
           Перетягніть від краю вузла до іншого вузла, щоб створити перехід
         </span>
       </div>
@@ -303,7 +303,7 @@ function removeSelectedTransition() {
     <!-- Properties panel -->
     <div class="w-72 shrink-0 border-l border-border overflow-y-auto p-4">
       <template v-if="selectedState">
-        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Стан</p>
+        <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Стан</p>
         <div class="flex flex-col gap-3">
           <div class="flex flex-col gap-1.5">
             <label class="font-medium">Значення (для поля стану)</label>
@@ -342,7 +342,7 @@ function removeSelectedTransition() {
       </template>
 
       <template v-else-if="selectedTransition">
-        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Перехід</p>
+        <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Перехід</p>
         <div class="flex flex-col gap-3">
           <div class="flex flex-col gap-1.5">
             <label class="font-medium">З стану</label>

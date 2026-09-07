@@ -71,7 +71,7 @@ function goHome() {
         @click="goHome"
       >
         <Home class="w-5 h-5" />
-        <span class="text-xs font-medium leading-none">Головна</span>
+        <span class="font-medium leading-none">Головна</span>
       </button>
 
       <!-- Top workspace items -->
@@ -83,7 +83,7 @@ function goHome() {
         @click="navigate(item)"
       >
         <AppIcon :icon="item.icon || 'file'" class="size-5" />
-        <span class="text-xs font-medium leading-none truncate max-w-[52px]">{{ item.label }}</span>
+        <span class="font-medium leading-none truncate max-w-[52px]">{{ item.label }}</span>
       </button>
 
       <!-- More button (when overflow items exist) -->
@@ -93,7 +93,7 @@ function goHome() {
         @click="showOverflow = true"
       >
         <MoreHorizontal class="w-5 h-5" />
-        <span class="text-xs font-medium leading-none">Ще</span>
+        <span class="font-medium leading-none">Ще</span>
       </button>
     </div>
   </nav>

@@ -32,7 +32,7 @@ function getIconComponent(name: string): Component | null {
   <template v-if="value">
     <span class="inline-flex items-center gap-1.5 text-foreground/80">
       <component :is="getIconComponent(String(value))" v-if="getIconComponent(String(value))" class="size-4 shrink-0" />
-      <span class="text-xs text-muted-foreground">{{ value }}</span>
+      <span class="text-muted-foreground">{{ value }}</span>
     </span>
   </template>
   <span v-else class="text-muted-foreground/30">—</span>

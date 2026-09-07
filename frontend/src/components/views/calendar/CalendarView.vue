@@ -325,7 +325,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
         >
         
         <div class="flex items-center gap-2">
-            <div v-if="isRescheduling" class="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-primary animate-pulse bg-primary/10 px-2 py-1 rounded-full">
+            <div v-if="isRescheduling" class="flex items-center gap-2 font-medium uppercase tracking-widest text-primary animate-pulse bg-primary/10 px-2 py-1 rounded-full">
                 Оновлення...
             </div>
             <Spinner v-if="isLoading" class="!size-6" strokeWidth="6" />
@@ -338,7 +338,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
       <!-- Weekday headers -->
       <div class="grid grid-cols-7 border-b border-border/40 bg-muted/5">
         <div v-for="day in weekDays" :key="day"
-          class="py-3 text-center text-xs font-semibold text-muted-foreground/60 uppercase tracking-[0.2em]">
+          class="py-3 text-center font-semibold text-muted-foreground/60 uppercase tracking-[0.2em]">
           {{ day }}
         </div>
       </div>
@@ -354,7 +354,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
           
           <!-- Day header -->
           <div class="flex justify-between items-center mb-1">
-            <span class="text-xs font-semibold size-8 flex items-center justify-center rounded-lg transition-colors" :class="[
+            <span class="font-semibold size-8 flex items-center justify-center rounded-lg transition-colors" :class="[
               isToday(day)
                 ? 'bg-primary text-primary-foreground'
                 : isSameMonth(day, currentMonth) ? 'text-foreground/80 hover:bg-muted/50' : 'text-muted-foreground/20'
@@ -368,7 +368,7 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
           <!-- Event cards -->
           <div class="flex flex-col gap-1.5 overflow-y-auto max-h-48 scrollbar-hide py-0.5">
             <div v-for="event in getEventsForDay(day)" :key="event.doctype + event.id" draggable="true"
-              class="group/event relative text-xs font-medium leading-tight pl-2.5 pr-2 py-2 rounded-lg border shadow-sm truncate cursor-pointer transition-colors active:opacity-70"
+              class="group/event relative font-medium leading-tight pl-2.5 pr-2 py-2 rounded-lg border shadow-sm truncate cursor-pointer transition-colors active:opacity-70"
               :class="[
                 event.doctype === doctype.name
                   ? 'bg-background border-border hover:border-primary/40 text-foreground'
@@ -397,14 +397,14 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
         <div v-if="selectedEvent" class="w-64 p-3 flex flex-col gap-3">
             <div class="flex items-start justify-between">
                 <div class="flex flex-col">
-                    <span class="text-xs font-medium uppercase tracking-wider text-muted-foreground">{{ selectedEvent.doctype }}</span>
+                    <span class="font-medium uppercase tracking-wider text-muted-foreground">{{ selectedEvent.doctype }}</span>
                     <h3 class="font-semibold text-foreground leading-tight">{{ selectedEvent.title }}</h3>
                 </div>
                 <Button variant="ghost" size="sm" @click="navigateToDoc(selectedEvent)" class="rounded-full"><ExternalLink class="size-4" /></Button>
             </div>
             
             <div class="flex flex-col gap-1.5 py-2 border-t border-border/40">
-                <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                <div class="flex items-center gap-2 text-muted-foreground">
                     <CalendarIcon class="size-3.5" />
                     <span>{{ fmtDate(selectedEvent.date) }}</span>
                 </div>

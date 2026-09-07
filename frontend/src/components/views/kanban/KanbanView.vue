@@ -145,7 +145,7 @@ watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) loadCards() 
           <div class="flex items-center gap-3 overflow-hidden">
             <div class="size-2.5 rounded-full shrink-0 shadow-sm border border-white/20"
               :class="getColumnStyles(col).dot" />
-            <h3 class="font-semibold text-xs text-foreground/70 truncate uppercase tracking-[0.15em]">
+            <h3 class="font-semibold text-foreground/70 truncate uppercase tracking-[0.15em]">
               {{ columnLabel(col) }}
             </h3>
             <Badge variant="secondary"
@@ -193,13 +193,13 @@ watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) loadCards() 
                       <Avatar class="!size-5 !border !border-primary/20">
                         <AvatarFallback class="!text-xs !bg-primary/10 !text-primary">{{ card.owner.charAt(0).toUpperCase() }}</AvatarFallback>
                       </Avatar>
-                      <span class="text-xs text-muted-foreground font-semibold truncate max-w-[80px]">
+                      <span class="text-muted-foreground font-semibold truncate max-w-[80px]">
                         {{ card.owner.split('@')[0] }}
                       </span>
                     </div>
                   </div>
                   <div
-                    class="flex items-center gap-2 text-xs text-muted-foreground/50 font-semibold uppercase tracking-wider bg-muted/30 px-2.5 py-1 rounded-lg border border-border/10">
+                    class="flex items-center gap-2 text-muted-foreground/50 font-semibold uppercase tracking-wider bg-muted/30 px-2.5 py-1 rounded-lg border border-border/10">
                     <Calendar class="size-3" />
                     {{ formatDate(card.modified_at) }}
                   </div>

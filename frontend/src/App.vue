@@ -48,7 +48,7 @@ onUnmounted(() => {
           <WifiOff class="size-4 shrink-0" />
           <span>Немає з'єднання — зміни зберігаються локально</span>
           <span v-if="pendingCount > 0"
-            class="ml-2 px-1.5 py-0.5 rounded-full bg-amber-950/15 text-xs font-semibold tabular-nums">
+            class="ml-2 px-1.5 py-0.5 rounded-full bg-amber-950/15 font-semibold tabular-nums">
             {{ pendingCount }} в черзі
           </span>
         </div>

@@ -63,7 +63,7 @@ function onInput(ff: QuickFilter, value: string) {
         <label
           v-if="props.variant !== 'quick'"
           :for="`ff-${ff.id}`"
-          class="text-xs font-medium text-muted-foreground whitespace-nowrap"
+          class="font-medium text-muted-foreground whitespace-nowrap"
         >
           {{ getLabel(ff) }}
         </label>

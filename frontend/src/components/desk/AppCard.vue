@@ -34,11 +34,11 @@ function totalCount(): number {
       <h3 class="truncate font-semibold text-foreground leading-tight group-hover:text-primary transition-colors">
         {{ workspace.label }}
       </h3>
-      <div v-if="totalCount() > 0" class="flex items-center gap-1 text-xs text-muted-foreground/60">
+      <div v-if="totalCount() > 0" class="flex items-center gap-1 text-muted-foreground/60">
         <span class="font-medium tabular-nums" :style="{ color: workspace.color }">{{ totalCount() }}</span>
         <span>записів</span>
       </div>
-      <div v-else class="flex items-center gap-1 text-xs text-muted-foreground/40">
+      <div v-else class="flex items-center gap-1 text-muted-foreground/40">
         <Layers class="size-3" />
         <span>Відкрити</span>
       </div>

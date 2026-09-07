@@ -239,7 +239,7 @@ watch(() => props.doctype, loadRestrictions)
           Обмеження
         </DialogTitle>
       </DialogHeader>
-      <p class="text-sm text-muted-foreground -mt-1">
+      <p class="text-muted-foreground -mt-1">
         Ви бачите лише записи, що відповідають цим значенням.
       </p>
       <table class="w-full text-sm border border-border rounded-md overflow-hidden">

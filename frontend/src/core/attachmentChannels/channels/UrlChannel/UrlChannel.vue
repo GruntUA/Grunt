@@ -50,12 +50,12 @@ function confirm() {
       @keydown.enter="confirm"
     />
 
-    <div v-if="error" class="flex items-center gap-1.5 text-xs text-destructive">
+    <div v-if="error" class="flex items-center gap-1.5 text-destructive">
       <AlertCircle class="size-3.5 shrink-0" />
       {{ error }}
     </div>
 
-    <div v-if="showImageWarning" class="flex items-center gap-1.5 text-xs text-amber-600">
+    <div v-if="showImageWarning" class="flex items-center gap-1.5 text-amber-600">
       <AlertCircle class="size-3.5 shrink-0" />
       URL не схожий на зображення
     </div>

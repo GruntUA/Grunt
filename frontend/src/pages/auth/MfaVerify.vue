@@ -68,14 +68,14 @@ async function handleVerify() {
       <div class="bg-card border border-border shadow-sm rounded-lg p-8">
         <form class="flex flex-col gap-6" @submit.prevent="handleVerify">
           <div class="flex flex-col gap-2 text-center">
-            <label class="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Код доступу</label>
+            <label class="font-semibold text-muted-foreground uppercase tracking-widest">Код доступу</label>
             <Input v-model="code" type="text" inputmode="numeric" autocomplete="one-time-code"
               placeholder="000 000" maxlength="8" required autofocus
               class="h-16 text-center text-3xl font-mono tracking-[0.3em] !border-2 focus:!ring-primary/20 bg-background/50" />
           </div>
 
           <div v-if="error"
-            class="text-xs text-destructive bg-destructive/5 border border-destructive/10 rounded-lg px-4 py-3 text-center font-medium animate-in fade-in zoom-in duration-200">
+            class="text-destructive bg-destructive/5 border border-destructive/10 rounded-lg px-4 py-3 text-center font-medium animate-in fade-in zoom-in duration-200">
             {{ error }}
           </div>
 
@@ -93,7 +93,7 @@ async function handleVerify() {
         </form>
       </div>
 
-      <p class="text-center text-xs text-muted-foreground/40 mt-10 uppercase tracking-[0.2em] font-semibold">
+      <p class="text-center text-muted-foreground/40 mt-10 uppercase tracking-[0.2em] font-semibold">
         Grunt Security Engine
       </p>
     </div>

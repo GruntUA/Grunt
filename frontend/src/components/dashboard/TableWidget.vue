@@ -47,7 +47,7 @@ function formatVal(v: number): string {
 
     <!-- Table -->
     <div v-else class="flex-1 overflow-auto">
-      <table class="w-full text-xs">
+      <table class="w-full">
         <thead class="sticky top-0 bg-card border-b">
           <tr>
             <th class="px-4 py-2 text-left font-medium text-muted-foreground">

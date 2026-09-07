@@ -96,7 +96,7 @@ function selectSection() {
       <button
         v-if="section._field"
         type="button"
-        class="text-xs text-muted-foreground/70 hover:text-muted-foreground w-4 shrink-0"
+        class="text-muted-foreground/70 hover:text-muted-foreground w-4 shrink-0"
         :title="section.collapsible ? 'Collapsible' : 'Not collapsible'"
         @click.stop="toggleCollapsible"
       >
@@ -108,7 +108,7 @@ function selectSection() {
         <input
           v-model="editLabel"
           type="text"
-          class="flex-1 text-xs font-semibold tracking-wide bg-transparent border-b border-primary outline-none text-foreground px-0 py-0"
+          class="flex-1 font-semibold tracking-wide bg-transparent border-b border-primary outline-none text-foreground px-0 py-0"
           @blur="finishEditLabel"
           @keydown.enter="finishEditLabel"
           @keydown.escape="isEditingLabel = false"
@@ -118,7 +118,7 @@ function selectSection() {
       </template>
       <template v-else>
         <span
-          class="flex-1 text-xs font-semibold tracking-wide text-muted-foreground truncate"
+          class="flex-1 font-semibold tracking-wide text-muted-foreground truncate"
           :class="{ 'text-muted-foreground/70 italic': !section.label }"
           @dblclick.stop="startEditLabel"
         >
@@ -132,7 +132,7 @@ function selectSection() {
           v-for="n in 4"
           :key="n"
           type="button"
-          class="w-5 h-5 text-xs rounded flex items-center justify-center transition-colors"
+          class="w-5 h-5 rounded flex items-center justify-center transition-colors"
           :class="section.columns.length === n
             ? 'bg-primary text-white'
             : 'text-muted-foreground/70 hover:bg-border'"
@@ -145,7 +145,7 @@ function selectSection() {
       <button
         v-if="section._field"
         type="button"
-        class="text-muted-foreground/70 hover:text-destructive text-xs shrink-0 px-1"
+        class="text-muted-foreground/70 hover:text-destructive shrink-0 px-1"
         title="Delete section"
         @click.stop="emit('delete')"
       >×</button>

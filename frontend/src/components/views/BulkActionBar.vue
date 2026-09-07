@@ -98,7 +98,7 @@ async function submitUpdate() {
           <span class="font-semibold text-foreground tabular-nums">
             {{ allSelected ? `всі ${total ?? count}` : count }}
           </span>
-          <span class="text-xs text-muted-foreground">вибрано</span>
+          <span class="text-muted-foreground">вибрано</span>
         </div>
 
         <div class="h-4 w-px bg-border" />
@@ -107,7 +107,7 @@ async function submitUpdate() {
         <button
           v-if="isFullPage && total && total > count"
           type="button"
-          class="text-xs font-semibold text-primary hover:underline underline-offset-2 transition-all whitespace-nowrap"
+          class="font-semibold text-primary hover:underline underline-offset-2 transition-all whitespace-nowrap"
           @click="emit('selectAll')"
         >
           Вибрати всі {{ total }}
@@ -201,7 +201,7 @@ async function submitUpdate() {
         — без lifecycle хуків, ActivityLog per-record.
       </p>
       <div class="p-3 bg-destructive/5 border border-destructive/20 rounded-lg">
-        <p class="text-xs text-destructive font-semibold">
+        <p class="text-destructive font-semibold">
           ⚡ Це незворотна операція. Хуки <code>before_delete</code> / <code>after_delete</code> не виконуються.
           Використовуй лише для масового очищення тестових або імпортованих даних.
         </p>
@@ -234,7 +234,7 @@ async function submitUpdate() {
 
     <div class="flex flex-col gap-5 py-2">
       <div class="flex flex-col gap-2">
-        <label class="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Оберіть поле</label>
+        <label class="font-semibold uppercase tracking-[0.1em] text-muted-foreground">Оберіть поле</label>
         <Select v-model="updateField">
           <SelectTrigger class="w-full">
             <SelectValue :placeholder="t('Select field...')" />
@@ -245,7 +245,7 @@ async function submitUpdate() {
         </Select>
       </div>
       <div class="flex flex-col gap-2">
-        <label class="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Нове значення</label>
+        <label class="font-semibold uppercase tracking-[0.1em] text-muted-foreground">Нове значення</label>
         <component
           :is="valueComponent"
           v-if="selectedField"
@@ -257,7 +257,7 @@ async function submitUpdate() {
       </div>
 
       <div class="p-3 bg-muted/30 rounded-lg border border-border/40">
-        <p class="text-xs text-muted-foreground leading-tight italic">
+        <p class="text-muted-foreground leading-tight italic">
           Це оновить поле для всіх <span class="font-semibold text-foreground">{{ displayCount }}</span> виділених записів.
         </p>
       </div>

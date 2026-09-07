@@ -47,7 +47,7 @@ function formatCount(count: number, total: number): string {
           />
           <CheckCircle2 v-else class="size-4 text-success shrink-0" />
 
-          <span class="text-xs font-semibold text-foreground flex-1">
+          <span class="font-semibold text-foreground flex-1">
             {{ tracker.hasActive.value ? 'Виконуються задачі' : 'Задачі завершено' }}
           </span>
 
@@ -110,10 +110,10 @@ function formatCount(count: number, total: number): string {
 
                   <!-- Title + description -->
                   <div class="flex-1 min-w-0">
-                    <p class="text-xs font-semibold text-foreground truncate leading-tight">
+                    <p class="font-semibold text-foreground truncate leading-tight">
                       {{ task.title }}
                     </p>
-                    <p v-if="task.description" class="text-xs text-muted-foreground truncate mt-0.5">
+                    <p v-if="task.description" class="text-muted-foreground truncate mt-0.5">
                       {{ task.description }}
                     </p>
                   </div>
@@ -146,11 +146,11 @@ function formatCount(count: number, total: number): string {
 
                 <!-- Count + percent -->
                 <div class="flex items-center justify-between mt-1.5">
-                  <span class="text-xs text-muted-foreground tabular-nums">
+                  <span class="text-muted-foreground tabular-nums">
                     {{ formatCount(task.count, task.total) }}
                   </span>
                   <span
-                    class="text-xs font-semibold tabular-nums"
+                    class="font-semibold tabular-nums"
                     :class="{
                       'text-primary': task.status === 'active',
                       'text-success': task.status === 'done',

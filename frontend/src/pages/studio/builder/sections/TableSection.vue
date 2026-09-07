@@ -19,7 +19,7 @@ onMounted(async () => {
 
 <template>
   <Separator class="!mb-3" />
-  <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Child DocType</p>
+  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Child DocType</p>
   <div class="mb-4">
     <Combobox
       :model-value="field.options ?? ''"

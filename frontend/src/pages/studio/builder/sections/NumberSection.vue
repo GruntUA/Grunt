@@ -8,7 +8,7 @@ const { field, updateField } = usePropertyEditor()
 
 <template>
   <Separator class="!mb-3" />
-  <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Range</p>
+  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Range</p>
   <div class="flex gap-2 mb-4">
     <div class="flex-1 flex flex-col gap-1.5">
       <label class="font-medium">Min</label>

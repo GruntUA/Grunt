@@ -75,7 +75,7 @@ function handleReset() {
         <DialogTitle>{{ t('Обрати фільтри') }}</DialogTitle>
       </DialogHeader>
 
-      <p class="text-xs text-muted-foreground -mt-2">
+      <p class="text-muted-foreground -mt-2">
         {{ t('Особисте налаштування — лише для вас, на цьому пристрої.') }}
       </p>
 
@@ -84,7 +84,7 @@ function handleReset() {
         <Input v-model="search" class="pl-9" :placeholder="t('Пошук...')" />
       </div>
 
-      <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+      <p class="font-medium text-muted-foreground uppercase tracking-wide">
         {{ dt.label }}
       </p>
 

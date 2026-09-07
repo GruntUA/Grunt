@@ -108,10 +108,10 @@ function goToDoc(item: ActivityItem) {
         <!-- Content -->
         <div class="flex-1 min-w-0">
           <div class="flex items-baseline justify-between gap-2">
-            <span class="text-xs font-semibold text-foreground truncate">{{ item.user }}</span>
-            <span class="text-xs text-muted-foreground tabular-nums shrink-0">{{ formatTime(item.created_at) }}</span>
+            <span class="font-semibold text-foreground truncate">{{ item.user }}</span>
+            <span class="text-muted-foreground tabular-nums shrink-0">{{ formatTime(item.created_at) }}</span>
           </div>
-          <p class="text-xs text-muted-foreground mt-0.5 leading-snug">
+          <p class="text-muted-foreground mt-0.5 leading-snug">
             <span class="text-foreground/80">{{ getActionLabel(item.action) }}</span>
             <span class="font-medium text-foreground/60 ml-1">{{ item.doctype }}</span>
             <span class="text-primary font-medium ml-1 truncate">{{ item.doc_id }}</span>

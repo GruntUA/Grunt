@@ -259,11 +259,11 @@ const printPage = () => window.print()
         <div v-if="page && !editMode" class="flex items-center gap-1.5">
           <Calendar class="w-4 h-4 text-muted-foreground shrink-0" />
           <input v-model="dateFrom" type="date"
-            class="h-8 px-2 rounded-lg border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+            class="h-8 px-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
             @change="refresh" />
-          <span class="text-muted-foreground text-xs">—</span>
+          <span class="text-muted-foreground">—</span>
           <input v-model="dateTo" type="date"
-            class="h-8 px-2 rounded-lg border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+            class="h-8 px-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
             @change="refresh" />
         </div>
 
@@ -271,7 +271,7 @@ const printPage = () => window.print()
         <div v-if="page && !editMode" class="flex items-center gap-1.5">
           <Timer class="w-4 h-4 text-muted-foreground shrink-0" />
           <select v-model.number="autoRefreshInterval"
-            class="h-8 px-2 rounded-lg border bg-background text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+            class="h-8 px-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
             @change="startAutoRefresh(autoRefreshInterval)">
             <option :value="0">Авто</option>
             <option :value="30">30с</option>
@@ -358,7 +358,7 @@ const printPage = () => window.print()
       <div class="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-card shrink-0">
         <LayoutDashboard class="size-4 text-muted-foreground" />
         <span class="font-semibold">{{ page?.label ?? pageName }}</span>
-        <span class="text-xs font-medium bg-warning/10 text-warning border border-warning/30 px-2 py-0.5 rounded">
+        <span class="font-medium bg-warning/10 text-warning border border-warning/30 px-2 py-0.5 rounded">
           Режим редагування
         </span>
         <div class="ml-auto flex items-center gap-2">
@@ -383,7 +383,7 @@ const printPage = () => window.print()
         <!-- ── Left: widget palette ──────────────────────────────────────────── -->
         <div class="w-52 shrink-0 border-r border-border bg-muted/20 overflow-y-auto">
           <div class="px-3 py-3">
-            <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2 px-1">
+            <p class="font-semibold uppercase tracking-widest text-muted-foreground mb-2 px-1">
               Типи віджетів
             </p>
             <div class="space-y-0.5">
@@ -475,7 +475,7 @@ const printPage = () => window.print()
     </DialogHeader>
     <div class="space-y-4">
         <div class="space-y-1.5">
-          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Пряме посилання</label>
+          <label class="font-medium text-muted-foreground uppercase tracking-wide">Пряме посилання</label>
           <div class="flex gap-2">
             <input :value="embedUrl" readonly
               class="flex-1 h-9 px-3 rounded-lg border bg-muted font-mono focus:outline-none" />
@@ -487,11 +487,11 @@ const printPage = () => window.print()
           </div>
         </div>
         <div class="space-y-1.5">
-          <label class="text-xs font-medium text-muted-foreground uppercase tracking-wide">iframe</label>
+          <label class="font-medium text-muted-foreground uppercase tracking-wide">iframe</label>
           <textarea
             :value="`<iframe src=&quot;${embedUrl}&quot; width=&quot;100%&quot; height=&quot;600&quot; frameborder=&quot;0&quot;></iframe>`"
             readonly rows="3"
-            class="w-full px-3 py-2 rounded-lg border bg-muted text-xs font-mono focus:outline-none resize-none"
+            class="w-full px-3 py-2 rounded-lg border bg-muted font-mono focus:outline-none resize-none"
           />
         </div>
       </div>

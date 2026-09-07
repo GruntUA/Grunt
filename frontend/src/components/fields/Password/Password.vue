@@ -89,8 +89,8 @@ const checks = computed(() => {
         <component :is="revealed ? EyeOff : Eye" class="size-4" />
       </button>
     </div>
-    <p v-if="capsLock" class="mt-1 text-xs text-warning">{{ t('Caps Lock is on') }}</p>
-    <ul v-if="checks.length" class="mt-1.5 space-y-1 text-xs">
+    <p v-if="capsLock" class="mt-1 text-warning">{{ t('Caps Lock is on') }}</p>
+    <ul v-if="checks.length" class="mt-1.5 space-y-1">
       <li
         v-for="c in checks"
         :key="c.key"

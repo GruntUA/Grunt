@@ -64,8 +64,8 @@ function formatVal(fieldtype: string, val: string | null): string {
     <!-- Minimal header -->
     <header class="bg-card border-b border-border/60 px-6 py-3 flex items-center gap-2.5">
       <AppBrand mark-class="w-7 h-7" name-class="text-sm font-semibold" />
-      <span class="text-muted-foreground/40 text-xs ml-1">·</span>
-      <span class="text-xs text-muted-foreground flex items-center gap-1">
+      <span class="text-muted-foreground/40 ml-1">·</span>
+      <span class="text-muted-foreground flex items-center gap-1">
         <Eye class="size-3" /> Перегляд документа
       </span>
     </header>
@@ -88,9 +88,9 @@ function formatVal(fieldtype: string, val: string | null): string {
     <div v-else-if="data" class="max-w-3xl mx-auto py-10 px-4">
       <!-- Doc header -->
       <div class="bg-card border border-border rounded-lg shadow-sm px-6 py-5 mb-6">
-        <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">{{ data.doctype_label }}</p>
+        <p class="font-medium text-muted-foreground uppercase tracking-wide mb-1">{{ data.doctype_label }}</p>
         <h1 class="text-2xl font-semibold text-foreground">{{ data.doc.name ?? data.doc_id }}</h1>
-        <div v-if="data.expires_at" class="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
+        <div v-if="data.expires_at" class="flex items-center gap-1.5 mt-2 text-muted-foreground">
           <Clock class="size-3" />
           Дійсно до {{ formatFull(data.expires_at) }}
         </div>
@@ -109,14 +109,14 @@ function formatVal(fieldtype: string, val: string | null): string {
           >
             <span class="text-muted-foreground font-medium truncate self-start pt-0.5">{{ field.label }}</span>
             <span
-              :class="['text-sm text-foreground', MULTILINE.has(field.fieldtype) ? 'whitespace-pre-wrap' : '']"
+              :class="['text-foreground', MULTILINE.has(field.fieldtype) ? 'whitespace-pre-wrap' : '']"
             >{{ formatVal(field.fieldtype, data.doc[field.fieldname] ?? null) }}</span>
           </div>
         </div>
       </div>
 
       <!-- Footer note -->
-      <p class="text-center text-xs text-muted-foreground mt-6">
+      <p class="text-center text-muted-foreground mt-6">
         Цей документ надано у режимі лише для читання через {{ appName }}
       </p>
     </div>

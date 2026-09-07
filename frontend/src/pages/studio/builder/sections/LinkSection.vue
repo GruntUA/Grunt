@@ -17,7 +17,7 @@ onMounted(async () => {
 
 <template>
   <Separator class="!mb-3" />
-  <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Linked DocType</p>
+  <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Linked DocType</p>
   <div class="mb-4">
     <Combobox
       :model-value="field.options ?? ''"
@@ -38,6 +38,6 @@ onMounted(async () => {
       class="w-full !text-sm !font-mono"
       @update:model-value="(v: string | number) => updateField('link_filters', String(v).trim() || null)"
     />
-    <p class="text-xs text-muted-foreground">JSON об'єкт або <code class="bg-muted px-1 rounded">eval: {"field": doc.field}</code></p>
+    <p class="text-muted-foreground">JSON об'єкт або <code class="bg-muted px-1 rounded">eval: {"field": doc.field}</code></p>
   </div>
 </template>

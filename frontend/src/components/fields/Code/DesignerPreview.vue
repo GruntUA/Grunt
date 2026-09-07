@@ -9,9 +9,9 @@ defineProps<{ field: DocField }>()
       <div class="size-2 rounded-full bg-red-400/80" />
       <div class="size-2 rounded-full bg-yellow-400/80" />
       <div class="size-2 rounded-full bg-green-400/80" />
-      <span class="ml-auto text-xs text-zinc-400/60 font-mono">{{ field.options ?? 'js' }}</span>
+      <span class="ml-auto text-zinc-400/60 font-mono">{{ field.options ?? 'js' }}</span>
     </div>
-    <div class="px-3 py-2 bg-zinc-900 font-mono text-xs leading-relaxed">
+    <div class="px-3 py-2 bg-zinc-900 font-mono leading-relaxed">
       <span class="text-purple-400">const </span>
       <span class="text-blue-300">value</span>
       <span class="text-zinc-400"> = </span>
