@@ -88,10 +88,31 @@ async def _application_error(request: Request, exc: ApplicationError) -> JSONRes
     )
 
 
+async def _persist_error_log(request: Request, exc: Exception) -> None:
+    """Record an unhandled HTTP 500 to the ErrorLog DocType (best-effort)."""
+    try:
+        from grunt.monitoring.error_log import record_error
+
+        route = request.scope.get("route")
+        method = getattr(route, "name", None) or request.url.path
+        await record_error(
+            exc=exc,
+            context="HTTP Request",
+            method=method,
+            http_status=500,
+            request_method=request.method,
+            request_path=request.url.path,
+            request_id=getattr(request.state, "request_id", None),
+        )
+    except Exception:  # noqa: BLE001 — the 500 response must go out regardless
+        logger.debug("error_log.http_persist_failed", exc_info=True)
+
+
 async def _generic_exception(request: Request, exc: Exception) -> JSONResponse:
     import traceback as _tb
 
     logger.exception("unhandled_error", error=str(exc))
+    await _persist_error_log(request, exc)
 
     if not settings.debug:
         return JSONResponse(

@@ -55,6 +55,25 @@ if TYPE_CHECKING:
     def throw(message: str, code: str = "ERROR", title: str = "") -> NoReturn: ...
     async def get_current_user() -> User: ...
     def get_engine() -> AsyncEngine: ...
+    async def log_error(
+        *,
+        exc: BaseException | None = None,
+        title: str | None = None,
+        message: str | None = None,
+        context: str = "Manual",
+        method: str | None = None,
+        user: str | None = None,
+        app: str | None = None,
+        http_status: int | None = None,
+        request_method: str | None = None,
+        request_path: str | None = None,
+        request_id: str | None = None,
+        reference_doctype: str | None = None,
+        reference_name: str | None = None,
+        session: AsyncSession | None = None,
+    ) -> str | None:
+        """Persist an error to the ``ErrorLog`` DocType. Best-effort; never raises."""
+        ...
 
     # ── Document API ──────────────────────────────────────────────────────────
     # Not `@overload` (this stub is never executed — see __getattr__ below — and
@@ -153,6 +172,11 @@ def __getattr__(name: str):
         from grunt.log import log
 
         return log
+
+    if name == "log_error":
+        from grunt.monitoring.error_log import record_error
+
+        return record_error
 
     if name in (
         "db",

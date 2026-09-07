@@ -2,8 +2,9 @@
 
 Mirrors Frappe's Log Settings pattern: every DocType flagged ``is_log: true``
 accumulates rows forever unless something purges old ones. Retention is
-per-DocType (``log_retention_days`` in its JSON), falling back to
-DEFAULT_LOG_RETENTION_DAYS when unset.
+per-DocType (``log_retention_days`` in its JSON), falling back to the
+site-wide ``SystemSettings.log_retention_days``, and finally to
+DEFAULT_LOG_RETENTION_DAYS when neither is set.
 """
 
 from __future__ import annotations
@@ -31,12 +32,16 @@ async def purge_old_logs() -> None:
     now = datetime.now(UTC)
 
     async with maker() as session, grunt.system_context(session, eng):
+        from grunt.site.settings import get_setting
+
+        default_retention = await get_setting("log_retention_days", DEFAULT_LOG_RETENTION_DAYS)
+
         doctypes = await doctype_registry.list_all()
         log_doctypes = [dt for dt in doctypes if dt.is_log and not dt.is_virtual]
 
         total_deleted = 0
         for dt in log_doctypes:
-            retention_days = dt.log_retention_days or DEFAULT_LOG_RETENTION_DAYS
+            retention_days = dt.log_retention_days or default_retention
             cutoff = now - timedelta(days=retention_days)
             try:
                 deleted = await grunt.db.delete(dt.name, {"created_at__lt": cutoff})

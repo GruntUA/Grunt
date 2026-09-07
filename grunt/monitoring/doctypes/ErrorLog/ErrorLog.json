@@ -1,0 +1,150 @@
+{
+  "name": "ErrorLog",
+  "label": "Журнал помилок",
+  "module": "monitoring",
+  "icon": "bug",
+  "is_log": true,
+  "track_changes": false,
+  "track_seen": true,
+  "autoname": "hash",
+  "title_field": "title",
+  "default_view": "list",
+  "search_fields": ["error_type", "method", "user"],
+  "description": "Необроблені помилки фреймворку та додатків — HTTP-запити, фонові завдання, контролери. Старі записи автоматично видаляються (див. Налаштування системи → Обслуговування).",
+  "fields": [
+    {
+      "fieldname": "title",
+      "label": "Помилка",
+      "fieldtype": "Data",
+      "read_only": true,
+      "in_list_view": true,
+      "max_length": 200
+    },
+    {
+      "fieldname": "error_type",
+      "label": "Тип",
+      "fieldtype": "Data",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "index": true
+    },
+    {
+      "fieldname": "context",
+      "label": "Контекст",
+      "fieldtype": "Select",
+      "options": "HTTP Request\nBackground Task\nScheduled Job\nController\nManual",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "app",
+      "label": "Застосунок",
+      "fieldtype": "Data",
+      "read_only": true,
+      "in_filter": true,
+      "index": true
+    },
+    {
+      "fieldname": "method",
+      "label": "Метод / маршрут",
+      "fieldtype": "Data",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "user",
+      "label": "Користувач",
+      "fieldtype": "Data",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "index": true
+    },
+    {
+      "fieldname": "sec_request",
+      "label": "HTTP-запит",
+      "fieldtype": "Section",
+      "collapsible": true,
+      "depends_on": "eval: doc.context == 'HTTP Request'"
+    },
+    {
+      "fieldname": "request_method",
+      "label": "HTTP-метод",
+      "fieldtype": "Data",
+      "read_only": true,
+      "columns": 3
+    },
+    {
+      "fieldname": "http_status",
+      "label": "Код відповіді",
+      "fieldtype": "Int",
+      "read_only": true,
+      "columns": 3
+    },
+    {
+      "fieldname": "request_path",
+      "label": "Шлях",
+      "fieldtype": "Data",
+      "read_only": true,
+      "columns": 6
+    },
+    {
+      "fieldname": "request_id",
+      "label": "Request ID",
+      "fieldtype": "Data",
+      "read_only": true,
+      "columns": 6
+    },
+    {
+      "fieldname": "sec_reference",
+      "label": "Документ",
+      "fieldtype": "Section",
+      "collapsible": true,
+      "depends_on": "eval: doc.reference_doctype"
+    },
+    {
+      "fieldname": "reference_doctype",
+      "label": "Тип документа",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "read_only": true,
+      "in_filter": true,
+      "columns": 6
+    },
+    {
+      "fieldname": "reference_name",
+      "label": "Документ",
+      "fieldtype": "Data",
+      "read_only": true,
+      "columns": 6
+    },
+    {
+      "fieldname": "sec_details",
+      "label": "Деталі",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "error_message",
+      "label": "Повідомлення",
+      "fieldtype": "Code",
+      "read_only": true
+    },
+    {
+      "fieldname": "traceback",
+      "label": "Трасування стека",
+      "fieldtype": "Code",
+      "options": "python",
+      "read_only": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "delete": true
+    }
+  ]
+}

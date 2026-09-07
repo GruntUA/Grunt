@@ -197,13 +197,17 @@ async def record_view(event: str, **kwargs: Any) -> None:
     if kwargs.get("method") or not doctype or not isinstance(doc, dict):
         return
     doc_id = doc.get("name")
-    if not doc_id or doctype in _SKIP_DOCTYPES:
+    if not doc_id:
         return
 
     try:
         dt = await doctype_registry.get(doctype)
     except Exception:
         return
+    # ``_SKIP_DOCTYPES`` is not consulted here: it lists high-churn system logs,
+    # and seen/view tracking is opt-in per DocType via the flags below — none of
+    # those logs set them. An operational log that *does* opt in (e.g. ErrorLog,
+    # so an admin can tell which errors they've already triaged) is honoured.
     if not (getattr(dt, "track_seen", False) or getattr(dt, "track_views", False)):
         return
 

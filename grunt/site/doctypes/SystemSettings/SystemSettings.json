@@ -107,6 +107,22 @@
     },
 
     {
+      "fieldname": "sec_maintenance",
+      "label": "Журнали та обслуговування",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "log_retention_days",
+      "label": "Зберігати журнали, днів",
+      "fieldtype": "Int",
+      "default": 90,
+      "min_value": 1,
+      "max_value": 3650,
+      "columns": 6,
+      "description": "Записи журналів (помилки, фонові завдання, перегляди тощо) старші за вказану кількість днів видаляються автоматично щодоби. Окремий DocType може перевизначити це значення власним параметром."
+    },
+
+    {
       "fieldname": "tab_security",
       "label": "Безпека",
       "fieldtype": "Tab",

@@ -124,6 +124,15 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             eng = site_manager.get_engine(site)
             async with maker() as session, grunt.system_context(session, eng):
                 await grunt.db.set_value("BackgroundTaskLog", log_id, update_data)
+                if not will_retry:
+                    from grunt.monitoring.error_log import record_error
+
+                    await record_error(
+                        exc=exception,
+                        context="Background Task",
+                        method=message.task_name,
+                        session=session,
+                    )
                 await session.commit()
 
         except Exception:
