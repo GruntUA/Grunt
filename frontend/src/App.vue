@@ -13,7 +13,7 @@ import { pendingCount } from '@/core/composables/useOfflineQueue'
 import { useServerError } from '@/core/composables/useServerError'
 import { useColorMode } from '@/core/composables/useColorMode'
 import { WifiOff } from '@lucide/vue'
-import { Toaster } from 'vue-sonner'
+import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 const { isDark } = useColorMode()
@@ -55,7 +55,7 @@ onUnmounted(() => {
       </Transition>
 
       <RouterView />
-      <Toaster position="bottom-right" rich-colors :theme="isDark ? 'dark' : 'light'" />
+      <Toaster position="bottom-right" :theme="isDark ? 'dark' : 'light'" />
 
       <CommandPalette />
       <PWAInstallPrompt />
