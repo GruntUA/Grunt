@@ -33,7 +33,6 @@ def _npm_runner() -> list[str]:
 # (the registry returns 404 for these names).
 _CUSTOM_COMPONENTS = frozenset(
     {
-        "spinner",
         "date-picker",
         "multi-select",
         "native-select",
