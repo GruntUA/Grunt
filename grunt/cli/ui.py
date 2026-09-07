@@ -13,8 +13,8 @@ import click
 
 def _app_dir() -> Path:
     """Root of the grunt app (where package.json and components.json live)."""
-    # ui.py → cli/ → grunt/ → backend/ → apps/grunt/
-    return Path(__file__).resolve().parent.parent.parent.parent
+    # ui.py → cli/ → grunt/ → apps/grunt/
+    return Path(__file__).resolve().parent.parent.parent
 
 
 def _npm_runner() -> list[str]:
@@ -29,8 +29,17 @@ def _npm_runner() -> list[str]:
 
 
 # Components that live in ui/ but are NOT in the shadcn-vue registry.
-# They are custom framework components and should never be passed to the CLI.
-_CUSTOM_COMPONENTS = frozenset({"spinner"})
+# They are custom framework components and should never be passed to the CLI
+# (the registry returns 404 for these names).
+_CUSTOM_COMPONENTS = frozenset(
+    {
+        "spinner",
+        "date-picker",
+        "multi-select",
+        "native-select",
+        "tree-select",
+    }
+)
 
 
 def _installed_components(ui_dir: Path) -> list[str]:
@@ -85,50 +94,32 @@ def ui_add(components: tuple[str, ...], overwrite: bool) -> None:
 
 @ui_group.command("update")
 @click.argument("components", nargs=-1, required=False)
-@click.option("--skip-package", is_flag=True, help="Не оновлювати пакет shadcn-vue через npm")
-def ui_update(components: tuple[str, ...], skip_package: bool) -> None:
-    """Оновити shadcn-vue та його компоненти до останньої версії.
+def ui_update(components: tuple[str, ...]) -> None:
+    """Перевстановити shadcn-vue компоненти з останнього реєстру (--overwrite).
 
     Без аргументів оновлює всі встановлені компоненти.
     З аргументами — тільки вказані.
+
+    `npx shadcn-vue@latest` завжди тягне останню версію CLI/реєстру, тож
+    окремо ставити npm-пакет не треба.
 
     \b
     Приклади:
       grunt ui update                   # оновити все
       grunt ui update button badge      # тільки button і badge
-      grunt ui update --skip-package    # без оновлення npm-пакету
     """
     app_dir = _app_dir()
     ui_dir = app_dir / "frontend" / "src" / "components" / "ui"
 
-    # ── 1. Оновити npm-пакет shadcn-vue ──────────────────────────────────────
-    if not skip_package:
-        click.echo("── [1/2] Оновлення пакету shadcn-vue...")
-        mise = shutil.which("mise")
-        npm_runner = [mise, "exec", "--", "npm"] if mise else [shutil.which("npm") or "npm"]
-        result = subprocess.run(
-            [*npm_runner, "install", "shadcn-vue@latest"],
-            cwd=app_dir,
-            check=False,
-        )
-        if result.returncode != 0:
-            click.echo(
-                click.style("  [warn] npm install shadcn-vue@latest не вдалося", fg="yellow"),
-                err=True,
-            )
-    else:
-        click.echo("── [1/2] Оновлення npm-пакету пропущено")
-
-    # ── 2. Перевстановити компоненти ─────────────────────────────────────────
     targets = list(components) if components else _installed_components(ui_dir)
 
     if not targets:
         click.echo(
-            click.style("  Компонентів не знайдено у frontend/src/components/ui/", fg="yellow")
+            click.style(f"  Компонентів не знайдено у {ui_dir}", fg="yellow")
         )
         return
 
-    click.echo(f"\n── [2/2] Оновлення {len(targets)} компонент(ів): {', '.join(targets)}")
+    click.echo(f"── Оновлення {len(targets)} компонент(ів): {', '.join(targets)}")
     code = _shadcn(app_dir, ["add", *targets, "--overwrite"])
     if code != 0:
         raise click.ClickException(f"shadcn-vue завершився з кодом {code}")
