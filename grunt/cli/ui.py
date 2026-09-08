@@ -28,9 +28,9 @@ def _npm_runner() -> list[str]:
     return [npx]
 
 
-# Components that live in ui/ but are NOT in the shadcn-vue registry.
-# They are custom framework components and should never be passed to the CLI
-# (the registry returns 404 for these names).
+# Components that live in ui/ but are NOT in the shadcn-vue registry
+# (the registry returns 404 for these names) — custom framework compositions
+# that must never be passed to the CLI.
 _CUSTOM_COMPONENTS = frozenset(
     {
         "date-picker",

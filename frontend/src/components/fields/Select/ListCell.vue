@@ -48,20 +48,22 @@ const COLOR_CLASSES: Record<string, string> = {
   pink: 'border-pink-500/30 bg-pink-500/10 text-pink-700 dark:text-pink-300',
 }
 
+// Stock shadcn Badge variants only. The visible colour comes from
+// `COLOR_CLASSES` above (applied on top), so this just picks a sane base.
 const COLOR_VARIANT: Record<string, BadgeVariants['variant']> = {
   default: undefined,
   secondary: 'secondary',
-  success: 'success',
-  info: 'info',
-  warn: 'warning',
+  success: 'default',
+  info: 'secondary',
+  warn: 'secondary',
   danger: 'destructive',
   contrast: 'outline',
   // Legacy aliases
   gray: 'secondary',
-  blue: 'info',
-  green: 'success',
-  yellow: 'warning',
-  orange: 'warning',
+  blue: 'secondary',
+  green: 'default',
+  yellow: 'secondary',
+  orange: 'secondary',
   red: 'destructive',
   purple: undefined,
   pink: undefined,

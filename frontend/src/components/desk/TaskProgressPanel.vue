@@ -130,18 +130,10 @@ function formatCount(count: number, total: number): string {
                   </button>
                 </div>
 
-                <!-- Progress bar -->
+                <!-- Progress bar (indicator colour keyed off task.status, see <style>) -->
                 <Progress
                   :model-value="task.percent"
-                  class="h-1.5 rounded-full bg-muted/60"
-                  :indicator-class="[
-                    'rounded-full transition-all duration-500',
-                    task.status === 'error'
-                      ? 'bg-destructive'
-                      : task.status === 'done'
-                      ? 'bg-success'
-                      : 'bg-primary',
-                  ]"
+                  :class="['h-1.5 rounded-full bg-muted/60', `pind-${task.status}`]"
                 />
 
                 <!-- Count + percent -->
@@ -168,3 +160,13 @@ function formatCount(count: number, total: number): string {
     </Transition>
   </Teleport>
 </template>
+
+<style scoped>
+/* Stock <Progress> paints the indicator bg-primary; recolour per task status. */
+.pind-done :deep([data-slot='progress-indicator']) {
+  background-color: var(--success);
+}
+.pind-error :deep([data-slot='progress-indicator']) {
+  background-color: var(--destructive);
+}
+</style>

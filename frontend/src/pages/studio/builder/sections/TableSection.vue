@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { metaApi } from '@/core/api'
 import type { DocTypeSummary } from '@/types'
-import { Combobox } from '@/components/ui/combobox'
+import DocTypeCombobox from '@/components/DocTypeCombobox.vue'
 import { Separator } from '@/components/ui/separator'
 
 const { field, updateField } = usePropertyEditor()
@@ -21,11 +21,9 @@ onMounted(async () => {
   <Separator class="!mb-3" />
   <p class="font-semibold text-muted-foreground uppercase tracking-wide mb-3">Child DocType</p>
   <div class="mb-4">
-    <Combobox
+    <DocTypeCombobox
       :model-value="field.options ?? ''"
       :options="childDoctypes.map(d => d.name)"
-      placeholder="— оберіть —"
-      empty-message="Нічого не знайдено"
       class="w-full"
       @update:model-value="updateField('options', $event)"
     />

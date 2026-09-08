@@ -14,7 +14,7 @@ const props = defineProps<{
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()
 
 const VARIANTS = new Set<NonNullable<ButtonVariants['variant']>>([
-  'default', 'destructive', 'outline', 'secondary', 'ghost', 'link', 'success', 'warning', 'info',
+  'default', 'destructive', 'outline', 'secondary', 'ghost', 'link',
 ])
 
 const variant = computed<ButtonVariants['variant']>(() => {

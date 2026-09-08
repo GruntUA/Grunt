@@ -69,7 +69,9 @@ function firstColClass(row: Record<string, unknown>, key: string): string {
 // ── Inline editing ────────────────────────────────────────────────────────
 interface InlineEdit { rowId: string; field: string; value: string }
 const inlineEdit = ref<InlineEdit | null>(null)
-const inlineInput = ref<{ focus: () => void } | null>(null)
+// shadcn <Input> renders a bare <input> as its root, so the component
+// instance's $el is the DOM node we focus.
+const inlineInput = ref<{ $el?: HTMLInputElement } | null>(null)
 
 const INLINE_SKIP = new Set(['Check', 'Select', 'Date', 'Datetime', 'Image', 'Attach', 'RichText', 'JSON', 'Code', 'Signature', 'Link', 'Rating', 'Icon'])
 
@@ -81,7 +83,7 @@ async function startEdit(row: any, field: string, fieldtype: string) {
   if (INLINE_SKIP.has(fieldtype) || props.fields.find(f => f.fieldname === field)?.read_only) return
   inlineEdit.value = { rowId: String(row.id ?? row.name ?? ''), field, value: String(row[field] ?? '') }
   await nextTick()
-  inlineInput.value?.focus()
+  inlineInput.value?.$el?.focus()
 }
 
 function commitEdit() {

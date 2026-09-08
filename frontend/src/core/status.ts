@@ -1,14 +1,17 @@
 import type { BadgeVariants } from '@/components/ui/badge'
 import type { DocType, DocTypeStatusConfig } from '@/types'
 
+// Stock shadcn Badge has no success/warning/info variant — map the semantic
+// status colours onto the built-in set: positive → filled `default`, anything
+// non-error → neutral `secondary`, error → `destructive`.
 const STATUS_VARIANT: Record<string, BadgeVariants['variant']> = {
-  success: 'success',
-  green: 'success',
-  info: 'info',
-  blue: 'info',
-  warn: 'warning',
-  yellow: 'warning',
-  orange: 'warning',
+  success: 'default',
+  green: 'default',
+  info: 'secondary',
+  blue: 'secondary',
+  warn: 'secondary',
+  yellow: 'secondary',
+  orange: 'secondary',
   danger: 'destructive',
   red: 'destructive',
   secondary: 'secondary',

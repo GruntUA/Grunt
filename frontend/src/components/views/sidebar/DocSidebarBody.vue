@@ -63,7 +63,7 @@ const docstatusBadge = computed(() => {
   return (
     [
       { label: 'Чернетка', variant: 'secondary' as const },
-      { label: 'Проведено', variant: 'success' as const },
+      { label: 'Проведено', variant: 'default' as const },
       { label: 'Скасовано', variant: 'destructive' as const },
     ][props.document.docstatus] ?? null
   )

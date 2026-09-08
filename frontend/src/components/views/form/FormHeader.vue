@@ -355,7 +355,7 @@ const menuItems = computed(() => {
         <Badge v-if="statusBadge && hidePanelToggle" :variant="statusBadge.variant" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
           {{ statusBadge.label }}
         </Badge>
-        <Badge v-if="isDirty" variant="warning" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
+        <Badge v-if="isDirty" variant="secondary" class="animate-in fade-in slide-in-from-left-2 duration-300 text-xs h-5 px-1.5 shrink-0">
           {{ t('Unsaved') }}
         </Badge>
       </div>
