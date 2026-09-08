@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import { useDocTypeStore } from '@/stores/doctype'
 import AppIcon from '@/components/AppIcon.vue'
@@ -16,10 +17,13 @@ const props = defineProps<{
   docLabel?: string | null
   /** Record count shown next to the last breadcrumb item (e.g. list page total). */
   count?: number | null
+  /** New (unsaved) document form: link the DocType crumb to the list and add a "New …" terminal crumb. */
+  isNew?: boolean
 }>()
 
 const appStore = useAppStore()
 const dtStore = useDocTypeStore()
+const { t } = useI18n()
 
 const workspaceLabel = computed(() => appStore.active?.label ?? props.workspaceName)
 const workspaceIcon = computed(() => appStore.active?.icon ?? '')
@@ -27,15 +31,13 @@ const workspaceIcon = computed(() => appStore.active?.icon ?? '')
 const doctypeLabel = computed(() => {
   if (!props.doctype) return ''
 
-  // 1. Try to find in cache first (sync)
+  // 1. Prefer the workspace nav label so the crumb matches the sidebar (e.g. "Активи").
+  const item = appStore.active?.items.find(i => i.link_to === props.doctype)
+  if (item?.label) return item.label
+
+  // 2. Fall back to the DocType meta label from cache.
   const cached = dtStore.cache?.get?.(props.doctype)
   if (cached) return cached.label ?? cached.name
-
-  // 2. Try to find in workspace items
-  if (appStore.active) {
-    const item = appStore.active.items.find(i => i.link_to === props.doctype)
-    if (item) return item.label
-  }
 
   return props.doctype
 })
@@ -65,7 +67,8 @@ const items = computed(() => {
     result.push({
       label: doctypeLabel.value,
       icon: doctypeIcon.value,
-      route: props.docId ? `/${props.workspaceName}/${props.doctype}` : undefined,
+      // Link back to the list whenever the DocType crumb is not the current page.
+      route: props.docId || props.isNew ? `/${props.workspaceName}/${props.doctype}` : undefined,
       title: doctypeDescription.value,
     })
   }
@@ -75,6 +78,8 @@ const items = computed(() => {
       label,
       title: label !== String(props.docId) ? String(props.docId) : undefined,
     })
+  } else if (props.isNew && props.doctype) {
+    result.push({ label: props.docLabel?.trim() || t('New') })
   }
   return result
 })
