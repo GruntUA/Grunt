@@ -74,18 +74,14 @@ const STATIC_FONT_FAMILIES = [
   { label: 'Verdana', value: 'Verdana, sans-serif' },
 ]
 
-const STATIC_FONT_SIZES = [
-  { label: '10', value: '10px' },
-  { label: '12', value: '12px' },
-  { label: '14', value: '14px' },
-  { label: '16', value: '16px' },
-  { label: '18', value: '18px' },
-  { label: '20', value: '20px' },
-  { label: '24', value: '24px' },
-  { label: '28', value: '28px' },
-  { label: '36', value: '36px' },
-  { label: '48', value: '48px' },
-]
+// Document style targets print (the OutgoingLetter format lays the body out in
+// pt), so its size presets are in pt — «14» means 14pt, as in Word. Inline /
+// web rich text keeps px.
+const FONT_SIZE_UNIT = isDocumentStyle ? 'pt' : 'px'
+const STATIC_FONT_SIZES = [10, 12, 14, 16, 18, 20, 24, 28, 36, 48].map((n) => ({
+  label: String(n),
+  value: `${n}${FONT_SIZE_UNIT}`,
+}))
 
 const currentFontFamily = ref<string>(FONT_DEFAULT)
 const currentFontSize = ref<string>(FONT_DEFAULT)
@@ -121,7 +117,10 @@ function updateFormatState() {
   if (el) {
     const cs = getComputedStyle(el)
     effFamily = cs.fontFamily.split(',')[0]?.trim().replace(/^["']|["']$/g, '') || ''
-    effSize = String(Math.round(parseFloat(cs.fontSize) || 0))
+    // getComputedStyle always reports px; document presets are pt, so convert
+    // before matching a preset label.
+    const px = parseFloat(cs.fontSize) || 0
+    effSize = String(Math.round(isDocumentStyle ? (px * 72) / 96 : px))
   }
   // Reflect the effective font in the selects when it matches one of the
   // presets (e.g. Times New Roman inherited from .richtext-document), even
@@ -664,7 +663,7 @@ const doOutdent = () => (editor.value?.commands as any)?.outdent?.()
    field.options === 'document'. */
 .richtext-content.richtext-document .tiptap {
   font-family: 'Times New Roman', Times, serif;
-  font-size: 1rem;
+  font-size: 14pt; /* matches the OutgoingLetter print format body */
 }
 .richtext-content.richtext-document .tiptap p {
   text-align: justify;
