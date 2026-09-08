@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{{ title }}{% if doc_title %} — {{ doc_title }}{% endif %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #dc2626;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        .topbar {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            font-size: 0.875rem;
+        }
+        .topbar img { height: 1.75rem; }
+        .topbar .brand { font-weight: 600; }
+        .topbar .sep { color: var(--border); }
+        .topbar .mode { color: var(--muted); }
+        .wrap { max-width: 48rem; margin: 0 auto; padding: 2.5rem 1rem; }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+        }
+        .doc-head { padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+        .doc-head .kind {
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+            margin-bottom: 0.25rem;
+        }
+        .doc-head h1 { font-size: 1.5rem; font-weight: 600; }
+        .doc-head .expiry { margin-top: 0.5rem; font-size: 0.8125rem; color: var(--muted); }
+        .fields-title {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+        }
+        .row {
+            display: grid;
+            grid-template-columns: 11.25rem 1fr;
+            gap: 1rem;
+            padding: 0.875rem 1.5rem;
+        }
+        .row + .row { border-top: 1px solid var(--border); }
+        .row .label { color: var(--muted); font-weight: 500; }
+        .row .value.multiline { white-space: pre-wrap; }
+        .footnote { text-align: center; color: var(--muted); font-size: 0.8125rem; margin-top: 1.5rem; }
+        .error { text-align: center; padding: 6rem 1rem; }
+        .error .icon {
+            width: 4rem; height: 4rem; margin: 0 auto 1rem;
+            border-radius: 9999px;
+            background: rgb(220 38 38 / 0.1);
+            color: var(--danger);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.75rem; font-weight: 700;
+        }
+        .error p { font-size: 1.125rem; font-weight: 600; }
+        .error .hint { margin-top: 0.5rem; font-size: 0.9375rem; font-weight: 400; color: var(--muted); }
+        @media (max-width: 40rem) {
+            .row { grid-template-columns: 1fr; gap: 0.25rem; }
+        }
+    </style>
+</head>
+<body>
+    {% set site_name = (website_settings and website_settings.site_name) or "Ґрунт" %}
+    <header class="topbar">
+        {% if website_settings and website_settings.brand_logo %}
+            <img src="{{ website_settings.brand_logo }}" alt="{{ site_name }}">
+        {% endif %}
+        <span class="brand">{{ site_name }}</span>
+        <span class="sep">·</span>
+        <span class="mode">Перегляд документа</span>
+    </header>
+
+    <main class="wrap">
+        {% if error or not share %}
+            <div class="error">
+                <div class="icon">!</div>
+                <p>{{ error or "Посилання недоступне" }}</p>
+                <p class="hint">Зверніться до власника документа за новим посиланням.</p>
+            </div>
+        {% else %}
+            <div class="card doc-head">
+                <p class="kind">{{ share.doctype_label }}</p>
+                <h1>{{ doc_title }}</h1>
+                {% if expires_display %}
+                    <p class="expiry">Дійсно до {{ expires_display }}</p>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <div class="fields-title">Дані документа</div>
+                {% for row in rows %}
+                    <div class="row">
+                        <span class="label">{{ row.label }}</span>
+                        <span class="value{% if row.multiline %} multiline{% endif %}">{{ row.value }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <p class="footnote">Цей документ надано у режимі лише для читання через {{ site_name }}</p>
+        {% endif %}
+    </main>
+</body>
+</html>

@@ -188,8 +188,9 @@ async function createShare() {
     })
     const json = await resp.json()
     if (json?.data?.token) {
-      const shareHref = router.resolve({ name: 'document-share', params: { token: json.data.token } }).href
-      shareLink.value = `${window.location.origin}${shareHref}`
+      // /share/:token is a server-rendered website page (grunt/website/www/share/),
+      // not an SPA route — build the URL directly.
+      shareLink.value = `${window.location.origin}/share/${json.data.token}`
     }
   } finally {
     shareLoading.value = false
