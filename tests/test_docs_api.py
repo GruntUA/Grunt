@@ -647,7 +647,63 @@ async def test_link_search_returns_compact_items(ctx, setup_doctype):
 
     assert len(items) == 1
     assert items[0]["title"] == "Alpha Item"
-    assert items[0]["subtitle"] == items[0]["name"]
+    # The document id is never surfaced as subtitle/fields in the dropdown.
+    assert items[0]["subtitle"] is None
+    assert items[0]["fields"] == []
+    assert items[0]["name"] not in (items[0]["subtitle"], items[0]["title"])
+
+
+@pytest.mark.asyncio
+async def test_link_search_returns_all_search_fields(ctx):
+    """`fields` carries every configured search_field (label + value) minus the
+    one already shown as the title, so the dropdown can display the data the
+    user searched by."""
+    from grunt.api.v1.meta import save_doctype
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
+    from grunt.document.base import Document
+
+    await save_doctype(
+        doctype_data={
+            "name": "Correspondentish",
+            "label": "Correspondentish",
+            "module": "core",
+            "title_field": "name_full",
+            "fields": [
+                {"fieldname": "name_full", "label": "Повна назва", "fieldtype": "Data"},
+                {"fieldname": "short_name", "label": "Скорочена назва", "fieldtype": "Data"},
+                {"fieldname": "edrpou", "label": "ЄДРПОУ", "fieldtype": "Data"},
+            ],
+            "search_fields": ["name_full", "short_name", "edrpou"],
+            "__is_new": True,
+        }
+    )
+    await ctx.db._session().commit()
+
+    await ctx.new_doc(
+        "Correspondentish",
+        {
+            "name_full": "Адміністрація Держспецзв'язку України",
+            "short_name": "АДМІНІСТРАЦІЯ ДЕРЖСПЕЦЗВ'ЯЗКУ",
+            "edrpou": "34620942",
+        },
+    )
+    await ctx.db._session().commit()
+
+    async with ctx.context(ctx.db._session(), ctx._require_engine(), SYSTEM_USER):
+        items = await Document.link_search("Correspondentish", search="34620942")
+
+    assert len(items) == 1
+    item = items[0]
+    assert item["title"] == "Адміністрація Держспецзв'язку України"
+    # name_full is the title → dropped; the other two search fields remain, in order.
+    assert item["fields"] == [
+        {
+            "fieldname": "short_name",
+            "label": "Скорочена назва",
+            "value": "АДМІНІСТРАЦІЯ ДЕРЖСПЕЦЗВ'ЯЗКУ",
+        },
+        {"fieldname": "edrpou", "label": "ЄДРПОУ", "value": "34620942"},
+    ]
 
 
 @pytest.mark.asyncio

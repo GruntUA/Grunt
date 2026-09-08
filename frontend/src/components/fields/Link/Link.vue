@@ -173,7 +173,16 @@ const {
         >
           <span v-html="highlight(item.title)" />
           <span
-            v-if="item.subtitle"
+            v-if="item.fields?.length"
+            class="flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-muted-foreground"
+          >
+            <span v-for="f in item.fields" :key="f.fieldname">
+              <span class="opacity-60">{{ f.label }}:</span>
+              <span class="ml-1" v-html="highlight(f.value)" />
+            </span>
+          </span>
+          <span
+            v-else-if="item.subtitle"
             class="text-xs text-muted-foreground"
             v-html="highlight(item.subtitle)"
           />

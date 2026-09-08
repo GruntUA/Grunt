@@ -104,11 +104,19 @@ export interface ListParams {
   cursor?: string
 }
 
+export interface LinkSearchFieldValue {
+  fieldname: string
+  label: string
+  value: string
+}
+
 export interface LinkSearchItem {
   id: string
   name: string
   title: string
   subtitle: string | null
+  /** Every configured `search_field` (label + value), minus the one shown as the title. */
+  fields?: LinkSearchFieldValue[]
 }
 
 export const docsApi = {

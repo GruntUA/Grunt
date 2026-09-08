@@ -286,7 +286,16 @@ onUnmounted(() => {
           >
             <span v-html="highlight(item.title || item.name)" />
             <span
-              v-if="item.subtitle && item.subtitle !== (item.title || item.name)"
+              v-if="item.fields?.length"
+              class="flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-muted-foreground"
+            >
+              <span v-for="f in item.fields" :key="f.fieldname">
+                <span class="opacity-60">{{ f.label }}:</span>
+                <span class="ml-1" v-html="highlight(f.value)" />
+              </span>
+            </span>
+            <span
+              v-else-if="item.subtitle && item.subtitle !== (item.title || item.name)"
               class="text-xs text-muted-foreground"
               v-html="highlight(item.subtitle)"
             />

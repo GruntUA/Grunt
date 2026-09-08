@@ -6,7 +6,9 @@ Provides a dedicated search API optimised for Link field dropdowns:
   - Always searches `name` AND `title_field` (OR condition).
   - Also includes `search_fields` declared on the DocType.
   - Accepts arbitrary extra filters (from ``link_filters`` on DocField or JS).
-  - Returns a compact payload: [{id, name, title, subtitle}].
+  - Returns a compact payload: [{id, name, title, subtitle, fields}], where
+    ``fields`` carries every configured ``search_field`` (label + value) so the
+    dropdown can show the data the user searched by.
 """
 
 from __future__ import annotations
@@ -53,17 +55,24 @@ async def _identifier_search(
     return [dict(r._mapping) for r in result]
 
 
-def _doctype_fieldnames(dt: Any) -> set[str]:
-    """Collect DocType fieldnames from metadata objects or dicts."""
-    names: set[str] = {"name"}
+def _doctype_field_labels(dt: Any) -> dict[str, str]:
+    """Map DocType fieldnames → display label (falling back to the fieldname)."""
+    labels: dict[str, str] = {"name": "ID"}
     for field in list(getattr(dt, "fields", None) or []):
         if isinstance(field, dict):
             fieldname = field.get("fieldname")
+            label = field.get("label")
         else:
             fieldname = getattr(field, "fieldname", None)
+            label = getattr(field, "label", None)
         if isinstance(fieldname, str) and fieldname:
-            names.add(fieldname)
-    return names
+            labels[fieldname] = label or fieldname
+    return labels
+
+
+def _doctype_fieldnames(dt: Any) -> set[str]:
+    """Collect DocType fieldnames from metadata objects or dicts."""
+    return set(_doctype_field_labels(dt))
 
 
 class DocumentLinkRPCMixin:
@@ -124,13 +133,15 @@ class DocumentLinkRPCMixin:
                         "id": name_val,
                         "name": name_val,
                         "title": title_val,
-                        "subtitle": name_val if title_val != name_val else None,
+                        "subtitle": None,
+                        "fields": [],
                     }
                 )
             return items
 
         title_field: str = (dt.title_field or "name") if hasattr(dt, "title_field") else "name"
-        doctype_fields = _doctype_fieldnames(dt)
+        field_labels = _doctype_field_labels(dt)
+        doctype_fields = set(field_labels)
 
         # ── Columns to fetch ─────────────────────────────────────────────────
         cols_needed: list[str] = ["name"]
@@ -162,33 +173,39 @@ class DocumentLinkRPCMixin:
             name_val = str(row.get("name") or "")
             title_val = str(row.get(title_field) or name_val) if title_field else name_val
 
-            # If title_field is effectively "name", use the first search_field value
-            # as a more human-readable title when available.
-            if title_val == name_val:
-                for sf in search_fields:
-                    # Prefer resolved label for Link fields
-                    # (injected as sf__label by _resolve_link_labels)
-                    candidate = row.get(f"{sf}__label") or row.get(sf)
-                    if candidate is not None:
-                        candidate_str = str(candidate)
-                        if candidate_str:
-                            title_val = candidate_str
-                            break
-
-            subtitle_val: str | None = None
+            # Resolve a display value for every configured search_field, in the
+            # order they were declared. Link fields carry a resolved label
+            # (``sf__label``, injected by _resolve_link_labels); prefer it.
+            search_values: list[dict[str, str]] = []
             for sf in search_fields:
-                # Prefer resolved label for Link fields (injected as sf__label
-                # by _resolve_link_labels)
-                candidate = row.get(f"{sf}__label") or row.get(sf)
+                if sf not in doctype_fields:
+                    continue
+                candidate = row.get(f"{sf}__label")
+                if candidate is None:
+                    candidate = row.get(sf)
                 if candidate is None:
                     continue
-                candidate_str = str(candidate)
-                if candidate_str and candidate_str != title_val:
-                    subtitle_val = candidate_str
-                    break
-            # Fall back to name as subtitle when title differs (name is human-readable, not a UUID)
-            if subtitle_val is None and title_val != name_val:
-                subtitle_val = name_val
+                candidate_str = str(candidate).strip()
+                if not candidate_str:
+                    continue
+                search_values.append(
+                    {
+                        "fieldname": sf,
+                        "label": field_labels.get(sf, sf),
+                        "value": candidate_str,
+                    }
+                )
+
+            # If title_field is effectively "name", promote the first
+            # search_field value to a more human-readable title.
+            if title_val == name_val and search_values:
+                title_val = search_values[0]["value"]
+
+            # Everything not already shown as the title is handed to the
+            # dropdown so it can render the field the user searched by. The
+            # document id (``name``) is never surfaced here.
+            fields_out = [sv for sv in search_values if sv["value"] != title_val]
+            subtitle_val: str | None = fields_out[0]["value"] if fields_out else None
 
             items.append(
                 {
@@ -196,6 +213,7 @@ class DocumentLinkRPCMixin:
                     "name": name_val,
                     "title": title_val,
                     "subtitle": subtitle_val,
+                    "fields": fields_out,
                 }
             )
 
