@@ -72,13 +72,6 @@
       "depends_on": "eval:doc.type == 'DocType' && doc.show_count"
     },
     {
-      "fieldname": "show_new_btn",
-      "label": "Кнопка «Новий»",
-      "fieldtype": "Check",
-      "default": false,
-      "depends_on": "eval:doc.type == 'DocType'"
-    },
-    {
       "fieldname": "roles",
       "label": "Ролі (через кому)",
       "fieldtype": "Text",

@@ -80,7 +80,6 @@ def _sidebar_rows_from_items(items: list[dict[str, Any]]) -> list[dict[str, Any]
             "link_to": item.get("link_to", ""),
             "show_count": item.get("show_count", False),
             "count_filters": item.get("count_filters", ""),
-            "show_new_btn": item.get("show_new_btn", False),
             "roles": item.get("roles", ""),
         }
         for i, item in enumerate(items)
@@ -227,7 +226,6 @@ async def _auto_seed_workspace(
                 "link_to": dt.name,
                 "show_count": True,
                 "count_filters": "",
-                "show_new_btn": True,
                 "roles": "",
             }
             for seq, dt in enumerate(app_doctypes, start=1)

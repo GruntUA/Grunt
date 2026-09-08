@@ -2,10 +2,8 @@
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { WorkspaceLink } from '@/core/api/workspace'
-import { Plus } from '@lucide/vue'
 import AppIcon from '@/components/AppIcon.vue'
-import { cn } from '@/lib/utils'
-import { SidebarMenuAction, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSubButton, SidebarMenuSubItem } from '@/components/ui/sidebar'
+import { SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSubButton, SidebarMenuSubItem } from '@/components/ui/sidebar'
 
 const props = defineProps<{
   item: WorkspaceLink
@@ -15,9 +13,6 @@ const props = defineProps<{
   /** Render as a SidebarMenuSubItem (nested inside a Collapsible group) instead of a top-level SidebarMenuItem. */
   nested?: boolean
 }>()
-
-/** Hover-reveal icon button classes shared by pin/create actions in nested mode (SidebarMenuAction's own classes assume a top-level `group/menu-item`, which SidebarMenuSubItem doesn't provide). */
-const nestedActionClass = 'text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground absolute top-1/2 -translate-y-1/2 flex aspect-square w-5 items-center justify-center rounded-md p-0 outline-hidden transition-transform focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 opacity-0 group-hover/menu-sub-item:opacity-100 group-focus-within/menu-sub-item:opacity-100 md:opacity-0'
 
 const router = useRouter()
 const route = useRoute()
@@ -55,20 +50,19 @@ function navigate(e: MouseEvent) {
   if (path) router.push(path)
 }
 
-function createNew(e: Event) {
-  e.stopPropagation()
-  router.push(`/${props.workspaceName}/${props.item.link_to}/new`)
-}
-
 const displayCount = computed(() => {
-  if (!props.count || props.count <= 0) return ''
-  return props.count > 99 ? '99+' : String(props.count)
+  const n = props.count ?? 0
+  if (n <= 0) return ''
+  // Show the real grouped number below 100k, then compact it: 123 456 → "123K", 1 200 000 → "1.2M".
+  if (n < 100_000) return n.toLocaleString()
+  if (n < 1_000_000) return `${Math.round(n / 1000)}K`
+  return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`
 })
 </script>
 
 <template>
   <SidebarMenuSubItem v-if="nested">
-    <SidebarMenuSubButton as-child :is-active="isActive">
+    <SidebarMenuSubButton as-child :is-active="isActive" :class="displayCount ? 'pr-14' : undefined">
       <a
         :href="itemHref"
         :target="item.type === 'URL' ? '_blank' : undefined"
@@ -80,17 +74,16 @@ const displayCount = computed(() => {
       </a>
     </SidebarMenuSubButton>
 
-    <span v-if="displayCount" class="text-sidebar-foreground pointer-events-none absolute top-1/2 right-1 flex h-5 min-w-5 -translate-y-1/2 items-center justify-center rounded-md px-1 font-medium tabular-nums select-none">
+    <span
+      v-if="displayCount"
+      class="text-sidebar-foreground pointer-events-none absolute top-1/2 right-1 flex h-5 min-w-5 -translate-y-1/2 items-center justify-center rounded-md px-1 text-sm tabular-nums select-none group-data-[collapsible=icon]:hidden"
+    >
       {{ displayCount }}
     </span>
-
-    <button v-if="item.show_new_btn" type="button" :class="cn(nestedActionClass, 'right-7')" title="Створити новий" @click.stop="createNew">
-      <Plus />
-    </button>
   </SidebarMenuSubItem>
 
   <SidebarMenuItem v-else>
-    <SidebarMenuButton as-child :is-active="isActive" :tooltip="item.label">
+    <SidebarMenuButton as-child :is-active="isActive" :tooltip="item.label" :class="displayCount ? 'pr-14' : undefined">
       <a
         :href="itemHref"
         :target="item.type === 'URL' ? '_blank' : undefined"
@@ -102,10 +95,6 @@ const displayCount = computed(() => {
       </a>
     </SidebarMenuButton>
 
-    <SidebarMenuBadge v-if="displayCount">{{ displayCount }}</SidebarMenuBadge>
-
-    <SidebarMenuAction v-if="item.show_new_btn" show-on-hover class="right-7" title="Створити новий" @click.stop="createNew">
-      <Plus />
-    </SidebarMenuAction>
+    <SidebarMenuBadge v-if="displayCount" class="text-sm font-normal">{{ displayCount }}</SidebarMenuBadge>
   </SidebarMenuItem>
 </template>

@@ -8,6 +8,30 @@ export interface SidebarGroup {
   items: WorkspaceLink[]
 }
 
+/** Skip a sidebar-count refetch if the last successful one for this workspace is younger than this. */
+const COUNTS_TTL = 30_000
+/** Don't paint a persisted count cache older than this — stale-by-days numbers are worse than none. */
+const COUNTS_CACHE_MAX_AGE = 24 * 60 * 60 * 1000
+const COUNTS_CACHE_KEY = 'grunt:sidebar-counts'
+
+type CountsCache = Record<string, { data: Record<string, number>; ts: number }>
+
+function readCountsCache(): CountsCache {
+  try {
+    return JSON.parse(localStorage.getItem(COUNTS_CACHE_KEY) || '{}') as CountsCache
+  } catch {
+    return {}
+  }
+}
+
+function writeCountsCache(cache: CountsCache): void {
+  try {
+    localStorage.setItem(COUNTS_CACHE_KEY, JSON.stringify(cache))
+  } catch {
+    // private mode / quota exceeded — the in-memory copy still works this session
+  }
+}
+
 function buildGroups(items: WorkspaceLink[]): SidebarGroup[] {
   const groups: SidebarGroup[] = []
   let current: SidebarGroup | null = null
@@ -36,6 +60,8 @@ export const useAppStore = defineStore('app', () => {
   const counts = ref<Record<string, number>>({})
   const loading = ref(false)
   const _stale = ref(new Set<string>())
+  /** workspace name → timestamp of its last successful get_counts call */
+  const _countsFetchedAt = ref<Record<string, number>>({})
 
   function markStale(name: string) {
     _stale.value.add(name)
@@ -67,15 +93,26 @@ export const useAppStore = defineStore('app', () => {
         return
       }
     }
-    await refreshCounts()
+    // Paint cached counts instantly, then refresh in the background so the
+    // sidebar never flashes empty badges on a cold load / workspace switch.
+    const cachedCounts = readCountsCache()[name]
+    counts.value = cachedCounts && Date.now() - cachedCounts.ts < COUNTS_CACHE_MAX_AGE ? cachedCounts.data : {}
+    await refreshCounts(forceRefresh)
   }
 
-  async function refreshCounts() {
+  async function refreshCounts(force = false) {
     if (!active.value) return
+    const name = active.value.name
+    if (!force && Date.now() - (_countsFetchedAt.value[name] ?? 0) < COUNTS_TTL) return
     try {
-      counts.value = await workspaceApi.getCounts(active.value.name)
+      const fresh = await workspaceApi.getCounts(name)
+      counts.value = fresh
+      _countsFetchedAt.value[name] = Date.now()
+      const cache = readCountsCache()
+      cache[name] = { data: fresh, ts: Date.now() }
+      writeCountsCache(cache)
     } catch {
-      counts.value = {}
+      // Keep whatever we already show (cached or previous) rather than blanking every badge.
     }
   }
 

@@ -49,7 +49,6 @@ async def _workspace_to_dict(ws_data: Any) -> dict[str, Any]:
                 "icon": item_icon,
                 "link_to": link_to,
                 "show_count": item.get("show_count", False),
-                "show_new_btn": item.get("show_new_btn", False),
                 "roles": item_roles,
                 "sequence": item.get("idx", 0),
                 "is_singleton": is_singleton,

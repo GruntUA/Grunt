@@ -56,14 +56,15 @@ const _onQuickCreate = () => {
   window.dispatchEvent(new CustomEvent('toggle-search'))
   window.dispatchEvent(new CustomEvent('command-palette-open-quick-create'))
 }
+const _onRecentDocsChanged = () => appStore.refreshCounts()
 
 onMounted(() => {
-  window.addEventListener('grunt_recent_docs_changed', () => appStore.refreshCounts())
+  window.addEventListener('grunt_recent_docs_changed', _onRecentDocsChanged)
   window.addEventListener('open-quick-create', _onQuickCreate)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('grunt_recent_docs_changed', () => appStore.refreshCounts())
+  window.removeEventListener('grunt_recent_docs_changed', _onRecentDocsChanged)
   window.removeEventListener('open-quick-create', _onQuickCreate)
 })
 
@@ -124,7 +125,7 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
         </SidebarMenuItem>
         <RouterLink :to="`/app/${workspaceName}`" custom v-slot="{ navigate }">
           <SidebarItem
-            :item="{ type: 'DocType', link_to: '', label: 'Огляд', icon: 'layout-dashboard', section: '', sequence: 0, show_count: false, show_new_btn: false, roles: '' }"
+            :item="{ type: 'DocType', link_to: '', label: 'Огляд', icon: 'layout-dashboard', section: '', sequence: 0, show_count: false, roles: '' }"
             :workspace-name="workspaceName" @click="navigate" />
         </RouterLink>
       </SidebarMenu>

@@ -8,7 +8,6 @@ export interface WorkspaceLink {
   link_to: string
   show_count: boolean
   count_filters?: string
-  show_new_btn: boolean
   roles: string
   sequence: number
   is_singleton?: boolean
