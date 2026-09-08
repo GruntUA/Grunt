@@ -5,8 +5,10 @@ import { Trash2, Pencil, Loader2, CheckCircle, AlertCircle, X, Zap } from '@luci
 import type { DocField } from '@/types'
 import { getNonPhysicalTypeSet, getAsyncFieldComponent } from '@/core/fieldRegistry'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { docsApi, type DeleteImpact } from '@/core/api/docs'
 
 const props = defineProps<{
   count: number
@@ -15,10 +17,12 @@ const props = defineProps<{
   pageCount?: number
   editableFields?: DocField[]
   isSuperadmin?: boolean
+  doctype?: string
+  selectedIds?: string[]
 }>()
 
 const emit = defineEmits<{
-  (e: 'delete'): void
+  (e: 'delete', replaceWith?: string): void
   (e: 'clear'): void
   (e: 'selectAll'): void
   (e: 'update', field: string, value: unknown): void
@@ -27,6 +31,61 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const showDeleteModal = ref(false)
+
+// ── Replace-on-delete: what still references the selected rows ─────────────
+const impact = ref<DeleteImpact | null>(null)
+const impactLoading = ref(false)
+const replaceWith = ref<string>('')
+const ackDangling = ref(false)
+
+const canReplace = computed(() =>
+  !props.allSelected && !!props.doctype && (props.selectedIds?.length ?? 0) > 0,
+)
+const hasRefs = computed(() => (impact.value?.total ?? 0) > 0)
+const replaceField = computed<DocField>(() => ({
+  fieldname: 'replace_with',
+  fieldtype: 'Link',
+  label: '',
+  options: props.doctype ?? '',
+} as DocField))
+const linkComponent = computed(() => getAsyncFieldComponent('Link'))
+const replaceIsSelf = computed(
+  () => !!replaceWith.value && (props.selectedIds ?? []).includes(replaceWith.value),
+)
+const canReassign = computed(() => !!replaceWith.value && !replaceIsSelf.value)
+const canConfirmDelete = computed(
+  () => canReassign.value || !hasRefs.value || ackDangling.value,
+)
+
+function groupLine(g: DeleteImpact['groups'][number]): string {
+  const parts = [g.label]
+  if (g.field_label) parts.push(g.field_label)
+  if (g.in_child && g.parent_doctype) parts.push(`у ${g.parent_doctype}`)
+  return parts.join(' · ')
+}
+
+watch(showDeleteModal, async (open) => {
+  if (!open) {
+    impact.value = null
+    replaceWith.value = ''
+    ackDangling.value = false
+    return
+  }
+  if (!canReplace.value) return
+  impactLoading.value = true
+  try {
+    impact.value = await docsApi.getDeleteImpact(props.doctype!, props.selectedIds!)
+  } catch {
+    impact.value = null
+  } finally {
+    impactLoading.value = false
+  }
+})
+
+function confirmDelete() {
+  showDeleteModal.value = false
+  emit('delete', canReassign.value ? replaceWith.value : undefined)
+}
 const showFastDeleteModal = ref(false)
 const showUpdateModal = ref(false)
 const updateField = ref('')
@@ -167,17 +226,56 @@ async function submitUpdate() {
       </div>
     </DialogHeader>
 
-    <div class="py-2">
+    <div class="py-2 flex flex-col gap-3">
       <p class="text-muted-foreground leading-relaxed">
         Ви збираєтесь видалити <span class="font-semibold text-foreground">{{ displayCount }}</span> записів.
-        Цю дію неможливо буде скасувати. Ви впевнені?
+        Цю дію неможливо буде скасувати.
       </p>
+
+      <div v-if="impactLoading" class="flex items-center gap-2 text-muted-foreground">
+        <Loader2 class="size-4 animate-spin" /> Перевірка посилань…
+      </div>
+
+      <template v-else-if="canReplace && hasRefs">
+        <p class="text-muted-foreground">
+          На виділені записи посилаються інші документи
+          (<span class="font-semibold text-foreground">{{ impact!.total }}</span>).
+        </p>
+        <ul class="max-h-32 overflow-y-auto rounded-md border border-border/60 bg-muted/30 divide-y divide-border/50">
+          <li v-for="g in impact!.groups" :key="`${g.doctype}-${g.field}`"
+            class="flex items-center justify-between gap-3 px-3 py-1.5">
+            <span class="truncate">{{ groupLine(g) }}</span>
+            <span class="shrink-0 tabular-nums font-semibold text-muted-foreground">{{ g.count }}</span>
+          </li>
+        </ul>
+        <div class="flex flex-col gap-1.5">
+          <label class="font-medium">Підставити замість видалених</label>
+          <component
+            :is="linkComponent"
+            :field="replaceField"
+            :model-value="replaceWith"
+            @update:model-value="replaceWith = ($event as string) ?? ''"
+          />
+          <p v-if="replaceIsSelf" class="text-destructive">
+            Заміна не може бути одним із записів, що видаляються.
+          </p>
+        </div>
+        <label v-if="!canReassign" class="flex items-start gap-2 cursor-pointer">
+          <Checkbox :model-value="ackDangling" class="mt-0.5"
+            @update:model-value="ackDangling = $event === true" />
+          <span class="text-muted-foreground">
+            Видалити без заміни — {{ impact!.total }} посилань стануть недійсними.
+          </span>
+        </label>
+      </template>
     </div>
 
     <DialogFooter>
       <div class="flex gap-2 w-full pt-2">
         <Button variant="outline" class="flex-1" @click="showDeleteModal = false">{{ t('Cancel') }}</Button>
-        <Button variant="destructive" class="flex-1" @click="showDeleteModal = false; emit('delete')">{{ t('Delete') }}</Button>
+        <Button variant="destructive" class="flex-1" :disabled="!canConfirmDelete" @click="confirmDelete">
+          {{ canReassign ? 'Видалити і перепризначити' : t('Delete') }}
+        </Button>
       </div>
     </DialogFooter>
     </DialogContent>

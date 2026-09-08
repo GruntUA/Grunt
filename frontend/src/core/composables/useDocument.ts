@@ -43,7 +43,7 @@ export function useDocument(doctype: string, id: string | null) {
   })
 
   const { mutateAsync: remove } = useMutation({
-    mutationFn: () => docsApi.delete(doctype, id!),
+    mutationFn: (replaceWith?: string) => docsApi.delete(doctype, id!, replaceWith),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents', doctype] })
     }

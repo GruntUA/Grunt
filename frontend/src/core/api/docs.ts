@@ -31,6 +31,20 @@ export interface BacklinkItem {
   link_fieldname: string
 }
 
+export interface DeleteImpactGroup {
+  doctype: string | null
+  label: string
+  field: string | null
+  field_label: string | null
+  count: number
+  in_child: boolean
+  parent_doctype: string | null
+}
+export interface DeleteImpact {
+  total: number
+  groups: DeleteImpactGroup[]
+}
+
 export interface SidebarAssignee {
   name: string
   assigned_to: string
@@ -188,20 +202,28 @@ export const docsApi = {
     client.put(`/api/v1/docs/${doctype}/${id}`, data)
       .then(r => r.data.data as T),
 
-  delete: (doctype: string, id: string) =>
-    client.delete(`/api/v1/docs/${doctype}/${id}`),
+  delete: (doctype: string, id: string, replaceWith?: string) =>
+    client.delete(`/api/v1/docs/${doctype}/${id}`, {
+      params: replaceWith ? { replace_with: replaceWith } : undefined,
+    }),
 
   bulkDelete: (
     doctype: string,
     ids: string[],
-    options?: { deleteAll?: boolean; rawFilters?: Record<string, string>; search?: string; fast?: boolean }
+    options?: { deleteAll?: boolean; rawFilters?: Record<string, string>; search?: string; fast?: boolean; replaceWith?: string }
   ): Promise<{ started: boolean; total: number }> => {
     const body = options?.deleteAll
       ? { doctype, delete_all: true, filters: options.rawFilters ?? {}, search: options.search ?? null, fast: options.fast ?? false }
-      : { doctype, ids }
+      : { doctype, ids, replace_with: options?.replaceWith ?? null }
     return client.post('/api/v1/method/grunt.api.v1.docs.crud.bulk_delete', body)
       .then(r => r.data.data)
   },
+
+  /** What still references these documents — the impact of deleting them. */
+  getDeleteImpact: (doctype: string, ids: string[]): Promise<DeleteImpact> =>
+    client.post('/api/v1/method/grunt.document.base.Document.get_delete_impact', {
+      doctype, doc_ids: ids,
+    }).then(r => r.data.data),
 
   getTransitions: (doctype: string, id: string): Promise<{ data: WorkflowTransitionItem[] }> =>
     client.get('/api/v1/method/grunt.document.base.Document.get_workflow_transitions', {

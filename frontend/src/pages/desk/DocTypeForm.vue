@@ -231,8 +231,8 @@ const initials = (email: string) => email.slice(0, 2).toUpperCase()
       mode="link" @close="closeQuickEntry" @saved="onQuickEntrySaved" />
 
     <!-- Modals -->
-    <FormModals v-model:show-delete="showDeleteModal" v-model:show-leave="showLeaveModal" @confirm-delete="handleDelete"
-      @confirm-leave="confirmLeave" @cancel-leave="cancelLeave" />
+    <FormModals v-model:show-delete="showDeleteModal" v-model:show-leave="showLeaveModal" :doctype="doctype"
+      :doc-id="id" @confirm-delete="handleDelete" @confirm-leave="confirmLeave" @cancel-leave="cancelLeave" />
   </div>
 </template>
 

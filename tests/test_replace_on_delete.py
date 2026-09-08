@@ -131,6 +131,21 @@ async def test_get_delete_impact_counts(ctx, rpl_doctypes):
     assert by_key[("RplLine", "ref")]["parent_doctype"] == "RplSource"
 
 
+async def test_get_delete_impact_rpc(ctx, rpl_doctypes):
+    """The whitelisted RPC wrapper does its own per-id permission check."""
+    from grunt.document.base import Document
+
+    a = await ctx.new_doc("RplTarget", {"title": "A"})
+    await ctx.new_doc("RplSource", {"ref": a["name"]})
+    await ctx.db._session().commit()
+
+    impact = await Document.get_delete_impact("RplTarget", doc_id=a["name"])
+    assert impact["total"] == 1
+
+    impact = await Document.get_delete_impact("RplTarget", doc_ids=[a["name"]])
+    assert impact["total"] == 1
+
+
 async def test_bulk_delete_with_replacement(ctx, rpl_doctypes):
     from grunt.auth.doctypes.User.user import SYSTEM_USER
 

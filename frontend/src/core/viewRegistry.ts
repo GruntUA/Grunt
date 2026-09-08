@@ -59,7 +59,7 @@ export interface ViewEmit {
   sort(key: string): void
   rowClick(row: Record<string, unknown>): void
   inlineUpdate(rowId: string, field: string, value: string): void
-  delete(): void
+  delete(replaceWith?: string): void
   fastDelete(): void
   clear(): void
   selectAll(): void

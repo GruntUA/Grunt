@@ -25,7 +25,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  delete: []
+  delete: [replaceWith?: string]
   clear: []
   selectAll: []
   update: [field: string, value: unknown]
@@ -40,7 +40,9 @@ const emit = defineEmits<{
     :all-selected="selection.allSelected"
     :page-count="rows.length"
     :editable-fields="editableFields"
-    @delete="emit('delete')"
+    :doctype="doctype"
+    :selected-ids="selection.selectedIds"
+    @delete="(rw) => emit('delete', rw)"
     @clear="emit('clear')"
     @select-all="emit('selectAll')"
     @update="(field, value) => emit('update', field, value)"

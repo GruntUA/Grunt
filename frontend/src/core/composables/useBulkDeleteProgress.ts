@@ -67,7 +67,7 @@ export function useBulkDeleteProgress(params: UseBulkDeleteProgressParams) {
   }
 
   /** Normal bulk delete — respects lifecycle hooks, streams batch progress. */
-  async function bulkDelete() {
+  async function bulkDelete(replaceWith?: string) {
     const ids = params.allSelected.value ? [] : params.selectedIds.value
     if (!params.allSelected.value && !ids.length) return
 
@@ -82,7 +82,7 @@ export function useBulkDeleteProgress(params: UseBulkDeleteProgressParams) {
           search: params.debouncedSearch.value || undefined,
         })
       } else {
-        await docsApi.bulkDelete(params.doctype, ids)
+        await docsApi.bulkDelete(params.doctype, ids, { replaceWith })
       }
     } catch {
       unsubscribe()

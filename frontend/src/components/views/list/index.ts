@@ -38,7 +38,7 @@ const def: ViewDefinition = {
     onRowClick: (row: unknown) => ctx.emit.rowClick(row as Record<string, unknown>),
     onInlineUpdate: (rowId: unknown, field: unknown, value: unknown) =>
       ctx.emit.inlineUpdate(rowId as string, field as string, value as string),
-    onDelete: () => ctx.emit.delete(),
+    onDelete: (replaceWith: unknown) => ctx.emit.delete(replaceWith as string | undefined),
     onFastDelete: () => ctx.emit.fastDelete(),
     onClear: () => ctx.emit.clear(),
     onSelectAll: () => ctx.emit.selectAll(),

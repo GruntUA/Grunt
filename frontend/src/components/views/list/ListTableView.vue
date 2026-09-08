@@ -48,7 +48,7 @@ const emit = defineEmits<{
   'sort': [key: string]
   'row-click': [row: Record<string, unknown>]
   'inline-update': [rowId: string, field: string, value: string]
-  'delete': []
+  'delete': [replaceWith?: string]
   'fast-delete': []
   'clear': []
   'select-all': []
@@ -95,7 +95,9 @@ watch(() => sentinelEl.value, setupObserver)
       :page-count="rows?.length || 0"
       :editable-fields="dt?.fields"
       :is-superadmin="isSuperadmin"
-      @delete="emit('delete')"
+      :doctype="doctype"
+      :selected-ids="selection.selectedIds"
+      @delete="(rw) => emit('delete', rw)"
       @fast-delete="emit('fast-delete')"
       @clear="emit('clear')"
       @select-all="emit('select-all')"

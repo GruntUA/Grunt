@@ -31,7 +31,7 @@ const def: ViewDefinition = {
   }),
 
   mountEvents: (ctx) => ({
-    onDelete: () => ctx.emit.delete(),
+    onDelete: (replaceWith: unknown) => ctx.emit.delete(replaceWith as string | undefined),
     onClear: () => ctx.emit.clear(),
     onSelectAll: () => ctx.emit.selectAll(),
     onUpdate: (field: unknown, value: unknown) =>

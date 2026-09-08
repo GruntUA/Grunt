@@ -46,7 +46,7 @@ const emit = defineEmits<{
   sort: [key: string]
   'row-click': [row: Record<string, unknown>]
   'inline-update': [rowId: string, field: string, value: string]
-  delete: []
+  delete: [replaceWith?: string]
   'fast-delete': []
   clear: []
   'select-all': []
@@ -107,7 +107,7 @@ const ctx = computed((): ViewContext => ({
     sort: (key) => emit('sort', key),
     rowClick: (row) => emit('row-click', row),
     inlineUpdate: (id, field, value) => emit('inline-update', id, field, value),
-    delete: () => emit('delete'),
+    delete: (replaceWith) => emit('delete', replaceWith),
     fastDelete: () => emit('fast-delete'),
     clear: () => emit('clear'),
     selectAll: () => emit('select-all'),

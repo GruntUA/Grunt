@@ -10,7 +10,7 @@ interface UseFormActionsParams {
   form: Ref<Record<string, unknown>>
   showDeleteModal: Ref<boolean>
   showVersions: Ref<boolean>
-  remove: () => Promise<unknown>
+  remove: (replaceWith?: string) => Promise<unknown>
   goToList: () => void
   markAllowLeave: () => void
   router: Router
@@ -37,9 +37,9 @@ export function useFormActions(params: UseFormActionsParams) {
     params.showVersions.value = false
   }
 
-  async function handleDelete() {
+  async function handleDelete(replaceWith?: string) {
     try {
-      await params.remove()
+      await params.remove(replaceWith)
       params.toast.success('Видалено')
       params.queryClient.invalidateQueries({ queryKey: ['documents', params.doctype] })
       params.goToList()
