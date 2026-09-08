@@ -13,8 +13,14 @@ SHARE_PAGE_DOCTYPE = {
     "label": "Share Page Thing",
     "module": "core",
     "fields": [
+        {"fieldname": "main_tab", "label": "Overview", "fieldtype": "Tab"},
+        {"fieldname": "sec_a", "label": "Summary", "fieldtype": "Section"},
         {"fieldname": "title", "label": "Title", "fieldtype": "Text"},
+        {"fieldname": "col_b", "fieldtype": "Column"},
+        {"fieldname": "photo", "label": "Photo", "fieldtype": "Image"},
+        {"fieldname": "details_tab", "label": "Details", "fieldtype": "Tab"},
         {"fieldname": "notes", "label": "Notes", "fieldtype": "Text"},
+        {"fieldname": "secret", "label": "Secret", "fieldtype": "Text", "hidden": True},
     ],
     "permissions": [
         {"role": "System Manager", "read": True, "write": True, "create": True},
@@ -33,7 +39,13 @@ async def _share_page_doctype(ctx):
 @pytest.mark.asyncio
 async def test_share_page_renders_document(ctx, _share_page_doctype, client):
     thing = await ctx.new_doc(
-        "SharePageThing", {"title": "Quarterly report", "notes": "line 1\nline 2"}
+        "SharePageThing",
+        {
+            "title": "Quarterly report",
+            "notes": "line 1\nline 2",
+            "photo": "/api/v1/files/cover.png",
+            "secret": "classified",
+        },
     )
     share = await ctx.new_doc(
         "DocumentShare",
@@ -45,9 +57,16 @@ async def test_share_page_renders_document(ctx, _share_page_doctype, client):
 
     assert resp.status_code == 200
     body = resp.text
-    assert "Share Page Thing" in body  # doctype label
+    assert "Share Page Thing" in body  # doctype label / kicker
     assert "Quarterly report" in body  # a field value
-    assert "Дані документа" in body  # template chrome
+    assert "Про документ" in body  # sidebar heading
+    # the target DocType's own layout is reproduced: tab + section labels
+    assert 'for="tab-0"' in body and "Overview" in body and "Details" in body
+    assert "Summary" in body  # section heading
+    # an Image field renders as a picture, not its raw path
+    assert '<img src="/api/v1/files/cover.png"' in body
+    # hidden fields never reach the public page
+    assert "classified" not in body
 
 
 @pytest.mark.asyncio

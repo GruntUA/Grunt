@@ -11,7 +11,7 @@
     <style>
         :root {
             --primary: #4f46e5;
-            --bg: #f8fafc;
+            --bg: #f1f5f9;
             --card: #ffffff;
             --text: #1e293b;
             --muted: #64748b;
@@ -39,53 +39,95 @@
         .topbar .brand { font-weight: 600; }
         .topbar .sep { color: var(--border); }
         .topbar .mode { color: var(--muted); }
-        .wrap { max-width: 48rem; margin: 0 auto; padding: 2.5rem 1rem; }
+
+        .page { max-width: 64rem; margin: 0 auto; padding: 2rem 1rem 3rem; }
+        .layout { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+        @media (min-width: 56rem) { .layout { grid-template-columns: minmax(0, 1fr) 16rem; } }
+
         .card {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
         }
-        .doc-head { padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+        .doc-head { padding: 1.25rem 1.5rem; }
         .doc-head .kind {
-            font-size: 0.75rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--muted);
-            margin-bottom: 0.25rem;
+            font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em;
+            text-transform: uppercase; color: var(--muted); margin-bottom: 0.25rem;
         }
-        .doc-head h1 { font-size: 1.5rem; font-weight: 600; }
-        .doc-head .expiry { margin-top: 0.5rem; font-size: 0.8125rem; color: var(--muted); }
-        .fields-title {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border);
-            font-weight: 600;
+        .doc-head h1 { font-size: 1.375rem; font-weight: 600; }
+
+        .form { margin-top: 1.25rem; overflow: hidden; }
+
+        /* Tabs (no-JS radio switch) */
+        .tabs > input { position: absolute; opacity: 0; pointer-events: none; }
+        .tabnav {
+            display: flex; flex-wrap: wrap; gap: 0.25rem;
+            padding: 0 1rem; border-bottom: 1px solid var(--border);
         }
-        .row {
-            display: grid;
-            grid-template-columns: 11.25rem 1fr;
-            gap: 1rem;
-            padding: 0.875rem 1.5rem;
+        .tabnav label {
+            padding: 0.75rem 0.875rem; font-size: 0.875rem; font-weight: 500;
+            color: var(--muted); cursor: pointer;
+            border-bottom: 2px solid transparent; margin-bottom: -1px;
         }
-        .row + .row { border-top: 1px solid var(--border); }
-        .row .label { color: var(--muted); font-weight: 500; }
-        .row .value.multiline { white-space: pre-wrap; }
-        .footnote { text-align: center; color: var(--muted); font-size: 0.8125rem; margin-top: 1.5rem; }
+        .tabnav label:hover { color: var(--text); }
+        .tabpanel { display: none; padding: 1.25rem 1.5rem; }
+        {% for i in range(tabs | length) %}
+        #tab-{{ i }}:checked ~ .tabpanels > .tabpanel:nth-of-type({{ i + 1 }}) { display: block; }
+        #tab-{{ i }}:checked ~ .tabnav > label[for="tab-{{ i }}"] { color: var(--primary); border-bottom-color: var(--primary); }
+        {% endfor %}
+
+        .section { padding: 1.25rem 1.5rem; }
+        .section + .section { border-top: 1px solid var(--border); }
+        .section > h2 {
+            font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em;
+            text-transform: uppercase; color: var(--muted); margin-bottom: 0.875rem;
+        }
+        .cols { display: grid; gap: 1.25rem 2rem; }
+        .cols.c2 { grid-template-columns: 1fr; }
+        @media (min-width: 40rem) { .cols.c2 { grid-template-columns: 1fr 1fr; } }
+        .cols.c3 { grid-template-columns: 1fr; }
+        @media (min-width: 48rem) { .cols.c3 { grid-template-columns: repeat(3, 1fr); } }
+
+        .field { min-width: 0; }
+        .field + .field { margin-top: 1rem; }
+        .field .label {
+            display: block; font-size: 0.75rem; font-weight: 500;
+            color: var(--muted); margin-bottom: 0.1875rem;
+        }
+        .field .value { font-size: 0.9375rem; word-wrap: break-word; }
+        .field .value.multiline { white-space: pre-wrap; }
+        .field .value img {
+            max-width: 100%; max-height: 20rem;
+            border-radius: 0.375rem; border: 1px solid var(--border);
+        }
+        .field .desc { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
+
+        /* Sidebar */
+        .side { align-self: start; }
+        @media (min-width: 56rem) { .side { position: sticky; top: 1.5rem; } }
+        .side .card { padding: 1rem 1.125rem; }
+        .side h3 {
+            font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em;
+            text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem;
+        }
+        .side dl { display: grid; gap: 0.75rem; }
+        .side dt { font-size: 0.75rem; color: var(--muted); }
+        .side dd { font-size: 0.875rem; word-wrap: break-word; }
+        .side .foot {
+            margin-top: 0.875rem; padding-top: 0.875rem; border-top: 1px solid var(--border);
+            font-size: 0.75rem; color: var(--muted);
+        }
+
         .error { text-align: center; padding: 6rem 1rem; }
         .error .icon {
-            width: 4rem; height: 4rem; margin: 0 auto 1rem;
-            border-radius: 9999px;
-            background: rgb(220 38 38 / 0.1);
-            color: var(--danger);
+            width: 4rem; height: 4rem; margin: 0 auto 1rem; border-radius: 9999px;
+            background: rgb(220 38 38 / 0.1); color: var(--danger);
             display: flex; align-items: center; justify-content: center;
             font-size: 1.75rem; font-weight: 700;
         }
         .error p { font-size: 1.125rem; font-weight: 600; }
         .error .hint { margin-top: 0.5rem; font-size: 0.9375rem; font-weight: 400; color: var(--muted); }
-        @media (max-width: 40rem) {
-            .row { grid-template-columns: 1fr; gap: 0.25rem; }
-        }
     </style>
 </head>
 <body>
@@ -99,33 +141,85 @@
         <span class="mode">Перегляд документа</span>
     </header>
 
-    <main class="wrap">
+    {% macro render_section(section) %}
+        <div class="section">
+            {% if section.label %}<h2>{{ section.label }}</h2>{% endif %}
+            <div class="cols c{{ section.cols | length if section.cols | length <= 3 else 3 }}">
+                {% for col in section.cols %}
+                    <div class="col">
+                        {% for f in col %}
+                            <div class="field">
+                                <span class="label">{{ f.label }}</span>
+                                {% if f.image_url %}
+                                    <span class="value"><img src="{{ f.image_url }}" alt="{{ f.label }}" loading="lazy"></span>
+                                {% else %}
+                                    <span class="value{% if f.multiline %} multiline{% endif %}">{{ f.value }}</span>
+                                {% endif %}
+                                {% if f.description %}<span class="desc">{{ f.description }}</span>{% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endmacro %}
+
+    <main class="page">
         {% if error or not share %}
-            <div class="error">
+            <div class="card error">
                 <div class="icon">!</div>
                 <p>{{ error or "Посилання недоступне" }}</p>
                 <p class="hint">Зверніться до власника документа за новим посиланням.</p>
             </div>
         {% else %}
-            <div class="card doc-head">
-                <p class="kind">{{ share.doctype_label }}</p>
-                <h1>{{ doc_title }}</h1>
-                {% if expires_display %}
-                    <p class="expiry">Дійсно до {{ expires_display }}</p>
-                {% endif %}
-            </div>
-
-            <div class="card">
-                <div class="fields-title">Дані документа</div>
-                {% for row in rows %}
-                    <div class="row">
-                        <span class="label">{{ row.label }}</span>
-                        <span class="value{% if row.multiline %} multiline{% endif %}">{{ row.value }}</span>
+            <div class="layout">
+                <div class="main">
+                    <div class="card doc-head">
+                        <p class="kind">{{ share.doctype_label }}</p>
+                        <h1>{{ doc_title }}</h1>
                     </div>
-                {% endfor %}
-            </div>
 
-            <p class="footnote">Цей документ надано у режимі лише для читання через {{ site_name }}</p>
+                    <div class="card form">
+                        {% if tabs | length > 1 %}
+                            <div class="tabs">
+                                {% for tab in tabs %}
+                                    <input type="radio" name="share-tab" id="tab-{{ loop.index0 }}"
+                                           {% if loop.first %}checked{% endif %}>
+                                {% endfor %}
+                                <nav class="tabnav">
+                                    {% for tab in tabs %}
+                                        <label for="tab-{{ loop.index0 }}">{{ tab.label or "Розділ %d" % loop.index }}</label>
+                                    {% endfor %}
+                                </nav>
+                                <div class="tabpanels">
+                                    {% for tab in tabs %}
+                                        <div class="tabpanel">
+                                            {% for section in tab.sections %}{{ render_section(section) }}{% endfor %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% else %}
+                            {% for section in tabs[0].sections %}{{ render_section(section) }}{% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <aside class="side">
+                    <div class="card">
+                        <h3>Про документ</h3>
+                        <dl>
+                            {% for item in meta %}
+                                <div>
+                                    <dt>{{ item.label }}</dt>
+                                    <dd>{{ item.value }}</dd>
+                                </div>
+                            {% endfor %}
+                        </dl>
+                        <p class="foot">Лише для читання · {{ site_name }}</p>
+                    </div>
+                </aside>
+            </div>
         {% endif %}
     </main>
 </body>
