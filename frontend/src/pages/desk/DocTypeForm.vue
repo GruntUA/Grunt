@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { setPageTitle } from '@/core/composables/usePageTitle'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useToast } from '@/core/composables/useToast'
 import { useFormController } from '@/core/composables/useFormController'
@@ -76,6 +77,18 @@ const {
     onLoaded: (payload) => emit('loaded', payload),
     onNotFound: (payload) => emit('notfound', payload),
   },
+)
+
+// Browser-tab title: the document's own title (falls back to its id), with the
+// DocType label appended; "New <label>" while creating.
+watch(
+  [docTitle, dt, () => props.id],
+  () => {
+    const label = dt.value?.label || props.doctype
+    const name = props.id ? (docTitle.value || props.id) : t('New')
+    setPageTitle(name && name !== label ? `${name} · ${label}` : label)
+  },
+  { immediate: true },
 )
 
 // Sidebar visibility: a client script (`frm.hide_sidebar()` / `frm.toggle_sidebar()`)

@@ -27,6 +27,7 @@ import type { DocType, QuickFilter } from '@/types'
 import { getRegisteredViews } from '@/core/viewRegistry'
 import { useDialog } from '@/core/composables/useDialog'
 import { useToast } from '@/core/composables/useToast'
+import { setPageTitle } from '@/core/composables/usePageTitle'
 
 // Shared UI components
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
@@ -287,6 +288,7 @@ function navigateToDoc(row: Record<string, unknown>) {
 
 watch(() => props.doctype, async (newDoctype) => {
   dt.value = await dtStore.get(newDoctype)
+  setPageTitle(dt.value?.label || newDoctype)
   if (dt.value?.is_singleton) {
     router.replace(`/${props.workspace ?? 'grunt'}/${newDoctype}/${newDoctype}`)
     return

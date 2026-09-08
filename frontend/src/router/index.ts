@@ -1,6 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { loadSiteConfig, siteConfigState } from '@/core/composables/useSiteConfig'
+import { loadSiteConfig } from '@/core/composables/useSiteConfig'
+import { setPageTitle } from '@/core/composables/usePageTitle'
+import { i18n } from '@/plugins/i18n'
 
 const router = createRouter({
   history: createWebHistory('/'),
@@ -201,8 +203,47 @@ router.beforeEach(async (to) => {
   return true
 })
 
-router.afterEach(() => {
-  document.title = siteConfigState().appName || 'Ґрунт'
+/**
+ * Param-derived default tab title, applied on every navigation. Pages that load
+ * richer data (a document title, a DocType/Page/Report label) refine this by
+ * calling `setPageTitle()` after their data resolves.
+ */
+function routeTitle(to: RouteLocationNormalized): string {
+  const t = i18n.global.t
+  // Route params can be `string | string[]` (repeatable segments) — flatten.
+  const s = (v: unknown): string => (Array.isArray(v) ? v.join('/') : String(v ?? ''))
+  const p = to.params
+  const q = to.query as Record<string, unknown>
+  switch (to.name) {
+    case 'login': return t('Sign in')
+    case 'register': return t('Sign up')
+    case 'forgot-password': return t('Reset password')
+    case 'reset-password': return t('Reset password')
+    case 'mfa-verify': return t('Two-factor authentication')
+    case 'setup-wizard': return t('Setup')
+    case 'desk': return t('Home')
+    case 'forbidden': return t('Access denied')
+    case 'not-found': return t('Page not found')
+    case 'file-manager': return t('Files')
+    case 'workspace-search': {
+      const term = String(q.q ?? '').trim()
+      return term ? `${t('Search')}: ${term}` : t('Search')
+    }
+    case 'workspace-home': return s(p.workspaceName)
+    case 'workspace-new': return p.doctype ? `${t('New')} ${s(p.doctype)}` : ''
+    case 'workspace-form': return s(p.id) || s(p.doctype)
+    case 'workspace-list': return s(p.doctype)
+    case 'workspace-page': return s(p.pageName)
+    case 'workspace-report':
+    case 'report-builder': return s(p.reportName)
+    case 'public-page': return s(p.page)
+    case 'web-form': return s(p.route)
+    default: return ''
+  }
+}
+
+router.afterEach((to) => {
+  setPageTitle(routeTitle(to))
 })
 
 export default router

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import FilterBar from '@/components/views/FilterBar.vue'
 import ReportChart from '@/components/reports/ReportChart.vue'
+import { setPageTitle } from '@/core/composables/usePageTitle'
 
 /** Frontend display operator → backend filter-key suffix (see grunt/db/api.py build_clauses). */
 const OP_SUFFIX: Record<string, string> = {
@@ -87,6 +88,7 @@ async function fetchReport() {
     try {
         // 1. Fetch metadata
         report.value = await reportsApi.get(props.reportName)
+        setPageTitle(report.value?.report_name || props.reportName)
         if (!filterFieldsLoaded) await loadFilterFields()
 
         // 2. Run report

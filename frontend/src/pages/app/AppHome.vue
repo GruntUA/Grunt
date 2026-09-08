@@ -6,6 +6,7 @@ import { docsApi } from '@/core/api/docs'
 import { getPageData } from '@/core/api/pages'
 import AppIcon from '@/components/AppIcon.vue'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
+import { setPageTitle } from '@/core/composables/usePageTitle'
 import { PanelLeft } from '@lucide/vue'
 import type { DashboardWidget } from '@/types'
 
@@ -39,6 +40,7 @@ async function init() {
   if (!appStore.active || appStore.active.name !== props.workspaceName) {
     await appStore.setActive(props.workspaceName)
   }
+  setPageTitle(appStore.active?.label || props.workspaceName)
   widgets.value = []
   widgetData.value = {}
   if (homePage.value) {

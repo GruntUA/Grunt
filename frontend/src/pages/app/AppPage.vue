@@ -12,6 +12,7 @@ import WidgetCard from '@/components/dashboard/WidgetCard.vue'
 import WidgetConfigPanel from '@/components/dashboard/WidgetConfigPanel.vue'
 import type { DashboardWidget, WidgetType } from '@/types'
 import { useToast } from '@/core/composables/useToast'
+import { setPageTitle } from '@/core/composables/usePageTitle'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 const props = defineProps<{
   workspaceName: string
@@ -92,6 +93,7 @@ async function load() {
   try {
     const doc = await docsApi.get('Page', props.pageName) as unknown as PageDoc
     page.value = { ...doc, widgets: doc.widgets ?? [] }
+    setPageTitle(page.value.label || props.pageName)
     await loadData()
   } catch (error: unknown) {
     if ((error as { response?: { status?: number } })?.response?.status === 404) {
