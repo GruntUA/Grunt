@@ -38,6 +38,22 @@ describe('builder store — field CRUD', () => {
     expect(b.selectedFieldName).toBe('heading')
   })
 
+  it('updateField retypes a field, keeping its other props and selection', () => {
+    const b = useBuilderStore()
+    b.doctype = seed([
+      { fieldname: 'amount', label: 'Amount', fieldtype: 'Data', options: 'a\nb', required: true },
+    ])
+    b.selectField('amount')
+
+    b.updateField('amount', { fieldtype: 'Int' })
+
+    expect(b.selectedField?.fieldtype).toBe('Int')
+    // no cleanup — sibling props are left intact by design
+    expect(b.selectedField?.options).toBe('a\nb')
+    expect(b.selectedField?.required).toBe(true)
+    expect(b.selectedFieldName).toBe('amount')
+  })
+
   it('removeField drops the field and clears an orphaned selection', async () => {
     const b = useBuilderStore()
     b.doctype = seed([
