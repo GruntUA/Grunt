@@ -42,15 +42,6 @@ const router = createRouter({
     },
 
 
-    // Public Web Forms (no auth required)
-    {
-      path: '/form/:route',
-      name: 'web-form',
-      component: () => import('@/pages/public/PublicWebForm.vue'),
-      meta: { public: true },
-      props: true,
-    },
-
     // Desk (app launcher)
     {
       path: '/app',
@@ -215,7 +206,6 @@ function routeTitle(to: RouteLocationNormalized): string {
     case 'workspace-page': return s(p.pageName)
     case 'workspace-report':
     case 'report-builder': return s(p.reportName)
-    case 'web-form': return s(p.route)
     default: return ''
   }
 }
