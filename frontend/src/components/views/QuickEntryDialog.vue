@@ -8,9 +8,9 @@ import { useDocument } from '@/core/composables/useDocument'
 import { useToast } from '@/core/composables/useToast'
 import FormRenderer from '@/core/renderer/FormRenderer.vue'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
-import { ExternalLink, Plus } from '@lucide/vue'
+import { ExternalLink } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const props = defineProps<{
   dt: DocType
@@ -150,63 +150,41 @@ const isVisible = ref(true)
     :open="isVisible"
     @update:open="(v: boolean) => { isVisible = v; if (!v) emit('close') }"
   >
-    <DialogContent class="max-w-4xl w-[90vw] p-0">
-    <DialogHeader class="px-8 py-4 border-b border-border/40">
-        <div class="flex items-center gap-3">
-            <div class="size-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
-                <Plus class="size-4 text-primary" />
-            </div>
-            <div class="flex flex-col">
-                <span class="font-semibold uppercase tracking-[0.2em] text-muted-foreground/60 leading-none mb-0.5">Швидке додавання</span>
-                <DialogTitle class="text-base font-semibold text-foreground tracking-tight">
-                    Новий {{ dt.label }}
-                </DialogTitle>
-            </div>
-        </div>
-    </DialogHeader>
+    <DialogContent class="sm:max-w-lg">
+      <DialogHeader>
+        <DialogTitle>Новий {{ dt.label }}</DialogTitle>
+        <DialogDescription>Швидке додавання</DialogDescription>
+      </DialogHeader>
 
-    <div class="p-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
-      <FormRenderer
-        :doctype="filteredDt"
-        :model-value="form"
-        :disabled="isSaving"
-        :errors="validationErrors"
-        @update:model-value="onFormUpdate"
-      />
-    </div>
-
-    <DialogFooter class="px-8 py-3 border-t border-border/40 bg-muted/20 flex items-center">
-      <div class="flex items-center justify-end gap-2 w-full">
-          <Button variant="ghost" size="sm" :disabled="isSaving" @click="emit('close')">
-            {{ t('Cancel') }}
-          </Button>
-
-          <!-- List mode: two action buttons -->
-          <template v-if="mode === 'list'">
-            <Button variant="outline" size="sm" :disabled="isSaving" @click="handleSave(false)" class="font-medium">
-              {{ t('Save and close') }}
-            </Button>
-            <Button size="sm" :disabled="isSaving" @click="handleSave(true)" class="font-medium">
-              <ExternalLink class="size-3.5 mr-1.5" />
-              {{ t('Save and open') }}
-            </Button>
-          </template>
-
-          <!-- Link mode: single save button -->
-          <Button v-else size="sm" :disabled="isSaving" @click="handleSave(false)" class="font-medium">
-            {{ t('Save') }}
-          </Button>
+      <div class="-mx-6 max-h-[60vh] overflow-y-auto px-6">
+        <FormRenderer
+          :doctype="filteredDt"
+          :model-value="form"
+          :disabled="isSaving"
+          :errors="validationErrors"
+          @update:model-value="onFormUpdate"
+        />
       </div>
-    </DialogFooter>
+
+      <DialogFooter>
+        <Button variant="outline" :disabled="isSaving" @click="emit('close')">
+          {{ t('Cancel') }}
+        </Button>
+
+        <template v-if="mode === 'list'">
+          <Button variant="secondary" :disabled="isSaving" @click="handleSave(false)">
+            {{ t('Save and close') }}
+          </Button>
+          <Button :disabled="isSaving" @click="handleSave(true)">
+            <ExternalLink class="size-4" />
+            {{ t('Save and open') }}
+          </Button>
+        </template>
+
+        <Button v-else :disabled="isSaving" @click="handleSave(false)">
+          {{ t('Save') }}
+        </Button>
+      </DialogFooter>
     </DialogContent>
   </Dialog>
 </template>
-
-<style scoped>
-.custom-scrollbar::-webkit-scrollbar { width: 6px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 10px;
-}
-</style>
