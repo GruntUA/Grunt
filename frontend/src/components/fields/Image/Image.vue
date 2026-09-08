@@ -66,6 +66,7 @@ function openPicker() {
       :image-only="true"
       :attached-to-doctype="docContext?.doctype"
       :attached-to-id="docContext?.getId() ?? undefined"
+      :current-url="currentUrl"
       @select="onSelect"
     />
   </div>

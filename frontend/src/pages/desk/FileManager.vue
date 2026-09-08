@@ -1,83 +1,103 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { UploadCloud, File as FileIcon, Trash2, Search, Download, Folder } from '@lucide/vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { UploadCloud, File as FileIcon, Trash2, Search, Download, Folder, AlertCircle } from '@lucide/vue'
 import { filesApi, type FileItem } from '@/core/api/files'
+import { useFileList, type FileCategory } from '@/core/composables/useFileList'
+import { useDebounce } from '@/core/composables/useDebounce'
+import { isImageType, formatFileSize } from '@/core/fileUtils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import { Skeleton } from '@/components/ui/skeleton'
 
-const files = ref<FileItem[]>([])
-const loading = ref(false)
-const uploading = ref(false)
 const searchQuery = ref('')
+const debouncedSearch = useDebounce(searchQuery, 300)
+const category = ref<FileCategory>('all')
+const sort = ref<'new' | 'name' | 'size'>('new')
+const uploading = ref(false)
 const isDragging = ref(false)
+const deletingId = ref<string | null>(null)
 
-async function loadFiles() {
-    loading.value = true
-    try {
-        const res = await filesApi.list({ search: searchQuery.value })
-        files.value = res.items
-    } finally {
-        loading.value = false
-    }
-}
+const categoryTabs: { id: FileCategory; label: string }[] = [
+  { id: 'all', label: 'Усі' },
+  { id: 'image', label: 'Зображення' },
+  { id: 'pdf', label: 'PDF' },
+  { id: 'document', label: 'Документи' },
+]
+
+const {
+  items,
+  total,
+  isLoading,
+  isError,
+  isFetchingNextPage,
+  hasNextPage,
+  fetchNextPage,
+  refetch,
+} = useFileList({
+  search: debouncedSearch,
+  category: () => category.value,
+  orderBy: () => (sort.value === 'name' ? 'file_name' : sort.value === 'size' ? 'file_size' : 'created_at'),
+  order: () => (sort.value === 'name' ? 'asc' : 'desc'),
+  pageSize: 40,
+})
+
+// Infinite scroll
+const sentinel = ref<HTMLDivElement>()
+const scrollEl = ref<HTMLDivElement>()
+let observer: IntersectionObserver | null = null
+
+onMounted(() => {
+  observer = new IntersectionObserver(
+    entries => {
+      if (entries[0].isIntersecting && hasNextPage.value && !isFetchingNextPage.value) fetchNextPage()
+    },
+    { root: scrollEl.value ?? null, threshold: 0.1 },
+  )
+  if (sentinel.value) observer.observe(sentinel.value)
+})
+onUnmounted(() => observer?.disconnect())
 
 async function handleFileSelect(event: Event) {
-    const target = event.target as HTMLInputElement
-    if (target.files && target.files.length > 0) {
-        await uploadFile(target.files[0])
-        target.value = '' // Reset input
-    }
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    await uploadFile(target.files[0])
+    target.value = ''
+  }
 }
 
 async function handleDrop(event: DragEvent) {
-    isDragging.value = false
-    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
-        await uploadFile(event.dataTransfer.files[0])
-    }
+  isDragging.value = false
+  if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+    await uploadFile(event.dataTransfer.files[0])
+  }
 }
 
 async function uploadFile(file: File) {
-    uploading.value = true
-    try {
-        const uploaded = await filesApi.upload(file)
-        files.value.unshift(uploaded)
-    } catch (error) {
-        console.error('Failed to upload file', error)
-    } finally {
-        uploading.value = false
-    }
+  uploading.value = true
+  try {
+    await filesApi.upload(file)
+    await refetch()
+  } catch (error) {
+    console.error('Failed to upload file', error)
+  } finally {
+    uploading.value = false
+  }
 }
 
-async function removeFile(id: string) {
-    if (!confirm('Видалити файл?')) return
-    await filesApi.delete(id)
-    files.value = files.value.filter(f => f.id !== id)
+async function removeFile(item: FileItem) {
+  if (!confirm('Видалити файл?')) return
+  deletingId.value = item.id
+  try {
+    await filesApi.delete(item.id)
+    await refetch()
+  } finally {
+    deletingId.value = null
+  }
 }
 
-function formatBytes(bytes: number, decimals = 2) {
-    if (!+bytes) return '0 Bytes'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
-}
-
-function isImage(contentType: string) {
-    return contentType.startsWith('image/')
-}
-
-const displayFiles = computed(() => files.value)
-
-onMounted(loadFiles)
-
-let searchTimeout: number
-function onSearchInput() {
-    window.clearTimeout(searchTimeout)
-    searchTimeout = window.setTimeout(loadFiles, 300)
-}
+watch([category, sort], () => scrollEl.value?.scrollTo({ top: 0 }))
 </script>
 
 <template>
@@ -90,14 +110,15 @@ function onSearchInput() {
                 </div>
                 <div>
                     <h1 class="text-xl font-semibold text-foreground">Менеджер файлів</h1>
-                    <p class="text-muted-foreground">Завантажуйте та керуйте документами і медіа</p>
+                    <p class="text-muted-foreground">
+                        Завантажуйте та керуйте документами і медіа<span v-if="total"> · {{ total }}</span>
+                    </p>
                 </div>
             </div>
             <div class="flex items-center gap-3 w-full md:w-auto md:flex-1 md:justify-end">
                 <div class="relative w-full md:max-w-xs xl:max-w-md">
                     <Search class="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                    <Input v-model="searchQuery" placeholder="Введіть назву файла..." class="pl-9 h-9 w-full"
-                        @input="onSearchInput" />
+                    <Input v-model="searchQuery" placeholder="Введіть назву файла..." class="pl-9 h-9 w-full" />
                 </div>
                 <div class="relative overflow-hidden group shrink-0">
                     <Button :disabled="uploading" class="h-9 whitespace-nowrap px-4">
@@ -111,8 +132,30 @@ function onSearchInput() {
             </div>
         </div>
 
+        <!-- Filter bar -->
+        <div class="flex items-center gap-2 pb-3 shrink-0">
+            <div class="flex gap-1">
+                <button
+                    v-for="tab in categoryTabs"
+                    :key="tab.id"
+                    type="button"
+                    class="rounded px-2.5 py-1 text-sm transition-colors"
+                    :class="category === tab.id ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted'"
+                    @click="category = tab.id"
+                >
+                    {{ tab.label }}
+                </button>
+            </div>
+            <select v-model="sort"
+                class="ml-auto h-8 rounded-md border border-input bg-transparent px-2 text-sm outline-none">
+                <option value="new">Спочатку нові</option>
+                <option value="name">За назвою</option>
+                <option value="size">За розміром</option>
+            </select>
+        </div>
+
         <!-- Dropzone and Grid Context -->
-        <div class="flex-1 flex flex-col overflow-y-auto rounded-lg border-2 border-dashed bg-card transition-all mb-8 relative p-6 custom-scrollbar min-h-[400px]"
+        <div ref="scrollEl" class="flex-1 flex flex-col overflow-y-auto rounded-lg border-2 border-dashed bg-card transition-all mb-8 relative p-6 custom-scrollbar min-h-[400px]"
             :class="isDragging ? 'border-primary bg-primary/5 shadow-inner' : 'border-border shadow-sm'"
             @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false" @drop.prevent="handleDrop">
             <div v-if="isDragging"
@@ -124,11 +167,18 @@ function onSearchInput() {
                 </div>
             </div>
 
-            <div v-if="loading" class="flex-1 flex items-center justify-center">
-                <Spinner class="size-10!" />
+            <div v-if="isLoading"
+                class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                <Skeleton v-for="i in 12" :key="i" class="aspect-square w-full rounded-lg" />
             </div>
 
-            <div v-else-if="files.length === 0"
+            <div v-else-if="isError" class="flex-1 flex flex-col items-center justify-center gap-3 text-center">
+                <AlertCircle class="size-10 text-muted-foreground/40" />
+                <h3 class="text-lg font-semibold">Не вдалося завантажити файли</h3>
+                <button class="text-sm text-primary hover:underline" @click="refetch()">Спробувати ще</button>
+            </div>
+
+            <div v-else-if="items.length === 0"
                 class="flex-1 flex flex-col items-center justify-center text-center pb-20 p-4">
                 <div class="size-20 rounded-full bg-primary/5 flex items-center justify-center mb-6">
                     <UploadCloud class="size-10 text-primary/40" />
@@ -140,30 +190,26 @@ function onSearchInput() {
             </div>
 
             <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-8">
-                <div v-for="file in displayFiles" :key="file.id"
+                <div v-for="file in items" :key="file.id"
                     class="group relative aspect-square rounded-lg border bg-background shadow-xs hover:shadow-md hover:border-primary/30 transition-all flex flex-col overflow-hidden">
                     <!-- Preview Area -->
                     <div class="flex-1 flex flex-col relative w-full items-center justify-center bg-muted/20 border-b">
-                        <!-- Image Preview -->
-                        <img v-if="isImage(file.content_type)" :src="file.url"
+                        <img v-if="isImageType(file.content_type)" :src="file.url"
                             class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             loading="lazy" />
-                        <!-- Document Preview Placeholder -->
-                        <div v-else
-                            class="flex flex-col items-center justify-center">
+                        <div v-else class="flex flex-col items-center justify-center">
                             <FileIcon class="size-10 text-muted-foreground/30 mb-2" />
                         </div>
 
-                        <!-- Absolute overlay actions -->
                         <div
                             class="absolute inset-x-0 top-0 p-2 bg-black/40 flex items-start justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button @click="removeFile(file.id)"
+                            <button @click="removeFile(file)"
                                 class="size-7 rounded-full bg-background/20 hover:bg-destructive text-white flex items-center justify-center transition-colors"
                                 title="Видалити">
-                                <Trash2 class="size-3.5" />
+                                <Spinner v-if="deletingId === file.id" class="size-3.5!" />
+                                <Trash2 v-else class="size-3.5" />
                             </button>
                         </div>
-                        <!-- Center action -->
                         <div
                             class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                             <a :href="file.url" download target="_blank"
@@ -174,20 +220,22 @@ function onSearchInput() {
                         </div>
                     </div>
 
-                    <!-- Metadata Area -->
                     <div class="p-3 shrink-0 flex flex-col bg-background/95">
                         <p class="font-semibold truncate text-foreground/90 mb-1" :title="file.filename">{{
                             file.filename }}</p>
-                        <div
-                            class="flex items-center justify-between uppercase font-semibold text-muted-foreground">
+                        <div class="flex items-center justify-between uppercase font-semibold text-muted-foreground">
                             <Badge variant="secondary"
                                 class="text-xs px-1 bg-muted/30 border-transparent truncate max-w-[60px]">
                                 {{ file.content_type.split('/')[1] || 'FILE' }}
                             </Badge>
-                            <span class="tabular-nums opacity-70">{{ formatBytes(file.size_bytes) }}</span>
+                            <span class="tabular-nums opacity-70">{{ formatFileSize(file.size_bytes) }}</span>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div ref="sentinel" class="h-8 mt-2 flex justify-center shrink-0">
+                <Spinner v-if="isFetchingNextPage" class="size-5!" />
             </div>
         </div>
     </div>

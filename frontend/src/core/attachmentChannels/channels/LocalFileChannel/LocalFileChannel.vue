@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { AttachmentResult } from '@/core/attachmentChannels/types'
+import type { AttachmentResult, AttachChannelProps } from '@/core/attachmentChannels/types'
 import { filesApi } from '@/core/api/files'
 import { Upload, AlertCircle } from '@lucide/vue'
 
-const props = defineProps<{ imageOnly: boolean; attachedToDoctype?: string; attachedToId?: string }>()
+const props = defineProps<AttachChannelProps>()
 const emit = defineEmits<{ select: [result: AttachmentResult] }>()
 
 const isDragging = ref(false)

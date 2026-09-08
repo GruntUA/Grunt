@@ -15,5 +15,20 @@ export interface AttachChannel {
   description?: string
   component: Component
   isSupported?: () => boolean
-  acceptsImageOnly?: boolean
+  /** Show this channel only when the picker is locked to images. */
+  imageOnlyChannel?: boolean
+}
+
+/** Props every channel component receives from `AttachPicker`. */
+export interface AttachChannelProps {
+  imageOnly: boolean
+  attachedToDoctype?: string
+  attachedToId?: string
+  multiple?: boolean
+  currentUrl?: string | null
+}
+
+export interface AttachChannelEmits {
+  (e: 'select', result: AttachmentResult): void
+  (e: 'selectMany', results: AttachmentResult[]): void
 }

@@ -48,6 +48,14 @@
       "in_filter": true
     },
     {
+      "fieldname": "content_hash",
+      "label": "Хеш вмісту (SHA-256)",
+      "fieldtype": "Data",
+      "read_only": true,
+      "in_filter": true,
+      "index": true
+    },
+    {
       "fieldname": "uploaded_by",
       "label": "Завантажив",
       "fieldtype": "Link",

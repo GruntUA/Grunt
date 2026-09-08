@@ -61,3 +61,84 @@ async def test_get_list_filters_by_content_type(ctx):
 
     result = await get_list(filters={"content_type": "text/plain"})
     assert all(item["content_type"] == "text/plain" for item in result["items"])
+
+
+@pytest.mark.asyncio
+async def test_get_list_search_matches_file_name_case_insensitively(ctx):
+    await upload(_upload_file("Quarterly-Report.txt"))
+    await upload(_upload_file("random-notes.txt"))
+
+    result = await get_list(search="quarterly")
+
+    names = {item["filename"] for item in result["items"]}
+    assert names == {"Quarterly-Report.txt"}
+
+
+@pytest.mark.asyncio
+async def test_get_list_search_combines_with_filters(ctx):
+    await upload(_upload_file("scoped-doc.txt"), attached_to_doctype="Letter", attached_to_id="L-1")
+    await upload(_upload_file("scoped-doc.txt"))  # same name, not attached
+
+    result = await get_list(
+        search="scoped-doc",
+        filters={"attached_to_doctype": "Letter", "attached_to_id": "L-1"},
+    )
+
+    assert len(result["items"]) == 1
+    assert result["items"][0]["filename"] == "scoped-doc.txt"
+
+
+@pytest.mark.asyncio
+async def test_get_list_blank_search_is_ignored(ctx):
+    await upload(_upload_file("visible.txt"))
+
+    result = await get_list(search="   ")
+    assert result["total"] >= 1
+
+
+@pytest.mark.asyncio
+async def test_upload_deduplicates_identical_reupload(ctx):
+    first = await upload(_upload_file("dup.txt", b"identical bytes"))
+    second = await upload(_upload_file("dup.txt", b"identical bytes"))
+
+    assert first["deduped"] is False
+    assert second["deduped"] is True
+    assert second["id"] == first["id"]
+
+    listed = await get_list(search="dup.txt")
+    assert len([i for i in listed["items"] if i["name"] == first["id"]]) == 1
+
+
+@pytest.mark.asyncio
+async def test_upload_dedup_requires_matching_name(ctx):
+    a = await upload(_upload_file("a-name.txt", b"same bytes here"))
+    b = await upload(_upload_file("b-name.txt", b"same bytes here"))
+
+    assert b["deduped"] is False
+    assert b["id"] != a["id"]
+
+
+@pytest.mark.asyncio
+async def test_upload_dedup_is_scoped_to_attachment_target(ctx):
+    a = await upload(
+        _upload_file("shared.txt", b"same"),
+        attached_to_doctype="Letter",
+        attached_to_id="L-1",
+    )
+    b = await upload(
+        _upload_file("shared.txt", b"same"),
+        attached_to_doctype="Letter",
+        attached_to_id="L-2",
+    )
+
+    assert b["deduped"] is False
+    assert b["id"] != a["id"]
+
+
+@pytest.mark.asyncio
+async def test_upload_dedup_distinguishes_different_content(ctx):
+    a = await upload(_upload_file("notes.txt", b"version one"))
+    b = await upload(_upload_file("notes.txt", b"version two"))
+
+    assert b["deduped"] is False
+    assert b["id"] != a["id"]

@@ -5,6 +5,7 @@
 import { ref, computed, watch, inject } from 'vue'
 import type { AttachmentResult } from '@/core/attachmentChannels/types'
 import { filesApi } from '@/core/api/files'
+import { extractFileId } from '@/core/fileUtils'
 
 interface DocContext {
   doctype: string
@@ -30,15 +31,6 @@ export function useAttachmentField(
   )
 
   const filename = ref<string | null>(null)
-
-  function extractFileId(url: string): string | null {
-    try {
-      return new URL(url, window.location.origin).searchParams.get('file_id')
-    } catch {
-      const m = url.match(/[?&]file_id=([^&]+)/)
-      return m ? m[1] : null
-    }
-  }
 
   watch(
     currentUrl,

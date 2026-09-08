@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 from fastapi import HTTPException, Response, UploadFile
@@ -21,6 +22,7 @@ class File(Document):
     file_url: str
     path: str
     content_type: str
+    content_hash: str | None
     file_size: int
     uploaded_by: str
     is_public: bool
@@ -59,6 +61,24 @@ async def upload(
         )
 
     content_type = file.content_type or "application/octet-stream"
+    content_hash = hashlib.sha256(content).hexdigest()
+
+    # De-duplicate: a re-upload of the same name + byte-identical content by the
+    # same user for the same target reuses the existing File instead of storing a
+    # second copy. Scoped tightly (name, hash, size, uploader, attachment target)
+    # so a different name — or the same bytes for a *different* document — still
+    # gets its own correctly-linked row.
+    existing = await File.objects.filter(
+        file_name=file.filename,
+        content_hash=content_hash,
+        file_size=len(content),
+        uploaded_by=grunt.session.user,
+        attached_to_doctype=attached_to_doctype or None,
+        attached_to_id=attached_to_id or None,
+    ).first()
+    if existing is not None:
+        return _upload_payload(existing, deduped=True)
+
     storage = get_storage_backend()
 
     try:
@@ -78,6 +98,7 @@ async def upload(
         file_url="",  # placeholder; updated below with the real name
         path=path,
         content_type=content_type,
+        content_hash=content_hash,
         file_size=len(content),
         uploaded_by=grunt.session.user,
         is_public=True,
@@ -92,13 +113,20 @@ async def upload(
     if is_image:
         update["thumbnail_url"] = file_url
     await grunt.save_doc("File", file_id, update)
+    file_doc.file_url = file_url
 
+    return _upload_payload(file_doc, deduped=False)
+
+
+def _upload_payload(doc: File, *, deduped: bool) -> dict[str, Any]:
+    """Response shape shared by a fresh upload and a de-duplicated hit."""
     return {
-        "id": file_id,
-        "url": file_url,
-        "filename": file_doc.file_name,
-        "content_type": file_doc.content_type,
-        "size_bytes": file_doc.file_size,
+        "id": str(doc.name),
+        "url": doc.file_url,
+        "filename": doc.file_name,
+        "content_type": doc.content_type,
+        "size_bytes": doc.file_size,
+        "deduped": deduped,
     }
 
 
@@ -140,13 +168,22 @@ async def get_content(file_id: str) -> Response:
 @whitelist()
 async def get_list(
     filters: dict[str, Any] | None = None,
+    search: str = "",
     limit: int = 50,
     page: int = 1,
     order_by: str = "created_at",
     order: str = "desc",
 ) -> dict[str, Any]:
-    """Whitelisted method: List files."""
-    query = File.objects.filter(**(filters or {}))
+    """Whitelisted method: List files.
+
+    ``search`` does a case-insensitive substring match on the file name;
+    ``filters`` is a raw operator-aware filter dict (e.g.
+    ``{"content_type__in": [...], "attached_to_doctype": "..."}``).
+    """
+    all_filters = dict(filters or {})
+    if search.strip():
+        all_filters["file_name__ilike"] = search.strip()
+    query = File.objects.filter(**all_filters)
     query = query.order_by(f"-{order_by}" if order == "desc" else order_by)
     records = await query.limit(limit).page(page).all()
     total = await query.count()

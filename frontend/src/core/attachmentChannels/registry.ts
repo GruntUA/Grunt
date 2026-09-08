@@ -17,7 +17,7 @@ export function unregisterAttachChannel(id: string): void {
 export function getAttachChannels(imageOnly = false): AttachChannel[] {
   return _channels.filter(ch => {
     if (ch.isSupported && !ch.isSupported()) return false
-    if (ch.acceptsImageOnly && !imageOnly) return false
+    if (ch.imageOnlyChannel && !imageOnly) return false
     return true
   })
 }
