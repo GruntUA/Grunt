@@ -512,10 +512,14 @@ class DocumentWriteMixin(DocumentReadMixin):
         doctype_name: str,
         doc_id: str,
         user: User,
+        replace_with: str | None = None,
     ) -> None:
         """Run the full delete pipeline: hooks -> delete -> hooks.
 
         Single entry point for deleting a document — see :meth:`create_document`.
+
+        ``replace_with`` — id of a surviving document (same DocType) that every
+        reference to the deleted document is repointed to before it is removed.
         """
         dt = await self._resolve_dt(doctype_name)
         if is_virtual_routed(dt, doctype_name):
@@ -552,6 +556,21 @@ class DocumentWriteMixin(DocumentReadMixin):
             )
 
         real_id = existing["name"]
+
+        if replace_with:
+            from grunt.document.collection import repoint_references, validate_replacement
+
+            await validate_replacement(self.session, dt, real_id, replace_with)
+            try:
+                await repoint_references(
+                    self.session, Meta(dt), doctype_name, real_id, replace_with, is_merge=True
+                )
+                await self.session.flush()
+            except IntegrityError as exc:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Не вдалося перепризначити посилання — конфлікт унікальності",
+                ) from exc
 
         await fire(
             "before_delete", doctype=doctype_name, doc=existing, user=user, session=self.session

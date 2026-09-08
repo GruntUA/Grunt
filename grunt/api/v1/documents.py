@@ -56,9 +56,13 @@ async def new_doc(doctype: str, data: dict[str, Any]) -> dict[str, Any]:
 
 
 @grunt.whitelist()
-async def delete_doc(doctype: str, name: str) -> bool:
-    """Delete a document."""
-    await grunt_app.delete_doc(doctype, name)
+async def delete_doc(doctype: str, name: str, replace_with: str | None = None) -> bool:
+    """Delete a document.
+
+    ``replace_with`` repoints every reference to the deleted document at this
+    surviving document of the same DocType before removal.
+    """
+    await grunt_app.delete_doc(doctype, name, replace_with)
     return True
 
 

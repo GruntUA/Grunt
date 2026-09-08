@@ -367,12 +367,17 @@ async def bulk_delete(
     ids: list[str],
     user: User,
     *,
+    replace_with: str | None = None,
     progress_cb: Any | None = None,
 ) -> tuple[int, list[str]]:
     """Delete multiple documents efficiently in a single transaction.
 
     Runs per-document hooks (before/after_delete) but batches all DB
     writes (DELETE, multi-link cleanup, search index) into one flush.
+
+    ``replace_with`` — when given, every reference to each deleted id is
+    repointed to this surviving document (of the same DocType) before the
+    rows are removed.
 
     ``progress_cb`` is an optional async callable
     ``(done: int, total: int, errors: int) -> None`` called after each
@@ -392,6 +397,17 @@ async def bulk_delete(
         return await bulk_delete_virtual(doctype_name=doctype_name, ids=ids, user=user)
 
     table = Meta(dt).table
+
+    if replace_with:
+        dt_meta = Meta(dt)
+        for src in ids:
+            if src == replace_with:
+                continue
+            await validate_replacement(session, dt, src, replace_with)
+            await repoint_references(
+                session, dt_meta, doctype_name, src, replace_with, is_merge=True
+            )
+        await session.flush()
     ml = MultiLinkService(session)
     to_delete, errors = await collect_bulk_delete_candidates(
         session=session, dt=dt, table=table, ids=ids
@@ -482,25 +498,58 @@ async def _rename_child_and_link_refs(
 
 
 async def _rename_multilink_refs(
-    session: AsyncSession, doctype_name: str, old_id: str, new_id: str
+    session: AsyncSession,
+    doctype_name: str,
+    old_id: str,
+    new_id: str,
+    *,
+    is_merge: bool = False,
 ) -> None:
-    """Update grunt_core_multi_link rows where *old_id* is either side of the link."""
+    """Update grunt_core_multi_link rows where *old_id* is either side of the link.
+
+    On ``is_merge`` (*new_id* already exists) the parent side is left alone —
+    the delete pipeline drops the source document's own multi-link rows — and
+    the link side is de-duplicated: an incoming reference to *old_id* is
+    removed rather than repointed when the same holder already references
+    *new_id*.
+    """
     from grunt.metadata.compiler import MULTI_LINK_TABLE
 
-    await session.execute(
-        update(MULTI_LINK_TABLE)
-        .where(
-            MULTI_LINK_TABLE.c.parent_name == old_id,
-            MULTI_LINK_TABLE.c.parent_doctype == doctype_name,
+    ml = MULTI_LINK_TABLE
+
+    if not is_merge:
+        await session.execute(
+            update(ml)
+            .where(ml.c.parent_name == old_id, ml.c.parent_doctype == doctype_name)
+            .values(parent_name=new_id)
         )
-        .values(parent_name=new_id)
-    )
-    await session.execute(
-        update(MULTI_LINK_TABLE)
-        .where(
-            MULTI_LINK_TABLE.c.link_name == old_id,
-            MULTI_LINK_TABLE.c.link_doctype == doctype_name,
+    else:
+        # Drop incoming refs to old_id whose holder already references new_id,
+        # so the repoint below can't create a semantic duplicate.
+        twin = ml.alias("ml_twin")
+        twin_exists = (
+            select(1)
+            .where(
+                twin.c.parent_doctype == ml.c.parent_doctype,
+                twin.c.parent_name == ml.c.parent_name,
+                twin.c.parent_field == ml.c.parent_field,
+                twin.c.link_doctype == ml.c.link_doctype,
+                twin.c.link_name == new_id,
+            )
+            .correlate(ml)
+            .exists()
         )
+        await session.execute(
+            ml.delete().where(
+                ml.c.link_name == old_id,
+                ml.c.link_doctype == doctype_name,
+                twin_exists,
+            )
+        )
+
+    await session.execute(
+        update(ml)
+        .where(ml.c.link_name == old_id, ml.c.link_doctype == doctype_name)
         .values(link_name=new_id)
     )
 
@@ -537,6 +586,72 @@ async def _rename_system_refs(session: AsyncSession, old_id: str, new_id: str) -
                 error=str(exc),
             )
             continue
+
+
+async def repoint_references(
+    session: AsyncSession,
+    dt_meta: Meta,
+    doctype_name: str,
+    old_id: str,
+    new_id: str,
+    *,
+    is_merge: bool = False,
+) -> None:
+    """Repoint every reference from *old_id* to *new_id* across all DocTypes.
+
+    Shared by :func:`rename_document` (*old_id* disappears, *new_id* is a fresh
+    id) and the replace-on-delete flow (``is_merge=True`` — *new_id* already
+    exists, so duplicate multi-link rows are pruned instead of blindly moved).
+    Covers Link fields (top-level and child-table), child ``parent_name``,
+    MultiLink rows and the hardcoded system references.
+    """
+    await _rename_child_and_link_refs(session, dt_meta, doctype_name, old_id, new_id)
+    await _rename_multilink_refs(session, doctype_name, old_id, new_id, is_merge=is_merge)
+    await _rename_system_refs(session, old_id, new_id)
+
+
+async def validate_replacement(
+    session: AsyncSession,
+    dt: Any,
+    source_id: str,
+    target_id: str,
+) -> None:
+    """Guard a replace-on-delete request before any rows are touched.
+
+    Rejects a target that is the document itself, does not exist, or — for a
+    tree DocType — is a descendant of the document being deleted (which would
+    orphan the branch).
+    """
+    if source_id == target_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Заміна не може збігатися з документом, що видаляється",
+        )
+
+    meta = Meta(dt)
+    table = meta.table
+
+    exists = await session.scalar(select(table.c.name).where(table.c.name == target_id))
+    if not exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Документ-заміну «{target_id}» не знайдено",
+        )
+
+    parent_field = getattr(dt, "tree_parent_field", None)
+    if parent_field and parent_field in table.c:
+        cursor: str | None = target_id
+        seen: set[str] = set()
+        while cursor and cursor not in seen:
+            seen.add(cursor)
+            cursor = await session.scalar(
+                select(table.c[parent_field]).where(table.c.name == cursor)
+            )
+            if cursor == source_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Не можна підставити підлеглий елемент як заміну",
+                )
 
 
 async def rename_document(
@@ -576,9 +691,7 @@ async def rename_document(
 
     await session.execute(table.update().where(table.c.name == old_id).values(name=new_id))
 
-    await _rename_child_and_link_refs(session, dt_meta, doctype_name, old_id, new_id)
-    await _rename_multilink_refs(session, doctype_name, old_id, new_id)
-    await _rename_system_refs(session, old_id, new_id)
+    await repoint_references(session, dt_meta, doctype_name, old_id, new_id)
 
     await session.flush()
 

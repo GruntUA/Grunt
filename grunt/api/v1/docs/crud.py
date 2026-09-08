@@ -90,10 +90,15 @@ async def update_document(
 async def delete_document(
     doctype: str,
     doc_id: str,
+    replace_with: str | None = None,
     user: User = Depends(current_user),
 ) -> None:
-    """Delete a document."""
-    await grunt_app.delete_doc(doctype, doc_id)
+    """Delete a document.
+
+    ``replace_with`` — repoint every reference to this document at the given
+    surviving document of the same DocType before deleting.
+    """
+    await grunt_app.delete_doc(doctype, doc_id, replace_with)
 
 
 @grunt.whitelist()
@@ -110,6 +115,7 @@ async def bulk_delete(
     filters: dict[str, Any] | None = None,
     search: str | None = None,
     fast: bool = False,
+    replace_with: str | None = None,
 ) -> dict[str, Any]:
     """Delete multiple documents by IDs, or all documents matching filters.
 
@@ -177,6 +183,7 @@ async def bulk_delete(
             user=user,
             user_email=user_email,
             engine=engine,
+            replace_with=replace_with,
         )
 
     asyncio.create_task(_run())

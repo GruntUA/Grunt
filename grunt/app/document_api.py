@@ -207,13 +207,18 @@ class DocumentAPI:
         _, _, hidden_fields = await read_guard(doctype)
         return apply_hidden_fields_to_doc(updated, hidden_fields)
 
-    async def delete_doc(self, doctype: str, id_or_name: str) -> None:
+    async def delete_doc(
+        self, doctype: str, id_or_name: str, replace_with: str | None = None
+    ) -> None:
         """Delete a document.
 
         See :meth:`new_doc` — lifecycle hooks fire inside ``delete_document``.
+
+        ``replace_with`` repoints every reference to the deleted document at
+        this surviving document of the same DocType before removal.
         """
         _dt, user, _session = await write_guard(doctype, "delete")
-        await self._doc().delete_document(doctype, id_or_name, user)
+        await self._doc().delete_document(doctype, id_or_name, user, replace_with)
         await self._invalidate_list_cache(doctype)
 
     async def rename_doc(self, doctype: str, old_id: str, new_id: str) -> dict[str, Any]:
@@ -253,6 +258,7 @@ class DocumentAPI:
         doctype: str,
         ids: list[str],
         *,
+        replace_with: str | None = None,
         progress_cb: Any | None = None,
     ) -> tuple[int, list[str]]:
         """Delete multiple documents efficiently with a single batch transaction.
@@ -280,7 +286,8 @@ class DocumentAPI:
         engine = require_engine()
 
         deleted, errors = await collection.bulk_delete(
-            session, engine, doctype, ids, user, progress_cb=progress_cb
+            session, engine, doctype, ids, user,
+            replace_with=replace_with, progress_cb=progress_cb,
         )
 
         if deleted > 0:

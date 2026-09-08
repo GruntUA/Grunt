@@ -57,6 +57,7 @@ class BulkDeleteTask:
         user: User,
         user_email: str,
         engine: Any,
+        replace_with: str | None = None,
     ) -> None:
         """Delete document IDs and send progress/done events to one user."""
         from grunt.db.session import async_session_factory
@@ -69,6 +70,7 @@ class BulkDeleteTask:
                 deleted, errors = await grunt_app.bulk_delete_docs(
                     doctype,
                     list(ids),
+                    replace_with=replace_with,
                     progress_cb=progress_cb,
                 )
 

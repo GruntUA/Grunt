@@ -51,6 +51,26 @@ class DocumentMetaRPCMixin:
 
     @staticmethod
     @grunt.whitelist()
+    async def get_delete_impact(
+        doctype: str,
+        doc_id: str | None = None,
+        doc_ids: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Summarise what references the given document(s) — see LinkService."""
+        from grunt.app import grunt as grunt_app
+
+        ids = list(doc_ids) if doc_ids else ([doc_id] if doc_id else [])
+        for one in ids:
+            await grunt_app.get_doc(doctype, one)  # permission check per id
+
+        from grunt.document.links import link_service
+
+        return await link_service.get_delete_impact(
+            grunt_app._require_session(), doctype, ids
+        )
+
+    @staticmethod
+    @grunt.whitelist()
     async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
         """Return the whole document-sidebar payload in one round-trip.
 
