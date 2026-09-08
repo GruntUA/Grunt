@@ -27,6 +27,8 @@ class File(Document):
     uploaded_by: str
     is_public: bool
     thumbnail_url: str | None
+    attached_to_doctype: str | None
+    attached_to_id: str | None
 
     async def before_delete(self) -> None:
         """Delete the physical file before the DB row.
@@ -36,8 +38,15 @@ class File(Document):
         physical file silently survives as an orphan with no record pointing
         to it. Letting the exception propagate aborts the whole delete
         pipeline (see ``DocumentWriteMixin.delete_document``).
+
+        Storage de-duplication (see ``dedupe_storage``) lets several File rows
+        share one blob, so only drop the physical file when this is the last
+        row pointing at that path.
         """
-        if self.path:
+        if not self.path:
+            return
+        others = await File.objects.filter(path=self.path, name__ne=self.name).count()
+        if others == 0:
             storage = get_storage_backend()
             await storage.delete(self.path)
 
@@ -195,9 +204,12 @@ async def get_list(
                 "url": r.file_url,
                 "filename": r.file_name,
                 "content_type": r.content_type,
+                "content_hash": r.content_hash,
                 "size_bytes": r.file_size,
                 "created_at": str(r.created_at) if r.created_at else None,
                 "uploaded_by": r.uploaded_by,
+                "attached_to_doctype": r.attached_to_doctype,
+                "attached_to_id": r.attached_to_id,
             }
             for r in records
         ],
@@ -219,3 +231,77 @@ async def remove(file_id: str) -> bool:
     """
     await grunt.delete_doc("File", file_id)
     return True
+
+
+@whitelist(roles=["System Manager"])
+async def dedupe_storage(backfill: bool = True) -> dict[str, Any]:
+    """Admin op: make byte-identical File rows share one stored blob.
+
+    1. (``backfill``) fill ``content_hash`` for rows missing it, reading the blob.
+    2. Group rows by (content_hash, file_size); in each group repoint every
+       row's ``path`` to the oldest row's path and delete the blobs that no
+       row references any more.
+
+    Rows, ids, URLs and per-row metadata are untouched — only disk is reclaimed.
+    ``File.before_delete`` is ref-counted, so a later delete of any shared row
+    keeps the blob until the last row goes.
+    """
+    storage = get_storage_backend()
+
+    rows: list[File] = []
+    page = 1
+    while True:
+        batch = await File.objects.order_by("created_at").limit(500).page(page).all()
+        if not batch:
+            break
+        rows.extend(batch)
+        page += 1
+
+    backfilled = 0
+    if backfill:
+        for r in rows:
+            if r.content_hash or not r.path:
+                continue
+            try:
+                data = await storage.get(r.path)
+            except Exception:
+                continue
+            r.content_hash = hashlib.sha256(data).hexdigest()
+            await grunt.save_doc("File", str(r.name), {"content_hash": r.content_hash})
+            backfilled += 1
+
+    groups: dict[tuple[str, int], list[File]] = {}
+    for r in rows:
+        if r.content_hash and r.path:
+            groups.setdefault((r.content_hash, r.file_size), []).append(r)
+
+    merged_rows = freed_blobs = freed_bytes = 0
+    for (_, size), group in groups.items():
+        if len(group) < 2:
+            continue
+        group.sort(key=lambda r: str(r.created_at or ""))
+        canonical = group[0]
+        stale_paths: set[str] = set()
+        for r in group[1:]:
+            if r.path == canonical.path:
+                continue
+            stale_paths.add(r.path)
+            await grunt.save_doc("File", str(r.name), {"path": canonical.path})
+            r.path = canonical.path
+            merged_rows += 1
+        for stale in stale_paths:
+            if await File.objects.filter(path=stale).count() == 0:
+                try:
+                    await storage.delete(stale)
+                except Exception:
+                    continue
+                freed_blobs += 1
+                freed_bytes += size
+
+    return {
+        "backfilled_hashes": backfilled,
+        "duplicate_groups": sum(1 for g in groups.values() if len(g) > 1),
+        "merged_rows": merged_rows,
+        "freed_blobs": freed_blobs,
+        "freed_bytes": freed_bytes,
+    }

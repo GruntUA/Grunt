@@ -5,6 +5,7 @@ export interface FileItem {
     url: string
     filename: string
     content_type: string
+    content_hash?: string | null
     size_bytes: number
     created_at: string | null
     uploaded_by: string
@@ -85,5 +86,20 @@ export const filesApi = {
 
     delete: async (id: string): Promise<void> => {
         await client.post('/api/v1/method/grunt.storage.doctypes.File.file.remove', { file_id: id })
-    }
+    },
+
+    /** Admin: collapse byte-identical File rows onto one stored blob. */
+    dedupeStorage: async (): Promise<{
+        backfilled_hashes: number
+        duplicate_groups: number
+        merged_rows: number
+        freed_blobs: number
+        freed_bytes: number
+    }> => {
+        const res = await client.post(
+            '/api/v1/method/grunt.storage.doctypes.File.file.dedupe_storage',
+            {},
+        )
+        return res.data.data
+    },
 }

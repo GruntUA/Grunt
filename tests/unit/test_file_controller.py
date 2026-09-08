@@ -8,10 +8,11 @@ from __future__ import annotations
 import io
 
 import pytest
-from fastapi import UploadFile
+from fastapi import HTTPException, UploadFile
 from starlette.datastructures import Headers
 
-from grunt.storage.doctypes.File.file import get_list, upload
+from grunt.app import grunt
+from grunt.storage.doctypes.File.file import dedupe_storage, get_content, get_list, remove, upload
 
 
 def _upload_file(name: str, content: bytes = b"hello world") -> UploadFile:
@@ -43,6 +44,10 @@ async def test_get_list_returns_uploaded_files(ctx):
     names = {item["filename"] for item in result["items"]}
     assert {"a.txt", "b.txt"} <= names
     assert result["total"] >= 2
+    # payload carries the fields the client needs to collapse duplicates
+    sample = next(i for i in result["items"] if i["filename"] == "a.txt")
+    assert "content_hash" in sample
+    assert sample["content_hash"]
 
 
 @pytest.mark.asyncio
@@ -142,3 +147,57 @@ async def test_upload_dedup_distinguishes_different_content(ctx):
 
     assert b["deduped"] is False
     assert b["id"] != a["id"]
+
+
+async def _path_of(file_id: str) -> str:
+    row = await grunt.db.get_values("File", file_id, ["path"])
+    return row["path"]
+
+
+@pytest.mark.asyncio
+async def test_dedupe_storage_merges_identical_blobs(ctx):
+    # Different names => the upload guard does not merge them; two blobs on disk.
+    a = await upload(_upload_file("first.txt", b"shared payload"))
+    b = await upload(_upload_file("second.txt", b"shared payload"))
+    assert await _path_of(a["id"]) != await _path_of(b["id"])
+
+    report = await dedupe_storage()
+
+    assert report["merged_rows"] == 1
+    assert report["freed_blobs"] == 1
+    assert report["duplicate_groups"] == 1
+    # Both rows survive and now point at the same blob.
+    assert await _path_of(a["id"]) == await _path_of(b["id"])
+    listed = {i["name"] for i in (await get_list(search="")).get("items", [])}
+    assert {a["id"], b["id"]} <= listed
+    # Both still downloadable.
+    assert (await get_content(a["id"])).status_code == 200
+    assert (await get_content(b["id"])).status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_dedupe_storage_backfills_missing_hashes(ctx):
+    a = await upload(_upload_file("x-one.txt", b"legacy bytes"))
+    b = await upload(_upload_file("x-two.txt", b"legacy bytes"))
+    for fid in (a["id"], b["id"]):
+        await grunt.save_doc("File", fid, {"content_hash": None})
+
+    report = await dedupe_storage(backfill=True)
+
+    assert report["backfilled_hashes"] == 2
+    assert report["merged_rows"] == 1
+
+
+@pytest.mark.asyncio
+async def test_before_delete_keeps_blob_while_another_row_shares_it(ctx):
+    a = await upload(_upload_file("keep-a.txt", b"linked content"))
+    b = await upload(_upload_file("keep-b.txt", b"linked content"))
+    await dedupe_storage()
+
+    await remove(b["id"])
+    # a still resolves — the shared blob was not removed with b.
+    assert (await get_content(a["id"])).status_code == 200
+
+    await remove(a["id"])
+    with pytest.raises(HTTPException):
+        await get_content(a["id"])
