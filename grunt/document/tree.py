@@ -191,12 +191,16 @@ class TreeService:
         fields: list[str] | None = None,
         max_depth: int = 10,
         filters: dict[str, str] | None = None,
+        search: str | None = None,
         sort_by: str | None = None,
         sort_order: str = "asc",
     ) -> list[dict[str, Any]]:
         """Return the full subtree as nested dicts.
 
         ``root_id=None`` returns the entire forest (all root nodes + their subtrees).
+        ``search`` matches ``name``/title/``search_fields`` (case-insensitive
+        substring) and, like ``filters``, keeps the ancestors of every match so
+        the returned tree stays connected.
         """
         from grunt.document.base import Document
 
@@ -245,9 +249,17 @@ class TreeService:
         result = await session.execute(select(tree_cte))
         all_rows = [dict(r._mapping) for r in result.fetchall()]
 
-        if filters:
+        search_term = (search or "").strip()
+        if filters or search_term:
             all_rows = await self._apply_quick_filter(
-                session, table, ctrl_cls, all_rows, parent_field, filters
+                session,
+                table,
+                ctrl_cls,
+                all_rows,
+                parent_field,
+                filters or {},
+                dt=dt,
+                search=search_term or None,
             )
 
         if sort_by:
@@ -273,8 +285,11 @@ class TreeService:
         all_rows: list[dict[str, Any]],
         parent_field: str,
         filters: dict[str, str],
+        *,
+        dt: Any = None,
+        search: str | None = None,
     ) -> list[dict[str, Any]]:
-        """Keep only nodes matching *filters*, plus their ancestors, from *all_rows*.
+        """Keep only nodes matching *filters*/*search*, plus their ancestors, from *all_rows*.
 
         Runs the filter against the DB scoped to the ids already fetched into
         this subtree (avoids a second full recursive-CTE round-trip), then
@@ -294,6 +309,28 @@ class TreeService:
         tree_ids = [r["name"] for r in all_rows]
         filtered_q = select(table.c.name)
         filtered_q = _apply_filters(filtered_q, table, filters)
+
+        if search:
+            from sqlalchemy import or_
+
+            candidate_fields: list[str] = []
+            if dt is not None:
+                title_field = _title_field(dt)
+                if title_field:
+                    candidate_fields.append(title_field)
+                candidate_fields.extend(getattr(dt, "search_fields", None) or [])
+            seen = {"name"}
+            search_cols = [table.c.name]
+            for fname in candidate_fields:
+                if fname in seen:
+                    continue
+                col = table.c.get(fname)
+                if col is not None:
+                    search_cols.append(col)
+                    seen.add(fname)
+            filtered_q = filtered_q.where(
+                or_(*(col.ilike(f"%{search}%") for col in search_cols))
+            )
 
         # Controller hook: list_filter_extra — allows DocType controllers
         # (e.g. in app code) to inject extra WHERE clauses without touching

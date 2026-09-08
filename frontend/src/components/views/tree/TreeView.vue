@@ -17,6 +17,7 @@ const props = defineProps<{
   quickFilterDefs?: QuickFilter[]
   quickFilterValues?: Record<string, string>
   activeFilters?: ActiveFilter[]
+  search?: string
   refreshKey?: number
 }>()
 
@@ -143,6 +144,7 @@ async function loadTree() {
       quickFilters: mergedQuickFilters,
       as_of: asOf.value || undefined,
       filters: _activeFilters.value.length ? _activeFilters.value : undefined,
+      search: props.search?.trim() || undefined,
       sort_by: sortBy.value || undefined,
       sort_order: sortOrder.value,
     })
@@ -155,11 +157,16 @@ async function loadTree() {
 
 watch(rawQuickFilters, () => loadTree(), { deep: true })
 watch(_activeFilters, () => loadTree(), { deep: true })
+watch(() => props.search, () => loadTree())
 watch(sortBy, () => loadTree())
 watch(sortOrder, () => loadTree())
 // Bumped by the shared header's Refresh button (tree data isn't on the shared query cache).
 watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) loadTree() })
 onMounted(loadTree)
+
+// While a text search is active, force every branch open so matches deep in
+// collapsed folders are visible (the backend already trims to matches + ancestors).
+const forceExpandAll = computed(() => Boolean(props.search?.trim()))
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const titleField = computed(() =>
@@ -304,8 +311,8 @@ const totalCount = computed(() => {
     <!-- Tree -->
     <div v-else class="border border-border rounded-lg overflow-hidden bg-card shadow-sm">
       <TreeNodeRow v-for="node in treeNodes" :key="node.id" :node="node" :depth="0" :expanded-ids="expandedIds"
-        :get-title="getTitle" :count-descendants="countDescendants" @toggle="toggle" @navigate="navigateTo"
-        @create-child="createChild" />
+        :force-expand="forceExpandAll" :get-title="getTitle" :count-descendants="countDescendants" @toggle="toggle"
+        @navigate="navigateTo" @create-child="createChild" />
     </div>
 
     <!-- Counter -->
@@ -336,6 +343,7 @@ const TreeNodeRow: any = defineComponent({
     node: { type: Object as PropType<TreeNode>, required: true },
     depth: { type: Number, required: true },
     expandedIds: { type: Object as PropType<Set<string>>, required: true },
+    forceExpand: { type: Boolean, default: false },
     getTitle: { type: Function as PropType<(node: any) => string>, required: true },
     countDescendants: { type: Function as PropType<(node: any) => number>, required: true },
   },
@@ -343,7 +351,7 @@ const TreeNodeRow: any = defineComponent({
   setup(props, { emit }) {
     return () => {
       const { node, depth, expandedIds } = props
-      const isExpanded = expandedIds.has(String(node.id))
+      const isExpanded = props.forceExpand || expandedIds.has(String(node.id))
       const children: TreeNode[] = (node.children ?? []) as TreeNode[]
       const hasChildren = children.length > 0
       const indent = depth * 20
@@ -389,6 +397,7 @@ const TreeNodeRow: any = defineComponent({
             node: child,
             depth: depth + 1,
             expandedIds,
+            forceExpand: props.forceExpand,
             getTitle: props.getTitle,
             countDescendants: props.countDescendants,
             onToggle: (n: any) => emit('toggle', n),

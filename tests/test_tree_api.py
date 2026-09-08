@@ -202,6 +202,47 @@ async def test_tree_filter_by_title_ilike(ctx, tree_doctype):
 
 
 @pytest.mark.asyncio
+async def test_tree_search_matches_plus_ancestors(ctx, tree_doctype):
+    """search='child-a' returns matching nodes + their ancestors, nothing else."""
+    from grunt.document.tree import tree_service
+
+    session = ctx.db._session()
+    nodes = await tree_service.get_tree(
+        session,
+        "TreeCategory",
+        search="child-a",
+    )
+
+    titles = _collect_titles(nodes)
+
+    # Case-insensitive substring match on title / search_fields
+    assert "Child-A1" in titles
+    assert "Child-A2" in titles
+
+    # Ancestor kept so the tree stays connected
+    assert "Root-A" in titles
+
+    # Non-matching branch is pruned
+    assert "Root-B" not in titles
+    assert "Child-B1" not in titles
+
+
+@pytest.mark.asyncio
+async def test_tree_search_no_match(ctx, tree_doctype):
+    """search that matches nothing returns an empty list."""
+    from grunt.document.tree import tree_service
+
+    session = ctx.db._session()
+    nodes = await tree_service.get_tree(
+        session,
+        "TreeCategory",
+        search="does-not-exist",
+    )
+
+    assert nodes == []
+
+
+@pytest.mark.asyncio
 async def test_tree_sort_by_query_params(ctx, tree_doctype):
     """Explicit sort_by/sort_order sorts root level in tree output."""
     from grunt.document.tree import tree_service

@@ -87,13 +87,15 @@ class DocumentTreeRPCMixin:
         sort_by: str | None = None,
         sort_order: str = "asc",
         filters: dict[str, Any] | None = None,
+        search: str | None = None,
     ) -> list[dict[str, Any]]:
         """Return the full tree (or subtree from *root_id*) as nested dicts with ``children``."""
         from grunt.app import grunt as grunt_app
 
         _dt, restricted = await _tree_read_gate(doctype)
         if restricted is not None:
-            fields, filters = restricted, None
+            # select-only grant: identifier columns, no ad-hoc filters/search
+            fields, filters, search = restricted, None, None
         session = grunt_app._require_session()
 
         nodes = await tree_service.get_tree(
@@ -103,6 +105,7 @@ class DocumentTreeRPCMixin:
             fields=fields,
             max_depth=max_depth,
             filters=filters,
+            search=search,
             sort_by=sort_by,
             sort_order=sort_order,
         )

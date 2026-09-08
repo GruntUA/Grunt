@@ -251,6 +251,7 @@ export const docsApi = {
       as_of?: string
       quickFilters?: Record<string, string>
       filters?: ActiveFilter[]
+      search?: string
       sort_by?: string
       sort_order?: 'asc' | 'desc'
     },
@@ -264,6 +265,7 @@ export const docsApi = {
     }
     const queryParams: Record<string, string> = { doctype }
     if (params?.as_of) queryParams.as_of = params.as_of
+    if (params?.search?.trim()) queryParams.search = params.search.trim()
     if (params?.sort_by) queryParams.sort_by = params.sort_by
     if (params?.sort_order) queryParams.sort_order = params.sort_order
     if (Object.keys(merged).length) queryParams.filters = JSON.stringify(merged)

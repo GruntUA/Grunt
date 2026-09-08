@@ -24,6 +24,7 @@ const def: ViewDefinition = {
     quickFilterDefs: ctx.quickFilterDefs,
     quickFilterValues: ctx.quickFilterValues,
     activeFilters: ctx.activeFilters,
+    search: ctx.search,
     refreshKey: ctx.refreshKey,
   }),
 
