@@ -42,15 +42,6 @@ const router = createRouter({
     },
 
 
-    // Public app pages (no auth required)
-    {
-      path: '/public/:app/:page*',
-      name: 'public-page',
-      component: () => import('@/core/pages/PublicPage.vue'),
-      meta: { public: true },
-      props: true,
-    },
-
     // Public Web Forms (no auth required)
     {
       path: '/form/:route',
@@ -98,20 +89,17 @@ const router = createRouter({
           props: true,
         },
         {
-          path: ':doctype/new',
-          name: 'workspace-new',
+          // `:id` == "new" is the create sentinel (matches the rest of the app —
+          // scripting executor, useLinkCreate — which all treat "new" this way);
+          // map it to a null id so DocTypeForm renders a blank form.
+          path: ':doctype/:id(.*)',
+          name: 'workspace-form',
           component: () => import('@/pages/app/AppFormView.vue'),
           props: (route) => ({
             workspaceName: route.params.workspaceName,
             doctype: route.params.doctype,
-            id: null,
+            id: route.params.id === 'new' ? null : route.params.id,
           }),
-        },
-        {
-          path: ':doctype/:id(.*)',
-          name: 'workspace-form',
-          component: () => import('@/pages/app/AppFormView.vue'),
-          props: true,
         },
         {
           path: ':doctype',
@@ -230,13 +218,12 @@ function routeTitle(to: RouteLocationNormalized): string {
       return term ? `${t('Search')}: ${term}` : t('Search')
     }
     case 'workspace-home': return s(p.workspaceName)
-    case 'workspace-new': return p.doctype ? `${t('New')} ${s(p.doctype)}` : ''
-    case 'workspace-form': return s(p.id) || s(p.doctype)
+    case 'workspace-form':
+      return !p.id || p.id === 'new' ? `${t('New')} ${s(p.doctype)}`.trim() : s(p.id)
     case 'workspace-list': return s(p.doctype)
     case 'workspace-page': return s(p.pageName)
     case 'workspace-report':
     case 'report-builder': return s(p.reportName)
-    case 'public-page': return s(p.page)
     case 'web-form': return s(p.route)
     default: return ''
   }
