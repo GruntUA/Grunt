@@ -155,7 +155,7 @@ function isInline(f: DocField): boolean {
         @change="emit('set-cell', f.fieldname, ($event.target as HTMLSelectElement).value)"
         @keydown="emit('cell-keydown', $event, colIdx)"
       >
-        <option value="">—</option>
+        <option v-if="!f.required" value="">—</option>
         <option v-for="opt in selectOptions(f)" :key="opt" :value="opt">{{ opt }}</option>
       </select>
 
