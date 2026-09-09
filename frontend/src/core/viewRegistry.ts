@@ -143,6 +143,13 @@ export interface ViewDefinition {
   /** Builder-only entries can opt out of toolbar and route availability. */
   showInToolbar?: boolean
   /**
+   * The view fills the viewport and scrolls its own regions internally
+   * (e.g. kanban's horizontal column strip). DocTypeList then height-bounds
+   * the view to the viewport instead of letting the page grow, and hides the
+   * shared pagination bar (such views fetch their own data, not one page).
+   */
+  managesOwnScroll?: boolean
+  /**
    * Detects the field that enables this view for a given DocType.
    * The toolbar button is hidden when this returns null.
    * Omit entirely for views that are always available (list, gallery).

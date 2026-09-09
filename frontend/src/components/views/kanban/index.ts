@@ -7,6 +7,7 @@ const def: ViewDefinition = {
   label: 'Канбан',
   icon: LayoutGrid,
   order: 1,
+  managesOwnScroll: true,
 
   resolveField: (dt: DocType): DocField | null => {
     const configured = dt.kanban_column_field

@@ -24,7 +24,7 @@ import { useBulkDeleteProgress } from '@/core/composables/useBulkDeleteProgress'
 import { useListSelection } from '@/core/composables/useListSelection'
 import { useDevMode } from '@/core/composables/useDevMode'
 import type { DocType, QuickFilter } from '@/types'
-import { getRegisteredViews } from '@/core/viewRegistry'
+import { getRegisteredViews, getViewDef } from '@/core/viewRegistry'
 import { useDialog } from '@/core/composables/useDialog'
 import { useToast } from '@/core/composables/useToast'
 import { setPageTitle } from '@/core/composables/usePageTitle'
@@ -203,6 +203,11 @@ watch(
   () => { page.value = 1 },
 )
 
+// Views like kanban fill the viewport and scroll their own regions; bound the
+// page to the viewport so their internal scrollbars stay in view, and drop the
+// shared pager (they load their own data, not one page at a time).
+const ownScrollView = computed(() => getViewDef(viewMode.value)?.managesOwnScroll ?? false)
+
 const { applyRouteState, setGroupByInRoute, applySort } = useListRouteSync({
   route,
   router,
@@ -311,7 +316,10 @@ watch(() => props.doctype, async (newDoctype) => {
 </script>
 
 <template>
-  <div class="flex flex-1 flex-col gap-3 p-4 sm:p-5 lg:p-6 animate-in fade-in duration-500">
+  <div
+    class="flex flex-1 flex-col gap-3 p-4 sm:p-5 lg:p-6 animate-in fade-in duration-500"
+    :class="ownScrollView && 'h-full overflow-hidden pb-0'"
+  >
     <AppBreadcrumb :workspace-name="workspace ?? 'grunt'" :doctype="doctype" :count="meta?.total ?? null">
       <template #actions>
         <ListHeader :doctype="doctype" :dt="dt" :workspace="workspace" :is-fetching="isFetching"
@@ -393,17 +401,22 @@ watch(() => props.doctype, async (newDoctype) => {
       @unregister-menu-items="unregisterMapMenuItems"
     />
 
-    <ListPagination
-      v-if="meta && (rows.length > 0 || page > 1)"
-      :page="meta.page"
-      :pages="meta.pages"
-      :total="meta.total"
-      :per-page="perPage"
-      :selected-count="selectionCount"
-      :show-per-page="!groupBy"
-      @update:page="page = $event"
-      @update:per-page="perPage = $event"
-    />
+    <!-- Pager stays pinned to the viewport bottom while the list scrolls behind it. -->
+    <div
+      v-if="!ownScrollView && meta && (rows.length > 0 || page > 1)"
+      class="sticky bottom-0 z-10 -mx-4 border-t bg-background px-4 sm:-mx-5 sm:px-5 lg:-mx-6 lg:px-6"
+    >
+      <ListPagination
+        :page="meta.page"
+        :pages="meta.pages"
+        :total="meta.total"
+        :per-page="perPage"
+        :selected-count="selectionCount"
+        :show-per-page="!groupBy"
+        @update:page="page = $event"
+        @update:per-page="perPage = $event"
+      />
+    </div>
 
     <!-- Quick Entry Dialog -->
     <QuickEntryDialog v-if="showQuickEntry && dt" :dt="dt" :workspace="workspace" mode="list"
