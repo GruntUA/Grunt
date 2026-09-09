@@ -68,68 +68,81 @@ function onInput(ff: QuickFilter, value: string) {
           {{ getLabel(ff) }}
         </label>
 
-        <!-- Date input -->
-        <Input
-          v-if="ff.input_type === 'date'"
-          :id="`ff-${ff.id}`"
-          type="date"
-          :model-value="getValue(ff)"
-          @update:model-value="(v: string | number) => onInput(ff, String(v))"
-          class="h-7 text-xs"
-          :class="props.variant === 'quick' ? 'w-[150px]' : 'w-[140px]'"
-          :placeholder="props.variant === 'quick' ? getLabel(ff) : ''"
-        />
+        <div class="relative flex items-center">
+          <!-- Date input -->
+          <Input
+            v-if="ff.input_type === 'date'"
+            :id="`ff-${ff.id}`"
+            type="date"
+            :model-value="getValue(ff)"
+            @update:model-value="(v: string | number) => onInput(ff, String(v))"
+            class="h-7 text-xs"
+            :class="[props.variant === 'quick' ? 'w-[150px]' : 'w-[140px]', getValue(ff) ? 'pr-7' : '']"
+            :placeholder="props.variant === 'quick' ? getLabel(ff) : ''"
+          />
 
-        <!-- Select input -->
-        <Select
-          v-else-if="ff.input_type === 'select'"
-          :model-value="getValue(ff) || '__any__'"
-          @update:model-value="(v: unknown) => onInput(ff, v === '__any__' ? '' : String(v ?? ''))"
-        >
-          <SelectTrigger :id="`ff-${ff.id}`" size="sm" class="h-7 text-xs" :class="props.variant === 'quick' ? 'min-w-[150px]' : ''">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__any__">{{ props.variant === 'quick' ? getLabel(ff) : '— Будь-який —' }}</SelectItem>
-            <SelectItem v-for="opt in getSelectOptions(ff)" :key="opt" :value="opt">{{ opt }}</SelectItem>
-          </SelectContent>
-        </Select>
+          <!-- Select input -->
+          <Select
+            v-else-if="ff.input_type === 'select'"
+            :model-value="getValue(ff) || '__any__'"
+            @update:model-value="(v: unknown) => onInput(ff, v === '__any__' ? '' : String(v ?? ''))"
+          >
+            <SelectTrigger :id="`ff-${ff.id}`" size="sm" class="h-7 text-xs" :class="props.variant === 'quick' ? 'min-w-[150px]' : ''">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__any__">{{ props.variant === 'quick' ? getLabel(ff) : '— Будь-який —' }}</SelectItem>
+              <SelectItem v-for="opt in getSelectOptions(ff)" :key="opt" :value="opt">{{ opt }}</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <!-- Number input -->
-        <Input
-          v-else-if="ff.input_type === 'number'"
-          :id="`ff-${ff.id}`"
-          type="number"
-          :model-value="getValue(ff)"
-          @update:model-value="(v: string | number) => onInput(ff, String(v))"
-          class="h-7 text-xs"
-          :class="props.variant === 'quick' ? 'w-[130px]' : 'w-[100px]'"
-          :placeholder="props.variant === 'quick' ? getLabel(ff) : ''"
-        />
+          <!-- Number input -->
+          <Input
+            v-else-if="ff.input_type === 'number'"
+            :id="`ff-${ff.id}`"
+            type="number"
+            :model-value="getValue(ff)"
+            @update:model-value="(v: string | number) => onInput(ff, String(v))"
+            class="h-7 text-xs"
+            :class="[props.variant === 'quick' ? 'w-[130px]' : 'w-[100px]', getValue(ff) ? 'pr-7' : '']"
+            :placeholder="props.variant === 'quick' ? getLabel(ff) : ''"
+          />
 
-        <!-- Checkbox -->
-        <Checkbox
-          v-else-if="ff.input_type === 'check'"
-          :id="`ff-${ff.id}`"
-          :model-value="getValue(ff) === '1'"
-          @update:model-value="(v: boolean | 'indeterminate') => onInput(ff, v === true ? '1' : '0')"
-        />
+          <!-- Checkbox -->
+          <Checkbox
+            v-else-if="ff.input_type === 'check'"
+            :id="`ff-${ff.id}`"
+            :model-value="getValue(ff) === '1'"
+            @update:model-value="(v: boolean | 'indeterminate') => onInput(ff, v === true ? '1' : '0')"
+          />
 
-        <!-- Text / link / fallback -->
-        <Input
-          v-else
-          :id="`ff-${ff.id}`"
-          type="text"
-          :model-value="getValue(ff)"
-          @update:model-value="(v: string | number) => onInput(ff, String(v))"
-          class="h-7 text-xs"
-          :class="props.variant === 'quick' ? 'w-[150px]' : 'w-[160px]'"
-          :placeholder="props.variant === 'quick' ? getLabel(ff) : '...'"
-        />
+          <!-- Text / link / fallback -->
+          <Input
+            v-else
+            :id="`ff-${ff.id}`"
+            type="text"
+            :model-value="getValue(ff)"
+            @update:model-value="(v: string | number) => onInput(ff, String(v))"
+            class="h-7 text-xs"
+            :class="[props.variant === 'quick' ? 'w-[150px]' : 'w-[160px]', getValue(ff) ? 'pr-7' : '']"
+            :placeholder="props.variant === 'quick' ? getLabel(ff) : '...'"
+          />
 
-        <!-- Clear button -->
+          <!-- Clear button, inside the control for text-like inputs -->
+          <Button
+            v-if="getValue(ff) && ff.input_type !== 'select' && ff.input_type !== 'check'"
+            variant="ghost" size="icon"
+            class="absolute right-0.5 top-1/2 z-10 size-5 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            @click="onInput(ff, '')"
+            :title="`Очистити «${getLabel(ff)}»`"
+          >
+            <X class="size-3" />
+          </Button>
+        </div>
+
+        <!-- Clear button for select / checkbox -->
         <Button
-          v-if="getValue(ff)"
+          v-if="getValue(ff) && (ff.input_type === 'select' || ff.input_type === 'check')"
           variant="ghost" size="icon" class="size-5"
           @click="onInput(ff, '')"
           :title="`Очистити «${getLabel(ff)}»`"
