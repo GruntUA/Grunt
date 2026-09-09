@@ -7,6 +7,9 @@ const def: ViewDefinition = {
   label: 'Календар',
   icon: CalendarDays,
   order: 2,
+  // Calendar fetches its own month window and scrolls its grid internally —
+  // it doesn't use the shared list pager.
+  managesOwnScroll: true,
 
   resolveField: (dt: DocType): DocField | null => {
     const configured = dt.calendar_date_field

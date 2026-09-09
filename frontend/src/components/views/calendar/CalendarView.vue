@@ -12,16 +12,18 @@ import {
   subMonths,
   parseISO,
   isToday,
-  parse
 } from 'date-fns'
 import { uk, enUS } from 'date-fns/locale'
+import { CalendarDate, getLocalTimeZone, type DateValue } from '@internationalized/date'
 import type { DocType } from '@/types'
 import { siteConfigState } from '@/core/composables/useSiteConfig'
 import { docsApi } from '@/core/api/docs'
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ExternalLink } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
-import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Separator } from '@/components/ui/separator'
 import { Spinner } from '@/components/ui/spinner'
 
 const props = defineProps<{
@@ -198,9 +200,33 @@ function getEventsForDay(day: Date) {
   })
 }
 
+// Cap the chips rendered inside a day cell; the rest collapse into a "+N ще"
+// popover so a busy day never overflows the grid.
+const MAX_VISIBLE_EVENTS = 3
+function hiddenEventCount(day: Date) {
+  return Math.max(0, getEventsForDay(day).length - MAX_VISIBLE_EVENTS)
+}
+function dayFullLabel(day: Date) {
+  return format(day, 'd MMMM', { locale: dfLocale.value })
+}
+
 function nextMonth() { currentMonth.value = addMonths(currentMonth.value, 1) }
 function prevMonth() { currentMonth.value = subMonths(currentMonth.value, 1) }
 function setToday() { currentMonth.value = new Date() }
+
+// Month picker (replaces the native <input type="month">)
+const isPickerOpen = ref(false)
+const pickerValue = computed<DateValue | null>({
+  get() {
+    const d = currentMonth.value
+    return new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate())
+  },
+  set(val) {
+    if (!val) return
+    currentMonth.value = startOfMonth(val.toDate(getLocalTimeZone()))
+    isPickerOpen.value = false
+  },
+})
 
 function fmtDate(d: string | null) {
   if (!d) return ''
@@ -291,100 +317,116 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
 </script>
 
 <template>
-  <div class="flex flex-col h-full bg-card border border-border/60 rounded-lg overflow-hidden transition-all duration-500">
+  <div class="flex flex-col h-full bg-card border border-border/60 rounded-lg overflow-hidden">
     <!-- Toolbar -->
-    <div class="flex items-center justify-between p-4 border-b border-border/40 bg-muted/20">
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
-            <div class="size-9 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
-                <CalendarIcon class="size-5 text-primary" />
-            </div>
-            <h2 class="text-xl font-semibold text-foreground tracking-tight">{{ monthLabel }}</h2>
+    <div class="flex items-center justify-between gap-3 p-3 border-b border-border/40 bg-muted/20">
+      <div class="flex items-center gap-2">
+        <div class="size-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+          <CalendarIcon class="size-4 text-primary" />
         </div>
-        
-        <div class="flex items-center p-1 bg-background rounded-lg border border-border/40 shadow-sm">
-            <Button variant="ghost" size="sm" class="!px-3 !h-8" @click="prevMonth">
-                <ChevronLeft class="size-4" />
+
+        <Popover v-model:open="isPickerOpen">
+          <PopoverTrigger as-child>
+            <Button variant="ghost" size="sm" class="!h-8 !px-2 text-base font-semibold">
+              {{ monthLabel }}
             </Button>
-            <Button variant="ghost" size="sm" class="!px-4 !h-8 !text-xs font-semibold uppercase tracking-wider !text-muted-foreground hover:!text-primary" @click="setToday">
-                Сьогодні
-            </Button>
-            <Button variant="ghost" size="sm" class="!px-3 !h-8" @click="nextMonth">
-                <ChevronRight class="size-4" />
-            </Button>
-        </div>
+          </PopoverTrigger>
+          <PopoverContent class="w-auto p-0" align="start">
+            <Calendar v-model="pickerValue" />
+          </PopoverContent>
+        </Popover>
+
+        <span v-if="isRescheduling" class="text-primary animate-pulse">Оновлення…</span>
       </div>
 
-      <div class="flex items-center gap-4">
-        <!-- Month Picker -->
-        <input
-          type="month"
-          :value="format(currentMonth, 'yyyy-MM')"
-          class="!w-48 !h-10 rounded-md border border-input bg-transparent px-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          @change="currentMonth = parse(($event.target as HTMLInputElement).value, 'yyyy-MM', new Date())"
-        >
-        
-        <div class="flex items-center gap-2">
-            <div v-if="isRescheduling" class="flex items-center gap-2 font-medium uppercase tracking-widest text-primary animate-pulse bg-primary/10 px-2 py-1 rounded-full">
-                Оновлення...
-            </div>
-            <Spinner v-if="isLoading" class="!size-6" strokeWidth="6" />
+      <div class="flex items-center gap-2">
+        <div class="flex items-center rounded-md border border-border/50 bg-background p-0.5">
+          <Button variant="ghost" size="sm" class="!h-7 !px-2" @click="prevMonth"><ChevronLeft class="size-4" /></Button>
+          <Button variant="ghost" size="sm" class="!h-7 !px-3" @click="setToday">Сьогодні</Button>
+          <Button variant="ghost" size="sm" class="!h-7 !px-2" @click="nextMonth"><ChevronRight class="size-4" /></Button>
         </div>
+        <Spinner v-if="isLoading" class="!size-5" strokeWidth="6" />
       </div>
     </div>
 
     <!-- Calendar Grid -->
     <div class="flex-1 flex flex-col overflow-hidden relative">
       <!-- Weekday headers -->
-      <div class="grid grid-cols-7 border-b border-border/40 bg-muted/5">
+      <div class="grid grid-cols-7 border-b border-border/40">
         <div v-for="day in weekDays" :key="day"
-          class="py-3 text-center font-semibold text-muted-foreground/60 uppercase tracking-[0.2em]">
+          class="py-2 text-center font-medium text-muted-foreground">
           {{ day }}
         </div>
       </div>
 
       <!-- Days grid -->
-      <div class="flex-1 grid grid-cols-7 auto-rows-fr overflow-y-auto custom-scrollbar bg-border/10 gap-px">
+      <div class="flex-1 grid grid-cols-7 auto-rows-fr overflow-y-auto custom-scrollbar bg-border/60 gap-px">
         <div v-for="day in calendarDays" :key="day.toISOString()"
-          class="min-h-36 bg-card p-2 transition-all flex flex-col gap-1.5 relative group cursor-default"
+          class="min-h-32 bg-card p-1.5 flex flex-col gap-1 relative group cursor-default transition-colors"
           :class="{
-            'bg-muted/10 opacity-60': !isSameMonth(day, currentMonth),
+            'bg-muted/30 text-muted-foreground': !isSameMonth(day, currentMonth),
             'ring-2 ring-inset ring-primary/60 bg-primary/5 z-10': dragOverDay === day.toISOString()
           }" @dragover.prevent="onDragOver(day)" @drop="onDrop($event, day)" @click.self="onDayClick(day)">
-          
+
           <!-- Day header -->
-          <div class="flex justify-between items-center mb-1">
-            <span class="font-semibold size-8 flex items-center justify-center rounded-lg transition-colors" :class="[
+          <div class="flex justify-between items-center">
+            <span class="font-medium size-6 flex items-center justify-center rounded-md" :class="[
               isToday(day)
                 ? 'bg-primary text-primary-foreground'
-                : isSameMonth(day, currentMonth) ? 'text-foreground/80 hover:bg-muted/50' : 'text-muted-foreground/20'
+                : isSameMonth(day, currentMonth) ? 'text-foreground' : 'text-muted-foreground/50'
             ]">
               {{ format(day, 'd') }}
             </span>
 
-            <Button variant="ghost" size="sm" class="!size-7 opacity-0 group-hover:opacity-100 transition-all !text-muted-foreground/40 hover:!text-primary hover:!bg-primary/5 rounded-full" @click.stop="onDayClick(day)"><Plus class="size-4" /></Button>
+            <Button variant="ghost" size="icon" class="size-6 opacity-0 group-hover:opacity-100 text-muted-foreground" @click.stop="onDayClick(day)"><Plus class="size-4" /></Button>
           </div>
 
-          <!-- Event cards -->
-          <div class="flex flex-col gap-1.5 overflow-y-auto max-h-48 scrollbar-hide py-0.5">
-            <div v-for="event in getEventsForDay(day)" :key="event.doctype + event.id" draggable="true"
-              class="group/event relative font-medium leading-tight pl-2.5 pr-2 py-2 rounded-lg border shadow-sm truncate cursor-pointer transition-colors active:opacity-70"
+          <!-- Event chips -->
+          <div class="flex flex-col gap-1 min-h-0">
+            <div v-for="event in getEventsForDay(day).slice(0, MAX_VISIBLE_EVENTS)" :key="event.doctype + event.id" draggable="true"
+              class="group/event flex items-center gap-1.5 rounded px-1.5 py-1 leading-tight truncate cursor-pointer transition-colors"
               :class="[
                 event.doctype === doctype.name
-                  ? 'bg-background border-border hover:border-primary/40 text-foreground'
-                  : 'bg-muted/30 border-border/40 text-muted-foreground hover:bg-muted/50'
+                  ? 'bg-muted hover:bg-accent text-foreground'
+                  : 'text-muted-foreground hover:bg-accent'
               ]"
-              :style="event.color ? { borderLeft: `3px solid ${event.color}` } : { borderLeft: `3px solid var(--primary)` }"
-              @click="navigateToDoc(event)" 
-              @dragstart="onDragStart($event, event)" 
+              @click="navigateToDoc(event)"
+              @dragstart="onDragStart($event, event)"
               @dragend="onDragEnd"
               @contextmenu.prevent="showEventDetails(event, $event.target)"
             >
-              <div class="flex items-center gap-1.5">
-                  <div v-if="event.doctype !== doctype.name" class="size-1.5 rounded-full bg-primary/40 shrink-0" />
-                  <span class="truncate">{{ event.title }}</span>
-              </div>
+              <span class="size-1.5 rounded-full shrink-0" :style="{ background: event.color || 'var(--primary)' }" />
+              <span class="truncate">{{ event.title }}</span>
             </div>
+
+            <Popover v-if="hiddenEventCount(day) > 0">
+              <PopoverTrigger as-child>
+                <button
+                  class="rounded px-1.5 py-0.5 text-left font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                  @click.stop
+                >
+                  +{{ hiddenEventCount(day) }} ще
+                </button>
+              </PopoverTrigger>
+              <PopoverContent class="w-60 p-1" align="start">
+                <div class="flex items-center justify-between px-2 py-1.5">
+                  <span class="font-semibold">{{ dayFullLabel(day) }}</span>
+                  <span class="text-muted-foreground">{{ getEventsForDay(day).length }}</span>
+                </div>
+                <Separator class="my-1" />
+                <div class="-mx-1 max-h-64 overflow-y-auto custom-scrollbar px-1">
+                  <button
+                    v-for="event in getEventsForDay(day)"
+                    :key="event.doctype + event.id"
+                    class="flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-left outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground"
+                    @click="navigateToDoc(event)"
+                  >
+                    <span class="size-1.5 shrink-0 rounded-full" :style="{ background: event.color || 'var(--primary)' }" />
+                    <span class="truncate">{{ event.title }}</span>
+                  </button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>
@@ -393,24 +435,22 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
     <!-- Event Detail Popover -->
     <Popover v-model:open="isOpen">
       <PopoverAnchor :reference="anchorEl ?? undefined" />
-      <PopoverContent class="w-auto p-0">
-        <div v-if="selectedEvent" class="w-64 p-3 flex flex-col gap-3">
-            <div class="flex items-start justify-between">
-                <div class="flex flex-col">
-                    <span class="font-medium uppercase tracking-wider text-muted-foreground">{{ selectedEvent.doctype }}</span>
-                    <h3 class="font-semibold text-foreground leading-tight">{{ selectedEvent.title }}</h3>
-                </div>
-                <Button variant="ghost" size="sm" @click="navigateToDoc(selectedEvent)" class="rounded-full"><ExternalLink class="size-4" /></Button>
+      <PopoverContent class="w-64 p-3">
+        <div v-if="selectedEvent" class="flex flex-col gap-3">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex flex-col min-w-0">
+              <span class="text-muted-foreground truncate">{{ selectedEvent.doctype }}</span>
+              <h3 class="font-semibold text-foreground leading-tight">{{ selectedEvent.title }}</h3>
             </div>
-            
-            <div class="flex flex-col gap-1.5 py-2 border-t border-border/40">
-                <div class="flex items-center gap-2 text-muted-foreground">
-                    <CalendarIcon class="size-3.5" />
-                    <span>{{ fmtDate(selectedEvent.date) }}</span>
-                </div>
-            </div>
+            <Button variant="ghost" size="icon" class="size-7 shrink-0" @click="navigateToDoc(selectedEvent)"><ExternalLink class="size-4" /></Button>
+          </div>
 
-            <Button size="sm" class="w-full" @click="navigateToDoc(selectedEvent)">Відкрити</Button>
+          <div class="flex items-center gap-2 text-muted-foreground border-t border-border/40 pt-2">
+            <CalendarIcon class="size-3.5" />
+            <span>{{ fmtDate(selectedEvent.date) }}</span>
+          </div>
+
+          <Button size="sm" class="w-full" @click="navigateToDoc(selectedEvent)">Відкрити</Button>
         </div>
       </PopoverContent>
     </Popover>
@@ -418,9 +458,6 @@ const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
 </template>
 
 <style scoped>
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb {

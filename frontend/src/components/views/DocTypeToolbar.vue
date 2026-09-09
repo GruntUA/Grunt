@@ -77,13 +77,14 @@ const toolbarControlsEvents = computed(() =>
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
 
       <!-- Left: search + fast filters + active filters + reset -->
-      <div class="flex flex-1 items-center gap-2">
+      <div class="flex flex-1 flex-wrap items-center gap-2">
         <div class="relative w-full max-w-[260px]">
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input v-model="localSearch" class="h-8 pl-9" :placeholder="t('Search...')" />
         </div>
+        <!-- Quick filters render inline for every view (labels carried by placeholders). -->
         <QuickFilterBar
-          v-if="dt && quickFilterDefs.length && ['list', 'tree', 'gallery', 'kanban'].includes(viewMode)"
+          v-if="dt && quickFilterDefs.length"
           :defs="quickFilterDefs"
           :dt="dt"
           :scope="viewMode === 'tree' ? 'tree' : 'list'"
@@ -111,17 +112,5 @@ const toolbarControlsEvents = computed(() =>
         />
       </div>
     </div>
-
-    <!-- Fast filter bar (shown below main row for views without room in the main row) -->
-    <QuickFilterBar
-      v-if="dt && quickFilterDefs.length && !['list', 'tree', 'gallery', 'kanban'].includes(viewMode)"
-      :defs="quickFilterDefs"
-      :dt="dt"
-      :scope="['tree'].includes(viewMode) ? 'tree' : 'list'"
-      :model-value="quickFilterValues"
-      variant="default"
-      class="border-t border-border/30 pt-2"
-      @update:model-value="emit('update:quickFilterValues', $event)"
-    />
   </div>
 </template>
