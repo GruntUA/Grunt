@@ -83,7 +83,7 @@ const toolbarControlsEvents = computed(() =>
           <Input v-model="localSearch" class="h-8 pl-9" :placeholder="t('Search...')" />
         </div>
         <QuickFilterBar
-          v-if="dt && quickFilterDefs.length && ['list', 'tree', 'gallery'].includes(viewMode)"
+          v-if="dt && quickFilterDefs.length && ['list', 'tree', 'gallery', 'kanban'].includes(viewMode)"
           :defs="quickFilterDefs"
           :dt="dt"
           :scope="viewMode === 'tree' ? 'tree' : 'list'"
@@ -112,9 +112,9 @@ const toolbarControlsEvents = computed(() =>
       </div>
     </div>
 
-    <!-- Fast filter bar (shown below main row for non-list/tree views) -->
+    <!-- Fast filter bar (shown below main row for views without room in the main row) -->
     <QuickFilterBar
-      v-if="dt && quickFilterDefs.length && !['list', 'tree', 'gallery'].includes(viewMode)"
+      v-if="dt && quickFilterDefs.length && !['list', 'tree', 'gallery', 'kanban'].includes(viewMode)"
       :defs="quickFilterDefs"
       :dt="dt"
       :scope="['tree'].includes(viewMode) ? 'tree' : 'list'"
