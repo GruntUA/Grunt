@@ -8,9 +8,6 @@ import { useAppStore } from '@/stores/app'
 import { useUIStore } from '@/stores/ui'
 import api from '@/core/api/client'
 import {
-    Search,
-    Command,
-    CornerDownLeft,
     FileText,
     Plus,
     Settings,
@@ -21,7 +18,15 @@ import {
     Activity,
 } from '@lucide/vue'
 import { onKeyStroke } from '@vueuse/core'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import {
+    Command,
+    CommandInput,
+    CommandList,
+    CommandGroup,
+    CommandItem,
+    CommandEmpty,
+} from '@/components/ui/command'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -33,11 +38,9 @@ const uiStore = useUIStore()
 const search = ref('')
 const results = ref<any[]>([])
 const loading = ref(false)
-const selectedIndex = ref(0)
 const quickCreateOpen = ref(false)
-const quickCreateDoctype = ref('')
 
-// Global shortcut: Ctrl+K or Cmd+K
+// Global shortcut: Ctrl/Cmd+K
 onKeyStroke(['k', 'K'], (e) => {
     if (e.ctrlKey || e.metaKey) {
         e.preventDefault()
@@ -45,7 +48,7 @@ onKeyStroke(['k', 'K'], (e) => {
     }
 })
 
-// Quick create: Ctrl+N or Cmd+N
+// Quick create: Ctrl/Cmd+N
 onKeyStroke(['n', 'N'], (e) => {
     if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
         const active = document.activeElement
@@ -53,43 +56,37 @@ onKeyStroke(['n', 'N'], (e) => {
             return
         }
         e.preventDefault()
-        quickCreateOpen.value = true
-        uiStore.openCommandPalette()
+        openQuickCreate()
     }
 })
 
-// Listen for custom trigger event (e.g. from Sidebar)
 const handleToggleSearch = () => uiStore.toggleCommandPalette()
+const handleOpenQuickCreate = () => openQuickCreate()
 
 onMounted(() => {
     window.addEventListener('toggle-search', handleToggleSearch)
+    window.addEventListener('command-palette-open-quick-create', handleOpenQuickCreate)
 })
 
 onUnmounted(() => {
     window.removeEventListener('toggle-search', handleToggleSearch)
+    window.removeEventListener('command-palette-open-quick-create', handleOpenQuickCreate)
 })
 
-// Auto-focus and reset on open
+function openQuickCreate() {
+    uiStore.openCommandPalette()
+    quickCreateOpen.value = true
+    if (dtStore.doctypes.length === 0) dtStore.loadAll()
+}
+
+// Reset transient state when the palette opens; drop quick-create mode on close.
 watch(() => uiStore.isCommandPaletteOpen, (open) => {
     if (open) {
         search.value = ''
         results.value = []
-        selectedIndex.value = 0
+    } else {
         quickCreateOpen.value = false
-        quickCreateDoctype.value = ''
     }
-})
-
-onMounted(() => {
-    const onOpenQuickCreate = () => {
-        uiStore.openCommandPalette()
-        quickCreateOpen.value = true
-        quickCreateDoctype.value = ''
-    }
-    window.addEventListener('command-palette-open-quick-create', onOpenQuickCreate)
-    onUnmounted(() => {
-        window.removeEventListener('command-palette-open-quick-create', onOpenQuickCreate)
-    })
 })
 
 async function handleLogout() {
@@ -98,17 +95,31 @@ async function handleLogout() {
     router.push('/login')
 }
 
-// Static actions
+function navigateTo(path: string) {
+    uiStore.closeCommandPalette()
+    router.push(path)
+}
+
 const staticActions = computed(() => [
-    { id: 'quick-create', title: t('Quick create (Ctrl+N)'), icon: FilePlus, action: () => { quickCreateOpen.value = true; uiStore.openCommandPalette() }, category: t('Actions') },
-    { id: 'new-doctype', title: t('Create new DocType'), icon: Plus, action: () => navigateTo('/grunt/DocType/new'), category: t('Actions') },
-    { id: 'view-hooks', title: t('View hooks'), icon: Zap, action: () => navigateTo('/grunt/Hook'), category: t('Settings') },
-    { id: 'activity-log', title: t('Activity log'), icon: Activity, action: () => navigateTo('/grunt/ActivityLog'), category: t('Settings') },
-    { id: 'settings', title: t('System settings'), icon: Settings, action: () => navigateTo('/grunt/SystemSettings/SystemSettings'), category: t('Actions') },
-    { id: 'logout', title: t('Log out'), icon: LogOut, action: handleLogout, category: t('Actions') },
+    { id: 'act-quick-create', title: t('Quick create (Ctrl+N)'), icon: FilePlus, run: openQuickCreate, category: t('Actions') },
+    { id: 'act-new-doctype', title: t('Create new DocType'), icon: Plus, run: () => navigateTo('/grunt/DocType/new'), category: t('Actions') },
+    { id: 'act-view-hooks', title: t('View hooks'), icon: Zap, run: () => navigateTo('/grunt/Hook'), category: t('Settings') },
+    { id: 'act-activity-log', title: t('Activity log'), icon: Activity, run: () => navigateTo('/grunt/ActivityLog'), category: t('Settings') },
+    { id: 'act-settings', title: t('System settings'), icon: Settings, run: () => navigateTo('/grunt/SystemSettings/SystemSettings'), category: t('Actions') },
+    { id: 'act-logout', title: t('Log out'), icon: LogOut, run: handleLogout, category: t('Actions') },
 ])
 
-// Search logic
+// DocType list for quick-create mode — filtered client-side by CommandInput.
+const quickCreateDoctypes = computed(() =>
+    [...dtStore.doctypes].sort((a: any, b: any) => (a.label || a.name).localeCompare(b.label || b.name))
+)
+
+function createDoc(dt: any) {
+    const ws = appStore.workspaces.find(w => w.items.some((i: any) => i.link_to === dt.name))
+    navigateTo(`/${ws?.name || appStore.active?.name || 'grunt'}/${dt.name}/new`)
+}
+
+// Async search across actions, workspaces, doctypes and indexed documents.
 watch(search, async (val) => {
     const q = val.trim().toLowerCase()
     if (!q) {
@@ -118,70 +129,63 @@ watch(search, async (val) => {
 
     loading.value = true
     try {
-        const matchedResults: any[] = []
+        const matched: any[] = []
 
-        // 1. Match Static Actions
         staticActions.value.forEach(a => {
-            if (a.title.toLowerCase().includes(q)) matchedResults.push({ ...a, type: 'action' })
+            if (a.title.toLowerCase().includes(q)) matched.push(a)
         })
 
-        // 2. Match Workspaces (load on demand)
         if (appStore.workspaces.length === 0) await appStore.loadAll()
         appStore.workspaces.forEach(ws => {
             if (ws.label.toLowerCase().includes(q) || ws.name.toLowerCase().includes(q)) {
-                matchedResults.push({
+                matched.push({
                     id: `ws-${ws.name}`,
                     title: ws.label,
-                    type: 'workspace',
                     icon: LayoutGrid,
-                    action: () => navigateTo(`/${ws.name}`),
-                    category: t('Apps')
+                    category: t('Apps'),
+                    run: () => navigateTo(`/${ws.name}`),
                 })
             }
         })
 
-        // 3. Match DocTypes
         if (dtStore.doctypes.length === 0) await dtStore.loadAll()
         dtStore.doctypes.forEach((dt: any) => {
             if (dt.label.toLowerCase().includes(q) || dt.name.toLowerCase().includes(q)) {
-                matchedResults.push({
+                matched.push({
                     id: `dt-${dt.name}`,
                     title: dt.label,
-                    subtitle: t('Go to list {label}', { label: dt.label }),
-                    type: 'doctype',
+                    subtitle: t('Go to list {label}').replace('{label}', dt.label),
                     icon: FilePlus,
-                    action: () => {
-                        const ws = appStore.workspaces.find(w => w.items.some(i => i.link_to === dt.name))
-                        if (dt.is_singleton) {
-                            navigateTo(`/${ws?.name || 'grunt'}/${dt.name}/${dt.name}`)
-                        } else {
-                            navigateTo(`/${ws?.name || 'grunt'}/${dt.name}`)
-                        }
+                    category: t('DocTypes'),
+                    run: () => {
+                        const ws = appStore.workspaces.find(w => w.items.some((i: any) => i.link_to === dt.name))
+                        navigateTo(dt.is_singleton
+                            ? `/${ws?.name || 'grunt'}/${dt.name}/${dt.name}`
+                            : `/${ws?.name || 'grunt'}/${dt.name}`)
                     },
-                    category: t('DocTypes')
                 })
             }
         })
 
-        // 4. Remote search for documents
         if (q.length >= 2) {
             const res = await api.get(`/api/v1/method/grunt.api.v1.search.global_search?q=${encodeURIComponent(q)}`)
-            const docs = (res.data?.data || []).map((d: any) => ({
-                ...d,
-                id: `doc-${d.doctype}-${d.id || d.name}`,
-                type: 'document',
-                icon: FileText,
-                action: () => {
-                    const ws = appStore.workspaces.find(w => w.items.some(i => i.link_to === d.doctype))
-                    navigateTo(`/${ws?.name || 'grunt'}/${d.doctype}/${d.id || d.name}`)
-                },
-                category: t('Documents')
-            }))
-            matchedResults.push(...docs)
+            ;(res.data?.data || []).forEach((d: any) => {
+                const docId = d.id || d.name
+                matched.push({
+                    id: `doc-${d.doctype}-${docId}`,
+                    title: d.display_title || d.title || docId,
+                    subtitle: d.doctype_label || d.doctype,
+                    icon: FileText,
+                    category: t('Documents'),
+                    run: () => {
+                        const ws = appStore.workspaces.find(w => w.items.some((i: any) => i.link_to === d.doctype))
+                        navigateTo(`/${ws?.name || 'grunt'}/${d.doctype}/${docId}`)
+                    },
+                })
+            })
         }
 
-        results.value = matchedResults
-        selectedIndex.value = 0
+        results.value = matched
     } catch (err) {
         console.error('Search error:', err)
     } finally {
@@ -189,185 +193,79 @@ watch(search, async (val) => {
     }
 })
 
-function navigateTo(path: string) {
-    uiStore.closeCommandPalette()
-    router.push(path)
-}
-
-function onKeyDown(e: KeyboardEvent) {
-    if (e.key === 'ArrowDown') {
-        e.preventDefault()
-        selectedIndex.value = (selectedIndex.value + 1) % results.value.length
-    } else if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        selectedIndex.value = (selectedIndex.value - 1 + results.value.length) % results.value.length
-    } else if (e.key === 'Enter' && results.value[selectedIndex.value]) {
-        e.preventDefault()
-        results.value[selectedIndex.value].action()
-    }
-}
-
-// Grouped results for the UI
 const groupedResults = computed(() => {
     const groups: Record<string, any[]> = {}
     results.value.forEach(r => {
         const cat = r.category || t('Other')
-        if (!groups[cat]) groups[cat] = []
-        groups[cat].push(r)
+        ;(groups[cat] ||= []).push(r)
     })
     return groups
 })
-
-const flatResults = computed(() => results.value)
-
 </script>
 
 <template>
-    <Dialog :open="uiStore.isCommandPaletteOpen" @update:open="uiStore.closeCommandPalette">
-        <DialogContent class="max-w-2xl bg-card p-0 overflow-hidden" :show-close-button="false">
+    <Dialog :open="uiStore.isCommandPaletteOpen" @update:open="(v) => { if (!v) uiStore.closeCommandPalette() }">
+        <DialogContent class="max-w-xl overflow-hidden p-0" :show-close-button="false">
             <DialogTitle class="sr-only">{{ t('Search documents, apps or actions...') }}</DialogTitle>
-            <div class="relative flex items-center border-b px-4 py-4">
-                <Search class="mr-3 h-5 w-5 shrink-0 opacity-50 text-primary" />
-                <input v-model="search" :placeholder="t('Search documents, apps or actions...')"
-                    class="flex h-10 w-full rounded-md bg-transparent py-3 text-base outline-none placeholder:text-muted-foreground"
-                    @keydown="onKeyDown" autofocus />
-                <div class="flex items-center gap-1.5 ml-2">
-                    <kbd
-                        class="px-2 py-1 rounded bg-muted border font-semibold text-muted-foreground">ESC</kbd>
-                </div>
-            </div>
+            <DialogDescription class="sr-only">{{ t('Search documents, apps or actions...') }}</DialogDescription>
 
-            <div class="max-h-[450px] overflow-y-auto p-2 scrollbar-thin">
-                <div v-if="loading && results.length === 0"
-                    class="py-12 text-center text-muted-foreground flex flex-col items-center gap-3">
-                    <div class="size-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-                    {{ t('Searching...') }}
-                </div>
+            <Command>
+                <CommandInput
+                    :placeholder="quickCreateOpen ? t('Select DocType to create a new record') : t('Search documents, apps or actions...')"
+                    @update:model-value="(v: unknown) => (search = String(v ?? ''))" />
 
-                <div v-else-if="search.length > 0 && results.length === 0 && !loading"
-                    class="py-12 text-center text-muted-foreground italic">
-                    {{ t('Nothing found for') }} "{{ search }}"
-                </div>
-
-                <div v-if="quickCreateOpen" class="px-4 py-4 border-b">
-                    <div class="flex items-center justify-between mb-2">
-                        <div>
-                            <p class="font-semibold uppercase tracking-wider text-muted-foreground">Quick Create</p>
-                            <p class="text-muted-foreground">{{ t('Select DocType to create a new record') }}
-                            </p>
-                        </div>
-                        <button class="text-muted-foreground hover:text-foreground"
-                            @click="quickCreateOpen = false">Esc</button>
+                <CommandList class="max-h-[400px]">
+                    <div v-if="loading && results.length === 0"
+                        class="py-6 text-center text-sm text-muted-foreground">
+                        {{ t('Searching...') }}
                     </div>
-                    <div class="flex gap-2">
-                        <select v-model="quickCreateDoctype" class="flex-1 p-2 border rounded bg-background">
-                            <option value="" disabled>Оберіть DocType...</option>
-                            <option v-for="dt in dtStore.doctypes" :key="dt.name" :value="dt.name">{{ dt.label ||
-                                dt.name }}</option>
-                        </select>
-                        <button class="px-3 py-2 rounded bg-primary text-primary-foreground"
-                            :disabled="!quickCreateDoctype"
-                            @click="{ const ws = appStore.active?.name || 'grunt'; uiStore.closeCommandPalette(); quickCreateOpen = false; router.push(`/${ws}/${quickCreateDoctype}/new`) }">
-                            {{ t('Create') }}
-                        </button>
+
+                    <CommandGroup v-if="quickCreateOpen" :heading="t('Quick create')">
+                        <CommandItem v-for="dt in quickCreateDoctypes" :key="dt.name" :value="`qc-${dt.name}`"
+                            @select="createDoc(dt)">
+                            <FilePlus />
+                            <span>{{ dt.label || dt.name }}</span>
+                        </CommandItem>
+                    </CommandGroup>
+
+                    <CommandGroup v-else-if="!search" :heading="t('Quick actions')">
+                        <CommandItem v-for="action in staticActions" :key="action.id" :value="action.id"
+                            @select="action.run()">
+                            <component :is="action.icon" />
+                            <span>{{ action.title }}</span>
+                        </CommandItem>
+                    </CommandGroup>
+
+                    <template v-else>
+                        <CommandEmpty v-if="!loading">{{ t('Nothing found for') }} "{{ search }}"</CommandEmpty>
+                        <CommandGroup v-for="(items, category) in groupedResults" :key="category" :heading="category">
+                            <CommandItem v-for="item in items" :key="item.id" :value="item.id" @select="item.run()">
+                                <component :is="item.icon" />
+                                <span class="flex-1 truncate">{{ item.title }}</span>
+                                <span v-if="item.subtitle" class="truncate text-xs text-muted-foreground">
+                                    {{ item.subtitle }}
+                                </span>
+                            </CommandItem>
+                        </CommandGroup>
+                    </template>
+                </CommandList>
+
+                <div class="flex items-center justify-between gap-4 border-t px-3 py-2 text-xs text-muted-foreground">
+                    <div class="flex items-center gap-3">
+                        <span class="flex items-center gap-1">
+                            <kbd class="rounded border bg-muted px-1 font-sans">↑↓</kbd> Навігація
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <kbd class="rounded border bg-muted px-1 font-sans">↵</kbd> Вибрати
+                        </span>
                     </div>
-                </div>
-
-                <div v-else-if="search.length === 0" class="py-6 px-4">
-                    <p class="font-semibold text-muted-foreground uppercase tracking-wider mb-4">{{ t('Quick actions') }}</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <button v-for="action in staticActions" :key="action.id"
-                            class="flex items-center gap-3 p-3 rounded-lg border bg-muted/30 hover:bg-primary/5 hover:border-primary/30 transition-colors text-left group"
-                            @click="action.action">
-                            <div
-                                class="size-9 rounded-lg bg-background border flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
-                                <component :is="action.icon" class="size-5" />
-                            </div>
-                            <span class="font-medium text-foreground">{{ action.title }}</span>
-                        </button>
-                    </div>
-                </div>
-
-                <template v-else>
-                    <div v-for="(items, category) in groupedResults" :key="category" class="mb-4 last:mb-2">
-                        <p
-                            class="px-3 py-2 font-semibold text-muted-foreground uppercase tracking-widest">
-                            {{ category }}
-                        </p>
-                        <div class="space-y-0.5">
-                            <button v-for="item in items" :key="item.id"
-                                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors group relative"
-                                :class="flatResults[selectedIndex]?.id === item.id ? 'bg-primary text-primary-foreground' : 'hover:bg-accent/50 text-foreground'"
-                                @click="item.action"
-                                @mouseenter="selectedIndex = flatResults.findIndex(r => r.id === item.id)">
-
-                                <div class="size-8 rounded-lg border flex items-center justify-center shrink-0"
-                                    :class="flatResults[selectedIndex]?.id === item.id ? 'bg-primary-foreground/10 border-primary-foreground/20' : 'bg-background border-border/50'">
-                                    <component :is="item.icon" class="size-4" />
-                                </div>
-
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-semibold truncate">{{ item.title }}</span>
-                                        <span v-if="item.doctype"
-                                            class="px-1.5 py-0.5 rounded-full font-semibold uppercase"
-                                            :class="flatResults[selectedIndex]?.id === item.id ? 'bg-primary-foreground/15 text-primary-foreground' : 'bg-muted text-muted-foreground'">
-                                            {{ item.doctype_label || item.doctype }}
-                                        </span>
-                                    </div>
-                                    <p v-if="item.subtitle" class="truncate opacity-80"
-                                        :class="flatResults[selectedIndex]?.id === item.id ? 'text-primary-foreground/80' : 'text-muted-foreground'">
-                                        {{ item.subtitle }}
-                                    </p>
-                                </div>
-
-                                <div v-if="flatResults[selectedIndex]?.id === item.id"
-                                    class="shrink-0 flex items-center gap-1 font-semibold opacity-80">
-                                    <span>ENTER</span>
-                                    <CornerDownLeft class="size-3" />
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-                </template>
-            </div>
-
-            <div
-                class="flex items-center justify-between px-4 py-3 bg-muted/40 border-t text-muted-foreground font-medium">
-                <div class="flex items-center gap-4">
-                    <span class="flex items-center gap-1.5"><kbd
-                            class="border rounded px-1.5 py-0.5 bg-background text-foreground">↑↓</kbd>
-                        Навігація</span>
-                    <span class="flex items-center gap-1.5"><kbd
-                            class="border rounded px-1.5 py-0.5 bg-background text-foreground">↵</kbd>
-                        Вибрати</span>
-                </div>
-                <template v-if="search.length >= 2">
-                    <button class="text-primary hover:underline font-semibold"
+                    <button v-if="search.trim().length >= 2" class="font-medium text-foreground hover:underline"
                         @click="navigateTo(`/grunt/search?q=${encodeURIComponent(search)}`)">
                         Всі результати →
                     </button>
-                </template>
-                <div v-else class="flex items-center gap-1.5 opacity-60">
-                    <Command class="size-3" />
-                    <span class="font-semibold">K</span>
+                    <kbd v-else class="rounded border bg-muted px-1 font-sans">Esc</kbd>
                 </div>
-            </div>
+            </Command>
         </DialogContent>
     </Dialog>
 </template>
-
-<style scoped>
-.scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 20px;
-}
-</style>
