@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
+import { ref, watch, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
@@ -8,6 +8,7 @@ import { useAppStore } from '@/stores/app'
 import { useUIStore } from '@/stores/ui'
 import api from '@/core/api/client'
 import {
+    Search,
     FileText,
     Plus,
     Settings,
@@ -16,19 +17,16 @@ import {
     FilePlus,
     Zap,
     Activity,
+    Equal,
 } from '@lucide/vue'
 import { onKeyStroke } from '@vueuse/core'
+import { useToast } from '@/core/composables/useToast'
+import { tryCalc, formatCalcResult } from '@/lib/calc'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import {
-    Command,
-    CommandInput,
-    CommandList,
-    CommandGroup,
-    CommandItem,
-    CommandEmpty,
-} from '@/components/ui/command'
+import { Command, CommandList, CommandGroup, CommandItem } from '@/components/ui/command'
 
 const { t } = useI18n()
+const toast = useToast()
 const router = useRouter()
 const auth = useAuthStore()
 const dtStore = useDocTypeStore()
@@ -39,6 +37,9 @@ const search = ref('')
 const results = ref<any[]>([])
 const loading = ref(false)
 const quickCreateOpen = ref(false)
+const activeIndex = ref(0)
+const inputRef = ref<HTMLInputElement | null>(null)
+const listRef = ref<any>(null)
 
 // Global shortcut: Ctrl/Cmd+K
 onKeyStroke(['k', 'K'], (e) => {
@@ -84,6 +85,8 @@ watch(() => uiStore.isCommandPaletteOpen, (open) => {
     if (open) {
         search.value = ''
         results.value = []
+        activeIndex.value = 0
+        nextTick(() => inputRef.value?.focus())
     } else {
         quickCreateOpen.value = false
     }
@@ -109,10 +112,13 @@ const staticActions = computed(() => [
     { id: 'act-logout', title: t('Log out'), icon: LogOut, run: handleLogout, category: t('Actions') },
 ])
 
-// DocType list for quick-create mode — filtered client-side by CommandInput.
-const quickCreateDoctypes = computed(() =>
-    [...dtStore.doctypes].sort((a: any, b: any) => (a.label || a.name).localeCompare(b.label || b.name))
-)
+// DocType list for quick-create mode.
+const quickCreateDoctypes = computed(() => {
+    const q = search.value.trim().toLowerCase()
+    const all = [...dtStore.doctypes].sort((a: any, b: any) => (a.label || a.name).localeCompare(b.label || b.name))
+    if (!q) return all
+    return all.filter((dt: any) => (dt.label || '').toLowerCase().includes(q) || dt.name.toLowerCase().includes(q))
+})
 
 function createDoc(dt: any) {
     const ws = appStore.workspaces.find(w => w.items.some((i: any) => i.link_to === dt.name))
@@ -130,6 +136,25 @@ watch(search, async (val) => {
     loading.value = true
     try {
         const matched: any[] = []
+
+        // Inline calculator: "2+2*2" or "=2+2*2" → "= 6" (select to copy).
+        const calcExpr = val.trim().replace(/^=\s*/, '')
+        const calc = tryCalc(calcExpr)
+        if (calc !== null) {
+            const answer = formatCalcResult(calc)
+            matched.push({
+                id: 'calc-result',
+                title: `${calcExpr} = ${answer}`,
+                subtitle: 'Скопіювати результат',
+                icon: Equal,
+                category: 'Калькулятор',
+                run: () => {
+                    void navigator.clipboard?.writeText(answer).catch(() => {})
+                    toast.success(`${calcExpr} = ${answer}`, 'Скопійовано')
+                    uiStore.closeCommandPalette()
+                },
+            })
+        }
 
         staticActions.value.forEach(a => {
             if (a.title.toLowerCase().includes(q)) matched.push(a)
@@ -201,6 +226,54 @@ const groupedResults = computed(() => {
     })
     return groups
 })
+
+// ── Manual keyboard highlight ────────────────────────────────────────────────
+// shadcn's <Command> filters its own *static* children; this palette builds
+// results asynchronously, so its built-in filter is bypassed entirely
+// (no <CommandInput> → filterState.search stays empty → every item renders)
+// and we drive arrow-key navigation ourselves over the flat result list.
+const flatList = computed<any[]>(() => {
+    if (quickCreateOpen.value) {
+        return quickCreateDoctypes.value.map((dt: any) => ({ id: `qc-${dt.name}`, run: () => createDoc(dt) }))
+    }
+    if (!search.value.trim()) return staticActions.value
+    return results.value
+})
+
+const activeId = computed(() => flatList.value[activeIndex.value]?.id)
+
+watch([search, results, quickCreateOpen], () => { activeIndex.value = 0 })
+
+function scrollActiveIntoView() {
+    nextTick(() => {
+        listRef.value?.$el?.querySelector?.('[data-active="true"]')?.scrollIntoView({ block: 'nearest' })
+    })
+}
+
+function moveActive(delta: number) {
+    const n = flatList.value.length
+    if (!n) return
+    activeIndex.value = (activeIndex.value + delta + n) % n
+    scrollActiveIntoView()
+}
+
+function setActive(id: string) {
+    const i = flatList.value.findIndex(x => x.id === id)
+    if (i >= 0) activeIndex.value = i
+}
+
+function onInputKeydown(e: KeyboardEvent) {
+    if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        moveActive(1)
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        moveActive(-1)
+    } else if (e.key === 'Enter') {
+        e.preventDefault()
+        flatList.value[activeIndex.value]?.run?.()
+    }
+}
 </script>
 
 <template>
@@ -209,12 +282,17 @@ const groupedResults = computed(() => {
             <DialogTitle class="sr-only">{{ t('Search documents, apps or actions...') }}</DialogTitle>
             <DialogDescription class="sr-only">{{ t('Search documents, apps or actions...') }}</DialogDescription>
 
-            <Command>
-                <CommandInput
-                    :placeholder="quickCreateOpen ? t('Select DocType to create a new record') : t('Search documents, apps or actions...')"
-                    @update:model-value="(v: unknown) => (search = String(v ?? ''))" />
+            <Command :highlight-on-hover="false">
+                <div class="flex h-11 items-center gap-2 border-b px-3">
+                    <Search class="size-4 shrink-0 opacity-50" />
+                    <input ref="inputRef" v-model="search"
+                        :placeholder="quickCreateOpen ? t('Select DocType to create a new record') : t('Search documents, apps or actions...')"
+                        class="placeholder:text-muted-foreground flex h-10 w-full bg-transparent py-3 text-sm outline-none"
+                        @keydown="onInputKeydown" />
+                    <kbd class="rounded border bg-muted px-1 text-xs text-muted-foreground">ESC</kbd>
+                </div>
 
-                <CommandList class="max-h-[400px]">
+                <CommandList ref="listRef" class="max-h-[400px]">
                     <div v-if="loading && results.length === 0"
                         class="py-6 text-center text-sm text-muted-foreground">
                         {{ t('Searching...') }}
@@ -222,7 +300,9 @@ const groupedResults = computed(() => {
 
                     <CommandGroup v-if="quickCreateOpen" :heading="t('Quick create')">
                         <CommandItem v-for="dt in quickCreateDoctypes" :key="dt.name" :value="`qc-${dt.name}`"
-                            @select="createDoc(dt)">
+                            :data-active="activeId === `qc-${dt.name}` ? 'true' : undefined"
+                            :class="activeId === `qc-${dt.name}` && 'bg-accent text-accent-foreground'"
+                            @mouseenter="setActive(`qc-${dt.name}`)" @select="createDoc(dt)">
                             <FilePlus />
                             <span>{{ dt.label || dt.name }}</span>
                         </CommandItem>
@@ -230,16 +310,24 @@ const groupedResults = computed(() => {
 
                     <CommandGroup v-else-if="!search" :heading="t('Quick actions')">
                         <CommandItem v-for="action in staticActions" :key="action.id" :value="action.id"
-                            @select="action.run()">
+                            :data-active="activeId === action.id ? 'true' : undefined"
+                            :class="activeId === action.id && 'bg-accent text-accent-foreground'"
+                            @mouseenter="setActive(action.id)" @select="action.run()">
                             <component :is="action.icon" />
                             <span>{{ action.title }}</span>
                         </CommandItem>
                     </CommandGroup>
 
                     <template v-else>
-                        <CommandEmpty v-if="!loading">{{ t('Nothing found for') }} "{{ search }}"</CommandEmpty>
+                        <div v-if="!loading && results.length === 0"
+                            class="py-6 text-center text-sm text-muted-foreground">
+                            {{ t('Nothing found for') }} "{{ search }}"
+                        </div>
                         <CommandGroup v-for="(items, category) in groupedResults" :key="category" :heading="category">
-                            <CommandItem v-for="item in items" :key="item.id" :value="item.id" @select="item.run()">
+                            <CommandItem v-for="item in items" :key="item.id" :value="item.id"
+                                :data-active="activeId === item.id ? 'true' : undefined"
+                                :class="activeId === item.id && 'bg-accent text-accent-foreground'"
+                                @mouseenter="setActive(item.id)" @select="item.run()">
                                 <component :is="item.icon" />
                                 <span class="flex-1 truncate">{{ item.title }}</span>
                                 <span v-if="item.subtitle" class="truncate text-xs text-muted-foreground">
