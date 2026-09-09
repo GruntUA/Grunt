@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAppStore } from '@/stores/app'
-import { useSidebar } from '@/components/ui/sidebar'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 import { docsApi } from '@/core/api/docs'
 import { getPageData } from '@/core/api/pages'
 import AppIcon from '@/components/AppIcon.vue'
 import WidgetCard from '@/components/dashboard/WidgetCard.vue'
 import { setPageTitle } from '@/core/composables/usePageTitle'
-import { PanelLeft } from '@lucide/vue'
 import type { DashboardWidget } from '@/types'
 
 const props = defineProps<{ workspaceName: string }>()
 const appStore = useAppStore()
-const { toggleSidebar } = useSidebar()
 
 const widgets = ref<DashboardWidget[]>([])
 const widgetData = ref<Record<string, unknown>>({})
@@ -56,12 +54,7 @@ watch(() => props.workspaceName, init)
   <div class="flex flex-1 flex-col gap-4 p-4 md:p-5 animate-in fade-in duration-500">
     <!-- Header -->
     <div v-if="appStore.active" class="flex items-center gap-3 mb-6">
-      <button
-        class="md:hidden size-8 flex items-center justify-center rounded-lg text-muted-foreground/80 hover:text-foreground hover:bg-muted/50 transition-colors shrink-0 -ml-3"
-        @click="toggleSidebar"
-      >
-        <PanelLeft class="size-4" />
-      </button>
+      <SidebarTrigger class="shrink-0 -ml-1.5 text-muted-foreground/80" />
       <AppIcon :icon="appStore.active.icon || 'folder'" class="size-8 shrink-0" />
       <div>
         <h1 class="text-xl font-semibold text-foreground">{{ appStore.active.label }}</h1>

@@ -11,7 +11,7 @@ import { useColorMode } from '@/core/composables/useColorMode'
 import type { Theme } from '@/core/composables/useColorMode'
 import { useSidebar } from '@/components/ui/sidebar'
 import {
-  ArrowLeft, Check, ChevronDown, ChevronRight, ChevronsUpDown, Sun, Moon, Monitor,
+  ArrowLeft, Check, ChevronRight, ChevronsUpDown, Sun, Moon, Monitor,
   Settings2, Search, Activity,
   Mail, LogOut, Languages, Eye,
 } from '@lucide/vue'
@@ -78,22 +78,25 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
         <SidebarMenuItem>
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
-              <SidebarMenuButton class="w-fit px-1.5 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                <div class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-7 items-center justify-center rounded-md">
+              <SidebarMenuButton size="lg" class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                <div class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-4" />
                 </div>
-                <span class="truncate font-semibold">{{ appStore.active?.label }}</span>
-                <ChevronDown class="opacity-50" />
+                <div class="grid flex-1 text-left leading-tight">
+                  <span class="truncate font-semibold">{{ appStore.active?.label }}</span>
+                  <span class="truncate text-muted-foreground">{{ appStore.active?.description || appStore.active?.app }}</span>
+                </div>
+                <ChevronsUpDown class="ml-auto" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
-            <DropdownMenuContent class="w-64 rounded-lg" align="start" side="bottom" :side-offset="4">
+            <DropdownMenuContent class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg" align="start" side="bottom" :side-offset="4">
               <DropdownMenuLabel class="text-xs text-muted-foreground">Застосунки</DropdownMenuLabel>
               <DropdownMenuItem
                 v-for="ws in appStore.workspaces" :key="ws.name" class="gap-2 p-2"
                 @click="router.push(`/${ws.name}`)"
               >
-                <div class="flex size-6 items-center justify-center rounded-xs border">
-                  <AppIcon :icon="ws.icon" class="size-4 shrink-0" />
+                <div class="flex size-6 items-center justify-center rounded-md border">
+                  <AppIcon :icon="ws.icon" class="size-3.5 shrink-0" />
                 </div>
                 <span class="truncate">{{ ws.label }}</span>
                 <Check v-if="ws.name === appStore.active?.name" class="ml-auto size-4" />
@@ -146,25 +149,39 @@ watch(() => router.currentRoute.value.path, () => { if (appStore.active) appStor
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <Collapsible v-else default-open>
-          <SidebarGroup>
-            <SidebarGroupLabel as-child>
-              <CollapsibleTrigger class="group flex w-full cursor-pointer items-center">
-                <span class="truncate">{{ group.section }}</span>
-                <ChevronRight class="ml-auto size-4 shrink-0 transition-transform group-data-[state=open]:rotate-90" />
-              </CollapsibleTrigger>
-            </SidebarGroupLabel>
-            <CollapsibleContent>
-              <SidebarGroupContent>
-                <SidebarMenuSub>
-                  <SidebarItem v-for="item in group.items" :key="item.link_to + item.sequence" nested :item="item"
-                    :workspace-name="workspaceName" :count="appStore.counts[item.link_to] ?? 0"
-                    :color="appStore.active?.color" />
-                </SidebarMenuSub>
-              </SidebarGroupContent>
-            </CollapsibleContent>
+        <template v-else>
+          <!-- Розгорнута панель: секція, що згортається -->
+          <Collapsible default-open class="group-data-[collapsible=icon]:hidden">
+            <SidebarGroup>
+              <SidebarGroupLabel as-child>
+                <CollapsibleTrigger class="group flex w-full cursor-pointer items-center">
+                  <span class="truncate">{{ group.section }}</span>
+                  <ChevronRight class="ml-auto size-4 shrink-0 transition-transform group-data-[state=open]:rotate-90" />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenuSub>
+                    <SidebarItem v-for="item in group.items" :key="item.link_to + item.sequence" nested :item="item"
+                      :workspace-name="workspaceName" :count="appStore.counts[item.link_to] ?? 0"
+                      :color="appStore.active?.color" />
+                  </SidebarMenuSub>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
+
+          <!-- Згорнута панель: плоский список іконок (підменю shadcn ховається в icon-режимі) -->
+          <SidebarGroup class="hidden group-data-[collapsible=icon]:flex">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarItem v-for="item in group.items" :key="item.link_to + item.sequence" :item="item"
+                  :workspace-name="workspaceName" :count="appStore.counts[item.link_to] ?? 0"
+                  :color="appStore.active?.color" />
+              </SidebarMenu>
+            </SidebarGroupContent>
           </SidebarGroup>
-        </Collapsible>
+        </template>
       </template>
 
       <!-- Admin shortcuts -->

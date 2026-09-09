@@ -14,6 +14,7 @@ import type { DashboardWidget, WidgetType } from '@/types'
 import { useToast } from '@/core/composables/useToast'
 import { setPageTitle } from '@/core/composables/usePageTitle'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 const props = defineProps<{
   workspaceName: string
   pageName: string
@@ -251,6 +252,7 @@ const printPage = () => window.print()
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-2">
+        <SidebarTrigger class="shrink-0 -ml-1.5 text-muted-foreground/80" />
         <LayoutDashboard class="w-5 h-5 text-muted-foreground" />
         <h1 class="text-lg font-semibold">{{ page?.label ?? pageName }}</h1>
         <p v-if="page?.description" class="text-muted-foreground ml-2">{{ page.description }}</p>
