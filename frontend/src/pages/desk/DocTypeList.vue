@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
 import { docsApi } from '@/core/api/docs'
-import { useInfiniteDocTypeListData } from '@/core/composables/useInfiniteDocTypeListData'
+import { useDocTypeListData } from '@/core/composables/useDocTypeListData'
 import { useListRouteSync } from '@/core/composables/useListRouteSync'
 import { useListActions } from '@/core/composables/useListActions'
 import { useListMapMenuItems } from '@/core/composables/useListMapMenuItems'
@@ -38,6 +38,7 @@ import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
 import QuickFilterSettingsDialog from '@/components/views/list/QuickFilterSettingsDialog.vue'
 import DocTypeToolbar from '@/components/views/DocTypeToolbar.vue'
 import ListViewRouter from '@/components/views/list/ListViewRouter.vue'
+import ListPagination from '@/components/views/ListPagination.vue'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 const props = defineProps<{ doctype: string; workspace?: string }>()
 const doctype = computed(() => props.doctype)
@@ -65,7 +66,7 @@ const page = ref(1)
 // (tree/calendar/kanban) watch this to refetch; query-based views already
 // refetch automatically from invalidateQueries below and ignore it.
 const refreshKey = ref(0)
-const { viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues, search } = useListViewState(props.doctype)
+const { viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues, search, perPage } = useListViewState(props.doctype)
 const { inlineSearch, debouncedSearch } = useListSearch(page, search)
 
 // ── Quick filters ─────────────────────────────────────────────────────────────
@@ -179,8 +180,10 @@ watch(
   { deep: true },
 )
 
-const { data, isLoading, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, meta, rows, exportCtx } = useInfiniteDocTypeListData({
+const { data, isLoading, isFetching, meta, rows, exportCtx } = useDocTypeListData({
   doctype: props.doctype,
+  page,
+  perPage,
   debouncedSearch,
   sortKey,
   sortOrder,
@@ -191,6 +194,14 @@ const { data, isLoading, isFetching, isFetchingNextPage, fetchNextPage, hasNextP
   visibleColumns: colState.visibleColumns,
   dt,
 })
+
+// Any change to the result set (sort, filters, page size, grouping) resets to page 1.
+watch(
+  [sortKey, sortOrder, groupBy, perPage,
+    () => JSON.stringify(activeFilters.value),
+    () => JSON.stringify(debouncedQuickFilters.value)],
+  () => { page.value = 1 },
+)
 
 const { applyRouteState, setGroupByInRoute, applySort } = useListRouteSync({
   route,
@@ -359,14 +370,14 @@ watch(() => props.doctype, async (newDoctype) => {
       :group-by-field="groupByField"
       :sort-key="sortKey"
       :sort-order="sortOrder"
-:search="debouncedSearch || undefined"
+      :per-page="perPage"
+      :search="debouncedSearch || undefined"
       :active-filters="activeFilters"
       :quick-filter-defs="quickFilterDefs"
       :quick-filter-values="quickFilterValues"
       @update:quick-filter-values="quickFilterValues = $event"
-      :fetch-next-page="fetchNextPage"
-      :has-next-page="hasNextPage"
-      :is-fetching-next-page="isFetchingNextPage"
+      @page="page = $event"
+      @set-per-page="perPage = $event"
       :refresh-key="refreshKey"
       @sort="onSort"
       @row-click="navigateToDoc"
@@ -381,6 +392,19 @@ watch(() => props.doctype, async (newDoctype) => {
       @register-menu-items="registerMapMenuItems"
       @unregister-menu-items="unregisterMapMenuItems"
     />
+
+    <ListPagination
+      v-if="meta && (rows.length > 0 || page > 1)"
+      :page="meta.page"
+      :pages="meta.pages"
+      :total="meta.total"
+      :per-page="perPage"
+      :selected-count="selectionCount"
+      :show-per-page="!groupBy"
+      @update:page="page = $event"
+      @update:per-page="perPage = $event"
+    />
+
     <!-- Quick Entry Dialog -->
     <QuickEntryDialog v-if="showQuickEntry && dt" :dt="dt" :workspace="workspace" mode="list"
       @close="showQuickEntry = false" @saved="queryClient.invalidateQueries({ queryKey: ['documents', doctype] })" />

@@ -9,7 +9,11 @@ interface ListViewState {
   activeFilters: ActiveFilter[]
   quickFilterValues: Record<string, string>
   search: string
+  perPage: number
 }
+
+const PER_PAGE_OPTIONS = [20, 50, 100] as const
+const DEFAULT_PER_PAGE = 20
 
 function storageKey(doctype: string) {
   return `grunt_list_state_${doctype}`
@@ -38,9 +42,14 @@ export function useListViewState(doctype: string) {
   const activeFilters = ref<ActiveFilter[]>(saved.activeFilters ?? [])
   const quickFilterValues = ref<Record<string, string>>(saved.quickFilterValues ?? {})
   const search = ref<string>(saved.search ?? '')
+  const perPage = ref<number>(
+    PER_PAGE_OPTIONS.includes(saved.perPage as typeof PER_PAGE_OPTIONS[number])
+      ? (saved.perPage as number)
+      : DEFAULT_PER_PAGE,
+  )
 
   watch(
-    [viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues, search],
+    [viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues, search, perPage],
     () => {
       saveState(doctype, {
         viewMode: viewMode.value,
@@ -50,10 +59,13 @@ export function useListViewState(doctype: string) {
         activeFilters: activeFilters.value,
         quickFilterValues: quickFilterValues.value,
         search: search.value,
+        perPage: perPage.value,
       })
     },
     { deep: true },
   )
 
-  return { viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues, search }
+  return { viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues, search, perPage }
 }
+
+export { PER_PAGE_OPTIONS }

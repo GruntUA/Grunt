@@ -36,7 +36,6 @@ const def: ViewDefinition = {
     onSelectAll: () => ctx.emit.selectAll(),
     onUpdate: (field: unknown, value: unknown) =>
       ctx.emit.update(field as string, value),
-    'onUpdate:page': (page: unknown) => ctx.emit.page(page as number),
   }),
 
   // ── Toolbar controls: reuse the list control (columns pick card fields, plus sort) ──

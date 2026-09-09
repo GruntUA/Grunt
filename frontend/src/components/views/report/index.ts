@@ -32,15 +32,14 @@ const def: ViewDefinition = {
     hasData: ctx.hasData,
     sortKey: ctx.sortKey,
     sortOrder: ctx.sortOrder,
-    fetchNextPage: ctx.fetchNextPage,
-    hasNextPage: ctx.hasNextPage,
-    isFetchingNextPage: ctx.isFetchingNextPage,
+    perPage: ctx.perPage,
     refreshKey: ctx.refreshKey,
   }),
 
   mountEvents: (ctx) => ({
     onSort: (key: unknown) => ctx.emit.sort(key as string),
     onRowClick: (row: unknown) => ctx.emit.rowClick(row as Record<string, unknown>),
+    onSetPerPage: (n: unknown) => ctx.emit.setPerPage(n as number),
   }),
 }
 

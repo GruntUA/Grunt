@@ -10,6 +10,7 @@ import { statusConfigOf } from '@/core/status'
 interface UseDocTypeListDataOptions {
   doctype: string
   page: Ref<number>
+  perPage: Ref<number>
   debouncedSearch: Ref<string>
   sortKey: Ref<string>
   sortOrder: Ref<'asc' | 'desc'>
@@ -37,6 +38,7 @@ export function useDocTypeListData(options: UseDocTypeListDataOptions) {
       'documents',
       options.doctype,
       options.page.value,
+      options.perPage.value,
       options.debouncedSearch.value,
       options.sortKey.value,
       options.sortOrder.value,
@@ -47,7 +49,7 @@ export function useDocTypeListData(options: UseDocTypeListDataOptions) {
     ]),
     queryFn: () => docsApi.list(options.doctype, {
       page: options.page.value,
-      per_page: options.groupBy.value ? 100 : 20,
+      per_page: options.groupBy.value ? 100 : options.perPage.value,
       search: options.debouncedSearch.value || undefined,
       sort: options.groupBy.value ?? options.sortKey.value ?? undefined,
       order: options.groupBy.value ? 'asc' : (options.sortKey.value ? options.sortOrder.value : undefined),

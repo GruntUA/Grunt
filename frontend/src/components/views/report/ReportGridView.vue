@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch, ref, onMounted } from 'vue'
+import { computed, watch, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   ChevronUp,
@@ -54,39 +54,38 @@ const props = defineProps<{
   hasData: boolean
   sortKey: string | null
   sortOrder: 'asc' | 'desc'
-  fetchNextPage?: () => void
-  hasNextPage?: boolean
-  isFetchingNextPage?: boolean
+  perPage: number
   refreshKey: number
 }>()
 
 const emit = defineEmits<{
   sort: [key: string]
   'row-click': [row: Record<string, unknown>]
+  'set-per-page': [n: number]
 }>()
 
 // ── Full load (opt-in) ──────────────────────────────────────────────────────
-// The list query is paginated for infinite scroll. Pulling every page can mean
-// dozens of sequential requests, so it is off by default: subtotals cover the
-// rows already loaded, and "Завантажити всі" pumps the rest on demand.
+// The list query returns one page at a time. Client-side subtotals only cover
+// the current page, so "Завантажити всі" bumps the page size to pull the whole
+// filtered set (capped) in a single request.
 const MAX_AUTOLOAD = 20_000
-const loadAll = ref(false)
 
-watch(
-  () => [loadAll.value, props.hasNextPage, props.isFetchingNextPage, props.rows.length],
-  () => {
-    if (!loadAll.value || !props.fetchNextPage) return
-    if (props.hasNextPage && !props.isFetchingNextPage && props.rows.length < MAX_AUTOLOAD) {
-      props.fetchNextPage()
-    }
-  },
-  { immediate: true },
-)
-// A refresh or DocType switch drops back to the lazy default.
-watch(() => [props.doctype, props.refreshKey], () => { loadAll.value = false })
+const loadedAll = computed(() => props.perPage >= MAX_AUTOLOAD)
+const isPartial = computed(() => props.rows.length < (props.meta?.total ?? 0))
+const truncated = computed(() => loadedAll.value && isPartial.value)
 
-const isPartial = computed(() => !!props.hasNextPage)
-const truncated = computed(() => props.hasNextPage && props.rows.length >= MAX_AUTOLOAD)
+function loadAll() {
+  emit('set-per-page', Math.min(props.meta?.total ?? MAX_AUTOLOAD, MAX_AUTOLOAD))
+}
+
+// A refresh, DocType switch, or leaving the report view drops back to the lazy
+// default so nothing else silently re-pulls tens of thousands of rows.
+watch(() => [props.doctype, props.refreshKey], () => {
+  if (loadedAll.value) emit('set-per-page', 20)
+})
+onBeforeUnmount(() => {
+  if (loadedAll.value) emit('set-per-page', 20)
+})
 
 // ── Model ───────────────────────────────────────────────────────────────────
 const model = useReportModel({
@@ -392,17 +391,13 @@ const colsOpen = ref(false)
           Досягнуто ліміту {{ MAX_AUTOLOAD.toLocaleString('uk-UA') }} записів — підсумки лише за ними.
         </span>
       </template>
-      <template v-else-if="loadAll">
-        <span class="size-3 rounded-full border-2 border-muted border-t-primary animate-spin" />
-        Завантаження всіх записів… {{ rows.length.toLocaleString('uk-UA') }} / {{ (meta?.total ?? 0).toLocaleString('uk-UA') }}
-      </template>
       <template v-else>
         <span>
-          Підсумки за {{ rows.length.toLocaleString('uk-UA') }}
-          {{ meta ? `з ${meta.total.toLocaleString('uk-UA')}` : '' }} завантаженими.
+          Підсумки за поточною сторінкою ({{ rows.length.toLocaleString('uk-UA') }}
+          {{ meta ? `з ${meta.total.toLocaleString('uk-UA')}` : '' }}).
         </span>
-        <Button variant="link" size="sm" class="h-auto p-0 text-xs" @click="loadAll = true">
-          Завантажити всі
+        <Button variant="link" size="sm" class="h-auto p-0 text-xs" @click="loadAll()">
+          Порахувати за всіма
         </Button>
       </template>
     </div>
@@ -540,10 +535,6 @@ const colsOpen = ref(false)
           </TableRow>
         </TableFooter>
       </Table>
-    </div>
-
-    <div v-if="isFetchingNextPage" class="flex justify-center py-2">
-      <div class="size-4 rounded-full border-2 border-muted border-t-primary animate-spin" />
     </div>
   </div>
 </template>

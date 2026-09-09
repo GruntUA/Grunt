@@ -2,7 +2,6 @@
 import type { DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import BulkActionBar from '@/components/views/BulkActionBar.vue'
-import ListPagination from '@/components/views/ListPagination.vue'
 import GalleryView from './GalleryView.vue'
 
 const props = defineProps<{
@@ -29,7 +28,6 @@ const emit = defineEmits<{
   clear: []
   selectAll: []
   update: [field: string, value: unknown]
-  'update:page': [page: number]
 }>()
 </script>
 
@@ -56,13 +54,5 @@ const emit = defineEmits<{
     :workspace="workspace"
     :is-loading="isLoading"
     :selection="selection"
-  />
-  <ListPagination
-    v-if="meta"
-    :page="meta.page"
-    :pages="meta.pages"
-    :total="meta.total"
-    :per-page="20"
-    @update:page="(p) => emit('update:page', p)"
   />
 </template>

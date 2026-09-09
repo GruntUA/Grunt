@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
+import { computed } from 'vue'
 import type { DocType, DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import type { GroupedRowBucket } from '@/core/composables/useGrouping'
@@ -33,9 +33,6 @@ const props = defineProps<{
   isLoading: boolean
   sortKey: string | null
   sortOrder: 'asc' | 'desc'
-  fetchNextPage?: () => void
-  hasNextPage?: boolean
-  isFetchingNextPage?: boolean
   groupBy: string | null
   groupedRows: GroupedRowBucket[] | null
   collapsedGroups: Set<string>
@@ -62,27 +59,6 @@ const normalizedSortKey = computed(() => props.sortKey || '')
 function rowDocId(row: Record<string, unknown>): string {
   return String(row.id ?? row.name ?? '')
 }
-
-const sentinelEl = ref<HTMLElement | null>(null)
-let observer: IntersectionObserver | null = null
-
-function setupObserver() {
-  observer?.disconnect()
-  if (!sentinelEl.value || !props.fetchNextPage) return
-  observer = new IntersectionObserver(
-    (entries) => {
-      if (entries[0].isIntersecting && props.hasNextPage && !props.isFetchingNextPage) {
-        props.fetchNextPage?.()
-      }
-    },
-    { rootMargin: '300px' },
-  )
-  observer.observe(sentinelEl.value)
-}
-
-onMounted(setupObserver)
-onUnmounted(() => observer?.disconnect())
-watch(() => sentinelEl.value, setupObserver)
 </script>
 
 <template>
@@ -147,16 +123,6 @@ watch(() => sentinelEl.value, setupObserver)
             @inline-update="(rowId, field, value) => emit('inline-update', rowId, field, value)"
           />
         </div>
-        <!-- Sentinel element — triggers next page load when scrolled into view -->
-        <div ref="sentinelEl" class="h-1" aria-hidden="true" />
-
-        <div v-if="isFetchingNextPage" class="flex justify-center py-4">
-          <div class="size-5 rounded-full border-2 border-muted border-t-primary animate-spin" />
-        </div>
-        <p v-else-if="meta && !hasNextPage && rows.length > 0 && rows.length >= meta.total"
-          class="py-3 text-center text-muted-foreground/50">
-          Усі {{ meta.total }} записів завантажено
-        </p>
       </template>
     </div>
   </div>

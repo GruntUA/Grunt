@@ -31,9 +31,7 @@ const props = defineProps<{
   groupByField: DocField | null
   sortKey: string | null
   sortOrder: 'asc' | 'desc'
-  fetchNextPage?: () => void
-  hasNextPage?: boolean
-  isFetchingNextPage?: boolean
+  perPage: number
   search?: string
   activeFilters: ActiveFilter[]
   quickFilterDefs: QuickFilter[]
@@ -53,6 +51,7 @@ const emit = defineEmits<{
   update: [field: string, value: unknown]
   'toggle-group': [key: string]
   page: [page: number]
+  'set-per-page': [perPage: number]
   'register-menu-items': [items: ScriptMenuItem[]]
   'unregister-menu-items': [items: ScriptMenuItem[]]
   'update:quickFilterValues': [val: Record<string, string>]
@@ -93,9 +92,7 @@ const ctx = computed((): ViewContext => ({
   groupByField: props.groupByField,
   sortKey: props.sortKey,
   sortOrder: props.sortOrder,
-  fetchNextPage: props.fetchNextPage,
-  hasNextPage: props.hasNextPage,
-  isFetchingNextPage: props.isFetchingNextPage,
+  perPage: props.perPage,
   search: props.search,
   activeFilters: props.activeFilters,
   quickFilterDefs: props.quickFilterDefs,
@@ -114,6 +111,7 @@ const ctx = computed((): ViewContext => ({
     update: (field, value) => emit('update', field, value),
     toggleGroup: (key) => emit('toggle-group', key),
     page: (p) => emit('page', p),
+    setPerPage: (n) => emit('set-per-page', n),
     registerMenuItems: (items) => emit('register-menu-items', items),
     unregisterMenuItems: (items) => emit('unregister-menu-items', items),
     updateQuickFilterValues: (val) => emit('update:quickFilterValues', val),

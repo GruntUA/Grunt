@@ -66,6 +66,7 @@ export interface ViewEmit {
   update(field: string, value: unknown): void
   toggleGroup(key: string): void
   page(page: number): void
+  setPerPage(perPage: number): void
   registerMenuItems(items: ScriptMenuItem[]): void
   unregisterMenuItems(items: ScriptMenuItem[]): void
   updateQuickFilterValues(val: Record<string, string>): void
@@ -102,10 +103,8 @@ export interface ViewContext {
   // Sorting
   sortKey: string | null
   sortOrder: 'asc' | 'desc'
-  // Infinite scroll / pagination
-  fetchNextPage?: () => void
-  hasNextPage?: boolean
-  isFetchingNextPage?: boolean
+  // Pagination (page-based; the shared query fetches one page at a time)
+  perPage: number
   // Filters
   search?: string
   activeFilters: ActiveFilter[]
