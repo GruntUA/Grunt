@@ -38,6 +38,26 @@ const def: ViewDefinition = {
       ctx.emit.update(field as string, value),
     'onUpdate:page': (page: unknown) => ctx.emit.page(page as number),
   }),
+
+  // ── Toolbar controls: reuse the list control (columns pick card fields, plus sort) ──
+  // Grouping is hidden (gallery renders a flat grid, not grouped buckets).
+
+  toolbarControls: () => import('../list/ListToolbarControls.vue').then((m) => m.default),
+
+  mountToolbarProps: (ctx) => ({
+    columns: ctx.extras.columns,
+    groupableFields: [],
+    groupBy: null,
+    groupByField: null,
+    sortKey: ctx.extras.sortKey,
+    sortOrder: ctx.extras.sortOrder,
+    sortableColumns: ctx.extras.sortableColumns,
+  }),
+
+  mountToolbarEvents: (ctx) => ({
+    'onUpdate:groupBy': () => {},
+    onSort: (key: unknown) => ctx.emit.sort(key as string),
+  }),
 }
 
 export default def
