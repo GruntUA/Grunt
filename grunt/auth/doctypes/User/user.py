@@ -215,7 +215,7 @@ class User(Document):
 class UserPublic(Schema):
     """Fields safe to return from whoami/register/list_users_api."""
 
-    fields = ("name", "email", "full_name", "roles", "is_superadmin")
+    fields = ("name", "email", "full_name", "avatar", "roles", "is_superadmin")
 
 
 # Convenience system-user singleton for internal tasks.
