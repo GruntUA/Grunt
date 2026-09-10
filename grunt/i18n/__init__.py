@@ -8,6 +8,7 @@ Usage:
     pgettext("button", "Save")
 """
 
+from grunt.i18n.plurals import plural_form_count, plural_index
 from grunt.i18n.service import (
     TranslationService,
     _,
@@ -26,6 +27,8 @@ __all__ = [
     "ngettext",
     "parse_po_string",
     "pgettext",
+    "plural_form_count",
+    "plural_index",
     "register_provider",
     "translation_service",
 ]

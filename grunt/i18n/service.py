@@ -27,6 +27,8 @@ from typing import TYPE_CHECKING
 
 import structlog
 
+from grunt.i18n.plurals import plural_index
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -174,14 +176,13 @@ def _unquote(s: str) -> str:
 
 
 def _flatten_catalog(catalog: dict[str, str]) -> dict[str, str]:
-    """Drop internal plural keys; render context entries as ``"context|msgid"``."""
+    """Render context entries as ``"context|msgid"``; keep plural keys
+    (``"...\\x00<n>"``) so ``ngettext`` and the frontend bundle can use them."""
     flat: dict[str, str] = {}
     for key, value in catalog.items():
-        if "\x00" in key:
-            continue
         if "\x04" in key:
-            ctx, msgid = key.split("\x04", 1)
-            flat[f"{ctx}|{msgid}"] = value
+            ctx, rest = key.split("\x04", 1)
+            flat[f"{ctx}|{rest}"] = value
         else:
             flat[key] = value
     return flat
@@ -245,9 +246,8 @@ class _DictTranslations(_gettext.NullTranslations):
         return self._catalog.get(message, message)
 
     def ngettext(self, singular: str, plural: str, n: int) -> str:
-        idx = self._plural_index(n)
-        key = f"{singular}\x00{idx}"
-        result = self._catalog.get(key)
+        idx = plural_index(self._lang, n)
+        result = self._catalog.get(f"{singular}\x00{idx}")
         if result:
             return result
         return singular if n == 1 else plural
@@ -255,14 +255,6 @@ class _DictTranslations(_gettext.NullTranslations):
     def pgettext(self, context: str, message: str) -> str:
         key = f"{context}\x04{message}"
         return self._catalog.get(key, message)
-
-    def _plural_index(self, n: int) -> int:
-        """Ukrainian plural form: 3 forms."""
-        if n % 10 == 1 and n % 100 != 11:
-            return 0
-        if 2 <= n % 10 <= 4 and (n % 100 < 12 or n % 100 > 14):
-            return 1
-        return 2
 
 
 class TranslationService:
@@ -289,14 +281,22 @@ class TranslationService:
         return _load_translations(lang).gettext(source)
 
     def ngettext(self, singular: str, plural: str, n: int, lang: str | None = None) -> str:
-        """Translate with plural forms."""
+        """Translate with plural forms: provider → app PO → core PO → fallback.
+
+        Plural forms are stored as flat keys ``"<singular>\\x00<form-index>"``
+        (same convention the PO parser uses).
+        """
         lang = lang or _current_lang.get()
 
         if lang == "en":
             return singular if n == 1 else plural
 
-        trans = _load_translations(lang)
-        return trans.ngettext(singular, plural, n)
+        key = f"{singular}\x00{plural_index(lang, n)}"
+        hit = _provider_catalog(lang).get(key) or _app_catalog(lang).get(key)
+        if hit:
+            return hit
+
+        return _load_translations(lang).ngettext(singular, plural, n)
 
     def pgettext(self, context: str, message: str, lang: str | None = None) -> str:
         """Translate with context (msgctxt): provider → app PO → core PO → message."""
