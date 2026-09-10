@@ -16,7 +16,7 @@ from grunt.metadata.scaffold import export_doctype_files
 logger = structlog.get_logger()
 
 
-async def _dump_doctype(dt: DocType) -> dict[str, Any]:
+async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, Any]:
     """Serialize a DocType, resolving registry-backed options and field schemas.
 
     Fields with `options_source` set draw their choices from the dynamic
@@ -28,6 +28,10 @@ async def _dump_doctype(dt: DocType) -> dict[str, Any]:
 
     `workflow_state_field` is resolved from the active `Workflow` document (if
     any) rather than stored on the DocType itself — see grunt/workflow/registry.py.
+
+    ``translate=True`` runs labels/descriptions/Select options through the i18n
+    layer for the current request language (see grunt.i18n.meta). Only the
+    presentational render paths pass it — never file export / sync.
     """
     from grunt.workflow.registry import get_active_workflow
 
@@ -45,6 +49,12 @@ async def _dump_doctype(dt: DocType) -> dict[str, Any]:
     from grunt.actions import enrich_doctype_actions
 
     enrich_doctype_actions(data)
+
+    if translate:
+        from grunt.i18n.meta import translate_doctype_meta
+
+        translate_doctype_meta(data)
+
     return data
 
 
@@ -58,13 +68,17 @@ async def _get_app_name_for_module(module: str) -> str | None:
 
 
 @grunt.whitelist()
-async def get_doctype(name: str) -> dict[str, Any]:
-    """Get a single DocType definition, always re-reading from DB."""
+async def get_doctype(name: str, raw: bool = False) -> dict[str, Any]:
+    """Get a single DocType definition, always re-reading from DB.
+
+    Labels/descriptions/Select options are translated for the request language
+    unless ``raw`` is set (the DocType builder edits the untranslated source).
+    """
     await doctype_registry.get(name)  # ensure it exists (raises 404 if not)
     fresh = await doctype_registry._lazy_load(name)
     if fresh is None:
         fresh = await doctype_registry.get(name)
-    return await _dump_doctype(fresh)
+    return await _dump_doctype(fresh, translate=not raw)
 
 
 @grunt.whitelist()

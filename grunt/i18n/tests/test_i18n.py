@@ -115,6 +115,57 @@ class TestRuntimeProvider:
         assert translation_service.catalog_version("uk") != before
 
 
+class TestMetaTranslation:
+    def teardown_method(self):
+        import grunt.i18n.service as svc
+
+        svc._provider = None
+        translation_service.invalidate()
+
+    def _dt(self) -> dict:
+        return {
+            "name": "Widget",
+            "label": "Віджет",
+            "description": "Опис",
+            "fields": [
+                {
+                    "fieldname": "status",
+                    "label": "Статус",
+                    "fieldtype": "Select",
+                    "options": "Новий\nЗакритий",
+                },
+                {"fieldname": "note", "label": "Нотатка", "fieldtype": "Text"},
+            ],
+            "status_indicators": [{"value": "Новий", "label": "Новий"}],
+        }
+
+    def test_translates_label_field_and_options(self):
+        from grunt.i18n.meta import translate_doctype_meta
+
+        translation_service.register_provider(
+            lambda _l: {
+                "meta:Widget|Віджет": "Widget",
+                "meta:Widget.status|Статус": "Status",
+                "select:Widget.status|Новий": "New",
+                "status:Widget|Новий": "New",
+            }
+        )
+        out = translate_doctype_meta(self._dt(), lang="uk")
+
+        assert out["label"] == "Widget"
+        assert out["fields"][0]["label"] == "Status"
+        assert out["fields"][0]["options"] == "New\nЗакритий"
+        assert out["fields"][1]["label"] == "Нотатка"  # untranslated → source kept
+        assert out["status_indicators"][0]["label"] == "New"
+
+    def test_noop_without_entries(self):
+        from grunt.i18n.meta import translate_doctype_meta
+
+        out = translate_doctype_meta(self._dt(), lang="uk")
+        assert out["label"] == "Віджет"
+        assert out["fields"][0]["options"] == "Новий\nЗакритий"
+
+
 class TestSupportedLangs:
     def test_defaults_present(self):
         assert {"uk", "en"} <= translation_service.supported_langs()

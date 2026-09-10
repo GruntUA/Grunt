@@ -40,12 +40,18 @@ function isPublicAuthPath(pathname: string): boolean {
   return PUBLIC_AUTH_PATHS.has(pathname)
 }
 
-// Request interceptor: attach Authorization header
+// Request interceptor: attach Authorization header + current UI language
 client.interceptors.request.use(async (config) => {
   const { useAuthStore } = await import('@/stores/auth')
   const auth = useAuthStore()
   if (auth.token) {
     config.headers.Authorization = `Bearer ${auth.token}`
+  }
+  try {
+    const { i18n } = await import('@/plugins/i18n')
+    config.headers['X-Grunt-Lang'] = i18n.global.locale.value
+  } catch {
+    // i18n not ready yet — server falls back to its default language
   }
   return config
 })

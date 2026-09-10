@@ -72,6 +72,11 @@ export function setLocale(locale: SupportedLocale): void {
   localStorage.setItem(STORAGE_KEY, locale)
   document.documentElement.setAttribute('lang', locale)
   loadRemoteTranslations(locale)
+  // DocType schemas are translated server-side per request language — drop the
+  // cache so the next render refetches labels in the new language.
+  import('@/stores/doctype')
+    .then(({ useDocTypeStore }) => useDocTypeStore().invalidateAll())
+    .catch(() => {})
 }
 
 export default i18n
