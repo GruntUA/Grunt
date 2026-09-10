@@ -2106,9 +2106,8 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
 msgctxt "help:EmailLoginToken"
 msgid ""
-"Одноразовий токен для passwordless-входу (код + magic-link). Успішний вхід "
-"будь-яким шляхом позначає рядок використаним, і другий шлях перестає "
-"працювати."
+"A one-time token for passwordless sign-in (code + magic link). A successful "
+"sign-in by either path marks the row used, and the other path stops working."
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
@@ -2289,30 +2288,30 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "help:User.mfa_backup_display"
 msgid ""
-"Ці коди відображаються лише один раз при активації. Ви бачите це поле, тому "
-"що MFA увімкнено."
+"These codes are shown only once, at activation. You see this field because "
+"MFA is enabled."
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "help:User.passkeys_button"
-msgid "Додати або видалити passkey (WebAuthn) для входу без пароля."
+msgid "Add or remove a passkey (WebAuthn) for passwordless sign-in."
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "help:User.password"
-msgid "Введіть новий пароль. У базі зберігатиметься лише його хеш."
+msgid "Enter a new password. Only its hash is stored in the database."
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "help:User.sec_roles"
-msgid "Ролі користувача. Редагувати може лише System Manager."
+msgid "The user's roles. Only a System Manager can edit these."
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "help:User.signup_state"
 msgid ""
-"pending — самостійно зареєстрований користувач очікує підтвердження "
-"адміністратора і не може увійти."
+"pending — a self-registered user is waiting for administrator approval and "
+"cannot sign in."
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
@@ -2343,18 +2342,17 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "help:WebAuthnCredential.backed_up"
 msgid ""
-"Ключ синхронізується через хмару (напр. iCloud Keychain, Google Password "
-"Manager)"
+"The key syncs via the cloud (e.g. iCloud Keychain, Google Password Manager)"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "help:WebAuthnCredential.label"
-msgid "Дружня назва пристрою / автентифікатора"
+msgid "Friendly name of the device / authenticator"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "help:WebAuthnCredential.transports"
-msgid "Список через кому: usb, nfc, ble, internal, hybrid"
+msgid "Comma-separated list: usb, nfc, ble, internal, hybrid"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
@@ -2496,42 +2494,42 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgctxt "meta:ApiKey.allowed_ips"
-msgid "Дозволені IP (через кому)"
+msgid "Allowed IPs (comma-separated)"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgctxt "meta:ApiKey.expires_at"
-msgid "Дійсний до"
+msgid "Valid until"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgctxt "meta:ApiKey.is_active"
-msgid "Активний"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgctxt "meta:ApiKey.key_hash"
-msgid "Хеш ключа"
+msgid "Key hash"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgctxt "meta:ApiKey.key_prefix"
-msgid "Префікс ключа"
+msgid "Key prefix"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgctxt "meta:ApiKey.label"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgctxt "meta:ApiKey.last_used_at"
-msgid "Останнє використання"
+msgid "Last used"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgctxt "meta:ApiKey.user_id"
-msgid "Користувач"
+msgid "User"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
@@ -4225,32 +4223,32 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
 msgctxt "meta:EmailLoginToken"
-msgid "Токен входу через пошту"
+msgid "Email login token"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
 msgctxt "meta:EmailLoginToken.code_hash"
-msgid "Хеш коду"
+msgid "Code hash"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
 msgctxt "meta:EmailLoginToken.consumed_at"
-msgid "Використано"
+msgid "Used"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
 msgctxt "meta:EmailLoginToken.email"
-msgid "Ел. пошта"
+msgid "Email"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
 msgctxt "meta:EmailLoginToken.expires_at"
-msgid "Дійсний до"
+msgid "Valid until"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
 msgctxt "meta:EmailLoginToken.ip_address"
-msgid "IP-адреса запиту"
+msgid "Request IP address"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
@@ -5260,17 +5258,17 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/Role/Role.json
 msgctxt "meta:Role"
-msgid "Роль"
+msgid "Role"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/Role/Role.json
 msgctxt "meta:Role.description"
-msgid "Опис"
+msgid "Description"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/Role/Role.json
 msgctxt "meta:Role.role_name"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
@@ -5820,22 +5818,22 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User"
-msgid "Користувач"
+msgid "User"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.avatar"
-msgid "Фото профілю"
+msgid "Profile photo"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.bio"
-msgid "Коротка біографія"
+msgid "Short bio"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.birth_date"
-msgid "Дата народження"
+msgid "Date of birth"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
@@ -5845,207 +5843,207 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.first_name"
-msgid "Ім'я"
+msgid "First name"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.full_name"
-msgid "Повне ім'я"
+msgid "Full name"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.gender"
-msgid "Стать"
+msgid "Gender"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.hashed_password"
-msgid "Хешований пароль"
+msgid "Password hash"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.is_active"
-msgid "Активний"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.is_superadmin"
-msgid "Суперадмін"
+msgid "Superadmin"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.language"
-msgid "Мова"
+msgid "Language"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.last_login"
-msgid "Останній вхід"
+msgid "Last login"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.last_name"
-msgid "Прізвище"
+msgid "Last name"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.locked_until"
-msgid "Акаунт заблоковано до"
+msgid "Account locked until"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.login_attempts"
-msgid "Невдалі спроби входу"
+msgid "Failed login attempts"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.mfa_backup_codes"
-msgid "Хеші резервних кодів"
+msgid "Backup code hashes"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.mfa_backup_display"
-msgid "Резервні коди"
+msgid "Backup codes"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.mfa_enabled"
-msgid "MFA увімкнено"
+msgid "MFA enabled"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.mfa_secret"
-msgid "Секрет MFA"
+msgid "MFA secret"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.mfa_setup_button"
-msgid "Керування MFA"
+msgid "MFA management"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.middle_name"
-msgid "По-батькові"
+msgid "Patronymic"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.passkeys_button"
-msgid "Керувати ключами доступу"
+msgid "Manage passkeys"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.password"
-msgid "Встановити пароль"
+msgid "Set password"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.phone"
-msgid "Телефон"
+msgid "Phone"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.refresh_token"
-msgid "Токен оновлення (Refresh)"
+msgid "Refresh token"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.refresh_token_expires_at"
-msgid "Час дії Refresh токену"
+msgid "Refresh token expiry"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.reset_token"
-msgid "Токен відновлення пароля"
+msgid "Password reset token"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.reset_token_expires_at"
-msgid "Час дії токену відновлення"
+msgid "Reset token expiry"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.roles"
-msgid "Ролі"
+msgid "Roles"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.sec_bio"
-msgid "Про себе"
+msgid "About"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.sec_contact"
-msgid "Контакти"
+msgid "Contacts"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.sec_mfa"
-msgid "MFA та Блокування"
+msgid "MFA & lockout"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.sec_name_fields"
-msgid "Прізвище, Ім'я, По-батькові"
+msgid "Last name, First name, Patronymic"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.sec_passkeys"
-msgid "Ключі доступу (Passkeys)"
+msgid "Passkeys"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.sec_personal"
-msgid "Додатково"
+msgid "Advanced"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.sec_preferences"
-msgid "Інтерфейс"
+msgid "Interface"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.sec_roles"
-msgid "Ролі"
+msgid "Roles"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.sec_security"
-msgid "Доступ"
+msgid "Access"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.sec_tokens"
-msgid "Токени сесій"
+msgid "Session tokens"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.signup_state"
-msgid "Стан реєстрації"
+msgid "Registration state"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.tab_general"
-msgid "Основне"
+msgid "General"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.tab_preferences"
-msgid "Налаштування"
+msgid "Preferences"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.tab_security"
-msgid "Безпека"
+msgid "Security"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.theme"
-msgid "Тема оформлення"
+msgid "Theme"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "meta:User.timezone"
-msgid "Часовий пояс"
+msgid "Time zone"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
@@ -6085,47 +6083,47 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 msgctxt "meta:UserRole"
-msgid "Роль користувача"
+msgid "User role"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 msgctxt "meta:UserRole.role_name"
-msgid "Роль"
+msgid "Role"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgctxt "meta:UserSession"
-msgid "Сесія користувача"
+msgid "User session"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgctxt "meta:UserSession.ip_address"
-msgid "IP-адреса"
+msgid "IP address"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgctxt "meta:UserSession.is_active"
-msgid "Активна"
+msgid "Active"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgctxt "meta:UserSession.last_active_at"
-msgid "Остання активність"
+msgid "Last activity"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgctxt "meta:UserSession.session_key"
-msgid "Ключ сесії"
+msgid "Session key"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgctxt "meta:UserSession.user"
-msgid "Користувач"
+msgid "User"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgctxt "meta:UserSession.user_agent"
-msgid "Браузер / клієнт"
+msgid "Browser / client"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
@@ -6155,7 +6153,7 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "meta:WebAuthnCredential"
-msgid "Ключ доступу (Passkey)"
+msgid "Passkey"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
@@ -6165,7 +6163,7 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "meta:WebAuthnCredential.backed_up"
-msgid "Синхронізований"
+msgid "Synced"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
@@ -6175,37 +6173,37 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "meta:WebAuthnCredential.label"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "meta:WebAuthnCredential.last_used_at"
-msgid "Востаннє використано"
+msgid "Last used"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "meta:WebAuthnCredential.public_key"
-msgid "Публічний ключ"
+msgid "Public key"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "meta:WebAuthnCredential.sec_technical"
-msgid "Технічні дані"
+msgid "Technical details"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "meta:WebAuthnCredential.sign_count"
-msgid "Лічильник підписів"
+msgid "Signature counter"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "meta:WebAuthnCredential.transports"
-msgid "Транспорти"
+msgid "Transports"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgctxt "meta:WebAuthnCredential.user"
-msgid "Користувач"
+msgid "User"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
@@ -7985,17 +7983,17 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "select:User.gender"
-msgid "Інше"
+msgid "Female"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "select:User.gender"
-msgid "Жіноча"
+msgid "Male"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgctxt "select:User.gender"
-msgid "Чоловіча"
+msgid "Other"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json

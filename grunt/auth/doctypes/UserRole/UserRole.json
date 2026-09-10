@@ -1,12 +1,12 @@
 {
   "name": "UserRole",
-  "label": "Роль користувача",
+  "label": "User role",
   "module": "auth",
   "is_child": true,
   "fields": [
     {
       "fieldname": "role_name",
-      "label": "Роль",
+      "label": "Role",
       "fieldtype": "Link",
       "options": "Role",
       "required": true,

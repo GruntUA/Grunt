@@ -1,15 +1,15 @@
 {
   "name": "EmailLoginToken",
-  "label": "Токен входу через пошту",
+  "label": "Email login token",
   "module": "auth",
   "autoname": "hash",
   "title_field": "email",
   "track_changes": false,
-  "description": "Одноразовий токен для passwordless-входу (код + magic-link). Успішний вхід будь-яким шляхом позначає рядок використаним, і другий шлях перестає працювати.",
+  "description": "A one-time token for passwordless sign-in (code + magic link). A successful sign-in by either path marks the row used, and the other path stops working.",
   "fields": [
     {
       "fieldname": "email",
-      "label": "Ел. пошта",
+      "label": "Email",
       "fieldtype": "Data",
       "required": true,
       "read_only": true,
@@ -18,27 +18,27 @@
     },
     {
       "fieldname": "code_hash",
-      "label": "Хеш коду",
+      "label": "Code hash",
       "fieldtype": "Data",
       "read_only": true
     },
     {
       "fieldname": "expires_at",
-      "label": "Дійсний до",
+      "label": "Valid until",
       "fieldtype": "Datetime",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "consumed_at",
-      "label": "Використано",
+      "label": "Used",
       "fieldtype": "Datetime",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "ip_address",
-      "label": "IP-адреса запиту",
+      "label": "Request IP address",
       "fieldtype": "Data",
       "read_only": true
     }

@@ -1,13 +1,13 @@
 {
   "name": "Role",
-  "label": "Роль",
+  "label": "Role",
   "module": "auth",
   "autoname": "field:role_name",
   "title_field": "role_name",
   "fields": [
     {
       "fieldname": "role_name",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
@@ -15,7 +15,7 @@
     },
     {
       "fieldname": "description",
-      "label": "Опис",
+      "label": "Description",
       "fieldtype": "LongText"
     }
   ],

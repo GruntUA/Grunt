@@ -1,6 +1,6 @@
 {
   "name": "User",
-  "label": "Користувач",
+  "label": "User",
   "module": "auth",
   "is_child": false,
   "autoname": "field:email",
@@ -9,17 +9,17 @@
   "fields": [
     {
       "fieldname": "tab_general",
-      "label": "Основне",
+      "label": "General",
       "fieldtype": "Tab"
     },
     {
       "fieldname": "sec_name_fields",
-      "label": "Прізвище, Ім'я, По-батькові",
+      "label": "Last name, First name, Patronymic",
       "fieldtype": "Section"
     },
     {
       "fieldname": "last_name",
-      "label": "Прізвище",
+      "label": "Last name",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
@@ -31,7 +31,7 @@
     },
     {
       "fieldname": "first_name",
-      "label": "Ім'я",
+      "label": "First name",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
@@ -43,7 +43,7 @@
     },
     {
       "fieldname": "middle_name",
-      "label": "По-батькові",
+      "label": "Patronymic",
       "fieldtype": "Text"
     },
     {
@@ -52,7 +52,7 @@
     },
     {
       "fieldname": "full_name",
-      "label": "Повне ім'я",
+      "label": "Full name",
       "fieldtype": "Text",
       "read_only": true,
       "in_list_view": true,
@@ -64,13 +64,13 @@
     },
     {
       "fieldname": "avatar",
-      "label": "Фото профілю",
+      "label": "Profile photo",
       "fieldtype": "Image",
       "in_list_view": true
     },
     {
       "fieldname": "sec_contact",
-      "label": "Контакти",
+      "label": "Contacts",
       "fieldtype": "Section"
     },
     {
@@ -88,17 +88,17 @@
     },
     {
       "fieldname": "phone",
-      "label": "Телефон",
+      "label": "Phone",
       "fieldtype": "Text"
     },
     {
       "fieldname": "sec_personal",
-      "label": "Додатково",
+      "label": "Advanced",
       "fieldtype": "Section"
     },
     {
       "fieldname": "birth_date",
-      "label": "Дата народження",
+      "label": "Date of birth",
       "fieldtype": "Date"
     },
     {
@@ -107,9 +107,9 @@
     },
     {
       "fieldname": "gender",
-      "label": "Стать",
+      "label": "Gender",
       "fieldtype": "Select",
-      "options": "Чоловіча\nЖіноча\nІнше"
+      "options": "Male\nFemale\nOther"
     },
     {
       "fieldname": "col_p2",
@@ -117,7 +117,7 @@
     },
     {
       "fieldname": "timezone",
-      "label": "Часовий пояс",
+      "label": "Time zone",
       "fieldtype": "Data",
       "default": "Europe/Kyiv"
     },
@@ -127,33 +127,33 @@
     },
     {
       "fieldname": "last_login",
-      "label": "Останній вхід",
+      "label": "Last login",
       "fieldtype": "Datetime",
       "read_only": true
     },
     {
       "fieldname": "sec_bio",
-      "label": "Про себе",
+      "label": "About",
       "fieldtype": "Section"
     },
     {
       "fieldname": "bio",
-      "label": "Коротка біографія",
+      "label": "Short bio",
       "fieldtype": "LongText"
     },
     {
       "fieldname": "tab_security",
-      "label": "Безпека",
+      "label": "Security",
       "fieldtype": "Tab"
     },
     {
       "fieldname": "sec_security",
-      "label": "Доступ",
+      "label": "Access",
       "fieldtype": "Section"
     },
     {
       "fieldname": "is_active",
-      "label": "Активний",
+      "label": "Active",
       "fieldtype": "Check",
       "default": true,
       "in_list_view": true,
@@ -161,18 +161,18 @@
     },
     {
       "fieldname": "signup_state",
-      "label": "Стан реєстрації",
+      "label": "Registration state",
       "fieldtype": "Select",
       "options": "approved\npending\nrejected",
       "default": "approved",
       "read_only": true,
       "in_list_view": true,
       "in_filter": true,
-      "description": "pending — самостійно зареєстрований користувач очікує підтвердження адміністратора і не може увійти."
+      "description": "pending — a self-registered user is waiting for administrator approval and cannot sign in."
     },
     {
       "fieldname": "is_superadmin",
-      "label": "Суперадмін",
+      "label": "Superadmin",
       "fieldtype": "Check",
       "default": false,
       "in_list_view": true,
@@ -184,65 +184,65 @@
     },
     {
       "fieldname": "password",
-      "label": "Встановити пароль",
+      "label": "Set password",
       "fieldtype": "Text",
       "hidden": false,
-      "description": "Введіть новий пароль. У базі зберігатиметься лише його хеш."
+      "description": "Enter a new password. Only its hash is stored in the database."
     },
     {
       "fieldname": "hashed_password",
-      "label": "Хешований пароль",
+      "label": "Password hash",
       "fieldtype": "LongText",
       "hidden": true
     },
     {
       "fieldname": "sec_roles",
-      "label": "Ролі",
+      "label": "Roles",
       "fieldtype": "Section",
-      "description": "Ролі користувача. Редагувати може лише System Manager."
+      "description": "The user's roles. Only a System Manager can edit these."
     },
     {
       "fieldname": "roles",
-      "label": "Ролі",
+      "label": "Roles",
       "fieldtype": "Table",
       "options": "UserRole"
     },
     {
       "fieldname": "sec_mfa",
-      "label": "MFA та Блокування",
+      "label": "MFA & lockout",
       "fieldtype": "Section",
       "collapsible": true
     },
     {
       "fieldname": "mfa_enabled",
-      "label": "MFA увімкнено",
+      "label": "MFA enabled",
       "fieldtype": "Check",
       "default": false,
       "read_only": true
     },
     {
       "fieldname": "mfa_setup_button",
-      "label": "Керування MFA",
+      "label": "MFA management",
       "fieldtype": "Button"
     },
     {
       "fieldname": "mfa_secret",
-      "label": "Секрет MFA",
+      "label": "MFA secret",
       "fieldtype": "LongText",
       "hidden": true
     },
     {
       "fieldname": "mfa_backup_codes",
-      "label": "Хеші резервних кодів",
+      "label": "Backup code hashes",
       "fieldtype": "JSON",
       "hidden": true
     },
     {
       "fieldname": "mfa_backup_display",
-      "label": "Резервні коди",
+      "label": "Backup codes",
       "fieldtype": "SmallText",
       "read_only": true,
-      "description": "Ці коди відображаються лише один раз при активації. Ви бачите це поле, тому що MFA увімкнено."
+      "description": "These codes are shown only once, at activation. You see this field because MFA is enabled."
     },
     {
       "fieldname": "col_mfa",
@@ -250,42 +250,42 @@
     },
     {
       "fieldname": "login_attempts",
-      "label": "Невдалі спроби входу",
+      "label": "Failed login attempts",
       "fieldtype": "Int",
       "default": 0,
       "read_only": true
     },
     {
       "fieldname": "locked_until",
-      "label": "Акаунт заблоковано до",
+      "label": "Account locked until",
       "fieldtype": "Datetime",
       "read_only": true
     },
     {
       "fieldname": "sec_passkeys",
-      "label": "Ключі доступу (Passkeys)",
+      "label": "Passkeys",
       "fieldtype": "Section",
       "collapsible": true
     },
     {
       "fieldname": "passkeys_button",
-      "label": "Керувати ключами доступу",
+      "label": "Manage passkeys",
       "fieldtype": "Button",
-      "description": "Додати або видалити passkey (WebAuthn) для входу без пароля."
+      "description": "Add or remove a passkey (WebAuthn) for passwordless sign-in."
     },
     {
       "fieldname": "tab_preferences",
-      "label": "Налаштування",
+      "label": "Preferences",
       "fieldtype": "Tab"
     },
     {
       "fieldname": "sec_preferences",
-      "label": "Інтерфейс",
+      "label": "Interface",
       "fieldtype": "Section"
     },
     {
       "fieldname": "theme",
-      "label": "Тема оформлення",
+      "label": "Theme",
       "fieldtype": "Select",
       "options": "light\ndark\nsystem",
       "default": "system"
@@ -296,26 +296,26 @@
     },
     {
       "fieldname": "language",
-      "label": "Мова",
+      "label": "Language",
       "fieldtype": "Select",
       "options": "uk\nen",
       "default": "uk"
     },
     {
       "fieldname": "sec_tokens",
-      "label": "Токени сесій",
+      "label": "Session tokens",
       "fieldtype": "Section",
       "hidden": true
     },
     {
       "fieldname": "refresh_token",
-      "label": "Токен оновлення (Refresh)",
+      "label": "Refresh token",
       "fieldtype": "Text",
       "hidden": true
     },
     {
       "fieldname": "refresh_token_expires_at",
-      "label": "Час дії Refresh токену",
+      "label": "Refresh token expiry",
       "fieldtype": "Datetime",
       "hidden": true
     },
@@ -326,13 +326,13 @@
     },
     {
       "fieldname": "reset_token",
-      "label": "Токен відновлення пароля",
+      "label": "Password reset token",
       "fieldtype": "Text",
       "hidden": true
     },
     {
       "fieldname": "reset_token_expires_at",
-      "label": "Час дії токену відновлення",
+      "label": "Reset token expiry",
       "fieldtype": "Datetime",
       "hidden": true
     }

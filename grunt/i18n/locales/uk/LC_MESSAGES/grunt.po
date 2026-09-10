@@ -2152,3 +2152,387 @@ msgstr "Фільтри лічильника (JSON)"
 msgctxt "meta:WorkspaceSidebarItem.roles"
 msgid "Roles (comma-separated)"
 msgstr "Ролі (через кому)"
+
+msgctxt "meta:ApiKey.label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:ApiKey.user_id"
+msgid "User"
+msgstr "Користувач"
+
+msgctxt "meta:ApiKey.key_prefix"
+msgid "Key prefix"
+msgstr "Префікс ключа"
+
+msgctxt "meta:ApiKey.key_hash"
+msgid "Key hash"
+msgstr "Хеш ключа"
+
+msgctxt "meta:ApiKey.is_active"
+msgid "Active"
+msgstr "Активний"
+
+msgctxt "meta:ApiKey.last_used_at"
+msgid "Last used"
+msgstr "Останнє використання"
+
+msgctxt "meta:ApiKey.expires_at"
+msgid "Valid until"
+msgstr "Дійсний до"
+
+msgctxt "meta:ApiKey.allowed_ips"
+msgid "Allowed IPs (comma-separated)"
+msgstr "Дозволені IP (через кому)"
+
+msgctxt "meta:EmailLoginToken"
+msgid "Email login token"
+msgstr "Токен входу через пошту"
+
+msgctxt "help:EmailLoginToken"
+msgid ""
+"A one-time token for passwordless sign-in (code + magic link). A successful "
+"sign-in by either path marks the row used, and the other path stops working."
+msgstr ""
+"Одноразовий токен для passwordless-входу (код + magic-link). Успішний вхід "
+"будь-яким шляхом позначає рядок використаним, і другий шлях перестає "
+"працювати."
+
+msgctxt "meta:EmailLoginToken.email"
+msgid "Email"
+msgstr "Ел. пошта"
+
+msgctxt "meta:EmailLoginToken.code_hash"
+msgid "Code hash"
+msgstr "Хеш коду"
+
+msgctxt "meta:EmailLoginToken.expires_at"
+msgid "Valid until"
+msgstr "Дійсний до"
+
+msgctxt "meta:EmailLoginToken.consumed_at"
+msgid "Used"
+msgstr "Використано"
+
+msgctxt "meta:EmailLoginToken.ip_address"
+msgid "Request IP address"
+msgstr "IP-адреса запиту"
+
+msgctxt "meta:Role"
+msgid "Role"
+msgstr "Роль"
+
+msgctxt "meta:Role.role_name"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:Role.description"
+msgid "Description"
+msgstr "Опис"
+
+msgctxt "meta:User"
+msgid "User"
+msgstr "Користувач"
+
+msgctxt "meta:User.tab_general"
+msgid "General"
+msgstr "Основне"
+
+msgctxt "meta:User.sec_name_fields"
+msgid "Last name, First name, Patronymic"
+msgstr "Прізвище, Ім'я, По-батькові"
+
+msgctxt "meta:User.last_name"
+msgid "Last name"
+msgstr "Прізвище"
+
+msgctxt "meta:User.first_name"
+msgid "First name"
+msgstr "Ім'я"
+
+msgctxt "meta:User.middle_name"
+msgid "Patronymic"
+msgstr "По-батькові"
+
+msgctxt "meta:User.full_name"
+msgid "Full name"
+msgstr "Повне ім'я"
+
+msgctxt "meta:User.avatar"
+msgid "Profile photo"
+msgstr "Фото профілю"
+
+msgctxt "meta:User.sec_contact"
+msgid "Contacts"
+msgstr "Контакти"
+
+msgctxt "meta:User.phone"
+msgid "Phone"
+msgstr "Телефон"
+
+msgctxt "meta:User.sec_personal"
+msgid "Advanced"
+msgstr "Додатково"
+
+msgctxt "meta:User.birth_date"
+msgid "Date of birth"
+msgstr "Дата народження"
+
+msgctxt "meta:User.gender"
+msgid "Gender"
+msgstr "Стать"
+
+msgctxt "select:User.gender"
+msgid "Male"
+msgstr "Чоловіча"
+
+msgctxt "select:User.gender"
+msgid "Female"
+msgstr "Жіноча"
+
+msgctxt "select:User.gender"
+msgid "Other"
+msgstr "Інше"
+
+msgctxt "meta:User.timezone"
+msgid "Time zone"
+msgstr "Часовий пояс"
+
+msgctxt "meta:User.last_login"
+msgid "Last login"
+msgstr "Останній вхід"
+
+msgctxt "meta:User.sec_bio"
+msgid "About"
+msgstr "Про себе"
+
+msgctxt "meta:User.bio"
+msgid "Short bio"
+msgstr "Коротка біографія"
+
+msgctxt "meta:User.tab_security"
+msgid "Security"
+msgstr "Безпека"
+
+msgctxt "meta:User.sec_security"
+msgid "Access"
+msgstr "Доступ"
+
+msgctxt "meta:User.is_active"
+msgid "Active"
+msgstr "Активний"
+
+msgctxt "meta:User.signup_state"
+msgid "Registration state"
+msgstr "Стан реєстрації"
+
+msgctxt "help:User.signup_state"
+msgid ""
+"pending — a self-registered user is waiting for administrator approval and "
+"cannot sign in."
+msgstr ""
+"pending — самостійно зареєстрований користувач очікує підтвердження "
+"адміністратора і не може увійти."
+
+msgctxt "meta:User.is_superadmin"
+msgid "Superadmin"
+msgstr "Суперадмін"
+
+msgctxt "meta:User.password"
+msgid "Set password"
+msgstr "Встановити пароль"
+
+msgctxt "help:User.password"
+msgid "Enter a new password. Only its hash is stored in the database."
+msgstr "Введіть новий пароль. У базі зберігатиметься лише його хеш."
+
+msgctxt "meta:User.hashed_password"
+msgid "Password hash"
+msgstr "Хешований пароль"
+
+msgctxt "meta:User.sec_roles"
+msgid "Roles"
+msgstr "Ролі"
+
+msgctxt "help:User.sec_roles"
+msgid "The user's roles. Only a System Manager can edit these."
+msgstr "Ролі користувача. Редагувати може лише System Manager."
+
+msgctxt "meta:User.roles"
+msgid "Roles"
+msgstr "Ролі"
+
+msgctxt "meta:User.sec_mfa"
+msgid "MFA & lockout"
+msgstr "MFA та Блокування"
+
+msgctxt "meta:User.mfa_enabled"
+msgid "MFA enabled"
+msgstr "MFA увімкнено"
+
+msgctxt "meta:User.mfa_setup_button"
+msgid "MFA management"
+msgstr "Керування MFA"
+
+msgctxt "meta:User.mfa_secret"
+msgid "MFA secret"
+msgstr "Секрет MFA"
+
+msgctxt "meta:User.mfa_backup_codes"
+msgid "Backup code hashes"
+msgstr "Хеші резервних кодів"
+
+msgctxt "meta:User.mfa_backup_display"
+msgid "Backup codes"
+msgstr "Резервні коди"
+
+msgctxt "help:User.mfa_backup_display"
+msgid ""
+"These codes are shown only once, at activation. You see this field because "
+"MFA is enabled."
+msgstr ""
+"Ці коди відображаються лише один раз при активації. Ви бачите це поле, тому "
+"що MFA увімкнено."
+
+msgctxt "meta:User.login_attempts"
+msgid "Failed login attempts"
+msgstr "Невдалі спроби входу"
+
+msgctxt "meta:User.locked_until"
+msgid "Account locked until"
+msgstr "Акаунт заблоковано до"
+
+msgctxt "meta:User.sec_passkeys"
+msgid "Passkeys"
+msgstr "Ключі доступу (Passkeys)"
+
+msgctxt "meta:User.passkeys_button"
+msgid "Manage passkeys"
+msgstr "Керувати ключами доступу"
+
+msgctxt "help:User.passkeys_button"
+msgid "Add or remove a passkey (WebAuthn) for passwordless sign-in."
+msgstr "Додати або видалити passkey (WebAuthn) для входу без пароля."
+
+msgctxt "meta:User.tab_preferences"
+msgid "Preferences"
+msgstr "Налаштування"
+
+msgctxt "meta:User.sec_preferences"
+msgid "Interface"
+msgstr "Інтерфейс"
+
+msgctxt "meta:User.theme"
+msgid "Theme"
+msgstr "Тема оформлення"
+
+msgctxt "meta:User.language"
+msgid "Language"
+msgstr "Мова"
+
+msgctxt "meta:User.sec_tokens"
+msgid "Session tokens"
+msgstr "Токени сесій"
+
+msgctxt "meta:User.refresh_token"
+msgid "Refresh token"
+msgstr "Токен оновлення (Refresh)"
+
+msgctxt "meta:User.refresh_token_expires_at"
+msgid "Refresh token expiry"
+msgstr "Час дії Refresh токену"
+
+msgctxt "meta:User.reset_token"
+msgid "Password reset token"
+msgstr "Токен відновлення пароля"
+
+msgctxt "meta:User.reset_token_expires_at"
+msgid "Reset token expiry"
+msgstr "Час дії токену відновлення"
+
+msgctxt "meta:UserRole"
+msgid "User role"
+msgstr "Роль користувача"
+
+msgctxt "meta:UserRole.role_name"
+msgid "Role"
+msgstr "Роль"
+
+msgctxt "meta:UserSession"
+msgid "User session"
+msgstr "Сесія користувача"
+
+msgctxt "meta:UserSession.user"
+msgid "User"
+msgstr "Користувач"
+
+msgctxt "meta:UserSession.session_key"
+msgid "Session key"
+msgstr "Ключ сесії"
+
+msgctxt "meta:UserSession.ip_address"
+msgid "IP address"
+msgstr "IP-адреса"
+
+msgctxt "meta:UserSession.user_agent"
+msgid "Browser / client"
+msgstr "Браузер / клієнт"
+
+msgctxt "meta:UserSession.last_active_at"
+msgid "Last activity"
+msgstr "Остання активність"
+
+msgctxt "meta:UserSession.is_active"
+msgid "Active"
+msgstr "Активна"
+
+msgctxt "meta:WebAuthnCredential"
+msgid "Passkey"
+msgstr "Ключ доступу (Passkey)"
+
+msgctxt "meta:WebAuthnCredential.user"
+msgid "User"
+msgstr "Користувач"
+
+msgctxt "meta:WebAuthnCredential.label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "help:WebAuthnCredential.label"
+msgid "Friendly name of the device / authenticator"
+msgstr "Дружня назва пристрою / автентифікатора"
+
+msgctxt "meta:WebAuthnCredential.last_used_at"
+msgid "Last used"
+msgstr "Востаннє використано"
+
+msgctxt "meta:WebAuthnCredential.backed_up"
+msgid "Synced"
+msgstr "Синхронізований"
+
+msgctxt "help:WebAuthnCredential.backed_up"
+msgid ""
+"The key syncs via the cloud (e.g. iCloud Keychain, Google Password Manager)"
+msgstr ""
+"Ключ синхронізується через хмару (напр. iCloud Keychain, Google Password "
+"Manager)"
+
+msgctxt "meta:WebAuthnCredential.sec_technical"
+msgid "Technical details"
+msgstr "Технічні дані"
+
+msgctxt "meta:WebAuthnCredential.public_key"
+msgid "Public key"
+msgstr "Публічний ключ"
+
+msgctxt "meta:WebAuthnCredential.sign_count"
+msgid "Signature counter"
+msgstr "Лічильник підписів"
+
+msgctxt "meta:WebAuthnCredential.transports"
+msgid "Transports"
+msgstr "Транспорти"
+
+msgctxt "help:WebAuthnCredential.transports"
+msgid "Comma-separated list: usb, nfc, ble, internal, hybrid"
+msgstr "Список через кому: usb, nfc, ble, internal, hybrid"

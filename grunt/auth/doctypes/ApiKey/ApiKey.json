@@ -6,14 +6,14 @@
   "fields": [
     {
       "fieldname": "label",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Data",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "user_id",
-      "label": "Користувач",
+      "label": "User",
       "fieldtype": "Link",
       "options": "User",
       "required": true,
@@ -22,20 +22,20 @@
     },
     {
       "fieldname": "key_prefix",
-      "label": "Префікс ключа",
+      "label": "Key prefix",
       "fieldtype": "Data",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "key_hash",
-      "label": "Хеш ключа",
+      "label": "Key hash",
       "fieldtype": "Text",
       "hidden": true
     },
     {
       "fieldname": "is_active",
-      "label": "Активний",
+      "label": "Active",
       "fieldtype": "Check",
       "default": true,
       "in_list_view": true,
@@ -43,19 +43,19 @@
     },
     {
       "fieldname": "last_used_at",
-      "label": "Останнє використання",
+      "label": "Last used",
       "fieldtype": "Datetime",
       "read_only": true,
       "in_list_view": true
     },
     {
       "fieldname": "expires_at",
-      "label": "Дійсний до",
+      "label": "Valid until",
       "fieldtype": "Datetime"
     },
     {
       "fieldname": "allowed_ips",
-      "label": "Дозволені IP (через кому)",
+      "label": "Allowed IPs (comma-separated)",
       "fieldtype": "Text"
     }
   ],
