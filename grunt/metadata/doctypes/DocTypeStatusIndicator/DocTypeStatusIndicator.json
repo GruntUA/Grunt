@@ -1,6 +1,6 @@
 {
   "name": "DocTypeStatusIndicator",
-  "label": "Індикатор статусу",
+  "label": "Status indicator",
   "module": "metadata",
   "is_child": true,
   "fields": [
@@ -11,16 +11,16 @@
     },
     {
       "fieldname": "value",
-      "label": "Значення поля",
+      "label": "Field value",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
       "bold": true,
-      "description": "Значення, яке має містити поле статусу (наприклад «Чернетка»)"
+      "description": "The value the status field must hold (e.g. \"Draft\")"
     },
     {
       "fieldname": "color",
-      "label": "Колір",
+      "label": "Colour",
       "fieldtype": "Select",
       "options": "secondary\nsuccess\ninfo\nwarn\ndanger\ncontrast\nprimary\ndefault",
       "required": true,
@@ -29,17 +29,17 @@
     },
     {
       "fieldname": "icon",
-      "label": "Іконка",
+      "label": "Icon",
       "fieldtype": "Icon",
       "in_list_view": true,
-      "description": "Lucide-іконка (необов'язково)"
+      "description": "Lucide icon (optional)"
     },
     {
       "fieldname": "label",
-      "label": "Мітка",
+      "label": "Label",
       "fieldtype": "Text",
       "in_list_view": true,
-      "description": "Відображувана назва; якщо порожньо — використовується значення поля"
+      "description": "Display label; if empty, the field value is used"
     }
   ],
   "permissions": [

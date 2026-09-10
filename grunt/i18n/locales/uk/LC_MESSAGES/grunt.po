@@ -332,8 +332,12 @@ msgstr[1] "%(count)d вибрано"
 msgstr[2] "%(count)d вибрано"
 
 #. ── N+1 detector ──────────────────────────────────────────────
-msgid "Possible N+1 query detected: %(count)d queries in one request (%(path)s). Threshold: %(threshold)d."
-msgstr "Виявлено можливу N+1 проблему: %(count)d запитів за один HTTP-запит (%(path)s). Поріг: %(threshold)d."
+msgid ""
+"Possible N+1 query detected: %(count)d queries in one request (%(path)s). "
+"Threshold: %(threshold)d."
+msgstr ""
+"Виявлено можливу N+1 проблему: %(count)d запитів за один HTTP-запит "
+"(%(path)s). Поріг: %(threshold)d."
 
 #. ── Link field ───────────────────────────────────────────────
 msgid "Search {doctype}…"
@@ -615,3 +619,914 @@ msgstr "Показати перші рядки файлу ({n})"
 
 msgid "{n} available"
 msgstr "{n} доступних"
+
+msgctxt "meta:DocField"
+msgid "DocType field"
+msgstr "Поле доктайпу"
+
+msgctxt "meta:DocField.label"
+msgid "Label"
+msgstr "Назва (Label)"
+
+msgctxt "meta:DocField.fieldname"
+msgid "Fieldname"
+msgstr "Код поля (Fieldname)"
+
+msgctxt "meta:DocField.fieldtype"
+msgid "Field type"
+msgstr "Тип поля"
+
+msgctxt "meta:DocField.options"
+msgid "Options"
+msgstr "Опції"
+
+msgctxt "help:DocField.options"
+msgid "DocType for Link/Table, or the option list for Select"
+msgstr "DocType для Link/Table або список для Select"
+
+msgctxt "meta:DocField.sec_validation"
+msgid "Validation & flags"
+msgstr "Валідація та прапори"
+
+msgctxt "meta:DocField.required"
+msgid "Required"
+msgstr "Обов'язкове"
+
+msgctxt "meta:DocField.unique"
+msgid "Unique"
+msgstr "Унікальне"
+
+msgctxt "meta:DocField.read_only"
+msgid "Read-only"
+msgstr "Лише читання"
+
+msgctxt "meta:DocField.in_list_view"
+msgid "In list view"
+msgstr "У списку"
+
+msgctxt "meta:DocField.in_filter"
+msgid "In filters"
+msgstr "У фільтрах"
+
+msgctxt "meta:DocField.hidden"
+msgid "Hidden"
+msgstr "Приховане"
+
+msgctxt "meta:DocField.sec_details"
+msgid "Advanced"
+msgstr "Додатково"
+
+msgctxt "meta:DocField.description"
+msgid "Description"
+msgstr "Опис"
+
+msgctxt "meta:DocField.default"
+msgid "Default value"
+msgstr "Значення за замовчуванням"
+
+msgctxt "meta:DocField.depends_on"
+msgid "Depends on"
+msgstr "Залежить від (Depends On)"
+
+msgctxt "help:DocField.depends_on"
+msgid "Display condition (Python/JS)"
+msgstr "Умова відображення (Python/JS)"
+
+msgctxt "meta:DocPermission"
+msgid "Permission"
+msgstr "Дозвіл"
+
+msgctxt "meta:DocPermission.role"
+msgid "Role"
+msgstr "Роль"
+
+msgctxt "meta:DocPermission.sec_actions"
+msgid "Actions"
+msgstr "Дії"
+
+msgctxt "meta:DocPermission.read"
+msgid "Read"
+msgstr "Читати"
+
+msgctxt "meta:DocPermission.select"
+msgid "Field picker"
+msgstr "Вибір у полі"
+
+msgctxt "help:DocPermission.select"
+msgid ""
+"Lets a user search Link-field values (name, title, search fields) without "
+"access to the list or the full document. Granted automatically together with"
+" Read."
+msgstr ""
+"Дозволяє шукати значення для Link-поля (назва, заголовок, поля пошуку) без "
+"доступу до списку та повного документа. Автоматично надається разом із "
+"«Читати»."
+
+msgctxt "meta:DocPermission.write"
+msgid "Edit"
+msgstr "Редагувати"
+
+msgctxt "meta:DocPermission.create"
+msgid "Create"
+msgstr "Створювати"
+
+msgctxt "meta:DocPermission.delete"
+msgid "Delete"
+msgstr "Видаляти"
+
+msgctxt "meta:DocPermission.submit"
+msgid "Submit"
+msgstr "Підтверджувати"
+
+msgctxt "meta:DocPermission.cancel"
+msgid "Cancel"
+msgstr "Скасовувати"
+
+msgctxt "meta:DocPermission.report"
+msgid "Reports"
+msgstr "Звіти"
+
+msgctxt "meta:DocPermission.sec_advanced"
+msgid "Advanced"
+msgstr "Додатково"
+
+msgctxt "meta:DocPermission.match"
+msgid "Match condition (eval:)"
+msgstr "Умова відповідності (eval:)"
+
+msgctxt "meta:DocPermission.hidden_fields"
+msgid "Hidden fields (comma-separated)"
+msgstr "Приховані поля (через кому)"
+
+msgctxt "meta:DocType"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:DocType.tab_main"
+msgid "General"
+msgstr "Загальне"
+
+msgctxt "meta:DocType.sec_identity"
+msgid "Basics"
+msgstr "Базові параметри"
+
+msgctxt "meta:DocType.label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:DocType.description"
+msgid "Description"
+msgstr "Опис"
+
+msgctxt "help:DocType.description"
+msgid ""
+"Short DocType description (shown under the list and in the DocType list)"
+msgstr ""
+"Короткий опис DocType (показується під списком і у списку типів документів)"
+
+msgctxt "meta:DocType.icon"
+msgid "Icon"
+msgstr "Іконка"
+
+msgctxt "help:DocType.icon"
+msgid "Lucide icon for the menu and Workspace"
+msgstr "Іконка Lucide для меню та Workspace"
+
+msgctxt "meta:DocType.app"
+msgid "App"
+msgstr "Додаток"
+
+msgctxt "meta:DocType.module"
+msgid "Module"
+msgstr "Модуль"
+
+msgctxt "help:DocType.module"
+msgid "Pick an App first"
+msgstr "Спочатку оберіть Додаток"
+
+msgctxt "meta:DocType.sec_doc_identity"
+msgid "Document identity"
+msgstr "Ідентифікація документа"
+
+msgctxt "meta:DocType.autoname"
+msgid "Autoname"
+msgstr "Автонумерація"
+
+msgctxt "help:DocType.autoname"
+msgid "Series (CONTR-.YYYY.-.####), field:fieldname, prompt or hash"
+msgstr "Серія (CONTR-.YYYY.-.####), field:fieldname, prompt або hash"
+
+msgctxt "meta:DocType.title_field"
+msgid "Title field"
+msgstr "Поле заголовка"
+
+msgctxt "help:DocType.title_field"
+msgid "Which field is shown as the document title (default: name)"
+msgstr "Яке поле відображається як назва документа (default: name)"
+
+msgctxt "meta:DocType.default_view"
+msgid "Default view"
+msgstr "Вигляд за замовчуванням"
+
+msgctxt "meta:DocType.image_field"
+msgid "Image field"
+msgstr "Поле зображення"
+
+msgctxt "help:DocType.image_field"
+msgid "An Image or Attach field for the document avatar"
+msgstr "Поле типу Image або Attach для аватара документа"
+
+msgctxt "meta:DocType.tab_designer"
+msgid "Builder"
+msgstr "Конструктор"
+
+msgctxt "meta:DocType.tab_permissions"
+msgid "Permissions"
+msgstr "Дозволи"
+
+msgctxt "meta:DocType.permissions"
+msgid "Permissions"
+msgstr "Дозволи"
+
+msgctxt "meta:DocType.tab_behavior"
+msgid "Behaviour"
+msgstr "Поведінка"
+
+msgctxt "meta:DocType.sec_data_model"
+msgid "Data model"
+msgstr "Модель даних"
+
+msgctxt "meta:DocType.is_child"
+msgid "Child (Child Table)"
+msgstr "Дочірній (Child Table)"
+
+msgctxt "help:DocType.is_child"
+msgid "Used inside another DocType's Table field"
+msgstr "Використовується всередині поля TABLE іншого DocType"
+
+msgctxt "meta:DocType.is_singleton"
+msgid "Singleton"
+msgstr "Одинарний (Singleton)"
+
+msgctxt "help:DocType.is_singleton"
+msgid "Only one document of this type (settings, profile)"
+msgstr "Лише один документ цього типу (налаштування, профіль)"
+
+msgctxt "meta:DocType.is_virtual"
+msgid "Virtual"
+msgstr "Віртуальний"
+
+msgctxt "help:DocType.is_virtual"
+msgid "No physical table — data comes from a controller"
+msgstr "Без фізичної таблиці — дані з контролера"
+
+msgctxt "meta:DocType.is_submittable"
+msgid "Submittable"
+msgstr "Можна подати (Submittable)"
+
+msgctxt "help:DocType.is_submittable"
+msgid "Adds a Submit button and a docstatus field"
+msgstr "Додає кнопку Submit та поле docstatus"
+
+msgctxt "meta:DocType.sec_audit"
+msgid "Audit & logging"
+msgstr "Аудит і журналювання"
+
+msgctxt "meta:DocType.track_changes"
+msgid "Track changes"
+msgstr "Журналювати зміни"
+
+msgctxt "help:DocType.track_changes"
+msgid "Keep a document version on every save"
+msgstr "Зберігати версії документа при кожному збереженні"
+
+msgctxt "meta:DocType.track_seen"
+msgid "Track views (who opened the document)"
+msgstr "Відстежувати перегляди (хто відкривав)"
+
+msgctxt "help:DocType.track_seen"
+msgid "Remember which users have already opened the document (_seen column)"
+msgstr ""
+"Запам'ятовувати, які користувачі вже відкривали документ (колонка _seen)"
+
+msgctxt "meta:DocType.track_views"
+msgid "View log"
+msgstr "Журнал переглядів"
+
+msgctxt "help:DocType.track_views"
+msgid "Log every document open to ViewLog (at most once per hour per user)"
+msgstr ""
+"Писати кожне відкриття документа у ViewLog (не частіше 1 разу/год на "
+"користувача)"
+
+msgctxt "meta:DocType.track_deletions"
+msgid "Trash (restore deleted)"
+msgstr "Кошик (відновлення видалених)"
+
+msgctxt "help:DocType.track_deletions"
+msgid ""
+"Keep a JSON snapshot of the document in DeletedDocument on delete, for later"
+" restore"
+msgstr ""
+"Зберігати JSON-знімок документа при видаленні у DeletedDocument для "
+"подальшого відновлення"
+
+msgctxt "meta:DocType.sec_ux"
+msgid "Interaction"
+msgstr "Взаємодія"
+
+msgctxt "meta:DocType.quick_entry"
+msgid "Quick entry (dialog)"
+msgstr "Швидке створення (діалог)"
+
+msgctxt "help:DocType.quick_entry"
+msgid ""
+"\"Create\" opens a mini-dialog with the required fields instead of the full "
+"form"
+msgstr ""
+"«Створити» відкриває міні-діалог з обов'язковими полями замість повної форми"
+
+msgctxt "meta:DocType.sec_lifecycle"
+msgid "Lifecycle"
+msgstr "Життєвий цикл"
+
+msgctxt "help:DocType.beta"
+msgid "Show a \"Beta\" badge — this DocType is still under development"
+msgstr "Показувати позначку «Beta» — тип документа ще в розробці"
+
+msgctxt "meta:DocType.deprecated"
+msgid "Deprecated"
+msgstr "Неактуальний (deprecated)"
+
+msgctxt "help:DocType.deprecated"
+msgid "Show a warning — kept for compatibility, do not use in new code"
+msgstr ""
+"Показувати попередження — тип лишено для сумісності, не використовувати в "
+"новому коді"
+
+msgctxt "meta:DocType.sec_search"
+msgid "Search"
+msgstr "Пошук"
+
+msgctxt "meta:DocType.search_fields"
+msgid "Search fields"
+msgstr "Поля пошуку"
+
+msgctxt "help:DocType.search_fields"
+msgid ""
+"Fields for full-text search in the list view (name is added automatically)"
+msgstr "Поля для full-text пошуку в списку (name додається автоматично)"
+
+msgctxt "meta:DocType.sec_service"
+msgid "System"
+msgstr "Службове"
+
+msgctxt "meta:DocType.table_name"
+msgid "Table name"
+msgstr "Назва таблиці"
+
+msgctxt "help:DocType.table_name"
+msgid "This type's physical table in the database"
+msgstr "Фізична таблиця цього типу в базі даних"
+
+msgctxt "meta:DocType.tab_fields"
+msgid "Fields"
+msgstr "Поля"
+
+msgctxt "meta:DocType.fields"
+msgid "Field list"
+msgstr "Список полів"
+
+msgctxt "meta:DocType.tab_actions"
+msgid "Actions"
+msgstr "Дії"
+
+msgctxt "meta:DocType.actions"
+msgid "Document actions"
+msgstr "Дії документа"
+
+msgctxt "help:DocType.actions"
+msgid ""
+"Buttons in the form toolbar. Each row binds an action registered by the app "
+"in code (@doc_action)."
+msgstr ""
+"Кнопки в тулбарі картки. Кожен рядок підключає дію, зареєстровану "
+"застосунком у коді (@doc_action)."
+
+msgctxt "meta:DocType.tab_links"
+msgid "Links"
+msgstr "Зв'язки"
+
+msgctxt "meta:DocType.links"
+msgid "Document links"
+msgstr "Зв'язки документа"
+
+msgctxt "help:DocType.links"
+msgid ""
+"Related document types on the form's Links panel. If empty, links are "
+"derived automatically from reverse Link fields."
+msgstr ""
+"Пов'язані типи документів на панелі «Зв'язки» картки. Якщо порожньо — "
+"зв'язки визначаються автоматично зі зворотних Link-полів."
+
+msgctxt "meta:DocType.tab_tree"
+msgid "Hierarchy"
+msgstr "Ієрархія"
+
+msgctxt "meta:DocType.is_tree"
+msgid "Is tree"
+msgstr "Це дерево (Is Tree)"
+
+msgctxt "help:DocType.is_tree"
+msgid "Enables the hierarchical view and TreeSelect widget"
+msgstr "Дозволяє ієрархічне відображення та TreeSelect вміст"
+
+msgctxt "meta:DocType.tree_parent_field"
+msgid "Parent field"
+msgstr "Батьківське поле"
+
+msgctxt "help:DocType.tree_parent_field"
+msgid "Link field pointing at this same DocType (node hierarchy)"
+msgstr "Link-поле, що вказує на цей самий DocType (ієрархія вузлів)"
+
+msgctxt "meta:DocType.tree_title_field"
+msgid "Node title field"
+msgstr "Поле назви вузла"
+
+msgctxt "help:DocType.tree_title_field"
+msgid "Which field to show as the node label (default: title field)"
+msgstr "Яке поле показувати як підпис вузла (default: поле заголовка)"
+
+msgctxt "meta:DocType.tree_as_of_date_field"
+msgid "\"As of\" date field"
+msgstr "Поле дати «станом на»"
+
+msgctxt "help:DocType.tree_as_of_date_field"
+msgid "Date field that enables the date picker in the tree panel"
+msgstr "Date-поле, що вмикає вибір дати в панелі дерева"
+
+msgctxt "meta:DocType.tree_sort_by"
+msgid "Sort by"
+msgstr "Сортувати за"
+
+msgctxt "meta:DocType.tree_sort_order"
+msgid "Sort direction"
+msgstr "Напрям сортування"
+
+msgctxt "meta:DocType.tab_views"
+msgid "Views"
+msgstr "Вигляди"
+
+msgctxt "meta:DocType.sec_form_view"
+msgid "Form"
+msgstr "Форма"
+
+msgctxt "meta:DocType.form_show_sidebar"
+msgid "Sidebar on the form"
+msgstr "Бічна панель на формі"
+
+msgctxt "help:DocType.form_show_sidebar"
+msgid "Show the details / tags / links panel next to the form"
+msgstr "Показувати панель деталей / тегів / зв'язків збоку від форми"
+
+msgctxt "meta:DocType.sec_status_config"
+msgid "Statuses"
+msgstr "Статуси"
+
+msgctxt "meta:DocType.status_field"
+msgid "Status field"
+msgstr "Поле статусу"
+
+msgctxt "help:DocType.status_field"
+msgid "The DocType field that holds the document status (e.g. \"status\")"
+msgstr "Поле DocType, яке відображає статус документа (наприклад «status»)"
+
+msgctxt "meta:DocType.status_indicators"
+msgid "Indicators"
+msgstr "Індикатори"
+
+msgctxt "meta:DocType.kanban_column_field"
+msgid "Columns field"
+msgstr "Поле колонок"
+
+msgctxt "help:DocType.kanban_column_field"
+msgid ""
+"Select field whose values group the kanban columns (default: first Select "
+"field in the list view)"
+msgstr ""
+"Select-поле, за значеннями якого групуються колонки канбану (default: перше "
+"Select-поле у списку)"
+
+msgctxt "meta:DocType.sec_calendar_view"
+msgid "Calendar"
+msgstr "Календар"
+
+msgctxt "meta:DocType.calendar_date_field"
+msgid "Date field"
+msgstr "Поле дати"
+
+msgctxt "help:DocType.calendar_date_field"
+msgid "Primary Date/Datetime field that places the event on the calendar"
+msgstr "Основне Date/Datetime-поле, за яким подія розміщується на календарі"
+
+msgctxt "meta:DocType.calendar_end_date_field"
+msgid "End date field"
+msgstr "Поле дати завершення"
+
+msgctxt "help:DocType.calendar_end_date_field"
+msgid "Event end Date/Datetime field (for multi-day events)"
+msgstr "Date/Datetime-поле кінця події (для багатоденних)"
+
+msgctxt "meta:DocType.calendar_title_field"
+msgid "Title field"
+msgstr "Поле заголовка"
+
+msgctxt "help:DocType.calendar_title_field"
+msgid "Event label (default: title field)"
+msgstr "Підпис події (default: поле заголовка)"
+
+msgctxt "meta:DocType.calendar_sources"
+msgid "Extra sources"
+msgstr "Додаткові джерела"
+
+msgctxt "help:DocType.calendar_sources"
+msgid "Other document types overlaid on this calendar"
+msgstr "Інші типи документів, накладені на цей календар"
+
+msgctxt "meta:DocType.sec_gantt_view"
+msgid "Gantt chart"
+msgstr "Діаграма Ганта"
+
+msgctxt "meta:DocType.gantt_start_field"
+msgid "Start field"
+msgstr "Поле початку"
+
+msgctxt "help:DocType.gantt_start_field"
+msgid "Date/Datetime field where the bar starts"
+msgstr "Date/Datetime-поле, де починається смуга"
+
+msgctxt "meta:DocType.gantt_end_field"
+msgid "End field"
+msgstr "Поле завершення"
+
+msgctxt "help:DocType.gantt_end_field"
+msgid "Date/Datetime field where the bar ends"
+msgstr "Date/Datetime-поле, де смуга закінчується"
+
+msgctxt "meta:DocType.gantt_title_field"
+msgid "Title field"
+msgstr "Поле заголовка"
+
+msgctxt "help:DocType.gantt_title_field"
+msgid "Row/bar label (default: title field)"
+msgstr "Підпис рядка/смуги (default: поле заголовка)"
+
+msgctxt "meta:DocType.gantt_progress_field"
+msgid "Progress field (0–100)"
+msgstr "Поле прогресу (0–100)"
+
+msgctxt "help:DocType.gantt_progress_field"
+msgid "Float/Int/Percent — bar fill"
+msgstr "Float/Int/Percent — заповнення смуги"
+
+msgctxt "meta:DocType.gantt_color_field"
+msgid "Colour by field"
+msgstr "Колір за полем"
+
+msgctxt "meta:DocType.gantt_color_map"
+msgid "Colour map"
+msgstr "Мапа кольорів"
+
+msgctxt "help:DocType.gantt_color_map"
+msgid "{\"In progress\": \"#f59e0b\", \"Done\": \"#16a34a\"}"
+msgstr "{\"В роботі\": \"#f59e0b\", \"Готово\": \"#16a34a\"}"
+
+msgctxt "meta:DocType.gantt_default_color"
+msgid "Default colour"
+msgstr "Колір за замовчуванням"
+
+msgctxt "help:DocType.gantt_default_color"
+msgid "#2563eb or var(--primary)"
+msgstr "#2563eb або var(--primary)"
+
+msgctxt "meta:DocType.gantt_dependencies_field"
+msgid "Dependencies field"
+msgstr "Поле залежностей"
+
+msgctxt "help:DocType.gantt_dependencies_field"
+msgid ""
+"A text field listing predecessor document names, comma-separated — arrows "
+"are drawn between them"
+msgstr ""
+"Текстове поле зі списком name документів-попередників через кому — між ними "
+"малюються стрілки"
+
+msgctxt "meta:DocTypeAction"
+msgid "Document action"
+msgstr "Дія документа"
+
+msgctxt "meta:DocTypeAction.action"
+msgid "Action"
+msgstr "Дія"
+
+msgctxt "help:DocTypeAction.action"
+msgid "Key of an action registered by the app in code (@doc_action)"
+msgstr "Ключ дії, зареєстрованої застосунком у коді (@doc_action)"
+
+msgctxt "meta:DocTypeAction.label"
+msgid "Label"
+msgstr "Підпис"
+
+msgctxt "help:DocTypeAction.label"
+msgid "Optional — overrides the registered button label"
+msgstr "Необов'язково — перевизначає зареєстрований підпис кнопки"
+
+msgctxt "meta:DocTypeAction.group"
+msgid "Group"
+msgstr "Група"
+
+msgctxt "help:DocTypeAction.group"
+msgid "Optional — groups buttons into a dropdown under this name"
+msgstr "Необов'язково — об'єднує кнопки у випадне меню під цією назвою"
+
+msgctxt "meta:DocTypeAction.variant"
+msgid "Button style"
+msgstr "Стиль кнопки"
+
+msgctxt "help:DocTypeAction.variant"
+msgid "Optional — overrides the registered style"
+msgstr "Необов'язково — перевизначає зареєстрований стиль"
+
+msgctxt "meta:DocTypeAction.hidden"
+msgid "Hidden"
+msgstr "Прихована"
+
+msgctxt "help:DocTypeAction.hidden"
+msgid "Disable the action but keep the row"
+msgstr "Вимкнути дію, зберігши рядок"
+
+msgctxt "meta:DocTypeAction.condition"
+msgid "Display condition"
+msgstr "Умова показу"
+
+msgctxt "help:DocTypeAction.condition"
+msgid ""
+"JS expression over `doc`; falsy hides the button. E.g. doc.status === "
+"'Draft'"
+msgstr ""
+"JS-вираз над doc; якщо хибний — кнопка прихована. Напр.: doc.status === "
+"'Draft'"
+
+msgctxt "meta:DocTypeCalendarSource"
+msgid "Calendar source"
+msgstr "Джерело календаря"
+
+msgctxt "help:DocTypeCalendarSource.doctype"
+msgid "The document type added to the calendar as a separate source"
+msgstr "Тип документів, які додаються на календар окремим джерелом"
+
+msgctxt "meta:DocTypeCalendarSource.date_field"
+msgid "Date field"
+msgstr "Поле дати"
+
+msgctxt "help:DocTypeCalendarSource.date_field"
+msgid "Fieldname on the source DocType holding the event date"
+msgstr "Fieldname у джерельному DocType, що містить дату події"
+
+msgctxt "meta:DocTypeCalendarSource.end_date_field"
+msgid "End date field"
+msgstr "Поле дати завершення"
+
+msgctxt "meta:DocTypeCalendarSource.label_field"
+msgid "Label field"
+msgstr "Поле підпису"
+
+msgctxt "help:DocTypeCalendarSource.label_field"
+msgid "Fieldname for the event label (default: name)"
+msgstr "Fieldname для тексту події (default: name)"
+
+msgctxt "meta:DocTypeCalendarSource.color"
+msgid "Colour"
+msgstr "Колір"
+
+msgctxt "help:DocTypeCalendarSource.color"
+msgid "#hex or var(--…)"
+msgstr "#hex або var(--…)"
+
+msgctxt "meta:DocTypeCalendarSource.event_type"
+msgid "Event type"
+msgstr "Тип події"
+
+msgctxt "meta:DocTypeCalendarSource.recurring"
+msgid "Yearly"
+msgstr "Щорічна"
+
+msgctxt "meta:DocTypeCalendarSource.show_age"
+msgid "Show age"
+msgstr "Показувати вік"
+
+msgctxt "help:DocTypeCalendarSource.show_age"
+msgid "For birthday events — appends (N years) to the label"
+msgstr "Для birthday-подій — додає (N років) до підпису"
+
+msgctxt "meta:DocTypeCalendarSource.filters"
+msgid "Filters (JSON)"
+msgstr "Фільтри (JSON)"
+
+msgctxt "help:DocTypeCalendarSource.filters"
+msgid "{ \"status\": \"Active\" }"
+msgstr "{ \"status\": \"Активний\" }"
+
+msgctxt "meta:DocTypeLink"
+msgid "Document link"
+msgstr "Зв'язок документа"
+
+msgctxt "meta:DocTypeLink.link_doctype"
+msgid "Related DocType"
+msgstr "Пов'язаний DocType"
+
+msgctxt "help:DocTypeLink.link_doctype"
+msgid "The document type to show in links"
+msgstr "Тип документів, які показувати у зв'язках"
+
+msgctxt "meta:DocTypeLink.link_fieldname"
+msgid "Link field"
+msgstr "Поле-посилання"
+
+msgctxt "help:DocTypeLink.link_fieldname"
+msgid ""
+"Name of the Link field on the related DocType (or child row) that points at "
+"this document"
+msgstr ""
+"Ім'я Link-поля в пов'язаному DocType (або в дочірньому рядку), що вказує на "
+"цей документ"
+
+msgctxt "meta:DocTypeLink.group"
+msgid "Group"
+msgstr "Група"
+
+msgctxt "help:DocTypeLink.group"
+msgid "Optional — a section on the links panel"
+msgstr "Необов'язково — секція на панелі зв'язків"
+
+msgctxt "meta:DocTypeLink.label"
+msgid "Label"
+msgstr "Підпис"
+
+msgctxt "help:DocTypeLink.label"
+msgid "Optional — overrides the label (default: the related DocType's label)"
+msgstr ""
+"Необов'язково — перевизначає назву (типово: назва пов'язаного DocType)"
+
+msgctxt "meta:DocTypeLink.hidden"
+msgid "Hidden"
+msgstr "Прихований"
+
+msgctxt "meta:DocTypeLink.sec_child"
+msgid "Link via a child table"
+msgstr "Зв'язок через дочірню таблицю"
+
+msgctxt "help:DocTypeLink.sec_child"
+msgid "Fill this only if the Link field lives in a child table"
+msgstr "Заповнюйте, лише якщо Link-поле розташоване в дочірній таблиці"
+
+msgctxt "meta:DocTypeLink.parent_doctype"
+msgid "Child DocType"
+msgstr "Дочірній DocType"
+
+msgctxt "help:DocTypeLink.parent_doctype"
+msgid "Child DocType whose rows hold the link field"
+msgstr "Child DocType, у рядках якого лежить поле-посилання"
+
+msgctxt "meta:DocTypeLink.table_fieldname"
+msgid "Table field"
+msgstr "Поле-таблиця"
+
+msgctxt "help:DocTypeLink.table_fieldname"
+msgid ""
+"Name of the Table field on the related DocType that holds those child rows"
+msgstr "Ім'я Table-поля в пов'язаному DocType, що містить ці дочірні рядки"
+
+msgctxt "meta:DocTypeStatusIndicator"
+msgid "Status indicator"
+msgstr "Індикатор статусу"
+
+msgctxt "meta:DocTypeStatusIndicator.value"
+msgid "Field value"
+msgstr "Значення поля"
+
+msgctxt "help:DocTypeStatusIndicator.value"
+msgid "The value the status field must hold (e.g. \"Draft\")"
+msgstr "Значення, яке має містити поле статусу (наприклад «Чернетка»)"
+
+msgctxt "meta:DocTypeStatusIndicator.color"
+msgid "Colour"
+msgstr "Колір"
+
+msgctxt "meta:DocTypeStatusIndicator.icon"
+msgid "Icon"
+msgstr "Іконка"
+
+msgctxt "help:DocTypeStatusIndicator.icon"
+msgid "Lucide icon (optional)"
+msgstr "Lucide-іконка (необов'язково)"
+
+msgctxt "meta:DocTypeStatusIndicator.label"
+msgid "Label"
+msgstr "Мітка"
+
+msgctxt "help:DocTypeStatusIndicator.label"
+msgid "Display label; if empty, the field value is used"
+msgstr "Відображувана назва; якщо порожньо — використовується значення поля"
+
+msgctxt "meta:Workflow.tab_main"
+msgid "General"
+msgstr "Основне"
+
+msgctxt "meta:Workflow.is_active"
+msgid "Active"
+msgstr "Активний"
+
+msgctxt "meta:Workflow.workflow_state_field"
+msgid "State field"
+msgstr "Поле стану"
+
+msgctxt "help:Workflow.workflow_state_field"
+msgid "Name of the field on the target DocType that stores the current state"
+msgstr "Назва поля цільового DocType, у якому зберігається поточний стан"
+
+msgctxt "meta:Workflow.tab_list"
+msgid "States & transitions"
+msgstr "Стани і переходи"
+
+msgctxt "meta:Workflow.states"
+msgid "States"
+msgstr "Стани"
+
+msgctxt "meta:Workflow.transitions"
+msgid "Transitions"
+msgstr "Переходи"
+
+msgctxt "meta:Workflow.positions"
+msgid "Node positions"
+msgstr "Позиції вузлів"
+
+msgctxt "help:Workflow.positions"
+msgid "Graph node coordinates {state: {x, y}} — managed by the Graph tab"
+msgstr "Координати вузлів графа {state: {x, y}} — керується вкладкою Граф"
+
+msgctxt "meta:Workflow.tab_graph"
+msgid "Graph"
+msgstr "Граф"
+
+msgctxt "meta:WorkflowState"
+msgid "Workflow state"
+msgstr "Стан Workflow"
+
+msgctxt "meta:WorkflowState.state"
+msgid "Value"
+msgstr "Значення"
+
+msgctxt "help:WorkflowState.state"
+msgid "The value stored in the target document's state field"
+msgstr "Значення, що зберігається в полі стану цільового документа"
+
+msgctxt "meta:WorkflowState.label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:WorkflowState.color"
+msgid "Colour"
+msgstr "Колір"
+
+msgctxt "meta:WorkflowState.is_initial"
+msgid "Initial"
+msgstr "Початковий"
+
+msgctxt "meta:WorkflowState.is_final"
+msgid "Final"
+msgstr "Кінцевий"
+
+msgctxt "meta:WorkflowTransition"
+msgid "Workflow transition"
+msgstr "Перехід Workflow"
+
+msgctxt "meta:WorkflowTransition.from_state"
+msgid "From state"
+msgstr "З стану"
+
+msgctxt "meta:WorkflowTransition.to_state"
+msgid "To state"
+msgstr "У стан"
+
+msgctxt "meta:WorkflowTransition.action"
+msgid "Action (button text)"
+msgstr "Дія (текст кнопки)"
+
+msgctxt "meta:WorkflowTransition.allowed_roles"
+msgid "Allowed roles (comma-separated)"
+msgstr "Дозволені ролі (через кому)"
+
+msgctxt "meta:WorkflowTransition.condition"
+msgid "Condition (eval:)"
+msgstr "Умова (eval:)"

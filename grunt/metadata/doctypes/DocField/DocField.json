@@ -1,26 +1,26 @@
 {
   "name": "DocField",
-  "label": "Поле доктайпу",
+  "label": "DocType field",
   "module": "metadata",
   "is_child": true,
   "fields": [
     {
       "fieldname": "label",
-      "label": "Назва (Label)",
+      "label": "Label",
       "fieldtype": "Text",
       "in_list_view": true,
       "required": true
     },
     {
       "fieldname": "fieldname",
-      "label": "Код поля (Fieldname)",
+      "label": "Fieldname",
       "fieldtype": "Text",
       "in_list_view": true,
       "required": true
     },
     {
       "fieldname": "fieldtype",
-      "label": "Тип поля",
+      "label": "Field type",
       "fieldtype": "Select",
       "in_list_view": true,
       "required": true,
@@ -28,13 +28,13 @@
     },
     {
       "fieldname": "options",
-      "label": "Опції",
+      "label": "Options",
       "fieldtype": "Text",
-      "description": "DocType для Link/Table або список для Select"
+      "description": "DocType for Link/Table, or the option list for Select"
     },
     {
       "fieldname": "sec_validation",
-      "label": "Валідація та прапори",
+      "label": "Validation & flags",
       "fieldtype": "Section",
       "collapsible": true
     },
@@ -44,17 +44,17 @@
     },
     {
       "fieldname": "required",
-      "label": "Обов'язкове",
+      "label": "Required",
       "fieldtype": "Check"
     },
     {
       "fieldname": "unique",
-      "label": "Унікальне",
+      "label": "Unique",
       "fieldtype": "Check"
     },
     {
       "fieldname": "read_only",
-      "label": "Лише читання",
+      "label": "Read-only",
       "fieldtype": "Check"
     },
     {
@@ -63,40 +63,40 @@
     },
     {
       "fieldname": "in_list_view",
-      "label": "У списку",
+      "label": "In list view",
       "fieldtype": "Check"
     },
     {
       "fieldname": "in_filter",
-      "label": "У фільтрах",
+      "label": "In filters",
       "fieldtype": "Check"
     },
     {
       "fieldname": "hidden",
-      "label": "Приховане",
+      "label": "Hidden",
       "fieldtype": "Check"
     },
     {
       "fieldname": "sec_details",
-      "label": "Додатково",
+      "label": "Advanced",
       "fieldtype": "Section",
       "collapsible": true
     },
     {
       "fieldname": "description",
-      "label": "Опис",
+      "label": "Description",
       "fieldtype": "Text"
     },
     {
       "fieldname": "default",
-      "label": "Значення за замовчуванням",
+      "label": "Default value",
       "fieldtype": "Text"
     },
     {
       "fieldname": "depends_on",
-      "label": "Залежить від (Depends On)",
+      "label": "Depends on",
       "fieldtype": "Text",
-      "description": "Умова відображення (Python/JS)"
+      "description": "Display condition (Python/JS)"
     }
   ],
   "permissions": [

@@ -54,6 +54,7 @@ dependencies = [
     "pymorphy3>=2.0.0",
     "pymorphy3-dicts-uk>=2.4.1",
     "restrictedpython>=8.4",
+    "polib>=1.2.0",              # PO/POT read/write for `grunt i18n` (i18n/extract.py)
 ]
 
 [project.scripts]

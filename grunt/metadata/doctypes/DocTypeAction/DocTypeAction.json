@@ -1,32 +1,32 @@
 {
   "name": "DocTypeAction",
-  "label": "Дія документа",
+  "label": "Document action",
   "module": "metadata",
   "is_child": true,
   "fields": [
     {
       "fieldname": "action",
-      "label": "Дія",
+      "label": "Action",
       "fieldtype": "Select",
       "options_source": "grunt.doc_action",
       "required": true,
       "in_list_view": true,
       "bold": true,
-      "description": "Ключ дії, зареєстрованої застосунком у коді (@doc_action)"
+      "description": "Key of an action registered by the app in code (@doc_action)"
     },
     {
       "fieldname": "label",
-      "label": "Підпис",
+      "label": "Label",
       "fieldtype": "Text",
       "in_list_view": true,
-      "description": "Необов'язково — перевизначає зареєстрований підпис кнопки"
+      "description": "Optional — overrides the registered button label"
     },
     {
       "fieldname": "group",
-      "label": "Група",
+      "label": "Group",
       "fieldtype": "Text",
       "in_list_view": true,
-      "description": "Необов'язково — об'єднує кнопки у випадне меню під цією назвою"
+      "description": "Optional — groups buttons into a dropdown under this name"
     },
     {
       "fieldname": "col_action_1",
@@ -35,23 +35,23 @@
     },
     {
       "fieldname": "variant",
-      "label": "Стиль кнопки",
+      "label": "Button style",
       "fieldtype": "Select",
       "options": "\noutline\ndefault\nsecondary\ndestructive\nsuccess\nghost",
-      "description": "Необов'язково — перевизначає зареєстрований стиль"
+      "description": "Optional — overrides the registered style"
     },
     {
       "fieldname": "hidden",
-      "label": "Прихована",
+      "label": "Hidden",
       "fieldtype": "Check",
       "in_list_view": true,
-      "description": "Вимкнути дію, зберігши рядок"
+      "description": "Disable the action but keep the row"
     },
     {
       "fieldname": "condition",
-      "label": "Умова показу",
+      "label": "Display condition",
       "fieldtype": "Code",
-      "description": "JS-вираз над doc; якщо хибний — кнопка прихована. Напр.: doc.status === 'Draft'"
+      "description": "JS expression over `doc`; falsy hides the button. E.g. doc.status === 'Draft'"
     }
   ],
   "permissions": [

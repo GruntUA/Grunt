@@ -1,13 +1,13 @@
 {
   "name": "DocPermission",
-  "label": "Дозвіл",
+  "label": "Permission",
   "module": "metadata",
   "is_child": true,
   "title_field": "role",
   "fields": [
     {
       "fieldname": "role",
-      "label": "Роль",
+      "label": "Role",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
@@ -15,74 +15,74 @@
     },
     {
       "fieldname": "sec_actions",
-      "label": "Дії",
+      "label": "Actions",
       "fieldtype": "Section"
     },
     {
       "fieldname": "read",
-      "label": "Читати",
+      "label": "Read",
       "fieldtype": "Check",
       "default": false,
       "in_list_view": true
     },
     {
       "fieldname": "select",
-      "label": "Вибір у полі",
+      "label": "Field picker",
       "fieldtype": "Check",
       "default": false,
-      "description": "Дозволяє шукати значення для Link-поля (назва, заголовок, поля пошуку) без доступу до списку та повного документа. Автоматично надається разом із «Читати»."
+      "description": "Lets a user search Link-field values (name, title, search fields) without access to the list or the full document. Granted automatically together with Read."
     },
     {
       "fieldname": "write",
-      "label": "Редагувати",
+      "label": "Edit",
       "fieldtype": "Check",
       "default": false,
       "in_list_view": true
     },
     {
       "fieldname": "create",
-      "label": "Створювати",
+      "label": "Create",
       "fieldtype": "Check",
       "default": false,
       "in_list_view": true
     },
     {
       "fieldname": "delete",
-      "label": "Видаляти",
+      "label": "Delete",
       "fieldtype": "Check",
       "default": false
     },
     {
       "fieldname": "submit",
-      "label": "Підтверджувати",
+      "label": "Submit",
       "fieldtype": "Check",
       "default": false
     },
     {
       "fieldname": "cancel",
-      "label": "Скасовувати",
+      "label": "Cancel",
       "fieldtype": "Check",
       "default": false
     },
     {
       "fieldname": "report",
-      "label": "Звіти",
+      "label": "Reports",
       "fieldtype": "Check",
       "default": false
     },
     {
       "fieldname": "sec_advanced",
-      "label": "Додатково",
+      "label": "Advanced",
       "fieldtype": "Section"
     },
     {
       "fieldname": "match",
-      "label": "Умова відповідності (eval:)",
+      "label": "Match condition (eval:)",
       "fieldtype": "Text"
     },
     {
       "fieldname": "hidden_fields",
-      "label": "Приховані поля (через кому)",
+      "label": "Hidden fields (comma-separated)",
       "fieldtype": "LongText"
     }
   ],

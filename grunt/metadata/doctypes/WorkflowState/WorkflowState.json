@@ -1,26 +1,26 @@
 {
   "name": "WorkflowState",
-  "label": "Стан Workflow",
+  "label": "Workflow state",
   "module": "metadata",
   "is_child": true,
   "fields": [
     {
       "fieldname": "state",
-      "label": "Значення",
+      "label": "Value",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
-      "description": "Значення, що зберігається в полі стану цільового документа"
+      "description": "The value stored in the target document's state field"
     },
     {
       "fieldname": "label",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Text",
       "in_list_view": true
     },
     {
       "fieldname": "color",
-      "label": "Колір",
+      "label": "Colour",
       "fieldtype": "Select",
       "options": "gray\nblue\ngreen\nyellow\norange\nred",
       "default": "gray",
@@ -28,14 +28,14 @@
     },
     {
       "fieldname": "is_initial",
-      "label": "Початковий",
+      "label": "Initial",
       "fieldtype": "Check",
       "default": false,
       "in_list_view": true
     },
     {
       "fieldname": "is_final",
-      "label": "Кінцевий",
+      "label": "Final",
       "fieldtype": "Check",
       "default": false,
       "in_list_view": true

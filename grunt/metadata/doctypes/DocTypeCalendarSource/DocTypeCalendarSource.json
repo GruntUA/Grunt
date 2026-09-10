@@ -1,6 +1,6 @@
 {
   "name": "DocTypeCalendarSource",
-  "label": "Джерело календаря",
+  "label": "Calendar source",
   "module": "metadata",
   "is_child": true,
   "fields": [
@@ -11,37 +11,37 @@
       "options": "DocType",
       "required": true,
       "in_list_view": true,
-      "description": "Тип документів, які додаються на календар окремим джерелом"
+      "description": "The document type added to the calendar as a separate source"
     },
     {
       "fieldname": "date_field",
-      "label": "Поле дати",
+      "label": "Date field",
       "fieldtype": "Data",
       "required": true,
       "in_list_view": true,
-      "description": "Fieldname у джерельному DocType, що містить дату події"
+      "description": "Fieldname on the source DocType holding the event date"
     },
     {
       "fieldname": "end_date_field",
-      "label": "Поле дати завершення",
+      "label": "End date field",
       "fieldtype": "Data"
     },
     {
       "fieldname": "label_field",
-      "label": "Поле підпису",
+      "label": "Label field",
       "fieldtype": "Data",
-      "description": "Fieldname для тексту події (default: name)"
+      "description": "Fieldname for the event label (default: name)"
     },
     {
       "fieldname": "color",
-      "label": "Колір",
+      "label": "Colour",
       "fieldtype": "Data",
       "in_list_view": true,
-      "description": "#hex або var(--…)"
+      "description": "#hex or var(--…)"
     },
     {
       "fieldname": "event_type",
-      "label": "Тип події",
+      "label": "Event type",
       "fieldtype": "Select",
       "options": "default\nbirthday",
       "default": "default",
@@ -49,21 +49,21 @@
     },
     {
       "fieldname": "recurring",
-      "label": "Щорічна",
+      "label": "Yearly",
       "fieldtype": "Check",
       "in_list_view": true
     },
     {
       "fieldname": "show_age",
-      "label": "Показувати вік",
+      "label": "Show age",
       "fieldtype": "Check",
-      "description": "Для birthday-подій — додає (N років) до підпису"
+      "description": "For birthday events — appends (N years) to the label"
     },
     {
       "fieldname": "filters",
-      "label": "Фільтри (JSON)",
+      "label": "Filters (JSON)",
       "fieldtype": "JSON",
-      "description": "{ \"status\": \"Активний\" }"
+      "description": "{ \"status\": \"Active\" }"
     }
   ],
   "permissions": [

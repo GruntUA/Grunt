@@ -6,7 +6,7 @@
   "fields": [
     {
       "fieldname": "tab_main",
-      "label": "Основне",
+      "label": "General",
       "fieldtype": "Tab",
       "icon": "settings"
     },
@@ -21,47 +21,47 @@
     },
     {
       "fieldname": "is_active",
-      "label": "Активний",
+      "label": "Active",
       "fieldtype": "Check",
       "default": true,
       "in_list_view": true
     },
     {
       "fieldname": "workflow_state_field",
-      "label": "Поле стану",
+      "label": "State field",
       "fieldtype": "Text",
       "default": "status",
       "required": true,
-      "description": "Назва поля цільового DocType, у якому зберігається поточний стан"
+      "description": "Name of the field on the target DocType that stores the current state"
     },
     {
       "fieldname": "tab_list",
-      "label": "Стани і переходи",
+      "label": "States & transitions",
       "fieldtype": "Tab",
       "icon": "list"
     },
     {
       "fieldname": "states",
-      "label": "Стани",
+      "label": "States",
       "fieldtype": "Table",
       "options": "WorkflowState"
     },
     {
       "fieldname": "transitions",
-      "label": "Переходи",
+      "label": "Transitions",
       "fieldtype": "Table",
       "options": "WorkflowTransition"
     },
     {
       "fieldname": "positions",
-      "label": "Позиції вузлів",
+      "label": "Node positions",
       "fieldtype": "JSON",
       "hidden": true,
-      "description": "Координати вузлів графа {state: {x, y}} — керується вкладкою Граф"
+      "description": "Graph node coordinates {state: {x, y}} — managed by the Graph tab"
     },
     {
       "fieldname": "tab_graph",
-      "label": "Граф",
+      "label": "Graph",
       "fieldtype": "Tab",
       "icon": "git-branch",
       "tab_component": "WorkflowGraphTab"

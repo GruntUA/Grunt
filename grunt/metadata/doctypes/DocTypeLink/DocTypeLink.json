@@ -1,33 +1,33 @@
 {
   "name": "DocTypeLink",
-  "label": "Зв'язок документа",
+  "label": "Document link",
   "module": "metadata",
   "is_child": true,
   "fields": [
     {
       "fieldname": "link_doctype",
-      "label": "Пов'язаний DocType",
+      "label": "Related DocType",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true,
       "in_list_view": true,
       "bold": true,
-      "description": "Тип документів, які показувати у зв'язках"
+      "description": "The document type to show in links"
     },
     {
       "fieldname": "link_fieldname",
-      "label": "Поле-посилання",
+      "label": "Link field",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true,
-      "description": "Ім'я Link-поля в пов'язаному DocType (або в дочірньому рядку), що вказує на цей документ"
+      "description": "Name of the Link field on the related DocType (or child row) that points at this document"
     },
     {
       "fieldname": "group",
-      "label": "Група",
+      "label": "Group",
       "fieldtype": "Text",
       "in_list_view": true,
-      "description": "Необов'язково — секція на панелі зв'язків"
+      "description": "Optional — a section on the links panel"
     },
     {
       "fieldname": "col_link_1",
@@ -36,35 +36,35 @@
     },
     {
       "fieldname": "label",
-      "label": "Підпис",
+      "label": "Label",
       "fieldtype": "Text",
-      "description": "Необов'язково — перевизначає назву (типово: назва пов'язаного DocType)"
+      "description": "Optional — overrides the label (default: the related DocType's label)"
     },
     {
       "fieldname": "hidden",
-      "label": "Прихований",
+      "label": "Hidden",
       "fieldtype": "Check",
       "in_list_view": true
     },
     {
       "fieldname": "sec_child",
-      "label": "Зв'язок через дочірню таблицю",
+      "label": "Link via a child table",
       "fieldtype": "Section",
       "collapsible": true,
-      "description": "Заповнюйте, лише якщо Link-поле розташоване в дочірній таблиці"
+      "description": "Fill this only if the Link field lives in a child table"
     },
     {
       "fieldname": "parent_doctype",
-      "label": "Дочірній DocType",
+      "label": "Child DocType",
       "fieldtype": "Link",
       "options": "DocType",
-      "description": "Child DocType, у рядках якого лежить поле-посилання"
+      "description": "Child DocType whose rows hold the link field"
     },
     {
       "fieldname": "table_fieldname",
-      "label": "Поле-таблиця",
+      "label": "Table field",
       "fieldtype": "Text",
-      "description": "Ім'я Table-поля в пов'язаному DocType, що містить ці дочірні рядки"
+      "description": "Name of the Table field on the related DocType that holds those child rows"
     }
   ],
   "permissions": [

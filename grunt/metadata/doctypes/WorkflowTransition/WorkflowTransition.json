@@ -1,38 +1,38 @@
 {
   "name": "WorkflowTransition",
-  "label": "Перехід Workflow",
+  "label": "Workflow transition",
   "module": "metadata",
   "is_child": true,
   "fields": [
     {
       "fieldname": "from_state",
-      "label": "З стану",
+      "label": "From state",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "to_state",
-      "label": "У стан",
+      "label": "To state",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "action",
-      "label": "Дія (текст кнопки)",
+      "label": "Action (button text)",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "allowed_roles",
-      "label": "Дозволені ролі (через кому)",
+      "label": "Allowed roles (comma-separated)",
       "fieldtype": "LongText"
     },
     {
       "fieldname": "condition",
-      "label": "Умова (eval:)",
+      "label": "Condition (eval:)",
       "fieldtype": "Text"
     }
   ],
