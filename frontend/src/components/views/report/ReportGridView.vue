@@ -19,6 +19,8 @@ import { VueDraggable } from 'vue-draggable-plus'
 import type { DocType, DocField, ActiveFilter, ReportSummary } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import { getListCell } from '@/core/listCellRegistry'
+import { getAsyncFieldComponent, getNonPhysicalTypeSet } from '@/core/fieldRegistry'
+import { docsApi } from '@/core/api/docs'
 import DefaultListCell from '@/components/fields/Default/ListCell.vue'
 import { statusConfigOf } from '@/core/status'
 import { reportsApi } from '@/core/api/reports'
@@ -287,6 +289,53 @@ function exportCsv() {
 }
 
 const colsOpen = ref(false)
+
+// ── Inline editing (opt-in per field via `editable_in_grid`) ────────────────
+const NON_PHYSICAL = getNonPhysicalTypeSet()
+
+const editableKeys = computed(() => {
+  const s = new Set<string>()
+  for (const col of model.visibleColumns.value) {
+    const f = fieldOf(col.key)
+    if (f.editable_in_grid && !f.read_only && !NON_PHYSICAL.has(f.fieldtype)) s.add(col.key)
+  }
+  return s
+})
+
+const editing = ref<{ id: string; key: string } | null>(null)
+const draft = ref<unknown>(null)
+const saving = ref(false)
+
+function isEditing(row: Record<string, unknown>, key: string): boolean {
+  return !!editing.value && editing.value.id === rowDocId(row) && editing.value.key === key
+}
+function startEdit(row: Record<string, unknown>, key: string) {
+  if (!editableKeys.value.has(key)) return
+  editing.value = { id: rowDocId(row), key }
+  draft.value = row[key] ?? null
+}
+function cancelEdit() {
+  editing.value = null
+  draft.value = null
+}
+async function commitEdit(row: Record<string, unknown>, key: string) {
+  if (!editing.value || saving.value) return
+  const id = rowDocId(row)
+  if (!id || draft.value === (row[key] ?? null)) {
+    editing.value = null
+    return
+  }
+  saving.value = true
+  try {
+    await docsApi.update(props.doctype, id, { [key]: draft.value })
+    row[key] = draft.value
+    editing.value = null
+  } catch (e) {
+    toast.error(e instanceof Error ? e.message : 'Не вдалося зберегти')
+  } finally {
+    saving.value = false
+  }
+}
 </script>
 
 <template>
@@ -484,7 +533,21 @@ const colsOpen = ref(false)
                   class="border-b border-border/10 cursor-pointer hover:bg-primary/5"
                   @click="emit('row-click', row)">
                   <TableCell v-for="(col, ci) in model.visibleColumns.value" :key="col.key" :class="cellClass(col.key)">
-                    <a v-if="ci === 0 && rowHref(row)" :href="rowHref(row)!"
+                    <div v-if="editableKeys.has(col.key) && isEditing(row, col.key)"
+                      @click.stop @focusout="commitEdit(row, col.key)">
+                      <component :is="getAsyncFieldComponent(fieldOf(col.key).fieldtype)"
+                        :field="fieldOf(col.key)" :model-value="draft" autofocus
+                        @update:model-value="draft = $event"
+                        @keydown.enter.prevent="commitEdit(row, col.key)"
+                        @keydown.esc.prevent="cancelEdit()" />
+                    </div>
+                    <button v-else-if="editableKeys.has(col.key)" type="button"
+                      class="block w-full text-left rounded px-1 -mx-1 min-h-[1.5rem] hover:bg-accent/60"
+                      @click.stop="startEdit(row, col.key)">
+                      <component :is="getListCell(fieldOf(col.key).fieldtype) ?? DefaultListCell"
+                        :value="row[col.key]" :row="row" :field="fieldOf(col.key)" :status-config="statusConfig" />
+                    </button>
+                    <a v-else-if="ci === 0 && rowHref(row)" :href="rowHref(row)!"
                       class="font-medium text-primary hover:underline" @click.stop="onAnchorClick($event, row)">
                       <component :is="getListCell(fieldOf(col.key).fieldtype) ?? DefaultListCell"
                         :value="row[col.key]" :row="row" :field="fieldOf(col.key)" :status-config="statusConfig" />
@@ -512,7 +575,21 @@ const colsOpen = ref(false)
               class="border-b border-border/10 cursor-pointer hover:bg-primary/5"
               @click="emit('row-click', row)">
               <TableCell v-for="(col, ci) in model.visibleColumns.value" :key="col.key" :class="cellClass(col.key)">
-                <a v-if="ci === 0 && rowHref(row)" :href="rowHref(row)!"
+                <div v-if="editableKeys.has(col.key) && isEditing(row, col.key)"
+                  @click.stop @focusout="commitEdit(row, col.key)">
+                  <component :is="getAsyncFieldComponent(fieldOf(col.key).fieldtype)"
+                    :field="fieldOf(col.key)" :model-value="draft" autofocus
+                    @update:model-value="draft = $event"
+                    @keydown.enter.prevent="commitEdit(row, col.key)"
+                    @keydown.esc.prevent="cancelEdit()" />
+                </div>
+                <button v-else-if="editableKeys.has(col.key)" type="button"
+                  class="block w-full text-left rounded px-1 -mx-1 min-h-[1.5rem] hover:bg-accent/60"
+                  @click.stop="startEdit(row, col.key)">
+                  <component :is="getListCell(fieldOf(col.key).fieldtype) ?? DefaultListCell"
+                    :value="row[col.key]" :row="row" :field="fieldOf(col.key)" :status-config="statusConfig" />
+                </button>
+                <a v-else-if="ci === 0 && rowHref(row)" :href="rowHref(row)!"
                   class="font-medium text-primary hover:underline" @click.stop="onAnchorClick($event, row)">
                   <component :is="getListCell(fieldOf(col.key).fieldtype) ?? DefaultListCell"
                     :value="row[col.key]" :row="row" :field="fieldOf(col.key)" :status-config="statusConfig" />

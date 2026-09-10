@@ -193,6 +193,9 @@ class DocField(BaseModel):
     in_list_view: bool = False
     in_filter: bool = False
     bold: bool = False
+    # Edit this column inline in the Report (spreadsheet) grid view. Ignored
+    # for read-only / layout fields.
+    editable_in_grid: bool = False
 
     # Type-specific options
     options: str | None = None

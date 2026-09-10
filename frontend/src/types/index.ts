@@ -35,6 +35,8 @@ export interface DocField {
   in_list_view?: boolean
   in_filter?: boolean
   in_quick_filter?: boolean
+  /** Editable inline in the Report (spreadsheet) grid view. */
+  editable_in_grid?: boolean
   // Type-specific
   options?: string
   // Name of a backend registry source whose values replace `options` — see
