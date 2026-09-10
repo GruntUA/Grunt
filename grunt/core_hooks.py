@@ -19,6 +19,11 @@ doc_events: dict[str, dict[str, list[str]]] = {
         "after_save": ["grunt.notification.rule_index.invalidate_on_change"],
         "after_delete": ["grunt.notification.rule_index.invalidate_on_change"],
     },
+    # Keep the i18n request-language negotiator in sync with active languages.
+    "Language": {
+        "after_save": ["grunt.i18n.hooks.refresh_supported_languages"],
+        "after_delete": ["grunt.i18n.hooks.refresh_supported_languages"],
+    },
     # ToDo assignment notifications live in its controller
     # (grunt.tasks.doctypes.ToDo.to_do.ToDo) — create / reassign / complete.
     # Log every document lifecycle event to ActivityLog.

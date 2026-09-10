@@ -1,10 +1,10 @@
-"""Tests for the i18n module (PO/gettext-based)."""
+"""Tests for the i18n module (PO/gettext runtime + provider seam)."""
 
 from pathlib import Path
 
-from grunt.i18n.service import TranslationService, _parse_po_file
+from grunt.i18n.service import TranslationService, _parse_po_file, translation_service
 
-LOCALES_DIR = Path(__file__).parent.parent.parent.parent / "locales"
+LOCALES_DIR = Path(__file__).parent.parent / "locales"
 
 
 class TestPoParser:
@@ -80,6 +80,50 @@ class TestTranslationService:
         assert isinstance(all_trans, dict)
         assert "Document not found" in all_trans
         assert all_trans["Document not found"] == "Документ не знайдено"
+
+
+class TestRuntimeProvider:
+    def teardown_method(self):
+        # Drop the test provider so it can't leak into other tests.
+        import grunt.i18n.service as svc
+
+        svc._provider = None
+        translation_service.invalidate()
+
+    def test_provider_beats_po_and_source(self):
+        translation_service.register_provider(
+            lambda locale: {"Brand new string": "З провайдера"} if locale == "uk" else {}
+        )
+        assert translation_service.translate("Brand new string", lang="uk") == "З провайдера"
+        # PO still wins where the provider is silent
+        assert (
+            translation_service.translate("Document not found", lang="uk")
+            == "Документ не знайдено"
+        )
+
+    def test_provider_context_key(self):
+        translation_service.register_provider(lambda _l: {"meta:Foo|Bar": "Бар"})
+        assert translation_service.pgettext("meta:Foo", "Bar", lang="uk") == "Бар"
+
+    def test_provider_included_in_bundle(self):
+        translation_service.register_provider(lambda _l: {"Bundle key": "У бандлі"})
+        assert translation_service.get_all_translations("uk")["Bundle key"] == "У бандлі"
+
+    def test_invalidate_bumps_version(self):
+        before = translation_service.catalog_version("uk")
+        translation_service.invalidate()
+        assert translation_service.catalog_version("uk") != before
+
+
+class TestSupportedLangs:
+    def test_defaults_present(self):
+        assert {"uk", "en"} <= translation_service.supported_langs()
+
+    def test_set_supported_keeps_defaults_and_normalizes(self):
+        translation_service.set_supported(["de-DE", "FR", "uk"])
+        langs = translation_service.supported_langs()
+        assert {"de", "fr", "uk", "en"} <= langs
+        translation_service.set_supported(["uk", "en"])  # restore
 
 
 class TestConvenienceFunctions:

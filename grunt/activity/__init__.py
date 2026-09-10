@@ -59,7 +59,6 @@ FEED_HIDDEN_DOCTYPES = _SKIP_DOCTYPES | frozenset(
         "WebForm",
         "ClientScript",
         "ServerScript",
-        "Translation",
         "SystemSettings",
         "NamingSeries",
         "GruntInstalledApp",

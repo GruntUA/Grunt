@@ -69,8 +69,10 @@ async def current_user(
             raise credentials_exception
 
         from grunt.api.context import set_user
+        from grunt.i18n.middleware import apply_user_language
 
         set_user(user)
+        apply_user_language(request, user.data.get("language"))
         return user
 
     # ── 2. JWT Bearer / query param ───────────────────────────────────────
@@ -108,8 +110,10 @@ async def current_user(
         }
 
     from grunt.api.context import set_user
+    from grunt.i18n.middleware import apply_user_language
 
     set_user(user)
+    apply_user_language(request, user.data.get("language"))
     return user
 
 

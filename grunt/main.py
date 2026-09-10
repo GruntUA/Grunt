@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from grunt.api.v1.router import v1_router
 from grunt.apps import load_core
 from grunt.config import settings
-from grunt.middleware.language import LanguageMiddleware
+from grunt.i18n.middleware import LanguageMiddleware
 from grunt.middleware.logging import RequestLoggingMiddleware
 from grunt.middleware.rate_limit import RateLimitMiddleware
 from grunt.middleware.security import SecurityHeadersMiddleware

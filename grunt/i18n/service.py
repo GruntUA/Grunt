@@ -1,9 +1,11 @@
 """Translation service based on GNU gettext (PO/POT files).
 
 Provides `_()` and `ngettext()` for translating server-side messages.
-Translations are loaded from:
-1. PO/MO files in locales/ directory (compiled via `msgfmt` or loaded raw)
-2. GruntTranslation table (user/app-supplied overrides)
+Translations are resolved in this order:
+1. a registered runtime provider (e.g. the Translate app — DB-backed, editable
+   without a redeploy); see :func:`register_provider`
+2. PO files in this module's ``locales/`` dir and every installed app's
+   ``<module>/locales/`` dir
 
 Default language is Ukrainian (uk). English strings are the source keys.
 
@@ -18,11 +20,15 @@ Usage:
 from __future__ import annotations
 
 import gettext as _gettext
+import secrets
 from contextvars import ContextVar, Token
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING
 
 import structlog
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 logger = structlog.get_logger()
 
@@ -35,8 +41,23 @@ _current_lang: ContextVar[str] = ContextVar("grunt_lang", default="uk")
 # Cached gettext translation objects: {lang: GNUTranslations}
 _translations: dict[str, _gettext.GNUTranslations | _gettext.NullTranslations] = {}
 
-# Runtime overrides loaded from DB
-_db_overrides: dict[str, dict[str, str]] = {}
+# Flattened per-locale catalogs merged from every installed app's locales/ dir.
+# Keys are bare source strings, or "context|msgid" for context-aware entries.
+_app_catalogs: dict[str, dict[str, str]] = {}
+
+# Optional runtime provider: given a locale, returns {source | "ctx|msg": translated}.
+# Registered by an app (see register_provider); consulted before any PO file.
+_provider: Callable[[str], dict[str, str]] | None = None
+_provider_cache: dict[str, dict[str, str]] = {}
+
+# Cheap version tag for the frontend bundle — changes on any provider
+# invalidation, app-catalog reload, or active-language change.
+_catalog_version: str = "0"
+
+# Languages the request-language negotiator accepts. Seeded from the source (en)
+# and default (uk); widened at startup from active geo.Language rows.
+_DEFAULT_SUPPORTED = frozenset({"uk", "en"})
+_supported: set[str] = set(_DEFAULT_SUPPORTED)
 
 
 def _load_translations(lang: str) -> _gettext.GNUTranslations | _gettext.NullTranslations:
@@ -146,6 +167,66 @@ def _unquote(s: str) -> str:
     return s.replace("\\n", "\n").replace('\\"', '"')
 
 
+def _flatten_catalog(catalog: dict[str, str]) -> dict[str, str]:
+    """Drop internal plural keys; render context entries as ``"context|msgid"``."""
+    flat: dict[str, str] = {}
+    for key, value in catalog.items():
+        if "\x00" in key:
+            continue
+        if "\x04" in key:
+            ctx, msgid = key.split("\x04", 1)
+            flat[f"{ctx}|{msgid}"] = value
+        else:
+            flat[key] = value
+    return flat
+
+
+def _app_locale_po_files(lang: str) -> list[Path]:
+    """Every installed app's PO file for *lang* (``apps/*/*/locales/<lang>.po``)."""
+    try:
+        from grunt.site.manager import site_manager
+
+        apps_dir = site_manager.bench_dir / "apps"
+    except Exception:
+        return []
+    if not apps_dir.is_dir():
+        return []
+    files = list(apps_dir.glob(f"*/*/locales/{lang}.po"))
+    files += list(apps_dir.glob(f"*/*/locales/{lang}/LC_MESSAGES/*.po"))
+    return files
+
+
+def _app_catalog(lang: str) -> dict[str, str]:
+    """Merged, flattened catalog from every installed app's PO file for *lang*."""
+    cached = _app_catalogs.get(lang)
+    if cached is not None:
+        return cached
+    merged: dict[str, str] = {}
+    for po in _app_locale_po_files(lang):
+        try:
+            merged.update(_flatten_catalog(_parse_po_file(po)))
+        except Exception:
+            logger.warning("i18n.app_po_parse_error", path=str(po))
+    _app_catalogs[lang] = merged
+    return merged
+
+
+def _provider_catalog(lang: str) -> dict[str, str]:
+    """Cached result of the registered runtime provider for *lang* (or ``{}``)."""
+    if _provider is None:
+        return {}
+    cached = _provider_cache.get(lang)
+    if cached is not None:
+        return cached
+    try:
+        result = dict(_provider(lang) or {})
+    except Exception:
+        logger.exception("i18n.provider_error", lang=lang)
+        result = {}
+    _provider_cache[lang] = result
+    return result
+
+
 class _DictTranslations(_gettext.NullTranslations):
     """gettext-compatible translations backed by a dict from PO parsing."""
 
@@ -189,19 +270,17 @@ class TranslationService:
         return _current_lang.set(lang)
 
     def translate(self, source: str, lang: str | None = None) -> str:
-        """Translate a source string via gettext."""
+        """Translate a source string: provider → app PO → core PO → source."""
         lang = lang or _current_lang.get()
 
         if lang == "en":
             return source
 
-        # Check DB overrides first
-        override = _db_overrides.get(lang, {}).get(source)
-        if override:
-            return override
+        hit = _provider_catalog(lang).get(source) or _app_catalog(lang).get(source)
+        if hit:
+            return hit
 
-        trans = _load_translations(lang)
-        return trans.gettext(source)
+        return _load_translations(lang).gettext(source)
 
     def ngettext(self, singular: str, plural: str, n: int, lang: str | None = None) -> str:
         """Translate with plural forms."""
@@ -214,68 +293,93 @@ class TranslationService:
         return trans.ngettext(singular, plural, n)
 
     def pgettext(self, context: str, message: str, lang: str | None = None) -> str:
-        """Translate with context (msgctxt)."""
+        """Translate with context (msgctxt): provider → app PO → core PO → message."""
         lang = lang or _current_lang.get()
 
         if lang == "en":
             return message
+
+        flat = f"{context}|{message}"
+        hit = _provider_catalog(lang).get(flat) or _app_catalog(lang).get(flat)
+        if hit:
+            return hit
 
         trans = _load_translations(lang)
         if hasattr(trans, "pgettext"):
             return trans.pgettext(context, message)
         return message
 
-    async def load_overrides_from_db(self, session: Any) -> int:
-        """Load translation overrides from Translation DocType table."""
-        try:
-            from grunt.app import grunt
-
-            async with grunt.context(session):
-                rows = await grunt.db.get_all(
-                    "Translation",
-                    fields=["language", "source", "translated"],
-                    limit=None,
-                )
-
-            count = 0
-            for row in rows:
-                lang = row["language"]
-                if lang not in _db_overrides:
-                    _db_overrides[lang] = {}
-                _db_overrides[lang][row["source"]] = row["translated"]
-                count += 1
-
-            logger.info("i18n.db_overrides_loaded", count=count)
-            return count
-        except Exception:
-            logger.debug("i18n.db_load_skipped", reason="table may not exist yet")
-            return 0
-
     def get_all_translations(self, lang: str) -> dict[str, str]:
-        """Get all translations for a language (for frontend JSON export).
+        """Full flat catalog for a language (for the frontend JSON bundle).
 
-        Returns a flat dict: {source: translated}.
+        Merge order (later wins): core PO → installed apps' PO → runtime provider.
+        Keys are bare source strings or ``"context|msgid"``.
         """
         trans = _load_translations(lang)
         result: dict[str, str] = {}
-
         if isinstance(trans, _DictTranslations):
-            # Filter out internal plural keys
-            for key, value in trans._catalog.items():
-                if "\x00" not in key and "\x04" not in key:
-                    result[key] = value
-                elif "\x04" in key:
-                    # Include context entries as "context|msgid"
-                    ctx, msgid = key.split("\x04", 1)
-                    result[f"{ctx}|{msgid}"] = value
-
-        # Apply DB overrides
-        result.update(_db_overrides.get(lang, {}))
+            result.update(_flatten_catalog(trans._catalog))
+        result.update(_app_catalog(lang))
+        result.update(_provider_catalog(lang))
         return result
 
+    # ── Runtime provider / cache management ──────────────────────────────
+
+    def register_provider(self, fn: Callable[[str], dict[str, str]]) -> None:
+        """Register the runtime translation provider (one; last registration wins).
+
+        *fn* takes a locale and returns ``{source | "ctx|msg": translated}``. It is
+        consulted before any PO file and its result is cached per locale until
+        :meth:`invalidate` is called.
+        """
+        global _provider
+        _provider = fn
+        _provider_cache.clear()
+        self._bump_version()
+        logger.info("i18n.provider_registered", provider=getattr(fn, "__qualname__", repr(fn)))
+
+    def invalidate(self, lang: str | None = None) -> None:
+        """Drop cached provider/app catalogs (all locales, or just *lang*)."""
+        if lang is None:
+            _provider_cache.clear()
+            _app_catalogs.clear()
+        else:
+            _provider_cache.pop(lang, None)
+            _app_catalogs.pop(lang, None)
+        self._bump_version()
+
+    def catalog_version(self, lang: str | None = None) -> str:
+        """Opaque tag that changes whenever any effective catalog changes."""
+        return _catalog_version
+
+    def _bump_version(self) -> None:
+        global _catalog_version
+        _catalog_version = secrets.token_hex(8)
+
+    # ── Supported languages (request-language negotiation) ───────────────
+
+    def supported_langs(self) -> set[str]:
+        return set(_supported)
+
+    def set_supported(self, codes: object) -> None:
+        """Set the accepted language set (``en``/``uk`` are always kept)."""
+        global _supported
+        try:
+            incoming = {str(c)[:2].lower() for c in codes if c}  # type: ignore[union-attr]
+        except TypeError:
+            incoming = set()
+        new = incoming | set(_DEFAULT_SUPPORTED)
+        if new != _supported:
+            _supported = new
+            self._bump_version()
+            logger.info("i18n.supported_langs", langs=sorted(_supported))
+
     def reload(self) -> None:
-        """Clear cached translations (forces reload from files)."""
+        """Clear every cache (forces reload from files / provider)."""
         _translations.clear()
+        _app_catalogs.clear()
+        _provider_cache.clear()
+        self._bump_version()
 
 
 # Module-level singleton and convenience functions

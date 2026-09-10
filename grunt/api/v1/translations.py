@@ -7,11 +7,16 @@ import grunt
 
 @grunt.whitelist(allow_guest=True)
 async def get_translations(locale: str) -> dict[str, Any]:
-    """Return all translations for a locale as a flat JSON dict.
+    """Return the translation bundle for a locale.
+
+    Shape: ``{"version": <tag>, "messages": {source | "ctx|msg": translated}}``.
+    The frontend caches ``version`` and skips re-merging when it is unchanged.
 
     Call via: /api/v1/method/grunt.api.v1.translations.get_translations?locale=uk
     """
     from grunt.i18n import translation_service
 
-    translations = translation_service.get_all_translations(locale)
-    return translations
+    return {
+        "version": translation_service.catalog_version(locale),
+        "messages": translation_service.get_all_translations(locale),
+    }

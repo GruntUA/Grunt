@@ -78,6 +78,35 @@ async def _bring_up_sites() -> None:
             current_site.reset(token)
 
 
+async def _seed_supported_languages() -> None:
+    """Widen the i18n language negotiator from active ``geo.Language`` rows.
+
+    Best-effort and union across sites — the accepted-language set is a single
+    process-global. ``en``/``uk`` stay supported even if the table is empty or
+    absent (fresh install).
+    """
+    from grunt.app import grunt
+    from grunt.i18n import translation_service
+
+    codes: set[str] = set()
+    for site in site_manager.get_sites():
+        token = current_site.set(site)
+        try:
+            maker = site_manager.get_session_maker(site)
+            async with maker() as session, grunt.context(session):
+                rows = await grunt.db.get_all(
+                    "Language", filters={"is_active": True}, fields=["code"], limit=None
+                )
+            codes.update(r["code"] for r in rows if r.get("code"))
+        except Exception as e:  # noqa: BLE001 - table may not exist yet
+            logger.debug("i18n.seed_languages_skipped", site=site, error=str(e))
+        finally:
+            current_site.reset(token)
+
+    if codes:
+        translation_service.set_supported(codes)
+
+
 def _init_observability() -> None:
     if not settings.sentry_dsn:
         return
@@ -112,6 +141,7 @@ async def lifespan(app: FastAPI):
         installed_apps=site_manager.get_all_installed_apps(),
     )
 
+    await _seed_supported_languages()
     _init_observability()
     await broker.startup()
     await start_scheduler()

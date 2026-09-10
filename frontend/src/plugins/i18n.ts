@@ -20,6 +20,7 @@ import { createI18n } from 'vue-i18n'
 export type SupportedLocale = 'uk' | 'en'
 
 const STORAGE_KEY = 'grunt-locale'
+const VERSION_KEY = 'grunt-locale-version'
 
 function getSavedLocale(): SupportedLocale {
   const saved = localStorage.getItem(STORAGE_KEY)
@@ -46,8 +47,19 @@ export async function loadRemoteTranslations(locale?: SupportedLocale): Promise<
     const response = await fetch(`/api/v1/method/grunt.api.v1.translations.get_translations?locale=${lang}`)
     if (response.ok) {
       const data = await response.json()
-      if (data.success && data.data) {
-        i18n.global.mergeLocaleMessage(lang, data.data)
+      const bundle = data.success ? data.data : null
+      if (bundle && bundle.messages) {
+        const key = `${VERSION_KEY}:${lang}`
+        const seen = localStorage.getItem(key)
+        if (seen && seen === bundle.version && Object.keys(i18n.global.getLocaleMessage(lang)).length) {
+          return
+        }
+        i18n.global.mergeLocaleMessage(lang, bundle.messages)
+        try {
+          localStorage.setItem(key, bundle.version ?? '')
+        } catch {
+          // storage unavailable — re-merge next time, harmless
+        }
       }
     }
   } catch {
