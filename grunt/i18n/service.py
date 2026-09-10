@@ -95,10 +95,17 @@ def _load_translations(lang: str) -> _gettext.GNUTranslations | _gettext.NullTra
 
 
 def _parse_po_file(path: Path) -> dict[str, str]:
-    """Simple PO file parser — extracts msgid → msgstr mappings.
+    """Parse a PO *file*. See :func:`parse_po_string` for the format notes."""
+    with open(path, encoding="utf-8") as f:
+        return parse_po_string(f.read())
 
-    Handles: simple strings, msgctxt, msgid_plural (stores msgstr[0..N]).
-    Does NOT handle: multiline msgid with concatenation, obsolete entries.
+
+def parse_po_string(text: str) -> dict[str, str]:
+    """Simple PO parser — extracts msgid → msgstr mappings.
+
+    Keys: bare ``msgid``, ``"<msgctxt>\\x04<msgid>"`` with context, and
+    ``"<key>\\x00<n>"`` for plural forms. Handles simple strings, msgctxt and
+    msgid_plural; does NOT handle multiline concatenation or obsolete entries.
     """
     catalog: dict[str, str] = {}
     current_msgctxt: str | None = None
@@ -131,30 +138,29 @@ def _parse_po_file(path: Path) -> dict[str, str]:
         current_msgstr = None
         plural_forms = {}
 
-    with open(path, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
 
-            if not line or line.startswith("#"):
-                continue
+        if not line or line.startswith("#"):
+            continue
 
-            if line.startswith("msgctxt "):
+        if line.startswith("msgctxt "):
+            _flush()
+            current_msgctxt = _unquote(line[8:])
+        elif line.startswith("msgid_plural "):
+            current_msgid_plural = _unquote(line[13:])
+        elif line.startswith("msgid "):
+            if current_msgid is not None:
                 _flush()
-                current_msgctxt = _unquote(line[8:])
-            elif line.startswith("msgid_plural "):
-                current_msgid_plural = _unquote(line[13:])
-            elif line.startswith("msgid "):
-                if current_msgid is not None:
-                    _flush()
-                current_msgid = _unquote(line[6:])
-            elif line.startswith("msgstr["):
-                idx = int(line[7])
-                value = _unquote(line[10:])
-                plural_forms[idx] = value
-            elif line.startswith("msgstr "):
-                current_msgstr = _unquote(line[7:])
+            current_msgid = _unquote(line[6:])
+        elif line.startswith("msgstr["):
+            idx = int(line[7])
+            value = _unquote(line[10:])
+            plural_forms[idx] = value
+        elif line.startswith("msgstr "):
+            current_msgstr = _unquote(line[7:])
 
-        _flush()
+    _flush()
 
     return catalog
 

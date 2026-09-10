@@ -8,7 +8,14 @@ Usage:
     pgettext("button", "Save")
 """
 
-from grunt.i18n.service import TranslationService, _, ngettext, pgettext, translation_service
+from grunt.i18n.service import (
+    TranslationService,
+    _,
+    ngettext,
+    parse_po_string,
+    pgettext,
+    translation_service,
+)
 
 #: Register the runtime translation provider (see :meth:`TranslationService.register_provider`).
 register_provider = translation_service.register_provider
@@ -17,6 +24,7 @@ __all__ = [
     "TranslationService",
     "_",
     "ngettext",
+    "parse_po_string",
     "pgettext",
     "register_provider",
     "translation_service",
