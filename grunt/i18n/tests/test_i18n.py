@@ -166,6 +166,47 @@ class TestMetaTranslation:
         assert out["fields"][0]["options"] == "Новий\nЗакритий"
 
 
+class TestPlurals:
+    def teardown_method(self):
+        import grunt.i18n.service as svc
+
+        svc._provider = None
+        translation_service.invalidate()
+
+    def test_plural_index_rules(self):
+        from grunt.i18n.plurals import plural_form_count, plural_index
+
+        assert plural_form_count("uk") == 3
+        assert plural_form_count("en") == 2
+        assert [plural_index("uk", n) for n in (1, 2, 5, 11, 21, 22)] == [0, 1, 2, 2, 0, 1]
+        assert [plural_index("en", n) for n in (1, 2, 5)] == [0, 1, 1]
+
+    def test_ngettext_from_po(self):
+        # grunt's own uk PO ships "%(count)d document" plural forms.
+        svc = TranslationService()
+        assert svc.ngettext("%(count)d document", "%(count)d documents", 1, lang="uk") == (
+            "%(count)d документ"
+        )
+        assert svc.ngettext("%(count)d document", "%(count)d documents", 5, lang="uk") == (
+            "%(count)d документів"
+        )
+
+    def test_ngettext_from_provider(self):
+        translation_service.register_provider(
+            lambda _l: {
+                "{n} apple\x000": "{n} яблуко",
+                "{n} apple\x001": "{n} яблука",
+                "{n} apple\x002": "{n} яблук",
+            }
+        )
+        f = lambda n: translation_service.ngettext("{n} apple", "{n} apples", n, lang="uk")  # noqa: E731
+        assert (f(1), f(3), f(5)) == ("{n} яблуко", "{n} яблука", "{n} яблук")
+
+    def test_plural_keys_reach_bundle(self):
+        translation_service.register_provider(lambda _l: {"{n} file\x001": "{n} файли"})
+        assert translation_service.get_all_translations("uk")["{n} file\x001"] == "{n} файли"
+
+
 class TestSupportedLangs:
     def test_defaults_present(self):
         assert {"uk", "en"} <= translation_service.supported_langs()

@@ -13,6 +13,9 @@
  *   const { t } = useI18n()
  *   t('Document not found')  // → "Документ не знайдено"
  *   t('button|Save')         // → "Зберегти" (with context)
+ *
+ *   import { tn } from '@/plugins/i18n'
+ *   tn('{n} file', '{n} files', count)  // plural-aware; mirrors backend ngettext
  */
 
 import { createI18n } from 'vue-i18n'
@@ -65,6 +68,39 @@ export async function loadRemoteTranslations(locale?: SupportedLocale): Promise<
   } catch {
     // No translations available — English source strings shown as-is
   }
+}
+
+// ── Plural forms ────────────────────────────────────────────────────────────
+// Kept in step with grunt/i18n/plurals.py.
+function slavic3(n: number): number {
+  n = Math.abs(n)
+  if (n % 10 === 1 && n % 100 !== 11) return 0
+  if (n % 10 >= 2 && n % 10 <= 4 && !(n % 100 >= 12 && n % 100 <= 14)) return 1
+  return 2
+}
+const PLURAL_RULES: Record<string, (n: number) => number> = {
+  en: (n) => (Math.abs(n) === 1 ? 0 : 1),
+  uk: slavic3, ru: slavic3, pl: slavic3, cs: slavic3, sk: slavic3,
+}
+
+function pluralIndex(locale: string, n: number): number {
+  return (PLURAL_RULES[locale] ?? PLURAL_RULES.en)(n)
+}
+
+/**
+ * Plural-aware translate — mirrors the backend `ngettext`.
+ *
+ * Looks up `<singular>\u0000<form-index>` in the bundle (the form index comes
+ * from the current locale's plural rule); falls back to the English
+ * singular / plural. `{n}` and `{count}` are interpolated with `n`.
+ */
+export function tn(singular: string, plural: string, n: number, ctx?: string): string {
+  const locale = i18n.global.locale.value
+  const base = ctx ? `${ctx}|${singular}` : singular
+  const key = `${base}\u0000${pluralIndex(locale, n)}`
+  let out = i18n.global.t(key)
+  if (out === key) out = Math.abs(n) === 1 ? singular : plural
+  return out.replace(/\{n\}|\{count\}/g, String(n))
 }
 
 export function setLocale(locale: SupportedLocale): void {
