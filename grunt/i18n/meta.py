@@ -5,14 +5,16 @@ compiled DocType schema, so those strings never pass through ``_()``. This
 module translates them on the way out, keyed by a stable ``msgctxt`` convention
 so a translator (or the Translate app) can target a specific field:
 
-    meta:<DocType>                → the DocType's own label / description
-    meta:<DocType>.<fieldname>    → a field's label / description / placeholder
+    meta:<DocType>                → the DocType label
+    meta:<DocType>.<fieldname>    → a field label
+    help:<DocType>[.<fieldname>]  → a description / help text
+    hint:<DocType>.<fieldname>    → a field placeholder
     select:<DocType>.<fieldname>  → one option value of a Select field
     status:<DocType>              → a status-indicator label
 
-``translation_service.pgettext`` returns the source string unchanged when there
-is no entry (and always for ``lang == "en"``), so this is a safe no-op until
-translations exist.
+label / description / placeholder each get their own context so they never share
+a row in the Translate registry. ``pgettext`` also falls back to a context-free
+translation of the same string, so a term needs translating only once.
 """
 
 from __future__ import annotations
@@ -35,16 +37,14 @@ def translate_doctype_meta(data: dict[str, Any], lang: str | None = None) -> dic
     if not name:
         return data
 
-    dt_ctx = f"meta:{name}"
-    data["label"] = _tr(dt_ctx, data.get("label"), lang)
-    data["description"] = _tr(dt_ctx, data.get("description"), lang)
+    data["label"] = _tr(f"meta:{name}", data.get("label"), lang)
+    data["description"] = _tr(f"help:{name}", data.get("description"), lang)
 
     for field in data.get("fields") or []:
         fieldname = field.get("fieldname") or ""
-        fctx = f"meta:{name}.{fieldname}"
-        field["label"] = _tr(fctx, field.get("label"), lang)
-        field["description"] = _tr(fctx, field.get("description"), lang)
-        field["placeholder"] = _tr(fctx, field.get("placeholder"), lang)
+        field["label"] = _tr(f"meta:{name}.{fieldname}", field.get("label"), lang)
+        field["description"] = _tr(f"help:{name}.{fieldname}", field.get("description"), lang)
+        field["placeholder"] = _tr(f"hint:{name}.{fieldname}", field.get("placeholder"), lang)
 
         if field.get("fieldtype") == "Select":
             _translate_select_options(field, f"select:{name}.{fieldname}", lang)

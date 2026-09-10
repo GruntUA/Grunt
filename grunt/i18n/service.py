@@ -268,11 +268,13 @@ class TranslationService:
         return _current_lang.set(lang)
 
     def translate(self, source: str, lang: str | None = None) -> str:
-        """Translate a source string: provider → app PO → core PO → source."""
-        lang = lang or _current_lang.get()
+        """Translate a source string: provider → app PO → core PO → source.
 
-        if lang == "en":
-            return source
+        No language is special-cased: source strings in this codebase are a mix
+        of English (framework msgids) and Ukrainian (DocType labels), so every
+        locale — ``en`` included — is looked up and falls back to the source.
+        """
+        lang = lang or _current_lang.get()
 
         hit = _provider_catalog(lang).get(source) or _app_catalog(lang).get(source)
         if hit:
@@ -288,22 +290,24 @@ class TranslationService:
         """
         lang = lang or _current_lang.get()
 
-        if lang == "en":
-            return singular if n == 1 else plural
-
         key = f"{singular}\x00{plural_index(lang, n)}"
         hit = _provider_catalog(lang).get(key) or _app_catalog(lang).get(key)
         if hit:
             return hit
 
-        return _load_translations(lang).ngettext(singular, plural, n)
+        result = _load_translations(lang).ngettext(singular, plural, n)
+        if result not in (singular, plural):
+            return result
+        return singular if abs(n) == 1 else plural
 
     def pgettext(self, context: str, message: str, lang: str | None = None) -> str:
-        """Translate with context (msgctxt): provider → app PO → core PO → message."""
-        lang = lang or _current_lang.get()
+        """Translate with context (msgctxt).
 
-        if lang == "en":
-            return message
+        Order: contextual entry (provider → app → core PO) → **plain** entry for
+        the same string (so ``Назва`` → ``Name`` need only be translated once,
+        not per ``meta:<DocType>.<field>`` context) → the source message.
+        """
+        lang = lang or _current_lang.get()
 
         flat = f"{context}|{message}"
         hit = _provider_catalog(lang).get(flat) or _app_catalog(lang).get(flat)
@@ -312,8 +316,12 @@ class TranslationService:
 
         trans = _load_translations(lang)
         if hasattr(trans, "pgettext"):
-            return trans.pgettext(context, message)
-        return message
+            ctx_hit = trans.pgettext(context, message)
+            if ctx_hit != message:
+                return ctx_hit
+
+        # Fall back to a context-free translation of the same string.
+        return self.translate(message, lang)
 
     def get_all_translations(self, lang: str) -> dict[str, str]:
         """Full flat catalog for a language (for the frontend JSON bundle).

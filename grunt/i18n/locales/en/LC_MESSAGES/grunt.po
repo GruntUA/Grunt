@@ -1,0 +1,293 @@
+# English translations for Grunt Framework.
+#
+# Source strings here are Ukrainian (DocType labels, Select options, some UI
+# text). Entries are context-free on purpose: pgettext() falls back to a plain
+# lookup, so "Назва" → "Name" once covers every meta:<DocType>.<field> context.
+# Add specific msgctxt entries only where a field needs a different wording.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Grunt 0.1.0\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. ── Common field labels ──────────────────────────────────────
+msgid "Назва"
+msgstr "Name"
+
+msgid "Назва (укр.)"
+msgstr "Name (Ukrainian)"
+
+msgid "Назва (англ.)"
+msgstr "Name (English)"
+
+msgid "Опис"
+msgstr "Description"
+
+msgid "Опис / Підзаголовок"
+msgstr "Description / Subtitle"
+
+msgid "Заголовок"
+msgstr "Title"
+
+msgid "Тип"
+msgstr "Type"
+
+msgid "Тип документа"
+msgstr "Document type"
+
+msgid "ID документа"
+msgstr "Document ID"
+
+msgid "Статус"
+msgstr "Status"
+
+msgid "Колір"
+msgstr "Colour"
+
+msgid "Іконка"
+msgstr "Icon"
+
+msgid "Іконка (lucide)"
+msgstr "Icon (lucide)"
+
+msgid "Порядок"
+msgstr "Order"
+
+msgid "Вміст"
+msgstr "Content"
+
+msgid "Значення"
+msgstr "Value"
+
+msgid "Значення за замовчуванням"
+msgstr "Default value"
+
+msgid "Поле"
+msgstr "Field"
+
+msgid "Поле дати"
+msgstr "Date field"
+
+msgid "Поле заголовка"
+msgstr "Title field"
+
+msgid "Поле значення"
+msgstr "Value field"
+
+msgid "Дія"
+msgstr "Action"
+
+msgid "Дії"
+msgstr "Actions"
+
+msgid "Подія"
+msgstr "Event"
+
+msgid "Повідомлення"
+msgstr "Message"
+
+msgid "Помилка"
+msgstr "Error"
+
+msgid "Умова (Python)"
+msgstr "Condition (Python)"
+
+msgid "Фільтри"
+msgstr "Filters"
+
+msgid "Фільтри (JSON)"
+msgstr "Filters (JSON)"
+
+msgid "Групувати за"
+msgstr "Group by"
+
+msgid "Агрегація"
+msgstr "Aggregation"
+
+msgid "Період"
+msgstr "Period"
+
+msgid "Мін. значення"
+msgstr "Min. value"
+
+msgid "Макс. значення"
+msgstr "Max. value"
+
+msgid "Ширина (1-4)"
+msgstr "Width (1-4)"
+
+msgid "Віджети"
+msgstr "Widgets"
+
+msgid "Звіт (джерело даних для графіка)"
+msgstr "Report (chart data source)"
+
+msgid "Тип посилання"
+msgstr "Link type"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "URL маршрут"
+msgstr "URL route"
+
+msgid "Шлях"
+msgstr "Path"
+
+msgid "Метод"
+msgstr "Method"
+
+msgid "Секрет (HMAC)"
+msgstr "Secret (HMAC)"
+
+msgid "Cron вираз"
+msgstr "Cron expression"
+
+msgid "Час (мс)"
+msgstr "Time (ms)"
+
+msgid "Час (ms)"
+msgstr "Time (ms)"
+
+msgid "Початок"
+msgstr "Start"
+
+msgid "Завершення"
+msgstr "End"
+
+msgid "Дійсний до"
+msgstr "Valid until"
+
+msgid "Пріоритет"
+msgstr "Priority"
+
+msgid "Виконавець"
+msgstr "Assignee"
+
+msgid "Завдання"
+msgstr "Task"
+
+msgid "Документ"
+msgstr "Document"
+
+msgid "Зв'язок документа"
+msgstr "Document link"
+
+msgid "Деталі"
+msgstr "Details"
+
+msgid "Додатково"
+msgstr "Advanced"
+
+msgid "Основне"
+msgstr "General"
+
+msgid "Інше"
+msgstr "Other"
+
+msgid "Службове"
+msgstr "System"
+
+msgid "Безпека"
+msgstr "Security"
+
+msgid "Доступ"
+msgstr "Access"
+
+msgid "Дозвіл"
+msgstr "Permission"
+
+msgid "Версія"
+msgstr "Version"
+
+msgid "Файл"
+msgstr "File"
+
+msgid "Вкладення"
+msgstr "Attachment"
+
+msgid "Логотип"
+msgstr "Logo"
+
+msgid "Тема"
+msgstr "Theme"
+
+msgid "Додаток"
+msgstr "App"
+
+msgid "Обліковий запис"
+msgstr "Account"
+
+#. ── People / access ──────────────────────────────────────────
+msgid "Користувач"
+msgstr "User"
+
+msgid "Роль"
+msgstr "Role"
+
+msgid "Ролі"
+msgstr "Roles"
+
+msgid "Ролі (через кому)"
+msgstr "Roles (comma-separated)"
+
+#. ── Geo ──────────────────────────────────────────────────────
+msgid "Країна"
+msgstr "Country"
+
+msgid "Регіон"
+msgstr "Region"
+
+msgid "Столиця"
+msgstr "Capital"
+
+msgid "Валюта"
+msgstr "Currency"
+
+msgid "Мова"
+msgstr "Language"
+
+msgid "Часовий пояс"
+msgstr "Time zone"
+
+msgid "Числовий код"
+msgstr "Numeric code"
+
+#. ── Boolean-ish labels ───────────────────────────────────────
+msgid "Активний"
+msgstr "Active"
+
+msgid "Активна"
+msgstr "Active"
+
+msgid "Активне"
+msgstr "Active"
+
+msgid "Публічний"
+msgstr "Public"
+
+msgid "Опубліковано"
+msgstr "Published"
+
+msgid "Прочитано"
+msgstr "Read"
+
+msgid "Виконано"
+msgstr "Done"
+
+msgid "Повільний"
+msgstr "Slow"
+
+#. ── Logs / status values ─────────────────────────────────────
+msgid "Журнал переглядів"
+msgstr "View log"
+
+msgid "Серверний скрипт"
+msgstr "Server Script"
+
+msgid "Вебхук"
+msgstr "Webhook"

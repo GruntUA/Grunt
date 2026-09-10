@@ -40,9 +40,17 @@ class TestTranslationService:
         result = self.svc.translate("Document not found", lang="uk")
         assert result == "Документ не знайдено"
 
-    def test_translate_en_passthrough(self):
-        result = self.svc.translate("Document not found", lang="en")
-        assert result == "Document not found"
+    def test_translate_en_falls_back_to_source(self):
+        # English framework msgids have no `en` entry → returned unchanged.
+        assert self.svc.translate("Document not found", lang="en") == "Document not found"
+
+    def test_translate_en_uses_po(self):
+        # Ukrainian-source labels DO get translated for `en`.
+        assert self.svc.translate("Країна", lang="en") == "Country"
+
+    def test_pgettext_falls_back_to_context_free_entry(self):
+        # No `meta:Foo.bar` entry, but a plain "Назва" → "Name" exists.
+        assert self.svc.pgettext("meta:Foo.bar", "Назва", lang="en") == "Name"
 
     def test_translate_missing_returns_source(self):
         result = self.svc.translate("This string has no translation", lang="uk")
@@ -131,6 +139,8 @@ class TestMetaTranslation:
                 {
                     "fieldname": "status",
                     "label": "Статус",
+                    "description": "Стан віджета",
+                    "placeholder": "Оберіть…",
                     "fieldtype": "Select",
                     "options": "Новий\nЗакритий",
                 },
@@ -138,6 +148,20 @@ class TestMetaTranslation:
             ],
             "status_indicators": [{"value": "Новий", "label": "Новий"}],
         }
+
+    def test_description_and_placeholder_use_own_contexts(self):
+        from grunt.i18n.meta import translate_doctype_meta
+
+        translation_service.register_provider(
+            lambda _l: {
+                "help:Widget.status|Стан віджета": "Widget state",
+                "hint:Widget.status|Оберіть…": "Choose…",
+            }
+        )
+        out = translate_doctype_meta(self._dt(), lang="uk")
+        assert out["fields"][0]["description"] == "Widget state"
+        assert out["fields"][0]["placeholder"] == "Choose…"
+        assert out["fields"][0]["label"] == "Статус"  # label context untouched
 
     def test_translates_label_field_and_options(self):
         from grunt.i18n.meta import translate_doctype_meta
