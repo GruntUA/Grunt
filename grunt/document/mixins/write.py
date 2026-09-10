@@ -416,6 +416,23 @@ class DocumentWriteMixin(DocumentReadMixin):
 
         Single entry point for updating a document — see :meth:`create_document`.
         """
+        dt = await self._resolve_dt(doctype_name)
+
+        # A singleton's first save arrives here, not at ``create_document`` —
+        # the form always routes it as an update (``doc_id`` == DocType name)
+        # because there is no separate "new" state. Upsert: if the sole row
+        # does not exist yet, create it now (named after the DocType).
+        if dt.is_singleton and not is_virtual_routed(dt, doctype_name):
+            table = Meta(dt).table
+            count = await self.session.execute(select(func.count()).select_from(table))
+            if (count.scalar() or 0) == 0:
+                return await self.create_document(
+                    doctype_name,
+                    {**data, "name": dt.name},
+                    user,
+                    ignore_required=ignore_required,
+                )
+
         await fire(
             "before_save",
             doctype=doctype_name,
@@ -424,7 +441,6 @@ class DocumentWriteMixin(DocumentReadMixin):
             session=self.session,
         )
 
-        dt = await self._resolve_dt(doctype_name)
         if is_virtual_routed(dt, doctype_name):
             updated = await virtual_update(doctype_name, user, doc_id, data)
             await self._fire_write_hooks("after_update", "after_save", doctype_name, updated, user)

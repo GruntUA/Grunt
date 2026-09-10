@@ -42,3 +42,21 @@ async def test_get_doc_singleton_missing_row_404(ctx):
         await ctx.get_doc("SystemSettings")
     assert exc.value.status_code == 404
     assert await ctx.find_doc("SystemSettings") is None
+
+
+@pytest.mark.asyncio
+async def test_save_doc_creates_missing_singleton_row(ctx):
+    """The form has no separate "new" state for a singleton — the first save
+    routes as an update (id == DocType name). ``update_document`` must upsert:
+    create the sole row on first save instead of raising 404."""
+    await _clear_system_settings(ctx)
+
+    saved = await ctx.save_doc("SystemSettings", "SystemSettings", {"app_name": "Acme"})
+    assert saved["app_name"] == "Acme"
+    # First save names the row after the DocType.
+    assert saved["name"] == "SystemSettings"
+
+    # A subsequent save updates that same row rather than creating a second one.
+    again = await ctx.save_doc("SystemSettings", "SystemSettings", {"app_name": "Beta"})
+    assert again["name"] == "SystemSettings"
+    assert (await ctx.get_doc("SystemSettings"))["app_name"] == "Beta"
