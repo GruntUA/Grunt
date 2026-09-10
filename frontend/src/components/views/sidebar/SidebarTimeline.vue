@@ -171,82 +171,78 @@ onMounted(loadTimeline)
 
 <template>
   <div v-if="timelineLoading" class="flex justify-center py-10">
-    <Loader2 class="size-6 animate-spin text-primary/60" />
+    <Loader2 class="size-5 animate-spin text-muted-foreground" />
   </div>
 
-  <div v-else class="flex flex-col gap-6">
+  <div v-else class="flex flex-col gap-5">
     <!-- Comment input -->
-    <div class="flex flex-col gap-3 group/comment bg-muted/20 p-4 rounded-lg border border-border/40">
-      <div class="flex items-center gap-2 px-1">
-        <MessageSquare class="size-4 text-primary/60" />
-        <span class="font-semibold uppercase tracking-wider text-muted-foreground">Додати коментар</span>
-      </div>
+    <div class="flex flex-col gap-2">
       <div class="relative">
         <Textarea v-model="commentInput" rows="3"
           placeholder="Напишіть коментар... @ для згадки"
-          class="w-full !text-sm !shadow-inner !bg-background !border-border/60 focus:!border-primary/50 transition-all resize-none"
+          class="resize-none"
           @keydown="onCommentKeydown" @input="onCommentInput" />
 
         <!-- Mentions -->
         <div v-if="mentionDropdown.length"
-          class="absolute left-0 right-0 bottom-full mb-2 bg-popover border border-border rounded-lg shadow-md overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <div class="px-3 py-2 bg-muted/50 border-b border-border font-semibold uppercase tracking-widest text-muted-foreground/80">Згадати користувача</div>
+          class="absolute left-0 right-0 bottom-full mb-1 bg-popover text-popover-foreground border rounded-md shadow-md overflow-hidden z-50">
+          <div class="px-2 py-1.5 text-muted-foreground border-b">Згадати користувача</div>
           <button v-for="(u, i) in mentionDropdown" :key="u.id"
-            class="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all border-b border-border/40 last:border-0"
-            :class="i === mentionIndex ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-foreground'"
+            class="w-full flex items-center gap-2 px-2 py-1.5 text-left"
+            :class="i === mentionIndex ? 'bg-accent text-accent-foreground' : 'hover:bg-accent hover:text-accent-foreground'"
             @mousedown.prevent="insertMention(u)">
-            <Avatar class="!size-7 shrink-0">
-              <AvatarFallback :class="i === mentionIndex ? 'bg-primary-foreground/20 text-white' : ''"><User class="size-3.5" /></AvatarFallback>
+            <Avatar class="size-6 shrink-0">
+              <AvatarFallback><User class="size-3" /></AvatarFallback>
             </Avatar>
             <div class="flex flex-col min-w-0">
-                <span class="font-semibold truncate">{{ u.full_name || u.email }}</span>
-                <span class="opacity-70 truncate">{{ u.email }}</span>
+                <span class="font-medium truncate">{{ u.full_name || u.email }}</span>
+                <span class="text-muted-foreground truncate">{{ u.email }}</span>
             </div>
           </button>
         </div>
       </div>
-      <div class="flex items-center justify-between px-1">
-          <span class="text-muted-foreground/60 italic">Ctrl+Enter щоб надіслати</span>
-          <Button size="sm" :disabled="!commentInput.trim() || commentSending" @click="sendComment" class="px-5">
-            <Loader2 v-if="commentSending" class="size-3.5 animate-spin mr-2" />
-            <Send v-else class="size-3.5 mr-2" />
-            <span class="font-semibold">Надіслати</span>
+      <div class="flex items-center justify-between">
+          <span class="text-muted-foreground">Ctrl+Enter щоб надіслати</span>
+          <Button size="sm" :disabled="!commentInput.trim() || commentSending" @click="sendComment">
+            <Loader2 v-if="commentSending" class="size-3.5 animate-spin" />
+            <Send v-else class="size-3.5" />
+            Надіслати
           </Button>
       </div>
     </div>
 
-    <div v-if="timeline.length === 0" class="py-12 text-center text-muted-foreground/60 italic bg-muted/20 rounded-lg border border-dashed border-border/40">
+    <div v-if="timeline.length === 0" class="py-8 text-center text-muted-foreground">
       Поки що немає активності
     </div>
 
     <!-- Timeline -->
-    <div class="w-full">
-      <div v-for="(item, idx) in reversedTimeline" :key="idx" class="flex gap-2 group">
+    <div v-else class="w-full">
+      <div v-for="(item, idx) in reversedTimeline" :key="idx" class="flex gap-3 group">
         <div class="flex flex-col items-center shrink-0">
-          <span class="flex size-7 items-center justify-center rounded-full shadow-sm ring-1 ring-border/40"
-            :class="item.type === 'comment' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'">
+          <span class="flex size-6 items-center justify-center rounded-full border"
+            :class="item.type === 'comment' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-muted text-muted-foreground'">
             <MessageSquare v-if="item.type === 'comment'" class="size-3" />
             <ActivityIcon v-else class="size-3" />
           </span>
-          <div v-if="idx < reversedTimeline.length - 1" class="w-px flex-1 bg-border/40 my-1" />
+          <div v-if="idx < reversedTimeline.length - 1" class="w-px flex-1 bg-border my-1" />
         </div>
-        <div class="flex flex-col gap-1 mb-6 pl-2 min-w-0 flex-1">
+        <div class="flex flex-col gap-1 pb-5 min-w-0 flex-1">
           <div class="flex items-center justify-between gap-2">
-            <span class="font-semibold text-foreground truncate">{{ item.user }}</span>
-            <div class="flex items-center gap-1.5 shrink-0">
-                <span class="font-medium text-muted-foreground/60 uppercase">{{ fmtDate(item.created_at) }}</span>
+            <span class="font-medium text-foreground truncate">{{ item.user }}</span>
+            <div class="flex items-center gap-1 shrink-0">
+                <span class="text-muted-foreground">{{ fmtDate(item.created_at) }}</span>
                 <button v-if="item.type === 'comment' && (item.user === auth.user?.email || auth.user?.is_superadmin)"
-                    class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 hover:text-destructive rounded"
+                    class="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-destructive/10 hover:text-destructive"
                     @click="deleteComment(item)">
                     <Trash2 class="size-3" />
                 </button>
             </div>
           </div>
-          <span v-if="item.type === 'activity'" class="font-medium text-muted-foreground leading-relaxed">
+          <span v-if="item.type === 'activity'" class="text-muted-foreground">
             {{ timelineLabel(item) }}
           </span>
           <p v-if="item.type === 'comment'"
-            class="text-foreground bg-muted/40 border border-border/20 rounded-lg px-4 py-2.5 mt-1 whitespace-pre-wrap leading-relaxed shadow-sm">
+            class="text-foreground rounded-md border bg-muted/40 px-3 py-2 whitespace-pre-wrap">
             {{ item.content }}
           </p>
         </div>
