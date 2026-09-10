@@ -1,13 +1,13 @@
 {
   "name": "WebsiteSettings",
-  "label": "Налаштування сайту",
+  "label": "Site settings",
   "module": "site",
   "is_singleton": true,
   "icon": "Globe",
   "fields": [
     {
       "fieldname": "sec_brand",
-      "label": "Бренд",
+      "label": "Branding",
       "fieldtype": "Section"
     },
     {
@@ -16,14 +16,14 @@
     },
     {
       "fieldname": "site_name",
-      "label": "Назва сайту",
+      "label": "Site name",
       "fieldtype": "Text",
       "default": "Ґрунт",
       "columns": 12
     },
     {
       "fieldname": "brand_logo",
-      "label": "Логотип",
+      "label": "Logo",
       "fieldtype": "Image",
       "columns": 12
     },
@@ -33,43 +33,43 @@
     },
     {
       "fieldname": "home_route",
-      "label": "Маршрут головної сторінки",
+      "label": "Home page route",
       "fieldtype": "Text",
-      "description": "Route опублікованої WebPage, що використовується як домашня (файлова www/index.html завжди має пріоритет)",
+      "description": "Route of the published WebPage used as the home page (a file-based www/index.html always takes priority)",
       "columns": 12
     },
     {
       "fieldname": "sec_nav",
-      "label": "Навігація",
+      "label": "Navigation",
       "fieldtype": "Section"
     },
     {
       "fieldname": "navbar_items",
-      "label": "Пункти верхнього меню",
+      "label": "Top menu items",
       "fieldtype": "Table",
       "options": "WebsiteNavItem"
     },
     {
       "fieldname": "sec_footer",
-      "label": "Підвал сайту",
+      "label": "Site footer",
       "fieldtype": "Section"
     },
     {
       "fieldname": "copyright_text",
-      "label": "Текст копірайту",
+      "label": "Copyright text",
       "fieldtype": "Text",
       "default": "© 2026"
     },
     {
       "fieldname": "footer_items",
-      "label": "Посилання в підвалі",
+      "label": "Footer links",
       "fieldtype": "Table",
       "options": "WebsiteNavItem",
-      "description": "Поле 'Група' визначає заголовок колонки в підвалі"
+      "description": "The 'Group' field sets the column heading in the footer"
     },
     {
       "fieldname": "sec_seo",
-      "label": "SEO за замовчуванням",
+      "label": "Default SEO",
       "fieldtype": "Section"
     },
     {
@@ -78,7 +78,7 @@
     },
     {
       "fieldname": "default_meta_description",
-      "label": "Meta-опис за замовчуванням",
+      "label": "Default meta description",
       "fieldtype": "Text",
       "columns": 12
     },
@@ -88,7 +88,7 @@
     },
     {
       "fieldname": "default_og_image",
-      "label": "Зображення для соцмереж за замовчуванням",
+      "label": "Default social image",
       "fieldtype": "Image",
       "columns": 12
     }

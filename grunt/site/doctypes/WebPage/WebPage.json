@@ -1,6 +1,6 @@
 {
   "name": "WebPage",
-  "label": "Веб-сторінка",
+  "label": "Web page",
   "module": "site",
   "table_name": "grunt_web_page",
   "title_field": "title",
@@ -8,14 +8,14 @@
   "fields": [
     {
       "fieldname": "title",
-      "label": "Заголовок",
+      "label": "Title",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "route",
-      "label": "URL маршрут",
+      "label": "URL route",
       "fieldtype": "Text",
       "required": true,
       "unique": true,
@@ -23,7 +23,7 @@
     },
     {
       "fieldname": "published",
-      "label": "Опубліковано",
+      "label": "Published",
       "fieldtype": "Check",
       "default": false,
       "in_list_view": true,
@@ -31,33 +31,33 @@
     },
     {
       "fieldname": "content",
-      "label": "Вміст",
+      "label": "Content",
       "fieldtype": "RichText"
     },
     {
       "fieldname": "meta_description",
-      "label": "Meta-опис (SEO)",
+      "label": "Meta description (SEO)",
       "fieldtype": "Text"
     },
     {
       "fieldname": "og_image",
-      "label": "Зображення для соцмереж (OG)",
+      "label": "Social image (OG)",
       "fieldtype": "Image"
     },
     {
       "fieldname": "show_in_navbar",
-      "label": "Показувати в навігації",
+      "label": "Show in navigation",
       "fieldtype": "Check",
       "default": false
     },
     {
       "fieldname": "menu_title",
-      "label": "Назва в меню",
+      "label": "Menu label",
       "fieldtype": "Text"
     },
     {
       "fieldname": "blocks",
-      "label": "Блоки контенту",
+      "label": "Content blocks",
       "fieldtype": "Table",
       "options": "WebPageBlock"
     }

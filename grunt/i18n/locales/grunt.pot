@@ -2184,94 +2184,91 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.allow_user_registration"
-msgid "Показує форму реєстрації на сторінці входу."
+msgid "Shows the sign-up form on the login page."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.app_logo"
-msgid "PNG або SVG. Показується у боковому меню та на сторінці входу."
+msgid "PNG or SVG. Shown in the sidebar and on the login page."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.app_name"
-msgid ""
-"Відображається у заголовку вкладки браузера, боковому меню та системних "
-"листах."
+msgid "Shown in the browser tab title, the sidebar and system emails."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.apply_strict_user_permissions"
 msgid ""
-"Якщо увімкнено — документ без Link-поля на обмежений тип (або з порожнім "
-"значенням) приховується, а не показується."
+"When enabled, a document with no Link field to the restricted type (or with "
+"an empty value) is hidden rather than shown."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.default_email_account"
-msgid ""
-"Використовується для вихідних листів, коли відправника не вказано явно."
+msgid "Used for outgoing mail when no sender is set explicitly."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.default_role"
-msgid "Призначається користувачу одразу після самостійної реєстрації."
+msgid "Assigned to the user right after self sign-up."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.email_footer"
-msgid "Додається в кінець кожного вихідного листа."
+msgid "Appended to the end of every outgoing email."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.enable_web_push"
-msgid "Дозволяє користувачам підписуватися на сповіщення в браузері."
+msgid "Lets users subscribe to browser notifications."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.language"
-msgid "Мова інтерфейсу для нових користувачів."
+msgid "UI language for new users."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.log_retention_days"
 msgid ""
-"Записи журналів (помилки, фонові завдання, перегляди тощо) старші за вказану"
-" кількість днів видаляються автоматично щодоби. Окремий DocType може "
-"перевизначити це значення власним параметром."
+"Log records (errors, background jobs, views, etc.) older than this many days"
+" are deleted automatically every day. An individual DocType may override "
+"this with its own setting."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.max_login_attempts"
-msgid "Кількість невдалих спроб до тимчасового блокування."
+msgid "Number of failed attempts before a temporary lockout."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.password_min_length"
-msgid "Застосовується при створенні або зміні пароля."
+msgid "Applied when a password is created or changed."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.require_signup_approval"
 msgid ""
-"Новий користувач не зможе увійти, доки адміністратор не підтвердить його "
-"реєстрацію."
+"A new user cannot sign in until an administrator approves their "
+"registration."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.session_timeout"
-msgid "Через скільки хвилин бездіяльності потрібен повторний вхід."
+msgid "After how many minutes of inactivity a re-login is required."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.timezone"
-msgid "Використовується для відображення дат і часу."
+msgid "Used to display dates and times."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "help:SystemSettings.webpush_vapid_public"
 msgid ""
-"Генерується автоматично при першому запуску Web Push. Потрібен клієнтам для "
-"підписки."
+"Generated automatically on the first Web Push run. Clients need it to "
+"subscribe."
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Timezone/Timezone.json
@@ -2362,20 +2359,19 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "help:WebsiteNavItem.group"
-msgid ""
-"Використовується лише в підвалі сайту для групування посилань під заголовком"
+msgid "Used only in the site footer to group links under a heading"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "help:WebsiteSettings.footer_items"
-msgid "Поле 'Група' визначає заголовок колонки в підвалі"
+msgid "The 'Group' field sets the column heading in the footer"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "help:WebsiteSettings.home_route"
 msgid ""
-"Route опублікованої WebPage, що використовується як домашня (файлова "
-"www/index.html завжди має пріоритет)"
+"Route of the published WebPage used as the home page (a file-based "
+"www/index.html always takes priority)"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
@@ -2540,57 +2536,57 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "meta:AppMenu"
-msgid "Меню додатку"
+msgid "App menu"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "meta:AppMenu.app"
-msgid "Додаток"
+msgid "App"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "meta:AppMenu.color"
-msgid "Колір"
+msgid "Colour"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "meta:AppMenu.description"
-msgid "Опис"
+msgid "Description"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "meta:AppMenu.home_page"
-msgid "Домашня сторінка"
+msgid "Home page"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "meta:AppMenu.icon"
-msgid "Іконка"
+msgid "Icon"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "meta:AppMenu.is_hidden"
-msgid "Приховано"
+msgid "Hidden"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "meta:AppMenu.label"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "meta:AppMenu.roles"
-msgid "Ролі (через кому)"
+msgid "Roles (comma-separated)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "meta:AppMenu.sequence"
-msgid "Порядок"
+msgid "Order"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgctxt "meta:AppMenu.sidebar_items"
-msgid "Пункти sidebar"
+msgid "Sidebar items"
 msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
@@ -2740,22 +2736,22 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
 msgctxt "meta:Bookmark"
-msgid "Закладка"
+msgid "Bookmark"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
 msgctxt "meta:Bookmark.reference_doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
 msgctxt "meta:Bookmark.reference_id"
-msgid "ID документа"
+msgid "Document ID"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
 msgctxt "meta:Bookmark.title"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/City/City.json
@@ -4974,67 +4970,67 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/Page/Page.json
 msgctxt "meta:Page"
-msgid "Сторінка"
+msgid "Page"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/Page/Page.json
 msgctxt "meta:Page.description"
-msgid "Опис"
+msgid "Description"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/Page/Page.json
 msgctxt "meta:Page.is_published"
-msgid "Опублікована"
+msgid "Published"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/Page/Page.json
 msgctxt "meta:Page.label"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/Page/Page.json
 msgctxt "meta:Page.roles"
-msgid "Ролі (через кому)"
+msgid "Roles (comma-separated)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/Page/Page.json
 msgctxt "meta:Page.widgets"
-msgid "Віджети"
+msgid "Widgets"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget"
-msgid "Віджет сторінки"
+msgid "Page widget"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.aggregation"
-msgid "Агрегація"
+msgid "Aggregation"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.color"
-msgid "Колір"
+msgid "Colour"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.cols"
-msgid "Ширина (1-4)"
+msgid "Width (1-4)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.content"
-msgid "Вміст"
+msgid "Content"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.date_field"
-msgid "Поле дати"
+msgid "Date field"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.description"
-msgid "Опис / Підзаголовок"
+msgid "Description / Subtitle"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
@@ -5044,62 +5040,62 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.field"
-msgid "Поле"
+msgid "Field"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.filters"
-msgid "Фільтри"
+msgid "Filters"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.group_by"
-msgid "Групувати за"
+msgid "Group by"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.icon"
-msgid "Іконка (lucide)"
+msgid "Icon (lucide)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.link_type"
-msgid "Тип посилання"
+msgid "Link type"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.max_value"
-msgid "Макс. значення"
+msgid "Max. value"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.min_value"
-msgid "Мін. значення"
+msgid "Min. value"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.period"
-msgid "Період"
+msgid "Period"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.report"
-msgid "Звіт (джерело даних для графіка)"
+msgid "Report (chart data source)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.sequence"
-msgid "Порядок"
+msgid "Order"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.title"
-msgid "Заголовок"
+msgid "Title"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 msgctxt "meta:PageWidget.widget_type"
-msgid "Тип"
+msgid "Type"
 msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
@@ -5539,147 +5535,147 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings"
-msgid "Налаштування системи"
+msgid "System settings"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.account_lockout_duration"
-msgid "Тривалість блокування, хв"
+msgid "Lockout duration, min"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.allow_user_registration"
-msgid "Дозволити самостійну реєстрацію"
+msgid "Allow self sign-up"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.app_logo"
-msgid "Логотип"
+msgid "Logo"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.app_name"
-msgid "Назва додатку"
+msgid "App name"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.apply_strict_user_permissions"
-msgid "Суворі обмеження користувача"
+msgid "Strict user permissions"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.date_format"
-msgid "Формат дати"
+msgid "Date format"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.default_email_account"
-msgid "Обліковий запис за замовчуванням"
+msgid "Default account"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.default_role"
-msgid "Роль за замовчуванням"
+msgid "Default role"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.email_footer"
-msgid "Підпис у листах"
+msgid "Email signature"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.enable_web_push"
-msgid "Увімкнути push-сповіщення"
+msgid "Enable push notifications"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.is_setup_complete"
-msgid "Систему налаштовано"
+msgid "System configured"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.language"
-msgid "Мова за замовчуванням"
+msgid "Default language"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.log_retention_days"
-msgid "Зберігати журнали, днів"
+msgid "Keep logs, days"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.max_login_attempts"
-msgid "Максимум спроб входу"
+msgid "Max login attempts"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.password_min_length"
-msgid "Мінімальна довжина пароля"
+msgid "Minimum password length"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.password_require_lowercase"
-msgid "Малі літери (a–z)"
+msgid "Lowercase letters (a–z)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.password_require_numbers"
-msgid "Цифри (0–9)"
+msgid "Digits (0–9)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.password_require_symbols"
-msgid "Спеціальні символи"
+msgid "Special characters"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.password_require_uppercase"
-msgid "Великі літери (A–Z)"
+msgid "Uppercase letters (A–Z)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.require_signup_approval"
-msgid "Реєстрація потребує підтвердження"
+msgid "Registration needs approval"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.sec_maintenance"
-msgid "Журнали та обслуговування"
+msgid "Logs & maintenance"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.sec_password"
-msgid "Політика паролів"
+msgid "Password policy"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.sec_regional"
-msgid "Регіональні налаштування"
+msgid "Regional settings"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.sec_registration"
-msgid "Реєстрація користувачів"
+msgid "User registration"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.sec_sessions"
-msgid "Сесії та захист від підбору"
+msgid "Sessions & brute-force protection"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.sec_user_permissions"
-msgid "Обмеження доступу (User Permissions)"
+msgid "Access restrictions (User Permissions)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.sec_webpush"
-msgid "Web Push (сповіщення браузера)"
+msgid "Web Push (browser notifications)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.session_timeout"
-msgid "Час життя сесії, хв"
+msgid "Session lifetime, min"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -5689,22 +5685,22 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.tab_general"
-msgid "Загальні"
+msgid "General"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.tab_notifications"
-msgid "Сповіщення"
+msgid "Notifications"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.tab_security"
-msgid "Безпека"
+msgid "Security"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgctxt "meta:SystemSettings.timezone"
-msgid "Часовий пояс"
+msgid "Time zone"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -6214,142 +6210,142 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm"
-msgid "Веб-форма"
+msgid "Web form"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.allow_edit"
-msgid "Дозволити редагування"
+msgid "Allow editing"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.doctype"
-msgid "Тип документа"
+msgid "Document type"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.fields"
-msgid "Поля (JSON)"
+msgid "Fields (JSON)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.introduction"
-msgid "Вступ"
+msgid "Introduction"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.is_published"
-msgid "Опубліковано"
+msgid "Published"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.login_required"
-msgid "Потрібна авторизація"
+msgid "Login required"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.max_submissions"
-msgid "Макс. відповідей"
+msgid "Max responses"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.route"
-msgid "URL маршрут"
+msgid "URL route"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.submit_label"
-msgid "Текст кнопки"
+msgid "Button text"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.success_message"
-msgid "Повідомлення успіху"
+msgid "Success message"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.success_url"
-msgid "URL після відправки"
+msgid "URL after submit"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebForm/WebForm.json
 msgctxt "meta:WebForm.title"
-msgid "Заголовок"
+msgid "Title"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPage/WebPage.json
 msgctxt "meta:WebPage"
-msgid "Веб-сторінка"
+msgid "Web page"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPage/WebPage.json
 msgctxt "meta:WebPage.blocks"
-msgid "Блоки контенту"
+msgid "Content blocks"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPage/WebPage.json
 msgctxt "meta:WebPage.content"
-msgid "Вміст"
+msgid "Content"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPage/WebPage.json
 msgctxt "meta:WebPage.menu_title"
-msgid "Назва в меню"
+msgid "Menu label"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPage/WebPage.json
 msgctxt "meta:WebPage.meta_description"
-msgid "Meta-опис (SEO)"
+msgid "Meta description (SEO)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPage/WebPage.json
 msgctxt "meta:WebPage.og_image"
-msgid "Зображення для соцмереж (OG)"
+msgid "Social image (OG)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPage/WebPage.json
 msgctxt "meta:WebPage.published"
-msgid "Опубліковано"
+msgid "Published"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPage/WebPage.json
 msgctxt "meta:WebPage.route"
-msgid "URL маршрут"
+msgid "URL route"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPage/WebPage.json
 msgctxt "meta:WebPage.show_in_navbar"
-msgid "Показувати в навігації"
+msgid "Show in navigation"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPage/WebPage.json
 msgctxt "meta:WebPage.title"
-msgid "Заголовок"
+msgid "Title"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
 msgctxt "meta:WebPageBlock"
-msgid "Блок контенту сторінки"
+msgid "Page content block"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
 msgctxt "meta:WebPageBlock.block_type"
-msgid "Тип блоку"
+msgid "Block type"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
 msgctxt "meta:WebPageBlock.sequence"
-msgid "Порядок"
+msgid "Order"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
 msgctxt "meta:WebPageBlock.settings"
-msgid "Налаштування блоку"
+msgid "Block settings"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebPageBlock/WebPageBlock.json
 msgctxt "meta:WebPageBlock.title"
-msgid "Заголовок"
+msgid "Title"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
@@ -6404,27 +6400,27 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "meta:WebsiteNavItem"
-msgid "Пункт меню сайту"
+msgid "Site menu item"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "meta:WebsiteNavItem.group"
-msgid "Група (для підвалу)"
+msgid "Group (for the footer)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "meta:WebsiteNavItem.is_external"
-msgid "Зовнішнє посилання"
+msgid "External link"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "meta:WebsiteNavItem.label"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
 msgctxt "meta:WebsiteNavItem.sequence"
-msgid "Порядок"
+msgid "Order"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteNavItem/WebsiteNavItem.json
@@ -6434,67 +6430,67 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings"
-msgid "Налаштування сайту"
+msgid "Site settings"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.brand_logo"
-msgid "Логотип"
+msgid "Logo"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.copyright_text"
-msgid "Текст копірайту"
+msgid "Copyright text"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.default_meta_description"
-msgid "Meta-опис за замовчуванням"
+msgid "Default meta description"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.default_og_image"
-msgid "Зображення для соцмереж за замовчуванням"
+msgid "Default social image"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.footer_items"
-msgid "Посилання в підвалі"
+msgid "Footer links"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.home_route"
-msgid "Маршрут головної сторінки"
+msgid "Home page route"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.navbar_items"
-msgid "Пункти верхнього меню"
+msgid "Top menu items"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.sec_brand"
-msgid "Бренд"
+msgid "Branding"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.sec_footer"
-msgid "Підвал сайту"
+msgid "Site footer"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.sec_nav"
-msgid "Навігація"
+msgid "Navigation"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.sec_seo"
-msgid "SEO за замовчуванням"
+msgid "Default SEO"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WebsiteSettings/WebsiteSettings.json
 msgctxt "meta:WebsiteSettings.site_name"
-msgid "Назва сайту"
+msgid "Site name"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
@@ -6609,57 +6605,57 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "meta:WorkspaceSidebarItem"
-msgid "Пункт меню додатку"
+msgid "App menu item"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "meta:WorkspaceSidebarItem.count_filters"
-msgid "Фільтри лічильника (JSON)"
+msgid "Count filters (JSON)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "meta:WorkspaceSidebarItem.icon"
-msgid "Іконка"
+msgid "Icon"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "meta:WorkspaceSidebarItem.is_singleton"
-msgid "Singleton (один запис)"
+msgid "Singleton (one record)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "meta:WorkspaceSidebarItem.label"
-msgid "Назва"
+msgid "Name"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "meta:WorkspaceSidebarItem.link_doctype"
-msgid "Doctype посилання"
+msgid "Link DocType"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "meta:WorkspaceSidebarItem.link_to"
-msgid "Посилання на"
+msgid "Links to"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "meta:WorkspaceSidebarItem.roles"
-msgid "Ролі (через кому)"
+msgid "Roles (comma-separated)"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "meta:WorkspaceSidebarItem.section"
-msgid "Секція"
+msgid "Section"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "meta:WorkspaceSidebarItem.show_count"
-msgid "Показати лічильник"
+msgid "Show count"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgctxt "meta:WorkspaceSidebarItem.type"
-msgid "Тип"
+msgid "Type"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json

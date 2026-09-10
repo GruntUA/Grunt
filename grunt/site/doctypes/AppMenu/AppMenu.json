@@ -1,6 +1,6 @@
 {
   "name": "AppMenu",
-  "label": "Меню додатку",
+  "label": "App menu",
   "module": "site",
   "is_child": false,
   "autoname": "prompt",
@@ -9,61 +9,61 @@
   "fields": [
     {
       "fieldname": "label",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "icon",
-      "label": "Іконка",
+      "label": "Icon",
       "fieldtype": "Icon",
       "in_list_view": true
     },
     {
       "fieldname": "color",
-      "label": "Колір",
+      "label": "Colour",
       "fieldtype": "Color",
       "default": "#2D6A4F"
     },
     {
       "fieldname": "description",
-      "label": "Опис",
+      "label": "Description",
       "fieldtype": "Text"
     },
     {
       "fieldname": "sequence",
-      "label": "Порядок",
+      "label": "Order",
       "fieldtype": "Int",
       "default": 0
     },
     {
       "fieldname": "is_hidden",
-      "label": "Приховано",
+      "label": "Hidden",
       "fieldtype": "Check",
       "default": false,
       "in_list_view": true
     },
     {
       "fieldname": "roles",
-      "label": "Ролі (через кому)",
+      "label": "Roles (comma-separated)",
       "fieldtype": "Text"
     },
     {
       "fieldname": "app",
-      "label": "Додаток",
+      "label": "App",
       "fieldtype": "Link",
       "options": "GruntInstalledApp"
     },
     {
       "fieldname": "home_page",
-      "label": "Домашня сторінка",
+      "label": "Home page",
       "fieldtype": "Link",
       "options": "Page"
     },
     {
       "fieldname": "sidebar_items",
-      "label": "Пункти sidebar",
+      "label": "Sidebar items",
       "fieldtype": "Table",
       "options": "WorkspaceSidebarItem"
     }

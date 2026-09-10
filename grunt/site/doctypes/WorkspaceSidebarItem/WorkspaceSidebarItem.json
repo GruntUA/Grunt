@@ -1,6 +1,6 @@
 {
   "name": "WorkspaceSidebarItem",
-  "label": "Пункт меню додатку",
+  "label": "App menu item",
   "module": "site",
   "is_child": true,
   "title_field": "label",
@@ -8,7 +8,7 @@
   "fields": [
     {
       "fieldname": "type",
-      "label": "Тип",
+      "label": "Type",
       "fieldtype": "Select",
       "options": "DocType\nReport\nPage\nURL\nDivider",
       "default": "DocType",
@@ -17,33 +17,33 @@
     },
     {
       "fieldname": "section",
-      "label": "Секція",
+      "label": "Section",
       "fieldtype": "Data",
       "in_list_view": true,
       "depends_on": "eval:doc.type != 'Divider'"
     },
     {
       "fieldname": "label",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Data",
       "in_list_view": true,
       "depends_on": "eval:doc.type != 'Divider'"
     },
     {
       "fieldname": "icon",
-      "label": "Іконка",
+      "label": "Icon",
       "fieldtype": "Icon",
       "depends_on": "eval:doc.type != 'Divider'"
     },
     {
       "fieldname": "link_doctype",
-      "label": "Doctype посилання",
+      "label": "Link DocType",
       "fieldtype": "Data",
       "hidden": true
     },
     {
       "fieldname": "link_to",
-      "label": "Посилання на",
+      "label": "Links to",
       "fieldtype": "DynamicLink",
       "options": "link_doctype",
       "in_list_view": true,
@@ -51,21 +51,21 @@
     },
     {
       "fieldname": "is_singleton",
-      "label": "Singleton (один запис)",
+      "label": "Singleton (one record)",
       "fieldtype": "Check",
       "default": false,
       "depends_on": "eval:doc.type == 'DocType'"
     },
     {
       "fieldname": "show_count",
-      "label": "Показати лічильник",
+      "label": "Show count",
       "fieldtype": "Check",
       "default": false,
       "depends_on": "eval:doc.type == 'DocType'"
     },
     {
       "fieldname": "count_filters",
-      "label": "Фільтри лічильника (JSON)",
+      "label": "Count filters (JSON)",
       "fieldtype": "Code",
       "options": "json",
       "default": "",
@@ -73,7 +73,7 @@
     },
     {
       "fieldname": "roles",
-      "label": "Ролі (через кому)",
+      "label": "Roles (comma-separated)",
       "fieldtype": "Text",
       "depends_on": "eval:doc.type != 'Divider'"
     }

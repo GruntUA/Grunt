@@ -1,24 +1,24 @@
 {
   "name": "Bookmark",
-  "label": "Закладка",
+  "label": "Bookmark",
   "module": "site",
   "fields": [
     {
       "fieldname": "reference_doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true
     },
     {
       "fieldname": "reference_id",
-      "label": "ID документа",
+      "label": "Document ID",
       "fieldtype": "Text",
       "required": true
     },
     {
       "fieldname": "title",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Text"
     }
   ],

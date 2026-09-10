@@ -1,13 +1,13 @@
 {
   "name": "WebsiteNavItem",
-  "label": "Пункт меню сайту",
+  "label": "Site menu item",
   "module": "site",
   "is_child": true,
   "title_field": "label",
   "fields": [
     {
       "fieldname": "label",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
@@ -21,19 +21,19 @@
     },
     {
       "fieldname": "is_external",
-      "label": "Зовнішнє посилання",
+      "label": "External link",
       "fieldtype": "Check",
       "default": false
     },
     {
       "fieldname": "group",
-      "label": "Група (для підвалу)",
+      "label": "Group (for the footer)",
       "fieldtype": "Text",
-      "description": "Використовується лише в підвалі сайту для групування посилань під заголовком"
+      "description": "Used only in the site footer to group links under a heading"
     },
     {
       "fieldname": "sequence",
-      "label": "Порядок",
+      "label": "Order",
       "fieldtype": "Int",
       "default": 0
     }

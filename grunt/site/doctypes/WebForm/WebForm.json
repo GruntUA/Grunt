@@ -1,26 +1,26 @@
 {
   "name": "WebForm",
-  "label": "Веб-форма",
+  "label": "Web form",
   "module": "site",
   "table_name": "grunt_web_form",
   "fields": [
     {
       "fieldname": "title",
-      "label": "Заголовок",
+      "label": "Title",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "route",
-      "label": "URL маршрут",
+      "label": "URL route",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "doctype",
-      "label": "Тип документа",
+      "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
       "required": true,
@@ -29,30 +29,30 @@
     },
     {
       "fieldname": "introduction",
-      "label": "Вступ",
+      "label": "Introduction",
       "fieldtype": "LongText"
     },
     {
       "fieldname": "success_message",
-      "label": "Повідомлення успіху",
+      "label": "Success message",
       "fieldtype": "Text",
       "default": "Дякуємо! Вашу заявку прийнято."
     },
     {
       "fieldname": "success_url",
-      "label": "URL після відправки",
+      "label": "URL after submit",
       "fieldtype": "Text"
     },
     {
       "fieldname": "login_required",
-      "label": "Потрібна авторизація",
+      "label": "Login required",
       "fieldtype": "Check",
       "default": false,
       "in_list_view": true
     },
     {
       "fieldname": "is_published",
-      "label": "Опубліковано",
+      "label": "Published",
       "fieldtype": "Check",
       "default": true,
       "in_list_view": true,
@@ -60,24 +60,24 @@
     },
     {
       "fieldname": "max_submissions",
-      "label": "Макс. відповідей",
+      "label": "Max responses",
       "fieldtype": "Int",
       "default": 0
     },
     {
       "fieldname": "submit_label",
-      "label": "Текст кнопки",
+      "label": "Button text",
       "fieldtype": "Text",
       "default": "Надіслати"
     },
     {
       "fieldname": "allow_edit",
-      "label": "Дозволити редагування",
+      "label": "Allow editing",
       "fieldtype": "Check"
     },
     {
       "fieldname": "fields",
-      "label": "Поля (JSON)",
+      "label": "Fields (JSON)",
       "fieldtype": "JSON"
     }
   ],

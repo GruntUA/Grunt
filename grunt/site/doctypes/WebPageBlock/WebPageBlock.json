@@ -1,13 +1,13 @@
 {
   "name": "WebPageBlock",
-  "label": "Блок контенту сторінки",
+  "label": "Page content block",
   "module": "site",
   "is_child": true,
   "title_field": "title",
   "fields": [
     {
       "fieldname": "block_type",
-      "label": "Тип блоку",
+      "label": "Block type",
       "fieldtype": "Select",
       "options_source": "grunt.website.block_type",
       "required": true,
@@ -16,13 +16,13 @@
     },
     {
       "fieldname": "title",
-      "label": "Заголовок",
+      "label": "Title",
       "fieldtype": "Text",
       "in_list_view": true
     },
     {
       "fieldname": "settings",
-      "label": "Налаштування блоку",
+      "label": "Block settings",
       "fieldtype": "JSON",
       "hidden": true,
       "dynamic_schema_source": "grunt.website.block_type",
@@ -30,7 +30,7 @@
     },
     {
       "fieldname": "sequence",
-      "label": "Порядок",
+      "label": "Order",
       "fieldtype": "Int",
       "default": 0
     }

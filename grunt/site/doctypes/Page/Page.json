@@ -1,6 +1,6 @@
 {
   "name": "Page",
-  "label": "Сторінка",
+  "label": "Page",
   "module": "site",
   "is_child": false,
   "autoname": "prompt",
@@ -8,19 +8,19 @@
   "fields": [
     {
       "fieldname": "label",
-      "label": "Назва",
+      "label": "Name",
       "fieldtype": "Text",
       "required": true,
       "in_list_view": true
     },
     {
       "fieldname": "description",
-      "label": "Опис",
+      "label": "Description",
       "fieldtype": "Text"
     },
     {
       "fieldname": "is_published",
-      "label": "Опублікована",
+      "label": "Published",
       "fieldtype": "Check",
       "default": false,
       "in_list_view": true,
@@ -28,12 +28,12 @@
     },
     {
       "fieldname": "roles",
-      "label": "Ролі (через кому)",
+      "label": "Roles (comma-separated)",
       "fieldtype": "Text"
     },
     {
       "fieldname": "widgets",
-      "label": "Віджети",
+      "label": "Widgets",
       "fieldtype": "Table",
       "options": "PageWidget"
     }

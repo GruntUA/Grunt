@@ -1,17 +1,16 @@
 {
   "name": "SystemSettings",
-  "label": "Налаштування системи",
+  "label": "System settings",
   "module": "site",
   "is_singleton": true,
   "icon": "Settings2",
   "fields": [
     {
       "fieldname": "tab_general",
-      "label": "Загальні",
+      "label": "General",
       "fieldtype": "Tab",
       "icon": "settings"
     },
-
     {
       "fieldname": "sec_identity",
       "label": "",
@@ -23,12 +22,12 @@
     },
     {
       "fieldname": "app_name",
-      "label": "Назва додатку",
+      "label": "App name",
       "fieldtype": "Text",
       "required": true,
       "default": "Grunt Framework",
       "bold": true,
-      "description": "Відображається у заголовку вкладки браузера, боковому меню та системних листах."
+      "description": "Shown in the browser tab title, the sidebar and system emails."
     },
     {
       "fieldname": "col_identity_right",
@@ -36,169 +35,163 @@
     },
     {
       "fieldname": "app_logo",
-      "label": "Логотип",
+      "label": "Logo",
       "fieldtype": "Image",
-      "description": "PNG або SVG. Показується у боковому меню та на сторінці входу."
+      "description": "PNG or SVG. Shown in the sidebar and on the login page."
     },
-
     {
       "fieldname": "sec_regional",
-      "label": "Регіональні налаштування",
+      "label": "Regional settings",
       "fieldtype": "Section"
     },
     {
       "fieldname": "language",
-      "label": "Мова за замовчуванням",
+      "label": "Default language",
       "fieldtype": "Select",
       "options": "uk-UA\nen-US",
       "default": "uk-UA",
       "columns": 6,
-      "description": "Мова інтерфейсу для нових користувачів."
+      "description": "UI language for new users."
     },
     {
       "fieldname": "timezone",
-      "label": "Часовий пояс",
+      "label": "Time zone",
       "fieldtype": "Select",
       "options": "Europe/Kyiv\nUTC",
       "default": "Europe/Kyiv",
       "columns": 6,
-      "description": "Використовується для відображення дат і часу."
+      "description": "Used to display dates and times."
     },
     {
       "fieldname": "date_format",
-      "label": "Формат дати",
+      "label": "Date format",
       "fieldtype": "Select",
       "options": "dd.mm.yyyy\ndd/mm/yyyy\nyyyy-mm-dd",
       "default": "dd.mm.yyyy",
       "columns": 6
     },
-
     {
       "fieldname": "sec_registration",
-      "label": "Реєстрація користувачів",
+      "label": "User registration",
       "fieldtype": "Section"
     },
     {
       "fieldname": "allow_user_registration",
-      "label": "Дозволити самостійну реєстрацію",
+      "label": "Allow self sign-up",
       "fieldtype": "Check",
       "default": false,
       "columns": 12,
-      "description": "Показує форму реєстрації на сторінці входу."
+      "description": "Shows the sign-up form on the login page."
     },
     {
       "fieldname": "require_signup_approval",
-      "label": "Реєстрація потребує підтвердження",
+      "label": "Registration needs approval",
       "fieldtype": "Check",
       "default": false,
       "columns": 12,
       "depends_on": "eval: doc.allow_user_registration",
-      "description": "Новий користувач не зможе увійти, доки адміністратор не підтвердить його реєстрацію."
+      "description": "A new user cannot sign in until an administrator approves their registration."
     },
     {
       "fieldname": "default_role",
-      "label": "Роль за замовчуванням",
+      "label": "Default role",
       "fieldtype": "Link",
       "options": "Role",
       "columns": 6,
       "depends_on": "eval: doc.allow_user_registration",
       "mandatory_depends_on": "eval: doc.allow_user_registration",
-      "description": "Призначається користувачу одразу після самостійної реєстрації."
+      "description": "Assigned to the user right after self sign-up."
     },
-
     {
       "fieldname": "sec_maintenance",
-      "label": "Журнали та обслуговування",
+      "label": "Logs & maintenance",
       "fieldtype": "Section"
     },
     {
       "fieldname": "log_retention_days",
-      "label": "Зберігати журнали, днів",
+      "label": "Keep logs, days",
       "fieldtype": "Int",
       "default": 90,
       "min_value": 1,
       "max_value": 3650,
       "columns": 6,
-      "description": "Записи журналів (помилки, фонові завдання, перегляди тощо) старші за вказану кількість днів видаляються автоматично щодоби. Окремий DocType може перевизначити це значення власним параметром."
+      "description": "Log records (errors, background jobs, views, etc.) older than this many days are deleted automatically every day. An individual DocType may override this with its own setting."
     },
-
     {
       "fieldname": "tab_security",
-      "label": "Безпека",
+      "label": "Security",
       "fieldtype": "Tab",
       "icon": "shield-check"
     },
-
     {
       "fieldname": "sec_password",
-      "label": "Політика паролів",
+      "label": "Password policy",
       "fieldtype": "Section"
     },
     {
       "fieldname": "password_min_length",
-      "label": "Мінімальна довжина пароля",
+      "label": "Minimum password length",
       "fieldtype": "Int",
       "default": 8,
       "min_value": 4,
       "max_value": 128,
       "columns": 6,
-      "description": "Застосовується при створенні або зміні пароля."
+      "description": "Applied when a password is created or changed."
     },
     {
       "fieldname": "password_require_uppercase",
-      "label": "Великі літери (A–Z)",
+      "label": "Uppercase letters (A–Z)",
       "fieldtype": "Check",
       "default": true,
       "columns": 6
     },
     {
       "fieldname": "password_require_lowercase",
-      "label": "Малі літери (a–z)",
+      "label": "Lowercase letters (a–z)",
       "fieldtype": "Check",
       "default": true,
       "columns": 6
     },
     {
       "fieldname": "password_require_numbers",
-      "label": "Цифри (0–9)",
+      "label": "Digits (0–9)",
       "fieldtype": "Check",
       "default": true,
       "columns": 6
     },
     {
       "fieldname": "password_require_symbols",
-      "label": "Спеціальні символи",
+      "label": "Special characters",
       "fieldtype": "Check",
       "default": false,
       "columns": 6
     },
-
     {
       "fieldname": "sec_sessions",
-      "label": "Сесії та захист від підбору",
+      "label": "Sessions & brute-force protection",
       "fieldtype": "Section"
     },
     {
       "fieldname": "session_timeout",
-      "label": "Час життя сесії, хв",
+      "label": "Session lifetime, min",
       "fieldtype": "Int",
       "default": 480,
       "min_value": 5,
       "columns": 6,
-      "description": "Через скільки хвилин бездіяльності потрібен повторний вхід."
+      "description": "After how many minutes of inactivity a re-login is required."
     },
     {
       "fieldname": "max_login_attempts",
-      "label": "Максимум спроб входу",
+      "label": "Max login attempts",
       "fieldtype": "Int",
       "default": 5,
       "min_value": 1,
       "columns": 6,
-      "description": "Кількість невдалих спроб до тимчасового блокування."
+      "description": "Number of failed attempts before a temporary lockout."
     },
     {
       "fieldname": "account_lockout_duration",
-      "label": "Тривалість блокування, хв",
+      "label": "Lockout duration, min",
       "fieldtype": "Int",
       "default": 30,
       "min_value": 1,
@@ -206,24 +199,22 @@
     },
     {
       "fieldname": "sec_user_permissions",
-      "label": "Обмеження доступу (User Permissions)",
+      "label": "Access restrictions (User Permissions)",
       "fieldtype": "Section"
     },
     {
       "fieldname": "apply_strict_user_permissions",
-      "label": "Суворі обмеження користувача",
+      "label": "Strict user permissions",
       "fieldtype": "Check",
       "default": false,
-      "description": "Якщо увімкнено — документ без Link-поля на обмежений тип (або з порожнім значенням) приховується, а не показується."
+      "description": "When enabled, a document with no Link field to the restricted type (or with an empty value) is hidden rather than shown."
     },
-
     {
       "fieldname": "tab_email",
       "label": "Email",
       "fieldtype": "Tab",
       "icon": "mail"
     },
-
     {
       "fieldname": "sec_email",
       "label": "",
@@ -231,39 +222,37 @@
     },
     {
       "fieldname": "default_email_account",
-      "label": "Обліковий запис за замовчуванням",
+      "label": "Default account",
       "fieldtype": "Link",
       "options": "EmailAccount",
       "columns": 6,
-      "description": "Використовується для вихідних листів, коли відправника не вказано явно."
+      "description": "Used for outgoing mail when no sender is set explicitly."
     },
     {
       "fieldname": "email_footer",
-      "label": "Підпис у листах",
+      "label": "Email signature",
       "fieldtype": "RichText",
       "columns": 12,
-      "description": "Додається в кінець кожного вихідного листа."
+      "description": "Appended to the end of every outgoing email."
     },
-
     {
       "fieldname": "tab_notifications",
-      "label": "Сповіщення",
+      "label": "Notifications",
       "fieldtype": "Tab",
       "icon": "bell"
     },
-
     {
       "fieldname": "sec_webpush",
-      "label": "Web Push (сповіщення браузера)",
+      "label": "Web Push (browser notifications)",
       "fieldtype": "Section"
     },
     {
       "fieldname": "enable_web_push",
-      "label": "Увімкнути push-сповіщення",
+      "label": "Enable push notifications",
       "fieldtype": "Check",
       "default": false,
       "columns": 12,
-      "description": "Дозволяє користувачам підписуватися на сповіщення в браузері."
+      "description": "Lets users subscribe to browser notifications."
     },
     {
       "fieldname": "webpush_vapid_public",
@@ -271,7 +260,7 @@
       "fieldtype": "Text",
       "read_only": true,
       "columns": 12,
-      "description": "Генерується автоматично при першому запуску Web Push. Потрібен клієнтам для підписки."
+      "description": "Generated automatically on the first Web Push run. Clients need it to subscribe."
     },
     {
       "fieldname": "webpush_vapid_private",
@@ -279,10 +268,9 @@
       "fieldtype": "LongText",
       "hidden": true
     },
-
     {
       "fieldname": "is_setup_complete",
-      "label": "Систему налаштовано",
+      "label": "System configured",
       "fieldtype": "Check",
       "default": false,
       "hidden": true

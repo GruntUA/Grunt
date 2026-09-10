@@ -1530,3 +1530,625 @@ msgstr "Дозволені ролі (через кому)"
 msgctxt "meta:WorkflowTransition.condition"
 msgid "Condition (eval:)"
 msgstr "Умова (eval:)"
+
+msgctxt "meta:AppMenu"
+msgid "App menu"
+msgstr "Меню додатку"
+
+msgctxt "meta:AppMenu.label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:AppMenu.icon"
+msgid "Icon"
+msgstr "Іконка"
+
+msgctxt "meta:AppMenu.color"
+msgid "Colour"
+msgstr "Колір"
+
+msgctxt "meta:AppMenu.description"
+msgid "Description"
+msgstr "Опис"
+
+msgctxt "meta:AppMenu.sequence"
+msgid "Order"
+msgstr "Порядок"
+
+msgctxt "meta:AppMenu.is_hidden"
+msgid "Hidden"
+msgstr "Приховано"
+
+msgctxt "meta:AppMenu.roles"
+msgid "Roles (comma-separated)"
+msgstr "Ролі (через кому)"
+
+msgctxt "meta:AppMenu.app"
+msgid "App"
+msgstr "Додаток"
+
+msgctxt "meta:AppMenu.home_page"
+msgid "Home page"
+msgstr "Домашня сторінка"
+
+msgctxt "meta:AppMenu.sidebar_items"
+msgid "Sidebar items"
+msgstr "Пункти sidebar"
+
+msgctxt "meta:Bookmark"
+msgid "Bookmark"
+msgstr "Закладка"
+
+msgctxt "meta:Bookmark.reference_doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:Bookmark.reference_id"
+msgid "Document ID"
+msgstr "ID документа"
+
+msgctxt "meta:Bookmark.title"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:Page"
+msgid "Page"
+msgstr "Сторінка"
+
+msgctxt "meta:Page.label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:Page.description"
+msgid "Description"
+msgstr "Опис"
+
+msgctxt "meta:Page.is_published"
+msgid "Published"
+msgstr "Опублікована"
+
+msgctxt "meta:Page.roles"
+msgid "Roles (comma-separated)"
+msgstr "Ролі (через кому)"
+
+msgctxt "meta:Page.widgets"
+msgid "Widgets"
+msgstr "Віджети"
+
+msgctxt "meta:PageWidget"
+msgid "Page widget"
+msgstr "Віджет сторінки"
+
+msgctxt "meta:PageWidget.widget_type"
+msgid "Type"
+msgstr "Тип"
+
+msgctxt "meta:PageWidget.title"
+msgid "Title"
+msgstr "Заголовок"
+
+msgctxt "meta:PageWidget.aggregation"
+msgid "Aggregation"
+msgstr "Агрегація"
+
+msgctxt "meta:PageWidget.field"
+msgid "Field"
+msgstr "Поле"
+
+msgctxt "meta:PageWidget.group_by"
+msgid "Group by"
+msgstr "Групувати за"
+
+msgctxt "meta:PageWidget.date_field"
+msgid "Date field"
+msgstr "Поле дати"
+
+msgctxt "meta:PageWidget.period"
+msgid "Period"
+msgstr "Період"
+
+msgctxt "meta:PageWidget.filters"
+msgid "Filters"
+msgstr "Фільтри"
+
+msgctxt "meta:PageWidget.min_value"
+msgid "Min. value"
+msgstr "Мін. значення"
+
+msgctxt "meta:PageWidget.max_value"
+msgid "Max. value"
+msgstr "Макс. значення"
+
+msgctxt "meta:PageWidget.cols"
+msgid "Width (1-4)"
+msgstr "Ширина (1-4)"
+
+msgctxt "meta:PageWidget.color"
+msgid "Colour"
+msgstr "Колір"
+
+msgctxt "meta:PageWidget.icon"
+msgid "Icon (lucide)"
+msgstr "Іконка (lucide)"
+
+msgctxt "meta:PageWidget.sequence"
+msgid "Order"
+msgstr "Порядок"
+
+msgctxt "meta:PageWidget.link_type"
+msgid "Link type"
+msgstr "Тип посилання"
+
+msgctxt "meta:PageWidget.description"
+msgid "Description / Subtitle"
+msgstr "Опис / Підзаголовок"
+
+msgctxt "meta:PageWidget.report"
+msgid "Report (chart data source)"
+msgstr "Звіт (джерело даних для графіка)"
+
+msgctxt "meta:PageWidget.content"
+msgid "Content"
+msgstr "Вміст"
+
+msgctxt "meta:SystemSettings"
+msgid "System settings"
+msgstr "Налаштування системи"
+
+msgctxt "meta:SystemSettings.tab_general"
+msgid "General"
+msgstr "Загальні"
+
+msgctxt "meta:SystemSettings.app_name"
+msgid "App name"
+msgstr "Назва додатку"
+
+msgctxt "help:SystemSettings.app_name"
+msgid "Shown in the browser tab title, the sidebar and system emails."
+msgstr ""
+"Відображається у заголовку вкладки браузера, боковому меню та системних "
+"листах."
+
+msgctxt "meta:SystemSettings.app_logo"
+msgid "Logo"
+msgstr "Логотип"
+
+msgctxt "help:SystemSettings.app_logo"
+msgid "PNG or SVG. Shown in the sidebar and on the login page."
+msgstr "PNG або SVG. Показується у боковому меню та на сторінці входу."
+
+msgctxt "meta:SystemSettings.sec_regional"
+msgid "Regional settings"
+msgstr "Регіональні налаштування"
+
+msgctxt "meta:SystemSettings.language"
+msgid "Default language"
+msgstr "Мова за замовчуванням"
+
+msgctxt "help:SystemSettings.language"
+msgid "UI language for new users."
+msgstr "Мова інтерфейсу для нових користувачів."
+
+msgctxt "meta:SystemSettings.timezone"
+msgid "Time zone"
+msgstr "Часовий пояс"
+
+msgctxt "help:SystemSettings.timezone"
+msgid "Used to display dates and times."
+msgstr "Використовується для відображення дат і часу."
+
+msgctxt "meta:SystemSettings.date_format"
+msgid "Date format"
+msgstr "Формат дати"
+
+msgctxt "meta:SystemSettings.sec_registration"
+msgid "User registration"
+msgstr "Реєстрація користувачів"
+
+msgctxt "meta:SystemSettings.allow_user_registration"
+msgid "Allow self sign-up"
+msgstr "Дозволити самостійну реєстрацію"
+
+msgctxt "help:SystemSettings.allow_user_registration"
+msgid "Shows the sign-up form on the login page."
+msgstr "Показує форму реєстрації на сторінці входу."
+
+msgctxt "meta:SystemSettings.require_signup_approval"
+msgid "Registration needs approval"
+msgstr "Реєстрація потребує підтвердження"
+
+msgctxt "help:SystemSettings.require_signup_approval"
+msgid ""
+"A new user cannot sign in until an administrator approves their "
+"registration."
+msgstr ""
+"Новий користувач не зможе увійти, доки адміністратор не підтвердить його "
+"реєстрацію."
+
+msgctxt "meta:SystemSettings.default_role"
+msgid "Default role"
+msgstr "Роль за замовчуванням"
+
+msgctxt "help:SystemSettings.default_role"
+msgid "Assigned to the user right after self sign-up."
+msgstr "Призначається користувачу одразу після самостійної реєстрації."
+
+msgctxt "meta:SystemSettings.sec_maintenance"
+msgid "Logs & maintenance"
+msgstr "Журнали та обслуговування"
+
+msgctxt "meta:SystemSettings.log_retention_days"
+msgid "Keep logs, days"
+msgstr "Зберігати журнали, днів"
+
+msgctxt "help:SystemSettings.log_retention_days"
+msgid ""
+"Log records (errors, background jobs, views, etc.) older than this many days"
+" are deleted automatically every day. An individual DocType may override "
+"this with its own setting."
+msgstr ""
+"Записи журналів (помилки, фонові завдання, перегляди тощо) старші за вказану"
+" кількість днів видаляються автоматично щодоби. Окремий DocType може "
+"перевизначити це значення власним параметром."
+
+msgctxt "meta:SystemSettings.tab_security"
+msgid "Security"
+msgstr "Безпека"
+
+msgctxt "meta:SystemSettings.sec_password"
+msgid "Password policy"
+msgstr "Політика паролів"
+
+msgctxt "meta:SystemSettings.password_min_length"
+msgid "Minimum password length"
+msgstr "Мінімальна довжина пароля"
+
+msgctxt "help:SystemSettings.password_min_length"
+msgid "Applied when a password is created or changed."
+msgstr "Застосовується при створенні або зміні пароля."
+
+msgctxt "meta:SystemSettings.password_require_uppercase"
+msgid "Uppercase letters (A–Z)"
+msgstr "Великі літери (A–Z)"
+
+msgctxt "meta:SystemSettings.password_require_lowercase"
+msgid "Lowercase letters (a–z)"
+msgstr "Малі літери (a–z)"
+
+msgctxt "meta:SystemSettings.password_require_numbers"
+msgid "Digits (0–9)"
+msgstr "Цифри (0–9)"
+
+msgctxt "meta:SystemSettings.password_require_symbols"
+msgid "Special characters"
+msgstr "Спеціальні символи"
+
+msgctxt "meta:SystemSettings.sec_sessions"
+msgid "Sessions & brute-force protection"
+msgstr "Сесії та захист від підбору"
+
+msgctxt "meta:SystemSettings.session_timeout"
+msgid "Session lifetime, min"
+msgstr "Час життя сесії, хв"
+
+msgctxt "help:SystemSettings.session_timeout"
+msgid "After how many minutes of inactivity a re-login is required."
+msgstr "Через скільки хвилин бездіяльності потрібен повторний вхід."
+
+msgctxt "meta:SystemSettings.max_login_attempts"
+msgid "Max login attempts"
+msgstr "Максимум спроб входу"
+
+msgctxt "help:SystemSettings.max_login_attempts"
+msgid "Number of failed attempts before a temporary lockout."
+msgstr "Кількість невдалих спроб до тимчасового блокування."
+
+msgctxt "meta:SystemSettings.account_lockout_duration"
+msgid "Lockout duration, min"
+msgstr "Тривалість блокування, хв"
+
+msgctxt "meta:SystemSettings.sec_user_permissions"
+msgid "Access restrictions (User Permissions)"
+msgstr "Обмеження доступу (User Permissions)"
+
+msgctxt "meta:SystemSettings.apply_strict_user_permissions"
+msgid "Strict user permissions"
+msgstr "Суворі обмеження користувача"
+
+msgctxt "help:SystemSettings.apply_strict_user_permissions"
+msgid ""
+"When enabled, a document with no Link field to the restricted type (or with "
+"an empty value) is hidden rather than shown."
+msgstr ""
+"Якщо увімкнено — документ без Link-поля на обмежений тип (або з порожнім "
+"значенням) приховується, а не показується."
+
+msgctxt "meta:SystemSettings.default_email_account"
+msgid "Default account"
+msgstr "Обліковий запис за замовчуванням"
+
+msgctxt "help:SystemSettings.default_email_account"
+msgid "Used for outgoing mail when no sender is set explicitly."
+msgstr ""
+"Використовується для вихідних листів, коли відправника не вказано явно."
+
+msgctxt "meta:SystemSettings.email_footer"
+msgid "Email signature"
+msgstr "Підпис у листах"
+
+msgctxt "help:SystemSettings.email_footer"
+msgid "Appended to the end of every outgoing email."
+msgstr "Додається в кінець кожного вихідного листа."
+
+msgctxt "meta:SystemSettings.tab_notifications"
+msgid "Notifications"
+msgstr "Сповіщення"
+
+msgctxt "meta:SystemSettings.sec_webpush"
+msgid "Web Push (browser notifications)"
+msgstr "Web Push (сповіщення браузера)"
+
+msgctxt "meta:SystemSettings.enable_web_push"
+msgid "Enable push notifications"
+msgstr "Увімкнути push-сповіщення"
+
+msgctxt "help:SystemSettings.enable_web_push"
+msgid "Lets users subscribe to browser notifications."
+msgstr "Дозволяє користувачам підписуватися на сповіщення в браузері."
+
+msgctxt "help:SystemSettings.webpush_vapid_public"
+msgid ""
+"Generated automatically on the first Web Push run. Clients need it to "
+"subscribe."
+msgstr ""
+"Генерується автоматично при першому запуску Web Push. Потрібен клієнтам для "
+"підписки."
+
+msgctxt "meta:SystemSettings.is_setup_complete"
+msgid "System configured"
+msgstr "Систему налаштовано"
+
+msgctxt "meta:WebForm"
+msgid "Web form"
+msgstr "Веб-форма"
+
+msgctxt "meta:WebForm.title"
+msgid "Title"
+msgstr "Заголовок"
+
+msgctxt "meta:WebForm.route"
+msgid "URL route"
+msgstr "URL маршрут"
+
+msgctxt "meta:WebForm.doctype"
+msgid "Document type"
+msgstr "Тип документа"
+
+msgctxt "meta:WebForm.introduction"
+msgid "Introduction"
+msgstr "Вступ"
+
+msgctxt "meta:WebForm.success_message"
+msgid "Success message"
+msgstr "Повідомлення успіху"
+
+msgctxt "meta:WebForm.success_url"
+msgid "URL after submit"
+msgstr "URL після відправки"
+
+msgctxt "meta:WebForm.login_required"
+msgid "Login required"
+msgstr "Потрібна авторизація"
+
+msgctxt "meta:WebForm.is_published"
+msgid "Published"
+msgstr "Опубліковано"
+
+msgctxt "meta:WebForm.max_submissions"
+msgid "Max responses"
+msgstr "Макс. відповідей"
+
+msgctxt "meta:WebForm.submit_label"
+msgid "Button text"
+msgstr "Текст кнопки"
+
+msgctxt "meta:WebForm.allow_edit"
+msgid "Allow editing"
+msgstr "Дозволити редагування"
+
+msgctxt "meta:WebForm.fields"
+msgid "Fields (JSON)"
+msgstr "Поля (JSON)"
+
+msgctxt "meta:WebPage"
+msgid "Web page"
+msgstr "Веб-сторінка"
+
+msgctxt "meta:WebPage.title"
+msgid "Title"
+msgstr "Заголовок"
+
+msgctxt "meta:WebPage.route"
+msgid "URL route"
+msgstr "URL маршрут"
+
+msgctxt "meta:WebPage.published"
+msgid "Published"
+msgstr "Опубліковано"
+
+msgctxt "meta:WebPage.content"
+msgid "Content"
+msgstr "Вміст"
+
+msgctxt "meta:WebPage.meta_description"
+msgid "Meta description (SEO)"
+msgstr "Meta-опис (SEO)"
+
+msgctxt "meta:WebPage.og_image"
+msgid "Social image (OG)"
+msgstr "Зображення для соцмереж (OG)"
+
+msgctxt "meta:WebPage.show_in_navbar"
+msgid "Show in navigation"
+msgstr "Показувати в навігації"
+
+msgctxt "meta:WebPage.menu_title"
+msgid "Menu label"
+msgstr "Назва в меню"
+
+msgctxt "meta:WebPage.blocks"
+msgid "Content blocks"
+msgstr "Блоки контенту"
+
+msgctxt "meta:WebPageBlock"
+msgid "Page content block"
+msgstr "Блок контенту сторінки"
+
+msgctxt "meta:WebPageBlock.block_type"
+msgid "Block type"
+msgstr "Тип блоку"
+
+msgctxt "meta:WebPageBlock.title"
+msgid "Title"
+msgstr "Заголовок"
+
+msgctxt "meta:WebPageBlock.settings"
+msgid "Block settings"
+msgstr "Налаштування блоку"
+
+msgctxt "meta:WebPageBlock.sequence"
+msgid "Order"
+msgstr "Порядок"
+
+msgctxt "meta:WebsiteNavItem"
+msgid "Site menu item"
+msgstr "Пункт меню сайту"
+
+msgctxt "meta:WebsiteNavItem.label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:WebsiteNavItem.is_external"
+msgid "External link"
+msgstr "Зовнішнє посилання"
+
+msgctxt "meta:WebsiteNavItem.group"
+msgid "Group (for the footer)"
+msgstr "Група (для підвалу)"
+
+msgctxt "help:WebsiteNavItem.group"
+msgid "Used only in the site footer to group links under a heading"
+msgstr ""
+"Використовується лише в підвалі сайту для групування посилань під заголовком"
+
+msgctxt "meta:WebsiteNavItem.sequence"
+msgid "Order"
+msgstr "Порядок"
+
+msgctxt "meta:WebsiteSettings"
+msgid "Site settings"
+msgstr "Налаштування сайту"
+
+msgctxt "meta:WebsiteSettings.sec_brand"
+msgid "Branding"
+msgstr "Бренд"
+
+msgctxt "meta:WebsiteSettings.site_name"
+msgid "Site name"
+msgstr "Назва сайту"
+
+msgctxt "meta:WebsiteSettings.brand_logo"
+msgid "Logo"
+msgstr "Логотип"
+
+msgctxt "meta:WebsiteSettings.home_route"
+msgid "Home page route"
+msgstr "Маршрут головної сторінки"
+
+msgctxt "help:WebsiteSettings.home_route"
+msgid ""
+"Route of the published WebPage used as the home page (a file-based "
+"www/index.html always takes priority)"
+msgstr ""
+"Route опублікованої WebPage, що використовується як домашня (файлова "
+"www/index.html завжди має пріоритет)"
+
+msgctxt "meta:WebsiteSettings.sec_nav"
+msgid "Navigation"
+msgstr "Навігація"
+
+msgctxt "meta:WebsiteSettings.navbar_items"
+msgid "Top menu items"
+msgstr "Пункти верхнього меню"
+
+msgctxt "meta:WebsiteSettings.sec_footer"
+msgid "Site footer"
+msgstr "Підвал сайту"
+
+msgctxt "meta:WebsiteSettings.copyright_text"
+msgid "Copyright text"
+msgstr "Текст копірайту"
+
+msgctxt "meta:WebsiteSettings.footer_items"
+msgid "Footer links"
+msgstr "Посилання в підвалі"
+
+msgctxt "help:WebsiteSettings.footer_items"
+msgid "The 'Group' field sets the column heading in the footer"
+msgstr "Поле 'Група' визначає заголовок колонки в підвалі"
+
+msgctxt "meta:WebsiteSettings.sec_seo"
+msgid "Default SEO"
+msgstr "SEO за замовчуванням"
+
+msgctxt "meta:WebsiteSettings.default_meta_description"
+msgid "Default meta description"
+msgstr "Meta-опис за замовчуванням"
+
+msgctxt "meta:WebsiteSettings.default_og_image"
+msgid "Default social image"
+msgstr "Зображення для соцмереж за замовчуванням"
+
+msgctxt "meta:WorkspaceSidebarItem"
+msgid "App menu item"
+msgstr "Пункт меню додатку"
+
+msgctxt "meta:WorkspaceSidebarItem.type"
+msgid "Type"
+msgstr "Тип"
+
+msgctxt "meta:WorkspaceSidebarItem.section"
+msgid "Section"
+msgstr "Секція"
+
+msgctxt "meta:WorkspaceSidebarItem.label"
+msgid "Name"
+msgstr "Назва"
+
+msgctxt "meta:WorkspaceSidebarItem.icon"
+msgid "Icon"
+msgstr "Іконка"
+
+msgctxt "meta:WorkspaceSidebarItem.link_doctype"
+msgid "Link DocType"
+msgstr "Doctype посилання"
+
+msgctxt "meta:WorkspaceSidebarItem.link_to"
+msgid "Links to"
+msgstr "Посилання на"
+
+msgctxt "meta:WorkspaceSidebarItem.is_singleton"
+msgid "Singleton (one record)"
+msgstr "Singleton (один запис)"
+
+msgctxt "meta:WorkspaceSidebarItem.show_count"
+msgid "Show count"
+msgstr "Показати лічильник"
+
+msgctxt "meta:WorkspaceSidebarItem.count_filters"
+msgid "Count filters (JSON)"
+msgstr "Фільтри лічильника (JSON)"
+
+msgctxt "meta:WorkspaceSidebarItem.roles"
+msgid "Roles (comma-separated)"
+msgstr "Ролі (через кому)"
